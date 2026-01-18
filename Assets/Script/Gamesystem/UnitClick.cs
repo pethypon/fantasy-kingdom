@@ -86,10 +86,20 @@ public class UnitClick : MonoBehaviour
                         playermove.MenuSwitch = false;
                     }
                 }
+                //もう一度プレイヤー側の駒をクリックした場合
                 else if (playermove.MP.team == Team.Player)
                 {
                     if (playermove.MP.type == Type.Unit)
                     {
+                        /*
+                         
+                        MovePointを消すためにMoveResetを呼び出す
+                        新しくRayを飛ばして手に入れた情報と座標をObjとObjPに代入しなおす
+                        新しく代入したらその変数をもとにMoveCoreを呼び出す
+                        SelectUnnitのなかにObjを代入
+                        UnitPointDataからOldCellを取り出して新しくOldCellに代入しなおす
+
+                        */
                         turngenerater.movegenerater.MoveReset();
                         playermove.Obj = playermove.hit.transform.GetComponent<Status>();
                         playermove.ObjP = playermove.hit.transform.position;
