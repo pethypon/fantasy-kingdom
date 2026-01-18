@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BattleSystem : MonoBehaviour
 {
+    public Status target;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -14,5 +15,10 @@ public class BattleSystem : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void DamageGenerater()
+    {
+        //ç°å„èëÇ≠
     }
 }

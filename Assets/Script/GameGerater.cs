@@ -22,6 +22,5 @@ public class GameGerater : MonoBehaviour
         _MoveGenerater.UnitPointCore();
      
     }
-
 }
 

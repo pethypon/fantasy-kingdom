@@ -6,9 +6,6 @@ using UnityEngine;
 
 public class AttackPointt : MonoBehaviour
 {
-    public MapCreate mapcreate;
-    public PlayerMove move;
-    public MoveGererater movegenerater;
     public PlayerMove.AttackMode attackmode;
     public List<Vector3> AttackP;
     public List<Vector3> setpos;
@@ -16,6 +13,21 @@ public class AttackPointt : MonoBehaviour
     [SerializeField] public HashSet<Vector3> unitdata;
     public Status obj;
     public Vector3 objp;
+    public Vector3 attackpos;
+    public RaycastHit targethit;
+
+    [Header("マップクリエイト")]
+    [SerializeField] public MapCreate mapcreate;
+    [Header("プレイヤームーブ")]
+    [SerializeField] public PlayerMove move;
+    [Header("ムーブジェネレーター")]
+    [SerializeField] public MoveGererater movegenerater;
+    [Header("アタックポイント")]
+    [SerializeField] public GameObject AttackPoint;
+    [Header("アタックポイント親")]
+    [SerializeField] public Transform APparent;
+
+    
 
     public void AttackPointCall(Status Obj,Vector3 ObjP,PlayerMove move)
     {
@@ -25,7 +37,8 @@ public class AttackPointt : MonoBehaviour
         switch(attackmode)
         {
             case PlayerMove.AttackMode.Normal:
-
+                NormalAttackPData(Obj,ObjP);
+                PointCreate();
             break;
 
             case PlayerMove.AttackMode.Skill:
@@ -43,6 +56,45 @@ public class AttackPointt : MonoBehaviour
 
     public void PointCreate()
     {
+        for (int i = 0 ; i < AttackP.Count; i++)
+        {
+            Vector3 pos = AttackP[i];
+            pos.y -= 0.17f;
+            Instantiate(AttackPoint, pos, Quaternion.identity,APparent);
+        }
+    }
+
+    public void AtkpDestroy()
+    {
+        foreach(Transform child in APparent)
+        {
+            GameObject.Destroy(child.gameObject);
+        }
+    }
+
+    public void RayAttackP()
+    {
+        for (int i = 0; i < AttackP.Count; i++)
+        {
+            attackpos = AttackP[i];
+            Vector3 raystart = attackpos + new Vector3(0f,20f,0f);
+            Ray ray = new Ray(raystart, Vector3.down);
+            if (Physics.Raycast(ray, out targethit,50f))
+            {
+                Status targetbox = targethit.transform.GetComponent<Status>();
+                if(targetbox != null)
+                {
+                    if(targetbox.team == Team.Enemy)
+                    {
+                        if(targetbox.type == Type.Unit)
+                        {
+
+                        }
+                    }
+                }
+            }
+        }
+
         
     }
 
@@ -56,6 +108,8 @@ public class AttackPointt : MonoBehaviour
         objp = ObjP;
         movegenerater.UnitPointCore();
         unitdata = movegenerater.UnitPointData;
+
+        // 攻撃位置を全て求めてさらに敵がいる場所だけを割り出す
         switch (obj.kind)
         {
             case Kind.King:

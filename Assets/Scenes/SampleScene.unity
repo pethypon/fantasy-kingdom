@@ -119,6 +119,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &41934481
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 41934482}
+  m_Layer: 0
+  m_Name: AttackPointParent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &41934482
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 41934481}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8343696243348192791}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -344,6 +375,10 @@ PrefabInstance:
       propertyPath: unitclick
       value: 
       objectReference: {fileID: 841673932}
+    - target: {fileID: 4159731912497685939, guid: 14c9d30bb9579ad45bac320655d90dd6, type: 3}
+      propertyPath: attackpoint
+      value: 
+      objectReference: {fileID: 8343696243348192790}
     - target: {fileID: 4818823903767845071, guid: 14c9d30bb9579ad45bac320655d90dd6, type: 3}
       propertyPath: turngenerater
       value: 
@@ -358,6 +393,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 838264950532230598, guid: 14c9d30bb9579ad45bac320655d90dd6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 841673933}
+    - targetCorrespondingSourceObject: {fileID: 4216757723622843649, guid: 14c9d30bb9579ad45bac320655d90dd6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 41934482}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3005070555238344155, guid: 14c9d30bb9579ad45bac320655d90dd6, type: 3}
       insertIndex: -1
@@ -391,13 +429,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e23d3c0749a3dfe43b85296877c4bc42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapcreate: {fileID: 8343696243348192789}
-  movegenerater: {fileID: 0}
   attackmode: 0
   AttackP: []
   setpos: []
   obj: {fileID: 0}
   objp: {x: 0, y: 0, z: 0}
+  mapcreate: {fileID: 8343696243348192789}
+  movegenerater: {fileID: 1813733547}
+  AttackPoint: {fileID: 8753378008472420332, guid: 86afd15083f559c4e86bf44c4e00201c, type: 3}
+  APparent: {fileID: 41934482}
+--- !u!4 &8343696243348192791 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4216757723622843649, guid: 14c9d30bb9579ad45bac320655d90dd6, type: 3}
+  m_PrefabInstance: {fileID: 8343696243348192787}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

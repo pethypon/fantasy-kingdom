@@ -16,6 +16,8 @@ public class PlayerMove : StateCore
     private TurnGenerater turngenerater;
     private UnitClick unitclick;
     private MapCreate mapcreate;
+    public PlayerAttack playerattack;
+    public BattleSystem battlesystem;
     
     public bool MenuSwitch;
     public Status Obj;
@@ -29,7 +31,7 @@ public class PlayerMove : StateCore
     public Vector3 oldcell;
     public Vector3 newcell;
 
-    public PlayerMove(TurnGenerater turngenerater, UnitClick unitclick ,AttackPointt attackpoint)
+    public PlayerMove(TurnGenerater turngenerater, UnitClick unitclick ,AttackPointt attackpoint,BattleSystem battlesystem)
     {
         this.turngenerater = turngenerater;
         mapcreate = turngenerater.mapcreate;
@@ -38,11 +40,13 @@ public class PlayerMove : StateCore
         maxz = turngenerater.mapcreate.maxZ;
         this.unitclick = unitclick;
         this.attackpoint = attackpoint;
+        this.battlesystem = battlesystem;
+
 
     }
     public void Entry()
     {
-        unitclick.UC(this,turngenerater);
+        unitclick.UC(this,turngenerater,attackpoint);
         attackmode = AttackMode.None;
         Debug.Log("プレイヤーターン開始");
     }
@@ -92,21 +96,25 @@ public class PlayerMove : StateCore
         {
             turngenerater.movegenerater.MoveReset();
             Reset();
-            turngenerater.ChangeState(new EnemyStart(turngenerater, unitclick,attackpoint));
+            turngenerater.ChangeState(new EnemyStart(turngenerater, unitclick,attackpoint, battlesystem));
         }
 
         if(MenuSwitch == true)
         {
             if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKey(KeyCode.Keypad1))
             {
+                turngenerater.movegenerater.MoveReset();
+                MP = null;
                 attackmode = AttackMode.Normal;
-                turngenerater.ChangeState(new PlayerAttack(mapcreate, this, attackmode,attackpoint));
+                turngenerater.ChangeState(new PlayerAttack(mapcreate, this, attackmode,attackpoint,turngenerater,unitclick,battlesystem));
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKey(KeyCode.Keypad2))
             {
+                turngenerater.movegenerater.MoveReset();
+                MP = null;
                 attackmode = AttackMode.Skill;
-                turngenerater.ChangeState(new PlayerAttack(mapcreate, this, attackmode,attackpoint));
+                turngenerater.ChangeState(new PlayerAttack(mapcreate, this, attackmode,attackpoint,turngenerater,unitclick,battlesystem));
             }
         }
         

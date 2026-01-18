@@ -1,15 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.XR;
 
 public class UnitClick : MonoBehaviour
 {
     [SerializeField] PlayerMove playermove;
     [SerializeField] TurnGenerater turngenerater;
-    public void UC(PlayerMove playermove,TurnGenerater turngenerater)
+    [SerializeField] PlayerAttack playerattack;
+    [SerializeField] BattleSystem battlesystem;
+    [SerializeField] AttackPointt attackpoint;
+    [SerializeField] public Status ATKC;
+    public RaycastHit attackhit;
+    public void UC(PlayerMove playermove,TurnGenerater turngenerater,AttackPointt attackpoint)
     {
         this.playermove = playermove;
         this.turngenerater = turngenerater;
+        this.attackpoint = attackpoint;
+        
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void Click1()
@@ -81,7 +90,6 @@ public class UnitClick : MonoBehaviour
                 {
                     if (playermove.MP.type == Type.Unit)
                     {
-                        //OldReset();
                         turngenerater.movegenerater.MoveReset();
                         playermove.Obj = playermove.hit.transform.GetComponent<Status>();
                         playermove.ObjP = playermove.hit.transform.position;
@@ -93,6 +101,40 @@ public class UnitClick : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    public void AttackClick(BattleSystem battlesystem)
+    {
+        this.battlesystem = battlesystem;
+        Vector3 pos = Input.mousePosition;
+        Ray ray = Camera.main.ScreenPointToRay(pos);
+        if (Physics.Raycast(ray, out attackhit, 100))
+        {
+            ATKC = attackhit.transform.GetComponent<Status>();
+            if (ATKC != null)
+            {
+                if (ATKC.team == Team.Enemy)
+                {
+                    if (ATKC.type == Type.Unit)
+                    {
+                        /* 
+                         
+                         ATKC‚ðVector3‚É•Ï‚¦‚Ä
+                         AttackP‚ÌList‚©‚çAttackSame‚ð”äŠr‚µ‚Ä“¯‚¶À•W‚É‚È‚é‚à‚Ì‚ð’T‚·
+                         ’T‚µ‚½Œ‹‰Ê‚ðBattleSystem‚Ìtarget‚É“ü‚ê‚é
+
+                        */
+                        Vector3 AttackSame = ATKC.transform.position;
+                        if (attackpoint.AttackP.Any(p => p.x == AttackSame.x && p.z == AttackSame.z))
+                        {
+                            battlesystem.target = ATKC;
+                        }
+                    }
+
+                }
+            }
+            
         }
     }
 

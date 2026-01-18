@@ -29,7 +29,8 @@ public enum Type
 {
     Unit,
     Building,
-    MovePoint
+    MovePoint,
+    AttackPoint
 }
 public enum State
 {

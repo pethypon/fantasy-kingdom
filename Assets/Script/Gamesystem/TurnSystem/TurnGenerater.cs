@@ -40,6 +40,9 @@ public class TurnGenerater : MonoBehaviour
     [Header("アタックポイント")]
     [SerializeField] public AttackPointt attackpoint;
 
+    [Header("バトルシステム")]
+    [SerializeField] public BattleSystem battlesystem;
+
     [Header("カメラ（動かす対象）")]
     [SerializeField] public Transform CameraObject;
 
@@ -53,7 +56,7 @@ public class TurnGenerater : MonoBehaviour
     {
         PlayerAP = ResetAP;
         EnemyAP = ResetAP;
-        ChangeState(new PlayerStart(this,unitclick,attackpoint));
+        ChangeState(new PlayerStart(this,unitclick,attackpoint,battlesystem));
         //このコードがpublic void ChangeState(StateCore next)のnextを指定する
     }
 
