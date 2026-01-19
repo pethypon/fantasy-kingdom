@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 
@@ -43,13 +44,23 @@ public enum Equipment
     Arm,
     Waist,
     Leg
-
 }
 
 public enum Skill
 {
     None
 }
+
+public enum PassiveSkill
+{
+    None,
+    impregnable,
+    huntereyes,
+    Destroyer,
+    Assassination,
+    Sniper
+}
+
 public class Status : MonoBehaviour
 {
     [Header("種類")]
@@ -66,6 +77,9 @@ public class Status : MonoBehaviour
 
     [Header("スキル")]
     [SerializeField] public Skill skill;
+
+    [Header("パッシブスキル")]
+    [SerializeField] public PassiveSkill passiveskill;
 
     [Header("ステータス")]
     [SerializeField] public int HP;

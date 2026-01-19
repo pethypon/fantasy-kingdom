@@ -72,31 +72,6 @@ public class AttackPointt : MonoBehaviour
         }
     }
 
-    public void RayAttackP()
-    {
-        for (int i = 0; i < AttackP.Count; i++)
-        {
-            attackpos = AttackP[i];
-            Vector3 raystart = attackpos + new Vector3(0f,20f,0f);
-            Ray ray = new Ray(raystart, Vector3.down);
-            if (Physics.Raycast(ray, out targethit,50f))
-            {
-                Status targetbox = targethit.transform.GetComponent<Status>();
-                if(targetbox != null)
-                {
-                    if(targetbox.team == Team.Enemy)
-                    {
-                        if(targetbox.type == Type.Unit)
-                        {
-
-                        }
-                    }
-                }
-            }
-        }
-
-        
-    }
 
     public void NormalAttackPData(Status Obj, Vector3 ObjP)
     {
@@ -199,7 +174,7 @@ public class AttackPointt : MonoBehaviour
                 break;
 
             case Kind.Priest:
-                
+                //ç°å„çÏÇÈ
                 break;
 
             case Kind.Guardian:

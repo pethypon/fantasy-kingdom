@@ -5,20 +5,53 @@ using UnityEngine;
 public class BattleSystem : MonoBehaviour
 {
     public Status target;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public Status AttackSide;
+    public TurnGenerater turngenerater;
+    public void DamageGenerater(TurnGenerater turngenerater)
     {
-        
+        this.turngenerater = turngenerater;
+        if (target != null)
+        {
+            if (turngenerater.SelectUnit != null)
+            {
+                AttackSide = turngenerater.SelectUnit;
+                if(AttackSide.kind == Kind.Archer)
+                {
+
+                }
+
+                if (AttackSide.kind == Kind.Magic)
+                {
+
+                }
+
+                if (AttackSide.kind == Kind.Assassin)
+                {
+
+                }
+
+                if(AttackSide.kind == Kind.Guardian)
+                {
+
+                }
+
+                if(AttackSide.kind == Kind.Crossbow)
+                {
+
+                }
+
+                
+            }
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    public void targetside()
     {
-        
-    }
+        if (target.kind == Kind.Knight)
+        {
 
-    public void DamageGenerater()
-    {
-        //ç°å„èëÇ≠
+        }
+        
+        
     }
 }
