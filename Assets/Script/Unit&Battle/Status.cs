@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 
@@ -54,8 +53,8 @@ public enum Skill
 public enum PassiveSkill
 {
     None,
-    impregnable,
-    huntereyes,
+    Impregnable,
+    HunterEyes,
     Destroyer,
     Assassination,
     Sniper

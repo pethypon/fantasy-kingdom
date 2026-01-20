@@ -114,16 +114,16 @@ public class UnitClick : MonoBehaviour
         }
     }
 
-    public void AttackClick(BattleSystem battlesystem)
+    public void AttackClick(BattleSystem battlesystem,PlayerAttack playerattack)
     {
         this.battlesystem = battlesystem;
+        this.playerattack = playerattack;
         Vector3 pos = Input.mousePosition;
         Ray ray = Camera.main.ScreenPointToRay(pos);
         if (Physics.Raycast(ray, out attackhit, 100))
         {
             ATKC = attackhit.transform.GetComponent<Status>();
-            if (ATKC != null)
-            {
+           
                 if (ATKC.team == Team.Enemy)
                 {
                     if (ATKC.type == Type.Unit)
@@ -136,14 +136,20 @@ public class UnitClick : MonoBehaviour
 
                         */
                         Vector3 AttackSame = ATKC.transform.position;
-                        if (attackpoint.AttackP.Any(p => p.x == AttackSame.x && p.z == AttackSame.z))
+                        if (attackpoint.AttackP != null)
                         {
-                            battlesystem.target = ATKC;
+                            if (attackpoint.AttackP.Any(p => p.x == AttackSame.x && p.z == AttackSame.z))
+                            {
+                                battlesystem.target = ATKC;
+                                battlesystem.DamageGenerater(turngenerater);
+                                playerattack.AttackSuccess = true;
+                            }
                         }
+                        
                     }
 
                 }
-            }
+            
             
         }
     }

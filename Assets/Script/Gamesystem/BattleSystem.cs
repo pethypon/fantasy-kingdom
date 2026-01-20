@@ -15,43 +15,51 @@ public class BattleSystem : MonoBehaviour
             if (turngenerater.SelectUnit != null)
             {
                 AttackSide = turngenerater.SelectUnit;
-                if(AttackSide.kind == Kind.Archer)
+                switch (AttackSide.passiveskill)
                 {
+                    case PassiveSkill.HunterEyes:
 
+                        break;
+                    case PassiveSkill.Destroyer:
+
+                        break;
+
+                    case PassiveSkill.Assassination:
+                        break;
+
+                    case PassiveSkill.Sniper:
+
+                        break;
+
+                    case PassiveSkill.None:
+                        int damage = (AttackSide.ATK - target.DEF);
+                        damage = Mathf.Max(0,damage);
+                        target.HP -= damage;
+                        target.HP = Mathf.Max(0, target.HP);
+                        
+                        break;
                 }
 
-                if (AttackSide.kind == Kind.Magic)
-                {
-
-                }
-
-                if (AttackSide.kind == Kind.Assassin)
-                {
-
-                }
-
-                if(AttackSide.kind == Kind.Guardian)
-                {
-
-                }
-
-                if(AttackSide.kind == Kind.Crossbow)
-                {
-
-                }
-
+               
                 
             }
         }
     }
 
-    public void targetside()
+    public void SideDefender()
     {
-        if (target.kind == Kind.Knight)
-        {
 
+        switch (target.passiveskill)
+        {
+            case PassiveSkill.Impregnable:
+
+                break;
+            case PassiveSkill.None:
+
+                break;
+
+           
         }
-        
-        
     }
+
 }

@@ -70,6 +70,11 @@ public class AttackPointt : MonoBehaviour
         {
             GameObject.Destroy(child.gameObject);
         }
+        if(AttackP != null)
+        {
+            AttackP.Clear();
+        }
+        
     }
 
 

@@ -18,6 +18,7 @@ public class PlayerAttack : StateCore
     public int Maxx;
     public int Maxz;
     public bool AttackSetting;
+    public bool AttackSuccess;
 
     public PlayerAttack(MapCreate mapcreate,PlayerMove move,PlayerMove.AttackMode attackmode,AttackPointt attackpoint,TurnGenerater turngenerater,UnitClick unitclick,BattleSystem battlesystem)
     {
@@ -37,47 +38,57 @@ public class PlayerAttack : StateCore
         Maxx = mapcreate.maxX;
         Maxz = mapcreate.maxZ;
         attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
+
+        if(AttackSuccess == true)
+        {
+            AttackSuccess = false;
+        }
     }
 
     // Update is called once per frame
     public void Update()
     {
-        float ma = Input.GetAxis("Horizontal");
-        float mb = Input.GetAxis("Vertical");
-        Vector3 Move = new Vector3(ma, 0, mb).normalized;
-        turngenerater.CameraObject.Translate(Move * Speed * Time.deltaTime, Space.World);
-        Vector3 camerapos = turngenerater.CameraObject.position;
-        float cma = Mathf.Clamp(camerapos.x, 0f, Maxx - 10);
-        float cmb = Mathf.Clamp(camerapos.z, 0f, Maxz - 10);
-        camerapos.x = cma;
-        camerapos.z = cmb;
-        turngenerater.CameraObject.position = camerapos;
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0)
-        {
-            float camerascroll = Camera.main.fieldOfView - scroll * Scrollspeed;
-            Camera.main.fieldOfView = Mathf.Clamp(camerascroll, 30f, 90f);
-        }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (AttackSetting == false)
-            {
-                unitclick.AttackClick(battlesystem);
-            }
-            else
-            {
-
-            }
-            
-        }
-
-        if (Input.GetMouseButtonDown(1))
+        
+        if (AttackSuccess == true)
         {
             attackpoint.AtkpDestroy();
+            Reset();
             turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick, attackpoint, battlesystem));
         }
-        
+        else 
+        {
+            float ma = Input.GetAxis("Horizontal");
+            float mb = Input.GetAxis("Vertical");
+            Vector3 Move = new Vector3(ma, 0, mb).normalized;
+            turngenerater.CameraObject.Translate(Move * Speed * Time.deltaTime, Space.World);
+            Vector3 camerapos = turngenerater.CameraObject.position;
+            float cma = Mathf.Clamp(camerapos.x, 0f, Maxx - 10);
+            float cmb = Mathf.Clamp(camerapos.z, 0f, Maxz - 10);
+            camerapos.x = cma;
+            camerapos.z = cmb;
+            turngenerater.CameraObject.position = camerapos;
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            if (scroll != 0)
+            {
+                float camerascroll = Camera.main.fieldOfView - scroll * Scrollspeed;
+                Camera.main.fieldOfView = Mathf.Clamp(camerascroll, 30f, 90f);
+            }
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                unitclick.AttackClick(battlesystem,this);
+
+                
+            }
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                attackpoint.AtkpDestroy();
+                Reset();
+                turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick, attackpoint, battlesystem));
+            }
+        }
+
     }
 
     public void Exit()
@@ -88,6 +99,9 @@ public class PlayerAttack : StateCore
     {
         attackpoint.obj = null;
         unitclick.ATKC = null;
-        
+        battlesystem.target = null;
+        battlesystem.AttackSide = null;
+        AttackSuccess = false;
+        attackpoint.AtkpDestroy();
     }
 }
