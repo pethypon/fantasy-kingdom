@@ -7,6 +7,7 @@ public enum Team
 {
     Player,
     Enemy,
+    Obstacle,
     None
 
 }
@@ -30,6 +31,7 @@ public enum Type
     Unit,
     Building,
     MovePoint,
+    Obstacle,
     AttackPoint
 }
 public enum State
@@ -84,4 +86,7 @@ public class Status : MonoBehaviour
     [SerializeField] public int HP;
     [SerializeField] public int ATK;
     [SerializeField] public int DEF;
+
+    [Header("‹î‚ÌŽ‹ŠE")]
+    [SerializeField] public HashSet<Vector3> VisionCell;
 }

@@ -80,6 +80,7 @@ public class PlayerMove : StateCore
             }
             else
             {
+                Debug.Log("Click2Žn“®");
                 unitclick.Click2();
             }
 

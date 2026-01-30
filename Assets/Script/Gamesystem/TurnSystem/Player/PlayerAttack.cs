@@ -51,7 +51,6 @@ public class PlayerAttack : StateCore
         
         if (AttackSuccess == true)
         {
-            attackpoint.AtkpDestroy();
             Reset();
             turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick, attackpoint, battlesystem));
         }
@@ -76,14 +75,13 @@ public class PlayerAttack : StateCore
 
             if (Input.GetMouseButtonDown(0))
             {
-                unitclick.AttackClick(battlesystem,this);
+                unitclick.AttackClick(battlesystem,this,attackpoint,move);
 
                 
             }
 
             if (Input.GetMouseButtonDown(1))
             {
-                attackpoint.AtkpDestroy();
                 Reset();
                 turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick, attackpoint, battlesystem));
             }

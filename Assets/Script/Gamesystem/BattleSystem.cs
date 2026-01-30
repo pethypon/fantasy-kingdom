@@ -10,6 +10,7 @@ public class BattleSystem : MonoBehaviour
     public void DamageGenerater(TurnGenerater turngenerater)
     {
         this.turngenerater = turngenerater;
+        //NoneˆÈŠO‚Í‹î‚²‚Æ‚Ì‹ŠE‚ªŠ®¬‚µ‚½‚ç§ì
         if (target != null)
         {
             if (turngenerater.SelectUnit != null)

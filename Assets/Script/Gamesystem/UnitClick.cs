@@ -54,6 +54,7 @@ public class UnitClick : MonoBehaviour
     }
     public void Click2()
     {
+        Debug.Log("Click2内部始動");
         //スクリーン座標を求める
         Vector3 pos = Input.mousePosition;
         //スクリーン座標にむかってカメラからRayを飛ばす
@@ -62,10 +63,11 @@ public class UnitClick : MonoBehaviour
         //Objが空じゃなかったら、ObjのTeamがPlayerだったら、ObjのTypeがUnitだったら
         if (Physics.Raycast(ray, out playermove.hit, 100f))
         {
-
+            Debug.Log("Click2（Ray飛ばし完了）");
             playermove.MP = playermove.hit.transform.GetComponent<Status>();
             if (playermove.MP != null)
             {
+                Debug.Log("Click2（MPがNullじゃない場合の選択肢）");
                 if (playermove.MP.team == Team.None)
                 {
                     if (playermove.MP.type == Type.MovePoint)
@@ -114,20 +116,21 @@ public class UnitClick : MonoBehaviour
         }
     }
 
-    public void AttackClick(BattleSystem battlesystem,PlayerAttack playerattack)
+    public void AttackClick(BattleSystem battlesystem,PlayerAttack playerattack,AttackPointt attackpoint,PlayerMove playermove)
     {
+        this.playermove = playermove;
         this.battlesystem = battlesystem;
         this.playerattack = playerattack;
+        this.attackpoint = attackpoint;
         Vector3 pos = Input.mousePosition;
         Ray ray = Camera.main.ScreenPointToRay(pos);
         if (Physics.Raycast(ray, out attackhit, 100))
         {
-            ATKC = attackhit.transform.GetComponent<Status>();
-           
-                if (ATKC.team == Team.Enemy)
+
+            if (!attackhit.transform.TryGetComponent<Status>(out ATKC)) return;
+                if (ATKC.team == Team.Enemy && ATKC.type == Type.Unit)
                 {
-                    if (ATKC.type == Type.Unit)
-                    {
+                    
                         /* 
                          
                          ATKCをVector3に変えて
@@ -136,19 +139,21 @@ public class UnitClick : MonoBehaviour
 
                         */
                         Vector3 AttackSame = ATKC.transform.position;
+                
                         if (attackpoint.AttackP != null)
                         {
                             if (attackpoint.AttackP.Any(p => p.x == AttackSame.x && p.z == AttackSame.z))
                             {
                                 battlesystem.target = ATKC;
+                                playermove.MenuSwitch = false;
                                 battlesystem.DamageGenerater(turngenerater);
                                 playerattack.AttackSuccess = true;
                             }
                         }
-                        
-                    }
+
 
                 }
+                
             
             
         }

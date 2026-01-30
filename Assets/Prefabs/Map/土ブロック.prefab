@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4838678206240674528}
   - component: {fileID: 4699756310486709552}
   - component: {fileID: 4153079545514166097}
+  - component: {fileID: -3939324367838923227}
   m_Layer: 0
   m_Name: "\u571F\u30D6\u30ED\u30C3\u30AF"
   m_TagString: Untagged
@@ -108,3 +109,24 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-3939324367838923227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8928983776201502893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 711d5492316672943b5540008f65716e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kind: 11
+  team: 2
+  type: 3
+  state: 0
+  skill: 0
+  passiveskill: 0
+  HP: 0
+  ATK: 0
+  DEF: 0

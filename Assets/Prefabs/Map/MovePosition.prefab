@@ -122,10 +122,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   kind: 11
-  team: 2
+  team: 3
   type: 2
   state: 0
   skill: 0
+  passiveskill: 0
   HP: 0
   ATK: 0
   DEF: 0
