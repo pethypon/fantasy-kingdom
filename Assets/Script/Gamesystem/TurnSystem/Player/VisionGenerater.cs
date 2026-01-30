@@ -108,11 +108,8 @@ public class VisionGenerater : MonoBehaviour
                 //foreach文でvisionpを見てRayを飛ばして障害物を割り出す
                 foreach(Vector3 p in visionp)
                 {
-                    if (VisionBox != null)
-                    {
-                        VisionBox = null;
-                    }
-                    
+                    VisionBox = null;
+
                     //Physics.Raycastに使う開始位置、方向、結果を入れる箱、距離を求める
                     Vector3 Start = status.transform.position + Vector3.up * 0.5f;
                     Vector3 Goal = p + Vector3.up * 0.5f;
@@ -127,19 +124,26 @@ public class VisionGenerater : MonoBehaviour
 
                     if (Physics.Raycast(Start, Point, out visionhit, Distance))
                     {
+                        
                         if (visionhit.transform.GetComponent<Status>() != null)
                         {
                             VisionBox = visionhit.transform.GetComponent<Status>();
+                            if (VisionBox.team == Team.Obstacle && VisionBox.type == Type.Obstacle)
+                            {
+
+                            }
+                            else
+                            {
+                                status.VisionCell.Add(p);
+                            }
                         }
 
-                        if (VisionBox.team == Team.Obstacle && VisionBox.type == Type.Obstacle)
-                        {
-                           
-                        }
-                        else
-                        {
-                            status.VisionCell.Add(p);
-                        }
+                        
+                        
+                    }
+                    else
+                    {
+                        status.VisionCell.Add(p);
                     }
                 }
                 break;
