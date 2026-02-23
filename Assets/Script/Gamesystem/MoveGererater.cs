@@ -1,27 +1,32 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 public class MoveGererater : MonoBehaviour
 {
     [SerializeField] public MapCreate mapcreate;
     [SerializeField] public TurnGenerater turngenerater;
-    //[SerializeField] Status status;
+
     [Header("移動位置表示のオブジェクト")]
     [SerializeField] public GameObject MovePoint;
+
     [Header("ムーブ親オブジェクト")]
     [SerializeField] public Transform Move;
+
     [Header("ユニット座標")]
     [SerializeField] public HashSet<Vector3> UnitPointData = new HashSet<Vector3>();
+
     [Header("クリスタルシステム")]
     [SerializeField] CrystalSystem crystalsystem;
+
     [Header("ユニットセッティング")]
     [SerializeField] UnitSetting unitsetting;
+
     [Header("ユニットボックス")]
     [SerializeField] Transform PlayerUnit;
     [SerializeField] Transform EnemyUnit;
+
     public List<Vector3> setpos;
     public List<Vector3> MoveUnitP;
     public Vector3 objp;
@@ -30,6 +35,57 @@ public class MoveGererater : MonoBehaviour
     public Vector3 ecp;
     public Vector3 usp;
 
+    // ─── 駒種ごとの移動判定 ──────────────────────────────────────────
+    // dx = p.x - objp.x（符号付き）, dz = p.z - objp.z（符号付き）
+    // 新しい駒を追加する場合はここに1行追加するだけでよい
+    static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
+        new Dictionary<Kind, Func<float, float, bool>>
+    {
+        // 全方向1マス
+        { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1
+                                     && Mathf.Abs(dz) <= 1 },
+
+        // 上下左右1マス
+        { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) + Mathf.Abs(dz) == 1 },
+
+        // 斜め1マス
+        { Kind.Archer,      (dx, dz) => Mathf.Abs(dx) == 1
+                                     && Mathf.Abs(dz) == 1 },
+
+        // 斜め1マス（Archerと同じ移動）
+        { Kind.Magic,       (dx, dz) => Mathf.Abs(dx) == 1
+                                     && Mathf.Abs(dz) == 1 },
+
+        // 桂馬跳び（2×1 or 1×2）
+        { Kind.Assassin,    (dx, dz) => (Mathf.Abs(dx) == 2 && Mathf.Abs(dz) == 1)
+                                     || (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) == 2) },
+
+        // 横±1＋前後1 or 直進2
+        { Kind.Scout,       (dx, dz) => (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) <= 1)
+                                     || (dx == 0 && Mathf.Abs(dz) == 2) },
+
+        // 前斜め1 or 後ろ直進1（向き考慮：符号付き）
+        { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 1)
+                                     || (dx == 0 && dz == -1) },
+
+        // 左右2マス or 前後1マス
+        { Kind.Guardian,    (dx, dz) => (Mathf.Abs(dx) <= 2 && dz == 0)
+                                     || (dx == 0 && Mathf.Abs(dz) == 1) },
+
+        // 前直進1-3マス or 斜め後ろ1マス（符号付き）
+        { Kind.Crossbow,    (dx, dz) => (dx == 0 && (dz == 1 || dz == 2 || dz == 3))
+                                     || (Mathf.Abs(dx) == 1 && dz == -1) },
+
+        // 右前斜め1 or 左右後ろ3マス（符号付き）
+        { Kind.Magicsniper, (dx, dz) => (dx == 1 && dz == 1)
+                                     || (Mathf.Abs(dx) == 3 && dz == -1) },
+
+        // 斜め前後2パターン（符号付き）
+        { Kind.Bomber,      (dx, dz) => (dx == -1 && dz ==  1) || (dx ==  2 && dz ==  2)
+                                     || (dx ==  1 && dz == -1) || (dx == -2 && dz == -2) },
+    };
+
+    // ─── ユニット占有座標の更新 ──────────────────────────────────────
     public void UnitPointCore()
     {
         UnitPointData.Clear();
@@ -37,233 +93,55 @@ public class MoveGererater : MonoBehaviour
         ecp = crystalsystem.ECP;
         UnitPointData.Add(Cell(pcp));
         UnitPointData.Add(Cell(ecp));
+
         foreach (Status us in PlayerUnit.GetComponentsInChildren<Status>())
         {
-            if (us.type == Type.Unit)
-            {
-                usp = us.transform.position;
-                UnitPointData.Add(Cell(usp));
-            }
+            if (us.type != Type.Unit) continue;
+            usp = us.transform.position;
+            UnitPointData.Add(Cell(usp));
         }
-
-        foreach(Status us in EnemyUnit.GetComponentsInChildren<Status>())
+        foreach (Status us in EnemyUnit.GetComponentsInChildren<Status>())
         {
-            if (us.type == Type.Unit)
-            {
-                usp = us.transform.position;
-                UnitPointData.Add(Cell(usp));
-            }
+            if (us.type != Type.Unit) continue;
+            usp = us.transform.position;
+            UnitPointData.Add(Cell(usp));
         }
-        
-        
     }
+
+    // ─── グリッド座標への丸め ────────────────────────────────────────
     public Vector3 Cell(Vector3 v)
     {
-        return new Vector3(Mathf.RoundToInt(v.x), 0f,Mathf.RoundToInt(v.z));
+        return new Vector3(Mathf.RoundToInt(v.x), 0f, Mathf.RoundToInt(v.z));
     }
-    public void MoveCore(Status Obj,Vector3 ObjP) 
+
+    // ─── 移動範囲の計算とオブジェクト生成 ──────────────────────────────
+    public void MoveCore(Status Obj, Vector3 ObjP)
     {
-        
         setpos = mapcreate.SetPos;
         MoveUnitP.Clear();
         obj = Obj;
         objp = ObjP;
-        switch (obj.kind)
+
+        if (!MovePredicateMap.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
         {
-            case Kind.King:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>King");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                        float px = Mathf.Abs(p.x - objp.x);
-                        float pz = Mathf.Abs(p.z - objp.z);
-                        bool upc = UnitPointData.Contains(Cell(p));
-                        bool truex = px <= 1;
-                        bool truez = pz <= 1;
-
-                        return (truex && truez) && !upc; 
-                    }
-                    ).ToList();
-                MoveCreate();
-                
-                break;
-
-            case Kind.Knight:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Knight");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                    float px = Mathf.Abs(p.x - objp.x);
-                    float pz = Mathf.Abs(p.z - objp.z);
-                    bool upc = UnitPointData.Contains(Cell(p));
-                        bool truex = px <= 1 && px >= 1;
-                    bool truez = pz <= 1 && pz >= 1;
-                    return (px + pz) == 1 && !upc;
-                    }
-                    ).ToList();
-
-                MoveCreate();
-                break;
-
-            case Kind.Archer:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Archer");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                        float px = Mathf.Abs(p.x - objp.x);
-                        float pz = Mathf.Abs(p.z - objp.z);
-                        bool upc = UnitPointData.Contains(Cell(p));
-                        bool truex = px <= 1 && px >= 1;
-                        bool truez = pz <= 1 && pz >= 1;
-                        return (truex && truez) && !upc;
-                    }
-                    ).ToList();
-
-                MoveCreate();
-                break;
-
-            case Kind.Magic:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Archer");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                        float px = Mathf.Abs(p.x - objp.x);
-                        float pz = Mathf.Abs(p.z - objp.z);
-                        bool upc = UnitPointData.Contains(Cell(p));
-                        bool truex = px <= 1 && px >= 1;
-                        bool truez = pz <= 1 && pz >= 1;
-                        return (truex && truez) && !upc;
-                    }
-                    ).ToList();
-
-                MoveCreate();
-                break;
-
-            case Kind.Assassin:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Assassin");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                        float px = Mathf.Abs(p.x - objp.x);
-                        float pz = Mathf.Abs(p.z - objp.z);
-                        bool upc = UnitPointData.Contains(Cell(p));
-                        bool truex = Mathf.Abs(px) == 2 && Mathf.Abs(pz) == 1;
-                        bool truez = Mathf.Abs(px) == 1 && Mathf.Abs(pz) == 2;
-                        return (truex || truez) && !upc;
-                    }
-                    ).ToList();
-
-                MoveCreate();
-                break;
-                
-
-            case Kind.Scout:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Scout");
-                MoveUnitP = setpos.Where
-                   (p =>
-                   {
-                       float px = Mathf.Abs(p.x - objp.x);
-                       float pz = Mathf.Abs(p.z - objp.z);
-                       bool upc = UnitPointData.Contains(Cell(p));
-                       bool truex = (px == 1 && pz <= 1)  || (px == 0 && pz == 2);
-                       return (truex) && !upc;
-                   }
-                   ).ToList();
-
-                MoveCreate();
-                break;
-
-            case Kind.Priest:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Priest");
-                MoveUnitP = setpos.Where
-                   (p =>
-                   {
-                       float px = Mathf.RoundToInt(p.x - objp.x);
-                       float pz = Mathf.RoundToInt(p.z - objp.z);
-                       bool upc = UnitPointData.Contains(Cell(p));
-                       bool truex = (Mathf.Abs(px) == 1 && pz == 1) || (px == 0 && pz == -1);
-                       return (truex) && !upc;
-                   }
-                   ).ToList();
-
-                MoveCreate();
-                break;
-
-            case Kind.Guardian:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Guardian");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                        float px = Mathf.RoundToInt(p.x - objp.x);
-                        float pz = Mathf.RoundToInt(p.z - objp.z);
-                        bool upc = UnitPointData.Contains(Cell(p));
-                        bool move = Mathf.Abs(px) <= 2 && Mathf.Abs(pz) == 0 || Mathf.Abs(px) == 0 && Mathf.Abs(pz) == 1;
-                        return (move) && !upc;
-                    }
-                    ).ToList();
-
-                MoveCreate();
-                break;
-
-            case Kind.Crossbow:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Crossbow");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                        float px = Mathf.RoundToInt(p.x - objp.x);
-                        float pz = Mathf.RoundToInt(p.z - objp.z);
-                        bool upc = UnitPointData.Contains(Cell(p));
-                        bool move = (px == 0) && (pz == 1 || pz == 2 || pz == 3);
-                        bool back = (Mathf.Abs(px) == 1) && (pz == -1);
-                        bool No = p != objp && !upc;
-                        return (move || back) && No && !upc;
-                    }
-                    ).ToList();
-
-                MoveCreate();
-                break;
-
-            case Kind.Magicsniper:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Magicsniper");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                        float px = Mathf.RoundToInt(p.x - objp.x);
-                        float pz = Mathf.RoundToInt(p.z - objp.z);
-                        bool upc = UnitPointData.Contains(Cell(p));
-                        bool move = px == 1 && pz == 1;
-                        bool back = px == -3 && pz == -1 || px == 3 && pz == -1;
-                        return (move || back) && !upc;
-                    }
-                    ).ToList();
-                MoveCreate();
-                break;
-
-            case Kind.Bomber:
-                Debug.Log("<color=#00ff00ff>[Controller]</color>Bomber");
-                MoveUnitP = setpos.Where
-                    (p =>
-                    {
-                        float px = Mathf.RoundToInt(p.x - objp.x);
-                        float pz = Mathf.RoundToInt(p.z - objp.z);
-                        bool upc = UnitPointData.Contains(Cell(p));
-                        bool flont = px == -1 && pz == 1 || px == 2 && pz == 2;
-                        bool back = px == 1 && pz == -1 || px == -2 && pz == -2;
-                        return (flont || back) &&!upc;
-                    }
-                    ).ToList();
-                MoveCreate();
-                break;
-                
+            Debug.LogWarning($"[MoveGererater] Kind '{obj.kind}' の移動パターンが未定義です");
+            return;
         }
-    }
-    public void MoveReset() 
-    {
-        foreach(Transform child in Move.transform)
+
+        Debug.Log($"<color=#00ff00ff>[Controller]</color>{obj.kind}");
+
+        MoveUnitP = setpos.Where(p =>
         {
-            GameObject.Destroy(child.gameObject);
-        }
+            float dx = p.x - objp.x;
+            float dz = p.z - objp.z;
+            bool occupied = UnitPointData.Contains(Cell(p));
+            return predicate(dx, dz) && !occupied;
+        }).ToList();
+
+        MoveCreate();
     }
+
+    // ─── 移動ポイントオブジェクトの生成 ─────────────────────────────
     public void MoveCreate()
     {
         for (int i = 0; i < MoveUnitP.Count; i++)
@@ -274,10 +152,20 @@ public class MoveGererater : MonoBehaviour
             Debug.Log("<color=#00ff00ff>[Controller]</color>MovePoint");
         }
     }
-    public void MoveUpdate(Vector3 OldCell,Vector3 NewCell)
+
+    // ─── 移動ポイントオブジェクトの削除 ─────────────────────────────
+    public void MoveReset()
+    {
+        foreach (Transform child in Move.transform)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+    // ─── UnitPointData の更新 ────────────────────────────────────────
+    public void MoveUpdate(Vector3 OldCell, Vector3 NewCell)
     {
         UnitPointData.Add(Cell(NewCell));
         UnitPointData.Remove(Cell(OldCell));
-        
     }
 }

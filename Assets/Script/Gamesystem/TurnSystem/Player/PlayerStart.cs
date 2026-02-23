@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerStart : StateCore
@@ -8,40 +6,44 @@ public class PlayerStart : StateCore
     private UnitClick unitclick;
     public AttackPointt attackpoint;
     public BattleSystem battlesystem;
-    private int playerap;
-    private int playerplusap;
-    private int playerminusap;
-    private int turn;
+    public VisionGenerater visiongenerater;
+    public MoveGererater movegenerater;
+    public MapCreate mapcreate;
+    public CrystalSystem crystalsystem;
+    public UnitSetting unitset;
 
-    public PlayerStart(TurnGenerater turngenerater,UnitClick unitclick, AttackPointt attackpoint, BattleSystem battlesystem)
+    public PlayerStart(TurnGenerater turngenerater, UnitClick unitclick,
+        AttackPointt attackpoint, BattleSystem battlesystem,
+        VisionGenerater visiongenerater, MoveGererater movegenerater,
+        MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
     {
         this.turngenerater = turngenerater;
         this.unitclick = unitclick;
         this.attackpoint = attackpoint;
         this.battlesystem = battlesystem;
+        this.visiongenerater = visiongenerater;
+        this.movegenerater = movegenerater;
+        this.mapcreate = mapcreate;
+        this.crystalsystem = crystalsystem;
+        this.unitset = unitset;
     }
+
     public void Entry()
     {
-        playerap = turngenerater.PlayerAP;
-        playerplusap = turngenerater.PlayerPlusAP;
-        playerminusap = turngenerater.PlayerMinusAP;
-        playerap = playerap + playerplusap - playerminusap;
-        turngenerater.PlayerAP = playerap;
-        turn = turngenerater.Turn;
-        turn += 1;
-        turngenerater.Turn = turn;
+        // ターンカウント更新
+        turngenerater.Turn++;
 
-        //つぎのSutateにする
-        turngenerater.ChangeState(new PlayerMove(turngenerater,unitclick, attackpoint,battlesystem));
+        // AP リセット（FactionState.ResetAPForTurn が Reset+Plus-Minus を計算）
+        turngenerater.apsystem.ResetAP(Team.Player);
+
+        // 疲労リセット
+        turngenerater.apsystem.ResetFatigue(unitset.PlayerUnit);
+
+        turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick,
+            attackpoint, battlesystem, visiongenerater,
+            movegenerater, mapcreate, crystalsystem, unitset));
     }
 
-    public void Update()
-    {
-        
-    }
-
-    public void Exit()
-    {
-
-    }
+    public void Update() { }
+    public void Exit() { }
 }

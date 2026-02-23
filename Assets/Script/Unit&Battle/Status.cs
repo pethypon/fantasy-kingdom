@@ -13,6 +13,7 @@ public enum Team
 }
 public enum Kind
 {
+    Crystal,
     King,
     Knight,
     Archer,
@@ -31,22 +32,17 @@ public enum Type
     Unit,
     Building,
     MovePoint,
-    Obstacle,
     AttackPoint
 }
 public enum State
 {
     Normal
 }
-public enum Equipment
+public enum Direction
 {
-    Head,
-    Body,
-    Arm,
-    Waist,
-    Leg
+    N,
+    S
 }
-
 public enum Skill
 {
     None
@@ -79,6 +75,9 @@ public class Status : MonoBehaviour
     [Header("スキル")]
     [SerializeField] public Skill skill;
 
+    [Header("駒の向き")]
+    [SerializeField] public Direction direction;
+
     [Header("パッシブスキル")]
     [SerializeField] public PassiveSkill passiveskill;
 
@@ -88,5 +87,8 @@ public class Status : MonoBehaviour
     [SerializeField] public int DEF;
 
     [Header("駒の視界")]
-    [SerializeField] public HashSet<Vector3> VisionCell;
+    [SerializeField] public HashSet<Vector3Int> VisionCell;
+
+    [Header("疲労")]
+    [SerializeField] public int Fatigue = 0;
 }

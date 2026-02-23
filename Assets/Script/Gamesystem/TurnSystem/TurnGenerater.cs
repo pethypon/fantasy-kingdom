@@ -1,30 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class TurnGenerater : MonoBehaviour
 {
     public Status SelectUnit;
     public Vector3 OldCell;
     public Vector3 NewCell;
+
     [Header("保持するステート")]
     [SerializeField] StateCore StateManager;
 
-    [Header("アタックポイント")]
-    [SerializeField] public int PlayerAP = 15;
-    [SerializeField] public int EnemyAP = 15;
-    [Header("プレイヤーアタックポイント　増減用")]
-    [SerializeField] public int PlayerPlusAP = 0;
-    [SerializeField] public int PlayerMinusAP = 0;
-    [Header("エネミーアタックポイント　増減用")]
-    [SerializeField] public int EnemyPlusAP = 0;
-    [SerializeField] public int EnemyMinusAP = 0;
-    [Header("アタックポイントリセット用")]
-    [SerializeField] public int ResetAP = 15;
     [Header("ターン管理")]
     [SerializeField] public int Turn = 0;
 
-    //PlayerMove用
     [Header("ユニットステータス")]
     [SerializeField] public Status status;
 
@@ -43,26 +31,72 @@ public class TurnGenerater : MonoBehaviour
     [Header("バトルシステム")]
     [SerializeField] public BattleSystem battlesystem;
 
+    [Header("クリスタルシステム")]
+    [SerializeField] public CrystalSystem crystalsystem;
+
+    [Header("視界システム")]
+    [SerializeField] VisionGenerater visiongenerater;
+
+    [Header("APシステム")]
+    [SerializeField] public APSystem apsystem;
+
+    [Header("ユニット配置")]
+    [SerializeField] public UnitSetting unitset;
+
+    [Header("ゲームアクションの保存場所")]
+    public Vector2 MoveInput;
+    public float ScrollInput;
+    public bool LeftClickDown;
+    public bool RightClickDown;
+    public bool TurnEndDown;
+    public bool SelectNormalDown;
+    public bool SelectSkillDown;
+    public bool ToggleNSDown;
+    private GameAction gameaction;
+
     [Header("カメラ（動かす対象）")]
     [SerializeField] public Transform CameraObject;
 
+    // ─── ステート切り替え ──────────────────────────────────────────────
     public void ChangeState(StateCore next)
     {
         StateManager?.Exit();
         StateManager = next;
         StateManager?.Entry();
     }
-    void Start()
+
+    public void Awake()
     {
-        PlayerAP = ResetAP;
-        EnemyAP = ResetAP;
-        ChangeState(new PlayerStart(this,unitclick,attackpoint,battlesystem));
-        //このコードがpublic void ChangeState(StateCore next)のnextを指定する
+        gameaction = new GameAction();
     }
 
+    // GameGenerater.Awake() で全初期化完了後に呼ばれる
+    public void StartFirstTurn()
+    {
+        ChangeState(new PlayerStart(this, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+    }
 
     void Update()
     {
+        ReadInputs();
         StateManager?.Update();
     }
+
+    // ─── 新入力システムから値を読み取り各フィールドへ格納 ────────────
+    private void ReadInputs()
+    {
+        MoveInput = gameaction.GamePlay.Move.ReadValue<Vector2>();
+        ScrollInput = gameaction.GamePlay.Scroll.ReadValue<float>();
+        LeftClickDown = gameaction.GamePlay.LeftClick.WasPressedThisFrame();
+        RightClickDown = gameaction.GamePlay.RightClick.WasPressedThisFrame();
+        TurnEndDown = gameaction.GamePlay.TurnEnd.WasPressedThisFrame();
+        SelectNormalDown = gameaction.GamePlay.SelectNormal.WasPressedThisFrame();
+        SelectSkillDown = gameaction.GamePlay.SelectSkill.WasPressedThisFrame();
+        ToggleNSDown = gameaction.GamePlay.ToggleNS.WasPressedThisFrame();
+    }
+
+    public void OnEnable() => gameaction.Enable();
+    public void OnDisable() => gameaction.Disable();
+    public void OnDestroy() => gameaction.Dispose();
 }

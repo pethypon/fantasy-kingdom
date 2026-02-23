@@ -13,8 +13,8 @@ public class UnitSetting : MonoBehaviour
     [SerializeField] GameObject StrangePiece;
 
     [Header("ユニット配置親オブジェクト")]
-    [SerializeField] Transform PlayerUnit;
-    [SerializeField] Transform EnemyUnit;
+    [SerializeField] public Transform PlayerUnit;
+    [SerializeField] public Transform EnemyUnit;
 
     private Vector3 pcp;
     private Vector3 ecp;

@@ -12,8 +12,8 @@ public class TerritorySystem : MonoBehaviour
     [SerializeField] GameObject EnemyTerritory;
 
     [Header("テリトリー親オブジェクト")]
-    [SerializeField] Transform Playerterritory;
-    [SerializeField] Transform Enemyterritory;
+    [SerializeField] public Transform Playerterritory;
+    [SerializeField] public Transform Enemyterritory;
 
     public List<Vector3> PTSetPos;
     public List<Vector3> ETSetPos;

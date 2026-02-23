@@ -100,11 +100,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 711d5492316672943b5540008f65716e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kind: 0
+  kind: 1
   team: 1
   type: 0
   state: 0
   skill: 0
+  direction: 0
+  passiveskill: 0
   HP: 0
   ATK: 0
   DEF: 0

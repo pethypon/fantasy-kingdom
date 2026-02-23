@@ -1,7 +1,6 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class AttackPointt : MonoBehaviour
@@ -9,8 +8,10 @@ public class AttackPointt : MonoBehaviour
     public PlayerMove.AttackMode attackmode;
     public List<Vector3> AttackP;
     public List<Vector3> setpos;
+
     [Header("ユニット座標")]
     [SerializeField] public HashSet<Vector3> unitdata;
+
     public Status obj;
     public Vector3 objp;
     public Vector3 attackpos;
@@ -18,228 +19,124 @@ public class AttackPointt : MonoBehaviour
 
     [Header("マップクリエイト")]
     [SerializeField] public MapCreate mapcreate;
+
     [Header("プレイヤームーブ")]
     [SerializeField] public PlayerMove move;
+
     [Header("ムーブジェネレーター")]
     [SerializeField] public MoveGererater movegenerater;
+
     [Header("アタックポイント")]
     [SerializeField] public GameObject AttackPoint;
+
     [Header("アタックポイント親")]
     [SerializeField] public Transform APparent;
 
-    
+    // ─── 駒種ごとの攻撃範囲判定 ──────────────────────────────────────
+    // dx = p.x - objp.x（符号付き）, dz = p.z - objp.z（符号付き）
+    // Priest は未実装のためエントリなし（今後追加予定）
+    // 新しい駒を追加する場合はここに1行追加するだけでよい
+    static readonly Dictionary<Kind, Func<float, float, bool>> AttackPredicateMap =
+        new Dictionary<Kind, Func<float, float, bool>>
+    {
+        // 前方3マス（横±1・直進）
+        { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
 
-    public void AttackPointCall(Status Obj,Vector3 ObjP,PlayerMove move)
+        // 前方3マス（Kingと同じ攻撃範囲）
+        { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
+
+        // 前方直進2・3マス
+        { Kind.Archer,      (dx, dz) => dx == 0 && (dz == 2 || dz == 3) },
+
+        // 十字遠距離2マス
+        { Kind.Magic,       (dx, dz) => (Mathf.Abs(dx) == 2 && dz == 0)
+                                     || (dx == 0 && Mathf.Abs(dz) == 2) },
+
+        // 前斜め±1マス
+        { Kind.Assassin,    (dx, dz) => Mathf.Abs(dx) == 1 && dz == 1 },
+
+        // 左右横1マス
+        { Kind.Scout,       (dx, dz) => Mathf.Abs(dx) == 1 && dz == 0 },
+
+        // 前直進1マス
+        { Kind.Guardian,    (dx, dz) => dx == 0 && dz == 1 },
+
+        // 前直進1・2マス
+        { Kind.Crossbow,    (dx, dz) => dx == 0 && (dz == 1 || dz == 2) },
+
+        // 左右横4マス
+        { Kind.Magicsniper, (dx, dz) => Mathf.Abs(dx) == 4 && dz == 0 },
+
+        // 前直進3マス
+        { Kind.Bomber,      (dx, dz) => dx == 0 && dz == 3 },
+    };
+
+    // ─── 攻撃モードに応じたポイント生成 ─────────────────────────────
+    public void AttackPointCall(Status Obj, Vector3 ObjP, PlayerMove move)
     {
         this.move = move;
-        AttackCall();
+        setpos = mapcreate.SetPos;
         attackmode = move.attackmode;
-        switch(attackmode)
+
+        switch (attackmode)
         {
             case PlayerMove.AttackMode.Normal:
-                NormalAttackPData(Obj,ObjP);
+                NormalAttackPData(Obj, ObjP);
                 PointCreate();
-            break;
-
+                break;
             case PlayerMove.AttackMode.Skill:
-
-            break;
+                // 今後実装予定
+                break;
         }
-
     }
 
-    public void AttackCall()
-    {
-        setpos = mapcreate.SetPos;
-        
-    }
-
+    // ─── 攻撃ポイントオブジェクトの生成 ─────────────────────────────
     public void PointCreate()
     {
-        for (int i = 0 ; i < AttackP.Count; i++)
+        for (int i = 0; i < AttackP.Count; i++)
         {
             Vector3 pos = AttackP[i];
             pos.y -= 0.17f;
-            Instantiate(AttackPoint, pos, Quaternion.identity,APparent);
+            Instantiate(AttackPoint, pos, Quaternion.identity, APparent);
         }
     }
 
+    // ─── 攻撃ポイントオブジェクトの削除 ─────────────────────────────
     public void AtkpDestroy()
     {
-        foreach(Transform child in APparent)
+        foreach (Transform child in APparent)
         {
-            GameObject.Destroy(child.gameObject);
+            Destroy(child.gameObject);
         }
-        if(AttackP != null)
-        {
-            AttackP.Clear();
-        }
-        
+        AttackP?.Clear();
     }
 
-
+    // ─── 通常攻撃の攻撃範囲計算 ──────────────────────────────────────
     public void NormalAttackPData(Status Obj, Vector3 ObjP)
     {
-        if(AttackP != null)
-        {
-            AttackP.Clear();
-        }
+        AttackP?.Clear();
         obj = Obj;
         objp = ObjP;
         movegenerater.UnitPointCore();
         unitdata = movegenerater.UnitPointData;
 
-        // 攻撃位置を全て求めてさらに敵がいる場所だけを割り出す
-        switch (obj.kind)
+        if (!AttackPredicateMap.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
         {
-            case Kind.King:
-                AttackP = setpos.Where
-                (p =>
-                {
-                    float px = Mathf.RoundToInt(p.x - objp.x);
-                    float pz = Mathf.RoundToInt(p.z - objp.z);
-                    bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                    bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                    bool aimpoint = px == -1 && pz == 1 || px == 0 && pz == 1 || px == 1 && pz == 1;
-                    return possiblepoint && notaimpoint && aimpoint;
-                }
-                ).ToList();
-
-                break;
-
-            case Kind.Knight:
-                AttackP = setpos.Where
-                (p =>
-                {
-                    float px = Mathf.RoundToInt(p.x - objp.x);
-                    float pz = Mathf.RoundToInt(p.z - objp.z);
-                    bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                    bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                    bool aimpoint = px == -1 && pz == 1 || px == 0 && pz == 1 || px == 1 && pz == 1;
-                    return possiblepoint && notaimpoint && aimpoint;
-                }
-                ).ToList();
-
-                break;
-
-            case Kind.Archer:
-                AttackP = setpos.Where
-                (p =>
-                {
-                    float px = Mathf.RoundToInt(p.x - objp.x);
-                    float pz = Mathf.RoundToInt(p.z - objp.z);
-                    bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                    bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                    bool aimpoint = px == 0 && pz == 2 || px == 0 && pz == 3;
-                    return possiblepoint && notaimpoint && aimpoint;
-                }
-                ).ToList();
-                break;
-
-            case Kind.Magic:
-                AttackP = setpos.Where
-                (p =>
-                {
-                    float px = Mathf.RoundToInt(p.x - objp.x);
-                    float pz = Mathf.RoundToInt(p.z - objp.z);
-                    bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                    bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                    bool aimpoint = px == -2 && pz == 0 || px == 2 && pz == 0 || px == 0 && pz == 2 || px == 0 && pz == -2;
-                    return possiblepoint && notaimpoint && aimpoint;
-                }
-                ).ToList();
-                break;
-
-            case Kind.Assassin:
-                AttackP = setpos.Where
-                (p =>
-                {
-                    float px = Mathf.RoundToInt(p.x - objp.x);
-                    float pz = Mathf.RoundToInt(p.z - objp.z);
-                    bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                    bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                    bool aimpoint = px == -1 && pz == 1 || px == 1 && pz == 1;
-                    return possiblepoint && notaimpoint && aimpoint;
-                }
-                ).ToList();
-                break;
-
-            case Kind.Scout:
-                AttackP = setpos.Where
-               (p =>
-               {
-                   float px = Mathf.RoundToInt(p.x - objp.x);
-                   float pz = Mathf.RoundToInt(p.z - objp.z);
-                   bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                   bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                   bool aimpoint = px == -1 && pz == 0 || px == 1 && pz == 0;
-                   return possiblepoint && notaimpoint && aimpoint;
-               }
-               ).ToList();
-                break;
-
-            case Kind.Priest:
-                //今後作る
-                break;
-
-            case Kind.Guardian:
-                AttackP = setpos.Where
-               (p =>
-               {
-                   float px = Mathf.RoundToInt(p.x - objp.x);
-                   float pz = Mathf.RoundToInt(p.z - objp.z);
-                   bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                   bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                   bool aimpoint = px == 0 && pz == 1;
-                   return possiblepoint && notaimpoint && aimpoint;
-               }
-               ).ToList();
-                break;
-
-            case Kind.Crossbow:
-                AttackP = setpos.Where
-               (p =>
-               {
-                   float px = Mathf.RoundToInt(p.x - objp.x);
-                   float pz = Mathf.RoundToInt(p.z - objp.z);
-                   bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                   bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                   bool aimpoint = px == 0 && pz == 1 || px == 0 && pz == 2;
-                   return possiblepoint && notaimpoint && aimpoint;
-               }
-               ).ToList();
-                break;
-
-            case Kind.Magicsniper:
-                AttackP = setpos.Where
-               (p =>
-               {
-                   float px = Mathf.RoundToInt(p.x - objp.x);
-                   float pz = Mathf.RoundToInt(p.z - objp.z);
-                   bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                   bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                   bool aimpoint = px == -6 && pz == 0 || px == 6 && pz == 0;
-                   return possiblepoint && notaimpoint && aimpoint;
-               }
-               ).ToList();
-                break;
-
-            case Kind.Bomber:
-                AttackP = setpos.Where
-               (p =>
-               {
-                   float px = Mathf.RoundToInt(p.x - objp.x);
-                   float pz = Mathf.RoundToInt(p.z - objp.z);
-                   bool possiblepoint = unitdata.Contains(movegenerater.Cell(p));
-                   bool notaimpoint = movegenerater.Cell(p) != movegenerater.Cell(objp) && movegenerater.Cell(p) != movegenerater.Cell(movegenerater.pcp);
-                   bool aimpoint = px == 0 && pz == -3;
-                   return possiblepoint && notaimpoint && aimpoint;
-               }
-               ).ToList();
-                break;
-
-
-
+            Debug.Log($"[AttackPointt] Kind '{obj.kind}' の攻撃パターンは未実装です");
+            return;
         }
+
+        Vector3 ownCell = movegenerater.Cell(objp);
+        Vector3 pcpCell = movegenerater.Cell(movegenerater.pcp);
+
+        AttackP = setpos.Where(p =>
+        {
+            float dx = Mathf.RoundToInt(p.x - objp.x);
+            float dz = Mathf.RoundToInt(p.z - objp.z);
+            Vector3 cell = movegenerater.Cell(p);
+            bool occupied = unitdata.Contains(cell);
+            bool notSelf = cell != ownCell && cell != pcpCell;
+            return occupied && notSelf && predicate(dx, dz);
+        }).ToList();
     }
 }

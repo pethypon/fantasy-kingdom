@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,125 +5,89 @@ using UnityEngine;
 public class CrystalSystem : MonoBehaviour
 {
     [Header("クリスタル")]
-    [SerializeField] GameObject PlayerCrystal;
-    [SerializeField] GameObject EnemyCrystal;
-    public int CrystalDistanceXmin = 1;
-    public int CrystalDistanceXmax = 25;
-    public int CrystalDistanceZmin = 1;
-    public int CrystalDistanceZmax = 25;
+    [SerializeField] private GameObject PlayerCrystal;
+    [SerializeField] private GameObject EnemyCrystal;
 
-    [Header("クリスタル配置")]
-    private int Pci;
-    private int Eci;
+    [Header("クリスタル間距離")]
+    public int CrystalDistanceXmin = 1;
+    public int CrystalDistanceXmax = 10;
+    public int CrystalDistanceZmin = 1;
+    public int CrystalDistanceZmax = 10;
 
     [Header("クリスタル親オブジェクト")]
-    [SerializeField] Transform Playercrystal;
-    [SerializeField] Transform Enemycrystal;
+    [SerializeField] public Transform Playercrystal;
+    [SerializeField] public Transform Enemycrystal;
 
-    private List<Vector3> _SetPos;
-    private List<Vector3> PlayerSetPos;
-    private List<Vector3> EnemySetPos;
-    private int maxx;
-    private int maxz;
     public Vector3 PCP;
     public Vector3 ECP;
 
-   
-    public void CrystalCore() 
+    private List<Vector3> _SetPos;
+    private int maxx;
+    private int maxz;
+
+    // ─── フォールバック設定 ───────────────────────────────────────────
+    // 配置に失敗した場合、距離制約を段階的に緩和して再試行する
+    // 段階を増やしたい場合はここに値を追加するだけでよい
+    // 値は CrystalDistanceMax から引くオフセット
+    private static readonly int[] DistanceRelaxation = { 0, 2, 4, 6 };
+
+    // ─── メインエントリ ──────────────────────────────────────────────
+    public void CrystalCore()
     {
-        //MapCreateからSetPosを持ってくる
         MapCreate mapcreate = GetComponent<MapCreate>();
         _SetPos = mapcreate.SetPos;
         maxx = mapcreate.maxX;
         maxz = mapcreate.maxZ;
 
-        PlayerSetPos = _SetPos.Where
-            (p =>
-            p.x >= 6 && p.x <= maxx - 6 && p.z >= 6 && p.z <= maxz - 6
+        PlacePlayerCrystal();
+        PlaceEnemyCrystal();
+    }
 
-               
-            ).ToList();
-        //SetPosのListからランダムで取り出して自陣のクリスタルを設置する
-        Pci = Random.Range(0, PlayerSetPos.Count);
-        PCP = PlayerSetPos[Pci];
-        Instantiate(PlayerCrystal, PCP, Quaternion.identity,Playercrystal);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color>クリスタル設置完了");
+    // ─── プレイヤークリスタル配置 ────────────────────────────────────
+    private void PlacePlayerCrystal()
+    {
+        var candidates = _SetPos.Where(p =>
+            p.x >= 6 && p.x <= maxx - 6 &&
+            p.z >= 6 && p.z <= maxz - 6
+        ).ToList();
+
+        PCP = candidates[Random.Range(0, candidates.Count)];
+        Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
         _SetPos.Remove(PCP);
+        Debug.Log("<color=#ffff00ff>[StartSetting]</color> プレイヤークリスタル設置完了");
+    }
 
-        EnemySetPos = _SetPos.Where
-       (p =>
-       {
-           float px = Mathf.Abs(p.x - PCP.x);
-           float pz = Mathf.Abs(p.z - PCP.z);
-           bool truex = px >= CrystalDistanceXmin && px >= CrystalDistanceXmax && p.x >= 6 && p.x <= maxx - 6;
-           bool truez = pz >= CrystalDistanceZmin && pz >= CrystalDistanceZmax && p.z >= 6 &&p.z <= maxz - 6;
-
-           return truex && truez;
-
-       }
-       ).ToList();
-        Eci = Random.Range(0, EnemySetPos.Count);
-        ECP = EnemySetPos[Eci];
-        Instantiate(EnemyCrystal, ECP, Quaternion.identity,Enemycrystal);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color>敵クリスタル設置完了"); 
-        if (EnemySetPos.Count == 0) 
+    // ─── 敵クリスタル配置（距離制約を段階的に緩和してリトライ） ─────
+    private void PlaceEnemyCrystal()
+    {
+        foreach (int relax in DistanceRelaxation)
         {
-            EnemySetPos = _SetPos.Where
-       (p =>
-       {
-           float px = Mathf.Abs(p.x - PCP.x);
-           float pz = Mathf.Abs(p.z - PCP.z);
-           bool truex = px >= CrystalDistanceXmin -1 && px >= CrystalDistanceXmax - 2 && p.x >= 5 && p.x <= maxx - 5;
-           bool truez = pz >= CrystalDistanceZmin -1 && pz >= CrystalDistanceZmax - 2 && p.z >= 5 && p.z <= maxz - 5;
+            int margin = relax == 0 ? 6 : 5;
+            var candidates = GetEnemyCandidates(
+                CrystalDistanceXmax - relax,
+                CrystalDistanceZmax - relax,
+                margin);
 
-           return truex && truez;
+            if (candidates.Count == 0) continue;
 
-       }
-       ).ToList();
-            Eci = Random.Range(0, EnemySetPos.Count);
-            ECP = EnemySetPos[Eci];
-            Instantiate(EnemyCrystal, ECP, Quaternion.identity);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>敵クリスタル設置完了");
+            ECP = candidates[Random.Range(0, candidates.Count)];
+            Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
+            Debug.Log("<color=#ffff00ff>[StartSetting]</color> 敵クリスタル設置完了");
+            return;
         }
 
-        else if (EnemySetPos.Count == 0)
+        Debug.LogError("[CrystalSystem] 敵クリスタルの配置候補が見つかりませんでした");
+    }
+
+    private List<Vector3> GetEnemyCandidates(float minDistX, float minDistZ, int margin)
+    {
+        return _SetPos.Where(p =>
         {
-            EnemySetPos = _SetPos.Where
-       (p =>
-       {
-           float px = Mathf.Abs(p.x - PCP.x);
-           float pz = Mathf.Abs(p.z - PCP.z);
-           bool truex = px >= CrystalDistanceXmin - 1 && px >= CrystalDistanceXmax - 4 && p.x >= 5 && p.x <= maxx - 5;
-           bool truez = pz >= CrystalDistanceZmin - 1 && pz >= CrystalDistanceZmax - 4 && p.z >= 5 && p.z <= maxz - 5;
-
-           return truex && truez;
-
-       }
-       ).ToList();
-            Eci = Random.Range(0, EnemySetPos.Count);
-            ECP = EnemySetPos[Eci];
-            Instantiate(EnemyCrystal, ECP, Quaternion.identity);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>敵クリスタル設置完了");
-        }
-
-        else if (EnemySetPos.Count == 0)
-        {
-            EnemySetPos = _SetPos.Where
-       (p =>
-       {
-           float px = Mathf.Abs(p.x - PCP.x);
-           float pz = Mathf.Abs(p.z - PCP.z);
-           bool truex = px >= CrystalDistanceXmin - 1 && px >= CrystalDistanceXmax - 6 && p.x >= 5 && p.x <= maxx - 5;
-           bool truez = pz >= CrystalDistanceZmin - 1 && pz >= CrystalDistanceZmax - 6 && p.z >= 5 && p.z <= maxz - 5;
-
-           return truex && truez;
-
-       }
-       ).ToList();
-            Eci = Random.Range(0, EnemySetPos.Count);
-            ECP = EnemySetPos[Eci];
-            Instantiate(EnemyCrystal, ECP, Quaternion.identity);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>敵クリスタル設置完了");
-        }
+            float dx = Mathf.Abs(p.x - PCP.x);
+            float dz = Mathf.Abs(p.z - PCP.z);
+            bool inBoundsX = p.x >= margin && p.x <= maxx - margin;
+            bool inBoundsZ = p.z >= margin && p.z <= maxz - margin;
+            return dx >= minDistX && dz >= minDistZ && inBoundsX && inBoundsZ;
+        }).ToList();
     }
 }
