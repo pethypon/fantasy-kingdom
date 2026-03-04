@@ -34,8 +34,6 @@ public class UnitClick : MonoBehaviour
         if (playermove.Obj.team != Team.Player) return;
         if (playermove.Obj.type != Type.Unit) return;
 
-        // バグ1修正：前回のMovePointが残っている場合に備えてリセット
-        turngenerater.movegenerater.MoveReset();
         turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
         turngenerater.SelectUnit = playermove.Obj;
         turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
