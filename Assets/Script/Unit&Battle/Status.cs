@@ -26,12 +26,15 @@ public enum Kind
     Bomber,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     WoodWall,   // フェーズ6で使用
     StoneWall,  // フェーズ6で使用
 =======
     WoodWall,
     StoneWall,
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+>>>>>>> parent of d903d2d (2)
 =======
 >>>>>>> parent of d903d2d (2)
     None
@@ -42,10 +45,13 @@ public enum Type
     Building,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     Wall,           // フェーズ6で使用
 =======
     Wall,
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+>>>>>>> parent of d903d2d (2)
 =======
 >>>>>>> parent of d903d2d (2)
     MovePoint,
@@ -82,6 +88,10 @@ public class Status : MonoBehaviour
     [SerializeField] public Kind kind;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of d903d2d (2)
 =======
 
 >>>>>>> parent of d903d2d (2)
@@ -114,6 +124,7 @@ public class Status : MonoBehaviour
     [Header("疲労")]
     [SerializeField] public int Fatigue = 0;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 // ─────────────────────────────────────────────────────────────────────
@@ -171,5 +182,7 @@ public enum ResourceKind
     Wood, Stone, IronOre, Iron, MagicOre, Coal,
     Wheat, Bread, Water, Plank, CutStone, Citizen, None
 }
+=======
+>>>>>>> parent of d903d2d (2)
 =======
 >>>>>>> parent of d903d2d (2)

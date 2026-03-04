@@ -43,6 +43,7 @@ public class FactionState : MonoBehaviour
         public int Water;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         public int Plank;       // ’Ç‰ÁiGameReference ‰Šú”z•zŽ‘Œ¹j
         public int CutStone;    // ’Ç‰ÁiGameReference ‰Šú”z•zŽ‘Œ¹j
         public int Citizen;
@@ -57,6 +58,12 @@ public class FactionState : MonoBehaviour
 
     // â”€â”€â”€ Inspector è¨­å®š â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+        public int Citizen;
+    }
+
+    // „Ÿ„Ÿ„Ÿ ƒCƒ“ƒXƒyƒNƒ^[Ý’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+>>>>>>> parent of d903d2d (2)
 =======
         public int Citizen;
     }

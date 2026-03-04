@@ -7,6 +7,10 @@ public class UnitSetting : MonoBehaviour
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of d903d2d (2)
 =======
 
 >>>>>>> parent of d903d2d (2)
@@ -31,6 +35,7 @@ public class UnitSetting : MonoBehaviour
     private Vector3 SP;
     public void UnitSet() 
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         public Kind kind;
         public UnitData data;
@@ -158,12 +163,16 @@ public class UnitSetting : MonoBehaviour
 =======
         //PCP、ECP、SetPosを取り出す
 >>>>>>> parent of d903d2d (2)
+=======
+        //PCP、ECP、SetPosを取り出す
+>>>>>>> parent of d903d2d (2)
         CrystalSystem crystalsystem = GetComponent<CrystalSystem>();
         MapCreate mapcreate = GetComponent<MapCreate>();
         pcp = crystalsystem.PCP;
         ecp = crystalsystem.ECP;
         setpos = mapcreate.SetPos;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         // 配置位置を絞る（KingPoint：PCP周辺1マス以内）
@@ -205,6 +214,21 @@ public class UnitSetting : MonoBehaviour
             }
             ).ToList();
 
+=======
+        //Whereで配置位置を絞る
+        KingPoint = setpos.Where
+            (p =>
+            {
+                float px = Mathf.Abs(p.x - pcp.x);
+                float pz = Mathf.Abs(p.z - pcp.z);
+                bool truex = px <= 1;
+                bool truez = pz <= 1 && p != pcp;
+
+                return truex && truez;
+            }
+            ).ToList();
+
+>>>>>>> parent of d903d2d (2)
 
         StrangePoint = setpos.Where
             (p =>
@@ -221,6 +245,9 @@ public class UnitSetting : MonoBehaviour
         kp = Random.Range(0,KingPoint.Count);
         KP = KingPoint[kp];
         Instantiate(KingPiece, KP, Quaternion.identity,PlayerUnit);
+<<<<<<< HEAD
+>>>>>>> parent of d903d2d (2)
+=======
 >>>>>>> parent of d903d2d (2)
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>王設置");
 
@@ -228,6 +255,7 @@ public class UnitSetting : MonoBehaviour
         SP = StrangePoint[sp];
         Instantiate(StrangePiece,SP,Quaternion.identity,EnemyUnit);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>異形の王設置");
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
         Vector3 KP = KingPoint[Random.Range(0, KingPoint.Count)];
@@ -238,6 +266,9 @@ public class UnitSetting : MonoBehaviour
         SpawnUnit(StrangePiece, SP, EnemyUnit);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>逡ｰ蠖｢縺ｮ邇玖ｨｭ鄂ｮ");
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+
+>>>>>>> parent of d903d2d (2)
 =======
 
 >>>>>>> parent of d903d2d (2)
