@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerAttack : StateCore
@@ -13,13 +11,29 @@ public class PlayerAttack : StateCore
     public BattleSystem battlesystem;
     public UnitClick unitclick;
     public Status Attack;
+    public VisionGenerater visiongenerater;
+    public MoveGererater movegenerater;
+    public CrystalSystem crystalsystem;
+    public UnitSetting unitset;
     public float Speed;
     public float Scrollspeed;
     public int Maxx;
     public int Maxz;
     public bool AttackSetting;
+    public bool AttackSuccess;
 
-    public PlayerAttack(MapCreate mapcreate,PlayerMove move,PlayerMove.AttackMode attackmode,AttackPointt attackpoint,TurnGenerater turngenerater,UnitClick unitclick,BattleSystem battlesystem)
+    public PlayerAttack(
+        MapCreate mapcreate,
+        PlayerMove move,
+        PlayerMove.AttackMode attackmode,
+        AttackPointt attackpoint,
+        TurnGenerater turngenerater,
+        UnitClick unitclick,
+        BattleSystem battlesystem,
+        VisionGenerater visiongenerater,
+        MoveGererater movegenerater,
+        CrystalSystem crystalsystem,
+        UnitSetting unitset)
     {
         this.mapcreate = mapcreate;
         this.move = move;
@@ -28,8 +42,12 @@ public class PlayerAttack : StateCore
         this.turngenerater = turngenerater;
         this.unitclick = unitclick;
         this.battlesystem = battlesystem;
+        this.visiongenerater = visiongenerater;
+        this.movegenerater = movegenerater;
+        this.crystalsystem = crystalsystem;
+        this.unitset = unitset;
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     public void Entry()
     {
         Speed = move.speed;
@@ -37,57 +55,89 @@ public class PlayerAttack : StateCore
         Maxx = mapcreate.maxX;
         Maxz = mapcreate.maxZ;
         attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
+        AttackSuccess = false;
+
+        // バグ3修正：攻撃範囲に敵がいない場合は即座に PlayerMove へ戻る
+        if (attackpoint.AttackP == null || attackpoint.AttackP.Count == 0)
+        {
+            Debug.Log("[PlayerAttack] 攻撃範囲に対象がいないため PlayerMove へ戻ります");
+            turngenerater.ChangeState(new PlayerMove(
+                turngenerater, unitclick, attackpoint, battlesystem,
+                visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        }
     }
 
-    // Update is called once per frame
     public void Update()
     {
-        float ma = Input.GetAxis("Horizontal");
-        float mb = Input.GetAxis("Vertical");
-        Vector3 Move = new Vector3(ma, 0, mb).normalized;
-        turngenerater.CameraObject.Translate(Move * Speed * Time.deltaTime, Space.World);
-        Vector3 camerapos = turngenerater.CameraObject.position;
-        float cma = Mathf.Clamp(camerapos.x, 0f, Maxx - 10);
-        float cmb = Mathf.Clamp(camerapos.z, 0f, Maxz - 10);
-        camerapos.x = cma;
-        camerapos.z = cmb;
-        turngenerater.CameraObject.position = camerapos;
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0)
+        if (AttackSuccess)
         {
-            float camerascroll = Camera.main.fieldOfView - scroll * Scrollspeed;
-            Camera.main.fieldOfView = Mathf.Clamp(camerascroll, 30f, 90f);
+            HandleAttackSuccess();
+            return;
         }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (AttackSetting == false)
-            {
-                unitclick.AttackClick(battlesystem);
-            }
-            else
-            {
-
-            }
-            
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            attackpoint.AtkpDestroy();
-            turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick, attackpoint, battlesystem));
-        }
-        
+        UpdateCameraMove();
+        UpdateCameraZoom();
+        HandleAttackClick();
+        HandleCancelAttack();
     }
 
     public void Exit()
     {
-
     }
+
     public void Reset()
     {
         attackpoint.obj = null;
         unitclick.ATKC = null;
-        
+        battlesystem.target = null;
+        battlesystem.AttackSide = null;
+        AttackSuccess = false;
+        attackpoint.AtkpDestroy();
+    }
+
+    // ─── 攻撃成功時：PlayerMove へ戻る ──────────────────────────
+    private void HandleAttackSuccess()
+    {
+        Reset();
+        turngenerater.ChangeState(new PlayerMove(
+            turngenerater, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+    }
+
+    // ─── カメラ移動 ──────────────────────────────────────────────
+    private void UpdateCameraMove()
+    {
+        Vector2 input = turngenerater.MoveInput;
+        Vector3 moveDir = new Vector3(input.x, 0f, input.y).normalized;
+        turngenerater.CameraObject.Translate(moveDir * Speed * Time.deltaTime, Space.World);
+        Vector3 pos = turngenerater.CameraObject.position;
+        pos.x = Mathf.Clamp(pos.x, 0f, Maxx - 10);
+        pos.z = Mathf.Clamp(pos.z, 0f, Maxz - 10);
+        turngenerater.CameraObject.position = pos;
+    }
+
+    // ─── カメラズーム（FOV） ─────────────────────────────────────
+    private void UpdateCameraZoom()
+    {
+        float scroll = turngenerater.ScrollInput;
+        if (scroll == 0f) return;
+        float fov = Camera.main.fieldOfView - scroll * Scrollspeed;
+        Camera.main.fieldOfView = Mathf.Clamp(fov, 30f, 90f);
+    }
+
+    // ─── 攻撃クリック（左クリック） ──────────────────────────────
+    private void HandleAttackClick()
+    {
+        if (!turngenerater.LeftClickDown) return;
+        unitclick.AttackClick(battlesystem, this, attackpoint, move);
+    }
+
+    // ─── 攻撃キャンセル（右クリック）→ PlayerMove へ戻る ────────
+    private void HandleCancelAttack()
+    {
+        if (!turngenerater.RightClickDown) return;
+        Reset();
+        turngenerater.ChangeState(new PlayerMove(
+            turngenerater, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
     }
 }

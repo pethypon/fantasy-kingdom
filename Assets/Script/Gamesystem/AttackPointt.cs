@@ -77,6 +77,9 @@ public class AttackPointt : MonoBehaviour
     // ─── 攻撃モードに応じたポイント生成 ─────────────────────────────
     public void AttackPointCall(Status Obj, Vector3 ObjP, PlayerMove move)
     {
+        // バグ2修正：前回の攻撃ポイントが残っている場合に備えて先にクリア
+        AtkpDestroy();
+
         this.move = move;
         setpos = mapcreate.SetPos;
         attackmode = move.attackmode;

@@ -1,154 +1,156 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.XR;
+using UnityEngine.InputSystem;
 
 public class UnitClick : MonoBehaviour
 {
-    [SerializeField] PlayerMove playermove;
-    [SerializeField] TurnGenerater turngenerater;
-    [SerializeField] PlayerAttack playerattack;
-    [SerializeField] BattleSystem battlesystem;
-    [SerializeField] AttackPointt attackpoint;
+    [SerializeField] private PlayerMove playermove;
+    [SerializeField] private TurnGenerater turngenerater;
+    [SerializeField] private PlayerAttack playerattack;
+    [SerializeField] private BattleSystem battlesystem;
+    [SerializeField] private AttackPointt attackpoint;
     [SerializeField] public Status ATKC;
     public RaycastHit attackhit;
-    public void UC(PlayerMove playermove,TurnGenerater turngenerater,AttackPointt attackpoint)
+
+    private const float RayDistance = 100f;
+
+    public void UC(PlayerMove playermove, TurnGenerater turngenerater, AttackPointt attackpoint)
     {
         this.playermove = playermove;
         this.turngenerater = turngenerater;
         this.attackpoint = attackpoint;
-        
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    // â”€â”€â”€ å·¦ã‚¯ãƒªãƒƒã‚¯ï¼šãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¦ãƒ‹ãƒƒãƒˆé¸æŠ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public void Click1()
     {
-        //OldReset();
+        if (!TryGetMouseRay(out Ray ray)) return;
+        if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;
 
-        //ƒXƒNƒŠ[ƒ“À•W‚ğ‹‚ß‚é
-        Vector3 pos = Input.mousePosition;
-        //ƒXƒNƒŠ[ƒ“À•W‚É‚Ş‚©‚Á‚ÄƒJƒƒ‰‚©‚çRay‚ğ”ò‚Î‚·
-        Ray ray = Camera.main.ScreenPointToRay(pos);
-        //‚à‚µ‚àRay‚ğ”ò‚Î‚µ‚½‚ç
-        //Obj‚ª‹ó‚¶‚á‚È‚©‚Á‚½‚çAObj‚ÌTeam‚ªPlayer‚¾‚Á‚½‚çAObj‚ÌType‚ªUnit‚¾‚Á‚½‚ç
-        if (Physics.Raycast(ray, out playermove.hit, 100f))
-        {
-            playermove.Obj = playermove.hit.transform.GetComponent<Status>();
-            playermove.ObjP = playermove.hit.transform.position;
-            
-            if (playermove.Obj != null)
-            {
-                if (playermove.Obj.team == Team.Player)
-                {
-                    if (playermove.Obj.type == Type.Unit)
-                    {
-                        turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
-                        Debug.Log("<color=#00ff00ff>[Controller]<color>  OK ");
-                        turngenerater.SelectUnit = playermove.Obj;
-                        turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
-                        playermove.MenuSwitch = true;
-                    }
-                }
-            }
-        }
+        playermove.Obj = playermove.hit.transform.GetComponent<Status>();
+        playermove.ObjP = playermove.hit.transform.position;
+
+        if (playermove.Obj == null) return;
+        if (playermove.Obj.team != Team.Player) return;
+        if (playermove.Obj.type != Type.Unit) return;
+
+        // ãƒã‚°1ä¿®æ­£ï¼šå‰å›ã®MovePointãŒæ®‹ã£ã¦ã„ã‚‹å ´åˆã«å‚™ãˆã¦ãƒªã‚»ãƒƒãƒˆ
+        turngenerater.movegenerater.MoveReset();
+        turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
+        turngenerater.SelectUnit = playermove.Obj;
+        turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
+        playermove.MenuSwitch = true;
+        Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
     }
+
+    // â”€â”€â”€ å·¦ã‚¯ãƒªãƒƒã‚¯ï¼ˆç§»å‹•ç¢ºå®š or å†é¸æŠï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public void Click2()
     {
-        //ƒXƒNƒŠ[ƒ“À•W‚ğ‹‚ß‚é
-        Vector3 pos = Input.mousePosition;
-        //ƒXƒNƒŠ[ƒ“À•W‚É‚Ş‚©‚Á‚ÄƒJƒƒ‰‚©‚çRay‚ğ”ò‚Î‚·
-        Ray ray = Camera.main.ScreenPointToRay(pos);
-        //‚à‚µ‚àRay‚ğ”ò‚Î‚µ‚½‚ç
-        //Obj‚ª‹ó‚¶‚á‚È‚©‚Á‚½‚çAObj‚ÌTeam‚ªPlayer‚¾‚Á‚½‚çAObj‚ÌType‚ªUnit‚¾‚Á‚½‚ç
-        if (Physics.Raycast(ray, out playermove.hit, 100f))
+        Debug.Log("Click2å†…éƒ¨å§‹å‹•");
+        if (!TryGetMouseRay(out Ray ray)) return;
+        if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;
+        Debug.Log("Click2ï¼ˆRayé£›ã°ã—å®Œäº†ï¼‰");
+
+        playermove.MP = playermove.hit.transform.GetComponent<Status>();
+        if (playermove.MP == null) return;
+        Debug.Log("Click2ï¼ˆMPãŒNullã˜ã‚ƒãªã„å ´åˆã®é¸æŠè‚¢ï¼‰");
+
+        if (playermove.MP.team == Team.None && playermove.MP.type == Type.MovePoint)
         {
-
-            playermove.MP = playermove.hit.transform.GetComponent<Status>();
-            if (playermove.MP != null)
-            {
-                if (playermove.MP.team == Team.None)
-                {
-                    if (playermove.MP.type == Type.MovePoint)
-                    {
-                        Debug.Log("<color=#00ff00ff>[Controller]</color>OK2");
-
-                        //MP‚ÌˆÊ’u‚ğMPT‚É“ü‚ê‚ÄSelectUnit‚ÌˆÊ’u‚ğV‚µ‚­Vector3‚ğXV‚·‚é
-                        Vector3 MPT = playermove.MP.transform.position;
-                        MPT.y += 0.47f;
-                        turngenerater.SelectUnit.transform.position = new Vector3(MPT.x, MPT.y, MPT.z);
-                        turngenerater.NewCell = turngenerater.SelectUnit.transform.position;
-                        turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
-                        //SelectUnit‚Í‹î‚Ìî•ñƒƒjƒ…[‰æ–Ê‚ğo‚·‚Ì‚Å‚¯‚³‚È‚¢
-                        Transform moves = turngenerater.movegenerater.Move;
-                        turngenerater.movegenerater.MoveReset();
-                        playermove.MP = null;
-                        playermove.Obj = null;
-                        playermove.MenuSwitch = false;
-                    }
-                }
-                //‚à‚¤ˆê“xƒvƒŒƒCƒ„[‘¤‚Ì‹î‚ğƒNƒŠƒbƒN‚µ‚½ê‡
-                else if (playermove.MP.team == Team.Player)
-                {
-                    if (playermove.MP.type == Type.Unit)
-                    {
-                        /*
-                         
-                        MovePoint‚ğÁ‚·‚½‚ß‚ÉMoveReset‚ğŒÄ‚Ño‚·
-                        V‚µ‚­Ray‚ğ”ò‚Î‚µ‚Äè‚É“ü‚ê‚½î•ñ‚ÆÀ•W‚ğObj‚ÆObjP‚É‘ã“ü‚µ‚È‚¨‚·
-                        V‚µ‚­‘ã“ü‚µ‚½‚ç‚»‚Ì•Ï”‚ğ‚à‚Æ‚ÉMoveCore‚ğŒÄ‚Ño‚·
-                        SelectUnnit‚Ì‚È‚©‚ÉObj‚ğ‘ã“ü
-                        UnitPointData‚©‚çOldCell‚ğæ‚èo‚µ‚ÄV‚µ‚­OldCell‚É‘ã“ü‚µ‚È‚¨‚·
-
-                        */
-                        turngenerater.movegenerater.MoveReset();
-                        playermove.Obj = playermove.hit.transform.GetComponent<Status>();
-                        playermove.ObjP = playermove.hit.transform.position;
-                        turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
-                        Debug.Log("<color=#00ff00ff>[Controller]<color>  OK ");
-                        turngenerater.SelectUnit = playermove.Obj;
-                        turngenerater.movegenerater.UnitPointData.Remove(turngenerater.movegenerater.Cell(turngenerater.OldCell));
-                        turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
-                    }
-                }
-            }
+            HandleMovePointClick();
+        }
+        else if (playermove.MP.team == Team.Player && playermove.MP.type == Type.Unit)
+        {
+            HandlePlayerUnitReselect();
         }
     }
 
-    public void AttackClick(BattleSystem battlesystem)
+    // â”€â”€â”€ æ”»æ’ƒã‚¯ãƒªãƒƒã‚¯ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    public void AttackClick(
+        BattleSystem battlesystem,
+        PlayerAttack playerattack,
+        AttackPointt attackpoint,
+        PlayerMove playermove)
     {
+        this.playermove = playermove;
         this.battlesystem = battlesystem;
-        Vector3 pos = Input.mousePosition;
-        Ray ray = Camera.main.ScreenPointToRay(pos);
-        if (Physics.Raycast(ray, out attackhit, 100))
+        this.playerattack = playerattack;
+        this.attackpoint = attackpoint;
+
+        if (!TryGetMouseRay(out Ray ray)) return;
+        if (!Physics.Raycast(ray, out attackhit, RayDistance)) return;
+        if (!attackhit.transform.TryGetComponent<Status>(out ATKC)) return;
+        if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
+        if (attackpoint.AttackP == null) return;
+
+        Vector3 attackSame = ATKC.transform.position;
+        bool isInRange = attackpoint.AttackP.Any(p => p.x == attackSame.x && p.z == attackSame.z);
+        if (!isInRange) return;
+
+        // â”€â”€â”€ AP ãƒã‚§ãƒƒã‚¯ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
         {
-            ATKC = attackhit.transform.GetComponent<Status>();
-            if (ATKC != null)
-            {
-                if (ATKC.team == Team.Enemy)
-                {
-                    if (ATKC.type == Type.Unit)
-                    {
-                        /* 
-                         
-                         ATKC‚ğVector3‚É•Ï‚¦‚Ä
-                         AttackP‚ÌList‚©‚çAttackSame‚ğ”äŠr‚µ‚Ä“¯‚¶À•W‚É‚È‚é‚à‚Ì‚ğ’T‚·
-                         ’T‚µ‚½Œ‹‰Ê‚ğBattleSystem‚Ìtarget‚É“ü‚ê‚é
-
-                        */
-                        Vector3 AttackSame = ATKC.transform.position;
-                        if (attackpoint.AttackP.Any(p => p.x == AttackSame.x && p.z == AttackSame.z))
-                        {
-                            battlesystem.target = ATKC;
-                        }
-                    }
-
-                }
-            }
-            
+            Debug.Log("[APSystem] APä¸è¶³ï¼šæ”»æ’ƒã§ãã¾ã›ã‚“");
+            return;
         }
+
+        battlesystem.target = ATKC;
+        playermove.MenuSwitch = false;
+        battlesystem.DamageGenerater(turngenerater);
+        turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
+        playerattack.AttackSuccess = true;
     }
 
- 
+    // â”€â”€â”€ ç§»å‹•å…ˆ(MovePoint)ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç† â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    private void HandleMovePointClick()
+    {
+        Debug.Log("<color=#00ff00ff>[Controller]</color> OK2");
+        Vector3 from = turngenerater.OldCell;
+        Vector3 to = playermove.MP.transform.position;
+        to.y += 0.47f;
 
-    
+        // â”€â”€â”€ AP ãƒã‚§ãƒƒã‚¯ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to))
+        {
+            Debug.Log("[APSystem] APä¸è¶³ï¼šç§»å‹•ã§ãã¾ã›ã‚“");
+            return;
+        }
+
+        // â”€â”€â”€ ç§»å‹•ç¢ºå®š â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        turngenerater.SelectUnit.transform.position = to;
+        turngenerater.NewCell = turngenerater.SelectUnit.transform.position;
+        turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
+        turngenerater.movegenerater.MoveReset();
+
+        // â”€â”€â”€ AP æ¶ˆè²»ï¼ˆç§»å‹•æˆç«‹å¾Œï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
+
+        playermove.MP = null;
+        playermove.Obj = null;
+        playermove.MenuSwitch = false;
+    }
+
+    // â”€â”€â”€ ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¦ãƒ‹ãƒƒãƒˆå†é¸æŠæ™‚ã®å‡¦ç† â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    private void HandlePlayerUnitReselect()
+    {
+        turngenerater.movegenerater.MoveReset();
+        playermove.Obj = playermove.hit.transform.GetComponent<Status>();
+        playermove.ObjP = playermove.hit.transform.position;
+        turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
+        turngenerater.SelectUnit = playermove.Obj;
+        turngenerater.movegenerater.UnitPointData.Remove(
+            turngenerater.movegenerater.Cell(turngenerater.OldCell));
+        turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
+        Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
+    }
+
+    // â”€â”€â”€ ãƒã‚¦ã‚¹ä½ç½®ã‹ã‚‰Rayã‚’ç”Ÿæˆï¼ˆæ–°å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ å¯¾å¿œï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    private bool TryGetMouseRay(out Ray ray)
+    {
+        ray = default;
+        if (Mouse.current == null) return false;
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        ray = Camera.main.ScreenPointToRay(mousePos);
+        return true;
+    }
 }
