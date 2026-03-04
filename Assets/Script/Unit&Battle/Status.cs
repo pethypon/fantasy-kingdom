@@ -1,17 +1,17 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 
 public enum Team
 {
     Player,
     Enemy,
+    Obstacle,
     None
-
 }
+
 public enum Kind
 {
+    Crystal,
     King,
     Knight,
     Archer,
@@ -23,52 +23,92 @@ public enum Kind
     Crossbow,
     Magicsniper,
     Bomber,
+    WoodWall,
+    StoneWall,
     None
 }
+
 public enum Type
 {
     Unit,
     Building,
+    Wall,
     MovePoint,
     AttackPoint
 }
+
 public enum State
 {
-    Normal
+    Normal,
+    Stun       // Phase 2: Crossbow 10%スタン
 }
-public enum Equipment
-{
-    Head,
-    Body,
-    Arm,
-    Waist,
-    Leg
 
+public enum Direction
+{
+    N,
+    S
 }
 
 public enum Skill
 {
     None
 }
+
+public enum PassiveSkill
+{
+    None,
+    Impregnable,
+    HunterEyes,
+    Destroyer,
+    Assassination,
+    Sniper
+}
+
 public class Status : MonoBehaviour
 {
-    [Header("���")]
+    [Header("種類")]
     [SerializeField] public Kind kind;
-
-    [Header("�`�[��")]
+    [Header("チーム")]
     [SerializeField] public Team team;
-
-    [Header("��̃^�C�v")]
+    [Header("駒のタイプ")]
     [SerializeField] public Type type;
-
-    [Header("���")]
+    [Header("状態")]
     [SerializeField] public State state;
-
-    [Header("�X�L��")]
+    [Header("スキル")]
     [SerializeField] public Skill skill;
-
-    [Header("�X�e�[�^�X")]
+    [Header("駒の向き")]
+    [SerializeField] public Direction direction;
+    [Header("パッシブスキル")]
+    [SerializeField] public PassiveSkill passiveskill;
+    [Header("ステータス")]
     [SerializeField] public int HP;
     [SerializeField] public int ATK;
     [SerializeField] public int DEF;
+    [Header("レベル")]
+    public int Level = 1;
+    [Header("駒の視界")]
+    [SerializeField] public HashSet<Vector3Int> VisionCell;
+    [Header("疲労")]
+    [SerializeField] public int Fatigue = 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+//  以下のenumは新規ファイルを作らずここに追記する（設計原則1）
+// ─────────────────────────────────────────────────────────────────────
+
+// 建物の種別（FacilityData と EconomySystem で使用）
+public enum FacilityKind
+{
+    Field, Bakery, LoggingCamp, LumberMill,
+    Quarry, StoneWorks, Mine, Smelter,
+    Barracks, House, Well, Warehouse,
+    WoodWall, StoneWall,
+    Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword
+}
+
+// 資源の種別（FacilityData と EconomySystem で使用）
+public enum ResourceKind
+{
+    Wood, Stone, IronOre, Iron, MagicOre, Coal,
+    Wheat, Bread, Water, Plank, CutStone, Citizen, None
 }

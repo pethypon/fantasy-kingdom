@@ -1,0 +1,318 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class VisionGenerater : MonoBehaviour
+{
+    public List<Vector3> _setpos;
+
+    // Playerが今見えるマス
+    public HashSet<Vector3Int> PlayerVisionBox;
+    // Playerが一度見たマス
+    public HashSet<Vector3Int> PlayerExploard;
+
+    public List<Status> playerunitbox;
+
+    // Enemyが今見えるマス
+    public HashSet<Vector3Int> EnemyVisionBox;
+    // Enemyが一度見たマス
+    public HashSet<Vector3Int> EnemyExploard;
+
+    public List<Status> enemyunitbox;
+
+    [Header("マップクリエイト")]
+    [SerializeField] MapCreate mapcreate;
+
+    [Header("ムーブジェネレーター")]
+    [SerializeField] MoveGererater movegenerater;
+
+    [Header("プレイヤームーブ")]
+    [SerializeField] PlayerMove playermove;
+
+    [Header("クリスタルシステム")]
+    [SerializeField] CrystalSystem crystalsystem;
+
+    [Header("テリトリーシステム")]
+    [SerializeField] TerritorySystem territorysystem;
+
+    [Header("ユニットボックス")]
+    [SerializeField] Transform PlayerUnit;
+    [SerializeField] Transform EnemyUnit;
+
+    int blockLayerMask;
+
+    // 駒の種類ごとの視界データ（Dictionaryで一元管理）
+    static readonly Dictionary<Kind, Vector3Int[]> VisionDataMap = new Dictionary<Kind, Vector3Int[]>
+    {
+        { Kind.Crystal,     RangeVisionBox(-3, 3, -1, 0, -3, 3, true) },
+        { Kind.King,        VisionBox(-1, 1, -1, 0, 0, 2, true) },
+        { Kind.Knight,      VisionBox(-1, 1, -1, 0, 0, 2, true) },
+        { Kind.Archer,      VisionBox(-1, 1, -1, 0, 0, 3, true) },
+        { Kind.Magic,       RangeVisionBox(-2, 2, -1, 0, -2, 2, true) },
+        { Kind.Assassin,    VisionBox(-1, 1, -1, 0, -1, 2, true) },
+        { Kind.Scout,       RangeVisionBox(-2, 2, -1, 0, -2, 2, true) },
+        { Kind.Priest,      RangeVisionBox(-1, 1, -1, 0, -1, 1, true) },
+        { Kind.Guardian,    RangeVisionBox(-1, 1, -1, 0, 0, 2, true) },
+        { Kind.Crossbow,    RangeVisionBox(-1, 1, -1, 0, 0, 2, true) },
+        { Kind.Magicsniper, RangeVisionBox(-4, 4, -1, 0, -1, 1, true) },
+        { Kind.Bomber,      VisionBox(-1, 1, -1, 0, 0, 3, true) },
+    };
+
+    static Vector3Int[] VisionBox(int minx, int maxx, int miny, int maxy,
+                                   int minz, int maxz, bool PiecePosition)
+    {
+        var list = new List<Vector3Int>();
+        for (int vx = minx; vx <= maxx; vx++)
+            for (int vy = miny; vy <= maxy; vy++)
+                for (int vz = minz; vz <= maxz; vz++)
+                {
+                    if (!PiecePosition && vx == 0 && vy == 0 && vz == 0) continue;
+                    if (vz == 0 && (vx == -1 || vx == 1)) continue;
+                    list.Add(new Vector3Int(vx, vy, vz));
+                }
+        return list.ToArray();
+    }
+
+    static Vector3Int[] RangeVisionBox(int minx, int maxx, int miny, int maxy,
+                                        int minz, int maxz, bool PiecePosition)
+    {
+        var list = new List<Vector3Int>();
+        for (int vx = minx; vx <= maxx; vx++)
+            for (int vy = miny; vy <= maxy; vy++)
+                for (int vz = minz; vz <= maxz; vz++)
+                {
+                    if (!PiecePosition && vx == 0 && vy == 0 && vz == 0) continue;
+                    list.Add(new Vector3Int(vx, vy, vz));
+                }
+        return list.ToArray();
+    }
+
+    public void Awake()
+    {
+        blockLayerMask = LayerMask.GetMask("Block");
+
+        if (PlayerVisionBox == null) PlayerVisionBox = new HashSet<Vector3Int>();
+        if (PlayerExploard == null) PlayerExploard = new HashSet<Vector3Int>();
+        if (EnemyVisionBox == null) EnemyVisionBox = new HashSet<Vector3Int>();
+        if (EnemyExploard == null) EnemyExploard = new HashSet<Vector3Int>();
+    }
+
+    // ─── ヘルパーメソッド ───────────────────────────
+
+    void CollectStatuses(Transform parent, List<Status> result)
+    {
+        result.Clear();
+        foreach (Transform child in parent)
+        {
+            if (child == null) continue;
+            Status status = child.GetComponentInChildren<Status>();
+            if (status != null)
+                result.Add(status);
+        }
+    }
+
+    void CalculateAndMergeVision(Status status, MapCreate mapcreate,
+                                  CrystalSystem crystalsystem, HashSet<Vector3Int> targetSet)
+    {
+        if (status == null) return;
+
+        if (status.VisionCell == null)
+            status.VisionCell = new HashSet<Vector3Int>();
+
+        status.VisionCell.Clear();
+        VisionCreate(status, mapcreate, crystalsystem);
+        targetSet.UnionWith(status.VisionCell);
+    }
+
+    static Vector3Int ApplyDirection(Vector3Int offset, Direction direction)
+    {
+        switch (direction)
+        {
+            case Direction.S:
+                return new Vector3Int(-offset.x, offset.y, -offset.z);
+            case Direction.N:
+            default:
+                return offset;
+        }
+    }
+
+    void RaycastCrystalVision(Status status, MapCreate mapcreate, int px, int py, int pz)
+    {
+        Vector3 goal = new Vector3(px, py, pz) + Vector3.up * 0.5f;
+        float startHigh = mapcreate.maxY + 10f;
+        Vector3 visionstart = goal + Vector3.up * startHigh;
+        float distance = startHigh + 20f;
+
+        if (Physics.Raycast(visionstart, Vector3.down, out var hit, distance, blockLayerMask))
+        {
+            int hitx = Mathf.RoundToInt(hit.collider.transform.position.x);
+            int hitz = Mathf.RoundToInt(hit.collider.transform.position.z);
+
+            if (hitx == px && hitz == pz)
+            {
+                int hity = Mathf.RoundToInt(hit.collider.transform.position.y);
+                status.VisionCell.Add(new Vector3Int(px, hity, pz));
+            }
+            else
+            {
+                status.VisionCell.Add(new Vector3Int(px, 0, pz));
+            }
+        }
+        else
+        {
+            status.VisionCell.Add(new Vector3Int(px, 0, pz));
+        }
+    }
+
+    void RaycastDirectVision(Status status, int statusX, int statusY, int statusZ,
+                              int px, int py, int pz)
+    {
+        Vector3 start = new Vector3(statusX, statusY, statusZ) + Vector3.up * 0.5f;
+        Vector3 goal = new Vector3(px, py, pz) + Vector3.up * 0.5f;
+        Vector3 direction = goal - start;
+        float distance = direction.magnitude;
+
+        if (distance <= 0.001f)
+        {
+            status.VisionCell.Add(new Vector3Int(px, py, pz));
+            return;
+        }
+
+        if (Physics.Raycast(start, direction.normalized, out var hit, distance, blockLayerMask))
+        {
+            int hitx = Mathf.RoundToInt(hit.collider.transform.position.x);
+            int hity = Mathf.RoundToInt(hit.collider.transform.position.y);
+            int hitz = Mathf.RoundToInt(hit.collider.transform.position.z);
+
+            if (px == hitx && py == hity && pz == hitz)
+                status.VisionCell.Add(new Vector3Int(px, py, pz));
+        }
+        else
+        {
+            status.VisionCell.Add(new Vector3Int(px, py, pz));
+        }
+    }
+
+    void SetFogVisibility(Transform parent, HashSet<Vector3Int> visionXZ,
+                           HashSet<Vector3Int> exploardXZ, bool showOnExploard)
+    {
+        if (parent == null) return;
+
+        foreach (Transform Temporary in parent)
+        {
+            int x = Mathf.RoundToInt(Temporary.position.x);
+            int z = Mathf.RoundToInt(Temporary.position.z);
+            var data = new Vector3Int(x, 0, z);
+
+            bool nowVision = visionXZ.Contains(data);
+            bool nowExploard = exploardXZ.Contains(data);
+
+            if (showOnExploard)
+                Temporary.gameObject.SetActive(!nowVision && nowExploard);
+            else
+                Temporary.gameObject.SetActive(!nowVision && !nowExploard);
+        }
+    }
+
+    void SetRendererVisibility(IEnumerable targets, HashSet<Vector3Int> visionXZ)
+    {
+        if (targets == null) return;
+
+        foreach (Transform Temporary in targets)
+        {
+            int x = Mathf.RoundToInt(Temporary.position.x);
+            int z = Mathf.RoundToInt(Temporary.position.z);
+            var data = new Vector3Int(x, 0, z);
+
+            bool visible = visionXZ.Contains(data);
+            foreach (var renderer in Temporary.GetComponentsInChildren<Renderer>(true))
+                renderer.enabled = visible;
+        }
+    }
+
+    // ─── メインメソッド ────────────────────────────
+
+    public void VisionPoint(MapCreate mapcreate, MoveGererater movegenerater,
+                             CrystalSystem crystalsystem)
+    {
+        this.mapcreate = mapcreate;
+        this.movegenerater = movegenerater;
+        this.crystalsystem = crystalsystem;
+
+        if (PlayerVisionBox != null) PlayerVisionBox.Clear();
+        if (EnemyVisionBox != null) EnemyVisionBox.Clear();
+
+        _setpos = mapcreate.SetPos;
+
+        if (playerunitbox == null) playerunitbox = new List<Status>();
+        CollectStatuses(PlayerUnit, playerunitbox);
+
+        if (enemyunitbox == null) enemyunitbox = new List<Status>();
+        CollectStatuses(EnemyUnit, enemyunitbox);
+
+        // Player駒の視界計算
+        foreach (Status status in playerunitbox)
+            CalculateAndMergeVision(status, mapcreate, crystalsystem, PlayerVisionBox);
+
+        // Playerクリスタルの視界計算
+        foreach (Transform Temporary in crystalsystem.Playercrystal)
+        {
+            Status status = Temporary.GetComponentInChildren<Status>();
+            CalculateAndMergeVision(status, mapcreate, crystalsystem, PlayerVisionBox);
+        }
+
+        PlayerExploard.UnionWith(PlayerVisionBox);
+        EnemyExploard.UnionWith(EnemyVisionBox);
+        VisionSetting(mapcreate);
+    }
+
+    public void VisionCreate(Status status, MapCreate mapcreate, CrystalSystem crystalsystem)
+    {
+        if (!VisionDataMap.TryGetValue(status.kind, out Vector3Int[] visionData))
+            return;
+
+        Debug.Log($"<color=#00ff00ff>[Controller]</color>{status.kind}");
+
+        int statusX = Mathf.RoundToInt(status.transform.position.x);
+        int statusY = Mathf.RoundToInt(status.transform.position.y);
+        int statusZ = Mathf.RoundToInt(status.transform.position.z);
+
+        foreach (Vector3Int p in visionData)
+        {
+            Vector3Int directionP = ApplyDirection(p, status.direction);
+
+            int px = statusX + directionP.x;
+            int py = statusY + directionP.y;
+            int pz = statusZ + directionP.z;
+
+            if (px < 0 || px >= mapcreate.maxX) continue;
+            if (pz < 0 || pz >= mapcreate.maxZ) continue;
+            if (py < mapcreate.minY || py > mapcreate.maxY) continue;
+
+            if (status.kind == Kind.Crystal)
+                RaycastCrystalVision(status, mapcreate, px, py, pz);
+            else
+                RaycastDirectVision(status, statusX, statusY, statusZ, px, py, pz);
+        }
+    }
+
+    public void VisionSetting(MapCreate mapcreate)
+    {
+        var playervisionXZ = new HashSet<Vector3Int>();
+        var playerexploardXZ = new HashSet<Vector3Int>();
+
+        foreach (var Temporary in PlayerVisionBox)
+            playervisionXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
+        foreach (var Temporary in PlayerExploard)
+            playerexploardXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
+
+        SetFogVisibility(mapcreate.FogParent, playervisionXZ, playerexploardXZ, false);
+        SetFogVisibility(mapcreate.FogBoardParent, playervisionXZ, playerexploardXZ, false);
+        SetFogVisibility(mapcreate.FogExploardBoardParent, playervisionXZ, playerexploardXZ, true);
+        SetFogVisibility(mapcreate.FogExploardParent, playervisionXZ, playerexploardXZ, true);
+
+        SetRendererVisibility(EnemyUnit, playervisionXZ);
+        SetRendererVisibility(crystalsystem.Enemycrystal, playervisionXZ);
+        SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);
+    }
+}

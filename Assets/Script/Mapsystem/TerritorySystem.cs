@@ -1,19 +1,16 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-
 public class TerritorySystem : MonoBehaviour
 {
-   
-    [Header("ƒeƒŠƒgƒŠ[ƒIƒuƒWƒFƒNƒg")]
+    [Header("ãƒ†ãƒªãƒˆãƒªãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
     [SerializeField] GameObject PlayerTerritory;
     [SerializeField] GameObject EnemyTerritory;
 
-    [Header("ƒeƒŠƒgƒŠ[eƒIƒuƒWƒFƒNƒg")]
-    [SerializeField] Transform Playerterritory;
-    [SerializeField] Transform Enemyterritory;
+    [Header("ãƒ†ãƒªãƒˆãƒªãƒ¼è¦ªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
+    [SerializeField] public Transform Playerterritory;
+    [SerializeField] public Transform Enemyterritory;
 
     public List<Vector3> PTSetPos;
     public List<Vector3> ETSetPos;
@@ -21,19 +18,7 @@ public class TerritorySystem : MonoBehaviour
     private Vector3 pcp;
     private Vector3 ecp;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void Territory() 
+    public void Territory()
     {
         MapCreate mapcreate = GetComponent<MapCreate>();
         CrystalSystem crystalsystem = GetComponent<CrystalSystem>();
@@ -41,47 +26,36 @@ public class TerritorySystem : MonoBehaviour
         pcp = crystalsystem.PCP;
         ecp = crystalsystem.ECP;
 
-        //PCPü•Ó‚Ìî•ñ‚ğ‚Ó‚é‚¢‚É‚©‚¯‚Ä”¼Œa3‚Ìî•ñ‚ğŠl“¾
-        PTSetPos = setpos.Where
-        (p =>
+        // PCPå‘¨è¾ºã®æƒ…å ±ã‚’ãµã‚‹ã„ã«ã‹ã‘ã¦åŠå¾„3ã®æƒ…å ±ã‚’ç²å¾—
+        PTSetPos = setpos.Where(p =>
         {
             float px = Mathf.Abs(p.x - pcp.x);
             float pz = Mathf.Abs(p.z - pcp.z);
-            bool truex = px <= 3;
-            bool truez = pz <= 3 && p != pcp;
-            
+            return px <= 3 && pz <= 3 && p != pcp;
+        }).ToList();
 
-            return truex && truez;
-        }
-        ).ToList();
+        // ECPå‘¨è¾ºã®æƒ…å ±ã‚’ãµã‚‹ã„ã«ã‹ã‘ã¦åŠå¾„3ã®æƒ…å ±ã‚’ç²å¾—
+        ETSetPos = setpos.Where(e =>
+        {
+            float ex = Mathf.Abs(e.x - ecp.x);
+            float ez = Mathf.Abs(e.z - ecp.z);
+            return ex <= 3 && ez <= 3 && e != ecp;
+        }).ToList();
 
-        //ECPü•Ó‚Ìî•ñ‚ğ‚Ó‚é‚¢‚É‚©‚¯‚Ä”¼Œa3‚Ìî•ñ‚ğŠl“¾
-        ETSetPos = setpos.Where
-          (e =>
-          {
-          float ex = Mathf.Abs(e.x - ecp.x);
-          float ez = Mathf.Abs(e.z - ecp.z);
-          bool truex = ex <= 3;
-          bool truez = ez <= 3 && e != ecp;
-              return truex && truez;
-          }
-          ).ToList();
-
-        for (int i = 0;i < PTSetPos.Count; i ++) 
+        for (int i = 0; i < PTSetPos.Count; i++)
         {
             Vector3 pos = PTSetPos[i];
             pos.y -= 0.475f;
-            Instantiate(PlayerTerritory, pos, Quaternion.identity,Playerterritory);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>İ’uŠ®—¹");
+            Instantiate(PlayerTerritory, pos, Quaternion.identity, Playerterritory);
+            Debug.Log("<color=#ffff00ff>[StartSetting]</color>è¨­ç½®å®Œäº†");
         }
 
-        for (int i = 0;i < ETSetPos.Count; i ++) 
+        for (int i = 0; i < ETSetPos.Count; i++)
         {
             Vector3 pos = ETSetPos[i];
             pos.y -= 0.475f;
-            Instantiate(EnemyTerritory,pos,Quaternion.identity,Enemyterritory);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>İ’uŠ®—¹");
+            Instantiate(EnemyTerritory, pos, Quaternion.identity, Enemyterritory);
+            Debug.Log("<color=#ffff00ff>[StartSetting]</color>è¨­ç½®å®Œäº†");
         }
-        
     }
 }

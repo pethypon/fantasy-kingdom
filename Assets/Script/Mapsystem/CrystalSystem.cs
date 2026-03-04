@@ -1,130 +1,90 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class CrystalSystem : MonoBehaviour
 {
-    [Header("ƒNƒŠƒXƒ^ƒ‹")]
-    [SerializeField] GameObject PlayerCrystal;
-    [SerializeField] GameObject EnemyCrystal;
+    [Header("ã‚¯ãƒªã‚¹ã‚¿ãƒ«")]
+    [SerializeField] private GameObject PlayerCrystal;
+    [SerializeField] private GameObject EnemyCrystal;
+
+    [Header("ã‚¯ãƒªã‚¹ã‚¿ãƒ«é–“è·é›¢")]
     public int CrystalDistanceXmin = 1;
-    public int CrystalDistanceXmax = 25;
+    public int CrystalDistanceXmax = 10;
     public int CrystalDistanceZmin = 1;
-    public int CrystalDistanceZmax = 25;
+    public int CrystalDistanceZmax = 10;
 
-    [Header("ƒNƒŠƒXƒ^ƒ‹”z’u")]
-    private int Pci;
-    private int Eci;
+    [Header("ã‚¯ãƒªã‚¹ã‚¿ãƒ«è¦ªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
+    [SerializeField] public Transform Playercrystal;
+    [SerializeField] public Transform Enemycrystal;
 
-    [Header("ƒNƒŠƒXƒ^ƒ‹eƒIƒuƒWƒFƒNƒg")]
-    [SerializeField] Transform Playercrystal;
-    [SerializeField] Transform Enemycrystal;
-
-    private List<Vector3> _SetPos;
-    private List<Vector3> PlayerSetPos;
-    private List<Vector3> EnemySetPos;
-    private int maxx;
-    private int maxz;
     public Vector3 PCP;
     public Vector3 ECP;
 
-   
-    public void CrystalCore() 
+    private List<Vector3> _SetPos;
+    private int maxx;
+    private int maxz;
+
+    // é…ç½®ã«å¤±æ•—ã—ãŸå ´åˆã€è·é›¢åˆ¶ç´„ã‚’æ®µéšçš„ã«ç·©å’Œã—ã¦å†è©¦è¡Œã™ã‚‹
+    private static readonly int[] DistanceRelaxation = { 0, 2, 4, 6 };
+
+    // â”€â”€â”€ ãƒ¡ã‚¤ãƒ³ã‚¨ãƒ³ãƒˆãƒª â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    public void CrystalCore()
     {
-        //MapCreate‚©‚çSetPos‚ğ‚Á‚Ä‚­‚é
         MapCreate mapcreate = GetComponent<MapCreate>();
         _SetPos = mapcreate.SetPos;
         maxx = mapcreate.maxX;
         maxz = mapcreate.maxZ;
 
-        PlayerSetPos = _SetPos.Where
-            (p =>
-            p.x >= 6 && p.x <= maxx - 6 && p.z >= 6 && p.z <= maxz - 6
+        PlacePlayerCrystal();
+        PlaceEnemyCrystal();
+    }
 
-               
-            ).ToList();
-        //SetPos‚ÌList‚©‚çƒ‰ƒ“ƒ_ƒ€‚Åæ‚èo‚µ‚Ä©w‚ÌƒNƒŠƒXƒ^ƒ‹‚ğİ’u‚·‚é
-        Pci = Random.Range(0, PlayerSetPos.Count);
-        PCP = PlayerSetPos[Pci];
-        Instantiate(PlayerCrystal, PCP, Quaternion.identity,Playercrystal);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color>ƒNƒŠƒXƒ^ƒ‹İ’uŠ®—¹");
+    // â”€â”€â”€ ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¯ãƒªã‚¹ã‚¿ãƒ«é…ç½® â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    private void PlacePlayerCrystal()
+    {
+        var candidates = _SetPos.Where(p =>
+            p.x >= 6 && p.x <= maxx - 6 &&
+            p.z >= 6 && p.z <= maxz - 6
+        ).ToList();
+
+        PCP = candidates[Random.Range(0, candidates.Count)];
+        Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
         _SetPos.Remove(PCP);
+        Debug.Log("<color=#ffff00ff>[StartSetting]</color> ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¯ãƒªã‚¹ã‚¿ãƒ«è¨­ç½®å®Œäº†");
+    }
 
-        EnemySetPos = _SetPos.Where
-       (p =>
-       {
-           float px = Mathf.Abs(p.x - PCP.x);
-           float pz = Mathf.Abs(p.z - PCP.z);
-           bool truex = px >= CrystalDistanceXmin && px >= CrystalDistanceXmax && p.x >= 6 && p.x <= maxx - 6;
-           bool truez = pz >= CrystalDistanceZmin && pz >= CrystalDistanceZmax && p.z >= 6 &&p.z <= maxz - 6;
-
-           return truex && truez;
-
-       }
-       ).ToList();
-        Eci = Random.Range(0, EnemySetPos.Count);
-        ECP = EnemySetPos[Eci];
-        Instantiate(EnemyCrystal, ECP, Quaternion.identity,Enemycrystal);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color>“GƒNƒŠƒXƒ^ƒ‹İ’uŠ®—¹"); 
-        if (EnemySetPos.Count == 0) 
+    // â”€â”€â”€ æ•µã‚¯ãƒªã‚¹ã‚¿ãƒ«é…ç½®ï¼ˆè·é›¢åˆ¶ç´„ã‚’æ®µéšçš„ã«ç·©å’Œã—ã¦ãƒªãƒˆãƒ©ã‚¤ï¼‰ â”€â”€â”€â”€â”€
+    private void PlaceEnemyCrystal()
+    {
+        foreach (int relax in DistanceRelaxation)
         {
-            EnemySetPos = _SetPos.Where
-       (p =>
-       {
-           float px = Mathf.Abs(p.x - PCP.x);
-           float pz = Mathf.Abs(p.z - PCP.z);
-           bool truex = px >= CrystalDistanceXmin -1 && px >= CrystalDistanceXmax - 2 && p.x >= 5 && p.x <= maxx - 5;
-           bool truez = pz >= CrystalDistanceZmin -1 && pz >= CrystalDistanceZmax - 2 && p.z >= 5 && p.z <= maxz - 5;
+            int margin = relax == 0 ? 6 : 5;
+            var candidates = GetEnemyCandidates(
+                CrystalDistanceXmax - relax,
+                CrystalDistanceZmax - relax,
+                margin);
 
-           return truex && truez;
+            if (candidates.Count == 0) continue;
 
-       }
-       ).ToList();
-            Eci = Random.Range(0, EnemySetPos.Count);
-            ECP = EnemySetPos[Eci];
-            Instantiate(EnemyCrystal, ECP, Quaternion.identity);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>“GƒNƒŠƒXƒ^ƒ‹İ’uŠ®—¹");
+            ECP = candidates[Random.Range(0, candidates.Count)];
+            Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
+            Debug.Log("<color=#ffff00ff>[StartSetting]</color> æ•µã‚¯ãƒªã‚¹ã‚¿ãƒ«è¨­ç½®å®Œäº†");
+            return;
         }
 
-        else if (EnemySetPos.Count == 0)
+        Debug.LogError("[CrystalSystem] æ•µã‚¯ãƒªã‚¹ã‚¿ãƒ«ã®é…ç½®å€™è£œãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
+    }
+
+    private List<Vector3> GetEnemyCandidates(float minDistX, float minDistZ, int margin)
+    {
+        return _SetPos.Where(p =>
         {
-            EnemySetPos = _SetPos.Where
-       (p =>
-       {
-           float px = Mathf.Abs(p.x - PCP.x);
-           float pz = Mathf.Abs(p.z - PCP.z);
-           bool truex = px >= CrystalDistanceXmin - 1 && px >= CrystalDistanceXmax - 4 && p.x >= 5 && p.x <= maxx - 5;
-           bool truez = pz >= CrystalDistanceZmin - 1 && pz >= CrystalDistanceZmax - 4 && p.z >= 5 && p.z <= maxz - 5;
-
-           return truex && truez;
-
-       }
-       ).ToList();
-            Eci = Random.Range(0, EnemySetPos.Count);
-            ECP = EnemySetPos[Eci];
-            Instantiate(EnemyCrystal, ECP, Quaternion.identity);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>“GƒNƒŠƒXƒ^ƒ‹İ’uŠ®—¹");
-        }
-
-        else if (EnemySetPos.Count == 0)
-        {
-            EnemySetPos = _SetPos.Where
-       (p =>
-       {
-           float px = Mathf.Abs(p.x - PCP.x);
-           float pz = Mathf.Abs(p.z - PCP.z);
-           bool truex = px >= CrystalDistanceXmin - 1 && px >= CrystalDistanceXmax - 6 && p.x >= 5 && p.x <= maxx - 5;
-           bool truez = pz >= CrystalDistanceZmin - 1 && pz >= CrystalDistanceZmax - 6 && p.z >= 5 && p.z <= maxz - 5;
-
-           return truex && truez;
-
-       }
-       ).ToList();
-            Eci = Random.Range(0, EnemySetPos.Count);
-            ECP = EnemySetPos[Eci];
-            Instantiate(EnemyCrystal, ECP, Quaternion.identity);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>“GƒNƒŠƒXƒ^ƒ‹İ’uŠ®—¹");
-        }
+            float dx = Mathf.Abs(p.x - PCP.x);
+            float dz = Mathf.Abs(p.z - PCP.z);
+            bool inBoundsX = p.x >= margin && p.x <= maxx - margin;
+            bool inBoundsZ = p.z >= margin && p.z <= maxz - margin;
+            return dx >= minDistX && dz >= minDistZ && inBoundsX && inBoundsZ;
+        }).ToList();
     }
 }
