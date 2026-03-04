@@ -35,7 +35,7 @@ public class TurnGenerater : MonoBehaviour
     [SerializeField] public CrystalSystem crystalsystem;
 
     [Header("視界システム")]
-    [SerializeField] VisionGenerater visiongenerater;
+    [SerializeField] public VisionGenerater visiongenerater;   // ← public に変更
 
     [Header("APシステム")]
     [SerializeField] public APSystem apsystem;
@@ -70,7 +70,6 @@ public class TurnGenerater : MonoBehaviour
         gameaction = new GameAction();
     }
 
-    // GameGenerater.Awake() で全初期化完了後に呼ばれる
     public void StartFirstTurn()
     {
         ChangeState(new PlayerStart(this, unitclick, attackpoint, battlesystem,
@@ -83,7 +82,6 @@ public class TurnGenerater : MonoBehaviour
         StateManager?.Update();
     }
 
-    // ─── 新入力システムから値を読み取り各フィールドへ格納 ────────────
     private void ReadInputs()
     {
         MoveInput = gameaction.GamePlay.Move.ReadValue<Vector2>();

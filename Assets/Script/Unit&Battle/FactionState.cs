@@ -22,14 +22,17 @@ public class FactionState : MonoBehaviour
         public int Stone;
         public int Coal;
         public int IronOre;
+        public int Iron;
         public int MagicOre;
         public int Wheat;
         public int Bread;
         public int Water;
+        public int Plank;       // 追加（GameReference 初期配布資源）
+        public int CutStone;    // 追加（GameReference 初期配布資源）
         public int Citizen;
     }
 
-    // ─── インスペクター設定 ──────────────────────────────────────────
+    // ─── Inspector 設定 ──────────────────────────────────────────────
     [Header("Player")]
     [SerializeField] public APData PlayerAP = new APData();
     [SerializeField] public ResourceData PlayerResources = new ResourceData();
