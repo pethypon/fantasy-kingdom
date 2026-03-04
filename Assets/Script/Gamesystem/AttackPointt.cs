@@ -12,7 +12,7 @@ public class AttackPointt : MonoBehaviour
 <<<<<<< HEAD
     [Header("���j�b�g���W")]
 =======
-    [Header("ユニット座標")]
+    [Header("ユニット座樁E)]
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     [SerializeField] public HashSet<Vector3> unitdata;
 
@@ -21,7 +21,7 @@ public class AttackPointt : MonoBehaviour
     public Vector3 attackpos;
     public RaycastHit targethit;
 
-    [Header("マップクリエイト")]
+    [Header("マップクリエイチE)]
     [SerializeField] public MapCreate mapcreate;
 
 <<<<<<< HEAD
@@ -78,28 +78,28 @@ public class AttackPointt : MonoBehaviour
 
     // ������ �U�����[�h�ɉ������|�C���g���� ����������������������������������������������������������
 =======
-    [Header("プレイヤームーブ")]
+    [Header("プレイヤームーチE)]
     [SerializeField] public PlayerMove move;
 
     [Header("ムーブジェネレーター")]
     [SerializeField] public MoveGererater movegenerater;
 
-    [Header("アタックポイント")]
+    [Header("アタチE��ポインチE)]
     [SerializeField] public GameObject AttackPoint;
 
-    [Header("アタックポイント親")]
+    [Header("アタチE��ポイント親")]
     [SerializeField] public Transform APparent;
 
-    // ─── 駒種ごとの攻撃範囲判定 ──────────────────────────────────────
-    // dx = p.x - objp.x（符号付き）, dz = p.z - objp.z（符号付き）
-    // 新しい駒を追加する場合はここに1行追加するだけでよい
+    // ─── 駒種ごとの攻撁E��E��判宁E──────────────────────────────────────
+    // dx = p.x - objp.x�E�符号付き�E�E dz = p.z - objp.z�E�符号付き�E�E
+    // 新しい駒を追加する場合�Eここに1行追加するだけでよい
     public static readonly Dictionary<Kind, Func<float, float, bool>> AttackPredicateMap =
         new Dictionary<Kind, Func<float, float, bool>>
     {
-        // 前方3マス（横±1・直進）
+        // 前方3マス�E�横±1・直進�E�E
         { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
 
-        // 前方3マス（Kingと同じ攻撃範囲）
+        // 前方3マス�E�Eingと同じ攻撁E��E���E�E
         { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
 
         // 前方直進2・3マス
@@ -109,13 +109,13 @@ public class AttackPointt : MonoBehaviour
         { Kind.Magic,       (dx, dz) => (Mathf.Abs(dx) == 2 && dz == 0)
                                      || (dx == 0 && Mathf.Abs(dz) == 2) },
 
-        // 前斜め±1マス
+        // 前斜めE�1マス
         { Kind.Assassin,    (dx, dz) => Mathf.Abs(dx) == 1 && dz == 1 },
 
         // 左右横1マス
         { Kind.Scout,       (dx, dz) => Mathf.Abs(dx) == 1 && dz == 0 },
 
-        // Phase 2: 隣接4マス（前後左右）の味方を回復対象とする
+        // Phase 2: 隣接4マス�E�前後左右�E��E味方を回復対象とする
         { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 0)
                                      || (dx == 0 && Mathf.Abs(dz) == 1) },
 
@@ -132,7 +132,7 @@ public class AttackPointt : MonoBehaviour
         { Kind.Bomber,      (dx, dz) => dx == 0 && dz == 3 },
     };
 
-    // ─── 攻撃モードに応じたポイント生成 ─────────────────────────────
+    // ─── 攻撁E��ードに応じた�Eイント生戁E─────────────────────────────
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     public void AttackPointCall(Status Obj, Vector3 ObjP, PlayerMove move)
     {
@@ -150,7 +150,7 @@ public class AttackPointt : MonoBehaviour
 <<<<<<< HEAD
                 // ��������\��
 =======
-                // 今後実装予定
+                // 今後実裁E��宁E
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
                 break;
         }
@@ -159,7 +159,7 @@ public class AttackPointt : MonoBehaviour
 <<<<<<< HEAD
     // ������ �U���|�C���g�I�u�W�F�N�g�̐��� ����������������������������������������������������������
 =======
-    // ─── 攻撃ポイントオブジェクトの生成 ─────────────────────────────
+    // ─── 攻撁E�Eイントオブジェクト�E生�E ─────────────────────────────
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     public void PointCreate()
     {
@@ -174,7 +174,7 @@ public class AttackPointt : MonoBehaviour
 <<<<<<< HEAD
     // ������ �U���|�C���g�I�u�W�F�N�g�̍폜 ����������������������������������������������������������
 =======
-    // ─── 攻撃ポイントオブジェクトの削除 ─────────────────────────────
+    // ─── 攻撁E�Eイントオブジェクト�E削除 ─────────────────────────────
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     public void AtkpDestroy()
     {
@@ -188,7 +188,7 @@ public class AttackPointt : MonoBehaviour
 <<<<<<< HEAD
     // ������ �ʏ�U���̍U���͈͌v�Z ����������������������������������������������������������������������������
 =======
-    // ─── 通常攻撃の攻撃範囲計算 ──────────────────────────────────────
+    // ─── 通常攻撁E�E攻撁E��E��計箁E──────────────────────────────────────
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     public void NormalAttackPData(Status Obj, Vector3 ObjP)
     {
@@ -204,25 +204,25 @@ public class AttackPointt : MonoBehaviour
             Debug.Log($"[AttackPointt] Kind '{obj.kind}' �̍U���p�^�[���͖������ł�");
             return;
 =======
-            Debug.Log($"[AttackPointt] Kind '{obj.kind}' の攻撃パターンは未実装です");
+            Debug.Log($"[AttackPointt] Kind '{obj.kind}' の攻撁E��ターンは未実裁E��ぁE);
             return;
         }
 
         Vector3 ownCell = movegenerater.Cell(objp);
         Vector3 pcpCell = movegenerater.Cell(movegenerater.pcp);
 
-        // Phase 2: Priestだけ味方ユニットを対象にする（それ以外は敵・建物・壁を対象）
+        // Phase 2: Priestだけ味方ユニットを対象にする�E�それ以外�E敵・建物・壁を対象�E�E
         bool isPriest = obj.kind == Kind.Priest;
 
         if (isPriest)
         {
-            // Priestのとき：味方チームのセルを対象（PlayerUnitPointData を参照）
+            // Priestのとき：味方チ�Eムのセルを対象�E�ElayerUnitPointData を参照�E�E
             HashSet<Vector3> allyData = movegenerater.PlayerUnitPointData;
             AttackP = setpos.Where(p =>
             {
                 float dx = Mathf.RoundToInt(p.x - objp.x);
                 float dz = Mathf.RoundToInt(p.z - objp.z);
-                // Phase 2: 向き対応
+                // Phase 2: 向き対忁E
                 float dirDx = obj.direction == Direction.S ? -dx : dx;
                 float dirDz = obj.direction == Direction.S ? -dz : dz;
                 Vector3 cell = movegenerater.Cell(p);
@@ -233,12 +233,12 @@ public class AttackPointt : MonoBehaviour
         }
         else
         {
-            // それ以外：敵チームのセル OR 壁のセル（unitdataに含まれる自分以外）
+            // それ以外：敵チ�Eムのセル OR 壁�Eセル�E�Enitdataに含まれる自刁E��外！E
             AttackP = setpos.Where(p =>
             {
                 float dx = Mathf.RoundToInt(p.x - objp.x);
                 float dz = Mathf.RoundToInt(p.z - objp.z);
-                // Phase 2: 向き対応
+                // Phase 2: 向き対忁E
                 float dirDx = obj.direction == Direction.S ? -dx : dx;
                 float dirDz = obj.direction == Direction.S ? -dz : dz;
                 Vector3 cell = movegenerater.Cell(p);

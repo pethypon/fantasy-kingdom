@@ -37,11 +37,11 @@ public class FactionState : MonoBehaviour
         public int Stone;
         public int Coal;
         public int IronOre;
-        public int Iron;
         public int MagicOre;
         public int Wheat;
         public int Bread;
         public int Water;
+<<<<<<< HEAD
 <<<<<<< HEAD
         public int Plank;       // ’Ç‰ÁiGameReference ‰Šú”z•zŽ‘Œ¹j
         public int CutStone;    // ’Ç‰ÁiGameReference ‰Šú”z•zŽ‘Œ¹j
@@ -57,6 +57,12 @@ public class FactionState : MonoBehaviour
 
     // â”€â”€â”€ Inspector è¨­å®š â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+        public int Citizen;
+    }
+
+    // „Ÿ„Ÿ„Ÿ ƒCƒ“ƒXƒyƒNƒ^[Ý’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+>>>>>>> parent of d903d2d (2)
     [Header("Player")]
     [SerializeField] public APData PlayerAP = new APData();
     [SerializeField] public ResourceData PlayerResources = new ResourceData();

@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ﻿using UnityEngine;
 
 public enum GameResult { Win, Lose }
@@ -8,45 +9,80 @@ using UnityEngine;
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
 
 public enum GameResult { Win, Lose }
+=======
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+>>>>>>> parent of d903d2d (2)
 
 public class BattleSystem : MonoBehaviour
 {
     public Status target;
     public Status AttackSide;
     public TurnGenerater turngenerater;
+<<<<<<< HEAD
 
 <<<<<<< HEAD
     // ─── ダメージ発生（入口） ─────────────────────────────────────────
+=======
+>>>>>>> parent of d903d2d (2)
     public void DamageGenerater(TurnGenerater turngenerater)
     {
         this.turngenerater = turngenerater;
-        if (target == null || turngenerater.SelectUnit == null) return;
-        AttackSide = turngenerater.SelectUnit;
-        int damage = 0;
-        switch (AttackSide.passiveskill)
+        //None�ȊO�͋�Ƃ̎��E�����������琧��
+        if (target != null)
         {
-            case PassiveSkill.HunterEyes: break;
-            case PassiveSkill.Destroyer: break;
-            case PassiveSkill.Assassination: break;
-            case PassiveSkill.Sniper: break;
-            case PassiveSkill.None:
-                damage = AttackSide.ATK - target.DEF;
-                break;
+            if (turngenerater.SelectUnit != null)
+            {
+                AttackSide = turngenerater.SelectUnit;
+                switch (AttackSide.passiveskill)
+                {
+                    case PassiveSkill.HunterEyes:
+
+                        break;
+                    case PassiveSkill.Destroyer:
+
+                        break;
+
+                    case PassiveSkill.Assassination:
+                        break;
+
+                    case PassiveSkill.Sniper:
+
+                        break;
+
+                    case PassiveSkill.None:
+                        int damage = (AttackSide.ATK - target.DEF);
+                        damage = Mathf.Max(0,damage);
+                        target.HP -= damage;
+                        target.HP = Mathf.Max(0, target.HP);
+                        
+                        break;
+                }
+
+               
+                
+            }
         }
-        ApplyDamage(damage);
-        CheckDeath();
     }
 
-    // ─── 防御側パッシブ ───────────────────────────────────────────────
     public void SideDefender()
     {
+
         switch (target.passiveskill)
         {
-            case PassiveSkill.Impregnable: break;
-            case PassiveSkill.None: break;
+            case PassiveSkill.Impregnable:
+
+                break;
+            case PassiveSkill.None:
+
+                break;
+
+           
         }
     }
 
+<<<<<<< HEAD
     // ═══════════════════════════════════════════════════════════════════
     //  ダメージ適用
     // ═══════════════════════════════════════════════════════════════════
@@ -313,4 +349,6 @@ public class BattleSystem : MonoBehaviour
         Debug.Log($"[Level] {attacker.kind}  Lv{attacker.Level - gain} → Lv{attacker.Level}");
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     }
+=======
+>>>>>>> parent of d903d2d (2)
 }

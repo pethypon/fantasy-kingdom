@@ -63,8 +63,6 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -86,11 +84,9 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!135 &5752674743856684756
 SphereCollider:
@@ -125,15 +121,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 711d5492316672943b5540008f65716e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kind: 5
+  kind: 8
   team: 0
   type: 0
   state: 0
   skill: 0
   direction: 0
   passiveskill: 0
-  HP: 1
-  ATK: 1
+  HP: 0
+  ATK: 0
   DEF: 0
-  Level: 1
-  Fatigue: 0

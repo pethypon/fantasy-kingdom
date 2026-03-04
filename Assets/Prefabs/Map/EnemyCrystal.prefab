@@ -135,7 +135,7 @@ MonoBehaviour:
   skill: 0
   direction: 0
   passiveskill: 0
-  HP: 1
+  HP: 30000
   ATK: 0
   DEF: 0
   Fatigue: 0

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -5,8 +6,13 @@ using UnityEngine;
 public class UnitSetting : MonoBehaviour
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of d903d2d (2)
     [Header("キング")]
     [SerializeField] GameObject KingPiece;
+
     [Header("異形")]
     [SerializeField] GameObject StrangePiece;
 
@@ -14,13 +20,18 @@ public class UnitSetting : MonoBehaviour
     [SerializeField] public Transform PlayerUnit;
     [SerializeField] public Transform EnemyUnit;
 
-    // ─── UnitData 管理（Dictionary 化） ─────────────────────────────
-    // SerializeField を11個並べない理由：
-    // 新しい Kind を追加するたびにフィールド追加とInspector設定の2手間が発生する。
-    // Dictionary ならリストに1エントリ追加するだけで済む（設計原則2）。
-    [System.Serializable]
-    public class UnitDataEntry
+    private Vector3 pcp;
+    private Vector3 ecp;
+    private List<Vector3> setpos;
+    private List<Vector3> KingPoint;
+    private List<Vector3> StrangePoint;
+    private int kp;
+    private int sp;
+    private Vector3 KP;
+    private Vector3 SP;
+    public void UnitSet() 
     {
+<<<<<<< HEAD
         public Kind kind;
         public UnitData data;
     }
@@ -144,12 +155,16 @@ public class UnitSetting : MonoBehaviour
     public void UnitSet()
     {
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+        //PCP、ECP、SetPosを取り出す
+>>>>>>> parent of d903d2d (2)
         CrystalSystem crystalsystem = GetComponent<CrystalSystem>();
         MapCreate mapcreate = GetComponent<MapCreate>();
-        Vector3 pcp = crystalsystem.PCP;
-        Vector3 ecp = crystalsystem.ECP;
-        var setpos = mapcreate.SetPos;
+        pcp = crystalsystem.PCP;
+        ecp = crystalsystem.ECP;
+        setpos = mapcreate.SetPos;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         // 配置位置を絞る（KingPoint：PCP周辺1マス以内）
 =======
@@ -176,11 +191,44 @@ public class UnitSetting : MonoBehaviour
         // Instantiate → SpawnUnit に置き換え（ステータス適用込み）
         Vector3 KP = KingPoint[Random.Range(0, KingPoint.Count)];
         SpawnUnit(KingPiece, KP, PlayerUnit);
+=======
+        //Whereで配置位置を絞る
+        KingPoint = setpos.Where
+            (p =>
+            {
+                float px = Mathf.Abs(p.x - pcp.x);
+                float pz = Mathf.Abs(p.z - pcp.z);
+                bool truex = px <= 1;
+                bool truez = pz <= 1 && p != pcp;
+
+                return truex && truez;
+            }
+            ).ToList();
+
+
+        StrangePoint = setpos.Where
+            (p =>
+            {
+               float px = Mathf.Abs(p.x - ecp.x);
+               float pz = Mathf.Abs(p.z - ecp.z);
+               bool truex = px <= 1;
+               bool truez = pz <= 1 && p != ecp;
+
+               return truex && truez;
+            }
+            ).ToList();
+
+        kp = Random.Range(0,KingPoint.Count);
+        KP = KingPoint[kp];
+        Instantiate(KingPiece, KP, Quaternion.identity,PlayerUnit);
+>>>>>>> parent of d903d2d (2)
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>王設置");
 
-        Vector3 SP = StrangePoint[Random.Range(0, StrangePoint.Count)];
-        SpawnUnit(StrangePiece, SP, EnemyUnit);
+        sp = Random.Range(0,StrangePoint.Count);
+        SP = StrangePoint[sp];
+        Instantiate(StrangePiece,SP,Quaternion.identity,EnemyUnit);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>異形の王設置");
+<<<<<<< HEAD
 =======
         Vector3 KP = KingPoint[Random.Range(0, KingPoint.Count)];
         SpawnUnit(KingPiece, KP, PlayerUnit);
@@ -190,5 +238,8 @@ public class UnitSetting : MonoBehaviour
         SpawnUnit(StrangePiece, SP, EnemyUnit);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>逡ｰ蠖｢縺ｮ邇玖ｨｭ鄂ｮ");
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+
+>>>>>>> parent of d903d2d (2)
     }
 }

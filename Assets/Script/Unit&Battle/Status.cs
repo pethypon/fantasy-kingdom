@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public enum Team
 {
     Player,
     Enemy,
     Obstacle,
     None
-}
 
+}
 public enum Kind
 {
     Crystal,
@@ -24,40 +25,42 @@ public enum Kind
     Magicsniper,
     Bomber,
 <<<<<<< HEAD
+<<<<<<< HEAD
     WoodWall,   // ƒtƒF[ƒY6‚Åg—p
     StoneWall,  // ƒtƒF[ƒY6‚Åg—p
 =======
     WoodWall,
     StoneWall,
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+>>>>>>> parent of d903d2d (2)
     None
 }
-
 public enum Type
 {
     Unit,
     Building,
 <<<<<<< HEAD
+<<<<<<< HEAD
     Wall,           // ƒtƒF[ƒY6‚Åg—p
 =======
     Wall,
 >>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
+=======
+>>>>>>> parent of d903d2d (2)
     MovePoint,
     AttackPoint
 }
-
 public enum State
 {
     Normal,
     Stun       // Phase 2: Crossbow 10%ã‚¹ã‚¿ãƒ³
 }
-
 public enum Direction
 {
     N,
     S
 }
-
 public enum Skill
 {
     None
@@ -78,29 +81,40 @@ public class Status : MonoBehaviour
     [Header("ç¨®é¡")]
     [SerializeField] public Kind kind;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of d903d2d (2)
     [Header("ƒ`[ƒ€")]
     [SerializeField] public Team team;
+
     [Header("‹î‚Ìƒ^ƒCƒv")]
     [SerializeField] public Type type;
+
     [Header("ó‘Ô")]
     [SerializeField] public State state;
+
     [Header("ƒXƒLƒ‹")]
     [SerializeField] public Skill skill;
+
     [Header("‹î‚ÌŒü‚«")]
     [SerializeField] public Direction direction;
+
     [Header("ƒpƒbƒVƒuƒXƒLƒ‹")]
     [SerializeField] public PassiveSkill passiveskill;
+
     [Header("ƒXƒe[ƒ^ƒX")]
     [SerializeField] public int HP;
     [SerializeField] public int ATK;
     [SerializeField] public int DEF;
-    [Header("ƒŒƒxƒ‹")]
-    public int Level = 1;
+
     [Header("‹î‚Ì‹ŠE")]
     [SerializeField] public HashSet<Vector3Int> VisionCell;
+
     [Header("”æ˜J")]
     [SerializeField] public int Fatigue = 0;
 }
+<<<<<<< HEAD
 
 // „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
 //  ˆÈ‰º‚Ìenum‚ÍV‹Kƒtƒ@ƒCƒ‹‚ğì‚ç‚¸‚±‚±‚É’Ç‹L‚·‚éiİŒvŒ´‘¥1j
@@ -157,3 +171,5 @@ public enum ResourceKind
     Wood, Stone, IronOre, Iron, MagicOre, Coal,
     Wheat, Bread, Water, Plank, CutStone, Citizen, None
 }
+=======
+>>>>>>> parent of d903d2d (2)
