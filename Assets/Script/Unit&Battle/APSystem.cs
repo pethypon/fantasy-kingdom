@@ -1,0 +1,80 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class APSystem : MonoBehaviour
+{
+    public enum ActionType { Move, Attack }
+
+    // ─── コスト定義 ───────────────────────────────────────────────────
+    static readonly Dictionary<ActionType, int> BaseCost =
+        new Dictionary<ActionType, int>
+        {
+            { ActionType.Move,   3 },
+            { ActionType.Attack, 2 },
+        };
+
+    static readonly HashSet<Kind> HeightCostExempt =
+        new HashSet<Kind> { Kind.Assassin };
+
+    const int HeightCost = 2;
+
+    // ─── GameGenerater.Awake() で注入される ──────────────────────────
+    private FactionState _factionState;
+
+    public void Init(FactionState factionState)
+    {
+        _factionState = factionState;
+    }
+
+    // ─── コスト計算 ───────────────────────────────────────────────────
+    public int CalcCost(ActionType action, Status obj,
+                        Vector3 from = default, Vector3 to = default)
+    {
+        int cost = BaseCost[action];
+        cost += obj.Fatigue;
+        if (action == ActionType.Move)
+            cost += HeightBonus(obj.kind, from, to);
+        return cost;
+    }
+
+    // ─── AP 判定 ──────────────────────────────────────────────────────
+    public bool CanAct(Team team, ActionType action, Status obj,
+                       Vector3 from = default, Vector3 to = default)
+        => _factionState.GetAP(team) >= CalcCost(action, obj, from, to);
+
+    // ─── AP 消費 + 疲労更新 ───────────────────────────────────────────
+    public void Consume(Team team, ActionType action, Status obj,
+                        Vector3 from = default, Vector3 to = default)
+    {
+        int cost = CalcCost(action, obj, from, to);
+        _factionState.ModifyAP(team, -cost);
+        obj.Fatigue++;
+        Debug.Log($"[APSystem] {team} / {action}  コスト:{cost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
+    }
+
+    // ─── ターン開始時 AP リセット ─────────────────────────────────────
+    public void ResetAP(Team team)
+    {
+        _factionState.ResetAPForTurn(team);
+        Debug.Log($"[APSystem] {team} AP リセット → {_factionState.GetAP(team)}");
+    }
+
+    // ─── 疲労リセット ─────────────────────────────────────────────────
+    public void ResetFatigue(Transform unitParent)
+    {
+        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        {
+            if (s.type == Type.Unit) s.Fatigue = 0;
+        }
+    }
+
+    // ─── UI 表示などに使用 ────────────────────────────────────────────
+    public int GetAP(Team team) => _factionState.GetAP(team);
+
+    // ─── 内部ヘルパー ─────────────────────────────────────────────────
+    private int HeightBonus(Kind kind, Vector3 from, Vector3 to)
+    {
+        if (HeightCostExempt.Contains(kind)) return 0;
+        return Mathf.RoundToInt(to.y - from.y) == 1 ? HeightCost : 0;
+    }
+}

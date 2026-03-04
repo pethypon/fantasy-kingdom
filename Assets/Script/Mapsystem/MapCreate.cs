@@ -1,92 +1,127 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class MapCreate : MonoBehaviour
 {
-    [Header("�y�u���b�N")]
+    [Header("視界タイル")]
+    [SerializeField] private GameObject Fog;
+    [SerializeField] private GameObject FogExploard;
+    [SerializeField] private GameObject FogBoard;
+    [SerializeField] private GameObject FogExploardBoard;
+
+    [Header("Fog親オブジェクト")]
+    [SerializeField] public Transform FogParent;
+    [SerializeField] public Transform FogExploardParent;
+    [SerializeField] public Transform FogBoardParent;
+    [SerializeField] public Transform FogExploardBoardParent;
+
+    [Header("土ブロック")]
     [SerializeField] public GameObject dirtPrefab;
 
-    [Header("�΃u���b�N")]
-    [SerializeField] GameObject stonePrefab;
+    [Header("石ブロック")]
+    [SerializeField] private GameObject stonePrefab;
 
-    [Header("�}�b�v�e�I�u�W�F�N�g")]
-    [SerializeField] Transform MapBox;
+    [Header("マップ親オブジェクト")]
+    [SerializeField] private Transform MapBox;
 
-    [Header("�}�b�v�T�C�Y")]
-    [SerializeField] public int maxX = 80;
-    [SerializeField] public int maxY = 20;
-    [SerializeField] public int maxZ = 80;
+    [Header("マップサイズ")]
+    [SerializeField] public int maxX = 50;
+    [SerializeField] public int maxY = 2;
+    [SerializeField] public int minY = 0;
+    [SerializeField] public int maxZ = 50;
 
-    [Header("�V�[�h�l")]
-    [SerializeField] private float seedx , seedz;
+    [Header("シード値")]
+    [SerializeField] private float seedx, seedz;
 
-    [Header("�m�C�Y�ݒ�")]
+    [Header("ノイズ設定")]
     [SerializeField] public float noiseScale = 0.1f;
 
-    [Header("�}�b�v�̕��ϓI�ȍ���")]
+    [Header("マップの平均的な高さ")]
     [SerializeField] public int AverageFoundation = 2;
 
-    [Header("�U�ꕝ")]
+    [Header("振れ幅")]
     [SerializeField] public int Amplitude = 6;
 
+    // Fog レイヤーを増減したい場合はここの配列に値を追加・削除するだけでよい
+    private static readonly float[] FogOffsets = { -1.0f, -2.0f };
+    private static readonly float[] FogBoardOffsets = { -0.4f };
+
     private int[,] topY;
-    private Vector3 pos;
-    private int y;
-    private int DownY;
-    private Vector3 DownPos;
     public List<Vector3> SetPos;
-    
-    //public bool SetMap;
+
     private void Awake()
     {
         SetPos = new List<Vector3>();
-        
     }
 
-    public void noisegenerater() 
+    // ─── ノイズ生成 ───────────────────────────────────────────────────
+    public void noisegenerater()
     {
-        seedx = Random.Range(0f, 1000000f);
-        seedz = Random.Range(0f, 1000000f);
-
+        seedx = Random.Range(0f, 1_000_000f);
+        seedz = Random.Range(0f, 1_000_000f);
         topY = new int[maxX, maxZ];
-        //maxX,maxZ�̒l�܂�x,z�𑝂₵�ăm�C�Y������Đ����ɂ����Y��ȕ��тɂ���
-        for (int x = 0; x < maxX;x ++) 
+
+        for (int x = 0; x < maxX; x++)
         {
-            for (int z = 0;z < maxZ;z ++) 
+            for (int z = 0; z < maxZ; z++)
             {
-                
-                //perlinnoise�̌v�Z
-                //perlinnoise�i�ix+seedx�j*noisescale,(z+seedz)*noisescale�j
-                int PerlinN = Mathf.RoundToInt(Mathf.PerlinNoise(x * noiseScale + seedx, z * noiseScale + seedz) * Amplitude);
-                //PerlinN�ɓy��̕��ς��v���X����B
-                int high = AverageFoundation + PerlinN;
-                high = Mathf.Clamp(high, 0, maxY - 1);
-                topY[x, z] = high;
+                int perlin = Mathf.RoundToInt(
+                    Mathf.PerlinNoise(x * noiseScale + seedx, z * noiseScale + seedz) * Amplitude);
+                topY[x, z] = Mathf.Clamp(AverageFoundation + perlin, 0, maxY - 1);
             }
         }
-        
     }
 
-    public void BuildTop() 
+    // ─── マップ & Fog 構築 ───────────────────────────────────────────
+    public void BuildTop()
     {
-        for (int x = 0; x <= maxX-1; x ++)
+        for (int x = 0; x < maxX; x++)
         {
-            for (int z = 0; z <= maxZ-1; z++) 
+            for (int z = 0; z < maxZ; z++)
             {
-                y = topY[x, z];
-                pos = new Vector3(x, y, z);
-                Instantiate(dirtPrefab,pos,Quaternion.identity,MapBox);
-                SetPos.Add(new Vector3Int(x,y+1,z));
-                DownY = y - 1;
-                DownPos = new Vector3(x, DownY, z);
-                Instantiate(dirtPrefab, DownPos, Quaternion.identity, MapBox);
-                Debug.Log("<color=#ffff00ff>[StartSetting]</color>�}�b�v����");
+                SpawnTerrain(x, z);
+                SpawnFogTiles(x, z);
             }
-
         }
-        //bool SetMap = true;
-      
+        Debug.Log("<color=#ffff00ff>[StartSetting]</color> マップ・Fog 完成");
     }
-    
+
+    // ─── 地形スポーン ────────────────────────────────────────────────
+    private void SpawnTerrain(int x, int z)
+    {
+        int y = topY[x, z];
+        Instantiate(dirtPrefab, new Vector3(x, y, z), Quaternion.identity, MapBox);
+        SetPos.Add(new Vector3Int(x, y + 1, z));
+
+        int downY = y - 1;
+        if (downY >= minY)
+            Instantiate(dirtPrefab, new Vector3(x, downY, z), Quaternion.identity, MapBox);
+    }
+
+    // ─── Fog スポーン ────────────────────────────────────────────────
+    private void SpawnFogTiles(int x, int z)
+    {
+        foreach (float offset in FogOffsets)
+        {
+            SpawnFog(Fog, x, maxY + offset, z, FogParent);
+            SpawnFog(FogExploard, x, maxY + offset, z, FogExploardParent);
+        }
+        foreach (float offset in FogBoardOffsets)
+        {
+            SpawnFog(FogBoard, x, maxY + offset, z, FogBoardParent);
+            SpawnFog(FogExploardBoard, x, maxY + offset, z, FogExploardBoardParent);
+        }
+    }
+
+    private void SpawnFog(GameObject prefab, int x, float y, int z, Transform parent)
+    {
+        if (y < minY) return;
+        Instantiate(prefab, new Vector3(x, y, z), Quaternion.identity, parent);
+    }
+
+    public void VisionSetting(MapCreate mapcreate)
+    {
+        // TODO: 視界計算の実装
+        var VisionXZ = new HashSet<Vector3Int>();
+    }
 }
