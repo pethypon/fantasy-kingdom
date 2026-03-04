@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿using UnityEngine;
+=======
+using UnityEngine;
+>>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
 
 [CreateAssetMenu(menuName = "GameData/UnitData")]
 public class UnitData : ScriptableObject
@@ -37,13 +41,19 @@ public class UnitData : ScriptableObject
 
     // ─────────────────────────────────────────────────────────────────
     //  成長計算（GameReference準拠の線形式）
+<<<<<<< HEAD
     //  staticにする理由：UnitDataインスタンスなしでUI等から呼べるようにするため
+=======
+>>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     // ─────────────────────────────────────────────────────────────────
 
     /// <summary>
     /// 指定レベルのステータス値を返す（GameReference準拠の線形式）。
     /// 式：baseStat + (baseStat × growth × (level - 1))
+<<<<<<< HEAD
     /// 例：CalcStat(10, 0.10f, 10) = 10 + 10×0.10×9 = 19
+=======
+>>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     /// </summary>
     public static int CalcStat(int baseStat, float growth, int level)
     {
@@ -52,8 +62,11 @@ public class UnitData : ScriptableObject
 
     // ─────────────────────────────────────────────────────────────────
     //  Status への一括適用
+<<<<<<< HEAD
     //  「自分のデータをStatusにどう適用するか」はUnitData自身が知っているべき
     //  ゲーム開始時・駒の生成時・レベルアップ後の3タイミングからこのメソッドを呼ぶ
+=======
+>>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     // ─────────────────────────────────────────────────────────────────
 
     /// <summary>

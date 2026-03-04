@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,8 +23,13 @@ public enum Kind
     Crossbow,
     Magicsniper,
     Bomber,
+<<<<<<< HEAD
     WoodWall,   // ƒtƒF[ƒY6‚ÅŽg—p
     StoneWall,  // ƒtƒF[ƒY6‚ÅŽg—p
+=======
+    WoodWall,
+    StoneWall,
+>>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     None
 }
 
@@ -33,14 +37,19 @@ public enum Type
 {
     Unit,
     Building,
+<<<<<<< HEAD
     Wall,           // ƒtƒF[ƒY6‚ÅŽg—p
+=======
+    Wall,
+>>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
     MovePoint,
     AttackPoint
 }
 
 public enum State
 {
-    Normal
+    Normal,
+    Stun       // Phase 2: Crossbow 10%ã‚¹ã‚¿ãƒ³
 }
 
 public enum Direction
@@ -66,8 +75,9 @@ public enum PassiveSkill
 
 public class Status : MonoBehaviour
 {
-    [Header("Ží—Þ")]
+    [Header("ç¨®é¡ž")]
     [SerializeField] public Kind kind;
+<<<<<<< HEAD
     [Header("ƒ`[ƒ€")]
     [SerializeField] public Team team;
     [Header("‹î‚Ìƒ^ƒCƒv")]
@@ -97,6 +107,37 @@ public class Status : MonoBehaviour
 // „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
 
 // Œš•¨‚ÌŽí•ÊiFacilityData ‚Æ EconomySystem ‚ÅŽg—pj
+=======
+    [Header("ãƒãƒ¼ãƒ ")]
+    [SerializeField] public Team team;
+    [Header("é§’ã®ã‚¿ã‚¤ãƒ—")]
+    [SerializeField] public Type type;
+    [Header("çŠ¶æ…‹")]
+    [SerializeField] public State state;
+    [Header("ã‚¹ã‚­ãƒ«")]
+    [SerializeField] public Skill skill;
+    [Header("é§’ã®å‘ã")]
+    [SerializeField] public Direction direction;
+    [Header("ãƒ‘ãƒƒã‚·ãƒ–ã‚¹ã‚­ãƒ«")]
+    [SerializeField] public PassiveSkill passiveskill;
+    [Header("ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹")]
+    [SerializeField] public int HP;
+    [SerializeField] public int ATK;
+    [SerializeField] public int DEF;
+    [Header("ãƒ¬ãƒ™ãƒ«")]
+    public int Level = 1;
+    [Header("é§’ã®è¦–ç•Œ")]
+    [SerializeField] public HashSet<Vector3Int> VisionCell;
+    [Header("ç–²åŠ´")]
+    [SerializeField] public int Fatigue = 0;
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  ä»¥ä¸‹ã®enumã¯æ–°è¦ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œã‚‰ãšã“ã“ã«è¿½è¨˜ã™ã‚‹ï¼ˆè¨­è¨ˆåŽŸå‰‡1ï¼‰
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// å»ºç‰©ã®ç¨®åˆ¥ï¼ˆFacilityData ã¨ EconomySystem ã§ä½¿ç”¨ï¼‰
+>>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
 public enum FacilityKind
 {
     Field, Bakery, LoggingCamp, LumberMill,
@@ -106,7 +147,11 @@ public enum FacilityKind
     Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword
 }
 
+<<<<<<< HEAD
 // Ž‘Œ¹‚ÌŽí•ÊiFacilityData ‚Æ EconomySystem ‚ÅŽg—pj
+=======
+// è³‡æºã®ç¨®åˆ¥ï¼ˆFacilityData ã¨ EconomySystem ã§ä½¿ç”¨ï¼‰
+>>>>>>> ef5d789a27d65a3019e0abf6f523ef6eed232b13
 public enum ResourceKind
 {
     Wood, Stone, IronOre, Iron, MagicOre, Coal,
