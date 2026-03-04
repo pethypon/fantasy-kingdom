@@ -43,7 +43,7 @@ public class PlayerAttack : StateCore
         this.turngenerater = turngenerater;
         this.unitclick = unitclick;
         this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater; // Œ³ƒR[ƒh‚Å–¢‘ã“ü‚¾‚Á‚½ƒoƒO‚ğC³
+        this.visiongenerater = visiongenerater; // ï¿½ï¿½ï¿½Rï¿½[ï¿½hï¿½Å–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½oï¿½Oï¿½ï¿½ï¿½Cï¿½ï¿½
         this.movegenerater = movegenerater;
         this.crystalsystem = crystalsystem;
         this.unitset = unitset;
@@ -57,6 +57,16 @@ public class PlayerAttack : StateCore
         Maxz = mapcreate.maxZ;
         attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
         AttackSuccess = false;
+
+        // æ”»æ’ƒç¯„å›²å†…ã«æ•µãŒã„ãªã„å ´åˆã¯å³åº§ã«PlayerMoveã¸æˆ»ã‚‹
+        if (attackpoint.AttackP == null || attackpoint.AttackP.Count == 0)
+        {
+            Debug.Log("[PlayerAttack] æ”»æ’ƒç¯„å›²å†…ã«å¯¾è±¡ãŒã„ãªã„ãŸã‚ã€PlayerMoveã¸æˆ»ã‚Šã¾ã™");
+            attackpoint.AtkpDestroy();
+            turngenerater.ChangeState(new PlayerMove(
+                turngenerater, unitclick, attackpoint, battlesystem,
+                visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        }
     }
 
     public void Update()
@@ -87,7 +97,7 @@ public class PlayerAttack : StateCore
         attackpoint.AtkpDestroy();
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚¬Œ÷FPlayerMove ‚Ö–ß‚é „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½FPlayerMove ï¿½Ö–ß‚ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private void HandleAttackSuccess()
     {
         Reset();
@@ -97,7 +107,7 @@ public class PlayerAttack : StateCore
             ));
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒJƒƒ‰ˆÚ“® „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ú“ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private void UpdateCameraMove()
     {
         Vector2 input = turngenerater.MoveInput;
@@ -110,7 +120,7 @@ public class PlayerAttack : StateCore
         turngenerater.CameraObject.position = pos;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒJƒƒ‰ƒY[ƒ€iFOVj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Yï¿½[ï¿½ï¿½ï¿½iFOVï¿½j ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private void UpdateCameraZoom()
     {
         float scroll = turngenerater.ScrollInput;
@@ -120,14 +130,14 @@ public class PlayerAttack : StateCore
         Camera.main.fieldOfView = Mathf.Clamp(fov, 30f, 90f);
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒNƒŠƒbƒNi¶ƒNƒŠƒbƒNj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Uï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½bï¿½Nï¿½iï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½bï¿½Nï¿½j ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private void HandleAttackClick()
     {
         if (!turngenerater.LeftClickDown) return;
         unitclick.AttackClick(battlesystem, this, attackpoint, move);
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒLƒƒƒ“ƒZƒ‹i‰EƒNƒŠƒbƒNj¨ PlayerMove ‚Ö–ß‚é „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Uï¿½ï¿½ï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½iï¿½Eï¿½Nï¿½ï¿½ï¿½bï¿½Nï¿½jï¿½ï¿½ PlayerMove ï¿½Ö–ß‚ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private void HandleCancelAttack()
     {
         if (!turngenerater.RightClickDown) return;
