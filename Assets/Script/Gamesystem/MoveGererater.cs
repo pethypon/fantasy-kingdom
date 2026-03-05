@@ -8,22 +8,22 @@ public class MoveGererater : MonoBehaviour
     [SerializeField] public MapCreate mapcreate;
     [SerializeField] public TurnGenerater turngenerater;
 
-    [Header("�ړ��ʒu�\���̃I�u�W�F�N�g")]
+    [Header("移動位置表示のオブジェクト")]
     [SerializeField] public GameObject MovePoint;
 
-    [Header("���[�u�e�I�u�W�F�N�g")]
+    [Header("ムーブ親オブジェクト")]
     [SerializeField] public Transform Move;
 
-    [Header("���j�b�g���W")]
+    [Header("ユニット座標")]
     [SerializeField] public HashSet<Vector3> UnitPointData = new HashSet<Vector3>();
 
-    [Header("�N���X�^���V�X�e��")]
+    [Header("クリスタルシステム")]
     [SerializeField] CrystalSystem crystalsystem;
 
-    [Header("���j�b�g�Z�b�e�B���O")]
+    [Header("ユニットセッティング")]
     [SerializeField] UnitSetting unitsetting;
 
-    [Header("���j�b�g�{�b�N�X")]
+    [Header("ユニットボックス")]
     [SerializeField] Transform PlayerUnit;
     [SerializeField] Transform EnemyUnit;
 
@@ -35,57 +35,57 @@ public class MoveGererater : MonoBehaviour
     public Vector3 ecp;
     public Vector3 usp;
 
-    // ������ ��킲�Ƃ̈ړ����� ������������������������������������������������������������������������������������
-    // dx = p.x - objp.x�i�����t���j, dz = p.z - objp.z�i�����t���j
-    // �V�������ǉ�����ꍇ�͂�����1�s�ǉ����邾���ł悢
+    // ─── 駒種ごとの移動判定 ──────────────────────────────────────────
+    // dx = p.x - objp.x（符号付き）, dz = p.z - objp.z（符号付き）
+    // 新しい駒を追加する場合はここに1行追加するだけでよい
     public static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
         new Dictionary<Kind, Func<float, float, bool>>
     {
-        // �S����1�}�X
+        // 全方向1マス
         { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1
                                      && Mathf.Abs(dz) <= 1 },
 
-        // �㉺���E1�}�X
+        // 上下左右1マス
         { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) + Mathf.Abs(dz) == 1 },
 
-        // �΂�1�}�X
+        // 斜め1マス
         { Kind.Archer,      (dx, dz) => Mathf.Abs(dx) == 1
                                      && Mathf.Abs(dz) == 1 },
 
-        // �΂�1�}�X�iArcher�Ɠ����ړ��j
+        // 斜め1マス（Archerと同じ移動）
         { Kind.Magic,       (dx, dz) => Mathf.Abs(dx) == 1
                                      && Mathf.Abs(dz) == 1 },
 
-        // �j�n���сi2�~1 or 1�~2�j
+        // 桂馬跳び（2×1 or 1×2）
         { Kind.Assassin,    (dx, dz) => (Mathf.Abs(dx) == 2 && Mathf.Abs(dz) == 1)
                                      || (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) == 2) },
 
-        // ���}1�{�O��1 or ���i2
+        // 横±1＋前後1 or 直進2
         { Kind.Scout,       (dx, dz) => (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) <= 1)
                                      || (dx == 0 && Mathf.Abs(dz) == 2) },
 
-        // �O�΂�1 or ��뒼�i1�i�����l���F�����t���j
+        // 前斜め1 or 後ろ直進1（向き考慮：符号付き）
         { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 1)
                                      || (dx == 0 && dz == -1) },
 
-        // ���E2�}�X or �O��1�}�X
+        // 左右2マス or 前後1マス
         { Kind.Guardian,    (dx, dz) => (Mathf.Abs(dx) <= 2 && dz == 0)
                                      || (dx == 0 && Mathf.Abs(dz) == 1) },
 
-        // �O���i1-3�}�X or �΂ߌ��1�}�X�i�����t���j
+        // 前直進1-3マス or 斜め後ろ1マス（符号付き）
         { Kind.Crossbow,    (dx, dz) => (dx == 0 && (dz == 1 || dz == 2 || dz == 3))
                                      || (Mathf.Abs(dx) == 1 && dz == -1) },
 
-        // �E�O�΂�1 or ���E���3�}�X�i�����t���j
+        // 右前斜め1 or 左右後ろ3マス（符号付き）
         { Kind.Magicsniper, (dx, dz) => (dx == 1 && dz == 1)
                                      || (Mathf.Abs(dx) == 3 && dz == -1) },
 
-        // �΂ߑO��2�p�^�[���i�����t���j
+        // 斜め前後2パターン（符号付き）
         { Kind.Bomber,      (dx, dz) => (dx == -1 && dz ==  1) || (dx ==  2 && dz ==  2)
                                      || (dx ==  1 && dz == -1) || (dx == -2 && dz == -2) },
     };
 
-    // ������ ���j�b�g��L���W�̍X�V ����������������������������������������������������������������������������
+    // ─── ユニット占有座標の更新 ──────────────────────────────────────
     public void UnitPointCore()
     {
         UnitPointData.Clear();
@@ -118,13 +118,13 @@ public class MoveGererater : MonoBehaviour
         }
     }
 
-    // ������ �O���b�h���W�ւ̊ۂ� ��������������������������������������������������������������������������������
+    // ─── グリッド座標への丸め ────────────────────────────────────────
     public Vector3 Cell(Vector3 v)
     {
         return new Vector3(Mathf.RoundToInt(v.x), 0f, Mathf.RoundToInt(v.z));
     }
 
-    // ������ �ړ��͈͂̌v�Z�ƃI�u�W�F�N�g���� ������������������������������������������������������������
+    // ─── 移動範囲の計算とオブジェクト生成 ──────────────────────────────
     public void MoveCore(Status Obj, Vector3 ObjP)
     {
         setpos = mapcreate.SetPos;
@@ -134,7 +134,7 @@ public class MoveGererater : MonoBehaviour
 
         if (!MovePredicateMap.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
         {
-            Debug.LogWarning($"[MoveGererater] Kind '{obj.kind}' �̈ړ��p�^�[��������`�ł�");
+            Debug.LogWarning($"[MoveGererater] Kind '{obj.kind}' の移動パターンが未定義です");
             return;
         }
 
@@ -154,7 +154,7 @@ public class MoveGererater : MonoBehaviour
         MoveCreate();
     }
 
-    // ������ �ړ��|�C���g�I�u�W�F�N�g�̐��� ����������������������������������������������������������
+    // ─── 移動ポイントオブジェクトの生成 ─────────────────────────────
     public void MoveCreate()
     {
         for (int i = 0; i < MoveUnitP.Count; i++)
@@ -166,7 +166,7 @@ public class MoveGererater : MonoBehaviour
         }
     }
 
-    // ������ �ړ��|�C���g�I�u�W�F�N�g�̍폜 ����������������������������������������������������������
+    // ─── 移動ポイントオブジェクトの削除 ─────────────────────────────
     public void MoveReset()
     {
         foreach (Transform child in Move.transform)
@@ -175,7 +175,7 @@ public class MoveGererater : MonoBehaviour
         }
     }
 
-    // ������ UnitPointData �̍X�V ��������������������������������������������������������������������������������
+    // ─── UnitPointData の更新 ────────────────────────────────────────
     public void MoveUpdate(Vector3 OldCell, Vector3 NewCell)
     {
         UnitPointData.Add(Cell(NewCell));

@@ -9,7 +9,7 @@ public class AttackPointt : MonoBehaviour
     public List<Vector3> AttackP;
     public List<Vector3> setpos;
 
-    [Header("���j�b�g���W")]
+    [Header("ユニット座標")]
     [SerializeField] public HashSet<Vector3> unitdata;
 
     public Status obj;
@@ -17,64 +17,63 @@ public class AttackPointt : MonoBehaviour
     public Vector3 attackpos;
     public RaycastHit targethit;
 
-    [Header("�}�b�v�N���G�C�g")]
+    [Header("マップクリエイト")]
     [SerializeField] public MapCreate mapcreate;
 
-    [Header("�v���C���[���[�u")]
+    [Header("プレイヤームーブ")]
     [SerializeField] public PlayerMove move;
 
-    [Header("���[�u�W�F�l���[�^�[")]
+    [Header("ムーブジェネレーター")]
     [SerializeField] public MoveGererater movegenerater;
 
-    [Header("�A�^�b�N�|�C���g")]
+    [Header("アタックポイント")]
     [SerializeField] public GameObject AttackPoint;
 
-    [Header("�A�^�b�N�|�C���g�e")]
+    [Header("アタックポイント親")]
     [SerializeField] public Transform APparent;
 
-    // ������ ��킲�Ƃ̍U���͈͔��� ����������������������������������������������������������������������������
-    // dx = p.x - objp.x�i�����t���j, dz = p.z - objp.z�i�����t���j
-    // Priest �͖������̂��߃G���g���Ȃ��i����ǉ��\��j
-    // �V�������ǉ�����ꍇ�͂�����1�s�ǉ����邾���ł悢
+    // ─── 駒種ごとの攻撃範囲判定 ──────────────────────────────────────
+    // dx = p.x - objp.x（符号付き）, dz = p.z - objp.z（符号付き）
+    // 新しい駒を追加する場合はここに1行追加するだけでよい
     public static readonly Dictionary<Kind, Func<float, float, bool>> AttackPredicateMap =
         new Dictionary<Kind, Func<float, float, bool>>
     {
-        // �O��3�}�X�i���}1�E���i�j
+        // 前方3マス（横±1・直進）
         { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
 
-        // �O��3�}�X�iKing�Ɠ����U���͈́j
+        // 前方3マス（Kingと同じ攻撃範囲）
         { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
 
-        // �O�����i2�E3�}�X
+        // 前方直進2・3マス
         { Kind.Archer,      (dx, dz) => dx == 0 && (dz == 2 || dz == 3) },
 
-        // �\��������2�}�X
+        // 十字遠距離2マス
         { Kind.Magic,       (dx, dz) => (Mathf.Abs(dx) == 2 && dz == 0)
                                      || (dx == 0 && Mathf.Abs(dz) == 2) },
 
-        // �O�΂߁}1�}�X
+        // 前斜め±1マス
         { Kind.Assassin,    (dx, dz) => Mathf.Abs(dx) == 1 && dz == 1 },
 
-        // ���E��1�}�X
+        // 左右横1マス
         { Kind.Scout,       (dx, dz) => Mathf.Abs(dx) == 1 && dz == 0 },
 
-        // �O���i1�}�X
+        // 前直進1マス
         { Kind.Guardian,    (dx, dz) => dx == 0 && dz == 1 },
 
-        // �O���i1�E2�}�X
+        // 前直進1・2マス
         { Kind.Crossbow,    (dx, dz) => dx == 0 && (dz == 1 || dz == 2) },
 
-        // ���E��4�}�X
+        // 左右横4マス
         { Kind.Magicsniper, (dx, dz) => Mathf.Abs(dx) == 4 && dz == 0 },
 
-        // �O���i3�}�X
+        // 前直進3マス
         { Kind.Bomber,      (dx, dz) => dx == 0 && dz == 3 },
 
         // 隣接4マス（前後左右）の味方を回復対象とする
         { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 0) || (dx == 0 && Mathf.Abs(dz) == 1) },
     };
 
-    // ������ �U�����[�h�ɉ������|�C���g���� ����������������������������������������������������������
+    // ─── 攻撃モードに応じたポイント生成 ─────────────────────────────
     public void AttackPointCall(Status Obj, Vector3 ObjP, PlayerMove move)
     {
         this.move = move;
@@ -88,12 +87,12 @@ public class AttackPointt : MonoBehaviour
                 PointCreate();
                 break;
             case PlayerMove.AttackMode.Skill:
-                // ��������\��
+                // 今後実装予定
                 break;
         }
     }
 
-    // ������ �U���|�C���g�I�u�W�F�N�g�̐��� ����������������������������������������������������������
+    // ─── 攻撃ポイントオブジェクトの生成 ─────────────────────────────
     public void PointCreate()
     {
         for (int i = 0; i < AttackP.Count; i++)
@@ -104,7 +103,7 @@ public class AttackPointt : MonoBehaviour
         }
     }
 
-    // ������ �U���|�C���g�I�u�W�F�N�g�̍폜 ����������������������������������������������������������
+    // ─── 攻撃ポイントオブジェクトの削除 ─────────────────────────────
     public void AtkpDestroy()
     {
         foreach (Transform child in APparent)
@@ -114,7 +113,7 @@ public class AttackPointt : MonoBehaviour
         AttackP?.Clear();
     }
 
-    // ������ �ʏ�U���̍U���͈͌v�Z ����������������������������������������������������������������������������
+    // ─── 通常攻撃の攻撃範囲計算 ──────────────────────────────────────
     public void NormalAttackPData(Status Obj, Vector3 ObjP)
     {
         AttackP?.Clear();
@@ -125,7 +124,7 @@ public class AttackPointt : MonoBehaviour
 
         if (!AttackPredicateMap.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
         {
-            Debug.Log($"[AttackPointt] Kind '{obj.kind}' �̍U���p�^�[���͖������ł�");
+            Debug.Log($"[AttackPointt] Kind '{obj.kind}' の攻撃パターンは未実装です");
             return;
         }
 
