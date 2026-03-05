@@ -26,11 +26,12 @@ public class AttackPointt : MonoBehaviour
     [Header("ムーブジェネレーター")]
     [SerializeField] public MoveGererater movegenerater;
 
-    [Header("アタックポイント")]
-    [SerializeField] public GameObject AttackPoint;
+    [Header("ユニットボックス")]
+    [SerializeField] Transform PlayerUnit;
+    [SerializeField] Transform EnemyUnit;
 
-    [Header("アタックポイント親")]
-    [SerializeField] public Transform APparent;
+    // 現在 Attackable=true になっている駒のリスト（解除用に保持）
+    private readonly List<Status> _markedTargets = new List<Status>();
 
     // ─── 駒種ごとの攻撃範囲判定 ──────────────────────────────────────
     // dx = p.x - objp.x（符号付き）, dz = p.z - objp.z（符号付き）
@@ -73,7 +74,7 @@ public class AttackPointt : MonoBehaviour
         { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 0) || (dx == 0 && Mathf.Abs(dz) == 1) },
     };
 
-    // ─── 攻撃モードに応じたポイント生成 ─────────────────────────────
+    // ─── 攻撃モードに応じた対象マーク ───────────────────────────────
     public void AttackPointCall(Status Obj, Vector3 ObjP, PlayerMove move)
     {
         this.move = move;
@@ -84,7 +85,7 @@ public class AttackPointt : MonoBehaviour
         {
             case PlayerMove.AttackMode.Normal:
                 NormalAttackPData(Obj, ObjP);
-                PointCreate();
+                MarkTargets();
                 break;
             case PlayerMove.AttackMode.Skill:
                 // 今後実装予定
@@ -92,24 +93,36 @@ public class AttackPointt : MonoBehaviour
         }
     }
 
-    // ─── 攻撃ポイントオブジェクトの生成 ─────────────────────────────
-    public void PointCreate()
+    // ─── 攻撃範囲内の駒に Attackable フラグを立てる ─────────────────
+    private void MarkTargets()
     {
-        for (int i = 0; i < AttackP.Count; i++)
+        bool isPriest = obj.kind == Kind.Priest;
+        Transform searchParent = isPriest ? PlayerUnit : EnemyUnit;
+
+        foreach (Status s in searchParent.GetComponentsInChildren<Status>())
         {
-            Vector3 pos = AttackP[i];
-            pos.y -= 0.17f;
-            Instantiate(AttackPoint, pos, Quaternion.identity, APparent);
+            if (s.type != Type.Unit) continue;
+            Vector3 pos = s.transform.position;
+            bool inRange = AttackP.Any(p => Mathf.RoundToInt(p.x) == Mathf.RoundToInt(pos.x)
+                                         && Mathf.RoundToInt(p.z) == Mathf.RoundToInt(pos.z));
+            if (inRange)
+            {
+                s.Attackable = true;
+                _markedTargets.Add(s);
+            }
         }
+
+        Debug.Log($"[AttackPointt] {_markedTargets.Count}体の対象をマーク");
     }
 
-    // ─── 攻撃ポイントオブジェクトの削除 ─────────────────────────────
-    public void AtkpDestroy()
+    // ─── 全対象の Attackable フラグを解除する ───────────────────────
+    public void ClearTargets()
     {
-        foreach (Transform child in APparent)
+        foreach (Status s in _markedTargets)
         {
-            Destroy(child.gameObject);
+            if (s != null) s.Attackable = false;
         }
+        _markedTargets.Clear();
         AttackP?.Clear();
     }
 
@@ -130,9 +143,6 @@ public class AttackPointt : MonoBehaviour
 
         Vector3 ownCell = movegenerater.Cell(objp);
         Vector3 pcpCell = movegenerater.Cell(movegenerater.pcp);
-
-        // Priestだけ味方ユニットを対象にする（それ以外は敵・建物・壁を対象）
-        bool isPriest = obj.kind == Kind.Priest;
 
         AttackP = setpos.Where(p =>
         {

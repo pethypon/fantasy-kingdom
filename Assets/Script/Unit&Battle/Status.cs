@@ -91,6 +91,9 @@ public class Status : MonoBehaviour
     [SerializeField] public HashSet<Vector3Int> VisionCell;
     [Header("疲労")]
     [SerializeField] public int Fatigue = 0;
+
+    [Header("攻撃対象フラグ")]
+    [HideInInspector] public bool Attackable = false;
 }
 
 // ─────────────────────────────────────────────────────────────────────

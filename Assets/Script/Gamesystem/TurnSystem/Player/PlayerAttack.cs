@@ -43,7 +43,7 @@ public class PlayerAttack : StateCore
         this.turngenerater = turngenerater;
         this.unitclick = unitclick;
         this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater; // Œ³ƒR[ƒh‚Å–¢‘ã“ü‚¾‚Á‚½ƒoƒO‚ğC³
+        this.visiongenerater = visiongenerater;
         this.movegenerater = movegenerater;
         this.crystalsystem = crystalsystem;
         this.unitset = unitset;
@@ -55,18 +55,20 @@ public class PlayerAttack : StateCore
         Scrollspeed = move.scrollspeed;
         Maxx = mapcreate.maxX;
         Maxz = mapcreate.maxZ;
+
+        // æ”»æ’ƒç¯„å›²ã‚’è¨ˆç®—ã—ã€å¯¾è±¡é§’ã« Attackable ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
         attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
         AttackSuccess = false;
-        // UŒ‚”ÍˆÍ“à‚É“G‚ª‚¢‚È‚¢ê‡‚Í‘¦À‚ÉPlayerMove‚Ö–ß‚é
+
+        // æ”»æ’ƒç¯„å›²å†…ã«å¯¾è±¡ãŒã„ãªã„å ´åˆã¯å³åº§ã«PlayerMoveã¸æˆ»ã‚‹
         if (attackpoint.AttackP == null || attackpoint.AttackP.Count == 0)
         {
-            Debug.Log("[PlayerAttack] UŒ‚”ÍˆÍ“à‚É‘ÎÛ‚ª‚¢‚È‚¢‚½‚ßAPlayerMove‚Ö–ß‚è‚Ü‚·");
-            attackpoint.AtkpDestroy();
+            Debug.Log("[PlayerAttack] æ”»æ’ƒç¯„å›²å†…ã«å¯¾è±¡ãŒã„ãªã„ãŸã‚ã€PlayerMoveã¸æˆ»ã‚Šã¾ã™");
+            attackpoint.ClearTargets();
             turngenerater.ChangeState(new PlayerMove(
                 turngenerater, unitclick, attackpoint, battlesystem,
                 visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
         }
-
     }
 
     public void Update()
@@ -94,20 +96,21 @@ public class PlayerAttack : StateCore
         battlesystem.target = null;
         battlesystem.AttackSide = null;
         AttackSuccess = false;
-        attackpoint.AtkpDestroy();
+
+        // Attackable ãƒ•ãƒ©ã‚°ã‚’å…¨è§£é™¤
+        attackpoint.ClearTargets();
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚¬Œ÷FPlayerMove ‚Ö–ß‚é „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ æ”»æ’ƒæˆåŠŸæ™‚ï¼šPlayerMove ã¸æˆ»ã‚‹ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private void HandleAttackSuccess()
     {
         Reset();
         turngenerater.ChangeState(new PlayerMove(
             turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem,unitset
-            ));
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒJƒƒ‰ˆÚ“® „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ ã‚«ãƒ¡ãƒ©ç§»å‹• â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private void UpdateCameraMove()
     {
         Vector2 input = turngenerater.MoveInput;
@@ -120,7 +123,7 @@ public class PlayerAttack : StateCore
         turngenerater.CameraObject.position = pos;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒJƒƒ‰ƒY[ƒ€iFOVj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ ã‚«ãƒ¡ãƒ©ã‚ºãƒ¼ãƒ ï¼ˆFOVï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private void UpdateCameraZoom()
     {
         float scroll = turngenerater.ScrollInput;
@@ -130,14 +133,14 @@ public class PlayerAttack : StateCore
         Camera.main.fieldOfView = Mathf.Clamp(fov, 30f, 90f);
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒNƒŠƒbƒNi¶ƒNƒŠƒbƒNj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ æ”»æ’ƒã‚¯ãƒªãƒƒã‚¯ï¼ˆå·¦ã‚¯ãƒªãƒƒã‚¯ï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private void HandleAttackClick()
     {
         if (!turngenerater.LeftClickDown) return;
         unitclick.AttackClick(battlesystem, this, attackpoint, move);
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒLƒƒƒ“ƒZƒ‹i‰EƒNƒŠƒbƒNj¨ PlayerMove ‚Ö–ß‚é „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ æ”»æ’ƒã‚­ãƒ£ãƒ³ã‚»ãƒ«ï¼ˆå³ã‚¯ãƒªãƒƒã‚¯ï¼‰â†’ PlayerMove ã¸æˆ»ã‚‹ â”€â”€â”€â”€â”€â”€â”€â”€
     private void HandleCancelAttack()
     {
         if (!turngenerater.RightClickDown) return;

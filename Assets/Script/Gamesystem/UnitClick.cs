@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -78,21 +77,9 @@ public class UnitClick : MonoBehaviour
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out attackhit, RayDistance)) return;
         if (!attackhit.transform.TryGetComponent<Status>(out ATKC)) return;
-        // Priestは味方ユニットを対象にする（回復）、それ以外は敵ユニットを対象にする
-        bool isPriest = playermove.Obj != null && playermove.Obj.kind == Kind.Priest;
-        if (isPriest)
-        {
-            if (ATKC.team != Team.Player || ATKC.type != Type.Unit) return;
-        }
-        else
-        {
-            if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
-        }
-        if (attackpoint.AttackP == null) return;
 
-        Vector3 attackSame = ATKC.transform.position;
-        bool isInRange = attackpoint.AttackP.Any(p => p.x == attackSame.x && p.z == attackSame.z);
-        if (!isInRange) return;
+        // Attackable フラグが立っている駒だけを攻撃対象とする
+        if (!ATKC.Attackable) return;
 
         // ─── AP チェック ──────────────────────────────────────────
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
