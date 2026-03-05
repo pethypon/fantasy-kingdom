@@ -21,7 +21,7 @@ public class UnitClick : MonoBehaviour
         this.attackpoint = attackpoint;
     }
 
-    // „Ÿ„Ÿ„Ÿ ¶ƒNƒŠƒbƒNFƒvƒŒƒCƒ„[ƒ†ƒjƒbƒg‘I‘ğ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ å·¦ã‚¯ãƒªãƒƒã‚¯ï¼šãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¦ãƒ‹ãƒƒãƒˆé¸æŠ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public void Click1()
     {
         if (!TryGetMouseRay(out Ray ray)) return;
@@ -41,17 +41,17 @@ public class UnitClick : MonoBehaviour
         Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
     }
 
-    // „Ÿ„Ÿ„Ÿ ¶ƒNƒŠƒbƒNiˆÚ“®Šm’è or Ä‘I‘ğj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ å·¦ã‚¯ãƒªãƒƒã‚¯ï¼ˆç§»å‹•ç¢ºå®š or å†é¸æŠï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public void Click2()
     {
-        Debug.Log("Click2“à•”n“®");
+        Debug.Log("Click2å†…éƒ¨å§‹å‹•");
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;
-        Debug.Log("Click2iRay”ò‚Î‚µŠ®—¹j");
+        Debug.Log("Click2ï¼ˆRayé£›ã°ã—å®Œäº†ï¼‰");
 
         playermove.MP = playermove.hit.transform.GetComponent<Status>();
         if (playermove.MP == null) return;
-        Debug.Log("Click2iMP‚ªNull‚¶‚á‚È‚¢ê‡‚Ì‘I‘ğˆj");
+        Debug.Log("Click2ï¼ˆMPãŒNullã˜ã‚ƒãªã„å ´åˆã®é¸æŠè‚¢ï¼‰");
 
         if (playermove.MP.team == Team.None && playermove.MP.type == Type.MovePoint)
         {
@@ -63,7 +63,7 @@ public class UnitClick : MonoBehaviour
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒNƒŠƒbƒN „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ æ”»æ’ƒã‚¯ãƒªãƒƒã‚¯ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public void AttackClick(
         BattleSystem battlesystem,
         PlayerAttack playerattack,
@@ -78,17 +78,26 @@ public class UnitClick : MonoBehaviour
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out attackhit, RayDistance)) return;
         if (!attackhit.transform.TryGetComponent<Status>(out ATKC)) return;
-        if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
+        // Priestã¯å‘³æ–¹ãƒ¦ãƒ‹ãƒƒãƒˆã‚’å¯¾è±¡ã«ã™ã‚‹ï¼ˆå›å¾©ï¼‰ã€ãã‚Œä»¥å¤–ã¯æ•µãƒ¦ãƒ‹ãƒƒãƒˆã‚’å¯¾è±¡ã«ã™ã‚‹
+        bool isPriest = playermove.Obj != null && playermove.Obj.kind == Kind.Priest;
+        if (isPriest)
+        {
+            if (ATKC.team != Team.Player || ATKC.type != Type.Unit) return;
+        }
+        else
+        {
+            if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
+        }
         if (attackpoint.AttackP == null) return;
 
         Vector3 attackSame = ATKC.transform.position;
         bool isInRange = attackpoint.AttackP.Any(p => p.x == attackSame.x && p.z == attackSame.z);
         if (!isInRange) return;
 
-        // „Ÿ„Ÿ„Ÿ AP ƒ`ƒFƒbƒN „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // â”€â”€â”€ AP ãƒã‚§ãƒƒã‚¯ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
         {
-            Debug.Log("[APSystem] AP•s‘«FUŒ‚‚Å‚«‚Ü‚¹‚ñ");
+            Debug.Log("[APSystem] APä¸è¶³ï¼šæ”»æ’ƒã§ãã¾ã›ã‚“");
             return;
         }
 
@@ -99,29 +108,29 @@ public class UnitClick : MonoBehaviour
         playerattack.AttackSuccess = true;
     }
 
-    // „Ÿ„Ÿ„Ÿ ˆÚ“®æ(MovePoint)ƒNƒŠƒbƒN‚Ìˆ— „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ ç§»å‹•å…ˆ(MovePoint)ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç† â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private void HandleMovePointClick()
     {
         Debug.Log("<color=#00ff00ff>[Controller]</color> OK2");
 
-        Vector3 from = turngenerater.OldCell;           // ˆÚ“®Œ³i‘I‘ğ‚É‹L˜^Ï‚İj
+        Vector3 from = turngenerater.OldCell;           // ç§»å‹•å…ƒï¼ˆé¸æŠæ™‚ã«è¨˜éŒ²æ¸ˆã¿ï¼‰
         Vector3 to = playermove.MP.transform.position;
-        to.y += 0.47f;                                  // MovePoint ‚Ì Y ƒIƒtƒZƒbƒg‚ğ–ß‚·
+        to.y += 0.47f;                                  // MovePoint ã® Y ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’æˆ»ã™
 
-        // „Ÿ„Ÿ„Ÿ AP ƒ`ƒFƒbƒN „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // â”€â”€â”€ AP ãƒã‚§ãƒƒã‚¯ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to))
         {
-            Debug.Log("[APSystem] AP•s‘«FˆÚ“®‚Å‚«‚Ü‚¹‚ñ");
+            Debug.Log("[APSystem] APä¸è¶³ï¼šç§»å‹•ã§ãã¾ã›ã‚“");
             return;
         }
 
-        // „Ÿ„Ÿ„Ÿ ˆÚ“®Šm’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // â”€â”€â”€ ç§»å‹•ç¢ºå®š â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         turngenerater.SelectUnit.transform.position = to;
         turngenerater.NewCell = turngenerater.SelectUnit.transform.position;
         turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
         turngenerater.movegenerater.MoveReset();
 
-        // „Ÿ„Ÿ„Ÿ AP Á”ïiˆÚ“®¬—§Œãj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // â”€â”€â”€ AP æ¶ˆè²»ï¼ˆç§»å‹•æˆç«‹å¾Œï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
 
         playermove.MP = null;
@@ -129,7 +138,7 @@ public class UnitClick : MonoBehaviour
         playermove.MenuSwitch = false;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒvƒŒƒCƒ„[ƒ†ƒjƒbƒgÄ‘I‘ğ‚Ìˆ— „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¦ãƒ‹ãƒƒãƒˆå†é¸æŠæ™‚ã®å‡¦ç† â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private void HandlePlayerUnitReselect()
     {
         turngenerater.movegenerater.MoveReset();
@@ -143,7 +152,7 @@ public class UnitClick : MonoBehaviour
         Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒ}ƒEƒXˆÊ’u‚©‚çRay‚ğ¶¬iV“ü—ÍƒVƒXƒeƒ€‘Î‰j „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // â”€â”€â”€ ãƒã‚¦ã‚¹ä½ç½®ã‹ã‚‰Rayã‚’ç”Ÿæˆï¼ˆæ–°å…¥åŠ›ã‚·ã‚¹ãƒ†ãƒ å¯¾å¿œï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private bool TryGetMouseRay(out Ray ray)
     {
         ray = default;
