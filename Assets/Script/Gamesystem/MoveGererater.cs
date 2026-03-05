@@ -8,22 +8,22 @@ public class MoveGererater : MonoBehaviour
     [SerializeField] public MapCreate mapcreate;
     [SerializeField] public TurnGenerater turngenerater;
 
-    [Header("ˆÚ“®ˆÊ’u•\¦‚ÌƒIƒuƒWƒFƒNƒg")]
+    [Header("ï¿½Ú“ï¿½ï¿½Ê’uï¿½\ï¿½ï¿½ï¿½ÌƒIï¿½uï¿½Wï¿½Fï¿½Nï¿½g")]
     [SerializeField] public GameObject MovePoint;
 
-    [Header("ƒ€[ƒueƒIƒuƒWƒFƒNƒg")]
+    [Header("ï¿½ï¿½ï¿½[ï¿½uï¿½eï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½g")]
     [SerializeField] public Transform Move;
 
-    [Header("ƒ†ƒjƒbƒgÀ•W")]
+    [Header("ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½ï¿½ï¿½W")]
     [SerializeField] public HashSet<Vector3> UnitPointData = new HashSet<Vector3>();
 
-    [Header("ƒNƒŠƒXƒ^ƒ‹ƒVƒXƒeƒ€")]
+    [Header("ï¿½Nï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Vï¿½Xï¿½eï¿½ï¿½")]
     [SerializeField] CrystalSystem crystalsystem;
 
-    [Header("ƒ†ƒjƒbƒgƒZƒbƒeƒBƒ“ƒO")]
+    [Header("ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½Zï¿½bï¿½eï¿½Bï¿½ï¿½ï¿½O")]
     [SerializeField] UnitSetting unitsetting;
 
-    [Header("ƒ†ƒjƒbƒgƒ{ƒbƒNƒX")]
+    [Header("ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½{ï¿½bï¿½Nï¿½X")]
     [SerializeField] Transform PlayerUnit;
     [SerializeField] Transform EnemyUnit;
 
@@ -35,57 +35,57 @@ public class MoveGererater : MonoBehaviour
     public Vector3 ecp;
     public Vector3 usp;
 
-    // „Ÿ„Ÿ„Ÿ ‹îí‚²‚Æ‚ÌˆÚ“®”»’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-    // dx = p.x - objp.xi•„†•t‚«j, dz = p.z - objp.zi•„†•t‚«j
-    // V‚µ‚¢‹î‚ğ’Ç‰Á‚·‚éê‡‚Í‚±‚±‚É1s’Ç‰Á‚·‚é‚¾‚¯‚Å‚æ‚¢
-    static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½í‚²ï¿½Æ‚ÌˆÚ“ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    // dx = p.x - objp.xï¿½iï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½j, dz = p.z - objp.zï¿½iï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½j
+    // ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½ï¿½ê‡ï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½sï¿½Ç‰ï¿½ï¿½ï¿½ï¿½é‚¾ï¿½ï¿½ï¿½Å‚æ‚¢
+    public static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
         new Dictionary<Kind, Func<float, float, bool>>
     {
-        // ‘S•ûŒü1ƒ}ƒX
+        // ï¿½Sï¿½ï¿½ï¿½ï¿½1ï¿½}ï¿½X
         { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1
                                      && Mathf.Abs(dz) <= 1 },
 
-        // ã‰º¶‰E1ƒ}ƒX
+        // ï¿½ã‰ºï¿½ï¿½ï¿½E1ï¿½}ï¿½X
         { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) + Mathf.Abs(dz) == 1 },
 
-        // Î‚ß1ƒ}ƒX
+        // ï¿½Î‚ï¿½1ï¿½}ï¿½X
         { Kind.Archer,      (dx, dz) => Mathf.Abs(dx) == 1
                                      && Mathf.Abs(dz) == 1 },
 
-        // Î‚ß1ƒ}ƒXiArcher‚Æ“¯‚¶ˆÚ“®j
+        // ï¿½Î‚ï¿½1ï¿½}ï¿½Xï¿½iArcherï¿½Æ“ï¿½ï¿½ï¿½ï¿½Ú“ï¿½ï¿½j
         { Kind.Magic,       (dx, dz) => Mathf.Abs(dx) == 1
                                      && Mathf.Abs(dz) == 1 },
 
-        // Œj”n’µ‚Ñi2~1 or 1~2j
+        // ï¿½jï¿½nï¿½ï¿½ï¿½Ñi2ï¿½~1 or 1ï¿½~2ï¿½j
         { Kind.Assassin,    (dx, dz) => (Mathf.Abs(dx) == 2 && Mathf.Abs(dz) == 1)
                                      || (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) == 2) },
 
-        // ‰¡}1{‘OŒã1 or ’¼i2
+        // ï¿½ï¿½ï¿½}1ï¿½{ï¿½Oï¿½ï¿½1 or ï¿½ï¿½ï¿½i2
         { Kind.Scout,       (dx, dz) => (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) <= 1)
                                      || (dx == 0 && Mathf.Abs(dz) == 2) },
 
-        // ‘OÎ‚ß1 or Œã‚ë’¼i1iŒü‚«l—¶F•„†•t‚«j
+        // ï¿½Oï¿½Î‚ï¿½1 or ï¿½ï¿½ë’¼ï¿½i1ï¿½iï¿½ï¿½ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½Fï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½j
         { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 1)
                                      || (dx == 0 && dz == -1) },
 
-        // ¶‰E2ƒ}ƒX or ‘OŒã1ƒ}ƒX
+        // ï¿½ï¿½ï¿½E2ï¿½}ï¿½X or ï¿½Oï¿½ï¿½1ï¿½}ï¿½X
         { Kind.Guardian,    (dx, dz) => (Mathf.Abs(dx) <= 2 && dz == 0)
                                      || (dx == 0 && Mathf.Abs(dz) == 1) },
 
-        // ‘O’¼i1-3ƒ}ƒX or Î‚ßŒã‚ë1ƒ}ƒXi•„†•t‚«j
+        // ï¿½Oï¿½ï¿½ï¿½i1-3ï¿½}ï¿½X or ï¿½Î‚ßŒï¿½ï¿½1ï¿½}ï¿½Xï¿½iï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½j
         { Kind.Crossbow,    (dx, dz) => (dx == 0 && (dz == 1 || dz == 2 || dz == 3))
                                      || (Mathf.Abs(dx) == 1 && dz == -1) },
 
-        // ‰E‘OÎ‚ß1 or ¶‰EŒã‚ë3ƒ}ƒXi•„†•t‚«j
+        // ï¿½Eï¿½Oï¿½Î‚ï¿½1 or ï¿½ï¿½ï¿½Eï¿½ï¿½ï¿½3ï¿½}ï¿½Xï¿½iï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½j
         { Kind.Magicsniper, (dx, dz) => (dx == 1 && dz == 1)
                                      || (Mathf.Abs(dx) == 3 && dz == -1) },
 
-        // Î‚ß‘OŒã2ƒpƒ^[ƒ“i•„†•t‚«j
+        // ï¿½Î‚ß‘Oï¿½ï¿½2ï¿½pï¿½^ï¿½[ï¿½ï¿½ï¿½iï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½j
         { Kind.Bomber,      (dx, dz) => (dx == -1 && dz ==  1) || (dx ==  2 && dz ==  2)
                                      || (dx ==  1 && dz == -1) || (dx == -2 && dz == -2) },
     };
 
-    // „Ÿ„Ÿ„Ÿ ƒ†ƒjƒbƒgè—LÀ•W‚ÌXV „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½ï¿½Lï¿½ï¿½ï¿½Wï¿½ÌXï¿½V ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void UnitPointCore()
     {
         UnitPointData.Clear();
@@ -106,15 +106,25 @@ public class MoveGererater : MonoBehaviour
             usp = us.transform.position;
             UnitPointData.Add(Cell(usp));
         }
+
+        // å£ã‚’ãƒ¦ãƒ‹ãƒƒãƒˆã¨åŒæ§˜ã«ç§»å‹•ä¸å¯ãƒã‚¹ã¨ã—ã¦ç™»éŒ²ã™ã‚‹
+        foreach (Transform parent in new[] { PlayerUnit, EnemyUnit })
+        {
+            foreach (Status s in parent.GetComponentsInChildren<Status>())
+            {
+                if (s.type == Type.Wall && s.gameObject.activeSelf)
+                    UnitPointData.Add(Cell(s.transform.position));
+            }
+        }
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒOƒŠƒbƒhÀ•W‚Ö‚ÌŠÛ‚ß „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Oï¿½ï¿½ï¿½bï¿½hï¿½ï¿½ï¿½Wï¿½Ö‚ÌŠÛ‚ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public Vector3 Cell(Vector3 v)
     {
         return new Vector3(Mathf.RoundToInt(v.x), 0f, Mathf.RoundToInt(v.z));
     }
 
-    // „Ÿ„Ÿ„Ÿ ˆÚ“®”ÍˆÍ‚ÌŒvZ‚ÆƒIƒuƒWƒFƒNƒg¶¬ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú“ï¿½ï¿½ÍˆÍ‚ÌŒvï¿½Zï¿½ÆƒIï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void MoveCore(Status Obj, Vector3 ObjP)
     {
         setpos = mapcreate.SetPos;
@@ -124,7 +134,7 @@ public class MoveGererater : MonoBehaviour
 
         if (!MovePredicateMap.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
         {
-            Debug.LogWarning($"[MoveGererater] Kind '{obj.kind}' ‚ÌˆÚ“®ƒpƒ^[ƒ“‚ª–¢’è‹`‚Å‚·");
+            Debug.LogWarning($"[MoveGererater] Kind '{obj.kind}' ï¿½ÌˆÚ“ï¿½ï¿½pï¿½^ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½`ï¿½Å‚ï¿½");
             return;
         }
 
@@ -134,14 +144,17 @@ public class MoveGererater : MonoBehaviour
         {
             float dx = p.x - objp.x;
             float dz = p.z - objp.z;
+            // Direction.Sã®ã¨ãå‰å¾Œã‚’åè»¢ï¼ˆå—å‘ããƒ¦ãƒ‹ãƒƒãƒˆã®ç§»å‹•ç¯„å›²ã‚’æ­£ã—ãè¨ˆç®—ã™ã‚‹ãŸã‚ï¼‰
+            float dirDx = obj.direction == Direction.S ? -dx : dx;
+            float dirDz = obj.direction == Direction.S ? -dz : dz;
             bool occupied = UnitPointData.Contains(Cell(p));
-            return predicate(dx, dz) && !occupied;
+            return predicate(dirDx, dirDz) && !occupied;
         }).ToList();
 
         MoveCreate();
     }
 
-    // „Ÿ„Ÿ„Ÿ ˆÚ“®ƒ|ƒCƒ“ƒgƒIƒuƒWƒFƒNƒg‚Ì¶¬ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú“ï¿½ï¿½|ï¿½Cï¿½ï¿½ï¿½gï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½Ìï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void MoveCreate()
     {
         for (int i = 0; i < MoveUnitP.Count; i++)
@@ -153,7 +166,7 @@ public class MoveGererater : MonoBehaviour
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ ˆÚ“®ƒ|ƒCƒ“ƒgƒIƒuƒWƒFƒNƒg‚Ìíœ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú“ï¿½ï¿½|ï¿½Cï¿½ï¿½ï¿½gï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½Ìíœ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void MoveReset()
     {
         foreach (Transform child in Move.transform)
@@ -162,7 +175,7 @@ public class MoveGererater : MonoBehaviour
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ UnitPointData ‚ÌXV „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UnitPointData ï¿½ÌXï¿½V ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void MoveUpdate(Vector3 OldCell, Vector3 NewCell)
     {
         UnitPointData.Add(Cell(NewCell));
