@@ -57,6 +57,16 @@ public class PlayerAttack : StateCore
         Maxz = mapcreate.maxZ;
         attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
         AttackSuccess = false;
+        // UŒ‚”ÍˆÍ“à‚É“G‚ª‚¢‚È‚¢ê‡‚Í‘¦À‚ÉPlayerMove‚Ö–ß‚é
+        if (attackpoint.AttackP == null || attackpoint.AttackP.Count == 0)
+        {
+            Debug.Log("[PlayerAttack] UŒ‚”ÍˆÍ“à‚É‘ÎÛ‚ª‚¢‚È‚¢‚½‚ßAPlayerMove‚Ö–ß‚è‚Ü‚·");
+            attackpoint.AtkpDestroy();
+            turngenerater.ChangeState(new PlayerMove(
+                turngenerater, unitclick, attackpoint, battlesystem,
+                visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        }
+
     }
 
     public void Update()
