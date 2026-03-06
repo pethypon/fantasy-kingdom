@@ -1,29 +1,13 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 資源バーUI：木材・石材・鉄鉱石・鉄・魔石・石炭・小麦・パン・水・板材・切石・市民を表示
 /// Canvas > SafeAreaRoot > ResourceBar に付ける
 ///
-/// 各テキストは「ラベル: 数値」形式で大きく表示する
-/// GridLayoutGroup や HorizontalLayoutGroup で並べることを想定
-///
-/// 構成:
-///   ResourceBar
-///     ├─ Row1 (HorizontalLayoutGroup)
-///     │    ├─ WoodText    ("木材: 100")
-///     │    ├─ StoneText   ("石材: 100")
-///     │    ├─ CoalText    ("石炭: 0")
-///     │    ├─ IronOreText ("鉄鉱: 0")
-///     │    ├─ IronText    ("鉄: 0")
-///     │    └─ MagicOreText("魔石: 0")
-///     └─ Row2 (HorizontalLayoutGroup)
-///          ├─ WheatText   ("小麦: 0")
-///          ├─ BreadText   ("パン: 60")
-///          ├─ WaterText   ("水: 0")
-///          ├─ PlankText   ("板材: 0")
-///          ├─ CutStoneText("切石: 0")
-///          └─ CitizenText ("市民: 5")
+/// Awake() でフォントサイズ・配置を自動設定する
+/// 各行の親に HorizontalLayoutGroup を自動追加して均等配置
 /// </summary>
 public class ResourceBarUI : MonoBehaviour
 {
@@ -46,8 +30,54 @@ public class ResourceBarUI : MonoBehaviour
 
     [Header("設定")]
     [SerializeField] private Team displayTeam = Team.Player;
+    [SerializeField] private float fontSize = 22f;
 
     private FactionState.ResourceData lastSnapshot;
+
+    private void Awake()
+    {
+        TextMeshProUGUI[] allTexts = {
+            woodText, stoneText, coalText, ironOreText, ironText, magicOreText,
+            wheatText, breadText, waterText, plankText, cutStoneText, citizenText
+        };
+
+        foreach (var tmp in allTexts)
+        {
+            if (tmp == null) continue;
+            tmp.fontSize = fontSize;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.enableAutoSizing = false;
+
+            // LayoutElement で最小幅を揃える
+            var le = tmp.GetComponent<LayoutElement>();
+            if (le == null) le = tmp.gameObject.AddComponent<LayoutElement>();
+            le.minWidth = 90f;
+            le.preferredWidth = 110f;
+            le.flexibleWidth = 1f;
+        }
+
+        // 各行の親に HorizontalLayoutGroup を自動設定
+        ConfigureRowLayout(woodText);
+        ConfigureRowLayout(wheatText);
+    }
+
+    private void ConfigureRowLayout(TextMeshProUGUI anyChildInRow)
+    {
+        if (anyChildInRow == null) return;
+        Transform row = anyChildInRow.transform.parent;
+        if (row == null) return;
+
+        var hlg = row.GetComponent<HorizontalLayoutGroup>();
+        if (hlg == null) hlg = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+
+        hlg.spacing = 16f;
+        hlg.childAlignment = TextAnchor.MiddleCenter;
+        hlg.childControlWidth = true;
+        hlg.childControlHeight = true;
+        hlg.childForceExpandWidth = true;
+        hlg.childForceExpandHeight = false;
+        hlg.padding = new RectOffset(8, 8, 2, 2);
+    }
 
     private void Update()
     {
