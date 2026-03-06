@@ -5,20 +5,25 @@ using UnityEngine;
 /// 資源バーUI：木材・石材・鉄鉱石・鉄・魔石・石炭・小麦・パン・水・板材・切石・市民を表示
 /// Canvas > SafeAreaRoot > ResourceBar に付ける
 ///
+/// 各テキストは「ラベル: 数値」形式で大きく表示する
+/// GridLayoutGroup や HorizontalLayoutGroup で並べることを想定
+///
 /// 構成:
-///   ResourceBar (HorizontalLayoutGroup)
-///     ├─ WoodText
-///     ├─ StoneText
-///     ├─ CoalText
-///     ├─ IronOreText
-///     ├─ IronText
-///     ├─ MagicOreText
-///     ├─ WheatText
-///     ├─ BreadText
-///     ├─ WaterText
-///     ├─ PlankText
-///     ├─ CutStoneText
-///     └─ CitizenText
+///   ResourceBar
+///     ├─ Row1 (HorizontalLayoutGroup)
+///     │    ├─ WoodText    ("木材: 100")
+///     │    ├─ StoneText   ("石材: 100")
+///     │    ├─ CoalText    ("石炭: 0")
+///     │    ├─ IronOreText ("鉄鉱: 0")
+///     │    ├─ IronText    ("鉄: 0")
+///     │    └─ MagicOreText("魔石: 0")
+///     └─ Row2 (HorizontalLayoutGroup)
+///          ├─ WheatText   ("小麦: 0")
+///          ├─ BreadText   ("パン: 60")
+///          ├─ WaterText   ("水: 0")
+///          ├─ PlankText   ("板材: 0")
+///          ├─ CutStoneText("切石: 0")
+///          └─ CitizenText ("市民: 5")
 /// </summary>
 public class ResourceBarUI : MonoBehaviour
 {
@@ -61,23 +66,23 @@ public class ResourceBarUI : MonoBehaviour
 
     private void Refresh(FactionState.ResourceData res)
     {
-        SetText(woodText,     "Wood",     res.Wood);
-        SetText(stoneText,    "Stone",    res.Stone);
-        SetText(coalText,     "Coal",     res.Coal);
-        SetText(ironOreText,  "IronOre",  res.IronOre);
-        SetText(ironText,     "Iron",     res.Iron);
-        SetText(magicOreText, "MagicOre", res.MagicOre);
-        SetText(wheatText,    "Wheat",    res.Wheat);
-        SetText(breadText,    "Bread",    res.Bread);
-        SetText(waterText,    "Water",    res.Water);
-        SetText(plankText,    "Plank",    res.Plank);
-        SetText(cutStoneText, "CutStone", res.CutStone);
-        SetText(citizenText,  "Citizen",  res.Citizen);
+        SetText(woodText,     "木材",   res.Wood);
+        SetText(stoneText,    "石材",   res.Stone);
+        SetText(coalText,     "石炭",   res.Coal);
+        SetText(ironOreText,  "鉄鉱",   res.IronOre);
+        SetText(ironText,     "鉄",    res.Iron);
+        SetText(magicOreText, "魔石",   res.MagicOre);
+        SetText(wheatText,    "小麦",   res.Wheat);
+        SetText(breadText,    "パン",   res.Bread);
+        SetText(waterText,    "水",    res.Water);
+        SetText(plankText,    "板材",   res.Plank);
+        SetText(cutStoneText, "切石",   res.CutStone);
+        SetText(citizenText,  "市民",   res.Citizen);
     }
 
     private static void SetText(TextMeshProUGUI tmp, string label, int value)
     {
-        if (tmp != null) tmp.text = label + " " + value;
+        if (tmp != null) tmp.text = label + ": " + value;
     }
 
     private bool HasChanged(FactionState.ResourceData res)

@@ -3,8 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 下ユニットパネルUI：選択ユニットの情報表示 + 攻撃・スキル・待機ボタン
+/// ユニットパネルUI：選択ユニットの情報表示 + 攻撃・スキル・待機ボタン
 /// Canvas > SafeAreaRoot > BottomUnitPanel に付ける
+/// 駒をクリックして選択したときだけ表示される
 ///
 /// 構成:
 ///   BottomUnitPanel
@@ -37,6 +38,7 @@ public class UnitPanelUI : MonoBehaviour
 
     [Header("パネル本体")]
     [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField] private GameObject panelRoot;
 
     private Status currentUnit;
 
@@ -44,6 +46,8 @@ public class UnitPanelUI : MonoBehaviour
     {
         if (canvasGroup == null)
             canvasGroup = GetComponent<CanvasGroup>();
+        if (panelRoot == null)
+            panelRoot = gameObject;
 
         Hide();
     }
@@ -88,7 +92,6 @@ public class UnitPanelUI : MonoBehaviour
                 : currentUnit.passiveskill.ToString();
         }
 
-        // ボタンの有効/無効
         UpdateButtons();
     }
 
@@ -132,13 +135,18 @@ public class UnitPanelUI : MonoBehaviour
     }
 
     // --------------------------------------------------
-    //  表示/非表示
+    //  表示/非表示（SetActive + CanvasGroup 併用）
     // --------------------------------------------------
     private void SetVisible(bool visible)
     {
-        if (canvasGroup == null) return;
-        canvasGroup.alpha = visible ? 1f : 0f;
-        canvasGroup.interactable = visible;
-        canvasGroup.blocksRaycasts = visible;
+        if (panelRoot != null)
+            panelRoot.SetActive(visible);
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = visible ? 1f : 0f;
+            canvasGroup.interactable = visible;
+            canvasGroup.blocksRaycasts = visible;
+        }
     }
 }

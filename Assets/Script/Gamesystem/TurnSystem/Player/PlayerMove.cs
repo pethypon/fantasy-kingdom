@@ -62,7 +62,7 @@ public class PlayerMove : StateCore
     {
         unitclick.UC(this, turngenerater, attackpoint);
         attackmode = AttackMode.None;
-        Debug.Log("�v���C���[�^�[���J�n");
+        Debug.Log("プレイヤーターン開始");
     }
 
     public void Update()
@@ -87,7 +87,7 @@ public class PlayerMove : StateCore
         MenuSwitch = false;
     }
 
-    // ������ �J�����ړ� ��������������������������������������������������������������������������������������������
+    // ---- カメラ移動 ----
     private void UpdateCameraMove()
     {
         Vector2 input = turngenerater.MoveInput;
@@ -100,7 +100,7 @@ public class PlayerMove : StateCore
         turngenerater.CameraObject.position = pos;
     }
 
-    // ������ �J�����Y�[���iFOV�j ��������������������������������������������������������������������������
+    // ---- カメラズーム（FOV） ----
     private void UpdateCameraZoom()
     {
         float scroll = turngenerater.ScrollInput;
@@ -110,7 +110,7 @@ public class PlayerMove : StateCore
         Camera.main.fieldOfView = Mathf.Clamp(fov, 30f, 90f);
     }
 
-    // ������ ���N���b�N ��������������������������������������������������������������������������������������������
+    // ---- 左クリック ----
     private void HandleLeftClick()
     {
         if (!turngenerater.LeftClickDown) return;
@@ -121,13 +121,13 @@ public class PlayerMove : StateCore
         }
         else
         {
-            Debug.Log("Click2�n��");
+            Debug.Log("Click2開始");
             unitclick.Click2();
             RefreshVision();
         }
     }
 
-    // ������ �E�N���b�N ��������������������������������������������������������������������������������������������
+    // ---- 右クリック ----
     private void HandleRightClick()
     {
         if (!turngenerater.RightClickDown) return;
@@ -140,7 +140,7 @@ public class PlayerMove : StateCore
             turngenerater.unitPanelUI.Hide();
     }
 
-    // ������ �^�[���I�� ��������������������������������������������������������������������������������������������
+    // ---- ターン終了 ----
     private void HandleTurnEnd()
     {
         if (!turngenerater.TurnEndDown) return;
@@ -157,7 +157,7 @@ public class PlayerMove : StateCore
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
     }
 
-    // ������ �U�����[�h�I���i���j���[�\�����̂݁j ����������������������������������������
+    // ---- 攻撃モード選択（メニュー表示のみ） ----
     private void HandleAttackModeSelect()
     {
         if (!MenuSwitch) return;
@@ -172,7 +172,7 @@ public class PlayerMove : StateCore
         }
     }
 
-    // ������ �U���X�e�[�g�֑J�� ����������������������������������������������������������������������������
+    // ---- 攻撃ステートへ遷移 ----
     private void StartAttack(AttackMode mode)
     {
         turngenerater.movegenerater.MoveReset();
@@ -180,10 +180,10 @@ public class PlayerMove : StateCore
         attackmode = mode;
         turngenerater.ChangeState(new PlayerAttack(
             mapcreate, this, attackmode, attackpoint, turngenerater,
-            unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem,unitset));
+            unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem, unitset));
     }
 
-    // ������ ���E�X�V�iVisionPoint �̃V���[�g�n���h�j ����������������������������������
+    // ---- 視界更新（VisionPoint のショートハンド） ----
     private void RefreshVision()
     {
         visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);

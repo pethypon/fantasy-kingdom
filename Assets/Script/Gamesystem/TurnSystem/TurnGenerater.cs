@@ -7,46 +7,46 @@ public class TurnGenerater : MonoBehaviour
     public Vector3 OldCell;
     public Vector3 NewCell;
 
-    [Header("�ێ�����X�e�[�g")]
+    [Header("保持するステート")]
     [SerializeField] StateCore StateManager;
 
-    [Header("�^�[���Ǘ�")]
+    [Header("ターン管理")]
     [SerializeField] public int Turn = 0;
 
-    [Header("���j�b�g�X�e�[�^�X")]
+    [Header("ユニットステータス")]
     [SerializeField] public Status status;
 
-    [Header("���[�u")]
+    [Header("ムーブ")]
     [SerializeField] public MoveGererater movegenerater;
 
-    [Header("���j�b�g�N���b�N")]
+    [Header("ユニットクリック")]
     [SerializeField] public UnitClick unitclick;
 
-    [Header("�}�b�v�N���G�C�g")]
+    [Header("マップクリエイト")]
     [SerializeField] public MapCreate mapcreate;
 
-    [Header("�A�^�b�N�|�C���g")]
+    [Header("アタックポイント")]
     [SerializeField] public AttackPointt attackpoint;
 
-    [Header("�o�g���V�X�e��")]
+    [Header("バトルシステム")]
     [SerializeField] public BattleSystem battlesystem;
 
-    [Header("�N���X�^���V�X�e��")]
+    [Header("クリスタルシステム")]
     [SerializeField] public CrystalSystem crystalsystem;
 
-    [Header("���E�V�X�e��")]
-    [SerializeField] public VisionGenerater visiongenerater;   // �� public �ɕύX
+    [Header("視界システム")]
+    [SerializeField] public VisionGenerater visiongenerater;
 
-    [Header("AP�V�X�e��")]
+    [Header("APシステム")]
     [SerializeField] public APSystem apsystem;
 
-    [Header("���j�b�g�z�u")]
+    [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 
     [Header("UI")]
     [SerializeField] public UnitPanelUI unitPanelUI;
 
-    [Header("�Q�[���A�N�V�����̕ۑ��ꏊ")]
+    [Header("ゲームアクションの保存場所")]
     public Vector2 MoveInput;
     public float ScrollInput;
     public bool LeftClickDown;
@@ -57,10 +57,10 @@ public class TurnGenerater : MonoBehaviour
     public bool ToggleNSDown;
     private GameAction gameaction;
 
-    [Header("�J�����i�������Ώہj")]
+    [Header("カメラ（操作対象）")]
     [SerializeField] public Transform CameraObject;
 
-    // ������ �X�e�[�g�؂�ւ� ��������������������������������������������������������������������������������������������
+    // ---- ステート切り替え ----
     public void ChangeState(StateCore next)
     {
         StateManager?.Exit();

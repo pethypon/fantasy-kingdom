@@ -21,7 +21,7 @@ public class UnitClick : MonoBehaviour
         this.attackpoint = attackpoint;
     }
 
-    // ������ ���N���b�N�F�v���C���[���j�b�g�I�� ������������������������������������������
+    // ---- 左クリック：プレイヤーユニット選択 ----
     public void Click1()
     {
         if (!TryGetMouseRay(out Ray ray)) return;
@@ -45,17 +45,17 @@ public class UnitClick : MonoBehaviour
         Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
     }
 
-    // ������ ���N���b�N�i�ړ��m�� or �đI���j ������������������������������������������������
+    // ---- 左クリック（移動確定 or 再選択） ----
     public void Click2()
     {
-        Debug.Log("Click2�����n��");
+        Debug.Log("Click2処理開始");
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;
-        Debug.Log("Click2�iRay��΂������j");
+        Debug.Log("Click2（Rayを飛ばした）");
 
         playermove.MP = playermove.hit.transform.GetComponent<Status>();
         if (playermove.MP == null) return;
-        Debug.Log("Click2�iMP��Null����Ȃ��ꍇ�̑I�����j");
+        Debug.Log("Click2（MPがNullでない場合の選択先）");
 
         if (playermove.MP.team == Team.None && playermove.MP.type == Type.MovePoint)
         {
@@ -67,7 +67,7 @@ public class UnitClick : MonoBehaviour
         }
     }
 
-    // ������ �U���N���b�N ����������������������������������������������������������������������������������������
+    // ---- 攻撃クリック ----
     public void AttackClick(
         BattleSystem battlesystem,
         PlayerAttack playerattack,
@@ -89,10 +89,10 @@ public class UnitClick : MonoBehaviour
         bool isInRange = attackpoint.AttackP.Any(p => p.x == attackSame.x && p.z == attackSame.z);
         if (!isInRange) return;
 
-        // ������ AP �`�F�b�N ������������������������������������������������������������������������������������
+        // ---- APチェック ----
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
         {
-            Debug.Log("[APSystem] AP�s���F�U���ł��܂���");
+            Debug.Log("[APSystem] AP不足：攻撃できません");
             return;
         }
 
@@ -103,29 +103,29 @@ public class UnitClick : MonoBehaviour
         playerattack.AttackSuccess = true;
     }
 
-    // ������ �ړ���(MovePoint)�N���b�N���̏��� ������������������������������������������
+    // ---- 移動先(MovePoint)クリック時の処理 ----
     private void HandleMovePointClick()
     {
         Debug.Log("<color=#00ff00ff>[Controller]</color> OK2");
 
-        Vector3 from = turngenerater.OldCell;           // �ړ����i�I�����ɋL�^�ς݁j
+        Vector3 from = turngenerater.OldCell;           // 移動元（選択時に記録済み）
         Vector3 to = playermove.MP.transform.position;
-        to.y += 0.47f;                                  // MovePoint �� Y �I�t�Z�b�g��߂�
+        to.y += 0.47f;                                  // MovePoint の Y オフセットを戻す
 
-        // ������ AP �`�F�b�N ������������������������������������������������������������������������������������
+        // ---- APチェック ----
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to))
         {
-            Debug.Log("[APSystem] AP�s���F�ړ��ł��܂���");
+            Debug.Log("[APSystem] AP不足：移動できません");
             return;
         }
 
-        // ������ �ړ��m�� ������������������������������������������������������������������������������������������
+        // ---- 移動確定 ----
         turngenerater.SelectUnit.transform.position = to;
         turngenerater.NewCell = turngenerater.SelectUnit.transform.position;
         turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
         turngenerater.movegenerater.MoveReset();
 
-        // ������ AP ����i�ړ�������j ����������������������������������������������������������������
+        // ---- AP消費（移動コスト） ----
         turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
 
         playermove.MP = null;
@@ -136,7 +136,7 @@ public class UnitClick : MonoBehaviour
             turngenerater.unitPanelUI.Hide();
     }
 
-    // ������ �v���C���[���j�b�g�đI�����̏��� ����������������������������������������������
+    // ---- プレイヤーユニット再選択時の処理 ----
     private void HandlePlayerUnitReselect()
     {
         turngenerater.movegenerater.MoveReset();
@@ -154,7 +154,7 @@ public class UnitClick : MonoBehaviour
         Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
     }
 
-    // ������ �}�E�X�ʒu����Ray�𐶐��i�V���̓V�X�e���Ή��j ����������������������
+    // ---- マウス位置からRayを生成（新入力システム対応） ----
     private bool TryGetMouseRay(out Ray ray)
     {
         ray = default;
