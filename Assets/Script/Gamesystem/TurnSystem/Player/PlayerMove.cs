@@ -62,7 +62,7 @@ public class PlayerMove : StateCore
     {
         unitclick.UC(this, turngenerater, attackpoint);
         attackmode = AttackMode.None;
-        Debug.Log("ƒvƒŒƒCƒ„[ƒ^[ƒ“ŠJn");
+        Debug.Log("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¿ãƒ¼ãƒ³é–‹å§‹");
     }
 
     public void Update()
@@ -87,7 +87,7 @@ public class PlayerMove : StateCore
         MenuSwitch = false;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒJƒƒ‰ˆÚ“® „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- ã‚«ãƒ¡ãƒ©ç§»å‹• ----
     private void UpdateCameraMove()
     {
         Vector2 input = turngenerater.MoveInput;
@@ -100,7 +100,7 @@ public class PlayerMove : StateCore
         turngenerater.CameraObject.position = pos;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒJƒƒ‰ƒY[ƒ€iFOVj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- ã‚«ãƒ¡ãƒ©ã‚ºãƒ¼ãƒ ï¼ˆFOVï¼‰ ----
     private void UpdateCameraZoom()
     {
         float scroll = turngenerater.ScrollInput;
@@ -110,7 +110,7 @@ public class PlayerMove : StateCore
         Camera.main.fieldOfView = Mathf.Clamp(fov, 30f, 90f);
     }
 
-    // „Ÿ„Ÿ„Ÿ ¶ƒNƒŠƒbƒN „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- å·¦ã‚¯ãƒªãƒƒã‚¯ ----
     private void HandleLeftClick()
     {
         if (!turngenerater.LeftClickDown) return;
@@ -121,13 +121,13 @@ public class PlayerMove : StateCore
         }
         else
         {
-            Debug.Log("Click2n“®");
+            Debug.Log("Click2é–‹å§‹");
             unitclick.Click2();
             RefreshVision();
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ ‰EƒNƒŠƒbƒN „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- å³ã‚¯ãƒªãƒƒã‚¯ ----
     private void HandleRightClick()
     {
         if (!turngenerater.RightClickDown) return;
@@ -135,9 +135,12 @@ public class PlayerMove : StateCore
         turngenerater.movegenerater.MoveReset();
         RefreshVision();
         Reset();
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒ^[ƒ“I—¹ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- ã‚¿ãƒ¼ãƒ³çµ‚äº† ----
     private void HandleTurnEnd()
     {
         if (!turngenerater.TurnEndDown) return;
@@ -145,12 +148,16 @@ public class PlayerMove : StateCore
         turngenerater.movegenerater.MoveReset();
         RefreshVision();
         Reset();
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
+
         turngenerater.ChangeState(new EnemyStart(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒ‚[ƒh‘I‘ğiƒƒjƒ…[•\¦’†‚Ì‚İj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- æ”»æ’ƒãƒ¢ãƒ¼ãƒ‰é¸æŠï¼ˆãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤ºã®ã¿ï¼‰ ----
     private void HandleAttackModeSelect()
     {
         if (!MenuSwitch) return;
@@ -165,7 +172,7 @@ public class PlayerMove : StateCore
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒXƒe[ƒg‚Ö‘JˆÚ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- æ”»æ’ƒã‚¹ãƒ†ãƒ¼ãƒˆã¸é·ç§» ----
     private void StartAttack(AttackMode mode)
     {
         turngenerater.movegenerater.MoveReset();
@@ -173,10 +180,10 @@ public class PlayerMove : StateCore
         attackmode = mode;
         turngenerater.ChangeState(new PlayerAttack(
             mapcreate, this, attackmode, attackpoint, turngenerater,
-            unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem,unitset));
+            unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem, unitset));
     }
 
-    // „Ÿ„Ÿ„Ÿ ‹ŠEXViVisionPoint ‚ÌƒVƒ‡[ƒgƒnƒ“ƒhj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- è¦–ç•Œæ›´æ–°ï¼ˆVisionPoint ã®ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ³ãƒ‰ï¼‰ ----
     private void RefreshVision()
     {
         visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
