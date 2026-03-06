@@ -7,43 +7,46 @@ public class TurnGenerater : MonoBehaviour
     public Vector3 OldCell;
     public Vector3 NewCell;
 
-    [Header("•Û‚·‚éƒXƒe[ƒg")]
+    [Header("ä¿æŒã™ã‚‹ã‚¹ãƒ†ãƒ¼ãƒˆ")]
     [SerializeField] StateCore StateManager;
 
-    [Header("ƒ^[ƒ“ŠÇ—")]
+    [Header("ã‚¿ãƒ¼ãƒ³ç®¡ç†")]
     [SerializeField] public int Turn = 0;
 
-    [Header("ƒ†ƒjƒbƒgƒXƒe[ƒ^ƒX")]
+    [Header("ãƒ¦ãƒ‹ãƒƒãƒˆã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹")]
     [SerializeField] public Status status;
 
-    [Header("ƒ€[ƒu")]
+    [Header("ãƒ ãƒ¼ãƒ–")]
     [SerializeField] public MoveGererater movegenerater;
 
-    [Header("ƒ†ƒjƒbƒgƒNƒŠƒbƒN")]
+    [Header("ãƒ¦ãƒ‹ãƒƒãƒˆã‚¯ãƒªãƒƒã‚¯")]
     [SerializeField] public UnitClick unitclick;
 
-    [Header("ƒ}ƒbƒvƒNƒŠƒGƒCƒg")]
+    [Header("ãƒãƒƒãƒ—ã‚¯ãƒªã‚¨ã‚¤ãƒˆ")]
     [SerializeField] public MapCreate mapcreate;
 
-    [Header("ƒAƒ^ƒbƒNƒ|ƒCƒ“ƒg")]
+    [Header("ã‚¢ã‚¿ãƒƒã‚¯ãƒã‚¤ãƒ³ãƒˆ")]
     [SerializeField] public AttackPointt attackpoint;
 
-    [Header("ƒoƒgƒ‹ƒVƒXƒeƒ€")]
+    [Header("ãƒãƒˆãƒ«ã‚·ã‚¹ãƒ†ãƒ ")]
     [SerializeField] public BattleSystem battlesystem;
 
-    [Header("ƒNƒŠƒXƒ^ƒ‹ƒVƒXƒeƒ€")]
+    [Header("ã‚¯ãƒªã‚¹ã‚¿ãƒ«ã‚·ã‚¹ãƒ†ãƒ ")]
     [SerializeField] public CrystalSystem crystalsystem;
 
-    [Header("‹ŠEƒVƒXƒeƒ€")]
-    [SerializeField] public VisionGenerater visiongenerater;   // © public ‚É•ÏX
+    [Header("è¦–ç•Œã‚·ã‚¹ãƒ†ãƒ ")]
+    [SerializeField] public VisionGenerater visiongenerater;
 
-    [Header("APƒVƒXƒeƒ€")]
+    [Header("APã‚·ã‚¹ãƒ†ãƒ ")]
     [SerializeField] public APSystem apsystem;
 
-    [Header("ƒ†ƒjƒbƒg”z’u")]
+    [Header("ãƒ¦ãƒ‹ãƒƒãƒˆé…ç½®")]
     [SerializeField] public UnitSetting unitset;
 
-    [Header("ƒQ[ƒ€ƒAƒNƒVƒ‡ƒ“‚Ì•Û‘¶êŠ")]
+    [Header("UI")]
+    [SerializeField] public UnitPanelUI unitPanelUI;
+
+    [Header("ã‚²ãƒ¼ãƒ ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã®ä¿å­˜å ´æ‰€")]
     public Vector2 MoveInput;
     public float ScrollInput;
     public bool LeftClickDown;
@@ -54,10 +57,10 @@ public class TurnGenerater : MonoBehaviour
     public bool ToggleNSDown;
     private GameAction gameaction;
 
-    [Header("ƒJƒƒ‰i“®‚©‚·‘ÎÛj")]
+    [Header("ã‚«ãƒ¡ãƒ©ï¼ˆæ“ä½œå¯¾è±¡ï¼‰")]
     [SerializeField] public Transform CameraObject;
 
-    // „Ÿ„Ÿ„Ÿ ƒXƒe[ƒgØ‚è‘Ö‚¦ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- ã‚¹ãƒ†ãƒ¼ãƒˆåˆ‡ã‚Šæ›¿ãˆ ----
     public void ChangeState(StateCore next)
     {
         StateManager?.Exit();
