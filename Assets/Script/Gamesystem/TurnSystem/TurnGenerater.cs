@@ -7,43 +7,46 @@ public class TurnGenerater : MonoBehaviour
     public Vector3 OldCell;
     public Vector3 NewCell;
 
-    [Header("•Û‚·‚éƒXƒe[ƒg")]
+    [Header("ï¿½Ûï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½eï¿½[ï¿½g")]
     [SerializeField] StateCore StateManager;
 
-    [Header("ƒ^[ƒ“ŠÇ—")]
+    [Header("ï¿½^ï¿½[ï¿½ï¿½ï¿½Ç—ï¿½")]
     [SerializeField] public int Turn = 0;
 
-    [Header("ƒ†ƒjƒbƒgƒXƒe[ƒ^ƒX")]
+    [Header("ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½Xï¿½eï¿½[ï¿½^ï¿½X")]
     [SerializeField] public Status status;
 
-    [Header("ƒ€[ƒu")]
+    [Header("ï¿½ï¿½ï¿½[ï¿½u")]
     [SerializeField] public MoveGererater movegenerater;
 
-    [Header("ƒ†ƒjƒbƒgƒNƒŠƒbƒN")]
+    [Header("ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½Nï¿½ï¿½ï¿½bï¿½N")]
     [SerializeField] public UnitClick unitclick;
 
-    [Header("ƒ}ƒbƒvƒNƒŠƒGƒCƒg")]
+    [Header("ï¿½}ï¿½bï¿½vï¿½Nï¿½ï¿½ï¿½Gï¿½Cï¿½g")]
     [SerializeField] public MapCreate mapcreate;
 
-    [Header("ƒAƒ^ƒbƒNƒ|ƒCƒ“ƒg")]
+    [Header("ï¿½Aï¿½^ï¿½bï¿½Nï¿½|ï¿½Cï¿½ï¿½ï¿½g")]
     [SerializeField] public AttackPointt attackpoint;
 
-    [Header("ƒoƒgƒ‹ƒVƒXƒeƒ€")]
+    [Header("ï¿½oï¿½gï¿½ï¿½ï¿½Vï¿½Xï¿½eï¿½ï¿½")]
     [SerializeField] public BattleSystem battlesystem;
 
-    [Header("ƒNƒŠƒXƒ^ƒ‹ƒVƒXƒeƒ€")]
+    [Header("ï¿½Nï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Vï¿½Xï¿½eï¿½ï¿½")]
     [SerializeField] public CrystalSystem crystalsystem;
 
-    [Header("‹ŠEƒVƒXƒeƒ€")]
-    [SerializeField] public VisionGenerater visiongenerater;   // © public ‚É•ÏX
+    [Header("ï¿½ï¿½ï¿½Eï¿½Vï¿½Xï¿½eï¿½ï¿½")]
+    [SerializeField] public VisionGenerater visiongenerater;   // ï¿½ï¿½ public ï¿½É•ÏX
 
-    [Header("APƒVƒXƒeƒ€")]
+    [Header("APï¿½Vï¿½Xï¿½eï¿½ï¿½")]
     [SerializeField] public APSystem apsystem;
 
-    [Header("ƒ†ƒjƒbƒg”z’u")]
+    [Header("ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½zï¿½u")]
     [SerializeField] public UnitSetting unitset;
 
-    [Header("ƒQ[ƒ€ƒAƒNƒVƒ‡ƒ“‚Ì•Û‘¶êŠ")]
+    [Header("UI")]
+    [SerializeField] public UnitPanelUI unitPanelUI;
+
+    [Header("ï¿½Qï¿½[ï¿½ï¿½ï¿½Aï¿½Nï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Ì•Û‘ï¿½ï¿½êŠ")]
     public Vector2 MoveInput;
     public float ScrollInput;
     public bool LeftClickDown;
@@ -54,10 +57,10 @@ public class TurnGenerater : MonoBehaviour
     public bool ToggleNSDown;
     private GameAction gameaction;
 
-    [Header("ƒJƒƒ‰i“®‚©‚·‘ÎÛj")]
+    [Header("ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎÛj")]
     [SerializeField] public Transform CameraObject;
 
-    // „Ÿ„Ÿ„Ÿ ƒXƒe[ƒgØ‚è‘Ö‚¦ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Xï¿½eï¿½[ï¿½gï¿½Ø‚ï¿½Ö‚ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void ChangeState(StateCore next)
     {
         StateManager?.Exit();
