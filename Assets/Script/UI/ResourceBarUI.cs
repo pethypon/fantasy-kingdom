@@ -28,6 +28,8 @@ public class ResourceBarUI : MonoBehaviour
     [Header("参照")]
     [SerializeField] private FactionState factionState;
 
+    public void Init(FactionState fs) => factionState = fs;
+
     [Header("設定")]
     [SerializeField] private Team displayTeam = Team.Player;
     [SerializeField] private float fontSize = 22f;
