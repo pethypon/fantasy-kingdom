@@ -15,6 +15,7 @@ public class GameGenerater : MonoBehaviour
     [Header("UI")]
     [SerializeField] APPanelUI _APPanelUI;
     [SerializeField] ResourceBarUI _ResourceBarUI;
+    private UIBuilder _uiBuilder;
 
     [Header("Crystal �e�I�u�W�F�N�g")]
     [SerializeField] Transform _PlayerCrystal;
@@ -26,6 +27,20 @@ public class GameGenerater : MonoBehaviour
 
     void Awake()
     {
+        // ---- UIBuilder の生成・取得 ----
+        _uiBuilder = Object.FindFirstObjectByType<UIBuilder>();
+        if (_uiBuilder == null)
+        {
+            var uiGo = new GameObject("UIBuilder");
+            _uiBuilder = uiGo.AddComponent<UIBuilder>();
+        }
+
+        // UIBuilder が生成した UI パネルを取得
+        if (_APPanelUI == null && _uiBuilder.APPanel != null)
+            _APPanelUI = _uiBuilder.APPanel;
+        if (_ResourceBarUI == null && _uiBuilder.ResourceBar != null)
+            _ResourceBarUI = _uiBuilder.ResourceBar;
+
         // ���� �n�`�E�N���X�^������ ��������������������������������������������������������������������������
         _MapCreate.noisegenerater();
         _MapCreate.BuildTop();
