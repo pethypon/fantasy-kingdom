@@ -23,11 +23,40 @@ public class APPanelUI : MonoBehaviour
     [Header("参照")]
     [SerializeField] private FactionState factionState;
 
+    public void Init(FactionState fs) => factionState = fs;
+
     [Header("設定")]
     [SerializeField] private Team displayTeam = Team.Player;
 
+    [Header("右下配置")]
+    [SerializeField] private float marginRight = 20f;
+    [SerializeField] private float marginBottom = 20f;
+    [SerializeField] private float panelWidth = 160f;
+    [SerializeField] private float panelHeight = 80f;
+
     private int lastAP = -1;
     private int lastMax = -1;
+
+    private void Awake()
+    {
+        // RectTransform を右下にアンカー
+        RectTransform rt = GetComponent<RectTransform>();
+        if (rt != null)
+        {
+            rt.anchorMin = new Vector2(1f, 0f);
+            rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(1f, 0f);
+            rt.sizeDelta = new Vector2(panelWidth, panelHeight);
+            rt.anchoredPosition = new Vector2(-marginRight, marginBottom);
+        }
+
+        // APテキストを大きめに
+        if (apText != null)
+        {
+            apText.fontSize = 28f;
+            apText.alignment = TextAlignmentOptions.Center;
+        }
+    }
 
     private void Update()
     {
