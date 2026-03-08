@@ -75,23 +75,31 @@ public class ResourceBarUI : MonoBehaviour
 
     private void Refresh(FactionState.ResourceData res)
     {
-        SetText(woodText,     "木材",   res.Wood);
-        SetText(stoneText,    "石材",   res.Stone);
-        SetText(coalText,     "石炭",   res.Coal);
-        SetText(ironOreText,  "鉄鉱",   res.IronOre);
-        SetText(ironText,     "鉄",    res.Iron);
-        SetText(magicOreText, "魔石",   res.MagicOre);
-        SetText(wheatText,    "小麦",   res.Wheat);
-        SetText(breadText,    "パン",   res.Bread);
-        SetText(waterText,    "水",    res.Water);
-        SetText(plankText,    "板材",   res.Plank);
-        SetText(cutStoneText, "切石",   res.CutStone);
-        SetText(citizenText,  "市民",   res.Citizen);
+        // 原材料 (茶系ラベル)
+        SetText(woodText,     "木材",  res.Wood,  "#D4A574");
+        SetText(stoneText,    "石材",  res.Stone, "#B0A898");
+        // 鉱物 (青灰系ラベル)
+        SetText(coalText,     "石炭",  res.Coal,     "#8899AA");
+        SetText(ironOreText,  "鉄鉱",  res.IronOre,  "#9AACBE");
+        // 加工品 (紫系ラベル)
+        SetText(ironText,     "鉄",   res.Iron,     "#A89CC8");
+        SetText(magicOreText, "魔石",  res.MagicOre, "#C088D0");
+        // 食料 (暖色系ラベル)
+        SetText(wheatText,    "小麦",  res.Wheat,    "#D4B85C");
+        SetText(breadText,    "パン",  res.Bread,    "#D4A04C");
+        // 水 (原材料)
+        SetText(waterText,    "水",   res.Water,    "#6CB8D4");
+        // 加工品
+        SetText(plankText,    "板材",  res.Plank,    "#C8A87C");
+        SetText(cutStoneText, "切石",  res.CutStone, "#A8B0A8");
+        // 人口 (緑系ラベル)
+        SetText(citizenText,  "市民",  res.Citizen,  "#78C888");
     }
 
-    private static void SetText(TextMeshProUGUI tmp, string label, int value)
+    private static void SetText(TextMeshProUGUI tmp, string label, int value, string colorHex)
     {
-        if (tmp != null) tmp.text = label + ": " + value;
+        if (tmp != null)
+            tmp.text = $"<color={colorHex}><size=80%>{label}</size></color> {value}";
     }
 
     private bool HasChanged(FactionState.ResourceData res)

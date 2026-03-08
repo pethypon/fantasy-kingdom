@@ -85,53 +85,81 @@ public class UIBuilder : MonoBehaviour
     {
         var bar = CreatePanel("ResourceBar", canvas.transform,
             new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
-            new Vector2(0, 70));
+            new Vector2(0, 90));
         bar.anchoredPosition = new Vector2(0, -40);
 
-        AddImage(bar.gameObject, new Color(0.12f, 0.12f, 0.12f, 0.75f));
+        AddImage(bar.gameObject, new Color(0.08f, 0.08f, 0.10f, 0.88f));
 
-        // Row1
+        // Row1: 原材料系
         var row1 = CreatePanel("Row1", bar,
             new Vector2(0, 0.5f), new Vector2(1, 1), new Vector2(0.5f, 0.5f),
             Vector2.zero);
         StretchFill(row1);
         row1.anchorMin = new Vector2(0, 0.5f);
         row1.anchorMax = new Vector2(1, 1);
-        row1.offsetMin = new Vector2(4, 0);
-        row1.offsetMax = new Vector2(-4, 0);
-        AddHorizontalLayout(row1.gameObject);
+        row1.offsetMin = new Vector2(6, 2);
+        row1.offsetMax = new Vector2(-6, -2);
+        AddHorizontalLayout(row1.gameObject, 6);
 
-        // Row2
+        // Row2: 加工品・食料・人口
         var row2 = CreatePanel("Row2", bar,
             new Vector2(0, 0), new Vector2(1, 0.5f), new Vector2(0.5f, 0.5f),
             Vector2.zero);
         StretchFill(row2);
         row2.anchorMin = new Vector2(0, 0);
         row2.anchorMax = new Vector2(1, 0.5f);
-        row2.offsetMin = new Vector2(4, 0);
-        row2.offsetMax = new Vector2(-4, 0);
-        AddHorizontalLayout(row2.gameObject);
+        row2.offsetMin = new Vector2(6, 2);
+        row2.offsetMax = new Vector2(-6, -2);
+        AddHorizontalLayout(row2.gameObject, 6);
 
-        string[] row1Labels = { "Wood", "Stone", "Coal", "IronOre", "Iron", "MagicOre" };
-        string[] row2Labels = { "Wheat", "Bread", "Water", "Plank", "CutStone", "Citizen" };
+        // カテゴリ別の背景色
+        Color rawColor       = new Color(0.22f, 0.18f, 0.12f, 0.7f);  // 原材料: 茶系
+        Color mineralColor   = new Color(0.15f, 0.18f, 0.25f, 0.7f);  // 鉱物: 青灰系
+        Color processedColor = new Color(0.18f, 0.15f, 0.25f, 0.7f);  // 加工品: 紫系
+        Color foodColor      = new Color(0.25f, 0.20f, 0.10f, 0.7f);  // 食料: 暖色系
+        Color popColor       = new Color(0.12f, 0.25f, 0.15f, 0.7f);  // 人口: 緑系
 
-        var r1Texts = new TextMeshProUGUI[row1Labels.Length];
-        var r2Texts = new TextMeshProUGUI[row2Labels.Length];
+        // Row1 resources
+        string[] row1Names  = { "Wood",     "Stone",      "Coal",      "IronOre",     "Iron",          "MagicOre" };
+        Color[]  row1Colors = { rawColor,   rawColor,     mineralColor, mineralColor,  processedColor,  processedColor };
 
-        for (int i = 0; i < row1Labels.Length; i++)
-        {
-            r1Texts[i] = CreateTMP(row1Labels[i], row1, row1Labels[i] + ": 0", 14);
-            var le = r1Texts[i].gameObject.AddComponent<LayoutElement>();
-            le.flexibleWidth = 1;
-        }
-        for (int i = 0; i < row2Labels.Length; i++)
-        {
-            r2Texts[i] = CreateTMP(row2Labels[i], row2, row2Labels[i] + ": 0", 14);
-            var le = r2Texts[i].gameObject.AddComponent<LayoutElement>();
-            le.flexibleWidth = 1;
-        }
+        // Row2 resources
+        string[] row2Names  = { "Wheat",    "Bread",      "Water",     "Plank",       "CutStone",      "Citizen" };
+        Color[]  row2Colors = { foodColor,  foodColor,    rawColor,    processedColor, processedColor,  popColor };
+
+        for (int i = 0; i < row1Names.Length; i++)
+            CreateResourceCell(row1Names[i], row1, row1Colors[i]);
+        for (int i = 0; i < row2Names.Length; i++)
+            CreateResourceCell(row2Names[i], row2, row2Colors[i]);
 
         ResourceBar = bar.gameObject.AddComponent<ResourceBarUI>();
+    }
+
+    private void CreateResourceCell(string name, RectTransform parent, Color bgColor)
+    {
+        var cell = new GameObject(name + "Cell", typeof(RectTransform));
+        cell.transform.SetParent(parent, false);
+        var cellRT = cell.GetComponent<RectTransform>();
+        StretchFill(cellRT);
+
+        // 角丸風の背景
+        var img = cell.AddComponent<Image>();
+        img.color = bgColor;
+
+        var le = cell.AddComponent<LayoutElement>();
+        le.flexibleWidth = 1;
+        le.minWidth = 80;
+
+        // テキスト（リッチテキストで label + value を表示）
+        var tmp = CreateTMP(name, cell.transform, name + ": 0", 16);
+        tmp.enableWordWrapping = false;
+        tmp.overflowMode = TextOverflowModes.Ellipsis;
+        tmp.richText = true;
+        var tmpRT = tmp.GetComponent<RectTransform>();
+        StretchFill(tmpRT);
+        tmpRT.offsetMin = new Vector2(6, 0);
+        tmpRT.offsetMax = new Vector2(-4, 0);
+        tmp.alignment = TextAlignmentOptions.MidlineLeft;
     }
 
     // ==================================================================
@@ -612,11 +640,11 @@ public class UIBuilder : MonoBehaviour
         return img;
     }
 
-    private void AddHorizontalLayout(GameObject go)
+    private void AddHorizontalLayout(GameObject go, float spacing = 4)
     {
         var hlg = go.AddComponent<HorizontalLayoutGroup>();
-        hlg.spacing = 4;
-        hlg.padding = new RectOffset(4, 4, 0, 0);
+        hlg.spacing = spacing;
+        hlg.padding = new RectOffset(2, 2, 0, 0);
         hlg.childControlWidth = true;
         hlg.childControlHeight = true;
         hlg.childForceExpandWidth = true;
