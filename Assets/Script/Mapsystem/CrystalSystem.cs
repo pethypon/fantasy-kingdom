@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class CrystalSystem : MonoBehaviour
 {
-    [Header("ƒNƒŠƒXƒ^ƒ‹")]
+    [Header("ã‚¯ãƒªã‚¹ã‚¿ãƒ«é§’")]
     [SerializeField] private GameObject PlayerCrystal;
     [SerializeField] private GameObject EnemyCrystal;
 
-    [Header("ƒNƒŠƒXƒ^ƒ‹ŠÔ‹——£")]
+    [Header("ã‚¯ãƒªã‚¹ã‚¿ãƒ«é–“è·é›¢")]
     public int CrystalDistanceXmin = 1;
     public int CrystalDistanceXmax = 10;
     public int CrystalDistanceZmin = 1;
     public int CrystalDistanceZmax = 10;
 
-    [Header("ƒNƒŠƒXƒ^ƒ‹eƒIƒuƒWƒFƒNƒg")]
+    [Header("ã‚¯ãƒªã‚¹ã‚¿ãƒ«è¦ªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
     [SerializeField] public Transform Playercrystal;
     [SerializeField] public Transform Enemycrystal;
 
@@ -25,13 +25,13 @@ public class CrystalSystem : MonoBehaviour
     private int maxx;
     private int maxz;
 
-    // „Ÿ„Ÿ„Ÿ ƒtƒH[ƒ‹ƒoƒbƒNİ’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-    // ”z’u‚É¸”s‚µ‚½ê‡A‹——£§–ñ‚ğ’iŠK“I‚ÉŠÉ˜a‚µ‚ÄÄs‚·‚é
-    // ’iŠK‚ğ‘‚â‚µ‚½‚¢ê‡‚Í‚±‚±‚É’l‚ğ’Ç‰Á‚·‚é‚¾‚¯‚Å‚æ‚¢
-    // ’l‚Í CrystalDistanceMax ‚©‚çˆø‚­ƒIƒtƒZƒbƒg
+    // ==== ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯è¨­å®š ====
+    // é…ç½®ã«å¤±æ•—ã—ãŸå ´åˆã€è·é›¢ã‚’æ®µéšçš„ã«ç·©å’Œã—ã¦å†è©¦è¡Œã™ã‚‹
+    // æ®µéšã‚’å¢—ã‚„ã—ãŸã„å ´åˆã¯ã“ã“ã«å€¤ã‚’è¿½åŠ ã™ã‚‹ã ã‘ã§ã‚ˆã„
+    // å€¤ã¯ CrystalDistanceMax ã‹ã‚‰ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
     private static readonly int[] DistanceRelaxation = { 0, 2, 4, 6 };
 
-    // „Ÿ„Ÿ„Ÿ ƒƒCƒ“ƒGƒ“ƒgƒŠ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ãƒ¡ã‚¤ãƒ³ã‚¨ãƒ³ãƒˆãƒª ====
     public void CrystalCore()
     {
         MapCreate mapcreate = GetComponent<MapCreate>();
@@ -43,7 +43,7 @@ public class CrystalSystem : MonoBehaviour
         PlaceEnemyCrystal();
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒvƒŒƒCƒ„[ƒNƒŠƒXƒ^ƒ‹”z’u „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¯ãƒªã‚¹ã‚¿ãƒ«é…ç½® ====
     private void PlacePlayerCrystal()
     {
         var candidates = _SetPos.Where(p =>
@@ -54,10 +54,10 @@ public class CrystalSystem : MonoBehaviour
         PCP = candidates[Random.Range(0, candidates.Count)];
         Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
         _SetPos.Remove(PCP);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color> ƒvƒŒƒCƒ„[ƒNƒŠƒXƒ^ƒ‹İ’uŠ®—¹");
+        Debug.Log("<color=#ffff00ff>[StartSetting]</color> ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¯ãƒªã‚¹ã‚¿ãƒ«è¨­ç½®å®Œäº†");
     }
 
-    // „Ÿ„Ÿ„Ÿ “GƒNƒŠƒXƒ^ƒ‹”z’ui‹——£§–ñ‚ğ’iŠK“I‚ÉŠÉ˜a‚µ‚ÄƒŠƒgƒ‰ƒCj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== æ•µã‚¯ãƒªã‚¹ã‚¿ãƒ«é…ç½®ï¼ˆè·é›¢æ¡ä»¶ã‚’æ®µéšçš„ã«ç·©å’Œã—ã¦ãƒªãƒˆãƒ©ã‚¤ï¼‰ ====
     private void PlaceEnemyCrystal()
     {
         foreach (int relax in DistanceRelaxation)
@@ -72,11 +72,11 @@ public class CrystalSystem : MonoBehaviour
 
             ECP = candidates[Random.Range(0, candidates.Count)];
             Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color> “GƒNƒŠƒXƒ^ƒ‹İ’uŠ®—¹");
+            Debug.Log("<color=#ffff00ff>[StartSetting]</color> æ•µã‚¯ãƒªã‚¹ã‚¿ãƒ«è¨­ç½®å®Œäº†");
             return;
         }
 
-        Debug.LogError("[CrystalSystem] “GƒNƒŠƒXƒ^ƒ‹‚Ì”z’uŒó•â‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½");
+        Debug.LogError("[CrystalSystem] æ•µã‚¯ãƒªã‚¹ã‚¿ãƒ«ã®é…ç½®å€™è£œãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
     }
 
     private List<Vector3> GetEnemyCandidates(float minDistX, float minDistZ, int margin)

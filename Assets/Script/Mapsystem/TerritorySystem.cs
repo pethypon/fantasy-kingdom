@@ -6,12 +6,12 @@ using UnityEngine;
 
 public class TerritorySystem : MonoBehaviour
 {
-   
-    [Header("ƒeƒŠƒgƒŠ[ƒIƒuƒWƒFƒNƒg")]
+
+    [Header("ãƒ†ãƒªãƒˆãƒªãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
     [SerializeField] GameObject PlayerTerritory;
     [SerializeField] GameObject EnemyTerritory;
 
-    [Header("ƒeƒŠƒgƒŠ[eƒIƒuƒWƒFƒNƒg")]
+    [Header("ãƒ†ãƒªãƒˆãƒªãƒ¼è¦ªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
     [SerializeField] public Transform Playerterritory;
     [SerializeField] public Transform Enemyterritory;
 
@@ -24,16 +24,16 @@ public class TerritorySystem : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
-    public void Territory() 
+    public void Territory()
     {
         MapCreate mapcreate = GetComponent<MapCreate>();
         CrystalSystem crystalsystem = GetComponent<CrystalSystem>();
@@ -41,7 +41,7 @@ public class TerritorySystem : MonoBehaviour
         pcp = crystalsystem.PCP;
         ecp = crystalsystem.ECP;
 
-        //PCPü•Ó‚Ìî•ñ‚ğ‚Ó‚é‚¢‚É‚©‚¯‚Ä”¼Œa3‚Ìî•ñ‚ğŠl“¾
+        // PCPå‘¨è¾ºã®æ¡ä»¶ã‚’æº€ãŸã™ã¨ã“ã‚ã«ãŠã„ã¦åŠå¾„3ã®æ¡ä»¶ã‚’è€ƒæ…®
         PTSetPos = setpos.Where
         (p =>
         {
@@ -49,13 +49,13 @@ public class TerritorySystem : MonoBehaviour
             float pz = Mathf.Abs(p.z - pcp.z);
             bool truex = px <= 3;
             bool truez = pz <= 3 && p != pcp;
-            
+
 
             return truex && truez;
         }
         ).ToList();
 
-        //ECPü•Ó‚Ìî•ñ‚ğ‚Ó‚é‚¢‚É‚©‚¯‚Ä”¼Œa3‚Ìî•ñ‚ğŠl“¾
+        // ECPå‘¨è¾ºã®æ¡ä»¶ã‚’æº€ãŸã™ã¨ã“ã‚ã«ãŠã„ã¦åŠå¾„3ã®æ¡ä»¶ã‚’è€ƒæ…®
         ETSetPos = setpos.Where
           (e =>
           {
@@ -67,21 +67,21 @@ public class TerritorySystem : MonoBehaviour
           }
           ).ToList();
 
-        for (int i = 0;i < PTSetPos.Count; i ++) 
+        for (int i = 0;i < PTSetPos.Count; i ++)
         {
             Vector3 pos = PTSetPos[i];
             pos.y -= 0.475f;
             Instantiate(PlayerTerritory, pos, Quaternion.identity,Playerterritory);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>İ’uŠ®—¹");
+            Debug.Log("<color=#ffff00ff>[StartSetting]</color>è¨­ç½®å®Œäº†");
         }
 
-        for (int i = 0;i < ETSetPos.Count; i ++) 
+        for (int i = 0;i < ETSetPos.Count; i ++)
         {
             Vector3 pos = ETSetPos[i];
             pos.y -= 0.475f;
             Instantiate(EnemyTerritory,pos,Quaternion.identity,Enemyterritory);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>İ’uŠ®—¹");
+            Debug.Log("<color=#ffff00ff>[StartSetting]</color>è¨­ç½®å®Œäº†");
         }
-        
+
     }
 }

@@ -30,13 +30,13 @@ public class PlayerStart : StateCore
 
     public void Entry()
     {
-        // ƒ^[ƒ“ƒJƒEƒ“ƒgXV
+        // ã‚¿ãƒ¼ãƒ³ã‚«ã‚¦ãƒ³ãƒˆæ›´æ–°
         turngenerater.Turn++;
 
-        // AP ƒŠƒZƒbƒgiFactionState.ResetAPForTurn ‚ª Reset+Plus-Minus ‚ğŒvZj
+        // AP ãƒªã‚»ãƒƒãƒˆï¼ˆFactionState.ResetAPForTurn ã§ Reset+Plus-Minus ã‚’è¨ˆç®—ï¼‰
         turngenerater.apsystem.ResetAP(Team.Player);
 
-        // ”æ˜JƒŠƒZƒbƒg
+        // ç–²åŠ´ãƒªã‚»ãƒƒãƒˆ
         turngenerater.apsystem.ResetFatigue(unitset.PlayerUnit);
 
         turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick,

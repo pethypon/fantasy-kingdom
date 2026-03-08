@@ -4,19 +4,19 @@ using UnityEngine;
 
 public class UnitSetting : MonoBehaviour
 {
-    [Header("�L���O")]
+    [Header("キング")]
     [SerializeField] GameObject KingPiece;
-    [Header("�ٌ`")]
+    [Header("異形")]
     [SerializeField] GameObject StrangePiece;
 
-    [Header("���j�b�g�z�u�e�I�u�W�F�N�g")]
+    [Header("ユニット配置親オブジェクト")]
     [SerializeField] public Transform PlayerUnit;
     [SerializeField] public Transform EnemyUnit;
 
-    // ������ UnitData �Ǘ��iDictionary ���j ����������������������������������������������������������
-    // SerializeField ��11���ׂȂ����R�F
-    // �V���� Kind ��ǉ����邽�тɃt�B�[���h�ǉ���Inspector�ݒ��2��Ԃ���������B
-    // Dictionary �Ȃ烊�X�g��1�G���g���ǉ����邾���ōςށi�݌v����2�j�B
+    // ==== UnitData 管理（Dictionary 版） ====
+    // SerializeField が11個並べない理由：
+    // 新しい Kind を追加するたびにフィールド追加とInspector設定の2往復が必要になる。
+    // Dictionary ならリストに1エントリ追加するだけで済む（設計原則2）。
     [System.Serializable]
     public class UnitDataEntry
     {
@@ -24,13 +24,13 @@ public class UnitSetting : MonoBehaviour
         public UnitData data;
     }
 
-    [Header("���j�b�g�f�[�^�iKind�ʁj")]
+    [Header("ユニットデータ（Kind別）")]
     [SerializeField] private List<UnitDataEntry> _unitDataList;
 
-    // �O������̓ǂݎ���p�iGameGenerater�EBattleSystem�EPlayerSummon ���Q�Ɓj
+    // 外部からの読み取り用（GameGenerater・BattleSystem・PlayerSummon が参照）
     public Dictionary<Kind, UnitData> UnitDataMap { get; private set; }
 
-    // ������ ������ ������������������������������������������������������������������������������������������������������������
+    // ==== 初期化 ====
     private void Awake()
     {
         UnitDataMap = new Dictionary<Kind, UnitData>();
@@ -39,15 +39,15 @@ public class UnitSetting : MonoBehaviour
             if (entry.data != null)
                 UnitDataMap[entry.kind] = entry.data;
             else
-                Debug.LogWarning($"[UnitSetting] Kind:{entry.kind} ��UnitData��null�ł�");
+                Debug.LogWarning($"[UnitSetting] Kind:{entry.kind} のUnitDataがnullです");
         }
     }
 
-    // ������ ���ʐ������\�b�h ����������������������������������������������������������������������������������������
+    // ==== 共通生成メソッド ====
 
     /// <summary>
-    /// ���j�b�g�𐶐����ăX�e�[�^�X�𑦍��ɓK�p����B
-    /// �Q�[�����̐V�K�����͂��ׂĂ��̃��\�b�h�o�R�ōs���i��̐������̓K�p��S���j�B
+    /// ユニットを生成してステータスを即座に適用する。
+    /// ゲーム中の新規生成はすべてこのメソッド経由で行う（駒の生成と適用を担保）。
     /// </summary>
     public GameObject SpawnUnit(GameObject prefab, Vector3 pos,
                                 Transform parent, int level = 1)
@@ -57,14 +57,14 @@ public class UnitSetting : MonoBehaviour
         var status = obj.GetComponentInChildren<Status>();
         if (status == null)
         {
-            Debug.LogWarning($"[UnitSetting] {prefab.name} ��Status��������܂���");
+            Debug.LogWarning($"[UnitSetting] {prefab.name} にStatusがありません");
             return obj;
         }
 
         if (UnitDataMap.TryGetValue(status.kind, out UnitData data))
             data.ApplyToStatus(status, level);
         else
-            Debug.LogWarning($"[UnitSetting] Kind:{status.kind} ��UnitData�����o�^�ł�");
+            Debug.LogWarning($"[UnitSetting] Kind:{status.kind} のUnitDataが未登録です");
 
         // 頭上UI（Lv + HP）をアタッチ
         UnitHeadUI.Attach(obj);
@@ -72,17 +72,17 @@ public class UnitSetting : MonoBehaviour
         return obj;
     }
 
-    // ������ �Q�[���J�n���̃��j�b�g�z�u ������������������������������������������������������������������
+    // ==== ゲーム開始時のユニット配置 ====
     public void UnitSet()
     {
-        // PCP�AECP�ASetPos �����o��
+        // PCP、ECP、SetPos を取り出す
         CrystalSystem crystalsystem = GetComponent<CrystalSystem>();
         MapCreate mapcreate = GetComponent<MapCreate>();
         Vector3 pcp = crystalsystem.PCP;
         Vector3 ecp = crystalsystem.ECP;
         var setpos = mapcreate.SetPos;
 
-        // �z�u�ʒu���i��iKingPoint�FPCP����1�}�X�ȓ��j
+        // 配置位置絞り込み（KingPoint：PCPから1マス以内）
         var KingPoint = setpos.Where(p =>
         {
             float px = Mathf.Abs(p.x - pcp.x);
@@ -90,7 +90,7 @@ public class UnitSetting : MonoBehaviour
             return px <= 1 && pz <= 1 && p != pcp;
         }).ToList();
 
-        // �z�u�ʒu���i��iStrangePoint�FECP����1�}�X�ȓ��j
+        // 配置位置絞り込み（StrangePoint：ECPから1マス以内）
         var StrangePoint = setpos.Where(p =>
         {
             float px = Mathf.Abs(p.x - ecp.x);
@@ -98,13 +98,13 @@ public class UnitSetting : MonoBehaviour
             return px <= 1 && pz <= 1 && p != ecp;
         }).ToList();
 
-        // Instantiate �� SpawnUnit �ɒu�������i�X�e�[�^�X�K�p���݁j
+        // Instantiate を SpawnUnit に置き換え（ステータス適用済み）
         Vector3 KP = KingPoint[Random.Range(0, KingPoint.Count)];
         SpawnUnit(KingPiece, KP, PlayerUnit);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color>���ݒu");
+        Debug.Log("<color=#ffff00ff>[StartSetting]</color>王設置");
 
         Vector3 SP = StrangePoint[Random.Range(0, StrangePoint.Count)];
         SpawnUnit(StrangePiece, SP, EnemyUnit);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color>�ٌ`�̉��ݒu");
+        Debug.Log("<color=#ffff00ff>[StartSetting]</color>異形の王設置");
     }
 }

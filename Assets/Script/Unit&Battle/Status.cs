@@ -24,8 +24,8 @@ public enum Kind
     Crossbow,
     Magicsniper,
     Bomber,
-    WoodWall,   // �t�F�[�Y6�Ŏg�p
-    StoneWall,  // �t�F�[�Y6�Ŏg�p
+    WoodWall,   // フェーズ6で使用
+    StoneWall,  // フェーズ6で使用
     None
 }
 
@@ -33,7 +33,7 @@ public enum Type
 {
     Unit,
     Building,
-    Wall,           // �t�F�[�Y6�Ŏg�p
+    Wall,           // フェーズ6で使用
     MovePoint,
     AttackPoint
 }
@@ -66,40 +66,40 @@ public enum PassiveSkill
 
 public class Status : MonoBehaviour
 {
-    [Header("���")]
+    [Header("種類")]
     [SerializeField] public Kind kind;
-    [Header("�`�[��")]
+    [Header("チーム")]
     [SerializeField] public Team team;
-    [Header("��̃^�C�v")]
+    [Header("駒のタイプ")]
     [SerializeField] public Type type;
-    [Header("���")]
+    [Header("状態")]
     [SerializeField] public State state;
-    [Header("�X�L��")]
+    [Header("スキル")]
     [SerializeField] public Skill skill;
-    [Header("��̌���")]
+    [Header("駒の向き")]
     [SerializeField] public Direction direction;
-    [Header("�p�b�V�u�X�L��")]
+    [Header("パッシブスキル")]
     [SerializeField] public PassiveSkill passiveskill;
-    [Header("�X�e�[�^�X")]
+    [Header("ステータス")]
     [SerializeField] public int HP;
     [SerializeField] public int ATK;
     [SerializeField] public int DEF;
-    [Header("���x��")]
+    [Header("レベル")]
     public int Level = 1;
-    [Header("��̎��E")]
+    [Header("駒の視界")]
     [SerializeField] public HashSet<Vector3Int> VisionCell;
-    [Header("��J")]
+    [Header("疲労")]
     [SerializeField] public int Fatigue = 0;
 
     [Header("建築物の種類")]
     public FacilityKind facilityKind;
 }
 
-// ������������������������������������������������������������������������������������������������������������������������������������������
-//  �ȉ���enum�͐V�K�t�@�C������炸�����ɒǋL����i�݌v����1�j
-// ������������������������������������������������������������������������������������������������������������������������������������������
+// =====================================================================
+//  以下のenumは新規ファイルに出さずここに追記する（設計原則1）
+// =====================================================================
 
-// �����̎�ʁiFacilityData �� EconomySystem �Ŏg�p�j
+// 建築の種別（FacilityData と EconomySystem で使用）
 public enum FacilityKind
 {
     Field, Bakery, LoggingCamp, LumberMill,
@@ -109,7 +109,7 @@ public enum FacilityKind
     Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword
 }
 
-// �����̎�ʁiFacilityData �� EconomySystem �Ŏg�p�j
+// 資源の種別（FacilityData と EconomySystem で使用）
 public enum ResourceKind
 {
     Wood, Stone, IronOre, Iron, MagicOre, Coal,
