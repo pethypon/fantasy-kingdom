@@ -13,6 +13,7 @@ public class UnitHeadUI : MonoBehaviour
     private Image hpFillImage;
     private TextMeshProUGUI lvText;
     private Canvas canvas;
+    private Renderer unitRenderer; // 視界判定用
 
     // 前フレームの値をキャッシュして変更時のみ更新
     private int cachedHP = -1;
@@ -32,6 +33,7 @@ public class UnitHeadUI : MonoBehaviour
         var ui = unitObj.AddComponent<UnitHeadUI>();
         ui.status = status;
         ui.maxHP = Mathf.Max(1, status.HP);
+        ui.unitRenderer = unitObj.GetComponentInChildren<Renderer>();
         ui.Build();
         return ui;
     }
@@ -41,7 +43,7 @@ public class UnitHeadUI : MonoBehaviour
         // ---- WorldSpace Canvas ----
         var canvasGo = new GameObject("HeadUI");
         canvasGo.transform.SetParent(transform, false);
-        canvasGo.transform.localPosition = new Vector3(0, 2.2f, 0);
+        canvasGo.transform.localPosition = new Vector3(0, 1.5f, 0);
         canvasGo.transform.localScale = Vector3.one * 0.02f;
 
         canvas = canvasGo.AddComponent<Canvas>();
@@ -144,10 +146,21 @@ public class UnitHeadUI : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (status == null) return;
+        if (status == null || canvas == null) return;
+
+        // 視界判定: ユニットの Renderer が非表示なら UI も隠す
+        // VisionGenerater が敵ユニットの Renderer.enabled を切り替えるので、それに連動
+        if (unitRenderer != null)
+        {
+            bool visible = unitRenderer.enabled;
+            if (canvas.gameObject.activeSelf != visible)
+                canvas.gameObject.SetActive(visible);
+
+            if (!visible) return;
+        }
 
         // カメラの方を向く（ビルボード）
-        if (canvas != null && Camera.main != null)
+        if (Camera.main != null)
         {
             canvas.transform.forward = Camera.main.transform.forward;
         }
