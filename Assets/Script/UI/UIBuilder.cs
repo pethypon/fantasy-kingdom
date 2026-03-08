@@ -31,6 +31,7 @@ public class UIBuilder : MonoBehaviour
     private void Awake()
     {
         defaultFont = LoadDefaultFont();
+        SetAsTMPFallback(defaultFont);
         BuildCanvas();
         BuildTopBar();
         BuildResourceBar();
@@ -628,11 +629,34 @@ public class UIBuilder : MonoBehaviour
         var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/NotoSansJP-VariableFont_wght SDF");
         if (font != null) return font;
 
+        // SDF アセットがない場合、TTF から動的に生成
+        var ttf = Resources.Load<Font>("Fonts & Materials/NotoSansJP-VariableFont_wght");
+        if (ttf != null)
+        {
+            font = TMP_FontAsset.CreateFontAsset(ttf);
+            if (font != null)
+            {
+                font.atlasPopulationMode = AtlasPopulationMode.Dynamic;
+                return font;
+            }
+        }
+
         // フォールバック: LiberationSans SDF
         font = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
         if (font == null)
             font = TMP_Settings.defaultFontAsset;
         return font;
+    }
+
+    private static void SetAsTMPFallback(TMP_FontAsset font)
+    {
+        if (font == null) return;
+        var settings = TMP_Settings.defaultFontAsset;
+        if (settings == null || settings == font) return;
+        if (settings.fallbackFontAssetTable == null)
+            settings.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
+        if (!settings.fallbackFontAssetTable.Contains(font))
+            settings.fallbackFontAssetTable.Add(font);
     }
 
     private static void SetSerializedField(object target, string fieldName, object value)

@@ -10,7 +10,7 @@ using UnityEngine.TextCore.LowLevel;
 /// </summary>
 public static class NotoSansJPFontCreator
 {
-    private const string TtfPath = "Assets/Fonts/NotoSansJP-VariableFont_wght.ttf";
+    private const string TtfPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/NotoSansJP-VariableFont_wght.ttf";
     private const string OutputPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/NotoSansJP-VariableFont_wght SDF.asset";
 
     [MenuItem("Tools/Generate NotoSansJP SDF")]
