@@ -25,7 +25,7 @@ public class SlidePanelUI : MonoBehaviour
 
     [Header("スライド設定")]
     [SerializeField] private float slideSpeed = 12f;
-    [SerializeField] private float openX = 0f;
+    [SerializeField] private float openX = 200f;
     [SerializeField] private float closedX = -350f;
 
     private Vector2 targetPos;
