@@ -99,6 +99,7 @@ public class UIBuilder : MonoBehaviour
         row1.anchorMax = new Vector2(1, 1);
         row1.offsetMin = new Vector2(4, 0);
         row1.offsetMax = new Vector2(-4, 0);
+        AddHorizontalLayout(row1.gameObject);
 
         // Row2
         var row2 = CreatePanel("Row2", bar,
@@ -109,6 +110,7 @@ public class UIBuilder : MonoBehaviour
         row2.anchorMax = new Vector2(1, 0.5f);
         row2.offsetMin = new Vector2(4, 0);
         row2.offsetMax = new Vector2(-4, 0);
+        AddHorizontalLayout(row2.gameObject);
 
         string[] row1Labels = { "Wood", "Stone", "Coal", "IronOre", "Iron", "MagicOre" };
         string[] row2Labels = { "Wheat", "Bread", "Water", "Plank", "CutStone", "Citizen" };
@@ -117,9 +119,17 @@ public class UIBuilder : MonoBehaviour
         var r2Texts = new TextMeshProUGUI[row2Labels.Length];
 
         for (int i = 0; i < row1Labels.Length; i++)
-            r1Texts[i] = CreateTMP(row1Labels[i], row1, row1Labels[i] + ": 0", 18);
+        {
+            r1Texts[i] = CreateTMP(row1Labels[i], row1, row1Labels[i] + ": 0", 14);
+            var le = r1Texts[i].gameObject.AddComponent<LayoutElement>();
+            le.flexibleWidth = 1;
+        }
         for (int i = 0; i < row2Labels.Length; i++)
-            r2Texts[i] = CreateTMP(row2Labels[i], row2, row2Labels[i] + ": 0", 18);
+        {
+            r2Texts[i] = CreateTMP(row2Labels[i], row2, row2Labels[i] + ": 0", 14);
+            var le = r2Texts[i].gameObject.AddComponent<LayoutElement>();
+            le.flexibleWidth = 1;
+        }
 
         ResourceBar = bar.gameObject.AddComponent<ResourceBarUI>();
     }
@@ -600,6 +610,17 @@ public class UIBuilder : MonoBehaviour
         if (img == null) img = go.AddComponent<Image>();
         img.color = color;
         return img;
+    }
+
+    private void AddHorizontalLayout(GameObject go)
+    {
+        var hlg = go.AddComponent<HorizontalLayoutGroup>();
+        hlg.spacing = 4;
+        hlg.padding = new RectOffset(4, 4, 0, 0);
+        hlg.childControlWidth = true;
+        hlg.childControlHeight = true;
+        hlg.childForceExpandWidth = true;
+        hlg.childForceExpandHeight = true;
     }
 
     private void StretchFill(RectTransform rt)
