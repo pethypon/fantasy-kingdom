@@ -142,25 +142,32 @@ public class UIBuilder : MonoBehaviour
         turnArea.offsetMin = new Vector2(10, 4);
         turnArea.offsetMax = new Vector2(-4, -4);
 
+        // ターン内部をHorizontalLayoutGroupで中央揃え
+        var turnHLG = turnArea.gameObject.AddComponent<HorizontalLayoutGroup>();
+        turnHLG.childAlignment = TextAnchor.MiddleCenter;
+        turnHLG.spacing = 8;
+        turnHLG.childForceExpandWidth = false;
+        turnHLG.childForceExpandHeight = false;
+        turnHLG.childControlWidth = false;
+        turnHLG.childControlHeight = false;
+
         // ターンアイコン（丸）
         var iconGo = new GameObject("TurnIcon", typeof(RectTransform));
         iconGo.transform.SetParent(turnArea, false);
         var iconImg = iconGo.AddComponent<Image>();
         iconImg.color = new Color(0.3f, 0.6f, 0.9f, 1f);
         var iconRT = iconGo.GetComponent<RectTransform>();
-        iconRT.anchorMin = new Vector2(0.5f, 0.5f);
-        iconRT.anchorMax = new Vector2(0.5f, 0.5f);
-        iconRT.pivot = new Vector2(1, 0.5f);
-        iconRT.sizeDelta = new Vector2(28, 28);
-        iconRT.anchoredPosition = new Vector2(-6, 0);
+        iconRT.sizeDelta = new Vector2(24, 24);
+        var iconLE = iconGo.AddComponent<LayoutElement>();
+        iconLE.preferredWidth = 24;
+        iconLE.preferredHeight = 24;
 
         // ターンテキスト
         var turnText = CreateTMP("TurnText", turnArea, "Turn 0", 28);
-        turnText.alignment = TextAlignmentOptions.Center;
-        var turnTextRT = turnText.GetComponent<RectTransform>();
-        StretchFill(turnTextRT);
-        turnTextRT.offsetMin = Vector2.zero;
-        turnTextRT.offsetMax = Vector2.zero;
+        turnText.alignment = TextAlignmentOptions.MidlineLeft;
+        var turnTextLE = turnText.gameObject.AddComponent<LayoutElement>();
+        turnTextLE.preferredWidth = 100;
+        turnTextLE.preferredHeight = 40;
 
         // ============ 区切り線 ============
         var sep2 = new GameObject("Sep2", typeof(RectTransform));
@@ -543,6 +550,9 @@ public class UIBuilder : MonoBehaviour
         var csf = content.AddComponent<ContentSizeFitter>();
         csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
+        // Viewport を右側にスクロールバー分の余白
+        vpRT.offsetMax = new Vector2(-10, 0);
+
         // ScrollRect
         var sr = go.AddComponent<ScrollRect>();
         sr.viewport = vpRT;
@@ -550,6 +560,10 @@ public class UIBuilder : MonoBehaviour
         sr.horizontal = false;
         sr.vertical = true;
         sr.movementType = ScrollRect.MovementType.Clamped;
+
+        // 縦スクロールバー
+        sr.verticalScrollbar = CreateVerticalScrollbar(go.transform);
+        sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
 
         // 建築物ボタンを生成
         foreach (var kvp in FacilityData.Table)
@@ -707,6 +721,9 @@ public class UIBuilder : MonoBehaviour
         var csf = content.AddComponent<ContentSizeFitter>();
         csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
+        // Viewport を右側にスクロールバー分の余白
+        vpRT.offsetMax = new Vector2(-10, 0);
+
         // ScrollRect
         var sr = go.AddComponent<ScrollRect>();
         sr.viewport = vpRT;
@@ -715,12 +732,62 @@ public class UIBuilder : MonoBehaviour
         sr.vertical = true;
         sr.movementType = ScrollRect.MovementType.Clamped;
 
+        // 縦スクロールバー
+        sr.verticalScrollbar = CreateVerticalScrollbar(go.transform);
+        sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+
         // プレースホルダーテキスト
         var placeholder = CreateTMP("Placeholder", content.transform, "(準備中)", 16);
         var phLE = placeholder.gameObject.AddComponent<LayoutElement>();
         phLE.preferredHeight = 30;
 
         return go;
+    }
+
+    private Scrollbar CreateVerticalScrollbar(Transform parent)
+    {
+        // スクロールバー本体
+        var sbGo = new GameObject("Scrollbar", typeof(RectTransform));
+        sbGo.transform.SetParent(parent, false);
+        var sbRT = sbGo.GetComponent<RectTransform>();
+        sbRT.anchorMin = new Vector2(1, 0);
+        sbRT.anchorMax = new Vector2(1, 1);
+        sbRT.pivot = new Vector2(1, 0.5f);
+        sbRT.sizeDelta = new Vector2(8, 0);
+        sbRT.anchoredPosition = Vector2.zero;
+
+        var sbImg = sbGo.AddComponent<Image>();
+        sbImg.color = new Color(0.1f, 0.1f, 0.1f, 0.4f);
+
+        // スライドエリア
+        var slideArea = new GameObject("SlidingArea", typeof(RectTransform));
+        slideArea.transform.SetParent(sbGo.transform, false);
+        var saRT = slideArea.GetComponent<RectTransform>();
+        StretchFill(saRT);
+
+        // ハンドル
+        var handle = new GameObject("Handle", typeof(RectTransform));
+        handle.transform.SetParent(slideArea.transform, false);
+        var hRT = handle.GetComponent<RectTransform>();
+        StretchFill(hRT);
+
+        var hImg = handle.AddComponent<Image>();
+        hImg.color = new Color(0.5f, 0.5f, 0.55f, 0.7f);
+
+        // Scrollbar コンポーネント
+        var sb = sbGo.AddComponent<Scrollbar>();
+        sb.handleRect = hRT;
+        sb.targetGraphic = hImg;
+        sb.direction = Scrollbar.Direction.BottomToTop;
+
+        // ハンドルのホバー色設定
+        var colors = sb.colors;
+        colors.normalColor = new Color(0.5f, 0.5f, 0.55f, 0.7f);
+        colors.highlightedColor = new Color(0.65f, 0.65f, 0.7f, 0.85f);
+        colors.pressedColor = new Color(0.4f, 0.4f, 0.45f, 0.9f);
+        sb.colors = colors;
+
+        return sb;
     }
 
     private Image AddImage(GameObject go, Color color)
