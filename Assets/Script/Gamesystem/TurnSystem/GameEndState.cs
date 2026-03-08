@@ -11,21 +11,21 @@ public class GameEndState : StateCore
         _result = result;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒXƒe[ƒgŠJnFŒ‹‰Ê•\¦E‘€ì’â~ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ã‚¹ãƒ†ãƒ¼ãƒˆé–‹å§‹ï¼šçµæœè¡¨ç¤ºãƒ»æ“ä½œåœæ­¢ ====
     public void Entry()
     {
-        Debug.Log($"[GameEnd] ƒQ[ƒ€I—¹ „Ÿ„Ÿ {_result}");
+        Debug.Log($"[GameEnd] ã‚²ãƒ¼ãƒ çµ‚äº† çµæœ: {_result}");
 
-        // TODO: ƒŠƒUƒ‹ƒgUI•\¦
-        // —á: UIManager.Instance.ShowResult(_result);
+        // TODO: ãƒªã‚¶ãƒ«ãƒˆUIè¡¨ç¤º
+        // ä¾‹: UIManager.Instance.ShowResult(_result);
     }
 
-    // „Ÿ„Ÿ„Ÿ –ˆƒtƒŒ[ƒ€F‰½‚à‚µ‚È‚¢i“ü—Í‚ğó‚¯•t‚¯‚È‚¢j „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼šä½•ã‚‚ã—ãªã„ï¼ˆå…¥åŠ›ã‚’å—ã‘ä»˜ã‘ãªã„ï¼‰ ====
     public void Update()
     {
-        // ‘€ì’â~ó‘Ô
-        // •K—v‚È‚çƒŠƒgƒ‰ƒC^ƒ^ƒCƒgƒ‹‚Ö–ß‚éƒ{ƒ^ƒ“‚¾‚¯ó‚¯•t‚¯‚é
-        // —á:
+        // æ“ä½œåœæ­¢çŠ¶æ…‹
+        // å¿…è¦ãªã‚‰ãƒªãƒˆãƒ©ã‚¤ãƒ»ã‚¿ã‚¤ãƒˆãƒ«ã¸æˆ»ã‚‹ãƒœã‚¿ãƒ³å…¥åŠ›ã‚’å—ã‘ä»˜ã‘ã‚‹
+        // ä¾‹:
         // if (_turn.RetryDown) SceneManager.LoadScene("Game");
         // if (_turn.QuitDown)  SceneManager.LoadScene("Title");
     }

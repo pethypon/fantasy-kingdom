@@ -19,11 +19,11 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] ResourceBarUI _ResourceBarUI;
     private UIBuilder _uiBuilder;
 
-    [Header("Crystal �e�I�u�W�F�N�g")]
+    [Header("Crystal 親オブジェクト")]
     [SerializeField] Transform _PlayerCrystal;
     [SerializeField] Transform _EnemyCrystal;
 
-    // ���W���� Crystal �q�i���X�N���v�g����Q�Ɖj
+    // 生成済み Crystal 子（他スクリプトから参照）
     [HideInInspector] public List<GameObject> PlayerCrystalChildren = new List<GameObject>();
     [HideInInspector] public List<GameObject> EnemyCrystalChildren = new List<GameObject>();
 
@@ -43,35 +43,35 @@ public class GameGenerater : MonoBehaviour
         if (_ResourceBarUI == null && _uiBuilder.ResourceBar != null)
             _ResourceBarUI = _uiBuilder.ResourceBar;
 
-        // ���� �n�`�E�N���X�^������ ��������������������������������������������������������������������������
+        // ==== 地形・クリスタル生成 ====
         _MapCreate.noisegenerater();
         _MapCreate.BuildTop();
         _CrystalSystem.CrystalCore();
 
-        // ���� ���j�b�g�z�u�iSpawnUnit ���� UnitData ��K�p�j ������������������������
+        // ==== ユニット配置（SpawnUnit 経由で UnitData を適用） ====
         _UnitSetting.UnitSet();
 
-        // ���� �Q�[���J�n���F�V�[����̑S���j�b�g�� UnitData ��K�p ������������
-        // UnitSet() �� Awake ���Ԃɍ���Ȃ��P�[�X�� Prefab ���u���ɑΉ����邽��
-        // SpawnUnit() ���S���ł��Ă��Ȃ���������ŕ⊮����
+        // ==== ゲーム開始時：シーン上の全ユニットに UnitData を適用 ====
+        // UnitSet() が Awake 時間に間に合わないケースや Prefab 直置きに対応するため
+        // SpawnUnit() が完了していないものをここで補完する
         ApplyAllUnitData(_UnitSetting.PlayerUnit);
         ApplyAllUnitData(_UnitSetting.EnemyUnit);
 
-        // ���� �̒n�E�ړ��E���E�̍\�z ����������������������������������������������������������������������
-        // ApplyAllUnitData �̌�Ɏ��s���闝�R�F
-        // Territory�EMove�EVision �̌v�Z�̓X�e�[�^�X�K�p��ɍs������
+        // ==== 領地・移動・視界の構築 ====
+        // ApplyAllUnitData の後に実行する理由：
+        // Territory・Move・Vision の計算はステータス適用後に行う方がよい
         _TerritorySystem.Territory();
         _MoveGenerater.UnitPointCore();
         _VisionGenerater.VisionPoint(_MapCreate, _MoveGenerater, _CrystalSystem);
 
-        // ���� Crystal �q�I�u�W�F�N�g�����W ����������������������������������������������������������
+        // ==== Crystal 子オブジェクトを収集 ====
         CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
         CollectChildren(_EnemyCrystal, EnemyCrystalChildren);
 
-        // ���� FactionState �� APSystem �ɒ��� ����������������������������������������������������
+        // ==== FactionState を APSystem に注入 ====
         FactionState factionState = _PlayerCrystal.GetComponentInChildren<FactionState>();
         if (factionState == null)
-            Debug.LogError("[GameGenerater] FactionState �� PlayerCrystal �̎q�Ɍ�����܂���");
+            Debug.LogError("[GameGenerater] FactionState が PlayerCrystal の子に見つかりません");
         _APSystem.Init(factionState);
 
         // ---- BuildSystem 初期化 ----
@@ -98,49 +98,49 @@ public class GameGenerater : MonoBehaviour
                 _uiBuilder.InitSummonButtons(_SummonSystem, _APSystem, factionState, _UnitSetting);
         }
 
-        // ���� UI �� FactionState ��n�� ����������������������������������������������������
+        // ==== UI に FactionState を渡す ====
         if (_APPanelUI != null) _APPanelUI.Init(factionState);
         if (_ResourceBarUI != null) _ResourceBarUI.Init(factionState);
 
-        // ���� ���������ݒ�iGameReference �����j ����������������������������������������������
+        // ==== 初期資源設定（GameReference 準拠） ====
         if (factionState != null)
             InitResources(factionState.PlayerResources);
 
-        // ���� �^�[���J�n ����������������������������������������������������������������������������������������������
+        // ==== ターン開始 ====
         _TurnGenerater.StartFirstTurn();
     }
 
-    // ����������������������������������������������������������������������������������������������������������������������������������
-    //  �Q�[���J�n���̑S���j�b�g�K�p
-    //  �Q�[�����̐����� UnitSetting.SpawnUnit() ���S�����邽�߁A
-    //  �����ł́u�J�n���_�ŃV�[����ɑ��݂����v������Ώۂɂ���
-    // ����������������������������������������������������������������������������������������������������������������������������������
+    // =====================================================================
+    //  ゲーム開始時の全ユニット適用
+    //  ゲーム中の生成は UnitSetting.SpawnUnit() が全担するため、
+    //  ここでは「開始時点でシーン上に存在した」ものを対象にする
+    // =====================================================================
 
     /// <summary>
-    /// �w��̐e�I�u�W�F�N�g�z���̑S���j�b�g�� UnitData ��K�p����B
-    /// �Q�[���J�n���̈ꊇ�K�p��S���i�������� UnitSetting.SpawnUnit() ���S���j�B
+    /// 指定の親オブジェクト配下の全ユニットに UnitData を適用する。
+    /// ゲーム開始時の一括適用を担保（以後は UnitSetting.SpawnUnit() が担保）。
     /// </summary>
     private void ApplyAllUnitData(Transform unitParent)
     {
         foreach (Status status in unitParent.GetComponentsInChildren<Status>())
         {
-            // MovePoint ���̃��j�b�g�ȊO�͏��O
+            // MovePoint 等のユニット以外は除外
             if (status.type != Type.Unit) continue;
 
             if (_UnitSetting.UnitDataMap.TryGetValue(status.kind, out UnitData data))
-                data.ApplyToStatus(status, status.Level);  // Lv �̓f�t�H���g Lv1
+                data.ApplyToStatus(status, status.Level);  // Lv はデフォルト Lv1
             else
-                Debug.LogWarning($"[GameGenerater] Kind:{status.kind} ��UnitData�����o�^�ł�");
+                Debug.LogWarning($"[GameGenerater] Kind:{status.kind} のUnitDataが未登録です");
         }
     }
 
-    // ����������������������������������������������������������������������������������������������������������������������������������
-    //  ���������ݒ�
-    // ����������������������������������������������������������������������������������������������������������������������������������
+    // =====================================================================
+    //  初期資源設定
+    // =====================================================================
 
     /// <summary>
-    /// �����z�z�������Z�b�g����iGameReference �����j�B
-    /// ���l�̓}�W�b�N�i���o�[�ɂ��Ȃ��i�݌v����5�j�B
+    /// 初期配布資源をセットする（GameReference 準拠）。
+    /// 数値はマジックナンバーにしない（設計原則5）。
     /// </summary>
     private void InitResources(FactionState.ResourceData res)
     {
@@ -161,9 +161,9 @@ public class GameGenerater : MonoBehaviour
         res.Citizen = InitCitizen;
     }
 
-    // ����������������������������������������������������������������������������������������������������������������������������������
-    //  ���[�e�B���e�B
-    // ����������������������������������������������������������������������������������������������������������������������������������
+    // =====================================================================
+    //  ユーティリティ
+    // =====================================================================
     private void CollectChildren(Transform parent, List<GameObject> result)
     {
         result.Clear();

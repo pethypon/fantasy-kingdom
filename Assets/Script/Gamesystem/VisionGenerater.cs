@@ -6,42 +6,42 @@ public class VisionGenerater : MonoBehaviour
 {
     public List<Vector3> _setpos;
 
-    //Player‚ª¡Œ©‚¦‚éƒ}ƒX
+    // Player ãŒç¾åœ¨è¦‹ãˆã‚‹ãƒã‚¹
     public HashSet<Vector3Int> PlayerVisionBox;
-    //Player‚ªˆê“xŒ©‚½ƒ}ƒX
+    // Player ãŒä¸€åº¦è¦‹ãŸãƒã‚¹
     public HashSet<Vector3Int> PlayerExploard;
 
     public List<Status> playerunitbox;
 
-    //Enemy‚ª¡Œ©‚¦‚éƒ}ƒX
+    // Enemy ãŒç¾åœ¨è¦‹ãˆã‚‹ãƒã‚¹
     public HashSet<Vector3Int> EnemyVisionBox;
-    //Enemy‚ªˆê“xŒ©‚½ƒ}ƒX
+    // Enemy ãŒä¸€åº¦è¦‹ãŸãƒã‚¹
     public HashSet<Vector3Int> EnemyExploard;
 
     public List<Status> enemyunitbox;
 
-    [Header("ƒ}ƒbƒvƒNƒŠƒGƒCƒg")]
+    [Header("ãƒãƒƒãƒ—ã‚¯ãƒªã‚¨ã‚¤ãƒˆ")]
     [SerializeField] MapCreate mapcreate;
 
-    [Header("ƒ€[ƒuƒWƒFƒlƒŒ[ƒ^[")]
+    [Header("ãƒ ãƒ¼ãƒ–ã‚¸ã‚§ãƒãƒ¬ãƒ¼ã‚¿ãƒ¼")]
     [SerializeField] MoveGererater movegenerater;
 
-    [Header("ƒvƒŒƒCƒ„[ƒ€[ƒu")]
+    [Header("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ ãƒ¼ãƒ–")]
     [SerializeField] PlayerMove playermove;
 
-    [Header("ƒNƒŠƒXƒ^ƒ‹ƒVƒXƒeƒ€")]
+    [Header("ã‚¯ãƒªã‚¹ã‚¿ãƒ«ã‚·ã‚¹ãƒ†ãƒ ")]
     [SerializeField] CrystalSystem crystalsystem;
 
-    [Header("ƒeƒŠƒgƒŠ[ƒVƒXƒeƒ€")]
+    [Header("ãƒ†ãƒªãƒˆãƒªãƒ¼ã‚·ã‚¹ãƒ†ãƒ ")]
     [SerializeField] TerritorySystem territorysystem;
 
-    [Header("ƒ†ƒjƒbƒgƒ{ƒbƒNƒX")]
+    [Header("ãƒ¦ãƒ‹ãƒƒãƒˆãƒœãƒƒã‚¯ã‚¹")]
     [SerializeField] Transform PlayerUnit;
     [SerializeField] Transform EnemyUnit;
 
     int blockLayerMask;
 
-    //‹î‚Ìí—Ş‚²‚Æ‚Ì‹ŠEƒf[ƒ^iDictionary‚ÅˆêŒ³ŠÇ—j
+    // é§’ã®ç¨®é¡ã”ã¨ã®è¦–ç•Œãƒ‡ãƒ¼ã‚¿ï¼ˆDictionaryã§ä¸€å…ƒç®¡ç†ï¼‰
     static readonly Dictionary<Kind, Vector3Int[]> VisionDataMap = new Dictionary<Kind, Vector3Int[]>
     {
         { Kind.Crystal,     RangeVisionBox(-3, 3, -1, 0, -3, 3, true) },
@@ -107,10 +107,10 @@ public class VisionGenerater : MonoBehaviour
         if (EnemyExploard == null) EnemyExploard = new HashSet<Vector3Int>();
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒwƒ‹ƒp[ƒƒ\ƒbƒh „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ãƒ˜ãƒ«ãƒ‘ãƒ¼ãƒ¡ã‚½ãƒƒãƒ‰ ====
 
     /// <summary>
-    /// Transform‚Ìq‚©‚çStatusƒRƒ“ƒ|[ƒlƒ“ƒg‚ğûW‚µ‚ÄƒŠƒXƒg‚É“ü‚ê‚é
+    /// Transformã®å­ã‹ã‚‰Statusã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’åé›†ã—ã¦ãƒªã‚¹ãƒˆã«å…¥ã‚Œã‚‹
     /// </summary>
     void CollectStatuses(Transform parent, List<Status> result)
     {
@@ -127,7 +127,7 @@ public class VisionGenerater : MonoBehaviour
     }
 
     /// <summary>
-    /// Status‚ÌVisionCell‚ğ‰Šú‰»EŒvZ‚µAŒ‹‰Ê‚ğtargetSet‚Éƒ}[ƒW‚·‚é
+    /// Statusã®VisionCellã‚’åˆæœŸåŒ–â†’è¦–ç•Œè¨ˆç®—ã—ã€çµæœã‚’targetSetã«ãƒãƒ¼ã‚¸ã™ã‚‹
     /// </summary>
     void CalculateAndMergeVision(Status status, MapCreate mapcreate, CrystalSystem crystalsystem, HashSet<Vector3Int> targetSet)
     {
@@ -144,7 +144,7 @@ public class VisionGenerater : MonoBehaviour
     }
 
     /// <summary>
-    /// ‹î‚ÌŒü‚«‚É‰‚¶‚ÄƒIƒtƒZƒbƒg‚ğ•ÏŠ·‚·‚é
+    /// é§’ã®å‘ãã«å¿œã˜ã¦ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å¤‰æ›ã™ã‚‹
     /// </summary>
     static Vector3Int ApplyDirection(Vector3Int offset, Direction direction)
     {
@@ -159,7 +159,7 @@ public class VisionGenerater : MonoBehaviour
     }
 
     /// <summary>
-    /// Crystal—pFã•û‚©‚ç‚ÌRaycast‚Å’n•\‚Ì‚‚³‚ğæ“¾‚µ‹ŠEƒZƒ‹‚É’Ç‰Á‚·‚é
+    /// Crystalç”¨ï¼šä¸Šæ–¹å‘ã‹ã‚‰Raycastã§åœ°è¡¨ã®é«˜ã•ã‚’å–å¾—ã—è¦–ç•Œã‚»ãƒ«ã«è¿½åŠ ã™ã‚‹
     /// </summary>
     void RaycastCrystalVision(Status status, MapCreate mapcreate, int px, int py, int pz)
     {
@@ -190,7 +190,7 @@ public class VisionGenerater : MonoBehaviour
     }
 
     /// <summary>
-    /// CrystalˆÈŠOF‹îˆÊ’u‚©‚ç–Ú•W‚Ö’¼üRaycast‚µáŠQ•¨‚ª‚È‚¯‚ê‚Î‹ŠEƒZƒ‹‚É’Ç‰Á‚·‚é
+    /// Crystalä»¥å¤–ï¼šé§’ä½ç½®ã‹ã‚‰ç›®æ¨™ã¸ç›´ç·šRaycastã—éšœå®³ç‰©ãŒãªã‘ã‚Œã°è¦–ç•Œã‚»ãƒ«ã«è¿½åŠ ã™ã‚‹
     /// </summary>
     void RaycastDirectVision(Status status, int statusX, int statusY, int statusZ, int px, int py, int pz)
     {
@@ -223,9 +223,9 @@ public class VisionGenerater : MonoBehaviour
     }
 
     /// <summary>
-    /// FogƒIƒuƒWƒFƒNƒg‚Ì•\¦/”ñ•\¦‚ğ§Œä‚·‚é
-    /// showOnExploard=false: –¢‹ŠE‚©‚Â–¢’Tõ‚Ì‚Æ‚«•\¦iŠ®‘S‚È–¶j
-    /// showOnExploard=true:  –¢‹ŠE‚©‚Â’TõÏ‚İ‚Ì‚Æ‚«•\¦i’TõÏ‚İ–¶j
+    /// Fogã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®è¡¨ç¤º/éè¡¨ç¤ºã‚’åˆ¶å¾¡ã™ã‚‹
+    /// showOnExploard=false: è¦–ç•Œå¤–ã‹ã¤æœªæ¢ç´¢ã®ã¨ãè¡¨ç¤ºï¼ˆå®Œå…¨ãªéœ§ï¼‰
+    /// showOnExploard=true:  è¦–ç•Œå¤–ã‹ã¤æ¢ç´¢æ¸ˆã¿ã®ã¨ãè¡¨ç¤ºï¼ˆæ¢ç´¢æ¸ˆã¿éœ§ï¼‰
     /// </summary>
     void SetFogVisibility(Transform parent, HashSet<Vector3Int> visionXZ, HashSet<Vector3Int> exploardXZ, bool showOnExploard)
     {
@@ -252,7 +252,7 @@ public class VisionGenerater : MonoBehaviour
     }
 
     /// <summary>
-    /// ‹ŠE“à‚©‚Ç‚¤‚©‚ÅRenderer‚Ì—LŒø/–³Œø‚ğØ‚è‘Ö‚¦‚é
+    /// è¦–ç•Œå†…ã‹ã©ã†ã‹ã§Rendererã®æœ‰åŠ¹/ç„¡åŠ¹ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
     /// </summary>
     void SetRendererVisibility(IEnumerable targets, HashSet<Vector3Int> visionXZ)
     {
@@ -272,7 +272,7 @@ public class VisionGenerater : MonoBehaviour
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒƒCƒ“ƒƒ\ƒbƒh „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ãƒ¡ã‚¤ãƒ³ãƒ¡ã‚½ãƒƒãƒ‰ ====
 
     public void VisionPoint(MapCreate mapcreate, MoveGererater movegenerater, CrystalSystem crystalsystem)
     {
@@ -285,20 +285,20 @@ public class VisionGenerater : MonoBehaviour
 
         _setpos = mapcreate.SetPos;
 
-        //PlayerAEnemy‚Ì‹î‚ÌStatus‚ğûW‚·‚é
+        // Playerã€Enemyã®é§’ã®Statusã‚’åé›†ã™ã‚‹
         if (playerunitbox == null) playerunitbox = new List<Status>();
         CollectStatuses(PlayerUnit, playerunitbox);
 
         if (enemyunitbox == null) enemyunitbox = new List<Status>();
         CollectStatuses(EnemyUnit, enemyunitbox);
 
-        //Player‹î‚Ì‹ŠEŒvZ
+        // Playeré§’ã®è¦–ç•Œè¨ˆç®—
         foreach (Status status in playerunitbox)
         {
             CalculateAndMergeVision(status, mapcreate, crystalsystem, PlayerVisionBox);
         }
 
-        //PlayerƒNƒŠƒXƒ^ƒ‹‚Ì‹ŠEŒvZ
+        // Playerã‚¯ãƒªã‚¹ã‚¿ãƒ«é§’ã®è¦–ç•Œè¨ˆç®—
         foreach (Transform Temporary in crystalsystem.Playercrystal)
         {
             Status status = Temporary.GetComponentInChildren<Status>();
@@ -316,7 +316,7 @@ public class VisionGenerater : MonoBehaviour
             CalculateAndMergeVision(status, mapcreate, crystalsystem, PlayerVisionBox);
         }*/
 
-        //VisionBox‚ğExploard‚É“ü‚ê‚é
+        // VisionBoxã‚’Exploardã«å…¥ã‚Œã‚‹
         PlayerExploard.UnionWith(PlayerVisionBox);
         EnemyExploard.UnionWith(EnemyVisionBox);
         VisionSetting(mapcreate);
@@ -360,7 +360,7 @@ public class VisionGenerater : MonoBehaviour
 
     public void VisionSetting(MapCreate mapcreate)
     {
-        //PlayerVisionBox‚ÆPlayerExploard‚ÌXZ‚¾‚¯‚ğ‚Æ‚é‚½‚ß‚Ì” ‚ğì‚é
+        // PlayerVisionBoxã¨PlayerExploardã®XZæˆåˆ†ã‚’ã¨ã‚‹ãŸã‚ã®åŠå¤‰æ›
         var playervisionXZ = new HashSet<Vector3Int>();
         var playerexploardXZ = new HashSet<Vector3Int>();
 
@@ -373,15 +373,15 @@ public class VisionGenerater : MonoBehaviour
             playerexploardXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
         }
 
-        //Fog•\¦§Œäi–¢‹ŠE•–¢’Tõ ¨ Š®‘S‚È–¶‚ğ•\¦j
+        // Fogè¡¨ç¤ºåˆ¶å¾¡ï¼ˆè¦–ç•Œå¤–ã‹ã¤æœªæ¢ç´¢ â†’ å®Œå…¨ãªéœ§ã‚’è¡¨ç¤ºï¼‰
         SetFogVisibility(mapcreate.FogParent, playervisionXZ, playerexploardXZ, false);
         SetFogVisibility(mapcreate.FogBoardParent, playervisionXZ, playerexploardXZ, false);
 
-        //Fog•\¦§Œäi–¢‹ŠE•’TõÏ‚İ ¨ ’TõÏ‚İ–¶‚ğ•\¦j
+        // Fogè¡¨ç¤ºåˆ¶å¾¡ï¼ˆè¦–ç•Œå¤–ã‹ã¤æ¢ç´¢æ¸ˆã¿ â†’ æ¢ç´¢æ¸ˆã¿éœ§ã‚’è¡¨ç¤ºï¼‰
         SetFogVisibility(mapcreate.FogExploardBoardParent, playervisionXZ, playerexploardXZ, true);
         SetFogVisibility(mapcreate.FogExploardParent, playervisionXZ, playerexploardXZ, true);
 
-        //‹î‚Ì‹ŠEŠO‚Ì“G‚ğŒ©‚¦‚È‚¢‚æ‚¤‚É‚·‚é
+        // é§’ã®è¦–ç•Œå¤–ã®æ•µã‚’è¦‹ãˆãªã„ã‚ˆã†ã«ã™ã‚‹
         SetRendererVisibility(EnemyUnit, playervisionXZ);
         SetRendererVisibility(crystalsystem.Enemycrystal, playervisionXZ);
         SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);

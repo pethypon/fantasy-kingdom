@@ -30,7 +30,7 @@ public class EnemyMove : StateCore
     {
         visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
         turngenerater.ChangeState(new PlayerStart(turngenerater,unitclick,attackpoint,battlesystem, visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
-        Debug.Log("“G‚Ìƒ^[ƒ“I—¹");
+        Debug.Log("æ•µã®ã‚¿ãƒ¼ãƒ³çµ‚äº†");
     }
 
     public void Update()

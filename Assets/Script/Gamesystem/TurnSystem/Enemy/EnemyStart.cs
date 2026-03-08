@@ -16,8 +16,8 @@ public class EnemyStart : StateCore
     public UnitSetting unitset;
 
 
-    public EnemyStart(TurnGenerater turngenerater, UnitClick untclick, AttackPointt attackpoint, 
-        BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater, 
+    public EnemyStart(TurnGenerater turngenerater, UnitClick untclick, AttackPointt attackpoint,
+        BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater,
         MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
     {
         this.turngenerater = turngenerater;
@@ -32,10 +32,10 @@ public class EnemyStart : StateCore
     }
     public void Entry()
     {
-        Debug.Log("EnemyStart“Ë“ü");
-        // ƒ^[ƒ“ŠJŽnŽž‚É AP ‚Æ”æ˜J‚ðƒŠƒZƒbƒg
-        turngenerater.apsystem.ResetAP(Team.Enemy); 
-        turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);   
+        Debug.Log("EnemyStartçªå…¥");
+        // ã‚¿ãƒ¼ãƒ³é–‹å§‹æ™‚ã« AP ã¨ç–²åŠ´ã‚’ãƒªã‚»ãƒƒãƒˆ
+        turngenerater.apsystem.ResetAP(Team.Enemy);
+        turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);
         turngenerater.ChangeState(new EnemyMove(turngenerater,unitclick,attackpoint, battlesystem,visiongenerater, movegenerater, mapcreate, crystalsystem,unitset));
     }
 
