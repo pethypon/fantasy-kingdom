@@ -33,8 +33,8 @@ public class UIBuilder : MonoBehaviour
         defaultFont = LoadDefaultFont();
         SetAsTMPFallback(defaultFont);
         BuildCanvas();
-        BuildTopBar();
-        BuildResourceBar();
+        BuildResourceBar();   // 一番上: 資源バー
+        BuildInfoBar();       // その下: ターン + 制限時間 + メニュー
         BuildLeftMenu();
         BuildBottomUnitPanel();
         BuildAPPanel();
@@ -61,32 +61,14 @@ public class UIBuilder : MonoBehaviour
     }
 
     // ==================================================================
-    //  TopBar (ターン表示)
-    // ==================================================================
-    private void BuildTopBar()
-    {
-        var bar = CreatePanel("TopBar", canvas.transform,
-            new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
-            new Vector2(0, 40));
-        bar.anchoredPosition = Vector2.zero;
-
-        AddImage(bar.gameObject, new Color(0.1f, 0.1f, 0.1f, 0.85f));
-
-        var turnText = CreateTMP("TurnText", bar, "Turn 0", 24);
-        StretchFill(turnText.GetComponent<RectTransform>());
-
-        TopBar = bar.gameObject.AddComponent<TopBarUI>();
-    }
-
-    // ==================================================================
-    //  ResourceBar (資源表示)
+    //  ResourceBar (資源表示) — 画面最上部
     // ==================================================================
     private void BuildResourceBar()
     {
         var bar = CreatePanel("ResourceBar", canvas.transform,
             new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
-            new Vector2(0, 90));
-        bar.anchoredPosition = new Vector2(0, -40);
+            new Vector2(0, 80));
+        bar.anchoredPosition = Vector2.zero;
 
         AddImage(bar.gameObject, new Color(0.08f, 0.08f, 0.10f, 0.88f));
 
@@ -163,6 +145,98 @@ public class UIBuilder : MonoBehaviour
     }
 
     // ==================================================================
+    //  InfoBar (ターン + 制限時間 + メニュー) — 資源バーの下
+    // ==================================================================
+    private void BuildInfoBar()
+    {
+        // ResourceBar(80px) の直下に配置
+        var bar = CreatePanel("InfoBar", canvas.transform,
+            new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
+            new Vector2(0, 36));
+        bar.anchoredPosition = new Vector2(0, -80);
+
+        AddImage(bar.gameObject, new Color(0.12f, 0.12f, 0.14f, 0.90f));
+
+        // ---- 左: ターン表示 ----
+        var turnArea = CreatePanel("TurnArea", bar,
+            new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f),
+            new Vector2(140, 0));
+        StretchFill(turnArea);
+        turnArea.anchorMin = new Vector2(0, 0);
+        turnArea.anchorMax = new Vector2(0, 1);
+        turnArea.offsetMin = new Vector2(8, 2);
+        turnArea.offsetMax = new Vector2(148, -2);
+
+        // ターンアイコン（丸）
+        var iconGo = new GameObject("TurnIcon", typeof(RectTransform));
+        iconGo.transform.SetParent(turnArea, false);
+        var iconImg = iconGo.AddComponent<Image>();
+        iconImg.color = new Color(0.3f, 0.6f, 0.9f, 1f);
+        var iconRT = iconGo.GetComponent<RectTransform>();
+        iconRT.anchorMin = new Vector2(0, 0.5f);
+        iconRT.anchorMax = new Vector2(0, 0.5f);
+        iconRT.pivot = new Vector2(0, 0.5f);
+        iconRT.sizeDelta = new Vector2(24, 24);
+        iconRT.anchoredPosition = new Vector2(0, 0);
+
+        // ターンテキスト
+        var turnText = CreateTMP("TurnText", turnArea, "Turn 0", 20);
+        turnText.alignment = TextAlignmentOptions.MidlineLeft;
+        var turnTextRT = turnText.GetComponent<RectTransform>();
+        StretchFill(turnTextRT);
+        turnTextRT.offsetMin = new Vector2(30, 0);
+        turnTextRT.offsetMax = Vector2.zero;
+
+        // ---- 中央: 制限時間バー ----
+        var timerArea = CreatePanel("TimerArea", bar,
+            new Vector2(0.15f, 0), new Vector2(0.80f, 1), new Vector2(0.5f, 0.5f),
+            Vector2.zero);
+        StretchFill(timerArea);
+        timerArea.anchorMin = new Vector2(0.15f, 0);
+        timerArea.anchorMax = new Vector2(0.80f, 1);
+        timerArea.offsetMin = new Vector2(4, 6);
+        timerArea.offsetMax = new Vector2(-4, -6);
+
+        // バー背景
+        var timerBg = new GameObject("TimerBg", typeof(RectTransform));
+        timerBg.transform.SetParent(timerArea, false);
+        var timerBgImg = timerBg.AddComponent<Image>();
+        timerBgImg.color = new Color(0.05f, 0.05f, 0.08f, 0.8f);
+        StretchFill(timerBg.GetComponent<RectTransform>());
+
+        // バー本体（fill）
+        var timerFill = new GameObject("TimerFill", typeof(RectTransform));
+        timerFill.transform.SetParent(timerArea, false);
+        var timerFillImg = timerFill.AddComponent<Image>();
+        timerFillImg.color = new Color(0.2f, 0.55f, 0.8f, 0.9f);
+        var fillRT = timerFill.GetComponent<RectTransform>();
+        fillRT.anchorMin = new Vector2(0, 0);
+        fillRT.anchorMax = new Vector2(1, 1);  // 初期状態: 100%
+        fillRT.offsetMin = new Vector2(2, 2);
+        fillRT.offsetMax = new Vector2(-2, -2);
+
+        // 制限時間テキスト（バー上にオーバーレイ）
+        var timerText = CreateTMP("TimerText", timerArea, "制限時間", 14);
+        timerText.alignment = TextAlignmentOptions.Center;
+        var timerTextRT = timerText.GetComponent<RectTransform>();
+        StretchFill(timerTextRT);
+
+        // ---- 右: メニューボタン ----
+        var menuBtn = CreateButton("MenuButton", bar, "メニュー", 16,
+            new Color(0.25f, 0.25f, 0.30f, 1f));
+        var menuBtnRT = menuBtn.GetComponent<RectTransform>();
+        menuBtnRT.anchorMin = new Vector2(1, 0);
+        menuBtnRT.anchorMax = new Vector2(1, 1);
+        menuBtnRT.pivot = new Vector2(1, 0.5f);
+        menuBtnRT.sizeDelta = new Vector2(120, 0);
+        menuBtnRT.anchoredPosition = new Vector2(-8, 0);
+        menuBtnRT.offsetMin = new Vector2(menuBtnRT.offsetMin.x, 3);
+        menuBtnRT.offsetMax = new Vector2(menuBtnRT.offsetMax.x, -3);
+
+        TopBar = bar.gameObject.AddComponent<TopBarUI>();
+    }
+
+    // ==================================================================
     //  LeftMenu (建築 / ユニット生成 スライドパネル)
     // ==================================================================
     private void BuildLeftMenu()
@@ -176,7 +250,7 @@ public class UIBuilder : MonoBehaviour
         root.anchorMin = new Vector2(0, 0);
         root.anchorMax = new Vector2(0, 1);
         root.offsetMin = new Vector2(0, 120);
-        root.offsetMax = new Vector2(200, -120);
+        root.offsetMax = new Vector2(200, -126);
 
         // ---- 建築ボタン ----
         var buildBtn = CreateButton("BuildOpenButton", root, "建築", 18,
