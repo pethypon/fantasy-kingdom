@@ -4,19 +4,19 @@ using UnityEngine;
 
 public class UnitSetting : MonoBehaviour
 {
-    [Header("ƒLƒ“ƒO")]
+    [Header("ï¿½Lï¿½ï¿½ï¿½O")]
     [SerializeField] GameObject KingPiece;
-    [Header("ˆÙŒ`")]
+    [Header("ï¿½ÙŒ`")]
     [SerializeField] GameObject StrangePiece;
 
-    [Header("ƒ†ƒjƒbƒg”z’ueƒIƒuƒWƒFƒNƒg")]
+    [Header("ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½zï¿½uï¿½eï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½g")]
     [SerializeField] public Transform PlayerUnit;
     [SerializeField] public Transform EnemyUnit;
 
-    // „Ÿ„Ÿ„Ÿ UnitData ŠÇ—iDictionary ‰»j „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-    // SerializeField ‚ğ11ŒÂ•À‚×‚È‚¢——RF
-    // V‚µ‚¢ Kind ‚ğ’Ç‰Á‚·‚é‚½‚Ñ‚ÉƒtƒB[ƒ‹ƒh’Ç‰Á‚ÆInspectorİ’è‚Ì2èŠÔ‚ª”­¶‚·‚éB
-    // Dictionary ‚È‚çƒŠƒXƒg‚É1ƒGƒ“ƒgƒŠ’Ç‰Á‚·‚é‚¾‚¯‚ÅÏ‚ŞiİŒvŒ´‘¥2jB
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UnitData ï¿½Ç—ï¿½ï¿½iDictionary ï¿½ï¿½ï¿½j ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    // SerializeField ï¿½ï¿½11ï¿½Â•ï¿½ï¿½×‚È‚ï¿½ï¿½ï¿½ï¿½Rï¿½F
+    // ï¿½Vï¿½ï¿½ï¿½ï¿½ Kind ï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½é‚½ï¿½Ñ‚Éƒtï¿½Bï¿½[ï¿½ï¿½ï¿½hï¿½Ç‰ï¿½ï¿½ï¿½Inspectorï¿½İ’ï¿½ï¿½2ï¿½ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
+    // Dictionary ï¿½È‚çƒŠï¿½Xï¿½gï¿½ï¿½1ï¿½Gï¿½ï¿½ï¿½gï¿½ï¿½ï¿½Ç‰ï¿½ï¿½ï¿½ï¿½é‚¾ï¿½ï¿½ï¿½ÅÏ‚Şiï¿½İŒvï¿½ï¿½ï¿½ï¿½2ï¿½jï¿½B
     [System.Serializable]
     public class UnitDataEntry
     {
@@ -24,13 +24,13 @@ public class UnitSetting : MonoBehaviour
         public UnitData data;
     }
 
-    [Header("ƒ†ƒjƒbƒgƒf[ƒ^iKind•Êj")]
+    [Header("ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½fï¿½[ï¿½^ï¿½iKindï¿½Êj")]
     [SerializeField] private List<UnitDataEntry> _unitDataList;
 
-    // ŠO•”‚©‚ç‚Ì“Ç‚İæ‚èê—piGameGeneraterEBattleSystemEPlayerSummon ‚ªQÆj
+    // ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½pï¿½iGameGeneraterï¿½EBattleSystemï¿½EPlayerSummon ï¿½ï¿½ï¿½Qï¿½Æj
     public Dictionary<Kind, UnitData> UnitDataMap { get; private set; }
 
-    // „Ÿ„Ÿ„Ÿ ‰Šú‰» „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private void Awake()
     {
         UnitDataMap = new Dictionary<Kind, UnitData>();
@@ -39,15 +39,15 @@ public class UnitSetting : MonoBehaviour
             if (entry.data != null)
                 UnitDataMap[entry.kind] = entry.data;
             else
-                Debug.LogWarning($"[UnitSetting] Kind:{entry.kind} ‚ÌUnitData‚ªnull‚Å‚·");
+                Debug.LogWarning($"[UnitSetting] Kind:{entry.kind} ï¿½ï¿½UnitDataï¿½ï¿½nullï¿½Å‚ï¿½");
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ ‹¤’Ê¶¬ƒƒ\ƒbƒh „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Êï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\ï¿½bï¿½h ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
     /// <summary>
-    /// ƒ†ƒjƒbƒg‚ğ¶¬‚µ‚ÄƒXƒe[ƒ^ƒX‚ğ‘¦À‚É“K—p‚·‚éB
-    /// ƒQ[ƒ€’†‚ÌV‹K¶¬‚Í‚·‚×‚Ä‚±‚Ìƒƒ\ƒbƒhŒo—R‚Ås‚¤i‹î‚Ì¶¬‚Ì“K—p‚ğ’S“–jB
+    /// ï¿½ï¿½ï¿½jï¿½bï¿½gï¿½ğ¶ï¿½ï¿½ï¿½ï¿½ÄƒXï¿½eï¿½[ï¿½^ï¿½Xï¿½ğ‘¦ï¿½ï¿½É“Kï¿½pï¿½ï¿½ï¿½ï¿½B
+    /// ï¿½Qï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ÌVï¿½Kï¿½ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½×‚Ä‚ï¿½ï¿½Ìƒï¿½ï¿½\ï¿½bï¿½hï¿½oï¿½Rï¿½Åsï¿½ï¿½ï¿½iï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì“Kï¿½pï¿½ï¿½Sï¿½ï¿½ï¿½jï¿½B
     /// </summary>
     public GameObject SpawnUnit(GameObject prefab, Vector3 pos,
                                 Transform parent, int level = 1)
@@ -57,29 +57,32 @@ public class UnitSetting : MonoBehaviour
         var status = obj.GetComponentInChildren<Status>();
         if (status == null)
         {
-            Debug.LogWarning($"[UnitSetting] {prefab.name} ‚ÉStatus‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ");
+            Debug.LogWarning($"[UnitSetting] {prefab.name} ï¿½ï¿½Statusï¿½ï¿½ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½");
             return obj;
         }
 
         if (UnitDataMap.TryGetValue(status.kind, out UnitData data))
             data.ApplyToStatus(status, level);
         else
-            Debug.LogWarning($"[UnitSetting] Kind:{status.kind} ‚ÌUnitData‚ª–¢“o˜^‚Å‚·");
+            Debug.LogWarning($"[UnitSetting] Kind:{status.kind} ï¿½ï¿½UnitDataï¿½ï¿½ï¿½ï¿½ï¿½oï¿½^ï¿½Å‚ï¿½");
+
+        // é ­ä¸ŠUIï¼ˆLv + HPï¼‰ã‚’ã‚¢ã‚¿ãƒƒãƒ
+        UnitHeadUI.Attach(obj);
 
         return obj;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒQ[ƒ€ŠJn‚Ìƒ†ƒjƒbƒg”z’u „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Qï¿½[ï¿½ï¿½ï¿½Jï¿½nï¿½ï¿½ï¿½Ìƒï¿½ï¿½jï¿½bï¿½gï¿½zï¿½u ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void UnitSet()
     {
-        // PCPAECPASetPos ‚ğæ‚èo‚·
+        // PCPï¿½AECPï¿½ASetPos ï¿½ï¿½ï¿½ï¿½ï¿½oï¿½ï¿½
         CrystalSystem crystalsystem = GetComponent<CrystalSystem>();
         MapCreate mapcreate = GetComponent<MapCreate>();
         Vector3 pcp = crystalsystem.PCP;
         Vector3 ecp = crystalsystem.ECP;
         var setpos = mapcreate.SetPos;
 
-        // ”z’uˆÊ’u‚ği‚éiKingPointFPCPü•Ó1ƒ}ƒXˆÈ“àj
+        // ï¿½zï¿½uï¿½Ê’uï¿½ï¿½ï¿½iï¿½ï¿½iKingPointï¿½FPCPï¿½ï¿½ï¿½ï¿½1ï¿½}ï¿½Xï¿½È“ï¿½ï¿½j
         var KingPoint = setpos.Where(p =>
         {
             float px = Mathf.Abs(p.x - pcp.x);
@@ -87,7 +90,7 @@ public class UnitSetting : MonoBehaviour
             return px <= 1 && pz <= 1 && p != pcp;
         }).ToList();
 
-        // ”z’uˆÊ’u‚ği‚éiStrangePointFECPü•Ó1ƒ}ƒXˆÈ“àj
+        // ï¿½zï¿½uï¿½Ê’uï¿½ï¿½ï¿½iï¿½ï¿½iStrangePointï¿½FECPï¿½ï¿½ï¿½ï¿½1ï¿½}ï¿½Xï¿½È“ï¿½ï¿½j
         var StrangePoint = setpos.Where(p =>
         {
             float px = Mathf.Abs(p.x - ecp.x);
@@ -95,13 +98,13 @@ public class UnitSetting : MonoBehaviour
             return px <= 1 && pz <= 1 && p != ecp;
         }).ToList();
 
-        // Instantiate ¨ SpawnUnit ‚É’u‚«Š·‚¦iƒXƒe[ƒ^ƒX“K—p‚İj
+        // Instantiate ï¿½ï¿½ SpawnUnit ï¿½É’uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½iï¿½Xï¿½eï¿½[ï¿½^ï¿½Xï¿½Kï¿½pï¿½ï¿½ï¿½İj
         Vector3 KP = KingPoint[Random.Range(0, KingPoint.Count)];
         SpawnUnit(KingPiece, KP, PlayerUnit);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color>‰¤İ’u");
+        Debug.Log("<color=#ffff00ff>[StartSetting]</color>ï¿½ï¿½ï¿½İ’u");
 
         Vector3 SP = StrangePoint[Random.Range(0, StrangePoint.Count)];
         SpawnUnit(StrangePiece, SP, EnemyUnit);
-        Debug.Log("<color=#ffff00ff>[StartSetting]</color>ˆÙŒ`‚Ì‰¤İ’u");
+        Debug.Log("<color=#ffff00ff>[StartSetting]</color>ï¿½ÙŒ`ï¿½Ì‰ï¿½ï¿½İ’u");
     }
 }
