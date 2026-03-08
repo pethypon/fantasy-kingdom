@@ -2,9 +2,8 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 上バーUI：ターン数・メニューボタンを常時表示する
-/// AP表示はAPPanelUIに移動済み
-/// Canvas > SafeAreaRoot > TopBar に付ける
+/// InfoBar UI：ターン数を表示する
+/// TurnText を名前で自動検出する
 /// </summary>
 public class TopBarUI : MonoBehaviour
 {
@@ -20,10 +19,18 @@ public class TopBarUI : MonoBehaviour
     {
         if (turnGenerater == null)
             turnGenerater = Object.FindFirstObjectByType<TurnGenerater>();
+
         if (turnText == null)
         {
-            var tmp = GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
-            if (tmp != null) turnText = tmp;
+            // 名前で TurnText を検索
+            foreach (var tmp in GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (tmp.gameObject.name == "TurnText")
+                {
+                    turnText = tmp;
+                    break;
+                }
+            }
         }
     }
 
