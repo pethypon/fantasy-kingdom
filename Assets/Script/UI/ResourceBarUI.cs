@@ -1,13 +1,8 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-
 /// <summary>
-/// 資源バーUI：木材・石材・鉄鉱石・鉄・魔石・石炭・小麦・パン・水・板材・切石・市民を表示
-/// Canvas > SafeAreaRoot > ResourceBar に付ける
-///
-/// Awake() でフォントサイズ・配置を自動設定する
-/// 各行の親に HorizontalLayoutGroup を自動追加して均等配置
+/// 資源バーUI：資源値を表示する
+/// UIBuilder が生成した TMP 要素を名前で自動検出する
 /// </summary>
 public class ResourceBarUI : MonoBehaviour
 {
@@ -32,53 +27,35 @@ public class ResourceBarUI : MonoBehaviour
 
     [Header("設定")]
     [SerializeField] private Team displayTeam = Team.Player;
-    [SerializeField] private float fontSize = 22f;
 
     private FactionState.ResourceData lastSnapshot;
 
     private void Awake()
     {
-        TextMeshProUGUI[] allTexts = {
-            woodText, stoneText, coalText, ironOreText, ironText, magicOreText,
-            wheatText, breadText, waterText, plankText, cutStoneText, citizenText
-        };
-
-        foreach (var tmp in allTexts)
-        {
-            if (tmp == null) continue;
-            tmp.fontSize = fontSize;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.enableAutoSizing = false;
-
-            // LayoutElement で最小幅を揃える
-            var le = tmp.GetComponent<LayoutElement>();
-            if (le == null) le = tmp.gameObject.AddComponent<LayoutElement>();
-            le.minWidth = 90f;
-            le.preferredWidth = 110f;
-            le.flexibleWidth = 1f;
-        }
-
-        // 各行の親に HorizontalLayoutGroup を自動設定
-        ConfigureRowLayout(woodText);
-        ConfigureRowLayout(wheatText);
+        AutoDiscoverTexts();
     }
 
-    private void ConfigureRowLayout(TextMeshProUGUI anyChildInRow)
+    private void AutoDiscoverTexts()
     {
-        if (anyChildInRow == null) return;
-        Transform row = anyChildInRow.transform.parent;
-        if (row == null) return;
-
-        var hlg = row.GetComponent<HorizontalLayoutGroup>();
-        if (hlg == null) hlg = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-
-        hlg.spacing = 16f;
-        hlg.childAlignment = TextAnchor.MiddleCenter;
-        hlg.childControlWidth = true;
-        hlg.childControlHeight = true;
-        hlg.childForceExpandWidth = true;
-        hlg.childForceExpandHeight = false;
-        hlg.padding = new RectOffset(8, 8, 2, 2);
+        var allTMP = GetComponentsInChildren<TextMeshProUGUI>(true);
+        foreach (var tmp in allTMP)
+        {
+            switch (tmp.gameObject.name)
+            {
+                case "Wood":     woodText = tmp; break;
+                case "Stone":    stoneText = tmp; break;
+                case "Coal":     coalText = tmp; break;
+                case "IronOre":  ironOreText = tmp; break;
+                case "Iron":     ironText = tmp; break;
+                case "MagicOre": magicOreText = tmp; break;
+                case "Wheat":    wheatText = tmp; break;
+                case "Bread":    breadText = tmp; break;
+                case "Water":    waterText = tmp; break;
+                case "Plank":    plankText = tmp; break;
+                case "CutStone": cutStoneText = tmp; break;
+                case "Citizen":  citizenText = tmp; break;
+            }
+        }
     }
 
     private void Update()
