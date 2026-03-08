@@ -43,6 +43,9 @@ public class TurnGenerater : MonoBehaviour
     [Header("建築システム")]
     [SerializeField] public BuildSystem buildsystem;
 
+    [Header("召喚システム")]
+    [SerializeField] public SummonSystem summonsystem;
+
     [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 
