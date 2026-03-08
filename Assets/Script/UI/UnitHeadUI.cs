@@ -43,7 +43,7 @@ public class UnitHeadUI : MonoBehaviour
         // ---- WorldSpace Canvas ----
         var canvasGo = new GameObject("HeadUI");
         canvasGo.transform.SetParent(transform, false);
-        canvasGo.transform.localPosition = new Vector3(0, 1.5f, 0);
+        canvasGo.transform.localPosition = new Vector3(0, 0.8f, 0);
         canvasGo.transform.localScale = Vector3.one * 0.02f;
 
         canvas = canvasGo.AddComponent<Canvas>();
