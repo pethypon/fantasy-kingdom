@@ -66,19 +66,19 @@ public class UIBuilder : MonoBehaviour
     {
         var bar = CreatePanel("TopBar", canvas.transform,
             new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
-            new Vector2(0, 60));
+            new Vector2(0, 90));
         bar.anchoredPosition = Vector2.zero;
 
         AddImage(bar.gameObject, new Color(0.06f, 0.06f, 0.08f, 0.92f));
 
-        // ============ 左: 資源エリア (0% ~ 50%) ============
+        // ============ 左: 資源エリア (0% ~ 42%) ============
         var resArea = CreatePanel("ResourceBar", bar,
-            new Vector2(0, 0), new Vector2(0.50f, 1), new Vector2(0, 0.5f),
+            new Vector2(0, 0), new Vector2(0.42f, 1), new Vector2(0, 0.5f),
             Vector2.zero);
         StretchFill(resArea);
         resArea.anchorMin = new Vector2(0, 0);
-        resArea.anchorMax = new Vector2(0.50f, 1);
-        resArea.offsetMin = new Vector2(4, 0);
+        resArea.anchorMax = new Vector2(0.42f, 1);
+        resArea.offsetMin = new Vector2(6, 0);
         resArea.offsetMax = new Vector2(-2, 0);
 
         // 資源を2行で配置
@@ -87,18 +87,18 @@ public class UIBuilder : MonoBehaviour
         StretchFill(row1);
         row1.anchorMin = new Vector2(0, 0.5f);
         row1.anchorMax = new Vector2(1, 1);
-        row1.offsetMin = new Vector2(2, 1);
-        row1.offsetMax = new Vector2(-2, -1);
-        AddHorizontalLayout(row1.gameObject, 4);
+        row1.offsetMin = new Vector2(2, 2);
+        row1.offsetMax = new Vector2(-2, -2);
+        AddHorizontalLayout(row1.gameObject, 3);
 
         var row2 = CreatePanel("Row2", resArea,
             Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero);
         StretchFill(row2);
         row2.anchorMin = new Vector2(0, 0);
         row2.anchorMax = new Vector2(1, 0.5f);
-        row2.offsetMin = new Vector2(2, 1);
-        row2.offsetMax = new Vector2(-2, -1);
-        AddHorizontalLayout(row2.gameObject, 4);
+        row2.offsetMin = new Vector2(2, 2);
+        row2.offsetMax = new Vector2(-2, -2);
+        AddHorizontalLayout(row2.gameObject, 3);
 
         // カテゴリ別の背景色
         Color rawC  = new Color(0.20f, 0.16f, 0.10f, 0.6f);
@@ -125,22 +125,22 @@ public class UIBuilder : MonoBehaviour
         var sep1Img = sep1.AddComponent<Image>();
         sep1Img.color = new Color(1f, 1f, 1f, 0.15f);
         var sep1RT = sep1.GetComponent<RectTransform>();
-        sep1RT.anchorMin = new Vector2(0.50f, 0);
-        sep1RT.anchorMax = new Vector2(0.50f, 1);
+        sep1RT.anchorMin = new Vector2(0.42f, 0);
+        sep1RT.anchorMax = new Vector2(0.42f, 1);
         sep1RT.pivot = new Vector2(0.5f, 0.5f);
         sep1RT.sizeDelta = new Vector2(1, 0);
-        sep1RT.offsetMin = new Vector2(-0.5f, 6);
-        sep1RT.offsetMax = new Vector2(0.5f, -6);
+        sep1RT.offsetMin = new Vector2(-0.5f, 8);
+        sep1RT.offsetMax = new Vector2(0.5f, -8);
 
-        // ============ 中央: ターン表示 (50% ~ 62%) ============
+        // ============ 中央: ターン表示 (42% ~ 56%) ============
         var turnArea = CreatePanel("TurnArea", bar,
-            new Vector2(0.50f, 0), new Vector2(0.62f, 1), new Vector2(0.5f, 0.5f),
+            new Vector2(0.42f, 0), new Vector2(0.56f, 1), new Vector2(0.5f, 0.5f),
             Vector2.zero);
         StretchFill(turnArea);
-        turnArea.anchorMin = new Vector2(0.50f, 0);
-        turnArea.anchorMax = new Vector2(0.62f, 1);
-        turnArea.offsetMin = new Vector2(8, 2);
-        turnArea.offsetMax = new Vector2(-4, -2);
+        turnArea.anchorMin = new Vector2(0.42f, 0);
+        turnArea.anchorMax = new Vector2(0.56f, 1);
+        turnArea.offsetMin = new Vector2(10, 4);
+        turnArea.offsetMax = new Vector2(-4, -4);
 
         // ターンアイコン（丸）
         var iconGo = new GameObject("TurnIcon", typeof(RectTransform));
@@ -148,18 +148,18 @@ public class UIBuilder : MonoBehaviour
         var iconImg = iconGo.AddComponent<Image>();
         iconImg.color = new Color(0.3f, 0.6f, 0.9f, 1f);
         var iconRT = iconGo.GetComponent<RectTransform>();
-        iconRT.anchorMin = new Vector2(0, 0.5f);
-        iconRT.anchorMax = new Vector2(0, 0.5f);
-        iconRT.pivot = new Vector2(0, 0.5f);
-        iconRT.sizeDelta = new Vector2(20, 20);
-        iconRT.anchoredPosition = Vector2.zero;
+        iconRT.anchorMin = new Vector2(0.5f, 0.5f);
+        iconRT.anchorMax = new Vector2(0.5f, 0.5f);
+        iconRT.pivot = new Vector2(1, 0.5f);
+        iconRT.sizeDelta = new Vector2(22, 22);
+        iconRT.anchoredPosition = new Vector2(-4, 0);
 
         // ターンテキスト
-        var turnText = CreateTMP("TurnText", turnArea, "Turn 0", 18);
-        turnText.alignment = TextAlignmentOptions.MidlineLeft;
+        var turnText = CreateTMP("TurnText", turnArea, "Turn 0", 20);
+        turnText.alignment = TextAlignmentOptions.Center;
         var turnTextRT = turnText.GetComponent<RectTransform>();
         StretchFill(turnTextRT);
-        turnTextRT.offsetMin = new Vector2(24, 0);
+        turnTextRT.offsetMin = Vector2.zero;
         turnTextRT.offsetMax = Vector2.zero;
 
         // ============ 区切り線 ============
@@ -168,42 +168,47 @@ public class UIBuilder : MonoBehaviour
         var sep2Img = sep2.AddComponent<Image>();
         sep2Img.color = new Color(1f, 1f, 1f, 0.15f);
         var sep2RT = sep2.GetComponent<RectTransform>();
-        sep2RT.anchorMin = new Vector2(0.62f, 0);
-        sep2RT.anchorMax = new Vector2(0.62f, 1);
+        sep2RT.anchorMin = new Vector2(0.56f, 0);
+        sep2RT.anchorMax = new Vector2(0.56f, 1);
         sep2RT.pivot = new Vector2(0.5f, 0.5f);
         sep2RT.sizeDelta = new Vector2(1, 0);
-        sep2RT.offsetMin = new Vector2(-0.5f, 6);
-        sep2RT.offsetMax = new Vector2(0.5f, -6);
+        sep2RT.offsetMin = new Vector2(-0.5f, 8);
+        sep2RT.offsetMax = new Vector2(0.5f, -8);
 
-        // ============ 右: 制限時間 + メニュー (62% ~ 100%) ============
+        // ============ 右: 制限時間 + メニュー (56% ~ 100%) ============
         var rightArea = CreatePanel("RightArea", bar,
-            new Vector2(0.62f, 0), new Vector2(1, 1), new Vector2(1, 0.5f),
+            new Vector2(0.56f, 0), new Vector2(1, 1), new Vector2(0.5f, 0.5f),
             Vector2.zero);
         StretchFill(rightArea);
-        rightArea.anchorMin = new Vector2(0.62f, 0);
+        rightArea.anchorMin = new Vector2(0.56f, 0);
         rightArea.anchorMax = new Vector2(1, 1);
-        rightArea.offsetMin = new Vector2(6, 2);
-        rightArea.offsetMax = new Vector2(-4, -2);
+        rightArea.offsetMin = new Vector2(6, 4);
+        rightArea.offsetMax = new Vector2(-6, -4);
+
+        // 右エリア内を HorizontalLayoutGroup で中央寄せ
+        var rightHLG = rightArea.gameObject.AddComponent<HorizontalLayoutGroup>();
+        rightHLG.childAlignment = TextAnchor.MiddleCenter;
+        rightHLG.spacing = 8;
+        rightHLG.childForceExpandWidth = false;
+        rightHLG.childForceExpandHeight = false;
+        rightHLG.childControlWidth = false;
+        rightHLG.childControlHeight = false;
 
         // 制限時間バー
-        var timerArea = CreatePanel("TimerArea", rightArea,
-            new Vector2(0, 0), new Vector2(0.62f, 1), new Vector2(0, 0.5f),
-            Vector2.zero);
-        StretchFill(timerArea);
-        timerArea.anchorMin = new Vector2(0, 0);
-        timerArea.anchorMax = new Vector2(0.62f, 1);
-        timerArea.offsetMin = new Vector2(0, 4);
-        timerArea.offsetMax = new Vector2(-4, -4);
+        var timerArea = new GameObject("TimerArea", typeof(RectTransform));
+        timerArea.transform.SetParent(rightArea, false);
+        var timerAreaRT = timerArea.GetComponent<RectTransform>();
+        timerAreaRT.sizeDelta = new Vector2(260, 32);
 
         // バー背景
         var timerBg = new GameObject("TimerBg", typeof(RectTransform));
-        timerBg.transform.SetParent(timerArea, false);
+        timerBg.transform.SetParent(timerArea.transform, false);
         timerBg.AddComponent<Image>().color = new Color(0.05f, 0.05f, 0.08f, 0.8f);
         StretchFill(timerBg.GetComponent<RectTransform>());
 
         // バー本体
         var timerFill = new GameObject("TimerFill", typeof(RectTransform));
-        timerFill.transform.SetParent(timerArea, false);
+        timerFill.transform.SetParent(timerArea.transform, false);
         timerFill.AddComponent<Image>().color = new Color(0.2f, 0.55f, 0.8f, 0.9f);
         var fillRT = timerFill.GetComponent<RectTransform>();
         fillRT.anchorMin = Vector2.zero;
@@ -212,18 +217,15 @@ public class UIBuilder : MonoBehaviour
         fillRT.offsetMax = new Vector2(-2, -2);
 
         // 制限時間テキスト
-        var timerText = CreateTMP("TimerText", timerArea, "制限時間", 12);
+        var timerText = CreateTMP("TimerText", timerArea.transform, "制限時間", 14);
         timerText.alignment = TextAlignmentOptions.Center;
         StretchFill(timerText.GetComponent<RectTransform>());
 
         // メニューボタン
-        var menuBtn = CreateButton("MenuButton", rightArea, "メニュー", 14,
+        var menuBtn = CreateButton("MenuButton", rightArea, "メニュー", 16,
             new Color(0.25f, 0.25f, 0.30f, 1f));
         var menuBtnRT = menuBtn.GetComponent<RectTransform>();
-        menuBtnRT.anchorMin = new Vector2(0.64f, 0);
-        menuBtnRT.anchorMax = new Vector2(1, 1);
-        menuBtnRT.offsetMin = new Vector2(menuBtnRT.offsetMin.x, 4);
-        menuBtnRT.offsetMax = new Vector2(0, -4);
+        menuBtnRT.sizeDelta = new Vector2(100, 32);
 
         TopBar = bar.gameObject.AddComponent<TopBarUI>();
     }
@@ -238,9 +240,9 @@ public class UIBuilder : MonoBehaviour
 
         var le = cell.AddComponent<LayoutElement>();
         le.flexibleWidth = 1;
-        le.minWidth = 36;
+        le.minWidth = 28;
 
-        var tmp = CreateTMP(name, cell.transform, name + ": 0", 15);
+        var tmp = CreateTMP(name, cell.transform, name + ": 0", 16);
         tmp.enableWordWrapping = false;
         tmp.overflowMode = TextOverflowModes.Ellipsis;
         tmp.richText = true;
@@ -265,7 +267,7 @@ public class UIBuilder : MonoBehaviour
         root.anchorMin = new Vector2(0, 0);
         root.anchorMax = new Vector2(0, 1);
         root.offsetMin = new Vector2(0, 120);
-        root.offsetMax = new Vector2(200, -70);
+        root.offsetMax = new Vector2(200, -100);
 
         // ---- 建築ボタン ----
         var buildBtn = CreateButton("BuildOpenButton", root, "建築", 18,
