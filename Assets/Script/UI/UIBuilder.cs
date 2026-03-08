@@ -66,18 +66,18 @@ public class UIBuilder : MonoBehaviour
     {
         var bar = CreatePanel("TopBar", canvas.transform,
             new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
-            new Vector2(0, 44));
+            new Vector2(0, 60));
         bar.anchoredPosition = Vector2.zero;
 
         AddImage(bar.gameObject, new Color(0.06f, 0.06f, 0.08f, 0.92f));
 
-        // ============ 左: 資源エリア (0% ~ 65%) ============
+        // ============ 左: 資源エリア (0% ~ 50%) ============
         var resArea = CreatePanel("ResourceBar", bar,
-            new Vector2(0, 0), new Vector2(0.65f, 1), new Vector2(0, 0.5f),
+            new Vector2(0, 0), new Vector2(0.50f, 1), new Vector2(0, 0.5f),
             Vector2.zero);
         StretchFill(resArea);
         resArea.anchorMin = new Vector2(0, 0);
-        resArea.anchorMax = new Vector2(0.65f, 1);
+        resArea.anchorMax = new Vector2(0.50f, 1);
         resArea.offsetMin = new Vector2(4, 0);
         resArea.offsetMax = new Vector2(-2, 0);
 
@@ -125,20 +125,20 @@ public class UIBuilder : MonoBehaviour
         var sep1Img = sep1.AddComponent<Image>();
         sep1Img.color = new Color(1f, 1f, 1f, 0.15f);
         var sep1RT = sep1.GetComponent<RectTransform>();
-        sep1RT.anchorMin = new Vector2(0.65f, 0);
-        sep1RT.anchorMax = new Vector2(0.65f, 1);
+        sep1RT.anchorMin = new Vector2(0.50f, 0);
+        sep1RT.anchorMax = new Vector2(0.50f, 1);
         sep1RT.pivot = new Vector2(0.5f, 0.5f);
         sep1RT.sizeDelta = new Vector2(1, 0);
         sep1RT.offsetMin = new Vector2(-0.5f, 6);
         sep1RT.offsetMax = new Vector2(0.5f, -6);
 
-        // ============ 中央: ターン表示 (65% ~ 76%) ============
+        // ============ 中央: ターン表示 (50% ~ 62%) ============
         var turnArea = CreatePanel("TurnArea", bar,
-            new Vector2(0.65f, 0), new Vector2(0.76f, 1), new Vector2(0.5f, 0.5f),
+            new Vector2(0.50f, 0), new Vector2(0.62f, 1), new Vector2(0.5f, 0.5f),
             Vector2.zero);
         StretchFill(turnArea);
-        turnArea.anchorMin = new Vector2(0.65f, 0);
-        turnArea.anchorMax = new Vector2(0.76f, 1);
+        turnArea.anchorMin = new Vector2(0.50f, 0);
+        turnArea.anchorMax = new Vector2(0.62f, 1);
         turnArea.offsetMin = new Vector2(8, 2);
         turnArea.offsetMax = new Vector2(-4, -2);
 
@@ -168,19 +168,19 @@ public class UIBuilder : MonoBehaviour
         var sep2Img = sep2.AddComponent<Image>();
         sep2Img.color = new Color(1f, 1f, 1f, 0.15f);
         var sep2RT = sep2.GetComponent<RectTransform>();
-        sep2RT.anchorMin = new Vector2(0.76f, 0);
-        sep2RT.anchorMax = new Vector2(0.76f, 1);
+        sep2RT.anchorMin = new Vector2(0.62f, 0);
+        sep2RT.anchorMax = new Vector2(0.62f, 1);
         sep2RT.pivot = new Vector2(0.5f, 0.5f);
         sep2RT.sizeDelta = new Vector2(1, 0);
         sep2RT.offsetMin = new Vector2(-0.5f, 6);
         sep2RT.offsetMax = new Vector2(0.5f, -6);
 
-        // ============ 右: 制限時間 + メニュー (76% ~ 100%) ============
+        // ============ 右: 制限時間 + メニュー (62% ~ 100%) ============
         var rightArea = CreatePanel("RightArea", bar,
-            new Vector2(0.76f, 0), new Vector2(1, 1), new Vector2(1, 0.5f),
+            new Vector2(0.62f, 0), new Vector2(1, 1), new Vector2(1, 0.5f),
             Vector2.zero);
         StretchFill(rightArea);
-        rightArea.anchorMin = new Vector2(0.76f, 0);
+        rightArea.anchorMin = new Vector2(0.62f, 0);
         rightArea.anchorMax = new Vector2(1, 1);
         rightArea.offsetMin = new Vector2(6, 2);
         rightArea.offsetMax = new Vector2(-4, -2);
@@ -238,9 +238,9 @@ public class UIBuilder : MonoBehaviour
 
         var le = cell.AddComponent<LayoutElement>();
         le.flexibleWidth = 1;
-        le.minWidth = 50;
+        le.minWidth = 36;
 
-        var tmp = CreateTMP(name, cell.transform, name + ": 0", 13);
+        var tmp = CreateTMP(name, cell.transform, name + ": 0", 15);
         tmp.enableWordWrapping = false;
         tmp.overflowMode = TextOverflowModes.Ellipsis;
         tmp.richText = true;
@@ -265,7 +265,7 @@ public class UIBuilder : MonoBehaviour
         root.anchorMin = new Vector2(0, 0);
         root.anchorMax = new Vector2(0, 1);
         root.offsetMin = new Vector2(0, 120);
-        root.offsetMax = new Vector2(200, -54);
+        root.offsetMax = new Vector2(200, -70);
 
         // ---- 建築ボタン ----
         var buildBtn = CreateButton("BuildOpenButton", root, "建築", 18,
