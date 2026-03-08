@@ -18,6 +18,7 @@ public class UIBuilder : MonoBehaviour
     public APPanelUI APPanel { get; private set; }
     public ResourceBarUI ResourceBar { get; private set; }
     public BuildSystem BuildSystem { get; private set; }
+    public SummonSystem SummonSystem { get; private set; }
 
     private Canvas canvas;
     private TMP_FontAsset defaultFont;
@@ -25,8 +26,12 @@ public class UIBuilder : MonoBehaviour
     // 建築ボタン管理用
     private readonly List<(Button btn, Image bg, FacilityKind kind)> buildButtons
         = new List<(Button, Image, FacilityKind)>();
+    // 召喚ボタン管理用
+    private readonly List<(Button btn, Image bg, Kind kind)> summonButtons
+        = new List<(Button, Image, Kind)>();
     private APSystem cachedAPSystem;
     private FactionState cachedFactionState;
+    private UnitSetting cachedUnitSetting;
 
     private void Awake()
     {
@@ -507,6 +512,38 @@ public class UIBuilder : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// SummonSystem と UnitSetting の参照を受け取り、召喚ボタンを制御可能にする。
+    /// GameGenerater.Awake() から呼ばれる。
+    /// </summary>
+    public void InitSummonButtons(SummonSystem ss, APSystem ap, FactionState fs, UnitSetting us)
+    {
+        SummonSystem = ss;
+        cachedAPSystem = ap;
+        cachedFactionState = fs;
+        cachedUnitSetting = us;
+
+        if (SlidePanel != null)
+            SlidePanel.OnUnitPanelOpened += RefreshSummonButtons;
+    }
+
+    /// <summary>
+    /// 召喚ボタンの有効/無効・色を更新する。
+    /// </summary>
+    public void RefreshSummonButtons()
+    {
+        if (SummonSystem == null || cachedUnitSetting == null) return;
+
+        foreach (var (btn, bg, kind) in summonButtons)
+        {
+            bool canSummon = SummonSystem.CanSummon(Team.Player, kind);
+            btn.interactable = canSummon;
+            bg.color = canSummon
+                ? new Color(0.2f, 0.25f, 0.45f, 1f)
+                : new Color(0.5f, 0.15f, 0.15f, 1f);
+        }
+    }
+
     // ==================================================================
     //  BuildScrollView（建築物一覧を生成）
     // ==================================================================
@@ -681,6 +718,28 @@ public class UIBuilder : MonoBehaviour
         return btn;
     }
 
+    // 召喚可能なユニット種別（Crystal/King/壁は除外）
+    private static readonly Kind[] SummonableKinds = {
+        Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
+        Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
+        Kind.Magicsniper, Kind.Bomber,
+    };
+
+    private static readonly System.Collections.Generic.Dictionary<Kind, string> KindDisplayNames
+        = new System.Collections.Generic.Dictionary<Kind, string>
+    {
+        { Kind.Knight,      "騎士" },
+        { Kind.Archer,      "弓兵" },
+        { Kind.Magic,       "魔法使い" },
+        { Kind.Assassin,    "暗殺者" },
+        { Kind.Scout,       "斥候" },
+        { Kind.Priest,      "司祭" },
+        { Kind.Guardian,    "守護者" },
+        { Kind.Crossbow,    "弩兵" },
+        { Kind.Magicsniper, "魔法狙撃" },
+        { Kind.Bomber,      "爆撃手" },
+    };
+
     private GameObject CreateScrollView(string name, RectTransform parent)
     {
         var go = new GameObject(name, typeof(RectTransform));
@@ -736,12 +795,34 @@ public class UIBuilder : MonoBehaviour
         sr.verticalScrollbar = CreateVerticalScrollbar(go.transform);
         sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
 
-        // プレースホルダーテキスト
-        var placeholder = CreateTMP("Placeholder", content.transform, "(準備中)", 16);
-        var phLE = placeholder.gameObject.AddComponent<LayoutElement>();
-        phLE.preferredHeight = 30;
+        // ユニット召喚ボタンを生成
+        foreach (var kind in SummonableKinds)
+        {
+            string displayName = KindDisplayNames.TryGetValue(kind, out string dn) ? dn : kind.ToString();
+            string label = $"{displayName}";
+            var btn = CreateButton("Summon_" + kind, content.transform,
+                label, 14, new Color(0.2f, 0.25f, 0.45f, 1f));
+
+            var le = btn.gameObject.AddComponent<LayoutElement>();
+            le.preferredHeight = 36;
+
+            var bg = btn.GetComponent<Image>();
+            summonButtons.Add((btn, bg, kind));
+
+            Kind captured = kind;
+            btn.onClick.AddListener(() => OnSummonButtonClicked(captured));
+        }
 
         return go;
+    }
+
+    private void OnSummonButtonClicked(Kind kind)
+    {
+        if (SummonSystem == null) return;
+
+        if (SlidePanel != null) SlidePanel.ClosePanel();
+
+        SummonSystem.StartSummonMode(kind);
     }
 
     private Scrollbar CreateVerticalScrollbar(Transform parent)
