@@ -11,6 +11,7 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] VisionGenerater _VisionGenerater;
     [SerializeField] APSystem _APSystem;
     [SerializeField] BuildSystem _BuildSystem;
+    [SerializeField] SummonSystem _SummonSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
     [Header("UI")]
@@ -83,6 +84,18 @@ public class GameGenerater : MonoBehaviour
             // UIBuilder の建築ボタンに BuildSystem を接続
             if (_uiBuilder != null)
                 _uiBuilder.InitBuildButtons(_BuildSystem, _APSystem, factionState);
+        }
+
+        // ---- SummonSystem 初期化 ----
+        if (_SummonSystem != null)
+        {
+            _SummonSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,
+                               factionState, _MoveGenerater, _MapCreate,
+                               _UnitSetting, _VisionGenerater);
+            _TurnGenerater.summonsystem = _SummonSystem;
+
+            if (_uiBuilder != null)
+                _uiBuilder.InitSummonButtons(_SummonSystem, _APSystem, factionState, _UnitSetting);
         }
 
         // ���� UI �� FactionState ��n�� ����������������������������������������������������

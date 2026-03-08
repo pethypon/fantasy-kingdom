@@ -111,6 +111,7 @@ public class SlidePanelUI : MonoBehaviour
         if (buildRoot != null) buildRoot.SetActive(false);
         if (unitRoot != null) unitRoot.SetActive(true);
         Open();
+        OnUnitPanelOpened?.Invoke();
     }
 
     // --------------------------------------------------
@@ -130,6 +131,7 @@ public class SlidePanelUI : MonoBehaviour
 
     public bool IsOpen => isOpen;
 
-    // ---- 建築パネルが開かれた時のコールバック ----
+    // ---- パネルが開かれた時のコールバック ----
     public Action OnBuildPanelOpened;
+    public Action OnUnitPanelOpened;
 }

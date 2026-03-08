@@ -23,6 +23,7 @@ public class PlayerMove : StateCore
 
     public bool MenuSwitch;
     private BuildSystem buildsystem;
+    private SummonSystem summonsystem;
     public Status Obj;
     public Vector3 ObjP;
     public Status MP;
@@ -36,6 +37,9 @@ public class PlayerMove : StateCore
 
     /// <summary>建築モード中かどうか（BuildSystem.IsActive を参照）</summary>
     public bool BuildMode => buildsystem != null && buildsystem.IsActive;
+
+    /// <summary>召喚モード中かどうか（SummonSystem.IsActive を参照）</summary>
+    public bool SummonMode => summonsystem != null && summonsystem.IsActive;
 
     public PlayerMove(
         TurnGenerater turngenerater,
@@ -61,6 +65,7 @@ public class PlayerMove : StateCore
         maxz = turngenerater.mapcreate.maxZ;
         this.unitset = unitset;
         this.buildsystem = turngenerater.buildsystem;
+        this.summonsystem = turngenerater.summonsystem;
     }
 
     public void Entry()
@@ -82,6 +87,13 @@ public class PlayerMove : StateCore
             return;
         }
 
+        if (SummonMode)
+        {
+            HandleSummonMode();
+            HandleTurnEnd();
+            return;
+        }
+
         HandleLeftClick();
         HandleRightClick();
         HandleTurnEnd();
@@ -92,6 +104,8 @@ public class PlayerMove : StateCore
     {
         if (buildsystem != null && buildsystem.IsActive)
             buildsystem.CancelBuildMode();
+        if (summonsystem != null && summonsystem.IsActive)
+            summonsystem.CancelSummonMode();
     }
 
     public void Reset()
@@ -102,6 +116,8 @@ public class PlayerMove : StateCore
         MenuSwitch = false;
         if (buildsystem != null && buildsystem.IsActive)
             buildsystem.CancelBuildMode();
+        if (summonsystem != null && summonsystem.IsActive)
+            summonsystem.CancelSummonMode();
     }
 
     // ---- 建築モード処理 ----
@@ -124,6 +140,27 @@ public class PlayerMove : StateCore
         if (turngenerater.RightClickDown)
         {
             buildsystem.CancelBuildMode();
+        }
+    }
+
+    // ---- 召喚モード処理 ----
+    private void HandleSummonMode()
+    {
+        if (summonsystem == null) return;
+
+        summonsystem.UpdateCursor();
+
+        if (turngenerater.LeftClickDown)
+        {
+            if (summonsystem.TryPlace())
+            {
+                RefreshVision();
+            }
+        }
+
+        if (turngenerater.RightClickDown)
+        {
+            summonsystem.CancelSummonMode();
         }
     }
 
