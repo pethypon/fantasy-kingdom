@@ -624,8 +624,12 @@ public class UIBuilder : MonoBehaviour
 
     private TMP_FontAsset LoadDefaultFont()
     {
-        // TMP のデフォルトフォントを読み込む
-        var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+        // NotoSansJP SDF を優先読み込み（日本語対応）
+        var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/NotoSansJP-VariableFont_wght SDF");
+        if (font != null) return font;
+
+        // フォールバック: LiberationSans SDF
+        font = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
         if (font == null)
             font = TMP_Settings.defaultFontAsset;
         return font;
