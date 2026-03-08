@@ -39,6 +39,13 @@ public class APPanelUI : MonoBehaviour
 
     private void Awake()
     {
+        // テキスト自動検索
+        if (apText == null)
+        {
+            var tmp = GetComponentInChildren<TextMeshProUGUI>(true);
+            if (tmp != null) apText = tmp;
+        }
+
         // RectTransform を右下にアンカー
         RectTransform rt = GetComponent<RectTransform>();
         if (rt != null)

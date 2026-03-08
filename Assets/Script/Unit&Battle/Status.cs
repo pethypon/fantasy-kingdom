@@ -24,8 +24,8 @@ public enum Kind
     Crossbow,
     Magicsniper,
     Bomber,
-    WoodWall,   // ƒtƒF[ƒY6‚Åg—p
-    StoneWall,  // ƒtƒF[ƒY6‚Åg—p
+    WoodWall,   // ï¿½tï¿½Fï¿½[ï¿½Y6ï¿½Ågï¿½p
+    StoneWall,  // ï¿½tï¿½Fï¿½[ï¿½Y6ï¿½Ågï¿½p
     None
 }
 
@@ -33,7 +33,7 @@ public enum Type
 {
     Unit,
     Building,
-    Wall,           // ƒtƒF[ƒY6‚Åg—p
+    Wall,           // ï¿½tï¿½Fï¿½[ï¿½Y6ï¿½Ågï¿½p
     MovePoint,
     AttackPoint
 }
@@ -66,37 +66,40 @@ public enum PassiveSkill
 
 public class Status : MonoBehaviour
 {
-    [Header("í—Ş")]
+    [Header("ï¿½ï¿½ï¿½")]
     [SerializeField] public Kind kind;
-    [Header("ƒ`[ƒ€")]
+    [Header("ï¿½`ï¿½[ï¿½ï¿½")]
     [SerializeField] public Team team;
-    [Header("‹î‚Ìƒ^ƒCƒv")]
+    [Header("ï¿½ï¿½Ìƒ^ï¿½Cï¿½v")]
     [SerializeField] public Type type;
-    [Header("ó‘Ô")]
+    [Header("ï¿½ï¿½ï¿½")]
     [SerializeField] public State state;
-    [Header("ƒXƒLƒ‹")]
+    [Header("ï¿½Xï¿½Lï¿½ï¿½")]
     [SerializeField] public Skill skill;
-    [Header("‹î‚ÌŒü‚«")]
+    [Header("ï¿½ï¿½ÌŒï¿½ï¿½ï¿½")]
     [SerializeField] public Direction direction;
-    [Header("ƒpƒbƒVƒuƒXƒLƒ‹")]
+    [Header("ï¿½pï¿½bï¿½Vï¿½uï¿½Xï¿½Lï¿½ï¿½")]
     [SerializeField] public PassiveSkill passiveskill;
-    [Header("ƒXƒe[ƒ^ƒX")]
+    [Header("ï¿½Xï¿½eï¿½[ï¿½^ï¿½X")]
     [SerializeField] public int HP;
     [SerializeField] public int ATK;
     [SerializeField] public int DEF;
-    [Header("ƒŒƒxƒ‹")]
+    [Header("ï¿½ï¿½ï¿½xï¿½ï¿½")]
     public int Level = 1;
-    [Header("‹î‚Ì‹ŠE")]
+    [Header("ï¿½ï¿½Ìï¿½ï¿½E")]
     [SerializeField] public HashSet<Vector3Int> VisionCell;
-    [Header("”æ˜J")]
+    [Header("ï¿½ï¿½J")]
     [SerializeField] public int Fatigue = 0;
+
+    [Header("å»ºç¯‰ç‰©ã®ç¨®é¡")]
+    public FacilityKind facilityKind;
 }
 
-// „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-//  ˆÈ‰º‚Ìenum‚ÍV‹Kƒtƒ@ƒCƒ‹‚ğì‚ç‚¸‚±‚±‚É’Ç‹L‚·‚éiİŒvŒ´‘¥1j
-// „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//  ï¿½È‰ï¿½ï¿½ï¿½enumï¿½ÍVï¿½Kï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç‚¸ï¿½ï¿½ï¿½ï¿½ï¿½É’Ç‹Lï¿½ï¿½ï¿½ï¿½iï¿½İŒvï¿½ï¿½ï¿½ï¿½1ï¿½j
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-// Œš•¨‚Ìí•ÊiFacilityData ‚Æ EconomySystem ‚Åg—pj
+// ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ÊiFacilityData ï¿½ï¿½ EconomySystem ï¿½Ågï¿½pï¿½j
 public enum FacilityKind
 {
     Field, Bakery, LoggingCamp, LumberMill,
@@ -106,7 +109,7 @@ public enum FacilityKind
     Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword
 }
 
-// ‘Œ¹‚Ìí•ÊiFacilityData ‚Æ EconomySystem ‚Åg—pj
+// ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ÊiFacilityData ï¿½ï¿½ EconomySystem ï¿½Ågï¿½pï¿½j
 public enum ResourceKind
 {
     Wood, Stone, IronOre, Iron, MagicOre, Coal,

@@ -16,6 +16,17 @@ public class TopBarUI : MonoBehaviour
 
     private int lastTurn = -1;
 
+    private void Awake()
+    {
+        if (turnGenerater == null)
+            turnGenerater = Object.FindFirstObjectByType<TurnGenerater>();
+        if (turnText == null)
+        {
+            var tmp = GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+            if (tmp != null) turnText = tmp;
+        }
+    }
+
     private void Update()
     {
         UpdateTurn();

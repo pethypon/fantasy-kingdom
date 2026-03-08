@@ -49,7 +49,47 @@ public class UnitPanelUI : MonoBehaviour
         if (panelRoot == null)
             panelRoot = gameObject;
 
+        AutoFindChildren();
+        AutoFindReferences();
+
         Hide();
+    }
+
+    private void AutoFindChildren()
+    {
+        if (nameText == null) nameText = FindTMP("NameText");
+        if (levelText == null) levelText = FindTMP("LevelText");
+        if (hpText == null) hpText = FindTMP("HPText");
+        if (atkText == null) atkText = FindTMP("ATKText");
+        if (defText == null) defText = FindTMP("DEFText");
+        if (kindText == null) kindText = FindTMP("KindText");
+        if (passiveText == null) passiveText = FindTMP("PassiveText");
+        if (attackButton == null) attackButton = FindButton("AttackBtn");
+        if (skillButton == null) skillButton = FindButton("SkillBtn");
+        if (waitButton == null) waitButton = FindButton("WaitBtn");
+        if (cancelButton == null) cancelButton = FindButton("CancelBtn");
+    }
+
+    private void AutoFindReferences()
+    {
+        if (turnGenerater == null)
+            turnGenerater = Object.FindFirstObjectByType<TurnGenerater>();
+        if (apSystem == null)
+            apSystem = Object.FindFirstObjectByType<APSystem>();
+    }
+
+    private TextMeshProUGUI FindTMP(string childName)
+    {
+        foreach (var tmp in GetComponentsInChildren<TextMeshProUGUI>(true))
+            if (tmp.gameObject.name == childName) return tmp;
+        return null;
+    }
+
+    private Button FindButton(string childName)
+    {
+        foreach (var btn in GetComponentsInChildren<Button>(true))
+            if (btn.gameObject.name == childName) return btn;
+        return null;
     }
 
     // --------------------------------------------------

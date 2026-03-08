@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -32,11 +33,32 @@ public class SlidePanelUI : MonoBehaviour
 
     private void Start()
     {
+        AutoFindChildren();
+
+        if (panelRect == null) return;
+
         targetPos = new Vector2(closedX, panelRect.anchoredPosition.y);
         panelRect.anchoredPosition = targetPos;
 
         if (buildRoot != null) buildRoot.SetActive(false);
         if (unitRoot != null) unitRoot.SetActive(false);
+    }
+
+    private void AutoFindChildren()
+    {
+        if (panelRect == null)
+            panelRect = GetComponent<RectTransform>();
+
+        if (buildRoot == null)
+        {
+            var t = transform.Find("BuildScrollView");
+            if (t != null) buildRoot = t.gameObject;
+        }
+        if (unitRoot == null)
+        {
+            var t = transform.Find("UnitScrollView");
+            if (t != null) unitRoot = t.gameObject;
+        }
     }
 
     private void Update()
@@ -68,6 +90,7 @@ public class SlidePanelUI : MonoBehaviour
         if (buildRoot != null) buildRoot.SetActive(true);
         if (unitRoot != null) unitRoot.SetActive(false);
         Open();
+        OnBuildPanelOpened?.Invoke();
     }
 
     // --------------------------------------------------
@@ -106,4 +129,7 @@ public class SlidePanelUI : MonoBehaviour
     }
 
     public bool IsOpen => isOpen;
+
+    // ---- 建築パネルが開かれた時のコールバック ----
+    public Action OnBuildPanelOpened;
 }

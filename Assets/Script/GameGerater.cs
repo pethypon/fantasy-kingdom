@@ -10,11 +10,13 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] MoveGererater _MoveGenerater;
     [SerializeField] VisionGenerater _VisionGenerater;
     [SerializeField] APSystem _APSystem;
+    [SerializeField] BuildSystem _BuildSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
     [Header("UI")]
     [SerializeField] APPanelUI _APPanelUI;
     [SerializeField] ResourceBarUI _ResourceBarUI;
+    private UIBuilder _uiBuilder;
 
     [Header("Crystal �e�I�u�W�F�N�g")]
     [SerializeField] Transform _PlayerCrystal;
@@ -26,6 +28,20 @@ public class GameGenerater : MonoBehaviour
 
     void Awake()
     {
+        // ---- UIBuilder の生成・取得 ----
+        _uiBuilder = Object.FindFirstObjectByType<UIBuilder>();
+        if (_uiBuilder == null)
+        {
+            var uiGo = new GameObject("UIBuilder");
+            _uiBuilder = uiGo.AddComponent<UIBuilder>();
+        }
+
+        // UIBuilder が生成した UI パネルを取得
+        if (_APPanelUI == null && _uiBuilder.APPanel != null)
+            _APPanelUI = _uiBuilder.APPanel;
+        if (_ResourceBarUI == null && _uiBuilder.ResourceBar != null)
+            _ResourceBarUI = _uiBuilder.ResourceBar;
+
         // ���� �n�`�E�N���X�^������ ��������������������������������������������������������������������������
         _MapCreate.noisegenerater();
         _MapCreate.BuildTop();
@@ -56,6 +72,18 @@ public class GameGenerater : MonoBehaviour
         if (factionState == null)
             Debug.LogError("[GameGenerater] FactionState �� PlayerCrystal �̎q�Ɍ�����܂���");
         _APSystem.Init(factionState);
+
+        // ---- BuildSystem 初期化 ----
+        if (_BuildSystem != null)
+        {
+            _BuildSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,
+                              factionState, _MoveGenerater, _MapCreate);
+            _TurnGenerater.buildsystem = _BuildSystem;
+
+            // UIBuilder の建築ボタンに BuildSystem を接続
+            if (_uiBuilder != null)
+                _uiBuilder.InitBuildButtons(_BuildSystem, _APSystem, factionState);
+        }
 
         // ���� UI �� FactionState ��n�� ����������������������������������������������������
         if (_APPanelUI != null) _APPanelUI.Init(factionState);
