@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,9 +17,16 @@ public class UIBuilder : MonoBehaviour
     public TopBarUI TopBar { get; private set; }
     public APPanelUI APPanel { get; private set; }
     public ResourceBarUI ResourceBar { get; private set; }
+    public BuildSystem BuildSystem { get; private set; }
 
     private Canvas canvas;
     private TMP_FontAsset defaultFont;
+
+    // 建築ボタン管理用
+    private readonly List<(Button btn, Image bg, FacilityKind kind)> buildButtons
+        = new List<(Button, Image, FacilityKind)>();
+    private APSystem cachedAPSystem;
+    private FactionState cachedFactionState;
 
     private void Awake()
     {
@@ -185,7 +193,7 @@ public class UIBuilder : MonoBehaviour
         closeBtnRT.anchoredPosition = Vector2.zero;
 
         // ---- BuildScrollView ----
-        var buildRoot = CreateScrollView("BuildScrollView", panel);
+        var buildRoot = CreateBuildScrollView("BuildScrollView", panel);
         var buildRootRT = buildRoot.GetComponent<RectTransform>();
         StretchFill(buildRootRT);
         buildRootRT.offsetMin = new Vector2(4, 4);
@@ -327,6 +335,133 @@ public class UIBuilder : MonoBehaviour
             // GameGenerater の UI フィールドに値を注入
             SetSerializedField(gameGen, "_APPanelUI", APPanel);
             SetSerializedField(gameGen, "_ResourceBarUI", ResourceBar);
+        }
+    }
+
+    /// <summary>
+    /// BuildSystem と FactionState の参照を受け取り、建築ボタンの有効/無効を制御可能にする。
+    /// GameGenerater.Awake() から呼ばれる。
+    /// </summary>
+    public void InitBuildButtons(BuildSystem bs, APSystem ap, FactionState fs)
+    {
+        BuildSystem = bs;
+        cachedAPSystem = ap;
+        cachedFactionState = fs;
+
+        // スライドパネルが開かれるたびにボタン状態を更新
+        if (SlidePanel != null)
+            SlidePanel.OnBuildPanelOpened += RefreshBuildButtons;
+    }
+
+    /// <summary>
+    /// 建築ボタンの有効/無効・色を更新する。
+    /// </summary>
+    public void RefreshBuildButtons()
+    {
+        if (cachedAPSystem == null || cachedFactionState == null) return;
+
+        foreach (var (btn, bg, kind) in buildButtons)
+        {
+            bool canBuild = cachedAPSystem.CanBuild(Team.Player, kind, cachedFactionState);
+            btn.interactable = canBuild;
+            bg.color = canBuild
+                ? new Color(0.2f, 0.35f, 0.2f, 1f)
+                : new Color(0.5f, 0.15f, 0.15f, 1f);
+        }
+    }
+
+    // ==================================================================
+    //  BuildScrollView（建築物一覧を生成）
+    // ==================================================================
+    private GameObject CreateBuildScrollView(string name, RectTransform parent)
+    {
+        var go = new GameObject(name, typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        var rt = go.GetComponent<RectTransform>();
+        StretchFill(rt);
+
+        var scrollImg = go.AddComponent<Image>();
+        scrollImg.color = new Color(0.12f, 0.12f, 0.12f, 0.5f);
+
+        // Viewport
+        var viewport = new GameObject("Viewport", typeof(RectTransform));
+        viewport.transform.SetParent(go.transform, false);
+        var vpRT = viewport.GetComponent<RectTransform>();
+        StretchFill(vpRT);
+        var vpImg = viewport.AddComponent<Image>();
+        vpImg.color = Color.white;
+        var mask = viewport.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        // Content
+        var content = new GameObject("Content", typeof(RectTransform));
+        content.transform.SetParent(viewport.transform, false);
+        var contentRT = content.GetComponent<RectTransform>();
+        contentRT.anchorMin = new Vector2(0, 1);
+        contentRT.anchorMax = new Vector2(1, 1);
+        contentRT.pivot = new Vector2(0.5f, 1);
+        contentRT.sizeDelta = new Vector2(0, 400);
+
+        var vlg = content.AddComponent<VerticalLayoutGroup>();
+        vlg.spacing = 4;
+        vlg.padding = new RectOffset(4, 4, 4, 4);
+        vlg.childControlWidth = true;
+        vlg.childControlHeight = false;
+        vlg.childForceExpandWidth = true;
+        vlg.childForceExpandHeight = false;
+
+        var csf = content.AddComponent<ContentSizeFitter>();
+        csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        // ScrollRect
+        var sr = go.AddComponent<ScrollRect>();
+        sr.viewport = vpRT;
+        sr.content = contentRT;
+        sr.horizontal = false;
+        sr.vertical = true;
+        sr.movementType = ScrollRect.MovementType.Clamped;
+
+        // 建築物ボタンを生成
+        foreach (var kvp in FacilityData.Table)
+        {
+            var facility = kvp.Key;
+            var info = kvp.Value;
+
+            string label = $"{info.DisplayName}  AP:{info.APCost}";
+            var btn = CreateButton("Build_" + facility, content.transform,
+                label, 14, new Color(0.2f, 0.35f, 0.2f, 1f));
+
+            var btnRT = btn.GetComponent<RectTransform>();
+            var le = btn.gameObject.AddComponent<LayoutElement>();
+            le.preferredHeight = 36;
+
+            var bg = btn.GetComponent<Image>();
+            buildButtons.Add((btn, bg, facility));
+
+            // クリック時: BuildSystem に通知してパネルを閉じる
+            FacilityKind captured = facility;
+            btn.onClick.AddListener(() => OnBuildButtonClicked(captured));
+        }
+
+        return go;
+    }
+
+    private void OnBuildButtonClicked(FacilityKind facility)
+    {
+        if (BuildSystem == null) return;
+
+        // パネルを閉じる
+        if (SlidePanel != null) SlidePanel.ClosePanel();
+
+        // 建築モード開始
+        BuildSystem.StartBuildMode(facility);
+
+        // PlayerMove の BuildMode を有効にする
+        var turnGen = Object.FindFirstObjectByType<TurnGenerater>();
+        if (turnGen != null)
+        {
+            // 現在のステートが PlayerMove であることを前提にフラグを設定
+            // BuildSystem.IsActive で PlayerMove.Update 内で判定する
         }
     }
 

@@ -40,6 +40,9 @@ public class TurnGenerater : MonoBehaviour
     [Header("APシステム")]
     [SerializeField] public APSystem apsystem;
 
+    [Header("建築システム")]
+    [SerializeField] public BuildSystem buildsystem;
+
     [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 

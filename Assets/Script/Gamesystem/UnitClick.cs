@@ -24,6 +24,7 @@ public class UnitClick : MonoBehaviour
     // ---- 左クリック：プレイヤーユニット選択 ----
     public void Click1()
     {
+        if (playermove != null && playermove.BuildMode) return;
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;
 
@@ -48,6 +49,7 @@ public class UnitClick : MonoBehaviour
     // ---- 左クリック（移動確定 or 再選択） ----
     public void Click2()
     {
+        if (playermove != null && playermove.BuildMode) return;
         Debug.Log("Click2処理開始");
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;

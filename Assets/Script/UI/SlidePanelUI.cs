@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -89,6 +90,7 @@ public class SlidePanelUI : MonoBehaviour
         if (buildRoot != null) buildRoot.SetActive(true);
         if (unitRoot != null) unitRoot.SetActive(false);
         Open();
+        OnBuildPanelOpened?.Invoke();
     }
 
     // --------------------------------------------------
@@ -127,4 +129,7 @@ public class SlidePanelUI : MonoBehaviour
     }
 
     public bool IsOpen => isOpen;
+
+    // ---- 建築パネルが開かれた時のコールバック ----
+    public Action OnBuildPanelOpened;
 }

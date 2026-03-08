@@ -22,6 +22,7 @@ public class PlayerMove : StateCore
     public UnitSetting unitset;
 
     public bool MenuSwitch;
+    private BuildSystem buildsystem;
     public Status Obj;
     public Vector3 ObjP;
     public Status MP;
@@ -32,6 +33,9 @@ public class PlayerMove : StateCore
     public RaycastHit hit;
     public Vector3 oldcell;
     public Vector3 newcell;
+
+    /// <summary>建築モード中かどうか（BuildSystem.IsActive を参照）</summary>
+    public bool BuildMode => buildsystem != null && buildsystem.IsActive;
 
     public PlayerMove(
         TurnGenerater turngenerater,
@@ -56,6 +60,7 @@ public class PlayerMove : StateCore
         maxx = turngenerater.mapcreate.maxX;
         maxz = turngenerater.mapcreate.maxZ;
         this.unitset = unitset;
+        this.buildsystem = turngenerater.buildsystem;
     }
 
     public void Entry()
@@ -69,6 +74,14 @@ public class PlayerMove : StateCore
     {
         UpdateCameraMove();
         UpdateCameraZoom();
+
+        if (BuildMode)
+        {
+            HandleBuildMode();
+            HandleTurnEnd();
+            return;
+        }
+
         HandleLeftClick();
         HandleRightClick();
         HandleTurnEnd();
@@ -77,6 +90,8 @@ public class PlayerMove : StateCore
 
     public void Exit()
     {
+        if (buildsystem != null && buildsystem.IsActive)
+            buildsystem.CancelBuildMode();
     }
 
     public void Reset()
@@ -85,6 +100,31 @@ public class PlayerMove : StateCore
         Obj = null;
         MP = null;
         MenuSwitch = false;
+        if (buildsystem != null && buildsystem.IsActive)
+            buildsystem.CancelBuildMode();
+    }
+
+    // ---- 建築モード処理 ----
+    private void HandleBuildMode()
+    {
+        if (buildsystem == null) return;
+
+        buildsystem.UpdateCursor();
+
+        // 左クリック: 設置試行
+        if (turngenerater.LeftClickDown)
+        {
+            if (buildsystem.TryPlace())
+            {
+                RefreshVision();
+            }
+        }
+
+        // 右クリック: 建築モード解除
+        if (turngenerater.RightClickDown)
+        {
+            buildsystem.CancelBuildMode();
+        }
     }
 
     // ---- カメラ移動 ----

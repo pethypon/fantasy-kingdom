@@ -10,6 +10,7 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] MoveGererater _MoveGenerater;
     [SerializeField] VisionGenerater _VisionGenerater;
     [SerializeField] APSystem _APSystem;
+    [SerializeField] BuildSystem _BuildSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
     [Header("UI")]
@@ -71,6 +72,18 @@ public class GameGenerater : MonoBehaviour
         if (factionState == null)
             Debug.LogError("[GameGenerater] FactionState �� PlayerCrystal �̎q�Ɍ�����܂���");
         _APSystem.Init(factionState);
+
+        // ---- BuildSystem 初期化 ----
+        if (_BuildSystem != null)
+        {
+            _BuildSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,
+                              factionState, _MoveGenerater, _MapCreate);
+            _TurnGenerater.buildsystem = _BuildSystem;
+
+            // UIBuilder の建築ボタンに BuildSystem を接続
+            if (_uiBuilder != null)
+                _uiBuilder.InitBuildButtons(_BuildSystem, _APSystem, factionState);
+        }
 
         // ���� UI �� FactionState ��n�� ����������������������������������������������������
         if (_APPanelUI != null) _APPanelUI.Init(factionState);
