@@ -47,7 +47,7 @@ public class UIBuilder : MonoBehaviour
     private void BuildCanvas()
     {
         var go = new GameObject("UICanvas");
-        go.transform.SetParent(transform);
+        // ScreenSpaceOverlay Canvas はルートに置く（親の Transform に影響されないようにする）
         canvas = go.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
