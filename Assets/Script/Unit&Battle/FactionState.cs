@@ -2,19 +2,19 @@ using UnityEngine;
 
 public class FactionState : MonoBehaviour
 {
-    // „Ÿ„Ÿ„Ÿ AP ƒf[ƒ^ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== AP ãƒ‡ãƒ¼ã‚¿ ====
     [System.Serializable]
     public class APData
     {
-        [Header("Œ»Ý‚Ì AP")] public int Current = 15;
-        [Header("ƒŠƒZƒbƒg’l")] public int Reset = 15;
-        [Header("ƒ{[ƒiƒX")] public int Plus = 0;
-        [Header("ƒyƒiƒ‹ƒeƒB")] public int Minus = 0;
+        [Header("ç¾åœ¨ã® AP")] public int Current = 15;
+        [Header("ãƒªã‚»ãƒƒãƒˆå€¤")] public int Reset = 15;
+        [Header("ãƒœãƒ¼ãƒŠã‚¹")] public int Plus = 0;
+        [Header("ãƒšãƒŠãƒ«ãƒ†ã‚£")] public int Minus = 0;
 
         public void ResetForTurn() => Current = Reset + Plus - Minus;
     }
 
-    // „Ÿ„Ÿ„Ÿ Ž‘Œ¹ƒf[ƒ^ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== è³‡æºãƒ‡ãƒ¼ã‚¿ ====
     [System.Serializable]
     public class ResourceData
     {
@@ -27,12 +27,12 @@ public class FactionState : MonoBehaviour
         public int Wheat;
         public int Bread;
         public int Water;
-        public int Plank;       // ’Ç‰ÁiGameReference ‰Šú”z•zŽ‘Œ¹j
-        public int CutStone;    // ’Ç‰ÁiGameReference ‰Šú”z•zŽ‘Œ¹j
+        public int Plank;       // è¿½åŠ ï¼ˆGameReference æº–æ‹ é…å¸ƒè³‡æºï¼‰
+        public int CutStone;    // è¿½åŠ ï¼ˆGameReference æº–æ‹ é…å¸ƒè³‡æºï¼‰
         public int Citizen;
     }
 
-    // „Ÿ„Ÿ„Ÿ Inspector Ý’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== Inspector è¨­å®š ====
     [Header("Player")]
     [SerializeField] public APData PlayerAP = new APData();
     [SerializeField] public ResourceData PlayerResources = new ResourceData();
@@ -41,13 +41,13 @@ public class FactionState : MonoBehaviour
     [SerializeField] public APData EnemyAP = new APData();
     [SerializeField] public ResourceData EnemyResources = new ResourceData();
 
-    // „Ÿ„Ÿ„Ÿ AP Žæ“¾ / Ý’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== AP å–å¾— / è¨­å®š ====
     private APData GetAPData(Team team) => team == Team.Player ? PlayerAP : EnemyAP;
 
     public int GetAP(Team team) => GetAPData(team).Current;
     public void SetAP(Team team, int value) => GetAPData(team).Current = value;
     public void ModifyAP(Team team, int delta) => GetAPData(team).Current += delta;
 
-    // „Ÿ„Ÿ„Ÿ ƒ^[ƒ“ŠJŽnŽž AP ƒŠƒZƒbƒg „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ã‚¿ãƒ¼ãƒ³é–‹å§‹æ™‚ AP ãƒªã‚»ãƒƒãƒˆ ====
     public void ResetAPForTurn(Team team) => GetAPData(team).ResetForTurn();
 }
