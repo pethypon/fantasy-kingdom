@@ -12,6 +12,7 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] APSystem _APSystem;
     [SerializeField] BuildSystem _BuildSystem;
     [SerializeField] SummonSystem _SummonSystem;
+    [SerializeField] EconomySystem _EconomySystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
     [Header("UI")]
@@ -96,6 +97,13 @@ public class GameGenerater : MonoBehaviour
 
             if (_uiBuilder != null)
                 _uiBuilder.InitSummonButtons(_SummonSystem, _APSystem, factionState, _UnitSetting);
+        }
+
+        // ---- EconomySystem 初期化 ----
+        if (_EconomySystem != null)
+        {
+            _EconomySystem.Init(_BuildSystem, factionState);
+            _TurnGenerater.economysystem = _EconomySystem;
         }
 
         // ==== UI に FactionState を渡す ====

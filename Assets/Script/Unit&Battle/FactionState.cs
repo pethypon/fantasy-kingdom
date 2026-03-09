@@ -50,4 +50,35 @@ public class FactionState : MonoBehaviour
 
     // ==== ターン開始時 AP リセット ====
     public void ResetAPForTurn(Team team) => GetAPData(team).ResetForTurn();
+
+    // ==== 資源上限の基本値（倉庫なしの場合の上限） ====
+    public const int BaseResourceCap = 200;
+
+    // ==== 経済システムが毎ターン書き込む値 ====
+    [HideInInspector] public int PlayerCitizenCapacity;
+    [HideInInspector] public int PlayerResourceCapacity;
+    [HideInInspector] public int PlayerBarracksXP;
+
+    [HideInInspector] public int EnemyCitizenCapacity;
+    [HideInInspector] public int EnemyResourceCapacity;
+    [HideInInspector] public int EnemyBarracksXP;
+
+    // ==== 実効資源上限 ====
+    public int GetResourceCap(Team team)
+    {
+        int bonus = team == Team.Player ? PlayerResourceCapacity : EnemyResourceCapacity;
+        return BaseResourceCap + bonus;
+    }
+
+    // ==== 実効市民収容 ====
+    public int GetCitizenCap(Team team)
+    {
+        return team == Team.Player ? PlayerCitizenCapacity : EnemyCitizenCapacity;
+    }
+
+    // ==== 兵舎経験値ボーナス% ====
+    public int GetBarracksXP(Team team)
+    {
+        return team == Team.Player ? PlayerBarracksXP : EnemyBarracksXP;
+    }
 }
