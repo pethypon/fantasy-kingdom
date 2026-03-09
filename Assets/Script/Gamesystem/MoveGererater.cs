@@ -128,8 +128,6 @@ public class MoveGererater : MonoBehaviour
             return;
         }
 
-        Debug.Log($"<color=#00ff00ff>[Controller]</color>{obj.kind}");
-
         MoveUnitP = setpos.Where(p =>
         {
             float dx = p.x - objp.x;
@@ -149,7 +147,6 @@ public class MoveGererater : MonoBehaviour
             Vector3 pos = MoveUnitP[i];
             pos.y -= 0.47f;
             Instantiate(MovePoint, pos, Quaternion.identity, Move);
-            Debug.Log("<color=#00ff00ff>[Controller]</color>MovePoint");
         }
     }
 

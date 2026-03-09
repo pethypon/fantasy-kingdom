@@ -61,20 +61,20 @@ public class UnitClick : MonoBehaviour
         if (turngenerater.unitPanelUI != null)
             turngenerater.unitPanelUI.Show(playermove.Obj);
 
-        Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
+        // ユニット選択成功
     }
 
     // ---- 左クリック（移動確定 or 再選択） ----
     public void Click2()
     {
         if (playermove != null && playermove.BuildMode) return;
-        Debug.Log("Click2処理開始");
+        // Click2処理
         if (!TryGetMouseRay(out Ray ray)) return;
 
         // MovePoint レイヤーのみ検出（他オブジェクトは貫通、一定距離で打ち切り）
         if (Physics.Raycast(ray, out playermove.hit, MovePointRayDistance, MovePointLayerMask))
         {
-            Debug.Log("Click2（MovePointレイヤーにヒット）");
+            // MovePointレイヤーにヒット
             HandleMovePointClick();
             return;
         }
@@ -130,7 +130,7 @@ public class UnitClick : MonoBehaviour
     // ---- 移動先(MovePoint)クリック時の処理 ----
     private void HandleMovePointClick()
     {
-        Debug.Log("<color=#00ff00ff>[Controller]</color> OK2");
+        // 移動先クリック確定
 
         Vector3 from = turngenerater.OldCell;           // 移動元（選択時に記録済み）
         Vector3 to = playermove.hit.transform.position;
@@ -175,7 +175,7 @@ public class UnitClick : MonoBehaviour
         if (turngenerater.unitPanelUI != null)
             turngenerater.unitPanelUI.Show(playermove.Obj);
 
-        Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
+        // ユニット選択成功
     }
 
     // ---- マウス位置からRayを生成（新入力システム対応） ----
