@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// 建築物の制作コスト・ステータスを静的に定義する。
-/// Phase1: Lv1 の制作コストとステータスのみ。
+/// 建築物の制作コスト・ステータス・生産レシピを静的に定義する。
 /// </summary>
 public static class FacilityData
 {
-    // ---- リソースコスト ----
+    // ---- リソースコスト（建築時消費用、8種） ----
     public struct ResourceCost
     {
         public int Wood;
@@ -27,6 +26,37 @@ public static class FacilityData
         }
     }
 
+    // ---- 生産バンドル（毎ターン生産用、全12種対応） ----
+    public struct ProductionBundle
+    {
+        public int Wood;
+        public int Stone;
+        public int Coal;
+        public int IronOre;
+        public int Iron;
+        public int MagicOre;
+        public int Wheat;
+        public int Bread;
+        public int Water;
+        public int Plank;
+        public int CutStone;
+        public int Citizen;
+
+        public bool IsEmpty =>
+            Wood == 0 && Stone == 0 && Coal == 0 && IronOre == 0 &&
+            Iron == 0 && MagicOre == 0 && Wheat == 0 && Bread == 0 &&
+            Water == 0 && Plank == 0 && CutStone == 0 && Citizen == 0;
+    }
+
+    // ---- 生産レシピ（毎ターン消費→産出） ----
+    public struct ProductionRecipe
+    {
+        public ProductionBundle Input;
+        public ProductionBundle Output;
+
+        public bool HasProduction => !Output.IsEmpty;
+    }
+
     // ---- 建築物情報 ----
     public struct FacilityInfo
     {
@@ -36,12 +66,15 @@ public static class FacilityData
         public int ATK;
         public ResourceCost BuildCost;
         public string DisplayName;
+        public ProductionRecipe Production;
 
-        public FacilityInfo(string displayName, int ap, int hp, int def, int atk, ResourceCost cost)
+        public FacilityInfo(string displayName, int ap, int hp, int def, int atk,
+                            ResourceCost cost, ProductionRecipe production = default)
         {
             DisplayName = displayName;
             APCost = ap; HP = hp; DEF = def; ATK = atk;
             BuildCost = cost;
+            Production = production;
         }
     }
 
@@ -50,28 +83,76 @@ public static class FacilityData
         new Dictionary<FacilityKind, FacilityInfo>
     {
         // ---- 生産建物 ----
+        // 畑: 水5消費 → 小麦8生産
         { FacilityKind.Field,       new FacilityInfo("畑",       3, 100, 0, 0,
-            new ResourceCost(wood: 20, water: 10, citizen: 1)) },
+            new ResourceCost(wood: 20, water: 10, citizen: 1),
+            new ProductionRecipe {
+                Input  = new ProductionBundle { Water = 5 },
+                Output = new ProductionBundle { Wheat = 8 }
+            }) },
+        // パン屋: 小麦6消費 → パン4生産
         { FacilityKind.Bakery,      new FacilityInfo("パン屋",    5, 100, 0, 0,
-            new ResourceCost(wood: 40, stone: 25, water: 5, citizen: 1)) },
+            new ResourceCost(wood: 40, stone: 25, water: 5, citizen: 1),
+            new ProductionRecipe {
+                Input  = new ProductionBundle { Wheat = 6 },
+                Output = new ProductionBundle { Bread = 4 }
+            }) },
+        // 伐採所: → 木材10生産
         { FacilityKind.LoggingCamp, new FacilityInfo("伐採所",    4, 100, 0, 0,
-            new ResourceCost(wood: 35, water: 20, citizen: 1)) },
+            new ResourceCost(wood: 35, water: 20, citizen: 1),
+            new ProductionRecipe {
+                Output = new ProductionBundle { Wood = 10 }
+            }) },
+        // 製材所: 木材8消費 → 板材5生産
         { FacilityKind.LumberMill,  new FacilityInfo("製材所",    6, 100, 0, 0,
-            new ResourceCost(wood: 70, stone: 40, cutStone: 15, citizen: 1)) },
+            new ResourceCost(wood: 70, stone: 40, cutStone: 15, citizen: 1),
+            new ProductionRecipe {
+                Input  = new ProductionBundle { Wood = 8 },
+                Output = new ProductionBundle { Plank = 5 }
+            }) },
+        // 採石場: → 石材10生産
         { FacilityKind.Quarry,      new FacilityInfo("採石場",    4, 100, 0, 0,
-            new ResourceCost(wood: 25, stone: 45, citizen: 1)) },
+            new ResourceCost(wood: 25, stone: 45, citizen: 1),
+            new ProductionRecipe {
+                Output = new ProductionBundle { Stone = 10 }
+            }) },
+        // 石材加工所: 石材8消費 → 切石5生産
         { FacilityKind.StoneWorks,  new FacilityInfo("石材加工所", 6, 100, 0, 0,
-            new ResourceCost(wood: 40, stone: 70, plank: 15, citizen: 1)) },
+            new ResourceCost(wood: 40, stone: 70, plank: 15, citizen: 1),
+            new ProductionRecipe {
+                Input  = new ProductionBundle { Stone = 8 },
+                Output = new ProductionBundle { CutStone = 5 }
+            }) },
+        // 鉱山: → 鉄鉱石4, 石炭3生産
         { FacilityKind.Mine,        new FacilityInfo("鉱山",     7, 100, 0, 0,
-            new ResourceCost(wood: 50, stone: 90, plank: 15, cutStone: 15, citizen: 1)) },
+            new ResourceCost(wood: 50, stone: 90, plank: 15, cutStone: 15, citizen: 1),
+            new ProductionRecipe {
+                Output = new ProductionBundle { IronOre = 4, Coal = 3 }
+            }) },
+        // 精錬所: 鉄鉱石4, 石炭2消費 → 鉄3生産
         { FacilityKind.Smelter,     new FacilityInfo("精錬所",    7, 100, 0, 0,
-            new ResourceCost(wood: 20, stone: 30, cutStone: 50, citizen: 1)) },
+            new ResourceCost(wood: 20, stone: 30, cutStone: 50, citizen: 1),
+            new ProductionRecipe {
+                Input  = new ProductionBundle { IronOre = 4, Coal = 2 },
+                Output = new ProductionBundle { Iron = 3 }
+            }) },
+        // 井戸: → 水8生産
         { FacilityKind.Well,        new FacilityInfo("井戸",     3, 100, 0, 0,
-            new ResourceCost(wood: 20, stone: 30)) },
+            new ResourceCost(wood: 20, stone: 30),
+            new ProductionRecipe {
+                Output = new ProductionBundle { Water = 8 }
+            }) },
+        // 兵舎: AP+2ボーナス（生産なし、EconomySystem で処理）
         { FacilityKind.Barracks,    new FacilityInfo("兵舎",     10, 100, 0, 0,
             new ResourceCost(wood: 100, stone: 100, iron: 30, water: 50, plank: 40, cutStone: 40, citizen: 3)) },
+        // 家: パン2消費 → 市民1生産
         { FacilityKind.House,       new FacilityInfo("家",       7, 100, 0, 0,
-            new ResourceCost(wood: 60, stone: 60, water: 10, plank: 25, cutStone: 25)) },
+            new ResourceCost(wood: 60, stone: 60, water: 10, plank: 25, cutStone: 25),
+            new ProductionRecipe {
+                Input  = new ProductionBundle { Bread = 2 },
+                Output = new ProductionBundle { Citizen = 1 }
+            }) },
+        // 倉庫: 生産なし（将来的に資源上限増加）
         { FacilityKind.Warehouse,   new FacilityInfo("倉庫",     7, 100, 0, 0,
             new ResourceCost(plank: 60, cutStone: 60)) },
 
@@ -94,7 +175,7 @@ public static class FacilityData
             new ResourceCost(iron: 150, magicOre: 80, plank: 50, cutStone: 50)) },
     };
 
-    // ---- リソース充足チェック ----
+    // ---- リソース充足チェック（建築コスト用） ----
     public static bool CanAfford(FactionState.ResourceData res, ResourceCost cost)
     {
         return res.Wood     >= cost.Wood
@@ -107,7 +188,24 @@ public static class FacilityData
             && res.Citizen  >= cost.Citizen;
     }
 
-    // ---- リソース消費 ----
+    // ---- リソース充足チェック（生産入力用） ----
+    public static bool CanAffordProduction(FactionState.ResourceData res, ProductionBundle cost)
+    {
+        return res.Wood     >= cost.Wood
+            && res.Stone    >= cost.Stone
+            && res.Coal     >= cost.Coal
+            && res.IronOre  >= cost.IronOre
+            && res.Iron     >= cost.Iron
+            && res.MagicOre >= cost.MagicOre
+            && res.Wheat    >= cost.Wheat
+            && res.Bread    >= cost.Bread
+            && res.Water    >= cost.Water
+            && res.Plank    >= cost.Plank
+            && res.CutStone >= cost.CutStone
+            && res.Citizen  >= cost.Citizen;
+    }
+
+    // ---- リソース消費（建築コスト用） ----
     public static void Consume(FactionState.ResourceData res, ResourceCost cost)
     {
         res.Wood     -= cost.Wood;
@@ -118,6 +216,40 @@ public static class FacilityData
         res.Plank    -= cost.Plank;
         res.CutStone -= cost.CutStone;
         res.Citizen  -= cost.Citizen;
+    }
+
+    // ---- 生産バンドル消費 ----
+    public static void ConsumeProduction(FactionState.ResourceData res, ProductionBundle cost)
+    {
+        res.Wood     -= cost.Wood;
+        res.Stone    -= cost.Stone;
+        res.Coal     -= cost.Coal;
+        res.IronOre  -= cost.IronOre;
+        res.Iron     -= cost.Iron;
+        res.MagicOre -= cost.MagicOre;
+        res.Wheat    -= cost.Wheat;
+        res.Bread    -= cost.Bread;
+        res.Water    -= cost.Water;
+        res.Plank    -= cost.Plank;
+        res.CutStone -= cost.CutStone;
+        res.Citizen  -= cost.Citizen;
+    }
+
+    // ---- 生産バンドル加算 ----
+    public static void AddProduction(FactionState.ResourceData res, ProductionBundle output)
+    {
+        res.Wood     += output.Wood;
+        res.Stone    += output.Stone;
+        res.Coal     += output.Coal;
+        res.IronOre  += output.IronOre;
+        res.Iron     += output.Iron;
+        res.MagicOre += output.MagicOre;
+        res.Wheat    += output.Wheat;
+        res.Bread    += output.Bread;
+        res.Water    += output.Water;
+        res.Plank    += output.Plank;
+        res.CutStone += output.CutStone;
+        res.Citizen  += output.Citizen;
     }
 
     // ---- 壁かどうか ----
