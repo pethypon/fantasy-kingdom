@@ -34,12 +34,24 @@ public class UnitSetting : MonoBehaviour
     private void Awake()
     {
         UnitDataMap = new Dictionary<Kind, UnitData>();
-        foreach (var entry in _unitDataList)
+
+        // Inspector で設定された ScriptableObject を登録
+        if (_unitDataList != null)
         {
-            if (entry.data != null)
-                UnitDataMap[entry.kind] = entry.data;
-            else
-                Debug.LogWarning($"[UnitSetting] Kind:{entry.kind} のUnitDataがnullです");
+            foreach (var entry in _unitDataList)
+            {
+                if (entry.data != null)
+                    UnitDataMap[entry.kind] = entry.data;
+            }
+        }
+
+        // UnitStaticData に定義があるが UnitDataMap に未登録の Kind を自動補完
+        foreach (var kvp in UnitStaticData.Table)
+        {
+            if (!UnitDataMap.ContainsKey(kvp.Key))
+            {
+                UnitDataMap[kvp.Key] = UnitStaticData.CreateUnitData(kvp.Key);
+            }
         }
     }
 

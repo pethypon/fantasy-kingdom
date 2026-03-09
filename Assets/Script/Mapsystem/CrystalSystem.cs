@@ -21,6 +21,9 @@ public class CrystalSystem : MonoBehaviour
     public Vector3 PCP;
     public Vector3 ECP;
 
+    /// <summary> クリスタルの基本HP </summary>
+    public const int CrystalHP = 30000;
+
     private List<Vector3> _SetPos;
     private int maxx;
     private int maxz;
@@ -52,7 +55,8 @@ public class CrystalSystem : MonoBehaviour
         ).ToList();
 
         PCP = candidates[Random.Range(0, candidates.Count)];
-        Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
+        var pObj = Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
+        ApplyCrystalHP(pObj);
         _SetPos.Remove(PCP);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color> プレイヤークリスタル設置完了");
     }
@@ -71,12 +75,21 @@ public class CrystalSystem : MonoBehaviour
             if (candidates.Count == 0) continue;
 
             ECP = candidates[Random.Range(0, candidates.Count)];
-            Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
+            var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
+            ApplyCrystalHP(eObj);
             Debug.Log("<color=#ffff00ff>[StartSetting]</color> 敵クリスタル設置完了");
             return;
         }
 
         Debug.LogError("[CrystalSystem] 敵クリスタルの配置候補が見つかりませんでした");
+    }
+
+    /// <summary> クリスタルの HP を CrystalHP 定数に設定する。 </summary>
+    private void ApplyCrystalHP(GameObject crystalObj)
+    {
+        var status = crystalObj.GetComponentInChildren<Status>();
+        if (status != null)
+            status.HP = CrystalHP;
     }
 
     private List<Vector3> GetEnemyCandidates(float minDistX, float minDistZ, int margin)
