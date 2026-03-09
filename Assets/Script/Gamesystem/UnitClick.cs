@@ -13,7 +13,13 @@ public class UnitClick : MonoBehaviour
 
     public RaycastHit attackhit;
     private const float RayDistance = 100f;
-    private readonly int MovePointLayerMask = 1 << LayerMask.NameToLayer("MovePoint");
+    private const float MovePointRayDistance = 50f;   // MovePoint検出用の最大距離
+    private int MovePointLayerMask;
+
+    private void Awake()
+    {
+        MovePointLayerMask = 1 << LayerMask.NameToLayer("MovePoint");
+    }
 
     public void UC(PlayerMove playermove, TurnGenerater turngenerater, AttackPointt attackpoint)
     {
@@ -65,8 +71,8 @@ public class UnitClick : MonoBehaviour
         Debug.Log("Click2処理開始");
         if (!TryGetMouseRay(out Ray ray)) return;
 
-        // MovePoint レイヤーを優先してRaycast
-        if (Physics.Raycast(ray, out playermove.hit, RayDistance, MovePointLayerMask))
+        // MovePoint レイヤーのみ検出（他オブジェクトは貫通、一定距離で打ち切り）
+        if (Physics.Raycast(ray, out playermove.hit, MovePointRayDistance, MovePointLayerMask))
         {
             Debug.Log("Click2（MovePointレイヤーにヒット）");
             HandleMovePointClick();
