@@ -602,29 +602,66 @@ public class UIBuilder : MonoBehaviour
         sr.verticalScrollbar = CreateVerticalScrollbar(go.transform);
         sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
 
-        // 建築物ボタンを生成
+        // 建築物ボタン + コスト表示を生成
         foreach (var kvp in FacilityData.Table)
         {
             var facility = kvp.Key;
             var info = kvp.Value;
 
-            string label = $"{info.DisplayName}  AP:{info.APCost}  Lv1-{info.MaxLevel}";
-            var btn = CreateButton("Build_" + facility, content.transform,
-                label, 14, new Color(0.2f, 0.35f, 0.2f, 1f));
+            // ---- 行コンテナ（ボタン + コスト） ----
+            var row = new GameObject("Row_" + facility, typeof(RectTransform));
+            row.transform.SetParent(content.transform, false);
+            var rowLE = row.AddComponent<LayoutElement>();
+            rowLE.preferredHeight = 54;
 
-            var btnRT = btn.GetComponent<RectTransform>();
-            var le = btn.gameObject.AddComponent<LayoutElement>();
-            le.preferredHeight = 36;
+            var rowVLG = row.AddComponent<VerticalLayoutGroup>();
+            rowVLG.spacing = 1;
+            rowVLG.childControlWidth = true;
+            rowVLG.childControlHeight = true;
+            rowVLG.childForceExpandWidth = true;
+            rowVLG.childForceExpandHeight = false;
+
+            // ---- ボタン ----
+            string label = $"{info.DisplayName}  AP:{info.APCost}";
+            var btn = CreateButton("Build_" + facility, row.transform,
+                label, 14, new Color(0.2f, 0.35f, 0.2f, 1f));
+            var btnLE = btn.gameObject.AddComponent<LayoutElement>();
+            btnLE.preferredHeight = 32;
 
             var bg = btn.GetComponent<Image>();
             buildButtons.Add((btn, bg, facility));
 
-            // クリック時: BuildSystem に通知してパネルを閉じる
             FacilityKind captured = facility;
             btn.onClick.AddListener(() => OnBuildButtonClicked(captured));
+
+            // ---- コスト表示 ----
+            string costStr = FormatBuildCost(info.BuildCost);
+            var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, 11);
+            costTMP.color = new Color(0.7f, 0.7f, 0.6f);
+            costTMP.alignment = TextAlignmentOptions.MidlineLeft;
+            costTMP.enableWordWrapping = false;
+            costTMP.overflowMode = TextOverflowModes.Ellipsis;
+            var costLE = costTMP.gameObject.AddComponent<LayoutElement>();
+            costLE.preferredHeight = 18;
+            var costRT = costTMP.GetComponent<RectTransform>();
+            costRT.offsetMin = new Vector2(8, 0);
         }
 
         return go;
+    }
+
+    private static string FormatBuildCost(FacilityData.ResourceCost c)
+    {
+        var p = new System.Collections.Generic.List<string>();
+        if (c.Wood > 0) p.Add($"木{c.Wood}");
+        if (c.Stone > 0) p.Add($"石{c.Stone}");
+        if (c.Iron > 0) p.Add($"鉄{c.Iron}");
+        if (c.MagicOre > 0) p.Add($"魔{c.MagicOre}");
+        if (c.Water > 0) p.Add($"水{c.Water}");
+        if (c.Plank > 0) p.Add($"板{c.Plank}");
+        if (c.CutStone > 0) p.Add($"切{c.CutStone}");
+        if (c.Citizen > 0) p.Add($"民{c.Citizen}");
+        return string.Join(" ", p);
     }
 
     private void OnBuildButtonClicked(FacilityKind facility)
