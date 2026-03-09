@@ -1,20 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyMove : StateCore
 {
-    public TurnGenerater turngenerater;
-    public UnitClick unitclick;
-    public AttackPointt attackpoint;
-    public BattleSystem battlesystem;
-    public VisionGenerater visiongenerater;
-    public MoveGererater movegenerater;
-    public MapCreate mapcreate;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
+    private TurnGenerater turngenerater;
+    private UnitClick unitclick;
+    private AttackPointt attackpoint;
+    private BattleSystem battlesystem;
+    private VisionGenerater visiongenerater;
+    private MoveGererater movegenerater;
+    private MapCreate mapcreate;
+    private CrystalSystem crystalsystem;
+    private UnitSetting unitset;
 
-    public EnemyMove(TurnGenerater turngenerater, UnitClick unitclick, AttackPointt attackpoint, BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater, MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
+    public EnemyMove(
+        TurnGenerater turngenerater, UnitClick unitclick, AttackPointt attackpoint,
+        BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater,
+        MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
     {
         this.turngenerater = turngenerater;
         this.unitclick = unitclick;
@@ -26,6 +27,7 @@ public class EnemyMove : StateCore
         this.crystalsystem = crystalsystem;
         this.unitset = unitset;
     }
+
     public void Entry()
     {
         visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
@@ -38,14 +40,15 @@ public class EnemyMove : StateCore
         if (turngenerater.buildingAttackSystem != null)
             turngenerater.buildingAttackSystem.ProcessAttacks(Team.Enemy);
 
-        turngenerater.ChangeState(new PlayerStart(turngenerater,unitclick,attackpoint,battlesystem, visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
-        Debug.Log("敵のターン終了");
+        // AI未実装: 即座にプレイヤーターンへ
+        turngenerater.ChangeState(new PlayerStart(
+            turngenerater, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+
+        Debug.Log("[EnemyMove] 敵ターン終了");
     }
 
-    public void Update()
-    {
-
-    }
+    public void Update() { }
 
     public void Exit()
     {
