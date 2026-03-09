@@ -107,7 +107,7 @@ public class GameGenerater : MonoBehaviour
             if (_EconomySystem == null)
                 _EconomySystem = gameObject.AddComponent<EconomySystem>();
         }
-        _EconomySystem.Init(_BuildSystem, factionState);
+        _EconomySystem.Init(_BuildSystem, factionState, _UnitSetting);
         _TurnGenerater.economysystem = _EconomySystem;
 
         // ---- BuildingAttackSystem 初期化 ----
@@ -127,7 +127,12 @@ public class GameGenerater : MonoBehaviour
 
         // ==== 初期資源設定（GameReference 準拠） ====
         if (factionState != null)
+        {
             InitResources(factionState.PlayerResources);
+
+            // 初期市民APボーナスを反映
+            factionState.PlayerAP.Plus = factionState.PlayerResources.Citizen * EconomySystem.APPerCitizen;
+        }
 
         // ==== ターン開始 ====
         _TurnGenerater.StartFirstTurn();
