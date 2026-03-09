@@ -49,6 +49,9 @@ public class TurnGenerater : MonoBehaviour
     [Header("経済システム")]
     [SerializeField] public EconomySystem economysystem;
 
+    [Header("建築物攻撃システム")]
+    [SerializeField] public BuildingAttackSystem buildingAttackSystem;
+
     [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 

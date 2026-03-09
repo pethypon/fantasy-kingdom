@@ -29,6 +29,7 @@ public class ResourceBarUI : MonoBehaviour
     [SerializeField] private Team displayTeam = Team.Player;
 
     private FactionState.ResourceData lastSnapshot;
+    private int lastCitizenCap = -1;
 
     private void Awake()
     {
@@ -67,13 +68,16 @@ public class ResourceBarUI : MonoBehaviour
             : factionState.EnemyResources;
 
         if (res == null) return;
-        if (!HasChanged(res)) return;
 
+        int citizenCap = factionState.GetCitizenCap(displayTeam);
+        if (!HasChanged(res) && citizenCap == lastCitizenCap) return;
+
+        lastCitizenCap = citizenCap;
         SaveSnapshot(res);
-        Refresh(res);
+        Refresh(res, citizenCap);
     }
 
-    private void Refresh(FactionState.ResourceData res)
+    private void Refresh(FactionState.ResourceData res, int citizenCap)
     {
         // 原材料 (茶系ラベル)
         SetText(woodText,     "木材",  res.Wood,  "#D4A574");
@@ -92,14 +96,20 @@ public class ResourceBarUI : MonoBehaviour
         // 加工品
         SetText(plankText,    "板材",  res.Plank,    "#C8A87C");
         SetText(cutStoneText, "切石",  res.CutStone, "#A8B0A8");
-        // 人口 (緑系ラベル)
-        SetText(citizenText,  "市民",  res.Citizen,  "#78C888");
+        // 人口 (緑系ラベル) — 上限付き表示
+        SetTextWithCap(citizenText, "市民", res.Citizen, citizenCap, "#78C888");
     }
 
     private static void SetText(TextMeshProUGUI tmp, string label, int value, string colorHex)
     {
         if (tmp != null)
             tmp.text = $"<color={colorHex}><size=80%>{label}</size></color> {value}";
+    }
+
+    private static void SetTextWithCap(TextMeshProUGUI tmp, string label, int value, int cap, string colorHex)
+    {
+        if (tmp != null)
+            tmp.text = $"<color={colorHex}><size=80%>{label}</size></color> {value}/{cap}";
     }
 
     private bool HasChanged(FactionState.ResourceData res)

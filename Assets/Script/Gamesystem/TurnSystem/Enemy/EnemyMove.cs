@@ -34,6 +34,10 @@ public class EnemyMove : StateCore
         if (turngenerater.economysystem != null)
             turngenerater.economysystem.ProcessTurn(Team.Enemy);
 
+        // Enemy の攻撃建築物による自動攻撃
+        if (turngenerater.buildingAttackSystem != null)
+            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Enemy);
+
         turngenerater.ChangeState(new PlayerStart(turngenerater,unitclick,attackpoint,battlesystem, visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
         Debug.Log("敵のターン終了");
     }

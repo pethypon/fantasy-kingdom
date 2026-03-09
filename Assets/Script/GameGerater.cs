@@ -13,6 +13,7 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] BuildSystem _BuildSystem;
     [SerializeField] SummonSystem _SummonSystem;
     [SerializeField] EconomySystem _EconomySystem;
+    [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
     [Header("UI")]
@@ -108,6 +109,17 @@ public class GameGenerater : MonoBehaviour
         }
         _EconomySystem.Init(_BuildSystem, factionState);
         _TurnGenerater.economysystem = _EconomySystem;
+
+        // ---- BuildingAttackSystem 初期化 ----
+        if (_BuildingAttackSystem == null)
+        {
+            _BuildingAttackSystem = gameObject.GetComponent<BuildingAttackSystem>();
+            if (_BuildingAttackSystem == null)
+                _BuildingAttackSystem = gameObject.AddComponent<BuildingAttackSystem>();
+        }
+        _BuildingAttackSystem.Init(_BuildSystem, _MoveGenerater, _UnitSetting,
+                                   _VisionGenerater, _MapCreate, _CrystalSystem);
+        _TurnGenerater.buildingAttackSystem = _BuildingAttackSystem;
 
         // ==== UI に FactionState を渡す ====
         if (_APPanelUI != null) _APPanelUI.Init(factionState);
