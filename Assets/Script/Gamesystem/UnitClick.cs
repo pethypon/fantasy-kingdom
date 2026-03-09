@@ -13,6 +13,13 @@ public class UnitClick : MonoBehaviour
 
     public RaycastHit attackhit;
     private const float RayDistance = 100f;
+    private const float MovePointRayDistance = 50f;   // MovePoint検出用の最大距離
+    private int MovePointLayerMask;
+
+    private void Awake()
+    {
+        MovePointLayerMask = 1 << LayerMask.NameToLayer("MovePoint");
+    }
 
     public void UC(PlayerMove playermove, TurnGenerater turngenerater, AttackPointt attackpoint)
     {
@@ -63,18 +70,22 @@ public class UnitClick : MonoBehaviour
         if (playermove != null && playermove.BuildMode) return;
         Debug.Log("Click2処理開始");
         if (!TryGetMouseRay(out Ray ray)) return;
+
+        // MovePoint レイヤーのみ検出（他オブジェクトは貫通、一定距離で打ち切り）
+        if (Physics.Raycast(ray, out playermove.hit, MovePointRayDistance, MovePointLayerMask))
+        {
+            Debug.Log("Click2（MovePointレイヤーにヒット）");
+            HandleMovePointClick();
+            return;
+        }
+
+        // MovePoint に当たらなかった場合、全レイヤーでユニット再選択を試みる
         if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;
-        Debug.Log("Click2（Rayを飛ばした）");
 
         playermove.MP = playermove.hit.transform.GetComponent<Status>();
         if (playermove.MP == null) return;
-        Debug.Log("Click2（MPがNullでない場合の選択先）");
 
-        if (playermove.MP.team == Team.None && playermove.MP.type == Type.MovePoint)
-        {
-            HandleMovePointClick();
-        }
-        else if (playermove.MP.team == Team.Player && playermove.MP.type == Type.Unit)
+        if (playermove.MP.team == Team.Player && playermove.MP.type == Type.Unit)
         {
             HandlePlayerUnitReselect();
         }
@@ -122,7 +133,7 @@ public class UnitClick : MonoBehaviour
         Debug.Log("<color=#00ff00ff>[Controller]</color> OK2");
 
         Vector3 from = turngenerater.OldCell;           // 移動元（選択時に記録済み）
-        Vector3 to = playermove.MP.transform.position;
+        Vector3 to = playermove.hit.transform.position;
         to.y += 0.47f;                                  // MovePoint の Y オフセットを戻す
 
         // ---- APチェック ----

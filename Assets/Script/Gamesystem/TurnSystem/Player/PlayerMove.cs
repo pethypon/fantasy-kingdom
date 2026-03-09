@@ -233,6 +233,10 @@ public class PlayerMove : StateCore
         if (turngenerater.economysystem != null)
             turngenerater.economysystem.ProcessTurn(Team.Player);
 
+        // Player の攻撃建築物による自動攻撃
+        if (turngenerater.buildingAttackSystem != null)
+            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
+
         turngenerater.ChangeState(new EnemyStart(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
