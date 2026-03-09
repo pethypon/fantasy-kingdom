@@ -128,6 +128,14 @@ public class EconomySystem : MonoBehaviour
             factionState.EnemyBarracksXP = totalBarracksXP;
         }
 
+        // ---- 市民成長（パンがあれば毎ターン+1、家の収容上限まで） ----
+        if (totalCitizenCap > 0 && res.Bread > 0 && res.Citizen < totalCitizenCap)
+        {
+            res.Bread -= 1;
+            res.Citizen += 1;
+            Debug.Log($"[EconomySystem] {team} 市民+1 (パン消費1, 現在{res.Citizen}/{totalCitizenCap})");
+        }
+
         // ---- 資源上限クランプ（倉庫容量） ----
         if (totalResourceCap > 0)
             ClampResources(res, totalResourceCap);
