@@ -54,6 +54,9 @@ public class FactionState : MonoBehaviour
     // ==== 資源上限の基本値（倉庫なしの場合の上限） ====
     public const int BaseResourceCap = 200;
 
+    // ==== 市民の基本収容上限（家なしの場合） ====
+    public const int BaseCitizenCap = 5;
+
     // ==== 経済システムが毎ターン書き込む値 ====
     [HideInInspector] public int PlayerCitizenCapacity;
     [HideInInspector] public int PlayerResourceCapacity;
@@ -73,7 +76,8 @@ public class FactionState : MonoBehaviour
     // ==== 実効市民収容 ====
     public int GetCitizenCap(Team team)
     {
-        return team == Team.Player ? PlayerCitizenCapacity : EnemyCitizenCapacity;
+        int bonus = team == Team.Player ? PlayerCitizenCapacity : EnemyCitizenCapacity;
+        return BaseCitizenCap + bonus;
     }
 
     // ==== 兵舎経験値ボーナス% ====
