@@ -608,7 +608,7 @@ public class UIBuilder : MonoBehaviour
             var facility = kvp.Key;
             var info = kvp.Value;
 
-            string label = $"{info.DisplayName}  AP:{info.APCost}";
+            string label = $"{info.DisplayName}  AP:{info.APCost}  Lv1-{info.MaxLevel}";
             var btn = CreateButton("Build_" + facility, content.transform,
                 label, 14, new Color(0.2f, 0.35f, 0.2f, 1f));
 

@@ -270,6 +270,7 @@ public class BuildSystem : MonoBehaviour
         status.HP = info.HP;
         status.DEF = info.DEF;
         status.ATK = info.ATK;
+        status.Level = 1;
         status.facilityKind = facility;
 
         // Block レイヤーに設定
@@ -285,6 +286,48 @@ public class BuildSystem : MonoBehaviour
         }
 
         Debug.Log($"[BuildSystem] {info.DisplayName} を ({pos.x}, {pos.y}, {pos.z}) に設置");
+    }
+
+    // ==================================================================
+    //  建築物の強化
+    // ==================================================================
+
+    /// <summary>
+    /// 指定の建築物を1レベル強化する。
+    /// </summary>
+    public bool TryUpgrade(Status target)
+    {
+        if (target == null) return false;
+        if (target.type != Type.Building && target.type != Type.Wall) return false;
+        if (target.team != Team.Player) return false;
+
+        var facility = target.facilityKind;
+        int currentLevel = Mathf.Max(1, target.Level);
+        int maxLevel = FacilityData.GetMaxLevel(facility);
+        if (currentLevel >= maxLevel) return false;
+
+        var res = factionState.PlayerResources;
+        int currentAP = factionState.GetAP(Team.Player);
+        if (!FacilityData.CanUpgrade(res, currentAP, facility, currentLevel))
+        {
+            Debug.Log($"[BuildSystem] 強化不可: {facility} Lv{currentLevel} → Lv{currentLevel + 1}");
+            return false;
+        }
+
+        // コスト消費
+        FacilityData.ConsumeUpgrade(res, factionState.PlayerAP, facility, currentLevel + 1);
+
+        // レベルアップ
+        target.Level = currentLevel + 1;
+
+        // ステータス更新
+        var newData = FacilityData.GetLevel(facility, target.Level);
+        target.HP = newData.HP;
+        target.DEF = newData.DEF;
+        target.ATK = newData.ATK;
+
+        Debug.Log($"[BuildSystem] 強化完了: {facility} Lv{currentLevel} → Lv{target.Level}");
+        return true;
     }
 
     // ==================================================================
