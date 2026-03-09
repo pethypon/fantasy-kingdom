@@ -329,7 +329,7 @@ public class VisionGenerater : MonoBehaviour
             return;
         }
 
-        Debug.Log($"<color=#00ff00ff>[Controller]</color>{status.kind}");
+        // Debug.Log($"[Vision] {status.kind}");
 
         int statusX = Mathf.RoundToInt(status.transform.position.x);
         int statusY = Mathf.RoundToInt(status.transform.position.y);

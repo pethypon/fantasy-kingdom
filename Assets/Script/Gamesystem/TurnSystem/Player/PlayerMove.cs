@@ -198,7 +198,7 @@ public class PlayerMove : StateCore
         }
         else
         {
-            Debug.Log("Click2開始");
+            // Click2開始
             unitclick.Click2();
             RefreshVision();
         }

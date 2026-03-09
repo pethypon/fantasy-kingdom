@@ -1,27 +1,24 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR;
 
 public class EnemyStart : StateCore
 {
     private TurnGenerater turngenerater;
-    public UnitClick unitclick;
-    public AttackPointt attackpoint;
-    public BattleSystem battlesystem;
-    public VisionGenerater visiongenerater;
-    public MoveGererater movegenerater;
-    public MapCreate mapcreate;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
+    private UnitClick unitclick;
+    private AttackPointt attackpoint;
+    private BattleSystem battlesystem;
+    private VisionGenerater visiongenerater;
+    private MoveGererater movegenerater;
+    private MapCreate mapcreate;
+    private CrystalSystem crystalsystem;
+    private UnitSetting unitset;
 
-
-    public EnemyStart(TurnGenerater turngenerater, UnitClick untclick, AttackPointt attackpoint,
+    public EnemyStart(
+        TurnGenerater turngenerater, UnitClick unitclick, AttackPointt attackpoint,
         BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater,
         MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
     {
         this.turngenerater = turngenerater;
-        this.unitclick = untclick;
+        this.unitclick = unitclick;
         this.attackpoint = attackpoint;
         this.battlesystem = battlesystem;
         this.visiongenerater = visiongenerater;
@@ -30,22 +27,19 @@ public class EnemyStart : StateCore
         this.crystalsystem = crystalsystem;
         this.unitset = unitset;
     }
+
     public void Entry()
     {
-        Debug.Log("EnemyStart突入");
-        // ターン開始時に AP と疲労をリセット
+        Debug.Log("[EnemyStart] 敵ターン開始");
+
         turngenerater.apsystem.ResetAP(Team.Enemy);
         turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);
-        turngenerater.ChangeState(new EnemyMove(turngenerater,unitclick,attackpoint, battlesystem,visiongenerater, movegenerater, mapcreate, crystalsystem,unitset));
+
+        turngenerater.ChangeState(new EnemyMove(
+            turngenerater, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
     }
 
-    public void Update()
-    {
-
-    }
-
-    public void Exit()
-    {
-
-    }
+    public void Update() { }
+    public void Exit() { }
 }
