@@ -33,10 +33,6 @@ public class PlayerStart : StateCore
         // ターンカウント更新
         turngenerater.Turn++;
 
-        // 経済処理（資源生産、APボーナス適用）
-        if (turngenerater.economysystem != null)
-            turngenerater.economysystem.ProcessTurn(Team.Player);
-
         // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
         turngenerater.apsystem.ResetAP(Team.Player);
 

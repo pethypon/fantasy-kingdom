@@ -29,6 +29,11 @@ public class EnemyMove : StateCore
     public void Entry()
     {
         visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
+
+        // Enemy の資源獲得（ターン終了時）
+        if (turngenerater.economysystem != null)
+            turngenerater.economysystem.ProcessTurn(Team.Enemy);
+
         turngenerater.ChangeState(new PlayerStart(turngenerater,unitclick,attackpoint,battlesystem, visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
         Debug.Log("敵のターン終了");
     }
