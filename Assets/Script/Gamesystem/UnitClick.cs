@@ -21,7 +21,7 @@ public class UnitClick : MonoBehaviour
         this.attackpoint = attackpoint;
     }
 
-    // ---- 左クリック：プレイヤーユニット選択 ----
+    // ---- 左クリック：プレイヤーユニットまたは建築物選択 ----
     public void Click1()
     {
         if (playermove != null && playermove.BuildMode) return;
@@ -33,6 +33,17 @@ public class UnitClick : MonoBehaviour
 
         if (playermove.Obj == null) return;
         if (playermove.Obj.team != Team.Player) return;
+
+        // 建築物・壁クリック（移動ポイントは生成しない）
+        if (playermove.Obj.type == Type.Building || playermove.Obj.type == Type.Wall)
+        {
+            turngenerater.SelectUnit = playermove.Obj;
+            if (turngenerater.unitPanelUI != null)
+                turngenerater.unitPanelUI.Show(playermove.Obj);
+            Debug.Log("<color=#00ff00ff>[Controller]</color> 建築物選択");
+            return;
+        }
+
         if (playermove.Obj.type != Type.Unit) return;
 
         turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);

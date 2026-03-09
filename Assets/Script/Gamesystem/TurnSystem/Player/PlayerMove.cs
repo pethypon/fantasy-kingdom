@@ -229,6 +229,10 @@ public class PlayerMove : StateCore
         if (turngenerater.unitPanelUI != null)
             turngenerater.unitPanelUI.Hide();
 
+        // Player の資源獲得（ターン終了時）
+        if (turngenerater.economysystem != null)
+            turngenerater.economysystem.ProcessTurn(Team.Player);
+
         turngenerater.ChangeState(new EnemyStart(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
