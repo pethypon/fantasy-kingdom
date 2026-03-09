@@ -100,11 +100,14 @@ public class GameGenerater : MonoBehaviour
         }
 
         // ---- EconomySystem 初期化 ----
-        if (_EconomySystem != null)
+        if (_EconomySystem == null)
         {
-            _EconomySystem.Init(_BuildSystem, factionState);
-            _TurnGenerater.economysystem = _EconomySystem;
+            _EconomySystem = gameObject.GetComponent<EconomySystem>();
+            if (_EconomySystem == null)
+                _EconomySystem = gameObject.AddComponent<EconomySystem>();
         }
+        _EconomySystem.Init(_BuildSystem, factionState);
+        _TurnGenerater.economysystem = _EconomySystem;
 
         // ==== UI に FactionState を渡す ====
         if (_APPanelUI != null) _APPanelUI.Init(factionState);

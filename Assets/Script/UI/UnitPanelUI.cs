@@ -98,22 +98,17 @@ public class UnitPanelUI : MonoBehaviour
     // --------------------------------------------------
     private void BuildUpgradeUI()
     {
-        // passiveText の下に強化エリアを生成（kindText/passiveText の親を使う）
-        Transform parent = null;
-        if (passiveText != null)
-            parent = passiveText.transform.parent;
-        else if (kindText != null)
-            parent = kindText.transform.parent;
-        if (parent == null) return;
+        // パネル本体の直下に強化エリアを生成（中央統計の下に配置）
+        Transform parent = panelRoot != null ? panelRoot.transform : transform;
 
-        // 強化エリア
+        // 強化エリア（パネル下部に配置）
         upgradeArea = new GameObject("UpgradeArea", typeof(RectTransform));
         upgradeArea.transform.SetParent(parent, false);
         var areaRT = upgradeArea.GetComponent<RectTransform>();
-        areaRT.anchorMin = new Vector2(0, 0);
-        areaRT.anchorMax = new Vector2(1, 0.33f);
-        areaRT.offsetMin = new Vector2(2, 2);
-        areaRT.offsetMax = new Vector2(-2, -2);
+        areaRT.anchorMin = new Vector2(0.3f, 0);
+        areaRT.anchorMax = new Vector2(0.85f, 0.33f);
+        areaRT.offsetMin = new Vector2(4, 4);
+        areaRT.offsetMax = new Vector2(-4, -2);
 
         // 強化ボタン
         var btnGo = new GameObject("UpgradeBtn", typeof(RectTransform));
@@ -132,7 +127,7 @@ public class UnitPanelUI : MonoBehaviour
         btnLabel.transform.SetParent(btnGo.transform, false);
         var btnTMP = btnLabel.AddComponent<TextMeshProUGUI>();
         btnTMP.text = "強化";
-        btnTMP.fontSize = 14;
+        btnTMP.fontSize = 16;
         btnTMP.alignment = TextAlignmentOptions.Center;
         btnTMP.color = Color.white;
         var lblRT = btnLabel.GetComponent<RectTransform>();
@@ -147,7 +142,7 @@ public class UnitPanelUI : MonoBehaviour
         var costGo = new GameObject("UpgradeCost", typeof(RectTransform));
         costGo.transform.SetParent(upgradeArea.transform, false);
         upgradeCostText = costGo.AddComponent<TextMeshProUGUI>();
-        upgradeCostText.fontSize = 11;
+        upgradeCostText.fontSize = 15;
         upgradeCostText.alignment = TextAlignmentOptions.MidlineLeft;
         upgradeCostText.color = new Color(0.85f, 0.85f, 0.75f);
         upgradeCostText.enableWordWrapping = true;

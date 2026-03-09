@@ -366,7 +366,7 @@ public class UIBuilder : MonoBehaviour
     {
         var panel = CreatePanel("BottomUnitPanel", canvas.transform,
             new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0),
-            new Vector2(700, 120));
+            new Vector2(800, 180));
         panel.anchoredPosition = new Vector2(0, 10);
 
         AddImage(panel.gameObject, new Color(0.08f, 0.08f, 0.12f, 0.92f));
@@ -612,10 +612,10 @@ public class UIBuilder : MonoBehaviour
             var row = new GameObject("Row_" + facility, typeof(RectTransform));
             row.transform.SetParent(content.transform, false);
             var rowLE = row.AddComponent<LayoutElement>();
-            rowLE.preferredHeight = 54;
+            rowLE.preferredHeight = 80;
 
             var rowVLG = row.AddComponent<VerticalLayoutGroup>();
-            rowVLG.spacing = 1;
+            rowVLG.spacing = 2;
             rowVLG.childControlWidth = true;
             rowVLG.childControlHeight = true;
             rowVLG.childForceExpandWidth = true;
@@ -624,9 +624,9 @@ public class UIBuilder : MonoBehaviour
             // ---- ボタン ----
             string label = $"{info.DisplayName}  AP:{info.APCost}";
             var btn = CreateButton("Build_" + facility, row.transform,
-                label, 14, new Color(0.2f, 0.35f, 0.2f, 1f));
+                label, 18, new Color(0.2f, 0.35f, 0.2f, 1f));
             var btnLE = btn.gameObject.AddComponent<LayoutElement>();
-            btnLE.preferredHeight = 32;
+            btnLE.preferredHeight = 40;
 
             var bg = btn.GetComponent<Image>();
             buildButtons.Add((btn, bg, facility));
@@ -636,13 +636,13 @@ public class UIBuilder : MonoBehaviour
 
             // ---- コスト表示 ----
             string costStr = FormatBuildCost(info.BuildCost);
-            var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, 11);
+            var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, 15);
             costTMP.color = new Color(0.7f, 0.7f, 0.6f);
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
             costTMP.enableWordWrapping = false;
             costTMP.overflowMode = TextOverflowModes.Ellipsis;
             var costLE = costTMP.gameObject.AddComponent<LayoutElement>();
-            costLE.preferredHeight = 18;
+            costLE.preferredHeight = 28;
             var costRT = costTMP.GetComponent<RectTransform>();
             costRT.offsetMin = new Vector2(8, 0);
         }
