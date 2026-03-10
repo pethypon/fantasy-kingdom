@@ -256,7 +256,7 @@ public class UIBuilder : MonoBehaviour
         le.minWidth = 30;
 
         var tmp = CreateTMP(name, cell.transform, name + ": 0", 20);
-        tmp.enableWordWrapping = false;
+        tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
         tmp.overflowMode = TextOverflowModes.Ellipsis;
         tmp.richText = true;
         var tmpRT = tmp.GetComponent<RectTransform>();
@@ -662,7 +662,7 @@ public class UIBuilder : MonoBehaviour
             var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, 15);
             costTMP.color = new Color(0.7f, 0.7f, 0.6f);
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
-            costTMP.enableWordWrapping = false;
+            costTMP.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             costTMP.overflowMode = TextOverflowModes.Ellipsis;
             var costLE = costTMP.gameObject.AddComponent<LayoutElement>();
             costLE.preferredHeight = 28;

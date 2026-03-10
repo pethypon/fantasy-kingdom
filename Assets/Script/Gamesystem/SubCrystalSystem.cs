@@ -157,7 +157,7 @@ public class SubCrystalSystem : MonoBehaviour
         // 壁の場合は UnitPointData から除去
         if (FacilityData.IsWall(target.facilityKind))
         {
-            movegenerater.UnitPointData.RemoveAll(p =>
+            movegenerater.UnitPointData.RemoveWhere(p =>
                 Mathf.RoundToInt(p.x) == posInt.x &&
                 Mathf.RoundToInt(p.y) == posInt.y &&
                 Mathf.RoundToInt(p.z) == posInt.z);
