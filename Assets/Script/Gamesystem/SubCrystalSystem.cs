@@ -27,6 +27,20 @@ public class SubCrystalSystem : MonoBehaviour
     public const int SubCrystalTerritoryRadius = 3;
     public const int SubCrystalCooldownTurns = 5;
 
+    /// <summary>毎ターン開始時に呼ばれ、返却待ちタイマーを進める</summary>
+    public void TickPendingReturns(Team team)
+    {
+        if (factionState == null)
+        {
+            Debug.LogWarning("[SubCrystalSystem] TickPendingReturns: factionState が null です");
+            return;
+        }
+        var list = team == Team.Player ? factionState.PlayerPendingReturns : factionState.EnemyPendingReturns;
+        if (list.Count > 0)
+            Debug.Log($"[SubCrystalSystem] TickPendingReturns({team}): 返却待ち{list.Count}件, 値=[{string.Join(",", list)}]");
+        factionState.TickPendingReturns(team);
+    }
+
     // ==================================================================
     //  初期化
     // ==================================================================
@@ -130,9 +144,16 @@ public class SubCrystalSystem : MonoBehaviour
         }
 
         // 5ターン後にサブクリスタル資源を返却（即時回復ではない）
-        factionState.AddPendingReturn(team, SubCrystalCooldownTurns);
-
-        Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: 領地縮小、{SubCrystalCooldownTurns}ターン後に返却");
+        if (factionState != null)
+        {
+            factionState.AddPendingReturn(team, SubCrystalCooldownTurns);
+            var list = team == Team.Player ? factionState.PlayerPendingReturns : factionState.EnemyPendingReturns;
+            Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: {team} 領地縮小、{SubCrystalCooldownTurns}ターン後に返却 (PendingReturns={list.Count}, 現在の副晶={factionState.GetSubCrystals(team)})");
+        }
+        else
+        {
+            Debug.LogError("[SubCrystalSystem] サブクリスタル破壊: factionState が null のため返却待ちを追加できません");
+        }
     }
 
     // ==================================================================
