@@ -150,7 +150,7 @@ public class UnitPanelUI : MonoBehaviour
         upgradeCostText.fontSize = 15;
         upgradeCostText.alignment = TextAlignmentOptions.MidlineLeft;
         upgradeCostText.color = new Color(0.85f, 0.85f, 0.75f);
-        upgradeCostText.enableWordWrapping = true;
+        upgradeCostText.textWrappingMode = TMPro.TextWrappingModes.Normal;
         var costRT = costGo.GetComponent<RectTransform>();
         costRT.anchorMin = new Vector2(0.42f, 0);
         costRT.anchorMax = new Vector2(1, 1);
