@@ -32,8 +32,6 @@ public class ResourceBarUI : MonoBehaviour
     private FactionState.ResourceData lastSnapshot;
     private int lastCitizenCap = -1;
     private int lastSubCrystals = -1;
-    private int lastPendingCount = -1;
-    private int lastMinPending = -1;
 
     private void Awake()
     {
@@ -76,22 +74,17 @@ public class ResourceBarUI : MonoBehaviour
 
         int citizenCap = factionState.GetCitizenCap(displayTeam);
         int subCrystals = factionState.GetSubCrystals(displayTeam);
-        int pendingCount = factionState.GetPendingReturnCount(displayTeam);
-        int minPending = factionState.GetMinPendingReturn(displayTeam);
         if (!HasChanged(res) && citizenCap == lastCitizenCap
-            && subCrystals == lastSubCrystals
-            && pendingCount == lastPendingCount && minPending == lastMinPending) return;
+            && subCrystals == lastSubCrystals) return;
 
         lastCitizenCap = citizenCap;
         lastSubCrystals = subCrystals;
-        lastPendingCount = pendingCount;
-        lastMinPending = minPending;
         SaveSnapshot(res);
-        Refresh(res, citizenCap, subCrystals, pendingCount, minPending);
+        Refresh(res, citizenCap, subCrystals);
     }
 
     private void Refresh(FactionState.ResourceData res, int citizenCap,
-                         int subCrystals = 0, int pendingCount = 0, int minPending = 0)
+                         int subCrystals = 0)
     {
         // 原材料 (茶系ラベル)
         SetText(woodText,     "木材",  res.Wood,  "#D4A574");
@@ -112,14 +105,8 @@ public class ResourceBarUI : MonoBehaviour
         SetText(cutStoneText, "切石",  res.CutStone, "#A8B0A8");
         // 人口 (緑系ラベル) — 上限付き表示
         SetTextWithCap(citizenText, "市民", res.Citizen, citizenCap, "#78C888");
-        // サブクリスタル (シアン系ラベル) — 返却待ち表示付き
-        if (subCrystalText != null)
-        {
-            string pendingText = pendingCount > 0
-                ? $" <size=70%>返却:{pendingCount}個({minPending}T)</size>"
-                : "";
-            subCrystalText.text = $"<color=#58C8E8><size=80%>副晶</size></color> {subCrystals}{pendingText}";
-        }
+        // サブクリスタル (シアン系ラベル) — 個数のみ表示
+        SetText(subCrystalText, "副晶", subCrystals, "#58C8E8");
     }
 
     private static void SetText(TextMeshProUGUI tmp, string label, int value, string colorHex)
