@@ -217,7 +217,7 @@ public class UnitHeadUI : MonoBehaviour
         tmp.text = text;
         tmp.fontSize = fontSize;
         tmp.color = Color.white;
-        tmp.enableWordWrapping = false;
+        tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
         // フォント読み込み
         var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/NotoSansJP-VariableFont_wght SDF");
