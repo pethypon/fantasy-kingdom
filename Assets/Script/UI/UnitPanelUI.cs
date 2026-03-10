@@ -167,14 +167,14 @@ public class UnitPanelUI : MonoBehaviour
     {
         Transform parent = panelRoot != null ? panelRoot.transform : transform;
 
-        // 破壊エリア（右コマンドの下部に配置）
+        // 破壊エリア（右コマンドエリアの下半分に配置）
         destroyArea = new GameObject("DestroyArea", typeof(RectTransform));
         destroyArea.transform.SetParent(parent, false);
         var areaRT = destroyArea.GetComponent<RectTransform>();
-        areaRT.anchorMin = new Vector2(0.85f, 0);
-        areaRT.anchorMax = new Vector2(1f, 0.33f);
-        areaRT.offsetMin = new Vector2(4, 4);
-        areaRT.offsetMax = new Vector2(-4, -2);
+        areaRT.anchorMin = new Vector2(0.6f, 0);
+        areaRT.anchorMax = new Vector2(1f, 0.5f);
+        areaRT.offsetMin = new Vector2(4, 8);
+        areaRT.offsetMax = new Vector2(-10, -2);
 
         // 破壊ボタン
         var btnGo = new GameObject("DestroyBtn", typeof(RectTransform));
@@ -193,7 +193,7 @@ public class UnitPanelUI : MonoBehaviour
         btnLabel.transform.SetParent(btnGo.transform, false);
         var btnTMP = btnLabel.AddComponent<TextMeshProUGUI>();
         btnTMP.text = "破壊";
-        btnTMP.fontSize = 14;
+        btnTMP.fontSize = 16;
         btnTMP.alignment = TextAlignmentOptions.Center;
         btnTMP.color = Color.white;
         var lblRT = btnLabel.GetComponent<RectTransform>();
