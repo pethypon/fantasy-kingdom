@@ -24,7 +24,7 @@ public class SubCrystalSystem : MonoBehaviour
     private Dictionary<GameObject, List<GameObject>> subCrystalTerritoryTiles = new Dictionary<GameObject, List<GameObject>>();
 
     // ---- 定数 ----
-    public const int SubCrystalTerritoryRadius = 3;
+    public const int SubCrystalTerritoryRadius = 1;
     public const int SubCrystalCooldownTurns = 5;
 
     // ==================================================================
