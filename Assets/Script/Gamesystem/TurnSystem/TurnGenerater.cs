@@ -52,6 +52,9 @@ public class TurnGenerater : MonoBehaviour
     [Header("建築物攻撃システム")]
     [SerializeField] public BuildingAttackSystem buildingAttackSystem;
 
+    [Header("サブクリスタルシステム")]
+    [SerializeField] public SubCrystalSystem subCrystalSystem;
+
     [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 

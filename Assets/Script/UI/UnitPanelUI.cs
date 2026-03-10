@@ -31,6 +31,10 @@ public class UnitPanelUI : MonoBehaviour
     private TextMeshProUGUI upgradeCostText;
     private GameObject upgradeArea;
 
+    [Header("破壊UI（動的生成）")]
+    private Button destroyButton;
+    private GameObject destroyArea;
+
     [Header("参照")]
     [SerializeField] private TurnGenerater turnGenerater;
     [SerializeField] private APSystem apSystem;
@@ -52,6 +56,7 @@ public class UnitPanelUI : MonoBehaviour
         AutoFindChildren();
         AutoFindReferences();
         BuildUpgradeUI();
+        BuildDestroyUI();
 
         Hide();
     }
@@ -156,6 +161,52 @@ public class UnitPanelUI : MonoBehaviour
     }
 
     // --------------------------------------------------
+    //  破壊UIの動的生成
+    // --------------------------------------------------
+    private void BuildDestroyUI()
+    {
+        Transform parent = panelRoot != null ? panelRoot.transform : transform;
+
+        // 破壊エリア（右コマンドの下部に配置）
+        destroyArea = new GameObject("DestroyArea", typeof(RectTransform));
+        destroyArea.transform.SetParent(parent, false);
+        var areaRT = destroyArea.GetComponent<RectTransform>();
+        areaRT.anchorMin = new Vector2(0.85f, 0);
+        areaRT.anchorMax = new Vector2(1f, 0.33f);
+        areaRT.offsetMin = new Vector2(4, 4);
+        areaRT.offsetMax = new Vector2(-4, -2);
+
+        // 破壊ボタン
+        var btnGo = new GameObject("DestroyBtn", typeof(RectTransform));
+        btnGo.transform.SetParent(destroyArea.transform, false);
+        var btnImg = btnGo.AddComponent<Image>();
+        btnImg.color = new Color(0.6f, 0.15f, 0.15f, 1f);
+        destroyButton = btnGo.AddComponent<Button>();
+        destroyButton.targetGraphic = btnImg;
+        var btnRT = btnGo.GetComponent<RectTransform>();
+        btnRT.anchorMin = Vector2.zero;
+        btnRT.anchorMax = Vector2.one;
+        btnRT.offsetMin = Vector2.zero;
+        btnRT.offsetMax = Vector2.zero;
+
+        var btnLabel = new GameObject("Label", typeof(RectTransform));
+        btnLabel.transform.SetParent(btnGo.transform, false);
+        var btnTMP = btnLabel.AddComponent<TextMeshProUGUI>();
+        btnTMP.text = "破壊";
+        btnTMP.fontSize = 14;
+        btnTMP.alignment = TextAlignmentOptions.Center;
+        btnTMP.color = Color.white;
+        var lblRT = btnLabel.GetComponent<RectTransform>();
+        lblRT.anchorMin = Vector2.zero;
+        lblRT.anchorMax = Vector2.one;
+        lblRT.offsetMin = Vector2.zero;
+        lblRT.offsetMax = Vector2.zero;
+
+        destroyButton.onClick.AddListener(OnClickDestroy);
+        destroyArea.SetActive(false);
+    }
+
+    // --------------------------------------------------
     //  外部から呼ぶ: 選択時
     // --------------------------------------------------
     public void Show(Status unit)
@@ -210,6 +261,7 @@ public class UnitPanelUI : MonoBehaviour
         SetButtonVisible(skillButton, true);
         SetButtonVisible(waitButton, true);
         if (upgradeArea != null) upgradeArea.SetActive(false);
+        if (destroyArea != null) destroyArea.SetActive(false);
 
         UpdateUnitButtons();
     }
@@ -247,6 +299,14 @@ public class UnitPanelUI : MonoBehaviour
 
         // 強化UI
         UpdateUpgradeUI();
+
+        // 破壊UI（Player建築物のみ表示、クリスタルは除外）
+        if (destroyArea != null)
+        {
+            bool showDestroy = currentUnit.team == Team.Player
+                && currentUnit.kind != Kind.Crystal;
+            destroyArea.SetActive(showDestroy);
+        }
     }
 
     private void UpdateUnitButtons()
@@ -345,6 +405,18 @@ public class UnitPanelUI : MonoBehaviour
         }
     }
 
+    public void OnClickDestroy()
+    {
+        if (currentUnit == null || !isBuilding) return;
+        if (turnGenerater == null) return;
+
+        var subCrystalSystem = turnGenerater.subCrystalSystem;
+        if (subCrystalSystem == null) return;
+
+        subCrystalSystem.DestroyBuilding(currentUnit);
+        Hide();
+    }
+
     // --------------------------------------------------
     //  ヘルパー
     // --------------------------------------------------
@@ -418,6 +490,8 @@ public class UnitPanelUI : MonoBehaviour
                 return $"収容+{data.SpecialValue}";
             case FacilityKind.Warehouse:
                 return $"容量+{data.SpecialValue}";
+            case FacilityKind.SubCrystal:
+                return "領地拡張 半径3";
             default:
                 return "";
         }

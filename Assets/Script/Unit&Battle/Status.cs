@@ -23,6 +23,7 @@ public enum Kind
     Crossbow,
     Magicsniper,
     Bomber,
+    SubCrystal, // サブクリスタル（領地拡張用建築物）
     WoodWall,   // フェーズ6で使用
     StoneWall,  // フェーズ6で使用
     None
@@ -105,7 +106,8 @@ public enum FacilityKind
     Quarry, StoneWorks, Mine, Smelter,
     Barracks, House, Well, Warehouse,
     WoodWall, StoneWall,
-    Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword
+    Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword,
+    SubCrystal
 }
 
 // 資源の種別（FacilityData と EconomySystem で使用）

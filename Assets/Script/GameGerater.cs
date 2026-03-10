@@ -14,6 +14,7 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] SummonSystem _SummonSystem;
     [SerializeField] EconomySystem _EconomySystem;
     [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
+    [SerializeField] SubCrystalSystem _SubCrystalSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
     [Header("UI")]
@@ -121,6 +122,26 @@ public class GameGenerater : MonoBehaviour
                                    _VisionGenerater, _MapCreate, _CrystalSystem);
         _TurnGenerater.buildingAttackSystem = _BuildingAttackSystem;
 
+        // ---- SubCrystalSystem 初期化 ----
+        if (_SubCrystalSystem == null)
+        {
+            _SubCrystalSystem = gameObject.GetComponent<SubCrystalSystem>();
+            if (_SubCrystalSystem == null)
+                _SubCrystalSystem = gameObject.AddComponent<SubCrystalSystem>();
+        }
+        _SubCrystalSystem.Init(_TurnGenerater, _TerritorySystem, factionState,
+                                _MapCreate, _BuildSystem, _VisionGenerater,
+                                _MoveGenerater, _CrystalSystem);
+        _TurnGenerater.subCrystalSystem = _SubCrystalSystem;
+
+        // BuildSystem にサブクリスタルシステム参照を渡す
+        if (_BuildSystem != null)
+            _BuildSystem.subCrystalSystem = _SubCrystalSystem;
+
+        // VisionGenerater に BuildingParent を渡す（サブクリスタル視界計算用）
+        if (_BuildSystem != null)
+            _VisionGenerater.SetBuildingParent(_BuildSystem.BuildingParent);
+
         // ==== UI に FactionState を渡す ====
         if (_APPanelUI != null) _APPanelUI.Init(factionState);
         if (_ResourceBarUI != null) _ResourceBarUI.Init(factionState);
@@ -132,6 +153,10 @@ public class GameGenerater : MonoBehaviour
 
             // 初期市民APボーナスを反映
             factionState.PlayerAP.Plus = factionState.PlayerResources.Citizen * EconomySystem.APPerCitizen;
+
+            // サブクリスタル初期配布（2個）
+            factionState.PlayerSubCrystals = 2;
+            factionState.EnemySubCrystals = 2;
         }
 
         // ==== ターン開始 ====
