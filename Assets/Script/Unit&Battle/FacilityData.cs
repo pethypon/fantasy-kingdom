@@ -154,6 +154,9 @@ public static class FacilityData
         BuildWoodWall();
         BuildStoneWall();
 
+        // ---- サブクリスタル ----
+        BuildSubCrystal();
+
         // ---- 攻撃型建築物 ----
         BuildMortar();
         BuildCannon();
@@ -622,6 +625,24 @@ public static class FacilityData
     }
 
     // ==================================================================
+    //  サブクリスタル
+    // ==================================================================
+
+    private static void BuildSubCrystal()
+    {
+        var kind = FacilityKind.SubCrystal;
+        var levels = new FacilityLevelData[]
+        {
+            new FacilityLevelData // Lv1: HP5000, 領地拡張用
+            {
+                HP = 5000, DEF = 0, ATK = 0,
+            },
+        };
+        // AP0, リソースコスト0（サブクリスタル資源を1消費する別ロジック）
+        Register(kind, "サブクリスタル", 0, new ResourceCost(), 1, levels);
+    }
+
+    // ==================================================================
     //  攻撃型建築物
     // ==================================================================
 
@@ -965,15 +986,24 @@ public static class FacilityData
     }
 
     // ==================================================================
-    //  FacilityKind → Kind 変換（壁のみ）
+    //  サブクリスタルかどうか
+    // ==================================================================
+    public static bool IsSubCrystal(FacilityKind kind)
+    {
+        return kind == FacilityKind.SubCrystal;
+    }
+
+    // ==================================================================
+    //  FacilityKind → Kind 変換（壁・サブクリスタル）
     // ==================================================================
     public static Kind ToUnitKind(FacilityKind facility)
     {
         switch (facility)
         {
-            case FacilityKind.WoodWall:  return Kind.WoodWall;
-            case FacilityKind.StoneWall: return Kind.StoneWall;
-            default:                     return Kind.None;
+            case FacilityKind.WoodWall:   return Kind.WoodWall;
+            case FacilityKind.StoneWall:  return Kind.StoneWall;
+            case FacilityKind.SubCrystal: return Kind.SubCrystal;
+            default:                      return Kind.None;
         }
     }
 }

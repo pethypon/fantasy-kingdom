@@ -19,6 +19,7 @@ public class ResourceBarUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI plankText;
     [SerializeField] private TextMeshProUGUI cutStoneText;
     [SerializeField] private TextMeshProUGUI citizenText;
+    [SerializeField] private TextMeshProUGUI subCrystalText;
 
     [Header("参照")]
     [SerializeField] private FactionState factionState;
@@ -30,6 +31,9 @@ public class ResourceBarUI : MonoBehaviour
 
     private FactionState.ResourceData lastSnapshot;
     private int lastCitizenCap = -1;
+    private int lastSubCrystals = -1;
+    private int lastPendingCount = -1;
+    private int lastMinPending = -1;
 
     private void Awake()
     {
@@ -55,6 +59,7 @@ public class ResourceBarUI : MonoBehaviour
                 case "Plank":    plankText = tmp; break;
                 case "CutStone": cutStoneText = tmp; break;
                 case "Citizen":  citizenText = tmp; break;
+                case "SubCrystal": subCrystalText = tmp; break;
             }
         }
     }
@@ -70,14 +75,23 @@ public class ResourceBarUI : MonoBehaviour
         if (res == null) return;
 
         int citizenCap = factionState.GetCitizenCap(displayTeam);
-        if (!HasChanged(res) && citizenCap == lastCitizenCap) return;
+        int subCrystals = factionState.GetSubCrystals(displayTeam);
+        int pendingCount = factionState.GetPendingReturnCount(displayTeam);
+        int minPending = factionState.GetMinPendingReturn(displayTeam);
+        if (!HasChanged(res) && citizenCap == lastCitizenCap
+            && subCrystals == lastSubCrystals
+            && pendingCount == lastPendingCount && minPending == lastMinPending) return;
 
         lastCitizenCap = citizenCap;
+        lastSubCrystals = subCrystals;
+        lastPendingCount = pendingCount;
+        lastMinPending = minPending;
         SaveSnapshot(res);
-        Refresh(res, citizenCap);
+        Refresh(res, citizenCap, subCrystals, pendingCount, minPending);
     }
 
-    private void Refresh(FactionState.ResourceData res, int citizenCap)
+    private void Refresh(FactionState.ResourceData res, int citizenCap,
+                         int subCrystals = 0, int pendingCount = 0, int minPending = 0)
     {
         // 原材料 (茶系ラベル)
         SetText(woodText,     "木材",  res.Wood,  "#D4A574");
@@ -98,6 +112,14 @@ public class ResourceBarUI : MonoBehaviour
         SetText(cutStoneText, "切石",  res.CutStone, "#A8B0A8");
         // 人口 (緑系ラベル) — 上限付き表示
         SetTextWithCap(citizenText, "市民", res.Citizen, citizenCap, "#78C888");
+        // サブクリスタル (シアン系ラベル) — 返却待ち表示付き
+        if (subCrystalText != null)
+        {
+            string pendingText = pendingCount > 0
+                ? $" <size=70%>返却:{pendingCount}個({minPending}T)</size>"
+                : "";
+            subCrystalText.text = $"<color=#58C8E8><size=80%>副晶</size></color> {subCrystals}{pendingText}";
+        }
     }
 
     private static void SetText(TextMeshProUGUI tmp, string label, int value, string colorHex)
