@@ -19,6 +19,7 @@ public class ResourceBarUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI plankText;
     [SerializeField] private TextMeshProUGUI cutStoneText;
     [SerializeField] private TextMeshProUGUI citizenText;
+    [SerializeField] private TextMeshProUGUI subCrystalText;
 
     [Header("参照")]
     [SerializeField] private FactionState factionState;
@@ -30,6 +31,8 @@ public class ResourceBarUI : MonoBehaviour
 
     private FactionState.ResourceData lastSnapshot;
     private int lastCitizenCap = -1;
+    private int lastSubCrystals = -1;
+    private int lastSubCrystalCooldown = -1;
 
     private void Awake()
     {
@@ -55,6 +58,7 @@ public class ResourceBarUI : MonoBehaviour
                 case "Plank":    plankText = tmp; break;
                 case "CutStone": cutStoneText = tmp; break;
                 case "Citizen":  citizenText = tmp; break;
+                case "SubCrystal": subCrystalText = tmp; break;
             }
         }
     }
@@ -70,14 +74,20 @@ public class ResourceBarUI : MonoBehaviour
         if (res == null) return;
 
         int citizenCap = factionState.GetCitizenCap(displayTeam);
-        if (!HasChanged(res) && citizenCap == lastCitizenCap) return;
+        int subCrystals = factionState.GetSubCrystals(displayTeam);
+        int subCrystalCooldown = factionState.GetSubCrystalCooldown(displayTeam);
+        if (!HasChanged(res) && citizenCap == lastCitizenCap
+            && subCrystals == lastSubCrystals && subCrystalCooldown == lastSubCrystalCooldown) return;
 
         lastCitizenCap = citizenCap;
+        lastSubCrystals = subCrystals;
+        lastSubCrystalCooldown = subCrystalCooldown;
         SaveSnapshot(res);
-        Refresh(res, citizenCap);
+        Refresh(res, citizenCap, subCrystals, subCrystalCooldown);
     }
 
-    private void Refresh(FactionState.ResourceData res, int citizenCap)
+    private void Refresh(FactionState.ResourceData res, int citizenCap,
+                         int subCrystals = 0, int subCrystalCooldown = 0)
     {
         // 原材料 (茶系ラベル)
         SetText(woodText,     "木材",  res.Wood,  "#D4A574");
@@ -98,6 +108,12 @@ public class ResourceBarUI : MonoBehaviour
         SetText(cutStoneText, "切石",  res.CutStone, "#A8B0A8");
         // 人口 (緑系ラベル) — 上限付き表示
         SetTextWithCap(citizenText, "市民", res.Citizen, citizenCap, "#78C888");
+        // サブクリスタル (シアン系ラベル) — クールダウン表示付き
+        if (subCrystalText != null)
+        {
+            string cdText = subCrystalCooldown > 0 ? $" <size=70%>CD:{subCrystalCooldown}</size>" : "";
+            subCrystalText.text = $"<color=#58C8E8><size=80%>副晶</size></color> {subCrystals}{cdText}";
+        }
     }
 
     private static void SetText(TextMeshProUGUI tmp, string label, int value, string colorHex)

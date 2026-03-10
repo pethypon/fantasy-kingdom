@@ -57,6 +57,35 @@ public class FactionState : MonoBehaviour
     // ==== 市民の基本収容上限（家なしの場合） ====
     public const int BaseCitizenCap = 5;
 
+    // ==== サブクリスタル資源 ====
+    [Header("サブクリスタル")]
+    [SerializeField] public int PlayerSubCrystals = 2;
+    [SerializeField] public int EnemySubCrystals = 2;
+
+    // ==== サブクリスタルクールダウン（残りターン数） ====
+    [HideInInspector] public int PlayerSubCrystalCooldown = 0;
+    [HideInInspector] public int EnemySubCrystalCooldown = 0;
+
+    public int GetSubCrystals(Team team) => team == Team.Player ? PlayerSubCrystals : EnemySubCrystals;
+    public void ModifySubCrystals(Team team, int delta)
+    {
+        if (team == Team.Player) PlayerSubCrystals += delta;
+        else EnemySubCrystals += delta;
+    }
+
+    public int GetSubCrystalCooldown(Team team) => team == Team.Player ? PlayerSubCrystalCooldown : EnemySubCrystalCooldown;
+    public void SetSubCrystalCooldown(Team team, int value)
+    {
+        if (team == Team.Player) PlayerSubCrystalCooldown = value;
+        else EnemySubCrystalCooldown = value;
+    }
+
+    public void TickSubCrystalCooldown(Team team)
+    {
+        if (team == Team.Player && PlayerSubCrystalCooldown > 0) PlayerSubCrystalCooldown--;
+        else if (team == Team.Enemy && EnemySubCrystalCooldown > 0) EnemySubCrystalCooldown--;
+    }
+
     // ==== 経済システムが毎ターン書き込む値 ====
     [HideInInspector] public int PlayerCitizenCapacity;
     [HideInInspector] public int PlayerResourceCapacity;

@@ -39,6 +39,11 @@ public class VisionGenerater : MonoBehaviour
     [SerializeField] Transform PlayerUnit;
     [SerializeField] Transform EnemyUnit;
 
+    [Header("建築物の親（サブクリスタル視界計算用）")]
+    private Transform _buildingParent;
+
+    public void SetBuildingParent(Transform parent) => _buildingParent = parent;
+
     int blockLayerMask;
 
     // 駒の種類ごとの視界データ（Dictionaryで一元管理）
@@ -56,6 +61,7 @@ public class VisionGenerater : MonoBehaviour
         { Kind.Crossbow,    RangeVisionBox(-1, 1, -1, 0, 0, 2, true) },
         { Kind.Magicsniper, RangeVisionBox(-4, 4, -1, 0, -1, 1, true) },
         { Kind.Bomber,      VisionBox(-1, 1, -1, 0, 0, 3, true) },
+        { Kind.SubCrystal,  RangeVisionBox(-2, 2, -1, 0, -2, 2, true) },
     };
 
     static Vector3Int[] VisionBox
@@ -305,6 +311,20 @@ public class VisionGenerater : MonoBehaviour
             CalculateAndMergeVision(status, mapcreate, crystalsystem, PlayerVisionBox);
         }
 
+        // Player建築物（サブクリスタル）の視界計算
+        if (_buildingParent != null)
+        {
+            foreach (Transform child in _buildingParent)
+            {
+                if (child == null || !child.gameObject.activeInHierarchy) continue;
+                Status bStatus = child.GetComponent<Status>();
+                if (bStatus != null && bStatus.kind == Kind.SubCrystal && bStatus.team == Team.Player)
+                {
+                    CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, PlayerVisionBox);
+                }
+            }
+        }
+
         /*foreach (Status status in enemyunitbox)
         {
             CalculateAndMergeVision(status, mapcreate, crystalsystem, EnemyVisionBox);
@@ -347,7 +367,7 @@ public class VisionGenerater : MonoBehaviour
             if (pz < 0 || pz >= mapcreate.maxZ) continue;
             if (py < mapcreate.minY || py > mapcreate.maxY) continue;
 
-            if (status.kind == Kind.Crystal)
+            if (status.kind == Kind.Crystal || status.kind == Kind.SubCrystal)
             {
                 RaycastCrystalVision(status, mapcreate, px, py, pz);
             }

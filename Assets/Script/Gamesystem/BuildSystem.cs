@@ -16,6 +16,9 @@ public class BuildSystem : MonoBehaviour
     private MoveGererater movegenerater;
     private MapCreate mapcreate;
 
+    // ---- サブクリスタルシステム（後から注入） ----
+    public SubCrystalSystem subCrystalSystem;
+
     // ---- プレハブ（Inspector で割り当て。未割当時は Cube フォールバック） ----
     [Header("建築物プレハブ（Inspector割当）")]
     [SerializeField] private SerializableFacilityPrefab[] facilityPrefabs;
@@ -146,18 +149,40 @@ public class BuildSystem : MonoBehaviour
         // SetPos 上の最も近い有効座標に合わせる
         Vector3Int snapped = SnapToSetPos(gridPos);
 
-        // 領地内チェック
-        if (!IsInTerritory(snapped))
+        bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
+
+        if (isSubCrystal)
         {
-            // 領地外: 最も近い領地座標にクランプ
-            Vector3Int clamped = ClampToTerritory(snapped);
-            if (clamped.x == int.MinValue)
+            // サブクリスタル: 領地外でもカーソルが追従する
+            // 領地内の場合は領地端にクランプ（領地端についていく動作）
+            if (IsInTerritory(snapped))
             {
-                SetCursorVisible(false);
-                return;
+                // 領地内: 最も近い領地外座標にクランプ
+                Vector3Int clamped = ClampToOutsideTerritory(snapped);
+                if (clamped.x == int.MinValue)
+                {
+                    // 全て領地内の場合はそのまま表示（赤表示）
+                }
+                else
+                {
+                    snapped = clamped;
+                }
             }
-            snapped = clamped;
-            // 領地外にRayが飛んだ場合はカーソルを領地端に固定
+        }
+        else
+        {
+            // 通常建築物: 領地内チェック
+            if (!IsInTerritory(snapped))
+            {
+                // 領地外: 最も近い領地座標にクランプ
+                Vector3Int clamped = ClampToTerritory(snapped);
+                if (clamped.x == int.MinValue)
+                {
+                    SetCursorVisible(false);
+                    return;
+                }
+                snapped = clamped;
+            }
         }
 
         // カーソル位置の更新
@@ -179,18 +204,52 @@ public class BuildSystem : MonoBehaviour
         if (!canPlace) return false;
         if (!cursorVisible) return false;
 
-        // AP・リソースの再チェック（設置時）
-        if (!apsystem.CanBuild(Team.Player, SelectedFacility, factionState))
+        bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
+
+        if (isSubCrystal)
         {
-            Debug.Log("[BuildSystem] AP/リソース不足: 設置不可");
-            return false;
+            // サブクリスタル: 資源チェック（AP0, リソースコスト0, サブクリスタル1消費）
+            if (factionState.GetSubCrystals(Team.Player) <= 0)
+            {
+                Debug.Log("[BuildSystem] サブクリスタル不足: 設置不可");
+                return false;
+            }
+            if (factionState.GetSubCrystalCooldown(Team.Player) > 0)
+            {
+                Debug.Log("[BuildSystem] サブクリスタルクールダウン中: 設置不可");
+                return false;
+            }
+
+            // 設置実行
+            PlaceBuilding(lastCursorPos, SelectedFacility);
+
+            // サブクリスタル消費 + クールダウン設定
+            factionState.ModifySubCrystals(Team.Player, -1);
+            factionState.SetSubCrystalCooldown(Team.Player, SubCrystalSystem.SubCrystalCooldownTurns);
+
+            // 領地拡張
+            if (subCrystalSystem != null)
+            {
+                // 最後に設置した建築物を取得
+                var lastBuilding = BuildingParent.GetChild(BuildingParent.childCount - 1).gameObject;
+                subCrystalSystem.ExpandTerritory(lastBuilding, Team.Player);
+            }
         }
+        else
+        {
+            // 通常建築物: AP・リソースの再チェック
+            if (!apsystem.CanBuild(Team.Player, SelectedFacility, factionState))
+            {
+                Debug.Log("[BuildSystem] AP/リソース不足: 設置不可");
+                return false;
+            }
 
-        // 設置実行
-        PlaceBuilding(lastCursorPos, SelectedFacility);
+            // 設置実行
+            PlaceBuilding(lastCursorPos, SelectedFacility);
 
-        // AP・リソース消費
-        apsystem.ConsumeBuild(Team.Player, SelectedFacility, factionState);
+            // AP・リソース消費
+            apsystem.ConsumeBuild(Team.Player, SelectedFacility, factionState);
+        }
 
         // 建築モード解除
         CancelBuildMode();
@@ -202,7 +261,16 @@ public class BuildSystem : MonoBehaviour
     // ==================================================================
     private bool CheckCanPlace(Vector3Int pos)
     {
-        // 領地内でなければ不可
+        bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
+
+        if (isSubCrystal)
+        {
+            // サブクリスタル: SubCrystalSystem に委譲
+            if (subCrystalSystem == null) return false;
+            return subCrystalSystem.CanPlaceSubCrystal(pos, Team.Player);
+        }
+
+        // 通常建築物: 領地内でなければ不可
         if (!IsInTerritory(pos)) return false;
 
         // クリスタル位置チェック
@@ -248,13 +316,15 @@ public class BuildSystem : MonoBehaviour
             building.transform.SetParent(BuildingParent);
             building.name = facility.ToString();
 
-            // 壁はグレー、その他は茶色系
+            // 壁はグレー、サブクリスタルはシアン、その他は茶色系
             var renderer = building.GetComponent<Renderer>();
             if (renderer != null)
             {
                 var mat = new Material(Shader.Find("Standard"));
                 mat.color = FacilityData.IsWall(facility)
                     ? new Color(0.6f, 0.6f, 0.6f)
+                    : FacilityData.IsSubCrystal(facility)
+                    ? new Color(0.3f, 0.7f, 0.9f)
                     : new Color(0.6f, 0.4f, 0.2f);
                 renderer.material = mat;
             }
@@ -267,6 +337,7 @@ public class BuildSystem : MonoBehaviour
         status.kind = FacilityData.ToUnitKind(facility);
         status.team = Team.Player;
         status.type = FacilityData.IsWall(facility) ? Type.Wall : Type.Building;
+        status.direction = Direction.N;
         status.HP = info.HP;
         status.DEF = info.DEF;
         status.ATK = info.ATK;
@@ -370,6 +441,53 @@ public class BuildSystem : MonoBehaviour
     }
 
     // ==================================================================
+    //  内部: 領地外の最も近い座標にクランプ（サブクリスタル用）
+    // ==================================================================
+    private Vector3Int ClampToOutsideTerritory(Vector3Int pos)
+    {
+        if (mapcreate.SetPos == null || mapcreate.SetPos.Count == 0)
+            return new Vector3Int(int.MinValue, 0, 0);
+
+        float minDist = float.MaxValue;
+        Vector3 closest = Vector3.zero;
+        bool found = false;
+
+        foreach (var p in mapcreate.SetPos)
+        {
+            int px = Mathf.RoundToInt(p.x);
+            int pz = Mathf.RoundToInt(p.z);
+
+            // 領地内のマスはスキップ
+            bool inTerritory = false;
+            if (territorysystem.PTSetPos != null)
+                inTerritory |= territorysystem.PTSetPos.Any(t =>
+                    Mathf.RoundToInt(t.x) == px && Mathf.RoundToInt(t.z) == pz);
+            if (territorysystem.ETSetPos != null)
+                inTerritory |= territorysystem.ETSetPos.Any(t =>
+                    Mathf.RoundToInt(t.x) == px && Mathf.RoundToInt(t.z) == pz);
+            if (inTerritory) continue;
+
+            float dx = p.x - pos.x;
+            float dz = p.z - pos.z;
+            float dist = dx * dx + dz * dz;
+            if (dist < minDist)
+            {
+                minDist = dist;
+                closest = p;
+                found = true;
+            }
+        }
+
+        if (!found)
+            return new Vector3Int(int.MinValue, 0, 0);
+
+        return new Vector3Int(
+            Mathf.RoundToInt(closest.x),
+            Mathf.RoundToInt(closest.y),
+            Mathf.RoundToInt(closest.z));
+    }
+
+    // ==================================================================
     //  内部: SetPos 上の最も近い座標にスナップ
     // ==================================================================
     private Vector3Int SnapToSetPos(Vector3Int gridPos)
@@ -459,5 +577,18 @@ public class BuildSystem : MonoBehaviour
         Vector2 mousePos = Mouse.current.position.ReadValue();
         ray = Camera.main.ScreenPointToRay(mousePos);
         return true;
+    }
+
+    // ==================================================================
+    //  外部: 建築物位置管理
+    // ==================================================================
+    public void RemoveBuildingPosition(Vector3Int pos)
+    {
+        buildingPositions.Remove(pos);
+    }
+
+    public bool HasBuildingAt(Vector3Int pos)
+    {
+        return buildingPositions.Contains(pos);
     }
 }

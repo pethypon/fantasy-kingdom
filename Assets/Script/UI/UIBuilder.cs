@@ -114,8 +114,9 @@ public class UIBuilder : MonoBehaviour
 
         string[] r1Names  = { "Wood",  "Stone", "Coal",   "IronOre", "Iron",     "MagicOre" };
         Color[]  r1Colors = { rawC,    rawC,    minC,     minC,      proC,       proC };
-        string[] r2Names  = { "Wheat", "Bread", "Water",  "Plank",   "CutStone", "Citizen" };
-        Color[]  r2Colors = { fooC,    fooC,    rawC,     proC,      proC,       popC };
+        Color scC  = new Color(0.10f, 0.18f, 0.25f, 0.6f); // サブクリスタル（シアン系）
+        string[] r2Names  = { "Wheat", "Bread", "Water",  "Plank",   "CutStone", "Citizen", "SubCrystal" };
+        Color[]  r2Colors = { fooC,    fooC,    rawC,     proC,      proC,       popC,      scC };
 
         for (int i = 0; i < r1Names.Length; i++)
             CreateResourceCell(r1Names[i], row1, r1Colors[i]);
@@ -504,11 +505,29 @@ public class UIBuilder : MonoBehaviour
 
         foreach (var (btn, bg, kind) in buildButtons)
         {
-            bool canBuild = cachedAPSystem.CanBuild(Team.Player, kind, cachedFactionState);
+            bool canBuild;
+            if (FacilityData.IsSubCrystal(kind))
+            {
+                canBuild = cachedFactionState.GetSubCrystals(Team.Player) > 0
+                        && cachedFactionState.GetSubCrystalCooldown(Team.Player) <= 0;
+            }
+            else
+            {
+                canBuild = cachedAPSystem.CanBuild(Team.Player, kind, cachedFactionState);
+            }
             btn.interactable = canBuild;
-            bg.color = canBuild
-                ? new Color(0.2f, 0.35f, 0.2f, 1f)
-                : new Color(0.5f, 0.15f, 0.15f, 1f);
+            if (FacilityData.IsSubCrystal(kind))
+            {
+                bg.color = canBuild
+                    ? new Color(0.15f, 0.30f, 0.45f, 1f)
+                    : new Color(0.5f, 0.15f, 0.15f, 1f);
+            }
+            else
+            {
+                bg.color = canBuild
+                    ? new Color(0.2f, 0.35f, 0.2f, 1f)
+                    : new Color(0.5f, 0.15f, 0.15f, 1f);
+            }
         }
     }
 
@@ -622,9 +641,14 @@ public class UIBuilder : MonoBehaviour
             rowVLG.childForceExpandHeight = false;
 
             // ---- ボタン ----
-            string label = $"{info.DisplayName}  AP:{info.APCost}";
+            bool isSubCrystal = FacilityData.IsSubCrystal(facility);
+            string label = isSubCrystal
+                ? $"{info.DisplayName}  副晶x1"
+                : $"{info.DisplayName}  AP:{info.APCost}";
             var btn = CreateButton("Build_" + facility, row.transform,
-                label, 18, new Color(0.2f, 0.35f, 0.2f, 1f));
+                label, 18, isSubCrystal
+                    ? new Color(0.15f, 0.30f, 0.45f, 1f)
+                    : new Color(0.2f, 0.35f, 0.2f, 1f));
             var btnLE = btn.gameObject.AddComponent<LayoutElement>();
             btnLE.preferredHeight = 40;
 
@@ -635,7 +659,7 @@ public class UIBuilder : MonoBehaviour
             btn.onClick.AddListener(() => OnBuildButtonClicked(captured));
 
             // ---- コスト表示 ----
-            string costStr = FormatBuildCost(info.BuildCost);
+            string costStr = isSubCrystal ? "サブクリスタル1消費 CD:5ターン" : FormatBuildCost(info.BuildCost);
             var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, 15);
             costTMP.color = new Color(0.7f, 0.7f, 0.6f);
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
