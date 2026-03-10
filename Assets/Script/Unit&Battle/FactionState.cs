@@ -79,6 +79,7 @@ public class FactionState : MonoBehaviour
     {
         var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
         list.Add(turns);
+        Debug.Log($"[FactionState] AddPendingReturn: {team} {turns}ターン後に返却予定 (リスト件数={list.Count})");
     }
 
     /// <summary>返却待ちの中で最も早い残りターン数を取得（なければ0）</summary>
@@ -103,14 +104,22 @@ public class FactionState : MonoBehaviour
     public void TickPendingReturns(Team team)
     {
         var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        if (list == null)
+        {
+            Debug.LogError($"[FactionState] TickPendingReturns: {team} のリストが null です");
+            if (team == Team.Player) PlayerPendingReturns = new List<int>();
+            else EnemyPendingReturns = new List<int>();
+            return;
+        }
         for (int i = list.Count - 1; i >= 0; i--)
         {
             list[i]--;
+            Debug.Log($"[FactionState] {team} PendingReturn[{i}]: {list[i]+1}→{list[i]}");
             if (list[i] <= 0)
             {
                 ModifySubCrystals(team, 1);
                 list.RemoveAt(i);
-                Debug.Log($"[FactionState] {team} サブクリスタル返却 (残り待ち: {list.Count})");
+                Debug.Log($"[FactionState] {team} サブクリスタル返却！ 現在={GetSubCrystals(team)} (残り待ち: {list.Count})");
             }
         }
     }
