@@ -214,18 +214,12 @@ public class BuildSystem : MonoBehaviour
                 Debug.Log("[BuildSystem] サブクリスタル不足: 設置不可");
                 return false;
             }
-            if (factionState.GetSubCrystalCooldown(Team.Player) > 0)
-            {
-                Debug.Log("[BuildSystem] サブクリスタルクールダウン中: 設置不可");
-                return false;
-            }
 
             // 設置実行
             PlaceBuilding(lastCursorPos, SelectedFacility);
 
-            // サブクリスタル消費 + クールダウン設定
+            // サブクリスタル消費（クールダウンなし、破壊時に5ターン後返却）
             factionState.ModifySubCrystals(Team.Player, -1);
-            factionState.SetSubCrystalCooldown(Team.Player, SubCrystalSystem.SubCrystalCooldownTurns);
 
             // 領地拡張
             if (subCrystalSystem != null)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class FactionState : MonoBehaviour
@@ -62,9 +63,9 @@ public class FactionState : MonoBehaviour
     [SerializeField] public int PlayerSubCrystals = 2;
     [SerializeField] public int EnemySubCrystals = 2;
 
-    // ==== サブクリスタルクールダウン（残りターン数） ====
-    [HideInInspector] public int PlayerSubCrystalCooldown = 0;
-    [HideInInspector] public int EnemySubCrystalCooldown = 0;
+    // ==== サブクリスタル返却待ちリスト（各要素は残りターン数） ====
+    [HideInInspector] public List<int> PlayerPendingReturns = new List<int>();
+    [HideInInspector] public List<int> EnemyPendingReturns = new List<int>();
 
     public int GetSubCrystals(Team team) => team == Team.Player ? PlayerSubCrystals : EnemySubCrystals;
     public void ModifySubCrystals(Team team, int delta)
@@ -73,17 +74,45 @@ public class FactionState : MonoBehaviour
         else EnemySubCrystals += delta;
     }
 
-    public int GetSubCrystalCooldown(Team team) => team == Team.Player ? PlayerSubCrystalCooldown : EnemySubCrystalCooldown;
-    public void SetSubCrystalCooldown(Team team, int value)
+    /// <summary>破壊後の返却待ちを追加（5ターン後に返却）</summary>
+    public void AddPendingReturn(Team team, int turns)
     {
-        if (team == Team.Player) PlayerSubCrystalCooldown = value;
-        else EnemySubCrystalCooldown = value;
+        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        list.Add(turns);
     }
 
-    public void TickSubCrystalCooldown(Team team)
+    /// <summary>返却待ちの中で最も早い残りターン数を取得（なければ0）</summary>
+    public int GetMinPendingReturn(Team team)
     {
-        if (team == Team.Player && PlayerSubCrystalCooldown > 0) PlayerSubCrystalCooldown--;
-        else if (team == Team.Enemy && EnemySubCrystalCooldown > 0) EnemySubCrystalCooldown--;
+        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        if (list.Count == 0) return 0;
+        int min = int.MaxValue;
+        foreach (var t in list)
+            if (t < min) min = t;
+        return min;
+    }
+
+    /// <summary>返却待ちの個数を取得</summary>
+    public int GetPendingReturnCount(Team team)
+    {
+        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        return list.Count;
+    }
+
+    /// <summary>毎ターン呼ばれ、タイマーを減らし、0になったら資源を返却する</summary>
+    public void TickPendingReturns(Team team)
+    {
+        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            list[i]--;
+            if (list[i] <= 0)
+            {
+                ModifySubCrystals(team, 1);
+                list.RemoveAt(i);
+                Debug.Log($"[FactionState] {team} サブクリスタル返却 (残り待ち: {list.Count})");
+            }
+        }
     }
 
     // ==== 経済システムが毎ターン書き込む値 ====

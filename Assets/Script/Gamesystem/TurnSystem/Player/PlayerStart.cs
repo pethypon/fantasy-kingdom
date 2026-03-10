@@ -39,10 +39,10 @@ public class PlayerStart : StateCore
         // 疲労リセット
         turngenerater.apsystem.ResetFatigue(unitset.PlayerUnit);
 
-        // サブクリスタルクールダウン減少
+        // サブクリスタル返却待ちタイマー処理
         var factionState = Object.FindFirstObjectByType<FactionState>();
         if (factionState != null)
-            factionState.TickSubCrystalCooldown(Team.Player);
+            factionState.TickPendingReturns(Team.Player);
 
         turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick,
             attackpoint, battlesystem, visiongenerater,

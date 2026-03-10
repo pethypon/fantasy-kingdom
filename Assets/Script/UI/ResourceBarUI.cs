@@ -32,7 +32,8 @@ public class ResourceBarUI : MonoBehaviour
     private FactionState.ResourceData lastSnapshot;
     private int lastCitizenCap = -1;
     private int lastSubCrystals = -1;
-    private int lastSubCrystalCooldown = -1;
+    private int lastPendingCount = -1;
+    private int lastMinPending = -1;
 
     private void Awake()
     {
@@ -75,19 +76,22 @@ public class ResourceBarUI : MonoBehaviour
 
         int citizenCap = factionState.GetCitizenCap(displayTeam);
         int subCrystals = factionState.GetSubCrystals(displayTeam);
-        int subCrystalCooldown = factionState.GetSubCrystalCooldown(displayTeam);
+        int pendingCount = factionState.GetPendingReturnCount(displayTeam);
+        int minPending = factionState.GetMinPendingReturn(displayTeam);
         if (!HasChanged(res) && citizenCap == lastCitizenCap
-            && subCrystals == lastSubCrystals && subCrystalCooldown == lastSubCrystalCooldown) return;
+            && subCrystals == lastSubCrystals
+            && pendingCount == lastPendingCount && minPending == lastMinPending) return;
 
         lastCitizenCap = citizenCap;
         lastSubCrystals = subCrystals;
-        lastSubCrystalCooldown = subCrystalCooldown;
+        lastPendingCount = pendingCount;
+        lastMinPending = minPending;
         SaveSnapshot(res);
-        Refresh(res, citizenCap, subCrystals, subCrystalCooldown);
+        Refresh(res, citizenCap, subCrystals, pendingCount, minPending);
     }
 
     private void Refresh(FactionState.ResourceData res, int citizenCap,
-                         int subCrystals = 0, int subCrystalCooldown = 0)
+                         int subCrystals = 0, int pendingCount = 0, int minPending = 0)
     {
         // 原材料 (茶系ラベル)
         SetText(woodText,     "木材",  res.Wood,  "#D4A574");
@@ -108,11 +112,13 @@ public class ResourceBarUI : MonoBehaviour
         SetText(cutStoneText, "切石",  res.CutStone, "#A8B0A8");
         // 人口 (緑系ラベル) — 上限付き表示
         SetTextWithCap(citizenText, "市民", res.Citizen, citizenCap, "#78C888");
-        // サブクリスタル (シアン系ラベル) — クールダウン表示付き
+        // サブクリスタル (シアン系ラベル) — 返却待ち表示付き
         if (subCrystalText != null)
         {
-            string cdText = subCrystalCooldown > 0 ? $" <size=70%>CD:{subCrystalCooldown}</size>" : "";
-            subCrystalText.text = $"<color=#58C8E8><size=80%>副晶</size></color> {subCrystals}{cdText}";
+            string pendingText = pendingCount > 0
+                ? $" <size=70%>返却:{pendingCount}個({minPending}T)</size>"
+                : "";
+            subCrystalText.text = $"<color=#58C8E8><size=80%>副晶</size></color> {subCrystals}{pendingText}";
         }
     }
 

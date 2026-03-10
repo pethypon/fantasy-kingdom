@@ -129,10 +129,10 @@ public class SubCrystalSystem : MonoBehaviour
             subCrystalTerritoryTiles.Remove(subCrystal);
         }
 
-        // サブクリスタル資源を1回復
-        factionState.ModifySubCrystals(team, 1);
+        // 5ターン後にサブクリスタル資源を返却（即時回復ではない）
+        factionState.AddPendingReturn(team, SubCrystalCooldownTurns);
 
-        Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: 領地縮小、資源回復");
+        Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: 領地縮小、{SubCrystalCooldownTurns}ターン後に返却");
     }
 
     // ==================================================================
@@ -180,9 +180,6 @@ public class SubCrystalSystem : MonoBehaviour
     {
         // サブクリスタル資源チェック
         if (factionState.GetSubCrystals(team) <= 0) return false;
-
-        // クールダウンチェック
-        if (factionState.GetSubCrystalCooldown(team) > 0) return false;
 
         // Player領地内は設置不可
         if (IsInAnyTerritory(pos)) return false;

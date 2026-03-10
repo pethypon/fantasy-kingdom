@@ -508,8 +508,7 @@ public class UIBuilder : MonoBehaviour
             bool canBuild;
             if (FacilityData.IsSubCrystal(kind))
             {
-                canBuild = cachedFactionState.GetSubCrystals(Team.Player) > 0
-                        && cachedFactionState.GetSubCrystalCooldown(Team.Player) <= 0;
+                canBuild = cachedFactionState.GetSubCrystals(Team.Player) > 0;
             }
             else
             {
@@ -659,7 +658,7 @@ public class UIBuilder : MonoBehaviour
             btn.onClick.AddListener(() => OnBuildButtonClicked(captured));
 
             // ---- コスト表示 ----
-            string costStr = isSubCrystal ? "サブクリスタル1消費 CD:5ターン" : FormatBuildCost(info.BuildCost);
+            string costStr = isSubCrystal ? "サブクリスタル1消費 (破壊後5T返却)" : FormatBuildCost(info.BuildCost);
             var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, 15);
             costTMP.color = new Color(0.7f, 0.7f, 0.6f);
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
