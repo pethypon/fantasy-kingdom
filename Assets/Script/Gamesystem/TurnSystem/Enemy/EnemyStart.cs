@@ -35,6 +35,10 @@ public class EnemyStart : StateCore
         turngenerater.apsystem.ResetAP(Team.Enemy);
         turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);
 
+        // サブクリスタル返却待ちタイマー処理
+        if (turngenerater.subCrystalSystem != null)
+            turngenerater.subCrystalSystem.TickPendingReturns(Team.Enemy);
+
         turngenerater.ChangeState(new EnemyMove(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
