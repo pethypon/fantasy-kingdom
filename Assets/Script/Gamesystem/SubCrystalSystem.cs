@@ -27,6 +27,13 @@ public class SubCrystalSystem : MonoBehaviour
     public const int SubCrystalTerritoryRadius = 3;
     public const int SubCrystalCooldownTurns = 5;
 
+    /// <summary>毎ターン開始時に呼ばれ、返却待ちタイマーを進める</summary>
+    public void TickPendingReturns(Team team)
+    {
+        if (factionState != null)
+            factionState.TickPendingReturns(team);
+    }
+
     // ==================================================================
     //  初期化
     // ==================================================================

@@ -40,9 +40,8 @@ public class PlayerStart : StateCore
         turngenerater.apsystem.ResetFatigue(unitset.PlayerUnit);
 
         // サブクリスタル返却待ちタイマー処理
-        var factionState = Object.FindFirstObjectByType<FactionState>();
-        if (factionState != null)
-            factionState.TickPendingReturns(Team.Player);
+        if (turngenerater.subCrystalSystem != null)
+            turngenerater.subCrystalSystem.TickPendingReturns(Team.Player);
 
         turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick,
             attackpoint, battlesystem, visiongenerater,
