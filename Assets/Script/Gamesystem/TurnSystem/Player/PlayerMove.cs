@@ -220,7 +220,8 @@ public class PlayerMove : StateCore
     // ---- ターン終了 ----
     private void HandleTurnEnd()
     {
-        if (!turngenerater.TurnEndDown) return;
+        bool timeout = turngenerater.gameTimerSystem != null && turngenerater.gameTimerSystem.TurnRemainSeconds <= 0f;
+        if (!turngenerater.TurnEndDown && !timeout) return;
 
         turngenerater.movegenerater.MoveReset();
         RefreshVision();
@@ -228,6 +229,9 @@ public class PlayerMove : StateCore
 
         if (turngenerater.unitPanelUI != null)
             turngenerater.unitPanelUI.Hide();
+
+        if (timeout)
+            Debug.Log("[Timer] ターン制限時間切れ: 自動でターン終了");
 
         // Player の資源獲得（ターン終了時）
         if (turngenerater.economysystem != null)

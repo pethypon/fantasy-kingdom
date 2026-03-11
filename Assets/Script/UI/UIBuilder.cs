@@ -222,7 +222,12 @@ public class UIBuilder : MonoBehaviour
         // バー本体
         var timerFill = new GameObject("TimerFill", typeof(RectTransform));
         timerFill.transform.SetParent(timerArea.transform, false);
-        timerFill.AddComponent<Image>().color = new Color(0.2f, 0.55f, 0.8f, 0.9f);
+        var timerFillImage = timerFill.AddComponent<Image>();
+        timerFillImage.color = new Color(0.2f, 0.55f, 0.8f, 0.9f);
+        timerFillImage.type = Image.Type.Filled;
+        timerFillImage.fillMethod = Image.FillMethod.Horizontal;
+        timerFillImage.fillOrigin = 0;
+        timerFillImage.fillAmount = 1f;
         var fillRT = timerFill.GetComponent<RectTransform>();
         fillRT.anchorMin = Vector2.zero;
         fillRT.anchorMax = Vector2.one;

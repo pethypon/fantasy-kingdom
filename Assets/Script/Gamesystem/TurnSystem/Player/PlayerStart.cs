@@ -30,6 +30,9 @@ public class PlayerStart : StateCore
 
     public void Entry()
     {
+        if (turngenerater.gameTimerSystem != null)
+            turngenerater.gameTimerSystem.StartTurn(Team.Player);
+
         // ターンカウント更新
         turngenerater.Turn++;
 
