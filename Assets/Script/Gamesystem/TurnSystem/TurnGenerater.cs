@@ -8,7 +8,12 @@ public class TurnGenerater : MonoBehaviour
     public Vector3 NewCell;
 
     [Header("保持するステート")]
-    [SerializeField] StateCore StateManager;
+    [SerializeField] private StateCore stateManager;
+
+    [Header("タイマーシステム")]
+    [SerializeField] public GameTimerSystem gameTimerSystem;
+
+    public StateCore StateManager => stateManager;
 
     [Header("ターン管理")]
     [SerializeField] public int Turn = 0;
@@ -78,9 +83,9 @@ public class TurnGenerater : MonoBehaviour
     // ---- ステート切り替え ----
     public void ChangeState(StateCore next)
     {
-        StateManager?.Exit();
-        StateManager = next;
-        StateManager?.Entry();
+        stateManager?.Exit();
+        stateManager = next;
+        stateManager?.Entry();
     }
 
     public void Awake()
@@ -97,7 +102,7 @@ public class TurnGenerater : MonoBehaviour
     void Update()
     {
         ReadInputs();
-        StateManager?.Update();
+        stateManager?.Update();
     }
 
     private void ReadInputs()

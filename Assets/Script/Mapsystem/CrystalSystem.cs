@@ -24,6 +24,32 @@ public class CrystalSystem : MonoBehaviour
     /// <summary> クリスタルの基本HP </summary>
     public const int CrystalHP = 30000;
 
+
+    public Status GetMainCrystalStatus(Team team)
+    {
+        Transform parent = team == Team.Player ? Playercrystal : Enemycrystal;
+        if (parent == null || parent.childCount == 0) return null;
+        return parent.GetChild(0).GetComponent<Status>();
+    }
+
+    public Status GetMainKingStatus(Team team)
+    {
+        UnitSetting unitSetting = GetComponent<UnitSetting>();
+        if (unitSetting == null) return null;
+
+        Transform unitParent = team == Team.Player ? unitSetting.PlayerUnit : unitSetting.EnemyUnit;
+        if (unitParent == null) return null;
+
+        foreach (Transform child in unitParent)
+        {
+            if (!child.gameObject.activeSelf) continue;
+            Status st = child.GetComponent<Status>();
+            if (st != null && st.kind == Kind.King && st.team == team)
+                return st;
+        }
+        return null;
+    }
+
     private List<Vector3> _SetPos;
     private int maxx;
     private int maxz;
