@@ -127,16 +127,24 @@ public class AttackPointt : MonoBehaviour
         }
 
         Vector3 ownCell = movegenerater.Cell(objp);
-        Vector3 pcpCell = movegenerater.Cell(movegenerater.pcp);
+        Vector3 playerCrystalCell = movegenerater.Cell(movegenerater.pcp);
+        Vector3 enemyCrystalCell = movegenerater.Cell(movegenerater.ecp);
+
+        // 攻撃対象は「敵ユニット」または「敵陣クリスタル」のみ
+        // （自軍クリスタル・自分自身は対象外）
+        Vector3 ownCrystalCell = obj.team == Team.Player ? playerCrystalCell : enemyCrystalCell;
 
         AttackP = setpos.Where(p =>
         {
             float dx = Mathf.RoundToInt(p.x - objp.x);
             float dz = Mathf.RoundToInt(p.z - objp.z);
             Vector3 cell = movegenerater.Cell(p);
+
             bool occupied = unitdata.Contains(cell);
-            bool notSelf = cell != ownCell && cell != pcpCell;
-            return occupied && notSelf && predicate(dx, dz);
+            bool notSelf = cell != ownCell;
+            bool notOwnCrystal = cell != ownCrystalCell;
+
+            return occupied && notSelf && notOwnCrystal && predicate(dx, dz);
         }).ToList();
     }
 }

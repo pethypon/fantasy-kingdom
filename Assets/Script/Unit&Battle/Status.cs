@@ -91,8 +91,14 @@ public class Status : MonoBehaviour
     [Header("疲労")]
     [SerializeField] public int Fatigue = 0;
 
+    [Header("バフ")]
+    [SerializeField] public int InvincibleTurns = 0;
+    [SerializeField] public bool MainCrystalShieldTriggered = false;
+
     [Header("建築物の種類")]
     public FacilityKind facilityKind;
+
+    public bool IsInvincible => InvincibleTurns > 0;
 }
 
 // =====================================================================

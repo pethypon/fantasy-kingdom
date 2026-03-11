@@ -128,12 +128,16 @@ public class MoveGererater : MonoBehaviour
             return;
         }
 
+        Vector3 enemyCrystalCell = obj.team == Team.Player ? Cell(ecp) : Cell(pcp);
+
         MoveUnitP = setpos.Where(p =>
         {
             float dx = p.x - objp.x;
             float dz = p.z - objp.z;
-            bool occupied = UnitPointData.Contains(Cell(p));
-            return predicate(dx, dz) && !occupied;
+            Vector3 cell = Cell(p);
+            bool occupied = UnitPointData.Contains(cell);
+            bool isEnemyCrystal = cell == enemyCrystalCell;
+            return predicate(dx, dz) && !occupied && !isEnemyCrystal;
         }).ToList();
 
         MoveCreate();
