@@ -15,6 +15,8 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] EconomySystem _EconomySystem;
     [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
     [SerializeField] SubCrystalSystem _SubCrystalSystem;
+    [SerializeField] CrystalShieldSystem _CrystalShieldSystem;
+    [SerializeField] TimeLimitSystem _TimeLimitSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
     [Header("UI")]
@@ -119,7 +121,8 @@ public class GameGenerater : MonoBehaviour
                 _BuildingAttackSystem = gameObject.AddComponent<BuildingAttackSystem>();
         }
         _BuildingAttackSystem.Init(_BuildSystem, _MoveGenerater, _UnitSetting,
-                                   _VisionGenerater, _MapCreate, _CrystalSystem);
+                                   _VisionGenerater, _MapCreate, _CrystalSystem,
+                                   _SubCrystalSystem, _TurnGenerater);
         _TurnGenerater.buildingAttackSystem = _BuildingAttackSystem;
 
         // ---- SubCrystalSystem 初期化 ----
@@ -133,6 +136,14 @@ public class GameGenerater : MonoBehaviour
                                 _MapCreate, _BuildSystem, _VisionGenerater,
                                 _MoveGenerater, _CrystalSystem);
         _TurnGenerater.subCrystalSystem = _SubCrystalSystem;
+
+        // BuildingAttackSystem に最新の SubCrystalSystem 参照を再注入
+        if (_BuildingAttackSystem != null)
+        {
+            _BuildingAttackSystem.Init(_BuildSystem, _MoveGenerater, _UnitSetting,
+                                       _VisionGenerater, _MapCreate, _CrystalSystem,
+                                       _SubCrystalSystem, _TurnGenerater);
+        }
 
         // BuildSystem にサブクリスタルシステム参照を渡す
         if (_BuildSystem != null)
@@ -158,6 +169,25 @@ public class GameGenerater : MonoBehaviour
             factionState.PlayerSubCrystals = 2;
             factionState.EnemySubCrystals = 2;
         }
+
+        // ---- CrystalShieldSystem 初期化 ----
+        if (_CrystalShieldSystem == null)
+        {
+            _CrystalShieldSystem = gameObject.GetComponent<CrystalShieldSystem>();
+            if (_CrystalShieldSystem == null)
+                _CrystalShieldSystem = gameObject.AddComponent<CrystalShieldSystem>();
+        }
+        _TurnGenerater.crystalShieldSystem = _CrystalShieldSystem;
+
+        // ---- TimeLimitSystem 初期化 ----
+        if (_TimeLimitSystem == null)
+        {
+            _TimeLimitSystem = gameObject.GetComponent<TimeLimitSystem>();
+            if (_TimeLimitSystem == null)
+                _TimeLimitSystem = gameObject.AddComponent<TimeLimitSystem>();
+        }
+        _TimeLimitSystem.Init(_TurnGenerater, _CrystalSystem, _UnitSetting);
+        _TurnGenerater.timeLimitSystem = _TimeLimitSystem;
 
         // ==== ターン開始 ====
         _TurnGenerater.StartFirstTurn();

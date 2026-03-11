@@ -220,7 +220,12 @@ public class PlayerMove : StateCore
     // ---- ターン終了 ----
     private void HandleTurnEnd()
     {
-        if (!turngenerater.TurnEndDown) return;
+        bool manualEnd = turngenerater.TurnEndDown;
+        bool forcedEnd = turngenerater.ForceTurnEndRequested;
+        if (!manualEnd && !forcedEnd) return;
+
+        if (forcedEnd)
+            turngenerater.ConsumeForcedTurnEnd();
 
         turngenerater.movegenerater.MoveReset();
         RefreshVision();

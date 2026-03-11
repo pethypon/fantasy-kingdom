@@ -3,6 +3,9 @@ using UnityEngine.InputSystem;
 
 public class TurnGenerater : MonoBehaviour
 {
+    public Team CurrentTeam { get; private set; } = Team.Player;
+    public bool ForceTurnEndRequested { get; private set; }
+
     public Status SelectUnit;
     public Vector3 OldCell;
     public Vector3 NewCell;
@@ -55,6 +58,12 @@ public class TurnGenerater : MonoBehaviour
     [Header("サブクリスタルシステム")]
     [SerializeField] public SubCrystalSystem subCrystalSystem;
 
+    [Header("メインクリスタルシールド")]
+    [SerializeField] public CrystalShieldSystem crystalShieldSystem;
+
+    [Header("タイムリミットシステム")]
+    [SerializeField] public TimeLimitSystem timeLimitSystem;
+
     [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 
@@ -97,7 +106,24 @@ public class TurnGenerater : MonoBehaviour
     void Update()
     {
         ReadInputs();
+        timeLimitSystem?.Tick(Time.deltaTime);
         StateManager?.Update();
+    }
+
+    public void SetCurrentTeam(Team team)
+    {
+        CurrentTeam = team;
+        timeLimitSystem?.OnTurnStarted(team);
+    }
+
+    public void RequestForcedTurnEnd()
+    {
+        ForceTurnEndRequested = true;
+    }
+
+    public void ConsumeForcedTurnEnd()
+    {
+        ForceTurnEndRequested = false;
     }
 
     private void ReadInputs()

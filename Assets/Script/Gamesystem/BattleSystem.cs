@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 public enum GameResult { Win, Lose }
+public enum GameEndReason { CrystalOrKingDestroyed, TimeLimit }
 
 public class BattleSystem : MonoBehaviour
 {
@@ -44,9 +45,20 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private void ApplyDamage(int damage)
     {
+        if (turngenerater != null && turngenerater.crystalShieldSystem != null &&
+            turngenerater.crystalShieldSystem.IsInvincible(target))
+        {
+            Debug.Log($"[Battle] {target.team} Crystal is invincible");
+            return;
+        }
+
         damage = Mathf.Max(0, damage);
         target.HP -= damage;
         target.HP = Mathf.Max(0, target.HP);
+
+        if (turngenerater != null && turngenerater.crystalShieldSystem != null)
+            turngenerater.crystalShieldSystem.TryActivate(target);
+
         Debug.Log($"[Battle] {AttackSide.kind} → {target.kind}  DMG:{damage}  残HP:{target.HP}");
     }
 
@@ -110,6 +122,6 @@ public class BattleSystem : MonoBehaviour
             Debug.Log($"[Battle] 自軍 {target.kind} 破壊 → 敗北…");
         }
 
-        turngenerater.ChangeState(new GameEndState(turngenerater, result));
+        turngenerater.ChangeState(new GameEndState(turngenerater, result, GameEndReason.CrystalOrKingDestroyed));
     }
 }
