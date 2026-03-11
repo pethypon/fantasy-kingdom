@@ -32,6 +32,10 @@ public class PlayerStart : StateCore
     {
         // ターンカウント更新
         turngenerater.Turn++;
+        turngenerater.SetCurrentTeam(Team.Player);
+
+        if (turngenerater.crystalShieldSystem != null)
+            turngenerater.crystalShieldSystem.TickTurn(Team.Player);
 
         // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
         turngenerater.apsystem.ResetAP(Team.Player);

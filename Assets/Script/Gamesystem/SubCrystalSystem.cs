@@ -158,7 +158,7 @@ public class SubCrystalSystem : MonoBehaviour
     // ==================================================================
     //  建築物破壊（汎用）— サブクリスタル・通常建築物共用
     // ==================================================================
-    public void DestroyBuilding(Status target)
+    public void DestroyBuilding(Status target, Team attackerTeam = Team.None)
     {
         if (target == null) return;
 
@@ -172,6 +172,7 @@ public class SubCrystalSystem : MonoBehaviour
         if (target.facilityKind == FacilityKind.SubCrystal)
         {
             OnSubCrystalDestroyed(target.gameObject, target.team);
+            TryGrantSubCrystalDestroyReward(target.team, attackerTeam);
         }
 
         // 壁の場合は UnitPointData から除去
@@ -191,6 +192,23 @@ public class SubCrystalSystem : MonoBehaviour
         target.transform.position = new Vector3(-1000, -1000, -1000);
 
         Debug.Log($"[SubCrystalSystem] 建築物破壊: {target.facilityKind} at ({posInt.x}, {posInt.y}, {posInt.z})");
+    }
+
+
+    private void TryGrantSubCrystalDestroyReward(Team ownerTeam, Team attackerTeam)
+    {
+        if (factionState == null) return;
+        if (attackerTeam == Team.None || attackerTeam == ownerTeam) return;
+
+        var res = attackerTeam == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
+        int roll = Random.Range(0, 4);
+        switch (roll)
+        {
+            case 0: res.Bread += 50; Debug.Log("[SubCrystalSystem] 破壊報酬: Bread +50"); break;
+            case 1: res.Wood += 50; Debug.Log("[SubCrystalSystem] 破壊報酬: Wood +50"); break;
+            case 2: res.Stone += 50; Debug.Log("[SubCrystalSystem] 破壊報酬: Stone +50"); break;
+            default: res.Iron += 50; Debug.Log("[SubCrystalSystem] 破壊報酬: Iron +50"); break;
+        }
     }
 
     // ==================================================================

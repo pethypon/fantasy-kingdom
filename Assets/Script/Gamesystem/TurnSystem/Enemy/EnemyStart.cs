@@ -32,6 +32,11 @@ public class EnemyStart : StateCore
     {
         Debug.Log("[EnemyStart] 敵ターン開始");
 
+        turngenerater.SetCurrentTeam(Team.Enemy);
+
+        if (turngenerater.crystalShieldSystem != null)
+            turngenerater.crystalShieldSystem.TickTurn(Team.Enemy);
+
         turngenerater.apsystem.ResetAP(Team.Enemy);
         turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);
 

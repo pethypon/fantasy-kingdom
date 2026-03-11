@@ -15,10 +15,13 @@ public class BuildingAttackSystem : MonoBehaviour
     private VisionGenerater visionGenerater;
     private MapCreate mapCreate;
     private CrystalSystem crystalSystem;
+    private SubCrystalSystem subCrystalSystem;
+    private TurnGenerater turnGenerater;
 
     public void Init(BuildSystem buildSystem, MoveGererater moveGererater,
                      UnitSetting unitSetting, VisionGenerater visionGenerater,
-                     MapCreate mapCreate, CrystalSystem crystalSystem)
+                     MapCreate mapCreate, CrystalSystem crystalSystem,
+                     SubCrystalSystem subCrystalSystem, TurnGenerater turnGenerater)
     {
         this.buildSystem = buildSystem;
         this.moveGererater = moveGererater;
@@ -26,6 +29,8 @@ public class BuildingAttackSystem : MonoBehaviour
         this.visionGenerater = visionGenerater;
         this.mapCreate = mapCreate;
         this.crystalSystem = crystalSystem;
+        this.subCrystalSystem = subCrystalSystem;
+        this.turnGenerater = turnGenerater;
     }
 
     // 迫撃砲の攻撃範囲オフセット（x,z）
@@ -103,7 +108,7 @@ public class BuildingAttackSystem : MonoBehaviour
         int tz = Mathf.RoundToInt(targetCell.z);
 
         // メイン攻撃
-        ApplyBuildingDamage(mortar, primaryTarget);
+        ApplyBuildingDamage(mortar, primaryTarget, mortar.team);
 
         // 左右隣接2マスにも攻撃（x±1, x±2）
         Vector2Int[] splashOffsets = new Vector2Int[]
@@ -117,7 +122,7 @@ public class BuildingAttackSystem : MonoBehaviour
             Vector3 splashPos = new Vector3(tx + splash.x, 0f, tz + splash.y);
             Status splashTarget = FindEnemyAtCell(splashPos, enemyTeam);
             if (splashTarget != null)
-                ApplyBuildingDamage(mortar, splashTarget);
+                ApplyBuildingDamage(mortar, splashTarget, mortar.team);
         }
     }
 
@@ -143,7 +148,7 @@ public class BuildingAttackSystem : MonoBehaviour
         if (targetsInRange.Count == 0) return;
 
         Status target = targetsInRange[Random.Range(0, targetsInRange.Count)];
-        ApplyBuildingDamage(cannon, target);
+        ApplyBuildingDamage(cannon, target, cannon.team);
     }
 
     /// <summary>
@@ -213,31 +218,58 @@ public class BuildingAttackSystem : MonoBehaviour
     /// <summary>
     /// 建築物によるダメージ適用。ATK - DEF（最低0）。HP0で撃破処理。
     /// </summary>
-    private void ApplyBuildingDamage(Status attacker, Status target)
+    private void ApplyBuildingDamage(Status attacker, Status target, Team attackerTeam)
     {
+        if (turnGenerater != null && turnGenerater.crystalShieldSystem != null &&
+            turnGenerater.crystalShieldSystem.IsInvincible(target))
+        {
+            Debug.Log($"[BuildingAttack] {target.team} Crystal is invincible");
+            return;
+        }
+
         int damage = Mathf.Max(0, attacker.ATK - target.DEF);
         target.HP -= damage;
         target.HP = Mathf.Max(0, target.HP);
+
+        if (turnGenerater != null && turnGenerater.crystalShieldSystem != null)
+            turnGenerater.crystalShieldSystem.TryActivate(target);
 
         string attackerName = FacilityData.Table.TryGetValue(attacker.facilityKind, out var info)
             ? info.DisplayName : attacker.facilityKind.ToString();
         Debug.Log($"[BuildingAttack] {attackerName} → {target.kind} ({target.team})  DMG:{damage}  残HP:{target.HP}");
 
         if (target.HP <= 0)
-            HandleTargetDeath(target);
+            HandleTargetDeath(target, attackerTeam);
     }
 
     /// <summary>
     /// 攻撃によるHP0処理。
     /// </summary>
-    private void HandleTargetDeath(Status target)
+    private void HandleTargetDeath(Status target, Team attackerTeam)
     {
         Debug.Log($"[BuildingAttack] {target.team} の {target.kind} が建築物攻撃により撃破");
 
-        Vector3 cellPos = moveGererater.Cell(target.transform.position);
-        moveGererater.UnitPointData.Remove(cellPos);
+        if (target.kind == Kind.Crystal || target.kind == Kind.King)
+        {
+            GameResult result = target.team == Team.Enemy ? GameResult.Win : GameResult.Lose;
+            if (turnGenerater != null)
+                turnGenerater.ChangeState(new GameEndState(turnGenerater, result, GameEndReason.CrystalOrKingDestroyed));
+            return;
+        }
 
-        target.gameObject.SetActive(false);
+        if (target.type == Type.Building || target.type == Type.Wall)
+        {
+            if (subCrystalSystem != null)
+                subCrystalSystem.DestroyBuilding(target, attackerTeam);
+            else
+                target.gameObject.SetActive(false);
+        }
+        else
+        {
+            Vector3 cellPos = moveGererater.Cell(target.transform.position);
+            moveGererater.UnitPointData.Remove(cellPos);
+            target.gameObject.SetActive(false);
+        }
 
         if (visionGenerater != null)
             visionGenerater.VisionPoint(mapCreate, moveGererater, crystalSystem);
