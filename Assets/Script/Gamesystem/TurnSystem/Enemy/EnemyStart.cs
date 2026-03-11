@@ -30,6 +30,9 @@ public class EnemyStart : StateCore
 
     public void Entry()
     {
+        if (turngenerater.gameTimerSystem != null)
+            turngenerater.gameTimerSystem.StartTurn(Team.Enemy);
+
         Debug.Log("[EnemyStart] 敵ターン開始");
 
         turngenerater.apsystem.ResetAP(Team.Enemy);

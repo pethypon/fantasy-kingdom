@@ -16,6 +16,7 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
     [SerializeField] SubCrystalSystem _SubCrystalSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
+    [SerializeField] GameTimerSystem _GameTimerSystem;
 
     [Header("UI")]
     [SerializeField] APPanelUI _APPanelUI;
@@ -121,6 +122,16 @@ public class GameGenerater : MonoBehaviour
         _BuildingAttackSystem.Init(_BuildSystem, _MoveGenerater, _UnitSetting,
                                    _VisionGenerater, _MapCreate, _CrystalSystem);
         _TurnGenerater.buildingAttackSystem = _BuildingAttackSystem;
+
+        // ---- GameTimerSystem 初期化 ----
+        if (_GameTimerSystem == null)
+        {
+            _GameTimerSystem = gameObject.GetComponent<GameTimerSystem>();
+            if (_GameTimerSystem == null)
+                _GameTimerSystem = gameObject.AddComponent<GameTimerSystem>();
+        }
+        _GameTimerSystem.Init(_TurnGenerater);
+        _TurnGenerater.gameTimerSystem = _GameTimerSystem;
 
         // ---- SubCrystalSystem 初期化 ----
         if (_SubCrystalSystem == null)

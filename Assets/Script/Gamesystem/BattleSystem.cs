@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public enum GameResult { Win, Lose }
+public enum GameResult { Win, Lose, Draw }
 
 public class BattleSystem : MonoBehaviour
 {
@@ -8,7 +8,6 @@ public class BattleSystem : MonoBehaviour
     public Status AttackSide;
     public TurnGenerater turngenerater;
 
-    // ─── ダメージ発生（入口） ─────────────────────────────────────────
     public void DamageGenerater(TurnGenerater turngenerater)
     {
         this.turngenerater = turngenerater;
@@ -29,7 +28,6 @@ public class BattleSystem : MonoBehaviour
         CheckDeath();
     }
 
-    // ─── 防御側パッシブ ───────────────────────────────────────────────
     public void SideDefender()
     {
         switch (target.passiveskill)
@@ -39,38 +37,40 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    //  ダメージ適用
-    // ═══════════════════════════════════════════════════════════════════
     private void ApplyDamage(int damage)
     {
+        if (target != null && target.IsInvincible)
+        {
+            Debug.Log($"[Battle] {target.kind} は無敵中のためダメージ無効");
+            return;
+        }
+
         damage = Mathf.Max(0, damage);
         target.HP -= damage;
         target.HP = Mathf.Max(0, target.HP);
         Debug.Log($"[Battle] {AttackSide.kind} → {target.kind}  DMG:{damage}  残HP:{target.HP}");
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    //  HP0 判定 → 駒 / ゲーム終了対象 に分岐
-    // ═══════════════════════════════════════════════════════════════════
     private void CheckDeath()
     {
         if (target.HP > 0) return;
 
-        // Crystal か King のどちらかが倒れたら即ゲーム終了
         if (target.kind == Kind.Crystal || target.kind == Kind.King)
         {
             HandleGameEnd();
+            return;
         }
-        else if (target.type == Type.Unit)
+
+        if (target.type == Type.Unit)
         {
             HandleUnitDeath();
+            return;
         }
+
+        if (target.type == Type.Building || target.type == Type.Wall)
+            HandleBuildingDeath();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    //  A) 一般駒がHP0 → 盤面から除外
-    // ═══════════════════════════════════════════════════════════════════
     private void HandleUnitDeath()
     {
         Debug.Log($"[Battle] {target.team} の {target.kind} が撃破された");
@@ -79,9 +79,7 @@ public class BattleSystem : MonoBehaviour
         turngenerater.movegenerater.UnitPointData.Remove(cellPos);
 
         if (turngenerater.SelectUnit == target)
-        {
             turngenerater.SelectUnit = null;
-        }
 
         target.gameObject.SetActive(false);
 
@@ -92,9 +90,36 @@ public class BattleSystem : MonoBehaviour
         );
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    //  B) Crystal or King がHP0 → 勝敗確定 → ゲーム終了
-    // ═══════════════════════════════════════════════════════════════════
+    private void HandleBuildingDeath()
+    {
+        if (turngenerater.subCrystalSystem != null)
+            turngenerater.subCrystalSystem.DestroyBuilding(target);
+        else
+            target.gameObject.SetActive(false);
+
+        TryGrantSubCrystalBreakReward();
+    }
+
+    private void TryGrantSubCrystalBreakReward()
+    {
+        if (target == null || AttackSide == null) return;
+        if (target.facilityKind != FacilityKind.SubCrystal) return;
+        if (AttackSide.team == target.team) return;
+
+        FactionState factionState = turngenerater.crystalsystem.Playercrystal.GetComponentInChildren<FactionState>();
+        if (factionState == null) return;
+
+        var res = AttackSide.team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
+        int roll = Random.Range(0, 4);
+        switch (roll)
+        {
+            case 0: res.Bread += 50; Debug.Log("[Battle] サブクリスタル破壊報酬: パン+50"); break;
+            case 1: res.Wood += 50; Debug.Log("[Battle] サブクリスタル破壊報酬: 木材+50"); break;
+            case 2: res.Stone += 50; Debug.Log("[Battle] サブクリスタル破壊報酬: 石+50"); break;
+            default: res.Iron += 50; Debug.Log("[Battle] サブクリスタル破壊報酬: 鉄+50"); break;
+        }
+    }
+
     private void HandleGameEnd()
     {
         GameResult result;
