@@ -33,6 +33,10 @@ public class PlayerStart : StateCore
         // ターンカウント更新
         turngenerater.Turn++;
 
+        // クリスタルシールドのターン経過（両陣営）
+        BattleSystem.TickCrystalShields(crystalsystem.Playercrystal);
+        BattleSystem.TickCrystalShields(crystalsystem.Enemycrystal);
+
         // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
         turngenerater.apsystem.ResetAP(Team.Player);
 
@@ -44,6 +48,10 @@ public class PlayerStart : StateCore
             turngenerater.subCrystalSystem.TickPendingReturns(Team.Player);
         else
             Debug.LogWarning("[PlayerStart] subCrystalSystem が null のため TickPendingReturns をスキップ");
+
+        // タイマー開始（プレイヤーターン）
+        if (turngenerater.timerSystem != null)
+            turngenerater.timerSystem.StartTurn(Team.Player);
 
         turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick,
             attackpoint, battlesystem, visiongenerater,

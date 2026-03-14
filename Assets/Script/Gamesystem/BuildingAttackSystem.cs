@@ -15,6 +15,7 @@ public class BuildingAttackSystem : MonoBehaviour
     private VisionGenerater visionGenerater;
     private MapCreate mapCreate;
     private CrystalSystem crystalSystem;
+    private SubCrystalSystem subCrystalSystem;
 
     public void Init(BuildSystem buildSystem, MoveGererater moveGererater,
                      UnitSetting unitSetting, VisionGenerater visionGenerater,
@@ -26,6 +27,11 @@ public class BuildingAttackSystem : MonoBehaviour
         this.visionGenerater = visionGenerater;
         this.mapCreate = mapCreate;
         this.crystalSystem = crystalSystem;
+    }
+
+    public void SetSubCrystalSystem(SubCrystalSystem scs)
+    {
+        this.subCrystalSystem = scs;
     }
 
     // 迫撃砲の攻撃範囲オフセット（x,z）
@@ -234,10 +240,17 @@ public class BuildingAttackSystem : MonoBehaviour
     {
         Debug.Log($"[BuildingAttack] {target.team} の {target.kind} が建築物攻撃により撃破");
 
-        Vector3 cellPos = moveGererater.Cell(target.transform.position);
-        moveGererater.UnitPointData.Remove(cellPos);
-
-        target.gameObject.SetActive(false);
+        // サブクリスタルの場合は SubCrystalSystem 経由で処理（報酬・領地削除含む）
+        if (target.facilityKind == FacilityKind.SubCrystal && subCrystalSystem != null)
+        {
+            subCrystalSystem.DestroyBuilding(target);
+        }
+        else
+        {
+            Vector3 cellPos = moveGererater.Cell(target.transform.position);
+            moveGererater.UnitPointData.Remove(cellPos);
+            target.gameObject.SetActive(false);
+        }
 
         if (visionGenerater != null)
             visionGenerater.VisionPoint(mapCreate, moveGererater, crystalSystem);

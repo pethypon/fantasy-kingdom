@@ -55,6 +55,9 @@ public class TurnGenerater : MonoBehaviour
     [Header("サブクリスタルシステム")]
     [SerializeField] public SubCrystalSystem subCrystalSystem;
 
+    [Header("タイマーシステム")]
+    [SerializeField] public TimerSystem timerSystem;
+
     [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 

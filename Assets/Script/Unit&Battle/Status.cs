@@ -91,6 +91,11 @@ public class Status : MonoBehaviour
     [Header("疲労")]
     [SerializeField] public int Fatigue = 0;
 
+    [Header("シールド（無敵バフ）")]
+    [SerializeField] public int ShieldTurns = 0;
+    [HideInInspector] public bool ShieldActivated = false;
+    [HideInInspector] public int MaxHP;
+
     [Header("建築物の種類")]
     public FacilityKind facilityKind;
 }

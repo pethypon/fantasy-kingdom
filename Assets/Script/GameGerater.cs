@@ -138,9 +138,20 @@ public class GameGenerater : MonoBehaviour
         if (_BuildSystem != null)
             _BuildSystem.subCrystalSystem = _SubCrystalSystem;
 
+        // BuildingAttackSystem にサブクリスタルシステム参照を渡す
+        if (_BuildingAttackSystem != null)
+            _BuildingAttackSystem.SetSubCrystalSystem(_SubCrystalSystem);
+
         // VisionGenerater に BuildingParent を渡す（サブクリスタル視界計算用）
         if (_BuildSystem != null)
             _VisionGenerater.SetBuildingParent(_BuildSystem.BuildingParent);
+
+        // ---- TimerSystem 初期化 ----
+        var timerSystem = gameObject.GetComponent<TimerSystem>();
+        if (timerSystem == null)
+            timerSystem = gameObject.AddComponent<TimerSystem>();
+        timerSystem.Init(_TurnGenerater, _CrystalSystem);
+        _TurnGenerater.timerSystem = timerSystem;
 
         // ==== UI に FactionState を渡す ====
         if (_APPanelUI != null) _APPanelUI.Init(factionState);

@@ -89,7 +89,10 @@ public class CrystalSystem : MonoBehaviour
     {
         var status = crystalObj.GetComponentInChildren<Status>();
         if (status != null)
+        {
             status.HP = CrystalHP;
+            status.MaxHP = CrystalHP;
+        }
     }
 
     private List<Vector3> GetEnemyCandidates(float minDistX, float minDistZ, int margin)

@@ -40,6 +40,10 @@ public class EnemyMove : StateCore
         if (turngenerater.buildingAttackSystem != null)
             turngenerater.buildingAttackSystem.ProcessAttacks(Team.Enemy);
 
+        // タイマー停止
+        if (turngenerater.timerSystem != null)
+            turngenerater.timerSystem.StopTurn();
+
         // AI未実装: 即座にプレイヤーターンへ
         turngenerater.ChangeState(new PlayerStart(
             turngenerater, unitclick, attackpoint, battlesystem,
