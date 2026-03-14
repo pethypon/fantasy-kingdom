@@ -77,6 +77,22 @@ public class PlayerMove : StateCore
 
     public void Update()
     {
+        // タイムリミットシステム: 毎フレーム更新
+        if (turngenerater.timeLimitSystem != null)
+        {
+            turngenerater.timeLimitSystem.Tick();
+            if (turngenerater.timeLimitSystem.TotalTimedOut)
+            {
+                HandleTimeExpired();
+                return;
+            }
+            if (turngenerater.timeLimitSystem.TurnTimedOut)
+            {
+                ForceEndTurn();
+                return;
+            }
+        }
+
         UpdateCameraMove();
         UpdateCameraZoom();
 
@@ -222,6 +238,10 @@ public class PlayerMove : StateCore
     {
         if (!turngenerater.TurnEndDown) return;
 
+        // タイマー停止
+        if (turngenerater.timeLimitSystem != null)
+            turngenerater.timeLimitSystem.OnTurnEnd();
+
         turngenerater.movegenerater.MoveReset();
         RefreshVision();
         Reset();
@@ -266,6 +286,35 @@ public class PlayerMove : StateCore
         turngenerater.ChangeState(new PlayerAttack(
             mapcreate, this, attackmode, attackpoint, turngenerater,
             unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem, unitset));
+    }
+
+    // ---- ターン時間切れ → 強制ターン終了 ----
+    private void ForceEndTurn()
+    {
+        Debug.Log("[PlayerMove] ターン制限時間切れ → 強制ターン終了");
+        turngenerater.movegenerater.MoveReset();
+        RefreshVision();
+        Reset();
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
+
+        if (turngenerater.economysystem != null)
+            turngenerater.economysystem.ProcessTurn(Team.Player);
+        if (turngenerater.buildingAttackSystem != null)
+            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
+
+        turngenerater.ChangeState(new EnemyStart(
+            turngenerater, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+    }
+
+    // ---- 総合持ち時間切れ → HP比較でゲーム終了 ----
+    private void HandleTimeExpired()
+    {
+        Debug.Log("[PlayerMove] 総合持ち時間切れ → ゲーム終了判定");
+        GameResult result = turngenerater.timeLimitSystem.JudgeByHP();
+        turngenerater.ChangeState(new GameEndState(turngenerater, result));
     }
 
     // ---- 視界更新（VisionPoint のショートハンド） ----
