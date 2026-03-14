@@ -15,6 +15,7 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] EconomySystem _EconomySystem;
     [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
     [SerializeField] SubCrystalSystem _SubCrystalSystem;
+    [SerializeField] TimeLimitSystem _TimeLimitSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
     [Header("UI")]
@@ -158,6 +159,16 @@ public class GameGenerater : MonoBehaviour
             factionState.PlayerSubCrystals = 2;
             factionState.EnemySubCrystals = 2;
         }
+
+        // ---- TimeLimitSystem 初期化 ----
+        if (_TimeLimitSystem == null)
+        {
+            _TimeLimitSystem = gameObject.GetComponent<TimeLimitSystem>();
+            if (_TimeLimitSystem == null)
+                _TimeLimitSystem = gameObject.AddComponent<TimeLimitSystem>();
+        }
+        _TimeLimitSystem.Init(_TurnGenerater, factionState, _CrystalSystem, _UnitSetting);
+        _TurnGenerater.timeLimitSystem = _TimeLimitSystem;
 
         // ==== ターン開始 ====
         _TurnGenerater.StartFirstTurn();

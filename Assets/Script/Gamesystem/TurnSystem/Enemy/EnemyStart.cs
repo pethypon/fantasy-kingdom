@@ -39,9 +39,41 @@ public class EnemyStart : StateCore
         if (turngenerater.subCrystalSystem != null)
             turngenerater.subCrystalSystem.TickPendingReturns(Team.Enemy);
 
+        // クリスタル無敵シールドカウントダウン
+        TickCrystalShield(Team.Enemy);
+
+        // タイムリミット: ターン開始時にターンタイマーリセット
+        if (turngenerater.timeLimitSystem != null)
+            turngenerater.timeLimitSystem.OnTurnStart(Team.Enemy);
+
         turngenerater.ChangeState(new EnemyMove(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+    }
+
+    /// <summary>クリスタルの無敵シールドカウントダウン</summary>
+    private void TickCrystalShield(Team team)
+    {
+        var fs = turngenerater.apsystem?.factionState;
+        if (fs == null) return;
+        if (fs.GetShieldTurns(team) <= 0) return;
+
+        fs.TickShield(team);
+
+        if (fs.GetShieldTurns(team) <= 0)
+        {
+            Transform crystalParent = team == Team.Player
+                ? crystalsystem.Playercrystal
+                : crystalsystem.Enemycrystal;
+            foreach (Status s in crystalParent.GetComponentsInChildren<Status>())
+            {
+                if (s.kind == Kind.Crystal && s.state == State.Invincible)
+                {
+                    s.state = State.Normal;
+                    Debug.Log($"[EnemyStart] {team} クリスタル無敵シールド解除");
+                }
+            }
+        }
     }
 
     public void Update() { }

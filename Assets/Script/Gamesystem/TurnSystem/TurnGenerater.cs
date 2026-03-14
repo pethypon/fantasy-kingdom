@@ -58,8 +58,12 @@ public class TurnGenerater : MonoBehaviour
     [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 
+    [Header("タイムリミットシステム")]
+    [SerializeField] public TimeLimitSystem timeLimitSystem;
+
     [Header("UI")]
     [SerializeField] public UnitPanelUI unitPanelUI;
+    [SerializeField] public GameEndUI gameEndUI;
 
     [Header("ゲームアクションの保存場所")]
     public Vector2 MoveInput;

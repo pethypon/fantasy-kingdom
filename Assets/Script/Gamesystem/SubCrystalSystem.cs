@@ -24,7 +24,7 @@ public class SubCrystalSystem : MonoBehaviour
     private Dictionary<GameObject, List<GameObject>> subCrystalTerritoryTiles = new Dictionary<GameObject, List<GameObject>>();
 
     // ---- 定数 ----
-    public const int SubCrystalTerritoryRadius = 1;
+    public const int SubCrystalTerritoryRadius = 3;
     public const int SubCrystalCooldownTurns = 5;
 
     /// <summary>毎ターン開始時に呼ばれ、返却待ちタイマーを進める</summary>
@@ -147,7 +147,8 @@ public class SubCrystalSystem : MonoBehaviour
         if (factionState != null)
         {
             factionState.AddPendingReturn(team, SubCrystalCooldownTurns);
-            Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: {team} 領地縮小、{SubCrystalCooldownTurns}ターン後に返却 (PendingReturns={factionState.GetPendingReturnCount(team)}, 現在の副晶={factionState.GetSubCrystals(team)})");
+            var list = team == Team.Player ? factionState.PlayerPendingReturns : factionState.EnemyPendingReturns;
+            Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: {team} 領地縮小、{SubCrystalCooldownTurns}ターン後に返却 (PendingReturns={list.Count}, 現在の副晶={factionState.GetSubCrystals(team)})");
         }
         else
         {

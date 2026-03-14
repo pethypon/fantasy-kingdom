@@ -40,7 +40,8 @@ public enum Type
 
 public enum State
 {
-    Normal
+    Normal,
+    Invincible  // 無敵シールド（メインクリスタル用）
 }
 
 public enum Direction
