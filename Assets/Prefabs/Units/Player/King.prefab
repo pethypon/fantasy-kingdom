@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 711d5492316672943b5540008f65716e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kind: 5
+  kind: 1
   team: 0
   type: 0
   state: 0
@@ -137,3 +137,4 @@ MonoBehaviour:
   DEF: 0
   Level: 1
   Fatigue: 0
+  facilityKind: 0
