@@ -101,6 +101,7 @@ public class UnitData : ScriptableObject
         status.Level = level;
         status.ATK = CalcStat(baseATK, atkGrowth, level);
         status.HP = CalcStat(baseHP, hpGrowth, level);
+        status.MaxHP = status.HP;
         status.DEF = CalcStat(baseDEF, defGrowth, level);
     }
 }

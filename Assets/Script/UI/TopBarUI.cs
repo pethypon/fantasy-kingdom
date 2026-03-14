@@ -1,14 +1,18 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
-/// InfoBar UI：ターン数を表示する
-/// TurnText を名前で自動検出する
+/// InfoBar UI：ターン数 + タイマー情報を表示する
 /// </summary>
 public class TopBarUI : MonoBehaviour
 {
     [Header("テキスト")]
     [SerializeField] private TextMeshProUGUI turnText;
+
+    [Header("タイマーUI")]
+    [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private Image timerFill;
 
     [Header("参照")]
     [SerializeField] private TurnGenerater turnGenerater;
@@ -20,23 +24,33 @@ public class TopBarUI : MonoBehaviour
         if (turnGenerater == null)
             turnGenerater = Object.FindFirstObjectByType<TurnGenerater>();
 
-        if (turnText == null)
+        if (turnText == null || timerText == null || timerFill == null)
         {
-            // 名前で TurnText を検索
-            foreach (var tmp in GetComponentsInChildren<TextMeshProUGUI>(true))
-            {
-                if (tmp.gameObject.name == "TurnText")
-                {
-                    turnText = tmp;
-                    break;
-                }
-            }
+            FindUIElements();
+        }
+    }
+
+    private void FindUIElements()
+    {
+        foreach (var tmp in GetComponentsInChildren<TextMeshProUGUI>(true))
+        {
+            if (tmp.gameObject.name == "TurnText")
+                turnText = tmp;
+            if (tmp.gameObject.name == "TimerText")
+                timerText = tmp;
+        }
+
+        foreach (var img in GetComponentsInChildren<Image>(true))
+        {
+            if (img.gameObject.name == "TimerFill")
+                timerFill = img;
         }
     }
 
     private void Update()
     {
         UpdateTurn();
+        UpdateTimer();
     }
 
     private void UpdateTurn()
@@ -48,5 +62,52 @@ public class TopBarUI : MonoBehaviour
 
         lastTurn = current;
         turnText.text = "Turn " + current;
+    }
+
+    private void UpdateTimer()
+    {
+        if (turnGenerater == null) return;
+
+        var timer = turnGenerater.timerSystem;
+        if (timer == null)
+        {
+            if (timerText != null) timerText.text = "制限時間";
+            return;
+        }
+
+        // タイマーテキスト: ターン残り / 持ち時間
+        if (timerText != null)
+        {
+            string turnTime = TimerSystem.FormatTime(timer.TurnTimeRemaining);
+            string playerTime = TimerSystem.FormatTime(timer.PlayerTimeRemaining);
+            string enemyTime = TimerSystem.FormatTime(timer.EnemyTimeRemaining);
+            string current = timer.CurrentTeam == Team.Player ? "P" : "E";
+            timerText.text = $"{current} {turnTime}  |  P:{playerTime}  E:{enemyTime}";
+        }
+
+        // タイマーバー: 1ターン制限時間の残り割合
+        if (timerFill != null)
+        {
+            float ratio = timer.TurnTimeLimit > 0f
+                ? Mathf.Clamp01(timer.TurnTimeRemaining / timer.TurnTimeLimit)
+                : 0f;
+            timerFill.fillAmount = ratio;
+
+            // 残り時間に応じて色を変更
+            if (ratio < 0.2f)
+                timerFill.color = new Color(0.8f, 0.2f, 0.2f, 0.9f);
+            else if (ratio < 0.5f)
+                timerFill.color = new Color(0.8f, 0.6f, 0.2f, 0.9f);
+            else
+                timerFill.color = new Color(0.2f, 0.55f, 0.8f, 0.9f);
+
+            // fillAmount を反映するために Image.type を Filled に設定
+            if (timerFill.type != Image.Type.Filled)
+            {
+                timerFill.type = Image.Type.Filled;
+                timerFill.fillMethod = Image.FillMethod.Horizontal;
+                timerFill.fillOrigin = 0;
+            }
+        }
     }
 }

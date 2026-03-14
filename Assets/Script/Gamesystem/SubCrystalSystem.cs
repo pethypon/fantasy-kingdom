@@ -7,6 +7,9 @@ using UnityEngine;
 /// </summary>
 public class SubCrystalSystem : MonoBehaviour
 {
+    // ---- サブクリスタル破壊報酬（ランダム） ----
+    public enum RewardType { Bread, Wood, Stone, Iron }
+    public const int RewardAmount = 50;
     // ---- 外部参照（Init で注入） ----
     private TurnGenerater turngenerater;
     private TerritorySystem territorysystem;
@@ -116,14 +119,14 @@ public class SubCrystalSystem : MonoBehaviour
     // ==================================================================
     //  サブクリスタル破壊時のロジック
     // ==================================================================
-    public void OnSubCrystalDestroyed(GameObject subCrystal, Team team)
+    public void OnSubCrystalDestroyed(GameObject subCrystal, Team ownerTeam)
     {
         if (subCrystal == null) return;
 
         // このサブクリスタルが追加した領地を削除
         if (subCrystalTerritories.TryGetValue(subCrystal, out var positions))
         {
-            List<Vector3> ptSetPos = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
+            List<Vector3> ptSetPos = ownerTeam == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
             foreach (var pos in positions)
             {
                 ptSetPos.RemoveAll(p =>
@@ -146,12 +149,50 @@ public class SubCrystalSystem : MonoBehaviour
         // 5ターン後にサブクリスタル資源を返却（即時回復ではない）
         if (factionState != null)
         {
-            factionState.AddPendingReturn(team, SubCrystalCooldownTurns);
-            Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: {team} 領地縮小、{SubCrystalCooldownTurns}ターン後に返却 (PendingReturns={factionState.GetPendingReturnCount(team)}, 現在の副晶={factionState.GetSubCrystals(team)})");
+            factionState.AddPendingReturn(ownerTeam, SubCrystalCooldownTurns);
+            Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: {ownerTeam} 領地縮小、{SubCrystalCooldownTurns}ターン後に返却 (PendingReturns={factionState.GetPendingReturnCount(ownerTeam)}, 現在の副晶={factionState.GetSubCrystals(ownerTeam)})");
         }
         else
         {
             Debug.LogError("[SubCrystalSystem] サブクリスタル破壊: factionState が null のため返却待ちを追加できません");
+        }
+
+        // 破壊報酬: 自陣以外の駒が壊した場合、破壊側にランダム報酬
+        Team destroyerTeam = ownerTeam == Team.Player ? Team.Enemy : Team.Player;
+        GrantDestructionReward(destroyerTeam);
+    }
+
+    /// <summary>
+    /// サブクリスタルを自陣以外の駒が破壊した時のランダム報酬
+    /// パン+50 / 木材+50 / 石+50 / 鉄+50 のいずれか
+    /// </summary>
+    private void GrantDestructionReward(Team rewardTeam)
+    {
+        if (factionState == null) return;
+
+        var res = rewardTeam == Team.Player
+            ? factionState.PlayerResources
+            : factionState.EnemyResources;
+
+        RewardType reward = (RewardType)Random.Range(0, 4);
+        switch (reward)
+        {
+            case RewardType.Bread:
+                res.Bread += RewardAmount;
+                Debug.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: パン +{RewardAmount}");
+                break;
+            case RewardType.Wood:
+                res.Wood += RewardAmount;
+                Debug.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 木材 +{RewardAmount}");
+                break;
+            case RewardType.Stone:
+                res.Stone += RewardAmount;
+                Debug.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 石 +{RewardAmount}");
+                break;
+            case RewardType.Iron:
+                res.Iron += RewardAmount;
+                Debug.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 鉄 +{RewardAmount}");
+                break;
         }
     }
 

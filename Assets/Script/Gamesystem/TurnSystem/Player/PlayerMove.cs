@@ -41,6 +41,8 @@ public class PlayerMove : StateCore
     /// <summary>召喚モード中かどうか（SummonSystem.IsActive を参照）</summary>
     public bool SummonMode => summonsystem != null && summonsystem.IsActive;
 
+    private bool timerWired;
+
     public PlayerMove(
         TurnGenerater turngenerater,
         UnitClick unitclick,
@@ -72,6 +74,15 @@ public class PlayerMove : StateCore
     {
         unitclick.UC(this, turngenerater, attackpoint);
         attackmode = AttackMode.None;
+
+        // タイマーのコールバック接続
+        if (turngenerater.timerSystem != null && !timerWired)
+        {
+            timerWired = true;
+            turngenerater.timerSystem.OnTurnTimeExpired += OnTurnTimeExpired;
+            turngenerater.timerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
+        }
+
         Debug.Log("プレイヤーターン開始");
     }
 
@@ -106,6 +117,14 @@ public class PlayerMove : StateCore
             buildsystem.CancelBuildMode();
         if (summonsystem != null && summonsystem.IsActive)
             summonsystem.CancelSummonMode();
+
+        // タイマーコールバック解除
+        if (turngenerater.timerSystem != null && timerWired)
+        {
+            turngenerater.timerSystem.OnTurnTimeExpired -= OnTurnTimeExpired;
+            turngenerater.timerSystem.OnTotalTimeExpired -= OnTotalTimeExpired;
+            timerWired = false;
+        }
     }
 
     public void Reset()
@@ -222,6 +241,10 @@ public class PlayerMove : StateCore
     {
         if (!turngenerater.TurnEndDown) return;
 
+        // タイマー停止
+        if (turngenerater.timerSystem != null)
+            turngenerater.timerSystem.StopTurn();
+
         turngenerater.movegenerater.MoveReset();
         RefreshVision();
         Reset();
@@ -266,6 +289,43 @@ public class PlayerMove : StateCore
         turngenerater.ChangeState(new PlayerAttack(
             mapcreate, this, attackmode, attackpoint, turngenerater,
             unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem, unitset));
+    }
+
+    // ---- タイマー自動ターン終了 ----
+    private void OnTurnTimeExpired()
+    {
+        Debug.Log("[PlayerMove] 1ターン制限時間終了 → 自動ターン切り替え");
+        ForceEndTurn();
+    }
+
+    // ---- 持ち時間切れ → ゲーム終了 ----
+    private void OnTotalTimeExpired(GameResult result)
+    {
+        Debug.Log($"[PlayerMove] 持ち時間終了 → ゲーム終了: {result}");
+        turngenerater.movegenerater.MoveReset();
+        Reset();
+        turngenerater.ChangeState(new GameEndState(turngenerater, result));
+    }
+
+    // ---- 強制ターン終了（タイマー切れ） ----
+    private void ForceEndTurn()
+    {
+        turngenerater.movegenerater.MoveReset();
+        RefreshVision();
+        Reset();
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
+
+        if (turngenerater.economysystem != null)
+            turngenerater.economysystem.ProcessTurn(Team.Player);
+
+        if (turngenerater.buildingAttackSystem != null)
+            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
+
+        turngenerater.ChangeState(new EnemyStart(
+            turngenerater, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
     }
 
     // ---- 視界更新（VisionPoint のショートハンド） ----

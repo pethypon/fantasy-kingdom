@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-public enum GameResult { Win, Lose }
+public enum GameResult { Win, Lose, TimeUpWin, TimeUpLose, TimeUpDraw }
 
 public class BattleSystem : MonoBehaviour
 {
@@ -8,12 +8,22 @@ public class BattleSystem : MonoBehaviour
     public Status AttackSide;
     public TurnGenerater turngenerater;
 
+    public const int ShieldDuration = 5;
+
     // ─── ダメージ発生（入口） ─────────────────────────────────────────
     public void DamageGenerater(TurnGenerater turngenerater)
     {
         this.turngenerater = turngenerater;
         if (target == null || turngenerater.SelectUnit == null) return;
         AttackSide = turngenerater.SelectUnit;
+
+        // シールド中はダメージ無効
+        if (target.ShieldTurns > 0)
+        {
+            Debug.Log($"[Battle] {target.kind} はシールド中！ ダメージ無効（残り{target.ShieldTurns}ターン）");
+            return;
+        }
+
         int damage = 0;
         switch (AttackSide.passiveskill)
         {
@@ -26,6 +36,7 @@ public class BattleSystem : MonoBehaviour
                 break;
         }
         ApplyDamage(damage);
+        CheckCrystalShield();
         CheckDeath();
     }
 
@@ -36,6 +47,40 @@ public class BattleSystem : MonoBehaviour
         {
             case PassiveSkill.Impregnable: break;
             case PassiveSkill.None: break;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  クリスタルシールド判定: HP50%以下で未発動なら5ターン無敵付与
+    // ═══════════════════════════════════════════════════════════════════
+    private void CheckCrystalShield()
+    {
+        if (target.kind != Kind.Crystal) return;
+        if (target.ShieldActivated) return;
+        if (target.MaxHP <= 0) return;
+
+        float hpRatio = (float)target.HP / target.MaxHP;
+        if (hpRatio < 0.5f && target.HP > 0)
+        {
+            target.ShieldTurns = ShieldDuration;
+            target.ShieldActivated = true;
+            Debug.Log($"[Battle] {target.team} のクリスタルが50%を切った！ {ShieldDuration}ターンの無敵シールド発動！");
+        }
+    }
+
+    /// <summary>
+    /// 全クリスタルのシールドターンを1減らす（ターン開始時に呼ぶ）
+    /// </summary>
+    public static void TickCrystalShields(Transform crystalParent)
+    {
+        if (crystalParent == null) return;
+        foreach (Status s in crystalParent.GetComponentsInChildren<Status>())
+        {
+            if (s.kind == Kind.Crystal && s.ShieldTurns > 0)
+            {
+                s.ShieldTurns--;
+                Debug.Log($"[Battle] {s.team} クリスタルシールド残り {s.ShieldTurns} ターン");
+            }
         }
     }
 

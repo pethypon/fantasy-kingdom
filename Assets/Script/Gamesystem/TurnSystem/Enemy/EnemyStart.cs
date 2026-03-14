@@ -39,6 +39,10 @@ public class EnemyStart : StateCore
         if (turngenerater.subCrystalSystem != null)
             turngenerater.subCrystalSystem.TickPendingReturns(Team.Enemy);
 
+        // タイマー開始（敵ターン）
+        if (turngenerater.timerSystem != null)
+            turngenerater.timerSystem.StartTurn(Team.Enemy);
+
         turngenerater.ChangeState(new EnemyMove(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
