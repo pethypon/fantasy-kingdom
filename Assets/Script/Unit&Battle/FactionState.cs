@@ -124,6 +124,46 @@ public class FactionState : MonoBehaviour
         }
     }
 
+    // ==== クリスタル無敵シールド ====
+    public const int ShieldDuration = 5;            // 無敵ターン数
+    public const float ShieldThreshold = 0.5f;      // HP50%以下で発動
+
+    [HideInInspector] public int PlayerShieldTurns = 0;   // 残りターン数（0=無効）
+    [HideInInspector] public int EnemyShieldTurns = 0;
+    [HideInInspector] public bool PlayerShieldUsed = false; // 1回限り
+    [HideInInspector] public bool EnemyShieldUsed = false;
+
+    public int GetShieldTurns(Team team) => team == Team.Player ? PlayerShieldTurns : EnemyShieldTurns;
+    public bool IsShieldUsed(Team team) => team == Team.Player ? PlayerShieldUsed : EnemyShieldUsed;
+
+    /// <summary>シールド発動（1回限り）</summary>
+    public void ActivateShield(Team team)
+    {
+        if (team == Team.Player) { PlayerShieldTurns = ShieldDuration; PlayerShieldUsed = true; }
+        else { EnemyShieldTurns = ShieldDuration; EnemyShieldUsed = true; }
+    }
+
+    /// <summary>ターン開始時にシールドカウントダウン。0になったらクリスタルのStateをNormalに戻す</summary>
+    public void TickShield(Team team)
+    {
+        if (team == Team.Player)
+        {
+            if (PlayerShieldTurns > 0)
+            {
+                PlayerShieldTurns--;
+                Debug.Log($"[FactionState] Player シールド残り {PlayerShieldTurns} ターン");
+            }
+        }
+        else
+        {
+            if (EnemyShieldTurns > 0)
+            {
+                EnemyShieldTurns--;
+                Debug.Log($"[FactionState] Enemy シールド残り {EnemyShieldTurns} ターン");
+            }
+        }
+    }
+
     // ==== 経済システムが毎ターン書き込む値 ====
     [HideInInspector] public int PlayerCitizenCapacity;
     [HideInInspector] public int PlayerResourceCapacity;

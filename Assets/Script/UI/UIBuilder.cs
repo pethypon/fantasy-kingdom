@@ -17,6 +17,7 @@ public class UIBuilder : MonoBehaviour
     public TopBarUI TopBar { get; private set; }
     public APPanelUI APPanel { get; private set; }
     public ResourceBarUI ResourceBar { get; private set; }
+    public GameEndUI GameEnd { get; private set; }
     public BuildSystem BuildSystem { get; private set; }
     public SummonSystem SummonSystem { get; private set; }
 
@@ -42,6 +43,7 @@ public class UIBuilder : MonoBehaviour
         BuildLeftMenu();
         BuildBottomUnitPanel();
         BuildAPPanel();
+        BuildGameEndPanel();  // ゲーム終了UIパネル
         WireToGameSystems();
     }
 
@@ -462,14 +464,69 @@ public class UIBuilder : MonoBehaviour
     }
 
     // ==================================================================
+    //  GameEndPanel (ゲーム終了UI — 画面中央オーバーレイ)
+    // ==================================================================
+    private void BuildGameEndPanel()
+    {
+        // フルスクリーンオーバーレイ
+        var overlay = CreatePanel("GameEndPanel", canvas.transform,
+            Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero);
+        StretchFill(overlay);
+
+        // 半透明の黒背景
+        var overlayImg = AddImage(overlay.gameObject, new Color(0f, 0f, 0f, 0.75f));
+        overlayImg.gameObject.name = "Overlay";
+
+        // 中央コンテナ
+        var center = CreatePanel("CenterBox", overlay,
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+            new Vector2(600, 300));
+        AddImage(center.gameObject, new Color(0.1f, 0.1f, 0.15f, 0.95f));
+
+        // タイトル（勝利！/ 敗北… / 引き分け）
+        var title = CreateTMP("ResultTitle", center, "---", 48);
+        title.alignment = TextAlignmentOptions.Center;
+        var titleRT = title.GetComponent<RectTransform>();
+        titleRT.anchorMin = new Vector2(0, 0.5f);
+        titleRT.anchorMax = new Vector2(1, 1);
+        titleRT.offsetMin = new Vector2(20, 10);
+        titleRT.offsetMax = new Vector2(-20, -20);
+
+        // 詳細テキスト
+        var detail = CreateTMP("ResultDetail", center, "", 24);
+        detail.alignment = TextAlignmentOptions.Center;
+        detail.color = new Color(0.8f, 0.8f, 0.8f);
+        var detailRT = detail.GetComponent<RectTransform>();
+        detailRT.anchorMin = new Vector2(0, 0.25f);
+        detailRT.anchorMax = new Vector2(1, 0.55f);
+        detailRT.offsetMin = new Vector2(20, 0);
+        detailRT.offsetMax = new Vector2(-20, 0);
+
+        // ヒントテキスト
+        var hint = CreateTMP("ResultHint", center, "Enter / Shift でリトライ", 18);
+        hint.alignment = TextAlignmentOptions.Center;
+        hint.color = new Color(0.6f, 0.6f, 0.6f);
+        var hintRT = hint.GetComponent<RectTransform>();
+        hintRT.anchorMin = new Vector2(0, 0);
+        hintRT.anchorMax = new Vector2(1, 0.25f);
+        hintRT.offsetMin = new Vector2(20, 10);
+        hintRT.offsetMax = new Vector2(-20, 0);
+
+        GameEnd = overlay.gameObject.AddComponent<GameEndUI>();
+    }
+
+    // ==================================================================
     //  ゲームシステムへの自動接続
     // ==================================================================
     private void WireToGameSystems()
     {
         var turnGen = Object.FindFirstObjectByType<TurnGenerater>();
-        if (turnGen != null && UnitPanel != null)
+        if (turnGen != null)
         {
-            turnGen.unitPanelUI = UnitPanel;
+            if (UnitPanel != null)
+                turnGen.unitPanelUI = UnitPanel;
+            if (GameEnd != null)
+                turnGen.gameEndUI = GameEnd;
         }
 
         var gameGen = Object.FindFirstObjectByType<GameGenerater>();

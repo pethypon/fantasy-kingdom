@@ -20,6 +20,7 @@ public class APSystem : MonoBehaviour
 
     // ==== GameGenerater.Awake() で初期化される ====
     private FactionState _factionState;
+    public FactionState factionState => _factionState;
 
     public void Init(FactionState factionState)
     {

@@ -40,6 +40,21 @@ public class EnemyMove : StateCore
         if (turngenerater.buildingAttackSystem != null)
             turngenerater.buildingAttackSystem.ProcessAttacks(Team.Enemy);
 
+        // タイムリミット: 総合持ち時間チェック
+        if (turngenerater.timeLimitSystem != null)
+        {
+            // 敵ターンでも少し時間消費（AI未実装なので最小限）
+            turngenerater.timeLimitSystem.OnTurnEnd();
+
+            if (turngenerater.timeLimitSystem.EnemyTimeRemaining <= 0f)
+            {
+                GameResult result = turngenerater.timeLimitSystem.JudgeByHP();
+                turngenerater.ChangeState(new GameEndState(turngenerater, result));
+                Debug.Log("[EnemyMove] 敵持ち時間切れ → ゲーム終了");
+                return;
+            }
+        }
+
         // AI未実装: 即座にプレイヤーターンへ
         turngenerater.ChangeState(new PlayerStart(
             turngenerater, unitclick, attackpoint, battlesystem,
