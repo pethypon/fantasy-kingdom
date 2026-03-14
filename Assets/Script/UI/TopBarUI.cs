@@ -75,14 +75,11 @@ public class TopBarUI : MonoBehaviour
             return;
         }
 
-        // タイマーテキスト: ターン残り / 持ち時間
+        // タイマーテキスト: 1ターン残り時間のみ表示
         if (timerText != null)
         {
             string turnTime = TimerSystem.FormatTime(timer.TurnTimeRemaining);
-            string playerTime = TimerSystem.FormatTime(timer.PlayerTimeRemaining);
-            string enemyTime = TimerSystem.FormatTime(timer.EnemyTimeRemaining);
-            string current = timer.CurrentTeam == Team.Player ? "P" : "E";
-            timerText.text = $"{current} {turnTime}  |  P:{playerTime}  E:{enemyTime}";
+            timerText.text = turnTime;
         }
 
         // タイマーバー: 1ターン制限時間の残り割合
