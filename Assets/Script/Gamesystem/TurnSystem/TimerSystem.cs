@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 時間制限システム:
 /// - 1ターン上限（デフォルト3分）
-/// - 持ち時間（Player/Enemy各600秒、最大3600秒、設定で変更可）
+/// - 持ち時間（Player/Enemy各600分、最大3600分、設定で変更可）
 /// - ターン制限時間終了で自動ターン切り替え
 /// - 持ち時間終了でクリスタルHP比較による勝敗判定
 /// </summary>
@@ -12,12 +12,12 @@ public class TimerSystem : MonoBehaviour
     [Header("1ターン上限（秒）")]
     public float TurnTimeLimit = 180f;
 
-    [Header("持ち時間（秒）")]
-    public float PlayerTotalTime = 600f;
-    public float EnemyTotalTime = 600f;
+    [Header("持ち時間（秒） ※デフォルト600分=36000秒")]
+    public float PlayerTotalTime = 36000f;
+    public float EnemyTotalTime = 36000f;
 
-    [Header("最大持ち時間（秒）")]
-    public float MaxTotalTime = 3600f;
+    [Header("最大持ち時間（秒） ※デフォルト3600分=216000秒")]
+    public float MaxTotalTime = 216000f;
 
     [Header("1ターン待ち時間ボーナス（秒）")]
     public float TurnTimeBonus = 60f;
