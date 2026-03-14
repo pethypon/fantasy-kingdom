@@ -78,6 +78,9 @@ public class UnitSetting : MonoBehaviour
         else
             Debug.LogWarning($"[UnitSetting] Kind:{status.kind} のUnitDataが未登録です");
 
+        // スキルをランダム配布
+        SkillData.AssignRandomSkill(status);
+
         // 頭上UI（Lv + HP）をアタッチ
         UnitHeadUI.Attach(obj);
 

@@ -37,6 +37,9 @@ public class PlayerStart : StateCore
         BattleSystem.TickCrystalShields(crystalsystem.Playercrystal);
         BattleSystem.TickCrystalShields(crystalsystem.Enemycrystal);
 
+        // 状態異常ティック（DoTダメージ + ターン経過）
+        StatusEffectSystem.TickAllUnits(unitset.PlayerUnit);
+
         // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
         turngenerater.apsystem.ResetAP(Team.Player);
 

@@ -53,6 +53,13 @@ public class UnitClick : MonoBehaviour
 
         if (playermove.Obj.type != Type.Unit) return;
 
+        // スタン中のユニットは選択不可（行動不可）
+        if (StatusEffectSystem.IsStunned(playermove.Obj))
+        {
+            Debug.Log("[UnitClick] このユニットはスタン中で行動不可");
+            return;
+        }
+
         turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
         turngenerater.SelectUnit = playermove.Obj;
         turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
@@ -122,8 +129,32 @@ public class UnitClick : MonoBehaviour
 
         battlesystem.target = ATKC;
         playermove.MenuSwitch = false;
-        battlesystem.DamageGenerater(turngenerater);
-        turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
+
+        // スキルモードかどうか判定
+        if (playerattack.attackmode == PlayerMove.AttackMode.Skill
+            && playermove.Obj.AssignedSkillId >= 0
+            && SkillData.Table.ContainsKey(playermove.Obj.AssignedSkillId)
+            && turngenerater.skillsystem != null)
+        {
+            SkillData skill = SkillData.Table[playermove.Obj.AssignedSkillId];
+
+            // スキルAPチェック（通常攻撃APではなくスキルAPコスト）
+            if (turngenerater.apsystem.GetAP(Team.Player) < skill.APCost)
+            {
+                Debug.Log("[APSystem] AP不足：スキルを使用できません");
+                return;
+            }
+
+            turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+            // スキルAP消費（FactionState直接操作）
+            turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
+        }
+        else
+        {
+            battlesystem.DamageGenerater(turngenerater);
+            turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
+        }
+
         playerattack.AttackSuccess = true;
     }
 
@@ -131,6 +162,13 @@ public class UnitClick : MonoBehaviour
     private void HandleMovePointClick()
     {
         // 移動先クリック確定
+
+        // 凍結・束縛中は移動不可
+        if (playermove.Obj != null && StatusEffectSystem.IsMovementBlocked(playermove.Obj))
+        {
+            Debug.Log("[UnitClick] このユニットは凍結/束縛中で移動不可");
+            return;
+        }
 
         Vector3 from = turngenerater.OldCell;           // 移動元（選択時に記録済み）
         Vector3 to = playermove.hit.transform.position;

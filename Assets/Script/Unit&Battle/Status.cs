@@ -64,6 +64,80 @@ public enum PassiveSkill
     Sniper
 }
 
+// =====================================================================
+//  状態異常（デバフ）
+// =====================================================================
+public enum StatusEffectType
+{
+    None,
+    Stun,           // スタン: 行動不可 (1T)
+    Mark,           // マーク: 被ダメ+10% (1T)
+    ArmorBreak,     // 破甲: DEF-15% (1T)
+    Weaken,         // 弱体: ATK-15% (1T)
+    Slow,           // 鈍足: 移動AP+2 (1T)
+    Blind,          // 盲目: 視界-1 (1T)
+    Poison,         // 毒: ターン終了時固定8ダメ + 回復-25% (2T)
+    Chill,          // 冷気: 移動AP+2 + ATK-10% (1T)
+    Freeze,         // 凍結: 移動不可 + 被ダメ+10% (1T)
+    Seal,           // 封技: スキル倍率-20% (1T)
+    Curse,          // 呪傷: 回復-50% (2T)
+    Bind,           // 束縛: 移動不可、攻撃可 (1T)
+    Bleed           // 出血: ターン終了時固定6ダメ (2T)
+}
+
+// =====================================================================
+//  バフ
+// =====================================================================
+public enum BuffType
+{
+    None,
+    Offensive,      // 攻勢: ATK+15% (1T)
+    Defensive,      // 守勢: DEF+20% (1T)
+    Haste,          // 加速: AP+2 (即時)
+    Insight,        // 看破: 視界+1 (1T)
+    Barrier,        // 障壁: 次ダメ-30% (1T)
+    Reflect         // 反射: 被弾時固定5-10ダメ返し (1T)
+}
+
+// =====================================================================
+//  アクティブエフェクト（状態異常・バフの実体）
+// =====================================================================
+[System.Serializable]
+public class ActiveEffect
+{
+    public StatusEffectType debuffType;
+    public BuffType buffType;
+    public int remainingTurns;
+
+    public bool IsDebuff => debuffType != StatusEffectType.None;
+    public bool IsBuff   => buffType   != BuffType.None;
+
+    public ActiveEffect(StatusEffectType debuff, int turns)
+    {
+        debuffType = debuff;
+        buffType = BuffType.None;
+        remainingTurns = turns;
+    }
+
+    public ActiveEffect(BuffType buff, int turns)
+    {
+        debuffType = StatusEffectType.None;
+        buffType = buff;
+        remainingTurns = turns;
+    }
+}
+
+// =====================================================================
+//  スキルレアリティ
+// =====================================================================
+public enum SkillRarity
+{
+    Normal,      // 出現率50%
+    Rare,        // 出現率20%
+    SuperRare,   // 出現率15%
+    Legendary    // 出現率5%
+}
+
 public class Status : MonoBehaviour
 {
     [Header("種類")]
@@ -98,6 +172,15 @@ public class Status : MonoBehaviour
 
     [Header("建築物の種類")]
     public FacilityKind facilityKind;
+
+    // =====================================================================
+    //  状態異常・バフ・スキル
+    // =====================================================================
+    [Header("状態異常・バフ")]
+    public List<ActiveEffect> ActiveEffects = new List<ActiveEffect>();
+
+    [Header("割り当てスキル")]
+    public int AssignedSkillId = -1; // SkillData.Id（-1 = なし）
 }
 
 // =====================================================================

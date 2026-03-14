@@ -243,27 +243,58 @@ public class UnitPanelUI : MonoBehaviour
         // 左: 基本情報
         if (nameText != null) nameText.text = currentUnit.kind.ToString();
         if (levelText != null) levelText.text = "Lv " + currentUnit.Level;
-        if (hpText != null) hpText.text = "HP " + currentUnit.HP;
+        if (hpText != null) hpText.text = "HP " + currentUnit.HP + "/" + currentUnit.MaxHP;
 
         // 中央: ステータス
         if (atkText != null) atkText.text = "ATK " + currentUnit.ATK;
         if (defText != null) defText.text = "DEF " + currentUnit.DEF;
-        if (kindText != null) kindText.text = currentUnit.kind.ToString();
+        if (kindText != null)
+        {
+            // スキル名を表示
+            if (currentUnit.AssignedSkillId >= 0 && SkillData.Table.ContainsKey(currentUnit.AssignedSkillId))
+            {
+                var skill = SkillData.Table[currentUnit.AssignedSkillId];
+                kindText.text = $"[{skill.Rarity}] {skill.Name} AP:{skill.APCost}";
+            }
+            else
+            {
+                kindText.text = currentUnit.kind.ToString();
+            }
+        }
         if (passiveText != null)
         {
-            passiveText.text = currentUnit.passiveskill == PassiveSkill.None
-                ? ""
-                : currentUnit.passiveskill.ToString();
+            // 状態異常・バフの表示
+            string effectStr = BuildEffectString(currentUnit);
+            if (!string.IsNullOrEmpty(effectStr))
+                passiveText.text = effectStr;
+            else if (currentUnit.passiveskill != PassiveSkill.None)
+                passiveText.text = currentUnit.passiveskill.ToString();
+            else
+                passiveText.text = "";
         }
 
         // ユニット用ボタン表示
         SetButtonVisible(attackButton, true);
-        SetButtonVisible(skillButton, true);
+        SetButtonVisible(skillButton, currentUnit.AssignedSkillId >= 0);
         SetButtonVisible(waitButton, true);
         if (upgradeArea != null) upgradeArea.SetActive(false);
         if (destroyArea != null) destroyArea.SetActive(false);
 
         UpdateUnitButtons();
+    }
+
+    private static string BuildEffectString(Status unit)
+    {
+        if (unit.ActiveEffects == null || unit.ActiveEffects.Count == 0) return "";
+        var parts = new System.Collections.Generic.List<string>();
+        foreach (var e in unit.ActiveEffects)
+        {
+            if (e.IsDebuff)
+                parts.Add($"{e.debuffType}({e.remainingTurns}T)");
+            else if (e.IsBuff)
+                parts.Add($"{e.buffType}({e.remainingTurns}T)");
+        }
+        return string.Join(" ", parts);
     }
 
     private void RefreshBuilding()
