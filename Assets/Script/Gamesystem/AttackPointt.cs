@@ -85,7 +85,8 @@ public class AttackPointt : MonoBehaviour
                 PointCreate();
                 break;
             case PlayerMove.AttackMode.Skill:
-                // 今後拡張予定
+                SkillAttackPData(Obj, ObjP);
+                PointCreate();
                 break;
         }
     }
@@ -109,6 +110,107 @@ public class AttackPointt : MonoBehaviour
             Destroy(child.gameObject);
         }
         AttackP?.Clear();
+    }
+
+    // ---- スキル攻撃の攻撃範囲計算 ----
+    public void SkillAttackPData(Status Obj, Vector3 ObjP)
+    {
+        AttackP?.Clear();
+        obj = Obj;
+        objp = ObjP;
+
+        if (obj.AssignedSkillId < 0 || !SkillData.Table.ContainsKey(obj.AssignedSkillId))
+        {
+            Debug.Log("[AttackPointt] スキル未割り当て");
+            return;
+        }
+
+        SkillData skill = SkillData.Table[obj.AssignedSkillId];
+        movegenerater.UnitPointCore();
+        unitdata = movegenerater.UnitPointData;
+
+        Vector3 ownCell = movegenerater.Cell(objp);
+
+        switch (skill.Target)
+        {
+            case SkillTarget.Self:
+                // 自身対象: 自分の位置のみ
+                AttackP = new System.Collections.Generic.List<Vector3> { objp };
+                break;
+
+            case SkillTarget.EnemySingle:
+            case SkillTarget.EnemyOrBuilding:
+            case SkillTarget.LowHPEnemy:
+            case SkillTarget.FlyingEnemy:
+                // 通常攻撃と同じ範囲判定を使用
+                NormalAttackPData(Obj, ObjP);
+                break;
+
+            case SkillTarget.AllySingle:
+                // 味方ユニットの位置を候補にする（周囲3マス以内）
+                AttackP = new System.Collections.Generic.List<Vector3>();
+                foreach (Vector3 p in setpos)
+                {
+                    float dx = Mathf.Abs(p.x - objp.x);
+                    float dz = Mathf.Abs(p.z - objp.z);
+                    if (dx <= 3 && dz <= 3)
+                    {
+                        Vector3 cell = movegenerater.Cell(p);
+                        if (unitdata.Contains(cell) && cell != ownCell)
+                            AttackP.Add(p);
+                    }
+                }
+                break;
+
+            case SkillTarget.DirectionLine:
+            case SkillTarget.DesignatedRow:
+                // 前方直線の占有マスを表示
+                AttackP = new System.Collections.Generic.List<Vector3>();
+                int lineLen = skill.Area == SkillAreaShape.Line3 ? 3 :
+                              skill.Area == SkillAreaShape.Line4 ? 4 :
+                              skill.Area == SkillAreaShape.Line5 ? 5 : 7;
+                int dz2 = obj.direction == Direction.S ? -1 : 1;
+                for (int i = 1; i <= lineLen; i++)
+                {
+                    Vector3 candidate = new Vector3(objp.x, objp.y, objp.z + dz2 * i);
+                    foreach (Vector3 p in setpos)
+                    {
+                        if (Mathf.RoundToInt(p.x) == Mathf.RoundToInt(candidate.x) &&
+                            Mathf.RoundToInt(p.z) == Mathf.RoundToInt(candidate.z))
+                        {
+                            AttackP.Add(p);
+                            break;
+                        }
+                    }
+                }
+                break;
+
+            case SkillTarget.DesignatedTile:
+            case SkillTarget.AdjacentCenter:
+                // 指定マス: 周囲一定範囲のマスを全て候補にする
+                AttackP = new System.Collections.Generic.List<Vector3>();
+                int range = skill.Area == SkillAreaShape.Area5x5 ? 5 :
+                            skill.Area == SkillAreaShape.Area3x3 ? 4 :
+                            skill.Area == SkillAreaShape.Area2x2 ? 3 :
+                            skill.Area == SkillAreaShape.Cross2  ? 3 : 2;
+                foreach (Vector3 p in setpos)
+                {
+                    float dx = Mathf.Abs(p.x - objp.x);
+                    float dz = Mathf.Abs(p.z - objp.z);
+                    if (dx <= range && dz <= range)
+                        AttackP.Add(p);
+                }
+                break;
+
+            case SkillTarget.SelfArea:
+                // 自身中心範囲: 自分の位置のみ（実行時に範囲計算）
+                AttackP = new System.Collections.Generic.List<Vector3> { objp };
+                break;
+
+            default:
+                NormalAttackPData(Obj, ObjP);
+                break;
+        }
     }
 
     // ---- 通常攻撃の攻撃範囲計算 ----

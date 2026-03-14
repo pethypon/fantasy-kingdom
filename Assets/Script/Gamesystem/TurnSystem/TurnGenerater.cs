@@ -58,6 +58,9 @@ public class TurnGenerater : MonoBehaviour
     [Header("タイマーシステム")]
     [SerializeField] public TimerSystem timerSystem;
 
+    [Header("スキルシステム")]
+    [SerializeField] public SkillSystem skillsystem;
+
     [Header("ユニット配置")]
     [SerializeField] public UnitSetting unitset;
 

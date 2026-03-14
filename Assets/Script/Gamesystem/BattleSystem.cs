@@ -17,6 +17,13 @@ public class BattleSystem : MonoBehaviour
         if (target == null || turngenerater.SelectUnit == null) return;
         AttackSide = turngenerater.SelectUnit;
 
+        // スタン中は行動不可
+        if (StatusEffectSystem.IsStunned(AttackSide))
+        {
+            Debug.Log($"[Battle] {AttackSide.kind} はスタン中で行動不可");
+            return;
+        }
+
         // シールド中はダメージ無効
         if (target.ShieldTurns > 0)
         {
@@ -32,10 +39,16 @@ public class BattleSystem : MonoBehaviour
             case PassiveSkill.Assassination: break;
             case PassiveSkill.Sniper: break;
             case PassiveSkill.None:
-                damage = AttackSide.ATK - target.DEF;
+                // 新ダメージ計算式: 1 + (ATK/6) + ((ATK/2) - (DEF/4))
+                // 状態異常による修飾を適用
+                damage = SkillSystem.CalcNormalDamage(AttackSide, target);
                 break;
         }
         ApplyDamage(damage);
+
+        // 反射処理
+        StatusEffectSystem.ProcessReflect(target, AttackSide);
+
         CheckCrystalShield();
         CheckDeath();
     }

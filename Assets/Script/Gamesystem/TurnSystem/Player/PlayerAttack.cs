@@ -134,7 +134,82 @@ public class PlayerAttack : StateCore
     private void HandleAttackClick()
     {
         if (!turngenerater.LeftClickDown) return;
+
+        // スキルモードで自身対象スキルの場合は即実行
+        if (attackmode == PlayerMove.AttackMode.Skill
+            && move.Obj != null
+            && move.Obj.AssignedSkillId >= 0
+            && SkillData.Table.ContainsKey(move.Obj.AssignedSkillId))
+        {
+            SkillData skill = SkillData.Table[move.Obj.AssignedSkillId];
+            if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
+            {
+                // APチェック
+                if (turngenerater.apsystem.GetAP(Team.Player) < skill.APCost)
+                {
+                    Debug.Log("[PlayerAttack] AP不足：スキルを使用できません");
+                    return;
+                }
+
+                if (skill.Target == SkillTarget.SelfArea)
+                {
+                    // 範囲支援スキル: 周囲の味方にバフ/回復
+                    ExecuteSelfAreaSkill(move.Obj, skill);
+                }
+                else
+                {
+                    turngenerater.skillsystem.ExecuteSkill(move.Obj, move.Obj, skill);
+                }
+
+                turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, move.Obj);
+                AttackSuccess = true;
+                return;
+            }
+        }
+
         unitclick.AttackClick(battlesystem, this, attackpoint, move);
+    }
+
+    // ==== 自身中心の範囲スキル実行 ====
+    private void ExecuteSelfAreaSkill(Status caster, SkillData skill)
+    {
+        if (turngenerater.skillsystem == null) return;
+
+        Vector3Int center = new Vector3Int(
+            Mathf.RoundToInt(caster.transform.position.x),
+            0,
+            Mathf.RoundToInt(caster.transform.position.z));
+
+        var positions = SkillSystem.GetAreaPositions(skill.Area, center, caster.direction);
+        var posSet = new System.Collections.Generic.HashSet<Vector3Int>(positions);
+
+        // 味方ユニットを収集
+        var allies = new System.Collections.Generic.List<Status>();
+        Transform parent = turngenerater.unitset.PlayerUnit;
+        foreach (Status s in parent.GetComponentsInChildren<Status>())
+        {
+            if (s.type != Type.Unit) continue;
+            Vector3Int cell = new Vector3Int(
+                Mathf.RoundToInt(s.transform.position.x), 0,
+                Mathf.RoundToInt(s.transform.position.z));
+            if (posSet.Contains(cell))
+                allies.Add(s);
+        }
+
+        // ラストシグナル特殊処理
+        if (skill.SpecialEffect == "LastSignal")
+        {
+            foreach (Status ally in allies)
+            {
+                StatusEffectSystem.ApplyBuff(ally, BuffType.Offensive);
+                // AP+2 は FactionState 経由
+            }
+            Debug.Log($"[SkillSystem] ラストシグナル: 範囲内味方 {allies.Count}体に攻勢付与");
+        }
+        else
+        {
+            turngenerater.skillsystem.ExecuteAreaSupportSkill(caster, skill, allies);
+        }
     }
 
     // ==== 攻撃キャンセル（右クリック）→ PlayerMove へ戻る ====

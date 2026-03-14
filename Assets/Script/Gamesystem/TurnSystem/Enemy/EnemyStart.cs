@@ -32,6 +32,9 @@ public class EnemyStart : StateCore
     {
         Debug.Log("[EnemyStart] 敵ターン開始");
 
+        // 状態異常ティック（DoTダメージ + ターン経過）
+        StatusEffectSystem.TickAllUnits(unitset.EnemyUnit);
+
         turngenerater.apsystem.ResetAP(Team.Enemy);
         turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);
 

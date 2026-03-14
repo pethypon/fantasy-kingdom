@@ -16,6 +16,7 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
     [SerializeField] SubCrystalSystem _SubCrystalSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
+    [SerializeField] SkillSystem _SkillSystem;
 
     [Header("UI")]
     [SerializeField] APPanelUI _APPanelUI;
@@ -145,6 +146,23 @@ public class GameGenerater : MonoBehaviour
         // VisionGenerater に BuildingParent を渡す（サブクリスタル視界計算用）
         if (_BuildSystem != null)
             _VisionGenerater.SetBuildingParent(_BuildSystem.BuildingParent);
+
+        // ---- SkillSystem 初期化 ----
+        if (_SkillSystem == null)
+        {
+            _SkillSystem = gameObject.GetComponent<SkillSystem>();
+            if (_SkillSystem == null)
+                _SkillSystem = gameObject.AddComponent<SkillSystem>();
+        }
+        _SkillSystem.turngenerater = _TurnGenerater;
+        _SkillSystem.battlesystem = _TurnGenerater.battlesystem;
+        _SkillSystem.movegenerater = _MoveGenerater;
+        _SkillSystem.Init(factionState);
+        _TurnGenerater.skillsystem = _SkillSystem;
+
+        // ---- 全ユニットにスキルをランダム配布 ----
+        SkillData.AssignSkillsToAll(_UnitSetting.PlayerUnit);
+        SkillData.AssignSkillsToAll(_UnitSetting.EnemyUnit);
 
         // ---- TimerSystem 初期化 ----
         var timerSystem = gameObject.GetComponent<TimerSystem>();

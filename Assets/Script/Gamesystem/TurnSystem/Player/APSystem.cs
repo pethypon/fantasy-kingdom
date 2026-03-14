@@ -33,7 +33,11 @@ public class APSystem : MonoBehaviour
         int cost = BaseCost[action];
         cost += obj.Fatigue;
         if (action == ActionType.Move)
+        {
             cost += HeightBonus(obj.kind, from, to);
+            // 鈍足・冷気による移動AP追加コスト
+            cost += StatusEffectSystem.GetMoveAPCostBonus(obj);
+        }
         return cost;
     }
 
