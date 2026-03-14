@@ -16,12 +16,15 @@ public class UnitData : ScriptableObject
     public float atkGrowth;
     public float defGrowth;
 
-    [Header("維持費（Lv6〜発生。Lv15ごとに加算）")]
-    public int upkeepIron;
-    public int upkeepMagic;
-    public int upkeepBread;
+    [Header("維持費（Lv5まで無料。Lv6〜発生。Lv15ごとに全項目+1）")]
     public int upkeepWood;
     public int upkeepStone;
+    public int upkeepIron;
+    public int upkeepMagic;
+    public int upkeepWater;
+    public int upkeepPlank;
+    public int upkeepCutStone;
+    public int upkeepBread;
 
     [Header("制作コスト（木/石/鉄/魔/水/木板/石材/パン/市民/AP）")]
     public int costWood;
@@ -34,6 +37,39 @@ public class UnitData : ScriptableObject
     public int costBread;
     public int costCitizen;
     public int costAP;
+
+    // ─────────────────────────────────────────────────────────────────
+    //  維持費計算（Lv5まで無料、Lv6から発生、Lv15ごとに全項目+1）
+    // ─────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 指定レベルでの維持費倍率を返す。Lv5以下=0, Lv6〜=1, Lv21〜=2, Lv36〜=3 ...
+    /// </summary>
+    public static int UpkeepMultiplier(int level)
+    {
+        if (level <= 5) return 0;
+        return 1 + (level - 6) / 15;
+    }
+
+    /// <summary>
+    /// 指定レベルでの維持費を ProductionBundle として返す。
+    /// </summary>
+    public FacilityData.ProductionBundle GetUpkeep(int level)
+    {
+        int mult = UpkeepMultiplier(level);
+        if (mult <= 0) return default;
+        return new FacilityData.ProductionBundle
+        {
+            Wood     = upkeepWood * mult,
+            Stone    = upkeepStone * mult,
+            Iron     = upkeepIron * mult,
+            MagicOre = upkeepMagic * mult,
+            Water    = upkeepWater * mult,
+            Plank    = upkeepPlank * mult,
+            CutStone = upkeepCutStone * mult,
+            Bread    = upkeepBread * mult,
+        };
+    }
 
     // ─────────────────────────────────────────────────────────────────
     //  成長計算（GameReference準拠の線形式）

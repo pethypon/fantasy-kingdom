@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,6 +23,7 @@ public enum Kind
     Crossbow,
     Magicsniper,
     Bomber,
+    SubCrystal, // サブクリスタル（領地拡張用建築物）
     WoodWall,   // フェーズ6で使用
     StoneWall,  // フェーズ6で使用
     None
@@ -41,7 +41,7 @@ public enum Type
 public enum State
 {
     Normal,
-    Stun
+    Invincible  // 無敵シールド（メインクリスタル用）
 }
 
 public enum Direction
@@ -91,20 +91,24 @@ public class Status : MonoBehaviour
     [SerializeField] public HashSet<Vector3Int> VisionCell;
     [Header("疲労")]
     [SerializeField] public int Fatigue = 0;
+
+    [Header("建築物の種類")]
+    public FacilityKind facilityKind;
 }
 
-// ─────────────────────────────────────────────────────────────────────
-//  以下のenumは新規ファイルを作らずここに追記する（設計原則1）
-// ─────────────────────────────────────────────────────────────────────
+// =====================================================================
+//  以下のenumは新規ファイルに出さずここに追記する（設計原則1）
+// =====================================================================
 
-// 建物の種別（FacilityData と EconomySystem で使用）
+// 建築の種別（FacilityData と EconomySystem で使用）
 public enum FacilityKind
 {
     Field, Bakery, LoggingCamp, LumberMill,
     Quarry, StoneWorks, Mine, Smelter,
     Barracks, House, Well, Warehouse,
     WoodWall, StoneWall,
-    Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword
+    Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword,
+    SubCrystal
 }
 
 // 資源の種別（FacilityData と EconomySystem で使用）

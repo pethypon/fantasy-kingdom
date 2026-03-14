@@ -13,6 +13,13 @@ public class UnitClick : MonoBehaviour
 
     public RaycastHit attackhit;
     private const float RayDistance = 100f;
+    private const float MovePointRayDistance = 50f;   // MovePoint検出用の最大距離
+    private int MovePointLayerMask;
+
+    private void Awake()
+    {
+        MovePointLayerMask = 1 << LayerMask.NameToLayer("MovePoint");
+    }
 
     public void UC(PlayerMove playermove, TurnGenerater turngenerater, AttackPointt attackpoint)
     {
@@ -21,9 +28,10 @@ public class UnitClick : MonoBehaviour
         this.attackpoint = attackpoint;
     }
 
-    // ─── 左クリック：プレイヤーユニット選択 ─────────────────────
+    // ---- 左クリック：プレイヤーユニットまたは建築物選択 ----
     public void Click1()
     {
+        if (playermove != null && playermove.BuildMode) return;
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;
 
@@ -32,38 +40,58 @@ public class UnitClick : MonoBehaviour
 
         if (playermove.Obj == null) return;
         if (playermove.Obj.team != Team.Player) return;
+
+        // 建築物・壁クリック（移動ポイントは生成しない）
+        if (playermove.Obj.type == Type.Building || playermove.Obj.type == Type.Wall)
+        {
+            turngenerater.SelectUnit = playermove.Obj;
+            if (turngenerater.unitPanelUI != null)
+                turngenerater.unitPanelUI.Show(playermove.Obj);
+            Debug.Log("<color=#00ff00ff>[Controller]</color> 建築物選択");
+            return;
+        }
+
         if (playermove.Obj.type != Type.Unit) return;
 
         turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
         turngenerater.SelectUnit = playermove.Obj;
         turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
         playermove.MenuSwitch = true;
-        Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Show(playermove.Obj);
+
+        // ユニット選択成功
     }
 
-    // ─── 左クリック（移動確定 or 再選択） ────────────────────────
+    // ---- 左クリック（移動確定 or 再選択） ----
     public void Click2()
     {
-        Debug.Log("Click2内部始動");
+        if (playermove != null && playermove.BuildMode) return;
+        // Click2処理
         if (!TryGetMouseRay(out Ray ray)) return;
+
+        // MovePoint レイヤーのみ検出（他オブジェクトは貫通、一定距離で打ち切り）
+        if (Physics.Raycast(ray, out playermove.hit, MovePointRayDistance, MovePointLayerMask))
+        {
+            // MovePointレイヤーにヒット
+            HandleMovePointClick();
+            return;
+        }
+
+        // MovePoint に当たらなかった場合、全レイヤーでユニット再選択を試みる
         if (!Physics.Raycast(ray, out playermove.hit, RayDistance)) return;
-        Debug.Log("Click2（Ray飛ばし完了）");
 
         playermove.MP = playermove.hit.transform.GetComponent<Status>();
         if (playermove.MP == null) return;
-        Debug.Log("Click2（MPがNullじゃない場合の選択肢）");
 
-        if (playermove.MP.team == Team.None && playermove.MP.type == Type.MovePoint)
-        {
-            HandleMovePointClick();
-        }
-        else if (playermove.MP.team == Team.Player && playermove.MP.type == Type.Unit)
+        if (playermove.MP.team == Team.Player && playermove.MP.type == Type.Unit)
         {
             HandlePlayerUnitReselect();
         }
     }
 
-    // ─── 攻撃クリック ────────────────────────────────────────────
+    // ---- 攻撃クリック ----
     public void AttackClick(
         BattleSystem battlesystem,
         PlayerAttack playerattack,
@@ -78,23 +106,14 @@ public class UnitClick : MonoBehaviour
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out attackhit, RayDistance)) return;
         if (!attackhit.transform.TryGetComponent<Status>(out ATKC)) return;
-        // Priestは味方ユニットを対象にする（回復）、それ以外は敵ユニットを対象にする
-        bool isPriest = playermove.Obj != null && playermove.Obj.kind == Kind.Priest;
-        if (isPriest)
-        {
-            if (ATKC.team != Team.Player || ATKC.type != Type.Unit) return;
-        }
-        else
-        {
-            if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
-        }
+        if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
         if (attackpoint.AttackP == null) return;
 
         Vector3 attackSame = ATKC.transform.position;
         bool isInRange = attackpoint.AttackP.Any(p => p.x == attackSame.x && p.z == attackSame.z);
         if (!isInRange) return;
 
-        // ─── AP チェック ──────────────────────────────────────────
+        // ---- APチェック ----
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
         {
             Debug.Log("[APSystem] AP不足：攻撃できません");
@@ -108,37 +127,40 @@ public class UnitClick : MonoBehaviour
         playerattack.AttackSuccess = true;
     }
 
-    // ─── 移動先(MovePoint)クリック時の処理 ─────────────────────
+    // ---- 移動先(MovePoint)クリック時の処理 ----
     private void HandleMovePointClick()
     {
-        Debug.Log("<color=#00ff00ff>[Controller]</color> OK2");
+        // 移動先クリック確定
 
         Vector3 from = turngenerater.OldCell;           // 移動元（選択時に記録済み）
-        Vector3 to = playermove.MP.transform.position;
+        Vector3 to = playermove.hit.transform.position;
         to.y += 0.47f;                                  // MovePoint の Y オフセットを戻す
 
-        // ─── AP チェック ──────────────────────────────────────────
+        // ---- APチェック ----
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to))
         {
             Debug.Log("[APSystem] AP不足：移動できません");
             return;
         }
 
-        // ─── 移動確定 ─────────────────────────────────────────────
+        // ---- 移動確定 ----
         turngenerater.SelectUnit.transform.position = to;
         turngenerater.NewCell = turngenerater.SelectUnit.transform.position;
         turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
         turngenerater.movegenerater.MoveReset();
 
-        // ─── AP 消費（移動成立後） ────────────────────────────────
+        // ---- AP消費（移動コスト） ----
         turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
 
         playermove.MP = null;
         playermove.Obj = null;
         playermove.MenuSwitch = false;
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
     }
 
-    // ─── プレイヤーユニット再選択時の処理 ───────────────────────
+    // ---- プレイヤーユニット再選択時の処理 ----
     private void HandlePlayerUnitReselect()
     {
         turngenerater.movegenerater.MoveReset();
@@ -149,10 +171,14 @@ public class UnitClick : MonoBehaviour
         turngenerater.movegenerater.UnitPointData.Remove(
             turngenerater.movegenerater.Cell(turngenerater.OldCell));
         turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
-        Debug.Log("<color=#00ff00ff>[Controller]</color> OK");
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Show(playermove.Obj);
+
+        // ユニット選択成功
     }
 
-    // ─── マウス位置からRayを生成（新入力システム対応） ───────────
+    // ---- マウス位置からRayを生成（新入力システム対応） ----
     private bool TryGetMouseRay(out Ray ray)
     {
         ray = default;

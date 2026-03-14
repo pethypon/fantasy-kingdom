@@ -1,60 +1,12 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public enum GameResult { Win, Lose }
+public enum GameResult { Win, Lose, TimeDraw }
 
 public class BattleSystem : MonoBehaviour
 {
     public Status target;
     public Status AttackSide;
     public TurnGenerater turngenerater;
-
-    [SerializeField] private UnitSetting _unitSetting;
-    private Dictionary<Kind, UnitData> _unitDataMap;
-
-    private void Awake()
-    {
-        if (_unitSetting != null)
-            _unitDataMap = _unitSetting.UnitDataMap;
-    }
-
-    // 攻撃側パッシブの追加倍率（1.0fに加算する値。上限2.0fまで）
-    // 新スキル追加時はここに1エントリ追記するだけでよい
-    static readonly Dictionary<PassiveSkill, Func<Status, Status, float>> AttackPassiveBonus =
-        new Dictionary<PassiveSkill, Func<Status, Status, float>>
-    {
-        {
-            // 建物・壁への攻撃時に+1.0倍（合計×2.0）
-            PassiveSkill.Destroyer,
-            (atk, def) => (def.type == Type.Building || def.type == Type.Wall) ? 1.0f : 0f
-        },
-        {
-            // 距離1マスごとに+0.25倍、最大+0.75倍（3マス以上で上限）
-            PassiveSkill.HunterEyes,
-            (atk, def) => Mathf.Min(
-                Mathf.RoundToInt(Vector3.Distance(
-                    atk.transform.position, def.transform.position)) * 0.25f, 0.75f)
-        },
-        {
-            // 建物・壁への攻撃時に+0.15倍
-            PassiveSkill.Sniper,
-            (atk, def) => (def.type == Type.Building || def.type == Type.Wall) ? 0.15f : 0f
-        },
-        // Assassination（視界外×1.25）は視界システム完成後に追加
-        // 背面攻撃（×1.5）は背面判定実装後に追加
-    };
-
-    // 防御側パッシブの倍率修正（負の値 = ダメージ軽減）
-    static readonly Dictionary<PassiveSkill, Func<Status, Status, float>> DefensePassiveBonus =
-        new Dictionary<PassiveSkill, Func<Status, Status, float>>
-    {
-        {
-            // 視界内の攻撃を20%軽減（×0.8）
-            PassiveSkill.Impregnable,
-            (atk, def) => -0.2f
-        },
-    };
 
     // ─── ダメージ発生（入口） ─────────────────────────────────────────
     public void DamageGenerater(TurnGenerater turngenerater)
@@ -63,69 +15,37 @@ public class BattleSystem : MonoBehaviour
         if (target == null || turngenerater.SelectUnit == null) return;
         AttackSide = turngenerater.SelectUnit;
 
-        // Priestは回復処理に分岐
-        if (AttackSide.kind == Kind.Priest)
+        // 無敵シールドチェック: クリスタルが無敵状態ならダメージ0
+        if (target.kind == Kind.Crystal && target.state == State.Invincible)
         {
-            HealTarget();
+            Debug.Log($"[Battle] {target.team} クリスタルは無敵シールド中！ダメージ無効");
             return;
         }
 
-        // GameReference準拠のダメージ式
-        int rawDamage = 1 + (AttackSide.ATK / 6) + ((AttackSide.ATK / 2) - (target.DEF / 4));
-
-        // パッシブ倍率を加算して上限2.0倍でクランプ
-        float bonus = 0f;
-        if (AttackPassiveBonus.TryGetValue(AttackSide.passiveskill, out var atkFunc))
-            bonus += atkFunc(AttackSide, target);
-        if (DefensePassiveBonus.TryGetValue(target.passiveskill, out var defFunc))
-            bonus += defFunc(AttackSide, target);
-        float multiplier = Mathf.Min(1f + bonus, 2f);
-
-        int damage = Mathf.Max(1, Mathf.RoundToInt(rawDamage * multiplier));
+        int damage = 0;
+        switch (AttackSide.passiveskill)
+        {
+            case PassiveSkill.HunterEyes: break;
+            case PassiveSkill.Destroyer: break;
+            case PassiveSkill.Assassination: break;
+            case PassiveSkill.Sniper: break;
+            case PassiveSkill.None:
+                damage = AttackSide.ATK - target.DEF;
+                break;
+        }
         ApplyDamage(damage);
-
-        // MagicSniperの自損（攻撃のたびに自最大HP×20%）
-        if (AttackSide.kind == Kind.Magicsniper)
-            ApplySelfDamage(AttackSide, 0.20f);
-
-        // Crossbowの10%スタン（1ターン）
-        if (AttackSide.kind == Kind.Crossbow && UnityEngine.Random.value < 0.10f)
-            target.state = State.Stun;
-
+        CheckCrystalShield();   // HP50%以下でシールド発動チェック
         CheckDeath();
     }
 
-    /// <summary>
-    /// 隣接する味方のHPを回復する（Priestの行動）。
-    /// 回復量：最大HP×5%（GameReference準拠）。
-    /// </summary>
-    private void HealTarget()
+    // ─── 防御側パッシブ ───────────────────────────────────────────────
+    public void SideDefender()
     {
-        if (target == null || target.type == Type.Wall) return;
-        if (target.team != Team.Player) return;
-
-        // 最大HPをUnitDataから計算する
-        int maxHP = target.HP;
-        if (_unitDataMap != null && _unitDataMap.TryGetValue(target.kind, out var data))
-            maxHP = UnitData.CalcStat(data.baseHP, data.hpGrowth, target.Level);
-
-        // 回復量：最大HP×5%（端数切り上げ、最低1）
-        int heal = Mathf.Max(1, Mathf.CeilToInt(maxHP * 0.05f));
-        target.HP = Mathf.Min(target.HP + heal, maxHP);
-        Debug.Log($"[Battle] Priest 回復 +{heal}  {target.kind} HP:{target.HP}/{maxHP}");
-    }
-
-    /// <summary>
-    /// 自分に最大HP比例のダメージを与える（MagicSniperの反動）。
-    /// </summary>
-    private void ApplySelfDamage(Status unit, float ratio)
-    {
-        if (_unitDataMap == null || !_unitDataMap.TryGetValue(unit.kind, out var data)) return;
-        int maxHP = UnitData.CalcStat(data.baseHP, data.hpGrowth, unit.Level);
-        int selfDamage = Mathf.Max(1, Mathf.RoundToInt(maxHP * ratio));
-        unit.HP = Mathf.Max(0, unit.HP - selfDamage);
-        Debug.Log($"[Battle] {unit.kind} 自損 -{selfDamage}  HP:{unit.HP}/{maxHP}");
-        if (unit.HP <= 0) unit.gameObject.SetActive(false);  // 自滅
+        switch (target.passiveskill)
+        {
+            case PassiveSkill.Impregnable: break;
+            case PassiveSkill.None: break;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -140,15 +60,92 @@ public class BattleSystem : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    //  クリスタルHP50%以下 → 無敵シールド発動チェック
+    // ═══════════════════════════════════════════════════════════════════
+    private void CheckCrystalShield()
+    {
+        if (target.kind != Kind.Crystal) return;
+        if (target.HP <= 0) return;
+
+        var factionState = turngenerater.apsystem?.factionState;
+        if (factionState == null) return;
+
+        Team team = target.team;
+        if (factionState.IsShieldUsed(team)) return;   // 既に使用済み
+
+        float hpRatio = (float)target.HP / CrystalSystem.CrystalHP;
+        if (hpRatio <= FactionState.ShieldThreshold)
+        {
+            factionState.ActivateShield(team);
+            target.state = State.Invincible;
+            Debug.Log($"[Battle] {team} クリスタル無敵シールド発動！ HP {target.HP}/{CrystalSystem.CrystalHP} ({hpRatio:P0}) → {FactionState.ShieldDuration}ターン無敵");
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     //  HP0 判定 → 駒 / ゲーム終了対象 に分岐
     // ═══════════════════════════════════════════════════════════════════
     private void CheckDeath()
     {
         if (target.HP > 0) return;
 
-        if (target.type == Type.Wall)          { HandleWallDestruction(); return; }
-        if (target.kind == Kind.Crystal || target.kind == Kind.King) { HandleGameEnd(); return; }
-        if (target.type == Type.Unit)          { HandleUnitDeath(); }
+        // Crystal か King のどちらかが倒れたら即ゲーム終了
+        if (target.kind == Kind.Crystal || target.kind == Kind.King)
+        {
+            HandleGameEnd();
+        }
+        else if (target.kind == Kind.SubCrystal)
+        {
+            HandleSubCrystalDeath();
+        }
+        else if (target.type == Type.Unit)
+        {
+            HandleUnitDeath();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  サブクリスタル破壊 → 攻撃側にランダム資源+50
+    // ═══════════════════════════════════════════════════════════════════
+    private void HandleSubCrystalDeath()
+    {
+        Debug.Log($"[Battle] {target.team} のサブクリスタルが破壊された");
+
+        // サブクリスタルシステムで領地削除+返却予約
+        if (turngenerater.subCrystalSystem != null)
+            turngenerater.subCrystalSystem.DestroyBuilding(target);
+
+        // 攻撃側が自陣以外のサブクリスタルを壊した場合、ランダム資源+50
+        if (AttackSide != null && AttackSide.team != target.team)
+        {
+            var factionState = turngenerater.apsystem?.factionState;
+            if (factionState != null)
+            {
+                GrantRandomResource(factionState, AttackSide.team);
+            }
+        }
+
+        // 視界更新
+        turngenerater.visiongenerater.VisionPoint(
+            turngenerater.mapcreate,
+            turngenerater.movegenerater,
+            turngenerater.crystalsystem);
+    }
+
+    /// <summary>ランダムで1つの資源+50を付与（パン/木材/石/鉄）</summary>
+    private void GrantRandomResource(FactionState fs, Team team)
+    {
+        var res = team == Team.Player ? fs.PlayerResources : fs.EnemyResources;
+        int roll = Random.Range(0, 4);
+        string name;
+        switch (roll)
+        {
+            case 0: res.Bread += 50; name = "パン"; break;
+            case 1: res.Wood += 50; name = "木材"; break;
+            case 2: res.Stone += 50; name = "石"; break;
+            default: res.Iron += 50; name = "鉄"; break;
+        }
+        Debug.Log($"[Battle] {team} サブクリスタル破壊報酬: {name}+50");
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -173,20 +170,6 @@ public class BattleSystem : MonoBehaviour
             turngenerater.movegenerater,
             turngenerater.crystalsystem
         );
-
-        // 撃破した側にレベルアップを付与する（LevelSystem.csは作らない、ここに統合）
-        if (AttackSide != null) GainLevel(AttackSide, target);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    //  壁がHP0 → 盤面から除外
-    // ═══════════════════════════════════════════════════════════════════
-    private void HandleWallDestruction()
-    {
-        Debug.Log($"[Battle] 壁が破壊された");
-        turngenerater.movegenerater.UnitPointData.Remove(
-            turngenerater.movegenerater.Cell(target.transform.position));
-        target.gameObject.SetActive(false);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -208,35 +191,5 @@ public class BattleSystem : MonoBehaviour
         }
 
         turngenerater.ChangeState(new GameEndState(turngenerater, result));
-    }
-
-    /// <summary>
-    /// Lv差に応じてattackerのLvを上げてステータスを再計算する。
-    /// 弱い敵を狩り続けても成長しないよう、Lv差がプラスのときだけ付与する。
-    /// Barracksの経験値ボーナス（+5/8/10%）は呼び出し元から係数として渡す。
-    /// </summary>
-    private void GainLevel(Status attacker, Status defeated, float barracksBonus = 0f)
-    {
-        int diff = defeated.Level - attacker.Level;
-        if (diff < 1) return;
-
-        // Lv差テーブル（GameReference準拠）
-        int gain = diff <= 5  ? 1 :
-                   diff <= 10 ? 2 :
-                   diff <= 15 ? 3 :
-                   diff <= 25 ? 4 :
-                   diff <= 40 ? 5 :
-                   diff <= 60 ? 6 :
-                   diff <= 80 ? 7 : 8;
-
-        // Barracksボーナスを加算（例：+0.05で5%増）
-        gain = Mathf.Max(1, Mathf.RoundToInt(gain * (1f + barracksBonus)));
-        attacker.Level += gain;
-
-        // ステータスを新しいLvで再計算（UnitData.ApplyToStatusを再利用）
-        if (_unitDataMap != null && _unitDataMap.TryGetValue(attacker.kind, out var data))
-            data.ApplyToStatus(attacker, attacker.Level);
-
-        Debug.Log($"[Level] {attacker.kind}  Lv{attacker.Level - gain} → Lv{attacker.Level}");
     }
 }

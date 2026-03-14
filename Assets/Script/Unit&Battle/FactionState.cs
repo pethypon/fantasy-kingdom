@@ -1,20 +1,21 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class FactionState : MonoBehaviour
 {
-    // „Ÿ„Ÿ„Ÿ AP ƒf[ƒ^ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== AP ãƒ‡ãƒ¼ã‚¿ ====
     [System.Serializable]
     public class APData
     {
-        [Header("Œ»İ‚Ì AP")] public int Current = 15;
-        [Header("ƒŠƒZƒbƒg’l")] public int Reset = 15;
-        [Header("ƒ{[ƒiƒX")] public int Plus = 0;
-        [Header("ƒyƒiƒ‹ƒeƒB")] public int Minus = 0;
+        [Header("ç¾åœ¨ã® AP")] public int Current = 15;
+        [Header("ãƒªã‚»ãƒƒãƒˆå€¤")] public int Reset = 15;
+        [Header("ãƒœãƒ¼ãƒŠã‚¹")] public int Plus = 0;
+        [Header("ãƒšãƒŠãƒ«ãƒ†ã‚£")] public int Minus = 0;
 
         public void ResetForTurn() => Current = Reset + Plus - Minus;
     }
 
-    // „Ÿ„Ÿ„Ÿ ‘Œ¹ƒf[ƒ^ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== è³‡æºãƒ‡ãƒ¼ã‚¿ ====
     [System.Serializable]
     public class ResourceData
     {
@@ -27,12 +28,12 @@ public class FactionState : MonoBehaviour
         public int Wheat;
         public int Bread;
         public int Water;
-        public int Plank;       // ’Ç‰ÁiGameReference ‰Šú”z•z‘Œ¹j
-        public int CutStone;    // ’Ç‰ÁiGameReference ‰Šú”z•z‘Œ¹j
+        public int Plank;       // è¿½åŠ ï¼ˆGameReference æº–æ‹ é…å¸ƒè³‡æºï¼‰
+        public int CutStone;    // è¿½åŠ ï¼ˆGameReference æº–æ‹ é…å¸ƒè³‡æºï¼‰
         public int Citizen;
     }
 
-    // „Ÿ„Ÿ„Ÿ Inspector İ’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== Inspector è¨­å®š ====
     [Header("Player")]
     [SerializeField] public APData PlayerAP = new APData();
     [SerializeField] public ResourceData PlayerResources = new ResourceData();
@@ -41,13 +42,154 @@ public class FactionState : MonoBehaviour
     [SerializeField] public APData EnemyAP = new APData();
     [SerializeField] public ResourceData EnemyResources = new ResourceData();
 
-    // „Ÿ„Ÿ„Ÿ AP æ“¾ / İ’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== AP å–å¾— / è¨­å®š ====
     private APData GetAPData(Team team) => team == Team.Player ? PlayerAP : EnemyAP;
 
     public int GetAP(Team team) => GetAPData(team).Current;
     public void SetAP(Team team, int value) => GetAPData(team).Current = value;
     public void ModifyAP(Team team, int delta) => GetAPData(team).Current += delta;
 
-    // „Ÿ„Ÿ„Ÿ ƒ^[ƒ“ŠJn AP ƒŠƒZƒbƒg „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ã‚¿ãƒ¼ãƒ³é–‹å§‹æ™‚ AP ãƒªã‚»ãƒƒãƒˆ ====
     public void ResetAPForTurn(Team team) => GetAPData(team).ResetForTurn();
+
+    // ==== è³‡æºä¸Šé™ã®åŸºæœ¬å€¤ï¼ˆå€‰åº«ãªã—ã®å ´åˆã®ä¸Šé™ï¼‰ ====
+    public const int BaseResourceCap = 200;
+
+    // ==== å¸‚æ°‘ã®åŸºæœ¬åå®¹ä¸Šé™ï¼ˆå®¶ãªã—ã®å ´åˆï¼‰ ====
+    public const int BaseCitizenCap = 5;
+
+    // ==== ã‚µãƒ–ã‚¯ãƒªã‚¹ã‚¿ãƒ«è³‡æº ====
+    [Header("ã‚µãƒ–ã‚¯ãƒªã‚¹ã‚¿ãƒ«")]
+    [SerializeField] public int PlayerSubCrystals = 2;
+    [SerializeField] public int EnemySubCrystals = 2;
+
+    // ==== ã‚µãƒ–ã‚¯ãƒªã‚¹ã‚¿ãƒ«è¿”å´å¾…ã¡ãƒªã‚¹ãƒˆï¼ˆå„è¦ç´ ã¯æ®‹ã‚Šã‚¿ãƒ¼ãƒ³æ•°ï¼‰ ====
+    [HideInInspector] public List<int> PlayerPendingReturns = new List<int>();
+    [HideInInspector] public List<int> EnemyPendingReturns = new List<int>();
+
+    public int GetSubCrystals(Team team) => team == Team.Player ? PlayerSubCrystals : EnemySubCrystals;
+    public void ModifySubCrystals(Team team, int delta)
+    {
+        if (team == Team.Player) PlayerSubCrystals += delta;
+        else EnemySubCrystals += delta;
+    }
+
+    /// <summary>ç ´å£Šå¾Œã®è¿”å´å¾…ã¡ã‚’è¿½åŠ ï¼ˆ5ã‚¿ãƒ¼ãƒ³å¾Œã«è¿”å´ï¼‰</summary>
+    public void AddPendingReturn(Team team, int turns)
+    {
+        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        list.Add(turns);
+        Debug.Log($"[FactionState] AddPendingReturn: {team} {turns}ã‚¿ãƒ¼ãƒ³å¾Œã«è¿”å´äºˆå®š (ãƒªã‚¹ãƒˆä»¶æ•°={list.Count})");
+    }
+
+    /// <summary>è¿”å´å¾…ã¡ã®ä¸­ã§æœ€ã‚‚æ—©ã„æ®‹ã‚Šã‚¿ãƒ¼ãƒ³æ•°ã‚’å–å¾—ï¼ˆãªã‘ã‚Œã°0ï¼‰</summary>
+    public int GetMinPendingReturn(Team team)
+    {
+        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        if (list.Count == 0) return 0;
+        int min = int.MaxValue;
+        foreach (var t in list)
+            if (t < min) min = t;
+        return min;
+    }
+
+    /// <summary>è¿”å´å¾…ã¡ã®å€‹æ•°ã‚’å–å¾—</summary>
+    public int GetPendingReturnCount(Team team)
+    {
+        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        return list.Count;
+    }
+
+    /// <summary>æ¯ã‚¿ãƒ¼ãƒ³å‘¼ã°ã‚Œã€ã‚¿ã‚¤ãƒãƒ¼ã‚’æ¸›ã‚‰ã—ã€0ã«ãªã£ãŸã‚‰è³‡æºã‚’è¿”å´ã™ã‚‹</summary>
+    public void TickPendingReturns(Team team)
+    {
+        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        if (list == null)
+        {
+            Debug.LogError($"[FactionState] TickPendingReturns: {team} ã®ãƒªã‚¹ãƒˆãŒ null ã§ã™");
+            if (team == Team.Player) PlayerPendingReturns = new List<int>();
+            else EnemyPendingReturns = new List<int>();
+            return;
+        }
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            list[i]--;
+            Debug.Log($"[FactionState] {team} PendingReturn[{i}]: {list[i]+1}â†’{list[i]}");
+            if (list[i] <= 0)
+            {
+                ModifySubCrystals(team, 1);
+                list.RemoveAt(i);
+                Debug.Log($"[FactionState] {team} ã‚µãƒ–ã‚¯ãƒªã‚¹ã‚¿ãƒ«è¿”å´ï¼ ç¾åœ¨={GetSubCrystals(team)} (æ®‹ã‚Šå¾…ã¡: {list.Count})");
+            }
+        }
+    }
+
+    // ==== ã‚¯ãƒªã‚¹ã‚¿ãƒ«ç„¡æ•µã‚·ãƒ¼ãƒ«ãƒ‰ ====
+    public const int ShieldDuration = 5;            // ç„¡æ•µã‚¿ãƒ¼ãƒ³æ•°
+    public const float ShieldThreshold = 0.5f;      // HP50%ä»¥ä¸‹ã§ç™ºå‹•
+
+    [HideInInspector] public int PlayerShieldTurns = 0;   // æ®‹ã‚Šã‚¿ãƒ¼ãƒ³æ•°ï¼ˆ0=ç„¡åŠ¹ï¼‰
+    [HideInInspector] public int EnemyShieldTurns = 0;
+    [HideInInspector] public bool PlayerShieldUsed = false; // 1å›é™ã‚Š
+    [HideInInspector] public bool EnemyShieldUsed = false;
+
+    public int GetShieldTurns(Team team) => team == Team.Player ? PlayerShieldTurns : EnemyShieldTurns;
+    public bool IsShieldUsed(Team team) => team == Team.Player ? PlayerShieldUsed : EnemyShieldUsed;
+
+    /// <summary>ã‚·ãƒ¼ãƒ«ãƒ‰ç™ºå‹•ï¼ˆ1å›é™ã‚Šï¼‰</summary>
+    public void ActivateShield(Team team)
+    {
+        if (team == Team.Player) { PlayerShieldTurns = ShieldDuration; PlayerShieldUsed = true; }
+        else { EnemyShieldTurns = ShieldDuration; EnemyShieldUsed = true; }
+    }
+
+    /// <summary>ã‚¿ãƒ¼ãƒ³é–‹å§‹æ™‚ã«ã‚·ãƒ¼ãƒ«ãƒ‰ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³ã€‚0ã«ãªã£ãŸã‚‰ã‚¯ãƒªã‚¹ã‚¿ãƒ«ã®Stateã‚’Normalã«æˆ»ã™</summary>
+    public void TickShield(Team team)
+    {
+        if (team == Team.Player)
+        {
+            if (PlayerShieldTurns > 0)
+            {
+                PlayerShieldTurns--;
+                Debug.Log($"[FactionState] Player ã‚·ãƒ¼ãƒ«ãƒ‰æ®‹ã‚Š {PlayerShieldTurns} ã‚¿ãƒ¼ãƒ³");
+            }
+        }
+        else
+        {
+            if (EnemyShieldTurns > 0)
+            {
+                EnemyShieldTurns--;
+                Debug.Log($"[FactionState] Enemy ã‚·ãƒ¼ãƒ«ãƒ‰æ®‹ã‚Š {EnemyShieldTurns} ã‚¿ãƒ¼ãƒ³");
+            }
+        }
+    }
+
+    // ==== çµŒæ¸ˆã‚·ã‚¹ãƒ†ãƒ ãŒæ¯ã‚¿ãƒ¼ãƒ³æ›¸ãè¾¼ã‚€å€¤ ====
+    [HideInInspector] public int PlayerCitizenCapacity;
+    [HideInInspector] public int PlayerResourceCapacity;
+    [HideInInspector] public int PlayerBarracksXP;
+
+    [HideInInspector] public int EnemyCitizenCapacity;
+    [HideInInspector] public int EnemyResourceCapacity;
+    [HideInInspector] public int EnemyBarracksXP;
+
+    // ==== å®ŸåŠ¹è³‡æºä¸Šé™ ====
+    public int GetResourceCap(Team team)
+    {
+        int bonus = team == Team.Player ? PlayerResourceCapacity : EnemyResourceCapacity;
+        return BaseResourceCap + bonus;
+    }
+
+    // ==== å®ŸåŠ¹å¸‚æ°‘åå®¹ ====
+    public int GetCitizenCap(Team team)
+    {
+        int bonus = team == Team.Player ? PlayerCitizenCapacity : EnemyCitizenCapacity;
+        return BaseCitizenCap + bonus;
+    }
+
+    // ==== å…µèˆçµŒé¨“å€¤ãƒœãƒ¼ãƒŠã‚¹% ====
+    public int GetBarracksXP(Team team)
+    {
+        return team == Team.Player ? PlayerBarracksXP : EnemyBarracksXP;
+    }
 }

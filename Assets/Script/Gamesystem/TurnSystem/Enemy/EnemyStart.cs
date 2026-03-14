@@ -1,27 +1,24 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR;
 
 public class EnemyStart : StateCore
 {
     private TurnGenerater turngenerater;
-    public UnitClick unitclick;
-    public AttackPointt attackpoint;
-    public BattleSystem battlesystem;
-    public VisionGenerater visiongenerater;
-    public MoveGererater movegenerater;
-    public MapCreate mapcreate;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
+    private UnitClick unitclick;
+    private AttackPointt attackpoint;
+    private BattleSystem battlesystem;
+    private VisionGenerater visiongenerater;
+    private MoveGererater movegenerater;
+    private MapCreate mapcreate;
+    private CrystalSystem crystalsystem;
+    private UnitSetting unitset;
 
-
-    public EnemyStart(TurnGenerater turngenerater, UnitClick untclick, AttackPointt attackpoint, 
-        BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater, 
+    public EnemyStart(
+        TurnGenerater turngenerater, UnitClick unitclick, AttackPointt attackpoint,
+        BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater,
         MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
     {
         this.turngenerater = turngenerater;
-        this.unitclick = untclick;
+        this.unitclick = unitclick;
         this.attackpoint = attackpoint;
         this.battlesystem = battlesystem;
         this.visiongenerater = visiongenerater;
@@ -30,22 +27,55 @@ public class EnemyStart : StateCore
         this.crystalsystem = crystalsystem;
         this.unitset = unitset;
     }
+
     public void Entry()
     {
-        Debug.Log("EnemyStart�˓�");
-        // �^�[���J�n���� AP �Ɣ�J�����Z�b�g
-        turngenerater.apsystem.ResetAP(Team.Enemy); 
-        turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);   
-        turngenerater.ChangeState(new EnemyMove(turngenerater,unitclick,attackpoint, battlesystem,visiongenerater, movegenerater, mapcreate, crystalsystem,unitset));
+        Debug.Log("[EnemyStart] 敵ターン開始");
+
+        turngenerater.apsystem.ResetAP(Team.Enemy);
+        turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);
+
+        // サブクリスタル返却待ちタイマー処理
+        if (turngenerater.subCrystalSystem != null)
+            turngenerater.subCrystalSystem.TickPendingReturns(Team.Enemy);
+
+        // クリスタル無敵シールドカウントダウン
+        TickCrystalShield(Team.Enemy);
+
+        // タイムリミット: ターン開始時にターンタイマーリセット
+        if (turngenerater.timeLimitSystem != null)
+            turngenerater.timeLimitSystem.OnTurnStart(Team.Enemy);
+
+        turngenerater.ChangeState(new EnemyMove(
+            turngenerater, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
     }
 
-    public void Update()
+    /// <summary>クリスタルの無敵シールドカウントダウン</summary>
+    private void TickCrystalShield(Team team)
     {
+        var fs = turngenerater.apsystem?.factionState;
+        if (fs == null) return;
+        if (fs.GetShieldTurns(team) <= 0) return;
 
+        fs.TickShield(team);
+
+        if (fs.GetShieldTurns(team) <= 0)
+        {
+            Transform crystalParent = team == Team.Player
+                ? crystalsystem.Playercrystal
+                : crystalsystem.Enemycrystal;
+            foreach (Status s in crystalParent.GetComponentsInChildren<Status>())
+            {
+                if (s.kind == Kind.Crystal && s.state == State.Invincible)
+                {
+                    s.state = State.Normal;
+                    Debug.Log($"[EnemyStart] {team} クリスタル無敵シールド解除");
+                }
+            }
+        }
     }
 
-    public void Exit()
-    {
-
-    }
+    public void Update() { }
+    public void Exit() { }
 }

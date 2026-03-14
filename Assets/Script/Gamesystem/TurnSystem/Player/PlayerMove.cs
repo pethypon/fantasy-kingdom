@@ -22,6 +22,8 @@ public class PlayerMove : StateCore
     public UnitSetting unitset;
 
     public bool MenuSwitch;
+    private BuildSystem buildsystem;
+    private SummonSystem summonsystem;
     public Status Obj;
     public Vector3 ObjP;
     public Status MP;
@@ -32,6 +34,12 @@ public class PlayerMove : StateCore
     public RaycastHit hit;
     public Vector3 oldcell;
     public Vector3 newcell;
+
+    /// <summary>å»ºç¯‰ãƒ¢ãƒ¼ãƒ‰ä¸­ã‹ã©ã†ã‹ï¼ˆBuildSystem.IsActive ã‚’å‚ç…§ï¼‰</summary>
+    public bool BuildMode => buildsystem != null && buildsystem.IsActive;
+
+    /// <summary>å¬å–šãƒ¢ãƒ¼ãƒ‰ä¸­ã‹ã©ã†ã‹ï¼ˆSummonSystem.IsActive ã‚’å‚ç…§ï¼‰</summary>
+    public bool SummonMode => summonsystem != null && summonsystem.IsActive;
 
     public PlayerMove(
         TurnGenerater turngenerater,
@@ -56,19 +64,52 @@ public class PlayerMove : StateCore
         maxx = turngenerater.mapcreate.maxX;
         maxz = turngenerater.mapcreate.maxZ;
         this.unitset = unitset;
+        this.buildsystem = turngenerater.buildsystem;
+        this.summonsystem = turngenerater.summonsystem;
     }
 
     public void Entry()
     {
         unitclick.UC(this, turngenerater, attackpoint);
         attackmode = AttackMode.None;
-        Debug.Log("ƒvƒŒƒCƒ„[ƒ^[ƒ“ŠJn");
+        Debug.Log("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¿ãƒ¼ãƒ³é–‹å§‹");
     }
 
     public void Update()
     {
+        // ã‚¿ã‚¤ãƒ ãƒªãƒŸãƒƒãƒˆã‚·ã‚¹ãƒ†ãƒ : æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°
+        if (turngenerater.timeLimitSystem != null)
+        {
+            turngenerater.timeLimitSystem.Tick();
+            if (turngenerater.timeLimitSystem.TotalTimedOut)
+            {
+                HandleTimeExpired();
+                return;
+            }
+            if (turngenerater.timeLimitSystem.TurnTimedOut)
+            {
+                ForceEndTurn();
+                return;
+            }
+        }
+
         UpdateCameraMove();
         UpdateCameraZoom();
+
+        if (BuildMode)
+        {
+            HandleBuildMode();
+            HandleTurnEnd();
+            return;
+        }
+
+        if (SummonMode)
+        {
+            HandleSummonMode();
+            HandleTurnEnd();
+            return;
+        }
+
         HandleLeftClick();
         HandleRightClick();
         HandleTurnEnd();
@@ -77,6 +118,10 @@ public class PlayerMove : StateCore
 
     public void Exit()
     {
+        if (buildsystem != null && buildsystem.IsActive)
+            buildsystem.CancelBuildMode();
+        if (summonsystem != null && summonsystem.IsActive)
+            summonsystem.CancelSummonMode();
     }
 
     public void Reset()
@@ -85,9 +130,57 @@ public class PlayerMove : StateCore
         Obj = null;
         MP = null;
         MenuSwitch = false;
+        if (buildsystem != null && buildsystem.IsActive)
+            buildsystem.CancelBuildMode();
+        if (summonsystem != null && summonsystem.IsActive)
+            summonsystem.CancelSummonMode();
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒJƒƒ‰ˆÚ“® „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- å»ºç¯‰ãƒ¢ãƒ¼ãƒ‰å‡¦ç† ----
+    private void HandleBuildMode()
+    {
+        if (buildsystem == null) return;
+
+        buildsystem.UpdateCursor();
+
+        // å·¦ã‚¯ãƒªãƒƒã‚¯: è¨­ç½®è©¦è¡Œ
+        if (turngenerater.LeftClickDown)
+        {
+            if (buildsystem.TryPlace())
+            {
+                RefreshVision();
+            }
+        }
+
+        // å³ã‚¯ãƒªãƒƒã‚¯: å»ºç¯‰ãƒ¢ãƒ¼ãƒ‰è§£é™¤
+        if (turngenerater.RightClickDown)
+        {
+            buildsystem.CancelBuildMode();
+        }
+    }
+
+    // ---- å¬å–šãƒ¢ãƒ¼ãƒ‰å‡¦ç† ----
+    private void HandleSummonMode()
+    {
+        if (summonsystem == null) return;
+
+        summonsystem.UpdateCursor();
+
+        if (turngenerater.LeftClickDown)
+        {
+            if (summonsystem.TryPlace())
+            {
+                RefreshVision();
+            }
+        }
+
+        if (turngenerater.RightClickDown)
+        {
+            summonsystem.CancelSummonMode();
+        }
+    }
+
+    // ---- ã‚«ãƒ¡ãƒ©ç§»å‹• ----
     private void UpdateCameraMove()
     {
         Vector2 input = turngenerater.MoveInput;
@@ -100,7 +193,7 @@ public class PlayerMove : StateCore
         turngenerater.CameraObject.position = pos;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒJƒƒ‰ƒY[ƒ€iFOVj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- ã‚«ãƒ¡ãƒ©ã‚ºãƒ¼ãƒ ï¼ˆFOVï¼‰ ----
     private void UpdateCameraZoom()
     {
         float scroll = turngenerater.ScrollInput;
@@ -110,7 +203,7 @@ public class PlayerMove : StateCore
         Camera.main.fieldOfView = Mathf.Clamp(fov, 30f, 90f);
     }
 
-    // „Ÿ„Ÿ„Ÿ ¶ƒNƒŠƒbƒN „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- å·¦ã‚¯ãƒªãƒƒã‚¯ ----
     private void HandleLeftClick()
     {
         if (!turngenerater.LeftClickDown) return;
@@ -121,13 +214,13 @@ public class PlayerMove : StateCore
         }
         else
         {
-            Debug.Log("Click2n“®");
+            // Click2é–‹å§‹
             unitclick.Click2();
             RefreshVision();
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ ‰EƒNƒŠƒbƒN „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- å³ã‚¯ãƒªãƒƒã‚¯ ----
     private void HandleRightClick()
     {
         if (!turngenerater.RightClickDown) return;
@@ -135,22 +228,41 @@ public class PlayerMove : StateCore
         turngenerater.movegenerater.MoveReset();
         RefreshVision();
         Reset();
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒ^[ƒ“I—¹ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- ã‚¿ãƒ¼ãƒ³çµ‚äº† ----
     private void HandleTurnEnd()
     {
         if (!turngenerater.TurnEndDown) return;
 
+        // ã‚¿ã‚¤ãƒãƒ¼åœæ­¢
+        if (turngenerater.timeLimitSystem != null)
+            turngenerater.timeLimitSystem.OnTurnEnd();
+
         turngenerater.movegenerater.MoveReset();
         RefreshVision();
         Reset();
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
+
+        // Player ã®è³‡æºç²å¾—ï¼ˆã‚¿ãƒ¼ãƒ³çµ‚äº†æ™‚ï¼‰
+        if (turngenerater.economysystem != null)
+            turngenerater.economysystem.ProcessTurn(Team.Player);
+
+        // Player ã®æ”»æ’ƒå»ºç¯‰ç‰©ã«ã‚ˆã‚‹è‡ªå‹•æ”»æ’ƒ
+        if (turngenerater.buildingAttackSystem != null)
+            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
+
         turngenerater.ChangeState(new EnemyStart(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒ‚[ƒh‘I‘ğiƒƒjƒ…[•\¦’†‚Ì‚İj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- æ”»æ’ƒãƒ¢ãƒ¼ãƒ‰é¸æŠï¼ˆãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤ºã®ã¿ï¼‰ ----
     private void HandleAttackModeSelect()
     {
         if (!MenuSwitch) return;
@@ -165,7 +277,7 @@ public class PlayerMove : StateCore
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ UŒ‚ƒXƒe[ƒg‚Ö‘JˆÚ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- æ”»æ’ƒã‚¹ãƒ†ãƒ¼ãƒˆã¸é·ç§» ----
     private void StartAttack(AttackMode mode)
     {
         turngenerater.movegenerater.MoveReset();
@@ -173,10 +285,39 @@ public class PlayerMove : StateCore
         attackmode = mode;
         turngenerater.ChangeState(new PlayerAttack(
             mapcreate, this, attackmode, attackpoint, turngenerater,
-            unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem,unitset));
+            unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem, unitset));
     }
 
-    // „Ÿ„Ÿ„Ÿ ‹ŠEXViVisionPoint ‚ÌƒVƒ‡[ƒgƒnƒ“ƒhj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ---- ã‚¿ãƒ¼ãƒ³æ™‚é–“åˆ‡ã‚Œ â†’ å¼·åˆ¶ã‚¿ãƒ¼ãƒ³çµ‚äº† ----
+    private void ForceEndTurn()
+    {
+        Debug.Log("[PlayerMove] ã‚¿ãƒ¼ãƒ³åˆ¶é™æ™‚é–“åˆ‡ã‚Œ â†’ å¼·åˆ¶ã‚¿ãƒ¼ãƒ³çµ‚äº†");
+        turngenerater.movegenerater.MoveReset();
+        RefreshVision();
+        Reset();
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
+
+        if (turngenerater.economysystem != null)
+            turngenerater.economysystem.ProcessTurn(Team.Player);
+        if (turngenerater.buildingAttackSystem != null)
+            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
+
+        turngenerater.ChangeState(new EnemyStart(
+            turngenerater, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+    }
+
+    // ---- ç·åˆæŒã¡æ™‚é–“åˆ‡ã‚Œ â†’ HPæ¯”è¼ƒã§ã‚²ãƒ¼ãƒ çµ‚äº† ----
+    private void HandleTimeExpired()
+    {
+        Debug.Log("[PlayerMove] ç·åˆæŒã¡æ™‚é–“åˆ‡ã‚Œ â†’ ã‚²ãƒ¼ãƒ çµ‚äº†åˆ¤å®š");
+        GameResult result = turngenerater.timeLimitSystem.JudgeByHP();
+        turngenerater.ChangeState(new GameEndState(turngenerater, result));
+    }
+
+    // ---- è¦–ç•Œæ›´æ–°ï¼ˆVisionPoint ã®ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ³ãƒ‰ï¼‰ ----
     private void RefreshVision()
     {
         visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);

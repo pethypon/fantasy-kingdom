@@ -10,88 +10,201 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] MoveGererater _MoveGenerater;
     [SerializeField] VisionGenerater _VisionGenerater;
     [SerializeField] APSystem _APSystem;
+    [SerializeField] BuildSystem _BuildSystem;
+    [SerializeField] SummonSystem _SummonSystem;
+    [SerializeField] EconomySystem _EconomySystem;
+    [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
+    [SerializeField] SubCrystalSystem _SubCrystalSystem;
+    [SerializeField] TimeLimitSystem _TimeLimitSystem;
     [SerializeField] TurnGenerater _TurnGenerater;
 
-    [Header("Crystal eƒIƒuƒWƒFƒNƒg")]
+    [Header("UI")]
+    [SerializeField] APPanelUI _APPanelUI;
+    [SerializeField] ResourceBarUI _ResourceBarUI;
+    private UIBuilder _uiBuilder;
+
+    [Header("Crystal è¦ªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
     [SerializeField] Transform _PlayerCrystal;
     [SerializeField] Transform _EnemyCrystal;
 
-    // ûW‚µ‚½ Crystal qi‘¼ƒXƒNƒŠƒvƒg‚©‚çQÆ‰Âj
+    // ç”Ÿæˆæ¸ˆã¿ Crystal å­ï¼ˆä»–ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‹ã‚‰å‚ç…§ï¼‰
     [HideInInspector] public List<GameObject> PlayerCrystalChildren = new List<GameObject>();
     [HideInInspector] public List<GameObject> EnemyCrystalChildren = new List<GameObject>();
 
     void Awake()
     {
-        // „Ÿ„Ÿ ’nŒ`EƒNƒŠƒXƒ^ƒ‹¶¬ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // ---- UIBuilder ã®ç”Ÿæˆãƒ»å–å¾— ----
+        _uiBuilder = Object.FindFirstObjectByType<UIBuilder>();
+        if (_uiBuilder == null)
+        {
+            var uiGo = new GameObject("UIBuilder");
+            _uiBuilder = uiGo.AddComponent<UIBuilder>();
+        }
+
+        // UIBuilder ãŒç”Ÿæˆã—ãŸ UI ãƒ‘ãƒãƒ«ã‚’å–å¾—
+        if (_APPanelUI == null && _uiBuilder.APPanel != null)
+            _APPanelUI = _uiBuilder.APPanel;
+        if (_ResourceBarUI == null && _uiBuilder.ResourceBar != null)
+            _ResourceBarUI = _uiBuilder.ResourceBar;
+
+        // ==== åœ°å½¢ãƒ»ã‚¯ãƒªã‚¹ã‚¿ãƒ«ç”Ÿæˆ ====
         _MapCreate.noisegenerater();
         _MapCreate.BuildTop();
         _CrystalSystem.CrystalCore();
 
-        // „Ÿ„Ÿ ƒ†ƒjƒbƒg”z’uiSpawnUnit “à‚Å UnitData ‚ğ“K—pj „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // ==== ãƒ¦ãƒ‹ãƒƒãƒˆé…ç½®ï¼ˆSpawnUnit çµŒç”±ã§ UnitData ã‚’é©ç”¨ï¼‰ ====
         _UnitSetting.UnitSet();
 
-        // „Ÿ„Ÿ ƒQ[ƒ€ŠJnFƒV[ƒ“ã‚Ì‘Sƒ†ƒjƒbƒg‚É UnitData ‚ğ“K—p „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-        // UnitSet() ‚Å Awake ‚ªŠÔ‚É‡‚í‚È‚¢ƒP[ƒX‚â Prefab ’¼’u‚«‚É‘Î‰‚·‚é‚½‚ß
-        // SpawnUnit() ‚ª’S“–‚Å‚«‚Ä‚¢‚È‚¢‹î‚à‚±‚±‚Å•âŠ®‚·‚é
+        // ==== ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ï¼šã‚·ãƒ¼ãƒ³ä¸Šã®å…¨ãƒ¦ãƒ‹ãƒƒãƒˆã« UnitData ã‚’é©ç”¨ ====
+        // UnitSet() ãŒ Awake æ™‚é–“ã«é–“ã«åˆã‚ãªã„ã‚±ãƒ¼ã‚¹ã‚„ Prefab ç›´ç½®ãã«å¯¾å¿œã™ã‚‹ãŸã‚
+        // SpawnUnit() ãŒå®Œäº†ã—ã¦ã„ãªã„ã‚‚ã®ã‚’ã“ã“ã§è£œå®Œã™ã‚‹
         ApplyAllUnitData(_UnitSetting.PlayerUnit);
         ApplyAllUnitData(_UnitSetting.EnemyUnit);
 
-        // „Ÿ„Ÿ —Ì’nEˆÚ“®E‹ŠE‚Ì\’z „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-        // ApplyAllUnitData ‚ÌŒã‚ÉÀs‚·‚é——RF
-        // TerritoryEMoveEVision ‚ÌŒvZ‚ÍƒXƒe[ƒ^ƒX“K—pŒã‚És‚¤‚½‚ß
+        // ==== é ˜åœ°ãƒ»ç§»å‹•ãƒ»è¦–ç•Œã®æ§‹ç¯‰ ====
+        // ApplyAllUnitData ã®å¾Œã«å®Ÿè¡Œã™ã‚‹ç†ç”±ï¼š
+        // Territoryãƒ»Moveãƒ»Vision ã®è¨ˆç®—ã¯ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹é©ç”¨å¾Œã«è¡Œã†æ–¹ãŒã‚ˆã„
         _TerritorySystem.Territory();
         _MoveGenerater.UnitPointCore();
         _VisionGenerater.VisionPoint(_MapCreate, _MoveGenerater, _CrystalSystem);
 
-        // „Ÿ„Ÿ Crystal qƒIƒuƒWƒFƒNƒg‚ğûW „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // ==== Crystal å­ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’åé›† ====
         CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
         CollectChildren(_EnemyCrystal, EnemyCrystalChildren);
 
-        // „Ÿ„Ÿ FactionState ‚ğ APSystem ‚É’“ü „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // ==== FactionState ã‚’ APSystem ã«æ³¨å…¥ ====
         FactionState factionState = _PlayerCrystal.GetComponentInChildren<FactionState>();
         if (factionState == null)
-            Debug.LogError("[GameGenerater] FactionState ‚ª PlayerCrystal ‚Ìq‚ÉŒ©‚Â‚©‚è‚Ü‚¹‚ñ");
+            Debug.LogError("[GameGenerater] FactionState ãŒ PlayerCrystal ã®å­ã«è¦‹ã¤ã‹ã‚Šã¾ã›ã‚“");
         _APSystem.Init(factionState);
 
-        // „Ÿ„Ÿ ‰Šú‘Œ¹İ’èiGameReference €‹’j „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+        // ---- BuildSystem åˆæœŸåŒ– ----
+        if (_BuildSystem != null)
+        {
+            _BuildSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,
+                              factionState, _MoveGenerater, _MapCreate);
+            _TurnGenerater.buildsystem = _BuildSystem;
+
+            // UIBuilder ã®å»ºç¯‰ãƒœã‚¿ãƒ³ã« BuildSystem ã‚’æ¥ç¶š
+            if (_uiBuilder != null)
+                _uiBuilder.InitBuildButtons(_BuildSystem, _APSystem, factionState);
+        }
+
+        // ---- SummonSystem åˆæœŸåŒ– ----
+        if (_SummonSystem != null)
+        {
+            _SummonSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,
+                               factionState, _MoveGenerater, _MapCreate,
+                               _UnitSetting, _VisionGenerater);
+            _TurnGenerater.summonsystem = _SummonSystem;
+
+            if (_uiBuilder != null)
+                _uiBuilder.InitSummonButtons(_SummonSystem, _APSystem, factionState, _UnitSetting);
+        }
+
+        // ---- EconomySystem åˆæœŸåŒ– ----
+        if (_EconomySystem == null)
+        {
+            _EconomySystem = gameObject.GetComponent<EconomySystem>();
+            if (_EconomySystem == null)
+                _EconomySystem = gameObject.AddComponent<EconomySystem>();
+        }
+        _EconomySystem.Init(_BuildSystem, factionState, _UnitSetting);
+        _TurnGenerater.economysystem = _EconomySystem;
+
+        // ---- BuildingAttackSystem åˆæœŸåŒ– ----
+        if (_BuildingAttackSystem == null)
+        {
+            _BuildingAttackSystem = gameObject.GetComponent<BuildingAttackSystem>();
+            if (_BuildingAttackSystem == null)
+                _BuildingAttackSystem = gameObject.AddComponent<BuildingAttackSystem>();
+        }
+        _BuildingAttackSystem.Init(_BuildSystem, _MoveGenerater, _UnitSetting,
+                                   _VisionGenerater, _MapCreate, _CrystalSystem);
+        _TurnGenerater.buildingAttackSystem = _BuildingAttackSystem;
+
+        // ---- SubCrystalSystem åˆæœŸåŒ– ----
+        if (_SubCrystalSystem == null)
+        {
+            _SubCrystalSystem = gameObject.GetComponent<SubCrystalSystem>();
+            if (_SubCrystalSystem == null)
+                _SubCrystalSystem = gameObject.AddComponent<SubCrystalSystem>();
+        }
+        _SubCrystalSystem.Init(_TurnGenerater, _TerritorySystem, factionState,
+                                _MapCreate, _BuildSystem, _VisionGenerater,
+                                _MoveGenerater, _CrystalSystem);
+        _TurnGenerater.subCrystalSystem = _SubCrystalSystem;
+
+        // BuildSystem ã«ã‚µãƒ–ã‚¯ãƒªã‚¹ã‚¿ãƒ«ã‚·ã‚¹ãƒ†ãƒ å‚ç…§ã‚’æ¸¡ã™
+        if (_BuildSystem != null)
+            _BuildSystem.subCrystalSystem = _SubCrystalSystem;
+
+        // VisionGenerater ã« BuildingParent ã‚’æ¸¡ã™ï¼ˆã‚µãƒ–ã‚¯ãƒªã‚¹ã‚¿ãƒ«è¦–ç•Œè¨ˆç®—ç”¨ï¼‰
+        if (_BuildSystem != null)
+            _VisionGenerater.SetBuildingParent(_BuildSystem.BuildingParent);
+
+        // ==== UI ã« FactionState ã‚’æ¸¡ã™ ====
+        if (_APPanelUI != null) _APPanelUI.Init(factionState);
+        if (_ResourceBarUI != null) _ResourceBarUI.Init(factionState);
+
+        // ==== åˆæœŸè³‡æºè¨­å®šï¼ˆGameReference æº–æ‹ ï¼‰ ====
         if (factionState != null)
+        {
             InitResources(factionState.PlayerResources);
 
-        // „Ÿ„Ÿ ƒ^[ƒ“ŠJn „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+            // åˆæœŸå¸‚æ°‘APãƒœãƒ¼ãƒŠã‚¹ã‚’åæ˜ 
+            factionState.PlayerAP.Plus = factionState.PlayerResources.Citizen * EconomySystem.APPerCitizen;
+
+            // ã‚µãƒ–ã‚¯ãƒªã‚¹ã‚¿ãƒ«åˆæœŸé…å¸ƒï¼ˆ2å€‹ï¼‰
+            factionState.PlayerSubCrystals = 2;
+            factionState.EnemySubCrystals = 2;
+        }
+
+        // ---- TimeLimitSystem åˆæœŸåŒ– ----
+        if (_TimeLimitSystem == null)
+        {
+            _TimeLimitSystem = gameObject.GetComponent<TimeLimitSystem>();
+            if (_TimeLimitSystem == null)
+                _TimeLimitSystem = gameObject.AddComponent<TimeLimitSystem>();
+        }
+        _TimeLimitSystem.Init(_TurnGenerater, factionState, _CrystalSystem, _UnitSetting);
+        _TurnGenerater.timeLimitSystem = _TimeLimitSystem;
+
+        // ==== ã‚¿ãƒ¼ãƒ³é–‹å§‹ ====
         _TurnGenerater.StartFirstTurn();
     }
 
-    // „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-    //  ƒQ[ƒ€ŠJn‚Ì‘Sƒ†ƒjƒbƒg“K—p
-    //  ƒQ[ƒ€’†‚Ì¶¬‚Í UnitSetting.SpawnUnit() ‚ª’S“–‚·‚é‚½‚ßA
-    //  ‚±‚±‚Å‚ÍuŠJn“_‚ÅƒV[ƒ“ã‚É‘¶İ‚·‚é‹îv‚¾‚¯‚ğ‘ÎÛ‚É‚·‚é
-    // „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // =====================================================================
+    //  ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã®å…¨ãƒ¦ãƒ‹ãƒƒãƒˆé©ç”¨
+    //  ã‚²ãƒ¼ãƒ ä¸­ã®ç”Ÿæˆã¯ UnitSetting.SpawnUnit() ãŒå…¨æ‹…ã™ã‚‹ãŸã‚ã€
+    //  ã“ã“ã§ã¯ã€Œé–‹å§‹æ™‚ç‚¹ã§ã‚·ãƒ¼ãƒ³ä¸Šã«å­˜åœ¨ã—ãŸã€ã‚‚ã®ã‚’å¯¾è±¡ã«ã™ã‚‹
+    // =====================================================================
 
     /// <summary>
-    /// w’è‚ÌeƒIƒuƒWƒFƒNƒg”z‰º‚Ì‘Sƒ†ƒjƒbƒg‚É UnitData ‚ğ“K—p‚·‚éB
-    /// ƒQ[ƒ€ŠJn‚ÌˆêŠ‡“K—p‚ğ’S“–i¶¬‚Í UnitSetting.SpawnUnit() ‚ª’S“–jB
+    /// æŒ‡å®šã®è¦ªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆé…ä¸‹ã®å…¨ãƒ¦ãƒ‹ãƒƒãƒˆã« UnitData ã‚’é©ç”¨ã™ã‚‹ã€‚
+    /// ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã®ä¸€æ‹¬é©ç”¨ã‚’æ‹…ä¿ï¼ˆä»¥å¾Œã¯ UnitSetting.SpawnUnit() ãŒæ‹…ä¿ï¼‰ã€‚
     /// </summary>
     private void ApplyAllUnitData(Transform unitParent)
     {
         foreach (Status status in unitParent.GetComponentsInChildren<Status>())
         {
-            // MovePoint “™‚Ìƒ†ƒjƒbƒgˆÈŠO‚ÍœŠO
+            // MovePoint ç­‰ã®ãƒ¦ãƒ‹ãƒƒãƒˆä»¥å¤–ã¯é™¤å¤–
             if (status.type != Type.Unit) continue;
 
             if (_UnitSetting.UnitDataMap.TryGetValue(status.kind, out UnitData data))
-                data.ApplyToStatus(status, status.Level);  // Lv ‚ÍƒfƒtƒHƒ‹ƒg Lv1
+                data.ApplyToStatus(status, status.Level);  // Lv ã¯ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ Lv1
             else
-                Debug.LogWarning($"[GameGenerater] Kind:{status.kind} ‚ÌUnitData‚ª–¢“o˜^‚Å‚·");
+                Debug.LogWarning($"[GameGenerater] Kind:{status.kind} ã®UnitDataãŒæœªç™»éŒ²ã§ã™");
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-    //  ‰Šú‘Œ¹İ’è
-    // „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // =====================================================================
+    //  åˆæœŸè³‡æºè¨­å®š
+    // =====================================================================
 
     /// <summary>
-    /// ‰Šú”z•z‘Œ¹‚ğƒZƒbƒg‚·‚éiGameReference €‹’jB
-    /// ”’l‚Íƒ}ƒWƒbƒNƒiƒ“ƒo[‚É‚µ‚È‚¢iİŒvŒ´‘¥5jB
+    /// åˆæœŸé…å¸ƒè³‡æºã‚’ã‚»ãƒƒãƒˆã™ã‚‹ï¼ˆGameReference æº–æ‹ ï¼‰ã€‚
+    /// æ•°å€¤ã¯ãƒã‚¸ãƒƒã‚¯ãƒŠãƒ³ãƒãƒ¼ã«ã—ãªã„ï¼ˆè¨­è¨ˆåŸå‰‡5ï¼‰ã€‚
     /// </summary>
     private void InitResources(FactionState.ResourceData res)
     {
@@ -112,9 +225,9 @@ public class GameGenerater : MonoBehaviour
         res.Citizen = InitCitizen;
     }
 
-    // „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
-    //  ƒ†[ƒeƒBƒŠƒeƒB
-    // „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // =====================================================================
+    //  ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£
+    // =====================================================================
     private void CollectChildren(Transform parent, List<GameObject> result)
     {
         result.Clear();

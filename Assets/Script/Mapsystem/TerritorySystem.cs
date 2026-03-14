@@ -1,87 +1,58 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-
 public class TerritorySystem : MonoBehaviour
 {
-   
-    [Header("ƒeƒŠƒgƒŠ[ƒIƒuƒWƒFƒNƒg")]
+    [Header("ãƒ†ãƒªãƒˆãƒªãƒ¼ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
     [SerializeField] GameObject PlayerTerritory;
     [SerializeField] GameObject EnemyTerritory;
 
-    [Header("ƒeƒŠƒgƒŠ[eƒIƒuƒWƒFƒNƒg")]
+    [Header("ãƒ†ãƒªãƒˆãƒªãƒ¼è¦ªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ")]
     [SerializeField] public Transform Playerterritory;
     [SerializeField] public Transform Enemyterritory;
 
     public List<Vector3> PTSetPos;
     public List<Vector3> ETSetPos;
-    private List<Vector3> setpos;
-    private Vector3 pcp;
-    private Vector3 ecp;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    private const int TerritoryRadius = 3;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void Territory() 
+    public void Territory()
     {
         MapCreate mapcreate = GetComponent<MapCreate>();
         CrystalSystem crystalsystem = GetComponent<CrystalSystem>();
-        setpos = mapcreate.SetPos;
-        pcp = crystalsystem.PCP;
-        ecp = crystalsystem.ECP;
+        var setpos = mapcreate.SetPos;
+        Vector3 pcp = crystalsystem.PCP;
+        Vector3 ecp = crystalsystem.ECP;
 
-        //PCPü•Ó‚Ìî•ñ‚ğ‚Ó‚é‚¢‚É‚©‚¯‚Ä”¼Œa3‚Ìî•ñ‚ğŠl“¾
-        PTSetPos = setpos.Where
-        (p =>
+        // PCP å‘¨è¾ºã®åŠå¾„3ãƒã‚¹ä»¥å†…ã‚’é ˜åœ°ã¨ã—ã¦è¨­å®š
+        PTSetPos = setpos.Where(p =>
         {
             float px = Mathf.Abs(p.x - pcp.x);
             float pz = Mathf.Abs(p.z - pcp.z);
-            bool truex = px <= 3;
-            bool truez = pz <= 3 && p != pcp;
-            
+            return px <= TerritoryRadius && pz <= TerritoryRadius && p != pcp;
+        }).ToList();
 
-            return truex && truez;
-        }
-        ).ToList();
-
-        //ECPü•Ó‚Ìî•ñ‚ğ‚Ó‚é‚¢‚É‚©‚¯‚Ä”¼Œa3‚Ìî•ñ‚ğŠl“¾
-        ETSetPos = setpos.Where
-          (e =>
-          {
-          float ex = Mathf.Abs(e.x - ecp.x);
-          float ez = Mathf.Abs(e.z - ecp.z);
-          bool truex = ex <= 3;
-          bool truez = ez <= 3 && e != ecp;
-              return truex && truez;
-          }
-          ).ToList();
-
-        for (int i = 0;i < PTSetPos.Count; i ++) 
+        // ECP å‘¨è¾ºã®åŠå¾„3ãƒã‚¹ä»¥å†…ã‚’é ˜åœ°ã¨ã—ã¦è¨­å®š
+        ETSetPos = setpos.Where(e =>
         {
-            Vector3 pos = PTSetPos[i];
-            pos.y -= 0.475f;
-            Instantiate(PlayerTerritory, pos, Quaternion.identity,Playerterritory);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>İ’uŠ®—¹");
-        }
+            float ex = Mathf.Abs(e.x - ecp.x);
+            float ez = Mathf.Abs(e.z - ecp.z);
+            return ex <= TerritoryRadius && ez <= TerritoryRadius && e != ecp;
+        }).ToList();
 
-        for (int i = 0;i < ETSetPos.Count; i ++) 
+        SpawnTerritoryTiles(PTSetPos, PlayerTerritory, Playerterritory);
+        SpawnTerritoryTiles(ETSetPos, EnemyTerritory, Enemyterritory);
+    }
+
+    private void SpawnTerritoryTiles(List<Vector3> positions, GameObject prefab, Transform parent)
+    {
+        for (int i = 0; i < positions.Count; i++)
         {
-            Vector3 pos = ETSetPos[i];
+            Vector3 pos = positions[i];
             pos.y -= 0.475f;
-            Instantiate(EnemyTerritory,pos,Quaternion.identity,Enemyterritory);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color>İ’uŠ®—¹");
+            Instantiate(prefab, pos, Quaternion.identity, parent);
         }
-        
+        Debug.Log($"<color=#ffff00ff>[StartSetting]</color> é ˜åœ°è¨­ç½®å®Œäº† ({positions.Count}ãƒã‚¹)");
     }
 }

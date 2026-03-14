@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class APSystem : MonoBehaviour
 {
-    public enum ActionType { Move, Attack }
+    public enum ActionType { Move, Attack, Build }
 
-    // „Ÿ„Ÿ„Ÿ ƒRƒXƒg’è‹` „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ã‚³ã‚¹ãƒˆå®šç¾© ====
     static readonly Dictionary<ActionType, int> BaseCost =
         new Dictionary<ActionType, int>
         {
@@ -18,15 +18,16 @@ public class APSystem : MonoBehaviour
 
     const int HeightCost = 2;
 
-    // „Ÿ„Ÿ„Ÿ GameGenerater.Awake() ‚Å’“ü‚³‚ê‚é „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== GameGenerater.Awake() ã§åˆæœŸåŒ–ã•ã‚Œã‚‹ ====
     private FactionState _factionState;
+    public FactionState factionState => _factionState;
 
     public void Init(FactionState factionState)
     {
         _factionState = factionState;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒRƒXƒgŒvZ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ã‚³ã‚¹ãƒˆè¨ˆç®— ====
     public int CalcCost(ActionType action, Status obj,
                         Vector3 from = default, Vector3 to = default)
     {
@@ -37,29 +38,29 @@ public class APSystem : MonoBehaviour
         return cost;
     }
 
-    // „Ÿ„Ÿ„Ÿ AP ”»’è „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== AP åˆ¤å®š ====
     public bool CanAct(Team team, ActionType action, Status obj,
                        Vector3 from = default, Vector3 to = default)
         => _factionState.GetAP(team) >= CalcCost(action, obj, from, to);
 
-    // „Ÿ„Ÿ„Ÿ AP Á”ï + ”æ˜JXV „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== AP æ¶ˆè²» + ç–²åŠ´æ›´æ–° ====
     public void Consume(Team team, ActionType action, Status obj,
                         Vector3 from = default, Vector3 to = default)
     {
         int cost = CalcCost(action, obj, from, to);
         _factionState.ModifyAP(team, -cost);
         obj.Fatigue++;
-        Debug.Log($"[APSystem] {team} / {action}  ƒRƒXƒg:{cost}  cAP:{_factionState.GetAP(team)}  ”æ˜J:{obj.Fatigue}");
+        Debug.Log($"[APSystem] {team} / {action}  ã‚³ã‚¹ãƒˆ:{cost}  æ®‹AP:{_factionState.GetAP(team)}  ç–²åŠ´:{obj.Fatigue}");
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒ^[ƒ“ŠJn AP ƒŠƒZƒbƒg „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ã‚¿ãƒ¼ãƒ³é–‹å§‹æ™‚ AP ãƒªã‚»ãƒƒãƒˆ ====
     public void ResetAP(Team team)
     {
         _factionState.ResetAPForTurn(team);
-        Debug.Log($"[APSystem] {team} AP ƒŠƒZƒbƒg ¨ {_factionState.GetAP(team)}");
+        Debug.Log($"[APSystem] {team} AP ãƒªã‚»ãƒƒãƒˆ â†’ {_factionState.GetAP(team)}");
     }
 
-    // „Ÿ„Ÿ„Ÿ ”æ˜JƒŠƒZƒbƒg „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ç–²åŠ´ãƒªã‚»ãƒƒãƒˆ ====
     public void ResetFatigue(Transform unitParent)
     {
         foreach (Status s in unitParent.GetComponentsInChildren<Status>())
@@ -68,10 +69,34 @@ public class APSystem : MonoBehaviour
         }
     }
 
-    // „Ÿ„Ÿ„Ÿ UI •\¦‚È‚Ç‚Ég—p „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== UI è¡¨ç¤ºãªã©ã«ä½¿ç”¨ ====
     public int GetAP(Team team) => _factionState.GetAP(team);
 
-    // „Ÿ„Ÿ„Ÿ “à•”ƒwƒ‹ƒp[ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== å†…éƒ¨ãƒ˜ãƒ«ãƒ‘ãƒ¼ ====
+    // ---- å»ºç¯‰ã®å®Ÿè¡Œå¯å¦ï¼ˆAP + ãƒªã‚½ãƒ¼ã‚¹ï¼‰----
+    public bool CanBuild(Team team, FacilityKind facility, FactionState factionState)
+    {
+        if (!FacilityData.Table.TryGetValue(facility, out var info)) return false;
+        if (_factionState.GetAP(team) < info.APCost) return false;
+
+        var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
+        return FacilityData.CanAfford(res, info.BuildCost);
+    }
+
+    // ---- å»ºç¯‰ã® AP + ãƒªã‚½ãƒ¼ã‚¹æ¶ˆè²» ----
+    public void ConsumeBuild(Team team, FacilityKind facility, FactionState factionState)
+    {
+        if (!FacilityData.Table.TryGetValue(facility, out var info)) return;
+
+        _factionState.ModifyAP(team, -info.APCost);
+
+        var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
+        FacilityData.Consume(res, info.BuildCost);
+
+        Debug.Log($"[APSystem] {team} / Build({facility})  AP:{info.APCost}  æ®‹AP:{_factionState.GetAP(team)}");
+    }
+
+    // ---- å†…éƒ¨ãƒ˜ãƒ«ãƒ‘ãƒ¼ ----
     private int HeightBonus(Kind kind, Vector3 from, Vector3 to)
     {
         if (HeightCostExempt.Contains(kind)) return 0;

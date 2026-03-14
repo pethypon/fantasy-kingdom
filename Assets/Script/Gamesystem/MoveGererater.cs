@@ -35,10 +35,10 @@ public class MoveGererater : MonoBehaviour
     public Vector3 ecp;
     public Vector3 usp;
 
-    // ─── 駒種ごとの移動判定 ──────────────────────────────────────────
+    // ---- 駒ごとの移動判定 ----
     // dx = p.x - objp.x（符号付き）, dz = p.z - objp.z（符号付き）
-    // 新しい駒を追加する場合はここに1行追加するだけでよい
-    public static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
+    // 新しく追加する場合はここに1行追加するだけでよい
+    static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
         new Dictionary<Kind, Func<float, float, bool>>
     {
         // 全方向1マス
@@ -56,15 +56,15 @@ public class MoveGererater : MonoBehaviour
         { Kind.Magic,       (dx, dz) => Mathf.Abs(dx) == 1
                                      && Mathf.Abs(dz) == 1 },
 
-        // 桂馬跳び（2×1 or 1×2）
+        // ナイト跳び（2×1 or 1×2）
         { Kind.Assassin,    (dx, dz) => (Mathf.Abs(dx) == 2 && Mathf.Abs(dz) == 1)
                                      || (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) == 2) },
 
-        // 横±1＋前後1 or 直進2
+        // 左右1＋前後1 or 直進2
         { Kind.Scout,       (dx, dz) => (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) <= 1)
                                      || (dx == 0 && Mathf.Abs(dz) == 2) },
 
-        // 前斜め1 or 後ろ直進1（向き考慮：符号付き）
+        // 前斜め1 or 後方直進1（符号注意：方向付き）
         { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 1)
                                      || (dx == 0 && dz == -1) },
 
@@ -72,20 +72,20 @@ public class MoveGererater : MonoBehaviour
         { Kind.Guardian,    (dx, dz) => (Mathf.Abs(dx) <= 2 && dz == 0)
                                      || (dx == 0 && Mathf.Abs(dz) == 1) },
 
-        // 前直進1-3マス or 斜め後ろ1マス（符号付き）
+        // 前直進1-3マス or 斜め後ろ1マス（方向付き）
         { Kind.Crossbow,    (dx, dz) => (dx == 0 && (dz == 1 || dz == 2 || dz == 3))
                                      || (Mathf.Abs(dx) == 1 && dz == -1) },
 
-        // 右前斜め1 or 左右後ろ3マス（符号付き）
+        // 右前斜め1 or 左右各3マス（方向付き）
         { Kind.Magicsniper, (dx, dz) => (dx == 1 && dz == 1)
                                      || (Mathf.Abs(dx) == 3 && dz == -1) },
 
-        // 斜め前後2パターン（符号付き）
+        // 斜め前後2パターン（方向付き）
         { Kind.Bomber,      (dx, dz) => (dx == -1 && dz ==  1) || (dx ==  2 && dz ==  2)
                                      || (dx ==  1 && dz == -1) || (dx == -2 && dz == -2) },
     };
 
-    // ─── ユニット占有座標の更新 ──────────────────────────────────────
+    // ---- ユニット占有座標の更新 ----
     public void UnitPointCore()
     {
         UnitPointData.Clear();
@@ -106,25 +106,15 @@ public class MoveGererater : MonoBehaviour
             usp = us.transform.position;
             UnitPointData.Add(Cell(usp));
         }
-
-        // 壁をユニットと同様に移動不可マスとして登録する
-        foreach (Transform parent in new[] { PlayerUnit, EnemyUnit })
-        {
-            foreach (Status s in parent.GetComponentsInChildren<Status>())
-            {
-                if (s.type == Type.Wall && s.gameObject.activeSelf)
-                    UnitPointData.Add(Cell(s.transform.position));
-            }
-        }
     }
 
-    // ─── グリッド座標への丸め ────────────────────────────────────────
+    // ---- グリッド座標への丸め ----
     public Vector3 Cell(Vector3 v)
     {
         return new Vector3(Mathf.RoundToInt(v.x), 0f, Mathf.RoundToInt(v.z));
     }
 
-    // ─── 移動範囲の計算とオブジェクト生成 ──────────────────────────────
+    // ---- 移動範囲の計算とオブジェクト生成 ----
     public void MoveCore(Status Obj, Vector3 ObjP)
     {
         setpos = mapcreate.SetPos;
@@ -138,23 +128,18 @@ public class MoveGererater : MonoBehaviour
             return;
         }
 
-        Debug.Log($"<color=#00ff00ff>[Controller]</color>{obj.kind}");
-
         MoveUnitP = setpos.Where(p =>
         {
             float dx = p.x - objp.x;
             float dz = p.z - objp.z;
-            // Direction.Sのとき前後を反転（南向きユニットの移動範囲を正しく計算するため）
-            float dirDx = obj.direction == Direction.S ? -dx : dx;
-            float dirDz = obj.direction == Direction.S ? -dz : dz;
             bool occupied = UnitPointData.Contains(Cell(p));
-            return predicate(dirDx, dirDz) && !occupied;
+            return predicate(dx, dz) && !occupied;
         }).ToList();
 
         MoveCreate();
     }
 
-    // ─── 移動ポイントオブジェクトの生成 ─────────────────────────────
+    // ---- 移動ポイントオブジェクトの生成 ----
     public void MoveCreate()
     {
         for (int i = 0; i < MoveUnitP.Count; i++)
@@ -162,11 +147,10 @@ public class MoveGererater : MonoBehaviour
             Vector3 pos = MoveUnitP[i];
             pos.y -= 0.47f;
             Instantiate(MovePoint, pos, Quaternion.identity, Move);
-            Debug.Log("<color=#00ff00ff>[Controller]</color>MovePoint");
         }
     }
 
-    // ─── 移動ポイントオブジェクトの削除 ─────────────────────────────
+    // ---- 移動ポイントオブジェクトの削除 ----
     public void MoveReset()
     {
         foreach (Transform child in Move.transform)
@@ -175,7 +159,7 @@ public class MoveGererater : MonoBehaviour
         }
     }
 
-    // ─── UnitPointData の更新 ────────────────────────────────────────
+    // ---- UnitPointData の更新 ----
     public void MoveUpdate(Vector3 OldCell, Vector3 NewCell)
     {
         UnitPointData.Add(Cell(NewCell));

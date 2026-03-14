@@ -30,18 +30,57 @@ public class PlayerStart : StateCore
 
     public void Entry()
     {
-        // �^�[���J�E���g�X�V
+        // ターンカウント更新
         turngenerater.Turn++;
 
-        // AP ���Z�b�g�iFactionState.ResetAPForTurn �� Reset+Plus-Minus ���v�Z�j
+        // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
         turngenerater.apsystem.ResetAP(Team.Player);
 
-        // ��J���Z�b�g
+        // 疲労リセット
         turngenerater.apsystem.ResetFatigue(unitset.PlayerUnit);
+
+        // サブクリスタル返却待ちタイマー処理
+        if (turngenerater.subCrystalSystem != null)
+            turngenerater.subCrystalSystem.TickPendingReturns(Team.Player);
+        else
+            Debug.LogWarning("[PlayerStart] subCrystalSystem が null のため TickPendingReturns をスキップ");
+
+        // クリスタル無敵シールドカウントダウン
+        TickCrystalShield(Team.Player);
+
+        // タイムリミット: ターン開始時にターンタイマーリセット
+        if (turngenerater.timeLimitSystem != null)
+            turngenerater.timeLimitSystem.OnTurnStart(Team.Player);
 
         turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick,
             attackpoint, battlesystem, visiongenerater,
             movegenerater, mapcreate, crystalsystem, unitset));
+    }
+
+    /// <summary>クリスタルの無敵シールドカウントダウン。0になったらStateをNormalに戻す</summary>
+    private void TickCrystalShield(Team team)
+    {
+        var fs = turngenerater.apsystem?.factionState;
+        if (fs == null) return;
+        if (fs.GetShieldTurns(team) <= 0) return;
+
+        fs.TickShield(team);
+
+        if (fs.GetShieldTurns(team) <= 0)
+        {
+            // シールド期限切れ → クリスタルの State を Normal に戻す
+            Transform crystalParent = team == Team.Player
+                ? crystalsystem.Playercrystal
+                : crystalsystem.Enemycrystal;
+            foreach (Status s in crystalParent.GetComponentsInChildren<Status>())
+            {
+                if (s.kind == Kind.Crystal && s.state == State.Invincible)
+                {
+                    s.state = State.Normal;
+                    Debug.Log($"[PlayerStart] {team} クリスタル無敵シールド解除");
+                }
+            }
+        }
     }
 
     public void Update() { }

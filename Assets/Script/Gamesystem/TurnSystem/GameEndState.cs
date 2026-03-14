@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameEndState : StateCore
 {
@@ -11,23 +12,53 @@ public class GameEndState : StateCore
         _result = result;
     }
 
-    // „Ÿ„Ÿ„Ÿ ƒXƒe[ƒgŠJnFŒ‹‰Ê•\¦E‘€ì’â~ „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== ã‚¹ãƒ†ãƒ¼ãƒˆé–‹å§‹ï¼šçµæœè¡¨ç¤ºãƒ»æ“ä½œåœæ­¢ ====
     public void Entry()
     {
-        Debug.Log($"[GameEnd] ƒQ[ƒ€I—¹ „Ÿ„Ÿ {_result}");
+        Debug.Log($"[GameEnd] ã‚²ãƒ¼ãƒ çµ‚äº† çµæœ: {_result}");
 
-        // TODO: ƒŠƒUƒ‹ƒgUI•\¦
-        // —á: UIManager.Instance.ShowResult(_result);
+        // ã‚¿ã‚¤ãƒãƒ¼åœæ­¢
+        if (_turn.timeLimitSystem != null)
+            _turn.timeLimitSystem.IsRunning = false;
+
+        // Game End UI ã‚’è¡¨ç¤º
+        if (_turn.gameEndUI != null)
+        {
+            string title;
+            string detail;
+
+            switch (_result)
+            {
+                case GameResult.Win:
+                    title = "å‹åˆ©ï¼";
+                    detail = "æ•µã®é‡è¦æ‹ ç‚¹ã‚’ç ´å£Šã—ãŸï¼";
+                    break;
+                case GameResult.Lose:
+                    title = "æ•—åŒ—â€¦";
+                    detail = "è‡ªè»ã®é‡è¦æ‹ ç‚¹ãŒç ´å£Šã•ã‚ŒãŸâ€¦";
+                    break;
+                case GameResult.TimeDraw:
+                    title = "å¼•ãåˆ†ã‘";
+                    detail = "æ™‚é–“åˆ‡ã‚Œ â€” ä¸¡é™£å–¶åŒç­‰ã®æˆ¦åŠ›";
+                    break;
+                default:
+                    title = "ã‚²ãƒ¼ãƒ çµ‚äº†";
+                    detail = "";
+                    break;
+            }
+
+            _turn.gameEndUI.Show(title, detail, _result);
+        }
     }
 
-    // „Ÿ„Ÿ„Ÿ –ˆƒtƒŒ[ƒ€F‰½‚à‚µ‚È‚¢i“ü—Í‚ğó‚¯•t‚¯‚È‚¢j „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
+    // ==== æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼šãƒªãƒˆãƒ©ã‚¤å…¥åŠ›ã®ã¿å—ã‘ä»˜ã‘ ====
     public void Update()
     {
-        // ‘€ì’â~ó‘Ô
-        // •K—v‚È‚çƒŠƒgƒ‰ƒC^ƒ^ƒCƒgƒ‹‚Ö–ß‚éƒ{ƒ^ƒ“‚¾‚¯ó‚¯•t‚¯‚é
-        // —á:
-        // if (_turn.RetryDown) SceneManager.LoadScene("Game");
-        // if (_turn.QuitDown)  SceneManager.LoadScene("Title");
+        // Enter ã§ãƒªãƒˆãƒ©ã‚¤
+        if (_turn.TurnEndDown)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 
     public void Exit() { }
