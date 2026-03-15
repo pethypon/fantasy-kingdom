@@ -374,15 +374,17 @@ public class BuildSystem : MonoBehaviour
     {
         if (target == null) return false;
         if (target.type != Type.Building && target.type != Type.Wall) return false;
-        if (target.team != Team.Player) return false;
+
+        Team team = target.team;
+        if (team != Team.Player && team != Team.Enemy) return false;
 
         var facility = target.facilityKind;
         int currentLevel = Mathf.Max(1, target.Level);
         int maxLevel = FacilityData.GetMaxLevel(facility);
         if (currentLevel >= maxLevel) return false;
 
-        var res = factionState.PlayerResources;
-        int currentAP = factionState.GetAP(Team.Player);
+        var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
+        int currentAP = factionState.GetAP(team);
         if (!FacilityData.CanUpgrade(res, currentAP, facility, currentLevel))
         {
             Debug.Log($"[BuildSystem] 強化不可: {facility} Lv{currentLevel} → Lv{currentLevel + 1}");
@@ -390,7 +392,8 @@ public class BuildSystem : MonoBehaviour
         }
 
         // コスト消費
-        FacilityData.ConsumeUpgrade(res, factionState.PlayerAP, facility, currentLevel + 1);
+        var apData = team == Team.Player ? factionState.PlayerAP : factionState.EnemyAP;
+        FacilityData.ConsumeUpgrade(res, apData, facility, currentLevel + 1);
 
         // レベルアップ
         target.Level = currentLevel + 1;

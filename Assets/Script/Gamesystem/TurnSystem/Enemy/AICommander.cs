@@ -117,6 +117,8 @@ public class AICommander
 
         int maxIterations = 50;
         int iteration = 0;
+        int consecutiveFailures = 0;
+        const int maxConsecutiveFailures = 3;
         int turnMoves = 0, turnAttacks = 0, turnBuilds = 0, turnSummons = 0, turnSkills = 0, turnRetreats = 0;
 
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
@@ -174,9 +176,17 @@ public class AICommander
             bool success = ExecuteAction(bestAction);
             if (!success)
             {
-                Debug.Log("[AICommander] 行動実行失敗 → 次の候補へ");
-                continue; // 失敗しても他のアクションを試す
+                consecutiveFailures++;
+                Debug.Log($"[AICommander] 行動実行失敗 ({consecutiveFailures}/{maxConsecutiveFailures}) → 次の候補へ");
+                if (consecutiveFailures >= maxConsecutiveFailures)
+                {
+                    Debug.Log("[AICommander] 連続失敗上限 → ターン終了");
+                    break;
+                }
+                continue;
             }
+
+            consecutiveFailures = 0; // 成功したらリセット
 
             switch (bestAction.ActionType)
             {
@@ -535,13 +545,7 @@ public class AICommander
         bool success = _buildSystem.AIPlaceBuilding(pos, FacilityKind.SubCrystal, Team.Enemy);
         if (success)
         {
-            // 領地拡張
-            // BuildSystem側でGameObjectを生成しているので、そのオブジェクトを見つけてExpandTerritory
-            // → AIPlaceBuildingが成功した場合、最後に建てた建物をBuildSystemから取得
-            var lastBuilding = _buildSystem.GetLastPlacedBuilding();
-            if (lastBuilding != null)
-                _subCrystalSystem.ExpandTerritory(lastBuilding, Team.Enemy);
-
+            // 領地拡張は AIPlaceBuilding 内で既に実行済み（二重呼び出し防止）
             _board.RefreshAP();
             Debug.Log($"[AICommander] サブクリ展開: @({pos.x},{pos.y},{pos.z})  残AP={_board.EnemyAP}");
         }

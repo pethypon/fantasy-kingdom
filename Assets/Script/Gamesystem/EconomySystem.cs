@@ -38,6 +38,8 @@ public class EconomySystem : MonoBehaviour
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
 
+        Debug.Log($"[EconomySystem] === {team} ターン経済処理開始 === パン={res.Bread} 市民={res.Citizen}");
+
         // ---- 1. 建築物の生産・維持費・特殊効果 ----
         ProcessBuildings(team, res);
 
@@ -227,6 +229,7 @@ public class EconomySystem : MonoBehaviour
         {
             // 全市民を養える
             res.Bread -= totalBreadNeeded;
+            Debug.Log($"[EconomySystem] {team} 市民パン消費: {res.Citizen}人×{BreadPerCitizen}パン = {totalBreadNeeded}パン消費  残パン={res.Bread}");
         }
         else
         {
