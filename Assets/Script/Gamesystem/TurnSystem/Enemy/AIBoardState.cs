@@ -510,10 +510,9 @@ public class AIBoardState
             // StoneWorks は Quarry(石材)が必要
             case FacilityKind.StoneWorks:
                 return GetBuildingCount(FacilityKind.Quarry) > 0;
-            // Smelter は Mine(鉄鉱)と Quarry(石炭)が必要
+            // Smelter は Mine(鉄鉱石+石炭)が必要
             case FacilityKind.Smelter:
-                return GetBuildingCount(FacilityKind.Mine) > 0 &&
-                       GetBuildingCount(FacilityKind.Quarry) > 0;
+                return GetBuildingCount(FacilityKind.Mine) > 0;
             // Field は Well(水)が必要
             case FacilityKind.Field:
                 return GetBuildingCount(FacilityKind.Well) > 0;
