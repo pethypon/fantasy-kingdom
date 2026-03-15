@@ -59,7 +59,7 @@ public class AICommander
     public void ExecuteTurn()
     {
         _actedUnits.Clear();
-        _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet, _crystalSystem);
+        _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet, _crystalSystem, _visionGen);
 
         int maxIterations = 50; // 無限ループ防止
         int iteration = 0;

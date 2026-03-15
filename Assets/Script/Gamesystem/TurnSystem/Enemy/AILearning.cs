@@ -34,7 +34,7 @@ public class AILearning
     float _commandModifier = 0f;
     float _tacticsModifier = 0f;
     float _defenseModifier = 0f;
-    float _developModifier = 0f;
+    float _developModifier = 0f; // 発展性補正（経済差学習で上昇）
 
     public bool IsActive { get; private set; }
 
@@ -124,6 +124,14 @@ public class AILearning
         Debug.Log("[AILearning] 攻め急ぎ崩壊学習 → 防衛性+2, 慎重性+1");
     }
 
+    // 経済差で勝てていると感じた
+    public void RecordEconomicAdvantage()
+    {
+        if (!IsActive) return;
+        _developModifier = Mathf.Min(MaxBonus, _developModifier + 2f);
+        Debug.Log("[AILearning] 経済優位学習 → 発展性+2");
+    }
+
     // ================================================================
     //  学習補正の出力（AIActionEvaluatorから呼ばれる）
     // ================================================================
@@ -170,6 +178,21 @@ public class AILearning
             action.ActionType == AIActionType.Move)
         {
             bonus += _cautionModifier * 0.1f; // 慎重になるほど待機寄りに
+        }
+
+        // 防衛性補正: 自陣寄り移動を加点
+        if (action.ActionType == AIActionType.Move && _defenseModifier > 0f)
+        {
+            float crystalDist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
+            if (crystalDist < 5f)
+                bonus += _defenseModifier * 0.3f;
+        }
+
+        // 発展性補正: 経済系行動を加点
+        if ((action.ActionType == AIActionType.Build ||
+             action.ActionType == AIActionType.SubCrystal) && _developModifier > 0f)
+        {
+            bonus += _developModifier * 0.5f;
         }
 
         return Mathf.Clamp(bonus, -MaxBonus, MaxBonus);

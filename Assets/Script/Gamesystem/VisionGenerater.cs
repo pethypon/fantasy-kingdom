@@ -325,16 +325,18 @@ public class VisionGenerater : MonoBehaviour
             }
         }
 
-        /*foreach (Status status in enemyunitbox)
+        // Enemy駒の視界計算（AI視界制限に使用）
+        foreach (Status status in enemyunitbox)
         {
             CalculateAndMergeVision(status, mapcreate, crystalsystem, EnemyVisionBox);
         }
 
+        // Enemyクリスタル駒の視界計算
         foreach (Transform Temporary in crystalsystem.Enemycrystal)
         {
             Status status = Temporary.GetComponentInChildren<Status>();
-            CalculateAndMergeVision(status, mapcreate, crystalsystem, PlayerVisionBox);
-        }*/
+            CalculateAndMergeVision(status, mapcreate, crystalsystem, EnemyVisionBox);
+        }
 
         // VisionBoxをExploardに入れる
         PlayerExploard.UnionWith(PlayerVisionBox);
