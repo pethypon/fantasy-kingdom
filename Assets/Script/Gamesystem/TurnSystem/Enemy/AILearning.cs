@@ -157,6 +157,32 @@ public class AILearning
                     bonus -= _playerDefensePositions[targetCell] * 2f;
                 break;
 
+            case AIActionType.SkillUse:
+                // スキルも攻撃同様の学習適用
+                if (_failedFrontalAttacks.ContainsKey(targetCell))
+                    bonus -= Mathf.Min(_failedFrontalAttacks[targetCell] * 2f, MaxBonus);
+                if (_successFlanks.ContainsKey(targetCell))
+                    bonus += Mathf.Min(_successFlanks[targetCell] * 2f, MaxBonus);
+                // 戦術性補正: スキル使用を好む
+                bonus += _tacticsModifier * 0.2f;
+                break;
+
+            case AIActionType.Retreat:
+                // 慎重性補正: 撤退を好む
+                bonus += _cautionModifier * 0.4f;
+                bonus += _defenseModifier * 0.2f;
+                break;
+
+            case AIActionType.Support:
+                // 指揮性補正: 援護を好む
+                bonus += _commandModifier * 0.3f;
+                break;
+
+            case AIActionType.Surround:
+                // 戦術性補正: 包囲を好む
+                bonus += _tacticsModifier * 0.3f;
+                break;
+
             case AIActionType.Move:
                 // 孤立被撃破位置には行きにくくなる
                 if (_isolatedDeaths.ContainsKey(targetCell))

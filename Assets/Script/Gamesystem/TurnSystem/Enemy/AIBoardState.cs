@@ -191,6 +191,165 @@ public class AIBoardState
         return targets;
     }
 
+    // ---- スキル攻撃対象 ----
+    public List<Status> GetSkillTargets(Status unit, SkillData skill)
+    {
+        var targets = new List<Status>();
+        if (skill == null || unit.AssignedSkillId < 0) return targets;
+
+        var unitPos = unit.transform.position;
+        int dirZ = unit.direction == Direction.S ? -1 : 1;
+
+        switch (skill.Target)
+        {
+            case SkillTarget.Self:
+            case SkillTarget.SelfArea:
+                targets.Add(unit);
+                break;
+
+            case SkillTarget.AllySingle:
+                // 味方ユニットから対象選択
+                foreach (var ally in AliveEnemyUnits)
+                {
+                    if (ally == null || !ally.gameObject.activeInHierarchy || ally == unit) continue;
+                    float dist = Vector3.Distance(unitPos, ally.transform.position);
+                    if (dist <= 4f) targets.Add(ally);
+                }
+                break;
+
+            case SkillTarget.EnemySingle:
+            case SkillTarget.EnemyOrBuilding:
+            case SkillTarget.LowHPEnemy:
+            case SkillTarget.FlyingEnemy:
+                // スキル攻撃範囲を計算して敵を検索
+                _attackPoint.SkillAttackPData(unit, unitPos);
+                if (_attackPoint.AttackP != null)
+                {
+                    foreach (var pos in _attackPoint.AttackP)
+                    {
+                        var cell = _moveGen.Cell(pos);
+                        foreach (var pu in AlivePlayerUnits)
+                        {
+                            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+                            var puCell = _moveGen.Cell(pu.transform.position);
+                            if (puCell == cell) { targets.Add(pu); break; }
+                        }
+                    }
+                }
+                _attackPoint.AtkpDestroy();
+                break;
+
+            case SkillTarget.DesignatedTile:
+            case SkillTarget.AdjacentCenter:
+            case SkillTarget.DirectionLine:
+            case SkillTarget.DesignatedRow:
+                // 範囲スキル：攻撃範囲内の座標を取得し、敵が含まれる位置を返す
+                _attackPoint.SkillAttackPData(unit, unitPos);
+                if (_attackPoint.AttackP != null)
+                {
+                    foreach (var pos in _attackPoint.AttackP)
+                    {
+                        // 仮ターゲットとして位置情報のみ保持（実際の範囲はSkillSystem.GetAreaPositionsで計算）
+                        var cell = _moveGen.Cell(pos);
+                        // 範囲内に敵がいるかチェック
+                        var center = new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z));
+                        var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, unit.direction);
+                        bool hasEnemy = false;
+                        foreach (var ac in areaCells)
+                        {
+                            foreach (var pu in AlivePlayerUnits)
+                            {
+                                if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+                                int px = Mathf.RoundToInt(pu.transform.position.x);
+                                int pz = Mathf.RoundToInt(pu.transform.position.z);
+                                if (ac.x == px && ac.z == pz) { hasEnemy = true; break; }
+                            }
+                            if (hasEnemy) break;
+                        }
+                        if (hasEnemy)
+                        {
+                            // ダミーのStatusは返せないので、最初に見つかった範囲内のPlayerUnitを返す
+                            foreach (var ac in areaCells)
+                            {
+                                foreach (var pu in AlivePlayerUnits)
+                                {
+                                    if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+                                    int px = Mathf.RoundToInt(pu.transform.position.x);
+                                    int pz = Mathf.RoundToInt(pu.transform.position.z);
+                                    if (ac.x == px && ac.z == pz) { targets.Add(pu); break; }
+                                }
+                                if (targets.Count > 0) break;
+                            }
+                        }
+                    }
+                }
+                _attackPoint.AtkpDestroy();
+                break;
+        }
+
+        return targets;
+    }
+
+    // ---- スキル範囲内の敵ユニット収集 ----
+    public List<Status> GetEnemiesInSkillArea(Status unit, SkillData skill, Vector3 targetPos)
+    {
+        var enemies = new List<Status>();
+        var center = new Vector3Int(Mathf.RoundToInt(targetPos.x), Mathf.RoundToInt(targetPos.y), Mathf.RoundToInt(targetPos.z));
+        var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, unit.direction);
+
+        foreach (var ac in areaCells)
+        {
+            foreach (var pu in AlivePlayerUnits)
+            {
+                if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+                int px = Mathf.RoundToInt(pu.transform.position.x);
+                int pz = Mathf.RoundToInt(pu.transform.position.z);
+                if (ac.x == px && ac.z == pz) enemies.Add(pu);
+            }
+        }
+        return enemies;
+    }
+
+    // ---- スキル範囲内の味方ユニット収集 ----
+    public List<Status> GetAlliesInSkillArea(Status unit, SkillData skill, Vector3 targetPos)
+    {
+        var allies = new List<Status>();
+        var center = new Vector3Int(Mathf.RoundToInt(targetPos.x), Mathf.RoundToInt(targetPos.y), Mathf.RoundToInt(targetPos.z));
+        var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, unit.direction);
+
+        foreach (var ac in areaCells)
+        {
+            foreach (var ally in AliveEnemyUnits)
+            {
+                if (ally == null || !ally.gameObject.activeInHierarchy) continue;
+                int ax = Mathf.RoundToInt(ally.transform.position.x);
+                int az = Mathf.RoundToInt(ally.transform.position.z);
+                if (ac.x == ax && ac.z == az) allies.Add(ally);
+            }
+        }
+        return allies;
+    }
+
+    // ---- 味方の最寄り駒距離 ----
+    public float GetNearestAllyDist(Vector3 pos, Status self)
+    {
+        float nearest = float.MaxValue;
+        foreach (var u in AliveEnemyUnits)
+        {
+            if (u == null || !u.gameObject.activeInHierarchy || u == self) continue;
+            float d = Vector3.Distance(pos, u.transform.position);
+            if (d < nearest) nearest = d;
+        }
+        return nearest;
+    }
+
+    // ---- スキルAP消費 ----
+    public void ConsumeSkill(Status unit, int apCost)
+    {
+        _apSystem.ConsumeSkill(Team.Enemy, apCost, unit);
+        EnemyAP = _apSystem.GetAP(Team.Enemy);
+    }
+
     // ---- コスト ----
     public int CalcMoveCost(Status unit, Vector3 dest)
         => _apSystem.CalcCost(APSystem.ActionType.Move, unit, unit.transform.position, dest);
