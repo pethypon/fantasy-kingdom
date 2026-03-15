@@ -17,10 +17,12 @@ public class AIBoardState
     readonly UnitSetting _unitSet;
     readonly CrystalSystem _crystalSystem;
     readonly VisionGenerater _visionGen;
+    readonly BuildSystem _buildSystem;
+    readonly SummonSystem _summonSystem;
+    readonly FactionState _factionState;
 
     // ---- 盤面データ ----
     public List<Status> AliveEnemyUnits { get; private set; }
-    // ★ 視界内のプレイヤー駒のみ（視界外は含まない）
     public List<Status> AlivePlayerUnits { get; private set; }
     public Vector3 PlayerCrystalPos { get; private set; }
     public Vector3 EnemyCrystalPos { get; private set; }
@@ -28,13 +30,21 @@ public class AIBoardState
     public int EnemyCrystalHP { get; private set; }
     public int EnemyCrystalMaxHP { get; private set; }
     public int PlayerCrystalHP { get; private set; }
-    // ★ プレイヤークリスタルが視界内にあるか
     public bool PlayerCrystalVisible { get; private set; }
+
+    // ---- 建築/召喚用データ ----
+    public List<Vector3Int> BuildablePositions { get; private set; }
+    public List<Vector3Int> SummonablePositions { get; private set; }
+    public List<FacilityKind> AffordableBuildings { get; private set; }
+    public List<Kind> AffordableUnits { get; private set; }
+    public int EnemySubCrystals { get; private set; }
 
     public AIBoardState(
         MoveGererater moveGen, AttackPointt attackPoint,
         APSystem apSystem, UnitSetting unitSet,
-        CrystalSystem crystalSystem, VisionGenerater visionGen)
+        CrystalSystem crystalSystem, VisionGenerater visionGen,
+        BuildSystem buildSystem = null, SummonSystem summonSystem = null,
+        FactionState factionState = null)
     {
         _moveGen = moveGen;
         _attackPoint = attackPoint;
@@ -42,6 +52,9 @@ public class AIBoardState
         _unitSet = unitSet;
         _crystalSystem = crystalSystem;
         _visionGen = visionGen;
+        _buildSystem = buildSystem;
+        _summonSystem = summonSystem;
+        _factionState = factionState;
 
         Refresh();
     }
@@ -53,7 +66,6 @@ public class AIBoardState
 
         AliveEnemyUnits = CollectUnits(_unitSet.EnemyUnit, Team.Enemy);
 
-        // ★ 全プレイヤー駒を取得した後、視界フィルタを適用
         var allPlayerUnits = CollectUnits(_unitSet.PlayerUnit, Team.Player);
         AlivePlayerUnits = FilterByEnemyVision(allPlayerUnits);
 
@@ -61,12 +73,10 @@ public class AIBoardState
         EnemyCrystalPos = _crystalSystem.ECP;
         EnemyAP = _apSystem.GetAP(Team.Enemy);
 
-        // クリスタルHP
         var eCrystal = FindCrystal(_unitSet.EnemyUnit);
         EnemyCrystalHP = eCrystal != null ? eCrystal.HP : 0;
         EnemyCrystalMaxHP = eCrystal != null ? eCrystal.MaxHP : 1;
 
-        // ★ プレイヤークリスタルは視界内にある場合のみHP情報を取得
         PlayerCrystalVisible = IsCellInEnemyVision(PlayerCrystalPos);
         if (PlayerCrystalVisible)
         {
@@ -75,60 +85,96 @@ public class AIBoardState
         }
         else
         {
-            PlayerCrystalHP = -1; // 不明
+            PlayerCrystalHP = -1;
         }
+
+        // 建築/召喚情報を更新
+        RefreshEconomyData();
     }
 
-    // ---- 駒の有利度（視界内の情報のみで判断）----
+    // ---- 建築/召喚可能情報を更新 ----
+    void RefreshEconomyData()
+    {
+        // 建築可能位置
+        if (_buildSystem != null)
+            BuildablePositions = _buildSystem.AIGetBuildablePositions(Team.Enemy);
+        else
+            BuildablePositions = new List<Vector3Int>();
+
+        // 召喚可能位置
+        if (_summonSystem != null)
+            SummonablePositions = _summonSystem.AIGetSummonablePositions(Team.Enemy);
+        else
+            SummonablePositions = new List<Vector3Int>();
+
+        // 購入可能な建築物
+        AffordableBuildings = new List<FacilityKind>();
+        if (_buildSystem != null && _factionState != null)
+        {
+            foreach (FacilityKind fk in Enum.GetValues(typeof(FacilityKind)))
+            {
+                if (_apSystem.CanBuild(Team.Enemy, fk, _factionState))
+                    AffordableBuildings.Add(fk);
+            }
+        }
+
+        // 召喚可能なユニット種
+        AffordableUnits = new List<Kind>();
+        if (_summonSystem != null)
+        {
+            Kind[] summonKinds = { Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
+                                    Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
+                                    Kind.Magicsniper, Kind.Bomber };
+            foreach (var k in summonKinds)
+            {
+                if (_summonSystem.CanSummon(Team.Enemy, k))
+                    AffordableUnits.Add(k);
+            }
+        }
+
+        // サブクリスタル残り
+        EnemySubCrystals = _factionState != null ? _factionState.GetSubCrystals(Team.Enemy) : 0;
+    }
+
+    // ---- 駒の有利度 ----
     public float GetAdvantageRatio()
     {
         int enemyPower = AliveEnemyUnits.Sum(u => u.HP + u.ATK);
-        // ★ 視界内のプレイヤー駒のみで計算（見えない敵は計算に入らない）
         int playerPower = AlivePlayerUnits.Sum(u => u.HP + u.ATK);
         if (playerPower + enemyPower == 0) return 0f;
         return (enemyPower - playerPower) / (float)(enemyPower + playerPower);
     }
 
-    // ---- 指定駒の移動可能マス一覧 ----
+    // ---- 移動可能マス ----
     public List<Vector3> GetValidMoves(Status unit)
     {
         var unitPos = unit.transform.position;
         var result = new List<Vector3>();
-
         _moveGen.MoveCore(unit, unitPos);
         result.AddRange(_moveGen.MoveUnitP);
-        _moveGen.MoveReset(); // 生成されたオブジェクトを即破棄
-
+        _moveGen.MoveReset();
         return result;
     }
 
-    // ---- 指定駒の攻撃可能な敵一覧（★ 視界内のみ） ----
+    // ---- 攻撃対象（視界内のみ） ----
     public List<Status> GetAttackTargets(Status unit)
     {
         var unitPos = unit.transform.position;
         var targets = new List<Status>();
 
-        // 通常攻撃範囲を計算
         _attackPoint.NormalAttackPData(unit, unitPos);
         if (_attackPoint.AttackP == null) return targets;
 
         foreach (var pos in _attackPoint.AttackP)
         {
             var cell = _moveGen.Cell(pos);
-
-            // ★ 視界内のプレイヤー駒のみを攻撃対象にする
             foreach (var pu in AlivePlayerUnits)
             {
                 if (pu == null || !pu.gameObject.activeInHierarchy) continue;
                 var puCell = _moveGen.Cell(pu.transform.position);
-                if (puCell == cell)
-                {
-                    targets.Add(pu);
-                    break;
-                }
+                if (puCell == cell) { targets.Add(pu); break; }
             }
 
-            // ★ クリスタルも視界内にある場合のみ攻撃可能
             if (PlayerCrystalVisible)
             {
                 var pcpCell = _moveGen.Cell(PlayerCrystalPos);
@@ -141,27 +187,21 @@ public class AIBoardState
             }
         }
 
-        _attackPoint.AtkpDestroy(); // 生成されたオブジェクトを破棄
+        _attackPoint.AtkpDestroy();
         return targets;
     }
 
-    // ---- コスト計算 ----
+    // ---- コスト ----
     public int CalcMoveCost(Status unit, Vector3 dest)
-    {
-        return _apSystem.CalcCost(APSystem.ActionType.Move, unit,
-            unit.transform.position, dest);
-    }
+        => _apSystem.CalcCost(APSystem.ActionType.Move, unit, unit.transform.position, dest);
 
     public int CalcAttackCost(Status unit)
-    {
-        return _apSystem.CalcCost(APSystem.ActionType.Attack, unit);
-    }
+        => _apSystem.CalcCost(APSystem.ActionType.Attack, unit);
 
     // ---- AP消費 ----
     public void ConsumeMove(Status unit, Vector3 dest)
     {
-        _apSystem.Consume(Team.Enemy, APSystem.ActionType.Move, unit,
-            unit.transform.position, dest);
+        _apSystem.Consume(Team.Enemy, APSystem.ActionType.Move, unit, unit.transform.position, dest);
         EnemyAP = _apSystem.GetAP(Team.Enemy);
     }
 
@@ -171,15 +211,18 @@ public class AIBoardState
         EnemyAP = _apSystem.GetAP(Team.Enemy);
     }
 
+    public void RefreshAP()
+    {
+        EnemyAP = _apSystem.GetAP(Team.Enemy);
+    }
+
     // ================================================================
     //  視界フィルタリング
     // ================================================================
-
-    // ★ 敵の視界内にいるプレイヤー駒だけを返す
     List<Status> FilterByEnemyVision(List<Status> allPlayerUnits)
     {
         if (_visionGen == null || _visionGen.EnemyVisionBox == null)
-            return allPlayerUnits; // フォールバック: 視界計算未済なら全部見える
+            return allPlayerUnits;
 
         var visible = new List<Status>();
         foreach (var unit in allPlayerUnits)
@@ -191,16 +234,11 @@ public class AIBoardState
         return visible;
     }
 
-    // ★ 指定位置が敵の視界内にあるか判定
     bool IsCellInEnemyVision(Vector3 worldPos)
     {
         if (_visionGen == null || _visionGen.EnemyVisionBox == null) return true;
-
         int x = Mathf.RoundToInt(worldPos.x);
         int z = Mathf.RoundToInt(worldPos.z);
-        // EnemyVisionBoxはY座標も含むが、XZ一致で判定
-        var cellXZ = new Vector3Int(x, 0, z);
-
         foreach (var v in _visionGen.EnemyVisionBox)
         {
             if (v.x == x && v.z == z) return true;

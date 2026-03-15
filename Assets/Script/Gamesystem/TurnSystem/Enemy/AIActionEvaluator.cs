@@ -8,14 +8,16 @@ using UnityEngine;
 public class AIAction
 {
     public AIActionType ActionType;
-    public Status Unit;              // 行動する駒
-    public Vector3 TargetPos;        // 移動先 or 攻撃対象位置
+    public Status Unit;              // 行動する駒（移動/攻撃時）
+    public Vector3 TargetPos;        // 移動先 or 配置位置
     public Status TargetUnit;        // 攻撃対象（あれば）
     public int APCost;               // 消費AP
     public float Score;              // 最終評価点
+    public FacilityKind Facility;    // 建築の種類
+    public Kind SummonKind;          // 召喚するユニット種
 
     public override string ToString()
-        => $"{ActionType}({Unit?.kind}) → {TargetPos} score={Score:F1}";
+        => $"{ActionType}({Unit?.kind}/{Facility}/{SummonKind}) → {TargetPos} score={Score:F1}";
 }
 
 // =====================================================================
@@ -43,6 +45,12 @@ public static class AIActionEvaluator
             GenerateAttackCandidates(unit, board, actions);
             GenerateWaitCandidate(unit, board, actions);
         }
+
+        // 建築候補を生成
+        GenerateBuildCandidates(board, actions);
+
+        // 召喚候補を生成
+        GenerateSummonCandidates(board, actions);
 
         // 各候補にスコア付け
         foreach (var action in actions)
@@ -115,8 +123,66 @@ public static class AIActionEvaluator
     }
 
     // ================================================================
+    //  候補生成: 建築
+    // ================================================================
+    static void GenerateBuildCandidates(AIBoardState board, List<AIAction> results)
+    {
+        if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0) return;
+
+        // 建築可能な建物 × 建築可能な位置（位置は最大3つに絞ってコスト削減）
+        foreach (var facility in board.AffordableBuildings)
+        {
+            if (!FacilityData.Table.TryGetValue(facility, out var info)) continue;
+
+            // 位置はクリスタル付近を優先（最大3つ）
+            var positions = board.BuildablePositions
+                .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), board.EnemyCrystalPos))
+                .Take(3);
+
+            foreach (var pos in positions)
+            {
+                results.Add(new AIAction
+                {
+                    ActionType = AIActionType.Build,
+                    Facility = facility,
+                    TargetPos = new Vector3(pos.x, pos.y, pos.z),
+                    APCost = info.APCost
+                });
+            }
+        }
+    }
+
+    // ================================================================
+    //  候補生成: 召喚
+    // ================================================================
+    static void GenerateSummonCandidates(AIBoardState board, List<AIAction> results)
+    {
+        if (board.SummonablePositions.Count == 0 || board.AffordableUnits.Count == 0) return;
+
+        foreach (var kind in board.AffordableUnits)
+        {
+            if (!UnitStaticData.Table.TryGetValue(kind, out var info)) continue;
+
+            // 前線に近い位置を優先（最大2つ）
+            var positions = board.SummonablePositions
+                .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), board.PlayerCrystalPos))
+                .Take(2);
+
+            foreach (var pos in positions)
+            {
+                results.Add(new AIAction
+                {
+                    ActionType = AIActionType.Summon,
+                    SummonKind = kind,
+                    TargetPos = new Vector3(pos.x, pos.y, pos.z),
+                    APCost = info.CostAP
+                });
+            }
+        }
+    }
+
+    // ================================================================
     //  スコア計算
-    //  最終評価 = 基本評価 + 大きい性格補正 + 細かい性格補正 + 局面補正 + 学習補正
     // ================================================================
     static float CalcScore(AIAction action, AIPersonality p, AIBoardState board, AILearning learning)
     {
@@ -138,8 +204,12 @@ public static class AIActionEvaluator
                 return CalcAttackBaseScore(action, board);
             case AIActionType.Move:
                 return CalcMoveBaseScore(action, board);
+            case AIActionType.Build:
+                return CalcBuildBaseScore(action, board);
+            case AIActionType.Summon:
+                return CalcSummonBaseScore(action, board);
             case AIActionType.Wait:
-                return 1f; // 待機は最低評価
+                return 1f;
             default:
                 return 5f;
         }
@@ -149,27 +219,23 @@ public static class AIActionEvaluator
     {
         if (action.TargetUnit == null) return 0f;
 
-        float score = 30f; // 攻撃の基本価値
+        float score = 30f;
 
-        // 撃破期待値: 倒せそうなら大幅加点
         int expectedDmg = EstimateDamage(action.Unit, action.TargetUnit);
         if (expectedDmg >= action.TargetUnit.HP)
-            score += 40f; // 撃破可能
+            score += 40f;
 
-        // HP比率が低い敵ほど価値が高い
         if (action.TargetUnit.MaxHP > 0)
         {
             float hpRatio = (float)action.TargetUnit.HP / action.TargetUnit.MaxHP;
             score += (1f - hpRatio) * 15f;
         }
 
-        // Crystal/King を攻撃できるなら最優先
         if (action.TargetUnit.kind == Kind.Crystal)
             score += 50f;
         if (action.TargetUnit.kind == Kind.King)
             score += 35f;
 
-        // シールド中の対象は価値低
         if (action.TargetUnit.ShieldTurns > 0)
             score -= 30f;
 
@@ -183,20 +249,74 @@ public static class AIActionEvaluator
         Vector3 unitPos = action.Unit.transform.position;
         Vector3 dest = action.TargetPos;
 
-        // プレイヤークリスタルへの接近度
         float distBefore = Vector3.Distance(unitPos, board.PlayerCrystalPos);
         float distAfter = Vector3.Distance(dest, board.PlayerCrystalPos);
         float approach = distBefore - distAfter;
         score += approach * 3f;
 
-        // 最寄りの敵ユニットへの接近
         float nearestPlayerDist = GetNearestPlayerDist(dest, board);
         if (nearestPlayerDist < 3f)
-            score += 5f; // 攻撃圏に入れるなら加点
+            score += 5f;
 
-        // 高台ボーナス
         if (dest.y > unitPos.y)
             score += 2f;
+
+        return score;
+    }
+
+    static float CalcBuildBaseScore(AIAction action, AIBoardState board)
+    {
+        float score = 15f; // 建築の基本価値
+
+        var facility = action.Facility;
+
+        // 経済建築は基本価値が高い
+        if (facility == FacilityKind.Field || facility == FacilityKind.Bakery ||
+            facility == FacilityKind.LoggingCamp || facility == FacilityKind.LumberMill ||
+            facility == FacilityKind.Quarry || facility == FacilityKind.StoneWorks ||
+            facility == FacilityKind.Mine || facility == FacilityKind.Smelter ||
+            facility == FacilityKind.Well)
+            score += 10f;
+
+        // 住宅（市民+AP増加）
+        if (facility == FacilityKind.House)
+            score += 12f;
+
+        // 倉庫
+        if (facility == FacilityKind.Warehouse)
+            score += 5f;
+
+        // 兵舎（経験値ボーナス）
+        if (facility == FacilityKind.Barracks)
+            score += 8f;
+
+        // 壁（防衛）
+        if (FacilityData.IsWall(facility))
+            score += 6f;
+
+        // 攻撃建築物
+        if (FacilityData.IsOffensive(facility))
+            score += 10f;
+
+        // サブクリスタル（領地拡張）
+        if (FacilityData.IsSubCrystal(facility))
+            score += 15f;
+
+        return score;
+    }
+
+    static float CalcSummonBaseScore(AIAction action, AIBoardState board)
+    {
+        float score = 20f; // 召喚の基本価値
+
+        // 自軍駒数が少ないほど召喚価値が上がる
+        int allyCount = board.AliveEnemyUnits.Count;
+        if (allyCount <= 2) score += 20f;
+        else if (allyCount <= 4) score += 10f;
+
+        // 前線に近い位置に配置するほど加点
+        float dist = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
+        score += Mathf.Max(0, 15f - dist);
 
         return score;
     }
@@ -209,7 +329,6 @@ public static class AIActionEvaluator
         switch (p.Major)
         {
             case MajorPersonality.Combat:
-                // 攻撃・前進を重視
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 15f;
                 if (action.ActionType == AIActionType.Move)
@@ -219,33 +338,34 @@ public static class AIActionEvaluator
                 }
                 if (action.ActionType == AIActionType.Wait)
                     bonus -= 5f;
+                // 戦闘型は召喚を好む（前線投入）
+                if (action.ActionType == AIActionType.Summon)
+                    bonus += 8f;
                 break;
 
             case MajorPersonality.Intellect:
-                // 防衛・整形を重視
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 5f;
                 if (action.ActionType == AIActionType.Move)
                 {
-                    // 味方との距離が近いなら加点（連携重視）
                     float allyDist = GetNearestAllyDist(action.TargetPos, action.Unit, board);
                     if (allyDist < 4f)
                         bonus += 8f;
-                    // 自軍クリスタルから離れすぎない
                     float crystalDist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
                     if (crystalDist > 10f)
                         bonus -= 5f;
                 }
+                // 知性型は建築を好む
+                if (action.ActionType == AIActionType.Build)
+                    bonus += 12f;
                 break;
 
             case MajorPersonality.Adaptive:
-                // 局面補正に委ねる（ここでは中立）
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 8f;
                 break;
 
             case MajorPersonality.Growth:
-                // 基本は中庸、学習補正に委ねる
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 10f;
                 break;
@@ -262,35 +382,44 @@ public static class AIActionEvaluator
         switch (action.ActionType)
         {
             case AIActionType.Attack:
-                // 執着性: 攻撃への意欲
                 bonus += p.ObsessionRate * 20f;
-                // 慎重性: 不利交換なら減点
                 if (action.TargetUnit != null)
                 {
                     int myDmg = EstimateDamage(action.Unit, action.TargetUnit);
                     int counterDmg = EstimateDamage(action.TargetUnit, action.Unit);
                     if (counterDmg > myDmg)
-                        bonus -= p.CautionRate * 25f; // 慎重なら不利交換を避ける
+                        bonus -= p.CautionRate * 25f;
                 }
                 break;
 
             case AIActionType.Move:
-                // 戦術性: 側面・背後への回り込みを評価
                 bonus += CalcTacticalMoveBonus(action, p, board);
-                // 防衛性: 自軍中枢から離れすぎる移動を減点
                 float distFromBase = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
                 if (distFromBase > 8f)
                     bonus -= p.DefenseRate * 15f;
-                // 指揮性: 味方との連携
                 float allyDist = GetNearestAllyDist(action.TargetPos, action.Unit, board);
                 if (allyDist < 3f)
                     bonus += p.CommandRate * 12f;
                 else if (allyDist > 6f)
-                    bonus -= p.CommandRate * 10f; // 孤立を嫌う
-                // 慎重性: 危険位置への移動回避
+                    bonus -= p.CommandRate * 10f;
                 float dangerDist = GetNearestPlayerDist(action.TargetPos, board);
                 if (dangerDist < 2f)
                     bonus -= p.CautionRate * 10f;
+                break;
+
+            case AIActionType.Build:
+                // 発展性: 経済建築を好む
+                bonus += p.DevelopRate * 20f;
+                // 防衛性: 壁・攻撃建築を好む
+                if (FacilityData.IsWall(action.Facility) || FacilityData.IsOffensive(action.Facility))
+                    bonus += p.DefenseRate * 15f;
+                break;
+
+            case AIActionType.Summon:
+                // 指揮性: 部隊の充実を好む
+                bonus += p.CommandRate * 15f;
+                // 執着性: 攻め駒を好む
+                bonus += p.ObsessionRate * 5f;
                 break;
 
             case AIActionType.Retreat:
@@ -304,9 +433,7 @@ public static class AIActionEvaluator
                 break;
         }
 
-        // 発展性: 将来投資（建築・サブクリ系）
-        if (action.ActionType == AIActionType.Build ||
-            action.ActionType == AIActionType.SubCrystal)
+        if (action.ActionType == AIActionType.SubCrystal)
         {
             bonus += p.DevelopRate * 25f;
         }
@@ -314,7 +441,7 @@ public static class AIActionEvaluator
         return bonus;
     }
 
-    // ---- 局面補正（変動型に特に影響） ----
+    // ---- 局面補正 ----
     static float CalcSituationBonus(AIAction action, AIPersonality p, AIBoardState board)
     {
         float bonus = 0f;
@@ -322,37 +449,49 @@ public static class AIActionEvaluator
 
         if (p.Major == MajorPersonality.Adaptive)
         {
-            // 有利時: 攻勢寄り
             if (advantageRatio > 0.2f)
             {
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 12f;
                 if (action.ActionType == AIActionType.Move)
                     bonus += GetApproachToEnemy(action, board) * 4f;
+                if (action.ActionType == AIActionType.Summon)
+                    bonus += 8f;
             }
-            // 不利時: 防衛寄り
             else if (advantageRatio < -0.2f)
             {
                 if (action.ActionType == AIActionType.Retreat)
                     bonus += 15f;
+                if (action.ActionType == AIActionType.Build)
+                    bonus += 10f;
                 if (action.ActionType == AIActionType.Move)
                 {
                     float retreatValue = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
                     if (retreatValue < 5f)
-                        bonus += 10f; // 自陣に寄せる
+                        bonus += 10f;
                 }
             }
         }
 
-        // 全性格共通: クリスタル危機時は防衛優先
+        // クリスタル危機時は防衛優先
         if (board.EnemyCrystalHP < board.EnemyCrystalMaxHP * 0.5f)
         {
-            if (action.ActionType == AIActionType.Move)
+            if (action.ActionType == AIActionType.Move && action.Unit != null)
             {
                 float crystalDist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
                 if (crystalDist < 3f)
-                    bonus += 20f; // クリスタル防衛
+                    bonus += 20f;
             }
+            // 壁建築の価値UP
+            if (action.ActionType == AIActionType.Build && FacilityData.IsWall(action.Facility))
+                bonus += 15f;
+        }
+
+        // 駒が少ない時は召喚優先
+        if (board.AliveEnemyUnits.Count <= 2)
+        {
+            if (action.ActionType == AIActionType.Summon)
+                bonus += 15f;
         }
 
         return bonus;
@@ -370,6 +509,7 @@ public static class AIActionEvaluator
 
     static float GetApproachToEnemy(AIAction action, AIBoardState board)
     {
+        if (action.Unit == null) return 0f;
         Vector3 from = action.Unit.transform.position;
         Vector3 to = action.TargetPos;
         float distBefore = Vector3.Distance(from, board.PlayerCrystalPos);
@@ -392,6 +532,7 @@ public static class AIActionEvaluator
     static float GetNearestAllyDist(Vector3 pos, Status self, AIBoardState board)
     {
         float nearest = float.MaxValue;
+        if (self == null) return nearest;
         foreach (var au in board.AliveEnemyUnits)
         {
             if (au == null || !au.gameObject.activeInHierarchy) continue;
@@ -405,14 +546,12 @@ public static class AIActionEvaluator
     static float CalcTacticalMoveBonus(AIAction action, AIPersonality p, AIBoardState board)
     {
         float bonus = 0f;
-        // 敵の背後や側面に回れるポジションを評価
         foreach (var pu in board.AlivePlayerUnits)
         {
             if (pu == null || !pu.gameObject.activeInHierarchy) continue;
             float dist = Vector3.Distance(action.TargetPos, pu.transform.position);
             if (dist < 2f)
             {
-                // 攻撃圏に入れる位置で、正面以外なら戦術加点
                 Vector3 diff = action.TargetPos - pu.transform.position;
                 bool isFlanking = Mathf.Abs(diff.x) > Mathf.Abs(diff.z);
                 if (isFlanking)
