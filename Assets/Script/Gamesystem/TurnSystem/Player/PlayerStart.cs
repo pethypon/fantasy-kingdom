@@ -33,9 +33,8 @@ public class PlayerStart : StateCore
         // ターンカウント更新
         turngenerater.Turn++;
 
-        // クリスタルシールドのターン経過（両陣営）
+        // クリスタルシールドのターン経過（自陣営 — 敵側は EnemyStart で処理）
         BattleSystem.TickCrystalShields(crystalsystem.Playercrystal);
-        BattleSystem.TickCrystalShields(crystalsystem.Enemycrystal);
 
         // 状態異常ティック（DoTダメージ + ターン経過）
         StatusEffectSystem.TickAllUnits(unitset.PlayerUnit);
