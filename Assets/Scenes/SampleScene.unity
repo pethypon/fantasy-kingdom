@@ -826,6 +826,18 @@ PrefabInstance:
       propertyPath: _BuildingAttackSystem
       value: 
       objectReference: {fileID: 583495574}
+    - target: {fileID: 1890859306453142454, guid: 328bc638e88976c4eaad7b87c22e7c98, type: 3}
+      propertyPath: _unitDataList.Array.size
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1890859306453142454, guid: 328bc638e88976c4eaad7b87c22e7c98, type: 3}
+      propertyPath: _unitDataList.Array.data[11].data
+      value: 
+      objectReference: {fileID: 11400000, guid: c221ddb5fb935724fae6dac990955c07, type: 2}
+    - target: {fileID: 1890859306453142454, guid: 328bc638e88976c4eaad7b87c22e7c98, type: 3}
+      propertyPath: _unitDataList.Array.data[11].kind
+      value: 11
+      objectReference: {fileID: 0}
     - target: {fileID: 1949846426404667695, guid: 328bc638e88976c4eaad7b87c22e7c98, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
