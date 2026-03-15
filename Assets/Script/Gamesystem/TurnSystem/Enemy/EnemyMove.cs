@@ -32,6 +32,21 @@ public class EnemyMove : StateCore
     {
         visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
 
+        // ========================================
+        //  AI指揮官による全体指揮実行
+        // ========================================
+        if (turngenerater.aiCommander != null)
+        {
+            turngenerater.aiCommander.ExecuteTurn();
+        }
+        else
+        {
+            Debug.LogWarning("[EnemyMove] AICommander未初期化 — AI行動スキップ");
+        }
+
+        // 視界再計算（AI行動後）
+        visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
+
         // Enemy の資源獲得（ターン終了時）
         if (turngenerater.economysystem != null)
             turngenerater.economysystem.ProcessTurn(Team.Enemy);
@@ -44,7 +59,7 @@ public class EnemyMove : StateCore
         if (turngenerater.timerSystem != null)
             turngenerater.timerSystem.StopTurn();
 
-        // AI未実装: 即座にプレイヤーターンへ
+        // プレイヤーターンへ
         turngenerater.ChangeState(new PlayerStart(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));

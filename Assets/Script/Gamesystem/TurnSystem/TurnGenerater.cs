@@ -67,6 +67,9 @@ public class TurnGenerater : MonoBehaviour
     [Header("UI")]
     [SerializeField] public UnitPanelUI unitPanelUI;
 
+    [Header("AI指揮官")]
+    [HideInInspector] public AICommander aiCommander;
+
     [Header("ゲームアクションの保存場所")]
     public Vector2 MoveInput;
     public float ScrollInput;
