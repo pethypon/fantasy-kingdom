@@ -32,7 +32,10 @@ public class EnemyStart : StateCore
     {
         Debug.Log("[EnemyStart] 敵ターン開始");
 
-        // 状態異常ティック（DoTダメージ + ターン経過）
+        // クリスタルシールドのターン経過（敵陣営）
+        BattleSystem.TickCrystalShields(crystalsystem.Enemycrystal);
+
+        // 状態異常ティック（DoTダメージ + ターン経過 + シールド + スキルクールダウン）
         StatusEffectSystem.TickAllUnits(unitset.EnemyUnit);
 
         turngenerater.apsystem.ResetAP(Team.Enemy);

@@ -175,6 +175,17 @@ public static class UnitStaticData
             CostStone = 20, CostIron = 30, CostWater = 50, CostBread = 10, CostCitizen = 1, CostAP = 8,
             UpkeepIron = 3, UpkeepBread = 3,
         };
+
+        // ---- BOSS（指揮官） ----
+        // 高HPの指揮官ユニット。周囲のユニットに指揮影響を与える
+        Table[Kind.Boss] = new UnitInfo
+        {
+            DisplayName = "ボス",
+            BaseATK = 18, BaseHP = 60, BaseDEF = 18,
+            AtkGrowth = 0.15f, HpGrowth = 0.20f, DefGrowth = 0.15f,
+            CostIron = 30, CostMagicOre = 20, CostBread = 15, CostCitizen = 1, CostAP = 10,
+            UpkeepIron = 3, UpkeepMagicOre = 2, UpkeepBread = 3,
+        };
     }
 
     // ==================================================================

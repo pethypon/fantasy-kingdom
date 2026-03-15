@@ -174,7 +174,24 @@ public static class StatusEffectSystem
         foreach (Status s in unitParent.GetComponentsInChildren<Status>())
         {
             if (s.type == Type.Unit)
+            {
                 TickEffects(s);
+
+                // ユニットシールドのターン経過
+                if (s.ShieldTurns > 0)
+                {
+                    s.ShieldTurns--;
+                    Debug.Log($"[StatusEffect] {s.team} {s.kind} シールド残り {s.ShieldTurns} ターン");
+                }
+
+                // スキルクールダウンのターン経過
+                if (s.SkillCooldown > 0)
+                {
+                    s.SkillCooldown--;
+                    if (s.SkillCooldown == 0)
+                        Debug.Log($"[StatusEffect] {s.team} {s.kind} のスキルクールダウンが解除");
+                }
+            }
         }
     }
 
