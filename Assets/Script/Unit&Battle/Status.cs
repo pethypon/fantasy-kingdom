@@ -23,6 +23,7 @@ public enum Kind
     Crossbow,
     Magicsniper,
     Bomber,
+    Boss,       // BOSS駒（大きい性格を持つ指揮官）
     SubCrystal, // サブクリスタル（領地拡張用建築物）
     WoodWall,   // フェーズ6で使用
     StoneWall,  // フェーズ6で使用
@@ -235,6 +236,12 @@ public class Status : MonoBehaviour
 
     [Header("割り当てスキル")]
     public int AssignedSkillId = -1; // SkillData.Id（-1 = なし）
+
+    [Header("スキルクールダウン")]
+    public int SkillCooldown = 0; // 0 = 使用可能、1以上 = 使用不可（ターン毎に-1）
+
+    /// <summary>BOSS駒かどうか（Kind.Boss または Kind.King かつ Enemy チームで判定）</summary>
+    public bool IsBoss => kind == Kind.Boss;
 }
 
 // =====================================================================
