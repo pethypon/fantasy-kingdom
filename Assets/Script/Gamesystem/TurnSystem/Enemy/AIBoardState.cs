@@ -41,13 +41,20 @@ public class AIBoardState
     public int EnemySubCrystals { get; private set; }
     public List<Vector3Int> SubCrystalPlaceable { get; private set; }
 
+    // ---- 経済分析データ ----
+    public FactionState.ResourceData EnemyResources { get; private set; }
+    public Dictionary<FacilityKind, int> EnemyBuildingCounts { get; private set; }
+    public int TurnCount { get; private set; }
+
     public AIBoardState(
         MoveGererater moveGen, AttackPointt attackPoint,
         APSystem apSystem, UnitSetting unitSet,
         CrystalSystem crystalSystem, VisionGenerater visionGen,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
-        FactionState factionState = null, SubCrystalSystem subCrystalSystem = null)
+        FactionState factionState = null, SubCrystalSystem subCrystalSystem = null,
+        int turnCount = 1)
     {
+        TurnCount = turnCount;
         _moveGen = moveGen;
         _attackPoint = attackPoint;
         _apSystem = apSystem;
@@ -134,6 +141,10 @@ public class AIBoardState
                     AffordableUnits.Add(k);
             }
         }
+
+        // 経済分析データ
+        EnemyResources = _factionState != null ? _factionState.EnemyResources : null;
+        EnemyBuildingCounts = CountBuildings();
 
         // サブクリスタル残り
         EnemySubCrystals = _factionState != null ? _factionState.GetSubCrystals(Team.Enemy) : 0;
@@ -450,5 +461,90 @@ public class AIBoardState
             if (s.kind == Kind.Crystal) return s;
         }
         return null;
+    }
+
+    // ================================================================
+    //  経済分析
+    // ================================================================
+    Dictionary<FacilityKind, int> CountBuildings()
+    {
+        var counts = new Dictionary<FacilityKind, int>();
+        if (_buildSystem == null) return counts;
+        Transform parent = _buildSystem.GetBuildingParent(Team.Enemy);
+        if (parent == null) return counts;
+
+        foreach (Transform child in parent)
+        {
+            var s = child.GetComponent<Status>();
+            if (s == null || s.HP <= 0) continue;
+            if (counts.ContainsKey(s.facilityKind))
+                counts[s.facilityKind]++;
+            else
+                counts[s.facilityKind] = 1;
+        }
+        return counts;
+    }
+
+    public int GetBuildingCount(FacilityKind kind)
+    {
+        return EnemyBuildingCounts.TryGetValue(kind, out int c) ? c : 0;
+    }
+
+    /// <summary>
+    /// 生産チェーンの不足を判定。
+    /// 原料が足りないのに加工施設を建てても無意味なので、
+    /// 上流の建物が存在するかチェックする。
+    /// </summary>
+    public bool HasUpstreamProducer(FacilityKind facility)
+    {
+        switch (facility)
+        {
+            // Bakery は Field(小麦)と Well(水)が必要
+            case FacilityKind.Bakery:
+                return GetBuildingCount(FacilityKind.Field) > 0 &&
+                       GetBuildingCount(FacilityKind.Well) > 0;
+            // LumberMill は LoggingCamp(木材)が必要
+            case FacilityKind.LumberMill:
+                return GetBuildingCount(FacilityKind.LoggingCamp) > 0;
+            // StoneWorks は Quarry(石材)が必要
+            case FacilityKind.StoneWorks:
+                return GetBuildingCount(FacilityKind.Quarry) > 0;
+            // Smelter は Mine(鉄鉱)と Quarry(石炭)が必要
+            case FacilityKind.Smelter:
+                return GetBuildingCount(FacilityKind.Mine) > 0 &&
+                       GetBuildingCount(FacilityKind.Quarry) > 0;
+            // Field は Well(水)が必要
+            case FacilityKind.Field:
+                return GetBuildingCount(FacilityKind.Well) > 0;
+            default:
+                return true; // 上流不要
+        }
+    }
+
+    /// <summary>
+    /// 資源のボトルネック度を返す（0〜1、高いほど不足）。
+    /// AIが「何を建てるべきか」の判断に使用。
+    /// </summary>
+    public float GetResourceScarcity(string resourceName)
+    {
+        if (EnemyResources == null) return 0f;
+        int amount;
+        switch (resourceName)
+        {
+            case "Wood":     amount = EnemyResources.Wood; break;
+            case "Stone":    amount = EnemyResources.Stone; break;
+            case "Water":    amount = EnemyResources.Water; break;
+            case "Wheat":    amount = EnemyResources.Wheat; break;
+            case "Bread":    amount = EnemyResources.Bread; break;
+            case "Plank":    amount = EnemyResources.Plank; break;
+            case "CutStone": amount = EnemyResources.CutStone; break;
+            case "IronOre":  amount = EnemyResources.IronOre; break;
+            case "Iron":     amount = EnemyResources.Iron; break;
+            case "Coal":     amount = EnemyResources.Coal; break;
+            case "MagicOre": amount = EnemyResources.MagicOre; break;
+            default: return 0f;
+        }
+        // 30以下で不足感、0で最大不足
+        return Mathf.Clamp01(1f - amount / 30f);
     }
 }

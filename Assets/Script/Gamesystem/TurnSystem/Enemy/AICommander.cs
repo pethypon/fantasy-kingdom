@@ -107,7 +107,7 @@ public class AICommander
         _turnCount++;
         _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet,
             _crystalSystem, _visionGen, _buildSystem, _summonSystem, _factionState,
-            _subCrystalSystem);
+            _subCrystalSystem, _turnCount);
 
         // スキルクールダウンを全敵駒で減少
         TickSkillCooldowns();
