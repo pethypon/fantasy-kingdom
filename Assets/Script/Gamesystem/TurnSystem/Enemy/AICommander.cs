@@ -38,6 +38,9 @@ public class AICommander
     // 1ターン内で既に行動した駒を追跡
     HashSet<Status> _actedUnits = new HashSet<Status>();
 
+    // 今ターンの方針（ターン冒頭で決定）
+    TurnStrategy _currentStrategy = TurnStrategy.Balanced;
+
     readonly SkillSystem _skillSystem;
     readonly SubCrystalSystem _subCrystalSystem;
 
@@ -97,6 +100,75 @@ public class AICommander
 
     public AIPersonality Personality => _personality;
     public AILearning Learning => _learning;
+    public TurnStrategy CurrentStrategy => _currentStrategy;
+
+    // ================================================================
+    //  ターン方針の決定
+    //  盤面を見て「今ターン何を重視するか」を1つ選ぶ
+    // ================================================================
+    TurnStrategy DecideStrategy(AIBoardState board)
+    {
+        float crystalHpRatio = board.EnemyCrystalMaxHP > 0
+            ? (float)board.EnemyCrystalHP / board.EnemyCrystalMaxHP : 1f;
+
+        // クリスタルが危険なら最優先で防衛
+        if (crystalHpRatio < 0.4f)
+            return TurnStrategy.CrystalDefense;
+
+        // クリスタル付近に敵がいる場合も防衛
+        bool crystalThreatened = false;
+        foreach (var pu in board.AlivePlayerUnits)
+        {
+            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+            float d = Vector3.Distance(pu.transform.position, board.EnemyCrystalPos);
+            if (d < 4f) { crystalThreatened = true; break; }
+        }
+        if (crystalThreatened && crystalHpRatio < 0.6f)
+            return TurnStrategy.CrystalDefense;
+
+        // 味方に瀕死が多い → 再編
+        int criticalCount = 0;
+        foreach (var u in board.AliveEnemyUnits)
+        {
+            if (u == null || !u.gameObject.activeInHierarchy) continue;
+            if (u.MaxHP > 0 && (float)u.HP / u.MaxHP < 0.35f) criticalCount++;
+        }
+        if (criticalCount >= 2)
+            return TurnStrategy.RetreatRegroup;
+
+        // 味方が少なく経済余裕がある → 建築/召喚
+        if (board.AliveEnemyUnits.Count <= 3 && board.GetEconomicSurplus() > 0.4f)
+            return TurnStrategy.EconomyBuild;
+
+        // 序盤は経済重視
+        if (board.TurnCount <= 4)
+            return TurnStrategy.EconomyBuild;
+
+        // 有利時は攻勢
+        float advantage = board.GetAdvantageRatio();
+        if (advantage > 0.25f && board.AlivePlayerUnits.Count > 0)
+            return TurnStrategy.Assault;
+
+        // 大きい性格が影響
+        if (_personality.ShouldApplyMajorBonus)
+        {
+            switch (_personality.Major)
+            {
+                case MajorPersonality.Combat:
+                    if (advantage > 0f) return TurnStrategy.Assault;
+                    break;
+                case MajorPersonality.Intellect:
+                    if (advantage < -0.1f) return TurnStrategy.RetreatRegroup;
+                    break;
+                case MajorPersonality.Growth:
+                    if (board.GetEconomicSurplus() > 0.3f && board.TurnCount <= 10)
+                        return TurnStrategy.EconomyBuild;
+                    break;
+            }
+        }
+
+        return TurnStrategy.Balanced;
+    }
 
     // ================================================================
     //  ExecuteTurn — 1ターン分の全行動を実行
@@ -115,6 +187,9 @@ public class AICommander
         // BOSS駒の参照を更新
         _personality.UpdateBossReference(_board.AliveEnemyUnits);
 
+        // ターン方針を決定
+        _currentStrategy = DecideStrategy(_board);
+
         int maxIterations = 50;
         int iteration = 0;
         int consecutiveFailures = 0;
@@ -122,7 +197,7 @@ public class AICommander
         int turnMoves = 0, turnAttacks = 0, turnBuilds = 0, turnSummons = 0, turnSkills = 0, turnRetreats = 0;
 
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
-        Debug.Log($"[AICommander] AP={_board.EnemyAP}  " +
+        Debug.Log($"[AICommander] 方針={_currentStrategy}  AP={_board.EnemyAP}  " +
                   $"自軍駒数={_board.AliveEnemyUnits.Count}  " +
                   $"視界内敵駒数={_board.AlivePlayerUnits.Count}  " +
                   $"BOSS={(_personality.HasBoss ? _personality.BossUnit.kind.ToString() : "なし")}");
@@ -146,7 +221,7 @@ public class AICommander
             _board.Refresh();
             if (_board.EnemyAP <= 0) break;
 
-            var actions = AIActionEvaluator.EvaluateAll(_personality, _board, _learning);
+            var actions = AIActionEvaluator.EvaluateAll(_personality, _board, _learning, _currentStrategy);
             if (actions.Count == 0)
             {
                 Debug.Log("[AICommander] 候補行動なし → ターン終了");

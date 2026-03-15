@@ -32,7 +32,8 @@ public static class AIActionEvaluator
     public static List<AIAction> EvaluateAll(
         AIPersonality personality,
         AIBoardState board,
-        AILearning learning)
+        AILearning learning,
+        TurnStrategy strategy = TurnStrategy.Balanced)
     {
         var actions = new List<AIAction>();
 
@@ -68,8 +69,20 @@ public static class AIActionEvaluator
             action.Score = CalcScore(action, personality, board, learning);
         }
 
-        // 撤退→回復チェーンボーナス（知性型で特に有効）
-        ApplyRetreatHealChainBonus(actions, personality, board);
+        // ターン方針ボーナス
+        ApplyStrategyBonus(actions, strategy, board);
+
+        // 次ターン反撃圏ペナルティ
+        ApplyCounterDangerPenalty(actions, board, personality);
+
+        // 撤退→回復チェーンボーナス（強化版: ヒーラー/壁/味方カバーまで見る）
+        ApplyRetreatRegroupBonus(actions, personality, board);
+
+        // BOSS前線参加条件チェック
+        ApplyBossFrontlineConditions(actions, personality, board);
+
+        // 経済余裕による段階的召喚ボーナス
+        ApplyGradualArmyExpansion(actions, board);
 
         // スコア降順
         actions.Sort((a, b) => b.Score.CompareTo(a.Score));
@@ -623,56 +636,316 @@ public static class AIActionEvaluator
     }
 
     // ================================================================
-    //  撤退→回復チェーンボーナス
-    //  撤退した後に回復スキルを使える味方が近くにいるなら、撤退評価UP
-    //  知性型BOSSで特に強化
+    //  ターン方針ボーナス
+    //  AICommander が選んだ方針に合う行動にボーナスを与える
     // ================================================================
-    static void ApplyRetreatHealChainBonus(List<AIAction> actions, AIPersonality p, AIBoardState board)
+    static void ApplyStrategyBonus(List<AIAction> actions, TurnStrategy strategy, AIBoardState board)
     {
-        // 味方に回復スキル持ちがいるか
-        bool hasHealer = false;
-        foreach (var unit in board.AliveEnemyUnits)
+        foreach (var action in actions)
         {
-            if (unit == null || !unit.gameObject.activeInHierarchy) continue;
-            if (unit.AssignedSkillId < 0) continue;
-            if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) continue;
-            if (skill.FixedHeal > 0 && skill.Target == SkillTarget.AllySingle)
+            float bonus = 0f;
+            switch (strategy)
             {
-                hasHealer = true;
-                break;
+                case TurnStrategy.Assault:
+                    if (action.ActionType == AIActionType.Attack) bonus += 18f;
+                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0) bonus += 15f;
+                    if (action.ActionType == AIActionType.Surround) bonus += 12f;
+                    if (action.ActionType == AIActionType.Move)
+                        bonus += GetApproachToEnemy(action, board) * 4f;
+                    if (action.ActionType == AIActionType.Retreat) bonus -= 10f;
+                    if (action.ActionType == AIActionType.Build) bonus -= 5f;
+                    break;
+
+                case TurnStrategy.CrystalDefense:
+                    if (action.ActionType == AIActionType.DefenseRepos) bonus += 22f;
+                    if (action.ActionType == AIActionType.Move && action.Unit != null)
+                    {
+                        float dist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
+                        if (dist < 4f) bonus += 18f;
+                        else if (dist < 6f) bonus += 8f;
+                    }
+                    if (action.ActionType == AIActionType.Build && FacilityData.IsWall(action.Facility)) bonus += 15f;
+                    if (action.ActionType == AIActionType.Attack)
+                    {
+                        // クリスタル付近の敵への攻撃は加点
+                        if (action.TargetUnit != null)
+                        {
+                            float tDist = Vector3.Distance(action.TargetUnit.transform.position, board.EnemyCrystalPos);
+                            if (tDist < 5f) bonus += 15f;
+                        }
+                    }
+                    // クリスタルから離れる動きを抑制
+                    if (action.ActionType == AIActionType.Surround || action.ActionType == AIActionType.Move)
+                    {
+                        if (action.Unit != null)
+                        {
+                            float destDist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
+                            if (destDist > 8f) bonus -= 12f;
+                        }
+                    }
+                    break;
+
+                case TurnStrategy.RetreatRegroup:
+                    if (action.ActionType == AIActionType.Retreat) bonus += 20f;
+                    if (action.ActionType == AIActionType.Support) bonus += 15f;
+                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.FixedHeal > 0) bonus += 18f;
+                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.GrantBuff == BuffType.Defensive) bonus += 10f;
+                    if (action.ActionType == AIActionType.Attack) bonus -= 8f;
+                    if (action.ActionType == AIActionType.Surround) bonus -= 12f;
+                    break;
+
+                case TurnStrategy.EconomyBuild:
+                    if (action.ActionType == AIActionType.Build) bonus += 18f;
+                    if (action.ActionType == AIActionType.Summon) bonus += 12f;
+                    if (action.ActionType == AIActionType.SubCrystal) bonus += 10f;
+                    if (action.ActionType == AIActionType.Attack) bonus -= 3f;
+                    break;
+
+                case TurnStrategy.Balanced:
+                    // 偏らない — ボーナスなし
+                    break;
             }
+            action.Score += bonus;
         }
+    }
 
-        if (!hasHealer) return;
+    // ================================================================
+    //  次ターン反撃圏ペナルティ
+    //  行動後の位置でプレイヤーに狙われやすいかを評価し減点
+    //  中核ユニット・ヒーラー・BOSS護衛・召喚直後は死亡リスクを重く見る
+    // ================================================================
+    static void ApplyCounterDangerPenalty(List<AIAction> actions, AIBoardState board, AIPersonality personality)
+    {
+        foreach (var action in actions)
+        {
+            // 移動系・攻撃後にその場に残る行動が対象
+            if (action.Unit == null) continue;
+            if (action.ActionType != AIActionType.Move
+                && action.ActionType != AIActionType.Surround
+                && action.ActionType != AIActionType.Support
+                && action.ActionType != AIActionType.Attack
+                && action.ActionType != AIActionType.SkillUse) continue;
 
+            // 行動後の位置を推定
+            Vector3 posAfter;
+            if (action.ActionType == AIActionType.Move
+                || action.ActionType == AIActionType.Surround
+                || action.ActionType == AIActionType.Support)
+            {
+                posAfter = action.TargetPos;
+            }
+            else
+            {
+                posAfter = action.Unit.transform.position; // 攻撃/スキルは移動しない
+            }
+
+            int counterDmg = board.EstimateCounterDamageAt(posAfter, action.Unit);
+            if (counterDmg <= 0) continue;
+
+            float hpRatio = action.Unit.MaxHP > 0 ? (float)action.Unit.HP / action.Unit.MaxHP : 1f;
+
+            // 反撃ダメで死ぬ場合は大きなペナルティ
+            bool wouldDie = counterDmg >= action.Unit.HP;
+
+            // 重要度重み: BOSS・ヒーラー・Priest・King は死亡リスクを重く見る
+            float importanceMult = 1f;
+            if (action.Unit.IsBoss) importanceMult = 2.0f;
+            else if (action.Unit.kind == Kind.King) importanceMult = 2.5f;
+            else if (action.Unit.kind == Kind.Priest) importanceMult = 1.8f;
+            // BOSS近接護衛（BOSSの近くにいるGuardian/Knight）
+            else if (personality.HasBoss && (action.Unit.kind == Kind.Guardian || action.Unit.kind == Kind.Knight))
+            {
+                float bossDist = Vector3.Distance(posAfter, personality.BossUnit.transform.position);
+                if (bossDist < 3f) importanceMult = 1.5f;
+            }
+
+            // 孤立度: 周りに味方がいないと危険度UP
+            int alliesNear = board.CountAlliesNear(posAfter, action.Unit, 3f);
+            float isolationMult = alliesNear == 0 ? 1.5f : alliesNear == 1 ? 1.2f : 1f;
+
+            float penalty;
+            if (wouldDie)
+            {
+                // 確殺されるなら大ペナルティ（ただし攻撃で相手を確殺する場合は軽減）
+                penalty = 35f * importanceMult * isolationMult;
+                if (action.ActionType == AIActionType.Attack && action.TargetUnit != null)
+                {
+                    int myDmg = EstimateDamage(action.Unit, action.TargetUnit);
+                    if (myDmg >= action.TargetUnit.HP)
+                        penalty *= 0.3f; // 相打ちなら許容
+                }
+            }
+            else
+            {
+                // 死なないが痛い
+                float dmgRatio = (float)counterDmg / Mathf.Max(1, action.Unit.HP);
+                penalty = dmgRatio * 20f * importanceMult * isolationMult;
+                // HP低い駒がさらにダメージを受ける場合は追加
+                if (hpRatio < 0.4f) penalty += 10f * importanceMult;
+            }
+
+            action.Score -= penalty;
+        }
+    }
+
+    // ================================================================
+    //  撤退→再編チェーンボーナス（強化版）
+    //  撤退先で: ヒーラー圏内 / 壁の後ろ / 味方がカバー / 次ターン反撃位置
+    // ================================================================
+    static void ApplyRetreatRegroupBonus(List<AIAction> actions, AIPersonality p, AIBoardState board)
+    {
         float chainMultiplier = 1f;
         if (p.ShouldApplyMajorBonus && p.Major == MajorPersonality.Intellect)
-            chainMultiplier = 1.5f; // 知性型はチェーン判断が上手い
+            chainMultiplier = 1.5f;
 
         foreach (var action in actions)
         {
-            if (action.ActionType != AIActionType.Retreat) continue;
+            if (action.ActionType != AIActionType.Retreat && action.ActionType != AIActionType.DefenseRepos)
+                continue;
             if (action.Unit == null) continue;
 
-            // 撤退先に回復可能な味方がいるかチェック
-            float nearestHealerDist = float.MaxValue;
-            foreach (var unit in board.AliveEnemyUnits)
+            float bonus = 0f;
+
+            // 1. ヒーラー範囲内に下がれる
+            if (board.HasHealerInRange(action.TargetPos, 4f))
+                bonus += 12f;
+
+            // 2. 壁/防衛建築の後ろに下がれる
+            if (board.HasDefensiveStructureNear(action.TargetPos, 3f))
+                bonus += 8f;
+
+            // 3. 味方がカバーできる位置（味方が2体以上近くにいる）
+            int alliesNear = board.CountAlliesNear(action.TargetPos, action.Unit, 3f);
+            if (alliesNear >= 2)
+                bonus += 10f;
+            else if (alliesNear >= 1)
+                bonus += 5f;
+
+            // 4. 撤退先から次ターン反撃可能（近くに敵がいて反撃圏に入る）
+            float nearestPlayerDist = GetNearestPlayerDist(action.TargetPos, board);
+            if (nearestPlayerDist >= 2f && nearestPlayerDist <= 4f)
+                bonus += 6f; // 適度な距離=次ターン攻撃可能
+
+            // 5. 撤退先で反撃を受けにくい
+            int counterDmg = board.EstimateCounterDamageAt(action.TargetPos, action.Unit);
+            if (counterDmg == 0)
+                bonus += 8f;
+            else if (counterDmg < action.Unit.HP * 0.2f)
+                bonus += 4f;
+
+            action.Score += bonus * chainMultiplier;
+        }
+    }
+
+    // ================================================================
+    //  BOSS前線参加条件
+    //  ただ前に出るだけでなく、価値がある時だけ前進させる
+    // ================================================================
+    static void ApplyBossFrontlineConditions(List<AIAction> actions, AIPersonality p, AIBoardState board)
+    {
+        if (!p.HasBoss) return;
+        var boss = p.BossUnit;
+
+        foreach (var action in actions)
+        {
+            if (action.Unit != boss) continue;
+            if (action.ActionType != AIActionType.Move && action.ActionType != AIActionType.Surround) continue;
+
+            float approach = GetApproachToEnemy(action, board);
+            if (approach <= 0) continue; // 前進していないなら条件不要
+
+            // 前進条件を評価
+            float conditionScore = 0f;
+            int conditionsMet = 0;
+
+            // 条件1: 周囲に護衛がいる（2体以上）
+            int escortsNear = board.CountAlliesNear(action.TargetPos, boss, 3f);
+            if (escortsNear >= 2) { conditionScore += 8f; conditionsMet++; }
+
+            // 条件2: 前線の穴を埋められる（クリスタル方向に味方がいない空白地帯）
+            float nearestAllyOnFrontline = float.MaxValue;
+            foreach (var u in board.AliveEnemyUnits)
             {
-                if (unit == null || !unit.gameObject.activeInHierarchy) continue;
-                if (unit == action.Unit) continue;
-                if (unit.AssignedSkillId < 0) continue;
-                if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) continue;
-                if (skill.FixedHeal > 0)
+                if (u == null || u == boss || !u.gameObject.activeInHierarchy) continue;
+                float d = Vector3.Distance(action.TargetPos, u.transform.position);
+                if (d < nearestAllyOnFrontline) nearestAllyOnFrontline = d;
+            }
+            if (nearestAllyOnFrontline > 4f) // 穴がある
+            { conditionScore += 6f; conditionsMet++; }
+
+            // 条件3: 確殺ラインを作れる（近くの敵を次ターン確殺できる）
+            foreach (var pu in board.AlivePlayerUnits)
+            {
+                if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+                float dist = Vector3.Distance(action.TargetPos, pu.transform.position);
+                if (dist < 2.5f) // 攻撃圏内
                 {
-                    float d = Vector3.Distance(action.TargetPos, unit.transform.position);
-                    if (d < nearestHealerDist) nearestHealerDist = d;
+                    int dmg = EstimateDamage(boss, pu);
+                    if (dmg >= pu.HP) { conditionScore += 12f; conditionsMet++; break; }
                 }
             }
 
-            if (nearestHealerDist < 5f)
+            // 条件4: 次ターン下がれる（後ろに移動先がある＝安全マス）
+            int counterDmg = board.EstimateCounterDamageAt(action.TargetPos, boss);
+            if (counterDmg < boss.HP * 0.3f) { conditionScore += 5f; conditionsMet++; }
+
+            // 条件5: 自分が出ることで2体以上の指揮影響が上がる
+            int influencedCount = 0;
+            foreach (var u in board.AliveEnemyUnits)
             {
-                action.Score += 12f * chainMultiplier;
+                if (u == null || u == boss || !u.gameObject.activeInHierarchy) continue;
+                float distBefore = Vector3.Distance(u.transform.position, boss.transform.position);
+                float distAfter = Vector3.Distance(u.transform.position, action.TargetPos);
+                if (distAfter < distBefore && distAfter < 10f) influencedCount++;
             }
+            if (influencedCount >= 2) { conditionScore += 8f; conditionsMet++; }
+
+            // 条件が不十分ならペナルティ（出る時は強い、出ない時は徹底して出ない）
+            if (conditionsMet < 2)
+            {
+                // 条件不足: 前進を大きく減点
+                action.Score -= approach * 15f;
+            }
+            else
+            {
+                // 条件十分: 前進を加点
+                action.Score += conditionScore;
+            }
+        }
+    }
+
+    // ================================================================
+    //  経済余裕による段階的軍拡
+    //  資源に余裕が出てきて維持費も払えるなら少しずつ駒を増やす
+    // ================================================================
+    static void ApplyGradualArmyExpansion(List<AIAction> actions, AIBoardState board)
+    {
+        float surplus = board.GetEconomicSurplus();
+        if (surplus < 0.3f) return; // 余裕がないなら軍拡しない
+
+        int allyCount = board.AliveEnemyUnits.Count;
+
+        // 維持費を払える余裕度に応じて召喚ボーナス
+        float expansionBonus = 0f;
+        if (surplus > 0.7f)
+            expansionBonus = 15f; // 資源潤沢
+        else if (surplus > 0.5f)
+            expansionBonus = 10f; // まあまあ
+        else
+            expansionBonus = 5f;  // 最低限
+
+        // 軍が充実している場合は軍拡を控える
+        if (allyCount >= 8) expansionBonus *= 0.3f;
+        else if (allyCount >= 6) expansionBonus *= 0.6f;
+
+        foreach (var action in actions)
+        {
+            if (action.ActionType != AIActionType.Summon) continue;
+            action.Score += expansionBonus;
+
+            // 安い駒を優先（維持費が少ない = 長期的に負担が少ない）
+            if (action.SummonKind == Kind.Knight || action.SummonKind == Kind.Archer || action.SummonKind == Kind.Scout)
+                action.Score += 5f; // 低コスト駒は維持しやすい
         }
     }
 

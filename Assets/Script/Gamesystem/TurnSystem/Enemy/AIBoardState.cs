@@ -521,6 +521,100 @@ public class AIBoardState
         }
     }
 
+    // ================================================================
+    //  次ターン反撃圏の危険度評価
+    // ================================================================
+
+    /// <summary>
+    /// あるマスに駒が立ったとき、次ターンにプレイヤーから受ける予想ダメージ合計。
+    /// 視界内のプレイヤー駒それぞれについて、攻撃が届くかを簡易判定する。
+    /// </summary>
+    public int EstimateCounterDamageAt(Vector3 pos, Status self)
+    {
+        int totalDmg = 0;
+        foreach (var pu in AlivePlayerUnits)
+        {
+            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+            float dist = Vector3.Distance(pos, pu.transform.position);
+            // 攻撃の届く距離は駒種依存だが、簡易近似として距離4以内を反撃圏とみなす
+            float maxRange = EstimateAttackRange(pu);
+            if (dist > maxRange + 1.5f) continue; // 移動+攻撃で届くマージン
+            int dmg = Mathf.Max(0, 1 + (pu.ATK / 6) + ((pu.ATK / 2) - (self.DEF / 4)));
+            totalDmg += dmg;
+        }
+        return totalDmg;
+    }
+
+    /// <summary>駒種から大まかな攻撃射程を返す</summary>
+    static float EstimateAttackRange(Status unit)
+    {
+        switch (unit.kind)
+        {
+            case Kind.Archer:      return 3f;
+            case Kind.Magic:       return 2f;
+            case Kind.Crossbow:    return 2f;
+            case Kind.Magicsniper: return 4f;
+            case Kind.Bomber:      return 3f;
+            default:               return 1.5f;
+        }
+    }
+
+    /// <summary>指定位置から一定距離内の味方ユニット数</summary>
+    public int CountAlliesNear(Vector3 pos, Status self, float radius)
+    {
+        int count = 0;
+        foreach (var u in AliveEnemyUnits)
+        {
+            if (u == null || !u.gameObject.activeInHierarchy || u == self) continue;
+            if (Vector3.Distance(pos, u.transform.position) <= radius) count++;
+        }
+        return count;
+    }
+
+    /// <summary>指定位置に到達可能な味方ヒーラーがいるか</summary>
+    public bool HasHealerInRange(Vector3 pos, float range)
+    {
+        foreach (var u in AliveEnemyUnits)
+        {
+            if (u == null || !u.gameObject.activeInHierarchy) continue;
+            if (u.AssignedSkillId < 0) continue;
+            if (!SkillData.Table.TryGetValue(u.AssignedSkillId, out var skill)) continue;
+            if (skill.FixedHeal > 0 && Vector3.Distance(pos, u.transform.position) <= range)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>指定位置の近くに壁/防衛建築があるか</summary>
+    public bool HasDefensiveStructureNear(Vector3 pos, float range)
+    {
+        if (_buildSystem == null) return false;
+        Transform parent = _buildSystem.GetBuildingParent(Team.Enemy);
+        if (parent == null) return false;
+        foreach (Transform child in parent)
+        {
+            var s = child.GetComponent<Status>();
+            if (s == null || s.HP <= 0) continue;
+            if (s.facilityKind == FacilityKind.WoodWall || s.facilityKind == FacilityKind.StoneWall
+                || s.facilityKind == FacilityKind.Mortar || s.facilityKind == FacilityKind.Cannon)
+            {
+                if (Vector3.Distance(pos, child.position) <= range) return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>経済余剰スコア: 維持費に余裕があるかの指標 (0=ギリギリ 1=余裕)</summary>
+    public float GetEconomicSurplus()
+    {
+        if (EnemyResources == null) return 0f;
+        // パン・鉄・木を総合的に判断。各30以上で余裕あり
+        float breadSurplus = Mathf.Clamp01(EnemyResources.Bread / 30f);
+        float ironSurplus = Mathf.Clamp01(EnemyResources.Iron / 20f);
+        float woodSurplus = Mathf.Clamp01(EnemyResources.Wood / 20f);
+        return (breadSurplus + ironSurplus + woodSurplus) / 3f;
+    }
+
     /// <summary>
     /// 資源のボトルネック度を返す（0〜1、高いほど不足）。
     /// AIが「何を建てるべきか」の判断に使用。
