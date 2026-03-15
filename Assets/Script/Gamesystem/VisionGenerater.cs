@@ -341,6 +341,20 @@ public class VisionGenerater : MonoBehaviour
             CalculateAndMergeVision(status, mapcreate, crystalsystem, EnemyVisionBox);
         }
 
+        // Enemy建築物（サブクリスタル）の視界計算
+        if (_buildingParent != null)
+        {
+            foreach (Transform child in _buildingParent)
+            {
+                if (child == null || !child.gameObject.activeInHierarchy) continue;
+                Status bStatus = child.GetComponent<Status>();
+                if (bStatus != null && bStatus.kind == Kind.SubCrystal && bStatus.team == Team.Enemy)
+                {
+                    CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, EnemyVisionBox);
+                }
+            }
+        }
+
         // VisionBoxをExploardに入れる
         PlayerExploard.UnionWith(PlayerVisionBox);
         EnemyExploard.UnionWith(EnemyVisionBox);
@@ -410,5 +424,26 @@ public class VisionGenerater : MonoBehaviour
         SetRendererVisibility(EnemyUnit, playervisionXZ);
         SetRendererVisibility(crystalsystem.Enemycrystal, playervisionXZ);
         SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);
+
+        // 敵建築物をプレイヤー視界外で非表示にする
+        if (_buildingParent != null)
+        {
+            foreach (Transform child in _buildingParent)
+            {
+                if (child == null) continue;
+                Status bStatus = child.GetComponent<Status>();
+                if (bStatus == null || bStatus.team != Team.Enemy) continue;
+
+                int bx = Mathf.RoundToInt(child.position.x);
+                int bz = Mathf.RoundToInt(child.position.z);
+                var bCell = new Vector3Int(bx, 0, bz);
+                bool visible = playervisionXZ.Contains(bCell);
+
+                foreach (var renderer in child.GetComponentsInChildren<Renderer>(true))
+                {
+                    renderer.enabled = visible;
+                }
+            }
+        }
     }
 }
