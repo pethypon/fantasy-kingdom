@@ -145,7 +145,7 @@ public class GameGenerater : MonoBehaviour
 
         // VisionGenerater に BuildingParent を渡す（サブクリスタル視界計算用）
         if (_BuildSystem != null)
-            _VisionGenerater.SetBuildingParent(_BuildSystem.BuildingParent);
+            _VisionGenerater.SetBuildingParents(_BuildSystem.PlayerBuildingParent, _BuildSystem.EnemyBuildingParent);
 
         // ---- SkillSystem 初期化 ----
         if (_SkillSystem == null)

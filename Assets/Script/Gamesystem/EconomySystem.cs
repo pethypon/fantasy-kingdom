@@ -63,7 +63,8 @@ public class EconomySystem : MonoBehaviour
     // ==================================================================
     private void ProcessBuildings(Team team, FactionState.ResourceData res)
     {
-        if (buildSystem.BuildingParent == null) return;
+        Transform buildingParent = buildSystem.GetBuildingParent(team);
+        if (buildingParent == null) return;
 
         int producedCount = 0;
         int skippedCount = 0;
@@ -72,11 +73,10 @@ public class EconomySystem : MonoBehaviour
         int totalResourceCap = 0;
         int totalBarracksXP = 0;
 
-        foreach (Transform child in buildSystem.BuildingParent)
+        foreach (Transform child in buildingParent)
         {
             var status = child.GetComponent<Status>();
             if (status == null) continue;
-            if (status.team != team) continue;
             if (status.HP <= 0) continue;
 
             var facility = status.facilityKind;

@@ -39,10 +39,15 @@ public class VisionGenerater : MonoBehaviour
     [SerializeField] Transform PlayerUnit;
     [SerializeField] Transform EnemyUnit;
 
-    [Header("建築物の親（サブクリスタル視界計算用）")]
-    private Transform _buildingParent;
+    [Header("建築物の親（チーム別）")]
+    private Transform _playerBuildingParent;
+    private Transform _enemyBuildingParent;
 
-    public void SetBuildingParent(Transform parent) => _buildingParent = parent;
+    public void SetBuildingParents(Transform playerParent, Transform enemyParent)
+    {
+        _playerBuildingParent = playerParent;
+        _enemyBuildingParent = enemyParent;
+    }
 
     int blockLayerMask;
 
@@ -315,13 +320,13 @@ public class VisionGenerater : MonoBehaviour
         }
 
         // Player建築物（サブクリスタル）の視界計算
-        if (_buildingParent != null)
+        if (_playerBuildingParent != null)
         {
-            foreach (Transform child in _buildingParent)
+            foreach (Transform child in _playerBuildingParent)
             {
                 if (child == null || !child.gameObject.activeInHierarchy) continue;
                 Status bStatus = child.GetComponent<Status>();
-                if (bStatus != null && bStatus.kind == Kind.SubCrystal && bStatus.team == Team.Player)
+                if (bStatus != null && bStatus.kind == Kind.SubCrystal)
                 {
                     CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, PlayerVisionBox);
                 }
@@ -342,13 +347,13 @@ public class VisionGenerater : MonoBehaviour
         }
 
         // Enemy建築物（サブクリスタル）の視界計算
-        if (_buildingParent != null)
+        if (_enemyBuildingParent != null)
         {
-            foreach (Transform child in _buildingParent)
+            foreach (Transform child in _enemyBuildingParent)
             {
                 if (child == null || !child.gameObject.activeInHierarchy) continue;
                 Status bStatus = child.GetComponent<Status>();
-                if (bStatus != null && bStatus.kind == Kind.SubCrystal && bStatus.team == Team.Enemy)
+                if (bStatus != null && bStatus.kind == Kind.SubCrystal)
                 {
                     CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, EnemyVisionBox);
                 }
@@ -426,24 +431,9 @@ public class VisionGenerater : MonoBehaviour
         SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);
 
         // 敵建築物をプレイヤー視界外で非表示にする
-        if (_buildingParent != null)
+        if (_enemyBuildingParent != null)
         {
-            foreach (Transform child in _buildingParent)
-            {
-                if (child == null) continue;
-                Status bStatus = child.GetComponent<Status>();
-                if (bStatus == null || bStatus.team != Team.Enemy) continue;
-
-                int bx = Mathf.RoundToInt(child.position.x);
-                int bz = Mathf.RoundToInt(child.position.z);
-                var bCell = new Vector3Int(bx, 0, bz);
-                bool visible = playervisionXZ.Contains(bCell);
-
-                foreach (var renderer in child.GetComponentsInChildren<Renderer>(true))
-                {
-                    renderer.enabled = visible;
-                }
-            }
+            SetRendererVisibility(_enemyBuildingParent, playervisionXZ);
         }
     }
 }

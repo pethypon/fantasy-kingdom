@@ -48,9 +48,14 @@ public class BuildSystem : MonoBehaviour
     private static readonly Color ColorValid   = new Color(0.5f, 1f, 0.5f, 0.5f);
     private static readonly Color ColorInvalid = new Color(1f, 0.3f, 0.3f, 0.5f);
 
-    // ---- 建築物の親 ----
-    [Header("建築物の親Transform")]
-    [SerializeField] public Transform BuildingParent;
+    // ---- 建築物の親（チーム別） ----
+    [Header("建築物の親Transform（チーム別）")]
+    [SerializeField] public Transform PlayerBuildingParent;
+    [SerializeField] public Transform EnemyBuildingParent;
+
+    /// <summary>指定チームの建築物親を返す</summary>
+    public Transform GetBuildingParent(Team team)
+        => team == Team.Player ? PlayerBuildingParent : EnemyBuildingParent;
 
     // ---- Raycast レイヤー ----
     private int blockLayerMask;
@@ -85,11 +90,16 @@ public class BuildSystem : MonoBehaviour
             }
         }
 
-        // 建築物の親が無ければ作成
-        if (BuildingParent == null)
+        // 建築物の親が無ければ作成（チーム別）
+        if (PlayerBuildingParent == null)
         {
-            var go = new GameObject("Buildings");
-            BuildingParent = go.transform;
+            var go = new GameObject("PlayerBuildings");
+            PlayerBuildingParent = go.transform;
+        }
+        if (EnemyBuildingParent == null)
+        {
+            var go = new GameObject("EnemyBuildings");
+            EnemyBuildingParent = go.transform;
         }
     }
 
@@ -225,7 +235,7 @@ public class BuildSystem : MonoBehaviour
             if (subCrystalSystem != null)
             {
                 // 最後に設置した建築物を取得
-                var lastBuilding = BuildingParent.GetChild(BuildingParent.childCount - 1).gameObject;
+                var lastBuilding = PlayerBuildingParent.GetChild(PlayerBuildingParent.childCount - 1).gameObject;
                 subCrystalSystem.ExpandTerritory(lastBuilding, Team.Player);
             }
         }
@@ -300,14 +310,14 @@ public class BuildSystem : MonoBehaviour
         if (prefabMap.TryGetValue(facility, out GameObject prefab) && prefab != null)
         {
             building = Instantiate(prefab, new Vector3(pos.x, pos.y, pos.z),
-                                   Quaternion.identity, BuildingParent);
+                                   Quaternion.identity, PlayerBuildingParent);
         }
         else
         {
             // フォールバック: Cube 生成
             building = GameObject.CreatePrimitive(PrimitiveType.Cube);
             building.transform.position = new Vector3(pos.x, pos.y, pos.z);
-            building.transform.SetParent(BuildingParent);
+            building.transform.SetParent(PlayerBuildingParent);
             building.name = facility.ToString();
 
             // 壁はグレー、サブクリスタルはシアン、その他は茶色系
@@ -625,9 +635,10 @@ public class BuildSystem : MonoBehaviour
             factionState.ModifySubCrystals(team, -1);
 
             // 最後に配置されたオブジェクトを取得して領地拡張
-            if (BuildingParent.childCount > 0)
+            Transform teamParent = GetBuildingParent(team);
+            if (teamParent.childCount > 0)
             {
-                var lastChild = BuildingParent.GetChild(BuildingParent.childCount - 1);
+                var lastChild = teamParent.GetChild(teamParent.childCount - 1);
                 subCrystalSystem.ExpandTerritory(lastChild.gameObject, team);
             }
         }
@@ -675,18 +686,19 @@ public class BuildSystem : MonoBehaviour
     {
         if (!FacilityData.Table.TryGetValue(facility, out var info)) return;
 
+        Transform parent = GetBuildingParent(team);
         GameObject building;
 
         if (prefabMap != null && prefabMap.TryGetValue(facility, out GameObject prefab) && prefab != null)
         {
             building = Instantiate(prefab, new Vector3(pos.x, pos.y, pos.z),
-                                   Quaternion.identity, BuildingParent);
+                                   Quaternion.identity, parent);
         }
         else
         {
             building = GameObject.CreatePrimitive(PrimitiveType.Cube);
             building.transform.position = new Vector3(pos.x, pos.y, pos.z);
-            building.transform.SetParent(BuildingParent);
+            building.transform.SetParent(parent);
             building.name = facility.ToString();
 
             var renderer = building.GetComponent<Renderer>();
