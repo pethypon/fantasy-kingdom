@@ -428,21 +428,26 @@ public static class AIActionEvaluator
     }
 
     // ================================================================
-    //  候補生成: 建築
+    //  候補生成: 建築（戦略的フィルタリング付き）
     // ================================================================
     static void GenerateBuildCandidates(AIBoardState board, List<AIAction> results)
     {
         if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0) return;
 
-        // 建築可能な建物 × 建築可能な位置（位置は最大3つに絞ってコスト削減）
         foreach (var facility in board.AffordableBuildings)
         {
             if (!FacilityData.Table.TryGetValue(facility, out var info)) continue;
 
-            // 位置はクリスタル付近を優先（最大3つ）
-            var positions = board.BuildablePositions
-                .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), board.EnemyCrystalPos))
-                .Take(3);
+            // 同種建物の上限チェック（無駄な重複を防ぐ）
+            int existing = board.GetBuildingCount(facility);
+            int maxAllowed = GetMaxBuildingCount(facility);
+            if (existing >= maxAllowed) continue;
+
+            // 加工施設は上流の生産施設がないと無意味 → 候補から除外
+            if (!board.HasUpstreamProducer(facility)) continue;
+
+            // 建物タイプに応じて最適な配置位置を選択
+            var positions = SelectBuildPositions(facility, board);
 
             foreach (var pos in positions)
             {
@@ -455,6 +460,53 @@ public static class AIActionEvaluator
                 });
             }
         }
+    }
+
+    // 建物種別ごとの最大建設数
+    static int GetMaxBuildingCount(FacilityKind facility)
+    {
+        switch (facility)
+        {
+            case FacilityKind.Well:         return 3;
+            case FacilityKind.LoggingCamp:  return 3;
+            case FacilityKind.Quarry:       return 3;
+            case FacilityKind.Field:        return 3;
+            case FacilityKind.Mine:         return 2;
+            case FacilityKind.LumberMill:   return 2;
+            case FacilityKind.StoneWorks:   return 2;
+            case FacilityKind.Smelter:      return 2;
+            case FacilityKind.Bakery:       return 2;
+            case FacilityKind.House:        return 4;
+            case FacilityKind.Warehouse:    return 2;
+            case FacilityKind.Barracks:     return 1;
+            case FacilityKind.Mortar:       return 3;
+            case FacilityKind.Cannon:       return 3;
+            case FacilityKind.WoodWall:     return 8;
+            case FacilityKind.StoneWall:    return 8;
+            case FacilityKind.RestraintTrap:return 4;
+            case FacilityKind.SpikeTrap:    return 4;
+            case FacilityKind.HeroSword:    return 1;
+            default:                        return 5;
+        }
+    }
+
+    // 建物タイプに応じた配置位置の選択
+    static IEnumerable<Vector3Int> SelectBuildPositions(FacilityKind facility, AIBoardState board)
+    {
+        // 防衛建築・攻撃建築 → 前線寄り（プレイヤークリスタル方向）
+        if (FacilityData.IsWall(facility) || FacilityData.IsOffensive(facility))
+        {
+            // 自陣クリスタルとプレイヤークリスタルの中間付近
+            Vector3 frontline = Vector3.Lerp(board.EnemyCrystalPos, board.PlayerCrystalPos, 0.35f);
+            return board.BuildablePositions
+                .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), frontline))
+                .Take(3);
+        }
+
+        // 経済・生産建築 → 自陣クリスタル付近（安全地帯）
+        return board.BuildablePositions
+            .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), board.EnemyCrystalPos))
+            .Take(3);
     }
 
     // ================================================================
@@ -870,42 +922,180 @@ public static class AIActionEvaluator
     static float CalcBuildBaseScore(AIAction action, AIBoardState board)
     {
         float score = 15f; // 建築の基本価値
-
         var facility = action.Facility;
+        int turn = board.TurnCount;
 
-        // 経済建築は基本価値が高い
-        if (facility == FacilityKind.Field || facility == FacilityKind.Bakery ||
-            facility == FacilityKind.LoggingCamp || facility == FacilityKind.LumberMill ||
-            facility == FacilityKind.Quarry || facility == FacilityKind.StoneWorks ||
-            facility == FacilityKind.Mine || facility == FacilityKind.Smelter ||
-            facility == FacilityKind.Well)
-            score += 10f;
+        // ================================================================
+        //  フェーズ判定: 序盤/中盤/終盤で優先度を変える
+        //  序盤(T1-5): 基礎経済（水・木・石・畑）
+        //  中盤(T6-12): 加工施設・住宅・軍事準備
+        //  終盤(T13+): 軍事建築・防衛強化
+        // ================================================================
+        bool isEarly = turn <= 5;
+        bool isMid   = turn > 5 && turn <= 12;
+        bool isLate  = turn > 12;
 
-        // 住宅（市民+AP増加）
-        if (facility == FacilityKind.House)
-            score += 12f;
+        // ================================================================
+        //  生産チェーン認識: 不足資源を生産する建物を高評価
+        // ================================================================
+        float scarcityBonus = CalcScarcityBonus(facility, board);
+        score += scarcityBonus;
 
-        // 倉庫
-        if (facility == FacilityKind.Warehouse)
-            score += 5f;
+        // ================================================================
+        //  建物種別ごとのフェーズ対応スコア
+        // ================================================================
+        switch (facility)
+        {
+            // --- 基礎資源（原料生産） ---
+            case FacilityKind.Well:
+                // 水はほぼ全チェーンに必要 → 序盤最優先
+                score += isEarly ? 25f : isMid ? 12f : 5f;
+                // 最初の1棟は特に重要
+                if (board.GetBuildingCount(FacilityKind.Well) == 0) score += 15f;
+                break;
 
-        // 兵舎（経験値ボーナス）
-        if (facility == FacilityKind.Barracks)
-            score += 8f;
+            case FacilityKind.LoggingCamp:
+                score += isEarly ? 22f : isMid ? 10f : 5f;
+                if (board.GetBuildingCount(FacilityKind.LoggingCamp) == 0) score += 12f;
+                break;
 
-        // 壁（防衛）
-        if (FacilityData.IsWall(facility))
-            score += 6f;
+            case FacilityKind.Quarry:
+                score += isEarly ? 20f : isMid ? 10f : 5f;
+                if (board.GetBuildingCount(FacilityKind.Quarry) == 0) score += 12f;
+                break;
 
-        // 攻撃建築物
-        if (FacilityData.IsOffensive(facility))
-            score += 10f;
+            case FacilityKind.Field:
+                // 畑は水が必要なのでWellの次
+                score += isEarly ? 18f : isMid ? 10f : 3f;
+                if (board.GetBuildingCount(FacilityKind.Field) == 0) score += 10f;
+                break;
+
+            case FacilityKind.Mine:
+                // 鉱山は中盤から本格的に必要
+                score += isEarly ? 5f : isMid ? 18f : 10f;
+                if (board.GetBuildingCount(FacilityKind.Mine) == 0 && isMid) score += 12f;
+                break;
+
+            // --- 加工施設 ---
+            case FacilityKind.LumberMill:
+                score += isEarly ? 8f : isMid ? 18f : 8f;
+                // 1棟目の加工施設は重要
+                if (board.GetBuildingCount(FacilityKind.LumberMill) == 0 &&
+                    board.GetBuildingCount(FacilityKind.LoggingCamp) > 0) score += 12f;
+                break;
+
+            case FacilityKind.StoneWorks:
+                score += isEarly ? 8f : isMid ? 18f : 8f;
+                if (board.GetBuildingCount(FacilityKind.StoneWorks) == 0 &&
+                    board.GetBuildingCount(FacilityKind.Quarry) > 0) score += 12f;
+                break;
+
+            case FacilityKind.Bakery:
+                score += isEarly ? 5f : isMid ? 15f : 8f;
+                if (board.GetBuildingCount(FacilityKind.Bakery) == 0 &&
+                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 10f;
+                break;
+
+            case FacilityKind.Smelter:
+                score += isEarly ? 2f : isMid ? 15f : 12f;
+                if (board.GetBuildingCount(FacilityKind.Smelter) == 0 &&
+                    board.GetBuildingCount(FacilityKind.Mine) > 0) score += 12f;
+                break;
+
+            // --- インフラ ---
+            case FacilityKind.House:
+                // 市民はAP増加に直結 → 常に高価値
+                score += isEarly ? 20f : isMid ? 18f : 10f;
+                // 市民が足りない場合は更に加点
+                if (board.EnemyResources != null && board.EnemyResources.Citizen <= 2)
+                    score += 15f;
+                break;
+
+            case FacilityKind.Warehouse:
+                // 倉庫は資源が溢れ始める中盤以降
+                score += isEarly ? 2f : isMid ? 10f : 8f;
+                break;
+
+            case FacilityKind.Barracks:
+                score += isEarly ? 3f : isMid ? 12f : 15f;
+                break;
+
+            // --- 防衛建築 ---
+            case FacilityKind.WoodWall:
+            case FacilityKind.StoneWall:
+                score += isEarly ? 3f : isMid ? 8f : 15f;
+                // クリスタル危機時は大幅加点
+                if (board.EnemyCrystalHP < board.EnemyCrystalMaxHP * 0.5f)
+                    score += 20f;
+                break;
+
+            // --- 攻撃建築 ---
+            case FacilityKind.Mortar:
+            case FacilityKind.Cannon:
+                score += isEarly ? 2f : isMid ? 10f : 18f;
+                break;
+
+            case FacilityKind.RestraintTrap:
+            case FacilityKind.SpikeTrap:
+                score += isEarly ? 3f : isMid ? 10f : 15f;
+                break;
+
+            case FacilityKind.HeroSword:
+                score += isLate ? 20f : 2f;
+                break;
+        }
 
         // サブクリスタル（領地拡張）
         if (FacilityData.IsSubCrystal(facility))
             score += 15f;
 
+        // 2棟目以降は価値が下がる（収穫逓減）
+        int existingCount = board.GetBuildingCount(facility);
+        if (existingCount > 0)
+            score -= existingCount * 5f;
+
         return score;
+    }
+
+    // ================================================================
+    //  不足資源ボーナス: その建物が生産する資源が不足しているほど高評価
+    // ================================================================
+    static float CalcScarcityBonus(FacilityKind facility, AIBoardState board)
+    {
+        float bonus = 0f;
+        switch (facility)
+        {
+            case FacilityKind.Well:
+                bonus += board.GetResourceScarcity("Water") * 20f;
+                break;
+            case FacilityKind.LoggingCamp:
+                bonus += board.GetResourceScarcity("Wood") * 20f;
+                break;
+            case FacilityKind.Quarry:
+                bonus += board.GetResourceScarcity("Stone") * 18f;
+                bonus += board.GetResourceScarcity("Coal") * 10f;
+                break;
+            case FacilityKind.Field:
+                bonus += board.GetResourceScarcity("Wheat") * 15f;
+                break;
+            case FacilityKind.Mine:
+                bonus += board.GetResourceScarcity("IronOre") * 18f;
+                bonus += board.GetResourceScarcity("MagicOre") * 12f;
+                break;
+            case FacilityKind.LumberMill:
+                bonus += board.GetResourceScarcity("Plank") * 18f;
+                break;
+            case FacilityKind.StoneWorks:
+                bonus += board.GetResourceScarcity("CutStone") * 18f;
+                break;
+            case FacilityKind.Bakery:
+                bonus += board.GetResourceScarcity("Bread") * 15f;
+                break;
+            case FacilityKind.Smelter:
+                bonus += board.GetResourceScarcity("Iron") * 20f;
+                break;
+        }
+        return bonus;
     }
 
     static float CalcSummonBaseScore(AIAction action, AIBoardState board)
@@ -1009,6 +1199,11 @@ public static class AIActionEvaluator
                     bonus += 10f;
                 if (action.ActionType == AIActionType.SkillUse)
                     bonus += 8f;
+                // 成長型は経済建築を重視
+                if (action.ActionType == AIActionType.Build)
+                    bonus += 10f;
+                if (action.ActionType == AIActionType.Summon)
+                    bonus += 6f;
                 break;
         }
 
@@ -1096,6 +1291,9 @@ public static class AIActionEvaluator
                 bonus += p.DevelopRate * 20f;
                 if (FacilityData.IsWall(action.Facility) || FacilityData.IsOffensive(action.Facility))
                     bonus += p.DefenseRate * 15f;
+                // 慎重な性格は序盤の経済投資を重視
+                if (board.TurnCount <= 5 && !FacilityData.IsWall(action.Facility) && !FacilityData.IsOffensive(action.Facility))
+                    bonus += p.CautionRate * 12f;
                 break;
 
             case AIActionType.Summon:
@@ -1181,6 +1379,30 @@ public static class AIActionEvaluator
         {
             if (action.ActionType == AIActionType.Summon)
                 bonus += 15f;
+        }
+
+        // ================================================================
+        //  経済状況に応じた建築ボーナス
+        // ================================================================
+        if (action.ActionType == AIActionType.Build)
+        {
+            // 生産施設がゼロの場合、最初の1棟は緊急性が高い
+            int totalProducers = board.GetBuildingCount(FacilityKind.Well)
+                               + board.GetBuildingCount(FacilityKind.LoggingCamp)
+                               + board.GetBuildingCount(FacilityKind.Quarry);
+            if (totalProducers == 0 && !FacilityData.IsWall(action.Facility)
+                && !FacilityData.IsOffensive(action.Facility))
+            {
+                // 基礎生産がゼロなら経済建築を強く推奨
+                bonus += 25f;
+            }
+
+            // 序盤に軍事建築を建てようとするのを抑制
+            if (board.TurnCount <= 4 && (FacilityData.IsOffensive(action.Facility)
+                || FacilityData.IsWall(action.Facility)))
+            {
+                bonus -= 15f;
+            }
         }
 
         return bonus;
