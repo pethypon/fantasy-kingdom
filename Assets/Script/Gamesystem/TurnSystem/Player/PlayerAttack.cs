@@ -161,7 +161,7 @@ public class PlayerAttack : StateCore
                     turngenerater.skillsystem.ExecuteSkill(move.Obj, move.Obj, skill);
                 }
 
-                turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, move.Obj);
+                turngenerater.apsystem.ConsumeSkill(Team.Player, skill.APCost, move.Obj);
                 AttackSuccess = true;
                 return;
             }
