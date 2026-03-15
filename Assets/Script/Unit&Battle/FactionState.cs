@@ -12,7 +12,14 @@ public class FactionState : MonoBehaviour
         [Header("ボーナス")] public int Plus = 0;
         [Header("ペナルティ")] public int Minus = 0;
 
-        public void ResetForTurn() => Current = Reset + Plus - Minus;
+        /// <summary>
+        /// ターン開始時に AP をリセット。最低保証 3 AP（経済崩壊時のデッドロック防止）。
+        /// </summary>
+        public void ResetForTurn()
+        {
+            int raw = Reset + Plus - Minus;
+            Current = Mathf.Max(raw, 3);
+        }
     }
 
     // ==== 資源データ ====

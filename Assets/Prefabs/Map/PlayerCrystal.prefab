@@ -167,8 +167,8 @@ MonoBehaviour:
     Water: 0
     Citizen: 0
   EnemyAP:
-    Current: 0
-    Reset: 0
+    Current: 15
+    Reset: 15
     Plus: 0
     Minus: 0
   EnemyResources:
