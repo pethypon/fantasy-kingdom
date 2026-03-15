@@ -179,9 +179,11 @@ public class GameGenerater : MonoBehaviour
         if (factionState != null)
         {
             InitResources(factionState.PlayerResources);
+            InitResources(factionState.EnemyResources);
 
             // 初期市民APボーナスを反映
             factionState.PlayerAP.Plus = factionState.PlayerResources.Citizen * EconomySystem.APPerCitizen;
+            factionState.EnemyAP.Plus = factionState.EnemyResources.Citizen * EconomySystem.APPerCitizen;
 
             // サブクリスタル初期配布（2個）
             factionState.PlayerSubCrystals = 2;
@@ -193,7 +195,8 @@ public class GameGenerater : MonoBehaviour
         _TurnGenerater.aiCommander = new AICommander(
             _TurnGenerater, _MoveGenerater, _TurnGenerater.attackpoint,
             _TurnGenerater.battlesystem, _VisionGenerater,
-            _APSystem, _UnitSetting, _CrystalSystem, _MapCreate, aiMajor);
+            _APSystem, _UnitSetting, _CrystalSystem, _MapCreate, aiMajor,
+            _BuildSystem, _SummonSystem, factionState);
 
         // ==== ターン開始 ====
         _TurnGenerater.StartFirstTurn();

@@ -585,4 +585,155 @@ public class BuildSystem : MonoBehaviour
     {
         return buildingPositions.Contains(pos);
     }
+
+    // ==================================================================
+    //  AI用: カーソル不要の直接建築
+    // ==================================================================
+
+    /// <summary>
+    /// AI用: 指定位置に建築物を設置する（カーソル・UI不要）
+    /// </summary>
+    public bool AIPlaceBuilding(Vector3Int pos, FacilityKind facility, Team team)
+    {
+        if (!FacilityData.Table.TryGetValue(facility, out var info)) return false;
+
+        // AP・リソースチェック
+        if (!apsystem.CanBuild(team, facility, factionState)) return false;
+
+        // 設置可否チェック（サブクリスタル or 通常建築）
+        bool isSubCrystal = FacilityData.IsSubCrystal(facility);
+        if (isSubCrystal)
+        {
+            if (subCrystalSystem == null) return false;
+            if (!subCrystalSystem.CanPlaceSubCrystal(pos, team)) return false;
+        }
+        else
+        {
+            if (!AICheckCanPlace(pos, team)) return false;
+        }
+
+        // AP・リソース消費
+        apsystem.ConsumeBuild(team, facility, factionState);
+
+        // 建築物を配置
+        AIPlaceBuildingInternal(pos, facility, team);
+
+        // サブクリスタルの場合は領地拡張
+        if (isSubCrystal && subCrystalSystem != null)
+        {
+            // サブクリスタル在庫を消費
+            factionState.ModifySubCrystals(team, -1);
+
+            // 最後に配置されたオブジェクトを取得して領地拡張
+            if (BuildingParent.childCount > 0)
+            {
+                var lastChild = BuildingParent.GetChild(BuildingParent.childCount - 1);
+                subCrystalSystem.ExpandTerritory(lastChild.gameObject, team);
+            }
+        }
+
+        Debug.Log($"[BuildSystem] AI({team}) {info.DisplayName} を ({pos.x},{pos.y},{pos.z}) に設置");
+        return true;
+    }
+
+    /// <summary>
+    /// AI用: 設置可否チェック（任意チーム対応）
+    /// </summary>
+    private bool AICheckCanPlace(Vector3Int pos, Team team)
+    {
+        // 領地チェック（チーム別）
+        var territory = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
+        if (territory == null) return false;
+        bool inTerritory = territory.Any(p =>
+            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
+        if (!inTerritory) return false;
+
+        // クリスタル位置チェック
+        Vector3 pcpVec = turngenerater.crystalsystem.PCP;
+        var pcp = new Vector3Int(Mathf.RoundToInt(pcpVec.x), Mathf.RoundToInt(pcpVec.y), Mathf.RoundToInt(pcpVec.z));
+        if (pos == pcp) return false;
+
+        Vector3 ecpVec = turngenerater.crystalsystem.ECP;
+        var ecp = new Vector3Int(Mathf.RoundToInt(ecpVec.x), Mathf.RoundToInt(ecpVec.y), Mathf.RoundToInt(ecpVec.z));
+        if (pos == ecp) return false;
+
+        if (buildingPositions.Contains(pos)) return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// AI用: 実際の配置処理（任意チーム対応）
+    /// </summary>
+    private void AIPlaceBuildingInternal(Vector3Int pos, FacilityKind facility, Team team)
+    {
+        if (!FacilityData.Table.TryGetValue(facility, out var info)) return;
+
+        GameObject building;
+
+        if (prefabMap != null && prefabMap.TryGetValue(facility, out GameObject prefab) && prefab != null)
+        {
+            building = Instantiate(prefab, new Vector3(pos.x, pos.y, pos.z),
+                                   Quaternion.identity, BuildingParent);
+        }
+        else
+        {
+            building = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            building.transform.position = new Vector3(pos.x, pos.y, pos.z);
+            building.transform.SetParent(BuildingParent);
+            building.name = facility.ToString();
+
+            var renderer = building.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                var mat = new Material(Shader.Find("Standard"));
+                mat.color = FacilityData.IsWall(facility)
+                    ? new Color(0.6f, 0.6f, 0.6f)
+                    : FacilityData.IsSubCrystal(facility)
+                    ? new Color(0.3f, 0.7f, 0.9f)
+                    : new Color(0.6f, 0.4f, 0.2f);
+                renderer.material = mat;
+            }
+        }
+
+        var status = building.GetComponent<Status>();
+        if (status == null) status = building.AddComponent<Status>();
+
+        status.kind = FacilityData.ToUnitKind(facility);
+        status.team = team;
+        status.type = FacilityData.IsWall(facility) ? Type.Wall : Type.Building;
+        status.direction = team == Team.Player ? Direction.N : Direction.S;
+        status.HP = info.HP;
+        status.DEF = info.DEF;
+        status.ATK = info.ATK;
+        status.Level = 1;
+        status.facilityKind = facility;
+
+        building.layer = LayerMask.NameToLayer("Block");
+
+        buildingPositions.Add(pos);
+
+        if (FacilityData.IsWall(facility))
+        {
+            movegenerater.UnitPointData.Add(new Vector3(pos.x, pos.y, pos.z));
+        }
+    }
+
+    /// <summary>
+    /// AI用: 指定チームの領地内で建築可能な位置一覧を返す
+    /// </summary>
+    public List<Vector3Int> AIGetBuildablePositions(Team team)
+    {
+        var result = new List<Vector3Int>();
+        var territory = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
+        if (territory == null) return result;
+
+        foreach (var p in territory)
+        {
+            var pos = new Vector3Int(Mathf.RoundToInt(p.x), Mathf.RoundToInt(p.y), Mathf.RoundToInt(p.z));
+            if (AICheckCanPlace(pos, team))
+                result.Add(pos);
+        }
+        return result;
+    }
 }

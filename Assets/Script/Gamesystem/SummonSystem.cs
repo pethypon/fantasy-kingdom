@@ -430,4 +430,147 @@ public class SummonSystem : MonoBehaviour
         ray = Camera.main.ScreenPointToRay(mousePos);
         return true;
     }
+
+    // ==================================================================
+    //  AI用: カーソル不要の直接召喚
+    // ==================================================================
+
+    /// <summary>
+    /// AI用: 指定位置にユニットを召喚する（カーソル・UI不要）
+    /// </summary>
+    public bool AISummonUnit(Vector3Int pos, Kind kind, Team team)
+    {
+        if (!CanSummon(team, kind)) return false;
+        if (!AICheckCanPlace(pos, team)) return false;
+
+        // リソース消費
+        AIConsumeSummon(team, kind);
+
+        // ユニット配置
+        AIPlaceUnit(pos, kind, team);
+
+        Debug.Log($"[SummonSystem] AI({team}) {kind} を ({pos.x},{pos.y},{pos.z}) に召喚");
+        return true;
+    }
+
+    /// <summary>
+    /// AI用: 設置可否チェック（任意チーム対応）
+    /// </summary>
+    private bool AICheckCanPlace(Vector3Int pos, Team team)
+    {
+        var territory = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
+        if (territory == null) return false;
+        bool inTerritory = territory.Any(p =>
+            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
+        if (!inTerritory) return false;
+
+        Vector3 pcpVec = turngenerater.crystalsystem.PCP;
+        var pcp = new Vector3Int(Mathf.RoundToInt(pcpVec.x), Mathf.RoundToInt(pcpVec.y), Mathf.RoundToInt(pcpVec.z));
+        if (pos == pcp) return false;
+
+        Vector3 ecpVec = turngenerater.crystalsystem.ECP;
+        var ecp = new Vector3Int(Mathf.RoundToInt(ecpVec.x), Mathf.RoundToInt(ecpVec.y), Mathf.RoundToInt(ecpVec.z));
+        if (pos == ecp) return false;
+
+        Vector3 posVec = new Vector3(pos.x, pos.y, pos.z);
+        if (movegenerater.UnitPointData.Contains(posVec)) return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// AI用: リソース消費（public版 ConsumeSummon）
+    /// </summary>
+    private void AIConsumeSummon(Team team, Kind kind)
+    {
+        if (!unitset.UnitDataMap.TryGetValue(kind, out UnitData data)) return;
+
+        factionState.ModifyAP(team, -data.costAP);
+
+        var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
+        res.Wood     -= data.costWood;
+        res.Stone    -= data.costStone;
+        res.Iron     -= data.costIron;
+        res.MagicOre -= data.costMagic;
+        res.Water    -= data.costWater;
+        res.Plank    -= data.costPlank;
+        res.CutStone -= data.costCutStone;
+        res.Bread    -= data.costBread;
+        res.Citizen  -= data.costCitizen;
+    }
+
+    /// <summary>
+    /// AI用: ユニット配置（任意チーム対応）
+    /// </summary>
+    private void AIPlaceUnit(Vector3Int pos, Kind kind, Team team)
+    {
+        Transform parent = team == Team.Player ? unitset.PlayerUnit : unitset.EnemyUnit;
+        Direction dir = team == Team.Player ? Direction.N : Direction.S;
+
+        GameObject prefab = null;
+        if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
+            prefab = mapped;
+
+        Vector3 spawnPos = new Vector3(pos.x, pos.y, pos.z);
+
+        if (prefab != null)
+        {
+            var obj = unitset.SpawnUnit(prefab, spawnPos, parent);
+            var status = obj.GetComponentInChildren<Status>();
+            if (status != null)
+            {
+                status.team = team;
+                status.direction = dir;
+            }
+        }
+        else
+        {
+            var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            obj.transform.position = spawnPos;
+            obj.transform.SetParent(parent);
+            obj.name = kind.ToString();
+
+            var renderer = obj.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                var mat = new Material(Shader.Find("Standard"));
+                mat.color = team == Team.Player
+                    ? new Color(0.3f, 0.5f, 0.9f)
+                    : new Color(0.9f, 0.3f, 0.3f);
+                renderer.material = mat;
+            }
+
+            var status = obj.AddComponent<Status>();
+            status.kind = kind;
+            status.team = team;
+            status.type = Type.Unit;
+            status.direction = dir;
+
+            if (unitset.UnitDataMap.TryGetValue(kind, out UnitData data))
+                data.ApplyToStatus(status, 1);
+
+            UnitHeadUI.Attach(obj);
+        }
+
+        movegenerater.UnitPointData.Add(new Vector3(pos.x, pos.y, pos.z));
+        visiongenerater.VisionPoint(mapcreate, movegenerater, turngenerater.crystalsystem);
+    }
+
+    /// <summary>
+    /// AI用: 指定チームの領地内で召喚可能な位置一覧を返す
+    /// </summary>
+    public List<Vector3Int> AIGetSummonablePositions(Team team)
+    {
+        var result = new List<Vector3Int>();
+        var territory = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
+        if (territory == null) return result;
+
+        foreach (var p in territory)
+        {
+            var pos = new Vector3Int(Mathf.RoundToInt(p.x), Mathf.RoundToInt(p.y), Mathf.RoundToInt(p.z));
+            if (AICheckCanPlace(pos, team))
+                result.Add(pos);
+        }
+        return result;
+    }
 }
