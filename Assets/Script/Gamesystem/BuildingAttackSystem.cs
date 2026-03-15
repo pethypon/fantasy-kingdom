@@ -17,6 +17,9 @@ public class BuildingAttackSystem : MonoBehaviour
     private CrystalSystem crystalSystem;
     private SubCrystalSystem subCrystalSystem;
 
+    // 現在の攻撃チームの視界データ（ProcessAttacks で設定）
+    private HashSet<Vector3Int> _currentVision;
+
     public void Init(BuildSystem buildSystem, MoveGererater moveGererater,
                      UnitSetting unitSetting, VisionGenerater visionGenerater,
                      MapCreate mapCreate, CrystalSystem crystalSystem)
@@ -58,6 +61,11 @@ public class BuildingAttackSystem : MonoBehaviour
     public void ProcessAttacks(Team team)
     {
         if (buildSystem == null || buildSystem.BuildingParent == null) return;
+
+        // 視界データ取得（自チームの視界内のみ攻撃可能）
+        _currentVision = (team == Team.Player)
+            ? visionGenerater?.PlayerVisionBox
+            : visionGenerater?.EnemyVisionBox;
 
         // 敵チーム判定
         Team enemyTeam = (team == Team.Player) ? Team.Enemy : Team.Player;
@@ -157,6 +165,13 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     private Status FindEnemyAtCell(Vector3 cellPos, Team enemyTeam)
     {
+        // 視界外のセルは攻撃対象にしない
+        if (_currentVision != null)
+        {
+            var cellKey = new Vector3Int(Mathf.RoundToInt(cellPos.x), 0, Mathf.RoundToInt(cellPos.z));
+            if (!_currentVision.Contains(cellKey)) return null;
+        }
+
         // 敵ユニットを検索
         Transform enemyParent = (enemyTeam == Team.Enemy)
             ? unitSetting.EnemyUnit
@@ -221,6 +236,13 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     private void ApplyBuildingDamage(Status attacker, Status target)
     {
+        // シールド中はダメージ無効
+        if (target.ShieldTurns > 0)
+        {
+            Debug.Log($"[BuildingAttack] {target.kind} はシールド中！ ダメージ無効（残り{target.ShieldTurns}ターン）");
+            return;
+        }
+
         int damage = Mathf.Max(0, attacker.ATK - target.DEF);
         target.HP -= damage;
         target.HP = Mathf.Max(0, target.HP);
