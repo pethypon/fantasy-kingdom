@@ -337,7 +337,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b66db4d8a3d7c5448f9a0de020c2540, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildSystem
-  subCrystalSystem: {fileID: 0}
+  subCrystalSystem: {fileID: 916711890}
   facilityPrefabs:
   - kind: 0
     prefab: {fileID: 6887230261989022606, guid: f445f1859db5af140a1e1e6632e66612, type: 3}
