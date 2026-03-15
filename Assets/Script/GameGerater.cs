@@ -188,6 +188,13 @@ public class GameGenerater : MonoBehaviour
             factionState.EnemySubCrystals = 2;
         }
 
+        // ==== AI指揮官の初期化 ====
+        var aiMajor = AIPersonality.RandomMajor();
+        _TurnGenerater.aiCommander = new AICommander(
+            _TurnGenerater, _MoveGenerater, _TurnGenerater.attackpoint,
+            _TurnGenerater.battlesystem, _VisionGenerater,
+            _APSystem, _UnitSetting, _CrystalSystem, _MapCreate, aiMajor);
+
         // ==== ターン開始 ====
         _TurnGenerater.StartFirstTurn();
     }

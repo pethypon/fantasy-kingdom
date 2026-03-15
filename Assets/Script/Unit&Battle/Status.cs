@@ -238,6 +238,51 @@ public class Status : MonoBehaviour
 }
 
 // =====================================================================
+//  AI性格システム（大きい性格）
+// =====================================================================
+public enum MajorPersonality
+{
+    Combat,     // 戦闘型: 前線圧力・撃破重視
+    Intellect,  // 知性型: 整形・防衛・長期重視
+    Adaptive,   // 変動型: 局面に応じて揺れる
+    Growth      // 成長型: 試合中学習で進化
+}
+
+// =====================================================================
+//  AI性格システム（細かい性格6項目）— 合計300ポイント
+// =====================================================================
+[System.Serializable]
+public class PersonalityTraits
+{
+    public int Caution;     // 慎重性
+    public int Command;     // 指揮性
+    public int Obsession;   // 執着性
+    public int Defense;     // 防衛性
+    public int Tactics;     // 戦術性
+    public int Development; // 発展性
+
+    public int Total => Caution + Command + Obsession + Defense + Tactics + Development;
+}
+
+// =====================================================================
+//  AI候補行動タイプ
+// =====================================================================
+public enum AIActionType
+{
+    Move,           // 移動
+    Attack,         // 攻撃
+    SkillUse,       // スキル使用
+    Retreat,        // 撤退
+    Support,        // 援護配置
+    Surround,       // 包囲移動
+    Build,          // 建築
+    Summon,         // 駒生成
+    DefenseRepos,   // 防衛再配置
+    SubCrystal,     // サブクリ展開
+    Wait            // 待機
+}
+
+// =====================================================================
 //  以下のenumは新規ファイルに出さずここに追記する（設計原則1）
 // =====================================================================
 
