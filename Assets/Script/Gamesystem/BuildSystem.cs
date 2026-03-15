@@ -662,6 +662,12 @@ public class BuildSystem : MonoBehaviour
         return true;
     }
 
+    // 最後にAIが配置した建物（SubCrystal領地拡張用）
+    private GameObject _lastPlacedBuilding;
+
+    /// <summary>AIが最後に配置した建物を取得</summary>
+    public GameObject GetLastPlacedBuilding() => _lastPlacedBuilding;
+
     /// <summary>
     /// AI用: 実際の配置処理（任意チーム対応）
     /// </summary>
@@ -712,6 +718,7 @@ public class BuildSystem : MonoBehaviour
         building.layer = LayerMask.NameToLayer("Block");
 
         buildingPositions.Add(pos);
+        _lastPlacedBuilding = building;
 
         if (FacilityData.IsWall(facility))
         {

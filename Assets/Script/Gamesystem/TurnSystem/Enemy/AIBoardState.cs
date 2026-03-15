@@ -20,6 +20,7 @@ public class AIBoardState
     readonly BuildSystem _buildSystem;
     readonly SummonSystem _summonSystem;
     readonly FactionState _factionState;
+    readonly SubCrystalSystem _subCrystalSystem;
 
     // ---- 盤面データ ----
     public List<Status> AliveEnemyUnits { get; private set; }
@@ -38,13 +39,14 @@ public class AIBoardState
     public List<FacilityKind> AffordableBuildings { get; private set; }
     public List<Kind> AffordableUnits { get; private set; }
     public int EnemySubCrystals { get; private set; }
+    public List<Vector3Int> SubCrystalPlaceable { get; private set; }
 
     public AIBoardState(
         MoveGererater moveGen, AttackPointt attackPoint,
         APSystem apSystem, UnitSetting unitSet,
         CrystalSystem crystalSystem, VisionGenerater visionGen,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
-        FactionState factionState = null)
+        FactionState factionState = null, SubCrystalSystem subCrystalSystem = null)
     {
         _moveGen = moveGen;
         _attackPoint = attackPoint;
@@ -55,6 +57,7 @@ public class AIBoardState
         _buildSystem = buildSystem;
         _summonSystem = summonSystem;
         _factionState = factionState;
+        _subCrystalSystem = subCrystalSystem;
 
         Refresh();
     }
@@ -134,6 +137,24 @@ public class AIBoardState
 
         // サブクリスタル残り
         EnemySubCrystals = _factionState != null ? _factionState.GetSubCrystals(Team.Enemy) : 0;
+
+        // サブクリスタル設置可能位置
+        SubCrystalPlaceable = new List<Vector3Int>();
+        if (_subCrystalSystem != null && EnemySubCrystals > 0 && _moveGen != null)
+        {
+            foreach (var sp in _moveGen.mapcreate.SetPos)
+            {
+                var pos = new Vector3Int(
+                    Mathf.RoundToInt(sp.x),
+                    Mathf.RoundToInt(sp.y),
+                    Mathf.RoundToInt(sp.z));
+                if (_subCrystalSystem.CanPlaceSubCrystal(pos, Team.Enemy))
+                {
+                    SubCrystalPlaceable.Add(pos);
+                    if (SubCrystalPlaceable.Count >= 5) break; // 候補は最大5位置
+                }
+            }
+        }
     }
 
     // ---- 駒の有利度 ----

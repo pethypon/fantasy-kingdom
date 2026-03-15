@@ -83,6 +83,10 @@ public class MoveGererater : MonoBehaviour
         // 斜め前後2パターン（方向付き）
         { Kind.Bomber,      (dx, dz) => (dx == -1 && dz ==  1) || (dx ==  2 && dz ==  2)
                                      || (dx ==  1 && dz == -1) || (dx == -2 && dz == -2) },
+
+        // BOSS: King同様の周囲1マス移動
+        { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && Mathf.Abs(dz) <= 1
+                                     && !(dx == 0 && dz == 0) },
     };
 
     // ---- ユニット占有座標の更新 ----

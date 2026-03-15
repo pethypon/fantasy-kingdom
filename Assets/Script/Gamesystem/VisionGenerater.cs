@@ -62,6 +62,9 @@ public class VisionGenerater : MonoBehaviour
         { Kind.Magicsniper, RangeVisionBox(-4, 4, -1, 0, -1, 1, true) },
         { Kind.Bomber,      VisionBox(-1, 1, -1, 0, 0, 3, true) },
         { Kind.SubCrystal,  RangeVisionBox(-2, 2, -1, 0, -2, 2, true) },
+
+        // BOSS: 広めの視界（指揮官として周囲を広く把握）
+        { Kind.Boss,        RangeVisionBox(-3, 3, -1, 0, -3, 3, true) },
     };
 
     static Vector3Int[] VisionBox
