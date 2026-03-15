@@ -613,16 +613,17 @@ public static class AIActionEvaluator
         if (board.SubCrystalPlaceable.Count == 0) return;
         if (board.EnemySubCrystals <= 0) return;
 
+        // SubCrystalのAPコストを取得（テーブルに無い場合はデフォルト2）
+        int apCost = 2;
+        if (FacilityData.Table.TryGetValue(FacilityKind.SubCrystal, out var info) && info.APCost > 0)
+            apCost = info.APCost;
+        if (apCost > board.EnemyAP) return;
+
         // 最大2位置
         int count = 0;
         foreach (var pos in board.SubCrystalPlaceable)
         {
             if (count >= 2) break;
-            // SubCrystalのAPコストを取得
-            int apCost = 0;
-            if (FacilityData.Table.TryGetValue(FacilityKind.SubCrystal, out var info))
-                apCost = info.APCost;
-            if (apCost > board.EnemyAP) continue;
 
             results.Add(new AIAction
             {
@@ -660,9 +661,18 @@ public static class AIActionEvaluator
                     if (action.ActionType == AIActionType.DefenseRepos) bonus += 22f;
                     if (action.ActionType == AIActionType.Move && action.Unit != null)
                     {
-                        float dist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
-                        if (dist < 4f) bonus += 18f;
-                        else if (dist < 6f) bonus += 8f;
+                        // Scoutは防衛時でも偵察に出す（早期警戒）
+                        if (action.Unit.kind == Kind.Scout)
+                        {
+                            int scoutNewCells = board.EstimateNewVisionCells(action.TargetPos);
+                            if (scoutNewCells > 3) bonus += 15f;
+                        }
+                        else
+                        {
+                            float dist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
+                            if (dist < 4f) bonus += 18f;
+                            else if (dist < 6f) bonus += 8f;
+                        }
                     }
                     if (action.ActionType == AIActionType.Build && FacilityData.IsWall(action.Facility)) bonus += 15f;
                     if (action.ActionType == AIActionType.Attack)
@@ -674,10 +684,10 @@ public static class AIActionEvaluator
                             if (tDist < 5f) bonus += 15f;
                         }
                     }
-                    // クリスタルから離れる動きを抑制
+                    // クリスタルから離れる動きを抑制（Scoutは例外）
                     if (action.ActionType == AIActionType.Surround || action.ActionType == AIActionType.Move)
                     {
-                        if (action.Unit != null)
+                        if (action.Unit != null && action.Unit.kind != Kind.Scout)
                         {
                             float destDist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
                             if (destDist > 8f) bonus -= 12f;
@@ -1041,6 +1051,21 @@ public static class AIActionEvaluator
         if (dest.y > unitPos.y)
             score += 2f;
 
+        // Scout偵察ボーナス: 未探索エリアへの移動を高評価
+        if (action.Unit.kind == Kind.Scout)
+        {
+            int newVisionCells = board.EstimateNewVisionCells(dest);
+            if (newVisionCells > 0)
+            {
+                // 新たに見えるマスが多いほど高得点（最大+30）
+                score += Mathf.Min(newVisionCells * 3f, 30f);
+            }
+            // 探索率が低いほど偵察の価値が高い
+            float explorationRatio = board.GetExplorationRatio();
+            if (explorationRatio < 0.5f)
+                score += (1f - explorationRatio) * 15f;
+        }
+
         return score;
     }
 
@@ -1384,6 +1409,16 @@ public static class AIActionEvaluator
         float dist = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
         score += Mathf.Max(0, 15f - dist);
 
+        // Scout召喚ボーナス: 探索率が低く敵が見えない場合、偵察要員として優先
+        if (action.SummonKind == Kind.Scout && board.AlivePlayerUnits.Count == 0)
+        {
+            float explorationRatio = board.GetExplorationRatio();
+            if (explorationRatio < 0.5f)
+                score += 20f;
+            else if (explorationRatio < 0.7f)
+                score += 10f;
+        }
+
         return score;
     }
 
@@ -1527,7 +1562,11 @@ public static class AIActionEvaluator
                 bonus += CalcTacticalMoveBonus(action, p, board);
                 float distFromBase = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
                 if (distFromBase > 8f)
-                    bonus -= p.DefenseRate * 15f;
+                {
+                    // Scoutは偵察任務のため遠方ペナルティを軽減
+                    float defPenalty = action.Unit.kind == Kind.Scout ? 5f : 15f;
+                    bonus -= p.DefenseRate * defPenalty;
+                }
                 float allyDist = GetNearestAllyDist(action.TargetPos, action.Unit, board);
                 if (allyDist < 3f)
                     bonus += p.CommandRate * 12f;
@@ -1536,6 +1575,13 @@ public static class AIActionEvaluator
                 float dangerDist = GetNearestPlayerDist(action.TargetPos, board);
                 if (dangerDist < 2f)
                     bonus -= p.CautionRate * 10f;
+                // Scout偵察は戦術性で強化（索敵は戦術の基礎）
+                if (action.Unit.kind == Kind.Scout)
+                {
+                    int newCells = board.EstimateNewVisionCells(action.TargetPos);
+                    if (newCells > 0)
+                        bonus += p.TacticsRate * Mathf.Min(newCells * 2f, 20f);
+                }
                 break;
 
             case AIActionType.Retreat:
