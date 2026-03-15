@@ -49,6 +49,7 @@ public static class AIActionEvaluator
             GenerateRetreatCandidates(unit, board, actions);
             GenerateSupportCandidates(unit, board, actions);
             GenerateSurroundCandidates(unit, board, actions);
+            GenerateDefenseReposCandidates(unit, board, actions);
             GenerateWaitCandidate(unit, board, actions);
         }
 
@@ -58,11 +59,17 @@ public static class AIActionEvaluator
         // 召喚候補を生成
         GenerateSummonCandidates(board, actions);
 
+        // サブクリスタル展開候補を生成
+        GenerateSubCrystalCandidates(board, actions);
+
         // 各候補にスコア付け
         foreach (var action in actions)
         {
             action.Score = CalcScore(action, personality, board, learning);
         }
+
+        // 撤退→回復チェーンボーナス（知性型で特に有効）
+        ApplyRetreatHealChainBonus(actions, personality, board);
 
         // スコア降順
         actions.Sort((a, b) => b.Score.CompareTo(a.Score));
@@ -123,6 +130,7 @@ public static class AIActionEvaluator
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
         if (skill.APCost > board.EnemyAP) return;
         if (StatusEffectSystem.HasDebuff(unit, StatusEffectType.Seal)) return;
+        if (unit.SkillCooldown > 0) return; // クールダウン中は使用不可
 
         var targets = board.GetSkillTargets(unit, skill);
         if (targets.Count == 0) return;
@@ -479,6 +487,144 @@ public static class AIActionEvaluator
     }
 
     // ================================================================
+    //  候補生成: 防衛再配置（自陣クリスタル付近への移動）
+    // ================================================================
+    static void GenerateDefenseReposCandidates(Status unit, AIBoardState board, List<AIAction> results)
+    {
+        if (StatusEffectSystem.IsMovementBlocked(unit)) return;
+
+        // クリスタルが脅かされている場合のみ
+        float unitToCrystal = Vector3.Distance(unit.transform.position, board.EnemyCrystalPos);
+        if (unitToCrystal < 3f) return; // 既にクリスタル付近にいる
+
+        // 敵がクリスタルの近くにいるか
+        bool crystalThreatened = false;
+        foreach (var pu in board.AlivePlayerUnits)
+        {
+            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+            float d = Vector3.Distance(pu.transform.position, board.EnemyCrystalPos);
+            if (d < 5f) { crystalThreatened = true; break; }
+        }
+
+        // クリスタルHP50%以下もトリガー
+        if (!crystalThreatened && board.EnemyCrystalHP >= board.EnemyCrystalMaxHP * 0.5f) return;
+
+        var moves = board.GetValidMoves(unit);
+        Vector3 bestDest = unit.transform.position;
+        float bestDist = unitToCrystal;
+        int bestCost = 0;
+        foreach (var dest in moves)
+        {
+            float dist = Vector3.Distance(dest, board.EnemyCrystalPos);
+            if (dist < bestDist)
+            {
+                int cost = board.CalcMoveCost(unit, dest);
+                if (cost <= board.EnemyAP)
+                {
+                    bestDist = dist;
+                    bestDest = dest;
+                    bestCost = cost;
+                }
+            }
+        }
+
+        if (bestDest != unit.transform.position)
+        {
+            results.Add(new AIAction
+            {
+                ActionType = AIActionType.DefenseRepos,
+                Unit = unit,
+                TargetPos = bestDest,
+                APCost = bestCost
+            });
+        }
+    }
+
+    // ================================================================
+    //  候補生成: サブクリスタル展開
+    // ================================================================
+    static void GenerateSubCrystalCandidates(AIBoardState board, List<AIAction> results)
+    {
+        if (board.SubCrystalPlaceable.Count == 0) return;
+        if (board.EnemySubCrystals <= 0) return;
+
+        // 最大2位置
+        int count = 0;
+        foreach (var pos in board.SubCrystalPlaceable)
+        {
+            if (count >= 2) break;
+            // SubCrystalのAPコストを取得
+            int apCost = 0;
+            if (FacilityData.Table.TryGetValue(FacilityKind.SubCrystal, out var info))
+                apCost = info.APCost;
+            if (apCost > board.EnemyAP) continue;
+
+            results.Add(new AIAction
+            {
+                ActionType = AIActionType.SubCrystal,
+                TargetPos = new Vector3(pos.x, pos.y, pos.z),
+                APCost = apCost,
+                Facility = FacilityKind.SubCrystal
+            });
+            count++;
+        }
+    }
+
+    // ================================================================
+    //  撤退→回復チェーンボーナス
+    //  撤退した後に回復スキルを使える味方が近くにいるなら、撤退評価UP
+    //  知性型BOSSで特に強化
+    // ================================================================
+    static void ApplyRetreatHealChainBonus(List<AIAction> actions, AIPersonality p, AIBoardState board)
+    {
+        // 味方に回復スキル持ちがいるか
+        bool hasHealer = false;
+        foreach (var unit in board.AliveEnemyUnits)
+        {
+            if (unit == null || !unit.gameObject.activeInHierarchy) continue;
+            if (unit.AssignedSkillId < 0) continue;
+            if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) continue;
+            if (skill.FixedHeal > 0 && skill.Target == SkillTarget.AllySingle)
+            {
+                hasHealer = true;
+                break;
+            }
+        }
+
+        if (!hasHealer) return;
+
+        float chainMultiplier = 1f;
+        if (p.ShouldApplyMajorBonus && p.Major == MajorPersonality.Intellect)
+            chainMultiplier = 1.5f; // 知性型はチェーン判断が上手い
+
+        foreach (var action in actions)
+        {
+            if (action.ActionType != AIActionType.Retreat) continue;
+            if (action.Unit == null) continue;
+
+            // 撤退先に回復可能な味方がいるかチェック
+            float nearestHealerDist = float.MaxValue;
+            foreach (var unit in board.AliveEnemyUnits)
+            {
+                if (unit == null || !unit.gameObject.activeInHierarchy) continue;
+                if (unit == action.Unit) continue;
+                if (unit.AssignedSkillId < 0) continue;
+                if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) continue;
+                if (skill.FixedHeal > 0)
+                {
+                    float d = Vector3.Distance(action.TargetPos, unit.transform.position);
+                    if (d < nearestHealerDist) nearestHealerDist = d;
+                }
+            }
+
+            if (nearestHealerDist < 5f)
+            {
+                action.Score += 12f * chainMultiplier;
+            }
+        }
+    }
+
+    // ================================================================
     //  スコア計算
     // ================================================================
     static float CalcScore(AIAction action, AIPersonality p, AIBoardState board, AILearning learning)
@@ -509,10 +655,14 @@ public static class AIActionEvaluator
                 return CalcSupportBaseScore(action, board);
             case AIActionType.Surround:
                 return CalcSurroundBaseScore(action, board);
+            case AIActionType.DefenseRepos:
+                return CalcDefenseReposBaseScore(action, board);
             case AIActionType.Build:
                 return CalcBuildBaseScore(action, board);
             case AIActionType.Summon:
                 return CalcSummonBaseScore(action, board);
+            case AIActionType.SubCrystal:
+                return CalcSubCrystalBaseScore(action, board);
             case AIActionType.Wait:
                 return 1f;
             default:
@@ -683,6 +833,40 @@ public static class AIActionEvaluator
         return score;
     }
 
+    static float CalcDefenseReposBaseScore(AIAction action, AIBoardState board)
+    {
+        float score = 12f;
+        if (action.Unit == null) return score;
+
+        // クリスタルに近づくほど加点
+        float dist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
+        if (dist < 3f) score += 15f;
+        else if (dist < 5f) score += 8f;
+
+        // クリスタルが危険なほど加点
+        if (board.EnemyCrystalHP < board.EnemyCrystalMaxHP * 0.3f)
+            score += 20f;
+        else if (board.EnemyCrystalHP < board.EnemyCrystalMaxHP * 0.5f)
+            score += 10f;
+
+        return score;
+    }
+
+    static float CalcSubCrystalBaseScore(AIAction action, AIBoardState board)
+    {
+        float score = 22f; // サブクリ展開は領地拡張の高い価値
+
+        // 敵クリスタルから離れすぎていない場所が良い
+        float distFromHome = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
+        if (distFromHome < 8f) score += 10f;
+
+        // 前線に近い場所は加点
+        float distToEnemy = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
+        score += Mathf.Max(0, 15f - distToEnemy);
+
+        return score;
+    }
+
     static float CalcBuildBaseScore(AIAction action, AIBoardState board)
     {
         float score = 15f; // 建築の基本価値
@@ -741,8 +925,26 @@ public static class AIActionEvaluator
     }
 
     // ---- 大きい性格補正 ----
+    // 仕様: BOSSが生存している場合のみ適用
+    // 通常駒はBOSSからの距離に応じて影響度が減衰する
     static float CalcMajorBonus(AIAction action, AIPersonality p, AIBoardState board)
     {
+        if (!p.ShouldApplyMajorBonus) return 0f;
+
+        // BOSSからの指揮影響度を計算（BOSS自身=1.0、遠い駒ほど低い）
+        float influence = action.Unit != null ? p.GetCommandInfluence(action.Unit) : 0.5f;
+
+        // BOSS自身の前線参加は性格によって制御
+        if (action.Unit != null && action.Unit.IsBoss)
+        {
+            if (action.ActionType == AIActionType.Move)
+            {
+                float approach = GetApproachToEnemy(action, board);
+                if (approach > 0 && p.BossFrontlineRate < 0.5f)
+                    return -approach * (1f - p.BossFrontlineRate) * 8f; // 知性型BOSSは前に出にくい
+            }
+        }
+
         float bonus = 0f;
 
         switch (p.Major)
@@ -810,7 +1012,8 @@ public static class AIActionEvaluator
                 break;
         }
 
-        return bonus;
+        // 指揮影響度を乗算（BOSSから遠い駒ほど大きい性格の影響が弱まる）
+        return bonus * influence;
     }
 
     // ---- 細かい性格補正 ----
@@ -881,6 +1084,12 @@ public static class AIActionEvaluator
             case AIActionType.Surround:
                 bonus += p.TacticsRate * 20f;
                 bonus += p.ObsessionRate * 8f;
+                break;
+
+            case AIActionType.DefenseRepos:
+                bonus += p.DefenseRate * 22f;
+                bonus += p.CautionRate * 10f;
+                bonus -= p.ObsessionRate * 5f; // 攻め気質だと防衛再配置しにくい
                 break;
 
             case AIActionType.Build:
@@ -959,6 +1168,9 @@ public static class AIActionEvaluator
                 if (crystalDist < 3f)
                     bonus += 20f;
             }
+            // 防衛再配置の価値UP
+            if (action.ActionType == AIActionType.DefenseRepos)
+                bonus += 18f;
             // 壁建築の価値UP
             if (action.ActionType == AIActionType.Build && FacilityData.IsWall(action.Facility))
                 bonus += 15f;

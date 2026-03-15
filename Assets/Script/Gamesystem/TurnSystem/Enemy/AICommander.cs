@@ -39,6 +39,7 @@ public class AICommander
     HashSet<Status> _actedUnits = new HashSet<Status>();
 
     readonly SkillSystem _skillSystem;
+    readonly SubCrystalSystem _subCrystalSystem;
 
     // 統計（動作確認用）
     int _totalMoves = 0;
@@ -57,7 +58,8 @@ public class AICommander
         APSystem apSystem, UnitSetting unitSet, CrystalSystem crystalSystem,
         MapCreate mapCreate, MajorPersonality major,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
-        FactionState factionState = null, SkillSystem skillSystem = null)
+        FactionState factionState = null, SkillSystem skillSystem = null,
+        SubCrystalSystem subCrystalSystem = null)
     {
         _turnGen = turnGen;
         _moveGen = moveGen;
@@ -72,6 +74,7 @@ public class AICommander
         _summonSystem = summonSystem;
         _factionState = factionState;
         _skillSystem = skillSystem;
+        _subCrystalSystem = subCrystalSystem;
 
         _personality = new AIPersonality(major);
         _learning = new AILearning(major == MajorPersonality.Growth);
@@ -103,7 +106,14 @@ public class AICommander
         _actedUnits.Clear();
         _turnCount++;
         _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet,
-            _crystalSystem, _visionGen, _buildSystem, _summonSystem, _factionState);
+            _crystalSystem, _visionGen, _buildSystem, _summonSystem, _factionState,
+            _subCrystalSystem);
+
+        // スキルクールダウンを全敵駒で減少
+        TickSkillCooldowns();
+
+        // BOSS駒の参照を更新
+        _personality.UpdateBossReference(_board.AliveEnemyUnits);
 
         int maxIterations = 50;
         int iteration = 0;
@@ -112,7 +122,8 @@ public class AICommander
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
         Debug.Log($"[AICommander] AP={_board.EnemyAP}  " +
                   $"自軍駒数={_board.AliveEnemyUnits.Count}  " +
-                  $"視界内敵駒数={_board.AlivePlayerUnits.Count}");
+                  $"視界内敵駒数={_board.AlivePlayerUnits.Count}  " +
+                  $"BOSS={(_personality.HasBoss ? _personality.BossUnit.kind.ToString() : "なし")}");
         Debug.Log($"[AICommander] 建築可能位置={_board.BuildablePositions.Count}  " +
                   $"召喚可能位置={_board.SummonablePositions.Count}  " +
                   $"購入可能建物={_board.AffordableBuildings.Count}  " +
@@ -175,8 +186,10 @@ public class AICommander
                 case AIActionType.Retreat: turnRetreats++; break;
                 case AIActionType.Support: turnMoves++; break;
                 case AIActionType.Surround: turnMoves++; break;
+                case AIActionType.DefenseRepos: turnRetreats++; break;
                 case AIActionType.Build: turnBuilds++; break;
                 case AIActionType.Summon: turnSummons++; break;
+                case AIActionType.SubCrystal: turnBuilds++; break;
             }
 
             if (bestAction.Unit != null)
@@ -239,11 +252,14 @@ public class AICommander
             case AIActionType.Retreat:
             case AIActionType.Support:
             case AIActionType.Surround:
+            case AIActionType.DefenseRepos:
                 return ExecuteMove(action); // 移動として実行
             case AIActionType.Build:
                 return ExecuteBuild(action);
             case AIActionType.Summon:
                 return ExecuteSummon(action);
+            case AIActionType.SubCrystal:
+                return ExecuteSubCrystal(action);
             default:
                 Debug.Log($"[AICommander] 未実装アクション: {action.ActionType}");
                 return false;
@@ -440,8 +456,29 @@ public class AICommander
                 break;
         }
 
+        // スキル使用成功時にクールダウン設定
+        if (success)
+        {
+            int cooldown = GetSkillCooldown(skill);
+            unit.SkillCooldown = cooldown;
+            Debug.Log($"[AICommander] スキルクールダウン設定: {unit.kind} '{skill.Name}' → {cooldown}ターン");
+        }
+
         _turnGen.SelectUnit = prevSelect;
         return success;
+    }
+
+    // ---- スキルクールダウン計算 ----
+    int GetSkillCooldown(SkillData skill)
+    {
+        switch (skill.Rarity)
+        {
+            case SkillRarity.Normal:    return 1; // 1ターン後に再使用可能
+            case SkillRarity.Rare:      return 2;
+            case SkillRarity.SuperRare: return 3;
+            case SkillRarity.Legendary: return 4;
+            default: return 2;
+        }
     }
 
     // ---- 建築実行 ----
@@ -480,6 +517,48 @@ public class AICommander
             Debug.Log($"[AICommander] 召喚: {action.SummonKind} @({pos.x},{pos.y},{pos.z})  残AP={_board.EnemyAP}");
         }
         return success;
+    }
+
+    // ---- サブクリスタル展開実行 ----
+    bool ExecuteSubCrystal(AIAction action)
+    {
+        if (_subCrystalSystem == null || _buildSystem == null) return false;
+
+        var pos = new Vector3Int(
+            Mathf.RoundToInt(action.TargetPos.x),
+            Mathf.RoundToInt(action.TargetPos.y),
+            Mathf.RoundToInt(action.TargetPos.z));
+
+        if (!_subCrystalSystem.CanPlaceSubCrystal(pos, Team.Enemy))
+            return false;
+
+        bool success = _buildSystem.AIPlaceBuilding(pos, FacilityKind.SubCrystal, Team.Enemy);
+        if (success)
+        {
+            // 領地拡張
+            // BuildSystem側でGameObjectを生成しているので、そのオブジェクトを見つけてExpandTerritory
+            // → AIPlaceBuildingが成功した場合、最後に建てた建物をBuildSystemから取得
+            var lastBuilding = _buildSystem.GetLastPlacedBuilding();
+            if (lastBuilding != null)
+                _subCrystalSystem.ExpandTerritory(lastBuilding, Team.Enemy);
+
+            _board.RefreshAP();
+            Debug.Log($"[AICommander] サブクリ展開: @({pos.x},{pos.y},{pos.z})  残AP={_board.EnemyAP}");
+        }
+        return success;
+    }
+
+    // ================================================================
+    //  スキルクールダウン管理
+    // ================================================================
+    void TickSkillCooldowns()
+    {
+        foreach (var unit in _board.AliveEnemyUnits)
+        {
+            if (unit == null || !unit.gameObject.activeInHierarchy) continue;
+            if (unit.SkillCooldown > 0)
+                unit.SkillCooldown--;
+        }
     }
 
     // ================================================================

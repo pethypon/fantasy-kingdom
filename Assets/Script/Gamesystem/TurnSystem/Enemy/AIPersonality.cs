@@ -1,13 +1,23 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // =====================================================================
 //  AIPersonality — BOSS性格の生成・保持
 //  大きい性格(MajorPersonality) + 細かい性格(PersonalityTraits, 合計300pt)
+//
+//  仕様:
+//  ・大きい性格は BOSS駒(Kind.Boss)のみに適用
+//  ・通常駒は BOSS の方針を参照して行動に反映（指揮影響）
+//  ・BOSS がいない場合は大きい性格補正なし（細かい性格のみで行動）
 // =====================================================================
 public class AIPersonality
 {
     public MajorPersonality Major { get; private set; }
     public PersonalityTraits Traits { get; private set; }
+
+    // BOSS駒への参照（毎ターン更新）
+    public Status BossUnit { get; set; }
 
     // 正規化済みの性格倍率（0〜1）— 評価関数で使用
     public float CautionRate   => Traits.Caution   / 300f;
@@ -28,20 +38,69 @@ public class AIPersonality
                   $"合計={Traits.Total}");
     }
 
+    // ---- BOSSが生存しているかチェック ----
+    public bool HasBoss => BossUnit != null && BossUnit.gameObject.activeInHierarchy && BossUnit.HP > 0;
+
+    // ---- 大きい性格補正を適用すべきか ----
+    // 仕様: BOSS駒が生存している場合のみ適用
+    public bool ShouldApplyMajorBonus => HasBoss;
+
+    // ---- 指揮影響度 (0〜1) ----
+    // BOSS駒からの距離で指揮影響を計算
+    // BOSSに近いほど指揮影響が強い（1.0）、遠いほど弱い（0.0）
+    public float GetCommandInfluence(Status unit)
+    {
+        if (!HasBoss || unit == null) return 0f;
+        if (unit.IsBoss) return 1f; // BOSS自身は常に最大
+
+        float dist = Vector3.Distance(unit.transform.position, BossUnit.transform.position);
+        const float maxRange = 10f;
+        return Mathf.Clamp01(1f - (dist / maxRange));
+    }
+
+    // ---- BOSS自身の前線参加評価係数 ----
+    // 戦闘型=高い、知性型=低い、変動型=局面依存、成長型=中間
+    public float BossFrontlineRate
+    {
+        get
+        {
+            switch (Major)
+            {
+                case MajorPersonality.Combat:   return 0.8f;
+                case MajorPersonality.Intellect: return 0.2f;
+                case MajorPersonality.Adaptive:  return 0.5f;
+                case MajorPersonality.Growth:    return 0.5f;
+                default: return 0.5f;
+            }
+        }
+    }
+
+    // ---- BOSSの生存ユニットを全敵駒から探す ----
+    public void UpdateBossReference(List<Status> aliveEnemyUnits)
+    {
+        BossUnit = null;
+        foreach (var unit in aliveEnemyUnits)
+        {
+            if (unit != null && unit.gameObject.activeInHierarchy && unit.IsBoss)
+            {
+                BossUnit = unit;
+                break;
+            }
+        }
+    }
+
     // ---- 300ポイント完全ランダム配分 ----
     private static PersonalityTraits GenerateTraits()
     {
-        // 6項目に300ptをランダム配分（各項目最低10pt保証で極端な0を防ぐ）
         const int total = 300;
         const int minPerTrait = 10;
         const int traitCount = 6;
-        int remaining = total - minPerTrait * traitCount; // 240
+        int remaining = total - minPerTrait * traitCount;
 
         int[] values = new int[traitCount];
         for (int i = 0; i < traitCount; i++)
             values[i] = minPerTrait;
 
-        // 残り240ptをランダムに振り分け
         for (int i = 0; i < remaining; i++)
         {
             values[Random.Range(0, traitCount)]++;
