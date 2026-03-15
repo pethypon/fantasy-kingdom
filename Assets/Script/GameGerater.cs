@@ -196,7 +196,7 @@ public class GameGenerater : MonoBehaviour
             _TurnGenerater, _MoveGenerater, _TurnGenerater.attackpoint,
             _TurnGenerater.battlesystem, _VisionGenerater,
             _APSystem, _UnitSetting, _CrystalSystem, _MapCreate, aiMajor,
-            _BuildSystem, _SummonSystem, factionState);
+            _BuildSystem, _SummonSystem, factionState, _SkillSystem);
 
         // ==== ターン開始 ====
         _TurnGenerater.StartFirstTurn();

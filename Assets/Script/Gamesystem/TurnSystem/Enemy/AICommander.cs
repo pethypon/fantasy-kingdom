@@ -38,12 +38,16 @@ public class AICommander
     // 1ターン内で既に行動した駒を追跡
     HashSet<Status> _actedUnits = new HashSet<Status>();
 
+    readonly SkillSystem _skillSystem;
+
     // 統計（動作確認用）
     int _totalMoves = 0;
     int _totalAttacks = 0;
     int _totalKills = 0;
     int _totalBuilds = 0;
     int _totalSummons = 0;
+    int _totalSkills = 0;
+    int _totalRetreats = 0;
     int _turnCount = 0;
 
     // ---- 生成（試合開始時に1回） ----
@@ -53,7 +57,7 @@ public class AICommander
         APSystem apSystem, UnitSetting unitSet, CrystalSystem crystalSystem,
         MapCreate mapCreate, MajorPersonality major,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
-        FactionState factionState = null)
+        FactionState factionState = null, SkillSystem skillSystem = null)
     {
         _turnGen = turnGen;
         _moveGen = moveGen;
@@ -67,6 +71,7 @@ public class AICommander
         _buildSystem = buildSystem;
         _summonSystem = summonSystem;
         _factionState = factionState;
+        _skillSystem = skillSystem;
 
         _personality = new AIPersonality(major);
         _learning = new AILearning(major == MajorPersonality.Growth);
@@ -102,7 +107,7 @@ public class AICommander
 
         int maxIterations = 50;
         int iteration = 0;
-        int turnMoves = 0, turnAttacks = 0, turnBuilds = 0, turnSummons = 0;
+        int turnMoves = 0, turnAttacks = 0, turnBuilds = 0, turnSummons = 0, turnSkills = 0, turnRetreats = 0;
 
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
         Debug.Log($"[AICommander] AP={_board.EnemyAP}  " +
@@ -141,6 +146,7 @@ public class AICommander
                 var a = actions[i];
                 string info = a.ActionType == AIActionType.Build ? $"({a.Facility})"
                     : a.ActionType == AIActionType.Summon ? $"({a.SummonKind})"
+                    : a.ActionType == AIActionType.SkillUse ? $"({a.Unit?.kind}'{a.Skill?.Name}')"
                     : a.Unit != null ? $"({a.Unit.kind})" : "";
                 string targetInfo = a.TargetUnit != null ? $"→{a.TargetUnit.kind}" : "";
                 Debug.Log($"[AICommander] 候補{i + 1}: {a.ActionType}{info}{targetInfo}  " +
@@ -165,6 +171,10 @@ public class AICommander
             {
                 case AIActionType.Move: turnMoves++; break;
                 case AIActionType.Attack: turnAttacks++; break;
+                case AIActionType.SkillUse: turnSkills++; break;
+                case AIActionType.Retreat: turnRetreats++; break;
+                case AIActionType.Support: turnMoves++; break;
+                case AIActionType.Surround: turnMoves++; break;
                 case AIActionType.Build: turnBuilds++; break;
                 case AIActionType.Summon: turnSummons++; break;
             }
@@ -175,12 +185,14 @@ public class AICommander
 
         _totalMoves += turnMoves;
         _totalAttacks += turnAttacks;
+        _totalSkills += turnSkills;
+        _totalRetreats += turnRetreats;
         _totalBuilds += turnBuilds;
         _totalSummons += turnSummons;
         Debug.Log($"--- [AICommander] ターン{_turnCount}終了: " +
-                  $"移動{turnMoves} 攻撃{turnAttacks} 建築{turnBuilds} 召喚{turnSummons}  " +
+                  $"移動{turnMoves} 攻撃{turnAttacks} スキル{turnSkills} 撤退{turnRetreats} 建築{turnBuilds} 召喚{turnSummons}  " +
                   $"残AP={_board.EnemyAP}  " +
-                  $"累計(移動{_totalMoves}/攻撃{_totalAttacks}/建築{_totalBuilds}/召喚{_totalSummons}/撃破{_totalKills}) ---");
+                  $"累計(移動{_totalMoves}/攻撃{_totalAttacks}/スキル{_totalSkills}/撤退{_totalRetreats}/建築{_totalBuilds}/召喚{_totalSummons}/撃破{_totalKills}) ---");
     }
 
     // ================================================================
@@ -222,6 +234,12 @@ public class AICommander
                 return ExecuteMove(action);
             case AIActionType.Attack:
                 return ExecuteAttack(action);
+            case AIActionType.SkillUse:
+                return ExecuteSkill(action);
+            case AIActionType.Retreat:
+            case AIActionType.Support:
+            case AIActionType.Surround:
+                return ExecuteMove(action); // 移動として実行
             case AIActionType.Build:
                 return ExecuteBuild(action);
             case AIActionType.Summon:
@@ -260,7 +278,11 @@ public class AICommander
         unit.transform.position = actualDest;
         _moveGen.MoveUpdate(oldCell, _moveGen.Cell(actualDest));
 
-        Debug.Log($"[AICommander] 移動: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={_board.EnemyAP}");
+        string moveType = action.ActionType == AIActionType.Retreat ? "撤退"
+            : action.ActionType == AIActionType.Support ? "援護"
+            : action.ActionType == AIActionType.Surround ? "包囲"
+            : "移動";
+        Debug.Log($"[AICommander] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={_board.EnemyAP}");
 
         if (_learning.IsActive)
         {
@@ -322,6 +344,104 @@ public class AICommander
 
         _turnGen.SelectUnit = prevSelect;
         return true;
+    }
+
+    // ---- スキル実行 ----
+    bool ExecuteSkill(AIAction action)
+    {
+        var unit = action.Unit;
+        var skill = action.Skill;
+        if (unit == null || skill == null) return false;
+        if (!_apSystem.CanUseSkill(Team.Enemy, skill.APCost)) return false;
+
+        var prevSelect = _turnGen.SelectUnit;
+        _turnGen.SelectUnit = unit;
+
+        bool success = false;
+
+        switch (skill.Target)
+        {
+            case SkillTarget.Self:
+                _board.ConsumeSkill(unit, skill.APCost);
+                _skillSystem.ExecuteSkill(unit, unit, skill);
+                Debug.Log($"[AICommander] スキル(自己): {unit.kind} '{skill.Name}'  残AP={_board.EnemyAP}");
+                success = true;
+                break;
+
+            case SkillTarget.SelfArea:
+                _board.ConsumeSkill(unit, skill.APCost);
+                if (skill.Multiplier > 0)
+                {
+                    // 攻撃範囲スキル
+                    var enemies = _board.GetEnemiesInSkillArea(unit, skill, unit.transform.position);
+                    _skillSystem.ExecuteAreaSkill(unit, skill, enemies);
+                    Debug.Log($"[AICommander] スキル(自己範囲攻撃): {unit.kind} '{skill.Name}' 対象{enemies.Count}体  残AP={_board.EnemyAP}");
+                }
+                else
+                {
+                    // 支援範囲スキル
+                    var allies = _board.GetAlliesInSkillArea(unit, skill, unit.transform.position);
+                    _skillSystem.ExecuteAreaSupportSkill(unit, skill, allies);
+                    Debug.Log($"[AICommander] スキル(自己範囲支援): {unit.kind} '{skill.Name}' 対象{allies.Count}体  残AP={_board.EnemyAP}");
+                }
+                success = true;
+                break;
+
+            case SkillTarget.AllySingle:
+                if (action.TargetUnit != null)
+                {
+                    _board.ConsumeSkill(unit, skill.APCost);
+                    _skillSystem.ExecuteSkill(unit, action.TargetUnit, skill);
+                    Debug.Log($"[AICommander] スキル(味方): {unit.kind}→{action.TargetUnit.kind} '{skill.Name}'  残AP={_board.EnemyAP}");
+                    success = true;
+                }
+                break;
+
+            case SkillTarget.EnemySingle:
+            case SkillTarget.EnemyOrBuilding:
+            case SkillTarget.LowHPEnemy:
+            case SkillTarget.FlyingEnemy:
+                if (action.TargetUnit != null)
+                {
+                    _board.ConsumeSkill(unit, skill.APCost);
+                    int hpBefore = action.TargetUnit.HP;
+                    _battleSystem.target = action.TargetUnit;
+                    _skillSystem.ExecuteSkill(unit, action.TargetUnit, skill);
+                    int hpAfter = action.TargetUnit.HP;
+                    bool killed = hpAfter <= 0;
+                    if (killed)
+                    {
+                        _totalKills++;
+                        Debug.Log($"[AICommander] ★スキル撃破! {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter}");
+                    }
+                    else
+                    {
+                        Debug.Log($"[AICommander] スキル攻撃: {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter} 残HP={hpAfter}  残AP={_board.EnemyAP}");
+                    }
+                    success = true;
+                }
+                break;
+
+            case SkillTarget.DesignatedTile:
+            case SkillTarget.AdjacentCenter:
+            case SkillTarget.DirectionLine:
+            case SkillTarget.DesignatedRow:
+                // 範囲攻撃スキル
+                {
+                    var enemies = _board.GetEnemiesInSkillArea(unit, skill, action.TargetPos);
+                    if (enemies.Count > 0)
+                    {
+                        _board.ConsumeSkill(unit, skill.APCost);
+                        _skillSystem.ExecuteAreaSkill(unit, skill, enemies);
+                        Debug.Log($"[AICommander] スキル(範囲): {unit.kind} '{skill.Name}' @{action.TargetPos} 対象{enemies.Count}体  残AP={_board.EnemyAP}");
+                        success = true;
+                    }
+                }
+                break;
+        }
+
+        _turnGen.SelectUnit = prevSelect;
+        return success;
     }
 
     // ---- 建築実行 ----

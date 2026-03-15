@@ -15,6 +15,8 @@ public class AIAction
     public float Score;              // 最終評価点
     public FacilityKind Facility;    // 建築の種類
     public Kind SummonKind;          // 召喚するユニット種
+    public SkillData Skill;          // 使用スキル
+    public List<Status> AreaTargets; // 範囲スキルの対象リスト
 
     public override string ToString()
         => $"{ActionType}({Unit?.kind}/{Facility}/{SummonKind}) → {TargetPos} score={Score:F1}";
@@ -43,6 +45,10 @@ public static class AIActionEvaluator
 
             GenerateMoveCandidates(unit, board, actions);
             GenerateAttackCandidates(unit, board, actions);
+            GenerateSkillCandidates(unit, board, actions);
+            GenerateRetreatCandidates(unit, board, actions);
+            GenerateSupportCandidates(unit, board, actions);
+            GenerateSurroundCandidates(unit, board, actions);
             GenerateWaitCandidate(unit, board, actions);
         }
 
@@ -105,6 +111,297 @@ public static class AIActionEvaluator
                 TargetUnit = target,
                 APCost = cost
             });
+        }
+    }
+
+    // ================================================================
+    //  候補生成: スキル使用
+    // ================================================================
+    static void GenerateSkillCandidates(Status unit, AIBoardState board, List<AIAction> results)
+    {
+        if (unit.AssignedSkillId < 0) return;
+        if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
+        if (skill.APCost > board.EnemyAP) return;
+        if (StatusEffectSystem.HasDebuff(unit, StatusEffectType.Seal)) return;
+
+        var targets = board.GetSkillTargets(unit, skill);
+        if (targets.Count == 0) return;
+
+        switch (skill.Target)
+        {
+            case SkillTarget.Self:
+                // 自己バフ・自己回復
+                results.Add(new AIAction
+                {
+                    ActionType = AIActionType.SkillUse,
+                    Unit = unit,
+                    TargetPos = unit.transform.position,
+                    TargetUnit = unit,
+                    APCost = skill.APCost,
+                    Skill = skill
+                });
+                break;
+
+            case SkillTarget.SelfArea:
+                // 自分中心範囲（味方バフ/回復 or 敵攻撃）
+                {
+                    var allies = board.GetAlliesInSkillArea(unit, skill, unit.transform.position);
+                    var enemies = board.GetEnemiesInSkillArea(unit, skill, unit.transform.position);
+                    if (allies.Count > 0 || enemies.Count > 0)
+                    {
+                        results.Add(new AIAction
+                        {
+                            ActionType = AIActionType.SkillUse,
+                            Unit = unit,
+                            TargetPos = unit.transform.position,
+                            TargetUnit = unit,
+                            APCost = skill.APCost,
+                            Skill = skill,
+                            AreaTargets = skill.Multiplier > 0 ? enemies : allies
+                        });
+                    }
+                }
+                break;
+
+            case SkillTarget.AllySingle:
+                // 味方回復・バフ（HP低い順に最大1候補）
+                {
+                    Status bestAlly = null;
+                    float bestScore = float.MinValue;
+                    foreach (var ally in targets)
+                    {
+                        float s = 0f;
+                        if (skill.FixedHeal > 0 && ally.MaxHP > 0)
+                            s += (1f - (float)ally.HP / ally.MaxHP) * 30f;
+                        if (skill.GrantBuff != BuffType.None)
+                            s += 15f;
+                        if (s > bestScore) { bestScore = s; bestAlly = ally; }
+                    }
+                    if (bestAlly != null)
+                    {
+                        results.Add(new AIAction
+                        {
+                            ActionType = AIActionType.SkillUse,
+                            Unit = unit,
+                            TargetPos = bestAlly.transform.position,
+                            TargetUnit = bestAlly,
+                            APCost = skill.APCost,
+                            Skill = skill
+                        });
+                    }
+                }
+                break;
+
+            case SkillTarget.EnemySingle:
+            case SkillTarget.EnemyOrBuilding:
+            case SkillTarget.LowHPEnemy:
+            case SkillTarget.FlyingEnemy:
+                // 敵単体スキル（最大2候補）
+                {
+                    int count = 0;
+                    foreach (var t in targets)
+                    {
+                        if (count >= 2) break;
+                        results.Add(new AIAction
+                        {
+                            ActionType = AIActionType.SkillUse,
+                            Unit = unit,
+                            TargetPos = t.transform.position,
+                            TargetUnit = t,
+                            APCost = skill.APCost,
+                            Skill = skill
+                        });
+                        count++;
+                    }
+                }
+                break;
+
+            case SkillTarget.DesignatedTile:
+            case SkillTarget.AdjacentCenter:
+            case SkillTarget.DirectionLine:
+            case SkillTarget.DesignatedRow:
+                // 範囲スキル（敵が含まれる位置を候補）
+                {
+                    foreach (var t in targets)
+                    {
+                        var enemies = board.GetEnemiesInSkillArea(unit, skill, t.transform.position);
+                        results.Add(new AIAction
+                        {
+                            ActionType = AIActionType.SkillUse,
+                            Unit = unit,
+                            TargetPos = t.transform.position,
+                            TargetUnit = t,
+                            APCost = skill.APCost,
+                            Skill = skill,
+                            AreaTargets = enemies
+                        });
+                    }
+                }
+                break;
+        }
+    }
+
+    // ================================================================
+    //  候補生成: 撤退（自陣方向への移動）
+    // ================================================================
+    static void GenerateRetreatCandidates(Status unit, AIBoardState board, List<AIAction> results)
+    {
+        if (StatusEffectSystem.IsMovementBlocked(unit)) return;
+
+        // HPが30%以下、または近くに敵が多い場合のみ撤退候補を生成
+        float hpRatio = unit.MaxHP > 0 ? (float)unit.HP / unit.MaxHP : 1f;
+        float nearestEnemy = float.MaxValue;
+        foreach (var pu in board.AlivePlayerUnits)
+        {
+            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+            float d = Vector3.Distance(unit.transform.position, pu.transform.position);
+            if (d < nearestEnemy) nearestEnemy = d;
+        }
+
+        if (hpRatio > 0.4f && nearestEnemy > 3f) return;
+
+        var moves = board.GetValidMoves(unit);
+        // 自陣クリスタルに一番近い移動先を撤退先とする
+        Vector3 bestDest = unit.transform.position;
+        float bestDist = Vector3.Distance(unit.transform.position, board.EnemyCrystalPos);
+        int bestCost = 0;
+        foreach (var dest in moves)
+        {
+            float dist = Vector3.Distance(dest, board.EnemyCrystalPos);
+            if (dist < bestDist)
+            {
+                int cost = board.CalcMoveCost(unit, dest);
+                if (cost <= board.EnemyAP)
+                {
+                    bestDist = dist;
+                    bestDest = dest;
+                    bestCost = cost;
+                }
+            }
+        }
+
+        if (bestDest != unit.transform.position)
+        {
+            results.Add(new AIAction
+            {
+                ActionType = AIActionType.Retreat,
+                Unit = unit,
+                TargetPos = bestDest,
+                APCost = bestCost
+            });
+        }
+    }
+
+    // ================================================================
+    //  候補生成: 援護配置（味方近くへの移動）
+    // ================================================================
+    static void GenerateSupportCandidates(Status unit, AIBoardState board, List<AIAction> results)
+    {
+        if (StatusEffectSystem.IsMovementBlocked(unit)) return;
+
+        // 弱っている味方が近くにいるか探す
+        Status weakAlly = null;
+        float weakAllyDist = float.MaxValue;
+        foreach (var ally in board.AliveEnemyUnits)
+        {
+            if (ally == null || !ally.gameObject.activeInHierarchy || ally == unit) continue;
+            if (ally.MaxHP <= 0) continue;
+            float allyHpRatio = (float)ally.HP / ally.MaxHP;
+            if (allyHpRatio > 0.5f) continue;
+            float d = Vector3.Distance(unit.transform.position, ally.transform.position);
+            if (d < weakAllyDist && d > 1.5f && d < 8f)
+            {
+                weakAllyDist = d;
+                weakAlly = ally;
+            }
+        }
+
+        if (weakAlly == null) return;
+
+        var moves = board.GetValidMoves(unit);
+        Vector3 bestDest = unit.transform.position;
+        float bestDist = weakAllyDist;
+        int bestCost = 0;
+        foreach (var dest in moves)
+        {
+            float dist = Vector3.Distance(dest, weakAlly.transform.position);
+            if (dist < bestDist && dist >= 1f)
+            {
+                int cost = board.CalcMoveCost(unit, dest);
+                if (cost <= board.EnemyAP)
+                {
+                    bestDist = dist;
+                    bestDest = dest;
+                    bestCost = cost;
+                }
+            }
+        }
+
+        if (bestDest != unit.transform.position)
+        {
+            results.Add(new AIAction
+            {
+                ActionType = AIActionType.Support,
+                Unit = unit,
+                TargetPos = bestDest,
+                TargetUnit = weakAlly,
+                APCost = bestCost
+            });
+        }
+    }
+
+    // ================================================================
+    //  候補生成: 包囲移動（敵の背後・側面へ）
+    // ================================================================
+    static void GenerateSurroundCandidates(Status unit, AIBoardState board, List<AIAction> results)
+    {
+        if (StatusEffectSystem.IsMovementBlocked(unit)) return;
+        if (board.AlivePlayerUnits.Count == 0) return;
+
+        // 最も近い敵を包囲ターゲットにする
+        Status nearestPlayer = null;
+        float nearestDist = float.MaxValue;
+        foreach (var pu in board.AlivePlayerUnits)
+        {
+            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+            float d = Vector3.Distance(unit.transform.position, pu.transform.position);
+            if (d < nearestDist) { nearestDist = d; nearestPlayer = pu; }
+        }
+
+        if (nearestPlayer == null || nearestDist > 6f) return;
+
+        // 敵の側面・背後のセルを計算
+        var enemyPos = nearestPlayer.transform.position;
+        Vector3[] flankOffsets = {
+            new Vector3(1, 0, 0), new Vector3(-1, 0, 0),
+            new Vector3(0, 0, -1), // 背後（北向き敵）
+        };
+
+        var moves = board.GetValidMoves(unit);
+        foreach (var offset in flankOffsets)
+        {
+            Vector3 flankPos = enemyPos + offset;
+            // 移動可能先からフランク位置に最も近いものを探す
+            foreach (var dest in moves)
+            {
+                float distToFlank = Vector3.Distance(dest, flankPos);
+                if (distToFlank < 1.5f)
+                {
+                    int cost = board.CalcMoveCost(unit, dest);
+                    if (cost <= board.EnemyAP)
+                    {
+                        results.Add(new AIAction
+                        {
+                            ActionType = AIActionType.Surround,
+                            Unit = unit,
+                            TargetPos = dest,
+                            TargetUnit = nearestPlayer,
+                            APCost = cost
+                        });
+                        return; // 1つだけ追加
+                    }
+                }
+            }
         }
     }
 
@@ -204,6 +501,14 @@ public static class AIActionEvaluator
                 return CalcAttackBaseScore(action, board);
             case AIActionType.Move:
                 return CalcMoveBaseScore(action, board);
+            case AIActionType.SkillUse:
+                return CalcSkillBaseScore(action, board);
+            case AIActionType.Retreat:
+                return CalcRetreatBaseScore(action, board);
+            case AIActionType.Support:
+                return CalcSupportBaseScore(action, board);
+            case AIActionType.Surround:
+                return CalcSurroundBaseScore(action, board);
             case AIActionType.Build:
                 return CalcBuildBaseScore(action, board);
             case AIActionType.Summon:
@@ -260,6 +565,120 @@ public static class AIActionEvaluator
 
         if (dest.y > unitPos.y)
             score += 2f;
+
+        return score;
+    }
+
+    static float CalcSkillBaseScore(AIAction action, AIBoardState board)
+    {
+        if (action.Skill == null) return 0f;
+        float score = 20f; // スキル使用の基本価値（通常攻撃より少し低め→APコスト高い分）
+
+        var skill = action.Skill;
+
+        // 攻撃スキル
+        if (skill.Multiplier > 0 && action.TargetUnit != null)
+        {
+            int expectedDmg = SkillSystem.CalcSkillDamage(action.Unit, action.TargetUnit, skill);
+            if (expectedDmg >= action.TargetUnit.HP)
+                score += 45f; // 確殺ボーナス
+
+            if (action.TargetUnit.kind == Kind.Crystal)
+                score += 40f;
+            if (action.TargetUnit.kind == Kind.King)
+                score += 30f;
+
+            if (action.TargetUnit.ShieldTurns > 0)
+                score -= 25f;
+
+            // 範囲スキルで複数ヒット
+            if (action.AreaTargets != null && action.AreaTargets.Count > 1)
+                score += action.AreaTargets.Count * 12f;
+
+            // 高倍率スキル
+            score += skill.Multiplier * 10f;
+        }
+
+        // 回復スキル
+        if (skill.FixedHeal > 0 && action.TargetUnit != null)
+        {
+            float hpRatio = action.TargetUnit.MaxHP > 0
+                ? (float)action.TargetUnit.HP / action.TargetUnit.MaxHP : 1f;
+            score += (1f - hpRatio) * 35f; // HP低いほど価値が高い
+            if (hpRatio < 0.3f)
+                score += 15f; // 瀕死ボーナス
+        }
+
+        // バフスキル
+        if (skill.GrantBuff != BuffType.None)
+        {
+            score += 12f;
+            if (skill.GrantBuff == BuffType.Haste)
+                score += 8f; // AP回復は非常に価値が高い
+        }
+
+        // デバフ付き
+        if (skill.InflictDebuff != StatusEffectType.None)
+        {
+            score += 8f;
+            if (skill.InflictDebuff == StatusEffectType.Stun)
+                score += 12f;
+            if (skill.InflictDebuff == StatusEffectType.Freeze)
+                score += 10f;
+        }
+
+        // APコスト効率（高APスキルは少し減点）
+        score -= (skill.APCost - 4) * 1.5f;
+
+        return score;
+    }
+
+    static float CalcRetreatBaseScore(AIAction action, AIBoardState board)
+    {
+        float score = 8f;
+        if (action.Unit == null) return score;
+
+        float hpRatio = action.Unit.MaxHP > 0 ? (float)action.Unit.HP / action.Unit.MaxHP : 1f;
+        // HP低いほど撤退価値UP
+        score += (1f - hpRatio) * 25f;
+        if (hpRatio < 0.2f) score += 15f; // 瀕死
+
+        // 自陣に近づくほど加点
+        float dist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
+        if (dist < 5f) score += 8f;
+
+        return score;
+    }
+
+    static float CalcSupportBaseScore(AIAction action, AIBoardState board)
+    {
+        float score = 15f;
+        if (action.TargetUnit == null) return score;
+
+        // 援護対象のHP低いほど価値UP
+        float targetHpRatio = action.TargetUnit.MaxHP > 0
+            ? (float)action.TargetUnit.HP / action.TargetUnit.MaxHP : 1f;
+        score += (1f - targetHpRatio) * 20f;
+
+        // 重要駒の援護は価値が高い
+        if (action.TargetUnit.kind == Kind.King) score += 10f;
+
+        return score;
+    }
+
+    static float CalcSurroundBaseScore(AIAction action, AIBoardState board)
+    {
+        float score = 18f;
+        if (action.TargetUnit == null) return score;
+
+        // 包囲対象のHP低いほど確殺チャンスで価値UP
+        float hpRatio = action.TargetUnit.MaxHP > 0
+            ? (float)action.TargetUnit.HP / action.TargetUnit.MaxHP : 1f;
+        score += (1f - hpRatio) * 15f;
+
+        // 重要駒の包囲は価値が高い
+        if (action.TargetUnit.kind == Kind.Crystal) score += 25f;
+        if (action.TargetUnit.kind == Kind.King) score += 15f;
 
         return score;
     }
@@ -331,14 +750,19 @@ public static class AIActionEvaluator
             case MajorPersonality.Combat:
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 15f;
+                if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0)
+                    bonus += 12f; // 攻撃スキル好む
                 if (action.ActionType == AIActionType.Move)
                 {
                     float approach = GetApproachToEnemy(action, board);
                     bonus += approach * 5f;
                 }
+                if (action.ActionType == AIActionType.Surround)
+                    bonus += 10f; // 包囲好む
                 if (action.ActionType == AIActionType.Wait)
                     bonus -= 5f;
-                // 戦闘型は召喚を好む（前線投入）
+                if (action.ActionType == AIActionType.Retreat)
+                    bonus -= 8f; // 撤退嫌い
                 if (action.ActionType == AIActionType.Summon)
                     bonus += 8f;
                 break;
@@ -346,6 +770,14 @@ public static class AIActionEvaluator
             case MajorPersonality.Intellect:
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 5f;
+                if (action.ActionType == AIActionType.SkillUse && action.Skill != null)
+                {
+                    // バフ・回復スキル好む
+                    if (action.Skill.FixedHeal > 0 || action.Skill.GrantBuff != BuffType.None)
+                        bonus += 12f;
+                    else
+                        bonus += 5f;
+                }
                 if (action.ActionType == AIActionType.Move)
                 {
                     float allyDist = GetNearestAllyDist(action.TargetPos, action.Unit, board);
@@ -355,19 +787,26 @@ public static class AIActionEvaluator
                     if (crystalDist > 10f)
                         bonus -= 5f;
                 }
-                // 知性型は建築を好む
+                if (action.ActionType == AIActionType.Support)
+                    bonus += 10f; // 援護好む
                 if (action.ActionType == AIActionType.Build)
                     bonus += 12f;
+                if (action.ActionType == AIActionType.Retreat)
+                    bonus += 5f; // 撤退に積極的
                 break;
 
             case MajorPersonality.Adaptive:
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 8f;
+                if (action.ActionType == AIActionType.SkillUse)
+                    bonus += 6f;
                 break;
 
             case MajorPersonality.Growth:
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 10f;
+                if (action.ActionType == AIActionType.SkillUse)
+                    bonus += 8f;
                 break;
         }
 
@@ -392,6 +831,27 @@ public static class AIActionEvaluator
                 }
                 break;
 
+            case AIActionType.SkillUse:
+                if (action.Skill != null)
+                {
+                    // 攻撃スキル → 執着性が影響
+                    if (action.Skill.Multiplier > 0)
+                        bonus += p.ObsessionRate * 15f;
+                    // 回復・バフスキル → 指揮性が影響
+                    if (action.Skill.FixedHeal > 0 || action.Skill.GrantBuff != BuffType.None)
+                        bonus += p.CommandRate * 12f;
+                    // デバフスキル → 戦術性が影響
+                    if (action.Skill.InflictDebuff != StatusEffectType.None)
+                        bonus += p.TacticsRate * 15f;
+                    // 自己バフ → 慎重性が影響
+                    if (action.Skill.Target == SkillTarget.Self && action.Skill.GrantBuff != BuffType.None)
+                        bonus += p.CautionRate * 8f;
+                    // 範囲スキルで複数ヒット → 戦術性
+                    if (action.AreaTargets != null && action.AreaTargets.Count > 1)
+                        bonus += p.TacticsRate * (action.AreaTargets.Count * 5f);
+                }
+                break;
+
             case AIActionType.Move:
                 bonus += CalcTacticalMoveBonus(action, p, board);
                 float distFromBase = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
@@ -407,24 +867,31 @@ public static class AIActionEvaluator
                     bonus -= p.CautionRate * 10f;
                 break;
 
+            case AIActionType.Retreat:
+                bonus += p.CautionRate * 20f;
+                bonus += p.DefenseRate * 10f;
+                bonus -= p.ObsessionRate * 8f; // 執着性高いと撤退しにくい
+                break;
+
+            case AIActionType.Support:
+                bonus += p.CommandRate * 18f;
+                bonus += p.DefenseRate * 8f;
+                break;
+
+            case AIActionType.Surround:
+                bonus += p.TacticsRate * 20f;
+                bonus += p.ObsessionRate * 8f;
+                break;
+
             case AIActionType.Build:
-                // 発展性: 経済建築を好む
                 bonus += p.DevelopRate * 20f;
-                // 防衛性: 壁・攻撃建築を好む
                 if (FacilityData.IsWall(action.Facility) || FacilityData.IsOffensive(action.Facility))
                     bonus += p.DefenseRate * 15f;
                 break;
 
             case AIActionType.Summon:
-                // 指揮性: 部隊の充実を好む
                 bonus += p.CommandRate * 15f;
-                // 執着性: 攻め駒を好む
                 bonus += p.ObsessionRate * 5f;
-                break;
-
-            case AIActionType.Retreat:
-                bonus += p.CautionRate * 20f;
-                bonus += p.DefenseRate * 10f;
                 break;
 
             case AIActionType.Wait:
@@ -451,17 +918,27 @@ public static class AIActionEvaluator
         {
             if (advantageRatio > 0.2f)
             {
+                // 有利時：攻撃・スキル攻撃・前進・包囲を強化
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 12f;
+                if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0)
+                    bonus += 10f;
                 if (action.ActionType == AIActionType.Move)
                     bonus += GetApproachToEnemy(action, board) * 4f;
+                if (action.ActionType == AIActionType.Surround)
+                    bonus += 10f;
                 if (action.ActionType == AIActionType.Summon)
                     bonus += 8f;
             }
             else if (advantageRatio < -0.2f)
             {
+                // 不利時：撤退・援護・回復・建築を強化
                 if (action.ActionType == AIActionType.Retreat)
                     bonus += 15f;
+                if (action.ActionType == AIActionType.Support)
+                    bonus += 12f;
+                if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.FixedHeal > 0)
+                    bonus += 12f;
                 if (action.ActionType == AIActionType.Build)
                     bonus += 10f;
                 if (action.ActionType == AIActionType.Move)
