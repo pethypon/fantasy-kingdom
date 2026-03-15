@@ -19,6 +19,7 @@ public class BuildingAttackSystem : MonoBehaviour
 
     // 現在の攻撃チームの視界データ（ProcessAttacks で設定）
     private HashSet<Vector3Int> _currentVision;
+    private Team _currentEnemyTeam;
 
     public void Init(BuildSystem buildSystem, MoveGererater moveGererater,
                      UnitSetting unitSetting, VisionGenerater visionGenerater,
@@ -60,7 +61,9 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     public void ProcessAttacks(Team team)
     {
-        if (buildSystem == null || buildSystem.BuildingParent == null) return;
+        if (buildSystem == null) return;
+        Transform buildingParent = buildSystem.GetBuildingParent(team);
+        if (buildingParent == null) return;
 
         // 視界データ取得（自チームの視界内のみ攻撃可能）
         _currentVision = (team == Team.Player)
@@ -68,22 +71,21 @@ public class BuildingAttackSystem : MonoBehaviour
             : visionGenerater?.EnemyVisionBox;
 
         // 敵チーム判定
-        Team enemyTeam = (team == Team.Player) ? Team.Enemy : Team.Player;
+        _currentEnemyTeam = (team == Team.Player) ? Team.Enemy : Team.Player;
 
-        foreach (Transform child in buildSystem.BuildingParent)
+        foreach (Transform child in buildingParent)
         {
             var status = child.GetComponent<Status>();
             if (status == null) continue;
-            if (status.team != team) continue;
             if (status.HP <= 0) continue;
 
             if (status.facilityKind == FacilityKind.Mortar)
             {
-                ProcessMortarAttack(status, enemyTeam);
+                ProcessMortarAttack(status, _currentEnemyTeam);
             }
             else if (status.facilityKind == FacilityKind.Cannon)
             {
-                ProcessCannonAttack(status, enemyTeam);
+                ProcessCannonAttack(status, _currentEnemyTeam);
             }
         }
     }
@@ -194,14 +196,14 @@ public class BuildingAttackSystem : MonoBehaviour
         }
 
         // 敵の建築物も検索
-        if (buildSystem.BuildingParent != null)
+        Transform enemyBuildingParent = buildSystem.GetBuildingParent(enemyTeam);
+        if (enemyBuildingParent != null)
         {
-            foreach (Transform child in buildSystem.BuildingParent)
+            foreach (Transform child in enemyBuildingParent)
             {
                 if (!child.gameObject.activeSelf) continue;
                 var st = child.GetComponent<Status>();
                 if (st == null) continue;
-                if (st.team != enemyTeam) continue;
                 if (st.HP <= 0) continue;
                 Vector3 bCell = moveGererater.Cell(child.position);
                 if (Mathf.RoundToInt(bCell.x) == Mathf.RoundToInt(cellPos.x) &&
