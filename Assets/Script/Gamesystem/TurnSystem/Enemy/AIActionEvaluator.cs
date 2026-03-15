@@ -715,11 +715,13 @@ public static class AIActionEvaluator
                     break;
 
                 case TurnStrategy.Balanced:
-                    // 攻めと内政のバランス — 召喚・攻撃に小ボーナス
-                    if (action.ActionType == AIActionType.Summon) bonus += 8f;
-                    if (action.ActionType == AIActionType.Attack) bonus += 5f;
+                    // 攻めと内政のバランス — 召喚・建築・攻撃にボーナス
+                    if (action.ActionType == AIActionType.Summon) bonus += 12f;
+                    if (action.ActionType == AIActionType.Build) bonus += 6f;
+                    if (action.ActionType == AIActionType.Attack) bonus += 8f;
+                    if (action.ActionType == AIActionType.SkillUse) bonus += 5f;
                     if (action.ActionType == AIActionType.Move)
-                        bonus += GetApproachToEnemy(action, board) * 2f;
+                        bonus += GetApproachToEnemy(action, board) * 3f;
                     break;
             }
             action.Score += bonus;
@@ -1276,9 +1278,12 @@ public static class AIActionEvaluator
                 break;
 
             case FacilityKind.Field:
-                // 畑は水が必要なのでWellの次
-                score += isEarly ? 18f : isMid ? 10f : 3f;
-                if (board.GetBuildingCount(FacilityKind.Field) == 0) score += 10f;
+                // 畑は水が必要なのでWellの次（パン→市民維持に必須）
+                score += isEarly ? 22f : isMid ? 12f : 5f;
+                if (board.GetBuildingCount(FacilityKind.Field) == 0) score += 12f;
+                // パン枯渇時は緊急加点
+                if (board.EnemyResources != null && board.EnemyResources.Bread <= 5)
+                    score += 10f;
                 break;
 
             case FacilityKind.Mine:
@@ -1320,14 +1325,17 @@ public static class AIActionEvaluator
             // --- インフラ ---
             case FacilityKind.House:
                 // 市民はAP増加＋召喚に必須 → 最優先
-                score += isEarly ? 25f : isMid ? 22f : 12f;
+                score += isEarly ? 30f : isMid ? 25f : 15f;
+                // 1棟目の住宅は最重要（市民成長の基盤）
+                if (board.GetBuildingCount(FacilityKind.House) == 0)
+                    score += 20f;
                 // 市民が足りない場合は大幅加点（召喚には1市民必要）
                 if (board.EnemyResources != null)
                 {
                     if (board.EnemyResources.Citizen <= 0)
-                        score += 25f; // 市民0 → 召喚不可
+                        score += 35f; // 市民0 → 召喚不可・AP激減
                     else if (board.EnemyResources.Citizen <= 2)
-                        score += 15f;
+                        score += 20f;
                 }
                 break;
 

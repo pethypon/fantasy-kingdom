@@ -59,8 +59,10 @@ public class APSystem : MonoBehaviour
     // ==== ターン開始時 AP リセット ====
     public void ResetAP(Team team)
     {
+        var apData = team == Team.Player ? _factionState.PlayerAP : _factionState.EnemyAP;
+        int prevCurrent = apData.Current;
         _factionState.ResetAPForTurn(team);
-        Debug.Log($"[APSystem] {team} AP リセット → {_factionState.GetAP(team)}");
+        Debug.Log($"[APSystem] {team} AP リセット: Reset={apData.Reset} Plus={apData.Plus} Minus={apData.Minus} → {apData.Current} (前ターン残={prevCurrent})");
     }
 
     // ==== 疲労リセット ====
