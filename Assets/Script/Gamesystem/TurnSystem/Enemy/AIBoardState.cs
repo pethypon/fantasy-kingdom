@@ -83,14 +83,15 @@ public class AIBoardState
         EnemyCrystalPos = _crystalSystem.ECP;
         EnemyAP = _apSystem.GetAP(Team.Enemy);
 
-        var eCrystal = FindCrystal(_unitSet.EnemyUnit);
+        // クリスタルは CrystalSystem の親オブジェクト配下にある
+        var eCrystal = FindCrystal(_crystalSystem.Enemycrystal);
         EnemyCrystalHP = eCrystal != null ? eCrystal.HP : 0;
         EnemyCrystalMaxHP = eCrystal != null ? eCrystal.MaxHP : 1;
 
         PlayerCrystalVisible = IsCellInEnemyVision(PlayerCrystalPos);
         if (PlayerCrystalVisible)
         {
-            var pCrystal = FindCrystal(_unitSet.PlayerUnit);
+            var pCrystal = FindCrystal(_crystalSystem.Playercrystal);
             PlayerCrystalHP = pCrystal != null ? pCrystal.HP : 0;
         }
         else
@@ -602,6 +603,43 @@ public class AIBoardState
             }
         }
         return false;
+    }
+
+    // ================================================================
+    //  索敵・偵察用
+    // ================================================================
+
+    /// <summary>
+    /// ある位置に駒を置いた場合、新たに探索されるマス数を概算する。
+    /// Scout等の偵察ユニットが未探索エリアへ向かうべきかの判断に使用。
+    /// </summary>
+    public int EstimateNewVisionCells(Vector3 pos)
+    {
+        if (_visionGen == null || _visionGen.EnemyExploard == null) return 0;
+
+        int newCells = 0;
+        int cx = Mathf.RoundToInt(pos.x);
+        int cz = Mathf.RoundToInt(pos.z);
+        // Scoutの視界範囲（-2~+2 x -2~+2）を概算チェック
+        for (int dx = -2; dx <= 2; dx++)
+        {
+            for (int dz = -2; dz <= 2; dz++)
+            {
+                var cell = new Vector3Int(cx + dx, 0, cz + dz);
+                if (!_visionGen.EnemyExploard.Contains(cell))
+                    newCells++;
+            }
+        }
+        return newCells;
+    }
+
+    /// <summary>探索済み面積の割合（0～1）</summary>
+    public float GetExplorationRatio()
+    {
+        if (_visionGen == null || _visionGen.EnemyExploard == null || _moveGen == null) return 1f;
+        int totalTiles = _moveGen.mapcreate.SetPos.Count;
+        if (totalTiles == 0) return 1f;
+        return (float)_visionGen.EnemyExploard.Count / totalTiles;
     }
 
     /// <summary>経済余剰スコア: 維持費に余裕があるかの指標 (0=ギリギリ 1=余裕)</summary>

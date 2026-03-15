@@ -144,6 +144,10 @@ public class AICommander
         if (board.TurnCount <= 4)
             return TurnStrategy.EconomyBuild;
 
+        // 敵が見えず探索率が低い → 経済・偵察重視（Balanced でスコアリングに任せる）
+        if (board.AlivePlayerUnits.Count == 0 && board.GetExplorationRatio() < 0.4f)
+            return TurnStrategy.EconomyBuild;
+
         // 有利時は攻勢
         float advantage = board.GetAdvantageRatio();
         if (advantage > 0.25f && board.AlivePlayerUnits.Count > 0)
@@ -214,6 +218,9 @@ public class AICommander
             Debug.Log($"[AICommander] 視界内敵駒: {visibleUnits}");
         }
 
+        // 失敗した行動タイプ+対象を記録し、同じ行動を繰り返さない
+        var failedActions = new HashSet<string>();
+
         while (_board.EnemyAP > 0 && iteration < maxIterations)
         {
             iteration++;
@@ -241,7 +248,7 @@ public class AICommander
                           $"score={a.Score:F1}  AP={a.APCost}");
             }
 
-            AIAction bestAction = SelectBestAction(actions);
+            AIAction bestAction = SelectBestAction(actions, failedActions);
             if (bestAction == null || bestAction.ActionType == AIActionType.Wait)
             {
                 Debug.Log("[AICommander] 有効な行動なし → ターン終了");
@@ -252,6 +259,9 @@ public class AICommander
             if (!success)
             {
                 consecutiveFailures++;
+                // この行動を失敗リストに追加して二度と選ばない
+                string failKey = $"{bestAction.ActionType}_{bestAction.Facility}_{bestAction.SummonKind}_{bestAction.TargetPos}";
+                failedActions.Add(failKey);
                 Debug.Log($"[AICommander] 行動実行失敗 ({consecutiveFailures}/{maxConsecutiveFailures}) → 次の候補へ");
                 if (consecutiveFailures >= maxConsecutiveFailures)
                 {
@@ -296,7 +306,7 @@ public class AICommander
     // ================================================================
     //  行動選択
     // ================================================================
-    AIAction SelectBestAction(List<AIAction> actions)
+    AIAction SelectBestAction(List<AIAction> actions, HashSet<string> failedActions)
     {
         AIAction best = null;
         float bestScore = float.MinValue;
@@ -305,6 +315,10 @@ public class AICommander
         {
             if (action.ActionType == AIActionType.Wait) continue;
             if (action.APCost > _board.EnemyAP) continue;
+
+            // 失敗済みの行動をスキップ
+            string failKey = $"{action.ActionType}_{action.Facility}_{action.SummonKind}_{action.TargetPos}";
+            if (failedActions.Contains(failKey)) continue;
 
             float score = action.Score;
 
