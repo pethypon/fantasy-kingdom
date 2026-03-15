@@ -38,6 +38,9 @@ public class AICommander
     // 1ターン内で既に行動した駒を追跡
     HashSet<Status> _actedUnits = new HashSet<Status>();
 
+    // 駒ごとの直近位置履歴（振動防止用）
+    Dictionary<Status, List<Vector3Int>> _unitPositionHistory = new Dictionary<Status, List<Vector3Int>>();
+
     // 今ターンの方針（ターン冒頭で決定）
     TurnStrategy _currentStrategy = TurnStrategy.Balanced;
 
@@ -136,17 +139,18 @@ public class AICommander
         if (criticalCount >= 2)
             return TurnStrategy.RetreatRegroup;
 
-        // 味方が少なく経済余裕がある → 建築/召喚
-        if (board.AliveEnemyUnits.Count <= 3 && board.GetEconomicSurplus() > 0.4f)
-            return TurnStrategy.EconomyBuild;
-
-        // 序盤は経済重視
+        // 序盤は経済重視（ただし短めに）
         if (board.TurnCount <= 4)
             return TurnStrategy.EconomyBuild;
 
-        // 敵が見えず探索率が低い → 経済・偵察重視（Balanced でスコアリングに任せる）
-        if (board.AlivePlayerUnits.Count == 0 && board.GetExplorationRatio() < 0.4f)
+        // 中盤以降で軍が少ない → 軍拡優先（EconomyBuildだが召喚ボーナスを上げる）
+        if (board.AliveEnemyUnits.Count <= 3 && board.TurnCount <= 10 && board.GetEconomicSurplus() > 0.3f)
             return TurnStrategy.EconomyBuild;
+
+        // 中盤以降は敵が見えなくても Balanced に移行（攻めの準備）
+        // EconomyBuildに居座り続けるのを防ぐ
+        if (board.TurnCount > 10 && board.AlivePlayerUnits.Count == 0)
+            return TurnStrategy.Balanced;
 
         // 有利時は攻勢
         float advantage = board.GetAdvantageRatio();
@@ -197,7 +201,7 @@ public class AICommander
         int maxIterations = 50;
         int iteration = 0;
         int consecutiveFailures = 0;
-        const int maxConsecutiveFailures = 3;
+        const int maxConsecutiveFailures = 5;
         int turnMoves = 0, turnAttacks = 0, turnBuilds = 0, turnSummons = 0, turnSkills = 0, turnRetreats = 0;
 
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
@@ -220,6 +224,8 @@ public class AICommander
 
         // 失敗した行動タイプ+対象を記録し、同じ行動を繰り返さない
         var failedActions = new HashSet<string>();
+        // 同種の行動が全位置で失敗する場合に備え、種類単位でもブロック
+        var failedActionTypes = new HashSet<string>();
 
         while (_board.EnemyAP > 0 && iteration < maxIterations)
         {
@@ -248,7 +254,10 @@ public class AICommander
                           $"score={a.Score:F1}  AP={a.APCost}");
             }
 
-            AIAction bestAction = SelectBestAction(actions, failedActions);
+            // 振動防止: 直近の位置に戻る移動を減点
+            ApplyAntiOscillationPenalty(actions);
+
+            AIAction bestAction = SelectBestAction(actions, failedActions, failedActionTypes);
             if (bestAction == null || bestAction.ActionType == AIActionType.Wait)
             {
                 Debug.Log("[AICommander] 有効な行動なし → ターン終了");
@@ -262,6 +271,18 @@ public class AICommander
                 // この行動を失敗リストに追加して二度と選ばない
                 string failKey = $"{bestAction.ActionType}_{bestAction.Facility}_{bestAction.SummonKind}_{bestAction.TargetPos}";
                 failedActions.Add(failKey);
+                // 同じ種類（ActionType+Facility or ActionType+SummonKind）の失敗が2回以上なら種類ごとブロック
+                string typeKey = $"{bestAction.ActionType}_{bestAction.Facility}_{bestAction.SummonKind}";
+                int sameTypeFailCount = 0;
+                foreach (var fk in failedActions)
+                {
+                    if (fk.StartsWith(typeKey)) sameTypeFailCount++;
+                }
+                if (sameTypeFailCount >= 2)
+                {
+                    failedActionTypes.Add(typeKey);
+                    Debug.Log($"[AICommander] 同種行動2回失敗 → {typeKey} を種類ごとブロック");
+                }
                 Debug.Log($"[AICommander] 行動実行失敗 ({consecutiveFailures}/{maxConsecutiveFailures}) → 次の候補へ");
                 if (consecutiveFailures >= maxConsecutiveFailures)
                 {
@@ -306,7 +327,8 @@ public class AICommander
     // ================================================================
     //  行動選択
     // ================================================================
-    AIAction SelectBestAction(List<AIAction> actions, HashSet<string> failedActions)
+    AIAction SelectBestAction(List<AIAction> actions, HashSet<string> failedActions,
+        HashSet<string> failedActionTypes = null)
     {
         AIAction best = null;
         float bestScore = float.MinValue;
@@ -319,6 +341,13 @@ public class AICommander
             // 失敗済みの行動をスキップ
             string failKey = $"{action.ActionType}_{action.Facility}_{action.SummonKind}_{action.TargetPos}";
             if (failedActions.Contains(failKey)) continue;
+
+            // 種類ごとブロック済みの行動をスキップ
+            if (failedActionTypes != null)
+            {
+                string typeKey = $"{action.ActionType}_{action.Facility}_{action.SummonKind}";
+                if (failedActionTypes.Contains(typeKey)) continue;
+            }
 
             float score = action.Score;
 
@@ -333,6 +362,42 @@ public class AICommander
         }
 
         return best;
+    }
+
+    // ================================================================
+    //  振動防止ペナルティ
+    //  直近に訪れたマスへ戻る移動を大きく減点し、同じ2マスを往復するのを防ぐ
+    // ================================================================
+    void ApplyAntiOscillationPenalty(List<AIAction> actions)
+    {
+        foreach (var action in actions)
+        {
+            if (action.Unit == null) continue;
+            if (action.ActionType != AIActionType.Move
+                && action.ActionType != AIActionType.Retreat
+                && action.ActionType != AIActionType.Support
+                && action.ActionType != AIActionType.Surround) continue;
+
+            if (!_unitPositionHistory.TryGetValue(action.Unit, out var history)) continue;
+            if (history.Count == 0) continue;
+
+            var destCell = new Vector3Int(
+                Mathf.RoundToInt(action.TargetPos.x),
+                Mathf.RoundToInt(action.TargetPos.y),
+                Mathf.RoundToInt(action.TargetPos.z));
+
+            // 直近の位置と一致 → 大ペナルティ（往復防止）
+            for (int i = history.Count - 1; i >= 0; i--)
+            {
+                if (history[i].x == destCell.x && history[i].z == destCell.z)
+                {
+                    float recency = history.Count - i; // 1=直前, 2=2ターン前...
+                    float penalty = 30f / recency;     // 直前なら-30, 2ターン前なら-15
+                    action.Score -= penalty;
+                    break;
+                }
+            }
+        }
     }
 
     // ================================================================
@@ -392,6 +457,18 @@ public class AICommander
         _board.ConsumeMove(unit, actualDest);
         unit.transform.position = actualDest;
         _moveGen.MoveUpdate(oldCell, _moveGen.Cell(actualDest));
+
+        // 位置履歴を記録（振動防止用）
+        var cellInt = new Vector3Int(
+            Mathf.RoundToInt(actualDest.x),
+            Mathf.RoundToInt(actualDest.y),
+            Mathf.RoundToInt(actualDest.z));
+        if (!_unitPositionHistory.ContainsKey(unit))
+            _unitPositionHistory[unit] = new List<Vector3Int>();
+        _unitPositionHistory[unit].Add(cellInt);
+        // 最大4ターン分保持
+        if (_unitPositionHistory[unit].Count > 4)
+            _unitPositionHistory[unit].RemoveAt(0);
 
         string moveType = action.ActionType == AIActionType.Retreat ? "撤退"
             : action.ActionType == AIActionType.Support ? "援護"

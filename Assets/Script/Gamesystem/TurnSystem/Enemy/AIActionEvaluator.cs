@@ -449,6 +449,9 @@ public static class AIActionEvaluator
 
         foreach (var facility in board.AffordableBuildings)
         {
+            // サブクリスタルは GenerateSubCrystalCandidates で扱うので除外
+            if (FacilityData.IsSubCrystal(facility)) continue;
+
             if (!FacilityData.Table.TryGetValue(facility, out var info)) continue;
 
             // 同種建物の上限チェック（無駄な重複を防ぐ）
@@ -706,13 +709,17 @@ public static class AIActionEvaluator
 
                 case TurnStrategy.EconomyBuild:
                     if (action.ActionType == AIActionType.Build) bonus += 18f;
-                    if (action.ActionType == AIActionType.Summon) bonus += 12f;
+                    if (action.ActionType == AIActionType.Summon) bonus += 15f; // 召喚も積極的に
                     if (action.ActionType == AIActionType.SubCrystal) bonus += 10f;
                     if (action.ActionType == AIActionType.Attack) bonus -= 3f;
                     break;
 
                 case TurnStrategy.Balanced:
-                    // 偏らない — ボーナスなし
+                    // 攻めと内政のバランス — 召喚・攻撃に小ボーナス
+                    if (action.ActionType == AIActionType.Summon) bonus += 8f;
+                    if (action.ActionType == AIActionType.Attack) bonus += 5f;
+                    if (action.ActionType == AIActionType.Move)
+                        bonus += GetApproachToEnemy(action, board) * 2f;
                     break;
             }
             action.Score += bonus;
@@ -930,17 +937,23 @@ public static class AIActionEvaluator
     // ================================================================
     static void ApplyGradualArmyExpansion(List<AIAction> actions, AIBoardState board)
     {
-        float surplus = board.GetEconomicSurplus();
-        if (surplus < 0.3f) return; // 余裕がないなら軍拡しない
-
         int allyCount = board.AliveEnemyUnits.Count;
+        float surplus = board.GetEconomicSurplus();
+
+        // 軍が極端に少ない場合は経済余裕に関係なく軍拡を検討
+        bool desperateForUnits = allyCount <= 3 && board.TurnCount > 5;
+        if (surplus < 0.15f && !desperateForUnits) return;
 
         // 維持費を払える余裕度に応じて召喚ボーナス
         float expansionBonus = 0f;
-        if (surplus > 0.7f)
+        if (desperateForUnits)
+            expansionBonus = 20f; // 駒が少なすぎる → 最優先
+        else if (surplus > 0.7f)
             expansionBonus = 15f; // 資源潤沢
         else if (surplus > 0.5f)
             expansionBonus = 10f; // まあまあ
+        else if (surplus > 0.3f)
+            expansionBonus = 8f;
         else
             expansionBonus = 5f;  // 最低限
 
@@ -1289,9 +1302,13 @@ public static class AIActionEvaluator
                 break;
 
             case FacilityKind.Bakery:
-                score += isEarly ? 5f : isMid ? 15f : 8f;
+                // パンはほぼ全ユニット召喚に必要 → 重要度高め
+                score += isEarly ? 10f : isMid ? 18f : 10f;
                 if (board.GetBuildingCount(FacilityKind.Bakery) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 10f;
+                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 15f;
+                // パン不足で召喚できない場合は追加加点
+                if (board.EnemyResources != null && board.EnemyResources.Bread < 10)
+                    score += 10f;
                 break;
 
             case FacilityKind.Smelter:
@@ -1302,11 +1319,16 @@ public static class AIActionEvaluator
 
             // --- インフラ ---
             case FacilityKind.House:
-                // 市民はAP増加に直結 → 常に高価値
-                score += isEarly ? 20f : isMid ? 18f : 10f;
-                // 市民が足りない場合は更に加点
-                if (board.EnemyResources != null && board.EnemyResources.Citizen <= 2)
-                    score += 15f;
+                // 市民はAP増加＋召喚に必須 → 最優先
+                score += isEarly ? 25f : isMid ? 22f : 12f;
+                // 市民が足りない場合は大幅加点（召喚には1市民必要）
+                if (board.EnemyResources != null)
+                {
+                    if (board.EnemyResources.Citizen <= 0)
+                        score += 25f; // 市民0 → 召喚不可
+                    else if (board.EnemyResources.Citizen <= 2)
+                        score += 15f;
+                }
                 break;
 
             case FacilityKind.Warehouse:
@@ -1398,12 +1420,13 @@ public static class AIActionEvaluator
 
     static float CalcSummonBaseScore(AIAction action, AIBoardState board)
     {
-        float score = 20f; // 召喚の基本価値
+        float score = 25f; // 召喚の基本価値（上方修正）
 
-        // 自軍駒数が少ないほど召喚価値が上がる
+        // 自軍駒数が少ないほど召喚価値が大幅に上がる
         int allyCount = board.AliveEnemyUnits.Count;
-        if (allyCount <= 2) score += 20f;
-        else if (allyCount <= 4) score += 10f;
+        if (allyCount <= 2) score += 35f;      // 2体以下 → 最優先で増やす
+        else if (allyCount <= 4) score += 20f;  // 4体以下 → まだ増やしたい
+        else if (allyCount <= 6) score += 10f;
 
         // 前線に近い位置に配置するほど加点
         float dist = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
@@ -1418,6 +1441,19 @@ public static class AIActionEvaluator
             else if (explorationRatio < 0.7f)
                 score += 10f;
         }
+
+        // 戦闘ユニット召喚ボーナス: 攻撃力のあるユニットを優先
+        switch (action.SummonKind)
+        {
+            case Kind.Knight:  score += 8f; break;  // 安くて強い
+            case Kind.Archer:  score += 7f; break;  // 射程持ち
+            case Kind.Magic:   score += 6f; break;
+            case Kind.Assassin: score += 5f; break;
+        }
+
+        // ターンが進むほど召喚の緊急度が上がる（軍備が遅れているペナルティ回避）
+        if (board.TurnCount > 8 && allyCount <= 3)
+            score += (board.TurnCount - 8) * 2f; // ターンごとに加算
 
         return score;
     }
