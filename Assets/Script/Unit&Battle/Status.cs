@@ -51,7 +51,61 @@ public enum Direction
 
 public enum Skill
 {
-    None
+    None,
+    // ノーマル (1-20)
+    PowerStrike,        // パワーストライク
+    ShieldBreak,        // シールドブレイク
+    GuardStance,        // ガードスタンス
+    Focus,              // フォーカス
+    QuickStep,          // クイックステップ
+    Hamstring,          // ハムストリング
+    WideSwing,          // ワイドスイング
+    PiercingShot,       // ピアシングショット
+    ArcShot,            // アークショット
+    HealLight,          // ヒールライト
+    BlessUp,            // ブレスアップ
+    Protect,            // プロテクト
+    MarkShot,           // マークショット
+    Suppression,        // サプレッション
+    Tracking,           // トラッキング
+    Recover,            // リカバー
+    Smash,              // スマッシュ
+    BlastSeed,          // ブラストシード
+    ReflectGuard,       // リフレクトガード
+    StunBlow,           // スタンブロウ
+    // レア (21-35)
+    HeavySlash,         // ヘビースラッシュ
+    BreakLance,         // ブレイクランス
+    SmokeEdge,          // スモークエッジ
+    RapidFire,          // ラピッドファイア
+    FlameBurst,         // フレイムバースト
+    SacredHeal,         // セイクリッドヒール
+    FieldAid,           // フィールドエイド
+    WarCry,             // ウォークライ
+    IronWall,           // アイアンウォール
+    ChainShot,          // チェインショット
+    SilenceMark,        // サイレンスマーク
+    ShadowRush,         // シャドウラッシュ
+    SkyHunt,            // スカイハント
+    GroundBreak,        // グラウンドブレイク
+    ManaShield,         // マナシールド
+    // スーパーレア (36-45)
+    GrandSlam,          // グランドスラム
+    PenetrateRain,      // ペネトレイトレイン
+    MeteorShard,        // メテオシャード
+    DivineCircle,       // ディバインサークル
+    BloodSacrifice,     // ブラッドサクリファイス
+    PhantomDrive,       // ファントムドライブ
+    FreezeBind,         // フリーズバインド
+    BastionCall,        // バスティオンコール
+    DeathSight,         // デスサイト
+    SiegeBreaker,       // シージブレイカー
+    // レジェンダリー (46-50)
+    Judgement,          // ジャッジメント
+    PhoenixHeal,        // フェニックスヒール
+    WorldEdge,          // ワールドエッジ
+    LastSignal,         // ラストシグナル
+    Catastrophe         // カタストロフ
 }
 
 public enum PassiveSkill
