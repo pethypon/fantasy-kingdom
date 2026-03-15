@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -112,15 +113,35 @@ public class UnitClick : MonoBehaviour
 
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out attackhit, RayDistance)) return;
-        if (!attackhit.transform.TryGetComponent<Status>(out ATKC)) return;
-        if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
         if (attackpoint.AttackP == null) return;
+
+        // スキルモード判定
+        bool isSkillMode = playerattack.attackmode == PlayerMove.AttackMode.Skill
+            && playermove.Obj != null
+            && playermove.Obj.AssignedSkillId >= 0
+            && SkillData.Table.ContainsKey(playermove.Obj.AssignedSkillId)
+            && turngenerater.skillsystem != null;
+
+        if (isSkillMode)
+        {
+            HandleSkillClick(attackhit);
+        }
+        else
+        {
+            HandleNormalAttackClick(attackhit);
+        }
+    }
+
+    // ---- 通常攻撃クリック処理 ----
+    private void HandleNormalAttackClick(RaycastHit hit)
+    {
+        if (!hit.transform.TryGetComponent<Status>(out ATKC)) return;
+        if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
 
         Vector3 attackSame = ATKC.transform.position;
         bool isInRange = attackpoint.AttackP.Any(p => p.x == attackSame.x && p.z == attackSame.z);
         if (!isInRange) return;
 
-        // ---- APチェック ----
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
         {
             Debug.Log("[APSystem] AP不足：攻撃できません");
@@ -129,33 +150,156 @@ public class UnitClick : MonoBehaviour
 
         battlesystem.target = ATKC;
         playermove.MenuSwitch = false;
-
-        // スキルモードかどうか判定
-        if (playerattack.attackmode == PlayerMove.AttackMode.Skill
-            && playermove.Obj.AssignedSkillId >= 0
-            && SkillData.Table.ContainsKey(playermove.Obj.AssignedSkillId)
-            && turngenerater.skillsystem != null)
-        {
-            SkillData skill = SkillData.Table[playermove.Obj.AssignedSkillId];
-
-            // スキルAPチェック（通常攻撃APではなくスキルAPコスト）
-            if (turngenerater.apsystem.GetAP(Team.Player) < skill.APCost)
-            {
-                Debug.Log("[APSystem] AP不足：スキルを使用できません");
-                return;
-            }
-
-            turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
-            // スキルAP消費（FactionState直接操作）
-            turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
-        }
-        else
-        {
-            battlesystem.DamageGenerater(turngenerater);
-            turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
-        }
-
+        battlesystem.DamageGenerater(turngenerater);
+        turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
         playerattack.AttackSuccess = true;
+    }
+
+    // ---- スキル攻撃クリック処理 ----
+    private void HandleSkillClick(RaycastHit hit)
+    {
+        SkillData skill = SkillData.Table[playermove.Obj.AssignedSkillId];
+
+        // APチェック
+        if (!turngenerater.apsystem.CanUseSkill(Team.Player, skill.APCost))
+        {
+            Debug.Log("[APSystem] AP不足：スキルを使用できません");
+            return;
+        }
+
+        // クリック対象の Status を取得
+        Status clickTarget = hit.transform.GetComponent<Status>();
+        Vector3 clickPos = hit.transform.position;
+
+        // 攻撃ポイント範囲内チェック
+        bool isInRange = attackpoint.AttackP.Any(p =>
+            Mathf.RoundToInt(p.x) == Mathf.RoundToInt(clickPos.x) &&
+            Mathf.RoundToInt(p.z) == Mathf.RoundToInt(clickPos.z));
+        if (!isInRange) return;
+
+        switch (skill.Target)
+        {
+            case SkillTarget.EnemySingle:
+                if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
+                ATKC = clickTarget;
+                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                break;
+
+            case SkillTarget.EnemyOrBuilding:
+                if (clickTarget == null) return;
+                if (clickTarget.team != Team.Enemy) return;
+                if (clickTarget.type != Type.Unit && clickTarget.type != Type.Building) return;
+                ATKC = clickTarget;
+                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                break;
+
+            case SkillTarget.AllySingle:
+                if (clickTarget == null || clickTarget.team != Team.Player || clickTarget.type != Type.Unit) return;
+                ATKC = clickTarget;
+                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                break;
+
+            case SkillTarget.LowHPEnemy:
+                if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
+                if (clickTarget.MaxHP <= 0 || (float)clickTarget.HP / clickTarget.MaxHP > 0.5f)
+                {
+                    Debug.Log("[UnitClick] デスサイト: HP50%以下の敵のみ対象");
+                    return;
+                }
+                ATKC = clickTarget;
+                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                break;
+
+            case SkillTarget.FlyingEnemy:
+                if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
+                ATKC = clickTarget;
+                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                break;
+
+            case SkillTarget.DesignatedTile:
+                // クリック位置を中心に範囲内の敵を収集して範囲攻撃
+                {
+                    Vector3Int center = new Vector3Int(
+                        Mathf.RoundToInt(clickPos.x), 0, Mathf.RoundToInt(clickPos.z));
+                    List<Status> targets = FindEnemiesInArea(skill, center, playermove.Obj.direction);
+                    turngenerater.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
+                }
+                break;
+
+            case SkillTarget.AdjacentCenter:
+                // クリック位置を中心に範囲内の敵を収集
+                {
+                    Vector3Int center = new Vector3Int(
+                        Mathf.RoundToInt(clickPos.x), 0, Mathf.RoundToInt(clickPos.z));
+                    List<Status> targets = FindEnemiesInArea(skill, center, playermove.Obj.direction);
+                    turngenerater.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
+                }
+                break;
+
+            case SkillTarget.DirectionLine:
+            case SkillTarget.DesignatedRow:
+                // ライン攻撃: 攻撃者の位置を基準にライン上の敵を収集
+                {
+                    Vector3Int lineOrigin = new Vector3Int(
+                        Mathf.RoundToInt(playermove.ObjP.x), 0, Mathf.RoundToInt(playermove.ObjP.z));
+                    List<Status> targets = FindEnemiesInLine(skill, lineOrigin, playermove.Obj.direction);
+                    turngenerater.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
+                }
+                break;
+
+            default:
+                if (clickTarget == null || clickTarget.team != Team.Enemy) return;
+                ATKC = clickTarget;
+                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                break;
+        }
+
+        playermove.MenuSwitch = false;
+        turngenerater.apsystem.ConsumeSkill(Team.Player, skill.APCost, playermove.Obj);
+        playerattack.AttackSuccess = true;
+    }
+
+    // ---- 範囲スキル: エリア内の敵を収集 ----
+    private List<Status> FindEnemiesInArea(SkillData skill, Vector3Int center, Direction dir)
+    {
+        var positions = SkillSystem.GetAreaPositions(skill.Area, center, dir);
+        var posSet = new HashSet<Vector3Int>(positions);
+        var targets = new List<Status>();
+
+        // 敵ユニット親を走査
+        Transform enemyParent = turngenerater.unitset.EnemyUnit;
+        foreach (Status s in enemyParent.GetComponentsInChildren<Status>())
+        {
+            if (!s.gameObject.activeSelf) continue;
+            if (s.type != Type.Unit && s.type != Type.Building) continue;
+            Vector3Int cell = new Vector3Int(
+                Mathf.RoundToInt(s.transform.position.x), 0,
+                Mathf.RoundToInt(s.transform.position.z));
+            if (posSet.Contains(cell))
+                targets.Add(s);
+        }
+        return targets;
+    }
+
+    // ---- ライン攻撃: ライン上の敵を収集 ----
+    private List<Status> FindEnemiesInLine(SkillData skill, Vector3Int origin, Direction dir)
+    {
+        var positions = SkillSystem.GetAreaPositions(skill.Area, origin, dir);
+        var posSet = new HashSet<Vector3Int>(positions);
+        var targets = new List<Status>();
+
+        Transform enemyParent = turngenerater.unitset.EnemyUnit;
+        foreach (Status s in enemyParent.GetComponentsInChildren<Status>())
+        {
+            if (!s.gameObject.activeSelf) continue;
+            if (s.type != Type.Unit && s.type != Type.Building) continue;
+            Vector3Int cell = new Vector3Int(
+                Mathf.RoundToInt(s.transform.position.x), 0,
+                Mathf.RoundToInt(s.transform.position.z));
+            if (posSet.Contains(cell))
+                targets.Add(s);
+        }
+        return targets;
     }
 
     // ---- 移動先(MovePoint)クリック時の処理 ----

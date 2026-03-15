@@ -72,6 +72,18 @@ public class APSystem : MonoBehaviour
         }
     }
 
+    // ==== スキルAP判定 ====
+    public bool CanUseSkill(Team team, int apCost)
+        => _factionState.GetAP(team) >= apCost;
+
+    // ==== スキルAP消費 + 疲労更新 ====
+    public void ConsumeSkill(Team team, int apCost, Status obj)
+    {
+        _factionState.ModifyAP(team, -apCost);
+        obj.Fatigue++;
+        Debug.Log($"[APSystem] {team} / Skill  コスト:{apCost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
+    }
+
     // ==== UI 表示などに使用 ====
     public int GetAP(Team team) => _factionState.GetAP(team);
 
