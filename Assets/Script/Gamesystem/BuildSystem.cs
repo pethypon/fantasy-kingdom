@@ -690,13 +690,13 @@ public class BuildSystem : MonoBehaviour
     {
         if (!FacilityData.Table.TryGetValue(facility, out var info)) return;
 
-        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1、建物は-1で地形上に配置）
+        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1 = ユニット配置高さ）
         float placeY = pos.y;
         foreach (var sp in mapcreate.SetPos)
         {
             if (Mathf.RoundToInt(sp.x) == pos.x && Mathf.RoundToInt(sp.z) == pos.z)
             {
-                placeY = sp.y - 1f;
+                placeY = sp.y;
                 break;
             }
         }
