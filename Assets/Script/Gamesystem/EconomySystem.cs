@@ -10,6 +10,7 @@ public class EconomySystem : MonoBehaviour
     private BuildSystem buildSystem;
     private FactionState factionState;
     private UnitSetting unitSetting;
+    private CrystalSystem crystalSystem;
 
     // 前ターンに適用した特殊ボーナス（毎ターン差し替え用）
     private int prevPlayerBarracksXP;
@@ -21,11 +22,13 @@ public class EconomySystem : MonoBehaviour
     /// <summary> 市民1人あたりの AP ボーナス </summary>
     public const int APPerCitizen = 1;
 
-    public void Init(BuildSystem buildSystem, FactionState factionState, UnitSetting unitSetting = null)
+    public void Init(BuildSystem buildSystem, FactionState factionState,
+                     UnitSetting unitSetting = null, CrystalSystem crystalSystem = null)
     {
         this.buildSystem = buildSystem;
         this.factionState = factionState;
         this.unitSetting = unitSetting;
+        this.crystalSystem = crystalSystem;
     }
 
     /// <summary>
@@ -39,6 +42,9 @@ public class EconomySystem : MonoBehaviour
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
 
         Debug.Log($"[EconomySystem] === {team} ターン経済処理開始 === パン={res.Bread} 市民={res.Citizen}");
+
+        // ---- 0. クリスタル基本収入（クリスタルが生存していれば毎ターン供給） ----
+        ProcessCrystalIncome(team, res);
 
         // ---- 1. 建築物の生産・維持費・特殊効果 ----
         ProcessBuildings(team, res);
@@ -58,6 +64,47 @@ public class EconomySystem : MonoBehaviour
             : factionState.EnemyResourceCapacity;
         if (warehouseBonus > 0)
             ClampResources(res, warehouseBonus);
+    }
+
+    // ==================================================================
+    //  0. クリスタル基本収入
+    // ==================================================================
+
+    // クリスタル基本収入：全資源を建築物依存に変更し、蓄積問題を根本解決
+    private const int CrystalWood    = 0;
+    private const int CrystalStone   = 0;
+    private const int CrystalWater   = 0;
+    private const int CrystalWheat   = 0;
+    private const int CrystalBread   = 0;
+    private const int CrystalCoal    = 0;
+    private const int CrystalIronOre = 0;
+    private const int CrystalIron    = 0;
+
+    private void ProcessCrystalIncome(Team team, FactionState.ResourceData res)
+    {
+        // クリスタルの生存チェック
+        if (crystalSystem != null)
+        {
+            Transform parent = team == Team.Player
+                ? crystalSystem.Playercrystal
+                : crystalSystem.Enemycrystal;
+            if (parent != null && parent.childCount > 0)
+            {
+                var status = parent.GetChild(0).GetComponent<Status>();
+                if (status != null && status.HP <= 0) return;
+            }
+        }
+
+        res.Wood    += CrystalWood;
+        res.Stone   += CrystalStone;
+        res.Water   += CrystalWater;
+        res.Wheat   += CrystalWheat;
+        res.Bread   += CrystalBread;
+        res.Coal    += CrystalCoal;
+        res.IronOre += CrystalIronOre;
+        res.Iron    += CrystalIron;
+
+        Debug.Log($"[EconomySystem] {team} クリスタル基本収入: 木+{CrystalWood} 石+{CrystalStone} 水+{CrystalWater} 小麦+{CrystalWheat} パン+{CrystalBread} 石炭+{CrystalCoal} 鉄鉱+{CrystalIronOre} 鉄+{CrystalIron}");
     }
 
     // ==================================================================
