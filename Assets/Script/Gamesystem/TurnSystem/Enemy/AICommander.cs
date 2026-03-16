@@ -139,16 +139,33 @@ public class AICommander
         if (criticalCount >= 2)
             return TurnStrategy.RetreatRegroup;
 
-        // 序盤は経済重視（ただし短めに）
-        if (board.TurnCount <= 4)
+        // 経済基盤の充実度で判断（ターン数だけでなく施設数も考慮）
+        int econBuildingCount = board.GetBuildingCount(FacilityKind.Well)
+            + board.GetBuildingCount(FacilityKind.LoggingCamp)
+            + board.GetBuildingCount(FacilityKind.Quarry)
+            + board.GetBuildingCount(FacilityKind.Field)
+            + board.GetBuildingCount(FacilityKind.Mine);
+        bool hasBasicEconomy = econBuildingCount >= 3; // 基礎施設3つ以上で経済基盤ありと判断
+
+        int processingCount = board.GetBuildingCount(FacilityKind.LumberMill)
+            + board.GetBuildingCount(FacilityKind.StoneWorks)
+            + board.GetBuildingCount(FacilityKind.Smelter)
+            + board.GetBuildingCount(FacilityKind.Bakery);
+        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 2; // 加工施設もあれば成熟
+
+        // 序盤は経済重視（基礎施設が揃うまで）
+        if (!hasBasicEconomy)
             return TurnStrategy.EconomyBuild;
 
-        // 中盤以降で軍が少ない → 軍拡優先（EconomyBuildだが召喚ボーナスを上げる）
-        if (board.AliveEnemyUnits.Count <= 3 && board.TurnCount <= 10 && board.GetEconomicSurplus() > 0.3f)
+        // 基礎施設は揃ったが加工施設が不足 → まだ経済拡張フェーズ
+        if (!hasMatureEconomy && board.TurnCount <= 12)
             return TurnStrategy.EconomyBuild;
+
+        // 経済はあるが軍が少ない → Balanced（建築も召喚も行う）
+        if (board.AliveEnemyUnits.Count <= 3 && board.TurnCount <= 15)
+            return TurnStrategy.Balanced;
 
         // 中盤以降は敵が見えなくても Balanced に移行（攻めの準備）
-        // EconomyBuildに居座り続けるのを防ぐ
         if (board.TurnCount > 10 && board.AlivePlayerUnits.Count == 0)
             return TurnStrategy.Balanced;
 
@@ -169,7 +186,7 @@ public class AICommander
                     if (advantage < -0.1f) return TurnStrategy.RetreatRegroup;
                     break;
                 case MajorPersonality.Growth:
-                    if (board.GetEconomicSurplus() > 0.3f && board.TurnCount <= 10)
+                    if (!hasMatureEconomy)
                         return TurnStrategy.EconomyBuild;
                     break;
             }

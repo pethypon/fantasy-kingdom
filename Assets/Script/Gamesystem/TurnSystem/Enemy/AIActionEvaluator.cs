@@ -708,21 +708,43 @@ public static class AIActionEvaluator
                     break;
 
                 case TurnStrategy.EconomyBuild:
-                    if (action.ActionType == AIActionType.Build) bonus += 18f;
-                    if (action.ActionType == AIActionType.Summon) bonus += 15f; // 召喚も積極的に
-                    if (action.ActionType == AIActionType.SubCrystal) bonus += 10f;
-                    if (action.ActionType == AIActionType.Attack) bonus -= 3f;
+                    if (action.ActionType == AIActionType.Build) bonus += 25f; // 建築最優先
+                    if (action.ActionType == AIActionType.SubCrystal) bonus += 15f;
+                    // 経済施設が揃ってきたら召喚も行う
+                    if (action.ActionType == AIActionType.Summon)
+                    {
+                        int econCount = board.GetBuildingCount(FacilityKind.Well)
+                            + board.GetBuildingCount(FacilityKind.LoggingCamp)
+                            + board.GetBuildingCount(FacilityKind.Quarry)
+                            + board.GetBuildingCount(FacilityKind.Field)
+                            + board.GetBuildingCount(FacilityKind.Mine);
+                        if (econCount >= 3) bonus += 12f; // 基礎施設が揃えば召喚開始
+                        else bonus -= 5f; // まだ経済基盤が弱い → 召喚を控える
+                    }
+                    if (action.ActionType == AIActionType.Attack) bonus -= 5f;
+                    if (action.ActionType == AIActionType.Move) bonus -= 3f; // 移動より建築
                     break;
 
                 case TurnStrategy.Balanced:
-                    // 攻めと内政のバランス — 召喚・建築・攻撃にボーナス
-                    if (action.ActionType == AIActionType.Summon) bonus += 12f;
-                    if (action.ActionType == AIActionType.Build) bonus += 6f;
+                {
+                    // 攻めと内政のバランス — 経済基盤に応じて配分を変える
+                    int balEconCount = board.GetBuildingCount(FacilityKind.Well)
+                        + board.GetBuildingCount(FacilityKind.LoggingCamp)
+                        + board.GetBuildingCount(FacilityKind.Quarry)
+                        + board.GetBuildingCount(FacilityKind.Field)
+                        + board.GetBuildingCount(FacilityKind.Mine);
+                    bool econEstablished = balEconCount >= 3;
+
+                    if (action.ActionType == AIActionType.Summon)
+                        bonus += econEstablished ? 15f : 5f;
+                    if (action.ActionType == AIActionType.Build)
+                        bonus += econEstablished ? 6f : 15f; // 経済未整備なら建築優先
                     if (action.ActionType == AIActionType.Attack) bonus += 8f;
                     if (action.ActionType == AIActionType.SkillUse) bonus += 5f;
                     if (action.ActionType == AIActionType.Move)
                         bonus += GetApproachToEnemy(action, board) * 3f;
                     break;
+                }
             }
             action.Score += bonus;
         }
@@ -1313,9 +1335,15 @@ public static class AIActionEvaluator
                 break;
 
             case FacilityKind.Mine:
-                // 鉱山は中盤から本格的に必要
-                score += isEarly ? 5f : isMid ? 18f : 10f;
-                if (board.GetBuildingCount(FacilityKind.Mine) == 0 && isMid) score += 12f;
+                // 鉱山は鉄・魔法鉱石の唯一の供給源 → 序盤から重要
+                score += isEarly ? 18f : isMid ? 18f : 10f;
+                if (board.GetBuildingCount(FacilityKind.Mine) == 0) score += 15f;
+                // Iron/MagicOreが枯渇寸前なら緊急加点
+                if (board.EnemyResources != null)
+                {
+                    if (board.EnemyResources.Iron <= 5) score += 12f;
+                    if (board.EnemyResources.MagicOre <= 5) score += 10f;
+                }
                 break;
 
             // --- 加工施設 ---
@@ -1333,19 +1361,23 @@ public static class AIActionEvaluator
                 break;
 
             case FacilityKind.Bakery:
-                // パンはほぼ全ユニット召喚に必要 → 重要度高め
-                score += isEarly ? 10f : isMid ? 18f : 10f;
+                // パンはほぼ全ユニット召喚に必要 → 上流さえあれば序盤から重要
+                score += isEarly ? 15f : isMid ? 18f : 10f;
                 if (board.GetBuildingCount(FacilityKind.Bakery) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 15f;
+                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 18f;
                 // パン不足で召喚できない場合は追加加点
                 if (board.EnemyResources != null && board.EnemyResources.Bread < 10)
-                    score += 10f;
+                    score += 12f;
                 break;
 
             case FacilityKind.Smelter:
-                score += isEarly ? 2f : isMid ? 15f : 12f;
+                // Mineがあれば序盤でも鉄を生産して召喚を可能にする
+                score += isEarly ? 12f : isMid ? 18f : 12f;
                 if (board.GetBuildingCount(FacilityKind.Smelter) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Mine) > 0) score += 12f;
+                    board.GetBuildingCount(FacilityKind.Mine) > 0) score += 15f;
+                // 鉄不足で召喚できない場合は緊急加点
+                if (board.EnemyResources != null && board.EnemyResources.Iron <= 5)
+                    score += 12f;
                 break;
 
             // --- インフラ ---
@@ -1454,9 +1486,26 @@ public static class AIActionEvaluator
 
     static float CalcSummonBaseScore(AIAction action, AIBoardState board)
     {
-        float score = 25f; // 召喚の基本価値（上方修正）
+        float score = 25f; // 召喚の基本価値
 
-        // 自軍駒数が少ないほど召喚価値が大幅に上がる
+        // 経済基盤チェック: 資源生産施設がないうちは召喚を控える
+        int econCount = board.GetBuildingCount(FacilityKind.Well)
+            + board.GetBuildingCount(FacilityKind.LoggingCamp)
+            + board.GetBuildingCount(FacilityKind.Quarry)
+            + board.GetBuildingCount(FacilityKind.Field)
+            + board.GetBuildingCount(FacilityKind.Mine);
+        if (econCount < 2)
+            score -= 20f; // 施設不足 → 建築を優先すべき
+        else if (econCount < 3)
+            score -= 10f;
+
+        // 加工施設があれば資源が安定しているのでボーナス
+        int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
+            + board.GetBuildingCount(FacilityKind.Bakery);
+        if (processingCount >= 1) score += 8f;
+        if (processingCount >= 2) score += 5f;
+
+        // 自軍駒数が少ないほど召喚価値が上がる
         int allyCount = board.AliveEnemyUnits.Count;
         if (allyCount <= 2) score += 35f;      // 2体以下 → 最優先で増やす
         else if (allyCount <= 4) score += 20f;  // 4体以下 → まだ増やしたい
