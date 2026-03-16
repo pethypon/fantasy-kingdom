@@ -1455,13 +1455,13 @@ public static class AIActionEvaluator
                 break;
 
             case FacilityKind.Bakery:
-                // パンはほぼ全ユニット召喚に必要 → 上流さえあれば序盤から重要
-                score += isEarly ? 15f : isMid ? 18f : 10f;
+                // パンはほぼ全ユニット召喚に必要 → Fieldの次に即建てるべき
+                score += isEarly ? 28f : isMid ? 20f : 10f;
                 if (board.GetBuildingCount(FacilityKind.Bakery) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 18f;
+                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 25f;
                 // パン不足で召喚できない場合は追加加点
-                if (board.EnemyResources != null && board.EnemyResources.Bread < 10)
-                    score += 12f;
+                if (board.EnemyResources != null && board.EnemyResources.Bread < 20)
+                    score += 18f;
                 break;
 
             case FacilityKind.Smelter:
@@ -1577,9 +1577,9 @@ public static class AIActionEvaluator
                         score += 35f;
                     break;
                 case FacilityKind.Bakery:
-                    // Wheat大量備蓄 & Bread不足 → パン屋が急務
-                    if (res.Wheat > 100 && res.Bread < 20)
-                        score += 35f;
+                    // Wheat備蓄あり & Bread不足 → パン屋が急務
+                    if (res.Wheat > 30 && res.Bread < 20)
+                        score += 40f;
                     break;
             }
         }
@@ -1628,7 +1628,7 @@ public static class AIActionEvaluator
                 bonus += board.GetResourceScarcity("CutStone") * 18f;
                 break;
             case FacilityKind.Bakery:
-                bonus += board.GetResourceScarcity("Bread") * 15f;
+                bonus += board.GetResourceScarcity("Bread") * 22f;
                 break;
             case FacilityKind.Smelter:
                 bonus += board.GetResourceScarcity("Iron") * 20f;
