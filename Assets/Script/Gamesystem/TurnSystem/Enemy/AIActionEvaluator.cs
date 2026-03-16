@@ -1544,10 +1544,45 @@ public static class AIActionEvaluator
         if (FacilityData.IsSubCrystal(facility))
             score += 15f;
 
-        // 2棟目以降は価値が下がる（収穫逓減）
+        // 2棟目以降は価値が大幅に下がる（指数的収穫逓減）
         int existingCount = board.GetBuildingCount(facility);
         if (existingCount > 0)
-            score -= existingCount * 5f;
+        {
+            // 1棟目: -15, 2棟目: -45, 3棟目: -90 ... 重複は非常に非効率
+            score -= existingCount * existingCount * 15f;
+        }
+
+        // ================================================================
+        //  加工施設ボーナス: 原料が備蓄過多で加工資源が不足している場合
+        //  加工施設を強く推奨する（原料→加工の流れを促進）
+        // ================================================================
+        if (board.EnemyResources != null)
+        {
+            var res = board.EnemyResources;
+            switch (facility)
+            {
+                case FacilityKind.LumberMill:
+                    // Wood大量備蓄 & Plank不足 → 製材所が急務
+                    if (res.Wood > 200 && res.Plank < 20)
+                        score += 40f;
+                    break;
+                case FacilityKind.StoneWorks:
+                    // Stone大量備蓄 & CutStone不足 → 石工所が急務
+                    if (res.Stone > 200 && res.CutStone < 20)
+                        score += 40f;
+                    break;
+                case FacilityKind.Smelter:
+                    // IronOre/Coal備蓄 & Iron不足 → 製鉄所が急務
+                    if ((res.IronOre > 10 || res.Coal > 20) && res.Iron < 10)
+                        score += 35f;
+                    break;
+                case FacilityKind.Bakery:
+                    // Wheat大量備蓄 & Bread不足 → パン屋が急務
+                    if (res.Wheat > 100 && res.Bread < 20)
+                        score += 35f;
+                    break;
+            }
+        }
 
         return score;
     }
