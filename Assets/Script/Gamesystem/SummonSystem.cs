@@ -241,8 +241,8 @@ public class SummonSystem : MonoBehaviour
             Mathf.RoundToInt(ecpVec.z));
         if (pos == ecp) return false;
 
-        // 既にユニットがいる場所には不可
-        Vector3 posVec = new Vector3(pos.x, pos.y, pos.z);
+        // 既にユニットがいる場所には不可（UnitPointDataはY=0で管理）
+        Vector3 posVec = new Vector3(pos.x, 0f, pos.z);
         if (movegenerater.UnitPointData.Contains(posVec)) return false;
 
         return true;
@@ -302,8 +302,8 @@ public class SummonSystem : MonoBehaviour
             UnitHeadUI.Attach(obj);
         }
 
-        // ユニット位置を記録
-        movegenerater.UnitPointData.Add(new Vector3(pos.x, pos.y, pos.z));
+        // ユニット位置を記録（UnitPointDataはY=0で管理）
+        movegenerater.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
 
         // 視界更新
         visiongenerater.VisionPoint(mapcreate, movegenerater, turngenerater.crystalsystem);
@@ -472,7 +472,8 @@ public class SummonSystem : MonoBehaviour
         var ecp = new Vector3Int(Mathf.RoundToInt(ecpVec.x), Mathf.RoundToInt(ecpVec.y), Mathf.RoundToInt(ecpVec.z));
         if (pos == ecp) return false;
 
-        Vector3 posVec = new Vector3(pos.x, pos.y, pos.z);
+        // UnitPointDataはY=0で管理されているため、Y=0で比較する
+        Vector3 posVec = new Vector3(pos.x, 0f, pos.z);
         if (movegenerater.UnitPointData.Contains(posVec)) return false;
 
         return true;
@@ -552,7 +553,8 @@ public class SummonSystem : MonoBehaviour
             UnitHeadUI.Attach(obj);
         }
 
-        movegenerater.UnitPointData.Add(new Vector3(pos.x, pos.y, pos.z));
+        // UnitPointDataはY=0で管理
+        movegenerater.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
         visiongenerater.VisionPoint(mapcreate, movegenerater, turngenerater.crystalsystem);
     }
 
