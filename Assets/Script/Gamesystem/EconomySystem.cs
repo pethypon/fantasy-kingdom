@@ -70,15 +70,15 @@ public class EconomySystem : MonoBehaviour
     //  0. クリスタル基本収入
     // ==================================================================
 
-    // クリスタルが生存している限り毎ターン供給される基本資源
-    private const int CrystalWood    = 3;
-    private const int CrystalStone   = 3;
-    private const int CrystalWater   = 3;
-    private const int CrystalWheat   = 2;
-    private const int CrystalBread   = 3;
-    private const int CrystalCoal    = 1;
-    private const int CrystalIronOre = 1;
-    private const int CrystalIron    = 1;
+    // クリスタル基本収入：全資源を建築物依存に変更し、蓄積問題を根本解決
+    private const int CrystalWood    = 0;
+    private const int CrystalStone   = 0;
+    private const int CrystalWater   = 0;
+    private const int CrystalWheat   = 0;
+    private const int CrystalBread   = 0;
+    private const int CrystalCoal    = 0;
+    private const int CrystalIronOre = 0;
+    private const int CrystalIron    = 0;
 
     private void ProcessCrystalIncome(Team team, FactionState.ResourceData res)
     {
