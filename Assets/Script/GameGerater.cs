@@ -72,9 +72,10 @@ public class GameGenerater : MonoBehaviour
         CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
         CollectChildren(_EnemyCrystal, EnemyCrystalChildren);
 
-        // ==== FactionState をランタイム生成 ====
-        var factionGo = new GameObject("FactionState");
-        FactionState factionState = factionGo.AddComponent<FactionState>();
+        // ==== FactionState を APSystem に注入 ====
+        FactionState factionState = _PlayerCrystal.GetComponentInChildren<FactionState>();
+        if (factionState == null)
+            Debug.LogError("[GameGenerater] FactionState が PlayerCrystal の子に見つかりません");
         _APSystem.Init(factionState);
 
         // ---- BuildSystem 初期化 ----
