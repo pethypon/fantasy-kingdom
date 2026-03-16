@@ -26,17 +26,26 @@ public class FactionState : MonoBehaviour
     [System.Serializable]
     public class ResourceData
     {
+        [Header("基本資源")]
         public int Wood;
         public int Stone;
+        public int Water;
+
+        [Header("採掘資源")]
         public int Coal;
         public int IronOre;
-        public int Iron;
         public int MagicOre;
+
+        [Header("加工資源")]
+        public int Plank;
+        public int CutStone;
+        public int Iron;
+
+        [Header("食料")]
         public int Wheat;
         public int Bread;
-        public int Water;
-        public int Plank;       // 追加（GameReference 準拠配布資源）
-        public int CutStone;    // 追加（GameReference 準拠配布資源）
+
+        [Header("人口")]
         public int Citizen;
     }
 
@@ -132,13 +141,15 @@ public class FactionState : MonoBehaviour
     }
 
     // ==== 経済システムが毎ターン書き込む値 ====
-    [HideInInspector] public int PlayerCitizenCapacity;
-    [HideInInspector] public int PlayerResourceCapacity;
-    [HideInInspector] public int PlayerBarracksXP;
+    [Header("Player 経済ステータス")]
+    public int PlayerCitizenCapacity;
+    public int PlayerResourceCapacity;
+    public int PlayerBarracksXP;
 
-    [HideInInspector] public int EnemyCitizenCapacity;
-    [HideInInspector] public int EnemyResourceCapacity;
-    [HideInInspector] public int EnemyBarracksXP;
+    [Header("Enemy 経済ステータス")]
+    public int EnemyCitizenCapacity;
+    public int EnemyResourceCapacity;
+    public int EnemyBarracksXP;
 
     // ==== 実効資源上限 ====
     public int GetResourceCap(Team team)
