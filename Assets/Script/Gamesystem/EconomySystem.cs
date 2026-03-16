@@ -46,9 +46,6 @@ public class EconomySystem : MonoBehaviour
         // ---- 0. クリスタル基本収入（クリスタルが生存していれば毎ターン供給） ----
         ProcessCrystalIncome(team, res);
 
-        // ---- 0.5. 経済崩壊時の緊急資源供給（建築物ゼロ＝生産手段なし → 最低限の資源で再建を可能にする） ----
-        ProcessEmergencyRecovery(team, res);
-
         // ---- 1. 建築物の生産・維持費・特殊効果 ----
         ProcessBuildings(team, res);
 
@@ -108,44 +105,6 @@ public class EconomySystem : MonoBehaviour
         res.Iron    += CrystalIron;
 
         Debug.Log($"[EconomySystem] {team} クリスタル基本収入: 木+{CrystalWood} 石+{CrystalStone} 水+{CrystalWater} 小麦+{CrystalWheat} パン+{CrystalBread} 石炭+{CrystalCoal} 鉄鉱+{CrystalIronOre} 鉄+{CrystalIron}");
-    }
-
-    // ==================================================================
-    //  0.5. 経済崩壊からの回復
-    //  建築物がゼロ（全壊or未建設）で資源も枯渇している場合、
-    //  最低限の資源を供給して再建のチャンスを与える。
-    //  これがないと「建てるものがない→資源がない→何もできない」の無限ループに陥る。
-    // ==================================================================
-    private void ProcessEmergencyRecovery(Team team, FactionState.ResourceData res)
-    {
-        if (buildSystem == null) return;
-
-        Transform buildingParent = buildSystem.GetBuildingParent(team);
-        if (buildingParent == null) return;
-
-        // 生存建築物を数える
-        int aliveBuildings = 0;
-        foreach (Transform child in buildingParent)
-        {
-            var status = child.GetComponent<Status>();
-            if (status != null && status.HP > 0) aliveBuildings++;
-        }
-
-        // 建築物が1つ以上あれば通常の生産で回る
-        if (aliveBuildings > 0) return;
-
-        // 建築物ゼロかつ主要資源が枯渇 → 緊急供給
-        bool resourcesDepleted = res.Wood < 20 && res.Stone < 30;
-        if (!resourcesDepleted) return;
-
-        // 最も安い建築物（Well: 木20 石30）を1つ建てられる程度の資源を供給
-        int woodGrant = Mathf.Max(0, 25 - res.Wood);
-        int stoneGrant = Mathf.Max(0, 35 - res.Stone);
-
-        res.Wood += woodGrant;
-        res.Stone += stoneGrant;
-
-        Debug.Log($"[EconomySystem] {team} ★経済崩壊回復: 建築物0棟＋資源枯渇 → 緊急供給 木+{woodGrant} 石+{stoneGrant}");
     }
 
     // ==================================================================
