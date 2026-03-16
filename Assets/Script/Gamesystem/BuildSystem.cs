@@ -57,6 +57,20 @@ public class BuildSystem : MonoBehaviour
     public Transform GetBuildingParent(Team team)
         => team == Team.Player ? PlayerBuildingParent : EnemyBuildingParent;
 
+    /// <summary>指定チーム・施設種別の設置済み数を返す</summary>
+    public int GetBuildingCount(Team team, FacilityKind kind)
+    {
+        var parent = GetBuildingParent(team);
+        if (parent == null) return 0;
+        int count = 0;
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var s = parent.GetChild(i).GetComponent<Status>();
+            if (s != null && s.facilityKind == kind) count++;
+        }
+        return count;
+    }
+
     // ---- Raycast レイヤー ----
     private int blockLayerMask;
 

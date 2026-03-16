@@ -105,6 +105,28 @@ public class EconomySystem : MonoBehaviour
         res.Iron    += CrystalIron;
 
         Debug.Log($"[EconomySystem] {team} クリスタル基本収入: 木+{CrystalWood} 石+{CrystalStone} 水+{CrystalWater} 小麦+{CrystalWheat} パン+{CrystalBread} 石炭+{CrystalCoal} 鉄鉱+{CrystalIronOre} 鉄+{CrystalIron}");
+
+        // ================================================================
+        //  デススパイラル防止: 木材 or パンが完全枯渇し、
+        //  生産施設もない場合にクリスタルが緊急供給する
+        //  （経済基盤を失った状態からの回復手段）
+        // ================================================================
+        bool hasLoggingCamp = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.LoggingCamp) > 0;
+        if (res.Wood <= 0 && !hasLoggingCamp)
+        {
+            const int EmergencyWood = 10;
+            res.Wood += EmergencyWood;
+            Debug.Log($"[EconomySystem] {team} 緊急木材供給: +{EmergencyWood}（伐採所なし＆木材枯渇）");
+        }
+
+        bool hasBakery = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.Bakery) > 0;
+        bool hasField  = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.Field) > 0;
+        if (res.Bread <= 0 && !hasBakery && !hasField)
+        {
+            const int EmergencyBread = 3;
+            res.Bread += EmergencyBread;
+            Debug.Log($"[EconomySystem] {team} 緊急パン供給: +{EmergencyBread}（パン生産手段なし＆パン枯渇）");
+        }
     }
 
     // ==================================================================
