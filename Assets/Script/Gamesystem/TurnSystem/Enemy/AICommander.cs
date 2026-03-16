@@ -213,6 +213,17 @@ public class AICommander
                   $"召喚可能位置={_board.SummonablePositions.Count}  " +
                   $"購入可能建物={_board.AffordableBuildings.Count}  " +
                   $"召喚可能駒種={_board.AffordableUnits.Count}");
+        if (_board.EnemyResources != null)
+        {
+            var r = _board.EnemyResources;
+            Debug.Log($"[AICommander] 資源: 木={r.Wood} 石={r.Stone} 鉄={r.Iron} 魔={r.MagicOre} " +
+                      $"水={r.Water} 板={r.Plank} 石材={r.CutStone} パン={r.Bread} " +
+                      $"市民={r.Citizen} 鉄鉱={r.IronOre} 石炭={r.Coal}");
+        }
+        if (_board.AffordableUnits.Count > 0)
+        {
+            Debug.Log($"[AICommander] 召喚可能: {string.Join(", ", _board.AffordableUnits)}");
+        }
 
         if (_board.AlivePlayerUnits.Count > 0)
         {

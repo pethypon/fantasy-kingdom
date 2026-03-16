@@ -865,6 +865,9 @@ public static class AIActionEvaluator
         if (!p.HasBoss) return;
         var boss = p.BossUnit;
 
+        // 敵が見えない場合は前進条件を緩和（展開期に引き籠り防止）
+        bool noVisibleEnemies = board.AlivePlayerUnits.Count == 0;
+
         foreach (var action in actions)
         {
             if (action.Unit != boss) continue;
@@ -872,6 +875,9 @@ public static class AIActionEvaluator
 
             float approach = GetApproachToEnemy(action, board);
             if (approach <= 0) continue; // 前進していないなら条件不要
+
+            // 敵が見えない場合は自由に前進可能（味方に追従して展開する）
+            if (noVisibleEnemies) continue;
 
             // 前進条件を評価
             float conditionScore = 0f;
@@ -1477,9 +1483,10 @@ public static class AIActionEvaluator
         float influence = action.Unit != null ? p.GetCommandInfluence(action.Unit) : 0.5f;
 
         // BOSS自身の前線参加は性格によって制御
+        // ただし敵が見えない場合は前進を制限しない（展開期に引き籠り防止）
         if (action.Unit != null && action.Unit.IsBoss)
         {
-            if (action.ActionType == AIActionType.Move)
+            if (action.ActionType == AIActionType.Move && board.AlivePlayerUnits.Count > 0)
             {
                 float approach = GetApproachToEnemy(action, board);
                 if (approach > 0 && p.BossFrontlineRate < 0.5f)

@@ -385,19 +385,19 @@ public static class FacilityData
         var kind = FacilityKind.Mine;
         var levels = new FacilityLevelData[]
         {
-            new FacilityLevelData // Lv1: 鉄鉱石+4 & 魔法鉱石+1は50% & 追加+1は50%
+            new FacilityLevelData // Lv1: 鉄鉱石+4, 石炭+2 & 魔法鉱石+1は50% & 追加+1は50%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { IronOre = 4 },
+                Output = new ProductionBundle { IronOre = 4, Coal = 2 },
                 BonusOutput1 = new ProductionBundle { MagicOre = 1 },
                 BonusChance1 = 0.50f,
                 BonusOutput2 = new ProductionBundle { MagicOre = 1 },
                 BonusChance2 = 0.50f,
             },
-            new FacilityLevelData // Lv2: 鉄鉱石+5 & 魔法鉱石+1は70% & 追加+1は80%
+            new FacilityLevelData // Lv2: 鉄鉱石+5, 石炭+3 & 魔法鉱石+1は70% & 追加+1は80%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { IronOre = 5 },
+                Output = new ProductionBundle { IronOre = 5, Coal = 3 },
                 BonusOutput1 = new ProductionBundle { MagicOre = 1 },
                 BonusChance1 = 0.70f,
                 BonusOutput2 = new ProductionBundle { MagicOre = 1 },
@@ -405,10 +405,10 @@ public static class FacilityData
                 UpgradeCost = new ResourceCost(wood: 40, stone: 40, iron: 30, plank: 25, cutStone: 25),
                 UpgradeAP = 7,
             },
-            new FacilityLevelData // Lv3: 鉄鉱石+6 & 魔法鉱石+2は60% & 追加+1は80%
+            new FacilityLevelData // Lv3: 鉄鉱石+6, 石炭+4 & 魔法鉱石+2は60% & 追加+1は80%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { IronOre = 6 },
+                Output = new ProductionBundle { IronOre = 6, Coal = 4 },
                 BonusOutput1 = new ProductionBundle { MagicOre = 2 },
                 BonusChance1 = 0.60f,
                 BonusOutput2 = new ProductionBundle { MagicOre = 1 },
