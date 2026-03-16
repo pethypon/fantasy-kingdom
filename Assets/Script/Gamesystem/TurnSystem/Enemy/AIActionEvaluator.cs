@@ -769,11 +769,12 @@ public static class AIActionEvaluator
                         }
                     }
                     if (action.ActionType == AIActionType.SubCrystal) bonus += 15f;
-                    // 基礎5施設が揃ってから召喚を検討
+                    // 基礎5施設+Bakeryが揃ってから召喚を検討
                     if (action.ActionType == AIActionType.Summon)
                     {
-                        if (coreCount >= 5) bonus += 10f;
-                        else bonus -= 20f; // 基礎未整備 → 召喚を強く抑制
+                        bool econHasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
+                        if (coreCount >= 5 && econHasBakery) bonus += 10f;
+                        else bonus -= 40f; // 基礎未整備 → 召喚を強く抑制
                     }
                     // 経済フェーズ中は移動・攻撃を強く抑制してAPを温存
                     if (action.ActionType == AIActionType.Attack) bonus -= 10f;
@@ -797,7 +798,10 @@ public static class AIActionEvaluator
                     bool econEstablished = balCoreCount >= 5;
 
                     if (action.ActionType == AIActionType.Summon)
-                        bonus += econEstablished ? 20f : -10f;
+                    {
+                        bool balHasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
+                        bonus += (econEstablished && balHasBakery) ? 20f : -30f;
+                    }
                     if (action.ActionType == AIActionType.Build)
                         bonus += econEstablished ? 4f : 20f; // 基礎未整備なら建築大幅優先
                     if (action.ActionType == AIActionType.Attack) bonus += 8f;
@@ -1371,7 +1375,7 @@ public static class AIActionEvaluator
             // --- 基礎資源（原料生産） ---
             case FacilityKind.Well:
                 // 水はほぼ全チェーンに必要 → 序盤最優先
-                score += isEarly ? 35f : isMid ? 12f : 5f;
+                score += isEarly ? 40f : isMid ? 12f : 5f;
                 // 井戸が0棟 → 水の生産手段が無い＝全チェーン停止の危機
                 if (board.GetBuildingCount(FacilityKind.Well) == 0)
                 {
@@ -1421,11 +1425,11 @@ public static class AIActionEvaluator
 
             case FacilityKind.Field:
                 // 畑は水が必要なのでWellの次（パン→市民維持に必須）
-                score += isEarly ? 22f : isMid ? 12f : 5f;
-                if (board.GetBuildingCount(FacilityKind.Field) == 0) score += 12f;
+                score += isEarly ? 32f : isMid ? 14f : 5f;
+                if (board.GetBuildingCount(FacilityKind.Field) == 0) score += 25f;
                 // パン枯渇時は緊急加点
-                if (board.EnemyResources != null && board.EnemyResources.Bread <= 5)
-                    score += 10f;
+                if (board.EnemyResources != null && board.EnemyResources.Bread <= 10)
+                    score += 20f;
                 break;
 
             case FacilityKind.Mine:
@@ -1662,13 +1666,15 @@ public static class AIActionEvaluator
         // 基盤スコア: 原料×1 + 加工×2（最大 5+8=13）
         float infraScore = rawCount + procCount * 2f;
 
-        // 基盤スコアが5未満（原料施設がほぼ揃っていない）→ 召喚を大幅抑制
-        // 基盤スコア5以上（原料一通り＋加工少し）→ 召喚解禁
-        // 基盤スコア7以上（加工も揃ってきた）→ 召喚を積極推奨
+        // 基盤スコアが足りないほど召喚を抑制し、建築（特にWell/Field/Bakery）を優先させる
+        // Bakery(パン工房)が無い状態での召喚は特に危険（パン枯渇→市民減少の連鎖）
+        bool hasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
         if (infraScore < 3f)
-            score -= 80f;  // 基盤なし → ほぼ召喚しない
+            score -= 120f; // 基盤なし → 召喚禁止レベル
         else if (infraScore < 5f)
-            score -= 40f;  // 基盤不足 → 建築優先
+            score -= 60f;  // 基盤不足 → 建築優先
+        else if (!hasBakery)
+            score -= 40f;  // Bakeryなし → パン供給が危険
         else if (infraScore < 7f)
             score += 0f;   // 基盤が整い始めた → 召喚解禁
         else

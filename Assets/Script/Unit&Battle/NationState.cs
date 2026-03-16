@@ -25,4 +25,7 @@ public class NationState : MonoBehaviour
 
     // ==== サブクリスタル返却待ちリスト ====
     [HideInInspector] public List<int> PendingReturns = new List<int>();
+
+    /// <summary>パン不足が連続しているターン数（10ターン連続で市民減少）</summary>
+    [HideInInspector] public int StarvationCounter = 0;
 }
