@@ -718,18 +718,35 @@ public static class AIActionEvaluator
                     break;
 
                 case TurnStrategy.EconomyBuild:
-                    if (action.ActionType == AIActionType.Build) bonus += 30f; // 建築にAPを集中
+                {
+                    // 基礎3施設（Well, LoggingCamp, Field）の設置状況を確認
+                    bool hasWell = board.GetBuildingCount(FacilityKind.Well) > 0;
+                    bool hasLogging = board.GetBuildingCount(FacilityKind.LoggingCamp) > 0;
+                    bool hasField = board.GetBuildingCount(FacilityKind.Field) > 0;
+                    int coreCount = (hasWell ? 1 : 0) + (hasLogging ? 1 : 0) + (hasField ? 1 : 0);
+
+                    if (action.ActionType == AIActionType.Build)
+                    {
+                        bonus += 30f; // 建築にAPを集中
+
+                        // 基礎3施設が揃っていない場合、その建築を最優先
+                        if (coreCount < 3)
+                        {
+                            bool isCoreBuilding = (action.Facility == FacilityKind.Well && !hasWell)
+                                || (action.Facility == FacilityKind.LoggingCamp && !hasLogging)
+                                || (action.Facility == FacilityKind.Field && !hasField);
+                            if (isCoreBuilding)
+                                bonus += 40f; // 欠けた基礎施設は最優先
+                            else
+                                bonus -= 15f; // 基礎が揃うまで他の建築は後回し
+                        }
+                    }
                     if (action.ActionType == AIActionType.SubCrystal) bonus += 15f;
-                    // 経済施設が揃ってきたら召喚も並行
+                    // 基礎3施設が揃ってから召喚を検討
                     if (action.ActionType == AIActionType.Summon)
                     {
-                        int econCount = board.GetBuildingCount(FacilityKind.Well)
-                            + board.GetBuildingCount(FacilityKind.LoggingCamp)
-                            + board.GetBuildingCount(FacilityKind.Quarry)
-                            + board.GetBuildingCount(FacilityKind.Field)
-                            + board.GetBuildingCount(FacilityKind.Mine);
-                        if (econCount >= 2) bonus += 10f; // 基礎2つあれば召喚開始
-                        else bonus -= 10f; // まだ経済基盤が弱い → 建築に集中
+                        if (coreCount >= 3) bonus += 10f;
+                        else bonus -= 20f; // 基礎未整備 → 召喚を強く抑制
                     }
                     // 経済フェーズ中は移動・攻撃を強く抑制してAPを温存
                     if (action.ActionType == AIActionType.Attack) bonus -= 10f;
@@ -737,21 +754,21 @@ public static class AIActionEvaluator
                     if (action.ActionType == AIActionType.Surround) bonus -= 8f;
                     if (action.ActionType == AIActionType.Retreat) bonus -= 5f;
                     break;
+                }
 
                 case TurnStrategy.Balanced:
                 {
-                    // 攻めと内政のバランス — 経済基盤に応じて配分を変える
-                    int balEconCount = board.GetBuildingCount(FacilityKind.Well)
-                        + board.GetBuildingCount(FacilityKind.LoggingCamp)
-                        + board.GetBuildingCount(FacilityKind.Quarry)
-                        + board.GetBuildingCount(FacilityKind.Field)
-                        + board.GetBuildingCount(FacilityKind.Mine);
-                    bool econEstablished = balEconCount >= 2;
+                    // 攻めと内政のバランス — 基礎施設の充実度に応じて配分を変える
+                    bool balHasWell = board.GetBuildingCount(FacilityKind.Well) > 0;
+                    bool balHasLogging = board.GetBuildingCount(FacilityKind.LoggingCamp) > 0;
+                    bool balHasField = board.GetBuildingCount(FacilityKind.Field) > 0;
+                    int balCoreCount = (balHasWell ? 1 : 0) + (balHasLogging ? 1 : 0) + (balHasField ? 1 : 0);
+                    bool econEstablished = balCoreCount >= 3;
 
                     if (action.ActionType == AIActionType.Summon)
-                        bonus += econEstablished ? 20f : 10f; // 経済成立後は召喚を強く推奨
+                        bonus += econEstablished ? 20f : -10f;
                     if (action.ActionType == AIActionType.Build)
-                        bonus += econEstablished ? 4f : 15f; // 経済未整備なら建築優先
+                        bonus += econEstablished ? 4f : 20f; // 基礎未整備なら建築大幅優先
                     if (action.ActionType == AIActionType.Attack) bonus += 8f;
                     if (action.ActionType == AIActionType.SkillUse) bonus += 5f;
                     if (action.ActionType == AIActionType.Move)
@@ -1340,8 +1357,19 @@ public static class AIActionEvaluator
                 break;
 
             case FacilityKind.LoggingCamp:
-                score += isEarly ? 22f : isMid ? 10f : 5f;
-                if (board.GetBuildingCount(FacilityKind.LoggingCamp) == 0) score += 12f;
+                // 木材はほぼ全施設に必要 → Well と同等に最重要
+                score += isEarly ? 35f : isMid ? 12f : 5f;
+                if (board.GetBuildingCount(FacilityKind.LoggingCamp) == 0)
+                {
+                    score += 40f; // 唯一の木材源が0棟 → 最優先
+                    if (board.EnemyResources != null)
+                    {
+                        int wood = board.EnemyResources.Wood;
+                        if (wood <= 0)       score += 50f; // 枯渇 → 最優先
+                        else if (wood <= 20) score += 30f;
+                        else if (wood <= 50) score += 15f;
+                    }
+                }
                 break;
 
             case FacilityKind.Quarry:
@@ -1482,7 +1510,10 @@ public static class AIActionEvaluator
                     bonus += 20f;
                 break;
             case FacilityKind.LoggingCamp:
-                bonus += board.GetResourceScarcity("Wood") * 20f;
+                bonus += board.GetResourceScarcity("Wood") * 30f;
+                // 伐採所が無い場合、木材が潤沢でも将来の枯渇を見越して加点
+                if (board.GetBuildingCount(FacilityKind.LoggingCamp) == 0)
+                    bonus += 20f;
                 break;
             case FacilityKind.Quarry:
                 bonus += board.GetResourceScarcity("Stone") * 18f;
