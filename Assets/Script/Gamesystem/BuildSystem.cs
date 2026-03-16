@@ -354,10 +354,10 @@ public class BuildSystem : MonoBehaviour
         // 建築物位置を記録
         buildingPositions.Add(pos);
 
-        // 壁の場合は UnitPointData に追加（全駒通過不可）
+        // 壁の場合は UnitPointData に追加（全駒通過不可、Y=0で管理）
         if (FacilityData.IsWall(facility))
         {
-            movegenerater.UnitPointData.Add(new Vector3(pos.x, pos.y, pos.z));
+            movegenerater.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
         }
 
         Debug.Log($"[BuildSystem] {info.DisplayName} を ({pos.x}, {pos.y}, {pos.z}) に設置");
@@ -737,7 +737,7 @@ public class BuildSystem : MonoBehaviour
 
         if (FacilityData.IsWall(facility))
         {
-            movegenerater.UnitPointData.Add(new Vector3(pos.x, pos.y, pos.z));
+            movegenerater.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
         }
     }
 
