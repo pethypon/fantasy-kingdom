@@ -460,7 +460,7 @@ public class AICommander
             if (Mathf.RoundToInt(sp.x) == Mathf.RoundToInt(dest.x) &&
                 Mathf.RoundToInt(sp.z) == Mathf.RoundToInt(dest.z))
             {
-                actualDest = new Vector3(sp.x, sp.y - 1f, sp.z);
+                actualDest = new Vector3(sp.x, sp.y, sp.z);
                 break;
             }
         }

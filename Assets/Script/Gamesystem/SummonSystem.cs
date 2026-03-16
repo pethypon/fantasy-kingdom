@@ -260,13 +260,13 @@ public class SummonSystem : MonoBehaviour
             prefab = mapped;
         }
 
-        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1、ユニットは-1で地形上に配置）
+        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1 = ユニット配置高さ）
         float spawnY = pos.y;
         foreach (var sp in mapcreate.SetPos)
         {
             if (Mathf.RoundToInt(sp.x) == pos.x && Mathf.RoundToInt(sp.z) == pos.z)
             {
-                spawnY = sp.y - 1f;
+                spawnY = sp.y;
                 break;
             }
         }
@@ -527,13 +527,13 @@ public class SummonSystem : MonoBehaviour
         if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
             prefab = mapped;
 
-        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1、ユニットは-1で地形上に配置）
+        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1 = ユニット配置高さ）
         float spawnY = pos.y;
         foreach (var sp in mapcreate.SetPos)
         {
             if (Mathf.RoundToInt(sp.x) == pos.x && Mathf.RoundToInt(sp.z) == pos.z)
             {
-                spawnY = sp.y - 1f;
+                spawnY = sp.y;
                 break;
             }
         }
