@@ -119,13 +119,13 @@ public class EconomySystem : MonoBehaviour
             Debug.Log($"[EconomySystem] {team} 緊急木材供給: +{EmergencyWood}（伐採所なし＆木材枯渇）");
         }
 
+        // パンはBakeryのみが生産（FieldはWheatを作るだけ）
         bool hasBakery = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.Bakery) > 0;
-        bool hasField  = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.Field) > 0;
-        if (res.Bread <= 0 && !hasBakery && !hasField)
+        if (res.Bread <= 0 && !hasBakery)
         {
             const int EmergencyBread = 3;
             res.Bread += EmergencyBread;
-            Debug.Log($"[EconomySystem] {team} 緊急パン供給: +{EmergencyBread}（パン生産手段なし＆パン枯渇）");
+            Debug.Log($"[EconomySystem] {team} 緊急パン供給: +{EmergencyBread}（Bakeryなし＆パン枯渇）");
         }
     }
 
