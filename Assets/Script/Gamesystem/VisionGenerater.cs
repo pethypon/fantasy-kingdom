@@ -283,6 +283,11 @@ public class VisionGenerater : MonoBehaviour
             {
                 renderer.enabled = visible;
             }
+            // WorldSpace Canvas（HeadUI等）も連動して表示/非表示にする
+            foreach (var canvas in Temporary.GetComponentsInChildren<Canvas>(true))
+            {
+                canvas.gameObject.SetActive(visible);
+            }
         }
     }
 
