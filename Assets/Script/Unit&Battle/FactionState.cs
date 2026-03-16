@@ -1,9 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 両チームの NationState を束ねる薄いラッパー。
+/// 既存コードの Team パラメータ付き API をそのまま維持する。
+/// </summary>
 public class FactionState : MonoBehaviour
 {
-    // ==== AP データ ====
+    // ==== 共有型定義（既存コードとの互換性維持） ====
     [System.Serializable]
     public class APData
     {
@@ -12,9 +16,6 @@ public class FactionState : MonoBehaviour
         [Header("ボーナス")] public int Plus = 0;
         [Header("ペナルティ")] public int Minus = 0;
 
-        /// <summary>
-        /// ターン開始時に AP をリセット。最低保証 3 AP（経済崩壊時のデッドロック防止）。
-        /// </summary>
         public void ResetForTurn()
         {
             int raw = Reset + Plus - Minus;
@@ -22,7 +23,6 @@ public class FactionState : MonoBehaviour
         }
     }
 
-    // ==== 資源データ ====
     [System.Serializable]
     public class ResourceData
     {
@@ -49,59 +49,93 @@ public class FactionState : MonoBehaviour
         public int Citizen;
     }
 
-    // ==== Inspector 設定 ====
-    [Header("Player")]
-    [SerializeField] public APData PlayerAP = new APData();
-    [SerializeField] public ResourceData PlayerResources = new ResourceData();
+    // ==== 各国への参照 ====
+    [Header("国")]
+    public NationState PlayerNation;
+    public NationState EnemyNation;
 
-    [Header("Enemy")]
-    [SerializeField] public APData EnemyAP = new APData();
-    [SerializeField] public ResourceData EnemyResources = new ResourceData();
+    /// <summary>Team から NationState を取得</summary>
+    public NationState GetNation(Team team) => team == Team.Player ? PlayerNation : EnemyNation;
+
+    // ==== 後方互換プロパティ ====
+    public APData PlayerAP => PlayerNation.AP;
+    public APData EnemyAP => EnemyNation.AP;
+    public ResourceData PlayerResources => PlayerNation.Resources;
+    public ResourceData EnemyResources => EnemyNation.Resources;
+
+    public int PlayerSubCrystals
+    {
+        get => PlayerNation.SubCrystals;
+        set => PlayerNation.SubCrystals = value;
+    }
+    public int EnemySubCrystals
+    {
+        get => EnemyNation.SubCrystals;
+        set => EnemyNation.SubCrystals = value;
+    }
+
+    public List<int> PlayerPendingReturns => PlayerNation.PendingReturns;
+    public List<int> EnemyPendingReturns => EnemyNation.PendingReturns;
+
+    // ==== 経済ステータス（後方互換） ====
+    public int PlayerCitizenCapacity
+    {
+        get => PlayerNation.CitizenCapacity;
+        set => PlayerNation.CitizenCapacity = value;
+    }
+    public int PlayerResourceCapacity
+    {
+        get => PlayerNation.ResourceCapacity;
+        set => PlayerNation.ResourceCapacity = value;
+    }
+    public int PlayerBarracksXP
+    {
+        get => PlayerNation.BarracksXP;
+        set => PlayerNation.BarracksXP = value;
+    }
+    public int EnemyCitizenCapacity
+    {
+        get => EnemyNation.CitizenCapacity;
+        set => EnemyNation.CitizenCapacity = value;
+    }
+    public int EnemyResourceCapacity
+    {
+        get => EnemyNation.ResourceCapacity;
+        set => EnemyNation.ResourceCapacity = value;
+    }
+    public int EnemyBarracksXP
+    {
+        get => EnemyNation.BarracksXP;
+        set => EnemyNation.BarracksXP = value;
+    }
 
     // ==== AP 取得 / 設定 ====
-    private APData GetAPData(Team team) => team == Team.Player ? PlayerAP : EnemyAP;
+    public int GetAP(Team team) => GetNation(team).AP.Current;
+    public void SetAP(Team team, int value) => GetNation(team).AP.Current = value;
+    public void ModifyAP(Team team, int delta) => GetNation(team).AP.Current += delta;
+    public void ResetAPForTurn(Team team) => GetNation(team).AP.ResetForTurn();
 
-    public int GetAP(Team team) => GetAPData(team).Current;
-    public void SetAP(Team team, int value) => GetAPData(team).Current = value;
-    public void ModifyAP(Team team, int delta) => GetAPData(team).Current += delta;
+    // ==== 資源取得 ====
+    public ResourceData GetResources(Team team) => GetNation(team).Resources;
 
-    // ==== ターン開始時 AP リセット ====
-    public void ResetAPForTurn(Team team) => GetAPData(team).ResetForTurn();
-
-    // ==== 資源上限の基本値（倉庫なしの場合の上限） ====
+    // ==== 定数 ====
     public const int BaseResourceCap = 200;
-
-    // ==== 市民の基本収容上限（家なしの場合） ====
     public const int BaseCitizenCap = 5;
 
-    // ==== サブクリスタル資源 ====
-    [Header("サブクリスタル")]
-    [SerializeField] public int PlayerSubCrystals = 2;
-    [SerializeField] public int EnemySubCrystals = 2;
+    // ==== サブクリスタル ====
+    public int GetSubCrystals(Team team) => GetNation(team).SubCrystals;
+    public void ModifySubCrystals(Team team, int delta) => GetNation(team).SubCrystals += delta;
 
-    // ==== サブクリスタル返却待ちリスト（各要素は残りターン数） ====
-    [HideInInspector] public List<int> PlayerPendingReturns = new List<int>();
-    [HideInInspector] public List<int> EnemyPendingReturns = new List<int>();
-
-    public int GetSubCrystals(Team team) => team == Team.Player ? PlayerSubCrystals : EnemySubCrystals;
-    public void ModifySubCrystals(Team team, int delta)
-    {
-        if (team == Team.Player) PlayerSubCrystals += delta;
-        else EnemySubCrystals += delta;
-    }
-
-    /// <summary>破壊後の返却待ちを追加（5ターン後に返却）</summary>
     public void AddPendingReturn(Team team, int turns)
     {
-        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
-        list.Add(turns);
-        Debug.Log($"[FactionState] AddPendingReturn: {team} {turns}ターン後に返却予定 (リスト件数={list.Count})");
+        var nation = GetNation(team);
+        nation.PendingReturns.Add(turns);
+        Debug.Log($"[FactionState] AddPendingReturn: {team} {turns}ターン後に返却予定 (リスト件数={nation.PendingReturns.Count})");
     }
 
-    /// <summary>返却待ちの中で最も早い残りターン数を取得（なければ0）</summary>
     public int GetMinPendingReturn(Team team)
     {
-        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        var list = GetNation(team).PendingReturns;
         if (list.Count == 0) return 0;
         int min = int.MaxValue;
         foreach (var t in list)
@@ -109,22 +143,15 @@ public class FactionState : MonoBehaviour
         return min;
     }
 
-    /// <summary>返却待ちの個数を取得</summary>
-    public int GetPendingReturnCount(Team team)
-    {
-        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
-        return list.Count;
-    }
+    public int GetPendingReturnCount(Team team) => GetNation(team).PendingReturns.Count;
 
-    /// <summary>毎ターン呼ばれ、タイマーを減らし、0になったら資源を返却する</summary>
     public void TickPendingReturns(Team team)
     {
-        var list = team == Team.Player ? PlayerPendingReturns : EnemyPendingReturns;
+        var list = GetNation(team).PendingReturns;
         if (list == null)
         {
             Debug.LogError($"[FactionState] TickPendingReturns: {team} のリストが null です");
-            if (team == Team.Player) PlayerPendingReturns = new List<int>();
-            else EnemyPendingReturns = new List<int>();
+            GetNation(team).PendingReturns = new List<int>();
             return;
         }
         for (int i = list.Count - 1; i >= 0; i--)
@@ -140,34 +167,8 @@ public class FactionState : MonoBehaviour
         }
     }
 
-    // ==== 経済システムが毎ターン書き込む値 ====
-    [Header("Player 経済ステータス")]
-    public int PlayerCitizenCapacity;
-    public int PlayerResourceCapacity;
-    public int PlayerBarracksXP;
-
-    [Header("Enemy 経済ステータス")]
-    public int EnemyCitizenCapacity;
-    public int EnemyResourceCapacity;
-    public int EnemyBarracksXP;
-
-    // ==== 実効資源上限 ====
-    public int GetResourceCap(Team team)
-    {
-        int bonus = team == Team.Player ? PlayerResourceCapacity : EnemyResourceCapacity;
-        return BaseResourceCap + bonus;
-    }
-
-    // ==== 実効市民収容 ====
-    public int GetCitizenCap(Team team)
-    {
-        int bonus = team == Team.Player ? PlayerCitizenCapacity : EnemyCitizenCapacity;
-        return BaseCitizenCap + bonus;
-    }
-
-    // ==== 兵舎経験値ボーナス% ====
-    public int GetBarracksXP(Team team)
-    {
-        return team == Team.Player ? PlayerBarracksXP : EnemyBarracksXP;
-    }
+    // ==== 実効上限 ====
+    public int GetResourceCap(Team team) => BaseResourceCap + GetNation(team).ResourceCapacity;
+    public int GetCitizenCap(Team team) => BaseCitizenCap + GetNation(team).CitizenCapacity;
+    public int GetBarracksXP(Team team) => GetNation(team).BarracksXP;
 }
