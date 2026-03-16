@@ -72,10 +72,20 @@ public class GameGenerater : MonoBehaviour
         CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
         CollectChildren(_EnemyCrystal, EnemyCrystalChildren);
 
-        // ==== FactionState を APSystem に注入 ====
-        FactionState factionState = _PlayerCrystal.GetComponentInChildren<FactionState>();
-        if (factionState == null)
-            Debug.LogError("[GameGenerater] FactionState が PlayerCrystal の子に見つかりません");
+        // ==== NationState を各クリスタル配下に生成 ====
+        var playerNationGo = new GameObject("PlayerNation");
+        playerNationGo.transform.SetParent(_PlayerCrystal);
+        var playerNation = playerNationGo.AddComponent<NationState>();
+
+        var enemyNationGo = new GameObject("EnemyNation");
+        enemyNationGo.transform.SetParent(_EnemyCrystal);
+        var enemyNation = enemyNationGo.AddComponent<NationState>();
+
+        // ==== FactionState を生成し NationState を紐付け ====
+        var factionGo = new GameObject("FactionState");
+        FactionState factionState = factionGo.AddComponent<FactionState>();
+        factionState.PlayerNation = playerNation;
+        factionState.EnemyNation = enemyNation;
         _APSystem.Init(factionState);
 
         // ---- BuildSystem 初期化 ----
