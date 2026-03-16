@@ -139,16 +139,31 @@ public class AICommander
         if (criticalCount >= 2)
             return TurnStrategy.RetreatRegroup;
 
-        // 序盤は経済重視（ただし短めに）
-        if (board.TurnCount <= 4)
+        // 経済基盤の充実度で判断（ターン数だけでなく施設数も考慮）
+        int econBuildingCount = board.GetBuildingCount(FacilityKind.Well)
+            + board.GetBuildingCount(FacilityKind.LoggingCamp)
+            + board.GetBuildingCount(FacilityKind.Quarry)
+            + board.GetBuildingCount(FacilityKind.Field)
+            + board.GetBuildingCount(FacilityKind.Mine);
+        bool hasBasicEconomy = econBuildingCount >= 2; // 基礎施設2つで最低限の経済基盤
+
+        int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
+            + board.GetBuildingCount(FacilityKind.Bakery);
+        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 1; // 加工施設1つで成熟判定
+
+        // 基礎施設が揃うまで経済最優先（目標: T1で基礎4棟一気建て）
+        if (!hasBasicEconomy)
             return TurnStrategy.EconomyBuild;
 
-        // 中盤以降で軍が少ない → 軍拡優先（EconomyBuildだが召喚ボーナスを上げる）
-        if (board.AliveEnemyUnits.Count <= 3 && board.TurnCount <= 10 && board.GetEconomicSurplus() > 0.3f)
+        // 基礎施設は揃ったが加工施設が不足 → 経済拡張を継続
+        if (!hasMatureEconomy && board.TurnCount <= 8)
             return TurnStrategy.EconomyBuild;
+
+        // 経済はあるが軍が少ない → Balanced（召喚しながら追加建築も）
+        if (board.AliveEnemyUnits.Count <= 4 && board.TurnCount <= 12)
+            return TurnStrategy.Balanced;
 
         // 中盤以降は敵が見えなくても Balanced に移行（攻めの準備）
-        // EconomyBuildに居座り続けるのを防ぐ
         if (board.TurnCount > 10 && board.AlivePlayerUnits.Count == 0)
             return TurnStrategy.Balanced;
 
@@ -169,7 +184,7 @@ public class AICommander
                     if (advantage < -0.1f) return TurnStrategy.RetreatRegroup;
                     break;
                 case MajorPersonality.Growth:
-                    if (board.GetEconomicSurplus() > 0.3f && board.TurnCount <= 10)
+                    if (!hasMatureEconomy)
                         return TurnStrategy.EconomyBuild;
                     break;
             }
