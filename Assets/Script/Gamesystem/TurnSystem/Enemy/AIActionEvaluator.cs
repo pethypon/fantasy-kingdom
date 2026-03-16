@@ -1514,31 +1514,39 @@ public static class AIActionEvaluator
     static float CalcSummonBaseScore(AIAction action, AIBoardState board)
     {
         float score = 30f; // 召喚の基本価値
+        int turn = board.TurnCount;
 
-        // 経済基盤チェック: 施設なしでは建築を優先
-        int econCount = board.GetBuildingCount(FacilityKind.Well)
-            + board.GetBuildingCount(FacilityKind.LoggingCamp)
-            + board.GetBuildingCount(FacilityKind.Quarry)
-            + board.GetBuildingCount(FacilityKind.Field)
-            + board.GetBuildingCount(FacilityKind.Mine);
-        if (econCount < 2)
-            score -= 15f; // 施設不足 → 建築を優先すべき
+        // ================================================================
+        //  序盤（T1-24）は経済基盤構築を優先し、召喚を大幅に抑制
+        //  T25以降から本格的に駒を生産する
+        // ================================================================
+        if (turn < 25)
+        {
+            // 序盤ペナルティ: T1で-80, T24で-4程度（線形に緩和）
+            float earlyPenalty = (25 - turn) * 3.2f;
+            score -= earlyPenalty;
 
-        // 井戸が無い序盤は召喚を抑制（水枯渇を防ぐため井戸建築を優先）
-        if (board.GetBuildingCount(FacilityKind.Well) == 0 && board.TurnCount <= 5)
-            score -= 20f;
+            // 経済基盤が全く無い場合はさらにペナルティ
+            int econCount = board.GetBuildingCount(FacilityKind.Well)
+                + board.GetBuildingCount(FacilityKind.LoggingCamp)
+                + board.GetBuildingCount(FacilityKind.Quarry)
+                + board.GetBuildingCount(FacilityKind.Field)
+                + board.GetBuildingCount(FacilityKind.Mine);
+            if (econCount < 3)
+                score -= 30f;
+        }
 
         // 加工施設があれば資源が安定 → 召喚ボーナス
         int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
             + board.GetBuildingCount(FacilityKind.Bakery);
-        if (processingCount >= 1) score += 15f; // 鉄orパン生産あり → 積極的に召喚
+        if (processingCount >= 1) score += 15f;
 
-        // 自軍駒数が少ないほど召喚価値が上がる（常に最低5点のボーナス）
+        // 自軍駒数が少ないほど召喚価値が上がる
         int allyCount = board.AliveEnemyUnits.Count;
-        if (allyCount <= 2) score += 35f;      // 2体以下 → 最優先で増やす
-        else if (allyCount <= 4) score += 25f;  // 4体以下 → まだ増やしたい
+        if (allyCount <= 2) score += 35f;
+        else if (allyCount <= 4) score += 25f;
         else if (allyCount <= 6) score += 15f;
-        else score += 5f;                       // 7体以上でも継続的に補充
+        else score += 5f;
 
         // 前線に近い位置に配置するほど加点
         float dist = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
@@ -1554,19 +1562,19 @@ public static class AIActionEvaluator
                 score += 10f;
         }
 
-        // 戦闘ユニット召喚ボーナス: 安くて戦力になるユニットを優先
+        // 戦闘ユニット召喚ボーナス
         switch (action.SummonKind)
         {
-            case Kind.Knight:  score += 12f; break;  // 最安・主力
-            case Kind.Archer:  score += 10f; break;  // 射程持ち
+            case Kind.Knight:  score += 12f; break;
+            case Kind.Archer:  score += 10f; break;
             case Kind.Magic:   score += 8f; break;
             case Kind.Assassin: score += 6f; break;
             case Kind.Scout:   score += 5f; break;
         }
 
-        // ターンが進むほど召喚の緊急度が上がる
-        if (board.TurnCount > 4)
-            score += (board.TurnCount - 4) * 3f; // T5以降、毎ターン+3
+        // T25以降はターンが進むほど召喚の緊急度が上がる
+        if (turn >= 25)
+            score += (turn - 24) * 3f;
 
         return score;
     }
