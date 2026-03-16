@@ -175,25 +175,25 @@ public static class FacilityData
         var kind = FacilityKind.Field;
         var levels = new FacilityLevelData[]
         {
-            new FacilityLevelData // Lv1: 水2消費 → 小麦+3
-            {
-                HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Water = 2 },
-                Output = new ProductionBundle { Wheat = 3 },
-            },
-            new FacilityLevelData // Lv2: 水2消費 → 小麦+4
-            {
-                HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Water = 2 },
-                Output = new ProductionBundle { Wheat = 4 },
-                UpgradeCost = new ResourceCost(wood: 30, water: 50, plank: 10, cutStone: 10),
-                UpgradeAP = 4,
-            },
-            new FacilityLevelData // Lv3: 水2消費 → 小麦+5
+            new FacilityLevelData // Lv1: 水2消費 → 小麦+5（パン屋1軒分の小麦を確保）
             {
                 HP = 100, DEF = 0, ATK = 0,
                 Input  = new ProductionBundle { Water = 2 },
                 Output = new ProductionBundle { Wheat = 5 },
+            },
+            new FacilityLevelData // Lv2: 水2消費 → 小麦+7
+            {
+                HP = 100, DEF = 0, ATK = 0,
+                Input  = new ProductionBundle { Water = 2 },
+                Output = new ProductionBundle { Wheat = 7 },
+                UpgradeCost = new ResourceCost(wood: 30, water: 50, plank: 10, cutStone: 10),
+                UpgradeAP = 4,
+            },
+            new FacilityLevelData // Lv3: 水2消費 → 小麦+10
+            {
+                HP = 100, DEF = 0, ATK = 0,
+                Input  = new ProductionBundle { Water = 2 },
+                Output = new ProductionBundle { Wheat = 10 },
                 UpgradeCost = new ResourceCost(wood: 15, iron: 5, water: 90, plank: 20, cutStone: 20),
                 UpgradeAP = 5,
             },
@@ -207,29 +207,29 @@ public static class FacilityData
         var kind = FacilityKind.Bakery;
         var levels = new FacilityLevelData[]
         {
-            new FacilityLevelData // Lv1: 小麦3+水5 → パン1 & パン+1は20%
+            new FacilityLevelData // Lv1: 小麦3+水3 → パン5 & パン+1は20%（市民5人を維持可能）
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Wheat = 3, Water = 5 },
-                Output = new ProductionBundle { Bread = 1 },
+                Input  = new ProductionBundle { Wheat = 3, Water = 3 },
+                Output = new ProductionBundle { Bread = 5 },
                 BonusOutput1 = new ProductionBundle { Bread = 1 },
                 BonusChance1 = 0.20f,
             },
-            new FacilityLevelData // Lv2: 小麦3+水4 → パン3 & パン+2は20%
+            new FacilityLevelData // Lv2: 小麦3+水3 → パン7 & パン+2は20%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Wheat = 3, Water = 4 },
-                Output = new ProductionBundle { Bread = 3 },
+                Input  = new ProductionBundle { Wheat = 3, Water = 3 },
+                Output = new ProductionBundle { Bread = 7 },
                 BonusOutput1 = new ProductionBundle { Bread = 2 },
                 BonusChance1 = 0.20f,
                 UpgradeCost = new ResourceCost(wood: 50, stone: 35, water: 10, plank: 10),
                 UpgradeAP = 6,
             },
-            new FacilityLevelData // Lv3: 小麦3+水3 → パン5 & パン+2は30%
+            new FacilityLevelData // Lv3: 小麦3+水2 → パン10 & パン+2は30%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Wheat = 3, Water = 3 },
-                Output = new ProductionBundle { Bread = 5 },
+                Input  = new ProductionBundle { Wheat = 3, Water = 2 },
+                Output = new ProductionBundle { Bread = 10 },
                 BonusOutput1 = new ProductionBundle { Bread = 2 },
                 BonusChance1 = 0.30f,
                 UpgradeCost = new ResourceCost(wood: 60, stone: 45, iron: 20, water: 20, plank: 20),
@@ -245,22 +245,22 @@ public static class FacilityData
         var kind = FacilityKind.LoggingCamp;
         var levels = new FacilityLevelData[]
         {
-            new FacilityLevelData // Lv1: 木+6
-            {
-                HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { Wood = 6 },
-            },
-            new FacilityLevelData // Lv2: 木+8
-            {
-                HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { Wood = 8 },
-                UpgradeCost = new ResourceCost(wood: 35, water: 40),
-                UpgradeAP = 5,
-            },
-            new FacilityLevelData // Lv3: 木+10
+            new FacilityLevelData // Lv1: 木+10（クリスタル収入なしを補填、唯一の木材源）
             {
                 HP = 100, DEF = 0, ATK = 0,
                 Output = new ProductionBundle { Wood = 10 },
+            },
+            new FacilityLevelData // Lv2: 木+14
+            {
+                HP = 100, DEF = 0, ATK = 0,
+                Output = new ProductionBundle { Wood = 14 },
+                UpgradeCost = new ResourceCost(wood: 35, water: 40),
+                UpgradeAP = 5,
+            },
+            new FacilityLevelData // Lv3: 木+18
+            {
+                HP = 100, DEF = 0, ATK = 0,
+                Output = new ProductionBundle { Wood = 18 },
                 UpgradeCost = new ResourceCost(wood: 35, iron: 5, water: 60),
                 UpgradeAP = 6,
             },
@@ -274,29 +274,29 @@ public static class FacilityData
         var kind = FacilityKind.LumberMill;
         var levels = new FacilityLevelData[]
         {
-            new FacilityLevelData // Lv1: 木1 → 木板+1 & 木板+1は20%
+            new FacilityLevelData // Lv1: 木3 → 木板+3 & 木板+1は20%（住宅・兵舎に必要な板材を確保）
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Wood = 1 },
-                Output = new ProductionBundle { Plank = 1 },
+                Input  = new ProductionBundle { Wood = 3 },
+                Output = new ProductionBundle { Plank = 3 },
                 BonusOutput1 = new ProductionBundle { Plank = 1 },
                 BonusChance1 = 0.20f,
             },
-            new FacilityLevelData // Lv2: 木2 → 木板+2 & 木板+2は20%
+            new FacilityLevelData // Lv2: 木3 → 木板+4 & 木板+2は20%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Wood = 2 },
-                Output = new ProductionBundle { Plank = 2 },
+                Input  = new ProductionBundle { Wood = 3 },
+                Output = new ProductionBundle { Plank = 4 },
                 BonusOutput1 = new ProductionBundle { Plank = 2 },
                 BonusChance1 = 0.20f,
                 UpgradeCost = new ResourceCost(wood: 20, stone: 20, plank: 10, cutStone: 30),
                 UpgradeAP = 6,
             },
-            new FacilityLevelData // Lv3: 木2 → 木板+3 & 木板+2は30%
+            new FacilityLevelData // Lv3: 木4 → 木板+6 & 木板+2は30%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Wood = 2 },
-                Output = new ProductionBundle { Plank = 3 },
+                Input  = new ProductionBundle { Wood = 4 },
+                Output = new ProductionBundle { Plank = 6 },
                 BonusOutput1 = new ProductionBundle { Plank = 2 },
                 BonusChance1 = 0.30f,
                 UpgradeCost = new ResourceCost(wood: 10, stone: 10, iron: 20, plank: 10, cutStone: 60),
@@ -312,26 +312,26 @@ public static class FacilityData
         var kind = FacilityKind.Quarry;
         var levels = new FacilityLevelData[]
         {
-            new FacilityLevelData // Lv1: 石+6 & 石炭+1確定 & 石炭+1は10%
+            new FacilityLevelData // Lv1: 石+10 & 石炭+2確定 & 石炭+1は10%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { Stone = 6, Coal = 1 },
+                Output = new ProductionBundle { Stone = 10, Coal = 2 },
                 BonusOutput1 = new ProductionBundle { Coal = 1 },
                 BonusChance1 = 0.10f,
             },
-            new FacilityLevelData // Lv2: 石+8 & 石炭+2確定 & 石炭+1は20%
+            new FacilityLevelData // Lv2: 石+14 & 石炭+3確定 & 石炭+1は20%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { Stone = 8, Coal = 2 },
+                Output = new ProductionBundle { Stone = 14, Coal = 3 },
                 BonusOutput1 = new ProductionBundle { Coal = 1 },
                 BonusChance1 = 0.20f,
                 UpgradeCost = new ResourceCost(wood: 20, stone: 20),
                 UpgradeAP = 6,
             },
-            new FacilityLevelData // Lv3: 石+10 & 石炭+2確定 & 石炭+2は20%
+            new FacilityLevelData // Lv3: 石+18 & 石炭+4確定 & 石炭+2は20%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { Stone = 10, Coal = 2 },
+                Output = new ProductionBundle { Stone = 18, Coal = 4 },
                 BonusOutput1 = new ProductionBundle { Coal = 2 },
                 BonusChance1 = 0.20f,
                 UpgradeCost = new ResourceCost(wood: 40, stone: 40, iron: 5, plank: 10, cutStone: 10),
@@ -347,29 +347,29 @@ public static class FacilityData
         var kind = FacilityKind.StoneWorks;
         var levels = new FacilityLevelData[]
         {
-            new FacilityLevelData // Lv1: 石1 → 石材1 & 石材+1は20%
+            new FacilityLevelData // Lv1: 石3 → 石材3 & 石材+1は20%（溶鉱炉・兵舎に必要な切石を確保）
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Stone = 1 },
-                Output = new ProductionBundle { CutStone = 1 },
+                Input  = new ProductionBundle { Stone = 3 },
+                Output = new ProductionBundle { CutStone = 3 },
                 BonusOutput1 = new ProductionBundle { CutStone = 1 },
                 BonusChance1 = 0.20f,
             },
-            new FacilityLevelData // Lv2: 石2 → 石材2 & 石材+2は20%
+            new FacilityLevelData // Lv2: 石4 → 石材4 & 石材+2は20%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Stone = 2 },
-                Output = new ProductionBundle { CutStone = 2 },
+                Input  = new ProductionBundle { Stone = 4 },
+                Output = new ProductionBundle { CutStone = 4 },
                 BonusOutput1 = new ProductionBundle { CutStone = 2 },
                 BonusChance1 = 0.20f,
                 UpgradeCost = new ResourceCost(wood: 20, stone: 20, plank: 30, cutStone: 10),
                 UpgradeAP = 6,
             },
-            new FacilityLevelData // Lv3: 石3 → 石材3 & 石材+2は30%
+            new FacilityLevelData // Lv3: 石4 → 石材6 & 石材+2は30%
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Input  = new ProductionBundle { Stone = 3 },
-                Output = new ProductionBundle { CutStone = 3 },
+                Input  = new ProductionBundle { Stone = 4 },
+                Output = new ProductionBundle { CutStone = 6 },
                 BonusOutput1 = new ProductionBundle { CutStone = 2 },
                 BonusChance1 = 0.30f,
                 UpgradeCost = new ResourceCost(wood: 10, stone: 10, iron: 20, plank: 60, cutStone: 10),
@@ -455,7 +455,7 @@ public static class FacilityData
                 UpgradeAP = 10,
             },
         };
-        Register(kind, "精錬所", 7, new ResourceCost(wood: 20, stone: 30, cutStone: 50, citizen: 1), 3, levels);
+        Register(kind, "精錬所", 7, new ResourceCost(wood: 20, stone: 30, cutStone: 35, citizen: 1), 3, levels);
     }
 
     // ---- 井戸 ----
@@ -464,22 +464,22 @@ public static class FacilityData
         var kind = FacilityKind.Well;
         var levels = new FacilityLevelData[]
         {
-            new FacilityLevelData // Lv1: 水+5
+            new FacilityLevelData // Lv1: 水+8（クリスタル収入なしを補填）
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { Water = 5 },
+                Output = new ProductionBundle { Water = 8 },
             },
-            new FacilityLevelData // Lv2: 水+10
+            new FacilityLevelData // Lv2: 水+12
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { Water = 10 },
+                Output = new ProductionBundle { Water = 12 },
                 UpgradeCost = new ResourceCost(wood: 10, stone: 20, plank: 10, cutStone: 10),
                 UpgradeAP = 4,
             },
-            new FacilityLevelData // Lv3: 水+15
+            new FacilityLevelData // Lv3: 水+16
             {
                 HP = 100, DEF = 0, ATK = 0,
-                Output = new ProductionBundle { Water = 15 },
+                Output = new ProductionBundle { Water = 16 },
                 UpgradeCost = new ResourceCost(stone: 20, iron: 10, plank: 30, cutStone: 30),
                 UpgradeAP = 5,
             },
