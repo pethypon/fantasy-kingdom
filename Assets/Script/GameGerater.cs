@@ -252,7 +252,7 @@ public class GameGenerater : MonoBehaviour
         const int InitWater = 50;
         const int InitPlank = 50;
         const int InitCutStone = 50;
-        const int InitBread = 60;
+        const int InitBread = 100;
         const int InitCitizen = 5;
         const int InitIron = 30;
         const int InitMagicOre = 15;
