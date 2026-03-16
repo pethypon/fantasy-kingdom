@@ -1136,6 +1136,26 @@ public static class AIActionEvaluator
             score += 12f;
             if (skill.GrantBuff == BuffType.Haste)
                 score += 8f; // AP回復は非常に価値が高い
+
+            // 自己バフは敵が視界内にいない場合、大幅に減点（無駄なAP消費を防止）
+            if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
+            {
+                if (board.AlivePlayerUnits.Count == 0)
+                    score -= 30f; // 敵不在時は自己バフの価値を大幅に下げる
+                else
+                {
+                    // 敵がいても遠い場合は減点
+                    float nearestEnemy = float.MaxValue;
+                    foreach (var pu in board.AlivePlayerUnits)
+                    {
+                        if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+                        float d = Vector3.Distance(action.Unit.transform.position, pu.transform.position);
+                        if (d < nearestEnemy) nearestEnemy = d;
+                    }
+                    if (nearestEnemy > 8f)
+                        score -= 15f; // 敵が遠い場合もバフの価値は低い
+                }
+            }
         }
 
         // デバフ付き
@@ -1600,8 +1620,9 @@ public static class AIActionEvaluator
                     // デバフスキル → 戦術性が影響
                     if (action.Skill.InflictDebuff != StatusEffectType.None)
                         bonus += p.TacticsRate * 15f;
-                    // 自己バフ → 慎重性が影響
-                    if (action.Skill.Target == SkillTarget.Self && action.Skill.GrantBuff != BuffType.None)
+                    // 自己バフ → 慎重性が影響（敵が視界内にいる場合のみ）
+                    if (action.Skill.Target == SkillTarget.Self && action.Skill.GrantBuff != BuffType.None
+                        && board.AlivePlayerUnits.Count > 0)
                         bonus += p.CautionRate * 8f;
                     // 範囲スキルで複数ヒット → 戦術性
                     if (action.AreaTargets != null && action.AreaTargets.Count > 1)
@@ -1749,6 +1770,22 @@ public static class AIActionEvaluator
         {
             if (action.ActionType == AIActionType.Summon)
                 bonus += 15f;
+        }
+
+        // 経済逼迫時：敵不在の自己バフスキルにAPを浪費しない
+        if (action.ActionType == AIActionType.SkillUse && action.Skill != null)
+        {
+            float surplus = board.GetEconomicSurplus();
+            // 経済余剰が低い場合、非攻撃スキル（バフ・回復）のスコアを減点
+            if (surplus < 0.3f && action.Skill.Multiplier <= 0 && board.AlivePlayerUnits.Count == 0)
+            {
+                bonus -= 20f; // 経済逼迫 + 敵不在 → スキル使用は無駄
+            }
+            // AP残量が少ない場合、高コストスキルを抑制
+            if (board.EnemyAP <= action.Skill.APCost + 2 && action.Skill.Multiplier <= 0)
+            {
+                bonus -= 10f; // APギリギリで非攻撃スキルは避ける（移動や建築のAPを残す）
+            }
         }
 
         // ================================================================
