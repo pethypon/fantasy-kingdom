@@ -708,9 +708,9 @@ public static class AIActionEvaluator
                     break;
 
                 case TurnStrategy.EconomyBuild:
-                    if (action.ActionType == AIActionType.Build) bonus += 25f; // 建築最優先
+                    if (action.ActionType == AIActionType.Build) bonus += 30f; // 建築にAPを集中
                     if (action.ActionType == AIActionType.SubCrystal) bonus += 15f;
-                    // 経済施設が揃ってきたら召喚も行う
+                    // 経済施設が揃ってきたら召喚も並行
                     if (action.ActionType == AIActionType.Summon)
                     {
                         int econCount = board.GetBuildingCount(FacilityKind.Well)
@@ -718,11 +718,14 @@ public static class AIActionEvaluator
                             + board.GetBuildingCount(FacilityKind.Quarry)
                             + board.GetBuildingCount(FacilityKind.Field)
                             + board.GetBuildingCount(FacilityKind.Mine);
-                        if (econCount >= 3) bonus += 12f; // 基礎施設が揃えば召喚開始
-                        else bonus -= 5f; // まだ経済基盤が弱い → 召喚を控える
+                        if (econCount >= 2) bonus += 10f; // 基礎2つあれば召喚開始
+                        else bonus -= 10f; // まだ経済基盤が弱い → 建築に集中
                     }
-                    if (action.ActionType == AIActionType.Attack) bonus -= 5f;
-                    if (action.ActionType == AIActionType.Move) bonus -= 3f; // 移動より建築
+                    // 経済フェーズ中は移動・攻撃を強く抑制してAPを温存
+                    if (action.ActionType == AIActionType.Attack) bonus -= 10f;
+                    if (action.ActionType == AIActionType.Move) bonus -= 8f;
+                    if (action.ActionType == AIActionType.Surround) bonus -= 8f;
+                    if (action.ActionType == AIActionType.Retreat) bonus -= 5f;
                     break;
 
                 case TurnStrategy.Balanced:
@@ -733,7 +736,7 @@ public static class AIActionEvaluator
                         + board.GetBuildingCount(FacilityKind.Quarry)
                         + board.GetBuildingCount(FacilityKind.Field)
                         + board.GetBuildingCount(FacilityKind.Mine);
-                    bool econEstablished = balEconCount >= 3;
+                    bool econEstablished = balEconCount >= 2;
 
                     if (action.ActionType == AIActionType.Summon)
                         bonus += econEstablished ? 15f : 5f;
@@ -1495,15 +1498,12 @@ public static class AIActionEvaluator
             + board.GetBuildingCount(FacilityKind.Field)
             + board.GetBuildingCount(FacilityKind.Mine);
         if (econCount < 2)
-            score -= 20f; // 施設不足 → 建築を優先すべき
-        else if (econCount < 3)
-            score -= 10f;
+            score -= 15f; // 施設不足 → 建築を優先すべき
 
-        // 加工施設があれば資源が安定しているのでボーナス
+        // 加工施設があれば資源が安定 → 召喚ボーナス
         int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
             + board.GetBuildingCount(FacilityKind.Bakery);
-        if (processingCount >= 1) score += 8f;
-        if (processingCount >= 2) score += 5f;
+        if (processingCount >= 1) score += 10f; // 鉄orパン生産あり → 積極的に召喚
 
         // 自軍駒数が少ないほど召喚価値が上がる
         int allyCount = board.AliveEnemyUnits.Count;

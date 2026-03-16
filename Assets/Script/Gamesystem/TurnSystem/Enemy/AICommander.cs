@@ -145,24 +145,22 @@ public class AICommander
             + board.GetBuildingCount(FacilityKind.Quarry)
             + board.GetBuildingCount(FacilityKind.Field)
             + board.GetBuildingCount(FacilityKind.Mine);
-        bool hasBasicEconomy = econBuildingCount >= 3; // 基礎施設3つ以上で経済基盤ありと判断
+        bool hasBasicEconomy = econBuildingCount >= 2; // 基礎施設2つで最低限の経済基盤
 
-        int processingCount = board.GetBuildingCount(FacilityKind.LumberMill)
-            + board.GetBuildingCount(FacilityKind.StoneWorks)
-            + board.GetBuildingCount(FacilityKind.Smelter)
+        int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
             + board.GetBuildingCount(FacilityKind.Bakery);
-        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 2; // 加工施設もあれば成熟
+        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 1; // 加工施設1つで成熟判定
 
-        // 序盤は経済重視（基礎施設が揃うまで）
+        // 基礎施設が揃うまで経済最優先（目標: T1で基礎4棟一気建て）
         if (!hasBasicEconomy)
             return TurnStrategy.EconomyBuild;
 
-        // 基礎施設は揃ったが加工施設が不足 → まだ経済拡張フェーズ
-        if (!hasMatureEconomy && board.TurnCount <= 12)
+        // 基礎施設は揃ったが加工施設が不足 → 経済拡張を継続
+        if (!hasMatureEconomy && board.TurnCount <= 8)
             return TurnStrategy.EconomyBuild;
 
-        // 経済はあるが軍が少ない → Balanced（建築も召喚も行う）
-        if (board.AliveEnemyUnits.Count <= 3 && board.TurnCount <= 15)
+        // 経済はあるが軍が少ない → Balanced（召喚しながら追加建築も）
+        if (board.AliveEnemyUnits.Count <= 4 && board.TurnCount <= 12)
             return TurnStrategy.Balanced;
 
         // 中盤以降は敵が見えなくても Balanced に移行（攻めの準備）
