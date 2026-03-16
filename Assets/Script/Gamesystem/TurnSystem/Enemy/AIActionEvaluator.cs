@@ -1514,32 +1514,39 @@ public static class AIActionEvaluator
     static float CalcSummonBaseScore(AIAction action, AIBoardState board)
     {
         float score = 30f; // 召喚の基本価値
-        int turn = board.TurnCount;
 
         // ================================================================
-        //  序盤（T1-24）は経済基盤構築を優先し、召喚を大幅に抑制
-        //  T25以降から本格的に駒を生産する
+        //  経済基盤の充実度で召喚の可否を判断
+        //  原料施設（各1pt）+ 加工施設（各2pt）= 基盤スコア
+        //  基盤スコアが足りないほど召喚を抑制し、建築を優先させる
         // ================================================================
-        if (turn < 25)
-        {
-            // 序盤ペナルティ: T1で-80, T24で-4程度（線形に緩和）
-            float earlyPenalty = (25 - turn) * 3.2f;
-            score -= earlyPenalty;
+        int rawCount = 0; // 原料施設の数
+        if (board.GetBuildingCount(FacilityKind.Well) > 0)        rawCount++;
+        if (board.GetBuildingCount(FacilityKind.LoggingCamp) > 0) rawCount++;
+        if (board.GetBuildingCount(FacilityKind.Quarry) > 0)      rawCount++;
+        if (board.GetBuildingCount(FacilityKind.Field) > 0)       rawCount++;
+        if (board.GetBuildingCount(FacilityKind.Mine) > 0)        rawCount++;
 
-            // 経済基盤が全く無い場合はさらにペナルティ
-            int econCount = board.GetBuildingCount(FacilityKind.Well)
-                + board.GetBuildingCount(FacilityKind.LoggingCamp)
-                + board.GetBuildingCount(FacilityKind.Quarry)
-                + board.GetBuildingCount(FacilityKind.Field)
-                + board.GetBuildingCount(FacilityKind.Mine);
-            if (econCount < 3)
-                score -= 30f;
-        }
+        int procCount = 0; // 加工施設の数
+        if (board.GetBuildingCount(FacilityKind.Smelter) > 0)     procCount++;
+        if (board.GetBuildingCount(FacilityKind.Bakery) > 0)      procCount++;
+        if (board.GetBuildingCount(FacilityKind.LumberMill) > 0)  procCount++;
+        if (board.GetBuildingCount(FacilityKind.StoneWorks) > 0)  procCount++;
 
-        // 加工施設があれば資源が安定 → 召喚ボーナス
-        int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
-            + board.GetBuildingCount(FacilityKind.Bakery);
-        if (processingCount >= 1) score += 15f;
+        // 基盤スコア: 原料×1 + 加工×2（最大 5+8=13）
+        float infraScore = rawCount + procCount * 2f;
+
+        // 基盤スコアが5未満（原料施設がほぼ揃っていない）→ 召喚を大幅抑制
+        // 基盤スコア5以上（原料一通り＋加工少し）→ 召喚解禁
+        // 基盤スコア7以上（加工も揃ってきた）→ 召喚を積極推奨
+        if (infraScore < 3f)
+            score -= 80f;  // 基盤なし → ほぼ召喚しない
+        else if (infraScore < 5f)
+            score -= 40f;  // 基盤不足 → 建築優先
+        else if (infraScore < 7f)
+            score += 0f;   // 基盤が整い始めた → 召喚解禁
+        else
+            score += 20f;  // 基盤十分 → 積極的に召喚
 
         // 自軍駒数が少ないほど召喚価値が上がる
         int allyCount = board.AliveEnemyUnits.Count;
@@ -1571,10 +1578,6 @@ public static class AIActionEvaluator
             case Kind.Assassin: score += 6f; break;
             case Kind.Scout:   score += 5f; break;
         }
-
-        // T25以降はターンが進むほど召喚の緊急度が上がる
-        if (turn >= 25)
-            score += (turn - 24) * 3f;
 
         return score;
     }
