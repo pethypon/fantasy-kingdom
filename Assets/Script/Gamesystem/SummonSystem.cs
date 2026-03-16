@@ -221,25 +221,23 @@ public class SummonSystem : MonoBehaviour
 
     // ==================================================================
     //  内部: 設置可否チェック
+    //  SetPosを使って正確な位置判定を行う
     // ==================================================================
     private bool CheckCanPlace(Vector3Int pos)
     {
         if (!IsInTerritory(pos)) return false;
 
-        // クリスタル位置チェック
+        // SetPosに存在するマスかチェック（有効なタイルのみ許可）
+        bool onMap = mapcreate.SetPos.Any(p =>
+            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
+        if (!onMap) return false;
+
+        // クリスタル位置チェック（XZのみで比較）
         Vector3 pcpVec = turngenerater.crystalsystem.PCP;
-        Vector3Int pcp = new Vector3Int(
-            Mathf.RoundToInt(pcpVec.x),
-            Mathf.RoundToInt(pcpVec.y),
-            Mathf.RoundToInt(pcpVec.z));
-        if (pos == pcp) return false;
+        if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
 
         Vector3 ecpVec = turngenerater.crystalsystem.ECP;
-        Vector3Int ecp = new Vector3Int(
-            Mathf.RoundToInt(ecpVec.x),
-            Mathf.RoundToInt(ecpVec.y),
-            Mathf.RoundToInt(ecpVec.z));
-        if (pos == ecp) return false;
+        if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
 
         // 既にユニットがいる場所には不可（UnitPointDataはY=0で管理）
         Vector3 posVec = new Vector3(pos.x, 0f, pos.z);
@@ -250,6 +248,7 @@ public class SummonSystem : MonoBehaviour
 
     // ==================================================================
     //  内部: ユニットの配置
+    //  SetPosから正しいY座標を取得して配置する
     // ==================================================================
     private void PlaceUnit(Vector3Int pos, Kind kind)
     {
@@ -261,7 +260,17 @@ public class SummonSystem : MonoBehaviour
             prefab = mapped;
         }
 
-        Vector3 spawnPos = new Vector3(pos.x, pos.y, pos.z);
+        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1、ユニットは-1で地形上に配置）
+        float spawnY = pos.y;
+        foreach (var sp in mapcreate.SetPos)
+        {
+            if (Mathf.RoundToInt(sp.x) == pos.x && Mathf.RoundToInt(sp.z) == pos.z)
+            {
+                spawnY = sp.y - 1f;
+                break;
+            }
+        }
+        Vector3 spawnPos = new Vector3(pos.x, spawnY, pos.z);
 
         if (prefab != null)
         {
@@ -455,6 +464,7 @@ public class SummonSystem : MonoBehaviour
 
     /// <summary>
     /// AI用: 設置可否チェック（任意チーム対応）
+    /// SetPosを使って正確な位置判定を行う
     /// </summary>
     private bool AICheckCanPlace(Vector3Int pos, Team team)
     {
@@ -464,13 +474,17 @@ public class SummonSystem : MonoBehaviour
             Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
         if (!inTerritory) return false;
 
+        // SetPosに存在するマスかチェック（有効なタイルのみ許可）
+        bool onMap = mapcreate.SetPos.Any(p =>
+            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
+        if (!onMap) return false;
+
+        // クリスタル位置チェック（XZのみで比較）
         Vector3 pcpVec = turngenerater.crystalsystem.PCP;
-        var pcp = new Vector3Int(Mathf.RoundToInt(pcpVec.x), Mathf.RoundToInt(pcpVec.y), Mathf.RoundToInt(pcpVec.z));
-        if (pos == pcp) return false;
+        if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
 
         Vector3 ecpVec = turngenerater.crystalsystem.ECP;
-        var ecp = new Vector3Int(Mathf.RoundToInt(ecpVec.x), Mathf.RoundToInt(ecpVec.y), Mathf.RoundToInt(ecpVec.z));
-        if (pos == ecp) return false;
+        if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
 
         // UnitPointDataはY=0で管理されているため、Y=0で比較する
         Vector3 posVec = new Vector3(pos.x, 0f, pos.z);
@@ -502,6 +516,7 @@ public class SummonSystem : MonoBehaviour
 
     /// <summary>
     /// AI用: ユニット配置（任意チーム対応）
+    /// SetPosから正しいY座標を取得して配置する
     /// </summary>
     private void AIPlaceUnit(Vector3Int pos, Kind kind, Team team)
     {
@@ -512,7 +527,17 @@ public class SummonSystem : MonoBehaviour
         if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
             prefab = mapped;
 
-        Vector3 spawnPos = new Vector3(pos.x, pos.y, pos.z);
+        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1、ユニットは-1で地形上に配置）
+        float spawnY = pos.y;
+        foreach (var sp in mapcreate.SetPos)
+        {
+            if (Mathf.RoundToInt(sp.x) == pos.x && Mathf.RoundToInt(sp.z) == pos.z)
+            {
+                spawnY = sp.y - 1f;
+                break;
+            }
+        }
+        Vector3 spawnPos = new Vector3(pos.x, spawnY, pos.z);
 
         if (prefab != null)
         {
@@ -560,6 +585,7 @@ public class SummonSystem : MonoBehaviour
 
     /// <summary>
     /// AI用: 指定チームの領地内で召喚可能な位置一覧を返す
+    /// SetPosからY座標を取得して正しい高さで返す
     /// </summary>
     public List<Vector3Int> AIGetSummonablePositions(Team team)
     {
@@ -567,9 +593,22 @@ public class SummonSystem : MonoBehaviour
         var territory = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
         if (territory == null) return result;
 
+        // SetPosをXZ→Yのルックアップ用に変換
+        var setposLookup = new Dictionary<(int, int), int>();
+        foreach (var sp in mapcreate.SetPos)
+        {
+            var key = (Mathf.RoundToInt(sp.x), Mathf.RoundToInt(sp.z));
+            if (!setposLookup.ContainsKey(key))
+                setposLookup[key] = Mathf.RoundToInt(sp.y);
+        }
+
         foreach (var p in territory)
         {
-            var pos = new Vector3Int(Mathf.RoundToInt(p.x), Mathf.RoundToInt(p.y), Mathf.RoundToInt(p.z));
+            int px = Mathf.RoundToInt(p.x);
+            int pz = Mathf.RoundToInt(p.z);
+            // SetPosのY座標を使う（マップ上に存在するタイルのみ）
+            if (!setposLookup.TryGetValue((px, pz), out int py)) continue;
+            var pos = new Vector3Int(px, py, pz);
             if (AICheckCanPlace(pos, team))
                 result.Add(pos);
         }
