@@ -105,53 +105,6 @@ public class EconomySystem : MonoBehaviour
         res.Iron    += CrystalIron;
 
         Debug.Log($"[EconomySystem] {team} クリスタル基本収入: 木+{CrystalWood} 石+{CrystalStone} 水+{CrystalWater} 小麦+{CrystalWheat} パン+{CrystalBread} 石炭+{CrystalCoal} 鉄鉱+{CrystalIronOre} 鉄+{CrystalIron}");
-
-        // ================================================================
-        //  デススパイラル防止（AI専用）:
-        //  AIが経済基盤を失った場合にクリスタルが緊急供給する。
-        //  プレイヤーは自分で経済を管理する責任があるため対象外。
-        // ================================================================
-        if (team == Team.Enemy)
-        {
-            bool hasLoggingCamp = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.LoggingCamp) > 0;
-            if (res.Wood <= 0 && !hasLoggingCamp)
-            {
-                const int EmergencyWood = 10;
-                res.Wood += EmergencyWood;
-                Debug.Log($"[EconomySystem] {team} 緊急木材供給: +{EmergencyWood}（伐採所なし＆木材枯渇）");
-            }
-
-            // パンはBakeryのみが生産（FieldはWheatを作るだけ）
-            bool hasBakery = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.Bakery) > 0;
-            if (res.Bread <= 0 && !hasBakery)
-            {
-                const int EmergencyBread = 3;
-                res.Bread += EmergencyBread;
-                Debug.Log($"[EconomySystem] {team} 緊急パン供給: +{EmergencyBread}（Bakeryなし＆パン枯渇）");
-            }
-
-            // ================================================================
-            //  加工資源デススパイラル防止:
-            //  Plank/CutStone が枯渇し、加工施設もない場合に緊急供給
-            //  （加工施設の建設自体にPlank/CutStoneが必要な循環依存を解消）
-            // ================================================================
-            bool hasLumberMill = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.LumberMill) > 0;
-            bool hasStoneWorks = buildSystem != null && buildSystem.GetBuildingCount(team, FacilityKind.StoneWorks) > 0;
-
-            if (res.Plank <= 0 && !hasLumberMill)
-            {
-                const int EmergencyPlank = 5;
-                res.Plank += EmergencyPlank;
-                Debug.Log($"[EconomySystem] {team} 緊急板材供給: +{EmergencyPlank}（製材所なし＆板材枯渇）");
-            }
-
-            if (res.CutStone <= 0 && !hasStoneWorks)
-            {
-                const int EmergencyCutStone = 5;
-                res.CutStone += EmergencyCutStone;
-                Debug.Log($"[EconomySystem] {team} 緊急切石供給: +{EmergencyCutStone}（石工所なし＆切石枯渇）");
-            }
-        }
     }
 
     // ==================================================================
