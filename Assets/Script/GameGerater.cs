@@ -237,17 +237,17 @@ public class GameGenerater : MonoBehaviour
     /// </summary>
     private void InitResources(FactionState.ResourceData res)
     {
-        const int InitWood = 100;
-        const int InitStone = 100;
-        const int InitWater = 50;
-        const int InitPlank = 50;
-        const int InitCutStone = 50;
-        const int InitBread = 60;
+        const int InitWood = 150;
+        const int InitStone = 150;
+        const int InitWater = 100;
+        const int InitPlank = 80;
+        const int InitCutStone = 80;
+        const int InitBread = 100;
         const int InitCitizen = 5;
-        const int InitIron = 20;
-        const int InitMagicOre = 15;
-        const int InitIronOre = 10;
-        const int InitCoal = 10;
+        const int InitIron = 60;
+        const int InitMagicOre = 50;
+        const int InitIronOre = 30;
+        const int InitCoal = 30;
 
         res.Wood = InitWood;
         res.Stone = InitStone;
