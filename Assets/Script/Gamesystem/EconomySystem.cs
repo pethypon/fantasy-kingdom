@@ -266,26 +266,42 @@ public class EconomySystem : MonoBehaviour
     // ==================================================================
     //  3. 市民パン消費（全市民が毎ターンパンを消費。不足分は市民が減少）
     // ==================================================================
+    /// <summary>パン不足が何ターン連続したら市民が減少するか</summary>
+    private const int StarvationGraceTurns = 10;
+
     private void ProcessCitizenBread(Team team, FactionState.ResourceData res)
     {
         if (res.Citizen <= 0) return;
 
+        var nation = factionState.GetNation(team);
         int totalBreadNeeded = res.Citizen * BreadPerCitizen;
 
         if (res.Bread >= totalBreadNeeded)
         {
-            // 全市民を養える
+            // 全市民を養える → 飢餓カウンターをリセット
             res.Bread -= totalBreadNeeded;
+            nation.StarvationCounter = 0;
             Debug.Log($"[EconomySystem] {team} 市民パン消費: {res.Citizen}人×{BreadPerCitizen}パン = {totalBreadNeeded}パン消費  残パン={res.Bread}");
         }
         else
         {
-            // パン不足：養える市民数を計算し、残りは離脱
+            // パン不足：持っているパンは全消費するが、市民減少は猶予期間後
             int fedCitizens = BreadPerCitizen > 0 ? res.Bread / BreadPerCitizen : 0;
-            int starved = res.Citizen - fedCitizens;
-            res.Bread = Mathf.Max(0, res.Bread - fedCitizens * BreadPerCitizen);
-            res.Citizen = fedCitizens;
-            Debug.Log($"[EconomySystem] {team} パン不足: 市民{starved}人離脱 (残{res.Citizen}人)");
+            res.Bread = 0;
+            nation.StarvationCounter++;
+
+            if (nation.StarvationCounter >= StarvationGraceTurns)
+            {
+                // 猶予期間を超えた → 市民が離脱
+                int starved = res.Citizen - fedCitizens;
+                res.Citizen = fedCitizens;
+                Debug.Log($"[EconomySystem] {team} パン不足{nation.StarvationCounter}ターン目: 市民{starved}人離脱 (残{res.Citizen}人)");
+            }
+            else
+            {
+                int turnsLeft = StarvationGraceTurns - nation.StarvationCounter;
+                Debug.Log($"[EconomySystem] {team} パン不足{nation.StarvationCounter}ターン目 (あと{turnsLeft}ターンで市民減少)  市民{res.Citizen}人維持中");
+            }
         }
     }
 
