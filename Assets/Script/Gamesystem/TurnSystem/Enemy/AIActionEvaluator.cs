@@ -1323,9 +1323,20 @@ public static class AIActionEvaluator
             // --- 基礎資源（原料生産） ---
             case FacilityKind.Well:
                 // 水はほぼ全チェーンに必要 → 序盤最優先
-                score += isEarly ? 25f : isMid ? 12f : 5f;
-                // 最初の1棟は特に重要
-                if (board.GetBuildingCount(FacilityKind.Well) == 0) score += 15f;
+                score += isEarly ? 35f : isMid ? 12f : 5f;
+                // 井戸が0棟 → 水の生産手段が無い＝全チェーン停止の危機
+                if (board.GetBuildingCount(FacilityKind.Well) == 0)
+                {
+                    score += 40f; // 最初の1棟は最重要
+                    // 水残量が少ないほどさらに緊急度UP（50以下で効き始める）
+                    if (board.EnemyResources != null)
+                    {
+                        int water = board.EnemyResources.Water;
+                        if (water <= 0)       score += 50f; // 枯渇 → 最優先
+                        else if (water <= 20) score += 30f;
+                        else if (water <= 50) score += 15f;
+                    }
+                }
                 break;
 
             case FacilityKind.LoggingCamp:
@@ -1465,7 +1476,10 @@ public static class AIActionEvaluator
         switch (facility)
         {
             case FacilityKind.Well:
-                bonus += board.GetResourceScarcity("Water") * 20f;
+                bonus += board.GetResourceScarcity("Water") * 30f;
+                // 井戸が無い場合、水が潤沢でも将来の枯渇を見越して加点
+                if (board.GetBuildingCount(FacilityKind.Well) == 0)
+                    bonus += 20f;
                 break;
             case FacilityKind.LoggingCamp:
                 bonus += board.GetResourceScarcity("Wood") * 20f;
@@ -1509,6 +1523,10 @@ public static class AIActionEvaluator
             + board.GetBuildingCount(FacilityKind.Mine);
         if (econCount < 2)
             score -= 15f; // 施設不足 → 建築を優先すべき
+
+        // 井戸が無い序盤は召喚を抑制（水枯渇を防ぐため井戸建築を優先）
+        if (board.GetBuildingCount(FacilityKind.Well) == 0 && board.TurnCount <= 5)
+            score -= 20f;
 
         // 加工施設があれば資源が安定 → 召喚ボーナス
         int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
