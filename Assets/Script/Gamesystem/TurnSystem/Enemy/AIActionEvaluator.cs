@@ -1159,19 +1159,37 @@ public static class AIActionEvaluator
         if (dest.y > unitPos.y)
             score += 2f;
 
-        // Scout偵察ボーナス: 未探索エリアへの移動を高評価
+        // 偵察ボーナス: 未探索エリアへの移動を高評価
+        int newVisionCells = board.EstimateNewVisionCells(dest);
+
         if (action.Unit.kind == Kind.Scout)
         {
-            int newVisionCells = board.EstimateNewVisionCells(dest);
+            // Scout専用: 偵察に特化した強い加点
             if (newVisionCells > 0)
-            {
-                // 新たに見えるマスが多いほど高得点（最大+30）
                 score += Mathf.Min(newVisionCells * 3f, 30f);
-            }
-            // 探索率が低いほど偵察の価値が高い
             float explorationRatio = board.GetExplorationRatio();
             if (explorationRatio < 0.5f)
                 score += (1f - explorationRatio) * 15f;
+        }
+        else if (board.AlivePlayerUnits.Count == 0)
+        {
+            // 敵が見えない時: 全ユニットに探索ドライブを付与
+            // 目的のない移動（ただクリスタルに向かうだけ）を防ぎ、
+            // 未探索エリアへの展開を促す
+            if (newVisionCells > 0)
+                score += Mathf.Min(newVisionCells * 2f, 20f);
+
+            // 探索率が低い場合、前方への展開を強化
+            float explorationRatio = board.GetExplorationRatio();
+            if (explorationRatio < 0.6f)
+                score += (1f - explorationRatio) * 10f;
+
+            // 味方と離れすぎない移動を優先（展開しつつ連携維持）
+            float allyDist = board.GetNearestAllyDist(dest, action.Unit);
+            if (allyDist > 6f)
+                score -= 8f; // 孤立しすぎ
+            else if (allyDist >= 2f && allyDist <= 4f)
+                score += 5f; // 適度な距離感
         }
 
         return score;

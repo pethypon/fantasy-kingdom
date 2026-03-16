@@ -44,6 +44,9 @@ public class AICommander
     // 今ターンの方針（ターン冒頭で決定）
     TurnStrategy _currentStrategy = TurnStrategy.Balanced;
 
+    // 戦略フォールバック用: 既に試した戦略を記録
+    HashSet<TurnStrategy> _triedStrategies = new HashSet<TurnStrategy>();
+
     readonly SkillSystem _skillSystem;
     readonly SubCrystalSystem _subCrystalSystem;
 
@@ -199,6 +202,7 @@ public class AICommander
     public void ExecuteTurn()
     {
         _actedUnits.Clear();
+        _triedStrategies.Clear();
         _turnCount++;
         _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet,
             _crystalSystem, _visionGen, _buildSystem, _summonSystem, _factionState,
@@ -207,16 +211,21 @@ public class AICommander
         // スキルクールダウンを全敵駒で減少
         TickSkillCooldowns();
 
+        // 死亡ユニットの位置履歴を掃除（メモリリーク防止）
+        CleanupDeadUnitHistory();
+
         // BOSS駒の参照を更新
         _personality.UpdateBossReference(_board.AliveEnemyUnits);
 
         // ターン方針を決定
         _currentStrategy = DecideStrategy(_board);
+        _triedStrategies.Add(_currentStrategy);
 
         int maxIterations = 50;
         int iteration = 0;
         int consecutiveFailures = 0;
-        const int maxConsecutiveFailures = 5;
+        const int maxConsecutiveFailures = 8; // 5→8に増加（戦略切替で回復の余地を残す）
+        int strategyFailures = 0; // 現戦略での累積失敗
         int turnMoves = 0, turnAttacks = 0, turnBuilds = 0, turnSummons = 0, turnSkills = 0, turnRetreats = 0;
 
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
@@ -253,6 +262,9 @@ public class AICommander
         // 同種の行動が全位置で失敗する場合に備え、種類単位でもブロック
         var failedActionTypes = new HashSet<string>();
 
+        // AP予算: 建築/召喚が可能なら最低限のAPを予約する
+        int reservedAP = CalcReservedAP();
+
         while (_board.EnemyAP > 0 && iteration < maxIterations)
         {
             iteration++;
@@ -260,10 +272,19 @@ public class AICommander
             _board.Refresh();
             if (_board.EnemyAP <= 0) break;
 
+            // AP予約を再計算（建築/召喚した後は予約を解除）
+            reservedAP = CalcReservedAP();
+
             var actions = AIActionEvaluator.EvaluateAll(_personality, _board, _learning, _currentStrategy);
             if (actions.Count == 0)
             {
-                Debug.Log("[AICommander] 候補行動なし → ターン終了");
+                // 戦略フォールバック: 別の戦略を試す
+                if (TryFallbackStrategy())
+                {
+                    Debug.Log($"[AICommander] 候補行動なし → 戦略を{_currentStrategy}に切替");
+                    continue;
+                }
+                Debug.Log("[AICommander] 候補行動なし＆全戦略試行済み → ターン終了");
                 break;
             }
 
@@ -283,10 +304,21 @@ public class AICommander
             // 振動防止: 直近の位置に戻る移動を減点
             ApplyAntiOscillationPenalty(actions);
 
+            // AP予約: 移動系アクションがAP予約を食い込む場合は減点
+            ApplyAPReservationPenalty(actions, reservedAP);
+
             AIAction bestAction = SelectBestAction(actions, failedActions, failedActionTypes);
             if (bestAction == null || bestAction.ActionType == AIActionType.Wait)
             {
-                Debug.Log("[AICommander] 有効な行動なし → ターン終了");
+                // 戦略フォールバック: 別の戦略を試す
+                if (TryFallbackStrategy())
+                {
+                    Debug.Log($"[AICommander] 有効行動なし → 戦略を{_currentStrategy}に切替");
+                    strategyFailures = 0;
+                    consecutiveFailures = 0;
+                    continue;
+                }
+                Debug.Log("[AICommander] 有効な行動なし＆全戦略試行済み → ターン終了");
                 break;
             }
 
@@ -294,6 +326,7 @@ public class AICommander
             if (!success)
             {
                 consecutiveFailures++;
+                strategyFailures++;
                 // この行動を失敗リストに追加して二度と選ばない
                 string failKey = $"{bestAction.ActionType}_{bestAction.Facility}_{bestAction.SummonKind}_{bestAction.TargetPos}";
                 failedActions.Add(failKey);
@@ -309,6 +342,16 @@ public class AICommander
                     failedActionTypes.Add(typeKey);
                     Debug.Log($"[AICommander] 同種行動2回失敗 → {typeKey} を種類ごとブロック");
                 }
+
+                // 現戦略で3回失敗したら戦略切替を試みる（連続失敗上限に達する前に回復）
+                if (strategyFailures >= 3 && TryFallbackStrategy())
+                {
+                    Debug.Log($"[AICommander] 戦略失敗{strategyFailures}回 → 戦略を{_currentStrategy}に切替");
+                    strategyFailures = 0;
+                    consecutiveFailures = Mathf.Max(0, consecutiveFailures - 2); // 少しリセット
+                    continue;
+                }
+
                 Debug.Log($"[AICommander] 行動実行失敗 ({consecutiveFailures}/{maxConsecutiveFailures}) → 次の候補へ");
                 if (consecutiveFailures >= maxConsecutiveFailures)
                 {
@@ -319,6 +362,7 @@ public class AICommander
             }
 
             consecutiveFailures = 0; // 成功したらリセット
+            strategyFailures = 0;
 
             switch (bestAction.ActionType)
             {
@@ -348,6 +392,114 @@ public class AICommander
                   $"移動{turnMoves} 攻撃{turnAttacks} スキル{turnSkills} 撤退{turnRetreats} 建築{turnBuilds} 召喚{turnSummons}  " +
                   $"残AP={_board.EnemyAP}  " +
                   $"累計(移動{_totalMoves}/攻撃{_totalAttacks}/スキル{_totalSkills}/撤退{_totalRetreats}/建築{_totalBuilds}/召喚{_totalSummons}/撃破{_totalKills}) ---");
+    }
+
+    // ================================================================
+    //  戦略フォールバック: 現戦略が行き詰まった時に別の戦略を試す
+    // ================================================================
+    bool TryFallbackStrategy()
+    {
+        // フォールバック優先順: Balanced → EconomyBuild → Assault → RetreatRegroup
+        TurnStrategy[] fallbackOrder = {
+            TurnStrategy.Balanced,
+            TurnStrategy.EconomyBuild,
+            TurnStrategy.Assault,
+            TurnStrategy.RetreatRegroup,
+            TurnStrategy.CrystalDefense
+        };
+
+        foreach (var strategy in fallbackOrder)
+        {
+            if (_triedStrategies.Contains(strategy)) continue;
+            _currentStrategy = strategy;
+            _triedStrategies.Add(strategy);
+            return true;
+        }
+        return false;
+    }
+
+    // ================================================================
+    //  AP予約計算: 建築/召喚用にAPを確保する
+    //  移動でAPを使い果たして建築/召喚できなくなるのを防ぐ
+    // ================================================================
+    int CalcReservedAP()
+    {
+        if (_board == null) return 0;
+
+        int reserved = 0;
+
+        // 建築可能なら最も安い建築コストを予約
+        if (_board.BuildablePositions.Count > 0 && _board.AffordableBuildings.Count > 0)
+        {
+            int cheapestBuild = int.MaxValue;
+            foreach (var fk in _board.AffordableBuildings)
+            {
+                if (FacilityData.Table.TryGetValue(fk, out var info))
+                    cheapestBuild = Mathf.Min(cheapestBuild, info.APCost);
+            }
+            if (cheapestBuild < int.MaxValue)
+                reserved = Mathf.Max(reserved, cheapestBuild);
+        }
+
+        // 召喚可能なら召喚コストも考慮
+        if (_board.SummonablePositions.Count > 0 && _board.AffordableUnits.Count > 0)
+        {
+            int cheapestSummon = int.MaxValue;
+            foreach (var k in _board.AffordableUnits)
+            {
+                if (UnitStaticData.Table.TryGetValue(k, out var info))
+                    cheapestSummon = Mathf.Min(cheapestSummon, info.CostAP);
+            }
+            if (cheapestSummon < int.MaxValue)
+                reserved = Mathf.Max(reserved, cheapestSummon);
+        }
+
+        return reserved;
+    }
+
+    // ================================================================
+    //  AP予約ペナルティ: 移動系が予約APを食い込む場合に減点
+    // ================================================================
+    void ApplyAPReservationPenalty(List<AIAction> actions, int reservedAP)
+    {
+        if (reservedAP <= 0) return;
+
+        foreach (var action in actions)
+        {
+            // 建築・召喚・サブクリスタルは予約対象なのでペナルティなし
+            if (action.ActionType == AIActionType.Build
+                || action.ActionType == AIActionType.Summon
+                || action.ActionType == AIActionType.SubCrystal)
+                continue;
+
+            // 攻撃は高価値なので軽いペナルティのみ
+            if (action.ActionType == AIActionType.Attack
+                || action.ActionType == AIActionType.SkillUse)
+            {
+                if (_board.EnemyAP - action.APCost < reservedAP)
+                    action.Score -= 5f;
+                continue;
+            }
+
+            // 移動系: AP予約を食い込む場合は減点
+            if (_board.EnemyAP - action.APCost < reservedAP)
+                action.Score -= 15f;
+        }
+    }
+
+    // ================================================================
+    //  死亡ユニットの位置履歴を掃除
+    // ================================================================
+    void CleanupDeadUnitHistory()
+    {
+        var deadUnits = new List<Status>();
+        foreach (var kvp in _unitPositionHistory)
+        {
+            if (kvp.Key == null || !kvp.Key.gameObject.activeInHierarchy || kvp.Key.HP <= 0)
+                deadUnits.Add(kvp.Key);
+        }
+        foreach (var unit in deadUnits)
+            _unitPositionHistory.Remove(unit);
     }
 
     // ================================================================

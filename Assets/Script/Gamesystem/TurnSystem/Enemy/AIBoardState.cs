@@ -413,8 +413,9 @@ public class AIBoardState
     // ================================================================
     List<Status> FilterByEnemyVision(List<Status> allPlayerUnits)
     {
+        // 視界システムが未初期化の場合は「何も見えない」とする（全公開バグ防止）
         if (_visionGen == null || _visionGen.EnemyVisionBox == null)
-            return allPlayerUnits;
+            return new List<Status>();
 
         var visible = new List<Status>();
         foreach (var unit in allPlayerUnits)
@@ -428,7 +429,7 @@ public class AIBoardState
 
     bool IsCellInEnemyVision(Vector3 worldPos)
     {
-        if (_visionGen == null || _visionGen.EnemyVisionBox == null) return true;
+        if (_visionGen == null || _visionGen.EnemyVisionBox == null) return false;
         int x = Mathf.RoundToInt(worldPos.x);
         int z = Mathf.RoundToInt(worldPos.z);
         foreach (var v in _visionGen.EnemyVisionBox)
