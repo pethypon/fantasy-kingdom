@@ -160,7 +160,7 @@ public class AICommander
             return TurnStrategy.EconomyBuild;
 
         // 経済はあるが軍が少ない → Balanced（召喚しながら追加建築も）
-        if (board.AliveEnemyUnits.Count <= 4 && board.TurnCount <= 12)
+        if (board.AliveEnemyUnits.Count <= 6 && board.TurnCount <= 15)
             return TurnStrategy.Balanced;
 
         // 中盤以降は敵が見えなくても Balanced に移行（攻めの準備）
