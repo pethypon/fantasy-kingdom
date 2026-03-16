@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 4539431785829698977}
   - component: {fileID: 8054286868280073943}
   - component: {fileID: -1669808631373501166}
-  - component: {fileID: 1918003626504934199}
   m_Layer: 0
   m_Name: EnemyCrystal
   m_TagString: Untagged
@@ -138,46 +137,12 @@ MonoBehaviour:
   HP: 1
   ATK: 0
   DEF: 0
+  Level: 1
   Fatigue: 0
---- !u!114 &1918003626504934199
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4213766913943781015}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0259f2c660214e847aa1c6c826d48781, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FactionState
-  PlayerAP:
-    Current: 0
-    Reset: 0
-    Plus: 0
-    Minus: 0
-  PlayerResources:
-    Wood: 0
-    Stone: 0
-    Coal: 0
-    IronOre: 0
-    MagicOre: 0
-    Wheat: 0
-    Bread: 0
-    Water: 0
-    Citizen: 0
-  EnemyAP:
-    Current: 15
-    Reset: 15
-    Plus: 0
-    Minus: 0
-  EnemyResources:
-    Wood: 0
-    Stone: 0
-    Coal: 0
-    IronOre: 0
-    MagicOre: 0
-    Wheat: 0
-    Bread: 0
-    Water: 0
-    Citizen: 0
+  ShieldTurns: 0
+  ShieldActivated: 0
+  MaxHP: 0
+  facilityKind: 0
+  ActiveEffects: []
+  AssignedSkillId: -1
+  SkillCooldown: 0

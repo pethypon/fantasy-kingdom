@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 871993450261271467}
   - component: {fileID: 1913244988959553124}
   - component: {fileID: -1569995753660890727}
-  - component: {fileID: 2844151316310340426}
   m_Layer: 0
   m_Name: PlayerCrystal
   m_TagString: Untagged
@@ -138,46 +137,12 @@ MonoBehaviour:
   HP: 30000
   ATK: 0
   DEF: 0
+  Level: 1
   Fatigue: 0
---- !u!114 &2844151316310340426
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5968385221705815995}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0259f2c660214e847aa1c6c826d48781, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FactionState
-  PlayerAP:
-    Current: 15
-    Reset: 15
-    Plus: 0
-    Minus: 0
-  PlayerResources:
-    Wood: 0
-    Stone: 0
-    Coal: 0
-    IronOre: 0
-    MagicOre: 0
-    Wheat: 0
-    Bread: 0
-    Water: 0
-    Citizen: 0
-  EnemyAP:
-    Current: 15
-    Reset: 15
-    Plus: 0
-    Minus: 0
-  EnemyResources:
-    Wood: 0
-    Stone: 0
-    Coal: 0
-    IronOre: 0
-    MagicOre: 0
-    Wheat: 0
-    Bread: 0
-    Water: 0
-    Citizen: 0
+  ShieldTurns: 0
+  ShieldActivated: 0
+  MaxHP: 0
+  facilityKind: 0
+  ActiveEffects: []
+  AssignedSkillId: -1
+  SkillCooldown: 0
