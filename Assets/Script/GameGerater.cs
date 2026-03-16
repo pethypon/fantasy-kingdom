@@ -119,7 +119,7 @@ public class GameGenerater : MonoBehaviour
             if (_EconomySystem == null)
                 _EconomySystem = gameObject.AddComponent<EconomySystem>();
         }
-        _EconomySystem.Init(_BuildSystem, factionState, _UnitSetting);
+        _EconomySystem.Init(_BuildSystem, factionState, _UnitSetting, _CrystalSystem);
         _TurnGenerater.economysystem = _EconomySystem;
 
         // ---- BuildingAttackSystem 初期化 ----
@@ -254,7 +254,7 @@ public class GameGenerater : MonoBehaviour
         const int InitCutStone = 50;
         const int InitBread = 60;
         const int InitCitizen = 5;
-        const int InitIron = 20;
+        const int InitIron = 30;
         const int InitMagicOre = 15;
         const int InitIronOre = 10;
         const int InitCoal = 10;
