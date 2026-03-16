@@ -1515,30 +1515,45 @@ public static class AIActionEvaluator
     {
         float score = 30f; // 召喚の基本価値
 
-        // 経済基盤チェック: 施設なしでは建築を優先
-        int econCount = board.GetBuildingCount(FacilityKind.Well)
-            + board.GetBuildingCount(FacilityKind.LoggingCamp)
-            + board.GetBuildingCount(FacilityKind.Quarry)
-            + board.GetBuildingCount(FacilityKind.Field)
-            + board.GetBuildingCount(FacilityKind.Mine);
-        if (econCount < 2)
-            score -= 15f; // 施設不足 → 建築を優先すべき
+        // ================================================================
+        //  経済基盤の充実度で召喚の可否を判断
+        //  原料施設（各1pt）+ 加工施設（各2pt）= 基盤スコア
+        //  基盤スコアが足りないほど召喚を抑制し、建築を優先させる
+        // ================================================================
+        int rawCount = 0; // 原料施設の数
+        if (board.GetBuildingCount(FacilityKind.Well) > 0)        rawCount++;
+        if (board.GetBuildingCount(FacilityKind.LoggingCamp) > 0) rawCount++;
+        if (board.GetBuildingCount(FacilityKind.Quarry) > 0)      rawCount++;
+        if (board.GetBuildingCount(FacilityKind.Field) > 0)       rawCount++;
+        if (board.GetBuildingCount(FacilityKind.Mine) > 0)        rawCount++;
 
-        // 井戸が無い序盤は召喚を抑制（水枯渇を防ぐため井戸建築を優先）
-        if (board.GetBuildingCount(FacilityKind.Well) == 0 && board.TurnCount <= 5)
-            score -= 20f;
+        int procCount = 0; // 加工施設の数
+        if (board.GetBuildingCount(FacilityKind.Smelter) > 0)     procCount++;
+        if (board.GetBuildingCount(FacilityKind.Bakery) > 0)      procCount++;
+        if (board.GetBuildingCount(FacilityKind.LumberMill) > 0)  procCount++;
+        if (board.GetBuildingCount(FacilityKind.StoneWorks) > 0)  procCount++;
 
-        // 加工施設があれば資源が安定 → 召喚ボーナス
-        int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
-            + board.GetBuildingCount(FacilityKind.Bakery);
-        if (processingCount >= 1) score += 15f; // 鉄orパン生産あり → 積極的に召喚
+        // 基盤スコア: 原料×1 + 加工×2（最大 5+8=13）
+        float infraScore = rawCount + procCount * 2f;
 
-        // 自軍駒数が少ないほど召喚価値が上がる（常に最低5点のボーナス）
+        // 基盤スコアが5未満（原料施設がほぼ揃っていない）→ 召喚を大幅抑制
+        // 基盤スコア5以上（原料一通り＋加工少し）→ 召喚解禁
+        // 基盤スコア7以上（加工も揃ってきた）→ 召喚を積極推奨
+        if (infraScore < 3f)
+            score -= 80f;  // 基盤なし → ほぼ召喚しない
+        else if (infraScore < 5f)
+            score -= 40f;  // 基盤不足 → 建築優先
+        else if (infraScore < 7f)
+            score += 0f;   // 基盤が整い始めた → 召喚解禁
+        else
+            score += 20f;  // 基盤十分 → 積極的に召喚
+
+        // 自軍駒数が少ないほど召喚価値が上がる
         int allyCount = board.AliveEnemyUnits.Count;
-        if (allyCount <= 2) score += 35f;      // 2体以下 → 最優先で増やす
-        else if (allyCount <= 4) score += 25f;  // 4体以下 → まだ増やしたい
+        if (allyCount <= 2) score += 35f;
+        else if (allyCount <= 4) score += 25f;
         else if (allyCount <= 6) score += 15f;
-        else score += 5f;                       // 7体以上でも継続的に補充
+        else score += 5f;
 
         // 前線に近い位置に配置するほど加点
         float dist = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
@@ -1554,19 +1569,15 @@ public static class AIActionEvaluator
                 score += 10f;
         }
 
-        // 戦闘ユニット召喚ボーナス: 安くて戦力になるユニットを優先
+        // 戦闘ユニット召喚ボーナス
         switch (action.SummonKind)
         {
-            case Kind.Knight:  score += 12f; break;  // 最安・主力
-            case Kind.Archer:  score += 10f; break;  // 射程持ち
+            case Kind.Knight:  score += 12f; break;
+            case Kind.Archer:  score += 10f; break;
             case Kind.Magic:   score += 8f; break;
             case Kind.Assassin: score += 6f; break;
             case Kind.Scout:   score += 5f; break;
         }
-
-        // ターンが進むほど召喚の緊急度が上がる
-        if (board.TurnCount > 4)
-            score += (board.TurnCount - 4) * 3f; // T5以降、毎ターン+3
 
         return score;
     }
