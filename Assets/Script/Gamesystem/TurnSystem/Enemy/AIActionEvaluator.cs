@@ -1453,8 +1453,8 @@ public static class AIActionEvaluator
             case FacilityKind.Mine:
                 // 鉱山は鉄・魔法鉱石の唯一の供給源 → 序盤から重要
                 score += isEarly ? 18f : isMid ? 18f : 10f;
-                // 25ターン以降は鉄鉱石・魔法鉱石の需要が急増 → 大幅加点
-                if (turn >= 25) score += 35f;
+                // 20ターン以降は鉄鉱石・魔法鉱石の需要が急増 → 大幅加点
+                if (turn >= 20) score += 55f;
                 if (board.GetBuildingCount(FacilityKind.Mine) == 0) score += 15f;
                 // Iron/MagicOreが枯渇寸前なら緊急加点
                 if (board.EnemyResources != null)
@@ -1467,8 +1467,8 @@ public static class AIActionEvaluator
             // --- 加工施設 ---
             case FacilityKind.LumberMill:
                 score += isEarly ? 8f : isMid ? 18f : 8f;
-                // 25ターン以降は板材の需要が急増 → 大幅加点
-                if (turn >= 25) score += 35f;
+                // 20ターン以降は板材の需要が急増 → 大幅加点
+                if (turn >= 20) score += 55f;
                 // 1棟目の加工施設は重要
                 if (board.GetBuildingCount(FacilityKind.LumberMill) == 0 &&
                     board.GetBuildingCount(FacilityKind.LoggingCamp) > 0) score += 12f;
@@ -1476,8 +1476,8 @@ public static class AIActionEvaluator
 
             case FacilityKind.StoneWorks:
                 score += isEarly ? 8f : isMid ? 18f : 8f;
-                // 25ターン以降は切石の需要が急増 → 大幅加点
-                if (turn >= 25) score += 35f;
+                // 20ターン以降は切石の需要が急増 → 大幅加点
+                if (turn >= 20) score += 55f;
                 if (board.GetBuildingCount(FacilityKind.StoneWorks) == 0 &&
                     board.GetBuildingCount(FacilityKind.Quarry) > 0) score += 12f;
                 break;
@@ -1495,8 +1495,8 @@ public static class AIActionEvaluator
             case FacilityKind.Smelter:
                 // Mineがあれば序盤でも鉄を生産して召喚を可能にする
                 score += isEarly ? 12f : isMid ? 18f : 12f;
-                // 25ターン以降は鉄の需要が急増 → 大幅加点
-                if (turn >= 25) score += 35f;
+                // 20ターン以降は鉄の需要が急増 → 大幅加点
+                if (turn >= 20) score += 55f;
                 if (board.GetBuildingCount(FacilityKind.Smelter) == 0 &&
                     board.GetBuildingCount(FacilityKind.Mine) > 0) score += 15f;
                 // 鉄不足で召喚できない場合は緊急加点
