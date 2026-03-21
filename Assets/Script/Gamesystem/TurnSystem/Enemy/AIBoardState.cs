@@ -46,6 +46,23 @@ public class AIBoardState
     public Dictionary<FacilityKind, int> EnemyBuildingCounts { get; private set; }
     public int TurnCount { get; private set; }
 
+    // ---- 索敵・Last Known Position データ ----
+    // 最後にPlayerユニットを視認した位置とターン (key=ユニットinstanceID)
+    static Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions = new Dictionary<int, LastKnownInfo>();
+    // 最後にPlayerクリスタルを視認した位置とターン
+    static LastKnownInfo _lastKnownPlayerCrystal = new LastKnownInfo { Position = Vector3Int.zero, Turn = -1, Valid = false };
+    // 前ターンでPlayerが見えていたか（初接敵検知用）
+    static bool _hadVisiblePlayersLastTurn = false;
+    // 今ターンで初めてPlayerを視認したか
+    public bool IsFirstContact { get; private set; }
+
+    public struct LastKnownInfo
+    {
+        public Vector3Int Position;
+        public int Turn;
+        public bool Valid;
+    }
+
     public AIBoardState(
         MoveGererater moveGen, AttackPointt attackPoint,
         APSystem apSystem, UnitSetting unitSet,
@@ -98,6 +115,9 @@ public class AIBoardState
         {
             PlayerCrystalHP = -1;
         }
+
+        // 索敵データの更新（Last Known Position）
+        RefreshLastKnownData();
 
         // 建築/召喚情報を更新
         RefreshEconomyData();
@@ -164,6 +184,100 @@ public class AIBoardState
                 }
             }
         }
+    }
+
+    // ---- 索敵データ更新 ----
+    void RefreshLastKnownData()
+    {
+        // 初接敵検知: 前ターンでは見えていなかったのに今ターンで見えた
+        bool hasVisiblePlayers = AlivePlayerUnits.Count > 0;
+        IsFirstContact = hasVisiblePlayers && !_hadVisiblePlayersLastTurn;
+        _hadVisiblePlayersLastTurn = hasVisiblePlayers;
+
+        // 視界内のPlayerユニットの位置を記録
+        foreach (var pu in AlivePlayerUnits)
+        {
+            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+            int id = pu.GetInstanceID();
+            _lastKnownPlayerPositions[id] = new LastKnownInfo
+            {
+                Position = ToCell(pu.transform.position),
+                Turn = TurnCount,
+                Valid = true
+            };
+        }
+
+        // Playerクリスタルを視認したら記録
+        if (PlayerCrystalVisible)
+        {
+            _lastKnownPlayerCrystal = new LastKnownInfo
+            {
+                Position = ToCell(PlayerCrystalPos),
+                Turn = TurnCount,
+                Valid = true
+            };
+        }
+    }
+
+    /// <summary>最後に見たPlayerユニットの位置リスト（信頼度付き: 0=古い 1=新鮮）</summary>
+    public List<(Vector3Int pos, float reliability)> GetLastKnownPlayerPositions()
+    {
+        var result = new List<(Vector3Int, float)>();
+        foreach (var kvp in _lastKnownPlayerPositions)
+        {
+            if (!kvp.Value.Valid) continue;
+            int age = TurnCount - kvp.Value.Turn;
+            float reliability = Mathf.Clamp01(1f - age * 0.15f); // 7ターンで信頼度0
+            if (reliability > 0f)
+                result.Add((kvp.Value.Position, reliability));
+        }
+        return result;
+    }
+
+    /// <summary>Playerクリスタルの最終視認情報（未視認ならValid=false）</summary>
+    public LastKnownInfo GetLastKnownPlayerCrystal() => _lastKnownPlayerCrystal;
+
+    /// <summary>Playerクリスタル座標を「確定目標」として使ってよいか</summary>
+    public bool CanUsePlayerCrystalAsTarget()
+    {
+        return PlayerCrystalVisible;
+    }
+
+    /// <summary>未探索方向の概算ベクトル（自陣クリスタルから見て未探索が多い方向）</summary>
+    public Vector3 GetUnexploredDirection()
+    {
+        if (_visionGen == null || _visionGen.EnemyExploard == null || _moveGen == null)
+            return Vector3.forward;
+
+        Vector3 center = EnemyCrystalPos;
+        Vector3 bestDir = Vector3.zero;
+        float bestScore = 0f;
+
+        // 8方向を調べて最も未探索セルが多い方向を返す
+        Vector3[] dirs = {
+            Vector3.forward, Vector3.back, Vector3.left, Vector3.right,
+            new Vector3(1,0,1).normalized, new Vector3(1,0,-1).normalized,
+            new Vector3(-1,0,1).normalized, new Vector3(-1,0,-1).normalized
+        };
+
+        foreach (var dir in dirs)
+        {
+            int unexplored = 0;
+            for (int step = 2; step <= 8; step += 2)
+            {
+                var checkPos = center + dir * step;
+                var cell = new Vector3Int(Mathf.RoundToInt(checkPos.x), 0, Mathf.RoundToInt(checkPos.z));
+                if (!_visionGen.EnemyExploard.Contains(cell))
+                    unexplored++;
+            }
+            if (unexplored > bestScore)
+            {
+                bestScore = unexplored;
+                bestDir = dir;
+            }
+        }
+
+        return bestDir == Vector3.zero ? Vector3.forward : bestDir;
     }
 
     // ---- 駒の有利度 ----
@@ -506,6 +620,87 @@ public class AIBoardState
             default:
                 return true; // 上流不要
         }
+    }
+
+    /// <summary>
+    /// 生産チェーンの数量不足を判定。
+    /// 「上流施設が1棟あるか」ではなく「需要に対して生産量が足りるか」を判断する。
+    /// 戻り値: 不足施設のFacilityKindリスト（優先度順）
+    /// </summary>
+    public List<FacilityKind> DiagnoseProductionChainDeficit()
+    {
+        var needed = new List<FacilityKind>();
+        if (EnemyResources == null) return needed;
+
+        var res = EnemyResources;
+
+        // パン不足 → 最優先
+        if (res.Bread <= 15)
+        {
+            if (GetBuildingCount(FacilityKind.Bakery) == 0)
+            {
+                // Bakery建設に必要な上流を先にチェック
+                if (GetBuildingCount(FacilityKind.Field) == 0)
+                    needed.Add(FacilityKind.Field);
+                if (GetBuildingCount(FacilityKind.Well) == 0)
+                    needed.Add(FacilityKind.Well);
+                needed.Add(FacilityKind.Bakery);
+            }
+            else
+            {
+                // Bakeryはあるが小麦/水が足りない
+                if (res.Wheat <= 10 && GetBuildingCount(FacilityKind.Field) < 2)
+                    needed.Add(FacilityKind.Field);
+                if (res.Water <= 10 && GetBuildingCount(FacilityKind.Well) < 2)
+                    needed.Add(FacilityKind.Well);
+                // Bakery追加も検討
+                if (res.Wheat > 20 && res.Water > 10 && GetBuildingCount(FacilityKind.Bakery) < 2)
+                    needed.Add(FacilityKind.Bakery);
+            }
+        }
+
+        // 加工材不足 → Plank
+        if (res.Plank <= 10)
+        {
+            if (GetBuildingCount(FacilityKind.LoggingCamp) == 0)
+                needed.Add(FacilityKind.LoggingCamp);
+            if (GetBuildingCount(FacilityKind.LumberMill) == 0 && GetBuildingCount(FacilityKind.LoggingCamp) > 0)
+                needed.Add(FacilityKind.LumberMill);
+        }
+
+        // CutStone不足
+        if (res.CutStone <= 10)
+        {
+            if (GetBuildingCount(FacilityKind.Quarry) == 0)
+                needed.Add(FacilityKind.Quarry);
+            if (GetBuildingCount(FacilityKind.StoneWorks) == 0 && GetBuildingCount(FacilityKind.Quarry) > 0)
+                needed.Add(FacilityKind.StoneWorks);
+        }
+
+        // Iron不足
+        if (res.Iron <= 5)
+        {
+            if (GetBuildingCount(FacilityKind.Mine) == 0)
+                needed.Add(FacilityKind.Mine);
+            if (GetBuildingCount(FacilityKind.Smelter) == 0 && GetBuildingCount(FacilityKind.Mine) > 0)
+                needed.Add(FacilityKind.Smelter);
+        }
+
+        // 市民不足
+        if (res.Citizen <= 1)
+            needed.Add(FacilityKind.House);
+
+        // 基礎資源の基本確保（まだ1棟もない場合）
+        if (GetBuildingCount(FacilityKind.Well) == 0 && !needed.Contains(FacilityKind.Well))
+            needed.Add(FacilityKind.Well);
+        if (GetBuildingCount(FacilityKind.LoggingCamp) == 0 && !needed.Contains(FacilityKind.LoggingCamp))
+            needed.Add(FacilityKind.LoggingCamp);
+        if (GetBuildingCount(FacilityKind.Quarry) == 0 && !needed.Contains(FacilityKind.Quarry))
+            needed.Add(FacilityKind.Quarry);
+        if (GetBuildingCount(FacilityKind.Field) == 0 && !needed.Contains(FacilityKind.Field))
+            needed.Add(FacilityKind.Field);
+
+        return needed;
     }
 
     // ================================================================

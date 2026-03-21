@@ -192,6 +192,18 @@ public class AICommander
         if (board.AliveEnemyUnits.Count <= 6 && board.TurnCount <= 15)
             return TurnStrategy.Balanced;
 
+        // ★ 初接敵: 敵を見つけた直後は交戦開始を優先
+        if (board.IsFirstContact && board.AlivePlayerUnits.Count > 0)
+            return TurnStrategy.ContactEngage;
+
+        // ★ 索敵戦略: 敵が見えず、探索率が低い場合
+        if (board.AlivePlayerUnits.Count == 0 && board.GetExplorationRatio() < 0.6f)
+        {
+            // 経済基盤がある程度あれば索敵に出る
+            if (hasBasicEconomy)
+                return TurnStrategy.ScoutSearch;
+        }
+
         // 中盤以降は敵が見えなくても Balanced に移行（攻めの準備）
         if (board.TurnCount > 10 && board.AlivePlayerUnits.Count == 0)
             return TurnStrategy.Balanced;
@@ -411,9 +423,11 @@ public class AICommander
     // ================================================================
     bool TryFallbackStrategy()
     {
-        // フォールバック優先順: Balanced → EconomyBuild → Assault → RetreatRegroup
+        // フォールバック優先順
         TurnStrategy[] fallbackOrder = {
             TurnStrategy.Balanced,
+            TurnStrategy.ContactEngage,
+            TurnStrategy.ScoutSearch,
             TurnStrategy.EconomyBuild,
             TurnStrategy.Assault,
             TurnStrategy.RetreatRegroup,
@@ -656,7 +670,8 @@ public class AICommander
         string moveType = GetMoveTypeName(action.ActionType);
         Debug.Log($"[AICommander] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={_board.EnemyAP}");
 
-        if (_learning.IsActive)
+        // ★ 学習記録: PlayerCrystalVisible チェック必須
+        if (_learning.IsActive && _board.CanUsePlayerCrystalAsTarget())
         {
             float distBefore = Vector3.Distance(oldPos, _board.PlayerCrystalPos);
             float distAfter = Vector3.Distance(actualDest, _board.PlayerCrystalPos);
