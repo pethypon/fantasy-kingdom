@@ -89,6 +89,13 @@ public class GameGenerater : MonoBehaviour
         _APSystem.Init(factionState);
 
         // ---- BuildSystem 初期化 ----
+        if (_BuildSystem == null)
+        {
+            _BuildSystem = Object.FindFirstObjectByType<BuildSystem>();
+            if (_BuildSystem == null)
+                _BuildSystem = gameObject.AddComponent<BuildSystem>();
+            Debug.LogWarning("[GameGerater] _BuildSystem未設定 → 自動検出/生成");
+        }
         if (_BuildSystem != null)
         {
             _BuildSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,
@@ -101,6 +108,12 @@ public class GameGenerater : MonoBehaviour
         }
 
         // ---- SummonSystem 初期化 ----
+        if (_SummonSystem == null)
+        {
+            _SummonSystem = Object.FindFirstObjectByType<SummonSystem>();
+            if (_SummonSystem != null)
+                Debug.LogWarning("[GameGerater] _SummonSystem未設定 → 自動検出");
+        }
         if (_SummonSystem != null)
         {
             _SummonSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,

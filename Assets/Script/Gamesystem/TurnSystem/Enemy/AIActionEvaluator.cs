@@ -40,6 +40,10 @@ public static class AIActionEvaluator
     const int TurnProductionBoost = 20;
     const float ProductionBoostScore = 55f;
 
+    // --- 30ターン以降の全建築に対する大幅ブースト ---
+    const int TurnLateBuildBoost = 30;
+    const float LateBuildBoostScore = 120f;
+
     // --- 建築の重複ペナルティ係数（count² × この値） ---
     const float DuplicatePenaltyFactor = 15f;
 
@@ -1006,6 +1010,41 @@ public static class AIActionEvaluator
                 }
             }
             action.Score += bonus;
+
+            // ================================================================
+            //  ★★ 30ターン以降: 戦略に関係なく建築を超優先
+            //  経済が未成熟なまま30ターン経過=深刻な問題
+            //  移動アクションを大幅に減点し、建築が確実に選ばれるようにする
+            // ================================================================
+            if (board.TurnCount >= TurnLateBuildBoost)
+            {
+                int coreEcon = CalcCoreEconomyCount(board);
+                bool econWeak = coreEcon < 5;
+
+                if (econWeak)
+                {
+                    // 建築系アクションは大幅加点
+                    if (action.ActionType == AIActionType.Build)
+                        action.Score += 100f;
+                    if (action.ActionType == AIActionType.SubCrystal)
+                        action.Score += 60f;
+
+                    // 移動系アクションは大幅減点（建築にAPを回す）
+                    if (action.ActionType == AIActionType.Move
+                        || action.ActionType == AIActionType.Support
+                        || action.ActionType == AIActionType.Surround)
+                        action.Score -= 50f;
+                    if (action.ActionType == AIActionType.Wait)
+                        action.Score -= 100f;
+                }
+                else
+                {
+                    // 経済は充足しているが、上位施設がない場合は建築推奨
+                    int proc = CalcProcessingFacilityCount(board);
+                    if (proc < 3 && action.ActionType == AIActionType.Build)
+                        action.Score += 50f;
+                }
+            }
         }
     }
 
@@ -1791,6 +1830,47 @@ public static class AIActionEvaluator
             {
                 score += Mathf.Max(5f, 30f - i * 6f);
                 break;
+            }
+        }
+
+        // ================================================================
+        //  ★★ 30ターン以降: 全建築スコアを大幅ブースト
+        //  経済が未成熟なまま30ターン経過 = 建築が全く機能していない
+        //  移動よりも確実に建築が選ばれるように極めて高いスコアを付与
+        // ================================================================
+        if (turn >= TurnLateBuildBoost)
+        {
+            bool isMilitary = FacilityData.IsWall(facility) || FacilityData.IsOffensive(facility);
+
+            // 経済施設はまだ0棟なら最優先
+            if (existingCount == 0 && !isMilitary)
+                score += LateBuildBoostScore + 80f; // +200相当
+            else if (existingCount == 0)
+                score += LateBuildBoostScore;        // 軍事施設も+120
+            else
+                score += LateBuildBoostScore * 0.5f; // 2棟目以降も+60
+
+            // 特に不足している施設への追加ブースト
+            switch (facility)
+            {
+                case FacilityKind.LumberMill:
+                case FacilityKind.StoneWorks:
+                case FacilityKind.Smelter:
+                    if (existingCount == 0) score += 60f;
+                    break;
+                case FacilityKind.Mine:
+                    if (existingCount == 0) score += 50f;
+                    break;
+                case FacilityKind.House:
+                    if (board.EnemyResources != null && board.EnemyResources.Citizen <= 2)
+                        score += 80f;
+                    break;
+                case FacilityKind.Warehouse:
+                    if (existingCount == 0 && turn >= 35) score += 40f;
+                    break;
+                case FacilityKind.Barracks:
+                    if (existingCount == 0 && turn >= 35) score += 50f;
+                    break;
             }
         }
 

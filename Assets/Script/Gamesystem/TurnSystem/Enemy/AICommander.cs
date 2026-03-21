@@ -294,6 +294,19 @@ public class AICommander
         _actedUnits.Clear();
         _triedStrategies.Clear();
         _turnCount++;
+
+        // BuildSystem の遅延取得（SerializeField未設定対策）
+        if (_buildSystem == null)
+        {
+            _buildSystem = _turnGen.buildsystem;
+            if (_buildSystem == null)
+                _buildSystem = Object.FindFirstObjectByType<BuildSystem>();
+            if (_buildSystem != null)
+                Debug.Log("[AICommander] BuildSystem を遅延取得しました");
+            else
+                Debug.LogWarning("[AICommander] BuildSystem が見つかりません — 建築不可");
+        }
+
         _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet,
             _crystalSystem, _visionGen, _buildSystem, _summonSystem, _factionState,
             _subCrystalSystem, _turnCount);
@@ -537,10 +550,13 @@ public class AICommander
         // ================================================================
         //  ★ 建築後手フェーズ: メインループ後にAPが残っていて
         //  まだ1棟も建てていない場合は再度建築を試みる
+        //  30ターン以降は経済充足でも実行（上位施設を建てるため）
         // ================================================================
-        if (turnStats.Builds == 0 && !IsEconomySufficient(_board) && _board.EnemyAP >= 3)
+        bool shouldPostBuild = turnStats.Builds == 0 && _board.EnemyAP >= 3
+            && (!IsEconomySufficient(_board) || _turnCount >= 30);
+        if (shouldPostBuild)
         {
-            Debug.Log("[AI-Build] メインループで建築0棟 & 経済未充足 → 後手建築フェーズ");
+            Debug.Log($"[AI-Build] メインループで建築0棟 → 後手建築フェーズ (ターン{_turnCount})");
             _board.Refresh();
             int lateBuilds = ForceDirectBuild(ref turnStats);
             Debug.Log($"[AI-Build] 後手建築フェーズ: {lateBuilds}棟建築");
@@ -693,22 +709,25 @@ public class AICommander
     // ================================================================
     void TryEarlyBuildPhase(ref TurnStats turnStats)
     {
-        Debug.Log($"[AI-Build] === 先行建築フェーズ開始 === AP={_board.EnemyAP}");
+        Debug.Log($"[AI-Build] === 先行建築フェーズ開始 === AP={_board.EnemyAP} ターン={_turnCount}");
 
-        // 経済が十分に成熟していれば先行建築不要
-        if (IsEconomySufficient(_board))
+        // 30ターン以降は常に建築を試みる（経済充足でも上位施設が必要）
+        bool forceByTurn = _turnCount >= 30;
+
+        // 経済が十分に成熟していれば先行建築不要（30ターン以降は例外）
+        if (IsEconomySufficient(_board) && !forceByTurn)
         {
             Debug.Log("[AI-Build] 経済充足 → 先行建築スキップ");
             return;
         }
 
-        // 戦闘中（クリスタル危機/交戦中）は建築より戦闘優先
-        if (_currentStrategy == TurnStrategy.CrystalDefense)
+        // 戦闘中は建築抑制（ただし30ターン以降は1棟だけ許可）
+        if (_currentStrategy == TurnStrategy.CrystalDefense && !forceByTurn)
         {
             Debug.Log("[AI-Build] クリスタル防衛中 → 先行建築スキップ");
             return;
         }
-        if (_currentStrategy == TurnStrategy.ContactEngage)
+        if (_currentStrategy == TurnStrategy.ContactEngage && !forceByTurn)
         {
             Debug.Log("[AI-Build] 交戦開始中 → 先行建築スキップ");
             return;
@@ -806,28 +825,55 @@ public class AICommander
     /// <summary>
     /// 直接建築フォールバック: スコアリングを完全にバイパスし、
     /// 最も安価な建物を領地内の最初の空き位置に直接配置する。
+    /// try-catch で例外が出ても安全に継続する。
     /// </summary>
     int ForceDirectBuild(ref TurnStats turnStats)
+    {
+        if (_buildSystem == null)
+        {
+            Debug.LogWarning("[AI-ForceBuild] _buildSystem==null → 建築不可");
+            return 0;
+        }
+        if (_factionState == null)
+        {
+            Debug.LogWarning("[AI-ForceBuild] _factionState==null → 建築不可");
+            return 0;
+        }
+
+        try
+        {
+            return ForceDirectBuildInternal(ref turnStats);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[AI-ForceBuild] 例外発生: {e.Message}\n{e.StackTrace}");
+            return 0;
+        }
+    }
+
+    int ForceDirectBuildInternal(ref TurnStats turnStats)
     {
         int built = 0;
 
         // 建てるべき施設を優先順に列挙
         FacilityKind[] buildOrder = {
-            FacilityKind.Well,          // AP=3
-            FacilityKind.LoggingCamp,   // AP=4
-            FacilityKind.Quarry,        // AP=4
-            FacilityKind.Field,         // AP=3 (Well必要)
-            FacilityKind.LumberMill,    // AP=6 (LoggingCamp必要)
-            FacilityKind.StoneWorks,    // AP=6 (Quarry必要)
-            FacilityKind.Bakery,        // AP=5 (Field+Well必要)
-            FacilityKind.Mine,          // AP=7
-            FacilityKind.House,         // AP=7
-            FacilityKind.Smelter,       // AP=7 (Mine必要)
+            FacilityKind.Well,          // AP=3  上流不要
+            FacilityKind.LoggingCamp,   // AP=4  上流不要
+            FacilityKind.Quarry,        // AP=4  上流不要
+            FacilityKind.Field,         // AP=3  Well必要
+            FacilityKind.Mine,          // AP=7  上流不要
+            FacilityKind.House,         // AP=7  上流不要
+            FacilityKind.LumberMill,    // AP=6  LoggingCamp必要
+            FacilityKind.StoneWorks,    // AP=6  Quarry必要
+            FacilityKind.Bakery,        // AP=5  Field+Well必要
+            FacilityKind.Smelter,       // AP=7  Mine必要
+            FacilityKind.Warehouse,     // AP=7  上流不要
+            FacilityKind.Barracks,      // AP=10 上流不要
         };
 
         // 建築可能位置を直接取得
         var positions = _buildSystem.AIGetBuildablePositions(Team.Enemy);
-        Debug.Log($"[AI-ForceBuild] 建築可能位置数={positions.Count}");
+        Debug.Log($"[AI-ForceBuild] 建築可能位置数={positions.Count}  AP={_apSystem.GetAP(Team.Enemy)}");
 
         if (positions.Count == 0)
         {
@@ -835,73 +881,68 @@ public class AICommander
             return 0;
         }
 
+        // 資源状態をログ出力
+        var res = _factionState.EnemyResources;
+        if (res != null)
+        {
+            Debug.Log($"[AI-ForceBuild] 資源: Wood={res.Wood} Stone={res.Stone} Water={res.Water} " +
+                      $"Plank={res.Plank} CutStone={res.CutStone} Iron={res.Iron} " +
+                      $"Bread={res.Bread} Citizen={res.Citizen}");
+        }
+
         foreach (var facility in buildOrder)
         {
-            if (built >= 2) break;
+            if (built >= 3) break; // 最大3棟まで
 
             int currentAP = _apSystem.GetAP(Team.Enemy);
-            if (!FacilityData.Table.TryGetValue(facility, out var info))
-            {
-                Debug.Log($"[AI-ForceBuild] {facility}: FacilityDataテーブルに未登録");
-                continue;
-            }
+            if (currentAP < 3) break; // AP=3未満なら何も建てられない
+
+            if (!FacilityData.Table.TryGetValue(facility, out var info)) continue;
 
             // AP足りるか
-            if (currentAP < info.APCost)
-            {
-                Debug.Log($"[AI-ForceBuild] {facility}: AP不足 (必要={info.APCost} 残={currentAP})");
-                continue;
-            }
+            if (currentAP < info.APCost) continue;
 
-            // 資源足りるか
-            if (!_apSystem.CanBuild(Team.Enemy, facility, _factionState))
-            {
-                Debug.Log($"[AI-ForceBuild] {facility}: 資源不足またはAP不足");
-                continue;
-            }
+            // 資源足りるか（CanBuildはAP+資源の両方をチェック）
+            if (!_apSystem.CanBuild(Team.Enemy, facility, _factionState)) continue;
 
             // 上流施設チェック（加工施設は上流が必要）
-            if (!_board.HasUpstreamProducer(facility))
-            {
-                Debug.Log($"[AI-ForceBuild] {facility}: 上流施設なし");
-                continue;
-            }
+            if (_board != null && !_board.HasUpstreamProducer(facility)) continue;
 
-            // 同種が既にある場合はスキップ（重複防止）
-            int existing = _board.GetBuildingCount(facility);
-            if (existing > 0 && facility != FacilityKind.House)
-            {
-                Debug.Log($"[AI-ForceBuild] {facility}: 既に{existing}棟存在 → スキップ");
-                continue;
-            }
+            // 同種の既存数チェック（初回は上限緩く、ターン30以降は複数OK）
+            int existing = _board != null ? _board.GetBuildingCount(facility) : 0;
+            int maxForForce = _turnCount >= 30 ? 3 : 1;
+            if (facility == FacilityKind.House) maxForForce = 3;
+            if (existing >= maxForForce) continue;
 
-            // 各位置で建築を試みる
+            // 各位置で建築を試みる（最初の1位置だけログ詳細）
             bool placed = false;
-            foreach (var pos in positions)
+            for (int i = 0; i < positions.Count; i++)
             {
-                Debug.Log($"[AI-ForceBuild] {facility} @({pos.x},{pos.y},{pos.z}) 配置試行...");
+                var pos = positions[i];
                 bool success = _buildSystem.AIPlaceBuilding(pos, facility, Team.Enemy);
                 if (success)
                 {
                     built++;
                     turnStats.Record(AIActionType.Build);
-                    _board.Refresh();
-                    Debug.Log($"[AI-ForceBuild] ★★ {facility} 配置成功! 残AP={_apSystem.GetAP(Team.Enemy)}");
+                    if (_board != null) _board.Refresh();
+                    Debug.Log($"[AI-ForceBuild] ★★ {facility} @({pos.x},{pos.y},{pos.z}) 建築成功! " +
+                              $"残AP={_apSystem.GetAP(Team.Enemy)} (今ターン{built}棟目)");
                     placed = true;
-                    // 成功後に位置リストを再取得（配置済み位置を除外するため）
+                    // 成功後に位置リストを再取得
                     positions = _buildSystem.AIGetBuildablePositions(Team.Enemy);
                     break;
-                }
-                else
-                {
-                    Debug.Log($"[AI-ForceBuild] ✗ {facility} @({pos.x},{pos.y},{pos.z}) 配置失敗");
                 }
             }
 
             if (!placed)
             {
-                Debug.LogWarning($"[AI-ForceBuild] {facility}: 全{positions.Count}位置で配置失敗!");
+                Debug.Log($"[AI-ForceBuild] {facility}: 全{positions.Count}位置で失敗");
             }
+        }
+
+        if (built == 0)
+        {
+            Debug.LogWarning("[AI-ForceBuild] 全施設の建築に失敗！ CanBuildまたはAICheckCanPlaceの問題");
         }
 
         return built;
@@ -964,8 +1005,17 @@ public class AICommander
             if (apAfterAction < reservedAP)
             {
                 // 経済未成熟時は非常に強いペナルティ（建築を移動より優先させる）
-                float penalty = econWeak ? 40f : 20f;
+                float penalty = econWeak ? 60f : 20f;
+                // 30ターン以降は更に厳しく
+                if (_turnCount >= 30 && econWeak) penalty = 100f;
                 action.Score -= penalty;
+            }
+
+            // 経済未成熟時: AP予約に関係なく全移動を減点（建築の相対的優位を確保）
+            if (econWeak && _turnCount >= 10)
+            {
+                action.Score -= 15f;
+                if (_turnCount >= 30) action.Score -= 30f;
             }
         }
     }
