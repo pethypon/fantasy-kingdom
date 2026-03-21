@@ -298,7 +298,9 @@ public enum TurnStrategy
     CrystalDefense, // 防衛: クリスタル守備を最優先
     RetreatRegroup, // 再編: 撤退→回復→次ターン反撃の準備
     EconomyBuild,   // 建築: 建設・召喚で基盤を固める
-    Balanced        // 均衡: 特に偏らず局面判断で行動
+    Balanced,       // 均衡: 特に偏らず局面判断で行動
+    ScoutSearch,    // 索敵: 未探索エリアへの偵察・情報収集を優先
+    ContactEngage   // 初接敵: 敵を視認した直後、攻撃・スキル・交戦前進を優先
 }
 
 // =====================================================================

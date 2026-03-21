@@ -592,11 +592,14 @@ public static class AIActionEvaluator
     // 建物タイプに応じた配置位置の選択
     static IEnumerable<Vector3Int> SelectBuildPositions(FacilityKind facility, AIBoardState board)
     {
-        // 防衛建築・攻撃建築 → 前線寄り（プレイヤークリスタル方向）
+        // 防衛建築・攻撃建築 → 前線寄り
         if (FacilityData.IsWall(facility) || FacilityData.IsOffensive(facility))
         {
-            // 自陣クリスタルとプレイヤークリスタルの中間付近
-            Vector3 frontline = Vector3.Lerp(board.EnemyCrystalPos, board.PlayerCrystalPos, 0.35f);
+            // ★ 視界制限: Playerクリスタル未視認時は自陣前方に配置
+            Vector3 targetDir = board.CanUsePlayerCrystalAsTarget()
+                ? board.PlayerCrystalPos
+                : board.EnemyCrystalPos + board.GetUnexploredDirection() * 8f;
+            Vector3 frontline = Vector3.Lerp(board.EnemyCrystalPos, targetDir, 0.35f);
             return board.BuildablePositions
                 .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), frontline))
                 .Take(3);
@@ -635,8 +638,12 @@ public static class AIActionEvaluator
             if (existingOfKind >= maxOfKind) continue;
 
             // 前線に近い位置を優先（最大2つ）
+            // ★ 視界制限: Playerクリスタル未視認時は自陣前方に配置
+            Vector3 summonTarget = board.CanUsePlayerCrystalAsTarget()
+                ? board.PlayerCrystalPos
+                : board.EnemyCrystalPos + board.GetUnexploredDirection() * 8f;
             var positions = board.SummonablePositions
-                .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), board.PlayerCrystalPos))
+                .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), summonTarget))
                 .Take(2);
 
             foreach (var pos in positions)
@@ -814,6 +821,18 @@ public static class AIActionEvaluator
                         bonus += 30f;
                         if (coreCount < 5)
                             bonus += IsMissingCoreFacility(action.Facility, board) ? 40f : -15f;
+
+                        // ★ 生産チェーン逆算: 不足資源を生む施設を強く加点
+                        var deficits = board.DiagnoseProductionChainDeficit();
+                        for (int i = 0; i < deficits.Count; i++)
+                        {
+                            if (deficits[i] == action.Facility)
+                            {
+                                // リスト先頭ほど優先度が高い
+                                bonus += Mathf.Max(5f, 50f - i * 10f);
+                                break;
+                            }
+                        }
                     }
                     if (action.ActionType == AIActionType.SubCrystal) bonus += 15f;
                     if (action.ActionType == AIActionType.Summon)
@@ -843,6 +862,69 @@ public static class AIActionEvaluator
                     if (action.ActionType == AIActionType.SkillUse) bonus += 5f;
                     if (action.ActionType == AIActionType.Move)
                         bonus += GetApproachToEnemy(action, board) * 3f;
+                    break;
+                }
+
+                case TurnStrategy.ScoutSearch:
+                {
+                    // 索敵戦略: 偵察・未探索展開を最優先
+                    if (action.ActionType == AIActionType.Move && action.Unit != null)
+                    {
+                        int newCells = board.EstimateNewVisionCells(action.TargetPos);
+                        if (newCells > 0)
+                            bonus += Mathf.Min(newCells * 4f, 35f);
+
+                        // Scoutは特に強い索敵ボーナス
+                        if (action.Unit.kind == Kind.Scout)
+                            bonus += 20f;
+
+                        // 味方連携維持
+                        float allyDist = GetNearestAllyDist(action.TargetPos, action.Unit, board);
+                        if (allyDist >= 2f && allyDist <= 5f)
+                            bonus += 8f;
+                        else if (allyDist > 7f)
+                            bonus -= 10f;
+                    }
+                    // 索敵中は攻撃・スキルが発生したら優先（見つけた敵を逃さない）
+                    if (action.ActionType == AIActionType.Attack) bonus += 12f;
+                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0) bonus += 10f;
+                    // 建築は控えめに
+                    if (action.ActionType == AIActionType.Build) bonus -= 5f;
+                    // Waitを強く減点
+                    if (action.ActionType == AIActionType.Wait) bonus -= 15f;
+                    break;
+                }
+
+                case TurnStrategy.ContactEngage:
+                {
+                    // 初接敵戦略: 攻撃・スキル・交戦前進を最優先
+                    if (action.ActionType == AIActionType.Attack) bonus += 25f;
+                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null)
+                    {
+                        if (action.Skill.Multiplier > 0)
+                            bonus += 22f; // 攻撃スキル
+                        // 範囲攻撃で複数巻き込み
+                        if (action.AreaTargets != null && action.AreaTargets.Count > 1)
+                            bonus += action.AreaTargets.Count * 8f;
+                    }
+                    if (action.ActionType == AIActionType.Move)
+                    {
+                        // 次ターン攻撃可能になる位置を強く加点
+                        float approach = GetApproachToEnemy(action, board);
+                        bonus += approach * 6f;
+
+                        // 次ターン攻撃圏内に入れる位置を高評価
+                        float nearestEnemy = GetNearestPlayerDist(action.TargetPos, board);
+                        if (nearestEnemy <= 2f)
+                            bonus += 15f;
+                        else if (nearestEnemy <= 3.5f)
+                            bonus += 8f;
+                    }
+                    if (action.ActionType == AIActionType.Surround) bonus += 18f;
+                    // Waitを非常に強く減点
+                    if (action.ActionType == AIActionType.Wait) bonus -= 25f;
+                    if (action.ActionType == AIActionType.Retreat) bonus -= 12f;
+                    if (action.ActionType == AIActionType.Build) bonus -= 10f;
                     break;
                 }
             }
@@ -1182,14 +1264,69 @@ public static class AIActionEvaluator
         Vector3 unitPos = action.Unit.transform.position;
         Vector3 dest = action.TargetPos;
 
-        float distBefore = Vector3.Distance(unitPos, board.PlayerCrystalPos);
-        float distAfter = Vector3.Distance(dest, board.PlayerCrystalPos);
-        float approach = distBefore - distAfter;
-        score += approach * 3f;
+        // ★ 視界制限: Playerクリスタルへの接近加点は視認済みの場合のみ
+        if (board.CanUsePlayerCrystalAsTarget())
+        {
+            float distBefore = Vector3.Distance(unitPos, board.PlayerCrystalPos);
+            float distAfter = Vector3.Distance(dest, board.PlayerCrystalPos);
+            float approach = distBefore - distAfter;
+            score += approach * 3f;
+        }
+        else
+        {
+            // 未視認時: Last Known Position があればそちらへ向かう（信頼度減衰付き）
+            var lkCrystal = board.GetLastKnownPlayerCrystal();
+            if (lkCrystal.Valid)
+            {
+                int age = board.TurnCount - lkCrystal.Turn;
+                float reliability = Mathf.Clamp01(1f - age * 0.15f);
+                if (reliability > 0.1f)
+                {
+                    Vector3 lkPos = new Vector3(lkCrystal.Position.x, 0, lkCrystal.Position.z);
+                    float distBefore = Vector3.Distance(unitPos, lkPos);
+                    float distAfter = Vector3.Distance(dest, lkPos);
+                    float approach = distBefore - distAfter;
+                    score += approach * 1.5f * reliability; // 減衰した加点
+                }
+            }
+            // Last Known Player位置への接近（痕跡情報）
+            var lkPositions = board.GetLastKnownPlayerPositions();
+            foreach (var (pos, reliability) in lkPositions)
+            {
+                Vector3 lkPos = new Vector3(pos.x, 0, pos.z);
+                float distBefore = Vector3.Distance(unitPos, lkPos);
+                float distAfter = Vector3.Distance(dest, lkPos);
+                float approach = distBefore - distAfter;
+                if (approach > 0)
+                    score += approach * 1f * reliability;
+            }
 
+            // 未探索方向への展開ボーナス
+            Vector3 unexploredDir = board.GetUnexploredDirection();
+            float dotProduct = Vector3.Dot((dest - unitPos).normalized, unexploredDir);
+            if (dotProduct > 0.3f)
+                score += dotProduct * 5f;
+        }
+
+        // 視界内の敵に近づく加点（視認済みの敵だけ）
         float nearestPlayerDist = GetNearestPlayerDist(dest, board);
         if (nearestPlayerDist < 3f)
             score += 5f;
+
+        // 次ターン攻撃可能位置を優先（交戦開始時）
+        if (board.AlivePlayerUnits.Count > 0)
+        {
+            // 次ターンに攻撃圏内に入れる位置を高評価
+            foreach (var pu in board.AlivePlayerUnits)
+            {
+                if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+                float dist = Vector3.Distance(dest, pu.transform.position);
+                if (dist <= 2f)
+                    score += 8f; // 攻撃圏内に入れる
+                else if (dist <= 3.5f)
+                    score += 4f; // 次ターンで届く距離
+            }
+        }
 
         if (dest.y > unitPos.y)
             score += 2f;
@@ -1209,8 +1346,6 @@ public static class AIActionEvaluator
         else if (board.AlivePlayerUnits.Count == 0)
         {
             // 敵が見えない時: 全ユニットに探索ドライブを付与
-            // 目的のない移動（ただクリスタルに向かうだけ）を防ぎ、
-            // 未探索エリアへの展開を促す
             if (newVisionCells > 0)
                 score += Mathf.Min(newVisionCells * 2f, 20f);
 
@@ -1391,9 +1526,12 @@ public static class AIActionEvaluator
         float distFromHome = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
         if (distFromHome < 8f) score += 10f;
 
-        // 前線に近い場所は加点
-        float distToEnemy = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
-        score += Mathf.Max(0, 15f - distToEnemy);
+        // ★ 前線に近い場所は加点（視認済みの場合のみ）
+        if (board.CanUsePlayerCrystalAsTarget())
+        {
+            float distToEnemy = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
+            score += Mathf.Max(0, 15f - distToEnemy);
+        }
 
         return score;
     }
@@ -1560,6 +1698,17 @@ public static class AIActionEvaluator
         // 加工施設ボーナス: 原料備蓄過多 & 加工資源不足 → 加工施設を強く推奨
         score += CalcProcessingOverstockBonus(facility, board);
 
+        // ★ 生産チェーン逆算ボーナス: 不足資源から必要施設を診断し加点
+        var chainDeficits = board.DiagnoseProductionChainDeficit();
+        for (int i = 0; i < chainDeficits.Count; i++)
+        {
+            if (chainDeficits[i] == facility)
+            {
+                score += Mathf.Max(5f, 30f - i * 6f);
+                break;
+            }
+        }
+
         return score;
     }
 
@@ -1665,9 +1814,12 @@ public static class AIActionEvaluator
         else if (allyCount <= 6) score += 15f;
         else score += 5f;
 
-        // 前線に近い位置に配置するほど加点
-        float dist = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
-        score += Mathf.Max(0, 15f - dist);
+        // ★ 前線に近い位置に配置するほど加点（視認済みの場合のみ）
+        if (board.CanUsePlayerCrystalAsTarget())
+        {
+            float dist = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
+            score += Mathf.Max(0, 15f - dist);
+        }
 
         // Scout召喚ボーナス: 探索率が低く敵が見えない場合、偵察要員として優先
         if (action.SummonKind == Kind.Scout && board.AlivePlayerUnits.Count == 0)
@@ -2020,6 +2172,43 @@ public static class AIActionEvaluator
         if (action.Unit == null) return 0f;
         Vector3 from = action.Unit.transform.position;
         Vector3 to = action.TargetPos;
+
+        // ★ 視界内の敵がいれば、最寄りの敵への接近度を使う
+        if (board.AlivePlayerUnits.Count > 0)
+        {
+            float bestApproach = 0f;
+            foreach (var pu in board.AlivePlayerUnits)
+            {
+                if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+                float dBefore = Vector3.Distance(from, pu.transform.position);
+                float dAfter = Vector3.Distance(to, pu.transform.position);
+                float a = dBefore - dAfter;
+                if (a > bestApproach) bestApproach = a;
+            }
+            return bestApproach;
+        }
+
+        // ★ Playerクリスタル未視認時は直接接近を使わない
+        if (!board.CanUsePlayerCrystalAsTarget())
+        {
+            // Last Known Position があれば軽い接近評価
+            var lkCrystal = board.GetLastKnownPlayerCrystal();
+            if (lkCrystal.Valid)
+            {
+                int age = board.TurnCount - lkCrystal.Turn;
+                float reliability = Mathf.Clamp01(1f - age * 0.15f);
+                if (reliability > 0.1f)
+                {
+                    Vector3 lkPos = new Vector3(lkCrystal.Position.x, 0, lkCrystal.Position.z);
+                    float dBefore = Vector3.Distance(from, lkPos);
+                    float dAfter = Vector3.Distance(to, lkPos);
+                    return (dBefore - dAfter) * reliability * 0.5f;
+                }
+            }
+            return 0f; // 情報なし = 接近評価なし
+        }
+
+        // Playerクリスタル視認済みの場合のみ従来のロジック
         float distBefore = Vector3.Distance(from, board.PlayerCrystalPos);
         float distAfter = Vector3.Distance(to, board.PlayerCrystalPos);
         return distBefore - distAfter;
