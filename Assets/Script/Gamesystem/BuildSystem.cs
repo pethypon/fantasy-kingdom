@@ -622,10 +622,18 @@ public class BuildSystem : MonoBehaviour
     /// </summary>
     public bool AIPlaceBuilding(Vector3Int pos, FacilityKind facility, Team team)
     {
-        if (!FacilityData.Table.TryGetValue(facility, out var info)) return false;
+        if (!FacilityData.Table.TryGetValue(facility, out var info))
+        {
+            Debug.LogWarning($"[BuildSystem] AIPlaceBuilding失敗: {facility} FacilityDataに未登録");
+            return false;
+        }
 
         // AP・リソースチェック
-        if (!apsystem.CanBuild(team, facility, factionState)) return false;
+        if (!apsystem.CanBuild(team, facility, factionState))
+        {
+            Debug.Log($"[BuildSystem] AIPlaceBuilding失敗: {facility} CanBuild=false (AP={apsystem.GetAP(team)} 必要={info.APCost})");
+            return false;
+        }
 
         // 設置可否チェック（サブクリスタル or 通常建築）
         bool isSubCrystal = FacilityData.IsSubCrystal(facility);
@@ -636,7 +644,11 @@ public class BuildSystem : MonoBehaviour
         }
         else
         {
-            if (!AICheckCanPlace(pos, team)) return false;
+            if (!AICheckCanPlace(pos, team))
+            {
+                Debug.Log($"[BuildSystem] AIPlaceBuilding失敗: {facility} @({pos.x},{pos.y},{pos.z}) AICheckCanPlace=false");
+                return false;
+            }
         }
 
         // AP・リソース消費
@@ -671,21 +683,41 @@ public class BuildSystem : MonoBehaviour
     {
         // 領地チェック（チーム別）
         var territory = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
-        if (territory == null) return false;
+        if (territory == null)
+        {
+            Debug.LogWarning($"[BuildSystem] AICheckCanPlace: territory==null (team={team})");
+            return false;
+        }
         bool inTerritory = territory.Any(p =>
             Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
-        if (!inTerritory) return false;
+        if (!inTerritory)
+        {
+            Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) は領地外 (領地数={territory.Count})");
+            return false;
+        }
 
         // クリスタル位置チェック（XZのみで比較）
         Vector3 pcpVec = turngenerater.crystalsystem.PCP;
-        if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
+        if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z)
+        {
+            Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) はPlayerクリスタル位置");
+            return false;
+        }
 
         Vector3 ecpVec = turngenerater.crystalsystem.ECP;
-        if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
+        if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z)
+        {
+            Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) はEnemyクリスタル位置");
+            return false;
+        }
 
         // 建物位置チェック（XZのみで比較）
         bool hasBuildingXZ = buildingPositions.Any(bp => bp.x == pos.x && bp.z == pos.z);
-        if (hasBuildingXZ) return false;
+        if (hasBuildingXZ)
+        {
+            Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) に既存建物あり");
+            return false;
+        }
 
         return true;
     }
