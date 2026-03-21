@@ -29,8 +29,8 @@ public class AICommander
     readonly UnitSetting _unitSet;
     readonly CrystalSystem _crystalSystem;
     readonly MapCreate _mapCreate;
-    readonly BuildSystem _buildSystem;
-    readonly SummonSystem _summonSystem;
+    BuildSystem _buildSystem;          // readonly 解除: ExecuteTurn() での遅延取得を可能にする
+    SummonSystem _summonSystem;        // readonly 解除: 同上
     readonly FactionState _factionState;
 
     // ---- 新システム ----
@@ -305,6 +305,16 @@ public class AICommander
                 Debug.Log("[AICommander] BuildSystem を遅延取得しました");
             else
                 Debug.LogWarning("[AICommander] BuildSystem が見つかりません — 建築不可");
+        }
+
+        // SummonSystem の遅延取得
+        if (_summonSystem == null)
+        {
+            _summonSystem = _turnGen.summonsystem;
+            if (_summonSystem == null)
+                _summonSystem = Object.FindFirstObjectByType<SummonSystem>();
+            if (_summonSystem != null)
+                Debug.Log("[AICommander] SummonSystem を遅延取得しました");
         }
 
         _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet,
