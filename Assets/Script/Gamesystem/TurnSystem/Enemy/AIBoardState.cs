@@ -642,11 +642,7 @@ public class AIBoardState
 
     /// <summary>
     /// 資源のボトルネック度を返す（0〜1、高いほど不足）。
-    /// AIが「何を建てるべきか」の判断に使用。
-    /// </summary>
-    /// <summary>
-    /// 資源のボトルネック度を返す（0〜1、高いほど不足）。
-    /// 30以下で不足感、0で最大不足。
+    /// AIが「何を建てるべきか」の判断に使用。30以下で不足感、0で最大不足。
     /// </summary>
     public float GetResourceScarcity(string resourceName)
     {
