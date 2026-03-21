@@ -33,6 +33,11 @@ public class AICommander
     readonly SummonSystem _summonSystem;
     readonly FactionState _factionState;
 
+    // ---- 新システム ----
+    readonly AIRoleAssigner _roleAssigner;
+    readonly AIThreatLevel _threatLevel;
+    readonly AIDeterministicRandom _rng;
+
     AIBoardState _board;
 
     // 1ターン内で既に行動した駒を追跡
@@ -88,7 +93,8 @@ public class AICommander
         MapCreate mapCreate, MajorPersonality major,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
         FactionState factionState = null, SkillSystem skillSystem = null,
-        SubCrystalSystem subCrystalSystem = null)
+        SubCrystalSystem subCrystalSystem = null,
+        int initialThreatLevel = 1, int randomSeed = -1)
     {
         _turnGen = turnGen;
         _moveGen = moveGen;
@@ -108,9 +114,14 @@ public class AICommander
         _personality = new AIPersonality(major);
         _learning = new AILearning(major == MajorPersonality.Growth);
 
+        // 新システム初期化
+        _roleAssigner = new AIRoleAssigner();
+        _threatLevel = new AIThreatLevel(initialThreatLevel);
+        _rng = new AIDeterministicRandom(randomSeed >= 0 ? randomSeed : System.Environment.TickCount);
+
         Debug.Log("=== [AICommander] ==============================");
         Debug.Log($"[AICommander] 初期化完了");
-        Debug.Log($"[AICommander] 大きい性格 = {major}");
+        Debug.Log($"[AICommander] 大きい性格 = {major}  脅威度={_threatLevel.Level} ({_threatLevel.GetStageName()})");
         Debug.Log($"[AICommander] 慎重性={_personality.Traits.Caution}  " +
                   $"指揮性={_personality.Traits.Command}  " +
                   $"執着性={_personality.Traits.Obsession}");
@@ -121,12 +132,17 @@ public class AICommander
                   $"学習={(_learning.IsActive ? "有効" : "無効")}  " +
                   $"建築={(_buildSystem != null ? "有効" : "無効")}  " +
                   $"召喚={(_summonSystem != null ? "有効" : "無効")}");
+        Debug.Log($"[AICommander] 探索={(_threatLevel.UseSearchEngine ? $"有効(深さ{_threatLevel.SearchDepth})" : "無効")}  " +
+                  $"ロール={(_threatLevel.UseRoleAssignment ? "有効" : "無効")}  " +
+                  $"学習率={_threatLevel.LearningRate:F1}  シード={_rng.Seed}");
         Debug.Log("=== [AICommander] ==============================");
     }
 
     public AIPersonality Personality => _personality;
     public AILearning Learning => _learning;
     public TurnStrategy CurrentStrategy => _currentStrategy;
+    public AIThreatLevel ThreatLevel => _threatLevel;
+    public AIRoleAssigner RoleAssigner => _roleAssigner;
 
     /// <summary>原料生産施設(Well,LoggingCamp,Quarry,Field,Mine)の合計棟数</summary>
     static int CountEconBuildings(AIBoardState board)
@@ -259,6 +275,15 @@ public class AICommander
         _currentStrategy = DecideStrategy(_board);
         _triedStrategies.Add(_currentStrategy);
 
+        // 決定論的乱数のターンシード設定
+        _rng.SetTurnSeed(_turnCount);
+
+        // ロール割当（脅威度が通常知能以上で有効）
+        if (_threatLevel.UseRoleAssignment)
+        {
+            _roleAssigner.AssignRoles(_board, _currentStrategy, _personality);
+        }
+
         int maxIterations = 50;
         int iteration = 0;
         int consecutiveFailures = 0;
@@ -270,7 +295,8 @@ public class AICommander
         Debug.Log($"[AICommander] 方針={_currentStrategy}  AP={_board.EnemyAP}  " +
                   $"自軍駒数={_board.AliveEnemyUnits.Count}  " +
                   $"視界内敵駒数={_board.AlivePlayerUnits.Count}  " +
-                  $"BOSS={(_personality.HasBoss ? _personality.BossUnit.kind.ToString() : "なし")}");
+                  $"BOSS={(_personality.HasBoss ? _personality.BossUnit.kind.ToString() : "なし")}  " +
+                  $"脅威度={_threatLevel.Level}({_threatLevel.GetStageName()})");
         Debug.Log($"[AICommander] 建築可能位置={_board.BuildablePositions.Count}  " +
                   $"召喚可能位置={_board.SummonablePositions.Count}  " +
                   $"購入可能建物={_board.AffordableBuildings.Count}  " +
@@ -326,6 +352,54 @@ public class AICommander
                 break;
             }
 
+            // ---- 脅威度ボーナス適用 ----
+            foreach (var action in actions)
+            {
+                action.Score += _threatLevel.GetThreatBonus(action, _board);
+            }
+
+            // ---- ロールボーナス適用（脅威度が通常知能以上で有効） ----
+            if (_threatLevel.UseRoleAssignment)
+            {
+                foreach (var action in actions)
+                {
+                    if (action.Unit != null)
+                        action.Score += _roleAssigner.GetRoleBonus(action.Unit, action, _board);
+                }
+            }
+
+            // ---- 3手先探索（脅威度が探索導入以上で有効） ----
+            if (_threatLevel.UseSearchEngine)
+            {
+                // スコア降順ソートして上位候補を抽出
+                actions.Sort((a, b) => b.Score.CompareTo(a.Score));
+                int candidateLimit = _threatLevel.SearchCandidateLimit;
+                var topCandidates = new List<AIAction>();
+                for (int i = 0; i < Mathf.Min(candidateLimit, actions.Count); i++)
+                {
+                    if (actions[i].ActionType != AIActionType.Wait)
+                        topCandidates.Add(actions[i]);
+                }
+
+                if (topCandidates.Count > 0)
+                {
+                    var searchEngine = new AISearchEngine(
+                        _threatLevel.SearchDepth,
+                        candidateLimit,
+                        _rng);
+                    var lookaheadScores = searchEngine.EvaluateWithLookahead(
+                        topCandidates, _board, _personality, _learning);
+
+                    foreach (var kvp in lookaheadScores)
+                    {
+                        kvp.Key.Score += kvp.Value;
+                    }
+                }
+            }
+
+            // 再ソート（ボーナス適用後）
+            actions.Sort((a, b) => b.Score.CompareTo(a.Score));
+
             int logCount = Mathf.Min(3, actions.Count);
             for (int i = 0; i < logCount; i++)
             {
@@ -335,7 +409,9 @@ public class AICommander
                     : a.ActionType == AIActionType.SkillUse ? $"({a.Unit?.kind}'{a.Skill?.Name}')"
                     : a.Unit != null ? $"({a.Unit.kind})" : "";
                 string targetInfo = a.TargetUnit != null ? $"→{a.TargetUnit.kind}" : "";
-                Debug.Log($"[AICommander] 候補{i + 1}: {a.ActionType}{info}{targetInfo}  " +
+                string roleInfo = (_threatLevel.UseRoleAssignment && a.Unit != null)
+                    ? $" role={_roleAssigner.GetRole(a.Unit)}" : "";
+                Debug.Log($"[AICommander] 候補{i + 1}: {a.ActionType}{info}{targetInfo}{roleInfo}  " +
                           $"score={a.Score:F1}  AP={a.APCost}");
             }
 
@@ -415,7 +491,17 @@ public class AICommander
         _totalStats.Builds += turnStats.Builds;
         _totalStats.Summons += turnStats.Summons;
         Debug.Log($"--- [AICommander] ターン{_turnCount}終了: {turnStats}  " +
-                  $"残AP={_board.EnemyAP}  累計({_totalStats}/撃破{_totalKills}) ---");
+                  $"残AP={_board.EnemyAP}  累計({_totalStats}/撃破{_totalKills})  " +
+                  $"脅威度={_threatLevel.Level}({_threatLevel.GetStageName()}) ---");
+    }
+
+    /// <summary>
+    /// 試合終了時に結果を記録（脅威度の進行と学習）。
+    /// Player勝利時のみ脅威度が上がり、学習データが蓄積される。
+    /// </summary>
+    public void RecordMatchResult(bool playerWon, MatchAnalysis analysis)
+    {
+        _threatLevel.RecordMatchResult(playerWon, analysis);
     }
 
     // ================================================================
@@ -439,6 +525,11 @@ public class AICommander
             if (_triedStrategies.Contains(strategy)) continue;
             _currentStrategy = strategy;
             _triedStrategies.Add(strategy);
+
+            // 戦略変更時にロール再割当
+            if (_threatLevel.UseRoleAssignment)
+                _roleAssigner.AssignRoles(_board, _currentStrategy, _personality);
+
             return true;
         }
         return false;
