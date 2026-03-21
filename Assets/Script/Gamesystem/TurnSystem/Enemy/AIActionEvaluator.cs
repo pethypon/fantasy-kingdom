@@ -572,23 +572,38 @@ public static class AIActionEvaluator
             return;
         }
 
+        int candidatesBefore = results.Count;
+
         foreach (var facility in board.AffordableBuildings)
         {
             // サブクリスタルは GenerateSubCrystalCandidates で扱うので除外
             if (FacilityData.IsSubCrystal(facility)) continue;
 
-            if (!FacilityData.Table.TryGetValue(facility, out var info)) continue;
+            if (!FacilityData.Table.TryGetValue(facility, out var info))
+            {
+                Debug.Log($"[AI Build] {facility}: FacilityData未登録 → スキップ");
+                continue;
+            }
 
             // 同種建物の上限チェック（無駄な重複を防ぐ）
             int existing = board.GetBuildingCount(facility);
             int maxAllowed = GetMaxBuildingCount(facility);
-            if (existing >= maxAllowed) continue;
+            if (existing >= maxAllowed)
+            {
+                Debug.Log($"[AI Build] {facility}: 上限到達({existing}/{maxAllowed}) → スキップ");
+                continue;
+            }
 
             // 加工施設は上流の生産施設がないと無意味 → 候補から除外
-            if (!board.HasUpstreamProducer(facility)) continue;
+            if (!board.HasUpstreamProducer(facility))
+            {
+                Debug.Log($"[AI Build] {facility}: 上流施設なし → スキップ");
+                continue;
+            }
 
             // 建物タイプに応じて最適な配置位置を選択
             var positions = SelectBuildPositions(facility, board);
+            int posCount = 0;
 
             foreach (var pos in positions)
             {
@@ -599,8 +614,13 @@ public static class AIActionEvaluator
                     TargetPos = new Vector3(pos.x, pos.y, pos.z),
                     APCost = info.APCost
                 });
+                posCount++;
             }
+            Debug.Log($"[AI Build] {facility}: AP={info.APCost} 候補{posCount}位置 既存={existing}");
         }
+
+        int totalNew = results.Count - candidatesBefore;
+        Debug.Log($"[AI Build] 建築候補合計: {totalNew}件 (建築可能位置={board.BuildablePositions.Count} 購入可能={board.AffordableBuildings.Count})");
     }
 
     static int GetMaxBuildingCount(FacilityKind facility)

@@ -534,6 +534,18 @@ public class AICommander
                 _actedUnits.Add(bestAction.Unit);
         }
 
+        // ================================================================
+        //  ★ 建築後手フェーズ: メインループ後にAPが残っていて
+        //  まだ1棟も建てていない場合は再度建築を試みる
+        // ================================================================
+        if (turnStats.Builds == 0 && !IsEconomySufficient(_board) && _board.EnemyAP >= 3)
+        {
+            Debug.Log("[AI-Build] メインループで建築0棟 & 経済未充足 → 後手建築フェーズ");
+            _board.Refresh();
+            int lateBuilds = ForceDirectBuild(ref turnStats);
+            Debug.Log($"[AI-Build] 後手建築フェーズ: {lateBuilds}棟建築");
+        }
+
         _totalStats.Moves += turnStats.Moves;
         _totalStats.Attacks += turnStats.Attacks;
         _totalStats.Skills += turnStats.Skills;
@@ -681,66 +693,218 @@ public class AICommander
     // ================================================================
     void TryEarlyBuildPhase(ref TurnStats turnStats)
     {
-        // 経済が十分に成熟していれば先行建築不要
-        if (IsEconomySufficient(_board)) return;
+        Debug.Log($"[AI-Build] === 先行建築フェーズ開始 === AP={_board.EnemyAP}");
 
-        // 建築可能条件チェック
-        if (_board.BuildablePositions.Count == 0 || _board.AffordableBuildings.Count == 0) return;
+        // 経済が十分に成熟していれば先行建築不要
+        if (IsEconomySufficient(_board))
+        {
+            Debug.Log("[AI-Build] 経済充足 → 先行建築スキップ");
+            return;
+        }
 
         // 戦闘中（クリスタル危機/交戦中）は建築より戦闘優先
-        if (_currentStrategy == TurnStrategy.CrystalDefense) return;
-        if (_currentStrategy == TurnStrategy.ContactEngage) return;
-
-        // 建築候補のみを生成・評価
-        var buildActions = new List<AIAction>();
-        AIActionEvaluator.GenerateBuildCandidatesPublic(_board, buildActions);
-        AIActionEvaluator.GenerateSubCrystalCandidatesPublic(_board, buildActions);
-
-        if (buildActions.Count == 0) return;
-
-        // スコア付け
-        foreach (var action in buildActions)
+        if (_currentStrategy == TurnStrategy.CrystalDefense)
         {
-            action.Score = AIActionEvaluator.CalcBuildScorePublic(action, _personality, _board, _learning);
+            Debug.Log("[AI-Build] クリスタル防衛中 → 先行建築スキップ");
+            return;
+        }
+        if (_currentStrategy == TurnStrategy.ContactEngage)
+        {
+            Debug.Log("[AI-Build] 交戦開始中 → 先行建築スキップ");
+            return;
         }
 
-        // 戦略ボーナス適用
-        foreach (var action in buildActions)
-        {
-            if (_currentStrategy == TurnStrategy.EconomyBuild)
-            {
-                action.Score += 30f; // EconomyBuild基本ボーナス
-                if (IsMissingCoreFacility(action.Facility))
-                    action.Score += 40f;
-            }
-            else if (_currentStrategy == TurnStrategy.Balanced)
-            {
-                action.Score += 15f; // Balancedでも建築推奨
-            }
-        }
+        Debug.Log($"[AI-Build] BuildablePositions={_board.BuildablePositions.Count}  " +
+                  $"AffordableBuildings={_board.AffordableBuildings.Count}  " +
+                  $"({string.Join(",", _board.AffordableBuildings)})");
 
-        // スコア降順ソート
-        buildActions.Sort((a, b) => b.Score.CompareTo(a.Score));
-
-        // 最大2回まで建築を試みる（連続失敗したら止める）
+        // 建築可能条件チェック → スコア評価パスを試行
         int earlyBuilds = 0;
         const int maxEarlyBuilds = 2;
 
-        foreach (var action in buildActions)
+        if (_board.BuildablePositions.Count > 0 && _board.AffordableBuildings.Count > 0)
         {
-            if (earlyBuilds >= maxEarlyBuilds) break;
-            if (action.APCost > _board.EnemyAP) continue;
-            if (action.Score <= 20f) continue; // 最低スコア閾値
+            // 建築候補のみを生成・評価
+            var buildActions = new List<AIAction>();
+            AIActionEvaluator.GenerateBuildCandidatesPublic(_board, buildActions);
+            AIActionEvaluator.GenerateSubCrystalCandidatesPublic(_board, buildActions);
 
-            bool success = ExecuteAction(action);
-            if (success)
+            Debug.Log($"[AI-Build] 生成された建築候補数={buildActions.Count}");
+
+            if (buildActions.Count > 0)
             {
-                earlyBuilds++;
-                turnStats.Record(action.ActionType);
-                _board.Refresh();
-                Debug.Log($"[AICommander] ★先行建築{earlyBuilds}: {action.Facility} score={action.Score:F1}");
+                // スコア付け
+                foreach (var action in buildActions)
+                {
+                    action.Score = AIActionEvaluator.CalcBuildScorePublic(action, _personality, _board, _learning);
+                }
+
+                // 戦略ボーナス適用
+                foreach (var action in buildActions)
+                {
+                    if (_currentStrategy == TurnStrategy.EconomyBuild)
+                    {
+                        action.Score += 30f;
+                        if (IsMissingCoreFacility(action.Facility))
+                            action.Score += 40f;
+                    }
+                    else if (_currentStrategy == TurnStrategy.Balanced)
+                    {
+                        action.Score += 15f;
+                    }
+                }
+
+                // スコア降順ソート
+                buildActions.Sort((a, b) => b.Score.CompareTo(a.Score));
+
+                // 上位3つをログ出力
+                for (int i = 0; i < Mathf.Min(3, buildActions.Count); i++)
+                {
+                    var ba = buildActions[i];
+                    Debug.Log($"[AI-Build] 候補{i+1}: {ba.Facility} score={ba.Score:F1} AP={ba.APCost} pos={ba.TargetPos}");
+                }
+
+                foreach (var action in buildActions)
+                {
+                    if (earlyBuilds >= maxEarlyBuilds) break;
+                    if (action.APCost > _board.EnemyAP)
+                    {
+                        Debug.Log($"[AI-Build] AP不足でスキップ: {action.Facility} APコスト={action.APCost} 残AP={_board.EnemyAP}");
+                        continue;
+                    }
+
+                    Debug.Log($"[AI-Build] 建築試行: {action.Facility} @{action.TargetPos} score={action.Score:F1}");
+                    bool success = ExecuteAction(action);
+                    if (success)
+                    {
+                        earlyBuilds++;
+                        turnStats.Record(action.ActionType);
+                        _board.Refresh();
+                        Debug.Log($"[AI-Build] ★先行建築{earlyBuilds}成功: {action.Facility} 残AP={_board.EnemyAP}");
+                    }
+                    else
+                    {
+                        Debug.Log($"[AI-Build] ✗先行建築失敗: {action.Facility} @{action.TargetPos}");
+                    }
+                }
             }
         }
+
+        // ================================================================
+        //  直接建築フォールバック: スコアパイプラインが0棟しか建てられなかった場合
+        //  BuildSystem.AIPlaceBuilding を直接呼び出して確実に建てる
+        // ================================================================
+        if (earlyBuilds == 0 && _buildSystem != null && _board.EnemyAP >= 3)
+        {
+            Debug.Log("[AI-Build] スコアパスで建築0棟 → 直接建築フォールバック開始");
+            earlyBuilds += ForceDirectBuild(ref turnStats);
+        }
+
+        Debug.Log($"[AI-Build] === 先行建築フェーズ終了: {earlyBuilds}棟建築  残AP={_board.EnemyAP} ===");
+    }
+
+    /// <summary>
+    /// 直接建築フォールバック: スコアリングを完全にバイパスし、
+    /// 最も安価な建物を領地内の最初の空き位置に直接配置する。
+    /// </summary>
+    int ForceDirectBuild(ref TurnStats turnStats)
+    {
+        int built = 0;
+
+        // 建てるべき施設を優先順に列挙
+        FacilityKind[] buildOrder = {
+            FacilityKind.Well,          // AP=3
+            FacilityKind.LoggingCamp,   // AP=4
+            FacilityKind.Quarry,        // AP=4
+            FacilityKind.Field,         // AP=3 (Well必要)
+            FacilityKind.LumberMill,    // AP=6 (LoggingCamp必要)
+            FacilityKind.StoneWorks,    // AP=6 (Quarry必要)
+            FacilityKind.Bakery,        // AP=5 (Field+Well必要)
+            FacilityKind.Mine,          // AP=7
+            FacilityKind.House,         // AP=7
+            FacilityKind.Smelter,       // AP=7 (Mine必要)
+        };
+
+        // 建築可能位置を直接取得
+        var positions = _buildSystem.AIGetBuildablePositions(Team.Enemy);
+        Debug.Log($"[AI-ForceBuild] 建築可能位置数={positions.Count}");
+
+        if (positions.Count == 0)
+        {
+            Debug.LogWarning("[AI-ForceBuild] 建築可能位置がゼロ！ 領地が存在しないか全て埋まっている");
+            return 0;
+        }
+
+        foreach (var facility in buildOrder)
+        {
+            if (built >= 2) break;
+
+            int currentAP = _apSystem.GetAP(Team.Enemy);
+            if (!FacilityData.Table.TryGetValue(facility, out var info))
+            {
+                Debug.Log($"[AI-ForceBuild] {facility}: FacilityDataテーブルに未登録");
+                continue;
+            }
+
+            // AP足りるか
+            if (currentAP < info.APCost)
+            {
+                Debug.Log($"[AI-ForceBuild] {facility}: AP不足 (必要={info.APCost} 残={currentAP})");
+                continue;
+            }
+
+            // 資源足りるか
+            if (!_apSystem.CanBuild(Team.Enemy, facility, _factionState))
+            {
+                Debug.Log($"[AI-ForceBuild] {facility}: 資源不足またはAP不足");
+                continue;
+            }
+
+            // 上流施設チェック（加工施設は上流が必要）
+            if (!_board.HasUpstreamProducer(facility))
+            {
+                Debug.Log($"[AI-ForceBuild] {facility}: 上流施設なし");
+                continue;
+            }
+
+            // 同種が既にある場合はスキップ（重複防止）
+            int existing = _board.GetBuildingCount(facility);
+            if (existing > 0 && facility != FacilityKind.House)
+            {
+                Debug.Log($"[AI-ForceBuild] {facility}: 既に{existing}棟存在 → スキップ");
+                continue;
+            }
+
+            // 各位置で建築を試みる
+            bool placed = false;
+            foreach (var pos in positions)
+            {
+                Debug.Log($"[AI-ForceBuild] {facility} @({pos.x},{pos.y},{pos.z}) 配置試行...");
+                bool success = _buildSystem.AIPlaceBuilding(pos, facility, Team.Enemy);
+                if (success)
+                {
+                    built++;
+                    turnStats.Record(AIActionType.Build);
+                    _board.Refresh();
+                    Debug.Log($"[AI-ForceBuild] ★★ {facility} 配置成功! 残AP={_apSystem.GetAP(Team.Enemy)}");
+                    placed = true;
+                    // 成功後に位置リストを再取得（配置済み位置を除外するため）
+                    positions = _buildSystem.AIGetBuildablePositions(Team.Enemy);
+                    break;
+                }
+                else
+                {
+                    Debug.Log($"[AI-ForceBuild] ✗ {facility} @({pos.x},{pos.y},{pos.z}) 配置失敗");
+                }
+            }
+
+            if (!placed)
+            {
+                Debug.LogWarning($"[AI-ForceBuild] {facility}: 全{positions.Count}位置で配置失敗!");
+            }
+        }
+
+        return built;
     }
 
     /// <summary>コア施設（原料+加工+住宅）が不足しているかチェック</summary>
@@ -1148,15 +1312,27 @@ public class AICommander
     // ---- 建築実行 ----
     bool ExecuteBuild(AIAction action)
     {
-        if (_buildSystem == null) return false;
+        if (_buildSystem == null)
+        {
+            Debug.LogWarning("[AI-Build] ExecuteBuild: _buildSystem==null!");
+            return false;
+        }
 
         var pos = AIBoardState.ToCell(action.TargetPos);
+        int apBefore = _apSystem.GetAP(Team.Enemy);
+
+        Debug.Log($"[AI-Build] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={apBefore}");
 
         bool success = _buildSystem.AIPlaceBuilding(pos, action.Facility, Team.Enemy);
         if (success)
         {
             _board.RefreshAP();
-            Debug.Log($"[AICommander] 建築: {action.Facility} @({pos.x},{pos.y},{pos.z})  残AP={_board.EnemyAP}");
+            Debug.Log($"[AI-Build] ★建築成功: {action.Facility} @({pos.x},{pos.y},{pos.z})  残AP={_board.EnemyAP}");
+        }
+        else
+        {
+            Debug.LogWarning($"[AI-Build] ✗建築失敗: {action.Facility} @({pos.x},{pos.y},{pos.z})  " +
+                             $"CanBuild={_apSystem.CanBuild(Team.Enemy, action.Facility, _factionState)}");
         }
         return success;
     }
