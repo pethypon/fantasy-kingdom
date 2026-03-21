@@ -156,10 +156,7 @@ public class AIBoardState
         {
             foreach (var sp in _moveGen.mapcreate.SetPos)
             {
-                var pos = new Vector3Int(
-                    Mathf.RoundToInt(sp.x),
-                    Mathf.RoundToInt(sp.y),
-                    Mathf.RoundToInt(sp.z));
+                var pos = ToCell(sp);
                 if (_subCrystalSystem.CanPlaceSubCrystal(pos, Team.Enemy))
                 {
                     SubCrystalPlaceable.Add(pos);
@@ -276,44 +273,18 @@ public class AIBoardState
             case SkillTarget.AdjacentCenter:
             case SkillTarget.DirectionLine:
             case SkillTarget.DesignatedRow:
-                // 範囲スキル：攻撃範囲内の座標を取得し、敵が含まれる位置を返す
+                // 範囲スキル：攻撃範囲内に敵が含まれる位置を返す
                 _attackPoint.SkillAttackPData(unit, unitPos);
                 if (_attackPoint.AttackP != null)
                 {
                     foreach (var pos in _attackPoint.AttackP)
                     {
-                        // 仮ターゲットとして位置情報のみ保持（実際の範囲はSkillSystem.GetAreaPositionsで計算）
-                        var cell = _moveGen.Cell(pos);
-                        // 範囲内に敵がいるかチェック
-                        var center = new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z));
+                        var center = ToCell(pos);
                         var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, unit.direction);
-                        bool hasEnemy = false;
-                        foreach (var ac in areaCells)
-                        {
-                            foreach (var pu in AlivePlayerUnits)
-                            {
-                                if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-                                int px = Mathf.RoundToInt(pu.transform.position.x);
-                                int pz = Mathf.RoundToInt(pu.transform.position.z);
-                                if (ac.x == px && ac.z == pz) { hasEnemy = true; break; }
-                            }
-                            if (hasEnemy) break;
-                        }
-                        if (hasEnemy)
-                        {
-                            // ダミーのStatusは返せないので、最初に見つかった範囲内のPlayerUnitを返す
-                            foreach (var ac in areaCells)
-                            {
-                                foreach (var pu in AlivePlayerUnits)
-                                {
-                                    if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-                                    int px = Mathf.RoundToInt(pu.transform.position.x);
-                                    int pz = Mathf.RoundToInt(pu.transform.position.z);
-                                    if (ac.x == px && ac.z == pz) { targets.Add(pu); break; }
-                                }
-                                if (targets.Count > 0) break;
-                            }
-                        }
+                        // 範囲内の最初のプレイヤーユニットを探す
+                        Status foundTarget = FindFirstUnitInArea(areaCells, AlivePlayerUnits);
+                        if (foundTarget != null)
+                            targets.Add(foundTarget);
                     }
                 }
                 _attackPoint.AtkpDestroy();
@@ -325,42 +296,30 @@ public class AIBoardState
 
     // ---- スキル範囲内の敵ユニット収集 ----
     public List<Status> GetEnemiesInSkillArea(Status unit, SkillData skill, Vector3 targetPos)
-    {
-        var enemies = new List<Status>();
-        var center = new Vector3Int(Mathf.RoundToInt(targetPos.x), Mathf.RoundToInt(targetPos.y), Mathf.RoundToInt(targetPos.z));
-        var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, unit.direction);
-
-        foreach (var ac in areaCells)
-        {
-            foreach (var pu in AlivePlayerUnits)
-            {
-                if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-                int px = Mathf.RoundToInt(pu.transform.position.x);
-                int pz = Mathf.RoundToInt(pu.transform.position.z);
-                if (ac.x == px && ac.z == pz) enemies.Add(pu);
-            }
-        }
-        return enemies;
-    }
+        => CollectUnitsInArea(skill, targetPos, unit.direction, AlivePlayerUnits);
 
     // ---- スキル範囲内の味方ユニット収集 ----
     public List<Status> GetAlliesInSkillArea(Status unit, SkillData skill, Vector3 targetPos)
+        => CollectUnitsInArea(skill, targetPos, unit.direction, AliveEnemyUnits);
+
+    /// <summary>スキル範囲内のユニットを収集する共通メソッド</summary>
+    List<Status> CollectUnitsInArea(SkillData skill, Vector3 targetPos, Direction dir, List<Status> candidates)
     {
-        var allies = new List<Status>();
-        var center = new Vector3Int(Mathf.RoundToInt(targetPos.x), Mathf.RoundToInt(targetPos.y), Mathf.RoundToInt(targetPos.z));
-        var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, unit.direction);
+        var result = new List<Status>();
+        var center = ToCell(targetPos);
+        var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, dir);
 
         foreach (var ac in areaCells)
         {
-            foreach (var ally in AliveEnemyUnits)
+            foreach (var u in candidates)
             {
-                if (ally == null || !ally.gameObject.activeInHierarchy) continue;
-                int ax = Mathf.RoundToInt(ally.transform.position.x);
-                int az = Mathf.RoundToInt(ally.transform.position.z);
-                if (ac.x == ax && ac.z == az) allies.Add(ally);
+                if (u == null || !u.gameObject.activeInHierarchy) continue;
+                int ux = Mathf.RoundToInt(u.transform.position.x);
+                int uz = Mathf.RoundToInt(u.transform.position.z);
+                if (SameCellXZ(ac, ux, uz)) result.Add(u);
             }
         }
-        return allies;
+        return result;
     }
 
     // ---- 味方の最寄り駒距離 ----
@@ -440,7 +399,34 @@ public class AIBoardState
     }
 
     // ================================================================
-    //  ヘルパー
+    //  座標ヘルパー
+    // ================================================================
+
+    /// <summary>ワールド座標をセル座標(Vector3Int)に変換</summary>
+    public static Vector3Int ToCell(Vector3 worldPos)
+        => new Vector3Int(Mathf.RoundToInt(worldPos.x), Mathf.RoundToInt(worldPos.y), Mathf.RoundToInt(worldPos.z));
+
+    /// <summary>2つのセル座標が同一のXZ位置かどうか</summary>
+    static bool SameCellXZ(Vector3Int a, int x, int z) => a.x == x && a.z == z;
+
+    /// <summary>範囲セル内に存在する最初のユニットを返す（見つからなければnull）</summary>
+    static Status FindFirstUnitInArea(List<Vector3Int> areaCells, List<Status> units)
+    {
+        foreach (var ac in areaCells)
+        {
+            foreach (var u in units)
+            {
+                if (u == null || !u.gameObject.activeInHierarchy) continue;
+                int ux = Mathf.RoundToInt(u.transform.position.x);
+                int uz = Mathf.RoundToInt(u.transform.position.z);
+                if (SameCellXZ(ac, ux, uz)) return u;
+            }
+        }
+        return null;
+    }
+
+    // ================================================================
+    //  ユニット収集ヘルパー
     // ================================================================
     List<Status> CollectUnits(Transform parent, Team team)
     {
@@ -618,8 +604,9 @@ public class AIBoardState
         if (_visionGen == null || _visionGen.EnemyExploard == null) return 0;
 
         int newCells = 0;
-        int cx = Mathf.RoundToInt(pos.x);
-        int cz = Mathf.RoundToInt(pos.z);
+        var c = ToCell(pos);
+        int cx = c.x;
+        int cz = c.z;
         // Scoutの視界範囲（-2~+2 x -2~+2）を概算チェック
         for (int dx = -2; dx <= 2; dx++)
         {
@@ -657,26 +644,35 @@ public class AIBoardState
     /// 資源のボトルネック度を返す（0〜1、高いほど不足）。
     /// AIが「何を建てるべきか」の判断に使用。
     /// </summary>
+    /// <summary>
+    /// 資源のボトルネック度を返す（0〜1、高いほど不足）。
+    /// 30以下で不足感、0で最大不足。
+    /// </summary>
     public float GetResourceScarcity(string resourceName)
     {
         if (EnemyResources == null) return 0f;
-        int amount;
+        int amount = GetResourceAmount(resourceName);
+        return amount < 0 ? 0f : Mathf.Clamp01(1f - amount / 30f);
+    }
+
+    /// <summary>資源名から現在量を取得（不明なら-1）</summary>
+    int GetResourceAmount(string resourceName)
+    {
+        if (EnemyResources == null) return -1;
         switch (resourceName)
         {
-            case "Wood":     amount = EnemyResources.Wood; break;
-            case "Stone":    amount = EnemyResources.Stone; break;
-            case "Water":    amount = EnemyResources.Water; break;
-            case "Wheat":    amount = EnemyResources.Wheat; break;
-            case "Bread":    amount = EnemyResources.Bread; break;
-            case "Plank":    amount = EnemyResources.Plank; break;
-            case "CutStone": amount = EnemyResources.CutStone; break;
-            case "IronOre":  amount = EnemyResources.IronOre; break;
-            case "Iron":     amount = EnemyResources.Iron; break;
-            case "Coal":     amount = EnemyResources.Coal; break;
-            case "MagicOre": amount = EnemyResources.MagicOre; break;
-            default: return 0f;
+            case "Wood":     return EnemyResources.Wood;
+            case "Stone":    return EnemyResources.Stone;
+            case "Water":    return EnemyResources.Water;
+            case "Wheat":    return EnemyResources.Wheat;
+            case "Bread":    return EnemyResources.Bread;
+            case "Plank":    return EnemyResources.Plank;
+            case "CutStone": return EnemyResources.CutStone;
+            case "IronOre":  return EnemyResources.IronOre;
+            case "Iron":     return EnemyResources.Iron;
+            case "Coal":     return EnemyResources.Coal;
+            case "MagicOre": return EnemyResources.MagicOre;
+            default:         return -1;
         }
-        // 30以下で不足感、0で最大不足
-        return Mathf.Clamp01(1f - amount / 30f);
     }
 }
