@@ -154,6 +154,25 @@ public class AICommander
              + board.GetBuildingCount(FacilityKind.Mine);
     }
 
+    /// <summary>加工施設(LumberMill,StoneWorks,Smelter,Bakery)の合計棟数</summary>
+    static int CountProcessingBuildings(AIBoardState board)
+    {
+        return board.GetBuildingCount(FacilityKind.LumberMill)
+             + board.GetBuildingCount(FacilityKind.StoneWorks)
+             + board.GetBuildingCount(FacilityKind.Smelter)
+             + board.GetBuildingCount(FacilityKind.Bakery);
+    }
+
+    /// <summary>経済全体の充実度判定: 原料+加工+House</summary>
+    static bool IsEconomySufficient(AIBoardState board)
+    {
+        int raw = CountEconBuildings(board);
+        int proc = CountProcessingBuildings(board);
+        int house = board.GetBuildingCount(FacilityKind.House);
+        // 原料4棟以上 + 加工2棟以上 + 住宅1棟以上で充実とみなす
+        return raw >= 4 && proc >= 2 && house >= 1;
+    }
+
     // ================================================================
     //  ターン方針の決定
     //  盤面を見て「今ターン何を重視するか」を1つ選ぶ
@@ -188,23 +207,40 @@ public class AICommander
         if (criticalCount >= 2)
             return TurnStrategy.RetreatRegroup;
 
-        // 経済基盤の充実度で判断（ターン数だけでなく施設数も考慮）
+        // 経済基盤の充実度で判断（原料 + 加工 + 住宅の全体で見る）
         int econBuildingCount = CountEconBuildings(board);
-        bool hasBasicEconomy = econBuildingCount >= 2;
+        int processingCount = CountProcessingBuildings(board);
+        int houseCount = board.GetBuildingCount(FacilityKind.House);
+        bool hasMinimalRaw = econBuildingCount >= 2;       // 最低限の原料施設
+        bool hasBasicEconomy = econBuildingCount >= 4;     // 基礎原料が充実
+        bool hasProcessing = processingCount >= 1;         // 加工施設あり
+        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 2 && houseCount >= 1;
+        bool econSufficient = IsEconomySufficient(board);
 
-        int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
-                            + board.GetBuildingCount(FacilityKind.Bakery);
-        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 1;
-
-        // 基礎施設が揃うまで経済最優先（目標: T1で基礎4棟一気建て）
-        if (!hasBasicEconomy)
+        // 原料施設が最低限もない → 経済最優先
+        if (!hasMinimalRaw)
             return TurnStrategy.EconomyBuild;
 
-        // 基礎施設は揃ったが加工施設が不足 → 経済拡張を継続
-        if (!hasMatureEconomy && board.TurnCount <= 8)
+        // 基礎原料が不十分 → 経済優先（ターン制限なし）
+        // ※ AffordableBuildings が空でも EconomyBuild を選ぶ
+        //   （建築先行フェーズやフォールバックで補完する）
+        if (!hasBasicEconomy && board.BuildablePositions.Count > 0)
             return TurnStrategy.EconomyBuild;
 
-        // 経済はあるが軍が少ない → Balanced（召喚しながら追加建築も）
+        // 加工施設が1棟もない → 加工施設を建てる
+        if (!hasProcessing && board.BuildablePositions.Count > 0)
+            return TurnStrategy.EconomyBuild;
+
+        // 住宅がなく市民不足 → 経済優先
+        if (houseCount == 0 && board.EnemyResources != null && board.EnemyResources.Citizen <= 1
+            && board.BuildablePositions.Count > 0)
+            return TurnStrategy.EconomyBuild;
+
+        // 経済が十分に成熟するまでBalanced（建築も並行する）
+        // 軍が少ない時期もBalancedで建築+召喚を両立
+        if (!econSufficient && board.TurnCount <= 20)
+            return TurnStrategy.Balanced;
+
         if (board.AliveEnemyUnits.Count <= 6 && board.TurnCount <= 15)
             return TurnStrategy.Balanced;
 
@@ -301,6 +337,14 @@ public class AICommander
                   $"召喚可能位置={_board.SummonablePositions.Count}  " +
                   $"購入可能建物={_board.AffordableBuildings.Count}  " +
                   $"召喚可能駒種={_board.AffordableUnits.Count}");
+        if (_board.AffordableBuildings.Count > 0)
+        {
+            Debug.Log($"[AICommander] 建築可能: {string.Join(", ", _board.AffordableBuildings)}");
+        }
+        Debug.Log($"[AICommander] 経済: 原料施設={CountEconBuildings(_board)}  " +
+                  $"加工施設={CountProcessingBuildings(_board)}  " +
+                  $"住宅={_board.GetBuildingCount(FacilityKind.House)}  " +
+                  $"経済充足={IsEconomySufficient(_board)}");
         if (_board.EnemyResources != null)
         {
             var r = _board.EnemyResources;
@@ -325,6 +369,12 @@ public class AICommander
         var failedActions = new HashSet<string>();
         // 同種の行動が全位置で失敗する場合に備え、種類単位でもブロック
         var failedActionTypes = new HashSet<string>();
+
+        // ================================================================
+        //  ★ 建築先行フェーズ: 経済未成熟時は移動の前に建築を試みる
+        //  これにより移動でAPを使い切って建築不能になる問題を防止する
+        // ================================================================
+        TryEarlyBuildPhase(ref turnStats);
 
         // AP予算: 建築/召喚が可能なら最低限のAPを予約する
         int reservedAP = CalcReservedAP();
@@ -545,17 +595,32 @@ public class AICommander
 
         int reserved = 0;
 
-        // 建築可能なら最も安い建築コストを予約
-        if (_board.BuildablePositions.Count > 0 && _board.AffordableBuildings.Count > 0)
+        // ================================================
+        //  建築AP予約: 経済が未成熟なら積極的に予約する
+        //  問題: 移動でAPを先に消費 → 建築不可能 → 永遠に建てない
+        //  対策: 建築可能な建物の最安APコストを予約
+        //        経済未成熟時は追加で多めに予約する
+        // ================================================
+        if (_board.BuildablePositions.Count > 0)
         {
-            int cheapestBuild = int.MaxValue;
-            foreach (var fk in _board.AffordableBuildings)
+            // AffordableBuildings に入らなくても、
+            // 「建てるべき建物」があるなら予約する（資源はあるがAPだけ不足のケース）
+            int cheapestNeeded = GetCheapestNeededBuildAP();
+            if (cheapestNeeded > 0)
+                reserved = Mathf.Max(reserved, cheapestNeeded);
+
+            // 既存の Affordable チェック
+            if (_board.AffordableBuildings.Count > 0)
             {
-                if (FacilityData.Table.TryGetValue(fk, out var info))
-                    cheapestBuild = Mathf.Min(cheapestBuild, info.APCost);
+                int cheapestBuild = int.MaxValue;
+                foreach (var fk in _board.AffordableBuildings)
+                {
+                    if (FacilityData.Table.TryGetValue(fk, out var info))
+                        cheapestBuild = Mathf.Min(cheapestBuild, info.APCost);
+                }
+                if (cheapestBuild < int.MaxValue)
+                    reserved = Mathf.Max(reserved, cheapestBuild);
             }
-            if (cheapestBuild < int.MaxValue)
-                reserved = Mathf.Max(reserved, cheapestBuild);
         }
 
         // 召喚可能なら召喚コストも考慮
@@ -574,12 +639,143 @@ public class AICommander
         return reserved;
     }
 
+    /// <summary>
+    /// 経済状況に応じて「建てるべき建物」の最安APコストを返す。
+    /// AffordableBuildings と独立して、施設不足を診断しAPを確保する。
+    /// </summary>
+    int GetCheapestNeededBuildAP()
+    {
+        if (_board.EnemyResources == null) return 0;
+
+        int cheapest = int.MaxValue;
+
+        // 原料施設が4棟未満 → 安い原料施設のAP分を予約
+        int rawCount = CountEconBuildings(_board);
+        if (rawCount < 4)
+        {
+            // Well(3), Field(3), LoggingCamp(4), Quarry(4)
+            cheapest = Mathf.Min(cheapest, 3);
+        }
+
+        // 加工施設が0 → 加工施設のAP分を予約
+        int procCount = CountProcessingBuildings(_board);
+        if (procCount == 0 && rawCount >= 2)
+        {
+            // LumberMill(6), StoneWorks(6), Bakery(5)
+            cheapest = Mathf.Min(cheapest, 5);
+        }
+
+        // 住宅なし & 市民不足
+        if (_board.GetBuildingCount(FacilityKind.House) == 0
+            && _board.EnemyResources.Citizen <= 1)
+        {
+            cheapest = Mathf.Min(cheapest, 7); // House costs 7 AP
+        }
+
+        return cheapest < int.MaxValue ? cheapest : 0;
+    }
+
+    // ================================================================
+    //  建築先行フェーズ: 経済未成熟時、メインループの前に建築を優先実行
+    //  移動でAPを使い切る前に、最低1棟は建てるようにする
+    // ================================================================
+    void TryEarlyBuildPhase(ref TurnStats turnStats)
+    {
+        // 経済が十分に成熟していれば先行建築不要
+        if (IsEconomySufficient(_board)) return;
+
+        // 建築可能条件チェック
+        if (_board.BuildablePositions.Count == 0 || _board.AffordableBuildings.Count == 0) return;
+
+        // 戦闘中（クリスタル危機/交戦中）は建築より戦闘優先
+        if (_currentStrategy == TurnStrategy.CrystalDefense) return;
+        if (_currentStrategy == TurnStrategy.ContactEngage) return;
+
+        // 建築候補のみを生成・評価
+        var buildActions = new List<AIAction>();
+        AIActionEvaluator.GenerateBuildCandidatesPublic(_board, buildActions);
+        AIActionEvaluator.GenerateSubCrystalCandidatesPublic(_board, buildActions);
+
+        if (buildActions.Count == 0) return;
+
+        // スコア付け
+        foreach (var action in buildActions)
+        {
+            action.Score = AIActionEvaluator.CalcBuildScorePublic(action, _personality, _board, _learning);
+        }
+
+        // 戦略ボーナス適用
+        foreach (var action in buildActions)
+        {
+            if (_currentStrategy == TurnStrategy.EconomyBuild)
+            {
+                action.Score += 30f; // EconomyBuild基本ボーナス
+                if (IsMissingCoreFacility(action.Facility))
+                    action.Score += 40f;
+            }
+            else if (_currentStrategy == TurnStrategy.Balanced)
+            {
+                action.Score += 15f; // Balancedでも建築推奨
+            }
+        }
+
+        // スコア降順ソート
+        buildActions.Sort((a, b) => b.Score.CompareTo(a.Score));
+
+        // 最大2回まで建築を試みる（連続失敗したら止める）
+        int earlyBuilds = 0;
+        const int maxEarlyBuilds = 2;
+
+        foreach (var action in buildActions)
+        {
+            if (earlyBuilds >= maxEarlyBuilds) break;
+            if (action.APCost > _board.EnemyAP) continue;
+            if (action.Score <= 20f) continue; // 最低スコア閾値
+
+            bool success = ExecuteAction(action);
+            if (success)
+            {
+                earlyBuilds++;
+                turnStats.Record(action.ActionType);
+                _board.Refresh();
+                Debug.Log($"[AICommander] ★先行建築{earlyBuilds}: {action.Facility} score={action.Score:F1}");
+            }
+        }
+    }
+
+    /// <summary>コア施設（原料+加工+住宅）が不足しているかチェック</summary>
+    bool IsMissingCoreFacility(FacilityKind facility)
+    {
+        switch (facility)
+        {
+            case FacilityKind.Well:
+            case FacilityKind.LoggingCamp:
+            case FacilityKind.Quarry:
+            case FacilityKind.Field:
+                return _board.GetBuildingCount(facility) == 0;
+            case FacilityKind.LumberMill:
+            case FacilityKind.StoneWorks:
+            case FacilityKind.Bakery:
+            case FacilityKind.Smelter:
+                return _board.GetBuildingCount(facility) == 0;
+            case FacilityKind.House:
+                return _board.GetBuildingCount(FacilityKind.House) == 0;
+            case FacilityKind.Mine:
+                return _board.GetBuildingCount(FacilityKind.Mine) == 0;
+            default:
+                return false;
+        }
+    }
+
     // ================================================================
     //  AP予約ペナルティ: 移動系が予約APを食い込む場合に減点
     // ================================================================
     void ApplyAPReservationPenalty(List<AIAction> actions, int reservedAP)
     {
         if (reservedAP <= 0) return;
+
+        // 経済が未成熟かどうかで重みを変える
+        bool econWeak = !IsEconomySufficient(_board);
 
         foreach (var action in actions)
         {
@@ -589,18 +785,24 @@ public class AICommander
                 || action.ActionType == AIActionType.SubCrystal)
                 continue;
 
+            int apAfterAction = _board.EnemyAP - action.APCost;
+
             // 攻撃は高価値なので軽いペナルティのみ
             if (action.ActionType == AIActionType.Attack
                 || action.ActionType == AIActionType.SkillUse)
             {
-                if (_board.EnemyAP - action.APCost < reservedAP)
-                    action.Score -= 5f;
+                if (apAfterAction < reservedAP)
+                    action.Score -= 8f;
                 continue;
             }
 
-            // 移動系: AP予約を食い込む場合は減点
-            if (_board.EnemyAP - action.APCost < reservedAP)
-                action.Score -= 15f;
+            // 移動系: AP予約を食い込む場合は強く減点
+            if (apAfterAction < reservedAP)
+            {
+                // 経済未成熟時は非常に強いペナルティ（建築を移動より優先させる）
+                float penalty = econWeak ? 40f : 20f;
+                action.Score -= penalty;
+            }
         }
     }
 

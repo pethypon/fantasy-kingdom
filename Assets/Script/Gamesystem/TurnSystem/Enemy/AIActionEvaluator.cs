@@ -129,8 +129,21 @@ public static class AIActionEvaluator
             case FacilityKind.Quarry:      return board.GetBuildingCount(FacilityKind.Quarry) == 0;
             case FacilityKind.Field:       return board.GetBuildingCount(FacilityKind.Field) == 0;
             case FacilityKind.House:       return board.GetBuildingCount(FacilityKind.House) == 0;
+            case FacilityKind.LumberMill:  return board.GetBuildingCount(FacilityKind.LumberMill) == 0;
+            case FacilityKind.StoneWorks:  return board.GetBuildingCount(FacilityKind.StoneWorks) == 0;
+            case FacilityKind.Bakery:      return board.GetBuildingCount(FacilityKind.Bakery) == 0;
+            case FacilityKind.Smelter:     return board.GetBuildingCount(FacilityKind.Smelter) == 0;
+            case FacilityKind.Mine:        return board.GetBuildingCount(FacilityKind.Mine) == 0;
             default: return false;
         }
+    }
+
+    static bool IsProcessingFacility(FacilityKind facility)
+    {
+        return facility == FacilityKind.LumberMill
+            || facility == FacilityKind.StoneWorks
+            || facility == FacilityKind.Bakery
+            || facility == FacilityKind.Smelter;
     }
 
     // ---- 全候補行動を生成・評価してスコア順に返す ----
@@ -550,7 +563,14 @@ public static class AIActionEvaluator
     // ================================================================
     static void GenerateBuildCandidates(AIBoardState board, List<AIAction> results)
     {
-        if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0) return;
+        if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0)
+        {
+            if (board.BuildablePositions.Count == 0)
+                Debug.Log("[AI Build] 建築可能位置=0 → 建築候補なし（領地不足?）");
+            else
+                Debug.Log($"[AI Build] 購入可能建物=0 → 建築候補なし（AP={board.EnemyAP} 資源不足?）");
+            return;
+        }
 
         foreach (var facility in board.AffordableBuildings)
         {
@@ -849,7 +869,8 @@ public static class AIActionEvaluator
 
                 case TurnStrategy.Balanced:
                 {
-                    bool econEstablished = CalcCoreEconomyCount(board) >= 5;
+                    int coreEconCount = CalcCoreEconomyCount(board);
+                    bool econEstablished = coreEconCount >= 5;
 
                     if (action.ActionType == AIActionType.Summon)
                     {
@@ -857,11 +878,43 @@ public static class AIActionEvaluator
                         bonus += (econEstablished && hasBakery) ? 20f : -30f;
                     }
                     if (action.ActionType == AIActionType.Build)
-                        bonus += econEstablished ? 4f : 20f;
+                    {
+                        // 経済未成熟時は建築を強く推奨
+                        if (!econEstablished)
+                        {
+                            bonus += 35f;
+                            if (IsMissingCoreFacility(action.Facility, board))
+                                bonus += 25f;
+                            // 加工施設不足ボーナス
+                            if (IsProcessingFacility(action.Facility) &&
+                                board.GetBuildingCount(action.Facility) == 0)
+                                bonus += 20f;
+                        }
+                        else
+                        {
+                            bonus += 8f;
+                        }
+
+                        // ★ 生産チェーン逆算ボーナス（Balancedでも適用）
+                        var deficits = board.DiagnoseProductionChainDeficit();
+                        for (int i = 0; i < deficits.Count; i++)
+                        {
+                            if (deficits[i] == action.Facility)
+                            {
+                                bonus += Mathf.Max(5f, 35f - i * 8f);
+                                break;
+                            }
+                        }
+                    }
                     if (action.ActionType == AIActionType.Attack)   bonus += 8f;
                     if (action.ActionType == AIActionType.SkillUse) bonus += 5f;
                     if (action.ActionType == AIActionType.Move)
-                        bonus += GetApproachToEnemy(action, board) * 3f;
+                    {
+                        // 経済未成熟時は移動ボーナスを抑制
+                        float moveBonus = GetApproachToEnemy(action, board) * 3f;
+                        if (!econEstablished) moveBonus *= 0.5f;
+                        bonus += moveBonus;
+                    }
                     break;
                 }
 
@@ -888,8 +941,12 @@ public static class AIActionEvaluator
                     // 索敵中は攻撃・スキルが発生したら優先（見つけた敵を逃さない）
                     if (action.ActionType == AIActionType.Attack) bonus += 12f;
                     if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0) bonus += 10f;
-                    // 建築は控えめに
-                    if (action.ActionType == AIActionType.Build) bonus -= 5f;
+                    // 建築は索敵中でも維持（経済が弱い時はむしろ推奨）
+                    if (action.ActionType == AIActionType.Build)
+                    {
+                        int econCount = CalcCoreEconomyCount(board);
+                        bonus += econCount < 5 ? 10f : -5f;
+                    }
                     // Waitを強く減点
                     if (action.ActionType == AIActionType.Wait) bonus -= 15f;
                     break;
@@ -1594,46 +1651,50 @@ public static class AIActionEvaluator
                 break;
 
             case FacilityKind.Mine:
-                score += PhaseScore(turn, 18f, 18f, 10f);
+                score += PhaseScore(turn, 20f, 22f, 12f);
                 if (turn >= TurnProductionBoost) score += ProductionBoostScore;
-                if (board.GetBuildingCount(FacilityKind.Mine) == 0) score += 15f;
+                if (board.GetBuildingCount(FacilityKind.Mine) == 0) score += 25f;
                 if (board.EnemyResources != null)
                 {
-                    if (board.EnemyResources.Iron <= 5) score += 12f;
-                    if (board.EnemyResources.MagicOre <= 5) score += 10f;
+                    if (board.EnemyResources.Iron <= 5) score += 18f;
+                    if (board.EnemyResources.MagicOre <= 5) score += 12f;
                 }
                 break;
 
             // --- 加工施設 ---
             case FacilityKind.LumberMill:
-                score += PhaseScore(turn, 8f, 18f, 8f);
+                score += PhaseScore(turn, 25f, 22f, 10f);
                 if (turn >= TurnProductionBoost) score += ProductionBoostScore;
                 if (board.GetBuildingCount(FacilityKind.LumberMill) == 0 &&
-                    board.GetBuildingCount(FacilityKind.LoggingCamp) > 0) score += 12f;
+                    board.GetBuildingCount(FacilityKind.LoggingCamp) > 0) score += 35f;
+                if (board.EnemyResources != null && board.EnemyResources.Plank < 10)
+                    score += 20f;
                 break;
 
             case FacilityKind.StoneWorks:
-                score += PhaseScore(turn, 8f, 18f, 8f);
+                score += PhaseScore(turn, 25f, 22f, 10f);
                 if (turn >= TurnProductionBoost) score += ProductionBoostScore;
                 if (board.GetBuildingCount(FacilityKind.StoneWorks) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Quarry) > 0) score += 12f;
+                    board.GetBuildingCount(FacilityKind.Quarry) > 0) score += 35f;
+                if (board.EnemyResources != null && board.EnemyResources.CutStone < 10)
+                    score += 20f;
                 break;
 
             case FacilityKind.Bakery:
-                score += PhaseScore(turn, 28f, 20f, 10f);
+                score += PhaseScore(turn, 35f, 25f, 12f);
                 if (board.GetBuildingCount(FacilityKind.Bakery) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 25f;
+                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 40f;
                 if (board.EnemyResources != null && board.EnemyResources.Bread < 20)
-                    score += 18f;
+                    score += 25f;
                 break;
 
             case FacilityKind.Smelter:
-                score += PhaseScore(turn, 12f, 18f, 12f);
+                score += PhaseScore(turn, 20f, 22f, 14f);
                 if (turn >= TurnProductionBoost) score += ProductionBoostScore;
                 if (board.GetBuildingCount(FacilityKind.Smelter) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Mine) > 0) score += 15f;
+                    board.GetBuildingCount(FacilityKind.Mine) > 0) score += 30f;
                 if (board.EnemyResources != null && board.EnemyResources.Iron <= 5)
-                    score += 12f;
+                    score += 20f;
                 break;
 
             // --- インフラ ---
@@ -1653,11 +1714,15 @@ public static class AIActionEvaluator
                 break;
 
             case FacilityKind.Warehouse:
-                score += PhaseScore(turn, 2f, 10f, 8f);
+                score += PhaseScore(turn, 2f, 15f, 12f);
+                if (board.GetBuildingCount(FacilityKind.Warehouse) == 0 && turn >= 10)
+                    score += 18f;
                 break;
 
             case FacilityKind.Barracks:
-                score += PhaseScore(turn, 3f, 12f, 15f);
+                score += PhaseScore(turn, 3f, 15f, 20f);
+                if (board.GetBuildingCount(FacilityKind.Barracks) == 0 && turn >= 12)
+                    score += 20f;
                 break;
 
             // --- 防衛建築 ---
@@ -2257,4 +2322,20 @@ public static class AIActionEvaluator
         }
         return bonus;
     }
+
+    // ================================================================
+    //  公開ラッパー: AICommander の建築先行フェーズから利用
+    // ================================================================
+
+    /// <summary>建築候補のみを生成して results に追加する</summary>
+    public static void GenerateBuildCandidatesPublic(AIBoardState board, List<AIAction> results)
+        => GenerateBuildCandidates(board, results);
+
+    /// <summary>サブクリスタル候補のみを生成して results に追加する</summary>
+    public static void GenerateSubCrystalCandidatesPublic(AIBoardState board, List<AIAction> results)
+        => GenerateSubCrystalCandidates(board, results);
+
+    /// <summary>建築アクション用のスコアを計算する</summary>
+    public static float CalcBuildScorePublic(AIAction action, AIPersonality p, AIBoardState board, AILearning learning)
+        => CalcScore(action, p, board, learning);
 }
