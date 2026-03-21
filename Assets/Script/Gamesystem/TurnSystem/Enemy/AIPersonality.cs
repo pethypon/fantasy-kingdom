@@ -28,10 +28,10 @@ public class AIPersonality
     public float DevelopRate   => Traits.Development / 300f;
 
     // ---- 生成 ----
-    public AIPersonality(MajorPersonality major)
+    public AIPersonality(MajorPersonality major, int seed = -1)
     {
         Major = major;
-        Traits = GenerateTraits();
+        Traits = GenerateTraits(seed >= 0 ? seed : System.Environment.TickCount);
         Debug.Log($"[AIPersonality] 大きい性格={Major}  " +
                   $"慎重={Traits.Caution} 指揮={Traits.Command} 執着={Traits.Obsession} " +
                   $"防衛={Traits.Defense} 戦術={Traits.Tactics} 発展={Traits.Development} " +
@@ -89,21 +89,22 @@ public class AIPersonality
         }
     }
 
-    // ---- 300ポイント完全ランダム配分 ----
-    private static PersonalityTraits GenerateTraits()
+    // ---- 300ポイント完全ランダム配分（シード指定で決定論的） ----
+    private static PersonalityTraits GenerateTraits(int seed)
     {
         const int total = 300;
         const int minPerTrait = 10;
         const int traitCount = 6;
         int remaining = total - minPerTrait * traitCount;
 
+        var rng = new System.Random(seed);
         int[] values = new int[traitCount];
         for (int i = 0; i < traitCount; i++)
             values[i] = minPerTrait;
 
         for (int i = 0; i < remaining; i++)
         {
-            values[Random.Range(0, traitCount)]++;
+            values[rng.Next(traitCount)]++;
         }
 
         return new PersonalityTraits
@@ -117,10 +118,10 @@ public class AIPersonality
         };
     }
 
-    // ---- 大きい性格のランダム決定 ----
-    public static MajorPersonality RandomMajor()
+    // ---- 大きい性格のランダム決定（シード指定で決定論的） ----
+    public static MajorPersonality RandomMajor(int seed = -1)
     {
-        int r = Random.Range(0, 4);
+        int r = seed >= 0 ? new System.Random(seed).Next(4) : Random.Range(0, 4);
         return (MajorPersonality)r;
     }
 }
