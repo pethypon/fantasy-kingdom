@@ -303,7 +303,7 @@ public static class FacilityData
                 UpgradeAP = 6,
             },
         };
-        Register(kind, "製材所", 6, new ResourceCost(wood: 70, stone: 40, cutStone: 15, citizen: 1), 3, levels);
+        Register(kind, "製材所", 6, new ResourceCost(wood: 70, stone: 40, citizen: 1), 3, levels);
     }
 
     // ---- 採石場 ----
@@ -376,7 +376,7 @@ public static class FacilityData
                 UpgradeAP = 6,
             },
         };
-        Register(kind, "石材加工所", 6, new ResourceCost(wood: 40, stone: 70, plank: 15, citizen: 1), 3, levels);
+        Register(kind, "石材加工所", 6, new ResourceCost(wood: 40, stone: 70, citizen: 1), 3, levels);
     }
 
     // ---- 鉱山 ----
