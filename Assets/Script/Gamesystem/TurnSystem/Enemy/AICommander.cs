@@ -51,13 +51,33 @@ public class AICommander
     readonly SubCrystalSystem _subCrystalSystem;
 
     // 統計（動作確認用）
-    int _totalMoves = 0;
-    int _totalAttacks = 0;
+    struct TurnStats
+    {
+        public int Moves, Attacks, Skills, Retreats, Builds, Summons;
+
+        public void Record(AIActionType type)
+        {
+            switch (type)
+            {
+                case AIActionType.Move:
+                case AIActionType.Support:
+                case AIActionType.Surround:     Moves++; break;
+                case AIActionType.Attack:       Attacks++; break;
+                case AIActionType.SkillUse:     Skills++; break;
+                case AIActionType.Retreat:
+                case AIActionType.DefenseRepos: Retreats++; break;
+                case AIActionType.Build:
+                case AIActionType.SubCrystal:   Builds++; break;
+                case AIActionType.Summon:        Summons++; break;
+            }
+        }
+
+        public override string ToString()
+            => $"移動{Moves} 攻撃{Attacks} スキル{Skills} 撤退{Retreats} 建築{Builds} 召喚{Summons}";
+    }
+
+    TurnStats _totalStats;
     int _totalKills = 0;
-    int _totalBuilds = 0;
-    int _totalSummons = 0;
-    int _totalSkills = 0;
-    int _totalRetreats = 0;
     int _turnCount = 0;
 
     // ---- 生成（試合開始時に1回） ----
@@ -108,6 +128,16 @@ public class AICommander
     public AILearning Learning => _learning;
     public TurnStrategy CurrentStrategy => _currentStrategy;
 
+    /// <summary>原料生産施設(Well,LoggingCamp,Quarry,Field,Mine)の合計棟数</summary>
+    static int CountEconBuildings(AIBoardState board)
+    {
+        return board.GetBuildingCount(FacilityKind.Well)
+             + board.GetBuildingCount(FacilityKind.LoggingCamp)
+             + board.GetBuildingCount(FacilityKind.Quarry)
+             + board.GetBuildingCount(FacilityKind.Field)
+             + board.GetBuildingCount(FacilityKind.Mine);
+    }
+
     // ================================================================
     //  ターン方針の決定
     //  盤面を見て「今ターン何を重視するか」を1つ選ぶ
@@ -143,16 +173,12 @@ public class AICommander
             return TurnStrategy.RetreatRegroup;
 
         // 経済基盤の充実度で判断（ターン数だけでなく施設数も考慮）
-        int econBuildingCount = board.GetBuildingCount(FacilityKind.Well)
-            + board.GetBuildingCount(FacilityKind.LoggingCamp)
-            + board.GetBuildingCount(FacilityKind.Quarry)
-            + board.GetBuildingCount(FacilityKind.Field)
-            + board.GetBuildingCount(FacilityKind.Mine);
-        bool hasBasicEconomy = econBuildingCount >= 2; // 基礎施設2つで最低限の経済基盤
+        int econBuildingCount = CountEconBuildings(board);
+        bool hasBasicEconomy = econBuildingCount >= 2;
 
         int processingCount = board.GetBuildingCount(FacilityKind.Smelter)
-            + board.GetBuildingCount(FacilityKind.Bakery);
-        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 1; // 加工施設1つで成熟判定
+                            + board.GetBuildingCount(FacilityKind.Bakery);
+        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 1;
 
         // 基礎施設が揃うまで経済最優先（目標: T1で基礎4棟一気建て）
         if (!hasBasicEconomy)
@@ -224,9 +250,9 @@ public class AICommander
         int maxIterations = 50;
         int iteration = 0;
         int consecutiveFailures = 0;
-        const int maxConsecutiveFailures = 8; // 5→8に増加（戦略切替で回復の余地を残す）
-        int strategyFailures = 0; // 現戦略での累積失敗
-        int turnMoves = 0, turnAttacks = 0, turnBuilds = 0, turnSummons = 0, turnSkills = 0, turnRetreats = 0;
+        const int maxConsecutiveFailures = 8;
+        int strategyFailures = 0;
+        var turnStats = new TurnStats();
 
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
         Debug.Log($"[AICommander] 方針={_currentStrategy}  AP={_board.EnemyAP}  " +
@@ -364,34 +390,20 @@ public class AICommander
             consecutiveFailures = 0; // 成功したらリセット
             strategyFailures = 0;
 
-            switch (bestAction.ActionType)
-            {
-                case AIActionType.Move: turnMoves++; break;
-                case AIActionType.Attack: turnAttacks++; break;
-                case AIActionType.SkillUse: turnSkills++; break;
-                case AIActionType.Retreat: turnRetreats++; break;
-                case AIActionType.Support: turnMoves++; break;
-                case AIActionType.Surround: turnMoves++; break;
-                case AIActionType.DefenseRepos: turnRetreats++; break;
-                case AIActionType.Build: turnBuilds++; break;
-                case AIActionType.Summon: turnSummons++; break;
-                case AIActionType.SubCrystal: turnBuilds++; break;
-            }
+            turnStats.Record(bestAction.ActionType);
 
             if (bestAction.Unit != null)
                 _actedUnits.Add(bestAction.Unit);
         }
 
-        _totalMoves += turnMoves;
-        _totalAttacks += turnAttacks;
-        _totalSkills += turnSkills;
-        _totalRetreats += turnRetreats;
-        _totalBuilds += turnBuilds;
-        _totalSummons += turnSummons;
-        Debug.Log($"--- [AICommander] ターン{_turnCount}終了: " +
-                  $"移動{turnMoves} 攻撃{turnAttacks} スキル{turnSkills} 撤退{turnRetreats} 建築{turnBuilds} 召喚{turnSummons}  " +
-                  $"残AP={_board.EnemyAP}  " +
-                  $"累計(移動{_totalMoves}/攻撃{_totalAttacks}/スキル{_totalSkills}/撤退{_totalRetreats}/建築{_totalBuilds}/召喚{_totalSummons}/撃破{_totalKills}) ---");
+        _totalStats.Moves += turnStats.Moves;
+        _totalStats.Attacks += turnStats.Attacks;
+        _totalStats.Skills += turnStats.Skills;
+        _totalStats.Retreats += turnStats.Retreats;
+        _totalStats.Builds += turnStats.Builds;
+        _totalStats.Summons += turnStats.Summons;
+        Debug.Log($"--- [AICommander] ターン{_turnCount}終了: {turnStats}  " +
+                  $"残AP={_board.EnemyAP}  累計({_totalStats}/撃破{_totalKills}) ---");
     }
 
     // ================================================================
@@ -559,10 +571,7 @@ public class AICommander
             if (!_unitPositionHistory.TryGetValue(action.Unit, out var history)) continue;
             if (history.Count == 0) continue;
 
-            var destCell = new Vector3Int(
-                Mathf.RoundToInt(action.TargetPos.x),
-                Mathf.RoundToInt(action.TargetPos.y),
-                Mathf.RoundToInt(action.TargetPos.z));
+            var destCell = AIBoardState.ToCell(action.TargetPos);
 
             // 直近の位置と一致 → 大ペナルティ（往復防止）
             for (int i = history.Count - 1; i >= 0; i--)
@@ -637,21 +646,14 @@ public class AICommander
         _moveGen.MoveUpdate(oldCell, _moveGen.Cell(actualDest));
 
         // 位置履歴を記録（振動防止用）
-        var cellInt = new Vector3Int(
-            Mathf.RoundToInt(actualDest.x),
-            Mathf.RoundToInt(actualDest.y),
-            Mathf.RoundToInt(actualDest.z));
+        var cellInt = AIBoardState.ToCell(actualDest);
         if (!_unitPositionHistory.ContainsKey(unit))
             _unitPositionHistory[unit] = new List<Vector3Int>();
         _unitPositionHistory[unit].Add(cellInt);
-        // 最大4ターン分保持
         if (_unitPositionHistory[unit].Count > 4)
             _unitPositionHistory[unit].RemoveAt(0);
 
-        string moveType = action.ActionType == AIActionType.Retreat ? "撤退"
-            : action.ActionType == AIActionType.Support ? "援護"
-            : action.ActionType == AIActionType.Surround ? "包囲"
-            : "移動";
+        string moveType = GetMoveTypeName(action.ActionType);
         Debug.Log($"[AICommander] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={_board.EnemyAP}");
 
         if (_learning.IsActive)
@@ -840,10 +842,7 @@ public class AICommander
     {
         if (_buildSystem == null) return false;
 
-        var pos = new Vector3Int(
-            Mathf.RoundToInt(action.TargetPos.x),
-            Mathf.RoundToInt(action.TargetPos.y),
-            Mathf.RoundToInt(action.TargetPos.z));
+        var pos = AIBoardState.ToCell(action.TargetPos);
 
         bool success = _buildSystem.AIPlaceBuilding(pos, action.Facility, Team.Enemy);
         if (success)
@@ -859,10 +858,7 @@ public class AICommander
     {
         if (_summonSystem == null) return false;
 
-        var pos = new Vector3Int(
-            Mathf.RoundToInt(action.TargetPos.x),
-            Mathf.RoundToInt(action.TargetPos.y),
-            Mathf.RoundToInt(action.TargetPos.z));
+        var pos = AIBoardState.ToCell(action.TargetPos);
 
         bool success = _summonSystem.AISummonUnit(pos, action.SummonKind, Team.Enemy);
         if (success)
@@ -878,10 +874,7 @@ public class AICommander
     {
         if (_subCrystalSystem == null || _buildSystem == null) return false;
 
-        var pos = new Vector3Int(
-            Mathf.RoundToInt(action.TargetPos.x),
-            Mathf.RoundToInt(action.TargetPos.y),
-            Mathf.RoundToInt(action.TargetPos.z));
+        var pos = AIBoardState.ToCell(action.TargetPos);
 
         if (!_subCrystalSystem.CanPlaceSubCrystal(pos, Team.Enemy))
             return false;
@@ -906,6 +899,21 @@ public class AICommander
             if (unit == null || !unit.gameObject.activeInHierarchy) continue;
             if (unit.SkillCooldown > 0)
                 unit.SkillCooldown--;
+        }
+    }
+
+    // ================================================================
+    //  表示ヘルパー
+    // ================================================================
+    static string GetMoveTypeName(AIActionType type)
+    {
+        switch (type)
+        {
+            case AIActionType.Retreat:     return "撤退";
+            case AIActionType.Support:     return "援護";
+            case AIActionType.Surround:    return "包囲";
+            case AIActionType.DefenseRepos:return "防衛再配置";
+            default:                       return "移動";
         }
     }
 
