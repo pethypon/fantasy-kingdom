@@ -99,6 +99,13 @@ public static class AIBoardEvaluator
         return base_ * (0.3f + 0.7f * hpRatio);
     }
 
+    /// <summary>駒の基本価値を取得（HP減衰込み）。AISearchEngineから参照可能。</summary>
+    public static float GetPieceValuePublic(Status unit)
+    {
+        if (unit == null) return 0f;
+        return GetPieceValue(unit);
+    }
+
     // ================================================================
     //  サブスコア: クリスタル安全度
     // ================================================================

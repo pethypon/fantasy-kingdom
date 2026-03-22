@@ -37,6 +37,10 @@ public class AICommander
     readonly AIRoleAssigner _roleAssigner;
     readonly AIThreatLevel _threatLevel;
     readonly AIDeterministicRandom _rng;
+    readonly TurnStrategyPlanner _strategyPlanner;
+
+    // AP予算配分（TurnStrategyPlannerが毎ターン計画）
+    TurnStrategyPlanner.APBudget _apBudget;
 
     AIBoardState _board;
 
@@ -118,6 +122,7 @@ public class AICommander
         _roleAssigner = new AIRoleAssigner();
         _threatLevel = new AIThreatLevel(initialThreatLevel);
         _rng = new AIDeterministicRandom(randomSeed >= 0 ? randomSeed : System.Environment.TickCount);
+        _strategyPlanner = new TurnStrategyPlanner();
 
         Debug.Log("=== [AICommander] ==============================");
         Debug.Log($"[AICommander] 初期化完了");
@@ -143,6 +148,7 @@ public class AICommander
     public TurnStrategy CurrentStrategy => _currentStrategy;
     public AIThreatLevel ThreatLevel => _threatLevel;
     public AIRoleAssigner RoleAssigner => _roleAssigner;
+    public TurnStrategyPlanner StrategyPlanner => _strategyPlanner;
 
     /// <summary>原料生産施設(Well,LoggingCamp,Quarry,Field,Mine)の合計棟数</summary>
     static int CountEconBuildings(AIBoardState board)
@@ -330,8 +336,10 @@ public class AICommander
         // BOSS駒の参照を更新
         _personality.UpdateBossReference(_board.AliveEnemyUnits);
 
-        // ターン方針を決定
-        _currentStrategy = DecideStrategy(_board);
+        // ターン方針を決定（TurnStrategyPlannerが盤面を評価して方針+AP予算を計画）
+        var strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
+        _currentStrategy = strategyDecision.Strategy;
+        _apBudget = strategyDecision.Budget;
         _triedStrategies.Add(_currentStrategy);
 
         // 決定論的乱数のターンシード設定
@@ -351,11 +359,12 @@ public class AICommander
         var turnStats = new TurnStats();
 
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
-        Debug.Log($"[AICommander] 方針={_currentStrategy}  AP={_board.EnemyAP}  " +
+        Debug.Log($"[AICommander] 方針={_currentStrategy}  理由=\"{strategyDecision.Reason}\"  AP={_board.EnemyAP}  " +
                   $"自軍駒数={_board.AliveEnemyUnits.Count}  " +
                   $"視界内敵駒数={_board.AlivePlayerUnits.Count}  " +
                   $"BOSS={(_personality.HasBoss ? _personality.BossUnit.kind.ToString() : "なし")}  " +
                   $"脅威度={_threatLevel.Level}({_threatLevel.GetStageName()})");
+        Debug.Log($"[AICommander] AP予算: {_apBudget}");
         Debug.Log($"[AICommander] 建築可能位置={_board.BuildablePositions.Count}  " +
                   $"召喚可能位置={_board.SummonablePositions.Count}  " +
                   $"購入可能建物={_board.AffordableBuildings.Count}  " +
@@ -614,6 +623,10 @@ public class AICommander
             _currentStrategy = strategy;
             _triedStrategies.Add(strategy);
 
+            // AP予算を新戦略に合わせて再計画
+            var newDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
+            _apBudget = newDecision.Budget;
+
             // 戦略変更時にロール再割当
             if (_threatLevel.UseRoleAssignment)
                 _roleAssigner.AssignRoles(_board, _currentStrategy, _personality);
@@ -631,23 +644,16 @@ public class AICommander
     {
         if (_board == null) return 0;
 
-        int reserved = 0;
+        // TurnStrategyPlannerが計画したAP予約があればそれを基準にする
+        int reserved = _apBudget.ReservedAP;
 
-        // ================================================
-        //  建築AP予約: 経済が未成熟なら積極的に予約する
-        //  問題: 移動でAPを先に消費 → 建築不可能 → 永遠に建てない
-        //  対策: 建築可能な建物の最安APコストを予約
-        //        経済未成熟時は追加で多めに予約する
-        // ================================================
+        // 追加チェック: 建てるべき建物のAPコストも考慮
         if (_board.BuildablePositions.Count > 0)
         {
-            // AffordableBuildings に入らなくても、
-            // 「建てるべき建物」があるなら予約する（資源はあるがAPだけ不足のケース）
             int cheapestNeeded = GetCheapestNeededBuildAP();
             if (cheapestNeeded > 0)
                 reserved = Mathf.Max(reserved, cheapestNeeded);
 
-            // 既存の Affordable チェック
             if (_board.AffordableBuildings.Count > 0)
             {
                 int cheapestBuild = int.MaxValue;
