@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class MoveGererater : MonoBehaviour
@@ -35,59 +34,11 @@ public class MoveGererater : MonoBehaviour
     public Vector3 ecp;
     public Vector3 usp;
 
-    // ---- 駒ごとの移動判定 ----
-    // dx = p.x - objp.x（符号付き）, dz = p.z - objp.z（符号付き）
-    // 新しく追加する場合はここに1行追加するだけでよい
-    static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
-        new Dictionary<Kind, Func<float, float, bool>>
+    // ---- グリッド座標への丸め ----
+    public Vector3 Cell(Vector3 v)
     {
-        // 全方向1マス
-        { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1
-                                     && Mathf.Abs(dz) <= 1 },
-
-        // 上下左右1マス
-        { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) + Mathf.Abs(dz) == 1 },
-
-        // 斜め1マス
-        { Kind.Archer,      (dx, dz) => Mathf.Abs(dx) == 1
-                                     && Mathf.Abs(dz) == 1 },
-
-        // 斜め1マス（Archerと同じ移動）
-        { Kind.Magic,       (dx, dz) => Mathf.Abs(dx) == 1
-                                     && Mathf.Abs(dz) == 1 },
-
-        // ナイト跳び（2×1 or 1×2）
-        { Kind.Assassin,    (dx, dz) => (Mathf.Abs(dx) == 2 && Mathf.Abs(dz) == 1)
-                                     || (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) == 2) },
-
-        // 左右1＋前後1 or 直進2
-        { Kind.Scout,       (dx, dz) => (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) <= 1)
-                                     || (dx == 0 && Mathf.Abs(dz) == 2) },
-
-        // 前斜め1 or 後方直進1（符号注意：方向付き）
-        { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 1)
-                                     || (dx == 0 && dz == -1) },
-
-        // 左右2マス or 前後1マス
-        { Kind.Guardian,    (dx, dz) => (Mathf.Abs(dx) <= 2 && dz == 0)
-                                     || (dx == 0 && Mathf.Abs(dz) == 1) },
-
-        // 前直進1-3マス or 斜め後ろ1マス（方向付き）
-        { Kind.Crossbow,    (dx, dz) => (dx == 0 && (dz == 1 || dz == 2 || dz == 3))
-                                     || (Mathf.Abs(dx) == 1 && dz == -1) },
-
-        // 右前斜め1 or 左右各3マス（方向付き）
-        { Kind.Magicsniper, (dx, dz) => (dx == 1 && dz == 1)
-                                     || (Mathf.Abs(dx) == 3 && dz == -1) },
-
-        // 斜め前後2パターン（方向付き）
-        { Kind.Bomber,      (dx, dz) => (dx == -1 && dz ==  1) || (dx ==  2 && dz ==  2)
-                                     || (dx ==  1 && dz == -1) || (dx == -2 && dz == -2) },
-
-        // BOSS: King同様の周囲1マス移動
-        { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && Mathf.Abs(dz) <= 1
-                                     && !(dx == 0 && dz == 0) },
-    };
+        return GameConstants.ToCell(v);
+    }
 
     // ---- ユニット占有座標の更新 ----
     public void UnitPointCore()
@@ -98,24 +49,20 @@ public class MoveGererater : MonoBehaviour
         UnitPointData.Add(Cell(pcp));
         UnitPointData.Add(Cell(ecp));
 
-        foreach (Status us in PlayerUnit.GetComponentsInChildren<Status>())
-        {
-            if (us.type != Type.Unit) continue;
-            usp = us.transform.position;
-            UnitPointData.Add(Cell(usp));
-        }
-        foreach (Status us in EnemyUnit.GetComponentsInChildren<Status>())
-        {
-            if (us.type != Type.Unit) continue;
-            usp = us.transform.position;
-            UnitPointData.Add(Cell(usp));
-        }
+        CollectUnitPositions(PlayerUnit);
+        CollectUnitPositions(EnemyUnit);
     }
 
-    // ---- グリッド座標への丸め ----
-    public Vector3 Cell(Vector3 v)
+    private void CollectUnitPositions(Transform parent)
     {
-        return new Vector3(Mathf.RoundToInt(v.x), 0f, Mathf.RoundToInt(v.z));
+        if (parent == null) return;
+        foreach (Transform child in parent)
+        {
+            if (child == null) continue;
+            Status us = child.GetComponentInChildren<Status>();
+            if (us == null || us.type != Type.Unit) continue;
+            UnitPointData.Add(Cell(us.transform.position));
+        }
     }
 
     // ---- 移動範囲の計算とオブジェクト生成 ----
@@ -126,40 +73,64 @@ public class MoveGererater : MonoBehaviour
         obj = Obj;
         objp = ObjP;
 
-        if (!MovePredicateMap.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
+        if (!MovePatterns.Map.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
         {
             Debug.LogWarning($"[MoveGererater] Kind '{obj.kind}' の移動パターンが未定義です");
             return;
         }
 
-        MoveUnitP = setpos.Where(p =>
+        // LINQ排除: for ループで直接フィルタリング
+        bool dirIndependent = MovePatterns.DirectionIndependent.Contains(obj.kind);
+        int dirZ = MovePatterns.DirZ(obj.direction);
+
+        for (int i = 0, count = setpos.Count; i < count; i++)
         {
+            Vector3 p = setpos[i];
             float dx = p.x - objp.x;
             float dz = p.z - objp.z;
-            bool occupied = UnitPointData.Contains(Cell(p));
-            return predicate(dx, dz) && !occupied;
-        }).ToList();
+
+            // 方向依存の駒は dz を反転して判定
+            float checkDz = dirIndependent ? dz : dz * dirZ;
+
+            if (!predicate(dx, checkDz)) continue;
+            if (UnitPointData.Contains(Cell(p))) continue;
+
+            MoveUnitP.Add(p);
+        }
 
         MoveCreate();
     }
 
-    // ---- 移動ポイントオブジェクトの生成 ----
+    // ---- 移動ポイントオブジェクトの生成（ObjectPool使用） ----
     public void MoveCreate()
     {
+        var pool = ObjectPool.Instance;
         for (int i = 0; i < MoveUnitP.Count; i++)
         {
             Vector3 pos = MoveUnitP[i];
-            pos.y -= 0.47f;
-            Instantiate(MovePoint, pos, Quaternion.identity, Move);
+            pos.y -= GameConstants.MovePointYOffset;
+
+            if (pool != null)
+                pool.Get(MovePoint, pos, Quaternion.identity, Move);
+            else
+                Instantiate(MovePoint, pos, Quaternion.identity, Move);
         }
     }
 
-    // ---- 移動ポイントオブジェクトの削除 ----
+    // ---- 移動ポイントオブジェクトの削除（ObjectPool使用） ----
     public void MoveReset()
     {
-        foreach (Transform child in Move.transform)
+        var pool = ObjectPool.Instance;
+        if (pool != null)
         {
-            Destroy(child.gameObject);
+            pool.ReturnAllChildren(Move);
+        }
+        else
+        {
+            foreach (Transform child in Move.transform)
+            {
+                Destroy(child.gameObject);
+            }
         }
     }
 

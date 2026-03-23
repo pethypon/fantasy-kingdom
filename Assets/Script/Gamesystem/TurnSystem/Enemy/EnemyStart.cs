@@ -32,6 +32,10 @@ public class EnemyStart : StateCore
     {
         Debug.Log("[EnemyStart] 敵ターン開始");
 
+        // InputHintUI を敵ターン表示に
+        if (turngenerater.inputHintUI != null)
+            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.EnemyTurn);
+
         // クリスタルシールドのターン経過（敵陣営）
         BattleSystem.TickCrystalShields(crystalsystem.Enemycrystal);
 

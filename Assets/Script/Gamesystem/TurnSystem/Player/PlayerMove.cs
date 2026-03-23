@@ -84,6 +84,10 @@ public class PlayerMove : StateCore
         }
 
         Debug.Log("プレイヤーターン開始");
+
+        // InputHintUI を更新
+        if (turngenerater.inputHintUI != null)
+            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.PlayerMove);
     }
 
     public void Update()
@@ -203,7 +207,7 @@ public class PlayerMove : StateCore
         if (scroll == 0f) return;
 
         float fov = Camera.main.fieldOfView - scroll * scrollspeed;
-        Camera.main.fieldOfView = Mathf.Clamp(fov, 30f, 90f);
+        Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
     }
 
     // ---- 左クリック ----
@@ -294,14 +298,14 @@ public class PlayerMove : StateCore
     // ---- タイマー自動ターン終了 ----
     private void OnTurnTimeExpired()
     {
-        Debug.Log("[PlayerMove] 1ターン制限時間終了 → 自動ターン切り替え");
+        ToastMessageUI.Show("ターン制限時間終了", ToastMessageUI.MessageType.Warning);
         ForceEndTurn();
     }
 
     // ---- 持ち時間切れ → ゲーム終了 ----
     private void OnTotalTimeExpired(GameResult result)
     {
-        Debug.Log($"[PlayerMove] 持ち時間終了 → ゲーム終了: {result}");
+        ToastMessageUI.Show("持ち時間終了", ToastMessageUI.MessageType.Error);
         turngenerater.movegenerater.MoveReset();
         Reset();
         turngenerater.ChangeState(new GameEndState(turngenerater, result));
