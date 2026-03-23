@@ -25,9 +25,10 @@ public class InputHintUI : MonoBehaviour
             "<color=#AAD4FF>[RClick]</color> キャンセル  " +
             "<color=#AAD4FF>[1]</color> 通常攻撃  " +
             "<color=#AAD4FF>[2]</color> スキル  " +
+            "<color=#AAD4FF>[Q/E]</color> 向き反転  " +
             "<color=#AAD4FF>[Enter/Shift]</color> ターン終了  " +
-            "<color=#AAD4FF>[WASD]</color> カメラ  " +
-            "<color=#AAD4FF>[Scroll]</color> ズーム";
+            "<color=#AAD4FF>[C]</color> フォーカス  " +
+            "<color=#AAD4FF>[Tab]</color> 次のユニット";
 
         public const string PlayerAttack =
             "<color=#FFD4AA>[LClick]</color> 攻撃対象選択  " +
@@ -37,6 +38,16 @@ public class InputHintUI : MonoBehaviour
 
         public const string EnemyTurn =
             "<color=#888888>敵のターン...</color>";
+
+        public const string BuildMode =
+            "<color=#AAFFAA>[LClick]</color> 設置  " +
+            "<color=#AAFFAA>[RClick]</color> キャンセル  " +
+            "<color=#AAFFAA>[Enter/Shift]</color> ターン終了";
+
+        public const string SummonMode =
+            "<color=#DDAAFF>[LClick]</color> 召喚  " +
+            "<color=#DDAAFF>[RClick]</color> キャンセル  " +
+            "<color=#DDAAFF>[Enter/Shift]</color> ターン終了";
 
         public const string GameEnd =
             "";

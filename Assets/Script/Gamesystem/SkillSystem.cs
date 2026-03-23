@@ -89,12 +89,20 @@ public class SkillSystem : MonoBehaviour
         if (target.ShieldTurns > 0)
         {
             Debug.Log($"[SkillSystem] {target.kind} はシールド中！ ダメージ無効");
+            FloatingDamageUI.ShowShield(target.transform.position);
             return;
         }
 
         int damage = CalcSkillDamage(attacker, target, skill);
         target.HP = Mathf.Max(0, target.HP - damage);
         Debug.Log($"[SkillSystem] {attacker.kind} → {target.kind} '{skill.Name}' DMG:{damage} 残HP:{target.HP}");
+
+        // フローティングダメージ表示
+        bool isKill = target.HP <= 0;
+        if (damage > 0)
+            FloatingDamageUI.ShowDamage(target.transform.position, damage, isKill);
+        else
+            FloatingDamageUI.ShowMiss(target.transform.position);
 
         // 2連撃 / チェイン
         if (skill.Area == SkillAreaShape.SingleDouble && skill.SecondMultiplier > 0)
@@ -132,6 +140,7 @@ public class SkillSystem : MonoBehaviour
         int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
         t.HP = Mathf.Min(t.MaxHP, t.HP + heal);
         Debug.Log($"[SkillSystem] {t.kind} を {heal} 回復 (残HP:{t.HP})");
+        FloatingDamageUI.ShowHeal(t.transform.position, heal);
     }
 
     // =====================================================================
@@ -271,6 +280,7 @@ public class SkillSystem : MonoBehaviour
                 int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
                 ally.HP = Mathf.Min(ally.MaxHP, ally.HP + heal);
                 Debug.Log($"[SkillSystem] 範囲回復 {ally.kind} +{heal} (残HP:{ally.HP})");
+                FloatingDamageUI.ShowHeal(ally.transform.position, heal);
             }
 
             if (skill.GrantBuff != BuffType.None)

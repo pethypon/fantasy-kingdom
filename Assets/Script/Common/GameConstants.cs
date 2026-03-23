@@ -73,6 +73,10 @@ public static class GameConstants
     public const float CameraFOVMin = 30f;
     /// <summary>カメラFOV最大値</summary>
     public const float CameraFOVMax = 90f;
+    /// <summary>カメラ移動速度</summary>
+    public const float CameraMoveSpeed = 10f;
+    /// <summary>カメラズーム速度</summary>
+    public const float CameraScrollSpeed = 5f;
 
     // =====================================================================
     //  グリッド計算ヘルパー

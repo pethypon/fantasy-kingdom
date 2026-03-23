@@ -30,6 +30,9 @@ public class PlayerStart : StateCore
 
     public void Entry()
     {
+        // 敵ターンバナーを非表示
+        EnemyTurnBannerUI.Hide();
+
         // ターンカウント更新
         turngenerater.Turn++;
 
