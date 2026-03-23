@@ -454,8 +454,8 @@ public class AICommander
             {
                 // スコア降順ソートして上位候補を抽出
                 actions.Sort((a, b) => b.Score.CompareTo(a.Score));
-                // 常に最大12候補、深さ3で探索
-                int candidateLimit = Mathf.Max(_threatLevel.SearchCandidateLimit, 12);
+                // 常に最大14候補、深さ3で探索（反復深化で精度向上）
+                int candidateLimit = Mathf.Max(_threatLevel.SearchCandidateLimit, 14);
                 var topCandidates = new List<AIAction>();
                 for (int i = 0; i < Mathf.Min(candidateLimit, actions.Count); i++)
                 {

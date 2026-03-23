@@ -6,11 +6,19 @@ using UnityEngine;
 //  SimActionGenerator — SimBoardState上で候補行動を生成する
 //  MoveGererater / AttackPointt の移動・攻撃パターンを純粋関数として再現
 //  GameObjectに一切依存しない
+//
+//  改善点:
+//  - Direction.S のZ反転を完全再現
+//  - スキル攻撃位置をAttackPointt.SkillAttackPositions/SkillFixedPositionsと同一に再現
+//  - スタン・凍結・束縛による行動制限を考慮
+//  - 召喚候補も生成
+//  - 壁建築候補も生成
 // =====================================================================
 public static class SimActionGenerator
 {
     // ================================================================
     //  移動パターン (MoveGererater.MovePredicateMap と同一)
+    //  dx, dz は Direction.N 基準。Direction.S の場合は呼び出し側で dz を反転
     // ================================================================
     static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
         new Dictionary<Kind, Func<float, float, bool>>
@@ -38,6 +46,12 @@ public static class SimActionGenerator
                                      && !(dx == 0 && dz == 0) },
     };
 
+    // 方向非依存の移動パターン（dx, dzの符号反転が不要なKind）
+    static readonly HashSet<Kind> DirectionIndependentMove = new HashSet<Kind>
+    {
+        Kind.King, Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin, Kind.Boss,
+    };
+
     // ================================================================
     //  攻撃パターン (AttackPointt.AttackPredicateMap と同一)
     // ================================================================
@@ -58,6 +72,48 @@ public static class SimActionGenerator
         { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
     };
 
+    // 方向非依存の攻撃パターン
+    static readonly HashSet<Kind> DirectionIndependentAttack = new HashSet<Kind>
+    {
+        Kind.Magic, Kind.Scout, Kind.Magicsniper,
+    };
+
+    // ---- スキル攻撃位置 (AttackPointt.SkillAttackPositions と同一) ----
+    static readonly Dictionary<Kind, Vector2Int[]> SkillAttackPositions =
+        new Dictionary<Kind, Vector2Int[]>
+    {
+        { Kind.King,        new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
+        { Kind.Knight,      new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
+        { Kind.Archer,      new[] { new Vector2Int(0,2), new Vector2Int(0,3) } },
+        { Kind.Magic,       new[] { new Vector2Int(-2,0), new Vector2Int(2,0), new Vector2Int(0,2), new Vector2Int(0,-2) } },
+        { Kind.Assassin,    new[] { new Vector2Int(-1,1), new Vector2Int(1,1) } },
+        { Kind.Scout,       new[] { new Vector2Int(-1,0), new Vector2Int(1,0) } },
+        { Kind.Guardian,    new[] { new Vector2Int(0,1) } },
+        { Kind.Crossbow,    new[] { new Vector2Int(0,1), new Vector2Int(0,2) } },
+        { Kind.Magicsniper, new[] { new Vector2Int(-4,0), new Vector2Int(4,0) } },
+        { Kind.Bomber,      new[] { new Vector2Int(0,3) } },
+        { Kind.Boss,        new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
+    };
+
+    // ---- スキル固有の攻撃位置 ----
+    static readonly Dictionary<int, Vector2Int[]> SkillFixedPositions =
+        new Dictionary<int, Vector2Int[]>
+    {
+        { 7,  new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1),
+                      new Vector2Int(-1,0), new Vector2Int(1,0),
+                      new Vector2Int(-1,-1), new Vector2Int(0,-1), new Vector2Int(1,-1) } },
+        { 8,  new[] { new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(0,3) } },
+        { 22, new[] { new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(0,3), new Vector2Int(0,4) } },
+        { 37, new[] { new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(0,3), new Vector2Int(0,4), new Vector2Int(0,5) } },
+        { 48, new[] { new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(0,3), new Vector2Int(0,4),
+                      new Vector2Int(0,5), new Vector2Int(0,6), new Vector2Int(0,7) } },
+    };
+
+    // ================================================================
+    //  方向係数 (Direction.S なら Z 反転)
+    // ================================================================
+    static int DirZ(Direction d) => d == Direction.S ? -1 : 1;
+
     // ================================================================
     //  候補行動生成: あるチームの全ユニットの全行動を列挙
     // ================================================================
@@ -73,16 +129,17 @@ public static class SimActionGenerator
         for (int i = 0; i < units.Count; i++)
         {
             var unit = units[i];
-            GenerateMoveActions(board, unit, ap, actions);
-            GenerateAttackActions(board, unit, enemyTeam, ap, actions);
-            GenerateSkillActions(board, unit, enemyTeam, team, ap, actions);
+            if (unit.IsStunned) continue; // スタン中は行動不可
+
+            if (!unit.IsMovementBlocked)
+                GenerateMoveActions(board, unit, team, ap, actions);
+            GenerateAttackActions(board, unit, team, enemyTeam, ap, actions);
+            GenerateSkillActions(board, unit, team, enemyTeam, ap, actions);
         }
 
-        // 建築候補 (AIのみ, 探索では重要度が低いが戦略的に必要)
-        if (team == Team.Enemy)
-        {
-            GenerateBuildActions(board, ap, actions);
-        }
+        // 建築・召喚候補
+        GenerateBuildActions(board, team, ap, actions);
+        GenerateSummonActions(board, team, ap, actions);
 
         return actions;
     }
@@ -90,8 +147,8 @@ public static class SimActionGenerator
     // ================================================================
     //  移動候補
     // ================================================================
-    static void GenerateMoveActions(SimBoardState board, SimUnit unit, int ap,
-        List<SimAction> results)
+    static void GenerateMoveActions(SimBoardState board, SimUnit unit, Team team,
+        int ap, List<SimAction> results)
     {
         if (!MovePredicateMap.TryGetValue(unit.Kind, out var predicate)) return;
 
@@ -99,13 +156,18 @@ public static class SimActionGenerator
         if (cost > ap) return;
 
         var pos = unit.Position;
+        int dirZ = DirZ(unit.Direction);
+        bool dirIndep = DirectionIndependentMove.Contains(unit.Kind);
 
         foreach (var tile in board.MapTiles)
         {
             float dx = tile.x - pos.x;
             float dz = tile.z - pos.z;
 
-            if (!predicate(dx, dz)) continue;
+            // Direction.S の場合、方向依存パターンは Z を反転
+            float dzAdj = dirIndep ? dz : dz * dirZ;
+
+            if (!predicate(dx, dzAdj)) continue;
             if (board.IsOccupied(tile)) continue;
 
             results.Add(new SimAction
@@ -113,7 +175,8 @@ public static class SimActionGenerator
                 Type = SimActionType.Move,
                 UnitId = unit.Id,
                 TargetPos = tile,
-                APCost = cost
+                APCost = cost,
+                ActorTeam = team
             });
         }
     }
@@ -121,8 +184,8 @@ public static class SimActionGenerator
     // ================================================================
     //  攻撃候補
     // ================================================================
-    static void GenerateAttackActions(SimBoardState board, SimUnit unit, Team enemyTeam,
-        int ap, List<SimAction> results)
+    static void GenerateAttackActions(SimBoardState board, SimUnit unit, Team team,
+        Team enemyTeam, int ap, List<SimAction> results)
     {
         if (!AttackPredicateMap.TryGetValue(unit.Kind, out var predicate)) return;
 
@@ -130,18 +193,27 @@ public static class SimActionGenerator
         if (cost > ap) return;
 
         var pos = unit.Position;
-        var enemies = board.GetAliveUnits(enemyTeam);
+        int dirZ = DirZ(unit.Direction);
+        bool dirIndep = DirectionIndependentAttack.Contains(unit.Kind);
 
-        // クリスタルも攻撃対象に含める
-        var enemyCrystal = board.GetCrystal(enemyTeam);
-
-        for (int i = 0; i < enemies.Count; i++)
+        // 全敵ユニット + 敵クリスタルを攻撃対象
+        var targets = new List<SimUnit>();
+        for (int i = 0; i < board.Units.Count; i++)
         {
-            var target = enemies[i];
+            var t = board.Units[i];
+            if (!t.IsAlive) continue;
+            if (t.Team != enemyTeam) continue;
+            targets.Add(t);
+        }
+
+        for (int i = 0; i < targets.Count; i++)
+        {
+            var target = targets[i];
             float dx = target.Position.x - pos.x;
             float dz = target.Position.z - pos.z;
+            float dzAdj = dirIndep ? dz : dz * dirZ;
 
-            if (predicate(dx, dz))
+            if (predicate(dx, dzAdj))
             {
                 results.Add(new SimAction
                 {
@@ -149,77 +221,124 @@ public static class SimActionGenerator
                     UnitId = unit.Id,
                     TargetUnitId = target.Id,
                     TargetPos = target.Position,
-                    APCost = cost
-                });
-            }
-        }
-
-        // クリスタル攻撃
-        if (enemyCrystal != null)
-        {
-            float dx = enemyCrystal.Position.x - pos.x;
-            float dz = enemyCrystal.Position.z - pos.z;
-            if (predicate(dx, dz))
-            {
-                results.Add(new SimAction
-                {
-                    Type = SimActionType.Attack,
-                    UnitId = unit.Id,
-                    TargetUnitId = enemyCrystal.Id,
-                    TargetPos = enemyCrystal.Position,
-                    APCost = cost
+                    APCost = cost,
+                    ActorTeam = team
                 });
             }
         }
     }
 
     // ================================================================
-    //  スキル候補 (攻撃スキル・回復スキルのみ)
+    //  スキル候補 (正確なスキル攻撃位置を使用)
     // ================================================================
-    static void GenerateSkillActions(SimBoardState board, SimUnit unit, Team enemyTeam,
-        Team allyTeam, int ap, List<SimAction> results)
+    static void GenerateSkillActions(SimBoardState board, SimUnit unit, Team team,
+        Team enemyTeam, int ap, List<SimAction> results)
     {
         if (unit.AssignedSkillId < 0) return;
         if (unit.SkillCooldown > 0) return;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
         if (skill.APCost > ap) return;
 
+        int dirZ = DirZ(unit.Direction);
+
+        // スキル攻撃位置を決定
+        Vector2Int[] offsets = null;
+        if (SkillFixedPositions.ContainsKey(skill.Id))
+            offsets = SkillFixedPositions[skill.Id];
+        else if (SkillAttackPositions.ContainsKey(unit.Kind))
+            offsets = SkillAttackPositions[unit.Kind];
+
+        if (offsets == null) return;
+
+        // Self / SelfArea スキル
+        if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
+        {
+            // 自分自身にスキル使用（バフ系）
+            if (skill.GrantBuff != BuffType.None || skill.FixedHeal > 0)
+            {
+                results.Add(new SimAction
+                {
+                    Type = SimActionType.SkillUse,
+                    UnitId = unit.Id,
+                    TargetUnitId = unit.Id,
+                    TargetPos = unit.Position,
+                    APCost = skill.APCost,
+                    SkillId = unit.AssignedSkillId,
+                    ActorTeam = team
+                });
+            }
+            return;
+        }
+
+        // オフセットからターゲット位置を計算
+        var skillPositions = new HashSet<Vector3Int>();
+        for (int i = 0; i < offsets.Length; i++)
+        {
+            int wx = unit.Position.x + offsets[i].x;
+            int wz = unit.Position.z + offsets[i].y * dirZ;
+            var sp = new Vector3Int(wx, 0, wz);
+            if (board.MapTiles.Contains(sp))
+                skillPositions.Add(sp);
+        }
+
         // 攻撃スキル → 敵に使用
         if (skill.Multiplier > 0)
         {
-            var targets = board.GetAliveUnits(enemyTeam);
-            for (int i = 0; i < targets.Count; i++)
+            for (int i = 0; i < board.Units.Count; i++)
             {
-                var t = targets[i];
-                float dist = SimUtil.Distance(unit.Position, t.Position);
-                // スキル射程を概算 (通常攻撃範囲+1)
-                if (dist <= 5f)
+                var t = board.Units[i];
+                if (!t.IsAlive || t.Team != enemyTeam) continue;
+                if (!skillPositions.Contains(t.Position)) continue;
+
+                results.Add(new SimAction
                 {
-                    results.Add(new SimAction
-                    {
-                        Type = SimActionType.SkillUse,
-                        UnitId = unit.Id,
-                        TargetUnitId = t.Id,
-                        TargetPos = t.Position,
-                        APCost = skill.APCost,
-                        SkillId = unit.AssignedSkillId
-                    });
-                }
+                    Type = SimActionType.SkillUse,
+                    UnitId = unit.Id,
+                    TargetUnitId = t.Id,
+                    TargetPos = t.Position,
+                    APCost = skill.APCost,
+                    SkillId = unit.AssignedSkillId,
+                    ActorTeam = team
+                });
             }
         }
 
         // 回復スキル → 味方に使用
         if (skill.FixedHeal > 0)
         {
-            var allies = board.GetAliveUnits(allyTeam);
+            var allies = board.GetAliveUnits(team);
             for (int i = 0; i < allies.Count; i++)
             {
                 var a = allies[i];
                 if (a.Id == unit.Id) continue;
-                if (a.HP >= a.MaxHP) continue; // 満タンの味方には不要
-                float dist = SimUtil.Distance(unit.Position, a.Position);
-                if (dist <= 4f)
+                if (a.HP >= a.MaxHP) continue;
+                if (!skillPositions.Contains(a.Position)) continue;
+
+                results.Add(new SimAction
                 {
+                    Type = SimActionType.SkillUse,
+                    UnitId = unit.Id,
+                    TargetUnitId = a.Id,
+                    TargetPos = a.Position,
+                    APCost = skill.APCost,
+                    SkillId = unit.AssignedSkillId,
+                    ActorTeam = team
+                });
+            }
+        }
+
+        // バフスキル (味方支援)
+        if (skill.GrantBuff != BuffType.None && skill.Multiplier <= 0 && skill.FixedHeal <= 0)
+        {
+            if (skill.Target == SkillTarget.AllySingle)
+            {
+                var allies = board.GetAliveUnits(team);
+                for (int i = 0; i < allies.Count; i++)
+                {
+                    var a = allies[i];
+                    if (a.Id == unit.Id) continue;
+                    if (!skillPositions.Contains(a.Position)) continue;
+
                     results.Add(new SimAction
                     {
                         Type = SimActionType.SkillUse,
@@ -227,7 +346,8 @@ public static class SimActionGenerator
                         TargetUnitId = a.Id,
                         TargetPos = a.Position,
                         APCost = skill.APCost,
-                        SkillId = unit.AssignedSkillId
+                        SkillId = unit.AssignedSkillId,
+                        ActorTeam = team
                     });
                 }
             }
@@ -235,16 +355,18 @@ public static class SimActionGenerator
     }
 
     // ================================================================
-    //  建築候補 (探索用: 主要施設のみ)
+    //  建築候補
     // ================================================================
-    static void GenerateBuildActions(SimBoardState board, int ap, List<SimAction> results)
+    static void GenerateBuildActions(SimBoardState board, Team team, int ap,
+        List<SimAction> results)
     {
-        // 探索中は詳細な資源チェックができないため、
-        // AP余裕がある場合に代表的な建築を候補に加える
+        var counts = team == Team.Enemy ? board.EnemyBuildingCounts : board.PlayerBuildingCounts;
+
         FacilityKind[] priorities = {
             FacilityKind.Well, FacilityKind.LoggingCamp, FacilityKind.Quarry,
             FacilityKind.Field, FacilityKind.House, FacilityKind.Bakery,
-            FacilityKind.LumberMill, FacilityKind.StoneWorks,
+            FacilityKind.LumberMill, FacilityKind.StoneWorks, FacilityKind.Smelter,
+            FacilityKind.Barracks,
         };
 
         foreach (var fk in priorities)
@@ -253,27 +375,82 @@ public static class SimActionGenerator
             if (info.APCost > ap) continue;
 
             int existing = 0;
-            board.EnemyBuildingCounts.TryGetValue(fk, out existing);
-            if (existing >= 3) continue; // 上限超え防止
+            counts.TryGetValue(fk, out existing);
+            if (existing >= 3) continue;
 
-            // 建築位置はクリスタル近くと仮定
+            var crystalPos = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
+
             results.Add(new SimAction
             {
                 Type = SimActionType.Build,
                 Facility = fk,
-                TargetPos = board.EnemyCrystalPos, // 概算位置
-                APCost = info.APCost
+                TargetPos = crystalPos,
+                APCost = info.APCost,
+                ActorTeam = team
             });
         }
     }
 
     // ================================================================
+    //  召喚候補
+    // ================================================================
+    static void GenerateSummonActions(SimBoardState board, Team team, int ap,
+        List<SimAction> results)
+    {
+        Kind[] summonableKinds = {
+            Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
+            Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
+        };
+
+        var crystalPos = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
+
+        foreach (var kind in summonableKinds)
+        {
+            if (!UnitStaticData.Table.TryGetValue(kind, out var data)) continue;
+            if (data.CostAP > ap) continue;
+
+            // クリスタル周囲に空きマスを探す
+            Vector3Int spawnPos = FindSpawnPosition(board, crystalPos);
+            if (spawnPos.x == int.MinValue) continue;
+
+            results.Add(new SimAction
+            {
+                Type = SimActionType.Summon,
+                SummonKind = kind,
+                TargetPos = spawnPos,
+                APCost = data.CostAP,
+                ActorTeam = team
+            });
+        }
+    }
+
+    static Vector3Int FindSpawnPosition(SimBoardState board, Vector3Int center)
+    {
+        // クリスタル周囲の空きマスを探す
+        for (int dx = -2; dx <= 2; dx++)
+        {
+            for (int dz = -2; dz <= 2; dz++)
+            {
+                if (dx == 0 && dz == 0) continue;
+                var pos = new Vector3Int(center.x + dx, 0, center.z + dz);
+                if (board.MapTiles.Contains(pos) && !board.IsOccupied(pos))
+                    return pos;
+            }
+        }
+        return new Vector3Int(int.MinValue, 0, 0);
+    }
+
+    // ================================================================
     //  単一行動のスコアリング (探索のノード選択用: 簡易評価)
     //  上位N候補を絞り込むために使用。完全な評価はSimBoardEvaluatorで行う。
+    //
+    //  正値 = 行動者にとって有利
     // ================================================================
     public static float QuickScore(SimAction action, SimBoardState board)
     {
         float score = 0f;
+        // 行動者のチームを使って敵クリスタル方向を判定
+        bool isEnemy = action.ActorTeam == Team.Enemy;
 
         switch (action.Type)
         {
@@ -290,8 +467,12 @@ public static class SimActionGenerator
                     if (wouldKill)
                     {
                         score += GetPieceValue(target) * 2f;
-                        if (target.Kind == Kind.Crystal) score += 200f;
+                        if (target.Kind == Kind.Crystal) score += 500f;
+                        if (target.Kind == Kind.King) score += 300f;
                     }
+                    // シールド中のターゲットは低優先
+                    if (target.ShieldTurns > 0)
+                        score *= 0.1f;
                 }
                 break;
             }
@@ -305,15 +486,24 @@ public static class SimActionGenerator
                     if (skill.Multiplier > 0)
                     {
                         int dmg = SimBoardState.CalcSkillDamage(unit, target, skill);
-                        score += dmg * 1.5f;
+                        score += dmg * 1.8f;
                         if (dmg >= target.HP)
+                        {
                             score += GetPieceValue(target) * 1.5f;
+                            if (target.Kind == Kind.Crystal) score += 400f;
+                        }
+                        // デバフ付与ボーナス
+                        if (skill.InflictDebuff != StatusEffectType.None)
+                            score += 5f;
                     }
                     if (skill.FixedHeal > 0)
                     {
                         float healValue = Mathf.Min(skill.FixedHeal, target.MaxHP - target.HP);
-                        score += healValue * 0.5f;
+                        float hpRatio = target.MaxHP > 0 ? (float)target.HP / target.MaxHP : 1f;
+                        score += healValue * (1f - hpRatio); // HPが低いほど回復の価値が高い
                     }
+                    if (skill.GrantBuff != BuffType.None)
+                        score += 8f;
                 }
                 break;
             }
@@ -324,38 +514,39 @@ public static class SimActionGenerator
                 if (unit != null)
                 {
                     // 敵クリスタルへの接近
-                    Vector3Int enemyCrystal = unit.Team == Team.Enemy
+                    Vector3Int targetCrystal = isEnemy
                         ? board.PlayerCrystalPos : board.EnemyCrystalPos;
-                    float distBefore = SimUtil.Distance(unit.Position, enemyCrystal);
-                    float distAfter = SimUtil.Distance(action.TargetPos, enemyCrystal);
+                    float distBefore = SimUtil.Distance(unit.Position, targetCrystal);
+                    float distAfter = SimUtil.Distance(action.TargetPos, targetCrystal);
                     score += (distBefore - distAfter) * 2f;
 
-                    // 敵ユニットへの接近
-                    Team enemyTeam = unit.Team == Team.Enemy ? Team.Player : Team.Enemy;
+                    // 敵ユニットへの接近（攻撃射程に入る移動を高評価）
+                    Team enemyTeam = isEnemy ? Team.Player : Team.Enemy;
                     var enemies = board.GetAliveUnits(enemyTeam);
-                    float nearestBefore = float.MaxValue;
-                    float nearestAfter = float.MaxValue;
                     for (int i = 0; i < enemies.Count; i++)
                     {
-                        float db = SimUtil.Distance(unit.Position, enemies[i].Position);
                         float da = SimUtil.Distance(action.TargetPos, enemies[i].Position);
-                        if (db < nearestBefore) nearestBefore = db;
-                        if (da < nearestAfter) nearestAfter = da;
+                        if (da <= 1.5f) score += 5f; // 攻撃射程に入る
+                        else if (da <= 3f) score += 2f;
                     }
-                    if (nearestBefore < float.MaxValue)
-                        score += (nearestBefore - nearestAfter) * 1.5f;
 
                     // 自陣クリスタル防衛
-                    Vector3Int ownCrystal = unit.Team == Team.Enemy
+                    Vector3Int ownCrystal = isEnemy
                         ? board.EnemyCrystalPos : board.PlayerCrystalPos;
-                    float crystalDist = SimUtil.Distance(action.TargetPos, ownCrystal);
-                    if (crystalDist < 4f) score += 3f;
+                    float ownCrystalDist = SimUtil.Distance(action.TargetPos, ownCrystal);
+                    if (ownCrystalDist < 4f) score += 3f;
                 }
                 break;
             }
 
             case SimActionType.Build:
-                score += 8f; // 建築は基本的に有益
+                score += 8f;
+                // 早期の経済施設は特に有益
+                if (board.TurnCount <= 15) score += 4f;
+                break;
+
+            case SimActionType.Summon:
+                score += 15f;
                 break;
         }
 
@@ -386,7 +577,89 @@ public static class SimActionGenerator
             case Kind.Assassin:     return 26f;
             case Kind.Knight:       return 25f;
             case Kind.Scout:        return 18f;
+            case Kind.SubCrystal:   return 40f;
+            case Kind.WoodWall:     return 8f;
+            case Kind.StoneWall:    return 12f;
             default:                return 20f;
         }
+    }
+
+    // ================================================================
+    //  攻撃/移動射程の推定 (評価関数用)
+    // ================================================================
+    public static float EstimateAttackRange(Kind kind)
+    {
+        switch (kind)
+        {
+            case Kind.Magicsniper: return 4f;
+            case Kind.Archer:     return 3f;
+            case Kind.Bomber:     return 3f;
+            case Kind.Magic:      return 2f;
+            case Kind.Crossbow:   return 2f;
+            default:              return 1.5f;
+        }
+    }
+
+    public static float EstimateMoveRange(Kind kind)
+    {
+        switch (kind)
+        {
+            case Kind.Assassin:    return 2.5f;
+            case Kind.Scout:       return 2f;
+            case Kind.Crossbow:    return 3f;
+            case Kind.Magicsniper: return 3f;
+            case Kind.Bomber:      return 3f;
+            default:               return 1.5f;
+        }
+    }
+
+    // ================================================================
+    //  あるユニットの有効な移動先の数を数える（モビリティ計算用）
+    // ================================================================
+    public static int CountMoves(SimBoardState board, SimUnit unit)
+    {
+        if (!MovePredicateMap.TryGetValue(unit.Kind, out var predicate)) return 0;
+        if (unit.IsStunned || unit.IsMovementBlocked) return 0;
+
+        int count = 0;
+        var pos = unit.Position;
+        int dirZ = DirZ(unit.Direction);
+        bool dirIndep = DirectionIndependentMove.Contains(unit.Kind);
+
+        foreach (var tile in board.MapTiles)
+        {
+            float dx = tile.x - pos.x;
+            float dz = tile.z - pos.z;
+            float dzAdj = dirIndep ? dz : dz * dirZ;
+
+            if (predicate(dx, dzAdj) && !board.IsOccupied(tile))
+                count++;
+        }
+        return count;
+    }
+
+    // ================================================================
+    //  あるユニットが攻撃可能なターゲット数を数える
+    // ================================================================
+    public static int CountAttackTargets(SimBoardState board, SimUnit unit, Team enemyTeam)
+    {
+        if (!AttackPredicateMap.TryGetValue(unit.Kind, out var predicate)) return 0;
+        if (unit.IsStunned) return 0;
+
+        int count = 0;
+        var pos = unit.Position;
+        int dirZ = DirZ(unit.Direction);
+        bool dirIndep = DirectionIndependentAttack.Contains(unit.Kind);
+
+        for (int i = 0; i < board.Units.Count; i++)
+        {
+            var t = board.Units[i];
+            if (!t.IsAlive || t.Team != enemyTeam) continue;
+            float dx = t.Position.x - pos.x;
+            float dz = t.Position.z - pos.z;
+            float dzAdj = dirIndep ? dz : dz * dirZ;
+            if (predicate(dx, dzAdj)) count++;
+        }
+        return count;
     }
 }
