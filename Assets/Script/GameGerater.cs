@@ -299,14 +299,6 @@ public class GameGenerater : MonoBehaviour
             logGo.AddComponent<ActionLogUI>();
         }
 
-        // DangerZoneUI
-        if (DangerZoneUI.Instance == null)
-        {
-            var dangerGo = new GameObject("DangerZoneUI");
-            var dangerZone = dangerGo.AddComponent<DangerZoneUI>();
-            dangerZone.Init(_TurnGenerater, _UnitSetting, _MoveGenerater, _VisionGenerater);
-        }
-
         // ==== ObjectPool プレウォーム ====
         if (ObjectPool.Instance != null && _MoveGenerater.MovePoint != null)
         {
