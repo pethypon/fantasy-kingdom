@@ -450,12 +450,12 @@ public class AICommander
                 }
             }
 
-            // ---- 3手先探索（脅威度が探索導入以上で有効） ----
-            if (_threatLevel.UseSearchEngine)
+            // ---- 3手先完全シミュレーション探索（常時有効） ----
             {
                 // スコア降順ソートして上位候補を抽出
                 actions.Sort((a, b) => b.Score.CompareTo(a.Score));
-                int candidateLimit = _threatLevel.SearchCandidateLimit;
+                // 常に最大12候補、深さ3で探索
+                int candidateLimit = Mathf.Max(_threatLevel.SearchCandidateLimit, 12);
                 var topCandidates = new List<AIAction>();
                 for (int i = 0; i < Mathf.Min(candidateLimit, actions.Count); i++)
                 {
@@ -466,9 +466,12 @@ public class AICommander
                 if (topCandidates.Count > 0)
                 {
                     var searchEngine = new AISearchEngine(
-                        _threatLevel.SearchDepth,
+                        3, // 常に3手先読み
                         candidateLimit,
                         _rng);
+                    // シミュレーション用参照を設定（完全シミュレーション有効化）
+                    searchEngine.SetSimulationReferences(_moveGen, _unitSet, _crystalSystem, _apSystem);
+
                     var lookaheadScores = searchEngine.EvaluateWithLookahead(
                         topCandidates, _board, _personality, _learning);
 
