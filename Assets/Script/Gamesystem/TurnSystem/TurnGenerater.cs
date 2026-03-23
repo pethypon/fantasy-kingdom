@@ -106,7 +106,31 @@ public class TurnGenerater : MonoBehaviour
     void Update()
     {
         ReadInputs();
+        UpdateCamera();
         StateManager?.Update();
+    }
+
+    // ---- カメラ操作（全ステートで常時有効） ----
+    private void UpdateCamera()
+    {
+        // WASD移動
+        if (MoveInput != Vector2.zero && CameraObject != null)
+        {
+            Vector3 moveDir = new Vector3(MoveInput.x, 0f, MoveInput.y).normalized;
+            CameraObject.Translate(moveDir * GameConstants.CameraMoveSpeed * Time.deltaTime, Space.World);
+
+            Vector3 pos = CameraObject.position;
+            pos.x = Mathf.Clamp(pos.x, 0f, mapcreate.maxX - 10);
+            pos.z = Mathf.Clamp(pos.z, 0f, mapcreate.maxZ - 10);
+            CameraObject.position = pos;
+        }
+
+        // スクロールズーム
+        if (ScrollInput != 0f && Camera.main != null)
+        {
+            float fov = Camera.main.fieldOfView - ScrollInput * GameConstants.CameraScrollSpeed;
+            Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
+        }
     }
 
     private void ReadInputs()

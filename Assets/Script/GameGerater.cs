@@ -262,6 +262,13 @@ public class GameGenerater : MonoBehaviour
             floatDmgGo.AddComponent<FloatingDamageUI>();
         }
 
+        // EnemyTurnBannerUI
+        if (EnemyTurnBannerUI.Instance == null)
+        {
+            var bannerGo = new GameObject("EnemyTurnBannerUI");
+            bannerGo.AddComponent<EnemyTurnBannerUI>();
+        }
+
         // UnitSelectionHighlight
         var highlightGo = new GameObject("UnitSelectionHighlight");
         var highlight = highlightGo.AddComponent<UnitSelectionHighlight>();

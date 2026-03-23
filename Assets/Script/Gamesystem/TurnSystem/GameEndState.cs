@@ -23,6 +23,15 @@ public class GameEndState : StateCore
         if (_turn.timerSystem != null)
             _turn.timerSystem.StopTurn();
 
+        // UI片付け
+        EnemyTurnBannerUI.Hide();
+        if (_turn.inputHintUI != null)
+            _turn.inputHintUI.SetHints(InputHintUI.Hints.GameEnd);
+
+        // 残留ポイントをクリア
+        _turn.movegenerater.MoveReset();
+        _turn.attackpoint.AtkpDestroy();
+
         BuildGameEndUI();
     }
 

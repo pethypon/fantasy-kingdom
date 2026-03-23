@@ -28,10 +28,6 @@ public class PlayerMove : StateCore
     public Status Obj;
     public Vector3 ObjP;
     public Status MP;
-    private int maxx;
-    private int maxz;
-    public float speed = 10f;
-    public float scrollspeed = 5f;
     public RaycastHit hit;
     public Vector3 oldcell;
     public Vector3 newcell;
@@ -65,8 +61,6 @@ public class PlayerMove : StateCore
         this.mapcreate = mapcreate;
         this.crystalsystem = crystalsystem;
         MenuSwitch = false;
-        maxx = turngenerater.mapcreate.maxX;
-        maxz = turngenerater.mapcreate.maxZ;
         this.unitset = unitset;
         this.buildsystem = turngenerater.buildsystem;
         this.summonsystem = turngenerater.summonsystem;
@@ -94,9 +88,6 @@ public class PlayerMove : StateCore
 
     public void Update()
     {
-        UpdateCameraMove();
-        UpdateCameraZoom();
-
         if (BuildMode)
         {
             // 建築モード用ヒントに切り替え
@@ -125,6 +116,7 @@ public class PlayerMove : StateCore
         HandleRightClick();
         HandleTurnEnd();
         HandleAttackModeSelect();
+        HandleDirectionToggle();
         HandleCameraFocus();
         HandleUnitCycle();
     }
@@ -201,27 +193,27 @@ public class PlayerMove : StateCore
         }
     }
 
-    // ---- カメラ移動 ----
-    private void UpdateCameraMove()
+    // ---- Q/Eキー：ユニット方向反転 (N↔S) ----
+    private void HandleDirectionToggle()
     {
-        Vector2 input = turngenerater.MoveInput;
-        Vector3 moveDir = new Vector3(input.x, 0f, input.y).normalized;
-        turngenerater.CameraObject.Translate(moveDir * speed * Time.deltaTime, Space.World);
+        if (!turngenerater.ToggleNSDown) return;
+        if (turngenerater.SelectUnit == null) return;
 
-        Vector3 pos = turngenerater.CameraObject.position;
-        pos.x = Mathf.Clamp(pos.x, 0f, maxx - 10);
-        pos.z = Mathf.Clamp(pos.z, 0f, maxz - 10);
-        turngenerater.CameraObject.position = pos;
-    }
+        Status unit = turngenerater.SelectUnit;
+        unit.direction = (unit.direction == Direction.N) ? Direction.S : Direction.N;
 
-    // ---- カメラズーム（FOV） ----
-    private void UpdateCameraZoom()
-    {
-        float scroll = turngenerater.ScrollInput;
-        if (scroll == 0f) return;
+        // 方向変更後、移動範囲を再計算（方向依存パターンのため）
+        if (MenuSwitch)
+        {
+            turngenerater.movegenerater.MoveReset();
+            turngenerater.movegenerater.MoveCore(unit, unit.transform.position);
+        }
 
-        float fov = Camera.main.fieldOfView - scroll * scrollspeed;
-        Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
+        // 視界も再計算
+        RefreshVision();
+
+        string dirName = unit.direction == Direction.N ? "北" : "南";
+        ToastMessageUI.Show($"向き変更: {dirName}", ToastMessageUI.MessageType.Info);
     }
 
     // ---- 左クリック ----
