@@ -241,9 +241,15 @@ public class UnitPanelUI : MonoBehaviour
     private void RefreshUnit()
     {
         // 左: 基本情報
-        if (nameText != null) nameText.text = currentUnit.kind.ToString();
+        string dirMark = currentUnit.direction == Direction.N ? " <color=#88CCFF>▲N</color>" : " <color=#FF8888>▼S</color>";
+        if (nameText != null) nameText.text = KindNameJP.Get(currentUnit.kind) + dirMark;
         if (levelText != null) levelText.text = "Lv " + currentUnit.Level;
-        if (hpText != null) hpText.text = "HP " + currentUnit.HP + "/" + currentUnit.MaxHP;
+        if (hpText != null)
+        {
+            float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 0f;
+            string hpColor = hpRatio > 0.5f ? "#AAFFAA" : hpRatio > 0.25f ? "#FFDD66" : "#FF5555";
+            hpText.text = $"HP <color={hpColor}>{currentUnit.HP}</color>/{currentUnit.MaxHP}";
+        }
 
         // 中央: ステータス
         if (atkText != null) atkText.text = "ATK " + currentUnit.ATK;
@@ -273,14 +279,16 @@ public class UnitPanelUI : MonoBehaviour
                 passiveText.text = "";
         }
 
-        // ユニット用ボタン表示
-        SetButtonVisible(attackButton, true);
-        SetButtonVisible(skillButton, currentUnit.AssignedSkillId >= 0);
-        SetButtonVisible(waitButton, true);
+        // 敵ユニットは情報のみ表示（操作ボタン非表示）
+        bool isPlayer = currentUnit.team == Team.Player;
+        SetButtonVisible(attackButton, isPlayer);
+        SetButtonVisible(skillButton, isPlayer && currentUnit.AssignedSkillId >= 0);
+        SetButtonVisible(waitButton, isPlayer);
+        SetButtonVisible(cancelButton, true);
         if (upgradeArea != null) upgradeArea.SetActive(false);
         if (destroyArea != null) destroyArea.SetActive(false);
 
-        UpdateUnitButtons();
+        if (isPlayer) UpdateUnitButtons();
     }
 
     private static string BuildEffectString(Status unit)
@@ -307,7 +315,12 @@ public class UnitPanelUI : MonoBehaviour
         // 左: 基本情報
         if (nameText != null) nameText.text = displayName;
         if (levelText != null) levelText.text = "Lv " + currentUnit.Level;
-        if (hpText != null) hpText.text = "HP " + currentUnit.HP;
+        if (hpText != null)
+        {
+            float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 1f;
+            string hpColor = hpRatio > 0.5f ? "#AAFFAA" : hpRatio > 0.25f ? "#FFDD66" : "#FF5555";
+            hpText.text = $"HP <color={hpColor}>{currentUnit.HP}</color>/{currentUnit.MaxHP}";
+        }
 
         // 中央: ステータス
         if (atkText != null) atkText.text = currentUnit.ATK > 0 ? "ATK " + currentUnit.ATK : "";

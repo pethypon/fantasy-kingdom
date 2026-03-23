@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class EnemyTurnBannerUI : MonoBehaviour
 {
     public static EnemyTurnBannerUI Instance { get; private set; }
+    public static bool IsShowing => Instance != null && Instance._phase != Phase.Hidden;
 
     private Canvas _canvas;
     private CanvasGroup _group;

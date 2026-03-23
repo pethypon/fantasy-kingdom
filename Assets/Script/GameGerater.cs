@@ -269,6 +269,21 @@ public class GameGenerater : MonoBehaviour
             bannerGo.AddComponent<EnemyTurnBannerUI>();
         }
 
+        // TurnAPIndicatorUI
+        if (TurnAPIndicatorUI.Instance == null)
+        {
+            var indicatorGo = new GameObject("TurnAPIndicatorUI");
+            var indicator = indicatorGo.AddComponent<TurnAPIndicatorUI>();
+            indicator.Init(_TurnGenerater, _APSystem);
+        }
+
+        // UnitHoverTooltipUI
+        if (UnitHoverTooltipUI.Instance == null)
+        {
+            var tooltipGo = new GameObject("UnitHoverTooltipUI");
+            tooltipGo.AddComponent<UnitHoverTooltipUI>();
+        }
+
         // UnitSelectionHighlight
         var highlightGo = new GameObject("UnitSelectionHighlight");
         var highlight = highlightGo.AddComponent<UnitSelectionHighlight>();

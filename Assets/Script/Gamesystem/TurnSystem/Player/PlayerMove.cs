@@ -40,6 +40,7 @@ public class PlayerMove : StateCore
 
     private bool timerWired;
     private int unitCycleIndex = -1;
+    private string _lastHintKey = "";
 
     public PlayerMove(
         TurnGenerater turngenerater,
@@ -90,9 +91,7 @@ public class PlayerMove : StateCore
     {
         if (BuildMode)
         {
-            // 建築モード用ヒントに切り替え
-            if (turngenerater.inputHintUI != null)
-                turngenerater.inputHintUI.SetHints(InputHintUI.Hints.BuildMode);
+            SetHintsOnce(InputHintUI.Hints.BuildMode);
             HandleBuildMode();
             HandleTurnEnd();
             return;
@@ -100,17 +99,13 @@ public class PlayerMove : StateCore
 
         if (SummonMode)
         {
-            // 召喚モード用ヒントに切り替え
-            if (turngenerater.inputHintUI != null)
-                turngenerater.inputHintUI.SetHints(InputHintUI.Hints.SummonMode);
+            SetHintsOnce(InputHintUI.Hints.SummonMode);
             HandleSummonMode();
             HandleTurnEnd();
             return;
         }
 
-        // 通常モード用ヒントに戻す（Build/Summonから戻った時用）
-        if (turngenerater.inputHintUI != null)
-            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.PlayerMove);
+        SetHintsOnce(InputHintUI.Hints.PlayerMove);
 
         HandleLeftClick();
         HandleRightClick();
@@ -119,6 +114,14 @@ public class PlayerMove : StateCore
         HandleDirectionToggle();
         HandleCameraFocus();
         HandleUnitCycle();
+    }
+
+    private void SetHintsOnce(string hints)
+    {
+        if (_lastHintKey == hints) return;
+        _lastHintKey = hints;
+        if (turngenerater.inputHintUI != null)
+            turngenerater.inputHintUI.SetHints(hints);
     }
 
     public void Exit()
