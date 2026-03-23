@@ -28,6 +28,7 @@ public class BattleSystem : MonoBehaviour
         if (target.ShieldTurns > 0)
         {
             Debug.Log($"[Battle] {target.kind} はシールド中！ ダメージ無効（残り{target.ShieldTurns}ターン）");
+            FloatingDamageUI.ShowShield(target.transform.position);
             return;
         }
 
@@ -78,6 +79,9 @@ public class BattleSystem : MonoBehaviour
             target.ShieldTurns = ShieldDuration;
             target.ShieldActivated = true;
             Debug.Log($"[Battle] {target.team} のクリスタルが50%を切った！ {ShieldDuration}ターンの無敵シールド発動！");
+            string teamLabel = target.team == Team.Player ? "味方" : "敵";
+            ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{ShieldDuration}ターン）",
+                ToastMessageUI.MessageType.Info, 4f);
         }
     }
 
@@ -106,6 +110,13 @@ public class BattleSystem : MonoBehaviour
         target.HP -= damage;
         target.HP = Mathf.Max(0, target.HP);
         Debug.Log($"[Battle] {AttackSide.kind} → {target.kind}  DMG:{damage}  残HP:{target.HP}");
+
+        // フローティングダメージ表示
+        bool isKill = target.HP <= 0;
+        if (damage > 0)
+            FloatingDamageUI.ShowDamage(target.transform.position, damage, isKill);
+        else
+            FloatingDamageUI.ShowMiss(target.transform.position);
     }
 
     // ═══════════════════════════════════════════════════════════════════

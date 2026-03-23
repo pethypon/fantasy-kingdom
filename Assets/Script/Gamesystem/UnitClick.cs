@@ -56,7 +56,7 @@ public class UnitClick : MonoBehaviour
         // スタン中のユニットは選択不可（行動不可）
         if (StatusEffectSystem.IsStunned(playermove.Obj))
         {
-            Debug.Log("[UnitClick] このユニットはスタン中で行動不可");
+            ToastMessageUI.Show("スタン中のため行動できません", ToastMessageUI.MessageType.Warning);
             return;
         }
 
@@ -143,7 +143,7 @@ public class UnitClick : MonoBehaviour
 
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
         {
-            Debug.Log("[APSystem] AP不足：攻撃できません");
+            ToastMessageUI.Show("AP不足：攻撃できません", ToastMessageUI.MessageType.Warning);
             return;
         }
 
@@ -162,7 +162,7 @@ public class UnitClick : MonoBehaviour
         // APチェック
         if (!turngenerater.apsystem.CanUseSkill(Team.Player, skill.APCost))
         {
-            Debug.Log("[APSystem] AP不足：スキルを使用できません");
+            ToastMessageUI.Show("AP不足：スキルを使用できません", ToastMessageUI.MessageType.Warning);
             return;
         }
 
@@ -200,7 +200,7 @@ public class UnitClick : MonoBehaviour
                 if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
                 if (clickTarget.MaxHP <= 0 || (float)clickTarget.HP / clickTarget.MaxHP > 0.5f)
                 {
-                    Debug.Log("[UnitClick] デスサイト: HP50%以下の敵のみ対象");
+                    ToastMessageUI.Show("HP50%以下の敵のみ対象です", ToastMessageUI.MessageType.Warning);
                     return;
                 }
                 ATKC = clickTarget;
@@ -307,7 +307,7 @@ public class UnitClick : MonoBehaviour
         // 凍結・束縛中は移動不可
         if (playermove.Obj != null && StatusEffectSystem.IsMovementBlocked(playermove.Obj))
         {
-            Debug.Log("[UnitClick] このユニットは凍結/束縛中で移動不可");
+            ToastMessageUI.Show("凍結/束縛中のため移動できません", ToastMessageUI.MessageType.Warning);
             return;
         }
 
@@ -318,7 +318,7 @@ public class UnitClick : MonoBehaviour
         // ---- APチェック ----
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to))
         {
-            Debug.Log("[APSystem] AP不足：移動できません");
+            ToastMessageUI.Show("AP不足：移動できません", ToastMessageUI.MessageType.Warning);
             return;
         }
 

@@ -16,10 +16,6 @@ public class PlayerAttack : StateCore
     public CrystalSystem crystalsystem;
     public UnitSetting unitset;
 
-    public float Speed;
-    public float Scrollspeed;
-    public int Maxx;
-    public int Maxz;
     public bool AttackSetting;
     public bool AttackSuccess;
 
@@ -51,10 +47,6 @@ public class PlayerAttack : StateCore
 
     public void Entry()
     {
-        Speed = move.speed;
-        Scrollspeed = move.scrollspeed;
-        Maxx = mapcreate.maxX;
-        Maxz = mapcreate.maxZ;
         attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
         AttackSuccess = false;
 
@@ -85,8 +77,6 @@ public class PlayerAttack : StateCore
             return;
         }
 
-        UpdateCameraMove();
-        UpdateCameraZoom();
         HandleAttackClick();
         HandleCancelAttack();
     }
@@ -115,29 +105,6 @@ public class PlayerAttack : StateCore
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem,unitset
             ));
-    }
-
-    // ==== カメラ移動 ====
-    private void UpdateCameraMove()
-    {
-        Vector2 input = turngenerater.MoveInput;
-        Vector3 moveDir = new Vector3(input.x, 0f, input.y).normalized;
-        turngenerater.CameraObject.Translate(moveDir * Speed * Time.deltaTime, Space.World);
-
-        Vector3 pos = turngenerater.CameraObject.position;
-        pos.x = Mathf.Clamp(pos.x, 0f, Maxx - 10);
-        pos.z = Mathf.Clamp(pos.z, 0f, Maxz - 10);
-        turngenerater.CameraObject.position = pos;
-    }
-
-    // ==== カメラズーム（FOV） ====
-    private void UpdateCameraZoom()
-    {
-        float scroll = turngenerater.ScrollInput;
-        if (scroll == 0f) return;
-
-        float fov = Camera.main.fieldOfView - scroll * Scrollspeed;
-        Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
     }
 
     // ==== 攻撃クリック（左クリック） ====

@@ -27,6 +27,10 @@ public class TimerSystem : MonoBehaviour
     private bool isRunning;
     private Team currentTeam;
 
+    // ---- 警告フラグ（同一ターン内で1回だけ通知） ----
+    private bool warned30s;
+    private bool warned10s;
+
     // ---- 外部参照 ----
     private TurnGenerater turngenerater;
     private CrystalSystem crystalsystem;
@@ -54,6 +58,8 @@ public class TimerSystem : MonoBehaviour
         currentTeam = team;
         turnTimeRemaining = TurnTimeLimit;
         isRunning = true;
+        warned30s = false;
+        warned10s = false;
     }
 
     /// <summary>ターン終了時に呼ぶ（手動終了時）</summary>
@@ -84,6 +90,21 @@ public class TimerSystem : MonoBehaviour
             GameResult result = DetermineTimeUpResult();
             OnTotalTimeExpired?.Invoke(result);
             return;
+        }
+
+        // プレイヤーターン中の残り時間警告
+        if (currentTeam == Team.Player)
+        {
+            if (!warned30s && turnTimeRemaining <= 30f)
+            {
+                warned30s = true;
+                ToastMessageUI.Show("残り30秒", ToastMessageUI.MessageType.Warning);
+            }
+            if (!warned10s && turnTimeRemaining <= 10f)
+            {
+                warned10s = true;
+                ToastMessageUI.Show("残り10秒！", ToastMessageUI.MessageType.Error);
+            }
         }
 
         // 1ターン制限時間が切れたら自動ターン終了

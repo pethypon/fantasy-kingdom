@@ -32,9 +32,23 @@ public class EnemyStart : StateCore
     {
         Debug.Log("[EnemyStart] 敵ターン開始");
 
+        // プレイヤーの残留MovePoint/AttackPointをクリア
+        movegenerater.MoveReset();
+        turngenerater.attackpoint.AtkpDestroy();
+
+        // 選択状態もクリア
+        turngenerater.SelectUnit = null;
+
+        // UnitPanelUI を非表示
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
+
         // InputHintUI を敵ターン表示に
         if (turngenerater.inputHintUI != null)
             turngenerater.inputHintUI.SetHints(InputHintUI.Hints.EnemyTurn);
+
+        // 敵ターンバナー表示
+        EnemyTurnBannerUI.Show();
 
         // クリスタルシールドのターン経過（敵陣営）
         BattleSystem.TickCrystalShields(crystalsystem.Enemycrystal);
