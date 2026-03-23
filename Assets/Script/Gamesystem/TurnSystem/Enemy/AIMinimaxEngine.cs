@@ -15,15 +15,12 @@ using Debug = UnityEngine.Debug;
 //    ・APが尽きるまで貪欲に行動を選択・実行
 //    ・ただし深さ1のみ「最初の1手」を候補として分岐する
 //
-//  最適化:
-//    ・Alpha-Beta枝刈りで無駄なノードを探索しない
-//    ・候補行動をQuickScoreで事前ソートし、良い手から探索
-//    ・各深さで候補数を制限 (深さ1: 全候補, 深さ2-3: 上位N手)
-//    ・時間制限チェック付き
-//
-//  盤面シミュレーション:
-//    ・SimBoardState上で実際に行動を適用し、結果を評価
-//    ・建築・召喚・戦闘・視野拡張すべてシミュレーション対象
+//  改善点:
+//    ・反復深化 (Iterative Deepening) — 浅い探索で手順序を最適化
+//    ・キラームーブ — 兄弟ノードで有効だった手を優先
+//    ・ターン遷移シミュレーション — AP/疲労リセット、DoT、クールダウン
+//    ・MinSearchの手順序修正 — Playerの最善手（高QuickScore）を先に探索
+//    ・ActorTeamの正確な設定
 // =====================================================================
 public class AIMinimaxEngine
 {
@@ -37,24 +34,26 @@ public class AIMinimaxEngine
     int _pruned;
     float _elapsedMs;
 
-    // ---- 時間制限 (ms) ----
-    // ユーザーは「1時間まで」と言ったが、Unity上で長すぎるとフリーズするため
-    // 実用的な範囲で設定。十分な精度を保ちつつ数秒で完了する。
-    const float DefaultTimeBudgetMs = 30000f; // 30秒 (正確性重視)
+    // ---- 時間制限 ----
+    const float DefaultTimeBudgetMs = 30000f;
     float _timeBudgetMs;
     Stopwatch _stopwatch;
 
-    public AIMinimaxEngine(int maxDepth = 3, int candidateLimit = 12,
-        int greedyActionsPerTurn = 8, float timeBudgetMs = DefaultTimeBudgetMs)
+    // ---- キラームーブ (深さごとに最善だった行動を記録) ----
+    SimAction[] _killerMoves;
+
+    public AIMinimaxEngine(int maxDepth = 3, int candidateLimit = 14,
+        int greedyActionsPerTurn = 10, float timeBudgetMs = DefaultTimeBudgetMs)
     {
-        _maxDepth = Mathf.Clamp(maxDepth, 1, 3);
-        _candidateLimit = Mathf.Max(3, candidateLimit);
-        _greedyActionsPerTurn = Mathf.Clamp(greedyActionsPerTurn, 3, 15);
+        _maxDepth = Mathf.Clamp(maxDepth, 1, 4);
+        _candidateLimit = Mathf.Max(4, candidateLimit);
+        _greedyActionsPerTurn = Mathf.Clamp(greedyActionsPerTurn, 4, 15);
         _timeBudgetMs = timeBudgetMs;
+        _killerMoves = new SimAction[_maxDepth + 1];
     }
 
     // ================================================================
-    //  メイン探索: 最善の行動列スコアを返す
+    //  メイン探索: 反復深化 + Alpha-Beta
     //  入力: AIの候補行動リスト (AIAction) と現在の盤面状態
     //  出力: 各AIActionに対する先読みスコア補正値
     // ================================================================
@@ -68,69 +67,85 @@ public class AIMinimaxEngine
         _pruned = 0;
         _stopwatch = Stopwatch.StartNew();
 
-        float alpha = float.MinValue;
-        float beta = float.MaxValue;
-
         // 初期盤面の基準スコア
         float baseScore = SimBoardEvaluator.Evaluate(initialBoard);
 
-        // 候補をQuickScoreで事前ソート (良い手から探索 → alpha-beta効率UP)
-        var scoredCandidates = new List<(AIAction action, float quickScore)>();
+        // 候補をSimActionに事前変換
+        var convertedCandidates = new List<(AIAction action, SimAction sim, float quickScore)>();
         foreach (var c in candidates)
         {
             var simAction = ConvertToSimAction(c, initialBoard);
-            float qs = simAction != null ? SimActionGenerator.QuickScore(simAction, initialBoard) : 0f;
-            scoredCandidates.Add((c, qs));
+            float qs = simAction != null ? SimActionGenerator.QuickScore(simAction, initialBoard) : float.MinValue;
+            convertedCandidates.Add((c, simAction, qs));
         }
-        scoredCandidates.Sort((a, b) => b.quickScore.CompareTo(a.quickScore));
 
-        foreach (var (candidate, _) in scoredCandidates)
+        // 反復深化: 深さ1から_maxDepthまで段階的に探索
+        // 浅い探索の結果で手順序を最適化し、深い探索のAlpha-Beta効率を上げる
+        float[] candidateScores = new float[convertedCandidates.Count];
+        for (int i = 0; i < candidateScores.Length; i++)
+            candidateScores[i] = convertedCandidates[i].quickScore;
+
+        for (int iterDepth = Mathf.Min(1, _maxDepth); iterDepth <= _maxDepth; iterDepth++)
         {
-            // 時間チェック
-            if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs)
-            {
-                Debug.Log($"[AIMinimaxEngine] 時間切れ ({_stopwatch.ElapsedMilliseconds}ms) " +
-                    $"— 残り{candidates.Count - result.Count}候補は未評価");
-                break;
-            }
+            if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs * 0.9f) break;
 
-            var simAction = ConvertToSimAction(candidate, initialBoard);
-            if (simAction == null)
-            {
-                result[candidate] = 0f;
-                continue;
-            }
+            // 前回のスコアで降順ソート（最善手を先に探索）
+            var indices = new int[convertedCandidates.Count];
+            for (int i = 0; i < indices.Length; i++) indices[i] = i;
+            System.Array.Sort(indices, (a, b) => candidateScores[b].CompareTo(candidateScores[a]));
 
-            // 盤面をクローンして最初の行動を適用
-            var boardAfterAction = initialBoard.Clone();
-            if (!boardAfterAction.ApplyAction(simAction))
-            {
-                result[candidate] = 0f;
-                continue;
-            }
+            float alpha = float.MinValue;
+            float beta = float.MaxValue;
 
-            // 残りのAIターンをgreedyに実行
-            SimulateGreedyTurn(boardAfterAction, Team.Enemy);
-
-            // 深さ2以降の探索
-            float score;
-            if (_maxDepth >= 2)
+            for (int ii = 0; ii < indices.Length; ii++)
             {
-                // 深さ2: Playerの最善応答 (Min)
-                score = MinSearch(boardAfterAction, 2, alpha, beta);
-            }
-            else
-            {
-                score = SimBoardEvaluator.Evaluate(boardAfterAction);
-                _nodesEvaluated++;
-            }
+                int idx = indices[ii];
+                var (candidate, simAction, _) = convertedCandidates[idx];
 
-            // 基準スコアとの差分を先読みスコアとして返す
-            float lookaheadDelta = score - baseScore;
+                if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs)
+                    break;
+
+                if (simAction == null)
+                {
+                    candidateScores[idx] = baseScore;
+                    continue;
+                }
+
+                // 盤面をクローンして最初の行動を適用
+                var boardAfterAction = initialBoard.Clone();
+                if (!boardAfterAction.ApplyAction(simAction))
+                {
+                    candidateScores[idx] = baseScore;
+                    continue;
+                }
+
+                // 残りのAIターンをgreedyに実行
+                SimulateGreedyTurn(boardAfterAction, Team.Enemy);
+
+                // 深さ2以降の探索
+                float score;
+                if (iterDepth >= 2)
+                {
+                    score = MinSearch(boardAfterAction, 2, iterDepth, alpha, beta);
+                }
+                else
+                {
+                    score = SimBoardEvaluator.Evaluate(boardAfterAction);
+                    _nodesEvaluated++;
+                }
+
+                candidateScores[idx] = score;
+
+                if (score > alpha) alpha = score;
+            }
+        }
+
+        // 結果をDictionaryに変換
+        for (int i = 0; i < convertedCandidates.Count; i++)
+        {
+            var (candidate, _, _) = convertedCandidates[i];
+            float lookaheadDelta = candidateScores[i] - baseScore;
             result[candidate] = lookaheadDelta;
-
-            // Alpha更新
-            if (score > alpha) alpha = score;
         }
 
         _stopwatch.Stop();
@@ -146,49 +161,69 @@ public class AIMinimaxEngine
     // ================================================================
     //  Min探索 (Playerの応手): AIにとって最悪のスコアを返す
     // ================================================================
-    float MinSearch(SimBoardState board, int depth, float alpha, float beta)
+    float MinSearch(SimBoardState board, int depth, int maxDepth, float alpha, float beta)
     {
         if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs)
             return SimBoardEvaluator.Evaluate(board);
 
         // ゲーム終了チェック
-        var eCrystal = board.GetCrystal(Team.Enemy);
-        var pCrystal = board.GetCrystal(Team.Player);
-        if ((eCrystal != null && !eCrystal.IsAlive) || (pCrystal != null && !pCrystal.IsAlive))
+        if (board.IsTerminal())
         {
             _nodesEvaluated++;
             return SimBoardEvaluator.Evaluate(board);
         }
 
-        // Playerのターンをシミュレーション
-        // Player APを概算リセット
-        board.PlayerAP = 20;
+        // ターン遷移: Player のターン開始をシミュレーション
+        board.SimulateTurnTransition(Team.Player);
+
+        // ゲーム終了チェック（DoTで死亡した場合）
+        if (board.IsTerminal())
+        {
+            _nodesEvaluated++;
+            return SimBoardEvaluator.Evaluate(board);
+        }
 
         // Playerの候補行動を生成
         var actions = SimActionGenerator.GenerateAllActions(board, Team.Player);
         if (actions.Count == 0)
         {
-            // Playerが行動不能 → 現状のまま
-            if (depth < _maxDepth)
-                return MaxSearch(board, depth + 1, alpha, beta);
+            if (depth < maxDepth)
+                return MaxSearch(board, depth + 1, maxDepth, alpha, beta);
             _nodesEvaluated++;
             return SimBoardEvaluator.Evaluate(board);
         }
 
-        // QuickScoreでソート (Playerにとって良い手 = AIにとって悪い手)
+        // 手順序: Playerの最善手（高QuickScore = Player自身にとって有利）を先に探索
+        // QuickScoreはActorTeamに基づいてチーム視点を切り替えるので、
+        // Player行動の高スコアはPlayerにとって良い手 → AIにとって悪い手
+        // これをMin探索で先に探索するとBeta枝刈りが最大化される
         actions.Sort((a, b) =>
         {
             float sa = SimActionGenerator.QuickScore(a, board);
             float sb = SimActionGenerator.QuickScore(b, board);
-            // Playerは自分に有利な手を選ぶ = AIのスコアが低くなる手
-            // QuickScoreはEnemy視点なので、Playerの良い手は低スコア
-            return sa.CompareTo(sb); // 昇順 (AIにとって悪い手が先)
+            return sb.CompareTo(sa); // 降順: Playerの良い手が先
         });
 
-        // 上位候補に絞る
-        int limit = Mathf.Min(_candidateLimit, actions.Count);
+        // キラームーブを先頭に移動
+        if (depth < _killerMoves.Length && _killerMoves[depth] != null)
+        {
+            var killer = _killerMoves[depth];
+            for (int i = 1; i < actions.Count; i++)
+            {
+                if (actions[i].UnitId == killer.UnitId && actions[i].Type == killer.Type
+                    && actions[i].TargetPos == killer.TargetPos)
+                {
+                    var tmp = actions[i];
+                    actions[i] = actions[0];
+                    actions[0] = tmp;
+                    break;
+                }
+            }
+        }
 
+        int limit = Mathf.Min(_candidateLimit, actions.Count);
         float minScore = float.MaxValue;
+        SimAction bestAction = null;
 
         for (int i = 0; i < limit; i++)
         {
@@ -201,10 +236,9 @@ public class AIMinimaxEngine
             SimulateGreedyTurn(boardCopy, Team.Player);
 
             float score;
-            if (depth < _maxDepth)
+            if (depth < maxDepth)
             {
-                // 次の深さ (Max: AIの再応手)
-                score = MaxSearch(boardCopy, depth + 1, alpha, beta);
+                score = MaxSearch(boardCopy, depth + 1, maxDepth, alpha, beta);
             }
             else
             {
@@ -212,7 +246,11 @@ public class AIMinimaxEngine
                 _nodesEvaluated++;
             }
 
-            if (score < minScore) minScore = score;
+            if (score < minScore)
+            {
+                minScore = score;
+                bestAction = actions[i];
+            }
 
             // Beta枝刈り
             if (score <= alpha)
@@ -223,29 +261,36 @@ public class AIMinimaxEngine
             if (score < beta) beta = score;
         }
 
+        // キラームーブ記録
+        if (bestAction != null && depth < _killerMoves.Length)
+            _killerMoves[depth] = bestAction;
+
         return minScore == float.MaxValue ? SimBoardEvaluator.Evaluate(board) : minScore;
     }
 
     // ================================================================
     //  Max探索 (AIの再応手): AIにとって最善のスコアを返す
     // ================================================================
-    float MaxSearch(SimBoardState board, int depth, float alpha, float beta)
+    float MaxSearch(SimBoardState board, int depth, int maxDepth, float alpha, float beta)
     {
         if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs)
             return SimBoardEvaluator.Evaluate(board);
 
         // ゲーム終了チェック
-        var eCrystal = board.GetCrystal(Team.Enemy);
-        var pCrystal = board.GetCrystal(Team.Player);
-        if ((eCrystal != null && !eCrystal.IsAlive) || (pCrystal != null && !pCrystal.IsAlive))
+        if (board.IsTerminal())
         {
             _nodesEvaluated++;
             return SimBoardEvaluator.Evaluate(board);
         }
 
-        // AIのターンをシミュレーション
-        // AP概算リセット
-        board.EnemyAP = 20;
+        // ターン遷移: AI(Enemy)のターン開始をシミュレーション
+        board.SimulateTurnTransition(Team.Enemy);
+
+        if (board.IsTerminal())
+        {
+            _nodesEvaluated++;
+            return SimBoardEvaluator.Evaluate(board);
+        }
 
         var actions = SimActionGenerator.GenerateAllActions(board, Team.Enemy);
         if (actions.Count == 0)
@@ -254,7 +299,7 @@ public class AIMinimaxEngine
             return SimBoardEvaluator.Evaluate(board);
         }
 
-        // QuickScoreでソート (降順: AIに有利な手が先)
+        // 手順序: AIにとって良い手（高QuickScore）が先
         actions.Sort((a, b) =>
         {
             float sa = SimActionGenerator.QuickScore(a, board);
@@ -262,9 +307,26 @@ public class AIMinimaxEngine
             return sb.CompareTo(sa);
         });
 
-        int limit = Mathf.Min(_candidateLimit, actions.Count);
+        // キラームーブ
+        if (depth < _killerMoves.Length && _killerMoves[depth] != null)
+        {
+            var killer = _killerMoves[depth];
+            for (int i = 1; i < actions.Count; i++)
+            {
+                if (actions[i].UnitId == killer.UnitId && actions[i].Type == killer.Type
+                    && actions[i].TargetPos == killer.TargetPos)
+                {
+                    var tmp = actions[i];
+                    actions[i] = actions[0];
+                    actions[0] = tmp;
+                    break;
+                }
+            }
+        }
 
+        int limit = Mathf.Min(_candidateLimit, actions.Count);
         float maxScore = float.MinValue;
+        SimAction bestAction = null;
 
         for (int i = 0; i < limit; i++)
         {
@@ -273,13 +335,12 @@ public class AIMinimaxEngine
             var boardCopy = board.Clone();
             boardCopy.ApplyAction(actions[i]);
 
-            // AIの残りターンをgreedyに実行
             SimulateGreedyTurn(boardCopy, Team.Enemy);
 
             float score;
-            if (depth < _maxDepth)
+            if (depth < maxDepth)
             {
-                score = MinSearch(boardCopy, depth + 1, alpha, beta);
+                score = MinSearch(boardCopy, depth + 1, maxDepth, alpha, beta);
             }
             else
             {
@@ -287,7 +348,11 @@ public class AIMinimaxEngine
                 _nodesEvaluated++;
             }
 
-            if (score > maxScore) maxScore = score;
+            if (score > maxScore)
+            {
+                maxScore = score;
+                bestAction = actions[i];
+            }
 
             // Alpha枝刈り
             if (score >= beta)
@@ -297,6 +362,9 @@ public class AIMinimaxEngine
             }
             if (score > alpha) alpha = score;
         }
+
+        if (bestAction != null && depth < _killerMoves.Length)
+            _killerMoves[depth] = bestAction;
 
         return maxScore == float.MinValue ? SimBoardEvaluator.Evaluate(board) : maxScore;
     }
@@ -314,6 +382,9 @@ public class AIMinimaxEngine
             int ap = board.GetAP(team);
             if (ap <= 0) break;
 
+            // ゲーム終了チェック
+            if (board.IsTerminal()) break;
+
             var actions = SimActionGenerator.GenerateAllActions(board, team);
             if (actions.Count == 0) break;
 
@@ -328,9 +399,22 @@ public class AIMinimaxEngine
 
                 float score = SimActionGenerator.QuickScore(a, board);
 
-                // 既に行動した駒は割引
+                // 既に行動した駒は割引（ただし確殺可能な攻撃は例外）
                 if (a.UnitId >= 0 && actedUnits.Contains(a.UnitId))
-                    score *= 0.5f;
+                {
+                    bool isKillShot = false;
+                    if (a.Type == SimActionType.Attack && a.TargetUnitId >= 0)
+                    {
+                        var attacker = board.GetUnit(a.UnitId);
+                        var target = board.GetUnit(a.TargetUnitId);
+                        if (attacker != null && target != null)
+                        {
+                            int dmg = SimBoardState.CalcDamage(attacker, target);
+                            if (dmg >= target.HP) isKillShot = true;
+                        }
+                    }
+                    if (!isKillShot) score *= 0.4f;
+                }
 
                 if (score > bestScore)
                 {
@@ -339,28 +423,22 @@ public class AIMinimaxEngine
                 }
             }
 
-            if (best == null) break;
+            if (best == null || bestScore < -5f) break; // 有益な行動がなければ終了
 
             board.ApplyAction(best);
             if (best.UnitId >= 0)
                 actedUnits.Add(best.UnitId);
-
-            // ゲーム終了チェック
-            var eCrystal = board.GetCrystal(Team.Enemy);
-            var pCrystal = board.GetCrystal(Team.Player);
-            if ((eCrystal != null && !eCrystal.IsAlive) || (pCrystal != null && !pCrystal.IsAlive))
-                break;
         }
     }
 
     // ================================================================
     //  AIAction → SimAction 変換
-    //  実際のAIAction (GameObjectベース) をSimAction (IDベース) に変換
     // ================================================================
     SimAction ConvertToSimAction(AIAction aiAction, SimBoardState board)
     {
         var sim = new SimAction();
         sim.APCost = aiAction.APCost;
+        sim.ActorTeam = Team.Enemy; // AICommanderから呼ばれるので常にEnemy
 
         switch (aiAction.ActionType)
         {
@@ -417,7 +495,6 @@ public class AIMinimaxEngine
 
     // ================================================================
     //  Status (実ゲーム) → SimUnit ID のマッピング
-    //  位置とチームで照合する
     // ================================================================
     static int FindSimUnitId(Status realUnit, SimBoardState board)
     {
@@ -427,6 +504,7 @@ public class AIMinimaxEngine
             Mathf.RoundToInt(realUnit.transform.position.x), 0,
             Mathf.RoundToInt(realUnit.transform.position.z));
 
+        // 位置 + チーム + Kind で完全一致
         for (int i = 0; i < board.Units.Count; i++)
         {
             var su = board.Units[i];
@@ -434,7 +512,7 @@ public class AIMinimaxEngine
                 return su.Id;
         }
 
-        // 位置が合わない場合はKind+Teamのみで探索
+        // 位置が合わない場合はKind+Teamのみで探索（移動済みの場合）
         for (int i = 0; i < board.Units.Count; i++)
         {
             var su = board.Units[i];

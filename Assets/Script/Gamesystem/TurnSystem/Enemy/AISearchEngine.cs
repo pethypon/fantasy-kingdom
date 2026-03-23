@@ -99,11 +99,11 @@ public class AISearchEngine
         }
 
         // AIMinimaxEngineで探索
-        // 時間予算を30秒に設定（正確性重視）
+        // 反復深化 + キラームーブ + 正確なターン遷移付き
         var minimax = new AIMinimaxEngine(
             maxDepth: _maxDepth,
-            candidateLimit: _candidateLimit,
-            greedyActionsPerTurn: 8,
+            candidateLimit: Mathf.Max(_candidateLimit, 14),
+            greedyActionsPerTurn: 10,
             timeBudgetMs: 30000f
         );
 
