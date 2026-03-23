@@ -86,6 +86,13 @@ public class APSystem : MonoBehaviour
         Debug.Log($"[APSystem] {team} / Skill  コスト:{apCost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
     }
 
+    // ==== AP返還（undo用） ====
+    public void RefundAP(Team team, int amount)
+    {
+        _factionState.ModifyAP(team, amount);
+        Debug.Log($"[APSystem] {team} AP返還: +{amount}  残AP:{_factionState.GetAP(team)}");
+    }
+
     // ==== UI 表示などに使用 ====
     public int GetAP(Team team) => _factionState.GetAP(team);
 

@@ -42,6 +42,19 @@ public class AIMinimaxEngine
     // ---- キラームーブ (深さごとに最善だった行動を記録) ----
     SimAction[] _killerMoves;
 
+    // ---- トランスポジションテーブル (盤面ハッシュ → 評価値キャッシュ) ----
+    Dictionary<long, TTEntry> _transTable;
+    const int MaxTTSize = 8192;
+
+    struct TTEntry
+    {
+        public float Score;
+        public int Depth;
+        public TTFlag Flag; // Exact, LowerBound, UpperBound
+    }
+
+    enum TTFlag { Exact, LowerBound, UpperBound }
+
     public AIMinimaxEngine(int maxDepth = 3, int candidateLimit = 14,
         int greedyActionsPerTurn = 10, float timeBudgetMs = DefaultTimeBudgetMs)
     {
@@ -50,6 +63,27 @@ public class AIMinimaxEngine
         _greedyActionsPerTurn = Mathf.Clamp(greedyActionsPerTurn, 4, 15);
         _timeBudgetMs = timeBudgetMs;
         _killerMoves = new SimAction[_maxDepth + 1];
+        _transTable = new Dictionary<long, TTEntry>(MaxTTSize);
+    }
+
+    /// <summary>盤面のZobrist風ハッシュ（軽量近似）</summary>
+    static long BoardHash(SimBoardState board)
+    {
+        long h = 17;
+        for (int i = 0; i < board.Units.Count; i++)
+        {
+            var u = board.Units[i];
+            if (!u.IsAlive) continue;
+            h = h * 31 + u.Position.x;
+            h = h * 31 + u.Position.z;
+            h = h * 31 + (int)u.Kind;
+            h = h * 31 + (int)u.Team;
+            h = h * 31 + u.HP;
+        }
+        h = h * 31 + board.EnemyAP;
+        h = h * 31 + board.PlayerAP;
+        h = h * 31 + board.TurnCount;
+        return h;
     }
 
     // ================================================================
@@ -152,7 +186,7 @@ public class AIMinimaxEngine
         _elapsedMs = _stopwatch.ElapsedMilliseconds;
 
         Debug.Log($"[AIMinimaxEngine] 探索完了: 深さ{_maxDepth} " +
-            $"評価{_nodesEvaluated}ノード 枝刈り{_pruned}回 " +
+            $"評価{_nodesEvaluated}ノード 枝刈り{_pruned}回 TT{_transTable.Count}件 " +
             $"{_elapsedMs:F0}ms 基準値={baseScore:F1}");
 
         return result;
@@ -181,6 +215,17 @@ public class AIMinimaxEngine
         {
             _nodesEvaluated++;
             return SimBoardEvaluator.Evaluate(board);
+        }
+
+        // トランスポジションテーブルルックアップ
+        long hash = BoardHash(board);
+        int remainingDepth = maxDepth - depth;
+        TTEntry ttEntry;
+        if (_transTable.TryGetValue(hash, out ttEntry) && ttEntry.Depth >= remainingDepth)
+        {
+            if (ttEntry.Flag == TTFlag.Exact) return ttEntry.Score;
+            if (ttEntry.Flag == TTFlag.UpperBound && ttEntry.Score <= alpha) return ttEntry.Score;
+            if (ttEntry.Flag == TTFlag.LowerBound && ttEntry.Score >= beta) { _pruned++; return ttEntry.Score; }
         }
 
         // Playerの候補行動を生成
@@ -265,7 +310,18 @@ public class AIMinimaxEngine
         if (bestAction != null && depth < _killerMoves.Length)
             _killerMoves[depth] = bestAction;
 
-        return minScore == float.MaxValue ? SimBoardEvaluator.Evaluate(board) : minScore;
+        float result = minScore == float.MaxValue ? SimBoardEvaluator.Evaluate(board) : minScore;
+
+        // トランスポジションテーブルストア
+        if (_transTable.Count < MaxTTSize)
+        {
+            TTFlag flag = TTFlag.Exact;
+            if (result <= alpha) flag = TTFlag.UpperBound;
+            else if (result >= beta) flag = TTFlag.LowerBound;
+            _transTable[hash] = new TTEntry { Score = result, Depth = remainingDepth, Flag = flag };
+        }
+
+        return result;
     }
 
     // ================================================================
@@ -290,6 +346,17 @@ public class AIMinimaxEngine
         {
             _nodesEvaluated++;
             return SimBoardEvaluator.Evaluate(board);
+        }
+
+        // トランスポジションテーブルルックアップ
+        long hash = BoardHash(board);
+        int remainingDepth = maxDepth - depth;
+        TTEntry ttEntry;
+        if (_transTable.TryGetValue(hash, out ttEntry) && ttEntry.Depth >= remainingDepth)
+        {
+            if (ttEntry.Flag == TTFlag.Exact) return ttEntry.Score;
+            if (ttEntry.Flag == TTFlag.LowerBound && ttEntry.Score >= beta) { _pruned++; return ttEntry.Score; }
+            if (ttEntry.Flag == TTFlag.UpperBound && ttEntry.Score <= alpha) return ttEntry.Score;
         }
 
         var actions = SimActionGenerator.GenerateAllActions(board, Team.Enemy);
@@ -366,7 +433,18 @@ public class AIMinimaxEngine
         if (bestAction != null && depth < _killerMoves.Length)
             _killerMoves[depth] = bestAction;
 
-        return maxScore == float.MinValue ? SimBoardEvaluator.Evaluate(board) : maxScore;
+        float result = maxScore == float.MinValue ? SimBoardEvaluator.Evaluate(board) : maxScore;
+
+        // トランスポジションテーブルストア
+        if (_transTable.Count < MaxTTSize)
+        {
+            TTFlag flag = TTFlag.Exact;
+            if (result >= beta) flag = TTFlag.LowerBound;
+            else if (result <= alpha) flag = TTFlag.UpperBound;
+            _transTable[hash] = new TTEntry { Score = result, Depth = remainingDepth, Flag = flag };
+        }
+
+        return result;
     }
 
     // ================================================================
