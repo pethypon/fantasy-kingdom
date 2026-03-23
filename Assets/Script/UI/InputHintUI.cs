@@ -21,14 +21,15 @@ public class InputHintUI : MonoBehaviour
     public static class Hints
     {
         public const string PlayerMove =
-            "<color=#AAD4FF>[LClick]</color> ユニット選択  " +
+            "<color=#AAD4FF>[LClick]</color> 選択/移動  " +
             "<color=#AAD4FF>[RClick]</color> キャンセル  " +
-            "<color=#AAD4FF>[1]</color> 通常攻撃  " +
+            "<color=#AAD4FF>[1]</color> 攻撃  " +
             "<color=#AAD4FF>[2]</color> スキル  " +
-            "<color=#AAD4FF>[Q/E]</color> 向き反転  " +
-            "<color=#AAD4FF>[Enter/Shift]</color> ターン終了  " +
-            "<color=#AAD4FF>[C]</color> フォーカス  " +
-            "<color=#AAD4FF>[Tab]</color> 次のユニット";
+            "<color=#AAD4FF>[Q/E]</color> 向き  " +
+            "<color=#AAD4FF>[Z]</color> 移動取消  " +
+            "<color=#AAD4FF>[D]</color> 危険表示  " +
+            "<color=#AAD4FF>[Tab]</color> 次ユニット  " +
+            "<color=#AAD4FF>[Enter]</color> ターン終了";
 
         public const string PlayerAttack =
             "<color=#FFD4AA>[LClick]</color> 攻撃対象選択  " +

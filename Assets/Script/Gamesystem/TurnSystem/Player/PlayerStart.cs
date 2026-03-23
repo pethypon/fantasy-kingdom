@@ -35,6 +35,7 @@ public class PlayerStart : StateCore
 
         // ターンカウント更新
         turngenerater.Turn++;
+        ActionLogUI.LogTurnStart(turngenerater.Turn, Team.Player);
 
         // クリスタルシールドのターン経過（自陣営 — 敵側は EnemyStart で処理）
         BattleSystem.TickCrystalShields(crystalsystem.Playercrystal);
@@ -53,6 +54,10 @@ public class PlayerStart : StateCore
             turngenerater.subCrystalSystem.TickPendingReturns(Team.Player);
         else
             Debug.LogWarning("[PlayerStart] subCrystalSystem が null のため TickPendingReturns をスキップ");
+
+        // 移動Undo履歴クリア
+        if (turngenerater.moveUndoSystem != null)
+            turngenerater.moveUndoSystem.Clear();
 
         // タイマー開始（プレイヤーターン）
         if (turngenerater.timerSystem != null)

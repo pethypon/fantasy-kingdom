@@ -20,6 +20,7 @@ using UnityEngine;
 // 10. 資源投影 (Resource Projection) — 建物からの将来収入
 // 11. 領土 (Territory) — ユニット展開範囲
 // 12. 連携攻撃 (Coordination) — 複数ユニットの集中攻撃
+// 13. 視界 (Vision) — マップ認識範囲の差
 // =====================================================================
 public static class SimBoardEvaluator
 {
@@ -45,6 +46,7 @@ public static class SimBoardEvaluator
         score += EvalResourceProjection(board) * AIConstants.W_RESOURCE_PROJ;
         score += EvalTerritory(board)          * AIConstants.W_TERRITORY;
         score += EvalCoordination(board)       * AIConstants.W_COORDINATION;
+        score += EvalVision(board)             * AIConstants.W_VISION;
 
         return score;
     }
@@ -648,6 +650,31 @@ public static class SimBoardEvaluator
         }
 
         return score;
+    }
+
+    // ================================================================
+    // 13. 視界 (Vision)
+    //  マップ認識範囲の差を評価
+    // ================================================================
+    static float EvalVision(SimBoardState board)
+    {
+        int enemyVision = board.EstimateVisionCells(Team.Enemy);
+        int playerVision = board.EstimateVisionCells(Team.Player);
+
+        float enemyScore = Mathf.Min(enemyVision * AIConstants.VISION_Per_Cell, AIConstants.VISION_Max);
+        float playerScore = Mathf.Min(playerVision * AIConstants.VISION_Per_Cell, AIConstants.VISION_Max);
+
+        // Scoutユニットによる追加ボーナス（偵察能力）
+        float scoutBonus = 0f;
+        for (int i = 0; i < board.Units.Count; i++)
+        {
+            var u = board.Units[i];
+            if (!u.IsAlive || u.Kind != Kind.Scout) continue;
+            if (u.Team == Team.Enemy) scoutBonus += AIConstants.VISION_Scout_Bonus;
+            else if (u.Team == Team.Player) scoutBonus -= AIConstants.VISION_Scout_Bonus;
+        }
+
+        return (enemyScore - playerScore) + scoutBonus;
     }
 
     // ================================================================

@@ -289,6 +289,24 @@ public class GameGenerater : MonoBehaviour
         var highlight = highlightGo.AddComponent<UnitSelectionHighlight>();
         highlight.Init(_TurnGenerater);
 
+        // MoveUndoSystem
+        _TurnGenerater.moveUndoSystem = new MoveUndoSystem(_APSystem, _MoveGenerater);
+
+        // ActionLogUI
+        if (ActionLogUI.Instance == null)
+        {
+            var logGo = new GameObject("ActionLogUI");
+            logGo.AddComponent<ActionLogUI>();
+        }
+
+        // DangerZoneUI
+        if (DangerZoneUI.Instance == null)
+        {
+            var dangerGo = new GameObject("DangerZoneUI");
+            var dangerZone = dangerGo.AddComponent<DangerZoneUI>();
+            dangerZone.Init(_TurnGenerater, _UnitSetting, _MoveGenerater, _VisionGenerater);
+        }
+
         // ==== ObjectPool プレウォーム ====
         if (ObjectPool.Instance != null && _MoveGenerater.MovePoint != null)
         {

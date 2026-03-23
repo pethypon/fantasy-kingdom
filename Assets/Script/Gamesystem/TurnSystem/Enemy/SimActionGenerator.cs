@@ -440,6 +440,16 @@ public static class SimActionGenerator
                         ? board.EnemyCrystalPos : board.PlayerCrystalPos;
                     float ownCrystalDist = SimUtil.Distance(action.TargetPos, ownCrystal);
                     if (ownCrystalDist < 4f) score += 3f;
+
+                    // 視界拡大ボーナス（新たに見えるセル数）
+                    int newVision = board.EstimateNewVisionCellsAt(unit, action.TargetPos, action.ActorTeam);
+                    if (newVision > 0)
+                    {
+                        float visionBonus = Mathf.Min(newVision * 1.5f, 12f);
+                        // Scoutは偵察に特化
+                        if (unit.Kind == Kind.Scout) visionBonus *= 2f;
+                        score += visionBonus;
+                    }
                 }
                 break;
             }

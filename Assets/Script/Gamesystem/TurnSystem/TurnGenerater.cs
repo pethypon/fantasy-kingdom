@@ -64,6 +64,7 @@ public class TurnGenerater : MonoBehaviour
     [SerializeField] public UnitPanelUI unitPanelUI;
     [HideInInspector] public DamagePreviewUI damagePreviewUI;
     [HideInInspector] public InputHintUI inputHintUI;
+    [HideInInspector] public MoveUndoSystem moveUndoSystem;
 
     // ================================================================
     //  カメラ・入力

@@ -47,6 +47,7 @@ public static class AIConstants
     public const float W_RESOURCE_PROJ    = 0.5f;
     public const float W_TERRITORY        = 0.4f;
     public const float W_COORDINATION     = 0.6f;
+    public const float W_VISION           = 0.35f;
 
     // =====================================================================
     //  クリスタル安全度
@@ -104,6 +105,9 @@ public static class AIConstants
     // =====================================================================
     public const float TERRITORY_Per_Cell  = 0.3f;
     public const float TERRITORY_Max       = 25f;
+    public const float VISION_Per_Cell     = 0.15f;
+    public const float VISION_Max          = 20f;
+    public const float VISION_Scout_Bonus  = 3f;  // Scoutによる視界拡大ボーナス
 
     // =====================================================================
     //  連携攻撃ボーナス

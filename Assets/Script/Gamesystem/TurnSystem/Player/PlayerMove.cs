@@ -114,6 +114,7 @@ public class PlayerMove : StateCore
         HandleDirectionToggle();
         HandleCameraFocus();
         HandleUnitCycle();
+        HandleUndo();
     }
 
     private void SetHintsOnce(string hints)
@@ -399,6 +400,21 @@ public class PlayerMove : StateCore
         camPos.x = next.transform.position.x;
         camPos.z = next.transform.position.z;
         turngenerater.CameraObject.position = camPos;
+    }
+
+    // ---- 移動取り消し（Zキー） ----
+    private void HandleUndo()
+    {
+        if (Keyboard.current == null) return;
+        if (!Keyboard.current.zKey.wasPressedThisFrame) return;
+        if (turngenerater.moveUndoSystem == null) return;
+        if (!turngenerater.moveUndoSystem.CanUndo) return;
+
+        turngenerater.movegenerater.MoveReset();
+        turngenerater.moveUndoSystem.Undo(turngenerater, this, visiongenerater, mapcreate, crystalsystem);
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Hide();
     }
 
     // ---- 視界更新（VisionPoint のショートハンド） ----
