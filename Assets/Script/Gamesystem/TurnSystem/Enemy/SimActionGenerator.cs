@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ using UnityEngine;
 //
 //  改善点:
 //  - Direction.S のZ反転を完全再現
-//  - スキル攻撃位置をAttackPointt.SkillAttackPositions/SkillFixedPositionsと同一に再現
+//  - スキル攻撃位置をAttackPointt.AttackPatterns.SkillAttackPositions/AttackPatterns.SkillFixedPositionsと同一に再現
 //  - スタン・凍結・束縛による行動制限を考慮
 //  - 召喚候補も生成
 //  - 壁建築候補も生成
@@ -17,102 +16,8 @@ using UnityEngine;
 public static class SimActionGenerator
 {
     // ================================================================
-    //  移動パターン (MoveGererater.MovePredicateMap と同一)
-    //  dx, dz は Direction.N 基準。Direction.S の場合は呼び出し側で dz を反転
+    //  パターン参照（MovePatterns / AttackPatterns に一元化済み）
     // ================================================================
-    static readonly Dictionary<Kind, Func<float, float, bool>> MovePredicateMap =
-        new Dictionary<Kind, Func<float, float, bool>>
-    {
-        { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1 && Mathf.Abs(dz) <= 1
-                                     && !(dx == 0 && dz == 0) },
-        { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) + Mathf.Abs(dz) == 1 },
-        { Kind.Archer,      (dx, dz) => Mathf.Abs(dx) == 1 && Mathf.Abs(dz) == 1 },
-        { Kind.Magic,       (dx, dz) => Mathf.Abs(dx) == 1 && Mathf.Abs(dz) == 1 },
-        { Kind.Assassin,    (dx, dz) => (Mathf.Abs(dx) == 2 && Mathf.Abs(dz) == 1)
-                                     || (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) == 2) },
-        { Kind.Scout,       (dx, dz) => (Mathf.Abs(dx) == 1 && Mathf.Abs(dz) <= 1)
-                                     || (dx == 0 && Mathf.Abs(dz) == 2) },
-        { Kind.Priest,      (dx, dz) => (Mathf.Abs(dx) == 1 && dz == 1)
-                                     || (dx == 0 && dz == -1) },
-        { Kind.Guardian,    (dx, dz) => (Mathf.Abs(dx) <= 2 && dz == 0)
-                                     || (dx == 0 && Mathf.Abs(dz) == 1) },
-        { Kind.Crossbow,    (dx, dz) => (dx == 0 && (dz == 1 || dz == 2 || dz == 3))
-                                     || (Mathf.Abs(dx) == 1 && dz == -1) },
-        { Kind.Magicsniper, (dx, dz) => (dx == 1 && dz == 1)
-                                     || (Mathf.Abs(dx) == 3 && dz == -1) },
-        { Kind.Bomber,      (dx, dz) => (dx == -1 && dz == 1) || (dx == 2 && dz == 2)
-                                     || (dx == 1 && dz == -1) || (dx == -2 && dz == -2) },
-        { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && Mathf.Abs(dz) <= 1
-                                     && !(dx == 0 && dz == 0) },
-    };
-
-    // 方向非依存の移動パターン（dx, dzの符号反転が不要なKind）
-    static readonly HashSet<Kind> DirectionIndependentMove = new HashSet<Kind>
-    {
-        Kind.King, Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin, Kind.Boss,
-    };
-
-    // ================================================================
-    //  攻撃パターン (AttackPointt.AttackPredicateMap と同一)
-    // ================================================================
-    static readonly Dictionary<Kind, Func<float, float, bool>> AttackPredicateMap =
-        new Dictionary<Kind, Func<float, float, bool>>
-    {
-        { Kind.King,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
-        { Kind.Knight,      (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
-        { Kind.Archer,      (dx, dz) => dx == 0 && (dz == 2 || dz == 3) },
-        { Kind.Magic,       (dx, dz) => (Mathf.Abs(dx) == 2 && dz == 0)
-                                     || (dx == 0 && Mathf.Abs(dz) == 2) },
-        { Kind.Assassin,    (dx, dz) => Mathf.Abs(dx) == 1 && dz == 1 },
-        { Kind.Scout,       (dx, dz) => Mathf.Abs(dx) == 1 && dz == 0 },
-        { Kind.Guardian,    (dx, dz) => dx == 0 && dz == 1 },
-        { Kind.Crossbow,    (dx, dz) => dx == 0 && (dz == 1 || dz == 2) },
-        { Kind.Magicsniper, (dx, dz) => Mathf.Abs(dx) == 4 && dz == 0 },
-        { Kind.Bomber,      (dx, dz) => dx == 0 && dz == 3 },
-        { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
-    };
-
-    // 方向非依存の攻撃パターン
-    static readonly HashSet<Kind> DirectionIndependentAttack = new HashSet<Kind>
-    {
-        Kind.Magic, Kind.Scout, Kind.Magicsniper,
-    };
-
-    // ---- スキル攻撃位置 (AttackPointt.SkillAttackPositions と同一) ----
-    static readonly Dictionary<Kind, Vector2Int[]> SkillAttackPositions =
-        new Dictionary<Kind, Vector2Int[]>
-    {
-        { Kind.King,        new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
-        { Kind.Knight,      new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
-        { Kind.Archer,      new[] { new Vector2Int(0,2), new Vector2Int(0,3) } },
-        { Kind.Magic,       new[] { new Vector2Int(-2,0), new Vector2Int(2,0), new Vector2Int(0,2), new Vector2Int(0,-2) } },
-        { Kind.Assassin,    new[] { new Vector2Int(-1,1), new Vector2Int(1,1) } },
-        { Kind.Scout,       new[] { new Vector2Int(-1,0), new Vector2Int(1,0) } },
-        { Kind.Guardian,    new[] { new Vector2Int(0,1) } },
-        { Kind.Crossbow,    new[] { new Vector2Int(0,1), new Vector2Int(0,2) } },
-        { Kind.Magicsniper, new[] { new Vector2Int(-4,0), new Vector2Int(4,0) } },
-        { Kind.Bomber,      new[] { new Vector2Int(0,3) } },
-        { Kind.Boss,        new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
-    };
-
-    // ---- スキル固有の攻撃位置 ----
-    static readonly Dictionary<int, Vector2Int[]> SkillFixedPositions =
-        new Dictionary<int, Vector2Int[]>
-    {
-        { 7,  new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1),
-                      new Vector2Int(-1,0), new Vector2Int(1,0),
-                      new Vector2Int(-1,-1), new Vector2Int(0,-1), new Vector2Int(1,-1) } },
-        { 8,  new[] { new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(0,3) } },
-        { 22, new[] { new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(0,3), new Vector2Int(0,4) } },
-        { 37, new[] { new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(0,3), new Vector2Int(0,4), new Vector2Int(0,5) } },
-        { 48, new[] { new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(0,3), new Vector2Int(0,4),
-                      new Vector2Int(0,5), new Vector2Int(0,6), new Vector2Int(0,7) } },
-    };
-
-    // ================================================================
-    //  方向係数 (Direction.S なら Z 反転)
-    // ================================================================
-    static int DirZ(Direction d) => d == Direction.S ? -1 : 1;
 
     // ================================================================
     //  候補行動生成: あるチームの全ユニットの全行動を列挙
@@ -150,14 +55,14 @@ public static class SimActionGenerator
     static void GenerateMoveActions(SimBoardState board, SimUnit unit, Team team,
         int ap, List<SimAction> results)
     {
-        if (!MovePredicateMap.TryGetValue(unit.Kind, out var predicate)) return;
+        if (!MovePatterns.Map.TryGetValue(unit.Kind, out var predicate)) return;
 
         int cost = board.CalcMoveCost(unit);
         if (cost > ap) return;
 
         var pos = unit.Position;
-        int dirZ = DirZ(unit.Direction);
-        bool dirIndep = DirectionIndependentMove.Contains(unit.Kind);
+        int dirZ = MovePatterns.DirZ(unit.Direction);
+        bool dirIndep = MovePatterns.DirectionIndependent.Contains(unit.Kind);
 
         foreach (var tile in board.MapTiles)
         {
@@ -187,14 +92,14 @@ public static class SimActionGenerator
     static void GenerateAttackActions(SimBoardState board, SimUnit unit, Team team,
         Team enemyTeam, int ap, List<SimAction> results)
     {
-        if (!AttackPredicateMap.TryGetValue(unit.Kind, out var predicate)) return;
+        if (!AttackPatterns.NormalMap.TryGetValue(unit.Kind, out var predicate)) return;
 
         int cost = board.CalcAttackCost(unit);
         if (cost > ap) return;
 
         var pos = unit.Position;
-        int dirZ = DirZ(unit.Direction);
-        bool dirIndep = DirectionIndependentAttack.Contains(unit.Kind);
+        int dirZ = MovePatterns.DirZ(unit.Direction);
+        bool dirIndep = AttackPatterns.DirectionIndependent.Contains(unit.Kind);
 
         // 全敵ユニット + 敵クリスタルを攻撃対象
         var targets = new List<SimUnit>();
@@ -239,14 +144,14 @@ public static class SimActionGenerator
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
         if (skill.APCost > ap) return;
 
-        int dirZ = DirZ(unit.Direction);
+        int dirZ = MovePatterns.DirZ(unit.Direction);
 
         // スキル攻撃位置を決定
         Vector2Int[] offsets = null;
-        if (SkillFixedPositions.ContainsKey(skill.Id))
-            offsets = SkillFixedPositions[skill.Id];
-        else if (SkillAttackPositions.ContainsKey(unit.Kind))
-            offsets = SkillAttackPositions[unit.Kind];
+        if (AttackPatterns.SkillFixedPositions.ContainsKey(skill.Id))
+            offsets = AttackPatterns.SkillFixedPositions[skill.Id];
+        else if (AttackPatterns.SkillAttackPositions.ContainsKey(unit.Kind))
+            offsets = AttackPatterns.SkillAttackPositions[unit.Kind];
 
         if (offsets == null) return;
 
@@ -618,13 +523,13 @@ public static class SimActionGenerator
     // ================================================================
     public static int CountMoves(SimBoardState board, SimUnit unit)
     {
-        if (!MovePredicateMap.TryGetValue(unit.Kind, out var predicate)) return 0;
+        if (!MovePatterns.Map.TryGetValue(unit.Kind, out var predicate)) return 0;
         if (unit.IsStunned || unit.IsMovementBlocked) return 0;
 
         int count = 0;
         var pos = unit.Position;
-        int dirZ = DirZ(unit.Direction);
-        bool dirIndep = DirectionIndependentMove.Contains(unit.Kind);
+        int dirZ = MovePatterns.DirZ(unit.Direction);
+        bool dirIndep = MovePatterns.DirectionIndependent.Contains(unit.Kind);
 
         foreach (var tile in board.MapTiles)
         {
@@ -643,13 +548,13 @@ public static class SimActionGenerator
     // ================================================================
     public static int CountAttackTargets(SimBoardState board, SimUnit unit, Team enemyTeam)
     {
-        if (!AttackPredicateMap.TryGetValue(unit.Kind, out var predicate)) return 0;
+        if (!AttackPatterns.NormalMap.TryGetValue(unit.Kind, out var predicate)) return 0;
         if (unit.IsStunned) return 0;
 
         int count = 0;
         var pos = unit.Position;
-        int dirZ = DirZ(unit.Direction);
-        bool dirIndep = DirectionIndependentAttack.Contains(unit.Kind);
+        int dirZ = MovePatterns.DirZ(unit.Direction);
+        bool dirIndep = AttackPatterns.DirectionIndependent.Contains(unit.Kind);
 
         for (int i = 0; i < board.Units.Count; i++)
         {

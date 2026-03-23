@@ -57,10 +57,18 @@ public class PlayerAttack : StateCore
         Maxz = mapcreate.maxZ;
         attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
         AttackSuccess = false;
+
+        // DamagePreviewUI を有効化
+        if (turngenerater.damagePreviewUI != null)
+            turngenerater.damagePreviewUI.Activate();
+
+        // InputHintUI を攻撃モード用に更新
+        if (turngenerater.inputHintUI != null)
+            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
         // 攻撃範囲内に敵がいない場合は即座にPlayerMoveへ戻る
         if (attackpoint.AttackP == null || attackpoint.AttackP.Count == 0)
         {
-            Debug.Log("[PlayerAttack] 攻撃範囲内に対象がいないため、PlayerMoveへ戻ります");
+            ToastMessageUI.Show("攻撃範囲内に対象がいません", ToastMessageUI.MessageType.Warning);
             attackpoint.AtkpDestroy();
             turngenerater.ChangeState(new PlayerMove(
                 turngenerater, unitclick, attackpoint, battlesystem,
@@ -85,6 +93,8 @@ public class PlayerAttack : StateCore
 
     public void Exit()
     {
+        if (turngenerater.damagePreviewUI != null)
+            turngenerater.damagePreviewUI.Hide();
     }
 
     public void Reset()
@@ -127,7 +137,7 @@ public class PlayerAttack : StateCore
         if (scroll == 0f) return;
 
         float fov = Camera.main.fieldOfView - scroll * Scrollspeed;
-        Camera.main.fieldOfView = Mathf.Clamp(fov, 30f, 90f);
+        Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
     }
 
     // ==== 攻撃クリック（左クリック） ====
@@ -147,7 +157,7 @@ public class PlayerAttack : StateCore
                 // APチェック
                 if (turngenerater.apsystem.GetAP(Team.Player) < skill.APCost)
                 {
-                    Debug.Log("[PlayerAttack] AP不足：スキルを使用できません");
+                    ToastMessageUI.Show("AP不足：スキルを使用できません", ToastMessageUI.MessageType.Warning);
                     return;
                 }
 

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,8 +12,8 @@ public class UnitClick : MonoBehaviour
     [SerializeField] public Status ATKC;
 
     public RaycastHit attackhit;
-    private const float RayDistance = 100f;
-    private const float MovePointRayDistance = 50f;   // MovePoint検出用の最大距離
+    private const float RayDistance = GameConstants.DefaultRayDistance;
+    private const float MovePointRayDistance = GameConstants.MovePointRayDistance;
     private int MovePointLayerMask;
 
     private void Awake()
@@ -139,7 +138,7 @@ public class UnitClick : MonoBehaviour
         if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
 
         Vector3 attackSame = ATKC.transform.position;
-        bool isInRange = attackpoint.AttackP.Any(p => p.x == attackSame.x && p.z == attackSame.z);
+        bool isInRange = IsInAttackRange(attackpoint.AttackP, attackSame);
         if (!isInRange) return;
 
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
@@ -172,9 +171,7 @@ public class UnitClick : MonoBehaviour
         Vector3 clickPos = hit.transform.position;
 
         // 攻撃ポイント範囲内チェック
-        bool isInRange = attackpoint.AttackP.Any(p =>
-            Mathf.RoundToInt(p.x) == Mathf.RoundToInt(clickPos.x) &&
-            Mathf.RoundToInt(p.z) == Mathf.RoundToInt(clickPos.z));
+        bool isInRange = IsInAttackRangeRounded(attackpoint.AttackP, clickPos);
         if (!isInRange) return;
 
         switch (skill.Target)
@@ -316,7 +313,7 @@ public class UnitClick : MonoBehaviour
 
         Vector3 from = turngenerater.OldCell;           // 移動元（選択時に記録済み）
         Vector3 to = playermove.hit.transform.position;
-        to.y += 0.47f;                                  // MovePoint の Y オフセットを戻す
+        to.y += GameConstants.MovePointYOffset;           // MovePoint の Y オフセットを戻す
 
         // ---- APチェック ----
         if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to))
@@ -358,6 +355,31 @@ public class UnitClick : MonoBehaviour
             turngenerater.unitPanelUI.Show(playermove.Obj);
 
         // ユニット選択成功
+    }
+
+    // ---- LINQ排除: 攻撃範囲内判定 ----
+    private static bool IsInAttackRange(List<Vector3> attackP, Vector3 pos)
+    {
+        if (attackP == null) return false;
+        for (int i = 0, count = attackP.Count; i < count; i++)
+        {
+            if (attackP[i].x == pos.x && attackP[i].z == pos.z)
+                return true;
+        }
+        return false;
+    }
+
+    private static bool IsInAttackRangeRounded(List<Vector3> attackP, Vector3 pos)
+    {
+        if (attackP == null) return false;
+        int px = Mathf.RoundToInt(pos.x);
+        int pz = Mathf.RoundToInt(pos.z);
+        for (int i = 0, count = attackP.Count; i < count; i++)
+        {
+            if (Mathf.RoundToInt(attackP[i].x) == px && Mathf.RoundToInt(attackP[i].z) == pz)
+                return true;
+        }
+        return false;
     }
 
     // ---- マウス位置からRayを生成（新入力システム対応） ----

@@ -697,7 +697,7 @@ public class SimBoardState
         float atk = attacker.ATK * atkMod;
         float def = defender.DEF * defMod;
 
-        float baseDmg = 1f + (atk / 6f) + ((atk / 2f) - (def / 4f));
+        float baseDmg = DamageCalculator.CalcRawBase(atk, def);
         baseDmg *= incomingMod;
 
         return Mathf.Max(0, Mathf.RoundToInt(baseDmg));
@@ -714,7 +714,7 @@ public class SimBoardState
         float atk = caster.ATK * atkMod;
         float def = target.DEF * defMod;
 
-        float baseDmg = 1f + (atk / 6f) + ((atk / 2f) - (def / 4f));
+        float baseDmg = DamageCalculator.CalcRawBase(atk, def);
         float skillMul = skill.Multiplier;
 
         // 封技修飾

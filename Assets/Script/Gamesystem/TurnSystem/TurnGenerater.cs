@@ -1,90 +1,90 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// ゲーム全体の中央ハブ。ステートマシン駆動、入力管理、サブシステム参照を保持する。
+/// </summary>
 public class TurnGenerater : MonoBehaviour
 {
+    // ================================================================
+    //  ステート管理
+    // ================================================================
+    [SerializeField] StateCore StateManager;
+    [SerializeField] public int Turn = 0;
+
+    // ================================================================
+    //  選択中ユニット
+    // ================================================================
     public Status SelectUnit;
     public Vector3 OldCell;
     public Vector3 NewCell;
 
-    [Header("保持するステート")]
-    [SerializeField] StateCore StateManager;
-
-    [Header("ターン管理")]
-    [SerializeField] public int Turn = 0;
-
-    [Header("ユニットステータス")]
+    // ================================================================
+    //  マップ・ユニット基盤
+    // ================================================================
+    [Header("マップ・ユニット基盤")]
+    [SerializeField] public MapCreate mapcreate;
+    [SerializeField] public CrystalSystem crystalsystem;
+    [SerializeField] public UnitSetting unitset;
     [SerializeField] public Status status;
 
-    [Header("ムーブ")]
+    // ================================================================
+    //  コアゲームシステム
+    // ================================================================
+    [Header("コアゲームシステム")]
     [SerializeField] public MoveGererater movegenerater;
-
-    [Header("ユニットクリック")]
-    [SerializeField] public UnitClick unitclick;
-
-    [Header("マップクリエイト")]
-    [SerializeField] public MapCreate mapcreate;
-
-    [Header("アタックポイント")]
     [SerializeField] public AttackPointt attackpoint;
-
-    [Header("バトルシステム")]
     [SerializeField] public BattleSystem battlesystem;
-
-    [Header("クリスタルシステム")]
-    [SerializeField] public CrystalSystem crystalsystem;
-
-    [Header("視界システム")]
     [SerializeField] public VisionGenerater visiongenerater;
-
-    [Header("APシステム")]
-    [SerializeField] public APSystem apsystem;
-
-    [Header("建築システム")]
-    [SerializeField] public BuildSystem buildsystem;
-
-    [Header("召喚システム")]
-    [SerializeField] public SummonSystem summonsystem;
-
-    [Header("経済システム")]
-    [SerializeField] public EconomySystem economysystem;
-
-    [Header("建築物攻撃システム")]
-    [SerializeField] public BuildingAttackSystem buildingAttackSystem;
-
-    [Header("サブクリスタルシステム")]
-    [SerializeField] public SubCrystalSystem subCrystalSystem;
-
-    [Header("タイマーシステム")]
-    [SerializeField] public TimerSystem timerSystem;
-
-    [Header("スキルシステム")]
+    [SerializeField] public UnitClick unitclick;
     [SerializeField] public SkillSystem skillsystem;
 
-    [Header("ユニット配置")]
-    [SerializeField] public UnitSetting unitset;
+    // ================================================================
+    //  経済・建築・召喚
+    // ================================================================
+    [Header("経済・建築・召喚")]
+    [SerializeField] public APSystem apsystem;
+    [SerializeField] public BuildSystem buildsystem;
+    [SerializeField] public SummonSystem summonsystem;
+    [SerializeField] public EconomySystem economysystem;
+    [SerializeField] public BuildingAttackSystem buildingAttackSystem;
+    [SerializeField] public SubCrystalSystem subCrystalSystem;
 
-    [Header("UI")]
-    [SerializeField] public UnitPanelUI unitPanelUI;
-
-    [Header("AI指揮官")]
+    // ================================================================
+    //  タイマー・AI
+    // ================================================================
+    [Header("タイマー・AI")]
+    [SerializeField] public TimerSystem timerSystem;
     [HideInInspector] public AICommander aiCommander;
 
-    [Header("ゲームアクションの保存場所")]
-    public Vector2 MoveInput;
-    public float ScrollInput;
-    public bool LeftClickDown;
-    public bool RightClickDown;
-    public bool TurnEndDown;
-    public bool SelectNormalDown;
-    public bool SelectSkillDown;
-    public bool ToggleNSDown;
-    private GameAction gameaction;
+    // ================================================================
+    //  UI
+    // ================================================================
+    [Header("UI")]
+    [SerializeField] public UnitPanelUI unitPanelUI;
+    [HideInInspector] public DamagePreviewUI damagePreviewUI;
+    [HideInInspector] public InputHintUI inputHintUI;
 
-    [Header("カメラ（操作対象）")]
+    // ================================================================
+    //  カメラ・入力
+    // ================================================================
+    [Header("カメラ・入力")]
     [SerializeField] public Transform CameraObject;
 
-    // ---- ステート切り替え ----
+    // 入力バッファ（毎フレーム ReadInputs() で更新）
+    [HideInInspector] public Vector2 MoveInput;
+    [HideInInspector] public float ScrollInput;
+    [HideInInspector] public bool LeftClickDown;
+    [HideInInspector] public bool RightClickDown;
+    [HideInInspector] public bool TurnEndDown;
+    [HideInInspector] public bool SelectNormalDown;
+    [HideInInspector] public bool SelectSkillDown;
+    [HideInInspector] public bool ToggleNSDown;
+    private GameAction gameaction;
+
+    // ================================================================
+    //  ステート切り替え
+    // ================================================================
     public void ChangeState(StateCore next)
     {
         StateManager?.Exit();

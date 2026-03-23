@@ -33,6 +33,20 @@ public class GameGenerater : MonoBehaviour
 
     void Awake()
     {
+        // ---- ObjectPool の生成 ----
+        if (ObjectPool.Instance == null)
+        {
+            var poolGo = new GameObject("ObjectPool");
+            poolGo.AddComponent<ObjectPool>();
+        }
+
+        // ---- UnitRegistry の生成 ----
+        if (UnitRegistry.Instance == null)
+        {
+            var regGo = new GameObject("UnitRegistry");
+            regGo.AddComponent<UnitRegistry>();
+        }
+
         // ---- UIBuilder の生成・取得 ----
         _uiBuilder = Object.FindFirstObjectByType<UIBuilder>();
         if (_uiBuilder == null)
@@ -211,6 +225,44 @@ public class GameGenerater : MonoBehaviour
             // サブクリスタル初期配布（2個）
             factionState.PlayerSubCrystals = 2;
             factionState.EnemySubCrystals = 2;
+        }
+
+        // ==== UnitRegistry にユニットを登録 ====
+        if (UnitRegistry.Instance != null)
+        {
+            UnitRegistry.Instance.ScanAndRegister(
+                _UnitSetting.PlayerUnit, _UnitSetting.EnemyUnit,
+                _BuildSystem != null ? _BuildSystem.PlayerBuildingParent : null,
+                _BuildSystem != null ? _BuildSystem.EnemyBuildingParent : null);
+        }
+
+        // ==== UX系システムの初期化 ====
+        // ToastMessageUI
+        if (ToastMessageUI.Instance == null)
+        {
+            var toastGo = new GameObject("ToastMessageUI");
+            toastGo.AddComponent<ToastMessageUI>();
+        }
+
+        // InputHintUI
+        var hintGo = new GameObject("InputHintUI");
+        var inputHint = hintGo.AddComponent<InputHintUI>();
+        _TurnGenerater.inputHintUI = inputHint;
+
+        // DamagePreviewUI
+        var dmgPreviewGo = new GameObject("DamagePreviewUI");
+        var dmgPreview = dmgPreviewGo.AddComponent<DamagePreviewUI>();
+        dmgPreview.turngenerater = _TurnGenerater;
+        _TurnGenerater.damagePreviewUI = dmgPreview;
+
+        // ==== ObjectPool プレウォーム ====
+        if (ObjectPool.Instance != null && _MoveGenerater.MovePoint != null)
+        {
+            ObjectPool.Instance.Prewarm(_MoveGenerater.MovePoint, 30, _MoveGenerater.Move);
+        }
+        if (ObjectPool.Instance != null && _TurnGenerater.attackpoint.AttackPoint != null)
+        {
+            ObjectPool.Instance.Prewarm(_TurnGenerater.attackpoint.AttackPoint, 15, _TurnGenerater.attackpoint.APparent);
         }
 
         // ==== AI指揮官の初期化 ====

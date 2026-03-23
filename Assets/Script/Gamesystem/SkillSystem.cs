@@ -26,35 +26,12 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public static int CalcNormalDamage(Status attacker, Status target)
     {
-        float atkMod = StatusEffectSystem.GetATKModifier(attacker);
-        float defMod = StatusEffectSystem.GetDEFModifier(target);
-        float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
-
-        float atk = attacker.ATK * atkMod;
-        float def = target.DEF * defMod;
-
-        float baseDmg = 1f + (atk / 6f) + ((atk / 2f) - (def / 4f));
-        baseDmg *= incomingMod;
-
-        return Mathf.Max(0, Mathf.RoundToInt(baseDmg));
+        return DamageCalculator.CalcNormal(attacker, target);
     }
 
     public static int CalcSkillDamage(Status attacker, Status target, SkillData skill)
     {
-        float atkMod = StatusEffectSystem.GetATKModifier(attacker);
-        float defMod = StatusEffectSystem.GetDEFModifier(target);
-        float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
-        float sealMod = StatusEffectSystem.GetSkillMultiplierModifier(attacker);
-
-        float atk = attacker.ATK * atkMod;
-        float def = target.DEF * defMod;
-
-        float baseDmg = 1f + (atk / 6f) + ((atk / 2f) - (def / 4f));
-        float effectiveMultiplier = Mathf.Clamp(skill.Multiplier + sealMod, 0f, 2f);
-        float skillDmg = baseDmg * effectiveMultiplier;
-        skillDmg *= incomingMod;
-
-        return Mathf.Max(0, Mathf.RoundToInt(skillDmg));
+        return DamageCalculator.CalcSkill(attacker, target, skill);
     }
 
     // =====================================================================
