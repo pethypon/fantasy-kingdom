@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 // =====================================================================
@@ -468,36 +467,12 @@ public class AISearchEngine
     static float GetPieceValue(Status unit)
     {
         if (unit == null) return 0f;
-        switch (unit.kind)
-        {
-            case Kind.Crystal:      return 200f;
-            case Kind.King:         return 100f;
-            case Kind.Boss:         return 80f;
-            case Kind.Magicsniper:  return 35f;
-            case Kind.Priest:       return 35f;
-            case Kind.Bomber:       return 32f;
-            case Kind.Magic:        return 30f;
-            case Kind.Guardian:     return 30f;
-            case Kind.Archer:       return 28f;
-            case Kind.Crossbow:     return 28f;
-            case Kind.Assassin:     return 26f;
-            case Kind.Knight:       return 25f;
-            case Kind.Scout:        return 18f;
-            default:                return 20f;
-        }
+        return AIConstants.GetPieceValue(unit.kind);
     }
 
     static float EstimateAttackRange(Status unit)
     {
-        if (unit == null) return 1.5f;
-        switch (unit.kind)
-        {
-            case Kind.Archer:       return 3f;
-            case Kind.Magic:        return 2f;
-            case Kind.Crossbow:     return 2f;
-            case Kind.Magicsniper:  return 4f;
-            case Kind.Bomber:       return 3f;
-            default:                return 1.5f;
-        }
+        if (unit == null) return AIConstants.AR_Default;
+        return AIConstants.GetAttackRange(unit.kind);
     }
 }

@@ -368,12 +368,12 @@ public static class SimActionGenerator
                     int dmg = SimBoardState.CalcDamage(attacker, target);
                     bool wouldKill = dmg >= target.HP;
 
-                    score += dmg * 2f;
+                    score += dmg * AIConstants.QS_Attack_DmgMult;
                     if (wouldKill)
                     {
                         score += GetPieceValue(target) * 2f;
-                        if (target.Kind == Kind.Crystal) score += 500f;
-                        if (target.Kind == Kind.King) score += 300f;
+                        if (target.Kind == Kind.Crystal) score += AIConstants.QS_Kill_Crystal;
+                        if (target.Kind == Kind.King) score += AIConstants.QS_Kill_King;
                     }
                     // シールド中のターゲットは低優先
                     if (target.ShieldTurns > 0)
@@ -391,21 +391,21 @@ public static class SimActionGenerator
                     if (skill.Multiplier > 0)
                     {
                         int dmg = SimBoardState.CalcSkillDamage(unit, target, skill);
-                        score += dmg * 1.8f;
+                        score += dmg * AIConstants.QS_Skill_DmgMult;
                         if (dmg >= target.HP)
                         {
                             score += GetPieceValue(target) * 1.5f;
-                            if (target.Kind == Kind.Crystal) score += 400f;
+                            if (target.Kind == Kind.Crystal) score += AIConstants.QS_Kill_Crystal;
                         }
                         // デバフ付与ボーナス
                         if (skill.InflictDebuff != StatusEffectType.None)
-                            score += 5f;
+                            score += AIConstants.QS_Skill_Debuff;
                     }
                     if (skill.FixedHeal > 0)
                     {
                         float healValue = Mathf.Min(skill.FixedHeal, target.MaxHP - target.HP);
                         float hpRatio = target.MaxHP > 0 ? (float)target.HP / target.MaxHP : 1f;
-                        score += healValue * (1f - hpRatio); // HPが低いほど回復の価値が高い
+                        score += healValue * (1f - hpRatio);
                     }
                     if (skill.GrantBuff != BuffType.None)
                         score += 8f;
@@ -423,7 +423,7 @@ public static class SimActionGenerator
                         ? board.PlayerCrystalPos : board.EnemyCrystalPos;
                     float distBefore = SimUtil.Distance(unit.Position, targetCrystal);
                     float distAfter = SimUtil.Distance(action.TargetPos, targetCrystal);
-                    score += (distBefore - distAfter) * 2f;
+                    score += (distBefore - distAfter) * AIConstants.QS_Move_DistMult;
 
                     // 敵ユニットへの接近（攻撃射程に入る移動を高評価）
                     Team enemyTeam = isEnemy ? Team.Player : Team.Enemy;
@@ -431,7 +431,7 @@ public static class SimActionGenerator
                     for (int i = 0; i < enemies.Count; i++)
                     {
                         float da = SimUtil.Distance(action.TargetPos, enemies[i].Position);
-                        if (da <= 1.5f) score += 5f; // 攻撃射程に入る
+                        if (da <= 1.5f) score += AIConstants.QS_Move_AttackRange;
                         else if (da <= 3f) score += 2f;
                     }
 
@@ -445,18 +445,18 @@ public static class SimActionGenerator
             }
 
             case SimActionType.Build:
-                score += 8f;
+                score += AIConstants.QS_Build_Base;
                 // 早期の経済施設は特に有益
                 if (board.TurnCount <= 15) score += 4f;
                 break;
 
             case SimActionType.Summon:
-                score += 15f;
+                score += AIConstants.QS_Summon_Base;
                 break;
         }
 
         // AP効率: コストが高い行動は若干減点
-        score -= action.APCost * 0.3f;
+        score -= action.APCost * AIConstants.QS_AP_Penalty;
 
         return score;
     }
@@ -469,23 +469,10 @@ public static class SimActionGenerator
         if (unit == null) return 0f;
         switch (unit.Kind)
         {
-            case Kind.Crystal:      return 200f;
-            case Kind.King:         return 100f;
-            case Kind.Boss:         return 80f;
-            case Kind.Magicsniper:  return 35f;
-            case Kind.Priest:       return 35f;
-            case Kind.Bomber:       return 32f;
-            case Kind.Magic:        return 30f;
-            case Kind.Guardian:     return 30f;
-            case Kind.Archer:       return 28f;
-            case Kind.Crossbow:     return 28f;
-            case Kind.Assassin:     return 26f;
-            case Kind.Knight:       return 25f;
-            case Kind.Scout:        return 18f;
-            case Kind.SubCrystal:   return 40f;
-            case Kind.WoodWall:     return 8f;
-            case Kind.StoneWall:    return 12f;
-            default:                return 20f;
+            case Kind.SubCrystal: return 40f;
+            case Kind.WoodWall:   return 8f;
+            case Kind.StoneWall:  return 12f;
+            default: return AIConstants.GetPieceValue(unit.Kind);
         }
     }
 
@@ -494,15 +481,7 @@ public static class SimActionGenerator
     // ================================================================
     public static float EstimateAttackRange(Kind kind)
     {
-        switch (kind)
-        {
-            case Kind.Magicsniper: return 4f;
-            case Kind.Archer:     return 3f;
-            case Kind.Bomber:     return 3f;
-            case Kind.Magic:      return 2f;
-            case Kind.Crossbow:   return 2f;
-            default:              return 1.5f;
-        }
+        return AIConstants.GetAttackRange(kind);
     }
 
     public static float EstimateMoveRange(Kind kind)
