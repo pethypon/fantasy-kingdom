@@ -255,6 +255,18 @@ public class GameGenerater : MonoBehaviour
         dmgPreview.turngenerater = _TurnGenerater;
         _TurnGenerater.damagePreviewUI = dmgPreview;
 
+        // FloatingDamageUI
+        if (FloatingDamageUI.Instance == null)
+        {
+            var floatDmgGo = new GameObject("FloatingDamageUI");
+            floatDmgGo.AddComponent<FloatingDamageUI>();
+        }
+
+        // UnitSelectionHighlight
+        var highlightGo = new GameObject("UnitSelectionHighlight");
+        var highlight = highlightGo.AddComponent<UnitSelectionHighlight>();
+        highlight.Init(_TurnGenerater);
+
         // ==== ObjectPool プレウォーム ====
         if (ObjectPool.Instance != null && _MoveGenerater.MovePoint != null)
         {

@@ -347,9 +347,36 @@ public class UnitPanelUI : MonoBehaviour
         bool canAttack = apSystem != null
             && apSystem.CanAct(Team.Player, APSystem.ActionType.Attack, currentUnit);
 
-        if (attackButton != null) attackButton.interactable = canAttack;
-        if (skillButton != null) skillButton.interactable = canAttack;
+        if (attackButton != null)
+        {
+            attackButton.interactable = canAttack;
+            UpdateButtonLabel(attackButton, "攻撃", GameConstants.BaseAttackAPCost, canAttack);
+        }
+        if (skillButton != null)
+        {
+            bool hasSkill = currentUnit.AssignedSkillId >= 0;
+            int skillCost = 0;
+            bool canSkill = false;
+            if (hasSkill && SkillData.Table.TryGetValue(currentUnit.AssignedSkillId, out var skill))
+            {
+                skillCost = skill.APCost;
+                canSkill = apSystem != null && apSystem.CanUseSkill(Team.Player, skillCost);
+            }
+            skillButton.interactable = canSkill;
+            UpdateButtonLabel(skillButton, "スキル", skillCost, canSkill);
+        }
         if (waitButton != null) waitButton.interactable = true;
+    }
+
+    /// <summary>ボタンラベルにAP消費量を付加し、不足時は色を変える</summary>
+    private void UpdateButtonLabel(Button btn, string baseName, int apCost, bool canAfford)
+    {
+        var label = btn.GetComponentInChildren<TextMeshProUGUI>();
+        if (label == null) return;
+        if (apCost > 0)
+            label.text = $"{baseName} <size=80%><color={(canAfford ? "#AAFFAA" : "#FF6666")}>AP{apCost}</color></size>";
+        else
+            label.text = baseName;
     }
 
     private void UpdateUpgradeUI()

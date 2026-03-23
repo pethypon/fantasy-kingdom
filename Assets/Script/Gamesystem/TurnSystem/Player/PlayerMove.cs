@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerMove : StateCore
 {
@@ -42,6 +43,7 @@ public class PlayerMove : StateCore
     public bool SummonMode => summonsystem != null && summonsystem.IsActive;
 
     private bool timerWired;
+    private int unitCycleIndex = -1;
 
     public PlayerMove(
         TurnGenerater turngenerater,
@@ -97,6 +99,9 @@ public class PlayerMove : StateCore
 
         if (BuildMode)
         {
+            // 建築モード用ヒントに切り替え
+            if (turngenerater.inputHintUI != null)
+                turngenerater.inputHintUI.SetHints(InputHintUI.Hints.BuildMode);
             HandleBuildMode();
             HandleTurnEnd();
             return;
@@ -104,15 +109,24 @@ public class PlayerMove : StateCore
 
         if (SummonMode)
         {
+            // 召喚モード用ヒントに切り替え
+            if (turngenerater.inputHintUI != null)
+                turngenerater.inputHintUI.SetHints(InputHintUI.Hints.SummonMode);
             HandleSummonMode();
             HandleTurnEnd();
             return;
         }
 
+        // 通常モード用ヒントに戻す（Build/Summonから戻った時用）
+        if (turngenerater.inputHintUI != null)
+            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.PlayerMove);
+
         HandleLeftClick();
         HandleRightClick();
         HandleTurnEnd();
         HandleAttackModeSelect();
+        HandleCameraFocus();
+        HandleUnitCycle();
     }
 
     public void Exit()
@@ -330,6 +344,66 @@ public class PlayerMove : StateCore
         turngenerater.ChangeState(new EnemyStart(
             turngenerater, unitclick, attackpoint, battlesystem,
             visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+    }
+
+    // ---- カメラフォーカス（Cキー）: 選択ユニットにカメラを向ける ----
+    private void HandleCameraFocus()
+    {
+        if (Keyboard.current == null) return;
+        if (!Keyboard.current.cKey.wasPressedThisFrame) return;
+
+        Status target = turngenerater.SelectUnit;
+        if (target == null) return;
+
+        Vector3 pos = turngenerater.CameraObject.position;
+        pos.x = target.transform.position.x;
+        pos.z = target.transform.position.z;
+        turngenerater.CameraObject.position = pos;
+    }
+
+    // ---- ユニット巡回（Tabキー）: 味方ユニットを順に選択＆カメラ追従 ----
+    private void HandleUnitCycle()
+    {
+        if (Keyboard.current == null) return;
+        if (!Keyboard.current.tabKey.wasPressedThisFrame) return;
+        if (unitset == null) return;
+
+        // 行動可能な味方ユニットを収集
+        var playerParent = unitset.PlayerUnit;
+        if (playerParent == null) return;
+
+        var units = new System.Collections.Generic.List<Status>();
+        foreach (Status s in playerParent.GetComponentsInChildren<Status>())
+        {
+            if (!s.gameObject.activeSelf) continue;
+            if (s.type != Type.Unit) continue;
+            if (StatusEffectSystem.IsStunned(s)) continue;
+            units.Add(s);
+        }
+
+        if (units.Count == 0) return;
+
+        // 次のユニットに切り替え
+        unitCycleIndex = (unitCycleIndex + 1) % units.Count;
+        Status next = units[unitCycleIndex];
+
+        // 既存選択をリセットして新ユニットを選択
+        turngenerater.movegenerater.MoveReset();
+        Obj = next;
+        ObjP = next.transform.position;
+        turngenerater.movegenerater.MoveCore(next, ObjP);
+        turngenerater.SelectUnit = next;
+        turngenerater.OldCell = next.transform.position;
+        MenuSwitch = true;
+
+        if (turngenerater.unitPanelUI != null)
+            turngenerater.unitPanelUI.Show(next);
+
+        // カメラ追従
+        Vector3 camPos = turngenerater.CameraObject.position;
+        camPos.x = next.transform.position.x;
+        camPos.z = next.transform.position.z;
+        turngenerater.CameraObject.position = camPos;
     }
 
     // ---- 視界更新（VisionPoint のショートハンド） ----
