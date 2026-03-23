@@ -152,6 +152,20 @@ public class BattleSystem : MonoBehaviour
             turngenerater.SelectUnit = null;
         }
 
+        // 死亡した駒の視界セルを探索済みに保存（半透明フォグとして残す）
+        if (target.VisionCell != null && target.VisionCell.Count > 0)
+        {
+            var visionGen = turngenerater.visiongenerater;
+            if (target.team == Team.Player && visionGen.PlayerExploard != null)
+            {
+                visionGen.PlayerExploard.UnionWith(target.VisionCell);
+            }
+            else if (target.team == Team.Enemy && visionGen.EnemyExploard != null)
+            {
+                visionGen.EnemyExploard.UnionWith(target.VisionCell);
+            }
+        }
+
         target.gameObject.SetActive(false);
 
         turngenerater.visiongenerater.VisionPoint(

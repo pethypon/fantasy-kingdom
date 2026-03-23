@@ -27,7 +27,6 @@ public class InputHintUI : MonoBehaviour
             "<color=#AAD4FF>[2]</color> スキル  " +
             "<color=#AAD4FF>[Q/E]</color> 向き  " +
             "<color=#AAD4FF>[Z]</color> 移動取消  " +
-            "<color=#AAD4FF>[D]</color> 危険表示  " +
             "<color=#AAD4FF>[Tab]</color> 次ユニット  " +
             "<color=#AAD4FF>[Enter]</color> ターン終了";
 
