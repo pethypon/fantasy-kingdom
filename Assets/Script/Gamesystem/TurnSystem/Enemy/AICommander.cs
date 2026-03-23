@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 // =====================================================================
@@ -391,10 +390,14 @@ public class AICommander
 
         if (_board.AlivePlayerUnits.Count > 0)
         {
-            string visibleUnits = string.Join(", ",
-                _board.AlivePlayerUnits.Select(u =>
-                    $"{u.kind}(HP{u.HP} @{_moveGen.Cell(u.transform.position)})"));
-            Debug.Log($"[AICommander] 視界内敵駒: {visibleUnits}");
+            var sb = new System.Text.StringBuilder();
+            for (int vi = 0; vi < _board.AlivePlayerUnits.Count; vi++)
+            {
+                var u = _board.AlivePlayerUnits[vi];
+                if (vi > 0) sb.Append(", ");
+                sb.Append($"{u.kind}(HP{u.HP} @{_moveGen.Cell(u.transform.position)})");
+            }
+            Debug.Log($"[AICommander] 視界内敵駒: {sb}");
         }
 
         // 失敗した行動タイプ+対象を記録し、同じ行動を繰り返さない

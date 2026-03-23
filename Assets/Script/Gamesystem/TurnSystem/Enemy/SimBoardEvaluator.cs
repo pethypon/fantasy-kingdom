@@ -17,20 +17,13 @@ using UnityEngine;
 //  7. 経済継続性 (Economy)
 //  8. 脅威と反撃 (Threat/Counter)
 //  9. テンポ (Tempo) — AP残量と行動の主導権
+// 10. 資源投影 (Resource Projection) — 建物からの将来収入
+// 11. 領土 (Territory) — ユニット展開範囲
+// 12. 連携攻撃 (Coordination) — 複数ユニットの集中攻撃
+// 13. 視界 (Vision) — マップ認識範囲の差
 // =====================================================================
 public static class SimBoardEvaluator
 {
-    // ---- 重み定数 ----
-    const float W_MATERIAL         = 1.0f;
-    const float W_CRYSTAL_SAFETY   = 1.8f;
-    const float W_KING_SAFETY      = 1.2f;
-    const float W_FRONTLINE        = 0.5f;
-    const float W_POSITIONAL       = 0.7f;
-    const float W_MOBILITY         = 0.4f;
-    const float W_ECONOMY          = 0.7f;
-    const float W_THREAT           = 0.9f;
-    const float W_TEMPO            = 0.3f;
-
     // ================================================================
     //  メイン評価関数
     // ================================================================
@@ -41,15 +34,19 @@ public static class SimBoardEvaluator
         if (terminal != 0f) return terminal;
 
         float score = 0f;
-        score += EvalMaterial(board)        * W_MATERIAL;
-        score += EvalCrystalSafety(board)   * W_CRYSTAL_SAFETY;
-        score += EvalKingSafety(board)      * W_KING_SAFETY;
-        score += EvalFrontline(board)       * W_FRONTLINE;
-        score += EvalPositional(board)      * W_POSITIONAL;
-        score += EvalMobility(board)        * W_MOBILITY;
-        score += EvalEconomy(board)         * W_ECONOMY;
-        score += EvalThreat(board)          * W_THREAT;
-        score += EvalTempo(board)           * W_TEMPO;
+        score += EvalMaterial(board)          * AIConstants.W_MATERIAL;
+        score += EvalCrystalSafety(board)     * AIConstants.W_CRYSTAL_SAFETY;
+        score += EvalKingSafety(board)        * AIConstants.W_KING_SAFETY;
+        score += EvalFrontline(board)         * AIConstants.W_FRONTLINE;
+        score += EvalPositional(board)        * AIConstants.W_POSITIONAL;
+        score += EvalMobility(board)          * AIConstants.W_MOBILITY;
+        score += EvalEconomy(board)           * AIConstants.W_ECONOMY;
+        score += EvalThreat(board)            * AIConstants.W_THREAT;
+        score += EvalTempo(board)             * AIConstants.W_TEMPO;
+        score += EvalResourceProjection(board) * AIConstants.W_RESOURCE_PROJ;
+        score += EvalTerritory(board)          * AIConstants.W_TERRITORY;
+        score += EvalCoordination(board)       * AIConstants.W_COORDINATION;
+        score += EvalVision(board)             * AIConstants.W_VISION;
 
         return score;
     }
@@ -80,7 +77,7 @@ public static class SimBoardEvaluator
 
     static float GetAdjustedValue(SimUnit unit)
     {
-        float baseVal = SimActionGenerator.GetPieceValue(unit);
+        float baseVal = AIConstants.GetPieceValue(unit.Kind);
 
         // HP減衰
         float hpRatio = unit.MaxHP > 0 ? (float)unit.HP / unit.MaxHP : 1f;
@@ -113,11 +110,11 @@ public static class SimBoardEvaluator
         if (eCrystal != null && eCrystal.IsAlive)
         {
             float hpRatio = eCrystal.MaxHP > 0 ? (float)eCrystal.HP / eCrystal.MaxHP : 0f;
-            score += hpRatio * 50f;
+            score += hpRatio * AIConstants.CS_HP_Weight;
 
             // シールド中は安全
             if (eCrystal.ShieldTurns > 0)
-                score += eCrystal.ShieldTurns * 8f;
+                score += eCrystal.ShieldTurns * AIConstants.CS_Shield_Per_Turn;
 
             // 周囲の駒数
             int guards = 0, threats = 0;
@@ -132,8 +129,8 @@ public static class SimBoardEvaluator
                     else if (u.Team == Team.Player) threats++;
                 }
             }
-            score += Mathf.Min(guards * 6f, 30f);
-            score -= threats * 18f;
+            score += Mathf.Min(guards * AIConstants.CS_Guard_Per_Unit, AIConstants.CS_Guard_Max);
+            score -= threats * AIConstants.CS_Threat_Per_Unit;
 
             // 脅威がある場合のHP低下ペナルティ増幅
             if (threats > 0 && hpRatio < 0.5f)
@@ -141,7 +138,7 @@ public static class SimBoardEvaluator
         }
         else
         {
-            score -= 500f;
+            score -= AIConstants.CS_Lost_Penalty;
         }
 
         // --- 敵クリスタル ---
@@ -168,7 +165,7 @@ public static class SimBoardEvaluator
         }
         else
         {
-            score += 500f;
+            score += AIConstants.CS_Lost_Penalty;
         }
 
         return score;
@@ -187,7 +184,7 @@ public static class SimBoardEvaluator
         if (eKing != null && eKing.IsAlive)
         {
             float hpRatio = eKing.MaxHP > 0 ? (float)eKing.HP / eKing.MaxHP : 0f;
-            score += hpRatio * 30f;
+            score += hpRatio * AIConstants.KS_HP_Weight;
 
             // Kingが敵に囲まれていると危険
             int nearbyEnemies = 0;
@@ -196,10 +193,10 @@ public static class SimBoardEvaluator
                 var u = board.Units[i];
                 if (!u.IsAlive || u.Team != Team.Player || u.Type != Type.Unit) continue;
                 float dist = SimUtil.Distance(u.Position, eKing.Position);
-                float threatRange = SimActionGenerator.EstimateAttackRange(u.Kind) + SimActionGenerator.EstimateMoveRange(u.Kind);
+                float threatRange = AIConstants.GetAttackRange(u.Kind) + SimActionGenerator.EstimateMoveRange(u.Kind);
                 if (dist <= threatRange) nearbyEnemies++;
             }
-            if (nearbyEnemies >= 2) score -= nearbyEnemies * 12f;
+            if (nearbyEnemies >= 2) score -= nearbyEnemies * AIConstants.KS_Threat_Per_Enemy;
 
             // 味方による護衛
             int nearbyAllies = 0;
@@ -210,11 +207,11 @@ public static class SimBoardEvaluator
                 if (u.Kind == Kind.King) continue;
                 if (SimUtil.Manhattan(u.Position, eKing.Position) <= 3) nearbyAllies++;
             }
-            score += Mathf.Min(nearbyAllies * 4f, 16f);
+            score += Mathf.Min(nearbyAllies * AIConstants.KS_Guard_Per_Ally, AIConstants.KS_Guard_Max);
         }
         else if (eKing != null)
         {
-            score -= 300f; // King死亡
+            score -= AIConstants.KS_Death_Penalty;
         }
 
         // 敵King
@@ -230,13 +227,13 @@ public static class SimBoardEvaluator
                 var u = board.Units[i];
                 if (!u.IsAlive || u.Team != Team.Enemy || u.Type != Type.Unit) continue;
                 float dist = SimUtil.Distance(u.Position, pKing.Position);
-                if (dist <= SimActionGenerator.EstimateAttackRange(u.Kind) + 1f)
+                if (dist <= AIConstants.GetAttackRange(u.Kind) + 1f)
                     score += 8f;
             }
         }
         else if (pKing != null)
         {
-            score += 300f;
+            score += AIConstants.KS_Death_Penalty;
         }
 
         return score;
@@ -383,7 +380,7 @@ public static class SimBoardEvaluator
         // AP生産力（市民から）
         int enemyHouses = 0;
         board.EnemyBuildingCounts.TryGetValue(FacilityKind.House, out enemyHouses);
-        score += enemyHouses * 5f; // House → Citizen → AP
+        score += enemyHouses * AIConstants.BUILD_House_AP_Value;
 
         return score;
     }
@@ -395,7 +392,7 @@ public static class SimBoardEvaluator
         foreach (var kvp in counts)
             total += kvp.Value;
 
-        val += Mathf.Min(total * 3f, 30f);
+        val += Mathf.Min(total * AIConstants.BUILD_Per_Building, AIConstants.BUILD_Max_Total);
 
         // 基礎経済施設
         FacilityKind[] coreKinds = {
@@ -409,7 +406,7 @@ public static class SimBoardEvaluator
             counts.TryGetValue(fk, out c);
             if (c > 0) coreTypes++;
         }
-        val += coreTypes * 5f;
+        val += coreTypes * AIConstants.BUILD_Core_Type_Value;
 
         // 加工施設
         FacilityKind[] procKinds = {
@@ -420,13 +417,13 @@ public static class SimBoardEvaluator
         {
             int c = 0;
             counts.TryGetValue(fk, out c);
-            if (c > 0) val += 4f;
+            if (c > 0) val += AIConstants.BUILD_Process_Value;
         }
 
         // 兵舎
         int barracks = 0;
         counts.TryGetValue(FacilityKind.Barracks, out barracks);
-        val += barracks * 6f;
+        val += barracks * AIConstants.BUILD_Barracks_Value;
 
         return val;
     }
@@ -451,7 +448,7 @@ public static class SimBoardEvaluator
             {
                 var eu = enemyUnits[j];
                 float dist = SimUtil.Distance(pu.Position, eu.Position);
-                float threatRange = SimActionGenerator.EstimateAttackRange(pu.Kind)
+                float threatRange = AIConstants.GetAttackRange(pu.Kind)
                     + SimActionGenerator.EstimateMoveRange(pu.Kind);
 
                 if (dist <= threatRange)
@@ -463,7 +460,7 @@ public static class SimBoardEvaluator
                     if (potentialDmg >= eu.HP)
                     {
                         score -= GetAdjustedValue(eu) * 0.5f;
-                        // King/Crystal確殺は壊滅的
+                        // King確殺は壊滅的
                         if (eu.Kind == Kind.King) score -= 100f;
                     }
                 }
@@ -471,7 +468,7 @@ public static class SimBoardEvaluator
 
             // クリスタルへの脅威
             float crystalDist = SimUtil.Distance(pu.Position, board.EnemyCrystalPos);
-            if (crystalDist <= SimActionGenerator.EstimateAttackRange(pu.Kind) + SimActionGenerator.EstimateMoveRange(pu.Kind))
+            if (crystalDist <= AIConstants.GetAttackRange(pu.Kind) + SimActionGenerator.EstimateMoveRange(pu.Kind))
             {
                 var ec = board.GetCrystal(Team.Enemy);
                 if (ec != null && ec.IsAlive && ec.ShieldTurns <= 0)
@@ -492,7 +489,7 @@ public static class SimBoardEvaluator
             {
                 var pu = playerUnits[j];
                 float dist = SimUtil.Distance(eu.Position, pu.Position);
-                float threatRange = SimActionGenerator.EstimateAttackRange(eu.Kind)
+                float threatRange = AIConstants.GetAttackRange(eu.Kind)
                     + SimActionGenerator.EstimateMoveRange(eu.Kind);
 
                 if (dist <= threatRange)
@@ -523,6 +520,164 @@ public static class SimBoardEvaluator
     }
 
     // ================================================================
+    // 10. 資源投影 (Resource Projection)
+    //  建物からの将来収入を見積もる
+    // ================================================================
+    static float EvalResourceProjection(SimBoardState board)
+    {
+        float enemyProj = CalcResourceProjection(board.EnemyBuildingCounts);
+        float playerProj = CalcResourceProjection(board.PlayerBuildingCounts);
+        return enemyProj - playerProj;
+    }
+
+    static float CalcResourceProjection(Dictionary<FacilityKind, int> counts)
+    {
+        float proj = 0f;
+
+        // 各建物からの推定収入
+        foreach (var kvp in counts)
+        {
+            float perBuilding = AIConstants.GetResourceProjection(kvp.Key);
+            proj += perBuilding * kvp.Value * AIConstants.RP_Projection_Turns;
+        }
+
+        // シナジーボーナス（原料→加工チェーン）
+        int logging = 0, lumber = 0, quarry = 0, stone = 0;
+        int mine = 0, smelter = 0, field = 0, bakery = 0;
+        counts.TryGetValue(FacilityKind.LoggingCamp, out logging);
+        counts.TryGetValue(FacilityKind.LumberMill, out lumber);
+        counts.TryGetValue(FacilityKind.Quarry, out quarry);
+        counts.TryGetValue(FacilityKind.StoneWorks, out stone);
+        counts.TryGetValue(FacilityKind.Mine, out mine);
+        counts.TryGetValue(FacilityKind.Smelter, out smelter);
+        counts.TryGetValue(FacilityKind.Field, out field);
+        counts.TryGetValue(FacilityKind.Bakery, out bakery);
+
+        if (logging > 0 && lumber > 0) proj += AIConstants.SYNERGY_LogLumber;
+        if (quarry > 0 && stone > 0)   proj += AIConstants.SYNERGY_QuarryStone;
+        if (mine > 0 && smelter > 0)   proj += AIConstants.SYNERGY_MineSmelter;
+        if (field > 0 && bakery > 0)    proj += AIConstants.SYNERGY_FieldBakery;
+
+        return proj;
+    }
+
+    // ================================================================
+    // 11. 領土 (Territory)
+    //  ユニットの展開範囲の広さを評価
+    // ================================================================
+    static float EvalTerritory(SimBoardState board)
+    {
+        float enemyTerritory = CalcTerritory(board, Team.Enemy);
+        float playerTerritory = CalcTerritory(board, Team.Player);
+        return enemyTerritory - playerTerritory;
+    }
+
+    static float CalcTerritory(SimBoardState board, Team team)
+    {
+        var cells = new HashSet<Vector3Int>();
+        for (int i = 0; i < board.Units.Count; i++)
+        {
+            var u = board.Units[i];
+            if (!u.IsAlive || u.Team != team || u.Type != Type.Unit) continue;
+
+            // 半径3以内のセルをカウント
+            for (int dx = -3; dx <= 3; dx++)
+            {
+                for (int dz = -3; dz <= 3; dz++)
+                {
+                    if (Mathf.Abs(dx) + Mathf.Abs(dz) > 3) continue; // マンハッタン距離3以内
+                    var cell = new Vector3Int(u.Position.x + dx, 0, u.Position.z + dz);
+                    if (board.MapTiles.Contains(cell))
+                        cells.Add(cell);
+                }
+            }
+        }
+
+        return Mathf.Min(cells.Count * AIConstants.TERRITORY_Per_Cell, AIConstants.TERRITORY_Max);
+    }
+
+    // ================================================================
+    // 12. 連携攻撃 (Coordination)
+    //  複数ユニットが同一ターゲットを脅かすボーナス
+    // ================================================================
+    static float EvalCoordination(SimBoardState board)
+    {
+        float score = 0f;
+
+        // AI(Enemy)がPlayer目標を集中攻撃できるか
+        score += CalcCoordinationScore(board, Team.Enemy, Team.Player);
+        // Player がAI目標を集中攻撃できるか（マイナス）
+        score -= CalcCoordinationScore(board, Team.Player, Team.Enemy);
+
+        return score;
+    }
+
+    static float CalcCoordinationScore(SimBoardState board, Team attackerTeam, Team defenderTeam)
+    {
+        float score = 0f;
+        var attackers = board.GetAliveUnits(attackerTeam);
+        var defenders = board.GetAliveUnits(defenderTeam);
+
+        for (int i = 0; i < defenders.Count; i++)
+        {
+            var target = defenders[i];
+            int threateningCount = 0;
+            int totalDmg = 0;
+
+            for (int j = 0; j < attackers.Count; j++)
+            {
+                var atk = attackers[j];
+                if (atk.IsStunned) continue;
+
+                float dist = SimUtil.Distance(atk.Position, target.Position);
+                float range = AIConstants.GetAttackRange(atk.Kind)
+                    + SimActionGenerator.EstimateMoveRange(atk.Kind);
+
+                if (dist <= range)
+                {
+                    threateningCount++;
+                    totalDmg += SimBoardState.CalcDamage(atk, target);
+                }
+            }
+
+            if (threateningCount >= 3)
+                score += AIConstants.COORD_Triple_Threat;
+            else if (threateningCount >= 2)
+                score += AIConstants.COORD_Dual_Threat;
+
+            if (threateningCount >= 2 && totalDmg >= target.HP)
+                score += AIConstants.COORD_Kill_Threat;
+        }
+
+        return score;
+    }
+
+    // ================================================================
+    // 13. 視界 (Vision)
+    //  マップ認識範囲の差を評価
+    // ================================================================
+    static float EvalVision(SimBoardState board)
+    {
+        int enemyVision = board.EstimateVisionCells(Team.Enemy);
+        int playerVision = board.EstimateVisionCells(Team.Player);
+
+        float enemyScore = Mathf.Min(enemyVision * AIConstants.VISION_Per_Cell, AIConstants.VISION_Max);
+        float playerScore = Mathf.Min(playerVision * AIConstants.VISION_Per_Cell, AIConstants.VISION_Max);
+
+        // Scoutユニットによる追加ボーナス（偵察能力）
+        float scoutBonus = 0f;
+        for (int i = 0; i < board.Units.Count; i++)
+        {
+            var u = board.Units[i];
+            if (!u.IsAlive || u.Kind != Kind.Scout) continue;
+            if (u.Team == Team.Enemy) scoutBonus += AIConstants.VISION_Scout_Bonus;
+            else if (u.Team == Team.Player) scoutBonus -= AIConstants.VISION_Scout_Bonus;
+        }
+
+        return (enemyScore - playerScore) + scoutBonus;
+    }
+
+    // ================================================================
     //  ゲーム終了状態
     // ================================================================
     static float EvalTerminal(SimBoardState board)
@@ -530,21 +685,21 @@ public static class SimBoardEvaluator
         // 敵(Player)クリスタル破壊 = AI勝利
         var pCrystal = board.GetCrystal(Team.Player);
         if (pCrystal != null && !pCrystal.IsAlive)
-            return 10000f;
+            return AIConstants.TERMINAL_Win;
 
         // 自陣(Enemy)クリスタル破壊 = AI敗北
         var eCrystal = board.GetCrystal(Team.Enemy);
         if (eCrystal != null && !eCrystal.IsAlive)
-            return -10000f;
+            return AIConstants.TERMINAL_Lose;
 
         // King死亡もゲーム終了
         var eKing = board.GetKing(Team.Enemy);
         if (eKing != null && !eKing.IsAlive)
-            return -8000f;
+            return AIConstants.TERMINAL_King_Lose;
 
         var pKing = board.GetKing(Team.Player);
         if (pKing != null && !pKing.IsAlive)
-            return 8000f;
+            return AIConstants.TERMINAL_King_Win;
 
         return 0f;
     }

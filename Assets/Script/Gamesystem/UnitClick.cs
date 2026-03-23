@@ -159,7 +159,10 @@ public class UnitClick : MonoBehaviour
 
         battlesystem.target = ATKC;
         playermove.MenuSwitch = false;
+        int hpBefore = ATKC.HP;
         battlesystem.DamageGenerater(turngenerater);
+        int dmgDealt = hpBefore - ATKC.HP;
+        ActionLogUI.LogAttack(KindNameJP.Get(playermove.Obj.kind), KindNameJP.Get(ATKC.kind), dmgDealt, ATKC.HP <= 0);
         turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
         playerattack.AttackSuccess = true;
     }
@@ -334,6 +337,12 @@ public class UnitClick : MonoBehaviour
 
         // ---- 移動確定 ----
         Status movedUnit = turngenerater.SelectUnit;
+
+        // ---- Undo用に移動コストを事前計算・記録 ----
+        int moveCost = turngenerater.apsystem.CalcCost(APSystem.ActionType.Move, playermove.Obj, from, to);
+        if (turngenerater.moveUndoSystem != null)
+            turngenerater.moveUndoSystem.Record(movedUnit, from, to, moveCost);
+
         turngenerater.SelectUnit.transform.position = to;
         turngenerater.NewCell = turngenerater.SelectUnit.transform.position;
         turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
@@ -341,6 +350,9 @@ public class UnitClick : MonoBehaviour
 
         // ---- AP消費（移動コスト） ----
         turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
+
+        // ---- アクションログ ----
+        ActionLogUI.LogMove(KindNameJP.Get(movedUnit.kind), from, to);
 
         // 移動後もユニットを選択状態に保持（攻撃など連続行動を可能に）
         turngenerater.OldCell = to;
