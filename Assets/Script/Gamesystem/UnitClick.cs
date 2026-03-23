@@ -39,6 +39,16 @@ public class UnitClick : MonoBehaviour
         playermove.ObjP = playermove.hit.transform.position;
 
         if (playermove.Obj == null) return;
+
+        // 敵ユニット/建築物をクリック → 情報パネルのみ表示（操作不可）
+        if (playermove.Obj.team == Team.Enemy)
+        {
+            if (turngenerater.unitPanelUI != null)
+                turngenerater.unitPanelUI.Show(playermove.Obj);
+            playermove.Obj = null; // 選択状態にはしない
+            return;
+        }
+
         if (playermove.Obj.team != Team.Player) return;
 
         // 建築物・壁クリック（移動ポイントは生成しない）
@@ -323,6 +333,7 @@ public class UnitClick : MonoBehaviour
         }
 
         // ---- 移動確定 ----
+        Status movedUnit = turngenerater.SelectUnit;
         turngenerater.SelectUnit.transform.position = to;
         turngenerater.NewCell = turngenerater.SelectUnit.transform.position;
         turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
@@ -331,12 +342,17 @@ public class UnitClick : MonoBehaviour
         // ---- AP消費（移動コスト） ----
         turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
 
+        // 移動後もユニットを選択状態に保持（攻撃など連続行動を可能に）
+        turngenerater.OldCell = to;
         playermove.MP = null;
-        playermove.Obj = null;
-        playermove.MenuSwitch = false;
+        playermove.ObjP = to;
+        playermove.MenuSwitch = true;
+
+        // 移動後の位置で移動範囲を再表示
+        turngenerater.movegenerater.MoveCore(movedUnit, to);
 
         if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
+            turngenerater.unitPanelUI.Refresh();
     }
 
     // ---- プレイヤーユニット再選択時の処理 ----
