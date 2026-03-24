@@ -56,7 +56,7 @@ public class FloatingDamageUI : MonoBehaviour
             tmp.fontSize = FontSize;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.sortingOrder = 100;
-            tmp.enableWordWrapping = false;
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
 
             go.SetActive(false);
             _pool[i] = new DamagePopup

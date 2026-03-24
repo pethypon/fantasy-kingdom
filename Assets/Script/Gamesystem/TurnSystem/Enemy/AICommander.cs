@@ -125,7 +125,7 @@ public class AICommander
 
         Debug.Log("=== [AICommander] ==============================");
         Debug.Log($"[AICommander] 初期化完了");
-        Debug.Log($"[AICommander] 大きい性格 = {major}  脅威度={_threatLevel.Level} ({_threatLevel.GetStageName()})");
+        Debug.Log($"[AICommander] 大きい性格 = {major}  脅威度={_threatLevel.Level} ({_threatLevel.GetTierName()})");
         Debug.Log($"[AICommander] 慎重性={_personality.Traits.Caution}  " +
                   $"指揮性={_personality.Traits.Command}  " +
                   $"執着性={_personality.Traits.Obsession}");
@@ -362,7 +362,7 @@ public class AICommander
                   $"自軍駒数={_board.AliveEnemyUnits.Count}  " +
                   $"視界内敵駒数={_board.AlivePlayerUnits.Count}  " +
                   $"BOSS={(_personality.HasBoss ? _personality.BossUnit.kind.ToString() : "なし")}  " +
-                  $"脅威度={_threatLevel.Level}({_threatLevel.GetStageName()})");
+                  $"脅威度={_threatLevel.Level}({_threatLevel.GetTierName()})");
         Debug.Log($"[AICommander] AP予算: {_apBudget}");
         Debug.Log($"[AICommander] 建築可能位置={_board.BuildablePositions.Count}  " +
                   $"召喚可能位置={_board.SummonablePositions.Count}  " +
@@ -595,7 +595,7 @@ public class AICommander
         _totalStats.Summons += turnStats.Summons;
         Debug.Log($"--- [AICommander] ターン{_turnCount}終了: {turnStats}  " +
                   $"残AP={_board.EnemyAP}  累計({_totalStats}/撃破{_totalKills})  " +
-                  $"脅威度={_threatLevel.Level}({_threatLevel.GetStageName()}) ---");
+                  $"脅威度={_threatLevel.Level}({_threatLevel.GetTierName()}) ---");
     }
 
     /// <summary>
