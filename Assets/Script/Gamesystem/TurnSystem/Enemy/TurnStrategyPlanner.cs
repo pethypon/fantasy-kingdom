@@ -159,15 +159,21 @@ public class TurnStrategyPlanner
             decision.Reason = "標準バランス";
         }
 
-        // ---- チュートリアル帯の戦略品質低下 ----
-        if (threatLevel.IsTutorial && threatLevel.StrategyQuality < 0.7f)
+        // ---- 戦略品質による劣化（チュートリアル〜ノーマル帯） ----
+        float quality = threatLevel.StrategyQuality;
+        if (quality < 0.9f)
         {
-            // 低脅威度では最適でない戦略を選ぶことがある
-            float quality = threatLevel.StrategyQuality;
+            // 低品質では攻勢をバランスに緩和
             if (quality < 0.5f && decision.Strategy == TurnStrategy.Assault)
             {
                 decision.Strategy = TurnStrategy.Balanced;
-                decision.Reason += " (チュートリアル帯で攻勢を緩和)";
+                decision.Reason += " (低脅威度で攻勢を緩和)";
+            }
+            // やりこみ帯未満では防衛→バランスに劣化することもある
+            if (quality < 0.7f && decision.Strategy == TurnStrategy.CrystalDefense)
+            {
+                decision.Strategy = TurnStrategy.Balanced;
+                decision.Reason += " (低脅威度で防衛判断が甘い)";
             }
         }
 

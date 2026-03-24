@@ -58,7 +58,7 @@ public class AIMinimaxEngine
     public AIMinimaxEngine(int maxDepth = 3, int candidateLimit = 14,
         int greedyActionsPerTurn = 10, float timeBudgetMs = DefaultTimeBudgetMs)
     {
-        _maxDepth = Mathf.Clamp(maxDepth, 1, 4);
+        _maxDepth = Mathf.Clamp(maxDepth, 1, 20);
         _candidateLimit = Mathf.Max(4, candidateLimit);
         _greedyActionsPerTurn = Mathf.Clamp(greedyActionsPerTurn, 4, 15);
         _timeBudgetMs = timeBudgetMs;
