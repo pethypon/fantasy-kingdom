@@ -50,8 +50,8 @@ public class BuildSystem : MonoBehaviour
 
     // ---- 建築物の親（チーム別） ----
     [Header("建築物の親Transform（チーム別）")]
-    [SerializeField] public Transform PlayerBuildingParent;
-    [SerializeField] public Transform EnemyBuildingParent;
+    public Transform PlayerBuildingParent;
+    public Transform EnemyBuildingParent;
 
     /// <summary>指定チームの建築物親を返す</summary>
     public Transform GetBuildingParent(Team team)

@@ -196,32 +196,32 @@ public enum SkillRarity
 public class Status : MonoBehaviour
 {
     [Header("種類")]
-    [SerializeField] public Kind kind;
+    public Kind kind;
     [Header("チーム")]
-    [SerializeField] public Team team;
+    public Team team;
     [Header("駒のタイプ")]
-    [SerializeField] public Type type;
+    public Type type;
     [Header("状態")]
-    [SerializeField] public State state;
+    public State state;
     [Header("スキル")]
-    [SerializeField] public Skill skill;
+    public Skill skill;
     [Header("駒の向き")]
-    [SerializeField] public Direction direction;
+    public Direction direction;
     [Header("パッシブスキル")]
-    [SerializeField] public PassiveSkill passiveskill;
+    public PassiveSkill passiveskill;
     [Header("ステータス")]
-    [SerializeField] public int HP;
-    [SerializeField] public int ATK;
-    [SerializeField] public int DEF;
+    public int HP;
+    public int ATK;
+    public int DEF;
     [Header("レベル")]
     public int Level = 1;
     [Header("駒の視界")]
-    [SerializeField] public HashSet<Vector3Int> VisionCell;
+    public HashSet<Vector3Int> VisionCell;
     [Header("疲労")]
-    [SerializeField] public int Fatigue = 0;
+    public int Fatigue = 0;
 
     [Header("シールド（無敵バフ）")]
-    [SerializeField] public int ShieldTurns = 0;
+    public int ShieldTurns = 0;
     [HideInInspector] public bool ShieldActivated = false;
     [HideInInspector] public int MaxHP;
 

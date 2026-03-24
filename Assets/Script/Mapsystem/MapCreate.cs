@@ -10,13 +10,13 @@ public class MapCreate : MonoBehaviour
     [SerializeField] private GameObject FogExploardBoard;
 
     [Header("Fog親オブジェクト")]
-    [SerializeField] public Transform FogParent;
-    [SerializeField] public Transform FogExploardParent;
-    [SerializeField] public Transform FogBoardParent;
-    [SerializeField] public Transform FogExploardBoardParent;
+    public Transform FogParent;
+    public Transform FogExploardParent;
+    public Transform FogBoardParent;
+    public Transform FogExploardBoardParent;
 
     [Header("土ブロック")]
-    [SerializeField] public GameObject dirtPrefab;
+    public GameObject dirtPrefab;
 
     [Header("石ブロック")]
     [SerializeField] private GameObject stonePrefab;
@@ -25,22 +25,22 @@ public class MapCreate : MonoBehaviour
     [SerializeField] private Transform MapBox;
 
     [Header("マップサイズ")]
-    [SerializeField] public int maxX = 50;
-    [SerializeField] public int maxY = 2;
-    [SerializeField] public int minY = 0;
-    [SerializeField] public int maxZ = 50;
+    public int maxX = 50;
+    public int maxY = 2;
+    public int minY = 0;
+    public int maxZ = 50;
 
     [Header("シード値")]
     [SerializeField] private float seedx, seedz;
 
     [Header("ノイズ設定")]
-    [SerializeField] public float noiseScale = 0.1f;
+    public float noiseScale = 0.1f;
 
     [Header("マップの平均的な高さ")]
-    [SerializeField] public int AverageFoundation = 2;
+    public int AverageFoundation = 2;
 
     [Header("振れ幅")]
-    [SerializeField] public int Amplitude = 6;
+    public int Amplitude = 6;
 
     // ==== Fog レイヤー設定 ====
     // Fog レイヤーを増減したい場合はこちらの配列に値を追加・削除するだけでよい

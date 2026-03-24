@@ -15,8 +15,8 @@ public class CrystalSystem : MonoBehaviour
     public int CrystalDistanceZmax = 10;
 
     [Header("クリスタル親オブジェクト")]
-    [SerializeField] public Transform Playercrystal;
-    [SerializeField] public Transform Enemycrystal;
+    public Transform Playercrystal;
+    public Transform Enemycrystal;
 
     public Vector3 PCP;
     public Vector3 ECP;

@@ -8,8 +8,6 @@ public class BattleSystem : MonoBehaviour
     public Status AttackSide;
     public TurnGenerater turngenerater;
 
-    public const int ShieldDuration = 5;
-
     // ─── ダメージ発生（入口） ─────────────────────────────────────────
     public void DamageGenerater(TurnGenerater turngenerater)
     {
@@ -80,13 +78,13 @@ public class BattleSystem : MonoBehaviour
         if (target.MaxHP <= 0) return;
 
         float hpRatio = (float)target.HP / target.MaxHP;
-        if (hpRatio < 0.5f && target.HP > 0)
+        if (hpRatio < GameConstants.CrystalShieldThreshold && target.HP > 0)
         {
-            target.ShieldTurns = ShieldDuration;
+            target.ShieldTurns = GameConstants.CrystalShieldDuration;
             target.ShieldActivated = true;
-            Debug.Log($"[Battle] {target.team} のクリスタルが50%を切った！ {ShieldDuration}ターンの無敵シールド発動！");
+            Debug.Log($"[Battle] {target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！");
             string teamLabel = target.team == Team.Player ? "味方" : "敵";
-            ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{ShieldDuration}ターン）",
+            ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{GameConstants.CrystalShieldDuration}ターン）",
                 ToastMessageUI.MessageType.Info, 4f);
         }
     }

@@ -10,13 +10,13 @@ public class NationState : MonoBehaviour
 {
     // ==== Inspector 設定 ====
     [Header("AP")]
-    [SerializeField] public FactionState.APData AP = new FactionState.APData();
+    public FactionState.APData AP = new FactionState.APData();
 
     [Header("資源")]
-    [SerializeField] public FactionState.ResourceData Resources = new FactionState.ResourceData();
+    public FactionState.ResourceData Resources = new FactionState.ResourceData();
 
     [Header("サブクリスタル")]
-    [SerializeField] public int SubCrystals = 2;
+    public int SubCrystals = 2;
 
     [Header("経済ステータス")]
     public int CitizenCapacity;
