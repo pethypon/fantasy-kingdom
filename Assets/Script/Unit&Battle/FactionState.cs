@@ -11,8 +11,8 @@ public class FactionState : MonoBehaviour
     [System.Serializable]
     public class APData
     {
-        [Header("現在の AP")] public int Current = 15;
-        [Header("リセット値")] public int Reset = 15;
+        [Header("現在の AP")] public int Current = 20;
+        [Header("リセット値")] public int Reset = 20;
         [Header("ボーナス")] public int Plus = 0;
         [Header("ペナルティ")] public int Minus = 0;
 
