@@ -457,8 +457,8 @@ public class AICommander
             {
                 // スコア降順ソートして上位候補を抽出
                 actions.Sort((a, b) => b.Score.CompareTo(a.Score));
-                // 常に最大14候補、深さ3で探索（反復深化で精度向上）
-                int candidateLimit = Mathf.Max(_threatLevel.SearchCandidateLimit, 14);
+                // 脅威度に応じた候補数と探索深度
+                int candidateLimit = _threatLevel.SearchCandidateLimit;
                 var topCandidates = new List<AIAction>();
                 for (int i = 0; i < Mathf.Min(candidateLimit, actions.Count); i++)
                 {
@@ -469,7 +469,7 @@ public class AICommander
                 if (topCandidates.Count > 0)
                 {
                     var searchEngine = new AISearchEngine(
-                        3, // 常に3手先読み
+                        _threatLevel.SearchDepth,
                         candidateLimit,
                         _rng);
                     // シミュレーション用参照を設定（完全シミュレーション有効化）
@@ -1063,19 +1063,17 @@ public class AICommander
     AIAction SelectBestAction(List<AIAction> actions, HashSet<string> failedActions,
         HashSet<string> failedActionTypes = null)
     {
-        AIAction best = null;
-        float bestScore = float.MinValue;
+        // 有効な候補をスコア順に収集
+        var validActions = new List<(AIAction action, float score)>();
 
         foreach (var action in actions)
         {
             if (action.ActionType == AIActionType.Wait) continue;
             if (action.APCost > _board.EnemyAP) continue;
 
-            // 失敗済みの行動をスキップ
             string failKey = $"{action.ActionType}_{action.Facility}_{action.SummonKind}_{action.TargetPos}";
             if (failedActions.Contains(failKey)) continue;
 
-            // 種類ごとブロック済みの行動をスキップ
             if (failedActionTypes != null)
             {
                 string typeKey = $"{action.ActionType}_{action.Facility}_{action.SummonKind}";
@@ -1083,10 +1081,31 @@ public class AICommander
             }
 
             float score = action.Score;
-
             if (action.Unit != null && _actedUnits.Contains(action.Unit))
                 score *= 0.5f;
 
+            validActions.Add((action, score));
+        }
+
+        if (validActions.Count == 0) return null;
+
+        // ミス率: 一定確率で最善手以外を選択する（チュートリアル〜ノーマル帯）
+        float mistakeRate = _threatLevel.MistakeRate;
+        if (mistakeRate > 0f && validActions.Count > 1 && _rng != null && _rng.NextFloat() < mistakeRate)
+        {
+            // 上位25-75%の範囲からランダムに選択（完全ランダムではなくそこそこの手を選ぶ）
+            validActions.Sort((a, b) => b.score.CompareTo(a.score));
+            int minIdx = Mathf.Max(1, validActions.Count / 4);
+            int maxIdx = Mathf.Min(validActions.Count - 1, validActions.Count * 3 / 4);
+            int idx = _rng.Range(minIdx, maxIdx + 1);
+            return validActions[idx].action;
+        }
+
+        // 通常: 最高スコアの行動を選択
+        AIAction best = null;
+        float bestScore = float.MinValue;
+        foreach (var (action, score) in validActions)
+        {
             if (score > bestScore)
             {
                 bestScore = score;

@@ -31,12 +31,77 @@ public class GameGenerater : MonoBehaviour
     [HideInInspector] public List<GameObject> PlayerCrystalChildren = new List<GameObject>();
     [HideInInspector] public List<GameObject> EnemyCrystalChildren = new List<GameObject>();
 
+    // タイトル画面からの遷移待ち用
+    private bool _waitingForTitle = true;
+    private FactionState _cachedFactionState;
+
     void Awake()
     {
         InitSingletons();
+
+        // タイトル画面を表示するか判定
+        bool showTitle = ShouldShowTitle();
+        if (showTitle)
+        {
+            InitTitleScreen();
+            return;
+        }
+
+        // タイトルスキップ（ロードまたはReturnToTitle=falseからの直行）
+        _waitingForTitle = false;
+        StartGameInit();
+    }
+
+    void Update()
+    {
+        // タイトル画面の閉じ待ち
+        if (_waitingForTitle)
+        {
+            var title = TitleScreenUI.Instance;
+            if (title != null && !title.IsActive)
+            {
+                _waitingForTitle = false;
+                int loadSlot = title.SelectedLoadSlot;
+                Destroy(title.gameObject);
+                StartGameInit(loadSlot);
+            }
+        }
+    }
+
+    private bool ShouldShowTitle()
+    {
+        // ロード要求がある場合はタイトルをスキップしてゲーム開始
+        if (GameMenuUI.PendingLoadSlot >= 0) return false;
+
+        // タイトルへ戻る要求がある場合はタイトルを表示
+        if (GameMenuUI.ReturnToTitle)
+        {
+            GameMenuUI.ReturnToTitle = false;
+            return true;
+        }
+
+        // 初回起動時はタイトル表示
+        return true;
+    }
+
+    private void InitTitleScreen()
+    {
+        var titleGo = new GameObject("TitleScreenUI");
+        titleGo.AddComponent<TitleScreenUI>();
+    }
+
+    private void StartGameInit(int loadSlot = -1)
+    {
+        // ロード要求のstaticフラグをクリア
+        int pendingLoad = GameMenuUI.PendingLoadSlot;
+        GameMenuUI.PendingLoadSlot = -1;
+        if (loadSlot < 0 && pendingLoad >= 0)
+            loadSlot = pendingLoad;
+
         InitMapAndUnits();
 
         FactionState factionState = InitFactionState();
+        _cachedFactionState = factionState;
 
         InitGameSystems(factionState);
         InitSkillsAndTimer(factionState);
@@ -44,8 +109,88 @@ public class GameGenerater : MonoBehaviour
         InitUXSystems();
         PrewarmObjectPools();
         InitAI(factionState);
+        InitGameMenu(factionState);
+
+        // ロードデータがあれば適用
+        if (loadSlot >= 0)
+        {
+            ApplyLoadData(loadSlot, factionState);
+        }
 
         _TurnGenerater.StartFirstTurn();
+    }
+
+    // =====================================================================
+    //  インゲームメニューの初期化
+    // =====================================================================
+    private void InitGameMenu(FactionState factionState)
+    {
+        var menuGo = new GameObject("GameMenuUI");
+        var menu = menuGo.AddComponent<GameMenuUI>();
+        menu.Init(_TurnGenerater, factionState);
+    }
+
+    // =====================================================================
+    //  ロードデータの適用
+    // =====================================================================
+    private void ApplyLoadData(int slot, FactionState factionState)
+    {
+        var data = SaveSystem.LoadGame(slot);
+        if (data == null)
+        {
+            Debug.LogWarning("[GameGerater] ロードデータが見つかりません");
+            return;
+        }
+
+        Debug.Log($"[GameGerater] ロード適用: Turn{data.Turn} 脅威度{data.ThreatLevel}");
+
+        // ターン数復元
+        _TurnGenerater.Turn = data.Turn;
+
+        // 資源復元
+        SaveSystem.RestoreResources(data.PlayerResources, factionState.PlayerResources);
+        SaveSystem.RestoreResources(data.EnemyResources, factionState.EnemyResources);
+
+        // AP復元
+        SaveSystem.RestoreAP(data.PlayerAP, factionState.PlayerAP);
+        SaveSystem.RestoreAP(data.EnemyAP, factionState.EnemyAP);
+
+        // サブクリスタル復元
+        factionState.PlayerSubCrystals = data.PlayerSubCrystals;
+        factionState.EnemySubCrystals = data.EnemySubCrystals;
+
+        // ユニットのHP等を復元
+        ApplyUnitLoadData(data, _UnitSetting.PlayerUnit);
+        ApplyUnitLoadData(data, _UnitSetting.EnemyUnit);
+
+        ToastMessageUI.Show($"スロット{slot + 1}のデータをロードしました", ToastMessageUI.MessageType.Info, 3f);
+    }
+
+    private void ApplyUnitLoadData(SaveSystem.GameSaveData data, Transform unitParent)
+    {
+        if (unitParent == null) return;
+
+        foreach (Status s in unitParent.GetComponentsInChildren<Status>(true))
+        {
+            // セーブデータから同じ種類・チームのユニットを探す
+            foreach (var ud in data.Units)
+            {
+                if (ud.Kind == s.kind.ToString() && ud.Team == s.team.ToString()
+                    && Mathf.Abs(ud.PosX - s.transform.position.x) < 0.5f
+                    && Mathf.Abs(ud.PosZ - s.transform.position.z) < 0.5f)
+                {
+                    s.HP = ud.HP;
+                    s.MaxHP = ud.MaxHP;
+                    s.ATK = ud.ATK;
+                    s.DEF = ud.DEF;
+                    s.ShieldTurns = ud.ShieldTurns;
+                    s.ShieldActivated = ud.ShieldActivated;
+                    s.SkillCooldown = ud.SkillCooldown;
+                    s.gameObject.SetActive(ud.IsActive);
+                    break;
+                }
+            }
+        }
     }
 
     // =====================================================================
@@ -336,12 +481,13 @@ public class GameGenerater : MonoBehaviour
     private void InitAI(FactionState factionState)
     {
         var aiMajor = AIPersonality.RandomMajor();
+        int threatLevel = SaveSystem.LoadProfile().ThreatLevel;
         _TurnGenerater.aiCommander = new AICommander(
             _TurnGenerater, _MoveGenerater, _TurnGenerater.attackpoint,
             _TurnGenerater.battlesystem, _VisionGenerater,
             _APSystem, _UnitSetting, _CrystalSystem, _MapCreate, aiMajor,
             _BuildSystem, _SummonSystem, factionState, _SkillSystem,
-            _SubCrystalSystem);
+            _SubCrystalSystem, threatLevel);
     }
 
     // =====================================================================
