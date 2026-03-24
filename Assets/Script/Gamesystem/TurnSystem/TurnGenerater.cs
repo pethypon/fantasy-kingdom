@@ -10,7 +10,7 @@ public class TurnGenerater : MonoBehaviour
     //  ステート管理
     // ================================================================
     [SerializeField] StateCore StateManager;
-    [SerializeField] public int Turn = 0;
+    public int Turn = 0;
 
     // ================================================================
     //  選択中ユニット
@@ -23,45 +23,45 @@ public class TurnGenerater : MonoBehaviour
     //  マップ・ユニット基盤
     // ================================================================
     [Header("マップ・ユニット基盤")]
-    [SerializeField] public MapCreate mapcreate;
-    [SerializeField] public CrystalSystem crystalsystem;
-    [SerializeField] public UnitSetting unitset;
-    [SerializeField] public Status status;
+    public MapCreate mapcreate;
+    public CrystalSystem crystalsystem;
+    public UnitSetting unitset;
+    public Status status;
 
     // ================================================================
     //  コアゲームシステム
     // ================================================================
     [Header("コアゲームシステム")]
-    [SerializeField] public MoveGererater movegenerater;
-    [SerializeField] public AttackPointt attackpoint;
-    [SerializeField] public BattleSystem battlesystem;
-    [SerializeField] public VisionGenerater visiongenerater;
-    [SerializeField] public UnitClick unitclick;
-    [SerializeField] public SkillSystem skillsystem;
+    public MoveGererater movegenerater;
+    public AttackPointt attackpoint;
+    public BattleSystem battlesystem;
+    public VisionGenerater visiongenerater;
+    public UnitClick unitclick;
+    public SkillSystem skillsystem;
 
     // ================================================================
     //  経済・建築・召喚
     // ================================================================
     [Header("経済・建築・召喚")]
-    [SerializeField] public APSystem apsystem;
-    [SerializeField] public BuildSystem buildsystem;
-    [SerializeField] public SummonSystem summonsystem;
-    [SerializeField] public EconomySystem economysystem;
-    [SerializeField] public BuildingAttackSystem buildingAttackSystem;
-    [SerializeField] public SubCrystalSystem subCrystalSystem;
+    public APSystem apsystem;
+    public BuildSystem buildsystem;
+    public SummonSystem summonsystem;
+    public EconomySystem economysystem;
+    public BuildingAttackSystem buildingAttackSystem;
+    public SubCrystalSystem subCrystalSystem;
 
     // ================================================================
     //  タイマー・AI
     // ================================================================
     [Header("タイマー・AI")]
-    [SerializeField] public TimerSystem timerSystem;
+    public TimerSystem timerSystem;
     [HideInInspector] public AICommander aiCommander;
 
     // ================================================================
     //  UI
     // ================================================================
     [Header("UI")]
-    [SerializeField] public UnitPanelUI unitPanelUI;
+    public UnitPanelUI unitPanelUI;
     [HideInInspector] public DamagePreviewUI damagePreviewUI;
     [HideInInspector] public InputHintUI inputHintUI;
     [HideInInspector] public MoveUndoSystem moveUndoSystem;
@@ -70,7 +70,7 @@ public class TurnGenerater : MonoBehaviour
     //  カメラ・入力
     // ================================================================
     [Header("カメラ・入力")]
-    [SerializeField] public Transform CameraObject;
+    public Transform CameraObject;
 
     // 入力バッファ（毎フレーム ReadInputs() で更新）
     [HideInInspector] public Vector2 MoveInput;

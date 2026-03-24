@@ -54,6 +54,9 @@ public static class AttackPatterns
         // 前直進3マス
         { Kind.Bomber,      (dx, dz) => dx == 0 && dz == 3 },
 
+        // 隣接1マス（前方3マス）
+        { Kind.Priest,      (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
+
         // BOSS: 前方3マス+左右1マス
         { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
     };
@@ -75,6 +78,7 @@ public static class AttackPatterns
         { Kind.Crossbow,    new[] { new Vector2Int(0,1), new Vector2Int(0,2) } },
         { Kind.Magicsniper, new[] { new Vector2Int(-4,0), new Vector2Int(4,0) } },
         { Kind.Bomber,      new[] { new Vector2Int(0,3) } },
+        { Kind.Priest,      new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
         { Kind.Boss,        new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
     };
 

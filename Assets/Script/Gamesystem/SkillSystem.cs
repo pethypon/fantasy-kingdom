@@ -8,9 +8,9 @@ using UnityEngine;
 public class SkillSystem : MonoBehaviour
 {
     [Header("参照")]
-    [SerializeField] public TurnGenerater turngenerater;
-    [SerializeField] public BattleSystem battlesystem;
-    [SerializeField] public MoveGererater movegenerater;
+    public TurnGenerater turngenerater;
+    public BattleSystem battlesystem;
+    public MoveGererater movegenerater;
 
     private FactionState _factionState;
 

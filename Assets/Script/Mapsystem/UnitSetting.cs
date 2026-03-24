@@ -10,8 +10,8 @@ public class UnitSetting : MonoBehaviour
     [SerializeField] GameObject StrangePiece;
 
     [Header("ユニット配置親オブジェクト")]
-    [SerializeField] public Transform PlayerUnit;
-    [SerializeField] public Transform EnemyUnit;
+    public Transform PlayerUnit;
+    public Transform EnemyUnit;
 
     // ==== UnitData 管理（Dictionary 版） ====
     // SerializeField が11個並べない理由：

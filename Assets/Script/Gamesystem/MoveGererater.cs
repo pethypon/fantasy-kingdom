@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class MoveGererater : MonoBehaviour
 {
-    [SerializeField] public MapCreate mapcreate;
-    [SerializeField] public TurnGenerater turngenerater;
+    public MapCreate mapcreate;
+    public TurnGenerater turngenerater;
 
     [Header("移動位置表示のオブジェクト")]
-    [SerializeField] public GameObject MovePoint;
+    public GameObject MovePoint;
 
     [Header("ムーブ親オブジェクト")]
-    [SerializeField] public Transform Move;
+    public Transform Move;
 
     [Header("ユニット座標")]
-    [SerializeField] public HashSet<Vector3> UnitPointData = new HashSet<Vector3>();
+    public HashSet<Vector3> UnitPointData = new HashSet<Vector3>();
 
     [Header("クリスタルシステム")]
     [SerializeField] CrystalSystem crystalsystem;

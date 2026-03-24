@@ -9,7 +9,7 @@ public class UnitClick : MonoBehaviour
     [SerializeField] private PlayerAttack playerattack;
     [SerializeField] private BattleSystem battlesystem;
     [SerializeField] private AttackPointt attackpoint;
-    [SerializeField] public Status ATKC;
+    public Status ATKC;
 
     public RaycastHit attackhit;
     private const float RayDistance = GameConstants.DefaultRayDistance;

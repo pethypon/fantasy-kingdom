@@ -211,9 +211,9 @@ public static class StatusEffectSystem
     public static float GetATKModifier(Status unit)
     {
         float mod = 1f;
-        if (HasDebuff(unit, StatusEffectType.Weaken)) mod -= 0.15f;
-        if (HasDebuff(unit, StatusEffectType.Chill))  mod -= 0.10f;
-        if (HasBuff(unit, BuffType.Offensive))         mod += 0.15f;
+        if (HasDebuff(unit, StatusEffectType.Weaken)) mod -= GameConstants.WeakenATKReduction;
+        if (HasDebuff(unit, StatusEffectType.Chill))  mod -= GameConstants.ChillATKReduction;
+        if (HasBuff(unit, BuffType.Offensive))         mod += GameConstants.OffensiveATKBonus;
         return Mathf.Clamp(mod, 0f, 2f);
     }
 
@@ -221,8 +221,8 @@ public static class StatusEffectSystem
     public static float GetDEFModifier(Status unit)
     {
         float mod = 1f;
-        if (HasDebuff(unit, StatusEffectType.ArmorBreak)) mod -= 0.15f;
-        if (HasBuff(unit, BuffType.Defensive))            mod += 0.20f;
+        if (HasDebuff(unit, StatusEffectType.ArmorBreak)) mod -= GameConstants.ArmorBreakDEFReduction;
+        if (HasBuff(unit, BuffType.Defensive))            mod += GameConstants.DefensiveDEFBonus;
         return Mathf.Clamp(mod, 0f, 2f);
     }
 
@@ -230,16 +230,16 @@ public static class StatusEffectSystem
     public static float GetIncomingDamageModifier(Status target)
     {
         float mod = 1f;
-        if (HasDebuff(target, StatusEffectType.Mark))   mod += 0.10f;
-        if (HasDebuff(target, StatusEffectType.Freeze)) mod += 0.10f;
-        if (HasBuff(target, BuffType.Barrier))          mod -= 0.30f;
+        if (HasDebuff(target, StatusEffectType.Mark))   mod += GameConstants.MarkIncomingDamageIncrease;
+        if (HasDebuff(target, StatusEffectType.Freeze)) mod += GameConstants.FreezeIncomingDamageIncrease;
+        if (HasBuff(target, BuffType.Barrier))          mod -= GameConstants.BarrierDamageReduction;
         return Mathf.Max(0f, mod);
     }
 
     /// <summary>スキル倍率修飾: 封技-20%</summary>
     public static float GetSkillMultiplierModifier(Status attacker)
     {
-        if (HasDebuff(attacker, StatusEffectType.Seal)) return -0.20f;
+        if (HasDebuff(attacker, StatusEffectType.Seal)) return -GameConstants.SealSkillReduction;
         return 0f;
     }
 
@@ -247,8 +247,8 @@ public static class StatusEffectSystem
     public static float GetHealModifier(Status target)
     {
         float mod = 1f;
-        if (HasDebuff(target, StatusEffectType.Poison)) mod -= 0.25f;
-        if (HasDebuff(target, StatusEffectType.Curse))  mod -= 0.50f;
+        if (HasDebuff(target, StatusEffectType.Poison)) mod -= (1f - GameConstants.PoisonHealReduction);
+        if (HasDebuff(target, StatusEffectType.Curse))  mod -= (1f - GameConstants.CurseHealReduction);
         return Mathf.Max(0f, mod);
     }
 
@@ -256,8 +256,8 @@ public static class StatusEffectSystem
     public static int GetMoveAPCostBonus(Status unit)
     {
         int bonus = 0;
-        if (HasDebuff(unit, StatusEffectType.Slow))  bonus += 2;
-        if (HasDebuff(unit, StatusEffectType.Chill)) bonus += 2;
+        if (HasDebuff(unit, StatusEffectType.Slow))  bonus += GameConstants.DebuffMoveAPBonus;
+        if (HasDebuff(unit, StatusEffectType.Chill)) bonus += GameConstants.DebuffMoveAPBonus;
         return bonus;
     }
 

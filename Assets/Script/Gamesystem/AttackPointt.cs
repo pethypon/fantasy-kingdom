@@ -9,7 +9,7 @@ public class AttackPointt : MonoBehaviour
     public List<Vector3> setpos;
 
     [Header("ユニット座標")]
-    [SerializeField] public HashSet<Vector3> unitdata;
+    public HashSet<Vector3> unitdata;
 
     public Status obj;
     public Vector3 objp;
@@ -17,19 +17,19 @@ public class AttackPointt : MonoBehaviour
     public RaycastHit targethit;
 
     [Header("マップクリエイト")]
-    [SerializeField] public MapCreate mapcreate;
+    public MapCreate mapcreate;
 
     [Header("プレイヤームーブ")]
-    [SerializeField] public PlayerMove move;
+    public PlayerMove move;
 
     [Header("ムーブジェネレーター")]
-    [SerializeField] public MoveGererater movegenerater;
+    public MoveGererater movegenerater;
 
     [Header("アタックポイント")]
-    [SerializeField] public GameObject AttackPoint;
+    public GameObject AttackPoint;
 
     [Header("アタックポイント親")]
-    [SerializeField] public Transform APparent;
+    public Transform APparent;
 
     // ---- 攻撃モードに応じたポイント生成 ----
     public void AttackPointCall(Status Obj, Vector3 ObjP, PlayerMove move)

@@ -133,6 +133,18 @@ public static class AIConstants
     public const float QS_AP_Penalty         = 0.3f;
 
     // =====================================================================
+    //  ゲームフェーズ閾値
+    // =====================================================================
+    /// <summary>序盤の終わりターン数</summary>
+    public const int TurnEarlyEnd = 5;
+    /// <summary>中盤の終わりターン数</summary>
+    public const int TurnMidEnd = 12;
+    /// <summary>生産施設優先度ブースト開始ターン</summary>
+    public const int TurnProductionBoost = 20;
+    /// <summary>全建築大幅ブースト開始ターン</summary>
+    public const int TurnLateBuildBoost = 30;
+
+    // =====================================================================
     //  ゲーム終了 極値
     // =====================================================================
     public const float TERMINAL_Win  = 10000f;
