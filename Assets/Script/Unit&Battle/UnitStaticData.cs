@@ -43,6 +43,9 @@ public static class UnitStaticData
         public int UpkeepCutStone;
         public int UpkeepBread;
 
+        // 維持費でLv15ごとに魔法鉱石が増えるか（false = 魔法鉱石は固定）
+        public bool UpkeepMagicScales;
+
         // 表示名
         public string DisplayName;
     }
@@ -74,6 +77,7 @@ public static class UnitStaticData
             AtkGrowth = 0.10f, HpGrowth = 0.20f, DefGrowth = 0.20f,
             CostWood = 3, CostIron = 10, CostBread = 5, CostCitizen = 1, CostAP = 3,
             UpkeepIron = 1, UpkeepBread = 1,
+            UpkeepMagicScales = true,
         };
 
         // ---- アーチャー（Archer） ----
@@ -86,6 +90,7 @@ public static class UnitStaticData
             AtkGrowth = 0.20f, HpGrowth = 0.20f, DefGrowth = 0.10f,
             CostWood = 15, CostStone = 15, CostIron = 3, CostBread = 5, CostCitizen = 1, CostAP = 3,
             UpkeepStone = 1, UpkeepIron = 1, UpkeepBread = 1,
+            UpkeepMagicScales = true,
         };
 
         // ---- マジシャン（Magic） ----
@@ -97,6 +102,7 @@ public static class UnitStaticData
             AtkGrowth = 0.25f, HpGrowth = 0.15f, DefGrowth = 0.10f,
             CostIron = 3, CostMagicOre = 10, CostWater = 20, CostBread = 8, CostCitizen = 1, CostAP = 4,
             UpkeepIron = 1, UpkeepMagicOre = 1, UpkeepBread = 1,
+            UpkeepMagicScales = true,
         };
 
         // ---- アサシン（Assassin） ----
@@ -108,6 +114,7 @@ public static class UnitStaticData
             AtkGrowth = 0.30f, HpGrowth = 0.10f, DefGrowth = 0.10f,
             CostIron = 15, CostMagicOre = 5, CostBread = 10, CostCitizen = 1, CostAP = 6,
             UpkeepMagicOre = 2, UpkeepBread = 2,
+            UpkeepMagicScales = false, // 魔法鉱石は増えない
         };
 
         // ---- 斥候（Scout） ----
@@ -119,6 +126,7 @@ public static class UnitStaticData
             AtkGrowth = 0.15f, HpGrowth = 0.25f, DefGrowth = 0.10f,
             CostWood = 20, CostWater = 30, CostBread = 8, CostCitizen = 1, CostAP = 4,
             UpkeepWood = 1, UpkeepStone = 1, UpkeepIron = 1, UpkeepBread = 1,
+            UpkeepMagicScales = true,
         };
 
         // ---- 僧侶（Priest） ----
@@ -130,6 +138,7 @@ public static class UnitStaticData
             AtkGrowth = 0.20f, HpGrowth = 0.20f, DefGrowth = 0.10f,
             CostIron = 5, CostMagicOre = 20, CostWater = 50, CostBread = 10, CostCitizen = 1, CostAP = 6,
             UpkeepIron = 1, UpkeepMagicOre = 2, UpkeepBread = 2,
+            UpkeepMagicScales = false, // 魔法鉱石は増えない
         };
 
         // ---- ガーディアン（Guardian） ----
@@ -141,6 +150,7 @@ public static class UnitStaticData
             AtkGrowth = 0.05f, HpGrowth = 0.35f, DefGrowth = 0.10f,
             CostStone = 50, CostMagicOre = 30, CostWater = 50, CostAP = 10,
             UpkeepStone = 3, UpkeepMagicOre = 1,
+            UpkeepMagicScales = false, // Lv15ごとに石+1のみ（魔法鉱石は固定）
         };
 
         // ---- 28式クロスボウ（Crossbow） ----
@@ -152,6 +162,7 @@ public static class UnitStaticData
             AtkGrowth = 0.20f, HpGrowth = 0.15f, DefGrowth = 0.15f,
             CostWood = 20, CostIron = 30, CostPlank = 40, CostCutStone = 40, CostBread = 10, CostCitizen = 1, CostAP = 8,
             UpkeepWood = 3, UpkeepIron = 3, UpkeepBread = 3,
+            UpkeepMagicScales = true,
         };
 
         // ---- マジックスナイパー（Magicsniper） ----
@@ -163,6 +174,7 @@ public static class UnitStaticData
             AtkGrowth = 0.30f, HpGrowth = 0.10f, DefGrowth = 0.05f,
             CostIron = 20, CostMagicOre = 50, CostWater = 60, CostBread = 10, CostCitizen = 1, CostAP = 10,
             UpkeepIron = 1, UpkeepMagicOre = 3, UpkeepBread = 3,
+            UpkeepMagicScales = false, // 魔法鉱石は増えない
         };
 
         // ---- ボンバー（Bomber） ----
@@ -174,6 +186,7 @@ public static class UnitStaticData
             AtkGrowth = 0.10f, HpGrowth = 0.25f, DefGrowth = 0.15f,
             CostStone = 20, CostIron = 30, CostWater = 50, CostBread = 10, CostCitizen = 1, CostAP = 8,
             UpkeepIron = 3, UpkeepBread = 3,
+            UpkeepMagicScales = true,
         };
 
         // ---- BOSS（指揮官） ----
@@ -185,6 +198,7 @@ public static class UnitStaticData
             AtkGrowth = 0.15f, HpGrowth = 0.20f, DefGrowth = 0.15f,
             CostIron = 30, CostMagicOre = 20, CostBread = 15, CostCitizen = 1, CostAP = 10,
             UpkeepIron = 3, UpkeepMagicOre = 2, UpkeepBread = 3,
+            UpkeepMagicScales = true,
         };
     }
 
@@ -227,6 +241,7 @@ public static class UnitStaticData
         target.upkeepPlank = info.UpkeepPlank;
         target.upkeepCutStone = info.UpkeepCutStone;
         target.upkeepBread = info.UpkeepBread;
+        target.upkeepMagicScales = info.UpkeepMagicScales;
     }
 
     // ==================================================================
