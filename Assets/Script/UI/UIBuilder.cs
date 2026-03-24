@@ -239,6 +239,11 @@ public class UIBuilder : MonoBehaviour
             new Color(0.25f, 0.25f, 0.30f, 1f));
         var menuBtnRT = menuBtn.GetComponent<RectTransform>();
         menuBtnRT.sizeDelta = new Vector2(120, 44);
+        menuBtn.onClick.AddListener(() =>
+        {
+            if (GameMenuUI.Instance != null)
+                GameMenuUI.Instance.Toggle();
+        });
 
         TopBar = bar.gameObject.AddComponent<TopBarUI>();
     }

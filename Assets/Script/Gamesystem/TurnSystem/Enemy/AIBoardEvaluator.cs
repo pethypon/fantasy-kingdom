@@ -58,14 +58,21 @@ public static class AIBoardEvaluator
     /// <summary>脅威度による重み調整済み評価</summary>
     public static float EvaluateWithThreat(AIBoardState board, int threatLevel)
     {
-        // 低脅威度では盤面評価の精度を落とす（わざとノイズを入れる）
         float base_ = Evaluate(board);
-        if (threatLevel < 20)
+        if (threatLevel <= AIThreatLevel.TutorialEnd)
         {
-            // チュートリアル帯: 評価をぼかす
-            float noise = (threatLevel / 20f);
-            return base_ * noise;
+            // チュートリアル帯 (1-10): 評価精度を大きくぼかす
+            float accuracy = Mathf.Lerp(0.2f, 0.7f, (threatLevel - 1f) / (AIThreatLevel.TutorialEnd - 1f));
+            return base_ * accuracy;
         }
+        if (threatLevel <= AIThreatLevel.NormalEnd)
+        {
+            // ノーマル帯 (11-20): 軽いノイズ
+            float accuracy = Mathf.Lerp(0.75f, 1.0f,
+                (threatLevel - AIThreatLevel.TutorialEnd - 1f) / (AIThreatLevel.NormalEnd - AIThreatLevel.TutorialEnd - 1f));
+            return base_ * accuracy;
+        }
+        // ハード帯以上: フル精度
         return base_;
     }
 

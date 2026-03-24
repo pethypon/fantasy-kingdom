@@ -36,7 +36,7 @@ public class AISearchEngine
 
     public AISearchEngine(int maxDepth = 3, int candidateLimit = 12, AIDeterministicRandom rng = null)
     {
-        _maxDepth = Mathf.Clamp(maxDepth, 1, 3);
+        _maxDepth = Mathf.Clamp(maxDepth, 1, 20);
         _candidateLimit = Mathf.Max(3, candidateLimit);
         _rng = rng;
     }
