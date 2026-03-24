@@ -54,6 +54,12 @@ public class CrystalSystem : MonoBehaviour
             p.z >= 6 && p.z <= maxz - 6
         ).ToList();
 
+        if (candidates.Count == 0)
+        {
+            Debug.LogError("[CrystalSystem] プレイヤークリスタルの配置候補が見つかりませんでした");
+            return;
+        }
+
         PCP = candidates[Random.Range(0, candidates.Count)];
         var pObj = Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
         ApplyCrystalHP(pObj);

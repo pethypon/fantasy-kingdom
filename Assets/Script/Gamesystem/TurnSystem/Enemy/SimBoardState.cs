@@ -120,34 +120,34 @@ public class SimUnit
     public float GetATKMod()
     {
         float mod = 1f;
-        if (HasDebuff(StatusEffectType.Weaken)) mod -= 0.15f;
-        if (HasDebuff(StatusEffectType.Chill)) mod -= 0.10f;
-        if (HasBuff(BuffType.Offensive)) mod += 0.15f;
+        if (HasDebuff(StatusEffectType.Weaken)) mod -= GameConstants.WeakenATKReduction;
+        if (HasDebuff(StatusEffectType.Chill)) mod -= GameConstants.ChillATKReduction;
+        if (HasBuff(BuffType.Offensive)) mod += GameConstants.OffensiveATKBonus;
         return Mathf.Clamp(mod, 0f, 2f);
     }
 
     public float GetDEFMod()
     {
         float mod = 1f;
-        if (HasDebuff(StatusEffectType.ArmorBreak)) mod -= 0.15f;
-        if (HasBuff(BuffType.Defensive)) mod += 0.20f;
+        if (HasDebuff(StatusEffectType.ArmorBreak)) mod -= GameConstants.ArmorBreakDEFReduction;
+        if (HasBuff(BuffType.Defensive)) mod += GameConstants.DefensiveDEFBonus;
         return Mathf.Clamp(mod, 0f, 2f);
     }
 
     public float GetIncomingDamageMod()
     {
         float mod = 1f;
-        if (HasDebuff(StatusEffectType.Mark)) mod += 0.10f;
-        if (HasDebuff(StatusEffectType.Freeze)) mod += 0.10f;
-        if (HasBuff(BuffType.Barrier)) mod -= 0.30f;
+        if (HasDebuff(StatusEffectType.Mark)) mod += GameConstants.MarkIncomingDamageIncrease;
+        if (HasDebuff(StatusEffectType.Freeze)) mod += GameConstants.FreezeIncomingDamageIncrease;
+        if (HasBuff(BuffType.Barrier)) mod -= GameConstants.BarrierDamageReduction;
         return Mathf.Max(0f, mod);
     }
 
     public int GetMoveAPBonus()
     {
         int bonus = 0;
-        if (HasDebuff(StatusEffectType.Slow)) bonus += 2;
-        if (HasDebuff(StatusEffectType.Chill)) bonus += 2;
+        if (HasDebuff(StatusEffectType.Slow)) bonus += GameConstants.DebuffMoveAPBonus;
+        if (HasDebuff(StatusEffectType.Chill)) bonus += GameConstants.DebuffMoveAPBonus;
         return bonus;
     }
 }
@@ -513,62 +513,65 @@ public class SimBoardState
     public void SimulateTurnTransition(Team nextTeam)
     {
         TurnCount++;
+        ResetAP(nextTeam);
 
-        // AP リセット
-        if (nextTeam == Team.Enemy)
-        {
-            EnemyAP = EnemyAPReset;
-        }
-        else
-        {
-            PlayerAP = PlayerAPReset;
-        }
-
-        // 該当チームの全ユニットを処理
         for (int i = 0; i < Units.Count; i++)
         {
             var u = Units[i];
-            if (!u.IsAlive) continue;
-            if (u.Team != nextTeam) continue;
+            if (!u.IsAlive || u.Team != nextTeam) continue;
 
-            // 疲労リセット
             u.Fatigue = 0;
-
-            // DoT ダメージ
-            for (int j = 0; j < u.Effects.Count; j++)
-            {
-                var eff = u.Effects[j];
-                if (eff.Debuff == StatusEffectType.Poison)
-                {
-                    u.HP = Mathf.Max(0, u.HP - 8);
-                }
-                else if (eff.Debuff == StatusEffectType.Bleed)
-                {
-                    u.HP = Mathf.Max(0, u.HP - 6);
-                }
-            }
-
-            // ステータス効果ティック
-            for (int j = u.Effects.Count - 1; j >= 0; j--)
-            {
-                var eff = u.Effects[j];
-                eff.RemainingTurns--;
-                if (eff.RemainingTurns <= 0)
-                    u.Effects.RemoveAt(j);
-                else
-                    u.Effects[j] = eff;
-            }
-
-            // クリスタルシールドティック
-            if (u.ShieldTurns > 0)
-                u.ShieldTurns--;
-
-            // スキルクールダウン
-            if (u.SkillCooldown > 0)
-                u.SkillCooldown--;
+            ApplyDoT(u);
+            TickEffects(u);
+            TickCooldowns(u);
         }
 
-        // 死亡チェック (DoTで死んだユニット)
+        RemoveDeadFromOccupied();
+    }
+
+    private void ResetAP(Team team)
+    {
+        if (team == Team.Enemy)
+            EnemyAP = EnemyAPReset;
+        else
+            PlayerAP = PlayerAPReset;
+    }
+
+    private static void ApplyDoT(SimUnit u)
+    {
+        for (int j = 0; j < u.Effects.Count; j++)
+        {
+            var eff = u.Effects[j];
+            if (eff.Debuff == StatusEffectType.Poison)
+                u.HP = Mathf.Max(0, u.HP - GameConstants.PoisonDamagePerTurn);
+            else if (eff.Debuff == StatusEffectType.Bleed)
+                u.HP = Mathf.Max(0, u.HP - GameConstants.BleedDamagePerTurn);
+        }
+    }
+
+    private static void TickEffects(SimUnit u)
+    {
+        for (int j = u.Effects.Count - 1; j >= 0; j--)
+        {
+            var eff = u.Effects[j];
+            eff.RemainingTurns--;
+            if (eff.RemainingTurns <= 0)
+                u.Effects.RemoveAt(j);
+            else
+                u.Effects[j] = eff;
+        }
+    }
+
+    private static void TickCooldowns(SimUnit u)
+    {
+        if (u.ShieldTurns > 0)
+            u.ShieldTurns--;
+        if (u.SkillCooldown > 0)
+            u.SkillCooldown--;
+    }
+
+    private void RemoveDeadFromOccupied()
+    {
         for (int i = 0; i < Units.Count; i++)
         {
             if (!Units[i].IsAlive && Units[i].Type == Type.Unit)
@@ -708,8 +711,8 @@ public class SimBoardState
                 {
                     // 回復スキル
                     float healMod = 1f;
-                    if (target.HasDebuff(StatusEffectType.Poison)) healMod -= 0.25f;
-                    if (target.HasDebuff(StatusEffectType.Curse)) healMod -= 0.50f;
+                    if (target.HasDebuff(StatusEffectType.Poison)) healMod -= (1f - GameConstants.PoisonHealReduction);
+                    if (target.HasDebuff(StatusEffectType.Curse)) healMod -= (1f - GameConstants.CurseHealReduction);
                     healMod = Mathf.Max(0f, healMod);
                     int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
                     target.HP = Mathf.Min(target.HP + heal, target.MaxHP);
@@ -740,9 +743,9 @@ public class SimBoardState
         if (target.MaxHP <= 0 || !target.IsAlive) return;
 
         float hpRatio = (float)target.HP / target.MaxHP;
-        if (hpRatio < 0.5f)
+        if (hpRatio < GameConstants.CrystalShieldThreshold)
         {
-            target.ShieldTurns = 5;
+            target.ShieldTurns = GameConstants.CrystalShieldDuration;
             target.ShieldActivated = true;
         }
     }
@@ -792,7 +795,7 @@ public class SimBoardState
 
         // 封技修飾
         if (caster.HasDebuff(StatusEffectType.Seal))
-            skillMul = Mathf.Max(0, skillMul - 0.20f);
+            skillMul = Mathf.Max(0, skillMul - GameConstants.SealSkillReduction);
 
         baseDmg *= skillMul * incomingMod;
 
@@ -833,13 +836,12 @@ public class SimBoardState
     // ================================================================
     public int CalcMoveCost(SimUnit unit)
     {
-        int cost = 3 + unit.Fatigue + unit.GetMoveAPBonus();
-        return cost;
+        return GameConstants.BaseMoveAPCost + unit.Fatigue + unit.GetMoveAPBonus();
     }
 
     public int CalcAttackCost(SimUnit unit)
     {
-        return 2 + unit.Fatigue;
+        return GameConstants.BaseAttackAPCost + unit.Fatigue;
     }
 
     // ================================================================

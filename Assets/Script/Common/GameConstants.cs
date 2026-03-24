@@ -51,6 +51,30 @@ public static class GameConstants
     public const float CurseHealReduction = 0.50f;
 
     // =====================================================================
+    //  ステータス効果修飾値（StatusEffectSystem / SimUnit 共用）
+    // =====================================================================
+    /// <summary>弱体(Weaken): ATK低下率</summary>
+    public const float WeakenATKReduction = 0.15f;
+    /// <summary>冷気(Chill): ATK低下率</summary>
+    public const float ChillATKReduction = 0.10f;
+    /// <summary>攻勢(Offensive): ATK増加率</summary>
+    public const float OffensiveATKBonus = 0.15f;
+    /// <summary>破甲(ArmorBreak): DEF低下率</summary>
+    public const float ArmorBreakDEFReduction = 0.15f;
+    /// <summary>守勢(Defensive): DEF増加率</summary>
+    public const float DefensiveDEFBonus = 0.20f;
+    /// <summary>マーク(Mark): 被ダメ増加率</summary>
+    public const float MarkIncomingDamageIncrease = 0.10f;
+    /// <summary>凍結(Freeze): 被ダメ増加率</summary>
+    public const float FreezeIncomingDamageIncrease = 0.10f;
+    /// <summary>障壁(Barrier): 被ダメ軽減率</summary>
+    public const float BarrierDamageReduction = 0.30f;
+    /// <summary>封技(Seal): スキル倍率低下値</summary>
+    public const float SealSkillReduction = 0.20f;
+    /// <summary>鈍足(Slow)/冷気(Chill): 移動AP追加コスト</summary>
+    public const int DebuffMoveAPBonus = 2;
+
+    // =====================================================================
     //  AP関連
     // =====================================================================
     /// <summary>移動の基本APコスト</summary>

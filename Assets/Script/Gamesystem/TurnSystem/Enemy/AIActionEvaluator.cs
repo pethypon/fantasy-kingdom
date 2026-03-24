@@ -13,16 +13,16 @@ public static class AIActionEvaluator
     //  定数
     // ================================================================
 
-    // --- フェーズ閾値 ---
-    const int TurnEarlyEnd = 5;        // 序盤の終わり
-    const int TurnMidEnd   = 12;       // 中盤の終わり
+    // --- フェーズ閾値（AIConstants から参照） ---
+    const int TurnEarlyEnd = AIConstants.TurnEarlyEnd;
+    const int TurnMidEnd   = AIConstants.TurnMidEnd;
 
-    // --- 20ターン以降の生産施設（Mine/LumberMill/StoneWorks/Smelter）優先度ブースト ---
-    const int TurnProductionBoost = 20;
+    // --- 20ターン以降の生産施設優先度ブースト ---
+    const int TurnProductionBoost = AIConstants.TurnProductionBoost;
     const float ProductionBoostScore = 55f;
 
     // --- 30ターン以降の全建築に対する大幅ブースト ---
-    const int TurnLateBuildBoost = 30;
+    const int TurnLateBuildBoost = AIConstants.TurnLateBuildBoost;
     const float LateBuildBoostScore = 120f;
 
     // --- 建築の重複ペナルティ係数（count² × この値） ---

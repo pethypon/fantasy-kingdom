@@ -216,7 +216,7 @@ public class Status : MonoBehaviour
     [Header("レベル")]
     public int Level = 1;
     [Header("駒の視界")]
-    public HashSet<Vector3Int> VisionCell;
+    public HashSet<Vector3Int> VisionCell = new HashSet<Vector3Int>();
     [Header("疲労")]
     public int Fatigue = 0;
 

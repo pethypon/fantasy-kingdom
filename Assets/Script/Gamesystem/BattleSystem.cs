@@ -78,7 +78,7 @@ public class BattleSystem : MonoBehaviour
         if (target.MaxHP <= 0) return;
 
         float hpRatio = (float)target.HP / target.MaxHP;
-        if (hpRatio < GameConstants.CrystalShieldThreshold && target.HP > 0)
+        if (target.HP > 0 && hpRatio < GameConstants.CrystalShieldThreshold)
         {
             target.ShieldTurns = GameConstants.CrystalShieldDuration;
             target.ShieldActivated = true;

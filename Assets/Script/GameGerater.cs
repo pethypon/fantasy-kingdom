@@ -33,21 +33,38 @@ public class GameGenerater : MonoBehaviour
 
     void Awake()
     {
-        // ---- ObjectPool の生成 ----
+        InitSingletons();
+        InitMapAndUnits();
+
+        FactionState factionState = InitFactionState();
+
+        InitGameSystems(factionState);
+        InitSkillsAndTimer(factionState);
+        InitEconomyAndResources(factionState);
+        InitUXSystems();
+        PrewarmObjectPools();
+        InitAI(factionState);
+
+        _TurnGenerater.StartFirstTurn();
+    }
+
+    // =====================================================================
+    //  シングルトン・UIの生成
+    // =====================================================================
+    private void InitSingletons()
+    {
         if (ObjectPool.Instance == null)
         {
             var poolGo = new GameObject("ObjectPool");
             poolGo.AddComponent<ObjectPool>();
         }
 
-        // ---- UnitRegistry の生成 ----
         if (UnitRegistry.Instance == null)
         {
             var regGo = new GameObject("UnitRegistry");
             regGo.AddComponent<UnitRegistry>();
         }
 
-        // ---- UIBuilder の生成・取得 ----
         _uiBuilder = Object.FindFirstObjectByType<UIBuilder>();
         if (_uiBuilder == null)
         {
@@ -55,38 +72,38 @@ public class GameGenerater : MonoBehaviour
             _uiBuilder = uiGo.AddComponent<UIBuilder>();
         }
 
-        // UIBuilder が生成した UI パネルを取得
         if (_APPanelUI == null && _uiBuilder.APPanel != null)
             _APPanelUI = _uiBuilder.APPanel;
         if (_ResourceBarUI == null && _uiBuilder.ResourceBar != null)
             _ResourceBarUI = _uiBuilder.ResourceBar;
+    }
 
-        // ==== 地形・クリスタル生成 ====
+    // =====================================================================
+    //  マップ生成・ユニット配置・視界構築
+    // =====================================================================
+    private void InitMapAndUnits()
+    {
         _MapCreate.noisegenerater();
         _MapCreate.BuildTop();
         _CrystalSystem.CrystalCore();
 
-        // ==== ユニット配置（SpawnUnit 経由で UnitData を適用） ====
         _UnitSetting.UnitSet();
-
-        // ==== ゲーム開始時：シーン上の全ユニットに UnitData を適用 ====
-        // UnitSet() が Awake 時間に間に合わないケースや Prefab 直置きに対応するため
-        // SpawnUnit() が完了していないものをここで補完する
         ApplyAllUnitData(_UnitSetting.PlayerUnit);
         ApplyAllUnitData(_UnitSetting.EnemyUnit);
 
-        // ==== 領地・移動・視界の構築 ====
-        // ApplyAllUnitData の後に実行する理由：
-        // Territory・Move・Vision の計算はステータス適用後に行う方がよい
         _TerritorySystem.Territory();
         _MoveGenerater.UnitPointCore();
         _VisionGenerater.VisionPoint(_MapCreate, _MoveGenerater, _CrystalSystem);
 
-        // ==== Crystal 子オブジェクトを収集 ====
         CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
         CollectChildren(_EnemyCrystal, EnemyCrystalChildren);
+    }
 
-        // ==== NationState を各クリスタル配下に生成 ====
+    // =====================================================================
+    //  NationState / FactionState の生成
+    // =====================================================================
+    private FactionState InitFactionState()
+    {
         var playerNationGo = new GameObject("PlayerNation");
         playerNationGo.transform.SetParent(_PlayerCrystal);
         var playerNation = playerNationGo.AddComponent<NationState>();
@@ -95,14 +112,21 @@ public class GameGenerater : MonoBehaviour
         enemyNationGo.transform.SetParent(_EnemyCrystal);
         var enemyNation = enemyNationGo.AddComponent<NationState>();
 
-        // ==== FactionState を生成し NationState を紐付け ====
         var factionGo = new GameObject("FactionState");
         FactionState factionState = factionGo.AddComponent<FactionState>();
         factionState.PlayerNation = playerNation;
         factionState.EnemyNation = enemyNation;
         _APSystem.Init(factionState);
 
-        // ---- BuildSystem 初期化 ----
+        return factionState;
+    }
+
+    // =====================================================================
+    //  ゲームシステムの初期化（Build, Summon, Economy, Attack, SubCrystal）
+    // =====================================================================
+    private void InitGameSystems(FactionState factionState)
+    {
+        // ---- BuildSystem ----
         if (_BuildSystem == null)
         {
             _BuildSystem = Object.FindFirstObjectByType<BuildSystem>();
@@ -116,12 +140,11 @@ public class GameGenerater : MonoBehaviour
                               factionState, _MoveGenerater, _MapCreate);
             _TurnGenerater.buildsystem = _BuildSystem;
 
-            // UIBuilder の建築ボタンに BuildSystem を接続
             if (_uiBuilder != null)
                 _uiBuilder.InitBuildButtons(_BuildSystem, _APSystem, factionState);
         }
 
-        // ---- SummonSystem 初期化 ----
+        // ---- SummonSystem ----
         if (_SummonSystem == null)
         {
             _SummonSystem = Object.FindFirstObjectByType<SummonSystem>();
@@ -139,7 +162,7 @@ public class GameGenerater : MonoBehaviour
                 _uiBuilder.InitSummonButtons(_SummonSystem, _APSystem, factionState, _UnitSetting);
         }
 
-        // ---- EconomySystem 初期化 ----
+        // ---- EconomySystem ----
         if (_EconomySystem == null)
         {
             _EconomySystem = gameObject.GetComponent<EconomySystem>();
@@ -149,7 +172,7 @@ public class GameGenerater : MonoBehaviour
         _EconomySystem.Init(_BuildSystem, factionState, _UnitSetting, _CrystalSystem);
         _TurnGenerater.economysystem = _EconomySystem;
 
-        // ---- BuildingAttackSystem 初期化 ----
+        // ---- BuildingAttackSystem ----
         if (_BuildingAttackSystem == null)
         {
             _BuildingAttackSystem = gameObject.GetComponent<BuildingAttackSystem>();
@@ -160,7 +183,7 @@ public class GameGenerater : MonoBehaviour
                                    _VisionGenerater, _MapCreate, _CrystalSystem);
         _TurnGenerater.buildingAttackSystem = _BuildingAttackSystem;
 
-        // ---- SubCrystalSystem 初期化 ----
+        // ---- SubCrystalSystem ----
         if (_SubCrystalSystem == null)
         {
             _SubCrystalSystem = gameObject.GetComponent<SubCrystalSystem>();
@@ -172,19 +195,20 @@ public class GameGenerater : MonoBehaviour
                                 _MoveGenerater, _CrystalSystem);
         _TurnGenerater.subCrystalSystem = _SubCrystalSystem;
 
-        // BuildSystem にサブクリスタルシステム参照を渡す
+        // ---- クロスリファレンス ----
         if (_BuildSystem != null)
             _BuildSystem.subCrystalSystem = _SubCrystalSystem;
-
-        // BuildingAttackSystem にサブクリスタルシステム参照を渡す
         if (_BuildingAttackSystem != null)
             _BuildingAttackSystem.SetSubCrystalSystem(_SubCrystalSystem);
-
-        // VisionGenerater に BuildingParent を渡す（サブクリスタル視界計算用）
         if (_BuildSystem != null)
             _VisionGenerater.SetBuildingParents(_BuildSystem.PlayerBuildingParent, _BuildSystem.EnemyBuildingParent);
+    }
 
-        // ---- SkillSystem 初期化 ----
+    // =====================================================================
+    //  スキル・タイマーの初期化
+    // =====================================================================
+    private void InitSkillsAndTimer(FactionState factionState)
+    {
         if (_SkillSystem == null)
         {
             _SkillSystem = gameObject.GetComponent<SkillSystem>();
@@ -197,37 +221,36 @@ public class GameGenerater : MonoBehaviour
         _SkillSystem.Init(factionState);
         _TurnGenerater.skillsystem = _SkillSystem;
 
-        // ---- 全ユニットにスキルをランダム配布 ----
         SkillData.AssignSkillsToAll(_UnitSetting.PlayerUnit);
         SkillData.AssignSkillsToAll(_UnitSetting.EnemyUnit);
 
-        // ---- TimerSystem 初期化 ----
         var timerSystem = gameObject.GetComponent<TimerSystem>();
         if (timerSystem == null)
             timerSystem = gameObject.AddComponent<TimerSystem>();
         timerSystem.Init(_TurnGenerater, _CrystalSystem);
         _TurnGenerater.timerSystem = timerSystem;
+    }
 
-        // ==== UI に FactionState を渡す ====
+    // =====================================================================
+    //  経済・資源・UnitRegistryの初期化
+    // =====================================================================
+    private void InitEconomyAndResources(FactionState factionState)
+    {
         if (_APPanelUI != null) _APPanelUI.Init(factionState);
         if (_ResourceBarUI != null) _ResourceBarUI.Init(factionState);
 
-        // ==== 初期資源設定（GameReference 準拠） ====
         if (factionState != null)
         {
             InitResources(factionState.PlayerResources);
             InitResources(factionState.EnemyResources);
 
-            // 初期市民APボーナスを反映
             factionState.PlayerAP.Plus = factionState.PlayerResources.Citizen * EconomySystem.APPerCitizen;
             factionState.EnemyAP.Plus = factionState.EnemyResources.Citizen * EconomySystem.APPerCitizen;
 
-            // サブクリスタル初期配布（2個）
             factionState.PlayerSubCrystals = 2;
             factionState.EnemySubCrystals = 2;
         }
 
-        // ==== UnitRegistry にユニットを登録 ====
         if (UnitRegistry.Instance != null)
         {
             UnitRegistry.Instance.ScanAndRegister(
@@ -235,41 +258,40 @@ public class GameGenerater : MonoBehaviour
                 _BuildSystem != null ? _BuildSystem.PlayerBuildingParent : null,
                 _BuildSystem != null ? _BuildSystem.EnemyBuildingParent : null);
         }
+    }
 
-        // ==== UX系システムの初期化 ====
-        // ToastMessageUI
+    // =====================================================================
+    //  UX系システムの初期化
+    // =====================================================================
+    private void InitUXSystems()
+    {
         if (ToastMessageUI.Instance == null)
         {
             var toastGo = new GameObject("ToastMessageUI");
             toastGo.AddComponent<ToastMessageUI>();
         }
 
-        // InputHintUI
         var hintGo = new GameObject("InputHintUI");
         var inputHint = hintGo.AddComponent<InputHintUI>();
         _TurnGenerater.inputHintUI = inputHint;
 
-        // DamagePreviewUI
         var dmgPreviewGo = new GameObject("DamagePreviewUI");
         var dmgPreview = dmgPreviewGo.AddComponent<DamagePreviewUI>();
         dmgPreview.turngenerater = _TurnGenerater;
         _TurnGenerater.damagePreviewUI = dmgPreview;
 
-        // FloatingDamageUI
         if (FloatingDamageUI.Instance == null)
         {
             var floatDmgGo = new GameObject("FloatingDamageUI");
             floatDmgGo.AddComponent<FloatingDamageUI>();
         }
 
-        // EnemyTurnBannerUI
         if (EnemyTurnBannerUI.Instance == null)
         {
             var bannerGo = new GameObject("EnemyTurnBannerUI");
             bannerGo.AddComponent<EnemyTurnBannerUI>();
         }
 
-        // TurnAPIndicatorUI
         if (TurnAPIndicatorUI.Instance == null)
         {
             var indicatorGo = new GameObject("TurnAPIndicatorUI");
@@ -277,39 +299,42 @@ public class GameGenerater : MonoBehaviour
             indicator.Init(_TurnGenerater, _APSystem);
         }
 
-        // UnitHoverTooltipUI
         if (UnitHoverTooltipUI.Instance == null)
         {
             var tooltipGo = new GameObject("UnitHoverTooltipUI");
             tooltipGo.AddComponent<UnitHoverTooltipUI>();
         }
 
-        // UnitSelectionHighlight
         var highlightGo = new GameObject("UnitSelectionHighlight");
         var highlight = highlightGo.AddComponent<UnitSelectionHighlight>();
         highlight.Init(_TurnGenerater);
 
-        // MoveUndoSystem
         _TurnGenerater.moveUndoSystem = new MoveUndoSystem(_APSystem, _MoveGenerater);
 
-        // ActionLogUI
         if (ActionLogUI.Instance == null)
         {
             var logGo = new GameObject("ActionLogUI");
             logGo.AddComponent<ActionLogUI>();
         }
+    }
 
-        // ==== ObjectPool プレウォーム ====
+    // =====================================================================
+    //  ObjectPool プレウォーム
+    // =====================================================================
+    private void PrewarmObjectPools()
+    {
         if (ObjectPool.Instance != null && _MoveGenerater.MovePoint != null)
-        {
             ObjectPool.Instance.Prewarm(_MoveGenerater.MovePoint, 30, _MoveGenerater.Move);
-        }
-        if (ObjectPool.Instance != null && _TurnGenerater.attackpoint.AttackPoint != null)
-        {
-            ObjectPool.Instance.Prewarm(_TurnGenerater.attackpoint.AttackPoint, 15, _TurnGenerater.attackpoint.APparent);
-        }
 
-        // ==== AI指揮官の初期化 ====
+        if (ObjectPool.Instance != null && _TurnGenerater.attackpoint.AttackPoint != null)
+            ObjectPool.Instance.Prewarm(_TurnGenerater.attackpoint.AttackPoint, 15, _TurnGenerater.attackpoint.APparent);
+    }
+
+    // =====================================================================
+    //  AI指揮官の初期化
+    // =====================================================================
+    private void InitAI(FactionState factionState)
+    {
         var aiMajor = AIPersonality.RandomMajor();
         _TurnGenerater.aiCommander = new AICommander(
             _TurnGenerater, _MoveGenerater, _TurnGenerater.attackpoint,
@@ -317,30 +342,19 @@ public class GameGenerater : MonoBehaviour
             _APSystem, _UnitSetting, _CrystalSystem, _MapCreate, aiMajor,
             _BuildSystem, _SummonSystem, factionState, _SkillSystem,
             _SubCrystalSystem);
-
-        // ==== ターン開始 ====
-        _TurnGenerater.StartFirstTurn();
     }
 
     // =====================================================================
     //  ゲーム開始時の全ユニット適用
-    //  ゲーム中の生成は UnitSetting.SpawnUnit() が全担するため、
-    //  ここでは「開始時点でシーン上に存在した」ものを対象にする
     // =====================================================================
-
-    /// <summary>
-    /// 指定の親オブジェクト配下の全ユニットに UnitData を適用する。
-    /// ゲーム開始時の一括適用を担保（以後は UnitSetting.SpawnUnit() が担保）。
-    /// </summary>
     private void ApplyAllUnitData(Transform unitParent)
     {
         foreach (Status status in unitParent.GetComponentsInChildren<Status>())
         {
-            // MovePoint 等のユニット以外は除外
             if (status.type != Type.Unit) continue;
 
             if (_UnitSetting.UnitDataMap.TryGetValue(status.kind, out UnitData data))
-                data.ApplyToStatus(status, status.Level);  // Lv はデフォルト Lv1
+                data.ApplyToStatus(status, status.Level);
             else
                 Debug.LogWarning($"[GameGenerater] Kind:{status.kind} のUnitDataが未登録です");
         }
@@ -349,11 +363,6 @@ public class GameGenerater : MonoBehaviour
     // =====================================================================
     //  初期資源設定
     // =====================================================================
-
-    /// <summary>
-    /// 初期配布資源をセットする（GameReference 準拠）。
-    /// 数値はマジックナンバーにしない（設計原則5）。
-    /// </summary>
     private void InitResources(FactionState.ResourceData res)
     {
         const int InitWood = 200;
