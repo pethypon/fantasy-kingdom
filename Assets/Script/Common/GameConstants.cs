@@ -59,6 +59,34 @@ public static class GameConstants
     public const int BaseAttackAPCost = 2;
 
     // =====================================================================
+    //  パッシブスキル
+    // =====================================================================
+    /// <summary>Knight: 視界内の攻撃を受けた時のダメージ倍率（20%軽減）</summary>
+    public const float KnightVisionDamageReduction = 0.8f;
+    /// <summary>Knight: 視界外から攻撃された時のダメージ倍率（10%増加）</summary>
+    public const float KnightOutOfVisionDamageIncrease = 1.1f;
+    /// <summary>Assassin: 視界外から攻撃した時のダメージ倍率</summary>
+    public const float AssassinShadowstrikeDamage = 1.25f;
+    /// <summary>Archer: 距離ボーナス（1マスあたり）</summary>
+    public const float ArcherDistanceBonusPerTile = 0.25f;
+    /// <summary>Archer: 距離ボーナス最大値（3マス=0.75倍）</summary>
+    public const float ArcherDistanceBonusMax = 0.75f;
+    /// <summary>Archer: 飛行ユニットへのダメージ倍率</summary>
+    public const float ArcherFlyingBonus = 1.25f;
+    /// <summary>Magician: 建物へのダメージ倍率</summary>
+    public const float MagicianBuildingBonus = 1.15f;
+    /// <summary>Guardian: 建物へのダメージ倍率</summary>
+    public const float GuardianBuildingBonus = 2.0f;
+    /// <summary>Crossbow: スタン付与確率</summary>
+    public const float CrossbowStunChance = 0.10f;
+    /// <summary>MagicSniper: 自傷ダメージ（最大HPの割合）</summary>
+    public const float MagicSniperSelfDamageRatio = 0.20f;
+    /// <summary>Priest: 隣接味方の回復量（最大HPの割合）</summary>
+    public const float PriestHealRatio = 0.05f;
+    /// <summary>パッシブ倍率の上限</summary>
+    public const float PassiveMultiplierMax = 2.0f;
+
+    // =====================================================================
     //  Raycast
     // =====================================================================
     /// <summary>ユニット選択等の最大レイ距離</summary>

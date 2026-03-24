@@ -32,19 +32,32 @@ public class BattleSystem : MonoBehaviour
             return;
         }
 
-        int damage = 0;
-        switch (AttackSide.passiveskill)
+        // ダメージ計算（パッシブスキル補正は DamageCalculator 内で自動適用）
+        int damage = SkillSystem.CalcNormalDamage(AttackSide, target);
+
+        // Crossbow: 命中時10%でスタン付与
+        if (AttackSide.kind == Kind.Crossbow && damage > 0)
         {
-            case PassiveSkill.HunterEyes: break;
-            case PassiveSkill.Destroyer: break;
-            case PassiveSkill.Assassination: break;
-            case PassiveSkill.Sniper: break;
-            case PassiveSkill.None:
-                // 新ダメージ計算式: 1 + (ATK/6) + ((ATK/2) - (DEF/4))
-                // 状態異常による修飾を適用
-                damage = SkillSystem.CalcNormalDamage(AttackSide, target);
-                break;
+            if (Random.value < GameConstants.CrossbowStunChance)
+            {
+                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Stun, 1);
+                Debug.Log($"[Battle] {AttackSide.kind} のスタン発動！ {target.kind} は1ターン行動不可");
+            }
         }
+
+        // MagicSniper: 攻撃ごとに最大HPの20%自傷 + 敵にマーキング
+        if (AttackSide.kind == Kind.Magicsniper && damage > 0)
+        {
+            int selfDmg = Mathf.RoundToInt(AttackSide.MaxHP * GameConstants.MagicSniperSelfDamageRatio);
+            AttackSide.HP -= selfDmg;
+            AttackSide.HP = Mathf.Max(0, AttackSide.HP);
+            Debug.Log($"[Battle] {AttackSide.kind} 自傷ダメージ {selfDmg}（残HP:{AttackSide.HP}）");
+            FloatingDamageUI.ShowDamage(AttackSide.transform.position, selfDmg, AttackSide.HP <= 0);
+
+            StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Mark, 1);
+            Debug.Log($"[Battle] {target.kind} にマーキング付与（被ダメ+10%、1ターン）");
+        }
+
         ApplyDamage(damage);
 
         // 反射処理
@@ -55,14 +68,7 @@ public class BattleSystem : MonoBehaviour
     }
 
     // ─── 防御側パッシブ ───────────────────────────────────────────────
-    public void SideDefender()
-    {
-        switch (target.passiveskill)
-        {
-            case PassiveSkill.Impregnable: break;
-            case PassiveSkill.None: break;
-        }
-    }
+    // Knight の視界内軽減/視界外増加は DamageCalculator.GetDefenderPassiveMultiplier で処理
 
     // ═══════════════════════════════════════════════════════════════════
     //  クリスタルシールド判定: HP50%以下で未発動なら5ターン無敵付与
@@ -97,6 +103,12 @@ public class BattleSystem : MonoBehaviour
             {
                 s.ShieldTurns--;
                 Debug.Log($"[Battle] {s.team} クリスタルシールド残り {s.ShieldTurns} ターン");
+                // シールド終了時にフラグをリセット → 再度HP50%以下で再発動可能
+                if (s.ShieldTurns <= 0)
+                {
+                    s.ShieldActivated = false;
+                    Debug.Log($"[Battle] {s.team} クリスタルシールド終了 → 再発動可能");
+                }
             }
         }
     }
