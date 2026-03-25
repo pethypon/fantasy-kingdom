@@ -27,7 +27,7 @@ using UnityEngine;
 public class AIThreatLevel
 {
     // ---- 定数: 帯の境界 ----
-    public const int MinLevel = 1;
+    public const int MinLevel = 50;
     public const int MaxLevel = 100;
     public const int TutorialEnd = 10;   // 1〜10:  チュートリアル帯
     public const int NormalEnd   = 20;   // 11〜20: ノーマル帯
@@ -88,9 +88,7 @@ public class AIThreatLevel
             if (Level <= TutorialEnd)  return 3;
             if (Level <= NormalEnd)    return 5;
             if (Level <= HardEnd)     return 8;
-            if (Level <= 40)          return 10;
-            if (Level <= 50)          return 15;
-            return 20;
+            return 10;
         }
     }
 
