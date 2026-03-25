@@ -149,6 +149,18 @@ public class AICommander
     public AIRoleAssigner RoleAssigner => _roleAssigner;
     public TurnStrategyPlanner StrategyPlanner => _strategyPlanner;
 
+    // ---- セーブ/ロード用アクセサ ----
+    public int SaveTotalMoves    { get => _totalStats.Moves;    set => _totalStats.Moves = value; }
+    public int SaveTotalAttacks  { get => _totalStats.Attacks;  set => _totalStats.Attacks = value; }
+    public int SaveTotalSkills   { get => _totalStats.Skills;   set => _totalStats.Skills = value; }
+    public int SaveTotalRetreats { get => _totalStats.Retreats; set => _totalStats.Retreats = value; }
+    public int SaveTotalBuilds   { get => _totalStats.Builds;   set => _totalStats.Builds = value; }
+    public int SaveTotalSummons  { get => _totalStats.Summons;  set => _totalStats.Summons = value; }
+    public int SaveTotalKills    { get => _totalKills; set => _totalKills = value; }
+    public int SaveTurnCount     { get => _turnCount;  set => _turnCount = value; }
+
+    public void RestoreStrategy(TurnStrategy strategy) { _currentStrategy = strategy; }
+
     /// <summary>原料生産施設(Well,LoggingCamp,Quarry,Field,Mine)の合計棟数</summary>
     static int CountEconBuildings(AIBoardState board)
     {

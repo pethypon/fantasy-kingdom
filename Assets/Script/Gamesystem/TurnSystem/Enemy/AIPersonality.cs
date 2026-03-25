@@ -38,6 +38,14 @@ public class AIPersonality
                   $"合計={Traits.Total}");
     }
 
+    /// <summary>セーブデータから性格を復元する</summary>
+    public AIPersonality(MajorPersonality major, PersonalityTraits traits)
+    {
+        Major = major;
+        Traits = traits;
+        Debug.Log($"[AIPersonality] セーブから復元: 大きい性格={Major}  合計={Traits.Total}pt");
+    }
+
     // ---- BOSSが生存しているかチェック ----
     public bool HasBoss => BossUnit != null && BossUnit.gameObject.activeInHierarchy && BossUnit.HP > 0;
 

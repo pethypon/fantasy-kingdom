@@ -46,6 +46,9 @@ public class TimerSystem : MonoBehaviour
     public Team CurrentTeam => currentTeam;
     public bool IsRunning => isRunning;
 
+    /// <summary>セーブデータからターン残り時間を復元</summary>
+    public void RestoreTurnTimeRemaining(float value) { turnTimeRemaining = value; }
+
     public void Init(TurnGenerater turngenerater, CrystalSystem crystalsystem)
     {
         this.turngenerater = turngenerater;
