@@ -64,6 +64,19 @@ public static class SaveSystem
 
         // マップシード（再生成用）
         public float MapSeed;
+
+        // タイマー
+        public TimerSaveData Timer = new TimerSaveData();
+
+        // 霧の戦争（探索済みタイル）
+        public FogSaveData Fog = new FogSaveData();
+
+        // AI状態
+        public AISaveData AI = new AISaveData();
+
+        // NationState追加データ
+        public NationExtraSaveData PlayerNationExtra = new NationExtraSaveData();
+        public NationExtraSaveData EnemyNationExtra = new NationExtraSaveData();
     }
 
     [Serializable]
@@ -86,6 +99,7 @@ public static class SaveSystem
         public int SkillCooldown;
         public string FacilityKind;
         public bool IsActive;
+        public int Fatigue;
 
         // 状態異常
         public List<EffectSaveData> ActiveEffects = new List<EffectSaveData>();
@@ -110,6 +124,100 @@ public static class SaveSystem
     public class APSaveData
     {
         public int Current, Reset, Plus, Minus;
+    }
+
+    // ================================================================
+    //  タイマーセーブデータ
+    // ================================================================
+
+    [Serializable]
+    public class TimerSaveData
+    {
+        public float TurnTimeRemaining;
+        public float PlayerTotalTime;
+        public float EnemyTotalTime;
+        public float TurnTimeLimit;
+    }
+
+    // ================================================================
+    //  霧の戦争セーブデータ（探索済みタイル座標リスト）
+    // ================================================================
+
+    [Serializable]
+    public class FogSaveData
+    {
+        public List<Vec3IntData> PlayerExplored = new List<Vec3IntData>();
+        public List<Vec3IntData> EnemyExplored = new List<Vec3IntData>();
+    }
+
+    [Serializable]
+    public class Vec3IntData
+    {
+        public int X, Y, Z;
+
+        public Vec3IntData() { }
+        public Vec3IntData(Vector3Int v) { X = v.x; Y = v.y; Z = v.z; }
+        public Vector3Int ToVector3Int() => new Vector3Int(X, Y, Z);
+    }
+
+    // ================================================================
+    //  AI状態セーブデータ
+    // ================================================================
+
+    [Serializable]
+    public class AISaveData
+    {
+        // AIPersonality
+        public string MajorPersonality;
+        public int TraitCaution, TraitCommand, TraitObsession;
+        public int TraitDefense, TraitTactics, TraitDevelopment;
+
+        // AICommander 統計
+        public string CurrentStrategy;
+        public int TotalMoves, TotalAttacks, TotalSkills;
+        public int TotalRetreats, TotalBuilds, TotalSummons;
+        public int TotalKills;
+        public int AITurnCount;
+        public int RngSeed;
+
+        // AILearning
+        public bool LearningActive;
+        public List<CellCountData> FailedFrontalAttacks = new List<CellCountData>();
+        public List<CellCountData> SuccessFlanks = new List<CellCountData>();
+        public List<CellCountData> IsolatedDeaths = new List<CellCountData>();
+        public List<CellCountData> PlayerDefensePositions = new List<CellCountData>();
+        public List<CellCountData> RouteSuccess = new List<CellCountData>();
+        public List<CellCountData> RouteFailure = new List<CellCountData>();
+        public float LearningCaution, LearningCommand, LearningTactics;
+        public float LearningDefense, LearningDevelop;
+    }
+
+    [Serializable]
+    public class CellCountData
+    {
+        public int X, Y, Z;
+        public int Count;
+
+        public CellCountData() { }
+        public CellCountData(Vector3Int cell, int count)
+        {
+            X = cell.x; Y = cell.y; Z = cell.z;
+            Count = count;
+        }
+    }
+
+    // ================================================================
+    //  NationState追加データ
+    // ================================================================
+
+    [Serializable]
+    public class NationExtraSaveData
+    {
+        public List<int> PendingReturns = new List<int>();
+        public int StarvationCounter;
+        public int CitizenCapacity;
+        public int ResourceCapacity;
+        public int BarracksXP;
     }
 
     // ================================================================
@@ -250,7 +358,12 @@ public static class SaveSystem
     // ================================================================
 
     /// <summary>現在のゲーム状態をセーブデータに変換</summary>
-    public static GameSaveData CollectGameState(TurnGenerater turnGen, FactionState factionState)
+    public static GameSaveData CollectGameState(
+        TurnGenerater turnGen,
+        FactionState factionState,
+        TimerSystem timerSystem = null,
+        VisionGenerater visionGen = null,
+        AICommander aiCommander = null)
     {
         var data = new GameSaveData
         {
@@ -283,6 +396,22 @@ public static class SaveSystem
         // サブクリスタル
         data.PlayerSubCrystals = factionState.PlayerSubCrystals;
         data.EnemySubCrystals = factionState.EnemySubCrystals;
+
+        // タイマー
+        if (timerSystem != null)
+            CollectTimer(data.Timer, timerSystem);
+
+        // 霧の戦争（探索済み）
+        if (visionGen != null)
+            CollectFog(data.Fog, visionGen);
+
+        // AI状態
+        if (aiCommander != null)
+            CollectAI(data.AI, aiCommander);
+
+        // NationState追加データ
+        CollectNationExtra(data.PlayerNationExtra, factionState.PlayerNation);
+        CollectNationExtra(data.EnemyNationExtra, factionState.EnemyNation);
 
         return data;
     }
@@ -346,7 +475,8 @@ public static class SaveSystem
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
             FacilityKind = s.facilityKind.ToString(),
-            IsActive = s.gameObject.activeSelf
+            IsActive = s.gameObject.activeSelf,
+            Fatigue = s.Fatigue
         };
 
         if (s.ActiveEffects != null)
@@ -365,6 +495,105 @@ public static class SaveSystem
         return d;
     }
 
+    // ================================================================
+    //  タイマー収集
+    // ================================================================
+
+    static void CollectTimer(TimerSaveData dst, TimerSystem timer)
+    {
+        dst.TurnTimeRemaining = timer.TurnTimeRemaining;
+        dst.PlayerTotalTime = timer.PlayerTimeRemaining;
+        dst.EnemyTotalTime = timer.EnemyTimeRemaining;
+        dst.TurnTimeLimit = timer.TurnTimeLimit;
+    }
+
+    // ================================================================
+    //  霧の戦争収集
+    // ================================================================
+
+    static void CollectFog(FogSaveData dst, VisionGenerater visionGen)
+    {
+        if (visionGen.PlayerExploard != null)
+            foreach (var cell in visionGen.PlayerExploard)
+                dst.PlayerExplored.Add(new Vec3IntData(cell));
+
+        if (visionGen.EnemyExploard != null)
+            foreach (var cell in visionGen.EnemyExploard)
+                dst.EnemyExplored.Add(new Vec3IntData(cell));
+    }
+
+    // ================================================================
+    //  AI状態収集
+    // ================================================================
+
+    static void CollectAI(AISaveData dst, AICommander commander)
+    {
+        // Personality
+        var p = commander.Personality;
+        dst.MajorPersonality = p.Major.ToString();
+        dst.TraitCaution = p.Traits.Caution;
+        dst.TraitCommand = p.Traits.Command;
+        dst.TraitObsession = p.Traits.Obsession;
+        dst.TraitDefense = p.Traits.Defense;
+        dst.TraitTactics = p.Traits.Tactics;
+        dst.TraitDevelopment = p.Traits.Development;
+
+        // Strategy
+        dst.CurrentStrategy = commander.CurrentStrategy.ToString();
+
+        // Stats（公開プロパティ経由）
+        dst.TotalMoves = commander.SaveTotalMoves;
+        dst.TotalAttacks = commander.SaveTotalAttacks;
+        dst.TotalSkills = commander.SaveTotalSkills;
+        dst.TotalRetreats = commander.SaveTotalRetreats;
+        dst.TotalBuilds = commander.SaveTotalBuilds;
+        dst.TotalSummons = commander.SaveTotalSummons;
+        dst.TotalKills = commander.SaveTotalKills;
+        dst.AITurnCount = commander.SaveTurnCount;
+        dst.RngSeed = commander.ThreatLevel.Level; // シードは脅威度から復元可
+
+        // Learning
+        var learning = commander.Learning;
+        dst.LearningActive = learning.IsActive;
+        dst.LearningCaution = learning.SaveCautionModifier;
+        dst.LearningCommand = learning.SaveCommandModifier;
+        dst.LearningTactics = learning.SaveTacticsModifier;
+        dst.LearningDefense = learning.SaveDefenseModifier;
+        dst.LearningDevelop = learning.SaveDevelopModifier;
+
+        CollectCellCountDict(learning.SaveFailedFrontalAttacks, dst.FailedFrontalAttacks);
+        CollectCellCountDict(learning.SaveSuccessFlanks, dst.SuccessFlanks);
+        CollectCellCountDict(learning.SaveIsolatedDeaths, dst.IsolatedDeaths);
+        CollectCellCountDict(learning.SavePlayerDefensePositions, dst.PlayerDefensePositions);
+        CollectCellCountDict(learning.SaveRouteSuccess, dst.RouteSuccess);
+        CollectCellCountDict(learning.SaveRouteFailure, dst.RouteFailure);
+    }
+
+    static void CollectCellCountDict(Dictionary<Vector3Int, int> src, List<CellCountData> dst)
+    {
+        if (src == null) return;
+        foreach (var kv in src)
+            dst.Add(new CellCountData(kv.Key, kv.Value));
+    }
+
+    // ================================================================
+    //  NationState追加データ収集
+    // ================================================================
+
+    static void CollectNationExtra(NationExtraSaveData dst, NationState nation)
+    {
+        if (nation == null) return;
+        dst.PendingReturns = new List<int>(nation.PendingReturns);
+        dst.StarvationCounter = nation.StarvationCounter;
+        dst.CitizenCapacity = nation.CitizenCapacity;
+        dst.ResourceCapacity = nation.ResourceCapacity;
+        dst.BarracksXP = nation.BarracksXP;
+    }
+
+    // ================================================================
+    //  資源・AP 復元ヘルパー
+    // ================================================================
+
     static void CopyResources(FactionState.ResourceData src, ResourceSaveData dst)
     {
         dst.Wood = src.Wood; dst.Stone = src.Stone; dst.Water = src.Water;
@@ -379,10 +608,6 @@ public static class SaveSystem
         dst.Plus = src.Plus; dst.Minus = src.Minus;
     }
 
-    // ================================================================
-    //  資源データの復元ヘルパー
-    // ================================================================
-
     public static void RestoreResources(ResourceSaveData src, FactionState.ResourceData dst)
     {
         dst.Wood = src.Wood; dst.Stone = src.Stone; dst.Water = src.Water;
@@ -395,5 +620,105 @@ public static class SaveSystem
     {
         dst.Current = src.Current; dst.Reset = src.Reset;
         dst.Plus = src.Plus; dst.Minus = src.Minus;
+    }
+
+    // ================================================================
+    //  タイマー復元
+    // ================================================================
+
+    public static void RestoreTimer(TimerSaveData src, TimerSystem timer)
+    {
+        if (src == null || timer == null) return;
+        timer.PlayerTotalTime = src.PlayerTotalTime;
+        timer.EnemyTotalTime = src.EnemyTotalTime;
+        timer.TurnTimeLimit = src.TurnTimeLimit;
+        timer.RestoreTurnTimeRemaining(src.TurnTimeRemaining);
+    }
+
+    // ================================================================
+    //  霧の戦争復元
+    // ================================================================
+
+    public static void RestoreFog(FogSaveData src, VisionGenerater visionGen)
+    {
+        if (src == null || visionGen == null) return;
+
+        if (visionGen.PlayerExploard == null)
+            visionGen.PlayerExploard = new HashSet<Vector3Int>();
+        else
+            visionGen.PlayerExploard.Clear();
+
+        if (visionGen.EnemyExploard == null)
+            visionGen.EnemyExploard = new HashSet<Vector3Int>();
+        else
+            visionGen.EnemyExploard.Clear();
+
+        foreach (var v in src.PlayerExplored)
+            visionGen.PlayerExploard.Add(v.ToVector3Int());
+        foreach (var v in src.EnemyExplored)
+            visionGen.EnemyExploard.Add(v.ToVector3Int());
+    }
+
+    // ================================================================
+    //  NationState追加データ復元
+    // ================================================================
+
+    public static void RestoreNationExtra(NationExtraSaveData src, NationState nation)
+    {
+        if (src == null || nation == null) return;
+        nation.PendingReturns = new List<int>(src.PendingReturns);
+        nation.StarvationCounter = src.StarvationCounter;
+        nation.CitizenCapacity = src.CitizenCapacity;
+        nation.ResourceCapacity = src.ResourceCapacity;
+        nation.BarracksXP = src.BarracksXP;
+    }
+
+    // ================================================================
+    //  AI状態復元
+    // ================================================================
+
+    public static void RestoreAILearning(AISaveData src, AILearning learning)
+    {
+        if (src == null || learning == null) return;
+
+        learning.SaveCautionModifier = src.LearningCaution;
+        learning.SaveCommandModifier = src.LearningCommand;
+        learning.SaveTacticsModifier = src.LearningTactics;
+        learning.SaveDefenseModifier = src.LearningDefense;
+        learning.SaveDevelopModifier = src.LearningDevelop;
+
+        RestoreCellCountDict(src.FailedFrontalAttacks, learning.SaveFailedFrontalAttacks);
+        RestoreCellCountDict(src.SuccessFlanks, learning.SaveSuccessFlanks);
+        RestoreCellCountDict(src.IsolatedDeaths, learning.SaveIsolatedDeaths);
+        RestoreCellCountDict(src.PlayerDefensePositions, learning.SavePlayerDefensePositions);
+        RestoreCellCountDict(src.RouteSuccess, learning.SaveRouteSuccess);
+        RestoreCellCountDict(src.RouteFailure, learning.SaveRouteFailure);
+    }
+
+    public static void RestoreAICommander(AISaveData src, AICommander commander)
+    {
+        if (src == null || commander == null) return;
+
+        commander.SaveTotalMoves = src.TotalMoves;
+        commander.SaveTotalAttacks = src.TotalAttacks;
+        commander.SaveTotalSkills = src.TotalSkills;
+        commander.SaveTotalRetreats = src.TotalRetreats;
+        commander.SaveTotalBuilds = src.TotalBuilds;
+        commander.SaveTotalSummons = src.TotalSummons;
+        commander.SaveTotalKills = src.TotalKills;
+        commander.SaveTurnCount = src.AITurnCount;
+
+        if (Enum.TryParse<TurnStrategy>(src.CurrentStrategy, out var strategy))
+            commander.RestoreStrategy(strategy);
+
+        RestoreAILearning(src, commander.Learning);
+    }
+
+    static void RestoreCellCountDict(List<CellCountData> src, Dictionary<Vector3Int, int> dst)
+    {
+        if (src == null || dst == null) return;
+        dst.Clear();
+        foreach (var entry in src)
+            dst[new Vector3Int(entry.X, entry.Y, entry.Z)] = entry.Count;
     }
 }

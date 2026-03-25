@@ -159,9 +159,25 @@ public class GameGenerater : MonoBehaviour
         factionState.PlayerSubCrystals = data.PlayerSubCrystals;
         factionState.EnemySubCrystals = data.EnemySubCrystals;
 
+        // NationState追加データ復元
+        SaveSystem.RestoreNationExtra(data.PlayerNationExtra, factionState.PlayerNation);
+        SaveSystem.RestoreNationExtra(data.EnemyNationExtra, factionState.EnemyNation);
+
         // ユニットのHP等を復元
         ApplyUnitLoadData(data, _UnitSetting.PlayerUnit);
         ApplyUnitLoadData(data, _UnitSetting.EnemyUnit);
+
+        // タイマー復元
+        if (_TurnGenerater.timerSystem != null)
+            SaveSystem.RestoreTimer(data.Timer, _TurnGenerater.timerSystem);
+
+        // 霧の戦争（探索済み）復元
+        if (_TurnGenerater.visiongenerater != null)
+            SaveSystem.RestoreFog(data.Fog, _TurnGenerater.visiongenerater);
+
+        // AI状態復元
+        if (_TurnGenerater.aiCommander != null)
+            SaveSystem.RestoreAICommander(data.AI, _TurnGenerater.aiCommander);
 
         ToastMessageUI.Show($"スロット{slot + 1}のデータをロードしました", ToastMessageUI.MessageType.Info, 3f);
     }
@@ -183,9 +199,25 @@ public class GameGenerater : MonoBehaviour
                     s.MaxHP = ud.MaxHP;
                     s.ATK = ud.ATK;
                     s.DEF = ud.DEF;
+                    s.Level = ud.Level;
                     s.ShieldTurns = ud.ShieldTurns;
                     s.ShieldActivated = ud.ShieldActivated;
                     s.SkillCooldown = ud.SkillCooldown;
+                    s.AssignedSkillId = ud.AssignedSkillId;
+                    s.Fatigue = ud.Fatigue;
+
+                    // 状態異常・バフ復元
+                    s.ActiveEffects.Clear();
+                    foreach (var ef in ud.ActiveEffects)
+                    {
+                        if (System.Enum.TryParse<StatusEffectType>(ef.DebuffType, out var debuff)
+                            && debuff != StatusEffectType.None)
+                            s.ActiveEffects.Add(new ActiveEffect(debuff, ef.RemainingTurns));
+                        else if (System.Enum.TryParse<BuffType>(ef.BuffType, out var buff)
+                                 && buff != BuffType.None)
+                            s.ActiveEffects.Add(new ActiveEffect(buff, ef.RemainingTurns));
+                    }
+
                     s.gameObject.SetActive(ud.IsActive);
                     break;
                 }

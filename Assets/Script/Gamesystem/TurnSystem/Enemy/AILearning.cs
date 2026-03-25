@@ -38,6 +38,20 @@ public class AILearning
 
     public bool IsActive { get; private set; }
 
+    // ---- セーブ/ロード用アクセサ ----
+    public float SaveCautionModifier  { get => _cautionModifier;  set => _cautionModifier = value; }
+    public float SaveCommandModifier  { get => _commandModifier;  set => _commandModifier = value; }
+    public float SaveTacticsModifier  { get => _tacticsModifier;  set => _tacticsModifier = value; }
+    public float SaveDefenseModifier  { get => _defenseModifier;  set => _defenseModifier = value; }
+    public float SaveDevelopModifier  { get => _developModifier;  set => _developModifier = value; }
+
+    public Dictionary<Vector3Int, int> SaveFailedFrontalAttacks   => _failedFrontalAttacks;
+    public Dictionary<Vector3Int, int> SaveSuccessFlanks          => _successFlanks;
+    public Dictionary<Vector3Int, int> SaveIsolatedDeaths         => _isolatedDeaths;
+    public Dictionary<Vector3Int, int> SavePlayerDefensePositions => _playerDefensePositions;
+    public Dictionary<Vector3Int, int> SaveRouteSuccess           => _routeSuccess;
+    public Dictionary<Vector3Int, int> SaveRouteFailure           => _routeFailure;
+
     public AILearning(bool active)
     {
         IsActive = active;

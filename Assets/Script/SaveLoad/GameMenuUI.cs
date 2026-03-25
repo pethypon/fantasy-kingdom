@@ -220,7 +220,11 @@ public class GameMenuUI : MonoBehaviour
             // セーブ実行
             if (turnGen != null && factionState != null)
             {
-                var data = SaveSystem.CollectGameState(turnGen, factionState);
+                var data = SaveSystem.CollectGameState(
+                    turnGen, factionState,
+                    turnGen.timerSystem,
+                    turnGen.visiongenerater,
+                    turnGen.aiCommander);
                 SaveSystem.SaveGame(slot, data);
                 ToastMessageUI.Show($"スロット{slot + 1}にセーブしました", ToastMessageUI.MessageType.Info, 3f);
             }
