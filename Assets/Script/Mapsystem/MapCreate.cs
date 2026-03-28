@@ -61,6 +61,23 @@ public class MapCreate : MonoBehaviour
     {
         seedx = Random.Range(0f, 1_000_000f);
         seedz = Random.Range(0f, 1_000_000f);
+        GenerateHeightmap();
+    }
+
+    /// <summary>保存されたシードからノイズを再生成する</summary>
+    public void noisegenerater(float savedSeedX, float savedSeedZ)
+    {
+        seedx = savedSeedX;
+        seedz = savedSeedZ;
+        GenerateHeightmap();
+    }
+
+    /// <summary>現在のシード値を取得（セーブ用）</summary>
+    public float SeedX => seedx;
+    public float SeedZ => seedz;
+
+    private void GenerateHeightmap()
+    {
         topY = new int[maxX, maxZ];
 
         for (int x = 0; x < maxX; x++)

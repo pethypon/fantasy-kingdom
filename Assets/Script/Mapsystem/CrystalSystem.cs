@@ -46,6 +46,26 @@ public class CrystalSystem : MonoBehaviour
         PlaceEnemyCrystal();
     }
 
+    /// <summary>セーブデータから指定位置にクリスタルを配置する</summary>
+    public void CrystalCore(Vector3 savedPCP, Vector3 savedECP)
+    {
+        MapCreate mapcreate = GetComponent<MapCreate>();
+        _SetPos = mapcreate.SetPos;
+        maxx = mapcreate.maxX;
+        maxz = mapcreate.maxZ;
+
+        PCP = savedPCP;
+        var pObj = Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
+        ApplyCrystalHP(pObj);
+        _SetPos.Remove(PCP);
+
+        ECP = savedECP;
+        var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
+        ApplyCrystalHP(eObj);
+
+        Debug.Log($"[CrystalSystem] セーブから復元: PCP={PCP} ECP={ECP}");
+    }
+
     // ==== プレイヤークリスタル配置 ====
     private void PlacePlayerCrystal()
     {

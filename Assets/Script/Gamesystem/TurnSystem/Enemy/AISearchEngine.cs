@@ -103,7 +103,7 @@ public class AISearchEngine
             maxDepth: _maxDepth,
             candidateLimit: Mathf.Max(_candidateLimit, 14),
             greedyActionsPerTurn: 10,
-            timeBudgetMs: 30000f
+            timeBudgetMs: 5000f
         );
 
         Dictionary<AIAction, float> result;
@@ -137,7 +137,7 @@ public class AISearchEngine
         foreach (var action in topCandidates)
         {
             _elapsedMs = (Time.realtimeSinceStartup * 1000f) - startTime;
-            if (_elapsedMs > 5000f) // フォールバック時は5秒制限
+            if (_elapsedMs > 2000f) // フォールバック時は2秒制限
             {
                 Debug.Log($"[AISearchEngine] フォールバック時間切れ ({_elapsedMs:F0}ms)");
                 break;

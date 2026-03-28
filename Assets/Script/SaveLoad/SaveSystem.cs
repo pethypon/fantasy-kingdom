@@ -63,7 +63,12 @@ public static class SaveSystem
         public int EnemySubCrystals;
 
         // マップシード（再生成用）
-        public float MapSeed;
+        public float MapSeedX;
+        public float MapSeedZ;
+
+        // クリスタル位置
+        public float PCPx, PCPy, PCPz;
+        public float ECPx, ECPy, ECPz;
 
         // タイマー
         public TimerSaveData Timer = new TimerSaveData();
@@ -369,7 +374,14 @@ public static class SaveSystem
         {
             Turn = turnGen.Turn,
             ThreatLevel = LoadProfile().ThreatLevel,
-            MapSeed = 0f // マップはシーン再読み込みで再生成
+            MapSeedX = turnGen.mapcreate.SeedX,
+            MapSeedZ = turnGen.mapcreate.SeedZ,
+            PCPx = turnGen.crystalsystem.PCP.x,
+            PCPy = turnGen.crystalsystem.PCP.y,
+            PCPz = turnGen.crystalsystem.PCP.z,
+            ECPx = turnGen.crystalsystem.ECP.x,
+            ECPy = turnGen.crystalsystem.ECP.y,
+            ECPz = turnGen.crystalsystem.ECP.z
         };
 
         // ユニット収集

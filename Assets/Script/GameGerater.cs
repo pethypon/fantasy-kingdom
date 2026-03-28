@@ -98,23 +98,55 @@ public class GameGenerater : MonoBehaviour
         if (loadSlot < 0 && pendingLoad >= 0)
             loadSlot = pendingLoad;
 
-        InitMapAndUnits();
+        // ロードデータを先読み（マップ生成前にシード復元が必要）
+        SaveSystem.GameSaveData loadData = null;
+        if (loadSlot >= 0)
+        {
+            loadData = SaveSystem.LoadGame(loadSlot);
+            if (loadData == null)
+            {
+                Debug.LogWarning("[GameGerater] ロードデータが見つかりません、新規ゲームを開始");
+                loadSlot = -1;
+            }
+        }
+
+        // マップ・ユニット生成（ロード時はシード・クリスタル位置を復元）
+        InitMapAndUnits(loadData);
 
         FactionState factionState = InitFactionState();
         _cachedFactionState = factionState;
 
         InitGameSystems(factionState);
         InitSkillsAndTimer(factionState);
-        InitEconomyAndResources(factionState);
+
+        if (loadData != null)
+        {
+            // ロード時: 初期資源設定をスキップしてUI初期化だけ行う
+            if (_APPanelUI != null) _APPanelUI.Init(factionState);
+            if (_ResourceBarUI != null) _ResourceBarUI.Init(factionState);
+            if (UnitRegistry.Instance != null)
+            {
+                UnitRegistry.Instance.ScanAndRegister(
+                    _UnitSetting.PlayerUnit, _UnitSetting.EnemyUnit,
+                    _BuildSystem != null ? _BuildSystem.PlayerBuildingParent : null,
+                    _BuildSystem != null ? _BuildSystem.EnemyBuildingParent : null);
+            }
+        }
+        else
+        {
+            // 新規ゲーム: 初期資源設定を含む完全初期化
+            InitEconomyAndResources(factionState);
+        }
+
         InitUXSystems();
         PrewarmObjectPools();
         InitAI(factionState);
         InitGameMenu(factionState);
 
-        // ロードデータがあれば適用
-        if (loadSlot >= 0)
+        // ロードデータがあれば全状態を適用
+        if (loadData != null)
         {
-            ApplyLoadData(loadSlot, factionState);
+            ApplyLoadData(loadData, factionState);
         }
 
         _TurnGenerater.StartFirstTurn();
@@ -133,19 +165,12 @@ public class GameGenerater : MonoBehaviour
     // =====================================================================
     //  ロードデータの適用
     // =====================================================================
-    private void ApplyLoadData(int slot, FactionState factionState)
+    private void ApplyLoadData(SaveSystem.GameSaveData data, FactionState factionState)
     {
-        var data = SaveSystem.LoadGame(slot);
-        if (data == null)
-        {
-            Debug.LogWarning("[GameGerater] ロードデータが見つかりません");
-            return;
-        }
-
         Debug.Log($"[GameGerater] ロード適用: Turn{data.Turn} 脅威度{data.ThreatLevel}");
 
-        // ターン数復元
-        _TurnGenerater.Turn = data.Turn;
+        // ターン数復元（PlayerStart.Entry()でTurn++されるので1引く）
+        _TurnGenerater.Turn = data.Turn - 1;
 
         // 資源復元
         SaveSystem.RestoreResources(data.PlayerResources, factionState.PlayerResources);
@@ -163,9 +188,20 @@ public class GameGenerater : MonoBehaviour
         SaveSystem.RestoreNationExtra(data.PlayerNationExtra, factionState.PlayerNation);
         SaveSystem.RestoreNationExtra(data.EnemyNationExtra, factionState.EnemyNation);
 
-        // ユニットのHP等を復元
+        // ユニットのステータス・位置を復元
         ApplyUnitLoadData(data, _UnitSetting.PlayerUnit);
         ApplyUnitLoadData(data, _UnitSetting.EnemyUnit);
+
+        // クリスタルのステータス復元
+        ApplyUnitLoadData(data, _CrystalSystem.Playercrystal);
+        ApplyUnitLoadData(data, _CrystalSystem.Enemycrystal);
+
+        // 建築物のステータス復元
+        if (_BuildSystem != null)
+        {
+            ApplyUnitLoadData(data, _BuildSystem.PlayerBuildingParent);
+            ApplyUnitLoadData(data, _BuildSystem.EnemyBuildingParent);
+        }
 
         // タイマー復元
         if (_TurnGenerater.timerSystem != null)
@@ -179,22 +215,33 @@ public class GameGenerater : MonoBehaviour
         if (_TurnGenerater.aiCommander != null)
             SaveSystem.RestoreAICommander(data.AI, _TurnGenerater.aiCommander);
 
-        ToastMessageUI.Show($"スロット{slot + 1}のデータをロードしました", ToastMessageUI.MessageType.Info, 3f);
+        // 占有セル・視界を再計算
+        _MoveGenerater.UnitPointCore();
+        _VisionGenerater.VisionPoint(_MapCreate, _MoveGenerater, _CrystalSystem);
+
+        ToastMessageUI.Show("セーブデータをロードしました", ToastMessageUI.MessageType.Info, 3f);
     }
 
     private void ApplyUnitLoadData(SaveSystem.GameSaveData data, Transform unitParent)
     {
         if (unitParent == null) return;
 
+        // セーブデータからの復元用マッチリスト（使い回し防止）
+        var usedIndices = new HashSet<int>();
+
         foreach (Status s in unitParent.GetComponentsInChildren<Status>(true))
         {
             // セーブデータから同じ種類・チームのユニットを探す
-            foreach (var ud in data.Units)
+            for (int i = 0; i < data.Units.Count; i++)
             {
-                if (ud.Kind == s.kind.ToString() && ud.Team == s.team.ToString()
-                    && Mathf.Abs(ud.PosX - s.transform.position.x) < 0.5f
-                    && Mathf.Abs(ud.PosZ - s.transform.position.z) < 0.5f)
+                if (usedIndices.Contains(i)) continue;
+                var ud = data.Units[i];
+
+                if (ud.Kind == s.kind.ToString() && ud.Team == s.team.ToString())
                 {
+                    // 位置を復元（ロード時は保存位置に移動）
+                    s.transform.position = new Vector3(ud.PosX, ud.PosY, ud.PosZ);
+
                     s.HP = ud.HP;
                     s.MaxHP = ud.MaxHP;
                     s.ATK = ud.ATK;
@@ -219,6 +266,7 @@ public class GameGenerater : MonoBehaviour
                     }
 
                     s.gameObject.SetActive(ud.IsActive);
+                    usedIndices.Add(i);
                     break;
                 }
             }
@@ -258,11 +306,32 @@ public class GameGenerater : MonoBehaviour
     // =====================================================================
     //  マップ生成・ユニット配置・視界構築
     // =====================================================================
-    private void InitMapAndUnits()
+    private void InitMapAndUnits(SaveSystem.GameSaveData loadData = null)
     {
-        _MapCreate.noisegenerater();
+        if (loadData != null && (loadData.MapSeedX != 0f || loadData.MapSeedZ != 0f))
+        {
+            // ロード: 保存されたシードで同じ地形を再生成
+            _MapCreate.noisegenerater(loadData.MapSeedX, loadData.MapSeedZ);
+        }
+        else
+        {
+            // 新規: ランダムシード
+            _MapCreate.noisegenerater();
+        }
         _MapCreate.BuildTop();
-        _CrystalSystem.CrystalCore();
+
+        if (loadData != null && (loadData.PCPx != 0f || loadData.PCPz != 0f))
+        {
+            // ロード: 保存されたクリスタル位置に配置
+            var pcp = new Vector3(loadData.PCPx, loadData.PCPy, loadData.PCPz);
+            var ecp = new Vector3(loadData.ECPx, loadData.ECPy, loadData.ECPz);
+            _CrystalSystem.CrystalCore(pcp, ecp);
+        }
+        else
+        {
+            // 新規: ランダム配置
+            _CrystalSystem.CrystalCore();
+        }
 
         _UnitSetting.UnitSet();
         ApplyAllUnitData(_UnitSetting.PlayerUnit);
