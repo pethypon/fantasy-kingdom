@@ -35,7 +35,7 @@ public class AIMinimaxEngine
     float _elapsedMs;
 
     // ---- 時間制限 ----
-    const float DefaultTimeBudgetMs = 30000f;
+    const float DefaultTimeBudgetMs = 5000f;
     float _timeBudgetMs;
     Stopwatch _stopwatch;
 
@@ -44,7 +44,7 @@ public class AIMinimaxEngine
 
     // ---- トランスポジションテーブル (盤面ハッシュ → 評価値キャッシュ) ----
     Dictionary<long, TTEntry> _transTable;
-    const int MaxTTSize = 8192;
+    const int MaxTTSize = 32768;
 
     struct TTEntry
     {
