@@ -51,6 +51,11 @@ public class RealtimeAdaptation
     List<ThreatEvent> _recentThreats = new List<ThreatEvent>();
     Dictionary<string, PatternDetection> _detectedPatterns = new Dictionary<string, PatternDetection>();
 
+    // ---- シーケンス検知（行動の連鎖パターン） ----
+    List<string> _actionSequence = new List<string>();   // 最新20行動の系列
+    const int MaxSequenceLen = 20;
+    Dictionary<string, int> _sequencePatterns = new Dictionary<string, int>(); // 2-3行動の連鎖
+
     // ---- 適応状態 ----
     float _urgencyLevel = 0f;          // 0.0 (平常) ～ 1.0 (緊急)
     float _defenseUrgency = 0f;        // 防衛緊急度
@@ -182,8 +187,8 @@ public class RealtimeAdaptation
         _defenseUrgency *= 0.8f;
         DecayHotZones();
 
-        // 古い脅威を除去（直近5ターン分のみ保持）
-        _recentThreats.RemoveAll(t => currentTurn - t.Turn > 5);
+        // 古い脅威を除去（直近10ターン分に拡張、より長期のパターン検知）
+        _recentThreats.RemoveAll(t => currentTurn - t.Turn > 10);
 
         // ---- 即時脅威分析 ----
         int recentAttackCount = 0;
@@ -349,6 +354,8 @@ public class RealtimeAdaptation
         _recentThreats.Clear();
         _detectedPatterns.Clear();
         _hotZones.Clear();
+        _actionSequence.Clear();
+        _sequencePatterns.Clear();
         _urgencyLevel = 0f;
         _defenseUrgency = 0f;
         _counterAttackWindow = 0f;
@@ -378,6 +385,59 @@ public class RealtimeAdaptation
                 CounterPriority = 0.25f
             };
         }
+
+        // ---- シーケンス検知: 行動の連鎖パターンを記録 ----
+        _actionSequence.Add(patternId);
+        while (_actionSequence.Count > MaxSequenceLen)
+            _actionSequence.RemoveAt(0);
+
+        // 2-gram と 3-gram のシーケンスパターンを検出
+        if (_actionSequence.Count >= 2)
+        {
+            string bigram = _actionSequence[_actionSequence.Count - 2] + "→" +
+                           _actionSequence[_actionSequence.Count - 1];
+            if (_sequencePatterns.ContainsKey(bigram))
+                _sequencePatterns[bigram]++;
+            else
+                _sequencePatterns[bigram] = 1;
+        }
+        if (_actionSequence.Count >= 3)
+        {
+            string trigram = _actionSequence[_actionSequence.Count - 3] + "→" +
+                            _actionSequence[_actionSequence.Count - 2] + "→" +
+                            _actionSequence[_actionSequence.Count - 1];
+            if (_sequencePatterns.ContainsKey(trigram))
+                _sequencePatterns[trigram]++;
+            else
+                _sequencePatterns[trigram] = 1;
+        }
+    }
+
+    /// <summary>特定のシーケンスパターンが繰り返されているか</summary>
+    public bool IsSequenceRepeating(string lastAction, int minCount)
+    {
+        foreach (var kvp in _sequencePatterns)
+        {
+            if (kvp.Key.EndsWith(lastAction) && kvp.Value >= minCount)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>最も頻出のシーケンスパターンを取得</summary>
+    public string GetMostFrequentSequence()
+    {
+        string best = "";
+        int bestCount = 0;
+        foreach (var kvp in _sequencePatterns)
+        {
+            if (kvp.Value > bestCount)
+            {
+                bestCount = kvp.Value;
+                best = kvp.Key;
+            }
+        }
+        return bestCount >= 2 ? best : "";
     }
 
     bool IsPatternRepeating(string patternId, int minCount)

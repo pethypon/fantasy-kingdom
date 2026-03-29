@@ -134,8 +134,17 @@ public class MLReplayBuffer
     /// 優先度に基づいてbatchSize個の経験をサンプリングする。
     /// 高い|TD誤差|を持つ経験ほど選ばれやすい。
     /// </summary>
+    /// <summary>PER付きバッチサンプリング（インデックスも返却）</summary>
     public List<Experience> SampleBatch(int batchSize, System.Random rng)
     {
+        List<int> indices;
+        return SampleBatchWithIndices(batchSize, rng, out indices);
+    }
+
+    /// <summary>PER付きバッチサンプリング（インデックス返却版、優先度更新用）</summary>
+    public List<Experience> SampleBatchWithIndices(int batchSize, System.Random rng, out List<int> indices)
+    {
+        indices = new List<int>();
         if (_count == 0) return new List<Experience>();
 
         batchSize = Mathf.Min(batchSize, _count);
@@ -166,19 +175,22 @@ public class MLReplayBuffer
                 }
             }
 
-            // 重複回避（できなければそのまま追加）
-            if (selected.Contains(idx) && _count > batchSize)
+            // 重複時は再サンプリング（線形探索ではなく新しい乱数で再試行）
+            int retries = 0;
+            while (selected.Contains(idx) && retries < 10 && _count > batchSize)
             {
-                idx = (idx + 1) % _count;
-                int tries = 0;
-                while (selected.Contains(idx) && tries < _count)
+                target = (float)(rng.NextDouble() * totalPriority);
+                cumulative = 0f;
+                for (int i = 0; i < _count; i++)
                 {
-                    idx = (idx + 1) % _count;
-                    tries++;
+                    cumulative += Mathf.Pow(_buffer[i].Priority, PriorityAlpha);
+                    if (cumulative >= target) { idx = i; break; }
                 }
+                retries++;
             }
 
             selected.Add(idx);
+            indices.Add(idx);
             batch.Add(_buffer[idx]);
         }
 

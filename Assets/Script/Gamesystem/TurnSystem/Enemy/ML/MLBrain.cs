@@ -59,6 +59,13 @@ public class MLBrain
     public float L2Lambda = 1e-4f;
     public float GradClipNorm = 5.0f;
 
+    // ---- Dropout（過学習防止） ----
+    public float DropoutRate = 0.15f;       // 共有層のDropout率
+    public float HeadDropoutRate = 0.1f;    // ヘッド層のDropout率
+    bool _isTraining = false;               // 学習モードフラグ
+    float[] _dropoutMaskShared;             // 共有層のDropoutマスク
+    float[][] _dropoutMaskHead;             // ヘッド層のDropoutマスク
+
     // ---- ヘッド重み（脅威度で動的に変化） ----
     public float[] HeadWeights = { 0.4f, 0.4f, 0.2f }; // Strategy, Tactics, Economy
 
@@ -145,21 +152,28 @@ public class MLBrain
     // ================================================================
     public float Forward(float[] input)
     {
+        _isTraining = true;
         if (input.Length != InputSize)
             throw new ArgumentException($"入力サイズ不一致: 期待{InputSize}, 受取{input.Length}");
 
         _lastInput = input;
 
-        // 共有隠れ層 (ReLU)
+        // 共有隠れ層 (ReLU + Dropout)
         _zShared = new float[SharedHiddenSize];
         _aShared = new float[SharedHiddenSize];
+        _dropoutMaskShared = new float[SharedHiddenSize];
+        float dropScale = 1f / (1f - DropoutRate); // Inverted Dropout
         for (int j = 0; j < SharedHiddenSize; j++)
         {
             float sum = BShared[j];
             for (int i = 0; i < InputSize; i++)
                 sum += input[i] * WShared[i, j];
             _zShared[j] = sum;
-            _aShared[j] = ReLU(sum);
+            float a = ReLU(sum);
+            // Inverted Dropout: 学習時のみニューロンをランダムに無効化
+            bool keep = _rng.NextDouble() >= DropoutRate;
+            _dropoutMaskShared[j] = keep ? dropScale : 0f;
+            _aShared[j] = a * _dropoutMaskShared[j];
         }
 
         // 各ヘッド
@@ -167,19 +181,25 @@ public class MLBrain
         _aHead = new float[NumHeads][];
         _zOut = new float[NumHeads][];
         _headOutputs = new float[NumHeads];
+        _dropoutMaskHead = new float[NumHeads][];
+        float headDropScale = 1f / (1f - HeadDropoutRate);
 
         for (int h = 0; h < NumHeads; h++)
         {
-            // Head Hidden (ReLU)
+            // Head Hidden (ReLU + Dropout)
             _zHead[h] = new float[HeadHiddenSize];
             _aHead[h] = new float[HeadHiddenSize];
+            _dropoutMaskHead[h] = new float[HeadHiddenSize];
             for (int j = 0; j < HeadHiddenSize; j++)
             {
                 float sum = BHead[h][j];
                 for (int i = 0; i < SharedHiddenSize; i++)
                     sum += _aShared[i] * WHead[h][i, j];
                 _zHead[h][j] = sum;
-                _aHead[h][j] = ReLU(sum);
+                float a = ReLU(sum);
+                bool keep = _rng.NextDouble() >= HeadDropoutRate;
+                _dropoutMaskHead[h][j] = keep ? headDropScale : 0f;
+                _aHead[h][j] = a * _dropoutMaskHead[h][j];
             }
 
             // Head Output (Tanh)
@@ -291,6 +311,12 @@ public class MLBrain
         // 共有層への勾配を蓄積
         var dAShared = new float[SharedHiddenSize];
 
+        // 各ヘッドの勾配を一旦蓄積（グローバル勾配クリッピング用）
+        var allDWHead = new float[NumHeads][,];
+        var allDBHead = new float[NumHeads][];
+        var allDWOut = new float[NumHeads][,];
+        var allDBOut = new float[NumHeads][];
+
         for (int h = 0; h < NumHeads; h++)
         {
             float error = _headOutputs[h] - targets[h];
@@ -310,10 +336,14 @@ public class MLBrain
                 dAHead[i] = WOut[h][i, 0] * dOutZ;
             }
 
-            // Head Hidden勾配
+            // Head Hidden勾配 (Dropoutマスク反映)
             var dZHead = new float[HeadHiddenSize];
             for (int j = 0; j < HeadHiddenSize; j++)
-                dZHead[j] = dAHead[j] * ReLUDeriv(_zHead[h][j]);
+            {
+                float mask = (_dropoutMaskHead != null && _dropoutMaskHead[h] != null)
+                    ? _dropoutMaskHead[h][j] : 1f;
+                dZHead[j] = dAHead[j] * ReLUDeriv(_zHead[h][j]) * (mask > 0f ? 1f : 0f);
+            }
 
             var dWHead = new float[SharedHiddenSize, HeadHiddenSize];
             var dBHead = new float[HeadHiddenSize];
@@ -327,17 +357,19 @@ public class MLBrain
                 }
             }
 
-            // Adam更新 (ヘッド層)
-            AdamUpdate(WHead[h], dWHead, MWHead[h], VWHead[h]);
-            AdamUpdate(WOut[h], dWOut, MWOut[h], VWOut[h]);
-            AdamUpdateBias(BHead[h], dBHead, MBHead[h], VBHead[h]);
-            AdamUpdateBias(BOut[h], dBOut, MBOut[h], VBOut[h]);
+            allDWHead[h] = dWHead;
+            allDBHead[h] = dBHead;
+            allDWOut[h] = dWOut;
+            allDBOut[h] = dBOut;
         }
 
-        // 共有層勾配
+        // 共有層勾配 (Dropoutマスク反映)
         var dZShared = new float[SharedHiddenSize];
         for (int j = 0; j < SharedHiddenSize; j++)
-            dZShared[j] = dAShared[j] * ReLUDeriv(_zShared[j]);
+        {
+            float mask = (_dropoutMaskShared != null) ? _dropoutMaskShared[j] : 1f;
+            dZShared[j] = dAShared[j] * ReLUDeriv(_zShared[j]) * (mask > 0f ? 1f : 0f);
+        }
 
         var dWShared = new float[InputSize, SharedHiddenSize];
         var dBSharedArr = new float[SharedHiddenSize];
@@ -348,21 +380,41 @@ public class MLBrain
                 dWShared[i, j] = _lastInput[i] * dZShared[j] + L2Lambda * WShared[i, j];
         }
 
-        // 勾配クリッピング
-        float norm = MatNormSq(dWShared) + VecNormSq(dBSharedArr);
-        norm = Mathf.Sqrt(norm);
+        // ---- グローバル勾配クリッピング（全層の勾配ノルムを計算） ----
+        float normSq = MatNormSq(dWShared) + VecNormSq(dBSharedArr);
+        for (int h = 0; h < NumHeads; h++)
+        {
+            normSq += MatNormSq(allDWHead[h]) + VecNormSq(allDBHead[h]);
+            normSq += MatNormSq(allDWOut[h]) + VecNormSq(allDBOut[h]);
+        }
+        float norm = Mathf.Sqrt(normSq);
         if (norm > GradClipNorm)
         {
             float scale = GradClipNorm / norm;
             ScaleMat(dWShared, scale);
             ScaleVec(dBSharedArr, scale);
+            for (int h = 0; h < NumHeads; h++)
+            {
+                ScaleMat(allDWHead[h], scale);
+                ScaleVec(allDBHead[h], scale);
+                ScaleMat(allDWOut[h], scale);
+                ScaleVec(allDBOut[h], scale);
+            }
         }
 
-        // Adam更新 (共有層)
+        // Adam更新 (全層)
         AdamUpdate(WShared, dWShared, MWShared, VWShared);
         AdamUpdateBias(BShared, dBSharedArr, MBShared, VBShared);
+        for (int h = 0; h < NumHeads; h++)
+        {
+            AdamUpdate(WHead[h], allDWHead[h], MWHead[h], VWHead[h]);
+            AdamUpdate(WOut[h], allDWOut[h], MWOut[h], VWOut[h]);
+            AdamUpdateBias(BHead[h], allDBHead[h], MBHead[h], VBHead[h]);
+            AdamUpdateBias(BOut[h], allDBOut[h], MBOut[h], VBOut[h]);
+        }
 
         LastLoss = totalLoss / NumHeads;
+        _isTraining = false;
         return LastLoss;
     }
 

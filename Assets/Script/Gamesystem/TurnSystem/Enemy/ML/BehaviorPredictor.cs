@@ -34,6 +34,17 @@ public class BehaviorPredictor
     float[] _lastOutput;
     float _learningRate = 0.005f;
 
+    // ---- モメンタムSGD ----
+    float _momentum = 0.9f;
+    float[,] _vw1;  // モメンタム: w1
+    float[] _vb1;   // モメンタム: b1
+    float[,] _vw2;  // モメンタム: w2
+    float[] _vb2;   // モメンタム: b2
+
+    // ---- タイミング学習用 ----
+    int _lastAttackTurn = -1;
+    int _turnsSinceLastAttack = 0;
+
     // ---- 直近の行動系列 ----
     List<ObservedAction> _recentActions = new List<ObservedAction>();
     const int MaxRecentActions = 8;
@@ -96,6 +107,12 @@ public class BehaviorPredictor
         for (int i = 0; i < HiddenSize; i++)
             for (int j = 0; j < OutputSize; j++)
                 _w2[i, j] = (float)NextGaussian() * scale2;
+
+        // モメンタムバッファ初期化
+        _vw1 = new float[InputSize, HiddenSize];
+        _vb1 = new float[HiddenSize];
+        _vw2 = new float[HiddenSize, OutputSize];
+        _vb2 = new float[OutputSize];
     }
 
     // ================================================================
@@ -165,7 +182,7 @@ public class BehaviorPredictor
         for (int i = 0; i < 6; i++)
             target[i] = (i == actualActionCode) ? 1f : 0f;
 
-        // 方向
+        // 方向（直前の行動位置からの相対方向）
         if (_recentActions.Count >= 2)
         {
             var last = _recentActions[_recentActions.Count - 1];
@@ -176,8 +193,28 @@ public class BehaviorPredictor
             target[7] = dir.z;
         }
 
-        target[8] = Vector3.Distance(actualPosition, Vector3.zero) / 10f; // 正規化
-        target[9] = 0f; // タイミングは後で更新
+        // 距離（直前位置からの移動距離を正規化）
+        if (_recentActions.Count >= 2)
+        {
+            var prev = _recentActions[_recentActions.Count - 2];
+            Vector3 prevPos = new Vector3(prev.Position.x, 0, prev.Position.z);
+            target[8] = Mathf.Clamp01(Vector3.Distance(actualPosition, prevPos) / 10f);
+        }
+        else
+        {
+            target[8] = 0.5f; // 初回はデフォルト値
+        }
+
+        // タイミング（攻撃間隔を学習）
+        if (actualActionCode == 0) // 攻撃行動
+        {
+            if (_lastAttackTurn >= 0)
+                _turnsSinceLastAttack = _recentActions.Count > 0
+                    ? _recentActions[_recentActions.Count - 1].Turn - _lastAttackTurn : 0;
+            _lastAttackTurn = _recentActions.Count > 0
+                ? _recentActions[_recentActions.Count - 1].Turn : 0;
+        }
+        target[9] = Mathf.Clamp01(_turnsSinceLastAttack / 10f);
 
         // 正解判定
         int predictedAction = 0;
@@ -290,7 +327,7 @@ public class BehaviorPredictor
     }
 
     // ================================================================
-    //  逆伝播（単純SGD）
+    //  逆伝播（モメンタムSGD + 勾配クリッピング）
     // ================================================================
     void Backward(float[] target)
     {
@@ -299,25 +336,40 @@ public class BehaviorPredictor
         for (int j = 0; j < OutputSize; j++)
             dOut[j] = _lastOutput[j] - target[j];
 
-        // Hidden → Output の勾配
+        // 勾配ノルム計算（クリッピング用）
+        float gradNorm = 0f;
+        for (int j = 0; j < OutputSize; j++) gradNorm += dOut[j] * dOut[j];
+        gradNorm = Mathf.Sqrt(gradNorm);
+        float clipScale = (gradNorm > 3f) ? 3f / gradNorm : 1f;
+        for (int j = 0; j < OutputSize; j++) dOut[j] *= clipScale;
+
+        // Hidden → Output の勾配 (モメンタムSGD)
         float[] dA1 = new float[HiddenSize];
         for (int j = 0; j < OutputSize; j++)
         {
-            _b2[j] -= _learningRate * dOut[j];
+            _vb2[j] = _momentum * _vb2[j] + _learningRate * dOut[j];
+            _b2[j] -= _vb2[j];
             for (int i = 0; i < HiddenSize; i++)
             {
                 dA1[i] += _w2[i, j] * dOut[j];
-                _w2[i, j] -= _learningRate * _a1[i] * dOut[j];
+                float grad = _a1[i] * dOut[j];
+                _vw2[i, j] = _momentum * _vw2[i, j] + _learningRate * grad;
+                _w2[i, j] -= _vw2[i, j];
             }
         }
 
-        // Input → Hidden の勾配 (ReLU)
+        // Input → Hidden の勾配 (ReLU + モメンタム)
         for (int j = 0; j < HiddenSize; j++)
         {
             float dz = _a1[j] > 0 ? dA1[j] : 0;
-            _b1[j] -= _learningRate * dz;
+            _vb1[j] = _momentum * _vb1[j] + _learningRate * dz;
+            _b1[j] -= _vb1[j];
             for (int i = 0; i < InputSize; i++)
-                _w1[i, j] -= _learningRate * _lastInput[i] * dz;
+            {
+                float grad = _lastInput[i] * dz;
+                _vw1[i, j] = _momentum * _vw1[i, j] + _learningRate * grad;
+                _w1[i, j] -= _vw1[i, j];
+            }
         }
     }
 

@@ -69,12 +69,19 @@ public class CounterStrategyEngine
     CounterModifiers _modifiers;
     float _planConfidence = 0f;
 
+    // ---- マルチプラン・ブレンド ----
+    Dictionary<CounterPlan, float> _planScores = new Dictionary<CounterPlan, float>();
+    Dictionary<CounterPlan, float> _planEffectiveness = new Dictionary<CounterPlan, float>();
+    CounterPlan _secondaryPlan = CounterPlan.None;
+    float _blendRatio = 0f;  // 0=プライマリのみ, 1=50/50ブレンド
+
     // ---- 危険位置の予測 ----
     HashSet<Vector3Int> _predictedDangerZones = new HashSet<Vector3Int>();
     HashSet<Vector3Int> _predictedSafeZones = new HashSet<Vector3Int>();
 
     // ---- アクセサ ----
     public CounterPlan CurrentPlan => _currentPlan;
+    public CounterPlan SecondaryPlan => _secondaryPlan;
     public CounterModifiers Modifiers => _modifiers;
     public float PlanConfidence => _planConfidence;
     public HashSet<Vector3Int> PredictedDangerZones => _predictedDangerZones;
@@ -88,6 +95,7 @@ public class CounterStrategyEngine
         if (profile == null || profile.Confidence < 0.1f)
         {
             _currentPlan = CounterPlan.None;
+            _secondaryPlan = CounterPlan.None;
             _modifiers = new CounterModifiers();
             _planConfidence = 0f;
             return;
@@ -95,60 +103,107 @@ public class CounterStrategyEngine
 
         _planConfidence = profile.Confidence;
 
-        // ---- 最も顕著な特徴を検出 ----
-        float maxTrait = 0f;
+        // ---- 全プランのスコアを算出（マルチプラン・ブレンド） ----
+        _planScores.Clear();
+        _planScores[CounterPlan.AntiRush] = profile.RushTendency;
+        _planScores[CounterPlan.AntiTurtle] = profile.TurtleTendency;
+        _planScores[CounterPlan.AntiFlank] = profile.FlankPreference;
+        _planScores[CounterPlan.AntiCrystalRush] = profile.CrystalFocusTendency;
+        _planScores[CounterPlan.AntiEconomy] = profile.EconomyFocus;
+        _planScores[CounterPlan.AntiBait] = profile.TargetWeakestTendency;
+        _planScores[CounterPlan.Adaptive] = 0.25f; // ベースラインスコア
+
+        // 有効性履歴があれば反映（過去に効いたプランを優遇）
+        foreach (var kvp in _planEffectiveness)
+        {
+            if (_planScores.ContainsKey(kvp.Key))
+                _planScores[kvp.Key] = _planScores[kvp.Key] * 0.7f + kvp.Value * 0.3f;
+        }
+
+        // ---- 上位2プランを選択してブレンド ----
         CounterPlan bestPlan = CounterPlan.Adaptive;
+        CounterPlan secondPlan = CounterPlan.None;
+        float bestScore = 0f;
+        float secondScore = 0f;
 
-        // ラッシュ傾向が高い → 対ラッシュ
-        if (profile.RushTendency > maxTrait && profile.RushTendency > 0.5f)
+        foreach (var kvp in _planScores)
         {
-            maxTrait = profile.RushTendency;
-            bestPlan = CounterPlan.AntiRush;
+            if (kvp.Value > bestScore)
+            {
+                secondScore = bestScore;
+                secondPlan = bestPlan;
+                bestScore = kvp.Value;
+                bestPlan = kvp.Key;
+            }
+            else if (kvp.Value > secondScore)
+            {
+                secondScore = kvp.Value;
+                secondPlan = kvp.Key;
+            }
         }
 
-        // 亀傾向が高い → 対亀
-        if (profile.TurtleTendency > maxTrait && profile.TurtleTendency > 0.4f)
-        {
-            maxTrait = profile.TurtleTendency;
-            bestPlan = CounterPlan.AntiTurtle;
-        }
-
-        // 側面攻撃好き → 対側面
-        if (profile.FlankPreference > maxTrait && profile.FlankPreference > 0.4f)
-        {
-            maxTrait = profile.FlankPreference;
-            bestPlan = CounterPlan.AntiFlank;
-        }
-
-        // クリスタル直行 → 対クリスタル
-        if (profile.CrystalFocusTendency > maxTrait && profile.CrystalFocusTendency > 0.6f)
-        {
-            maxTrait = profile.CrystalFocusTendency;
-            bestPlan = CounterPlan.AntiCrystalRush;
-        }
-
-        // 経済重視 → 速攻
-        if (profile.EconomyFocus > maxTrait && profile.EconomyFocus > 0.5f)
-        {
-            maxTrait = profile.EconomyFocus;
-            bestPlan = CounterPlan.AntiEconomy;
-        }
-
-        // 弱い駒を狙う → 囮戦術
-        if (profile.TargetWeakestTendency > maxTrait && profile.TargetWeakestTendency > 0.5f)
-        {
-            maxTrait = profile.TargetWeakestTendency;
-            bestPlan = CounterPlan.AntiBait;
-        }
+        // 閾値チェック: 最低0.3以上のスコアが必要
+        if (bestScore < 0.3f)
+            bestPlan = CounterPlan.Adaptive;
 
         _currentPlan = bestPlan;
-        _modifiers = BuildModifiers(bestPlan, profile, board, turn);
+        _secondaryPlan = secondPlan;
+
+        // ブレンド比率: 2位が1位に近いほどブレンドを強める
+        _blendRatio = (bestScore > 0.01f) ? Mathf.Clamp01(secondScore / bestScore) * 0.4f : 0f;
+
+        // プライマリ+セカンダリの修正値をブレンド
+        var primaryMod = BuildModifiers(bestPlan, profile, board, turn);
+        if (_blendRatio > 0.05f && secondPlan != CounterPlan.None)
+        {
+            var secondaryMod = BuildModifiers(secondPlan, profile, board, turn);
+            _modifiers = BlendModifiers(primaryMod, secondaryMod, _blendRatio);
+        }
+        else
+        {
+            _modifiers = primaryMod;
+        }
 
         // 危険ゾーン予測
         PredictDangerZones(profile, board);
 
-        Debug.Log($"[CounterStrategy] 方針={bestPlan}  信頼度={_planConfidence:F2}  " +
-                  $"修正={_modifiers}");
+        Debug.Log($"[CounterStrategy] 方針={bestPlan}({bestScore:F2})+{secondPlan}({secondScore:F2})  " +
+                  $"ブレンド={_blendRatio:F2}  信頼度={_planConfidence:F2}  修正={_modifiers}");
+    }
+
+    /// <summary>プラン有効性を記録（試合終了時にMLIntegrationから呼ぶ）</summary>
+    public void RecordPlanEffectiveness(bool aiWon)
+    {
+        float delta = aiWon ? 0.1f : -0.1f;
+        if (_planEffectiveness.ContainsKey(_currentPlan))
+            _planEffectiveness[_currentPlan] = Mathf.Clamp01(_planEffectiveness[_currentPlan] + delta);
+        else
+            _planEffectiveness[_currentPlan] = Mathf.Clamp01(0.5f + delta);
+    }
+
+    /// <summary>2つの修正値をブレンド</summary>
+    CounterModifiers BlendModifiers(CounterModifiers a, CounterModifiers b, float ratio)
+    {
+        float r1 = 1f - ratio;
+        float r2 = ratio;
+        return new CounterModifiers
+        {
+            AttackBonus = a.AttackBonus * r1 + b.AttackBonus * r2,
+            DefenseBonus = a.DefenseBonus * r1 + b.DefenseBonus * r2,
+            BuildBonus = a.BuildBonus * r1 + b.BuildBonus * r2,
+            RetreatBonus = a.RetreatBonus * r1 + b.RetreatBonus * r2,
+            SurroundBonus = a.SurroundBonus * r1 + b.SurroundBonus * r2,
+            SummonBonus = a.SummonBonus * r1 + b.SummonBonus * r2,
+            WallBuildBonus = a.WallBuildBonus * r1 + b.WallBuildBonus * r2,
+            ScoutBonus = a.ScoutBonus * r1 + b.ScoutBonus * r2,
+            SkillBonus = a.SkillBonus * r1 + b.SkillBonus * r2,
+            CrystalGuardBonus = a.CrystalGuardBonus * r1 + b.CrystalGuardBonus * r2,
+            FlankCoverBonus = a.FlankCoverBonus * r1 + b.FlankCoverBonus * r2,
+            AggressiveAdvance = a.AggressiveAdvance * r1 + b.AggressiveAdvance * r2,
+            PreferGuardian = a.PreferGuardian * r1 + b.PreferGuardian * r2,
+            PreferScout = a.PreferScout * r1 + b.PreferScout * r2,
+            PreferAssassin = a.PreferAssassin * r1 + b.PreferAssassin * r2,
+        };
     }
 
     // ================================================================
@@ -376,7 +431,8 @@ public class CounterStrategyEngine
             bonus += flankCover * _modifiers.FlankCoverBonus;
         }
 
-        return bonus * _planConfidence;
+        // 信頼度はBuildModifiers時点で既にスケーリング済み → 二重適用しない
+        return bonus;
     }
 
     // ================================================================

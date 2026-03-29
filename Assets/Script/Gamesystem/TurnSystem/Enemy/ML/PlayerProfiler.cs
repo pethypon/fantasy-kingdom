@@ -442,10 +442,20 @@ public class PlayerProfiler
         _totalMatches++;
         UpdateProfile();
 
-        // 試合中データをリセット（累積統計は保持）
+        // 試合中データをリセット（プロファイルは保持、生データはクリア）
+        // 古い試合のデータが新しい試合のプロファイリングを汚染するのを防止
         _firstAttackTurn = -1;
         _currentTurnAttacks = 0;
         _currentTurnDamage = 0;
+
+        // 生データを半分だけ保持（最新の半分のみ残す）
+        // これにより長期傾向を維持しつつ、プレイヤーのスタイル変化に追従
+        if (_attackHistory.Count > 50)
+            _attackHistory.RemoveRange(0, _attackHistory.Count / 2);
+        if (_moveHistory.Count > 50)
+            _moveHistory.RemoveRange(0, _moveHistory.Count / 2);
+        if (_turnSnapshots.Count > 30)
+            _turnSnapshots.RemoveRange(0, _turnSnapshots.Count / 2);
     }
 
     // ================================================================
