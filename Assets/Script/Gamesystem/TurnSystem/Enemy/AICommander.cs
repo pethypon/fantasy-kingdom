@@ -58,6 +58,9 @@ public class AICommander
     readonly SkillSystem _skillSystem;
     readonly SubCrystalSystem _subCrystalSystem;
 
+    // ---- 機械学習AI (脅威度20以降で有効) ----
+    readonly MLIntegration _mlIntegration;
+
     // 統計（動作確認用）
     struct TurnStats
     {
@@ -116,6 +119,7 @@ public class AICommander
 
         _personality = new AIPersonality(major);
         _learning = new AILearning(major == MajorPersonality.Growth);
+        _mlIntegration = new MLIntegration(initialThreatLevel, major, randomSeed);
 
         // 新システム初期化
         _roleAssigner = new AIRoleAssigner();
@@ -139,6 +143,7 @@ public class AICommander
         Debug.Log($"[AICommander] 探索={(_threatLevel.UseSearchEngine ? $"有効(深さ{_threatLevel.SearchDepth})" : "無効")}  " +
                   $"ロール={(_threatLevel.UseRoleAssignment ? "有効" : "無効")}  " +
                   $"学習率={_threatLevel.LearningRate:F1}  シード={_rng.Seed}");
+        Debug.Log($"[AICommander] {_mlIntegration.GetDebugInfo()}");
         Debug.Log("=== [AICommander] ==============================");
     }
 
@@ -148,6 +153,7 @@ public class AICommander
     public AIThreatLevel ThreatLevel => _threatLevel;
     public AIRoleAssigner RoleAssigner => _roleAssigner;
     public TurnStrategyPlanner StrategyPlanner => _strategyPlanner;
+    public MLIntegration MLIntegration => _mlIntegration;
 
     // ---- セーブ/ロード用アクセサ ----
     public int SaveTotalMoves    { get => _totalStats.Moves;    set => _totalStats.Moves = value; }
@@ -356,6 +362,9 @@ public class AICommander
         // 決定論的乱数のターンシード設定
         _rng.SetTurnSeed(_turnCount);
 
+        // 機械学習AIのターン開始通知
+        _mlIntegration.OnTurnStart(_currentStrategy, _threatLevel.Level);
+
         // ロール割当（脅威度が通常知能以上で有効）
         if (_threatLevel.UseRoleAssignment)
         {
@@ -454,6 +463,9 @@ public class AICommander
             {
                 action.Score += _threatLevel.GetThreatBonus(action, _board);
             }
+
+            // ---- 機械学習AIスコア適用（脅威度20以上で有効） ----
+            _mlIntegration.EvaluateActions(actions, _board);
 
             // ---- ロールボーナス適用（脅威度が通常知能以上で有効） ----
             if (_threatLevel.UseRoleAssignment)
@@ -580,6 +592,9 @@ public class AICommander
 
             turnStats.Record(bestAction.ActionType);
 
+            // 機械学習AI: 成功した行動を記録
+            _mlIntegration.RecordAction(bestAction, _board, true, _turnCount);
+
             if (bestAction.Unit != null)
                 _actedUnits.Add(bestAction.Unit);
         }
@@ -617,6 +632,10 @@ public class AICommander
     public void RecordMatchResult(bool playerWon, MatchAnalysis analysis)
     {
         _threatLevel.RecordMatchResult(playerWon, analysis);
+
+        // 機械学習AIの試合終了学習
+        _mlIntegration.OnMatchEnd(playerWon, analysis);
+        _mlIntegration.UpdateThreatLevel(_threatLevel.Level);
     }
 
     // ================================================================
