@@ -267,6 +267,13 @@ public class UnitClick : MonoBehaviour
         playermove.MenuSwitch = false;
         turngenerater.apsystem.ConsumeSkill(Team.Player, skill.APCost, playermove.Obj);
         playerattack.AttackSuccess = true;
+
+        // ---- ML観測: プレイヤーのスキル使用をMLシステムに記録 ----
+        if (turngenerater.aiCommander != null)
+        {
+            turngenerater.aiCommander.MLIntegration.ObservePlayerSkill(
+                playermove.Obj, turngenerater.Turn);
+        }
     }
 
     // ---- 範囲スキル: エリア内の敵を収集 ----
@@ -353,6 +360,14 @@ public class UnitClick : MonoBehaviour
 
         // ---- アクションログ ----
         ActionLogUI.LogMove(KindNameJP.Get(movedUnit.kind), from, to);
+
+        // ---- ML観測: プレイヤーの移動をMLシステムに記録 ----
+        if (turngenerater.aiCommander != null)
+        {
+            var ml = turngenerater.aiCommander.MLIntegration;
+            Vector3 ecPos = turngenerater.crystalsystem.ECP;
+            ml.ObservePlayerMove(movedUnit, from, to, ecPos, turngenerater.Turn);
+        }
 
         // 移動後もユニットを選択状態に保持（攻撃など連続行動を可能に）
         turngenerater.OldCell = to;

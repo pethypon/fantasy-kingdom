@@ -171,6 +171,14 @@ public class SummonSystem : MonoBehaviour
 
         PlaceUnit(lastCursorPos, SelectedKind);
         ConsumeSummon(Team.Player, SelectedKind);
+
+        // ---- ML観測: プレイヤーの召喚をMLシステムに記録 ----
+        if (turngenerater != null && turngenerater.aiCommander != null)
+        {
+            Vector3 summonPos = new Vector3(lastCursorPos.x, 0, lastCursorPos.z);
+            turngenerater.aiCommander.MLIntegration.ObservePlayerBuild(summonPos, turngenerater.Turn);
+        }
+
         CancelSummonMode();
         return true;
     }

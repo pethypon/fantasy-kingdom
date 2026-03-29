@@ -27,6 +27,11 @@ public static class SaveSystem
         public int TotalWins = 0;
         public int TotalLosses = 0;
         public List<MatchAnalysisData> MatchHistory = new List<MatchAnalysisData>();
+
+        // 機械学習AI通算データ
+        public int MLTotalMatchesTrained = 0;
+        public int MLTotalTrainingSteps = 0;
+        public bool MLWeightsExist = false;
     }
 
     [Serializable]
@@ -195,6 +200,11 @@ public static class SaveSystem
         public List<CellCountData> RouteFailure = new List<CellCountData>();
         public float LearningCaution, LearningCommand, LearningTactics;
         public float LearningDefense, LearningDevelop;
+
+        // 機械学習AI状態
+        public bool MLActive;
+        public int MLTotalMatchesTrained;
+        public float MLAverageLoss;
     }
 
     [Serializable]
@@ -579,6 +589,12 @@ public static class SaveSystem
         CollectCellCountDict(learning.SavePlayerDefensePositions, dst.PlayerDefensePositions);
         CollectCellCountDict(learning.SaveRouteSuccess, dst.RouteSuccess);
         CollectCellCountDict(learning.SaveRouteFailure, dst.RouteFailure);
+
+        // 機械学習AI状態
+        var ml = commander.MLIntegration;
+        dst.MLActive = ml.IsActive;
+        dst.MLTotalMatchesTrained = ml.TotalMatchesTrained;
+        dst.MLAverageLoss = ml.AverageLoss;
     }
 
     static void CollectCellCountDict(Dictionary<Vector3Int, int> src, List<CellCountData> dst)

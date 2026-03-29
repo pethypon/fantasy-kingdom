@@ -256,6 +256,40 @@ public class AIThreatLevel
     }
 
     // ================================================================
+    //  機械学習パラメータ（脅威���20以降で使用）
+    // ================================================================
+
+    /// <summary>ML機械学習が有効かどうか</summary>
+    public bool UseMLBrain => Level >= NormalEnd;
+
+    /// <summary>
+    /// MLオンライン学習が有効かどうか（脅威度50以上でターン中に即座に学習）
+    /// </summary>
+    public bool UseOnlineLearning => Level >= 50;
+
+    /// <summary>
+    /// ML探索統合が有効かどうか（脅威度30以上で3手先探索にML評価を統合）
+    /// </summary>
+    public bool UseMLSearchIntegration => Level >= HardEnd;
+
+    /// <summary>
+    /// MLスコアの影響力倍率 (0.0〜2.0)
+    /// 脅威度が高いほどMLの判断を重視する
+    /// </summary>
+    public float MLInfluence
+    {
+        get
+        {
+            if (Level < NormalEnd) return 0f;
+            if (Level <= 25) return 0.3f;
+            if (Level <= 35) return 0.5f;
+            if (Level <= 50) return 0.8f;
+            if (Level <= 70) return 1.2f;
+            return Mathf.Lerp(1.5f, 2.0f, (Level - 70f) / (MaxLevel - 70f));
+        }
+    }
+
+    // ================================================================
     //  試合結果の記録と脅威度進行
     // ================================================================
 
