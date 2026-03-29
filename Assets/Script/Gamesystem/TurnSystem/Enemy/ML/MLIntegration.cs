@@ -401,13 +401,15 @@ public class MLIntegration
             // 順伝播 + 逆伝播
             _brain.Forward(input);
 
-            // ターゲットもわずかに摂動（過学習防止）
-            float noise = (float)(_exploreRng.NextDouble() * 0.1 - 0.05);
-            float t = Mathf.Clamp(exp.TDTarget + noise, -1f, 1f);
+            // ターゲットもわずかに摂動（ヘッド別に独立ノイズ、過学習防止）
+            float t = exp.TDTarget;
+            float n0 = (float)(_exploreRng.NextDouble() * 0.1 - 0.05);
+            float n1 = (float)(_exploreRng.NextDouble() * 0.1 - 0.05);
+            float n2 = (float)(_exploreRng.NextDouble() * 0.1 - 0.05);
             float[] targets = new float[] {
-                Mathf.Clamp(t * 0.9f, -1f, 1f),   // Strategy（やや保守的）
-                Mathf.Clamp(t * 1.1f, -1f, 1f),   // Tactics（やや積極的）
-                Mathf.Clamp(t * 0.8f, -1f, 1f)    // Economy（さらに保守的）
+                Mathf.Clamp((t + n0) * 0.9f, -1f, 1f),   // Strategy（やや保守的）
+                Mathf.Clamp((t + n1) * 1.1f, -1f, 1f),   // Tactics（やや積極的）
+                Mathf.Clamp((t + n2) * 0.8f, -1f, 1f)    // Economy（さらに保守的）
             };
             _brain.Backward(targets);
         }

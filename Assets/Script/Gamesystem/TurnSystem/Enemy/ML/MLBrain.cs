@@ -336,13 +336,13 @@ public class MLBrain
                 dAHead[i] = WOut[h][i, 0] * dOutZ;
             }
 
-            // Head Hidden勾配 (Dropoutマスク反映)
+            // Head Hidden勾配 (Dropoutマスク反映: inverted dropoutと同じスケール)
             var dZHead = new float[HeadHiddenSize];
             for (int j = 0; j < HeadHiddenSize; j++)
             {
                 float mask = (_dropoutMaskHead != null && _dropoutMaskHead[h] != null)
                     ? _dropoutMaskHead[h][j] : 1f;
-                dZHead[j] = dAHead[j] * ReLUDeriv(_zHead[h][j]) * (mask > 0f ? 1f : 0f);
+                dZHead[j] = dAHead[j] * ReLUDeriv(_zHead[h][j]) * mask;
             }
 
             var dWHead = new float[SharedHiddenSize, HeadHiddenSize];
@@ -363,12 +363,12 @@ public class MLBrain
             allDBOut[h] = dBOut;
         }
 
-        // 共有層勾配 (Dropoutマスク反映)
+        // 共有層勾配 (Dropoutマスク反映: inverted dropoutと同じスケール)
         var dZShared = new float[SharedHiddenSize];
         for (int j = 0; j < SharedHiddenSize; j++)
         {
             float mask = (_dropoutMaskShared != null) ? _dropoutMaskShared[j] : 1f;
-            dZShared[j] = dAShared[j] * ReLUDeriv(_zShared[j]) * (mask > 0f ? 1f : 0f);
+            dZShared[j] = dAShared[j] * ReLUDeriv(_zShared[j]) * mask;
         }
 
         var dWShared = new float[InputSize, SharedHiddenSize];
