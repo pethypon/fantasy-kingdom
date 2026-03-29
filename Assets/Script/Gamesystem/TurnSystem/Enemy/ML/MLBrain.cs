@@ -2,52 +2,65 @@ using System;
 using UnityEngine;
 
 // =====================================================================
-//  MLBrain — 純C#ニューラルネットワーク
-//  盤面特徴ベクトルから行動価値を予測する。
-//  構造: Input(64) → Hidden1(128,ReLU) → Hidden2(64,ReLU) → Output(1,Tanh)
+//  MLBrain — マルチヘッドニューラルネットワーク（書き直し版）
 //
-//  脅威度20以降で有効化。戦うたびに学習し、より強くなる。
-//  Xavier初期化 + Adam最適化 + 経験再生で安定学習。
+//  旧: Input(64)→Hidden→Output(1) の単一評価
+//  新: Input(80)→SharedHidden(128)→3つの専門ヘッド
+//       ├─ StrategyHead(32→1): 戦略的価値（長期的な勝率予測）
+//       ├─ TacticsHead(32→1):  戦術的価値（即時の有利不利）
+//       └─ EconomyHead(32→1):  経済的価値（資源・生産効率）
+//
+//  3つのヘッドの重み付き合計が最終スコア。
+//  脅威度に応じて各ヘッドの重みが動的に変化する。
+//  プレイヤープロファイル16次元も入力に含む(64盤面+16プロファイル=80)。
+//
+//  Xavier初期化 + Adam最適化 + 勾配クリッピング + L2正則化。
 // =====================================================================
 public class MLBrain
 {
     // ---- ネットワーク構成 ----
-    public const int InputSize  = 64;   // MLFeatureExtractor が出力する特徴数
-    const int Hidden1Size = 128;
-    const int Hidden2Size = 64;
-    const int OutputSize  = 1;
+    public const int InputSize  = 80;   // 盤面64 + プロファイル16
+    const int SharedHiddenSize = 128;
+    const int HeadHiddenSize = 32;
+    const int HeadOutputSize = 1;
+    public const int NumHeads = 3;      // Strategy, Tactics, Economy
 
-    // ---- 重み・バイアス ----
-    // Layer 1: Input → Hidden1
-    public float[,] W1;   // [InputSize, Hidden1Size]
-    public float[]  B1;   // [Hidden1Size]
-    // Layer 2: Hidden1 → Hidden2
-    public float[,] W2;   // [Hidden1Size, Hidden2Size]
-    public float[]  B2;   // [Hidden2Size]
-    // Layer 3: Hidden2 → Output
-    public float[,] W3;   // [Hidden2Size, OutputSize]
-    public float[]  B3;   // [OutputSize]
+    // ---- 共有層: Input → SharedHidden ----
+    public float[,] WShared;    // [InputSize, SharedHiddenSize]
+    public float[]  BShared;    // [SharedHiddenSize]
 
-    // ---- Adam最適化器の状態 ----
-    // (M = 1st moment, V = 2nd moment for each parameter)
-    public float[,] MW1, VW1, MW2, VW2, MW3, VW3;
-    public float[]  MB1, VB1, MB2, VB2, MB3, VB3;
+    // ---- ヘッド別パラメータ [head][...] ----
+    // Head Hidden: SharedHidden → HeadHidden
+    public float[][,] WHead;    // [NumHeads][SharedHiddenSize, HeadHiddenSize]
+    public float[][] BHead;     // [NumHeads][HeadHiddenSize]
+    // Head Output: HeadHidden → Output
+    public float[][,] WOut;     // [NumHeads][HeadHiddenSize, HeadOutputSize]
+    public float[][] BOut;      // [NumHeads][HeadOutputSize]
+
+    // ---- Adam状態 ----
+    public float[,] MWShared, VWShared;
+    public float[] MBShared, VBShared;
+    public float[][,] MWHead, VWHead, MWOut, VWOut;
+    public float[][] MBHead, VBHead, MBOut, VBOut;
     public int AdamStep;
 
-    // ---- 中間値キャッシュ（Forward時に保存、Backward時に使用） ----
+    // ---- 中間値キャッシュ ----
     float[] _lastInput;
-    float[] _z1, _a1;   // Hidden1 pre/post activation
-    float[] _z2, _a2;   // Hidden2 pre/post activation
-    float[] _z3;         // Output pre activation
-    float   _lastOutput;
+    float[] _zShared, _aShared;
+    float[][] _zHead, _aHead;  // [NumHeads][HeadHiddenSize]
+    float[][] _zOut;            // [NumHeads][HeadOutputSize]
+    float[] _headOutputs;       // [NumHeads]
 
     // ---- ハイパーパラメータ ----
     public float LearningRate = 0.001f;
     public float AdamBeta1 = 0.9f;
     public float AdamBeta2 = 0.999f;
     public float AdamEpsilon = 1e-8f;
-    public float L2Lambda = 1e-4f;       // L2正則化
-    public float GradClipNorm = 5.0f;    // 勾配クリッピング
+    public float L2Lambda = 1e-4f;
+    public float GradClipNorm = 5.0f;
+
+    // ---- ヘッド重み（脅威度で動的に変化） ----
+    public float[] HeadWeights = { 0.4f, 0.4f, 0.2f }; // Strategy, Tactics, Economy
 
     // ---- 乱数 ----
     System.Random _rng;
@@ -55,6 +68,7 @@ public class MLBrain
     // ---- 統計 ----
     public int TotalTrainingSteps { get; private set; }
     public float LastLoss { get; private set; }
+    public float[] LastHeadOutputs => _headOutputs;
 
     public MLBrain(int seed = -1)
     {
@@ -68,12 +82,51 @@ public class MLBrain
     // ================================================================
     void InitializeWeights()
     {
-        W1 = XavierInit(InputSize, Hidden1Size);
-        B1 = new float[Hidden1Size];
-        W2 = XavierInit(Hidden1Size, Hidden2Size);
-        B2 = new float[Hidden2Size];
-        W3 = XavierInit(Hidden2Size, OutputSize);
-        B3 = new float[OutputSize];
+        WShared = XavierInit(InputSize, SharedHiddenSize);
+        BShared = new float[SharedHiddenSize];
+
+        WHead = new float[NumHeads][,];
+        BHead = new float[NumHeads][];
+        WOut = new float[NumHeads][,];
+        BOut = new float[NumHeads][];
+
+        for (int h = 0; h < NumHeads; h++)
+        {
+            WHead[h] = XavierInit(SharedHiddenSize, HeadHiddenSize);
+            BHead[h] = new float[HeadHiddenSize];
+            WOut[h] = XavierInit(HeadHiddenSize, HeadOutputSize);
+            BOut[h] = new float[HeadOutputSize];
+        }
+    }
+
+    void InitializeAdam()
+    {
+        MWShared = new float[InputSize, SharedHiddenSize];
+        VWShared = new float[InputSize, SharedHiddenSize];
+        MBShared = new float[SharedHiddenSize];
+        VBShared = new float[SharedHiddenSize];
+
+        MWHead = new float[NumHeads][,];
+        VWHead = new float[NumHeads][,];
+        MWOut = new float[NumHeads][,];
+        VWOut = new float[NumHeads][,];
+        MBHead = new float[NumHeads][];
+        VBHead = new float[NumHeads][];
+        MBOut = new float[NumHeads][];
+        VBOut = new float[NumHeads][];
+
+        for (int h = 0; h < NumHeads; h++)
+        {
+            MWHead[h] = new float[SharedHiddenSize, HeadHiddenSize];
+            VWHead[h] = new float[SharedHiddenSize, HeadHiddenSize];
+            MWOut[h] = new float[HeadHiddenSize, HeadOutputSize];
+            VWOut[h] = new float[HeadHiddenSize, HeadOutputSize];
+            MBHead[h] = new float[HeadHiddenSize];
+            VBHead[h] = new float[HeadHiddenSize];
+            MBOut[h] = new float[HeadOutputSize];
+            VBOut[h] = new float[HeadOutputSize];
+        }
+        AdamStep = 0;
     }
 
     float[,] XavierInit(int fanIn, int fanOut)
@@ -86,27 +139,9 @@ public class MLBrain
         return w;
     }
 
-    void InitializeAdam()
-    {
-        MW1 = new float[InputSize, Hidden1Size];
-        VW1 = new float[InputSize, Hidden1Size];
-        MW2 = new float[Hidden1Size, Hidden2Size];
-        VW2 = new float[Hidden1Size, Hidden2Size];
-        MW3 = new float[Hidden2Size, OutputSize];
-        VW3 = new float[Hidden2Size, OutputSize];
-        MB1 = new float[Hidden1Size];
-        VB1 = new float[Hidden1Size];
-        MB2 = new float[Hidden2Size];
-        VB2 = new float[Hidden2Size];
-        MB3 = new float[OutputSize];
-        VB3 = new float[OutputSize];
-        AdamStep = 0;
-    }
-
     // ================================================================
-    //  Forward — 順伝播
-    //  入力: 特徴ベクトル float[InputSize]
-    //  出力: 行動価値 float (-1 ～ +1)
+    //  Forward — 順伝播（学習用、キャッシュ保持）
+    //  戻り値: 3ヘッドの重み付き合計 (-1 ～ +1)
     // ================================================================
     public float Forward(float[] input)
     {
@@ -115,112 +150,255 @@ public class MLBrain
 
         _lastInput = input;
 
-        // Layer 1: Input → Hidden1 (ReLU)
-        _z1 = new float[Hidden1Size];
-        _a1 = new float[Hidden1Size];
-        for (int j = 0; j < Hidden1Size; j++)
+        // 共有隠れ層 (ReLU)
+        _zShared = new float[SharedHiddenSize];
+        _aShared = new float[SharedHiddenSize];
+        for (int j = 0; j < SharedHiddenSize; j++)
         {
-            float sum = B1[j];
+            float sum = BShared[j];
             for (int i = 0; i < InputSize; i++)
-                sum += input[i] * W1[i, j];
-            _z1[j] = sum;
-            _a1[j] = ReLU(sum);
+                sum += input[i] * WShared[i, j];
+            _zShared[j] = sum;
+            _aShared[j] = ReLU(sum);
         }
 
-        // Layer 2: Hidden1 → Hidden2 (ReLU)
-        _z2 = new float[Hidden2Size];
-        _a2 = new float[Hidden2Size];
-        for (int j = 0; j < Hidden2Size; j++)
+        // 各ヘッド
+        _zHead = new float[NumHeads][];
+        _aHead = new float[NumHeads][];
+        _zOut = new float[NumHeads][];
+        _headOutputs = new float[NumHeads];
+
+        for (int h = 0; h < NumHeads; h++)
         {
-            float sum = B2[j];
-            for (int i = 0; i < Hidden1Size; i++)
-                sum += _a1[i] * W2[i, j];
-            _z2[j] = sum;
-            _a2[j] = ReLU(sum);
+            // Head Hidden (ReLU)
+            _zHead[h] = new float[HeadHiddenSize];
+            _aHead[h] = new float[HeadHiddenSize];
+            for (int j = 0; j < HeadHiddenSize; j++)
+            {
+                float sum = BHead[h][j];
+                for (int i = 0; i < SharedHiddenSize; i++)
+                    sum += _aShared[i] * WHead[h][i, j];
+                _zHead[h][j] = sum;
+                _aHead[h][j] = ReLU(sum);
+            }
+
+            // Head Output (Tanh)
+            _zOut[h] = new float[HeadOutputSize];
+            float outSum = BOut[h][0];
+            for (int i = 0; i < HeadHiddenSize; i++)
+                outSum += _aHead[h][i] * WOut[h][i, 0];
+            _zOut[h][0] = outSum;
+            _headOutputs[h] = Tanh(outSum);
         }
 
-        // Layer 3: Hidden2 → Output (Tanh)
-        _z3 = new float[OutputSize];
-        float outSum = B3[0];
-        for (int i = 0; i < Hidden2Size; i++)
-            outSum += _a2[i] * W3[i, 0];
-        _z3[0] = outSum;
-        _lastOutput = Tanh(outSum);
+        // 重み付き合計
+        float combined = 0f;
+        for (int h = 0; h < NumHeads; h++)
+            combined += _headOutputs[h] * HeadWeights[h];
+        return Mathf.Clamp(combined, -1f, 1f);
+    }
 
-        return _lastOutput;
+    // ================================================================
+    //  Predict — 推論専用（高速版、キャッシュ不要）
+    // ================================================================
+    public float Predict(float[] input)
+    {
+        if (input.Length != InputSize) return 0f;
+
+        // 共有隠れ層
+        var aShared = new float[SharedHiddenSize];
+        for (int j = 0; j < SharedHiddenSize; j++)
+        {
+            float sum = BShared[j];
+            for (int i = 0; i < InputSize; i++)
+                sum += input[i] * WShared[i, j];
+            aShared[j] = ReLU(sum);
+        }
+
+        float combined = 0f;
+        for (int h = 0; h < NumHeads; h++)
+        {
+            // Head Hidden
+            var aHead = new float[HeadHiddenSize];
+            for (int j = 0; j < HeadHiddenSize; j++)
+            {
+                float sum = BHead[h][j];
+                for (int i = 0; i < SharedHiddenSize; i++)
+                    sum += aShared[i] * WHead[h][i, j];
+                aHead[j] = ReLU(sum);
+            }
+
+            // Head Output
+            float outSum = BOut[h][0];
+            for (int i = 0; i < HeadHiddenSize; i++)
+                outSum += aHead[i] * WOut[h][i, 0];
+            combined += Tanh(outSum) * HeadWeights[h];
+        }
+
+        return Mathf.Clamp(combined, -1f, 1f);
+    }
+
+    // ================================================================
+    //  PredictPerHead — ヘッド別の出力を取得
+    // ================================================================
+    public float[] PredictPerHead(float[] input)
+    {
+        if (input.Length != InputSize) return new float[NumHeads];
+
+        var aShared = new float[SharedHiddenSize];
+        for (int j = 0; j < SharedHiddenSize; j++)
+        {
+            float sum = BShared[j];
+            for (int i = 0; i < InputSize; i++)
+                sum += input[i] * WShared[i, j];
+            aShared[j] = ReLU(sum);
+        }
+
+        var outputs = new float[NumHeads];
+        for (int h = 0; h < NumHeads; h++)
+        {
+            var aHead = new float[HeadHiddenSize];
+            for (int j = 0; j < HeadHiddenSize; j++)
+            {
+                float sum = BHead[h][j];
+                for (int i = 0; i < SharedHiddenSize; i++)
+                    sum += aShared[i] * WHead[h][i, j];
+                aHead[j] = ReLU(sum);
+            }
+
+            float outSum = BOut[h][0];
+            for (int i = 0; i < HeadHiddenSize; i++)
+                outSum += aHead[i] * WOut[h][i, 0];
+            outputs[h] = Tanh(outSum);
+        }
+        return outputs;
     }
 
     // ================================================================
     //  Backward — 逆伝播 + Adam更新
-    //  target: 教師信号 (-1 ～ +1)
-    //  損失関数: MSE = (output - target)^2
+    //  targets: 各ヘッドの教師信号 float[NumHeads]
     // ================================================================
-    public float Backward(float target)
+    public float Backward(float[] targets)
     {
+        if (targets.Length != NumHeads)
+            throw new ArgumentException($"教師信号サイズ不一致: 期待{NumHeads}, 受取{targets.Length}");
+
         AdamStep++;
         TotalTrainingSteps++;
 
-        float error = _lastOutput - target;
-        LastLoss = error * error;
+        float totalLoss = 0f;
 
-        // Output層の勾配 (Tanh微分)
-        float dOut = error * TanhDeriv(_z3[0]);
+        // 共有層への勾配を蓄積
+        var dAShared = new float[SharedHiddenSize];
 
-        // Layer 3 勾配
-        var dW3 = new float[Hidden2Size, OutputSize];
-        var dB3 = new float[OutputSize];
-        dB3[0] = dOut;
-        var dA2 = new float[Hidden2Size];
-        for (int i = 0; i < Hidden2Size; i++)
+        for (int h = 0; h < NumHeads; h++)
         {
-            dW3[i, 0] = _a2[i] * dOut + L2Lambda * W3[i, 0];
-            dA2[i] = W3[i, 0] * dOut;
-        }
+            float error = _headOutputs[h] - targets[h];
+            totalLoss += error * error;
 
-        // Layer 2 勾配 (ReLU微分)
-        var dZ2 = new float[Hidden2Size];
-        for (int j = 0; j < Hidden2Size; j++)
-            dZ2[j] = dA2[j] * ReLUDeriv(_z2[j]);
+            // Output勾配
+            float dOutZ = error * TanhDeriv(_zOut[h][0]);
 
-        var dW2 = new float[Hidden1Size, Hidden2Size];
-        var dB2 = new float[Hidden2Size];
-        var dA1 = new float[Hidden1Size];
-        for (int j = 0; j < Hidden2Size; j++)
-        {
-            dB2[j] = dZ2[j];
-            for (int i = 0; i < Hidden1Size; i++)
+            // WOut勾配
+            var dWOut = new float[HeadHiddenSize, HeadOutputSize];
+            var dBOut = new float[HeadOutputSize];
+            dBOut[0] = dOutZ;
+            var dAHead = new float[HeadHiddenSize];
+            for (int i = 0; i < HeadHiddenSize; i++)
             {
-                dW2[i, j] = _a1[i] * dZ2[j] + L2Lambda * W2[i, j];
-                dA1[i] += W2[i, j] * dZ2[j];
+                dWOut[i, 0] = _aHead[h][i] * dOutZ + L2Lambda * WOut[h][i, 0];
+                dAHead[i] = WOut[h][i, 0] * dOutZ;
             }
+
+            // Head Hidden勾配
+            var dZHead = new float[HeadHiddenSize];
+            for (int j = 0; j < HeadHiddenSize; j++)
+                dZHead[j] = dAHead[j] * ReLUDeriv(_zHead[h][j]);
+
+            var dWHead = new float[SharedHiddenSize, HeadHiddenSize];
+            var dBHead = new float[HeadHiddenSize];
+            for (int j = 0; j < HeadHiddenSize; j++)
+            {
+                dBHead[j] = dZHead[j];
+                for (int i = 0; i < SharedHiddenSize; i++)
+                {
+                    dWHead[i, j] = _aShared[i] * dZHead[j] + L2Lambda * WHead[h][i, j];
+                    dAShared[i] += WHead[h][i, j] * dZHead[j];
+                }
+            }
+
+            // Adam更新 (ヘッド層)
+            AdamUpdate(WHead[h], dWHead, MWHead[h], VWHead[h]);
+            AdamUpdate(WOut[h], dWOut, MWOut[h], VWOut[h]);
+            AdamUpdateBias(BHead[h], dBHead, MBHead[h], VBHead[h]);
+            AdamUpdateBias(BOut[h], dBOut, MBOut[h], VBOut[h]);
         }
 
-        // Layer 1 勾配 (ReLU微分)
-        var dZ1 = new float[Hidden1Size];
-        for (int j = 0; j < Hidden1Size; j++)
-            dZ1[j] = dA1[j] * ReLUDeriv(_z1[j]);
+        // 共有層勾配
+        var dZShared = new float[SharedHiddenSize];
+        for (int j = 0; j < SharedHiddenSize; j++)
+            dZShared[j] = dAShared[j] * ReLUDeriv(_zShared[j]);
 
-        var dW1 = new float[InputSize, Hidden1Size];
-        var dB1 = new float[Hidden1Size];
-        for (int j = 0; j < Hidden1Size; j++)
+        var dWShared = new float[InputSize, SharedHiddenSize];
+        var dBSharedArr = new float[SharedHiddenSize];
+        for (int j = 0; j < SharedHiddenSize; j++)
         {
-            dB1[j] = dZ1[j];
+            dBSharedArr[j] = dZShared[j];
             for (int i = 0; i < InputSize; i++)
-                dW1[i, j] = _lastInput[i] * dZ1[j] + L2Lambda * W1[i, j];
+                dWShared[i, j] = _lastInput[i] * dZShared[j] + L2Lambda * WShared[i, j];
         }
 
         // 勾配クリッピング
-        ClipGradients(dW1, dW2, dW3, dB1, dB2, dB3);
+        float norm = MatNormSq(dWShared) + VecNormSq(dBSharedArr);
+        norm = Mathf.Sqrt(norm);
+        if (norm > GradClipNorm)
+        {
+            float scale = GradClipNorm / norm;
+            ScaleMat(dWShared, scale);
+            ScaleVec(dBSharedArr, scale);
+        }
 
-        // Adam更新
-        AdamUpdate(W1, dW1, MW1, VW1);
-        AdamUpdate(W2, dW2, MW2, VW2);
-        AdamUpdate(W3, dW3, MW3, VW3);
-        AdamUpdateBias(B1, dB1, MB1, VB1);
-        AdamUpdateBias(B2, dB2, MB2, VB2);
-        AdamUpdateBias(B3, dB3, MB3, VB3);
+        // Adam更新 (共有層)
+        AdamUpdate(WShared, dWShared, MWShared, VWShared);
+        AdamUpdateBias(BShared, dBSharedArr, MBShared, VBShared);
 
+        LastLoss = totalLoss / NumHeads;
         return LastLoss;
+    }
+
+    // ================================================================
+    //  ヘッド重みの動的調整（脅威度に応じて）
+    // ================================================================
+    public void SetHeadWeightsForThreat(int threatLevel)
+    {
+        if (threatLevel <= 30)
+        {
+            // 序盤: 戦術重視（目先の戦闘）
+            HeadWeights[0] = 0.25f; // Strategy
+            HeadWeights[1] = 0.55f; // Tactics
+            HeadWeights[2] = 0.20f; // Economy
+        }
+        else if (threatLevel <= 50)
+        {
+            // 中盤: バランス
+            HeadWeights[0] = 0.35f;
+            HeadWeights[1] = 0.40f;
+            HeadWeights[2] = 0.25f;
+        }
+        else if (threatLevel <= 70)
+        {
+            // 上級: 戦略重視（長期的な判断）
+            HeadWeights[0] = 0.45f;
+            HeadWeights[1] = 0.30f;
+            HeadWeights[2] = 0.25f;
+        }
+        else
+        {
+            // 最上級: 全て高精度
+            HeadWeights[0] = 0.40f;
+            HeadWeights[1] = 0.35f;
+            HeadWeights[2] = 0.25f;
+        }
     }
 
     // ================================================================
@@ -230,11 +408,8 @@ public class MLBrain
     {
         float bc1 = 1f - Mathf.Pow(AdamBeta1, AdamStep);
         float bc2 = 1f - Mathf.Pow(AdamBeta2, AdamStep);
-        int rows = w.GetLength(0);
-        int cols = w.GetLength(1);
-
+        int rows = w.GetLength(0), cols = w.GetLength(1);
         for (int i = 0; i < rows; i++)
-        {
             for (int j = 0; j < cols; j++)
             {
                 m[i, j] = AdamBeta1 * m[i, j] + (1f - AdamBeta1) * dw[i, j];
@@ -243,14 +418,12 @@ public class MLBrain
                 float vHat = v[i, j] / bc2;
                 w[i, j] -= LearningRate * mHat / (Mathf.Sqrt(vHat) + AdamEpsilon);
             }
-        }
     }
 
     void AdamUpdateBias(float[] b, float[] db, float[] m, float[] v)
     {
         float bc1 = 1f - Mathf.Pow(AdamBeta1, AdamStep);
         float bc2 = 1f - Mathf.Pow(AdamBeta2, AdamStep);
-
         for (int i = 0; i < b.Length; i++)
         {
             m[i] = AdamBeta1 * m[i] + (1f - AdamBeta1) * db[i];
@@ -262,83 +435,18 @@ public class MLBrain
     }
 
     // ================================================================
-    //  勾配クリッピング (Gradient Norm Clipping)
-    // ================================================================
-    void ClipGradients(float[,] dW1, float[,] dW2, float[,] dW3,
-        float[] dB1, float[] dB2, float[] dB3)
-    {
-        float norm = 0f;
-        norm += MatNormSq(dW1);
-        norm += MatNormSq(dW2);
-        norm += MatNormSq(dW3);
-        norm += VecNormSq(dB1);
-        norm += VecNormSq(dB2);
-        norm += VecNormSq(dB3);
-        norm = Mathf.Sqrt(norm);
-
-        if (norm > GradClipNorm)
-        {
-            float scale = GradClipNorm / norm;
-            ScaleMat(dW1, scale);
-            ScaleMat(dW2, scale);
-            ScaleMat(dW3, scale);
-            ScaleVec(dB1, scale);
-            ScaleVec(dB2, scale);
-            ScaleVec(dB3, scale);
-        }
-    }
-
-    // ================================================================
-    //  推論専用（キャッシュ不要・高速版）
-    // ================================================================
-    public float Predict(float[] input)
-    {
-        // Layer 1
-        var a1 = new float[Hidden1Size];
-        for (int j = 0; j < Hidden1Size; j++)
-        {
-            float sum = B1[j];
-            for (int i = 0; i < InputSize; i++)
-                sum += input[i] * W1[i, j];
-            a1[j] = ReLU(sum);
-        }
-
-        // Layer 2
-        var a2 = new float[Hidden2Size];
-        for (int j = 0; j < Hidden2Size; j++)
-        {
-            float sum = B2[j];
-            for (int i = 0; i < Hidden1Size; i++)
-                sum += a1[i] * W2[i, j];
-            a2[j] = ReLU(sum);
-        }
-
-        // Layer 3
-        float outSum = B3[0];
-        for (int i = 0; i < Hidden2Size; i++)
-            outSum += a2[i] * W3[i, 0];
-
-        return Tanh(outSum);
-    }
-
-    // ================================================================
     //  活性化関数
     // ================================================================
     static float ReLU(float x) => x > 0 ? x : 0;
     static float ReLUDeriv(float x) => x > 0 ? 1f : 0f;
     static float Tanh(float x) => (float)Math.Tanh(x);
-    static float TanhDeriv(float x)
-    {
-        float t = Tanh(x);
-        return 1f - t * t;
-    }
+    static float TanhDeriv(float x) { float t = Tanh(x); return 1f - t * t; }
 
     // ================================================================
     //  数学ユーティリティ
     // ================================================================
     double NextGaussian()
     {
-        // Box-Muller変換
         double u1 = 1.0 - _rng.NextDouble();
         double u2 = 1.0 - _rng.NextDouble();
         return Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
@@ -357,8 +465,7 @@ public class MLBrain
     static float VecNormSq(float[] v)
     {
         float sum = 0f;
-        for (int i = 0; i < v.Length; i++)
-            sum += v[i] * v[i];
+        for (int i = 0; i < v.Length; i++) sum += v[i] * v[i];
         return sum;
     }
 
@@ -366,21 +473,16 @@ public class MLBrain
     {
         int r = m.GetLength(0), c = m.GetLength(1);
         for (int i = 0; i < r; i++)
-            for (int j = 0; j < c; j++)
-                m[i, j] *= s;
+            for (int j = 0; j < c; j++) m[i, j] *= s;
     }
 
     static void ScaleVec(float[] v, float s)
     {
-        for (int i = 0; i < v.Length; i++)
-            v[i] *= s;
+        for (int i = 0; i < v.Length; i++) v[i] *= s;
     }
 
-    // ================================================================
-    //  パラメータ数
-    // ================================================================
     public int ParameterCount =>
-        InputSize * Hidden1Size + Hidden1Size +
-        Hidden1Size * Hidden2Size + Hidden2Size +
-        Hidden2Size * OutputSize + OutputSize;
+        InputSize * SharedHiddenSize + SharedHiddenSize +
+        NumHeads * (SharedHiddenSize * HeadHiddenSize + HeadHiddenSize +
+                    HeadHiddenSize * HeadOutputSize + HeadOutputSize);
 }

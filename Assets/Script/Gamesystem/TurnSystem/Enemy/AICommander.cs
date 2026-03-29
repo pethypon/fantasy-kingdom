@@ -362,8 +362,9 @@ public class AICommander
         // 決定論的乱数のターンシード設定
         _rng.SetTurnSeed(_turnCount);
 
-        // 機械学習AIのターン開始通知
-        _mlIntegration.OnTurnStart(_currentStrategy, _threatLevel.Level);
+        // 機械学習AIのターン開始通知（プレイヤー陣形観測 + カウンター方針決定 + 行動予測）
+        _mlIntegration.ObservePlayerFormation(_board.AlivePlayerUnits, _board.EnemyCrystalPos, _turnCount);
+        _mlIntegration.OnTurnStart(_currentStrategy, _threatLevel.Level, _board, _turnCount);
 
         // ロール割当（脅威度が通常知能以上で有効）
         if (_threatLevel.UseRoleAssignment)

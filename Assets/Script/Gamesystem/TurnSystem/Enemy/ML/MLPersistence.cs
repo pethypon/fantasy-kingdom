@@ -4,25 +4,25 @@ using System.IO;
 using UnityEngine;
 
 // =====================================================================
-//  MLPersistence — ML重みの永続化
-//  Application.persistentDataPath/ml/ に JSON 形式で保存。
-//  試合終了時に自動保存、ゲーム開始時に自動読込。
-//  世代管理: 最新3世代のバックアップを保持。
+//  MLPersistence — ML全サブシステムの永続化（書き直し版）
+//  保存対象: MLBrain(3ヘッド), ReplayBuffer, BehaviorPredictor, PlayerProfile
 // =====================================================================
 public static class MLPersistence
 {
     const string MLDir = "ml";
-    const string WeightsFile = "ml_weights.json";
+    const string WeightsFile = "ml_weights_v2.json";
     const string BufferFile = "ml_buffer.json";
+    const string PredictorFile = "ml_predictor.json";
+    const string ProfileFile = "ml_profile.json";
     const int MaxBackups = 3;
 
     // ================================================================
-    //  保存データ構造
+    //  MLBrain重み保存データ (マルチヘッド対応)
     // ================================================================
     [Serializable]
     public class MLWeightsData
     {
-        public int Version = 1;
+        public int Version = 2;
         public string SaveDate;
         public int ThreatLevel;
         public int TotalTrainingSteps;
@@ -30,22 +30,29 @@ public static class MLPersistence
         public float AverageLoss;
         public float LearningRate;
         public int AdamStep;
+        public float[] HeadWeights;
 
-        // 重み（1次元配列に直列化）
-        public float[] W1_flat;
-        public float[] B1;
-        public float[] W2_flat;
-        public float[] B2;
-        public float[] W3_flat;
-        public float[] B3;
+        // 共有層
+        public float[] WShared_flat;
+        public float[] BShared;
+        public float[] MWShared_flat, VWShared_flat;
+        public float[] MBShared, VBShared;
 
-        // Adam状態（復元用）
-        public float[] MW1_flat, VW1_flat;
-        public float[] MW2_flat, VW2_flat;
-        public float[] MW3_flat, VW3_flat;
-        public float[] MB1, VB1;
-        public float[] MB2, VB2;
-        public float[] MB3, VB3;
+        // ヘッド別 (直列化)
+        public List<HeadData> Heads;
+    }
+
+    [Serializable]
+    public class HeadData
+    {
+        public float[] WHead_flat;
+        public float[] BHead;
+        public float[] WOut_flat;
+        public float[] BOut;
+        public float[] MWHead_flat, VWHead_flat;
+        public float[] MWOut_flat, VWOut_flat;
+        public float[] MBHead, VBHead;
+        public float[] MBOut, VBOut;
     }
 
     [Serializable]
@@ -66,18 +73,46 @@ public static class MLPersistence
         public int TurnNumber;
     }
 
+    [Serializable]
+    public class PredictorData
+    {
+        public int Version = 1;
+        public float[] Weights;
+        public float RunningAccuracy;
+        public int TotalPredictions;
+        public int CorrectPredictions;
+    }
+
+    [Serializable]
+    public class ProfileData
+    {
+        public int Version = 1;
+        public int TotalMatches;
+        public float AggressionScore;
+        public float RushTendency;
+        public float TurtleTendency;
+        public float FlankPreference;
+        public float EconomyFocus;
+        public float SkillReliance;
+        public float PreferredAttackRange;
+        public float TargetWeakestTendency;
+        public float TargetHighValueTendency;
+        public float CrystalFocusTendency;
+        public float AverageAttackStartTurn;
+        public float FormationSpread;
+        public float TurnPressurePattern;
+        public int TotalObservations;
+        public int MatchesObserved;
+    }
+
     // ================================================================
-    //  保存
+    //  MLBrain 保存/読込
     // ================================================================
     public static void SaveWeights(MLBrain brain, int threatLevel, int totalMatchesTrained, float avgLoss)
     {
         try
         {
-            string dir = Path.Combine(Application.persistentDataPath, MLDir);
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            // バックアップ管理
+            string dir = GetMLDir();
             RotateBackups(dir, WeightsFile);
 
             var data = new MLWeightsData
@@ -89,34 +124,40 @@ public static class MLPersistence
                 AverageLoss = avgLoss,
                 LearningRate = brain.LearningRate,
                 AdamStep = brain.AdamStep,
+                HeadWeights = (float[])brain.HeadWeights.Clone(),
 
-                W1_flat = Flatten(brain.W1),
-                B1 = (float[])brain.B1.Clone(),
-                W2_flat = Flatten(brain.W2),
-                B2 = (float[])brain.B2.Clone(),
-                W3_flat = Flatten(brain.W3),
-                B3 = (float[])brain.B3.Clone(),
+                WShared_flat = Flatten(brain.WShared),
+                BShared = (float[])brain.BShared.Clone(),
+                MWShared_flat = Flatten(brain.MWShared),
+                VWShared_flat = Flatten(brain.VWShared),
+                MBShared = (float[])brain.MBShared.Clone(),
+                VBShared = (float[])brain.VBShared.Clone(),
 
-                MW1_flat = Flatten(brain.MW1),
-                VW1_flat = Flatten(brain.VW1),
-                MW2_flat = Flatten(brain.MW2),
-                VW2_flat = Flatten(brain.VW2),
-                MW3_flat = Flatten(brain.MW3),
-                VW3_flat = Flatten(brain.VW3),
-                MB1 = (float[])brain.MB1.Clone(),
-                VB1 = (float[])brain.VB1.Clone(),
-                MB2 = (float[])brain.MB2.Clone(),
-                VB2 = (float[])brain.VB2.Clone(),
-                MB3 = (float[])brain.MB3.Clone(),
-                VB3 = (float[])brain.VB3.Clone(),
+                Heads = new List<HeadData>()
             };
 
-            string json = JsonUtility.ToJson(data, true);
-            string path = Path.Combine(dir, WeightsFile);
-            File.WriteAllText(path, json);
+            for (int h = 0; h < MLBrain.NumHeads; h++)
+            {
+                data.Heads.Add(new HeadData
+                {
+                    WHead_flat = Flatten(brain.WHead[h]),
+                    BHead = (float[])brain.BHead[h].Clone(),
+                    WOut_flat = Flatten(brain.WOut[h]),
+                    BOut = (float[])brain.BOut[h].Clone(),
+                    MWHead_flat = Flatten(brain.MWHead[h]),
+                    VWHead_flat = Flatten(brain.VWHead[h]),
+                    MWOut_flat = Flatten(brain.MWOut[h]),
+                    VWOut_flat = Flatten(brain.VWOut[h]),
+                    MBHead = (float[])brain.MBHead[h].Clone(),
+                    VBHead = (float[])brain.VBHead[h].Clone(),
+                    MBOut = (float[])brain.MBOut[h].Clone(),
+                    VBOut = (float[])brain.VBOut[h].Clone(),
+                });
+            }
 
-            Debug.Log($"[MLPersistence] 重み保存完了: {path}  " +
-                      $"脅威度={threatLevel}  学習ステップ={brain.TotalTrainingSteps}");
+            string json = JsonUtility.ToJson(data, true);
+            File.WriteAllText(Path.Combine(dir, WeightsFile), json);
+            Debug.Log($"[MLPersistence] 重み保存完了 (v2 マルチヘッド)  脅威度={threatLevel}");
         }
         catch (Exception e)
         {
@@ -128,7 +169,7 @@ public static class MLPersistence
     {
         try
         {
-            string path = Path.Combine(Application.persistentDataPath, MLDir, WeightsFile);
+            string path = Path.Combine(GetMLDir(), WeightsFile);
             if (!File.Exists(path))
             {
                 Debug.Log("[MLPersistence] 重みファイルなし → 新規初期化");
@@ -137,41 +178,39 @@ public static class MLPersistence
 
             string json = File.ReadAllText(path);
             var data = JsonUtility.FromJson<MLWeightsData>(json);
+            if (data == null || data.WShared_flat == null || data.Heads == null) return false;
 
-            if (data == null || data.W1_flat == null)
+            Unflatten(data.WShared_flat, brain.WShared);
+            Array.Copy(data.BShared, brain.BShared, brain.BShared.Length);
+            if (data.MWShared_flat != null) Unflatten(data.MWShared_flat, brain.MWShared);
+            if (data.VWShared_flat != null) Unflatten(data.VWShared_flat, brain.VWShared);
+            if (data.MBShared != null) Array.Copy(data.MBShared, brain.MBShared, brain.MBShared.Length);
+            if (data.VBShared != null) Array.Copy(data.VBShared, brain.VBShared, brain.VBShared.Length);
+
+            for (int h = 0; h < MLBrain.NumHeads && h < data.Heads.Count; h++)
             {
-                Debug.LogWarning("[MLPersistence] 重みデータ破損 → 新規初期化");
-                return false;
+                var hd = data.Heads[h];
+                Unflatten(hd.WHead_flat, brain.WHead[h]);
+                Array.Copy(hd.BHead, brain.BHead[h], brain.BHead[h].Length);
+                Unflatten(hd.WOut_flat, brain.WOut[h]);
+                Array.Copy(hd.BOut, brain.BOut[h], brain.BOut[h].Length);
+                if (hd.MWHead_flat != null) Unflatten(hd.MWHead_flat, brain.MWHead[h]);
+                if (hd.VWHead_flat != null) Unflatten(hd.VWHead_flat, brain.VWHead[h]);
+                if (hd.MWOut_flat != null) Unflatten(hd.MWOut_flat, brain.MWOut[h]);
+                if (hd.VWOut_flat != null) Unflatten(hd.VWOut_flat, brain.VWOut[h]);
+                if (hd.MBHead != null) Array.Copy(hd.MBHead, brain.MBHead[h], brain.MBHead[h].Length);
+                if (hd.VBHead != null) Array.Copy(hd.VBHead, brain.VBHead[h], brain.VBHead[h].Length);
+                if (hd.MBOut != null) Array.Copy(hd.MBOut, brain.MBOut[h], brain.MBOut[h].Length);
+                if (hd.VBOut != null) Array.Copy(hd.VBOut, brain.VBOut[h], brain.VBOut[h].Length);
             }
-
-            // 重みの復元
-            Unflatten(data.W1_flat, brain.W1);
-            Array.Copy(data.B1, brain.B1, brain.B1.Length);
-            Unflatten(data.W2_flat, brain.W2);
-            Array.Copy(data.B2, brain.B2, brain.B2.Length);
-            Unflatten(data.W3_flat, brain.W3);
-            Array.Copy(data.B3, brain.B3, brain.B3.Length);
-
-            // Adam状態の復元
-            if (data.MW1_flat != null) Unflatten(data.MW1_flat, brain.MW1);
-            if (data.VW1_flat != null) Unflatten(data.VW1_flat, brain.VW1);
-            if (data.MW2_flat != null) Unflatten(data.MW2_flat, brain.MW2);
-            if (data.VW2_flat != null) Unflatten(data.VW2_flat, brain.VW2);
-            if (data.MW3_flat != null) Unflatten(data.MW3_flat, brain.MW3);
-            if (data.VW3_flat != null) Unflatten(data.VW3_flat, brain.VW3);
-            if (data.MB1 != null) Array.Copy(data.MB1, brain.MB1, brain.MB1.Length);
-            if (data.VB1 != null) Array.Copy(data.VB1, brain.VB1, brain.VB1.Length);
-            if (data.MB2 != null) Array.Copy(data.MB2, brain.MB2, brain.MB2.Length);
-            if (data.VB2 != null) Array.Copy(data.VB2, brain.VB2, brain.VB2.Length);
-            if (data.MB3 != null) Array.Copy(data.MB3, brain.MB3, brain.MB3.Length);
-            if (data.VB3 != null) Array.Copy(data.VB3, brain.VB3, brain.VB3.Length);
 
             brain.AdamStep = data.AdamStep;
             brain.LearningRate = data.LearningRate;
+            if (data.HeadWeights != null && data.HeadWeights.Length == MLBrain.NumHeads)
+                Array.Copy(data.HeadWeights, brain.HeadWeights, MLBrain.NumHeads);
 
-            Debug.Log($"[MLPersistence] 重み読込完了: 脅威度={data.ThreatLevel}  " +
-                      $"学習ステップ={data.TotalTrainingSteps}  試合={data.TotalMatchesTrained}  " +
-                      $"平均損失={data.AverageLoss:F4}  保存日={data.SaveDate}");
+            Debug.Log($"[MLPersistence] 重み読込完了 (v2)  脅威度={data.ThreatLevel}  " +
+                      $"学習ステップ={data.TotalTrainingSteps}  保存日={data.SaveDate}");
             return true;
         }
         catch (Exception e)
@@ -182,22 +221,15 @@ public static class MLPersistence
     }
 
     // ================================================================
-    //  経験バッファの保存/読込（最新1000件のみ）
+    //  ReplayBuffer 保存/読込
     // ================================================================
     public static void SaveBuffer(MLReplayBuffer buffer)
     {
         try
         {
-            string dir = Path.Combine(Application.persistentDataPath, MLDir);
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
+            string dir = GetMLDir();
             var recent = buffer.GetRecentExperiences(1000);
-            var data = new MLBufferData
-            {
-                TotalExperiences = buffer.TotalExperiences,
-            };
-
+            var data = new MLBufferData { TotalExperiences = buffer.TotalExperiences };
             foreach (var exp in recent)
             {
                 data.Experiences.Add(new ExperienceData
@@ -209,139 +241,183 @@ public static class MLPersistence
                     TurnNumber = exp.TurnNumber
                 });
             }
-
-            string json = JsonUtility.ToJson(data);
-            string path = Path.Combine(dir, BufferFile);
-            File.WriteAllText(path, json);
-
-            Debug.Log($"[MLPersistence] バッファ保存完了: {recent.Count}件");
+            File.WriteAllText(Path.Combine(dir, BufferFile), JsonUtility.ToJson(data));
+            Debug.Log($"[MLPersistence] バッファ保存: {recent.Count}件");
         }
-        catch (Exception e)
-        {
-            Debug.LogError($"[MLPersistence] バッファ保存失敗: {e.Message}");
-        }
+        catch (Exception e) { Debug.LogError($"[MLPersistence] バッファ保存失敗: {e.Message}"); }
     }
 
     public static void LoadBuffer(MLReplayBuffer buffer)
     {
         try
         {
-            string path = Path.Combine(Application.persistentDataPath, MLDir, BufferFile);
-            if (!File.Exists(path))
-            {
-                Debug.Log("[MLPersistence] バッファファイルなし → 空のまま");
-                return;
-            }
-
-            string json = File.ReadAllText(path);
-            var data = JsonUtility.FromJson<MLBufferData>(json);
-
-            if (data == null || data.Experiences == null) return;
-
-            var experiences = new List<MLReplayBuffer.Experience>();
+            string path = Path.Combine(GetMLDir(), BufferFile);
+            if (!File.Exists(path)) return;
+            var data = JsonUtility.FromJson<MLBufferData>(File.ReadAllText(path));
+            if (data?.Experiences == null) return;
+            var exps = new List<MLReplayBuffer.Experience>();
             foreach (var ed in data.Experiences)
-            {
-                experiences.Add(new MLReplayBuffer.Experience
+                exps.Add(new MLReplayBuffer.Experience
                 {
-                    Features = ed.Features,
-                    Reward = ed.Reward,
-                    TDTarget = ed.TDTarget,
-                    Priority = ed.Priority,
+                    Features = ed.Features, Reward = ed.Reward,
+                    TDTarget = ed.TDTarget, Priority = ed.Priority,
                     TurnNumber = ed.TurnNumber
                 });
-            }
-
-            buffer.LoadExperiences(experiences);
-
-            Debug.Log($"[MLPersistence] バッファ読込完了: {experiences.Count}件");
+            buffer.LoadExperiences(exps);
+            Debug.Log($"[MLPersistence] バッファ読込: {exps.Count}件");
         }
-        catch (Exception e)
-        {
-            Debug.LogError($"[MLPersistence] バッファ読込失敗: {e.Message}");
-        }
+        catch (Exception e) { Debug.LogError($"[MLPersistence] バッファ読込失敗: {e.Message}"); }
     }
 
     // ================================================================
-    //  バックアップローテーション
+    //  BehaviorPredictor 保存/読込
     // ================================================================
+    public static void SaveBehaviorPredictor(BehaviorPredictor pred)
+    {
+        try
+        {
+            var data = new PredictorData
+            {
+                Weights = pred.GetWeightsFlat(),
+                RunningAccuracy = pred.SaveRunningAccuracy,
+                TotalPredictions = pred.SaveTotalPredictions,
+                CorrectPredictions = pred.SaveCorrectPredictions
+            };
+            File.WriteAllText(Path.Combine(GetMLDir(), PredictorFile), JsonUtility.ToJson(data));
+            Debug.Log($"[MLPersistence] 予測器保存: 精度={pred.Accuracy:F2}  予測数={pred.TotalPredictions}");
+        }
+        catch (Exception e) { Debug.LogError($"[MLPersistence] 予測器保存失敗: {e.Message}"); }
+    }
+
+    public static void LoadBehaviorPredictor(BehaviorPredictor pred)
+    {
+        try
+        {
+            string path = Path.Combine(GetMLDir(), PredictorFile);
+            if (!File.Exists(path)) return;
+            var data = JsonUtility.FromJson<PredictorData>(File.ReadAllText(path));
+            if (data == null) return;
+            pred.LoadWeightsFlat(data.Weights);
+            pred.SaveRunningAccuracy = data.RunningAccuracy;
+            pred.SaveTotalPredictions = data.TotalPredictions;
+            pred.SaveCorrectPredictions = data.CorrectPredictions;
+            Debug.Log($"[MLPersistence] 予測器読込: 精度={pred.Accuracy:F2}");
+        }
+        catch (Exception e) { Debug.LogError($"[MLPersistence] 予測器読込失敗: {e.Message}"); }
+    }
+
+    // ================================================================
+    //  PlayerProfile 保存/読込
+    // ================================================================
+    public static void SavePlayerProfile(PlayerProfiler profiler)
+    {
+        try
+        {
+            var p = profiler.Profile;
+            var data = new ProfileData
+            {
+                TotalMatches = profiler.SaveTotalMatches,
+                AggressionScore = p.AggressionScore,
+                RushTendency = p.RushTendency,
+                TurtleTendency = p.TurtleTendency,
+                FlankPreference = p.FlankPreference,
+                EconomyFocus = p.EconomyFocus,
+                SkillReliance = p.SkillReliance,
+                PreferredAttackRange = p.PreferredAttackRange,
+                TargetWeakestTendency = p.TargetWeakestTendency,
+                TargetHighValueTendency = p.TargetHighValueTendency,
+                CrystalFocusTendency = p.CrystalFocusTendency,
+                AverageAttackStartTurn = p.AverageAttackStartTurn,
+                FormationSpread = p.FormationSpread,
+                TurnPressurePattern = p.TurnPressurePattern,
+                TotalObservations = p.TotalObservations,
+                MatchesObserved = p.MatchesObserved,
+            };
+            File.WriteAllText(Path.Combine(GetMLDir(), ProfileFile), JsonUtility.ToJson(data, true));
+            Debug.Log($"[MLPersistence] プロファイル保存: 攻撃性={p.AggressionScore:F2} " +
+                      $"信頼度={p.Confidence:F2}  観測試合={p.MatchesObserved}");
+        }
+        catch (Exception e) { Debug.LogError($"[MLPersistence] プロファイル保存失敗: {e.Message}"); }
+    }
+
+    public static void LoadPlayerProfile(PlayerProfiler profiler)
+    {
+        try
+        {
+            string path = Path.Combine(GetMLDir(), ProfileFile);
+            if (!File.Exists(path)) return;
+            var data = JsonUtility.FromJson<ProfileData>(File.ReadAllText(path));
+            if (data == null) return;
+
+            profiler.SaveTotalMatches = data.TotalMatches;
+            var p = profiler.GetProfileRef();
+            p.AggressionScore = data.AggressionScore;
+            p.RushTendency = data.RushTendency;
+            p.TurtleTendency = data.TurtleTendency;
+            p.FlankPreference = data.FlankPreference;
+            p.EconomyFocus = data.EconomyFocus;
+            p.SkillReliance = data.SkillReliance;
+            p.PreferredAttackRange = data.PreferredAttackRange;
+            p.TargetWeakestTendency = data.TargetWeakestTendency;
+            p.TargetHighValueTendency = data.TargetHighValueTendency;
+            p.CrystalFocusTendency = data.CrystalFocusTendency;
+            p.AverageAttackStartTurn = data.AverageAttackStartTurn;
+            p.FormationSpread = data.FormationSpread;
+            p.TurnPressurePattern = data.TurnPressurePattern;
+            p.TotalObservations = data.TotalObservations;
+            p.MatchesObserved = data.MatchesObserved;
+            Debug.Log($"[MLPersistence] プロファイル読込: 攻撃性={p.AggressionScore:F2}  " +
+                      $"観測試合={p.MatchesObserved}");
+        }
+        catch (Exception e) { Debug.LogError($"[MLPersistence] プロファイル読込失敗: {e.Message}"); }
+    }
+
+    // ================================================================
+    //  ユーティリティ
+    // ================================================================
+    static string GetMLDir()
+    {
+        string dir = Path.Combine(Application.persistentDataPath, MLDir);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     static void RotateBackups(string dir, string fileName)
     {
         string basePath = Path.Combine(dir, fileName);
         if (!File.Exists(basePath)) return;
-
-        // 古いバックアップを削除
-        string oldestBackup = Path.Combine(dir, $"{fileName}.bak{MaxBackups}");
-        if (File.Exists(oldestBackup))
-            File.Delete(oldestBackup);
-
-        // バックアップをシフト
+        string oldest = Path.Combine(dir, $"{fileName}.bak{MaxBackups}");
+        if (File.Exists(oldest)) File.Delete(oldest);
         for (int i = MaxBackups - 1; i >= 1; i--)
         {
             string from = Path.Combine(dir, $"{fileName}.bak{i}");
             string to = Path.Combine(dir, $"{fileName}.bak{i + 1}");
-            if (File.Exists(from))
-                File.Move(from, to);
+            if (File.Exists(from)) File.Move(from, to);
         }
-
-        // 現在のファイルを bak1 に
-        string bak1 = Path.Combine(dir, $"{fileName}.bak1");
-        File.Copy(basePath, bak1, true);
+        File.Copy(basePath, Path.Combine(dir, $"{fileName}.bak1"), true);
     }
 
-    // ================================================================
-    //  2D配列 ⇔ 1D配列変換
-    // ================================================================
     static float[] Flatten(float[,] mat)
     {
-        int rows = mat.GetLength(0);
-        int cols = mat.GetLength(1);
-        var flat = new float[rows * cols];
+        int r = mat.GetLength(0), c = mat.GetLength(1);
+        var flat = new float[r * c];
         int idx = 0;
-        for (int i = 0; i < rows; i++)
-            for (int j = 0; j < cols; j++)
+        for (int i = 0; i < r; i++)
+            for (int j = 0; j < c; j++)
                 flat[idx++] = mat[i, j];
         return flat;
     }
 
     static void Unflatten(float[] flat, float[,] mat)
     {
-        int rows = mat.GetLength(0);
-        int cols = mat.GetLength(1);
-        int expected = rows * cols;
-        if (flat.Length != expected)
-        {
-            Debug.LogWarning($"[MLPersistence] 配列サイズ不一致: 期待{expected}, 受取{flat.Length}");
-            return;
-        }
+        int r = mat.GetLength(0), c = mat.GetLength(1);
+        if (flat == null || flat.Length != r * c) return;
         int idx = 0;
-        for (int i = 0; i < rows; i++)
-            for (int j = 0; j < cols; j++)
+        for (int i = 0; i < r; i++)
+            for (int j = 0; j < c; j++)
                 mat[i, j] = flat[idx++];
     }
 
-    // ================================================================
-    //  重みファイルの存在確認
-    // ================================================================
     public static bool HasSavedWeights()
-    {
-        string path = Path.Combine(Application.persistentDataPath, MLDir, WeightsFile);
-        return File.Exists(path);
-    }
-
-    /// <summary>保存されている重みの脅威度を確認</summary>
-    public static int GetSavedThreatLevel()
-    {
-        try
-        {
-            string path = Path.Combine(Application.persistentDataPath, MLDir, WeightsFile);
-            if (!File.Exists(path)) return 0;
-            string json = File.ReadAllText(path);
-            var data = JsonUtility.FromJson<MLWeightsData>(json);
-            return data?.ThreatLevel ?? 0;
-        }
-        catch
-        {
-            return 0;
-        }
-    }
+        => File.Exists(Path.Combine(Application.persistentDataPath, MLDir, WeightsFile));
 }
