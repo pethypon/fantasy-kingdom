@@ -179,6 +179,14 @@ public class MLIntegration
         }
     }
 
+    /// <summary>プレイヤーの建築/召喚を観測</summary>
+    public void ObservePlayerBuild(Vector3 position, int turn)
+    {
+        if (!_isActive) return;
+        _behaviorPredictor.ObserveAction(turn, 2, position, Kind.Crystal); // action 2 = build
+        _behaviorPredictor.Learn(2, position);
+    }
+
     /// <summary>プレイヤーのクリスタル攻撃を観測</summary>
     public void ObservePlayerCrystalAttack(int damage, int maxHP, int turn)
     {

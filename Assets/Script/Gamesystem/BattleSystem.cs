@@ -58,6 +58,18 @@ public class BattleSystem : MonoBehaviour
 
         ApplyDamage(damage);
 
+        // ---- ML観測: プレイヤーの攻撃をMLシステムに記録 ----
+        if (AttackSide.team == Team.Player && turngenerater.aiCommander != null)
+        {
+            var ml = turngenerater.aiCommander.MLIntegration;
+            Vector3 ecPos = turngenerater.crystalsystem.ECP;
+            ml.ObservePlayerAttack(AttackSide, target, damage, ecPos, turngenerater.Turn);
+
+            // クリスタルへの直接攻撃は別途記録
+            if (target.kind == Kind.Crystal && target.team == Team.Enemy)
+                ml.ObservePlayerCrystalAttack(damage, target.MaxHP, turngenerater.Turn);
+        }
+
         // 反射処理
         StatusEffectSystem.ProcessReflect(target, AttackSide);
 

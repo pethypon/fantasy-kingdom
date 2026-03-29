@@ -269,6 +269,13 @@ public class BuildSystem : MonoBehaviour
             apsystem.ConsumeBuild(Team.Player, SelectedFacility, factionState);
         }
 
+        // ---- ML観測: プレイヤーの建築をMLシステムに記録 ----
+        if (turngenerater != null && turngenerater.aiCommander != null)
+        {
+            Vector3 buildPos = new Vector3(lastCursorPos.x, 0, lastCursorPos.z);
+            turngenerater.aiCommander.MLIntegration.ObservePlayerBuild(buildPos, turngenerater.Turn);
+        }
+
         // 建築モード解除
         CancelBuildMode();
         return true;
