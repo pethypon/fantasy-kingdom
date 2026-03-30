@@ -85,6 +85,11 @@ public class BehaviorPredictor
     // ---- 乱数 ----
     System.Random _rng;
 
+    // ---- 高速化用の再利用バッファ ----
+    readonly float[] _forwardA1 = new float[HiddenSize];
+    readonly float[] _forwardOutput = new float[OutputSize];
+    readonly float[] _buildInputBuf = new float[InputSize];
+
     public BehaviorPredictor(int seed = -1)
     {
         _rng = seed >= 0 ? new System.Random(seed) : new System.Random();
@@ -303,8 +308,8 @@ public class BehaviorPredictor
     {
         _lastInput = input;
 
-        // Hidden layer (ReLU)
-        _a1 = new float[HiddenSize];
+        // Hidden layer (ReLU) — 事前確保バッファ再利用
+        _a1 = _forwardA1;
         for (int j = 0; j < HiddenSize; j++)
         {
             float sum = _b1[j];
@@ -313,8 +318,8 @@ public class BehaviorPredictor
             _a1[j] = sum > 0 ? sum : 0; // ReLU
         }
 
-        // Output layer (linear)
-        _lastOutput = new float[OutputSize];
+        // Output layer (linear) — 事前確保バッファ再利用
+        _lastOutput = _forwardOutput;
         for (int j = 0; j < OutputSize; j++)
         {
             float sum = _b2[j];
@@ -378,17 +383,18 @@ public class BehaviorPredictor
     // ================================================================
     float[] BuildInput(float[] boardFeatures, float[] profileFeatures)
     {
-        float[] input = new float[InputSize];
+        // 事前確保バッファ再利用 — GCゼロ
+        System.Array.Clear(_buildInputBuf, 0, InputSize);
 
         // 盤面特徴 (最大32次元)
         int bLen = Mathf.Min(32, boardFeatures != null ? boardFeatures.Length : 0);
-        for (int i = 0; i < bLen; i++)
-            input[i] = boardFeatures[i];
+        if (bLen > 0 && boardFeatures != null)
+            System.Array.Copy(boardFeatures, 0, _buildInputBuf, 0, bLen);
 
         // プロファイル特徴 (最大16次元)
         int pLen = Mathf.Min(16, profileFeatures != null ? profileFeatures.Length : 0);
-        for (int i = 0; i < pLen; i++)
-            input[32 + i] = profileFeatures[i];
+        if (pLen > 0 && profileFeatures != null)
+            System.Array.Copy(profileFeatures, 0, _buildInputBuf, 32, pLen);
 
         // 直近行動系列 (最大16次元 = 8行動 × 2特徴)
         for (int i = 0; i < MaxRecentActions && i < _recentActions.Count; i++)
@@ -396,12 +402,12 @@ public class BehaviorPredictor
             int baseIdx = 48 + i * 2;
             if (baseIdx + 1 < InputSize)
             {
-                input[baseIdx] = _recentActions[i].ActionCode / 5f * 2f - 1f;
-                input[baseIdx + 1] = EncodeKind(_recentActions[i].UnitKind);
+                _buildInputBuf[baseIdx] = _recentActions[i].ActionCode / 5f * 2f - 1f;
+                _buildInputBuf[baseIdx + 1] = EncodeKind(_recentActions[i].UnitKind);
             }
         }
 
-        return input;
+        return _buildInputBuf;
     }
 
     // ================================================================

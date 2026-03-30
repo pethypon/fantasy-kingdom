@@ -46,6 +46,10 @@ public class AIMinimaxEngine
     Dictionary<long, TTEntry> _transTable;
     const int MaxTTSize = 32768;
 
+    // ---- 再利用バッファ（GC削減） ----
+    readonly HashSet<int> _greedyActedUnits = new HashSet<int>();
+    readonly List<float> _sortScoreBuffer = new List<float>();
+
     struct TTEntry
     {
         public float Score;
@@ -238,16 +242,8 @@ public class AIMinimaxEngine
             return SimBoardEvaluator.Evaluate(board);
         }
 
-        // 手順序: Playerの最善手（高QuickScore = Player自身にとって有利）を先に探索
-        // QuickScoreはActorTeamに基づいてチーム視点を切り替えるので、
-        // Player行動の高スコアはPlayerにとって良い手 → AIにとって悪い手
-        // これをMin探索で先に探索するとBeta枝刈りが最大化される
-        actions.Sort((a, b) =>
-        {
-            float sa = SimActionGenerator.QuickScore(a, board);
-            float sb = SimActionGenerator.QuickScore(b, board);
-            return sb.CompareTo(sa); // 降順: Playerの良い手が先
-        });
+        // 手順序: QuickScoreを事前計算してソート（比較時の再計算を排除）
+        PrecomputeAndSort(actions, board);
 
         // キラームーブを先頭に移動
         if (depth < _killerMoves.Length && _killerMoves[depth] != null)
@@ -366,13 +362,8 @@ public class AIMinimaxEngine
             return SimBoardEvaluator.Evaluate(board);
         }
 
-        // 手順序: AIにとって良い手（高QuickScore）が先
-        actions.Sort((a, b) =>
-        {
-            float sa = SimActionGenerator.QuickScore(a, board);
-            float sb = SimActionGenerator.QuickScore(b, board);
-            return sb.CompareTo(sa);
-        });
+        // 手順序: QuickScoreを事前計算してソート（比較時の再計算を排除）
+        PrecomputeAndSort(actions, board);
 
         // キラームーブ
         if (depth < _killerMoves.Length && _killerMoves[depth] != null)
@@ -453,7 +444,7 @@ public class AIMinimaxEngine
     // ================================================================
     void SimulateGreedyTurn(SimBoardState board, Team team)
     {
-        var actedUnits = new HashSet<int>();
+        _greedyActedUnits.Clear();
 
         for (int step = 0; step < _greedyActionsPerTurn; step++)
         {
@@ -478,7 +469,7 @@ public class AIMinimaxEngine
                 float score = SimActionGenerator.QuickScore(a, board);
 
                 // 既に行動した駒は割引（ただし確殺可能な攻撃は例外）
-                if (a.UnitId >= 0 && actedUnits.Contains(a.UnitId))
+                if (a.UnitId >= 0 && _greedyActedUnits.Contains(a.UnitId))
                 {
                     bool isKillShot = false;
                     if (a.Type == SimActionType.Attack && a.TargetUnitId >= 0)
@@ -505,7 +496,36 @@ public class AIMinimaxEngine
 
             board.ApplyAction(best);
             if (best.UnitId >= 0)
-                actedUnits.Add(best.UnitId);
+                _greedyActedUnits.Add(best.UnitId);
+        }
+    }
+
+    // ================================================================
+    //  QuickScore事前計算＋降順ソート（比較中のQuickScore再計算を排除）
+    //  N個の行動に対してQuickScoreがN回で済む（Sort比較でN log N回→N回に削減）
+    // ================================================================
+    void PrecomputeAndSort(List<SimAction> actions, SimBoardState board)
+    {
+        int count = actions.Count;
+        // バッファサイズ確保
+        while (_sortScoreBuffer.Count < count) _sortScoreBuffer.Add(0f);
+        for (int i = 0; i < count; i++)
+            _sortScoreBuffer[i] = SimActionGenerator.QuickScore(actions[i], board);
+
+        // 挿入ソート（候補数が少ないため O(n²) でも高速、GCゼロ）
+        for (int i = 1; i < count; i++)
+        {
+            var keyAction = actions[i];
+            float keyScore = _sortScoreBuffer[i];
+            int j = i - 1;
+            while (j >= 0 && _sortScoreBuffer[j] < keyScore)
+            {
+                actions[j + 1] = actions[j];
+                _sortScoreBuffer[j + 1] = _sortScoreBuffer[j];
+                j--;
+            }
+            actions[j + 1] = keyAction;
+            _sortScoreBuffer[j + 1] = keyScore;
         }
     }
 

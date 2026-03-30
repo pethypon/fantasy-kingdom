@@ -474,27 +474,28 @@ public class PlayerProfiler
     // ================================================================
     //  プロファイルの特徴ベクトル化（MLBrainへの入力用）
     // ================================================================
+    // キャッシュバッファ（GCゼロ化）
+    readonly float[] _featureVectorCache = new float[16];
+
     public float[] ToFeatureVector()
     {
-        return new float[]
-        {
-            _profile.AggressionScore * 2f - 1f,
-            _profile.RushTendency * 2f - 1f,
-            _profile.TurtleTendency * 2f - 1f,
-            _profile.FlankPreference * 2f - 1f,
-            _profile.EconomyFocus * 2f - 1f,
-            _profile.SkillReliance * 2f - 1f,
-            Mathf.Clamp(_profile.PreferredAttackRange / 10f * 2f - 1f, -1f, 1f),
-            _profile.TargetWeakestTendency * 2f - 1f,
-            _profile.TargetHighValueTendency * 2f - 1f,
-            _profile.CrystalFocusTendency * 2f - 1f,
-            Mathf.Clamp(_profile.AverageAttackStartTurn / 30f * 2f - 1f, -1f, 1f),
-            _profile.TurnPressurePattern,
-            _profile.FormationSpread / 10f * 2f - 1f,
-            _profile.Confidence * 2f - 1f,
-            _profile.PreferredAttackDirection.x,
-            _profile.PreferredAttackDirection.z,
-        };
+        _featureVectorCache[0]  = _profile.AggressionScore * 2f - 1f;
+        _featureVectorCache[1]  = _profile.RushTendency * 2f - 1f;
+        _featureVectorCache[2]  = _profile.TurtleTendency * 2f - 1f;
+        _featureVectorCache[3]  = _profile.FlankPreference * 2f - 1f;
+        _featureVectorCache[4]  = _profile.EconomyFocus * 2f - 1f;
+        _featureVectorCache[5]  = _profile.SkillReliance * 2f - 1f;
+        _featureVectorCache[6]  = Mathf.Clamp(_profile.PreferredAttackRange / 10f * 2f - 1f, -1f, 1f);
+        _featureVectorCache[7]  = _profile.TargetWeakestTendency * 2f - 1f;
+        _featureVectorCache[8]  = _profile.TargetHighValueTendency * 2f - 1f;
+        _featureVectorCache[9]  = _profile.CrystalFocusTendency * 2f - 1f;
+        _featureVectorCache[10] = Mathf.Clamp(_profile.AverageAttackStartTurn / 30f * 2f - 1f, -1f, 1f);
+        _featureVectorCache[11] = _profile.TurnPressurePattern;
+        _featureVectorCache[12] = _profile.FormationSpread / 10f * 2f - 1f;
+        _featureVectorCache[13] = _profile.Confidence * 2f - 1f;
+        _featureVectorCache[14] = _profile.PreferredAttackDirection.x;
+        _featureVectorCache[15] = _profile.PreferredAttackDirection.z;
+        return _featureVectorCache;
     }
 
     // ================================================================

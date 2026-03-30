@@ -481,6 +481,17 @@ public class SimBoardState
         return list;
     }
 
+    /// <summary>GCゼロ版: 呼び出し元が提供するリストに結果を書き込む</summary>
+    public void GetAliveUnitsNonAlloc(Team team, List<SimUnit> result)
+    {
+        result.Clear();
+        for (int i = 0; i < Units.Count; i++)
+        {
+            if (Units[i].IsAlive && Units[i].Team == team && Units[i].Type == Type.Unit)
+                result.Add(Units[i]);
+        }
+    }
+
     public SimUnit GetCrystal(Team team)
     {
         for (int i = 0; i < Units.Count; i++)

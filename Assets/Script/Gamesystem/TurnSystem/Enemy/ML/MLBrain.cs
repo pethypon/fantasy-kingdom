@@ -44,12 +44,16 @@ public class MLBrain
     public float[][] MBHead, VBHead, MBOut, VBOut;
     public int AdamStep;
 
-    // ---- 中間値キャッシュ ----
+    // ---- 中間値キャッシュ（Forward用 — 事前確保で毎フレームGCゼロ） ----
     float[] _lastInput;
     float[] _zShared, _aShared;
     float[][] _zHead, _aHead;  // [NumHeads][HeadHiddenSize]
     float[][] _zOut;            // [NumHeads][HeadOutputSize]
     float[] _headOutputs;       // [NumHeads]
+
+    // ---- Predict用の再利用バッファ（推論ホットパスでGCゼロ） ----
+    float[] _predictAShared;
+    float[][] _predictAHead;
 
     // ---- ハイパーパラメータ ----
     public float LearningRate = 0.001f;
@@ -82,6 +86,36 @@ public class MLBrain
         _rng = seed >= 0 ? new System.Random(seed) : new System.Random();
         InitializeWeights();
         InitializeAdam();
+        AllocateBuffers();
+    }
+
+    // ================================================================
+    //  推論・学習バッファの事前確保
+    // ================================================================
+    void AllocateBuffers()
+    {
+        // Predict用バッファ
+        _predictAShared = new float[SharedHiddenSize];
+        _predictAHead = new float[NumHeads][];
+        for (int h = 0; h < NumHeads; h++)
+            _predictAHead[h] = new float[HeadHiddenSize];
+
+        // Forward用バッファ
+        _zShared = new float[SharedHiddenSize];
+        _aShared = new float[SharedHiddenSize];
+        _dropoutMaskShared = new float[SharedHiddenSize];
+        _zHead = new float[NumHeads][];
+        _aHead = new float[NumHeads][];
+        _zOut = new float[NumHeads][];
+        _headOutputs = new float[NumHeads];
+        _dropoutMaskHead = new float[NumHeads][];
+        for (int h = 0; h < NumHeads; h++)
+        {
+            _zHead[h] = new float[HeadHiddenSize];
+            _aHead[h] = new float[HeadHiddenSize];
+            _zOut[h] = new float[HeadOutputSize];
+            _dropoutMaskHead[h] = new float[HeadHiddenSize];
+        }
     }
 
     // ================================================================
@@ -158,10 +192,7 @@ public class MLBrain
 
         _lastInput = input;
 
-        // 共有隠れ層 (ReLU + Dropout)
-        _zShared = new float[SharedHiddenSize];
-        _aShared = new float[SharedHiddenSize];
-        _dropoutMaskShared = new float[SharedHiddenSize];
+        // 共有隠れ層 (ReLU + Dropout) — 事前確保バッファ再利用
         float dropScale = 1f / (1f - DropoutRate); // Inverted Dropout
         for (int j = 0; j < SharedHiddenSize; j++)
         {
@@ -170,26 +201,17 @@ public class MLBrain
                 sum += input[i] * WShared[i, j];
             _zShared[j] = sum;
             float a = ReLU(sum);
-            // Inverted Dropout: 学習時のみニューロンをランダムに無効化
             bool keep = _rng.NextDouble() >= DropoutRate;
             _dropoutMaskShared[j] = keep ? dropScale : 0f;
             _aShared[j] = a * _dropoutMaskShared[j];
         }
 
-        // 各ヘッド
-        _zHead = new float[NumHeads][];
-        _aHead = new float[NumHeads][];
-        _zOut = new float[NumHeads][];
-        _headOutputs = new float[NumHeads];
-        _dropoutMaskHead = new float[NumHeads][];
+        // 各ヘッド — 事前確保バッファ再利用
         float headDropScale = 1f / (1f - HeadDropoutRate);
 
         for (int h = 0; h < NumHeads; h++)
         {
             // Head Hidden (ReLU + Dropout)
-            _zHead[h] = new float[HeadHiddenSize];
-            _aHead[h] = new float[HeadHiddenSize];
-            _dropoutMaskHead[h] = new float[HeadHiddenSize];
             for (int j = 0; j < HeadHiddenSize; j++)
             {
                 float sum = BHead[h][j];
@@ -203,7 +225,6 @@ public class MLBrain
             }
 
             // Head Output (Tanh)
-            _zOut[h] = new float[HeadOutputSize];
             float outSum = BOut[h][0];
             for (int i = 0; i < HeadHiddenSize; i++)
                 outSum += _aHead[h][i] * WOut[h][i, 0];
@@ -225,26 +246,25 @@ public class MLBrain
     {
         if (input.Length != InputSize) return 0f;
 
-        // 共有隠れ層
-        var aShared = new float[SharedHiddenSize];
+        // 共有隠れ層（事前確保バッファ使用 — GCゼロ）
         for (int j = 0; j < SharedHiddenSize; j++)
         {
             float sum = BShared[j];
             for (int i = 0; i < InputSize; i++)
                 sum += input[i] * WShared[i, j];
-            aShared[j] = ReLU(sum);
+            _predictAShared[j] = ReLU(sum);
         }
 
         float combined = 0f;
         for (int h = 0; h < NumHeads; h++)
         {
-            // Head Hidden
-            var aHead = new float[HeadHiddenSize];
+            // Head Hidden（事前確保バッファ使用）
+            var aHead = _predictAHead[h];
             for (int j = 0; j < HeadHiddenSize; j++)
             {
                 float sum = BHead[h][j];
                 for (int i = 0; i < SharedHiddenSize; i++)
-                    sum += aShared[i] * WHead[h][i, j];
+                    sum += _predictAShared[i] * WHead[h][i, j];
                 aHead[j] = ReLU(sum);
             }
 
@@ -261,37 +281,43 @@ public class MLBrain
     // ================================================================
     //  PredictPerHead — ヘッド別の出力を取得
     // ================================================================
+    // _predictPerHeadOutputは呼び出し元が値をコピーする前提で再利用
+    readonly float[] _predictPerHeadOutput = new float[NumHeads];
+
     public float[] PredictPerHead(float[] input)
     {
-        if (input.Length != InputSize) return new float[NumHeads];
+        if (input.Length != InputSize)
+        {
+            System.Array.Clear(_predictPerHeadOutput, 0, NumHeads);
+            return _predictPerHeadOutput;
+        }
 
-        var aShared = new float[SharedHiddenSize];
+        // 共有層（Predictと同じバッファを再利用）
         for (int j = 0; j < SharedHiddenSize; j++)
         {
             float sum = BShared[j];
             for (int i = 0; i < InputSize; i++)
                 sum += input[i] * WShared[i, j];
-            aShared[j] = ReLU(sum);
+            _predictAShared[j] = ReLU(sum);
         }
 
-        var outputs = new float[NumHeads];
         for (int h = 0; h < NumHeads; h++)
         {
-            var aHead = new float[HeadHiddenSize];
+            var aHead = _predictAHead[h];
             for (int j = 0; j < HeadHiddenSize; j++)
             {
                 float sum = BHead[h][j];
                 for (int i = 0; i < SharedHiddenSize; i++)
-                    sum += aShared[i] * WHead[h][i, j];
+                    sum += _predictAShared[i] * WHead[h][i, j];
                 aHead[j] = ReLU(sum);
             }
 
             float outSum = BOut[h][0];
             for (int i = 0; i < HeadHiddenSize; i++)
                 outSum += aHead[i] * WOut[h][i, 0];
-            outputs[h] = Tanh(outSum);
+            _predictPerHeadOutput[h] = Tanh(outSum);
         }
-        return outputs;
+        return _predictPerHeadOutput;
     }
 
     // ================================================================
