@@ -192,6 +192,31 @@ public class SimAction
 // =====================================================================
 public class SimBoardState
 {
+    // ---- オブジェクトプール ----
+    const int POOL_MAX = 64;
+    [System.ThreadStatic] static Stack<SimBoardState> _pool;
+
+    static SimBoardState RentFromPool()
+    {
+        if (_pool != null && _pool.Count > 0) return _pool.Pop();
+        return new SimBoardState();
+    }
+
+    /// <summary>使い終わったCloneをプールに返却する。探索ノード展開後に呼ぶ。</summary>
+    public void ReturnToPool()
+    {
+        if (_pool == null) _pool = new Stack<SimBoardState>(POOL_MAX);
+        if (_pool.Count < POOL_MAX)
+        {
+            // リストやDictionaryはClear()して再利用
+            Units.Clear();
+            EnemyBuildingCounts.Clear();
+            PlayerBuildingCounts.Clear();
+            if (_occupiedCells != null) _occupiedCells.Clear();
+            _pool.Push(this);
+        }
+    }
+
     // ---- ユニットデータ ----
     public List<SimUnit> Units;
 
@@ -421,18 +446,39 @@ public class SimBoardState
     // ================================================================
     public SimBoardState Clone()
     {
-        var copy = new SimBoardState();
-        copy.Units = new List<SimUnit>(Units.Count);
+        var copy = RentFromPool();
+
+        // Units: プールから返却されたオブジェクトはClear済みリストを持つ
+        if (copy.Units == null)
+            copy.Units = new List<SimUnit>(Units.Count);
+        else if (copy.Units.Capacity < Units.Count)
+            copy.Units.Capacity = Units.Count;
         for (int i = 0; i < Units.Count; i++)
             copy.Units.Add(Units[i].Clone());
+
         copy.EnemyAP = EnemyAP;
         copy.PlayerAP = PlayerAP;
         copy.EnemyAPReset = EnemyAPReset;
         copy.PlayerAPReset = PlayerAPReset;
         copy.EnemyCrystalPos = EnemyCrystalPos;
         copy.PlayerCrystalPos = PlayerCrystalPos;
-        copy.EnemyBuildingCounts = new Dictionary<FacilityKind, int>(EnemyBuildingCounts);
-        copy.PlayerBuildingCounts = new Dictionary<FacilityKind, int>(PlayerBuildingCounts);
+
+        // BuildingCounts: プール復帰オブジェクトはClear済み → 上書きのみ
+        if (copy.EnemyBuildingCounts == null)
+            copy.EnemyBuildingCounts = new Dictionary<FacilityKind, int>(EnemyBuildingCounts);
+        else
+        {
+            foreach (var kvp in EnemyBuildingCounts)
+                copy.EnemyBuildingCounts[kvp.Key] = kvp.Value;
+        }
+        if (copy.PlayerBuildingCounts == null)
+            copy.PlayerBuildingCounts = new Dictionary<FacilityKind, int>(PlayerBuildingCounts);
+        else
+        {
+            foreach (var kvp in PlayerBuildingCounts)
+                copy.PlayerBuildingCounts[kvp.Key] = kvp.Value;
+        }
+
         copy.MapTiles = MapTiles; // 共有参照 (変更しない)
         copy.TurnCount = TurnCount;
         copy.RebuildOccupied();

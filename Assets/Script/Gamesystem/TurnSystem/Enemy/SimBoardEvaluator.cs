@@ -104,6 +104,7 @@ public static class SimBoardEvaluator
     static float EvalCrystalSafety(SimBoardState board)
     {
         float score = 0f;
+        int maxDist = AIConstants.CS_Threat_MaxDist;
 
         // --- 自陣クリスタル ---
         var eCrystal = board.GetCrystal(Team.Enemy);
@@ -116,25 +117,34 @@ public static class SimBoardEvaluator
             if (eCrystal.ShieldTurns > 0)
                 score += eCrystal.ShieldTurns * AIConstants.CS_Shield_Per_Turn;
 
-            // 周囲の駒数
-            int guards = 0, threats = 0;
+            // 周囲の駒数 — 距離減衰付きグラデーション
+            int guards = 0;
+            float threatGradient = 0f;
             for (int i = 0; i < board.Units.Count; i++)
             {
                 var u = board.Units[i];
                 if (!u.IsAlive || u.Type != Type.Unit) continue;
                 int dist = SimUtil.Manhattan(u.Position, board.EnemyCrystalPos);
-                if (dist <= 4)
+                if (u.Team == Team.Enemy)
                 {
-                    if (u.Team == Team.Enemy) guards++;
-                    else if (u.Team == Team.Player) threats++;
+                    if (dist <= 4) guards++;
+                }
+                else if (u.Team == Team.Player)
+                {
+                    // 距離に応じた脅威グラデーション: 近いほど危険
+                    if (dist <= maxDist)
+                    {
+                        float decay = 1f - (float)dist / (maxDist + 1);
+                        threatGradient += decay * decay; // 二次減衰: 距離1=最大, 距離8≈0
+                    }
                 }
             }
             score += Mathf.Min(guards * AIConstants.CS_Guard_Per_Unit, AIConstants.CS_Guard_Max);
-            score -= threats * AIConstants.CS_Threat_Per_Unit;
+            score -= threatGradient * AIConstants.CS_Threat_Close_Max;
 
             // 脅威がある場合のHP低下ペナルティ増幅
-            if (threats > 0 && hpRatio < 0.5f)
-                score -= (1f - hpRatio) * threats * 10f;
+            if (threatGradient > 0.1f && hpRatio < 0.5f)
+                score -= (1f - hpRatio) * threatGradient * 10f;
         }
         else
         {
@@ -152,16 +162,20 @@ public static class SimBoardEvaluator
             if (pCrystal.ShieldTurns > 0)
                 score -= pCrystal.ShieldTurns * 5f;
 
-            // 自軍が敵クリスタル付近にいるボーナス
-            int attackers = 0;
+            // 自軍が敵クリスタル付近にいるボーナス — 距離減衰付き
+            float attackPressure = 0f;
             for (int i = 0; i < board.Units.Count; i++)
             {
                 var u = board.Units[i];
                 if (!u.IsAlive || u.Team != Team.Enemy || u.Type != Type.Unit) continue;
                 int dist = SimUtil.Manhattan(u.Position, board.PlayerCrystalPos);
-                if (dist <= 4) attackers++;
+                if (dist <= maxDist)
+                {
+                    float decay = 1f - (float)dist / (maxDist + 1);
+                    attackPressure += decay;
+                }
             }
-            score += attackers * 8f;
+            score += attackPressure * 8f;
         }
         else
         {
@@ -328,6 +342,10 @@ public static class SimBoardEvaluator
                 if (nearestAlly > 6) score -= 6f;
                 else if (nearestAlly >= 2 && nearestAlly <= 4) score += 3f;
             }
+
+            // 撤退路の安全性評価
+            // 自陣クリスタル方向への退路が敵に塞がれていないかチェック
+            score += EvalRetreatSafety(eu, board.EnemyCrystalPos, playerUnits);
         }
 
         // プレイヤーの位置的優位（マイナス）
@@ -340,9 +358,86 @@ public static class SimBoardEvaluator
             int crystalDist = SimUtil.Manhattan(pu.Position, board.EnemyCrystalPos);
             if (crystalDist <= 3) score -= 14f;
             else if (crystalDist <= 6) score -= 6f;
+
+            // プレイヤー側の撤退路安全性（マイナス = AI有利）
+            score -= EvalRetreatSafety(pu, board.PlayerCrystalPos, enemyUnits);
         }
 
         return score;
+    }
+
+    /// <summary>
+    /// 撤退路の安全性を評価する。
+    /// 自陣クリスタル方向の隣接3セルについて、敵が退路を塞いでいるかチェック。
+    /// 安全なら正値、退路が塞がれていれば負値。
+    /// </summary>
+    static float EvalRetreatSafety(SimUnit unit, Vector3Int homeCrystal, List<SimUnit> enemies)
+    {
+        // 自陣方向ベクトル
+        int dirX = homeCrystal.x - unit.Position.x;
+        int dirZ = homeCrystal.z - unit.Position.z;
+
+        // 退路候補: 自陣方向に1歩 (最大3方向)
+        int normX = dirX == 0 ? 0 : (dirX > 0 ? 1 : -1);
+        int normZ = dirZ == 0 ? 0 : (dirZ > 0 ? 1 : -1);
+
+        // 退路セル（真後ろ + 斜め2方向）
+        int retreatBlocked = 0;
+        int retreatChecked = 0;
+
+        // 真後ろ
+        if (normX != 0 || normZ != 0)
+        {
+            retreatChecked++;
+            if (IsRetreatBlocked(unit.Position.x + normX, unit.Position.z + normZ, enemies))
+                retreatBlocked++;
+        }
+        // 斜め2方向
+        if (normX != 0 && normZ != 0)
+        {
+            retreatChecked += 2;
+            if (IsRetreatBlocked(unit.Position.x + normX, unit.Position.z, enemies))
+                retreatBlocked++;
+            if (IsRetreatBlocked(unit.Position.x, unit.Position.z + normZ, enemies))
+                retreatBlocked++;
+        }
+        else if (normX != 0)
+        {
+            retreatChecked += 2;
+            if (IsRetreatBlocked(unit.Position.x + normX, unit.Position.z + 1, enemies))
+                retreatBlocked++;
+            if (IsRetreatBlocked(unit.Position.x + normX, unit.Position.z - 1, enemies))
+                retreatBlocked++;
+        }
+        else if (normZ != 0)
+        {
+            retreatChecked += 2;
+            if (IsRetreatBlocked(unit.Position.x + 1, unit.Position.z + normZ, enemies))
+                retreatBlocked++;
+            if (IsRetreatBlocked(unit.Position.x - 1, unit.Position.z + normZ, enemies))
+                retreatBlocked++;
+        }
+
+        if (retreatChecked == 0) return 0f;
+
+        // 退路が完全に塞がれている = 大きなペナルティ
+        float blockedRatio = (float)retreatBlocked / retreatChecked;
+        if (blockedRatio >= 1f) return -8f;
+        if (blockedRatio >= 0.66f) return -4f;
+        return blockedRatio > 0f ? -1f : 1f; // 退路確保ボーナス
+    }
+
+    static bool IsRetreatBlocked(int x, int z, List<SimUnit> enemies)
+    {
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            var e = enemies[i];
+            int dx = e.Position.x - x;
+            int dz = e.Position.z - z;
+            // 退路セルの隣接1マス以内に敵がいれば退路妨害
+            if (dx >= -1 && dx <= 1 && dz >= -1 && dz <= 1) return true;
+        }
+        return false;
     }
 
     // ================================================================
@@ -516,7 +611,17 @@ public static class SimBoardEvaluator
     static float EvalTempo(SimBoardState board)
     {
         float apDiff = board.EnemyAP - board.PlayerAP;
-        return apDiff * 0.5f;
+
+        // 序盤はテンポ(先行展開)がより重要
+        float phaseMult;
+        if (board.TurnCount <= AIConstants.TurnEarlyEnd)
+            phaseMult = 0.8f; // 序盤: テンポ重視
+        else if (board.TurnCount <= AIConstants.TurnMidEnd)
+            phaseMult = 0.5f; // 中盤: 標準
+        else
+            phaseMult = 0.35f; // 終盤: テンポの相対的価値低下
+
+        return apDiff * phaseMult;
     }
 
     // ================================================================
@@ -565,6 +670,9 @@ public static class SimBoardEvaluator
     // 11. 領土 (Territory)
     //  ユニットの展開範囲の広さを評価
     // ================================================================
+    // 領土計算用の再利用HashSet（GCゼロ化）
+    [System.ThreadStatic] static HashSet<long> _territoryCells;
+
     static float EvalTerritory(SimBoardState board)
     {
         float enemyTerritory = CalcTerritory(board, Team.Enemy);
@@ -574,26 +682,36 @@ public static class SimBoardEvaluator
 
     static float CalcTerritory(SimBoardState board, Team team)
     {
-        var cells = new HashSet<Vector3Int>();
+        if (_territoryCells == null) _territoryCells = new HashSet<long>();
+        else _territoryCells.Clear();
+
         for (int i = 0; i < board.Units.Count; i++)
         {
             var u = board.Units[i];
             if (!u.IsAlive || u.Team != team || u.Type != Type.Unit) continue;
 
-            // 半径3以内のセルをカウント
+            int bx = u.Position.x;
+            int bz = u.Position.z;
+            // 半径3以内のセルをカウント — long PackでGC削減
             for (int dx = -3; dx <= 3; dx++)
             {
-                for (int dz = -3; dz <= 3; dz++)
+                int adx = dx < 0 ? -dx : dx;
+                int maxDz = 3 - adx;
+                for (int dz = -maxDz; dz <= maxDz; dz++)
                 {
-                    if (Mathf.Abs(dx) + Mathf.Abs(dz) > 3) continue; // マンハッタン距離3以内
-                    var cell = new Vector3Int(u.Position.x + dx, 0, u.Position.z + dz);
+                    int cx = bx + dx;
+                    int cz = bz + dz;
+                    // long packしてHashSet<Vector3Int>のGC回避
+                    long key = ((long)cx << 32) | (uint)cz;
+                    if (_territoryCells.Contains(key)) continue;
+                    var cell = new Vector3Int(cx, 0, cz);
                     if (board.MapTiles.Contains(cell))
-                        cells.Add(cell);
+                        _territoryCells.Add(key);
                 }
             }
         }
 
-        return Mathf.Min(cells.Count * AIConstants.TERRITORY_Per_Cell, AIConstants.TERRITORY_Max);
+        return Mathf.Min(_territoryCells.Count * AIConstants.TERRITORY_Per_Cell, AIConstants.TERRITORY_Max);
     }
 
     // ================================================================
@@ -612,6 +730,10 @@ public static class SimBoardEvaluator
         return score;
     }
 
+    /// <summary>最大射程+移動距離の上限（これ以上離れたペアは即スキップ）</summary>
+    const float COORD_MAX_THREAT_RANGE = 10f;
+    const float COORD_MAX_THREAT_RANGE_SQ = COORD_MAX_THREAT_RANGE * COORD_MAX_THREAT_RANGE;
+
     static float CalcCoordinationScore(SimBoardState board, Team attackerTeam, Team defenderTeam)
     {
         float score = 0f;
@@ -629,7 +751,13 @@ public static class SimBoardEvaluator
                 var atk = attackers[j];
                 if (atk.IsStunned) continue;
 
-                float dist = SimUtil.Distance(atk.Position, target.Position);
+                // 早期枝刈り: sqrMagnitudeで最大射程外を即スキップ
+                float dx = atk.Position.x - target.Position.x;
+                float dz = atk.Position.z - target.Position.z;
+                float distSq = dx * dx + dz * dz;
+                if (distSq > COORD_MAX_THREAT_RANGE_SQ) continue;
+
+                float dist = Mathf.Sqrt(distSq);
                 float range = AIConstants.GetAttackRange(atk.Kind)
                     + SimActionGenerator.EstimateMoveRange(atk.Kind);
 

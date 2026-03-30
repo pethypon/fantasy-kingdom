@@ -153,6 +153,7 @@ public class AIMinimaxEngine
                 var boardAfterAction = initialBoard.Clone();
                 if (!boardAfterAction.ApplyAction(simAction))
                 {
+                    boardAfterAction.ReturnToPool();
                     candidateScores[idx] = baseScore;
                     continue;
                 }
@@ -172,6 +173,7 @@ public class AIMinimaxEngine
                     _nodesEvaluated++;
                 }
 
+                boardAfterAction.ReturnToPool();
                 candidateScores[idx] = score;
 
                 if (score > alpha) alpha = score;
@@ -286,6 +288,8 @@ public class AIMinimaxEngine
                 score = SimBoardEvaluator.Evaluate(boardCopy);
                 _nodesEvaluated++;
             }
+
+            boardCopy.ReturnToPool();
 
             if (score < minScore)
             {
@@ -405,6 +409,8 @@ public class AIMinimaxEngine
                 score = SimBoardEvaluator.Evaluate(boardCopy);
                 _nodesEvaluated++;
             }
+
+            boardCopy.ReturnToPool();
 
             if (score > maxScore)
             {

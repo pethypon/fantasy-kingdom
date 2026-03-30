@@ -43,7 +43,7 @@ public static class AIConstants
     public const float W_MOBILITY         = 0.4f;
     public const float W_ECONOMY          = 0.7f;
     public const float W_THREAT           = 0.9f;
-    public const float W_TEMPO            = 0.3f;
+    public const float W_TEMPO            = 0.65f;
     public const float W_RESOURCE_PROJ    = 0.5f;
     public const float W_TERRITORY        = 0.4f;
     public const float W_COORDINATION     = 0.6f;
@@ -58,6 +58,10 @@ public static class AIConstants
     public const float CS_Guard_Max        = 30f;
     public const float CS_Threat_Per_Unit  = 18f;
     public const float CS_Lost_Penalty     = 500f;
+    /// <summary>脅威距離減衰の最大距離（これ以上離れると脅威=0）</summary>
+    public const int CS_Threat_MaxDist     = 8;
+    /// <summary>脅威距離減衰の最大スコア（距離1で最大）</summary>
+    public const float CS_Threat_Close_Max = 25f;
 
     // =====================================================================
     //  King安全度
@@ -98,7 +102,7 @@ public static class AIConstants
     public const float RP_StoneWorks     = 3.5f;
     public const float RP_Smelter        = 4.0f;
     public const float RP_Bakery         = 3.0f;
-    public const float RP_Projection_Turns = 3f;  // 何ターン先の収入まで考慮するか
+    public const float RP_Projection_Turns = 5f;  // 何ターン先の収入まで考慮するか
 
     // =====================================================================
     //  領土/視界
