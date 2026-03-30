@@ -60,7 +60,7 @@ public class EnemyTurnBannerUI : MonoBehaviour
         _panelRect.sizeDelta = new Vector2(0, BannerHeight);
 
         _bg = panelGo.AddComponent<Image>();
-        _bg.color = new Color(0.6f, 0.1f, 0.1f, 0.85f);
+        _bg.color = new Color(0.65f, 0.12f, 0.12f, 0.88f);
 
         _group = panelGo.AddComponent<CanvasGroup>();
         _group.alpha = 0f;
@@ -71,8 +71,8 @@ public class EnemyTurnBannerUI : MonoBehaviour
         textGo.transform.SetParent(panelGo.transform, false);
         _text = textGo.AddComponent<TextMeshProUGUI>();
         _text.text = "敵のターン";
-        _text.fontSize = 36;
-        _text.color = Color.white;
+        _text.fontSize = BrandGuide.FontTitle;
+        _text.color = BrandGuide.TextPrimary;
         _text.alignment = TextAlignmentOptions.Center;
         _text.fontStyle = FontStyles.Bold;
 

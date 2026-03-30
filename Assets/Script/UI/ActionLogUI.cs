@@ -60,7 +60,7 @@ public class ActionLogUI : MonoBehaviour
         panelRT.sizeDelta = new Vector2(320, 200);
 
         var bg = panelGo.AddComponent<Image>();
-        bg.color = new Color(0.02f, 0.02f, 0.04f, 0.5f);
+        bg.color = new Color(0.03f, 0.03f, 0.05f, 0.65f);
 
         _group = panelGo.AddComponent<CanvasGroup>();
         _group.alpha = 0.8f;
@@ -71,8 +71,8 @@ public class ActionLogUI : MonoBehaviour
         var textGo = new GameObject("LogText");
         textGo.transform.SetParent(panelGo.transform, false);
         _logText = textGo.AddComponent<TextMeshProUGUI>();
-        _logText.fontSize = 12;
-        _logText.color = new Color(0.85f, 0.85f, 0.85f);
+        _logText.fontSize = 13;
+        _logText.color = BrandGuide.TextPrimary;
         _logText.alignment = TextAlignmentOptions.BottomLeft;
         _logText.richText = true;
         _logText.textWrappingMode = TextWrappingModes.Normal;

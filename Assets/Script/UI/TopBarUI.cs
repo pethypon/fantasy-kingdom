@@ -90,13 +90,13 @@ public class TopBarUI : MonoBehaviour
                 : 0f;
             timerFill.fillAmount = ratio;
 
-            // 残り時間に応じて色を変更
+            // 残り時間に応じて色を変更（BrandGuide参照）
             if (ratio < 0.2f)
-                timerFill.color = new Color(0.8f, 0.2f, 0.2f, 0.9f);
+                timerFill.color = BrandGuide.TimerDanger;
             else if (ratio < 0.5f)
-                timerFill.color = new Color(0.8f, 0.6f, 0.2f, 0.9f);
+                timerFill.color = BrandGuide.TimerWarning;
             else
-                timerFill.color = new Color(0.2f, 0.55f, 0.8f, 0.9f);
+                timerFill.color = BrandGuide.TimerNormal;
 
             // fillAmount を反映するために Image.type を Filled に設定
             if (timerFill.type != Image.Type.Filled)

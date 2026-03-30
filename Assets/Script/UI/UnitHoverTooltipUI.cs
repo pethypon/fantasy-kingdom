@@ -16,8 +16,8 @@ public class UnitHoverTooltipUI : MonoBehaviour
     private CanvasGroup _group;
     private Status _lastHovered;
 
-    private const float PanelWidth = 220f;
-    private const float PanelHeight = 50f;
+    private const float PanelWidth = 240f;
+    private const float PanelHeight = 56f;
 
     private void Awake()
     {
@@ -46,7 +46,7 @@ public class UnitHoverTooltipUI : MonoBehaviour
         _panelRect.pivot = new Vector2(0, 1);
 
         var bg = panelGo.AddComponent<Image>();
-        bg.color = new Color(0.06f, 0.06f, 0.1f, 0.85f);
+        bg.color = BrandGuide.PanelBg;
 
         _group = panelGo.AddComponent<CanvasGroup>();
         _group.alpha = 0f;
@@ -55,8 +55,8 @@ public class UnitHoverTooltipUI : MonoBehaviour
         var textGo = new GameObject("TooltipText");
         textGo.transform.SetParent(panelGo.transform, false);
         _text = textGo.AddComponent<TextMeshProUGUI>();
-        _text.fontSize = 13;
-        _text.color = Color.white;
+        _text.fontSize = 14;
+        _text.color = BrandGuide.TextPrimary;
         _text.alignment = TextAlignmentOptions.Left;
         _text.richText = true;
 
@@ -112,13 +112,15 @@ public class UnitHoverTooltipUI : MonoBehaviour
 
     private void UpdateTooltip(Status s)
     {
-        string teamColor = s.team == Team.Player ? "#88CCFF" : "#FF8888";
+        string teamColor = s.team == Team.Player
+            ? "#" + ColorUtility.ToHtmlStringRGB(BrandGuide.TeamPlayer)
+            : "#" + ColorUtility.ToHtmlStringRGB(BrandGuide.TeamEnemy);
         string teamStr = s.team == Team.Player ? "味方" : "敵";
         string name = KindNameJP.Get(s.kind);
         string dir = s.direction == Direction.N ? "▲N" : "▼S";
 
         float hpRatio = s.MaxHP > 0 ? (float)s.HP / s.MaxHP : 1f;
-        string hpColor = hpRatio > 0.5f ? "#AAFFAA" : hpRatio > 0.25f ? "#FFDD66" : "#FF5555";
+        string hpColor = BrandGuide.HPColorHex(hpRatio);
 
         _text.text = $"<color={teamColor}>[{teamStr}]</color> {name} {dir}\n" +
                      $"HP:<color={hpColor}>{s.HP}/{s.MaxHP}</color>  ATK:{s.ATK}  DEF:{s.DEF}";
