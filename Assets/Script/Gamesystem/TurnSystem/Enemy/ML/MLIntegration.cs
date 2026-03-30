@@ -43,6 +43,11 @@ public class MLIntegration
     // ---- 自己対戦シミュレーション ----
     int _selfPlayStepsPerMatch = 50;        // 試合後の仮想学習ステップ数
 
+    // ---- 高速化用の再利用バッファ（GCゼロ化） ----
+    readonly float[] _inputBuffer = new float[MLBrain.InputSize];
+    float[] _cachedBoardFeatures;           // ターン中の盤面特徴キャッシュ
+    float[] _cachedProfileFeatures;         // ターン中のプロファイルキャッシュ
+
     // ---- 統計 ----
     public bool IsActive => _isActive;
     public int TotalTrainingSteps => _brain.TotalTrainingSteps;
@@ -218,10 +223,12 @@ public class MLIntegration
         // リアルタイム適応計算
         _realtimeAdapt.ComputeAdaptation(board, turn);
 
+        // 盤面特徴とプロファイルをキャッシュ（EvaluateActionsで再利用）
+        _cachedBoardFeatures = MLFeatureExtractor.ExtractBoardFeatures(board);
+        _cachedProfileFeatures = _profiler.ToFeatureVector();
+
         // 行動予測
-        float[] boardFeatures = MLFeatureExtractor.ExtractBoardFeatures(board);
-        float[] profileFeatures = _profiler.ToFeatureVector();
-        var prediction = _behaviorPredictor.Predict(boardFeatures, profileFeatures);
+        var prediction = _behaviorPredictor.Predict(_cachedBoardFeatures, _cachedProfileFeatures);
 
         // シーケンスパターン検知のログ
         string freqSeq = _realtimeAdapt.GetMostFrequentSequence();
@@ -244,44 +251,44 @@ public class MLIntegration
     {
         if (!_isActive || actions == null || actions.Count == 0) return;
 
-        float[] profileFeatures = _profiler.ToFeatureVector();
+        // プロファイルとボード特徴はターン中キャッシュ済み — 再計算不要
+        float[] profileFeatures = _cachedProfileFeatures ?? _profiler.ToFeatureVector();
+        float[] boardBase = _cachedBoardFeatures ?? MLFeatureExtractor.ExtractBoardFeatures(board);
 
         // ---- ε-greedy探索: 確率εでランダムにスコアを撹乱 ----
         bool isExploring = _exploreRng.NextDouble() < _explorationRate;
 
-        foreach (var action in actions)
+        // UCB不確実性は全行動共通 → ループ外で1回計算
+        float uncertainty = 1f / (1f + _brain.TotalTrainingSteps * 0.001f);
+
+        for (int idx = 0; idx < actions.Count; idx++)
         {
+            var action = actions[idx];
             float totalMLBonus = 0f;
 
-            // ---- 1. MLBrain (3ヘッドNN) ----
-            float[] features = BuildFullInput(board, action, profileFeatures);
-            float mlValue = _brain.Predict(features);
+            // ---- 1. MLBrain (3ヘッドNN) — キャッシュ版BuildFullInput ----
+            BuildFullInputFast(boardBase, board, action, profileFeatures);
+            float mlValue = _brain.Predict(_inputBuffer);
             totalMLBonus += mlValue * 30f * _mlScoreWeight;
 
             // ---- 2. UCB的不確実性ボーナス ----
-            // 学習初期ほど不確実性が高い → 未知の行動を積極的に試す
-            float uncertainty = 1f / (1f + _brain.TotalTrainingSteps * 0.001f);
             float ucbBonus = _uncertaintyBonus * uncertainty *
                 (float)(_exploreRng.NextDouble() * 2.0 - 1.0);
             totalMLBonus += ucbBonus;
 
             // ---- 3. カウンター戦略ボーナス ----
-            float counterBonus = _counterStrategy.GetCounterBonus(action, board);
-            totalMLBonus += counterBonus;
+            totalMLBonus += _counterStrategy.GetCounterBonus(action, board);
 
             // ---- 4. リアルタイム適応ボーナス ----
-            float adaptiveBonus = _realtimeAdapt.GetAdaptiveBonus(action, board);
-            totalMLBonus += adaptiveBonus;
+            totalMLBonus += _realtimeAdapt.GetAdaptiveBonus(action, board);
 
             // ---- 5. 行動予測ベースボーナス ----
-            float predictiveBonus = _behaviorPredictor.GetPredictiveBonus(action, board);
-            totalMLBonus += predictiveBonus;
+            totalMLBonus += _behaviorPredictor.GetPredictiveBonus(action, board);
 
             // ---- 探索モード: スコアにノイズを追加 ----
             if (isExploring)
             {
-                float noise = (float)(_exploreRng.NextDouble() * 20.0 - 10.0);
-                totalMLBonus += noise;
+                totalMLBonus += (float)(_exploreRng.NextDouble() * 20.0 - 10.0);
             }
 
             action.Score += totalMLBonus;
@@ -315,6 +322,27 @@ public class MLIntegration
         return input;
     }
 
+    /// <summary>
+    /// 高速版: キャッシュ済み盤面特徴 + 行動オーバーレイを _inputBuffer に書き込む。
+    /// GCゼロ — 毎回の new float[] を完全排除。
+    /// </summary>
+    void BuildFullInputFast(float[] boardBase, AIBoardState board, AIAction action, float[] profileFeatures)
+    {
+        // 盤面特徴をキャッシュからコピーし、行動部分のみ上書き
+        MLFeatureExtractor.OverlayActionFeaturesFromCache(_inputBuffer, boardBase, board, action);
+
+        // プロファイル特徴 [64-79]
+        if (profileFeatures != null)
+        {
+            int pLen = Mathf.Min(16, profileFeatures.Length);
+            System.Array.Copy(profileFeatures, 0, _inputBuffer, 64, pLen);
+        }
+
+        // メタ特徴の上書き
+        _inputBuffer[62] = EncodeStrategy(_currentStrategy);
+        _inputBuffer[63] = EncodePersonality(_personality);
+    }
+
     // ================================================================
     //  行動実行後の記録
     // ================================================================
@@ -322,10 +350,12 @@ public class MLIntegration
     {
         if (!_isActive) return;
 
-        float[] profileFeatures = _profiler.ToFeatureVector();
-        float[] features = BuildFullInput(board, action, profileFeatures);
+        // RecordStepはバッファにコピーするので、_inputBufferを再利用しても安全
+        float[] profileFeatures = _cachedProfileFeatures ?? _profiler.ToFeatureVector();
+        float[] boardBase = _cachedBoardFeatures ?? MLFeatureExtractor.ExtractBoardFeatures(board);
+        BuildFullInputFast(boardBase, board, action, profileFeatures);
         float reward = CalcImmediateReward(action, success);
-        _buffer.RecordStep(features, reward, turn);
+        _buffer.RecordStep(_inputBuffer, reward, turn);
     }
 
     // ================================================================

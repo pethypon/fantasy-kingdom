@@ -80,9 +80,26 @@ public static class MLFeatureExtractor
     public static float[] ExtractActionFeatures(AIBoardState board, AIAction action)
     {
         var f = ExtractBoardFeatures(board);
-
         if (action == null) return f;
+        OverlayActionFeatures(f, board, action);
+        return f;
+    }
 
+    /// <summary>
+    /// 盤面特徴が既にセット済みのバッファに行動特徴を上書きする（高速版）。
+    /// boardFeaturesBase を f にコピーしてから行動部分のみ上書き。
+    /// ホットパスで ExtractBoardFeatures() の再計算を完全に回避する。
+    /// </summary>
+    public static void OverlayActionFeaturesFromCache(float[] f, float[] boardFeaturesBase, AIBoardState board, AIAction action)
+    {
+        System.Array.Copy(boardFeaturesBase, 0, f, 0, Mathf.Min(boardFeaturesBase.Length, f.Length));
+        if (action != null)
+            OverlayActionFeatures(f, board, action);
+    }
+
+    /// <summary>行動依存の特徴 [30-59] をバッファに書き込む</summary>
+    static void OverlayActionFeatures(float[] f, AIBoardState board, AIAction action)
+    {
         // ---- 行動コンテキスト [30-39] ----
         f[30] = EncodeActionType(action.ActionType);
         f[31] = Normalize(action.APCost, 0, 10);
@@ -114,9 +131,9 @@ public static class MLFeatureExtractor
             : 0f;
         f[45] = IsRetreatDirection(action, board) ? 1f : -1f;
         f[46] = IsAdvanceDirection(action, board) ? 1f : -1f;
-        f[47] = 0f; // 予約
-        f[48] = 0f; // 予約
-        f[49] = 0f; // 予約
+        f[47] = 0f;
+        f[48] = 0f;
+        f[49] = 0f;
 
         // ---- 戦術特徴 [50-59] ----
         f[50] = SurroundingLevel(action, board);
@@ -127,11 +144,9 @@ public static class MLFeatureExtractor
             ? TargetImportance(action.TargetUnit) : 0f;
         f[55] = action.ActionType == AIActionType.Support ? 1f : -1f;
         f[56] = StatusEffectAdvantage(action);
-        f[57] = 0f; // 予約
-        f[58] = 0f; // 予約
-        f[59] = 0f; // 予約
-
-        return f;
+        f[57] = 0f;
+        f[58] = 0f;
+        f[59] = 0f;
     }
 
     // ================================================================
