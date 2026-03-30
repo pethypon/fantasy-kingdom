@@ -43,7 +43,8 @@ public static class AIConstants
     public const float W_MOBILITY         = 0.4f;
     public const float W_ECONOMY          = 0.7f;
     public const float W_THREAT           = 0.9f;
-    public const float W_TEMPO            = 0.3f;
+    public const float W_TEMPO            = 0.6f;
+    public const float W_TEMPO_EARLY_MULT = 1.5f; // 序盤テンポ倍率
     public const float W_RESOURCE_PROJ    = 0.5f;
     public const float W_TERRITORY        = 0.4f;
     public const float W_COORDINATION     = 0.6f;
@@ -98,7 +99,8 @@ public static class AIConstants
     public const float RP_StoneWorks     = 3.5f;
     public const float RP_Smelter        = 4.0f;
     public const float RP_Bakery         = 3.0f;
-    public const float RP_Projection_Turns = 3f;  // 何ターン先の収入まで考慮するか
+    public const float RP_Projection_Turns = 6f;  // 何ターン先の収入まで考慮するか（割引率付き）
+    public const float RP_Discount_Rate    = 0.85f; // 1ターンごとの割引率
 
     // =====================================================================
     //  領土/視界

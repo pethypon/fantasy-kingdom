@@ -462,6 +462,10 @@ public static class AIActionEvaluator
             int alliesNear = board.CountAlliesNear(posAfter, action.Unit, 3f);
             float isolationMult = alliesNear == 0 ? 1.5f : alliesNear == 1 ? 1.2f : 1f;
 
+            // 退路安全性: 退路が塞がれている場合はさらに危険
+            float retreatSafety = EvalRetreatPathSafety(posAfter, action.Unit, board);
+            if (retreatSafety < -5f) isolationMult *= 1.3f; // 退路なし→危険度UP
+
             float penalty;
             if (wouldDie)
             {
@@ -531,6 +535,10 @@ public static class AIActionEvaluator
                 bonus += 8f;
             else if (counterDmg < action.Unit.HP * 0.2f)
                 bonus += 4f;
+
+            // 6. 退路の安全性 — 撤退先からさらに逃げ道があるか
+            float retreatPathSafety = EvalRetreatPathSafety(action.TargetPos, action.Unit, board);
+            bonus += retreatPathSafety;
 
             action.Score += bonus * chainMultiplier;
         }
@@ -1763,6 +1771,50 @@ public static class AIActionEvaluator
             if (d < nearest) nearest = d;
         }
         return nearest;
+    }
+
+    /// <summary>
+    /// 退路安全性評価: 撤退先からさらに移動可能なマスのうち
+    /// 敵の攻撃圏外に出られるマスがどれだけあるかを評価する。
+    /// 退路が塞がれている（=袋小路）場合はペナルティを返す。
+    /// </summary>
+    static float EvalRetreatPathSafety(Vector3 retreatPos, Status unit, AIBoardState board)
+    {
+        // 撤退先から到達可能な隣接マス（4方向）を調べる
+        Vector3[] directions = {
+            new Vector3(1, 0, 0), new Vector3(-1, 0, 0),
+            new Vector3(0, 0, 1), new Vector3(0, 0, -1)
+        };
+
+        int safePaths = 0;   // 敵攻撃圏外に出られる経路数
+        int totalPaths = 0;  // 有効な隣接マス数
+
+        foreach (var dir in directions)
+        {
+            Vector3 neighbor = retreatPos + dir;
+            // マップ外チェック（簡易: 有効タイルかどうか）
+            if (!board.IsValidTile(neighbor)) continue;
+            totalPaths++;
+
+            // 隣接マスでの被ダメージ推定
+            int dmgAtNeighbor = board.EstimateCounterDamageAt(neighbor, unit);
+            if (dmgAtNeighbor < unit.HP * 0.3f)
+                safePaths++;
+        }
+
+        if (totalPaths == 0)
+            return -15f; // 完全に袋小路
+
+        float safeRatio = (float)safePaths / totalPaths;
+
+        if (safeRatio <= 0f)
+            return -12f; // すべての退路が敵の攻撃圏内
+        if (safeRatio < 0.5f)
+            return -5f;  // 退路が半分以上塞がれている
+        if (safeRatio >= 0.75f)
+            return 6f;   // 十分な退路がある
+
+        return 0f; // 普通
     }
 
     static float CalcTacticalMoveBonus(AIAction action, AIPersonality p, AIBoardState board)

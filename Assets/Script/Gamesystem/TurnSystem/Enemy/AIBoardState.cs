@@ -916,4 +916,12 @@ public class AIBoardState
             default:         return -1;
         }
     }
+
+    /// <summary>指定位置が有効なマップタイルかどうか</summary>
+    public bool IsValidTile(Vector3 pos)
+    {
+        if (_moveGen == null || _moveGen.mapcreate == null) return false;
+        var cell = new Vector3(Mathf.Round(pos.x), 1f, Mathf.Round(pos.z));
+        return _moveGen.mapcreate.SetPos.Contains(cell);
+    }
 }
