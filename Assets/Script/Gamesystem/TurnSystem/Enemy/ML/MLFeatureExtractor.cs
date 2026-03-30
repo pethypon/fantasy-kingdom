@@ -220,15 +220,20 @@ public static class MLFeatureExtractor
         return count;
     }
 
+    // Kind enumは12種 — ビットフラグで高速カウント（HashSet不要）
     static float UnitDiversity(List<Status> units)
     {
-        var kinds = new HashSet<Kind>();
+        int kindBits = 0;
         foreach (var u in units)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            kinds.Add(u.kind);
+            kindBits |= 1 << (int)u.kind;
         }
-        return Normalize(kinds.Count, 0, 12);
+        // ビットカウント（Hamming weight）
+        int count = 0;
+        int b = kindBits;
+        while (b != 0) { count++; b &= b - 1; }
+        return Normalize(count, 0, 12);
     }
 
     static float TotalPieceValue(List<Status> units)
@@ -392,10 +397,11 @@ public static class MLFeatureExtractor
     static float AllyDensityAt(Vector3 pos, List<Status> allies)
     {
         int count = 0;
+        const float sqrThreshold = 3f * 3f; // sqrMagnitude比較でsqrt回避
         foreach (var u in allies)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            if (Vector3.Distance(u.transform.position, pos) < 3f)
+            if ((u.transform.position - pos).sqrMagnitude < sqrThreshold)
                 count++;
         }
         return Normalize(count, 0, 5);
@@ -404,10 +410,11 @@ public static class MLFeatureExtractor
     static float EnemyDensityAt(Vector3 pos, List<Status> enemies)
     {
         int count = 0;
+        const float sqrThreshold = 3f * 3f;
         foreach (var u in enemies)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            if (Vector3.Distance(u.transform.position, pos) < 3f)
+            if ((u.transform.position - pos).sqrMagnitude < sqrThreshold)
                 count++;
         }
         return Normalize(count, 0, 5);
@@ -434,10 +441,11 @@ public static class MLFeatureExtractor
         if (action.TargetUnit == null) return 0f;
         Vector3 tPos = action.TargetUnit.transform.position;
         int allies = 0;
+        const float sqrThreshold = 3f * 3f;
         foreach (var u in board.AliveEnemyUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            if (Vector3.Distance(u.transform.position, tPos) < 3f)
+            if ((u.transform.position - tPos).sqrMagnitude < sqrThreshold)
                 allies++;
         }
         return Normalize(allies, 0, 4);
@@ -461,10 +469,11 @@ public static class MLFeatureExtractor
     {
         if (action.Unit == null) return 0f;
         int threatsInRange = 0;
+        const float sqrThreshold = 4f * 4f;
         foreach (var pu in board.AlivePlayerUnits)
         {
             if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-            if (Vector3.Distance(pu.transform.position, action.TargetPos) < 4f)
+            if ((pu.transform.position - action.TargetPos).sqrMagnitude < sqrThreshold)
                 threatsInRange++;
         }
         return Normalize(threatsInRange, 0, 4);

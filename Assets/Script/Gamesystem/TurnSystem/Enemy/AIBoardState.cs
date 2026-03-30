@@ -123,6 +123,12 @@ public class AIBoardState
         RefreshEconomyData();
     }
 
+    // ---- Enum.GetValues()キャッシュ（GC回避） ----
+    static readonly FacilityKind[] _allFacilityKinds = (FacilityKind[])Enum.GetValues(typeof(FacilityKind));
+    static readonly Kind[] _summonKinds = { Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
+                                            Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
+                                            Kind.Magicsniper, Kind.Bomber };
+
     // ---- 建築/召喚可能情報を更新 ----
     void RefreshEconomyData()
     {
@@ -130,33 +136,38 @@ public class AIBoardState
         if (_buildSystem != null)
             BuildablePositions = _buildSystem.AIGetBuildablePositions(Team.Enemy);
         else
-            BuildablePositions = new List<Vector3Int>();
+        {
+            if (BuildablePositions == null) BuildablePositions = new List<Vector3Int>();
+            else BuildablePositions.Clear();
+        }
 
         // 召喚可能位置
         if (_summonSystem != null)
             SummonablePositions = _summonSystem.AIGetSummonablePositions(Team.Enemy);
         else
-            SummonablePositions = new List<Vector3Int>();
+        {
+            if (SummonablePositions == null) SummonablePositions = new List<Vector3Int>();
+            else SummonablePositions.Clear();
+        }
 
-        // 購入可能な建築物
-        AffordableBuildings = new List<FacilityKind>();
+        // 購入可能な建築物（リスト再利用）
+        if (AffordableBuildings == null) AffordableBuildings = new List<FacilityKind>();
+        else AffordableBuildings.Clear();
         if (_buildSystem != null && _factionState != null)
         {
-            foreach (FacilityKind fk in Enum.GetValues(typeof(FacilityKind)))
+            foreach (var fk in _allFacilityKinds)
             {
                 if (_apSystem.CanBuild(Team.Enemy, fk, _factionState))
                     AffordableBuildings.Add(fk);
             }
         }
 
-        // 召喚可能なユニット種
-        AffordableUnits = new List<Kind>();
+        // 召喚可能なユニット種（リスト再利用）
+        if (AffordableUnits == null) AffordableUnits = new List<Kind>();
+        else AffordableUnits.Clear();
         if (_summonSystem != null)
         {
-            Kind[] summonKinds = { Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
-                                    Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
-                                    Kind.Magicsniper, Kind.Bomber };
-            foreach (var k in summonKinds)
+            foreach (var k in _summonKinds)
             {
                 if (_summonSystem.CanSummon(Team.Enemy, k))
                     AffordableUnits.Add(k);
@@ -170,8 +181,9 @@ public class AIBoardState
         // サブクリスタル残り
         EnemySubCrystals = _factionState != null ? _factionState.GetSubCrystals(Team.Enemy) : 0;
 
-        // サブクリスタル設置可能位置
-        SubCrystalPlaceable = new List<Vector3Int>();
+        // サブクリスタル設置可能位置（リスト再利用）
+        if (SubCrystalPlaceable == null) SubCrystalPlaceable = new List<Vector3Int>();
+        else SubCrystalPlaceable.Clear();
         if (_subCrystalSystem != null && EnemySubCrystals > 0 && _moveGen != null)
         {
             foreach (var sp in _moveGen.mapcreate.SetPos)
@@ -180,7 +192,7 @@ public class AIBoardState
                 if (_subCrystalSystem.CanPlaceSubCrystal(pos, Team.Enemy))
                 {
                     SubCrystalPlaceable.Add(pos);
-                    if (SubCrystalPlaceable.Count >= 5) break; // 候補は最大5位置
+                    if (SubCrystalPlaceable.Count >= 5) break;
                 }
             }
         }
@@ -280,11 +292,15 @@ public class AIBoardState
         return bestDir == Vector3.zero ? Vector3.forward : bestDir;
     }
 
-    // ---- 駒の有利度 ----
+    // ---- 駒の有利度（LINQなし高速版） ----
     public float GetAdvantageRatio()
     {
-        int enemyPower = AliveEnemyUnits.Sum(u => u.HP + u.ATK);
-        int playerPower = AlivePlayerUnits.Sum(u => u.HP + u.ATK);
+        int enemyPower = 0;
+        for (int i = 0; i < AliveEnemyUnits.Count; i++)
+            enemyPower += AliveEnemyUnits[i].HP + AliveEnemyUnits[i].ATK;
+        int playerPower = 0;
+        for (int i = 0; i < AlivePlayerUnits.Count; i++)
+            playerPower += AlivePlayerUnits[i].HP + AlivePlayerUnits[i].ATK;
         if (playerPower + enemyPower == 0) return 0f;
         return (enemyPower - playerPower) / (float)(enemyPower + playerPower);
     }
@@ -439,14 +455,14 @@ public class AIBoardState
     // ---- 味方の最寄り駒距離 ----
     public float GetNearestAllyDist(Vector3 pos, Status self)
     {
-        float nearest = float.MaxValue;
+        float nearestSqr = float.MaxValue;
         foreach (var u in AliveEnemyUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy || u == self) continue;
-            float d = Vector3.Distance(pos, u.transform.position);
-            if (d < nearest) nearest = d;
+            float sqr = (pos - u.transform.position).sqrMagnitude;
+            if (sqr < nearestSqr) nearestSqr = sqr;
         }
-        return nearest;
+        return nearestSqr < float.MaxValue ? Mathf.Sqrt(nearestSqr) : float.MaxValue;
     }
 
     // ---- スキルAP消費 ----
@@ -500,16 +516,32 @@ public class AIBoardState
         return visible;
     }
 
+    // ---- 視界XZルックアップ用キャッシュ (O(1)化) ----
+    HashSet<long> _visionXZCache;
+    int _visionCacheVersion = -1; // EnemyVisionBoxのCount変化で無効化
+
+    static long PackXZ(int x, int z) => ((long)x << 32) | (uint)z;
+
     bool IsCellInEnemyVision(Vector3 worldPos)
     {
         if (_visionGen == null || _visionGen.EnemyVisionBox == null) return false;
+
+        // キャッシュ再構築（VisionBoxが変更された場合のみ）
+        int curCount = _visionGen.EnemyVisionBox.Count;
+        if (_visionXZCache == null || _visionCacheVersion != curCount)
+        {
+            if (_visionXZCache == null)
+                _visionXZCache = new HashSet<long>(curCount);
+            else
+                _visionXZCache.Clear();
+            foreach (var v in _visionGen.EnemyVisionBox)
+                _visionXZCache.Add(PackXZ(v.x, v.z));
+            _visionCacheVersion = curCount;
+        }
+
         int x = Mathf.RoundToInt(worldPos.x);
         int z = Mathf.RoundToInt(worldPos.z);
-        foreach (var v in _visionGen.EnemyVisionBox)
-        {
-            if (v.x == x && v.z == z) return true;
-        }
-        return false;
+        return _visionXZCache.Contains(PackXZ(x, z));
     }
 
     // ================================================================
@@ -717,10 +749,9 @@ public class AIBoardState
         foreach (var pu in AlivePlayerUnits)
         {
             if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-            float dist = Vector3.Distance(pos, pu.transform.position);
-            // 攻撃の届く距離は駒種依存だが、簡易近似として距離4以内を反撃圏とみなす
-            float maxRange = EstimateAttackRange(pu);
-            if (dist > maxRange + 1.5f) continue; // 移動+攻撃で届くマージン
+            float maxRange = EstimateAttackRange(pu) + 1.5f; // 移動+攻撃マージン
+            float sqrThreshold = maxRange * maxRange;
+            if ((pos - pu.transform.position).sqrMagnitude > sqrThreshold) continue;
             int dmg = Mathf.Max(0, 1 + (pu.ATK / 6) + ((pu.ATK / 2) - (self.DEF / 4)));
             totalDmg += dmg;
         }
@@ -745,10 +776,11 @@ public class AIBoardState
     public int CountAlliesNear(Vector3 pos, Status self, float radius)
     {
         int count = 0;
+        float sqrRadius = radius * radius;
         foreach (var u in AliveEnemyUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy || u == self) continue;
-            if (Vector3.Distance(pos, u.transform.position) <= radius) count++;
+            if ((pos - u.transform.position).sqrMagnitude <= sqrRadius) count++;
         }
         return count;
     }
@@ -756,12 +788,13 @@ public class AIBoardState
     /// <summary>指定位置に到達可能な味方ヒーラーがいるか</summary>
     public bool HasHealerInRange(Vector3 pos, float range)
     {
+        float sqrRange = range * range;
         foreach (var u in AliveEnemyUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
             if (u.AssignedSkillId < 0) continue;
             if (!SkillData.Table.TryGetValue(u.AssignedSkillId, out var skill)) continue;
-            if (skill.FixedHeal > 0 && Vector3.Distance(pos, u.transform.position) <= range)
+            if (skill.FixedHeal > 0 && (pos - u.transform.position).sqrMagnitude <= sqrRange)
                 return true;
         }
         return false;
@@ -773,6 +806,7 @@ public class AIBoardState
         if (_buildSystem == null) return false;
         Transform parent = _buildSystem.GetBuildingParent(Team.Enemy);
         if (parent == null) return false;
+        float sqrRange = range * range;
         foreach (Transform child in parent)
         {
             var s = child.GetComponent<Status>();
@@ -780,7 +814,7 @@ public class AIBoardState
             if (s.facilityKind == FacilityKind.WoodWall || s.facilityKind == FacilityKind.StoneWall
                 || s.facilityKind == FacilityKind.Mortar || s.facilityKind == FacilityKind.Cannon)
             {
-                if (Vector3.Distance(pos, child.position) <= range) return true;
+                if ((pos - child.position).sqrMagnitude <= sqrRange) return true;
             }
         }
         return false;

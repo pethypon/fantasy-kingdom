@@ -379,6 +379,11 @@ public class AICommander
         int strategyFailures = 0;
         var turnStats = new TurnStats();
 
+        // 探索エンジンとtopCandidatesリストをループ外で事前確保（GC削減）
+        var searchEngine = new AISearchEngine(_threatLevel.SearchDepth, _threatLevel.SearchCandidateLimit, _rng);
+        searchEngine.SetSimulationReferences(_moveGen, _unitSet, _crystalSystem, _apSystem);
+        var topCandidates = new List<AIAction>();
+
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
         Debug.Log($"[AICommander] 方針={_currentStrategy}  理由=\"{strategyDecision.Reason}\"  AP={_board.EnemyAP}  " +
                   $"自軍駒数={_board.AliveEnemyUnits.Count}  " +
@@ -482,9 +487,8 @@ public class AICommander
             {
                 // スコア降順ソートして上位候補を抽出
                 actions.Sort((a, b) => b.Score.CompareTo(a.Score));
-                // 脅威度に応じた候補数と探索深度
                 int candidateLimit = _threatLevel.SearchCandidateLimit;
-                var topCandidates = new List<AIAction>();
+                topCandidates.Clear();
                 for (int i = 0; i < Mathf.Min(candidateLimit, actions.Count); i++)
                 {
                     if (actions[i].ActionType != AIActionType.Wait)
@@ -493,13 +497,6 @@ public class AICommander
 
                 if (topCandidates.Count > 0)
                 {
-                    var searchEngine = new AISearchEngine(
-                        _threatLevel.SearchDepth,
-                        candidateLimit,
-                        _rng);
-                    // シミュレーション用参照を設定（完全シミュレーション有効化）
-                    searchEngine.SetSimulationReferences(_moveGen, _unitSet, _crystalSystem, _apSystem);
-
                     var lookaheadScores = searchEngine.EvaluateWithLookahead(
                         topCandidates, _board, _personality, _learning);
 
