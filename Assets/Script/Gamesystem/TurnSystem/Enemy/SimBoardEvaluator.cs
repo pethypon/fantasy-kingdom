@@ -116,21 +116,23 @@ public static class SimBoardEvaluator
             if (eCrystal.ShieldTurns > 0)
                 score += eCrystal.ShieldTurns * AIConstants.CS_Shield_Per_Turn;
 
-            // 周囲の駒数
-            int guards = 0, threats = 0;
+            // 周囲の駒数（距離減衰付き — 近いほど影響が大きい）
+            float guardScore = 0f, threatScore = 0f;
             for (int i = 0; i < board.Units.Count; i++)
             {
                 var u = board.Units[i];
                 if (!u.IsAlive || u.Type != Type.Unit) continue;
                 int dist = SimUtil.Manhattan(u.Position, board.EnemyCrystalPos);
-                if (dist <= 4)
-                {
-                    if (u.Team == Team.Enemy) guards++;
-                    else if (u.Team == Team.Player) threats++;
-                }
+                if (dist > 7) continue; // 遠すぎる駒は無視
+                // 距離減衰: dist=1→1.0, dist=4→0.4, dist=7→0.1
+                float decay = 1f / (1f + 0.5f * dist);
+                if (u.Team == Team.Enemy)
+                    guardScore += AIConstants.CS_Guard_Per_Unit * decay;
+                else if (u.Team == Team.Player)
+                    threatScore += AIConstants.CS_Threat_Per_Unit * decay;
             }
-            score += Mathf.Min(guards * AIConstants.CS_Guard_Per_Unit, AIConstants.CS_Guard_Max);
-            score -= threats * AIConstants.CS_Threat_Per_Unit;
+            score += Mathf.Min(guardScore, AIConstants.CS_Guard_Max);
+            score -= threatScore;
 
             // 脅威がある場合のHP低下ペナルティ増幅
             if (threats > 0 && hpRatio < 0.5f)
@@ -152,16 +154,18 @@ public static class SimBoardEvaluator
             if (pCrystal.ShieldTurns > 0)
                 score -= pCrystal.ShieldTurns * 5f;
 
-            // 自軍が敵クリスタル付近にいるボーナス
-            int attackers = 0;
+            // 自軍が敵クリスタル付近にいるボーナス（距離減衰付き）
+            float attackerScore = 0f;
             for (int i = 0; i < board.Units.Count; i++)
             {
                 var u = board.Units[i];
                 if (!u.IsAlive || u.Team != Team.Enemy || u.Type != Type.Unit) continue;
                 int dist = SimUtil.Manhattan(u.Position, board.PlayerCrystalPos);
-                if (dist <= 4) attackers++;
+                if (dist > 7) continue;
+                float decay = 1f / (1f + 0.5f * dist);
+                attackerScore += 8f * decay;
             }
-            score += attackers * 8f;
+            score += attackerScore;
         }
         else
         {
@@ -447,6 +451,9 @@ public static class SimBoardEvaluator
             for (int j = 0; j < enemyUnits.Count; j++)
             {
                 var eu = enemyUnits[j];
+                // マンハッタン距離で早期枝刈り
+                if (SimUtil.Manhattan(pu.Position, eu.Position) > COORD_MaxRange) continue;
+
                 float dist = SimUtil.Distance(pu.Position, eu.Position);
                 float threatRange = AIConstants.GetAttackRange(pu.Kind)
                     + SimActionGenerator.EstimateMoveRange(pu.Kind);
@@ -488,6 +495,9 @@ public static class SimBoardEvaluator
             for (int j = 0; j < playerUnits.Count; j++)
             {
                 var pu = playerUnits[j];
+                // マンハッタン距離で早期枝刈り
+                if (SimUtil.Manhattan(eu.Position, pu.Position) > COORD_MaxRange) continue;
+
                 float dist = SimUtil.Distance(eu.Position, pu.Position);
                 float threatRange = AIConstants.GetAttackRange(eu.Kind)
                     + SimActionGenerator.EstimateMoveRange(eu.Kind);
@@ -516,7 +526,11 @@ public static class SimBoardEvaluator
     static float EvalTempo(SimBoardState board)
     {
         float apDiff = board.EnemyAP - board.PlayerAP;
-        return apDiff * 0.5f;
+        float base_score = apDiff * 0.5f;
+        // 序盤はテンポの価値が高い（先行展開の重要性）
+        if (board.TurnCount <= AIConstants.TurnEarlyEnd)
+            base_score *= AIConstants.W_TEMPO_EARLY_MULT;
+        return base_score;
     }
 
     // ================================================================
@@ -534,11 +548,18 @@ public static class SimBoardEvaluator
     {
         float proj = 0f;
 
-        // 各建物からの推定収入
+        // 各建物からの推定収入（将来ターンほど割引）
         foreach (var kvp in counts)
         {
             float perBuilding = AIConstants.GetResourceProjection(kvp.Key);
-            proj += perBuilding * kvp.Value * AIConstants.RP_Projection_Turns;
+            float turnRevenue = perBuilding * kvp.Value;
+            float discount = 1f;
+            int turns = (int)AIConstants.RP_Projection_Turns;
+            for (int t = 0; t < turns; t++)
+            {
+                proj += turnRevenue * discount;
+                discount *= AIConstants.RP_Discount_Rate;
+            }
         }
 
         // シナジーボーナス（原料→加工チェーン）
@@ -572,28 +593,40 @@ public static class SimBoardEvaluator
         return enemyTerritory - playerTerritory;
     }
 
+    // マンハッタン距離3以内のオフセットを事前計算（25セル）
+    static readonly Vector3Int[] TerritoryOffsets = BuildTerritoryOffsets();
+    static Vector3Int[] BuildTerritoryOffsets()
+    {
+        var list = new List<Vector3Int>();
+        for (int dx = -3; dx <= 3; dx++)
+            for (int dz = -3; dz <= 3; dz++)
+                if (Mathf.Abs(dx) + Mathf.Abs(dz) <= 3)
+                    list.Add(new Vector3Int(dx, 0, dz));
+        return list.ToArray();
+    }
+
     static float CalcTerritory(SimBoardState board, Team team)
     {
-        var cells = new HashSet<Vector3Int>();
+        var cells = SimBoardPool.RentHashSet();
         for (int i = 0; i < board.Units.Count; i++)
         {
             var u = board.Units[i];
             if (!u.IsAlive || u.Team != team || u.Type != Type.Unit) continue;
 
-            // 半径3以内のセルをカウント
-            for (int dx = -3; dx <= 3; dx++)
+            // 事前計算済みオフセットを使用
+            for (int j = 0; j < TerritoryOffsets.Length; j++)
             {
-                for (int dz = -3; dz <= 3; dz++)
-                {
-                    if (Mathf.Abs(dx) + Mathf.Abs(dz) > 3) continue; // マンハッタン距離3以内
-                    var cell = new Vector3Int(u.Position.x + dx, 0, u.Position.z + dz);
-                    if (board.MapTiles.Contains(cell))
-                        cells.Add(cell);
-                }
+                var cell = new Vector3Int(
+                    u.Position.x + TerritoryOffsets[j].x, 0,
+                    u.Position.z + TerritoryOffsets[j].z);
+                if (board.MapTiles.Contains(cell))
+                    cells.Add(cell);
             }
         }
 
-        return Mathf.Min(cells.Count * AIConstants.TERRITORY_Per_Cell, AIConstants.TERRITORY_Max);
+        float result = Mathf.Min(cells.Count * AIConstants.TERRITORY_Per_Cell, AIConstants.TERRITORY_Max);
+        SimBoardPool.ReturnHashSet(cells);
+        return result;
     }
 
     // ================================================================
@@ -612,6 +645,9 @@ public static class SimBoardEvaluator
         return score;
     }
 
+    // 最大攻撃+移動射程（マンハッタン枝刈り用の上限値）
+    const int COORD_MaxRange = 8; // Magicsniper(4) + 移動(4) 程度
+
     static float CalcCoordinationScore(SimBoardState board, Team attackerTeam, Team defenderTeam)
     {
         float score = 0f;
@@ -628,6 +664,10 @@ public static class SimBoardEvaluator
             {
                 var atk = attackers[j];
                 if (atk.IsStunned) continue;
+
+                // 安価なマンハッタン距離で早期枝刈り
+                int manhattan = SimUtil.Manhattan(atk.Position, target.Position);
+                if (manhattan > COORD_MaxRange) continue;
 
                 float dist = SimUtil.Distance(atk.Position, target.Position);
                 float range = AIConstants.GetAttackRange(atk.Kind)
