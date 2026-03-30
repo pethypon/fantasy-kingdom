@@ -573,13 +573,19 @@ public class AIBoardState
 
     // ================================================================
     //  ユニット収集ヘルパー
+    //  GetComponentsInChildrenの結果をキャッシュして
+    //  Transform走査 + コンポーネント取得のコストを削減
     // ================================================================
+    static readonly List<Status> _getCompBuffer = new List<Status>(32);
+
     List<Status> CollectUnits(Transform parent, Team team)
     {
         var list = new List<Status>();
         if (parent == null) return list;
-        foreach (Status s in parent.GetComponentsInChildren<Status>())
+        parent.GetComponentsInChildren<Status>(_getCompBuffer);
+        for (int i = 0; i < _getCompBuffer.Count; i++)
         {
+            var s = _getCompBuffer[i];
             if (!s.gameObject.activeInHierarchy) continue;
             if (s.team == team && s.type == Type.Unit)
                 list.Add(s);
@@ -587,12 +593,15 @@ public class AIBoardState
         return list;
     }
 
+    static readonly List<Status> _crystalCompBuffer = new List<Status>(4);
+
     Status FindCrystal(Transform parent)
     {
         if (parent == null) return null;
-        foreach (Status s in parent.GetComponentsInChildren<Status>(true))
+        parent.GetComponentsInChildren<Status>(true, _crystalCompBuffer);
+        for (int i = 0; i < _crystalCompBuffer.Count; i++)
         {
-            if (s.kind == Kind.Crystal) return s;
+            if (_crystalCompBuffer[i].kind == Kind.Crystal) return _crystalCompBuffer[i];
         }
         return null;
     }
@@ -600,23 +609,30 @@ public class AIBoardState
     // ================================================================
     //  経済分析
     // ================================================================
+    // 再利用辞書（GC削減）
+    Dictionary<FacilityKind, int> _buildingCountsCache;
+
     Dictionary<FacilityKind, int> CountBuildings()
     {
-        var counts = new Dictionary<FacilityKind, int>();
-        if (_buildSystem == null) return counts;
+        if (_buildingCountsCache == null)
+            _buildingCountsCache = new Dictionary<FacilityKind, int>();
+        else
+            _buildingCountsCache.Clear();
+
+        if (_buildSystem == null) return _buildingCountsCache;
         Transform parent = _buildSystem.GetBuildingParent(Team.Enemy);
-        if (parent == null) return counts;
+        if (parent == null) return _buildingCountsCache;
 
         foreach (Transform child in parent)
         {
             var s = child.GetComponent<Status>();
             if (s == null || s.HP <= 0) continue;
-            if (counts.ContainsKey(s.facilityKind))
-                counts[s.facilityKind]++;
+            if (_buildingCountsCache.ContainsKey(s.facilityKind))
+                _buildingCountsCache[s.facilityKind]++;
             else
-                counts[s.facilityKind] = 1;
+                _buildingCountsCache[s.facilityKind] = 1;
         }
-        return counts;
+        return _buildingCountsCache;
     }
 
     public int GetBuildingCount(FacilityKind kind)

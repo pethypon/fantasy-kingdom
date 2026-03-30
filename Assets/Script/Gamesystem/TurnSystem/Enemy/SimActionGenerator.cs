@@ -22,19 +22,25 @@ public static class SimActionGenerator
     // ================================================================
     //  候補行動生成: あるチームの全ユニットの全行動を列挙
     // ================================================================
+    // ---- 再利用バッファ（GC削減） ----
+    [System.ThreadStatic] static List<SimUnit> _unitBuffer;
+    [System.ThreadStatic] static HashSet<Vector3Int> _skillPosBuffer;
+
     public static List<SimAction> GenerateAllActions(SimBoardState board, Team team)
     {
         var actions = new List<SimAction>();
         int ap = board.GetAP(team);
         if (ap <= 0) return actions;
 
-        var units = board.GetAliveUnits(team);
+        // ユニットリスト再利用（GCゼロ）
+        if (_unitBuffer == null) _unitBuffer = new List<SimUnit>();
+        board.GetAliveUnitsNonAlloc(team, _unitBuffer);
         Team enemyTeam = team == Team.Enemy ? Team.Player : Team.Enemy;
 
-        for (int i = 0; i < units.Count; i++)
+        for (int i = 0; i < _unitBuffer.Count; i++)
         {
-            var unit = units[i];
-            if (unit.IsStunned) continue; // スタン中は行動不可
+            var unit = _unitBuffer[i];
+            if (unit.IsStunned) continue;
 
             if (!unit.IsMovementBlocked)
                 GenerateMoveActions(board, unit, team, ap, actions);
@@ -101,19 +107,11 @@ public static class SimActionGenerator
         int dirZ = MovePatterns.DirZ(unit.Direction);
         bool dirIndep = AttackPatterns.DirectionIndependent.Contains(unit.Kind);
 
-        // 全敵ユニット + 敵クリスタルを攻撃対象
-        var targets = new List<SimUnit>();
+        // 全敵ユニット + 敵クリスタルを攻撃対象（Listアロケーション排除）
         for (int i = 0; i < board.Units.Count; i++)
         {
-            var t = board.Units[i];
-            if (!t.IsAlive) continue;
-            if (t.Team != enemyTeam) continue;
-            targets.Add(t);
-        }
-
-        for (int i = 0; i < targets.Count; i++)
-        {
-            var target = targets[i];
+            var target = board.Units[i];
+            if (!target.IsAlive || target.Team != enemyTeam) continue;
             float dx = target.Position.x - pos.x;
             float dz = target.Position.z - pos.z;
             float dzAdj = dirIndep ? dz : dz * dirZ;
@@ -175,25 +173,26 @@ public static class SimActionGenerator
             return;
         }
 
-        // オフセットからターゲット位置を計算
-        var skillPositions = new HashSet<Vector3Int>();
+        // オフセットからターゲット位置を計算（HashSet再利用）
+        if (_skillPosBuffer == null) _skillPosBuffer = new HashSet<Vector3Int>();
+        _skillPosBuffer.Clear();
         for (int i = 0; i < offsets.Length; i++)
         {
             int wx = unit.Position.x + offsets[i].x;
             int wz = unit.Position.z + offsets[i].y * dirZ;
             var sp = new Vector3Int(wx, 0, wz);
             if (board.MapTiles.Contains(sp))
-                skillPositions.Add(sp);
+                _skillPosBuffer.Add(sp);
         }
 
-        // 攻撃スキル → 敵に使用
+        // 攻撃スキル → 敵に使用（Units直接走査、Listアロケーション排除）
         if (skill.Multiplier > 0)
         {
             for (int i = 0; i < board.Units.Count; i++)
             {
                 var t = board.Units[i];
                 if (!t.IsAlive || t.Team != enemyTeam) continue;
-                if (!skillPositions.Contains(t.Position)) continue;
+                if (!_skillPosBuffer.Contains(t.Position)) continue;
 
                 results.Add(new SimAction
                 {
@@ -208,13 +207,13 @@ public static class SimActionGenerator
             }
         }
 
-        // 回復スキル → 味方に使用
+        // 回復スキル → 味方に使用（Units直接走査）
         if (skill.FixedHeal > 0)
         {
-            var allies = board.GetAliveUnits(team);
-            for (int i = 0; i < allies.Count; i++)
+            for (int i = 0; i < board.Units.Count; i++)
             {
-                var a = allies[i];
+                var a = board.Units[i];
+                if (!a.IsAlive || a.Team != team || a.Type != Type.Unit) continue;
                 if (a.Id == unit.Id) continue;
                 if (a.HP >= a.MaxHP) continue;
                 if (!skillPositions.Contains(a.Position)) continue;
@@ -232,17 +231,17 @@ public static class SimActionGenerator
             }
         }
 
-        // バフスキル (味方支援)
+        // バフスキル (味方支援) — Units直接走査
         if (skill.GrantBuff != BuffType.None && skill.Multiplier <= 0 && skill.FixedHeal <= 0)
         {
             if (skill.Target == SkillTarget.AllySingle)
             {
-                var allies = board.GetAliveUnits(team);
-                for (int i = 0; i < allies.Count; i++)
+                for (int i = 0; i < board.Units.Count; i++)
                 {
-                    var a = allies[i];
+                    var a = board.Units[i];
+                    if (!a.IsAlive || a.Team != team || a.Type != Type.Unit) continue;
                     if (a.Id == unit.Id) continue;
-                    if (!skillPositions.Contains(a.Position)) continue;
+                    if (!_skillPosBuffer.Contains(a.Position)) continue;
 
                     results.Add(new SimAction
                     {
