@@ -135,8 +135,8 @@ public static class SimBoardEvaluator
             score -= threatScore;
 
             // 脅威がある場合のHP低下ペナルティ増幅
-            if (threats > 0 && hpRatio < 0.5f)
-                score -= (1f - hpRatio) * threats * 10f;
+            if (threatScore > 0f && hpRatio < 0.5f)
+                score -= (1f - hpRatio) * threatScore * 0.6f;
         }
         else
         {

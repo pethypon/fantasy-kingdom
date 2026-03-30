@@ -216,7 +216,7 @@ public static class SimActionGenerator
                 if (!a.IsAlive || a.Team != team || a.Type != Type.Unit) continue;
                 if (a.Id == unit.Id) continue;
                 if (a.HP >= a.MaxHP) continue;
-                if (!skillPositions.Contains(a.Position)) continue;
+                if (!_skillPosBuffer.Contains(a.Position)) continue;
 
                 results.Add(new SimAction
                 {
