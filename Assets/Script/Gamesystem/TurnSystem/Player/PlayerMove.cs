@@ -266,6 +266,9 @@ public class PlayerMove : StateCore
         if (turngenerater.unitPanelUI != null)
             turngenerater.unitPanelUI.Hide();
 
+        // Special Ability: ターン終了時処理（応急処置、聖域反応）
+        SpecialAbilitySystem.OnTurnEnd(unitset.PlayerUnit);
+
         // Player の資源獲得（ターン終了時）
         if (turngenerater.economysystem != null)
             turngenerater.economysystem.ProcessTurn(Team.Player);
@@ -330,6 +333,9 @@ public class PlayerMove : StateCore
 
         if (turngenerater.unitPanelUI != null)
             turngenerater.unitPanelUI.Hide();
+
+        // Special Ability: ターン終了時処理（応急処置、聖域反応）
+        SpecialAbilitySystem.OnTurnEnd(unitset.PlayerUnit);
 
         if (turngenerater.economysystem != null)
             turngenerater.economysystem.ProcessTurn(Team.Player);

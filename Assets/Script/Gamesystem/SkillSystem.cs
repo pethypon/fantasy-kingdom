@@ -74,6 +74,15 @@ public class SkillSystem : MonoBehaviour
                 _factionState.ModifyAP(buffTarget.team, 2);
                 Debug.Log($"[SkillSystem] 加速 AP+2 ({buffTarget.team})");
             }
+
+            // Special Ability: 支援波及（バフを周囲味方に波及）
+            if (!skill.BuffToSelf && buffTarget != attacker)
+            {
+                Transform unitParent = attacker.team == Team.Player
+                    ? turngenerater.GetComponent<UnitSetting>()?.PlayerUnit
+                    : turngenerater.GetComponent<UnitSetting>()?.EnemyUnit;
+                SpecialAbilitySystem.ProcessSupportSpread(attacker, buffTarget, skill.GrantBuff, 0, unitParent);
+            }
         }
 
         // 特殊効果
@@ -126,6 +135,12 @@ public class SkillSystem : MonoBehaviour
             }
         }
 
+        // Special Ability: 攻撃命中時効果（単体スキル判定）
+        bool isSingle = skill.Area == SkillAreaShape.Single
+                     || skill.Area == SkillAreaShape.SingleDouble
+                     || skill.Area == SkillAreaShape.SingleChain;
+        SpecialAbilitySystem.OnAttackHit(attacker, target, damage, isSingle);
+
         // 反射処理
         StatusEffectSystem.ProcessReflect(target, attacker);
     }
@@ -141,6 +156,12 @@ public class SkillSystem : MonoBehaviour
         t.HP = Mathf.Min(t.MaxHP, t.HP + heal);
         Debug.Log($"[SkillSystem] {t.kind} を {heal} 回復 (残HP:{t.HP})");
         FloatingDamageUI.ShowHeal(t.transform.position, heal);
+
+        // Special Ability: 支援波及（回復を周囲味方に50%波及）
+        Transform unitParent = attacker.team == Team.Player
+            ? turngenerater.GetComponent<UnitSetting>()?.PlayerUnit
+            : turngenerater.GetComponent<UnitSetting>()?.EnemyUnit;
+        SpecialAbilitySystem.ProcessSupportSpread(attacker, t, BuffType.None, heal, unitParent);
     }
 
     // =====================================================================
@@ -231,6 +252,9 @@ public class SkillSystem : MonoBehaviour
     {
         if (skill == null || targets == null) return;
 
+        // Special Ability: 迫撃適応の対象数カウント
+        int enemyHitCount = 0;
+
         foreach (Status t in targets)
         {
             if (skill.Multiplier > 0)
@@ -242,8 +266,20 @@ public class SkillSystem : MonoBehaviour
                 }
 
                 int damage = CalcSkillDamage(attacker, t, skill);
-                t.HP = Mathf.Max(0, t.HP - damage);
+
+                // Special Ability: 迫撃適応ボーナス（対象数は全体で計算後に適用）
+                float saAreaMod = SpecialAbilitySystem.GetAreaAttackModifier(attacker, targets.Count);
+                if (saAreaMod > 0f)
+                    damage = Mathf.RoundToInt(damage * (1f + saAreaMod));
+
+                // Special Ability: 致死ダメージ耐え（生還本能）
+                if (!SpecialAbilitySystem.TrySurviveLethal(t, damage))
+                {
+                    t.HP = Mathf.Max(0, t.HP - damage);
+                }
                 Debug.Log($"[SkillSystem] 範囲 {attacker.kind} → {t.kind} '{skill.Name}' DMG:{damage} 残HP:{t.HP}");
+
+                enemyHitCount++;
 
                 // デバフ付与
                 if (skill.InflictDebuff != StatusEffectType.None && skill.DebuffChance > 0)
@@ -252,10 +288,16 @@ public class SkillSystem : MonoBehaviour
                         StatusEffectSystem.ApplyDebuff(t, skill.InflictDebuff);
                 }
 
+                // Special Ability: 攻撃命中時効果（範囲 = 非単体）
+                SpecialAbilitySystem.OnAttackHit(attacker, t, damage, false);
+
                 // 反射
                 StatusEffectSystem.ProcessReflect(t, attacker);
             }
         }
+
+        // Special Ability: 砲撃管制（3体以上巻き込み → マーク付与）
+        SpecialAbilitySystem.OnAreaAttackComplete(attacker, targets);
 
         // 自傷処理
         if (skill.FixedDamage > 0)

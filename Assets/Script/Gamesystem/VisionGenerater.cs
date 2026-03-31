@@ -378,11 +378,13 @@ public class VisionGenerater : MonoBehaviour
             return;
         }
 
-        // Debug.Log($"[Vision] {status.kind}");
-
         int statusX = Mathf.RoundToInt(status.transform.position.x);
         int statusY = Mathf.RoundToInt(status.transform.position.y);
         int statusZ = Mathf.RoundToInt(status.transform.position.z);
+
+        // Special Ability: 監視眼（視界+1）+ StatusEffect の視界修飾
+        int visionBonus = SpecialAbilitySystem.GetVisionBonus(status)
+                        + StatusEffectSystem.GetVisionModifier(status);
 
         foreach (Vector3Int p in visionData)
         {
@@ -404,6 +406,50 @@ public class VisionGenerater : MonoBehaviour
             {
                 RaycastDirectVision(status, statusX, statusY, statusZ, px, py, pz);
             }
+        }
+
+        // Special Ability: 監視眼 — 視界ボーナス分の追加マスを計算
+        if (visionBonus > 0)
+        {
+            ApplyVisionBonus(status, mapcreate, statusX, statusY, statusZ, visionBonus);
+        }
+    }
+
+    /// <summary>
+    /// 視界ボーナス分の追加マスを既存視界の外周に拡張する
+    /// </summary>
+    private void ApplyVisionBonus(Status status, MapCreate mapcreate,
+                                   int statusX, int statusY, int statusZ, int bonus)
+    {
+        // 既存視界セルの外周1マスを追加（bonus回繰り返し）
+        var currentVision = new HashSet<Vector3Int>(status.VisionCell);
+        for (int b = 0; b < bonus; b++)
+        {
+            var expansion = new HashSet<Vector3Int>();
+            foreach (var cell in currentVision)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    for (int dz = -1; dz <= 1; dz++)
+                    {
+                        if (dx == 0 && dz == 0) continue;
+                        int nx = cell.x + dx;
+                        int nz = cell.z + dz;
+                        if (nx < 0 || nx >= mapcreate.maxX) continue;
+                        if (nz < 0 || nz >= mapcreate.maxZ) continue;
+
+                        var newCell = new Vector3Int(nx, cell.y, nz);
+                        if (!status.VisionCell.Contains(newCell))
+                        {
+                            // Raycast で遮蔽チェック
+                            RaycastDirectVision(status, statusX, statusY, statusZ, nx, cell.y, nz);
+                            if (status.VisionCell.Contains(newCell))
+                                expansion.Add(newCell);
+                        }
+                    }
+                }
+            }
+            currentVision.UnionWith(expansion);
         }
     }
 

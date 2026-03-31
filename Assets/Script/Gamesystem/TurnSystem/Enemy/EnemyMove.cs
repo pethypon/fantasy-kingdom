@@ -47,6 +47,9 @@ public class EnemyMove : StateCore
         // 視界再計算（AI行動後）
         visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
 
+        // Special Ability: ターン終了時処理（応急処置、聖域反応）
+        SpecialAbilitySystem.OnTurnEnd(unitset.EnemyUnit);
+
         // Enemy の資源獲得（ターン終了時）
         if (turngenerater.economysystem != null)
             turngenerater.economysystem.ProcessTurn(Team.Enemy);

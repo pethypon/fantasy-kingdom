@@ -56,7 +56,18 @@ public class BattleSystem : MonoBehaviour
             Debug.Log($"[Battle] {target.kind} にマーキング付与（被ダメ+10%、1ターン）");
         }
 
-        ApplyDamage(damage);
+        // Special Ability: 致死ダメージ耐え（生還本能）
+        if (SpecialAbilitySystem.TrySurviveLethal(target, damage))
+        {
+            FloatingDamageUI.ShowDamage(target.transform.position, damage, false);
+        }
+        else
+        {
+            ApplyDamage(damage);
+        }
+
+        // Special Ability: 攻撃命中時効果（単体攻撃 = true）
+        SpecialAbilitySystem.OnAttackHit(AttackSide, target, damage, true);
 
         // ---- ML観測: プレイヤーの攻撃をMLシステムに記録 ----
         if (AttackSide.team == Team.Player && turngenerater.aiCommander != null)
