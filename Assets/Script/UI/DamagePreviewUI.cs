@@ -23,12 +23,12 @@ public class DamagePreviewUI : MonoBehaviour
     private Status _lastHovered;
 
     // ---- 定数 ----
-    private const float PanelWidth = 180f;
-    private const float PanelHeight = 70f;
-    private static readonly Color BgColor = new Color(0.08f, 0.08f, 0.12f, 0.88f);
-    private static readonly Color KillColor = new Color(1f, 0.2f, 0.2f);
-    private static readonly Color NormalColor = new Color(1f, 0.9f, 0.5f);
-    private static readonly Color HpColor = new Color(0.7f, 0.9f, 1f);
+    private const float PanelWidth = 200f;
+    private const float PanelHeight = 76f;
+    private static readonly Color BgColor = new Color(0.05f, 0.05f, 0.08f, 0.94f);
+    private static readonly Color KillColor = new Color(1f, 0.25f, 0.22f);
+    private static readonly Color NormalColor = new Color(1f, 0.92f, 0.55f);
+    private static readonly Color HpColor = new Color(0.65f, 0.88f, 1f);
 
     private void Awake()
     {
@@ -60,11 +60,15 @@ public class DamagePreviewUI : MonoBehaviour
         _bgImage = panelGo.AddComponent<Image>();
         _bgImage.color = BgColor;
 
+        // パネルボーダー
+        BrandGuide.AddPanelBorder(_panelRect);
+
         // ダメージテキスト
         var dmgGo = new GameObject("DmgText");
         dmgGo.transform.SetParent(panelGo.transform, false);
         _damageText = dmgGo.AddComponent<TextMeshProUGUI>();
-        _damageText.fontSize = 20;
+        _damageText.fontSize = 22;
+        _damageText.fontStyle = FontStyles.Bold;
         _damageText.alignment = TextAlignmentOptions.Left;
         _damageText.color = NormalColor;
         var dmgRect = _damageText.GetComponent<RectTransform>();

@@ -62,11 +62,12 @@ public class TitleScreenUI : MonoBehaviour
         rootOverlay.transform.SetAsLastSibling();
 
         var bg = rootOverlay.AddComponent<Image>();
-        bg.color = new Color(0.03f, 0.03f, 0.06f, 1f);
+        bg.color = new Color(0.02f, 0.02f, 0.04f, 1f);
 
         // タイトルテキスト
         var titleGo = CreateTMPObject("Title", rootOverlay.transform,
-            "Fantasy Kingdom", 64, new Color(0.85f, 0.75f, 0.4f));
+            "Fantasy Kingdom", 64, BrandGuide.Primary);
+        titleGo.GetComponent<TextMeshProUGUI>().fontStyle = FontStyles.Bold;
         var titleRT = titleGo.GetComponent<RectTransform>();
         titleRT.anchorMin = new Vector2(0.1f, 0.60f);
         titleRT.anchorMax = new Vector2(0.9f, 0.85f);
@@ -77,7 +78,7 @@ public class TitleScreenUI : MonoBehaviour
         var profile = SaveSystem.LoadProfile();
         string subText = $"脅威度: {profile.ThreatLevel}  戦績: {profile.TotalWins}勝 {profile.TotalLosses}敗";
         var subGo = CreateTMPObject("SubTitle", rootOverlay.transform,
-            subText, 22, new Color(0.6f, 0.6f, 0.65f));
+            subText, 22, BrandGuide.TextSecondary);
         var subRT = subGo.GetComponent<RectTransform>();
         subRT.anchorMin = new Vector2(0.2f, 0.52f);
         subRT.anchorMax = new Vector2(0.8f, 0.60f);
@@ -103,19 +104,19 @@ public class TitleScreenUI : MonoBehaviour
 
         // はじめからボタン
         var newGameBtn = CreateMenuButton("はじめから", btnArea.transform,
-            new Color(0.2f, 0.45f, 0.2f, 1f));
+            BrandGuide.BtnBuild);
         newGameBtn.onClick.AddListener(OnNewGame);
 
         // ロードボタン
         bool hasAnySave = SaveSystem.HasSaveData(0) || SaveSystem.HasSaveData(1) || SaveSystem.HasSaveData(2);
         var loadBtn = CreateMenuButton("ロード", btnArea.transform,
-            hasAnySave ? new Color(0.2f, 0.3f, 0.55f, 1f) : new Color(0.3f, 0.3f, 0.3f, 1f));
+            hasAnySave ? BrandGuide.BtnUnit : BrandGuide.BtnWait);
         loadBtn.interactable = hasAnySave;
         loadBtn.onClick.AddListener(ShowLoadSlots);
 
         // 終了ボタン
         var quitBtn = CreateMenuButton("終了", btnArea.transform,
-            new Color(0.5f, 0.2f, 0.2f, 1f));
+            BrandGuide.BtnAttack);
         quitBtn.onClick.AddListener(OnQuit);
     }
 
@@ -136,7 +137,7 @@ public class TitleScreenUI : MonoBehaviour
         rt.offsetMax = Vector2.zero;
 
         var panelBg = slotPanel.AddComponent<Image>();
-        panelBg.color = new Color(0.1f, 0.1f, 0.15f, 0.95f);
+        panelBg.color = BrandGuide.PanelBgLight;
 
         // ヘッダー
         var header = CreateTMPObject("Header", slotPanel.transform,
@@ -155,7 +156,7 @@ public class TitleScreenUI : MonoBehaviour
             bool hasData = SaveSystem.HasSaveData(slot);
 
             var btn = CreateSlotButton($"Slot{i + 1}: {summary}", slotPanel.transform,
-                hasData ? new Color(0.15f, 0.25f, 0.4f, 1f) : new Color(0.25f, 0.25f, 0.25f, 1f));
+                hasData ? BrandGuide.BtnUnit : BrandGuide.BtnWait);
             btn.interactable = hasData;
 
             var btnRT = btn.GetComponent<RectTransform>();
@@ -171,7 +172,7 @@ public class TitleScreenUI : MonoBehaviour
 
         // 戻るボタン
         var backBtn = CreateSlotButton("戻る", slotPanel.transform,
-            new Color(0.4f, 0.3f, 0.2f, 1f));
+            BrandGuide.BtnCancel);
         var backRT = backBtn.GetComponent<RectTransform>();
         backRT.anchorMin = new Vector2(0.3f, 0.02f);
         backRT.anchorMax = new Vector2(0.7f, 0.12f);
@@ -245,21 +246,17 @@ public class TitleScreenUI : MonoBehaviour
         img.color = bgColor;
 
         var btn = go.AddComponent<Button>();
-        btn.targetGraphic = img;
-        var colors = btn.colors;
-        colors.highlightedColor = bgColor * 1.2f;
-        colors.pressedColor = bgColor * 0.8f;
-        colors.disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
-        btn.colors = colors;
+        BrandGuide.ApplyButtonStyle(btn, bgColor);
 
         var labelGo = new GameObject("Label", typeof(RectTransform));
         labelGo.transform.SetParent(go.transform, false);
         StretchFill(labelGo.GetComponent<RectTransform>());
         var tmp = labelGo.AddComponent<TextMeshProUGUI>();
         tmp.text = label;
-        tmp.fontSize = 28;
+        tmp.fontSize = BrandGuide.FontHeader;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = Color.white;
+        tmp.color = BrandGuide.TextPrimary;
+        tmp.fontStyle = FontStyles.Bold;
 
         return btn;
     }
@@ -273,21 +270,16 @@ public class TitleScreenUI : MonoBehaviour
         img.color = bgColor;
 
         var btn = go.AddComponent<Button>();
-        btn.targetGraphic = img;
-        var colors = btn.colors;
-        colors.highlightedColor = bgColor * 1.2f;
-        colors.pressedColor = bgColor * 0.8f;
-        colors.disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
-        btn.colors = colors;
+        BrandGuide.ApplyButtonStyle(btn, bgColor);
 
         var labelGo = new GameObject("Label", typeof(RectTransform));
         labelGo.transform.SetParent(go.transform, false);
         StretchFill(labelGo.GetComponent<RectTransform>());
         var tmp = labelGo.AddComponent<TextMeshProUGUI>();
         tmp.text = label;
-        tmp.fontSize = 20;
+        tmp.fontSize = BrandGuide.FontBody;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = Color.white;
+        tmp.color = BrandGuide.TextPrimary;
 
         return btn;
     }

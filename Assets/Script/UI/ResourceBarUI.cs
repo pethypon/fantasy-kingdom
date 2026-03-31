@@ -112,13 +112,13 @@ public class ResourceBarUI : MonoBehaviour
     private static void SetText(TextMeshProUGUI tmp, string label, int value, string colorHex)
     {
         if (tmp != null)
-            tmp.text = $"<color={colorHex}><size=80%>{label}</size></color> {value}";
+            tmp.text = $"<color={colorHex}><b>{label}</b></color> <color=#EEEEEE>{value}</color>";
     }
 
     private static void SetTextWithCap(TextMeshProUGUI tmp, string label, int value, int cap, string colorHex)
     {
         if (tmp != null)
-            tmp.text = $"<color={colorHex}><size=80%>{label}</size></color> {value}/{cap}";
+            tmp.text = $"<color={colorHex}><b>{label}</b></color> <color=#EEEEEE>{value}/{cap}</color>";
     }
 
     private bool HasChanged(FactionState.ResourceData res)

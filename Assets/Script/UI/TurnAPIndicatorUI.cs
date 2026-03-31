@@ -58,7 +58,7 @@ public class TurnAPIndicatorUI : MonoBehaviour
         panelRT.sizeDelta = new Vector2(200, 90);
 
         var bg = panelGo.AddComponent<Image>();
-        bg.color = new Color(0.05f, 0.05f, 0.08f, 0.8f);
+        bg.color = BrandGuide.PanelBg;
 
         // フェーズ表示（上部バー）
         var phaseBarGo = new GameObject("PhaseBar");
@@ -70,7 +70,7 @@ public class TurnAPIndicatorUI : MonoBehaviour
         phaseBarRT.offsetMax = Vector2.zero;
 
         _phaseBg = phaseBarGo.AddComponent<Image>();
-        _phaseBg.color = new Color(0.2f, 0.4f, 0.6f, 0.9f);
+        _phaseBg.color = BrandGuide.Secondary;
 
         var phaseTextGo = new GameObject("PhaseText");
         phaseTextGo.transform.SetParent(phaseBarGo.transform, false);
@@ -90,7 +90,7 @@ public class TurnAPIndicatorUI : MonoBehaviour
         turnGo.transform.SetParent(panelGo.transform, false);
         _turnText = turnGo.AddComponent<TextMeshProUGUI>();
         _turnText.fontSize = 18;
-        _turnText.color = new Color(0.9f, 0.9f, 0.7f);
+        _turnText.color = BrandGuide.TextLabel;
         _turnText.alignment = TextAlignmentOptions.Left;
         var turnRT = _turnText.GetComponent<RectTransform>();
         turnRT.anchorMin = new Vector2(0, 0.3f);
@@ -103,7 +103,7 @@ public class TurnAPIndicatorUI : MonoBehaviour
         apGo.transform.SetParent(panelGo.transform, false);
         _apText = apGo.AddComponent<TextMeshProUGUI>();
         _apText.fontSize = 18;
-        _apText.color = new Color(0.5f, 0.9f, 1f);
+        _apText.color = BrandGuide.Secondary;
         _apText.alignment = TextAlignmentOptions.Right;
         var apRT = _apText.GetComponent<RectTransform>();
         apRT.anchorMin = new Vector2(0.5f, 0.3f);
@@ -132,8 +132,8 @@ public class TurnAPIndicatorUI : MonoBehaviour
                 _lastAP = ap;
                 _apText.text = $"AP: {ap}";
                 _apText.color = ap <= 2
-                    ? new Color(1f, 0.4f, 0.4f)
-                    : new Color(0.5f, 0.9f, 1f);
+                    ? BrandGuide.Danger
+                    : BrandGuide.Secondary;
             }
         }
 
@@ -160,8 +160,8 @@ public class TurnAPIndicatorUI : MonoBehaviour
     private void UpdatePhaseColor(string phase)
     {
         if (phase.Contains("Enemy"))
-            _phaseBg.color = new Color(0.6f, 0.2f, 0.2f, 0.9f);
+            _phaseBg.color = BrandGuide.Danger;
         else
-            _phaseBg.color = new Color(0.2f, 0.4f, 0.6f, 0.9f);
+            _phaseBg.color = BrandGuide.Secondary;
     }
 }

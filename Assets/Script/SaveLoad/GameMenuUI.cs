@@ -78,7 +78,7 @@ public class GameMenuUI : MonoBehaviour
         StretchFill(rt);
 
         var bg = overlay.AddComponent<Image>();
-        bg.color = new Color(0f, 0f, 0f, 0.6f);
+        bg.color = BrandGuide.OverlayBg;
 
         // 中央パネル
         var panel = new GameObject("MenuPanel", typeof(RectTransform));
@@ -90,10 +90,11 @@ public class GameMenuUI : MonoBehaviour
         panelRT.offsetMax = Vector2.zero;
 
         var panelBg = panel.AddComponent<Image>();
-        panelBg.color = new Color(0.08f, 0.08f, 0.12f, 0.95f);
+        panelBg.color = BrandGuide.PanelBgLight;
 
         // ヘッダー
-        var header = CreateTMP("MenuHeader", panel.transform, "メニュー", 32, Color.white);
+        var header = CreateTMP("MenuHeader", panel.transform, "メニュー", 32, BrandGuide.Primary);
+        header.fontStyle = FontStyles.Bold;
         var headerRT = header.GetComponent<RectTransform>();
         headerRT.anchorMin = new Vector2(0, 0.88f);
         headerRT.anchorMax = new Vector2(1, 0.98f);
@@ -104,7 +105,7 @@ public class GameMenuUI : MonoBehaviour
         var profile = SaveSystem.LoadProfile();
         var threatText = CreateTMP("ThreatInfo", panel.transform,
             $"脅威度: {profile.ThreatLevel}  ({GetTierName(profile.ThreatLevel)})",
-            18, new Color(0.7f, 0.7f, 0.5f));
+            18, BrandGuide.TextLabel);
         var threatRT = threatText.GetComponent<RectTransform>();
         threatRT.anchorMin = new Vector2(0.05f, 0.80f);
         threatRT.anchorMax = new Vector2(0.95f, 0.88f);
@@ -129,19 +130,19 @@ public class GameMenuUI : MonoBehaviour
         vlg.childControlHeight = false;
 
         // セーブ
-        var saveBtn = CreateBtn("セーブ", btnArea.transform, new Color(0.2f, 0.4f, 0.2f, 1f));
+        var saveBtn = CreateBtn("セーブ", btnArea.transform, BrandGuide.BtnBuild);
         saveBtn.onClick.AddListener(() => ShowSlotPanel(true));
 
         // ロード
-        var loadBtn = CreateBtn("ロード", btnArea.transform, new Color(0.2f, 0.3f, 0.55f, 1f));
+        var loadBtn = CreateBtn("ロード", btnArea.transform, BrandGuide.BtnUnit);
         loadBtn.onClick.AddListener(() => ShowSlotPanel(false));
 
         // タイトルへ戻る
-        var titleBtn = CreateBtn("タイトルへ戻る", btnArea.transform, new Color(0.45f, 0.35f, 0.15f, 1f));
+        var titleBtn = CreateBtn("タイトルへ戻る", btnArea.transform, BrandGuide.BtnCancel);
         titleBtn.onClick.AddListener(OnReturnToTitle);
 
         // 閉じる
-        var closeBtn = CreateBtn("閉じる", btnArea.transform, new Color(0.35f, 0.35f, 0.35f, 1f));
+        var closeBtn = CreateBtn("閉じる", btnArea.transform, BrandGuide.BtnWait);
         closeBtn.onClick.AddListener(Close);
     }
 
@@ -164,7 +165,7 @@ public class GameMenuUI : MonoBehaviour
         rt.offsetMax = Vector2.zero;
 
         var bg = slotPanel.AddComponent<Image>();
-        bg.color = new Color(0.06f, 0.06f, 0.1f, 0.98f);
+        bg.color = BrandGuide.PanelBg;
 
         // ヘッダー
         string headerText = saveMode ? "セーブスロット選択" : "ロードスロット選択";
@@ -184,9 +185,9 @@ public class GameMenuUI : MonoBehaviour
 
             Color btnColor;
             if (saveMode)
-                btnColor = new Color(0.2f, 0.35f, 0.2f, 1f);
+                btnColor = BrandGuide.BtnBuildEnabled;
             else
-                btnColor = hasData ? new Color(0.15f, 0.25f, 0.4f, 1f) : new Color(0.25f, 0.25f, 0.25f, 1f);
+                btnColor = hasData ? BrandGuide.BtnUnit : BrandGuide.BtnWait;
 
             var btn = CreateSlotBtn($"スロット{i + 1}: {summary}", slotPanel.transform, btnColor);
 
@@ -204,7 +205,7 @@ public class GameMenuUI : MonoBehaviour
         }
 
         // 戻るボタン
-        var backBtn = CreateSlotBtn("戻る", slotPanel.transform, new Color(0.4f, 0.3f, 0.2f, 1f));
+        var backBtn = CreateSlotBtn("戻る", slotPanel.transform, BrandGuide.BtnCancel);
         var backRT = backBtn.GetComponent<RectTransform>();
         backRT.anchorMin = new Vector2(0.3f, 0.03f);
         backRT.anchorMax = new Vector2(0.7f, 0.13f);
@@ -297,11 +298,7 @@ public class GameMenuUI : MonoBehaviour
         img.color = bgColor;
 
         var btn = go.AddComponent<Button>();
-        btn.targetGraphic = img;
-        var colors = btn.colors;
-        colors.highlightedColor = bgColor * 1.2f;
-        colors.pressedColor = bgColor * 0.8f;
-        btn.colors = colors;
+        BrandGuide.ApplyButtonStyle(btn, bgColor);
 
         var labelGo = new GameObject("Label", typeof(RectTransform));
         labelGo.transform.SetParent(go.transform, false);
@@ -310,7 +307,8 @@ public class GameMenuUI : MonoBehaviour
         tmp.text = label;
         tmp.fontSize = 22;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = Color.white;
+        tmp.color = BrandGuide.TextPrimary;
+        tmp.fontStyle = FontStyles.Bold;
 
         return btn;
     }
@@ -324,12 +322,7 @@ public class GameMenuUI : MonoBehaviour
         img.color = bgColor;
 
         var btn = go.AddComponent<Button>();
-        btn.targetGraphic = img;
-        var colors = btn.colors;
-        colors.highlightedColor = bgColor * 1.2f;
-        colors.pressedColor = bgColor * 0.8f;
-        colors.disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
-        btn.colors = colors;
+        BrandGuide.ApplyButtonStyle(btn, bgColor);
 
         var labelGo = new GameObject("Label", typeof(RectTransform));
         labelGo.transform.SetParent(go.transform, false);
@@ -338,7 +331,7 @@ public class GameMenuUI : MonoBehaviour
         tmp.text = label;
         tmp.fontSize = 18;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = Color.white;
+        tmp.color = BrandGuide.TextPrimary;
 
         return btn;
     }

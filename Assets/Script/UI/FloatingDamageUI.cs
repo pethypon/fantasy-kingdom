@@ -28,10 +28,10 @@ public class FloatingDamageUI : MonoBehaviour
     private const float FontSize = 5f;
     private const float YOffset = 1.2f;
 
-    private static readonly Color DamageColor = new Color(1f, 0.25f, 0.2f);
-    private static readonly Color HealColor = new Color(0.3f, 1f, 0.4f);
-    private static readonly Color ShieldColor = new Color(0.5f, 0.8f, 1f);
-    private static readonly Color KillColor = new Color(1f, 0.9f, 0.1f);
+    private static readonly Color DamageColor = BrandGuide.FeedbackDamage;
+    private static readonly Color HealColor = BrandGuide.FeedbackHeal;
+    private static readonly Color ShieldColor = BrandGuide.FeedbackShield;
+    private static readonly Color KillColor = BrandGuide.FeedbackKill;
 
     private void Awake()
     {
@@ -100,7 +100,7 @@ public class FloatingDamageUI : MonoBehaviour
     public static void ShowMiss(Vector3 worldPos)
     {
         if (Instance == null) return;
-        Instance.Spawn(worldPos, "MISS", new Color(0.6f, 0.6f, 0.6f));
+        Instance.Spawn(worldPos, "MISS", BrandGuide.FeedbackMiss);
     }
 
     // ================================================================

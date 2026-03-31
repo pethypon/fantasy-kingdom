@@ -119,9 +119,9 @@ public class UnitPanelUI : MonoBehaviour
         var btnGo = new GameObject("UpgradeBtn", typeof(RectTransform));
         btnGo.transform.SetParent(upgradeArea.transform, false);
         var btnImg = btnGo.AddComponent<Image>();
-        btnImg.color = new Color(0.15f, 0.45f, 0.15f, 1f);
+        btnImg.color = BrandGuide.BtnUpgrade;
         upgradeButton = btnGo.AddComponent<Button>();
-        upgradeButton.targetGraphic = btnImg;
+        BrandGuide.ApplyButtonStyle(upgradeButton, BrandGuide.BtnUpgrade);
         var btnRT = btnGo.GetComponent<RectTransform>();
         btnRT.anchorMin = new Vector2(0, 0);
         btnRT.anchorMax = new Vector2(0.4f, 1);
@@ -149,7 +149,7 @@ public class UnitPanelUI : MonoBehaviour
         upgradeCostText = costGo.AddComponent<TextMeshProUGUI>();
         upgradeCostText.fontSize = 15;
         upgradeCostText.alignment = TextAlignmentOptions.MidlineLeft;
-        upgradeCostText.color = new Color(0.85f, 0.85f, 0.75f);
+        upgradeCostText.color = BrandGuide.TextSecondary;
         upgradeCostText.textWrappingMode = TMPro.TextWrappingModes.Normal;
         var costRT = costGo.GetComponent<RectTransform>();
         costRT.anchorMin = new Vector2(0.42f, 0);
@@ -180,9 +180,9 @@ public class UnitPanelUI : MonoBehaviour
         var btnGo = new GameObject("DestroyBtn", typeof(RectTransform));
         btnGo.transform.SetParent(destroyArea.transform, false);
         var btnImg = btnGo.AddComponent<Image>();
-        btnImg.color = new Color(0.6f, 0.15f, 0.15f, 1f);
+        btnImg.color = BrandGuide.BtnDestroy;
         destroyButton = btnGo.AddComponent<Button>();
-        destroyButton.targetGraphic = btnImg;
+        BrandGuide.ApplyButtonStyle(destroyButton, BrandGuide.BtnDestroy);
         var btnRT = btnGo.GetComponent<RectTransform>();
         btnRT.anchorMin = Vector2.zero;
         btnRT.anchorMax = Vector2.one;
@@ -241,19 +241,21 @@ public class UnitPanelUI : MonoBehaviour
     private void RefreshUnit()
     {
         // 左: 基本情報
-        string dirMark = currentUnit.direction == Direction.N ? " <color=#88CCFF>▲N</color>" : " <color=#FF8888>▼S</color>";
+        string nCol = ColorUtility.ToHtmlStringRGB(BrandGuide.TeamPlayer);
+        string sCol = ColorUtility.ToHtmlStringRGB(BrandGuide.TeamEnemy);
+        string dirMark = currentUnit.direction == Direction.N ? $" <color=#{nCol}>▲N</color>" : $" <color=#{sCol}>▼S</color>";
         if (nameText != null) nameText.text = KindNameJP.Get(currentUnit.kind) + dirMark;
         if (levelText != null) levelText.text = "Lv " + currentUnit.Level;
         if (hpText != null)
         {
             float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 0f;
-            string hpColor = hpRatio > 0.5f ? "#AAFFAA" : hpRatio > 0.25f ? "#FFDD66" : "#FF5555";
-            hpText.text = $"HP <color={hpColor}>{currentUnit.HP}</color>/{currentUnit.MaxHP}";
+            string hpColor = BrandGuide.HPColorHex(hpRatio);
+            hpText.text = $"HP <color={hpColor}><b>{currentUnit.HP}</b></color>/{currentUnit.MaxHP}";
         }
 
         // 中央: ステータス
-        if (atkText != null) atkText.text = "ATK " + currentUnit.ATK;
-        if (defText != null) defText.text = "DEF " + currentUnit.DEF;
+        if (atkText != null) atkText.text = "<b>ATK</b> " + currentUnit.ATK;
+        if (defText != null) defText.text = "<b>DEF</b> " + currentUnit.DEF;
         if (kindText != null)
         {
             // スキル名を表示
@@ -318,13 +320,13 @@ public class UnitPanelUI : MonoBehaviour
         if (hpText != null)
         {
             float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 1f;
-            string hpColor = hpRatio > 0.5f ? "#AAFFAA" : hpRatio > 0.25f ? "#FFDD66" : "#FF5555";
-            hpText.text = $"HP <color={hpColor}>{currentUnit.HP}</color>/{currentUnit.MaxHP}";
+            string hpColor = BrandGuide.HPColorHex(hpRatio);
+            hpText.text = $"HP <color={hpColor}><b>{currentUnit.HP}</b></color>/{currentUnit.MaxHP}";
         }
 
         // 中央: ステータス
-        if (atkText != null) atkText.text = currentUnit.ATK > 0 ? "ATK " + currentUnit.ATK : "";
-        if (defText != null) defText.text = currentUnit.DEF > 0 ? "DEF " + currentUnit.DEF : "";
+        if (atkText != null) atkText.text = currentUnit.ATK > 0 ? "<b>ATK</b> " + currentUnit.ATK : "";
+        if (defText != null) defText.text = currentUnit.DEF > 0 ? "<b>DEF</b> " + currentUnit.DEF : "";
 
         // 効果説明
         if (kindText != null)
@@ -387,7 +389,7 @@ public class UnitPanelUI : MonoBehaviour
         var label = btn.GetComponentInChildren<TextMeshProUGUI>();
         if (label == null) return;
         if (apCost > 0)
-            label.text = $"{baseName} <size=80%><color={(canAfford ? "#AAFFAA" : "#FF6666")}>AP{apCost}</color></size>";
+            label.text = $"{baseName} <size=80%><color={BrandGuide.APCostColorHex(canAfford)}>AP{apCost}</color></size>";
         else
             label.text = baseName;
     }
@@ -433,8 +435,8 @@ public class UnitPanelUI : MonoBehaviour
             var img = upgradeButton.GetComponent<Image>();
             if (img != null)
                 img.color = canUpgrade
-                    ? new Color(0.15f, 0.45f, 0.15f, 1f)
-                    : new Color(0.4f, 0.15f, 0.15f, 1f);
+                    ? BrandGuide.BtnUpgrade
+                    : BrandGuide.BtnDisabled;
         }
     }
 

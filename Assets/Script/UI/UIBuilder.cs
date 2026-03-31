@@ -74,7 +74,8 @@ public class UIBuilder : MonoBehaviour
             new Vector2(0, 120));
         bar.anchoredPosition = Vector2.zero;
 
-        AddImage(bar.gameObject, new Color(0.06f, 0.06f, 0.08f, 0.92f));
+        AddImage(bar.gameObject, BrandGuide.PanelBg);
+        BrandGuide.AddBottomBorder(bar);
 
         // ============ 左: 資源エリア (0% ~ 42%) ============
         var resArea = CreatePanel("ResourceBar", bar,
@@ -105,16 +106,16 @@ public class UIBuilder : MonoBehaviour
         row2.offsetMax = new Vector2(-2, -4);
         AddHorizontalLayout(row2.gameObject, 4);
 
-        // カテゴリ別の背景色
-        Color rawC  = new Color(0.20f, 0.16f, 0.10f, 0.6f);
-        Color minC  = new Color(0.13f, 0.16f, 0.22f, 0.6f);
-        Color proC  = new Color(0.16f, 0.13f, 0.22f, 0.6f);
-        Color fooC  = new Color(0.22f, 0.18f, 0.08f, 0.6f);
-        Color popC  = new Color(0.10f, 0.22f, 0.13f, 0.6f);
+        // カテゴリ別の背景色（BrandGuide から参照）
+        Color rawC  = BrandGuide.ResCatRaw;
+        Color minC  = BrandGuide.ResCatMineral;
+        Color proC  = BrandGuide.ResCatProcessed;
+        Color fooC  = BrandGuide.ResCatFood;
+        Color popC  = BrandGuide.ResCatPopulation;
 
         string[] r1Names  = { "Wood",  "Stone", "Coal",   "IronOre", "Iron",     "MagicOre" };
         Color[]  r1Colors = { rawC,    rawC,    minC,     minC,      proC,       proC };
-        Color scC  = new Color(0.10f, 0.18f, 0.25f, 0.6f); // サブクリスタル（シアン系）
+        Color scC  = BrandGuide.ResCatCrystal;
         string[] r2Names  = { "Wheat", "Bread", "Water",  "Plank",   "CutStone", "Citizen", "SubCrystal" };
         Color[]  r2Colors = { fooC,    fooC,    rawC,     proC,      proC,       popC,      scC };
 
@@ -129,7 +130,7 @@ public class UIBuilder : MonoBehaviour
         var sep1 = new GameObject("Sep1", typeof(RectTransform));
         sep1.transform.SetParent(bar, false);
         var sep1Img = sep1.AddComponent<Image>();
-        sep1Img.color = new Color(1f, 1f, 1f, 0.15f);
+        sep1Img.color = BrandGuide.BorderLight;
         var sep1RT = sep1.GetComponent<RectTransform>();
         sep1RT.anchorMin = new Vector2(0.42f, 0);
         sep1RT.anchorMax = new Vector2(0.42f, 1);
@@ -161,7 +162,7 @@ public class UIBuilder : MonoBehaviour
         var iconGo = new GameObject("TurnIcon", typeof(RectTransform));
         iconGo.transform.SetParent(turnArea, false);
         var iconImg = iconGo.AddComponent<Image>();
-        iconImg.color = new Color(0.3f, 0.6f, 0.9f, 1f);
+        iconImg.color = BrandGuide.Primary;
         var iconRT = iconGo.GetComponent<RectTransform>();
         iconRT.sizeDelta = new Vector2(24, 24);
         var iconLE = iconGo.AddComponent<LayoutElement>();
@@ -169,7 +170,9 @@ public class UIBuilder : MonoBehaviour
         iconLE.preferredHeight = 24;
 
         // ターンテキスト
-        var turnText = CreateTMP("TurnText", turnArea, "Turn 0", 28);
+        var turnText = CreateTMP("TurnText", turnArea, "Turn 0", BrandGuide.FontHeader);
+        turnText.color = BrandGuide.TextPrimary;
+        turnText.fontStyle = FontStyles.Bold;
         turnText.alignment = TextAlignmentOptions.MidlineLeft;
         var turnTextLE = turnText.gameObject.AddComponent<LayoutElement>();
         turnTextLE.preferredWidth = 100;
@@ -179,7 +182,7 @@ public class UIBuilder : MonoBehaviour
         var sep2 = new GameObject("Sep2", typeof(RectTransform));
         sep2.transform.SetParent(bar, false);
         var sep2Img = sep2.AddComponent<Image>();
-        sep2Img.color = new Color(1f, 1f, 1f, 0.15f);
+        sep2Img.color = BrandGuide.BorderLight;
         var sep2RT = sep2.GetComponent<RectTransform>();
         sep2RT.anchorMin = new Vector2(0.56f, 0);
         sep2RT.anchorMax = new Vector2(0.56f, 1);
@@ -216,13 +219,13 @@ public class UIBuilder : MonoBehaviour
         // バー背景
         var timerBg = new GameObject("TimerBg", typeof(RectTransform));
         timerBg.transform.SetParent(timerArea.transform, false);
-        timerBg.AddComponent<Image>().color = new Color(0.05f, 0.05f, 0.08f, 0.8f);
+        timerBg.AddComponent<Image>().color = BrandGuide.TimerBg;
         StretchFill(timerBg.GetComponent<RectTransform>());
 
         // バー本体
         var timerFill = new GameObject("TimerFill", typeof(RectTransform));
         timerFill.transform.SetParent(timerArea.transform, false);
-        timerFill.AddComponent<Image>().color = new Color(0.2f, 0.55f, 0.8f, 0.9f);
+        timerFill.AddComponent<Image>().color = BrandGuide.TimerNormal;
         var fillRT = timerFill.GetComponent<RectTransform>();
         fillRT.anchorMin = Vector2.zero;
         fillRT.anchorMax = Vector2.one;
@@ -230,13 +233,14 @@ public class UIBuilder : MonoBehaviour
         fillRT.offsetMax = new Vector2(-2, -2);
 
         // 制限時間テキスト
-        var timerText = CreateTMP("TimerText", timerArea.transform, "制限時間", 20);
+        var timerText = CreateTMP("TimerText", timerArea.transform, "制限時間", BrandGuide.FontBody);
+        timerText.fontStyle = FontStyles.Bold;
         timerText.alignment = TextAlignmentOptions.Center;
         StretchFill(timerText.GetComponent<RectTransform>());
 
         // メニューボタン
-        var menuBtn = CreateButton("MenuButton", rightArea, "メニュー", 20,
-            new Color(0.25f, 0.25f, 0.30f, 1f));
+        var menuBtn = CreateButton("MenuButton", rightArea, "メニュー", BrandGuide.FontBody,
+            BrandGuide.BtnMenu);
         var menuBtnRT = menuBtn.GetComponent<RectTransform>();
         menuBtnRT.sizeDelta = new Vector2(120, 44);
         menuBtn.onClick.AddListener(() =>
@@ -260,10 +264,11 @@ public class UIBuilder : MonoBehaviour
         le.flexibleWidth = 1;
         le.minWidth = 30;
 
-        var tmp = CreateTMP(name, cell.transform, name + ": 0", 20);
+        var tmp = CreateTMP(name, cell.transform, name + ": 0", BrandGuide.FontBody);
         tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
         tmp.overflowMode = TextOverflowModes.Ellipsis;
         tmp.richText = true;
+        tmp.color = BrandGuide.TextPrimary;
         var tmpRT = tmp.GetComponent<RectTransform>();
         StretchFill(tmpRT);
         tmpRT.offsetMin = new Vector2(6, 0);
@@ -288,8 +293,8 @@ public class UIBuilder : MonoBehaviour
         root.offsetMax = new Vector2(200, -130);
 
         // ---- 建築ボタン ----
-        var buildBtn = CreateButton("BuildOpenButton", root, "建築", 18,
-            new Color(0.2f, 0.45f, 0.2f, 1f));
+        var buildBtn = CreateButton("BuildOpenButton", root, "建築", BrandGuide.FontCaption,
+            BrandGuide.BtnBuild);
         var buildBtnRT = buildBtn.GetComponent<RectTransform>();
         buildBtnRT.anchorMin = new Vector2(0, 1);
         buildBtnRT.anchorMax = new Vector2(1, 1);
@@ -298,8 +303,8 @@ public class UIBuilder : MonoBehaviour
         buildBtnRT.anchoredPosition = Vector2.zero;
 
         // ---- ユニット生成ボタン ----
-        var unitBtn = CreateButton("UnitOpenButton", root, "Unit制作", 18,
-            new Color(0.2f, 0.3f, 0.55f, 1f));
+        var unitBtn = CreateButton("UnitOpenButton", root, "Unit制作", BrandGuide.FontCaption,
+            BrandGuide.BtnUnit);
         var unitBtnRT = unitBtn.GetComponent<RectTransform>();
         unitBtnRT.anchorMin = new Vector2(0, 1);
         unitBtnRT.anchorMax = new Vector2(1, 1);
@@ -319,20 +324,23 @@ public class UIBuilder : MonoBehaviour
         panel.pivot = new Vector2(0, 0.5f);
         panel.anchoredPosition = new Vector2(-350, 0);
 
-        AddImage(panel.gameObject, new Color(0.15f, 0.15f, 0.15f, 0.92f));
+        AddImage(panel.gameObject, BrandGuide.PanelBgLight);
+        BrandGuide.AddPanelBorder(panel);
 
         // ---- Header ----
         var header = CreatePanel("Header", panel,
             new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
             new Vector2(0, 36));
         header.anchoredPosition = Vector2.zero;
-        AddImage(header.gameObject, new Color(0.1f, 0.1f, 0.1f, 1f));
+        AddImage(header.gameObject, new Color(0.08f, 0.08f, 0.10f, 1f));
 
-        var headerTitle = CreateTMP("Title", header, "メニュー", 20);
+        var headerTitle = CreateTMP("Title", header, "メニュー", BrandGuide.FontBody);
+        headerTitle.color = BrandGuide.Primary;
+        headerTitle.fontStyle = FontStyles.Bold;
         StretchFill(headerTitle.GetComponent<RectTransform>());
 
         var closeBtn = CreateButton("CloseButton", header, "×", 22,
-            new Color(0.6f, 0.15f, 0.15f, 1f));
+            BrandGuide.BtnClose);
         var closeBtnRT = closeBtn.GetComponent<RectTransform>();
         closeBtnRT.anchorMin = new Vector2(1, 0);
         closeBtnRT.anchorMax = new Vector2(1, 1);
@@ -375,7 +383,8 @@ public class UIBuilder : MonoBehaviour
             new Vector2(800, 180));
         panel.anchoredPosition = new Vector2(0, 10);
 
-        AddImage(panel.gameObject, new Color(0.08f, 0.08f, 0.12f, 0.92f));
+        AddImage(panel.gameObject, BrandGuide.PanelBgLight);
+        BrandGuide.AddTopBorder(panel);
 
         var cg = panel.gameObject.AddComponent<CanvasGroup>();
 
@@ -389,11 +398,14 @@ public class UIBuilder : MonoBehaviour
         left.offsetMin = new Vector2(10, 8);
         left.offsetMax = new Vector2(0, -8);
 
-        var nameText = CreateTMP("NameText", left, "---", 22);
+        var nameText = CreateTMP("NameText", left, "---", 24);
+        nameText.color = BrandGuide.Primary;
+        nameText.fontStyle = FontStyles.Bold;
         SetAnchors(nameText, 0, 0.66f, 1, 1);
-        var levelText = CreateTMP("LevelText", left, "Lv 1", 18);
+        var levelText = CreateTMP("LevelText", left, "Lv 1", BrandGuide.FontBody);
+        levelText.color = BrandGuide.TextSecondary;
         SetAnchors(levelText, 0, 0.33f, 1, 0.66f);
-        var hpText = CreateTMP("HPText", left, "HP 0", 18);
+        var hpText = CreateTMP("HPText", left, "HP 0", BrandGuide.FontBody);
         SetAnchors(hpText, 0, 0, 1, 0.33f);
 
         // ---- CenterStats ----
@@ -406,13 +418,17 @@ public class UIBuilder : MonoBehaviour
         center.offsetMin = new Vector2(0, 8);
         center.offsetMax = new Vector2(0, -8);
 
-        var atkText = CreateTMP("ATKText", center, "ATK 0", 18);
+        var atkText = CreateTMP("ATKText", center, "ATK 0", BrandGuide.FontBody);
+        atkText.color = new Color(1f, 0.75f, 0.60f);
         SetAnchors(atkText, 0, 0.66f, 1, 1);
-        var defText = CreateTMP("DEFText", center, "DEF 0", 18);
+        var defText = CreateTMP("DEFText", center, "DEF 0", BrandGuide.FontBody);
+        defText.color = new Color(0.60f, 0.82f, 1f);
         SetAnchors(defText, 0, 0.33f, 1, 0.66f);
-        var kindText = CreateTMP("KindText", center, "", 16);
+        var kindText = CreateTMP("KindText", center, "", BrandGuide.FontCaption);
+        kindText.color = BrandGuide.TextSecondary;
         SetAnchors(kindText, 0, 0, 0.5f, 0.33f);
-        var passiveText = CreateTMP("PassiveText", center, "", 16);
+        var passiveText = CreateTMP("PassiveText", center, "", BrandGuide.FontCaption);
+        passiveText.color = BrandGuide.TextSecondary;
         SetAnchors(passiveText, 0.5f, 0, 1, 0.33f);
 
         // ---- RightCommands ----
@@ -425,17 +441,17 @@ public class UIBuilder : MonoBehaviour
         right.offsetMin = new Vector2(4, 8);
         right.offsetMax = new Vector2(-10, -8);
 
-        var attackBtn = CreateButton("AttackBtn", right, "攻撃", 16,
-            new Color(0.7f, 0.2f, 0.2f, 1));
+        var attackBtn = CreateButton("AttackBtn", right, "攻撃", BrandGuide.FontCaption,
+            BrandGuide.BtnAttack);
         SetAnchors(attackBtn.GetComponent<RectTransform>(), 0, 0.5f, 0.5f, 1);
-        var skillBtn = CreateButton("SkillBtn", right, "スキル", 16,
-            new Color(0.2f, 0.35f, 0.7f, 1));
+        var skillBtn = CreateButton("SkillBtn", right, "スキル", BrandGuide.FontCaption,
+            BrandGuide.BtnSkill);
         SetAnchors(skillBtn.GetComponent<RectTransform>(), 0.5f, 0.5f, 1, 1);
-        var waitBtn = CreateButton("WaitBtn", right, "待機", 16,
-            new Color(0.4f, 0.4f, 0.4f, 1));
+        var waitBtn = CreateButton("WaitBtn", right, "待機", BrandGuide.FontCaption,
+            BrandGuide.BtnWait);
         SetAnchors(waitBtn.GetComponent<RectTransform>(), 0, 0, 0.5f, 0.5f);
-        var cancelBtn = CreateButton("CancelBtn", right, "取消", 16,
-            new Color(0.5f, 0.35f, 0.1f, 1));
+        var cancelBtn = CreateButton("CancelBtn", right, "取消", BrandGuide.FontCaption,
+            BrandGuide.BtnCancel);
         SetAnchors(cancelBtn.GetComponent<RectTransform>(), 0.5f, 0, 1, 0.5f);
 
         // ---- UnitPanelUI コンポーネント追加 ----
@@ -458,10 +474,27 @@ public class UIBuilder : MonoBehaviour
             new Vector2(160, 80));
         panel.anchoredPosition = new Vector2(-20, 20);
 
-        AddImage(panel.gameObject, new Color(0.1f, 0.1f, 0.2f, 0.85f));
+        AddImage(panel.gameObject, BrandGuide.PanelBg);
+        BrandGuide.AddPanelBorder(panel);
 
-        var apText = CreateTMP("APText", panel, "0 / 0", 28);
-        StretchFill(apText.GetComponent<RectTransform>());
+        // APラベル
+        var apLabel = CreateTMP("APLabel", panel, "AP", BrandGuide.FontSmall);
+        apLabel.color = BrandGuide.TextLabel;
+        apLabel.fontStyle = FontStyles.Bold;
+        apLabel.alignment = TextAlignmentOptions.Center;
+        var apLabelRT = apLabel.GetComponent<RectTransform>();
+        apLabelRT.anchorMin = new Vector2(0, 0.7f);
+        apLabelRT.anchorMax = new Vector2(1, 1);
+        apLabelRT.offsetMin = new Vector2(4, 0);
+        apLabelRT.offsetMax = new Vector2(-4, -2);
+
+        var apText = CreateTMP("APText", panel, "0 / 0", 30);
+        apText.fontStyle = FontStyles.Bold;
+        var apTextRT = apText.GetComponent<RectTransform>();
+        apTextRT.anchorMin = new Vector2(0, 0);
+        apTextRT.anchorMax = new Vector2(1, 0.72f);
+        apTextRT.offsetMin = new Vector2(4, 2);
+        apTextRT.offsetMax = new Vector2(-4, 0);
 
         APPanel = panel.gameObject.AddComponent<APPanelUI>();
     }
@@ -523,14 +556,14 @@ public class UIBuilder : MonoBehaviour
             if (FacilityData.IsSubCrystal(kind))
             {
                 bg.color = canBuild
-                    ? new Color(0.15f, 0.30f, 0.45f, 1f)
-                    : new Color(0.5f, 0.15f, 0.15f, 1f);
+                    ? BrandGuide.BtnSubCrystalEnabled
+                    : BrandGuide.BtnDisabled;
             }
             else
             {
                 bg.color = canBuild
-                    ? new Color(0.2f, 0.35f, 0.2f, 1f)
-                    : new Color(0.5f, 0.15f, 0.15f, 1f);
+                    ? BrandGuide.BtnBuildEnabled
+                    : BrandGuide.BtnDisabled;
             }
         }
     }
@@ -562,8 +595,8 @@ public class UIBuilder : MonoBehaviour
             bool canSummon = SummonSystem.CanSummon(Team.Player, kind);
             btn.interactable = canSummon;
             bg.color = canSummon
-                ? new Color(0.2f, 0.25f, 0.45f, 1f)
-                : new Color(0.5f, 0.15f, 0.15f, 1f);
+                ? BrandGuide.BtnSummonEnabled
+                : BrandGuide.BtnDisabled;
         }
     }
 
@@ -650,9 +683,9 @@ public class UIBuilder : MonoBehaviour
                 ? $"{info.DisplayName}  副晶x1"
                 : $"{info.DisplayName}  AP:{info.APCost}";
             var btn = CreateButton("Build_" + facility, row.transform,
-                label, 18, isSubCrystal
-                    ? new Color(0.15f, 0.30f, 0.45f, 1f)
-                    : new Color(0.2f, 0.35f, 0.2f, 1f));
+                label, BrandGuide.FontCaption, isSubCrystal
+                    ? BrandGuide.BtnSubCrystalEnabled
+                    : BrandGuide.BtnBuildEnabled);
             var btnLE = btn.gameObject.AddComponent<LayoutElement>();
             btnLE.preferredHeight = 40;
 
@@ -664,8 +697,8 @@ public class UIBuilder : MonoBehaviour
 
             // ---- コスト表示 ----
             string costStr = isSubCrystal ? "サブクリスタル1消費 (破壊後5T返却)" : FormatBuildCost(info.BuildCost);
-            var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, 15);
-            costTMP.color = new Color(0.7f, 0.7f, 0.6f);
+            var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, BrandGuide.FontSmall + 2);
+            costTMP.color = BrandGuide.TextSecondary;
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
             costTMP.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             costTMP.overflowMode = TextOverflowModes.Ellipsis;
@@ -749,7 +782,7 @@ public class UIBuilder : MonoBehaviour
         tmp.text = text;
         tmp.fontSize = fontSize;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = Color.white;
+        tmp.color = BrandGuide.TextPrimary;
         if (defaultFont != null) tmp.font = defaultFont;
         return tmp;
     }
@@ -770,14 +803,11 @@ public class UIBuilder : MonoBehaviour
         img.color = bgColor;
 
         var btn = go.AddComponent<Button>();
-        btn.targetGraphic = img;
-
-        var colors = btn.colors;
-        colors.highlightedColor = bgColor * 1.2f;
-        colors.pressedColor = bgColor * 0.8f;
-        btn.colors = colors;
+        BrandGuide.ApplyButtonStyle(btn, bgColor);
 
         var txt = CreateTMP("Label", go.transform, label, fontSize);
+        txt.color = BrandGuide.TextPrimary;
+        txt.fontStyle = FontStyles.Bold;
         StretchFill(txt.GetComponent<RectTransform>());
 
         return btn;
@@ -866,7 +896,7 @@ public class UIBuilder : MonoBehaviour
             string displayName = KindDisplayNames.TryGetValue(kind, out string dn) ? dn : kind.ToString();
             string label = $"{displayName}";
             var btn = CreateButton("Summon_" + kind, content.transform,
-                label, 14, new Color(0.2f, 0.25f, 0.45f, 1f));
+                label, BrandGuide.FontCaption, BrandGuide.BtnSummonEnabled);
 
             var le = btn.gameObject.AddComponent<LayoutElement>();
             le.preferredHeight = 36;
@@ -918,7 +948,7 @@ public class UIBuilder : MonoBehaviour
         StretchFill(hRT);
 
         var hImg = handle.AddComponent<Image>();
-        hImg.color = new Color(0.5f, 0.5f, 0.55f, 0.7f);
+        hImg.color = new Color(0.55f, 0.50f, 0.38f, 0.65f);
 
         // Scrollbar コンポーネント
         var sb = sbGo.AddComponent<Scrollbar>();
@@ -928,9 +958,9 @@ public class UIBuilder : MonoBehaviour
 
         // ハンドルのホバー色設定
         var colors = sb.colors;
-        colors.normalColor = new Color(0.5f, 0.5f, 0.55f, 0.7f);
-        colors.highlightedColor = new Color(0.65f, 0.65f, 0.7f, 0.85f);
-        colors.pressedColor = new Color(0.4f, 0.4f, 0.45f, 0.9f);
+        colors.normalColor = new Color(0.55f, 0.50f, 0.38f, 0.65f);
+        colors.highlightedColor = new Color(0.72f, 0.65f, 0.45f, 0.85f);
+        colors.pressedColor = new Color(0.42f, 0.38f, 0.28f, 0.90f);
         sb.colors = colors;
 
         return sb;
