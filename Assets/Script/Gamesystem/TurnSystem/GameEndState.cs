@@ -3,42 +3,33 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class GameEndState : StateCore
+public class GameEndState : TurnState
 {
-    private TurnGenerater _turn;
     private GameResult _result;
 
-    public GameEndState(TurnGenerater turn, GameResult result)
+    public GameEndState(TurnGenerater turn, GameResult result) : base(turn)
     {
-        _turn = turn;
         _result = result;
     }
 
-    // ==== ステート開始：結果表示・操作停止 ====
-    public void Entry()
+    public override void Entry()
     {
         Debug.Log($"[GameEnd] ゲーム終了 結果: {_result}");
 
-        // タイマー停止
-        if (_turn.timerSystem != null)
-            _turn.timerSystem.StopTurn();
+        if (Systems.TimerSystem != null)
+            Systems.TimerSystem.StopTurn();
 
-        // UI片付け
         EnemyTurnBannerUI.Hide();
-        if (_turn.inputHintUI != null)
-            _turn.inputHintUI.SetHints(InputHintUI.Hints.GameEnd);
+        if (Systems.InputHintUI != null)
+            Systems.InputHintUI.SetHints(InputHintUI.Hints.GameEnd);
 
-        // 残留ポイントをクリア
-        _turn.movegenerater.MoveReset();
-        _turn.attackpoint.AtkpDestroy();
+        Systems.MoveGenerator.MoveReset();
+        Systems.AttackPoint.AtkpDestroy();
 
-        // ── 脅威度更新 ──
         UpdateThreatLevel();
-
         BuildGameEndUI();
     }
 
-    // ==== 勝敗に応じて脅威度を更新・保存 ====
     private void UpdateThreatLevel()
     {
         bool isWin = _result == GameResult.Win || _result == GameResult.TimeUpWin;
@@ -49,11 +40,10 @@ public class GameEndState : StateCore
             int newLevel = SaveSystem.IncrementThreatLevel();
             Debug.Log($"[GameEnd] 勝利！ 脅威度+1 → {newLevel}");
 
-            // AICommander の脅威度も更新
-            if (_turn.aiCommander != null)
+            if (Systems.AICommander != null)
             {
-                var analysis = new MatchAnalysis { TurnsPlayed = _turn.Turn, PrimaryFailure = FailureReason.Unknown };
-                _turn.aiCommander.RecordMatchResult(true, analysis);
+                var analysis = new MatchAnalysis { TurnsPlayed = Context.Turn, PrimaryFailure = FailureReason.Unknown };
+                Systems.AICommander.RecordMatchResult(true, analysis);
             }
         }
         else if (isLose)
@@ -63,12 +53,8 @@ public class GameEndState : StateCore
         }
     }
 
-    // ==== 毎フレーム：何もしない（入力を受け付けない） ====
-    public void Update()
-    {
-    }
-
-    public void Exit() { }
+    public override void Update() { }
+    public override void Exit() { }
 
     // ==== ゲーム終了UI構築 ====
     private void BuildGameEndUI()

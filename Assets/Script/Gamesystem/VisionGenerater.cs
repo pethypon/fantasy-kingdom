@@ -51,6 +51,23 @@ public class VisionGenerater : MonoBehaviour
 
     int blockLayerMask;
 
+    // ================================================================
+    //  視界キャッシュ（dirty flag パターン）
+    //  同一フレーム内の重複再計算を防止し、パフォーマンスを向上させる。
+    // ================================================================
+    private int _lastVisionFrame = -1;
+    private bool _visionDirty = true;
+
+    /// <summary>視界データを無効化する（次回VisionPoint呼び出しで再計算される）</summary>
+    public void MarkVisionDirty()
+    {
+        _visionDirty = true;
+    }
+
+    // VisionSetting で使い回す HashSet（GC圧削減）
+    private readonly HashSet<Vector3Int> _reusableVisionXZ = new HashSet<Vector3Int>();
+    private readonly HashSet<Vector3Int> _reusableExploardXZ = new HashSet<Vector3Int>();
+
     // 駒の種類ごとの視界データ（Dictionaryで一元管理）
     static readonly Dictionary<Kind, Vector3Int[]> VisionDataMap = new Dictionary<Kind, Vector3Int[]>
     {
@@ -295,6 +312,20 @@ public class VisionGenerater : MonoBehaviour
 
     public void VisionPoint(MapCreate mapcreate, MoveGererater movegenerater, CrystalSystem crystalsystem)
     {
+        if (mapcreate == null || movegenerater == null || crystalsystem == null)
+        {
+            Debug.LogWarning("[VisionGenerater] VisionPoint に null 引数が渡されました");
+            return;
+        }
+
+        // 同一フレーム内での重複再計算を防止
+        int currentFrame = Time.frameCount;
+        if (!_visionDirty && _lastVisionFrame == currentFrame)
+            return;
+
+        _lastVisionFrame = currentFrame;
+        _visionDirty = false;
+
         this.mapcreate = mapcreate;
         this.movegenerater = movegenerater;
         this.crystalsystem = crystalsystem;
@@ -455,18 +486,23 @@ public class VisionGenerater : MonoBehaviour
 
     public void VisionSetting(MapCreate mapcreate)
     {
-        // PlayerVisionBoxとPlayerExploardのXZ成分をとるための半変換
-        var playervisionXZ = new HashSet<Vector3Int>();
-        var playerexploardXZ = new HashSet<Vector3Int>();
+        if (mapcreate == null) return;
+
+        // 再利用可能な HashSet でGC圧を削減
+        _reusableVisionXZ.Clear();
+        _reusableExploardXZ.Clear();
 
         foreach (var Temporary in PlayerVisionBox)
         {
-            playervisionXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
+            _reusableVisionXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
         }
         foreach (var Temporary in PlayerExploard)
         {
-            playerexploardXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
+            _reusableExploardXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
         }
+
+        var playervisionXZ = _reusableVisionXZ;
+        var playerexploardXZ = _reusableExploardXZ;
 
         // Fog表示制御（視界外かつ未探索 → 完全な霧を表示）
         SetFogVisibility(mapcreate.FogParent, playervisionXZ, playerexploardXZ, false);

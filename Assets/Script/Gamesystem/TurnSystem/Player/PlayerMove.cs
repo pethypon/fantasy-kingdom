@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerMove : StateCore
+public class PlayerMove : TurnState
 {
     public enum AttackMode
     {
@@ -11,20 +11,7 @@ public class PlayerMove : StateCore
     }
 
     public AttackMode attackmode;
-    public AttackPointt attackpoint;
-    private TurnGenerater turngenerater;
-    private UnitClick unitclick;
-    private MapCreate mapcreate;
-    public PlayerAttack playerattack;
-    public BattleSystem battlesystem;
-    public VisionGenerater visiongenerater;
-    public MoveGererater movegenerater;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
-
     public bool MenuSwitch;
-    private BuildSystem buildsystem;
-    private SummonSystem summonsystem;
     public Status Obj;
     public Vector3 ObjP;
     public Status MP;
@@ -32,62 +19,38 @@ public class PlayerMove : StateCore
     public Vector3 oldcell;
     public Vector3 newcell;
 
-    /// <summary>建築モード中かどうか（BuildSystem.IsActive を参照）</summary>
-    public bool BuildMode => buildsystem != null && buildsystem.IsActive;
+    /// <summary>建築モード中かどうか</summary>
+    public bool BuildMode => Systems.BuildSystem != null && Systems.BuildSystem.IsActive;
 
-    /// <summary>召喚モード中かどうか（SummonSystem.IsActive を参照）</summary>
-    public bool SummonMode => summonsystem != null && summonsystem.IsActive;
+    /// <summary>召喚モード中かどうか</summary>
+    public bool SummonMode => Systems.SummonSystem != null && Systems.SummonSystem.IsActive;
 
     private bool timerWired;
     private int unitCycleIndex = -1;
     private string _lastHintKey = "";
 
-    public PlayerMove(
-        TurnGenerater turngenerater,
-        UnitClick unitclick,
-        AttackPointt attackpoint,
-        BattleSystem battlesystem,
-        VisionGenerater visiongenerater,
-        MoveGererater movegenerater,
-        MapCreate mapcreate,
-        CrystalSystem crystalsystem,
-        UnitSetting unitset)
-    {
-        this.turngenerater = turngenerater;
-        this.unitclick = unitclick;
-        this.attackpoint = attackpoint;
-        this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater;
-        this.movegenerater = movegenerater;
-        this.mapcreate = mapcreate;
-        this.crystalsystem = crystalsystem;
-        MenuSwitch = false;
-        this.unitset = unitset;
-        this.buildsystem = turngenerater.buildsystem;
-        this.summonsystem = turngenerater.summonsystem;
-    }
+    public PlayerMove(TurnGenerater turn) : base(turn) { }
 
-    public void Entry()
+    public override void Entry()
     {
-        unitclick.UC(this, turngenerater, attackpoint);
+        Systems.UnitClick.UC(this, Turn, Systems.AttackPoint);
         attackmode = AttackMode.None;
 
         // タイマーのコールバック接続
-        if (turngenerater.timerSystem != null && !timerWired)
+        if (Systems.TimerSystem != null && !timerWired)
         {
             timerWired = true;
-            turngenerater.timerSystem.OnTurnTimeExpired += OnTurnTimeExpired;
-            turngenerater.timerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
+            Systems.TimerSystem.OnTurnTimeExpired += OnTurnTimeExpired;
+            Systems.TimerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
         }
 
         Debug.Log("プレイヤーターン開始");
 
-        // InputHintUI を更新
-        if (turngenerater.inputHintUI != null)
-            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.PlayerMove);
+        if (Systems.InputHintUI != null)
+            Systems.InputHintUI.SetHints(InputHintUI.Hints.PlayerMove);
     }
 
-    public void Update()
+    public override void Update()
     {
         if (BuildMode)
         {
@@ -121,99 +84,86 @@ public class PlayerMove : StateCore
     {
         if (_lastHintKey == hints) return;
         _lastHintKey = hints;
-        if (turngenerater.inputHintUI != null)
-            turngenerater.inputHintUI.SetHints(hints);
+        if (Systems.InputHintUI != null)
+            Systems.InputHintUI.SetHints(hints);
     }
 
-    public void Exit()
+    public override void Exit()
     {
-        if (buildsystem != null && buildsystem.IsActive)
-            buildsystem.CancelBuildMode();
-        if (summonsystem != null && summonsystem.IsActive)
-            summonsystem.CancelSummonMode();
+        if (Systems.BuildSystem != null && Systems.BuildSystem.IsActive)
+            Systems.BuildSystem.CancelBuildMode();
+        if (Systems.SummonSystem != null && Systems.SummonSystem.IsActive)
+            Systems.SummonSystem.CancelSummonMode();
 
-        // タイマーコールバック解除
-        if (turngenerater.timerSystem != null && timerWired)
+        if (Systems.TimerSystem != null && timerWired)
         {
-            turngenerater.timerSystem.OnTurnTimeExpired -= OnTurnTimeExpired;
-            turngenerater.timerSystem.OnTotalTimeExpired -= OnTotalTimeExpired;
+            Systems.TimerSystem.OnTurnTimeExpired -= OnTurnTimeExpired;
+            Systems.TimerSystem.OnTotalTimeExpired -= OnTotalTimeExpired;
             timerWired = false;
         }
     }
 
     public void Reset()
     {
-        turngenerater.SelectUnit = null;
+        Context.SelectUnit = null;
         Obj = null;
         MP = null;
         MenuSwitch = false;
-        if (buildsystem != null && buildsystem.IsActive)
-            buildsystem.CancelBuildMode();
-        if (summonsystem != null && summonsystem.IsActive)
-            summonsystem.CancelSummonMode();
+        if (Systems.BuildSystem != null && Systems.BuildSystem.IsActive)
+            Systems.BuildSystem.CancelBuildMode();
+        if (Systems.SummonSystem != null && Systems.SummonSystem.IsActive)
+            Systems.SummonSystem.CancelSummonMode();
     }
 
     // ---- 建築モード処理 ----
     private void HandleBuildMode()
     {
-        if (buildsystem == null) return;
+        if (Systems.BuildSystem == null) return;
 
-        buildsystem.UpdateCursor();
+        Systems.BuildSystem.UpdateCursor();
 
-        // 左クリック: 設置試行
-        if (turngenerater.LeftClickDown)
+        if (Context.LeftClickDown)
         {
-            if (buildsystem.TryPlace())
-            {
+            if (Systems.BuildSystem.TryPlace())
                 RefreshVision();
-            }
         }
 
-        // 右クリック: 建築モード解除
-        if (turngenerater.RightClickDown)
-        {
-            buildsystem.CancelBuildMode();
-        }
+        if (Context.RightClickDown)
+            Systems.BuildSystem.CancelBuildMode();
     }
 
     // ---- 召喚モード処理 ----
     private void HandleSummonMode()
     {
-        if (summonsystem == null) return;
+        if (Systems.SummonSystem == null) return;
 
-        summonsystem.UpdateCursor();
+        Systems.SummonSystem.UpdateCursor();
 
-        if (turngenerater.LeftClickDown)
+        if (Context.LeftClickDown)
         {
-            if (summonsystem.TryPlace())
-            {
+            if (Systems.SummonSystem.TryPlace())
                 RefreshVision();
-            }
         }
 
-        if (turngenerater.RightClickDown)
-        {
-            summonsystem.CancelSummonMode();
-        }
+        if (Context.RightClickDown)
+            Systems.SummonSystem.CancelSummonMode();
     }
 
     // ---- Q/Eキー：ユニット方向反転 (N↔S) ----
     private void HandleDirectionToggle()
     {
-        if (!turngenerater.ToggleNSDown) return;
-        if (turngenerater.SelectUnit == null) return;
+        if (!Context.ToggleNSDown) return;
+        if (Context.SelectUnit == null) return;
 
-        Status unit = turngenerater.SelectUnit;
+        Status unit = Context.SelectUnit;
         unit.direction = (unit.direction == Direction.N) ? Direction.S : Direction.N;
 
-        // 方向変更後、移動範囲を再計算（方向依存パターンのため）
         if (MenuSwitch)
         {
-            turngenerater.movegenerater.MoveReset();
-            turngenerater.movegenerater.MoveCore(unit, unit.transform.position);
+            Systems.MoveGenerator.MoveReset();
+            Systems.MoveGenerator.MoveCore(unit, unit.transform.position);
         }
 
-        // 視界も再計算
         RefreshVision();
 
         string dirName = unit.direction == Direction.N ? "北" : "南";
@@ -223,16 +173,15 @@ public class PlayerMove : StateCore
     // ---- 左クリック ----
     private void HandleLeftClick()
     {
-        if (!turngenerater.LeftClickDown) return;
+        if (!Context.LeftClickDown) return;
 
         if (!MenuSwitch)
         {
-            unitclick.Click1();
+            Systems.UnitClick.Click1();
         }
         else
         {
-            // Click2開始
-            unitclick.Click2();
+            Systems.UnitClick.Click2();
             RefreshVision();
         }
     }
@@ -240,72 +189,60 @@ public class PlayerMove : StateCore
     // ---- 右クリック ----
     private void HandleRightClick()
     {
-        if (!turngenerater.RightClickDown) return;
+        if (!Context.RightClickDown) return;
 
-        turngenerater.movegenerater.MoveReset();
+        Systems.MoveGenerator.MoveReset();
         RefreshVision();
         Reset();
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
+        if (Systems.UnitPanelUI != null)
+            Systems.UnitPanelUI.Hide();
     }
 
     // ---- ターン終了 ----
     private void HandleTurnEnd()
     {
-        if (!turngenerater.TurnEndDown) return;
+        if (!Context.TurnEndDown) return;
 
-        // タイマー停止
-        if (turngenerater.timerSystem != null)
-            turngenerater.timerSystem.StopTurn();
+        if (Systems.TimerSystem != null)
+            Systems.TimerSystem.StopTurn();
 
-        turngenerater.movegenerater.MoveReset();
+        Systems.MoveGenerator.MoveReset();
         RefreshVision();
         Reset();
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
+        if (Systems.UnitPanelUI != null)
+            Systems.UnitPanelUI.Hide();
 
-        // Special Ability: ターン終了時処理（応急処置、聖域反応）
-        SpecialAbilitySystem.OnTurnEnd(unitset.PlayerUnit);
+        SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.PlayerUnit);
 
-        // Player の資源獲得（ターン終了時）
-        if (turngenerater.economysystem != null)
-            turngenerater.economysystem.ProcessTurn(Team.Player);
+        if (Systems.EconomySystem != null)
+            Systems.EconomySystem.ProcessTurn(Team.Player);
 
-        // Player の攻撃建築物による自動攻撃
-        if (turngenerater.buildingAttackSystem != null)
-            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
+        if (Systems.BuildingAttackSystem != null)
+            Systems.BuildingAttackSystem.ProcessAttacks(Team.Player);
 
-        turngenerater.ChangeState(new EnemyStart(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        Turn.ChangeState(new EnemyStart(Turn));
     }
 
-    // ---- 攻撃モード選択（メニュー表示のみ） ----
+    // ---- 攻撃モード選択 ----
     private void HandleAttackModeSelect()
     {
         if (!MenuSwitch) return;
 
-        if (turngenerater.SelectNormalDown)
-        {
+        if (Context.SelectNormalDown)
             StartAttack(AttackMode.Normal);
-        }
-        else if (turngenerater.SelectSkillDown)
-        {
+        else if (Context.SelectSkillDown)
             StartAttack(AttackMode.Skill);
-        }
     }
 
     // ---- 攻撃ステートへ遷移 ----
     private void StartAttack(AttackMode mode)
     {
-        turngenerater.movegenerater.MoveReset();
+        Systems.MoveGenerator.MoveReset();
         MP = null;
         attackmode = mode;
-        turngenerater.ChangeState(new PlayerAttack(
-            mapcreate, this, attackmode, attackpoint, turngenerater,
-            unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem, unitset));
+        Turn.ChangeState(new PlayerAttack(Turn, this, attackmode));
     }
 
     // ---- タイマー自動ターン終了 ----
@@ -315,63 +252,57 @@ public class PlayerMove : StateCore
         ForceEndTurn();
     }
 
-    // ---- 持ち時間切れ → ゲーム終了 ----
     private void OnTotalTimeExpired(GameResult result)
     {
         ToastMessageUI.Show("持ち時間終了", ToastMessageUI.MessageType.Error);
-        turngenerater.movegenerater.MoveReset();
+        Systems.MoveGenerator.MoveReset();
         Reset();
-        turngenerater.ChangeState(new GameEndState(turngenerater, result));
+        Turn.ChangeState(new GameEndState(Turn, result));
     }
 
-    // ---- 強制ターン終了（タイマー切れ） ----
     private void ForceEndTurn()
     {
-        turngenerater.movegenerater.MoveReset();
+        Systems.MoveGenerator.MoveReset();
         RefreshVision();
         Reset();
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
+        if (Systems.UnitPanelUI != null)
+            Systems.UnitPanelUI.Hide();
 
-        // Special Ability: ターン終了時処理（応急処置、聖域反応）
-        SpecialAbilitySystem.OnTurnEnd(unitset.PlayerUnit);
+        SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.PlayerUnit);
 
-        if (turngenerater.economysystem != null)
-            turngenerater.economysystem.ProcessTurn(Team.Player);
+        if (Systems.EconomySystem != null)
+            Systems.EconomySystem.ProcessTurn(Team.Player);
 
-        if (turngenerater.buildingAttackSystem != null)
-            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
+        if (Systems.BuildingAttackSystem != null)
+            Systems.BuildingAttackSystem.ProcessAttacks(Team.Player);
 
-        turngenerater.ChangeState(new EnemyStart(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        Turn.ChangeState(new EnemyStart(Turn));
     }
 
-    // ---- カメラフォーカス（Cキー）: 選択ユニットにカメラを向ける ----
+    // ---- カメラフォーカス（Cキー） ----
     private void HandleCameraFocus()
     {
         if (Keyboard.current == null) return;
         if (!Keyboard.current.cKey.wasPressedThisFrame) return;
 
-        Status target = turngenerater.SelectUnit;
-        if (target == null) return;
+        Status target = Context.SelectUnit;
+        if (target == null || Context.CameraObject == null) return;
 
-        Vector3 pos = turngenerater.CameraObject.position;
+        Vector3 pos = Context.CameraObject.position;
         pos.x = target.transform.position.x;
         pos.z = target.transform.position.z;
-        turngenerater.CameraObject.position = pos;
+        Context.CameraObject.position = pos;
     }
 
-    // ---- ユニット巡回（Tabキー）: 味方ユニットを順に選択＆カメラ追従 ----
+    // ---- ユニット巡回（Tabキー） ----
     private void HandleUnitCycle()
     {
         if (Keyboard.current == null) return;
         if (!Keyboard.current.tabKey.wasPressedThisFrame) return;
-        if (unitset == null) return;
+        if (Systems.UnitSetting == null) return;
 
-        // 行動可能な味方ユニットを収集
-        var playerParent = unitset.PlayerUnit;
+        var playerParent = Systems.UnitSetting.PlayerUnit;
         if (playerParent == null) return;
 
         var units = new System.Collections.Generic.List<Status>();
@@ -385,27 +316,27 @@ public class PlayerMove : StateCore
 
         if (units.Count == 0) return;
 
-        // 次のユニットに切り替え
         unitCycleIndex = (unitCycleIndex + 1) % units.Count;
         Status next = units[unitCycleIndex];
 
-        // 既存選択をリセットして新ユニットを選択
-        turngenerater.movegenerater.MoveReset();
+        Systems.MoveGenerator.MoveReset();
         Obj = next;
         ObjP = next.transform.position;
-        turngenerater.movegenerater.MoveCore(next, ObjP);
-        turngenerater.SelectUnit = next;
-        turngenerater.OldCell = next.transform.position;
+        Systems.MoveGenerator.MoveCore(next, ObjP);
+        Context.SelectUnit = next;
+        Context.OldCell = next.transform.position;
         MenuSwitch = true;
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Show(next);
+        if (Systems.UnitPanelUI != null)
+            Systems.UnitPanelUI.Show(next);
 
-        // カメラ追従
-        Vector3 camPos = turngenerater.CameraObject.position;
-        camPos.x = next.transform.position.x;
-        camPos.z = next.transform.position.z;
-        turngenerater.CameraObject.position = camPos;
+        if (Context.CameraObject != null)
+        {
+            Vector3 camPos = Context.CameraObject.position;
+            camPos.x = next.transform.position.x;
+            camPos.z = next.transform.position.z;
+            Context.CameraObject.position = camPos;
+        }
     }
 
     // ---- 移動取り消し（Zキー） ----
@@ -413,19 +344,14 @@ public class PlayerMove : StateCore
     {
         if (Keyboard.current == null) return;
         if (!Keyboard.current.zKey.wasPressedThisFrame) return;
-        if (turngenerater.moveUndoSystem == null) return;
-        if (!turngenerater.moveUndoSystem.CanUndo) return;
+        if (Systems.MoveUndoSystem == null) return;
+        if (!Systems.MoveUndoSystem.CanUndo) return;
 
-        turngenerater.movegenerater.MoveReset();
-        turngenerater.moveUndoSystem.Undo(turngenerater, this, visiongenerater, mapcreate, crystalsystem);
+        Systems.MoveGenerator.MoveReset();
+        Systems.MoveUndoSystem.Undo(Turn, this,
+            Systems.VisionGenerator, Systems.MapCreate, Systems.CrystalSystem);
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
-    }
-
-    // ---- 視界更新（VisionPoint のショートハンド） ----
-    private void RefreshVision()
-    {
-        visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
+        if (Systems.UnitPanelUI != null)
+            Systems.UnitPanelUI.Hide();
     }
 }

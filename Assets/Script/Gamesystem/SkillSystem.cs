@@ -113,15 +113,16 @@ public class SkillSystem : MonoBehaviour
         else
             FloatingDamageUI.ShowMiss(target.transform.position);
 
-        // 2連撃 / チェイン
+        // 2連撃 / チェイン（DamageCalculator経由で重複排除）
         if (skill.Area == SkillAreaShape.SingleDouble && skill.SecondMultiplier > 0)
         {
             float sealMod = StatusEffectSystem.GetSkillMultiplierModifier(attacker);
             float atk = attacker.ATK * StatusEffectSystem.GetATKModifier(attacker);
             float def = target.DEF * StatusEffectSystem.GetDEFModifier(target);
-            float baseDmg = 1f + (atk / 6f) + ((atk / 2f) - (def / 4f));
-            float mul2 = Mathf.Clamp(skill.SecondMultiplier + sealMod, 0f, 2f);
-            int dmg2 = Mathf.Max(0, Mathf.RoundToInt(baseDmg * mul2 * StatusEffectSystem.GetIncomingDamageModifier(target)));
+            int dmg2 = DamageCalculator.CalcSkillFromValues(
+                atk, def,
+                StatusEffectSystem.GetIncomingDamageModifier(target),
+                skill.SecondMultiplier, sealMod);
             target.HP = Mathf.Max(0, target.HP - dmg2);
             Debug.Log($"[SkillSystem] 2段目 DMG:{dmg2} 残HP:{target.HP}");
         }
@@ -342,58 +343,44 @@ public class SkillSystem : MonoBehaviour
         switch (skill.SpecialEffect)
         {
             case "SmashBuilding":
-                // 建物に当てた場合: 被ダメ+10%（マーク相当）
                 if (target != null && target.type == Type.Building)
                     StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Mark);
                 break;
 
             case "FlamePoison":
-                // 25%で毒 or 出血（ランダム二択、既に付与判定は上流で行う）
-                // 上流で Poison を InflictDebuff に設定済み。出血の代替判定
                 if (target != null && !StatusEffectSystem.HasDebuff(target, StatusEffectType.Poison))
                 {
-                    if (Random.Range(0f, 1f) <= 0.25f)
+                    if (Random.Range(0f, 1f) <= GameConstants.FlamePoisonBleedChance)
                         StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Bleed);
                 }
                 break;
 
             case "ShadowRush":
-                // 視界外からなら追加+0.20 倍率分のダメージ
-                if (target != null && attacker != null)
+                if (target != null && attacker != null && target.VisionCell != null)
                 {
-                    // 対象の視界に攻撃者がいなければボーナス
-                    if (target.VisionCell != null)
+                    Vector3Int attackerCell = new Vector3Int(
+                        Mathf.RoundToInt(attacker.transform.position.x),
+                        Mathf.RoundToInt(attacker.transform.position.y),
+                        Mathf.RoundToInt(attacker.transform.position.z));
+                    if (!target.VisionCell.Contains(attackerCell))
                     {
-                        Vector3Int attackerCell = new Vector3Int(
-                            Mathf.RoundToInt(attacker.transform.position.x),
-                            Mathf.RoundToInt(attacker.transform.position.y),
-                            Mathf.RoundToInt(attacker.transform.position.z));
-                        if (!target.VisionCell.Contains(attackerCell))
-                        {
-                            float bonusMul = 0.20f;
-                            float atk = attacker.ATK * StatusEffectSystem.GetATKModifier(attacker);
-                            float def = target.DEF * StatusEffectSystem.GetDEFModifier(target);
-                            float base_ = 1f + (atk / 6f) + ((atk / 2f) - (def / 4f));
-                            int bonus = Mathf.Max(0, Mathf.RoundToInt(base_ * bonusMul));
-                            target.HP = Mathf.Max(0, target.HP - bonus);
-                            Debug.Log($"[SkillSystem] シャドウラッシュ追加ダメージ +{bonus}");
-                        }
+                        int bonus = CalcBonusDamage(attacker, target, GameConstants.ShadowRushBonusMultiplier);
+                        target.HP = Mathf.Max(0, target.HP - bonus);
+                        Debug.Log($"[SkillSystem] シャドウラッシュ追加ダメージ +{bonus}");
                     }
                 }
                 break;
 
             case "BloodSacrifice":
-                // 自身が最大HPの10%自傷
                 if (attacker != null && attacker.MaxHP > 0)
                 {
-                    int selfDmg = Mathf.RoundToInt(attacker.MaxHP * 0.10f);
+                    int selfDmg = Mathf.RoundToInt(attacker.MaxHP * GameConstants.BloodSacrificeRatio);
                     attacker.HP = Mathf.Max(0, attacker.HP - selfDmg);
                     Debug.Log($"[SkillSystem] ブラッドサクリファイス自傷 {selfDmg} (残HP:{attacker.HP})");
                 }
                 break;
 
             case "PhantomDrive":
-                // 攻撃後 AP+2
                 if (_factionState != null)
                 {
                     _factionState.ModifyAP(attacker.team, 2);
@@ -402,23 +389,17 @@ public class SkillSystem : MonoBehaviour
                 break;
 
             case "BastionCall":
-                // DEF+25%, 被ダメ-10%（守勢バフで近似）
-                // 守勢(DEF+20%)を付与済み。追加として障壁も付与
                 if (target != null)
                     StatusEffectSystem.ApplyBuff(target, BuffType.Barrier);
                 break;
 
             case "DeathSight":
-                // 対象HP50%以下なら追加+0.30
                 if (target != null && target.MaxHP > 0)
                 {
                     float hpRatio = (float)target.HP / target.MaxHP;
-                    if (hpRatio <= 0.5f)
+                    if (hpRatio <= GameConstants.LowHPThreshold)
                     {
-                        float atk = attacker.ATK * StatusEffectSystem.GetATKModifier(attacker);
-                        float def = target.DEF * StatusEffectSystem.GetDEFModifier(target);
-                        float base_ = 1f + (atk / 6f) + ((atk / 2f) - (def / 4f));
-                        int bonus = Mathf.Max(0, Mathf.RoundToInt(base_ * 0.30f));
+                        int bonus = CalcBonusDamage(attacker, target, GameConstants.DeathSightBonusMultiplier);
                         target.HP = Mathf.Max(0, target.HP - bonus);
                         Debug.Log($"[SkillSystem] デスサイト追加ダメージ +{bonus} (HP50%以下)");
                     }
@@ -426,39 +407,42 @@ public class SkillSystem : MonoBehaviour
                 break;
 
             case "SiegeBreaker":
-                // 建物相手なら追加+0.40
                 if (target != null && target.type == Type.Building)
                 {
-                    float atk = attacker.ATK * StatusEffectSystem.GetATKModifier(attacker);
-                    float def = target.DEF * StatusEffectSystem.GetDEFModifier(target);
-                    float base_ = 1f + (atk / 6f) + ((atk / 2f) - (def / 4f));
-                    int bonus = Mathf.Max(0, Mathf.RoundToInt(base_ * 0.40f));
+                    int bonus = CalcBonusDamage(attacker, target, GameConstants.SiegeBreakerBonusMultiplier);
                     target.HP = Mathf.Max(0, target.HP - bonus);
                     Debug.Log($"[SkillSystem] シージブレイカー建物追加 +{bonus}");
                 }
                 break;
 
             case "JudgementMark":
-                // 中心対象にマーク（範囲攻撃の中心の敵にのみマーク付与）
                 if (target != null)
                     StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Mark);
                 break;
 
             case "LastSignal":
-                // 範囲内味方 ATK+20%, AP+2
-                // ATK+20% は攻勢(+15%)で近似 + 追加処理
-                // AP+2 は ExecuteAreaSupportSkill 後に呼び出し元で処理
                 break;
 
             case "Catastrophe":
-                // 使用者も固定20ダメージ
                 if (attacker != null)
                 {
-                    attacker.HP = Mathf.Max(0, attacker.HP - 20);
-                    Debug.Log($"[SkillSystem] カタストロフ使用者に20ダメージ (残HP:{attacker.HP})");
+                    attacker.HP = Mathf.Max(0, attacker.HP - GameConstants.CatastropheSelfDamage);
+                    Debug.Log($"[SkillSystem] カタストロフ使用者に{GameConstants.CatastropheSelfDamage}ダメージ (残HP:{attacker.HP})");
                 }
                 break;
         }
+    }
+
+    /// <summary>
+    /// 追加ダメージ計算ヘルパー（DamageCalculator経由で重複排除）。
+    /// ステータス修飾済みの基礎ダメージに倍率を掛ける。
+    /// </summary>
+    private static int CalcBonusDamage(Status attacker, Status target, float bonusMultiplier)
+    {
+        float atk = attacker.ATK * StatusEffectSystem.GetATKModifier(attacker);
+        float def = target.DEF * StatusEffectSystem.GetDEFModifier(target);
+        float baseDmg = DamageCalculator.CalcRawBase(atk, def);
+        return Mathf.Max(0, Mathf.RoundToInt(baseDmg * bonusMultiplier));
     }
 
 }
