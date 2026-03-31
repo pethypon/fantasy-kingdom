@@ -177,23 +177,55 @@ public class TurnGenerater : MonoBehaviour
         set => Context.CameraObject = value;
     }
 
-    // 入力バッファ（後方互換）
+    // 入力バッファ（後方互換 — UIボタン等からの書き込みにも対応）
     [HideInInspector]
-    public Vector2 MoveInput => Context.MoveInput;
+    public Vector2 MoveInput
+    {
+        get => Context.MoveInput;
+        set => Context.MoveInput = value;
+    }
     [HideInInspector]
-    public float ScrollInput => Context.ScrollInput;
+    public float ScrollInput
+    {
+        get => Context.ScrollInput;
+        set => Context.ScrollInput = value;
+    }
     [HideInInspector]
-    public bool LeftClickDown => Context.LeftClickDown;
+    public bool LeftClickDown
+    {
+        get => Context.LeftClickDown;
+        set => Context.LeftClickDown = value;
+    }
     [HideInInspector]
-    public bool RightClickDown => Context.RightClickDown;
+    public bool RightClickDown
+    {
+        get => Context.RightClickDown;
+        set => Context.RightClickDown = value;
+    }
     [HideInInspector]
-    public bool TurnEndDown => Context.TurnEndDown;
+    public bool TurnEndDown
+    {
+        get => Context.TurnEndDown;
+        set => Context.TurnEndDown = value;
+    }
     [HideInInspector]
-    public bool SelectNormalDown => Context.SelectNormalDown;
+    public bool SelectNormalDown
+    {
+        get => Context.SelectNormalDown;
+        set => Context.SelectNormalDown = value;
+    }
     [HideInInspector]
-    public bool SelectSkillDown => Context.SelectSkillDown;
+    public bool SelectSkillDown
+    {
+        get => Context.SelectSkillDown;
+        set => Context.SelectSkillDown = value;
+    }
     [HideInInspector]
-    public bool ToggleNSDown => Context.ToggleNSDown;
+    public bool ToggleNSDown
+    {
+        get => Context.ToggleNSDown;
+        set => Context.ToggleNSDown = value;
+    }
 
     private GameAction gameaction;
 
