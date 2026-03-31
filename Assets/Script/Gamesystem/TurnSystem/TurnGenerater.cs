@@ -84,6 +84,11 @@ public class TurnGenerater : MonoBehaviour
     private GameAction gameaction;
 
     // ================================================================
+    //  ゲームコンテキスト（全状態クラスに渡す不変参照束）
+    // ================================================================
+    [HideInInspector] public GameContext Context { get; private set; }
+
+    // ================================================================
     //  ステート切り替え
     // ================================================================
     public void ChangeState(StateCore next)
@@ -100,8 +105,9 @@ public class TurnGenerater : MonoBehaviour
 
     public void StartFirstTurn()
     {
-        ChangeState(new PlayerStart(this, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        Context = new GameContext(this, unitclick, attackpoint, battlesystem,
+            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset);
+        ChangeState(new PlayerStart(Context));
     }
 
     void Update()

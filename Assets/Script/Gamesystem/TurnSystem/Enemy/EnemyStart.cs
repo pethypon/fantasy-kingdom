@@ -2,30 +2,11 @@ using UnityEngine;
 
 public class EnemyStart : StateCore
 {
-    private TurnGenerater turngenerater;
-    private UnitClick unitclick;
-    private AttackPointt attackpoint;
-    private BattleSystem battlesystem;
-    private VisionGenerater visiongenerater;
-    private MoveGererater movegenerater;
-    private MapCreate mapcreate;
-    private CrystalSystem crystalsystem;
-    private UnitSetting unitset;
+    private readonly GameContext _ctx;
 
-    public EnemyStart(
-        TurnGenerater turngenerater, UnitClick unitclick, AttackPointt attackpoint,
-        BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater,
-        MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
+    public EnemyStart(GameContext ctx)
     {
-        this.turngenerater = turngenerater;
-        this.unitclick = unitclick;
-        this.attackpoint = attackpoint;
-        this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater;
-        this.movegenerater = movegenerater;
-        this.mapcreate = mapcreate;
-        this.crystalsystem = crystalsystem;
-        this.unitset = unitset;
+        _ctx = ctx;
     }
 
     public void Entry()
@@ -33,43 +14,40 @@ public class EnemyStart : StateCore
         Debug.Log("[EnemyStart] 敵ターン開始");
 
         // プレイヤーの残留MovePoint/AttackPointをクリア
-        movegenerater.MoveReset();
-        turngenerater.attackpoint.AtkpDestroy();
+        _ctx.ClearPointMarkers();
 
         // 選択状態もクリア
-        turngenerater.SelectUnit = null;
+        _ctx.TurnGen.SelectUnit = null;
 
         // UnitPanelUI を非表示
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
+        if (_ctx.TurnGen.unitPanelUI != null)
+            _ctx.TurnGen.unitPanelUI.Hide();
 
         // InputHintUI を敵ターン表示に
-        if (turngenerater.inputHintUI != null)
-            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.EnemyTurn);
+        if (_ctx.TurnGen.inputHintUI != null)
+            _ctx.TurnGen.inputHintUI.SetHints(InputHintUI.Hints.EnemyTurn);
 
         // 敵ターンバナー表示
         EnemyTurnBannerUI.Show();
 
         // クリスタルシールドのターン経過（敵陣営）
-        BattleSystem.TickCrystalShields(crystalsystem.Enemycrystal);
+        BattleSystem.TickCrystalShields(_ctx.CrystalSystem.Enemycrystal);
 
         // 状態異常ティック（DoTダメージ + ターン経過 + シールド + スキルクールダウン）
-        StatusEffectSystem.TickAllUnits(unitset.EnemyUnit);
+        StatusEffectSystem.TickAllUnits(_ctx.UnitSetting.EnemyUnit);
 
-        turngenerater.apsystem.ResetAP(Team.Enemy);
-        turngenerater.apsystem.ResetFatigue(unitset.EnemyUnit);
+        _ctx.TurnGen.apsystem.ResetAP(Team.Enemy);
+        _ctx.TurnGen.apsystem.ResetFatigue(_ctx.UnitSetting.EnemyUnit);
 
         // サブクリスタル返却待ちタイマー処理
-        if (turngenerater.subCrystalSystem != null)
-            turngenerater.subCrystalSystem.TickPendingReturns(Team.Enemy);
+        if (_ctx.TurnGen.subCrystalSystem != null)
+            _ctx.TurnGen.subCrystalSystem.TickPendingReturns(Team.Enemy);
 
         // タイマー開始（敵ターン）
-        if (turngenerater.timerSystem != null)
-            turngenerater.timerSystem.StartTurn(Team.Enemy);
+        if (_ctx.TurnGen.timerSystem != null)
+            _ctx.TurnGen.timerSystem.StartTurn(Team.Enemy);
 
-        turngenerater.ChangeState(new EnemyMove(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        _ctx.TurnGen.ChangeState(new EnemyMove(_ctx));
     }
 
     public void Update() { }

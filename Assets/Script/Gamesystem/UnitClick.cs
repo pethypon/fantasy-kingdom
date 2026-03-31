@@ -252,7 +252,7 @@ public class UnitClick : MonoBehaviour
                 {
                     Vector3Int lineOrigin = new Vector3Int(
                         Mathf.RoundToInt(playermove.ObjP.x), 0, Mathf.RoundToInt(playermove.ObjP.z));
-                    List<Status> targets = FindEnemiesInLine(skill, lineOrigin, playermove.Obj.direction);
+                    List<Status> targets = FindEnemiesInArea(skill, lineOrigin, playermove.Obj.direction);
                     turngenerater.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
                 }
                 break;
@@ -276,32 +276,10 @@ public class UnitClick : MonoBehaviour
         }
     }
 
-    // ---- 範囲スキル: エリア内の敵を収集 ----
+    // ---- 範囲/ライン共通: 指定エリア内の敵を収集 ----
     private List<Status> FindEnemiesInArea(SkillData skill, Vector3Int center, Direction dir)
     {
         var positions = SkillSystem.GetAreaPositions(skill.Area, center, dir);
-        var posSet = new HashSet<Vector3Int>(positions);
-        var targets = new List<Status>();
-
-        // 敵ユニット親を走査
-        Transform enemyParent = turngenerater.unitset.EnemyUnit;
-        foreach (Status s in enemyParent.GetComponentsInChildren<Status>())
-        {
-            if (!s.gameObject.activeSelf) continue;
-            if (s.type != Type.Unit && s.type != Type.Building) continue;
-            Vector3Int cell = new Vector3Int(
-                Mathf.RoundToInt(s.transform.position.x), 0,
-                Mathf.RoundToInt(s.transform.position.z));
-            if (posSet.Contains(cell))
-                targets.Add(s);
-        }
-        return targets;
-    }
-
-    // ---- ライン攻撃: ライン上の敵を収集 ----
-    private List<Status> FindEnemiesInLine(SkillData skill, Vector3Int origin, Direction dir)
-    {
-        var positions = SkillSystem.GetAreaPositions(skill.Area, origin, dir);
         var posSet = new HashSet<Vector3Int>(positions);
         var targets = new List<Status>();
 

@@ -50,7 +50,7 @@ public class TerritorySystem : MonoBehaviour
         for (int i = 0; i < positions.Count; i++)
         {
             Vector3 pos = positions[i];
-            pos.y -= 0.475f;
+            pos.y -= GameConstants.TerritoryYOffset;
             Instantiate(prefab, pos, Quaternion.identity, parent);
         }
         Debug.Log($"<color=#ffff00ff>[StartSetting]</color> 領地設置完了 ({positions.Count}マス)");

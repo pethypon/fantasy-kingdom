@@ -2,67 +2,42 @@ using UnityEngine;
 
 public class EnemyMove : StateCore
 {
-    private TurnGenerater turngenerater;
-    private UnitClick unitclick;
-    private AttackPointt attackpoint;
-    private BattleSystem battlesystem;
-    private VisionGenerater visiongenerater;
-    private MoveGererater movegenerater;
-    private MapCreate mapcreate;
-    private CrystalSystem crystalsystem;
-    private UnitSetting unitset;
+    private readonly GameContext _ctx;
 
-    public EnemyMove(
-        TurnGenerater turngenerater, UnitClick unitclick, AttackPointt attackpoint,
-        BattleSystem battlesystem, VisionGenerater visiongenerater, MoveGererater movegenerater,
-        MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
+    public EnemyMove(GameContext ctx)
     {
-        this.turngenerater = turngenerater;
-        this.unitclick = unitclick;
-        this.attackpoint = attackpoint;
-        this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater;
-        this.movegenerater = movegenerater;
-        this.mapcreate = mapcreate;
-        this.crystalsystem = crystalsystem;
-        this.unitset = unitset;
+        _ctx = ctx;
     }
 
     public void Entry()
     {
-        visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
+        _ctx.RefreshVision();
 
         // ========================================
         //  AI指揮官による全体指揮実行
         // ========================================
-        if (turngenerater.aiCommander != null)
+        if (_ctx.TurnGen.aiCommander != null)
         {
-            turngenerater.aiCommander.ExecuteTurn();
+            _ctx.TurnGen.aiCommander.ExecuteTurn();
         }
         else
         {
             Debug.LogWarning("[EnemyMove] AICommander未初期化 — AI行動スキップ");
         }
 
-        // 視界再計算（AI行動後）
-        visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
+        // 視界再計算（AI行動後 — 同一フレームでもキャッシュを無効化して強制更新）
+        _ctx.VisionGen.InvalidateCache();
+        _ctx.RefreshVision();
 
-        // Enemy の資源獲得（ターン終了時）
-        if (turngenerater.economysystem != null)
-            turngenerater.economysystem.ProcessTurn(Team.Enemy);
-
-        // Enemy の攻撃建築物による自動攻撃
-        if (turngenerater.buildingAttackSystem != null)
-            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Enemy);
+        // Enemy の資源獲得＋建築物攻撃
+        _ctx.ProcessTurnEnd(Team.Enemy);
 
         // タイマー停止
-        if (turngenerater.timerSystem != null)
-            turngenerater.timerSystem.StopTurn();
+        if (_ctx.TurnGen.timerSystem != null)
+            _ctx.TurnGen.timerSystem.StopTurn();
 
         // プレイヤーターンへ
-        turngenerater.ChangeState(new PlayerStart(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        _ctx.TurnGen.ChangeState(new PlayerStart(_ctx));
 
         Debug.Log("[EnemyMove] 敵ターン終了");
     }
@@ -71,6 +46,6 @@ public class EnemyMove : StateCore
 
     public void Exit()
     {
-        visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
+        _ctx.RefreshVision();
     }
 }
