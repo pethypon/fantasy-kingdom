@@ -37,8 +37,10 @@ public class APSystem : MonoBehaviour
             cost += HeightBonus(obj.kind, from, to);
             // 鈍足・冷気による移動AP追加コスト
             cost += StatusEffectSystem.GetMoveAPCostBonus(obj);
+            // Special Ability: 迅速体勢（未移動なら移動コスト-1）
+            cost -= SpecialAbilitySystem.GetMoveAPReduction(obj);
         }
-        return cost;
+        return Mathf.Max(1, cost);
     }
 
     // ==== AP 判定 ====
@@ -78,12 +80,22 @@ public class APSystem : MonoBehaviour
     public bool CanUseSkill(Team team, int apCost)
         => _factionState.GetAP(team) >= apCost;
 
+    // ==== スキルAPコスト計算（Special Ability: 省力化対応） ====
+    public int CalcSkillCost(int baseCost, Status obj)
+    {
+        int reduction = SpecialAbilitySystem.GetSkillAPReduction(obj);
+        return Mathf.Max(1, baseCost - reduction);
+    }
+
     // ==== スキルAP消費 + 疲労更新 ====
     public void ConsumeSkill(Team team, int apCost, Status obj)
     {
-        _factionState.ModifyAP(team, -apCost);
+        // Special Ability: 省力化（最初のスキルのAP消費-1）
+        int actualCost = CalcSkillCost(apCost, obj);
+        _factionState.ModifyAP(team, -actualCost);
         obj.Fatigue++;
-        Debug.Log($"[APSystem] {team} / Skill  コスト:{apCost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
+        obj.FirstSkillUsedThisTurn = true;
+        Debug.Log($"[APSystem] {team} / Skill  コスト:{actualCost}(元:{apCost})  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
     }
 
     // ==== AP返還（undo用） ====
