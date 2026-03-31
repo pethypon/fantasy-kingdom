@@ -1,75 +1,41 @@
 using UnityEngine;
 
-public class PlayerAttack : StateCore
+public class PlayerAttack : TurnState
 {
-    public MapCreate mapcreate;
     public PlayerMove move;
-    public AttackPointt attackpoint;
-    public TurnGenerater turngenerater;
-    public PlayerAttack playerattack;
     public PlayerMove.AttackMode attackmode;
-    public BattleSystem battlesystem;
-    public UnitClick unitclick;
-    public Status Attack;
-    public VisionGenerater visiongenerater;
-    public MoveGererater movegenerater;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
 
     public bool AttackSetting;
     public bool AttackSuccess;
 
-    public PlayerAttack(
-        MapCreate mapcreate,
-        PlayerMove move,
-        PlayerMove.AttackMode attackmode,
-        AttackPointt attackpoint,
-        TurnGenerater turngenerater,
-        UnitClick unitclick,
-        BattleSystem battlesystem,
-        VisionGenerater visiongenerater,
-        MoveGererater movegenerater,
-        CrystalSystem crystalsystem,
-        UnitSetting unitset)
+    public PlayerAttack(TurnGenerater turn, PlayerMove move, PlayerMove.AttackMode attackmode)
+        : base(turn)
     {
-        this.mapcreate = mapcreate;
         this.move = move;
         this.attackmode = attackmode;
-        this.attackpoint = attackpoint;
-        this.turngenerater = turngenerater;
-        this.unitclick = unitclick;
-        this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater; // 旧コードで未代入だったバグ修正
-        this.movegenerater = movegenerater;
-        this.crystalsystem = crystalsystem;
-        this.unitset = unitset;
     }
 
-    public void Entry()
+    public override void Entry()
     {
-        attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
+        Systems.AttackPoint.AttackPointCall(move.Obj, move.ObjP, move);
         AttackSuccess = false;
 
-        // DamagePreviewUI を有効化
-        if (turngenerater.damagePreviewUI != null)
-            turngenerater.damagePreviewUI.Activate();
+        if (Systems.DamagePreviewUI != null)
+            Systems.DamagePreviewUI.Activate();
 
-        // InputHintUI を攻撃モード用に更新
-        if (turngenerater.inputHintUI != null)
-            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
+        if (Systems.InputHintUI != null)
+            Systems.InputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
+
         // 攻撃範囲内に敵がいない場合は即座にPlayerMoveへ戻る
-        if (attackpoint.AttackP == null || attackpoint.AttackP.Count == 0)
+        if (Systems.AttackPoint.AttackP == null || Systems.AttackPoint.AttackP.Count == 0)
         {
             ToastMessageUI.Show("攻撃範囲内に対象がいません", ToastMessageUI.MessageType.Warning);
-            attackpoint.AtkpDestroy();
-            turngenerater.ChangeState(new PlayerMove(
-                turngenerater, unitclick, attackpoint, battlesystem,
-                visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+            Systems.AttackPoint.AtkpDestroy();
+            Turn.ChangeState(new PlayerMove(Turn));
         }
-
     }
 
-    public void Update()
+    public override void Update()
     {
         if (AttackSuccess)
         {
@@ -81,36 +47,31 @@ public class PlayerAttack : StateCore
         HandleCancelAttack();
     }
 
-    public void Exit()
+    public override void Exit()
     {
-        if (turngenerater.damagePreviewUI != null)
-            turngenerater.damagePreviewUI.Hide();
+        if (Systems.DamagePreviewUI != null)
+            Systems.DamagePreviewUI.Hide();
     }
 
     public void Reset()
     {
-        attackpoint.obj = null;
-        unitclick.ATKC = null;
-        battlesystem.target = null;
-        battlesystem.AttackSide = null;
+        Systems.AttackPoint.obj = null;
+        Systems.UnitClick.ATKC = null;
+        Systems.BattleSystem.target = null;
+        Systems.BattleSystem.AttackSide = null;
         AttackSuccess = false;
-        attackpoint.AtkpDestroy();
+        Systems.AttackPoint.AtkpDestroy();
     }
 
-    // ==== 攻撃成功時：PlayerMove へ戻る ====
     private void HandleAttackSuccess()
     {
         Reset();
-        turngenerater.ChangeState(new PlayerMove(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem,unitset
-            ));
+        Turn.ChangeState(new PlayerMove(Turn));
     }
 
-    // ==== 攻撃クリック（左クリック） ====
     private void HandleAttackClick()
     {
-        if (!turngenerater.LeftClickDown) return;
+        if (!Context.LeftClickDown) return;
 
         // スキルモードで自身対象スキルの場合は即実行
         if (attackmode == PlayerMove.AttackMode.Skill
@@ -121,36 +82,29 @@ public class PlayerAttack : StateCore
             SkillData skill = SkillData.Table[move.Obj.AssignedSkillId];
             if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
             {
-                // APチェック
-                if (turngenerater.apsystem.GetAP(Team.Player) < skill.APCost)
+                if (Systems.APSystem.GetAP(Team.Player) < skill.APCost)
                 {
                     ToastMessageUI.Show("AP不足：スキルを使用できません", ToastMessageUI.MessageType.Warning);
                     return;
                 }
 
                 if (skill.Target == SkillTarget.SelfArea)
-                {
-                    // 範囲支援スキル: 周囲の味方にバフ/回復
                     ExecuteSelfAreaSkill(move.Obj, skill);
-                }
                 else
-                {
-                    turngenerater.skillsystem.ExecuteSkill(move.Obj, move.Obj, skill);
-                }
+                    Systems.SkillSystem.ExecuteSkill(move.Obj, move.Obj, skill);
 
-                turngenerater.apsystem.ConsumeSkill(Team.Player, skill.APCost, move.Obj);
+                Systems.APSystem.ConsumeSkill(Team.Player, skill.APCost, move.Obj);
                 AttackSuccess = true;
                 return;
             }
         }
 
-        unitclick.AttackClick(battlesystem, this, attackpoint, move);
+        Systems.UnitClick.AttackClick(Systems.BattleSystem, this, Systems.AttackPoint, move);
     }
 
-    // ==== 自身中心の範囲スキル実行 ====
     private void ExecuteSelfAreaSkill(Status caster, SkillData skill)
     {
-        if (turngenerater.skillsystem == null) return;
+        if (Systems.SkillSystem == null) return;
 
         Vector3Int center = new Vector3Int(
             Mathf.RoundToInt(caster.transform.position.x),
@@ -160,9 +114,8 @@ public class PlayerAttack : StateCore
         var positions = SkillSystem.GetAreaPositions(skill.Area, center, caster.direction);
         var posSet = new System.Collections.Generic.HashSet<Vector3Int>(positions);
 
-        // 味方ユニットを収集
         var allies = new System.Collections.Generic.List<Status>();
-        Transform parent = turngenerater.unitset.PlayerUnit;
+        Transform parent = Systems.UnitSetting.PlayerUnit;
         foreach (Status s in parent.GetComponentsInChildren<Status>())
         {
             if (s.type != Type.Unit) continue;
@@ -173,29 +126,22 @@ public class PlayerAttack : StateCore
                 allies.Add(s);
         }
 
-        // ラストシグナル特殊処理
         if (skill.SpecialEffect == "LastSignal")
         {
             foreach (Status ally in allies)
-            {
                 StatusEffectSystem.ApplyBuff(ally, BuffType.Offensive);
-                // AP+2 は FactionState 経由
-            }
             Debug.Log($"[SkillSystem] ラストシグナル: 範囲内味方 {allies.Count}体に攻勢付与");
         }
         else
         {
-            turngenerater.skillsystem.ExecuteAreaSupportSkill(caster, skill, allies);
+            Systems.SkillSystem.ExecuteAreaSupportSkill(caster, skill, allies);
         }
     }
 
-    // ==== 攻撃キャンセル（右クリック）→ PlayerMove へ戻る ====
     private void HandleCancelAttack()
     {
-        if (!turngenerater.RightClickDown) return;
+        if (!Context.RightClickDown) return;
         Reset();
-        turngenerater.ChangeState(new PlayerMove(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        Turn.ChangeState(new PlayerMove(Turn));
     }
 }

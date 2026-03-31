@@ -3,84 +3,198 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// ゲーム全体の中央ハブ。ステートマシン駆動、入力管理、サブシステム参照を保持する。
+/// GameSystems / GameContext を内部保持し、各ステートへ統一的にアクセスを提供する。
 /// </summary>
 public class TurnGenerater : MonoBehaviour
 {
     // ================================================================
+    //  集約コンテナ（新アーキテクチャ）
+    // ================================================================
+    public GameSystems Systems { get; private set; } = new GameSystems();
+    public GameContext Context { get; private set; } = new GameContext();
+
+    // ================================================================
     //  ステート管理
     // ================================================================
-    [SerializeField] StateCore StateManager;
-    public int Turn = 0;
+    private StateCore _stateManager;
+    public StateCore CurrentState => _stateManager;
 
     // ================================================================
-    //  選択中ユニット
+    //  後方互換プロパティ（既存コードとの橋渡し）
+    //  各フィールドは GameSystems / GameContext に委譲する。
     // ================================================================
-    public Status SelectUnit;
-    public Vector3 OldCell;
-    public Vector3 NewCell;
 
-    // ================================================================
-    //  マップ・ユニット基盤
-    // ================================================================
+    // --- ターン ---
+    public int Turn
+    {
+        get => Context.Turn;
+        set => Context.Turn = value;
+    }
+
+    // --- 選択ユニット ---
+    public Status SelectUnit
+    {
+        get => Context.SelectUnit;
+        set => Context.SelectUnit = value;
+    }
+    public Vector3 OldCell
+    {
+        get => Context.OldCell;
+        set => Context.OldCell = value;
+    }
+    public Vector3 NewCell
+    {
+        get => Context.NewCell;
+        set => Context.NewCell = value;
+    }
+
+    // --- マップ・ユニット基盤 ---
     [Header("マップ・ユニット基盤")]
-    public MapCreate mapcreate;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
-    public Status status;
+    public MapCreate mapcreate
+    {
+        get => Systems.MapCreate;
+        set => Systems.MapCreate = value;
+    }
+    public CrystalSystem crystalsystem
+    {
+        get => Systems.CrystalSystem;
+        set => Systems.CrystalSystem = value;
+    }
+    public UnitSetting unitset
+    {
+        get => Systems.UnitSetting;
+        set => Systems.UnitSetting = value;
+    }
+    public Status status; // 参照用（単一インスタンス）
 
-    // ================================================================
-    //  コアゲームシステム
-    // ================================================================
-    [Header("コアゲームシステム")]
-    public MoveGererater movegenerater;
-    public AttackPointt attackpoint;
-    public BattleSystem battlesystem;
-    public VisionGenerater visiongenerater;
-    public UnitClick unitclick;
-    public SkillSystem skillsystem;
+    // --- コアゲームシステム ---
+    public MoveGererater movegenerater
+    {
+        get => Systems.MoveGenerator;
+        set => Systems.MoveGenerator = value;
+    }
+    public AttackPointt attackpoint
+    {
+        get => Systems.AttackPoint;
+        set => Systems.AttackPoint = value;
+    }
+    public BattleSystem battlesystem
+    {
+        get => Systems.BattleSystem;
+        set => Systems.BattleSystem = value;
+    }
+    public VisionGenerater visiongenerater
+    {
+        get => Systems.VisionGenerator;
+        set => Systems.VisionGenerator = value;
+    }
+    public UnitClick unitclick
+    {
+        get => Systems.UnitClick;
+        set => Systems.UnitClick = value;
+    }
+    public SkillSystem skillsystem
+    {
+        get => Systems.SkillSystem;
+        set => Systems.SkillSystem = value;
+    }
 
-    // ================================================================
-    //  経済・建築・召喚
-    // ================================================================
-    [Header("経済・建築・召喚")]
-    public APSystem apsystem;
-    public BuildSystem buildsystem;
-    public SummonSystem summonsystem;
-    public EconomySystem economysystem;
-    public BuildingAttackSystem buildingAttackSystem;
-    public SubCrystalSystem subCrystalSystem;
+    // --- 経済・建築・召喚 ---
+    public APSystem apsystem
+    {
+        get => Systems.APSystem;
+        set => Systems.APSystem = value;
+    }
+    public BuildSystem buildsystem
+    {
+        get => Systems.BuildSystem;
+        set => Systems.BuildSystem = value;
+    }
+    public SummonSystem summonsystem
+    {
+        get => Systems.SummonSystem;
+        set => Systems.SummonSystem = value;
+    }
+    public EconomySystem economysystem
+    {
+        get => Systems.EconomySystem;
+        set => Systems.EconomySystem = value;
+    }
+    public BuildingAttackSystem buildingAttackSystem
+    {
+        get => Systems.BuildingAttackSystem;
+        set => Systems.BuildingAttackSystem = value;
+    }
+    public SubCrystalSystem subCrystalSystem
+    {
+        get => Systems.SubCrystalSystem;
+        set => Systems.SubCrystalSystem = value;
+    }
 
-    // ================================================================
-    //  タイマー・AI
-    // ================================================================
-    [Header("タイマー・AI")]
-    public TimerSystem timerSystem;
-    [HideInInspector] public AICommander aiCommander;
+    // --- タイマー・AI ---
+    public TimerSystem timerSystem
+    {
+        get => Systems.TimerSystem;
+        set => Systems.TimerSystem = value;
+    }
+    [HideInInspector]
+    public AICommander aiCommander
+    {
+        get => Systems.AICommander;
+        set => Systems.AICommander = value;
+    }
 
-    // ================================================================
-    //  UI
-    // ================================================================
-    [Header("UI")]
-    public UnitPanelUI unitPanelUI;
-    [HideInInspector] public DamagePreviewUI damagePreviewUI;
-    [HideInInspector] public InputHintUI inputHintUI;
-    [HideInInspector] public MoveUndoSystem moveUndoSystem;
+    // --- UI ---
+    public UnitPanelUI unitPanelUI
+    {
+        get => Systems.UnitPanelUI;
+        set => Systems.UnitPanelUI = value;
+    }
+    [HideInInspector]
+    public DamagePreviewUI damagePreviewUI
+    {
+        get => Systems.DamagePreviewUI;
+        set => Systems.DamagePreviewUI = value;
+    }
+    [HideInInspector]
+    public InputHintUI inputHintUI
+    {
+        get => Systems.InputHintUI;
+        set => Systems.InputHintUI = value;
+    }
+    [HideInInspector]
+    public MoveUndoSystem moveUndoSystem
+    {
+        get => Systems.MoveUndoSystem;
+        set => Systems.MoveUndoSystem = value;
+    }
 
-    // ================================================================
-    //  カメラ・入力
-    // ================================================================
+    // --- カメラ・入力 ---
     [Header("カメラ・入力")]
-    public Transform CameraObject;
+    public Transform CameraObject
+    {
+        get => Context.CameraObject;
+        set => Context.CameraObject = value;
+    }
 
-    // 入力バッファ（毎フレーム ReadInputs() で更新）
-    [HideInInspector] public Vector2 MoveInput;
-    [HideInInspector] public float ScrollInput;
-    [HideInInspector] public bool LeftClickDown;
-    [HideInInspector] public bool RightClickDown;
-    [HideInInspector] public bool TurnEndDown;
-    [HideInInspector] public bool SelectNormalDown;
-    [HideInInspector] public bool SelectSkillDown;
-    [HideInInspector] public bool ToggleNSDown;
+    // 入力バッファ（後方互換）
+    [HideInInspector]
+    public Vector2 MoveInput => Context.MoveInput;
+    [HideInInspector]
+    public float ScrollInput => Context.ScrollInput;
+    [HideInInspector]
+    public bool LeftClickDown => Context.LeftClickDown;
+    [HideInInspector]
+    public bool RightClickDown => Context.RightClickDown;
+    [HideInInspector]
+    public bool TurnEndDown => Context.TurnEndDown;
+    [HideInInspector]
+    public bool SelectNormalDown => Context.SelectNormalDown;
+    [HideInInspector]
+    public bool SelectSkillDown => Context.SelectSkillDown;
+    [HideInInspector]
+    public bool ToggleNSDown => Context.ToggleNSDown;
+
     private GameAction gameaction;
 
     // ================================================================
@@ -88,9 +202,9 @@ public class TurnGenerater : MonoBehaviour
     // ================================================================
     public void ChangeState(StateCore next)
     {
-        StateManager?.Exit();
-        StateManager = next;
-        StateManager?.Entry();
+        _stateManager?.Exit();
+        _stateManager = next;
+        _stateManager?.Entry();
     }
 
     public void Awake()
@@ -100,50 +214,56 @@ public class TurnGenerater : MonoBehaviour
 
     public void StartFirstTurn()
     {
-        ChangeState(new PlayerStart(this, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        ChangeState(new PlayerStart(this));
     }
 
     void Update()
     {
         ReadInputs();
         UpdateCamera();
-        StateManager?.Update();
+        _stateManager?.Update();
     }
 
     // ---- カメラ操作（全ステートで常時有効） ----
     private void UpdateCamera()
     {
         // WASD移動
-        if (MoveInput != Vector2.zero && CameraObject != null)
+        Vector2 move = Context.MoveInput;
+        Transform cam = Context.CameraObject;
+        if (move != Vector2.zero && cam != null)
         {
-            Vector3 moveDir = new Vector3(MoveInput.x, 0f, MoveInput.y).normalized;
-            CameraObject.Translate(moveDir * GameConstants.CameraMoveSpeed * Time.deltaTime, Space.World);
+            Vector3 moveDir = new Vector3(move.x, 0f, move.y).normalized;
+            cam.Translate(moveDir * GameConstants.CameraMoveSpeed * Time.deltaTime, Space.World);
 
-            Vector3 pos = CameraObject.position;
-            pos.x = Mathf.Clamp(pos.x, 0f, mapcreate.maxX - 10);
-            pos.z = Mathf.Clamp(pos.z, 0f, mapcreate.maxZ - 10);
-            CameraObject.position = pos;
+            Vector3 pos = cam.position;
+            var mc = Systems.MapCreate;
+            if (mc != null)
+            {
+                pos.x = Mathf.Clamp(pos.x, 0f, mc.maxX - 10);
+                pos.z = Mathf.Clamp(pos.z, 0f, mc.maxZ - 10);
+            }
+            cam.position = pos;
         }
 
         // スクロールズーム
-        if (ScrollInput != 0f && Camera.main != null)
+        float scroll = Context.ScrollInput;
+        if (scroll != 0f && Camera.main != null)
         {
-            float fov = Camera.main.fieldOfView - ScrollInput * GameConstants.CameraScrollSpeed;
+            float fov = Camera.main.fieldOfView - scroll * GameConstants.CameraScrollSpeed;
             Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
         }
     }
 
     private void ReadInputs()
     {
-        MoveInput = gameaction.GamePlay.Move.ReadValue<Vector2>();
-        ScrollInput = gameaction.GamePlay.Scroll.ReadValue<float>();
-        LeftClickDown = gameaction.GamePlay.LeftClick.WasPressedThisFrame();
-        RightClickDown = gameaction.GamePlay.RightClick.WasPressedThisFrame();
-        TurnEndDown = gameaction.GamePlay.TurnEnd.WasPressedThisFrame();
-        SelectNormalDown = gameaction.GamePlay.SelectNormal.WasPressedThisFrame();
-        SelectSkillDown = gameaction.GamePlay.SelectSkill.WasPressedThisFrame();
-        ToggleNSDown = gameaction.GamePlay.ToggleNS.WasPressedThisFrame();
+        Context.MoveInput = gameaction.GamePlay.Move.ReadValue<Vector2>();
+        Context.ScrollInput = gameaction.GamePlay.Scroll.ReadValue<float>();
+        Context.LeftClickDown = gameaction.GamePlay.LeftClick.WasPressedThisFrame();
+        Context.RightClickDown = gameaction.GamePlay.RightClick.WasPressedThisFrame();
+        Context.TurnEndDown = gameaction.GamePlay.TurnEnd.WasPressedThisFrame();
+        Context.SelectNormalDown = gameaction.GamePlay.SelectNormal.WasPressedThisFrame();
+        Context.SelectSkillDown = gameaction.GamePlay.SelectSkill.WasPressedThisFrame();
+        Context.ToggleNSDown = gameaction.GamePlay.ToggleNS.WasPressedThisFrame();
     }
 
     public void OnEnable() => gameaction.Enable();

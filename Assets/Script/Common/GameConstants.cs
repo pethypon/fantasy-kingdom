@@ -111,6 +111,40 @@ public static class GameConstants
     public const float PassiveMultiplierMax = 2.0f;
 
     // =====================================================================
+    //  スキル特殊効果の追加ダメージ倍率
+    // =====================================================================
+    /// <summary>シャドウラッシュ: 視界外攻撃時の追加ダメージ倍率</summary>
+    public const float ShadowRushBonusMultiplier = 0.20f;
+    /// <summary>ブラッドサクリファイス: 自傷ダメージ割合</summary>
+    public const float BloodSacrificeRatio = 0.10f;
+    /// <summary>デスサイト: HP50%以下の敵への追加ダメージ倍率</summary>
+    public const float DeathSightBonusMultiplier = 0.30f;
+    /// <summary>シージブレイカー: 建物への追加ダメージ倍率</summary>
+    public const float SiegeBreakerBonusMultiplier = 0.40f;
+    /// <summary>カタストロフ: 使用者への固定ダメージ</summary>
+    public const int CatastropheSelfDamage = 20;
+    /// <summary>フレイムポイズン: 出血の確率</summary>
+    public const float FlamePoisonBleedChance = 0.25f;
+    /// <summary>HP50%以下の閾値（デスサイト・LowHPEnemy スキル共通）</summary>
+    public const float LowHPThreshold = 0.50f;
+
+    // =====================================================================
+    //  初期資源
+    // =====================================================================
+    public const int InitWood = 200;
+    public const int InitStone = 200;
+    public const int InitWater = 50;
+    public const int InitPlank = 50;
+    public const int InitCutStone = 50;
+    public const int InitBread = 100;
+    public const int InitCitizen = 5;
+    public const int InitIron = 30;
+    public const int InitMagicOre = 15;
+    public const int InitIronOre = 10;
+    public const int InitCoal = 10;
+    public const int InitialSubCrystals = 2;
+
+    // =====================================================================
     //  Raycast
     // =====================================================================
     /// <summary>ユニット選択等の最大レイ距離</summary>

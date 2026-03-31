@@ -313,6 +313,54 @@ public class Status : MonoBehaviour
 
     /// <summary>BOSS駒かどうか（Kind.Boss または Kind.King かつ Enemy チームで判定）</summary>
     public bool IsBoss => kind == Kind.Boss;
+
+    // ================================================================
+    //  状態管理ヘルパー
+    // ================================================================
+
+    /// <summary>ターン開始時にリセットすべきフラグを全て初期化する</summary>
+    public void ResetTurnFlags()
+    {
+        HasMovedThisTurn = false;
+        FirstSkillUsedThisTurn = false;
+        DebuffNullifiedThisTurn = false;
+        InterceptUsedThisTurn = false;
+    }
+
+    /// <summary>戦闘開始時にリセットすべきフラグを初期化する</summary>
+    public void ResetBattleFlags()
+    {
+        SurvivalInstinctUsed = false;
+    }
+
+    /// <summary>ダメージを適用する（0未満にならない）</summary>
+    public int ApplyDamage(int damage)
+    {
+        damage = UnityEngine.Mathf.Max(0, damage);
+        HP = UnityEngine.Mathf.Max(0, HP - damage);
+        return damage;
+    }
+
+    /// <summary>回復を適用する（MaxHPを超えない）</summary>
+    public int ApplyHeal(int amount)
+    {
+        amount = UnityEngine.Mathf.Max(0, amount);
+        int actual = UnityEngine.Mathf.Min(amount, MaxHP - HP);
+        HP += actual;
+        return actual;
+    }
+
+    /// <summary>HP割合を返す（MaxHP が 0 の場合は 1.0）</summary>
+    public float HPRatio => MaxHP > 0 ? (float)HP / MaxHP : 1f;
+
+    /// <summary>生存しているかどうか</summary>
+    public bool IsAlive => HP > 0 && gameObject.activeInHierarchy;
+
+    /// <summary>グリッド座標（Y=0）を返す</summary>
+    public UnityEngine.Vector3Int GridPosition => new UnityEngine.Vector3Int(
+        UnityEngine.Mathf.RoundToInt(transform.position.x),
+        0,
+        UnityEngine.Mathf.RoundToInt(transform.position.z));
 }
 
 // =====================================================================

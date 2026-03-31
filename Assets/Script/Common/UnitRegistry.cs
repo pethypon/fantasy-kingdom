@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,6 +6,7 @@ using UnityEngine;
 /// ユニットの Status コンポーネントをキャッシュし、
 /// GetComponentsInChildren の頻繁な呼び出しを排除するレジストリ。
 /// ユニットの追加・削除時に Register/Unregister を呼ぶ。
+/// ライフサイクルイベント（OnRegistered/OnUnregistered）で他システムに通知する。
 /// </summary>
 public class UnitRegistry : MonoBehaviour
 {
@@ -20,6 +22,14 @@ public class UnitRegistry : MonoBehaviour
     public IReadOnlyList<Status> EnemyUnits => _enemyUnits;
     public IReadOnlyList<Status> PlayerBuildings => _playerBuildings;
     public IReadOnlyList<Status> EnemyBuildings => _enemyBuildings;
+
+    // ================================================================
+    //  ライフサイクルイベント
+    // ================================================================
+    /// <summary>ユニット登録時に発火する</summary>
+    public event Action<Status> OnRegistered;
+    /// <summary>ユニット登録解除時に発火する</summary>
+    public event Action<Status> OnUnregistered;
 
     private void Awake()
     {
@@ -37,7 +47,10 @@ public class UnitRegistry : MonoBehaviour
         if (unit == null) return;
         var list = GetList(unit.team, unit.type);
         if (list != null && !list.Contains(unit))
+        {
             list.Add(unit);
+            OnRegistered?.Invoke(unit);
+        }
     }
 
     /// <summary>ユニットを登録解除する</summary>
@@ -45,7 +58,10 @@ public class UnitRegistry : MonoBehaviour
     {
         if (unit == null) return;
         var list = GetList(unit.team, unit.type);
-        list?.Remove(unit);
+        if (list != null && list.Remove(unit))
+        {
+            OnUnregistered?.Invoke(unit);
+        }
     }
 
     /// <summary>初期化時に Transform 以下を走査して全て登録する</summary>
@@ -89,16 +105,28 @@ public class UnitRegistry : MonoBehaviour
         return count;
     }
 
-    /// <summary>指定チームのアクティブなユニットを列挙する（GC-free的にListを返す）</summary>
-    public List<Status> GetActiveUnits(Team team)
+    /// <summary>
+    /// 指定チームのアクティブなユニットをリストに収集する。
+    /// 呼び出し元が提供するリストに書き込むことでGC圧を削減する。
+    /// </summary>
+    public void GetActiveUnits(Team team, List<Status> result)
     {
+        if (result == null) return;
+        result.Clear();
+
         var source = team == Team.Player ? _playerUnits : _enemyUnits;
-        var result = new List<Status>(source.Count);
         for (int i = 0; i < source.Count; i++)
         {
             if (source[i] != null && source[i].gameObject.activeInHierarchy)
                 result.Add(source[i]);
         }
+    }
+
+    /// <summary>指定チームのアクティブなユニットを列挙する（互換用）</summary>
+    public List<Status> GetActiveUnits(Team team)
+    {
+        var result = new List<Status>();
+        GetActiveUnits(team, result);
         return result;
     }
 

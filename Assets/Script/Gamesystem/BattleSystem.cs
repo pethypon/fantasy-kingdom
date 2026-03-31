@@ -11,8 +11,23 @@ public class BattleSystem : MonoBehaviour
     // ─── ダメージ発生（入口） ─────────────────────────────────────────
     public void DamageGenerater(TurnGenerater turngenerater)
     {
+        if (turngenerater == null)
+        {
+            Debug.LogError("[Battle] TurnGenerater が null です");
+            return;
+        }
         this.turngenerater = turngenerater;
-        if (target == null || turngenerater.SelectUnit == null) return;
+
+        if (target == null)
+        {
+            Debug.LogWarning("[Battle] target が null のためダメージ処理をスキップ");
+            return;
+        }
+        if (turngenerater.SelectUnit == null)
+        {
+            Debug.LogWarning("[Battle] SelectUnit が null のためダメージ処理をスキップ");
+            return;
+        }
         AttackSide = turngenerater.SelectUnit;
 
         // スタン中は行動不可
@@ -175,10 +190,14 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private void HandleUnitDeath()
     {
+        if (target == null) return;
         Debug.Log($"[Battle] {target.team} の {target.kind} が撃破された");
 
-        Vector3 cellPos = turngenerater.movegenerater.Cell(target.transform.position);
-        turngenerater.movegenerater.UnitPointData.Remove(cellPos);
+        if (turngenerater.movegenerater != null)
+        {
+            Vector3 cellPos = turngenerater.movegenerater.Cell(target.transform.position);
+            turngenerater.movegenerater.UnitPointData.Remove(cellPos);
+        }
 
         if (turngenerater.SelectUnit == target)
         {
