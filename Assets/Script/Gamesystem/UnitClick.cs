@@ -333,6 +333,9 @@ public class UnitClick : MonoBehaviour
         turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
         turngenerater.movegenerater.MoveReset();
 
+        // Special Ability: 移動フラグセット（迅速体勢・集中維持・鉄壁歩法で使用）
+        movedUnit.HasMovedThisTurn = true;
+
         // ---- AP消費（移動コスト） ----
         turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
 

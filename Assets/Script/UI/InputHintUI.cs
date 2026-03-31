@@ -85,7 +85,7 @@ public class InputHintUI : MonoBehaviour
         _panelRect.sizeDelta = new Vector2(0, 34);
 
         var bg = panelGo.AddComponent<Image>();
-        bg.color = new Color(0.04f, 0.04f, 0.06f, 0.75f);
+        bg.color = new Color(0.04f, 0.04f, 0.06f, 0.82f);
 
         _group = panelGo.AddComponent<CanvasGroup>();
         _group.alpha = 0f;
@@ -94,8 +94,8 @@ public class InputHintUI : MonoBehaviour
         var textGo = new GameObject("HintText");
         textGo.transform.SetParent(panelGo.transform, false);
         _hintText = textGo.AddComponent<TextMeshProUGUI>();
-        _hintText.fontSize = 14;
-        _hintText.color = Color.white;
+        _hintText.fontSize = 15;
+        _hintText.color = BrandGuide.TextPrimary;
         _hintText.alignment = TextAlignmentOptions.Center;
         _hintText.richText = true;
 

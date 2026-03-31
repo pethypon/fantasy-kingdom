@@ -183,6 +183,64 @@ public class ActiveEffect
 }
 
 // =====================================================================
+//  Special Ability（ランダム配布パッシブ）
+// =====================================================================
+public enum SpecialAbility
+{
+    None,
+    // ノーマル (1-15)
+    SwiftPosture,       // 迅速体勢: 未移動なら最初の移動コスト-1
+    InterceptPosture,   // 迎撃姿勢: HP100%時、最初の被ダメ-10%
+    PierceEnhance,      // 刺突強化: 単体攻撃の与ダメ+10%
+    SiegeAdapt,         // 迫撃適応: 範囲攻撃で2体以上巻き込み時、与ダメ+10%
+    WatchEye,           // 監視眼: 視界+1
+    Tenacity,           // 粘り腰: HP50%以下の時、被ダメ-10%
+    PursuitInstinct,    // 追撃本能: HP50%以下の敵への与ダメ+10%
+    WallFamiliar,       // 防壁慣れ: 建物隣接マスにいる時、DEF+10%
+    FocusMaintain,      // 集中維持: そのターン未移動なら攻撃与ダメ+10%
+    FirstAid,           // 応急処置: ターン終了時、周囲1マスに味方なしなら最大HP3%回復
+    PoisonCoat,         // 毒塗り: 単体攻撃命中時10%で毒付与
+    FrostBlade,         // 冷気刃: 攻撃命中時10%で冷気付与
+    Foresight,          // 見切り: 視界内の敵からの被ダメ-5%
+    PressureShot,       // 圧迫射: 攻撃命中時10%で弱体付与
+    Efficiency,         // 省力化: 最初に使うスキルのAP消費-1（最低1）
+
+    // レア (16-25)
+    Desperation,        // 背水: HP30%以下でATK+20%
+    IronWalkDefense,    // 鉄壁歩法: 移動後、そのターン被ダメ-15%
+    HeightAdapt,        // 高所順応: 自分が高い位置にいる時、与ダメ+15%
+    LowHunt,            // 低所狩り: 自分が高い位置にいる時、15%で鈍足付与
+    MagicResist,        // 耐魔皮膜: 魔法/遠距離から被ダメ-15%
+    Breach,             // 破勢: 攻撃命中時15%で破甲付与
+    VenomBlade,         // 猛毒刃: 単体攻撃命中時15%で毒付与
+    FrostPressure,      // 氷結圧: 攻撃命中時10%で冷気、5%で凍結付与
+    SupportSpread,      // 支援波及: バフ/回復を与えた時、周囲1マス別味方に50%波及
+    SurvivalInstinct,   // 生還本能: 1戦闘に1回、致死ダメージをHP1で耐える
+
+    // スーパーレア (26-30)
+    ShadowCross,        // 影渡り: 視界外から攻撃時ダメージ倍率+0.25
+    ArtilleryControl,   // 砲撃管制: 範囲攻撃が3体以上巻き込み時マーク付与
+    GuardianZone,       // 守護圏: 周囲1マスの味方の被ダメ-10%
+    SniperCorrection,   // 狙撃補正: 3マス以上離れた敵への与ダメ+20%
+    HolyReaction,       // 聖域反応: 周囲1マス味方が状態異常時、ターン終了時その味方HP5%回復
+
+    // レジェンダリー (31-35)
+    BattlefieldDomination, // 戦場支配: 視界内の敵全員に被ダメ+10%
+    IndomitableWill,    // 不滅の意志: 毎ターン最初の状態異常無効+被ダメ-10%
+    ThunderChain,       // 雷印連鎖: マーク状態の敵に攻撃命中時20%でスタン付与
+    IcePrison,          // 氷牢結界: 冷気状態の敵を攻撃時10%で凍結付与
+    PurifyHalo          // 浄化光輪: ターン開始時、周囲1マス味方1体の状態異常解除+守勢付与
+}
+
+public enum SpecialAbilityRarity
+{
+    Normal,
+    Rare,
+    SuperRare,
+    Legendary
+}
+
+// =====================================================================
 //  スキルレアリティ
 // =====================================================================
 public enum SkillRarity
@@ -239,6 +297,19 @@ public class Status : MonoBehaviour
 
     [Header("スキルクールダウン")]
     public int SkillCooldown = 0; // 0 = 使用可能、1以上 = 使用不可（ターン毎に-1）
+
+    // =====================================================================
+    //  Special Ability（ランダム配布パッシブ）
+    // =====================================================================
+    [Header("Special Ability")]
+    public SpecialAbility specialAbility = SpecialAbility.None;
+
+    // ---- Special Ability 用トラッキングフラグ ----
+    [HideInInspector] public bool HasMovedThisTurn = false;
+    [HideInInspector] public bool SurvivalInstinctUsed = false;
+    [HideInInspector] public bool FirstSkillUsedThisTurn = false;
+    [HideInInspector] public bool DebuffNullifiedThisTurn = false;
+    [HideInInspector] public bool InterceptUsedThisTurn = false;
 
     /// <summary>BOSS駒かどうか（Kind.Boss または Kind.King かつ Enemy チームで判定）</summary>
     public bool IsBoss => kind == Kind.Boss;

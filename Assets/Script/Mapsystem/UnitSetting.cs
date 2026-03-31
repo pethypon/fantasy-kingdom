@@ -81,6 +81,9 @@ public class UnitSetting : MonoBehaviour
         // スキルをランダム配布
         SkillData.AssignRandomSkill(status);
 
+        // Special Ability をランダム配布
+        SpecialAbilityData.AssignRandom(status);
+
         // 頭上UI（Lv + HP）をアタッチ
         UnitHeadUI.Attach(obj);
 

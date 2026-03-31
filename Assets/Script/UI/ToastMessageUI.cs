@@ -37,10 +37,10 @@ public class ToastMessageUI : MonoBehaviour
 
     private static readonly Dictionary<MessageType, Color> TypeColors = new Dictionary<MessageType, Color>
     {
-        { MessageType.Info,    new Color(0.7f, 0.85f, 1f) },
-        { MessageType.Warning, new Color(1f, 0.85f, 0.4f) },
-        { MessageType.Success, new Color(0.4f, 1f, 0.5f) },
-        { MessageType.Error,   new Color(1f, 0.35f, 0.35f) },
+        { MessageType.Info,    BrandGuide.Secondary },
+        { MessageType.Warning, BrandGuide.Warning },
+        { MessageType.Success, BrandGuide.Accent },
+        { MessageType.Error,   BrandGuide.Danger },
     };
 
     private void Awake()
@@ -108,7 +108,7 @@ public class ToastMessageUI : MonoBehaviour
 
         // 背景
         var bg = toastGo.AddComponent<Image>();
-        bg.color = new Color(0.06f, 0.06f, 0.1f, 0.9f);
+        bg.color = BrandGuide.PanelBg;
 
         // CanvasGroup（フェードアウト用）
         var group = toastGo.AddComponent<CanvasGroup>();
@@ -119,7 +119,7 @@ public class ToastMessageUI : MonoBehaviour
         textGo.transform.SetParent(toastGo.transform, false);
         var text = textGo.AddComponent<TextMeshProUGUI>();
         text.text = message;
-        text.fontSize = 16;
+        text.fontSize = BrandGuide.FontCaption;
         text.color = TypeColors.TryGetValue(type, out var c) ? c : Color.white;
         text.alignment = TextAlignmentOptions.Left;
         text.overflowMode = TextOverflowModes.Ellipsis;

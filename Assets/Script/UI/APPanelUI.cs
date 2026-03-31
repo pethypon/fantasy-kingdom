@@ -60,8 +60,9 @@ public class APPanelUI : MonoBehaviour
         // APテキストを大きめに
         if (apText != null)
         {
-            apText.fontSize = 28f;
+            apText.fontSize = 30f;
             apText.alignment = TextAlignmentOptions.Center;
+            apText.fontStyle = TMPro.FontStyles.Bold;
         }
     }
 

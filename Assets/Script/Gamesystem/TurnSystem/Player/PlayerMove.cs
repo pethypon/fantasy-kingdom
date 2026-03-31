@@ -237,7 +237,7 @@ public class PlayerMove : StateCore
         if (_ctx.TurnGen.unitPanelUI != null)
             _ctx.TurnGen.unitPanelUI.Hide();
 
-        // Player の資源獲得＋建築物攻撃
+        // Player の Special Ability + 資源獲得＋建築物攻撃
         _ctx.ProcessTurnEnd(Team.Player);
 
         _ctx.TurnGen.ChangeState(new EnemyStart(_ctx));

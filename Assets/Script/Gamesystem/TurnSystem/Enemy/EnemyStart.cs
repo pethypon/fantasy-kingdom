@@ -36,6 +36,9 @@ public class EnemyStart : StateCore
         // 状態異常ティック（DoTダメージ + ターン経過 + シールド + スキルクールダウン）
         StatusEffectSystem.TickAllUnits(_ctx.UnitSetting.EnemyUnit);
 
+        // Special Ability: ターン開始時処理（フラグリセット + 浄化光輪）
+        SpecialAbilitySystem.OnTurnStart(_ctx.UnitSetting.EnemyUnit);
+
         _ctx.TurnGen.apsystem.ResetAP(Team.Enemy);
         _ctx.TurnGen.apsystem.ResetFatigue(_ctx.UnitSetting.EnemyUnit);
 

@@ -1236,6 +1236,9 @@ public class AICommander
         unit.transform.position = actualDest;
         _moveGen.MoveUpdate(oldCell, _moveGen.Cell(actualDest));
 
+        // Special Ability: 移動フラグセット
+        unit.HasMovedThisTurn = true;
+
         // 位置履歴を記録（振動防止用）
         var cellInt = AIBoardState.ToCell(actualDest);
         if (!_unitPositionHistory.ContainsKey(unit))

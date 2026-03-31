@@ -24,6 +24,9 @@ public class PlayerStart : StateCore
         // 状態異常ティック（DoTダメージ + ターン経過）
         StatusEffectSystem.TickAllUnits(_ctx.UnitSetting.PlayerUnit);
 
+        // Special Ability: ターン開始時処理（フラグリセット + 浄化光輪）
+        SpecialAbilitySystem.OnTurnStart(_ctx.UnitSetting.PlayerUnit);
+
         // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
         _ctx.TurnGen.apsystem.ResetAP(Team.Player);
 

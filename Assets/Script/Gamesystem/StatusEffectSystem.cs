@@ -53,6 +53,9 @@ public static class StatusEffectSystem
         if (effect == StatusEffectType.None) return false;
         if (IsImmune(target, effect)) return false;
 
+        // Special Ability: 不滅の意志 — 毎ターン最初の状態異常を無効化
+        if (SpecialAbilitySystem.TryNullifyDebuff(target)) return false;
+
         if (turns < 0) turns = DefaultDuration(effect);
 
         // 重複チェック — 同じ状態異常がある場合

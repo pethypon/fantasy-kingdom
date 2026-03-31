@@ -51,9 +51,15 @@ public class GameContext
         VisionGen.VisionPoint(MapCreate, MoveGen, CrystalSystem);
     }
 
-    /// <summary>指定チームのターン終了共通処理（資源獲得＋建築物攻撃）</summary>
+    /// <summary>指定チームのターン終了共通処理（Special Ability＋資源獲得＋建築物攻撃）</summary>
     public void ProcessTurnEnd(Team team)
     {
+        // Special Ability: ターン終了時処理（応急処置、聖域反応）
+        Transform unitParent = team == Team.Player
+            ? UnitSetting.PlayerUnit
+            : UnitSetting.EnemyUnit;
+        SpecialAbilitySystem.OnTurnEnd(unitParent);
+
         if (TurnGen.economysystem != null)
             TurnGen.economysystem.ProcessTurn(team);
         if (TurnGen.buildingAttackSystem != null)

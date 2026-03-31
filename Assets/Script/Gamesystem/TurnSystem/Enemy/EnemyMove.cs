@@ -29,7 +29,7 @@ public class EnemyMove : StateCore
         _ctx.VisionGen.InvalidateCache();
         _ctx.RefreshVision();
 
-        // Enemy の資源獲得＋建築物攻撃
+        // Enemy の Special Ability + 資源獲得＋建築物攻撃
         _ctx.ProcessTurnEnd(Team.Enemy);
 
         // タイマー停止

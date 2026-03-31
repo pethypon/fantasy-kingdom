@@ -99,7 +99,7 @@ public static class DamageCalculator
     }
 
     /// <summary>
-    /// 通常攻撃のダメージを計算する（パッシブ + 状態異常修飾込み）。
+    /// 通常攻撃のダメージを計算する（パッシブ + 状態異常修飾 + Special Ability込み）。
     /// </summary>
     public static int CalcNormal(Status attacker, Status target)
     {
@@ -116,12 +116,16 @@ public static class DamageCalculator
         float passiveMod = GetAttackerPassiveMultiplier(attacker, target)
                          * GetDefenderPassiveMultiplier(attacker, target);
 
-        float finalDmg = baseDmg * passiveMod * incomingMod;
+        // Special Ability 修飾（通常攻撃は単体扱い）
+        float saAttack = SpecialAbilitySystem.GetAttackerModifier(attacker, target, true);
+        float saDefend = SpecialAbilitySystem.GetDefenderModifier(attacker, target);
+
+        float finalDmg = baseDmg * passiveMod * (1f + saAttack + saDefend) * incomingMod;
         return Mathf.Max(0, Mathf.RoundToInt(finalDmg));
     }
 
     /// <summary>
-    /// スキル攻撃のダメージを計算する（パッシブ + 状態異常修飾 + スキル倍率込み）。
+    /// スキル攻撃のダメージを計算する（パッシブ + 状態異常修飾 + スキル倍率 + Special Ability込み）。
     /// </summary>
     public static int CalcSkill(Status attacker, Status target, SkillData skill)
     {
@@ -140,7 +144,14 @@ public static class DamageCalculator
         float passiveMod = GetAttackerPassiveMultiplier(attacker, target)
                          * GetDefenderPassiveMultiplier(attacker, target);
 
-        float skillDmg = baseDmg * effectiveMultiplier * passiveMod * incomingMod;
+        // Special Ability 修飾（単体スキルかどうかで判定）
+        bool isSingle = skill.Area == SkillAreaShape.Single
+                     || skill.Area == SkillAreaShape.SingleDouble
+                     || skill.Area == SkillAreaShape.SingleChain;
+        float saAttack = SpecialAbilitySystem.GetAttackerModifier(attacker, target, isSingle);
+        float saDefend = SpecialAbilitySystem.GetDefenderModifier(attacker, target);
+
+        float skillDmg = baseDmg * effectiveMultiplier * passiveMod * (1f + saAttack + saDefend) * incomingMod;
         return Mathf.Max(0, Mathf.RoundToInt(skillDmg));
     }
 
