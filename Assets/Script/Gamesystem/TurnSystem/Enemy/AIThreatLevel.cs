@@ -88,7 +88,9 @@ public class AIThreatLevel
             if (Level <= TutorialEnd)  return 3;
             if (Level <= NormalEnd)    return 5;
             if (Level <= HardEnd)     return 8;
-            return 10;
+            if (Level <= 40)          return 10;
+            if (Level <= 50)          return 15;
+            return 20;
         }
     }
 
@@ -120,7 +122,8 @@ public class AIThreatLevel
     {
         get
         {
-            if (Level <= TutorialEnd)  return 0f;
+            if (Level < TutorialEnd)   return 0f;
+            if (Level == TutorialEnd)  return 0.1f;
             if (Level <= NormalEnd)    return 0.3f;
             if (Level <= HardEnd)     return 0.6f;
             // やりこみ帯: 31で0.8、100で1.0
