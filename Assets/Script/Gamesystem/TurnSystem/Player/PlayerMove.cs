@@ -11,16 +11,7 @@ public class PlayerMove : StateCore
     }
 
     public AttackMode attackmode;
-    public AttackPointt attackpoint;
-    private TurnGenerater turngenerater;
-    private UnitClick unitclick;
-    private MapCreate mapcreate;
-    public PlayerAttack playerattack;
-    public BattleSystem battlesystem;
-    public VisionGenerater visiongenerater;
-    public MoveGererater movegenerater;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
+    private readonly GameContext _ctx;
 
     public bool MenuSwitch;
     private BuildSystem buildsystem;
@@ -42,49 +33,32 @@ public class PlayerMove : StateCore
     private int unitCycleIndex = -1;
     private string _lastHintKey = "";
 
-    public PlayerMove(
-        TurnGenerater turngenerater,
-        UnitClick unitclick,
-        AttackPointt attackpoint,
-        BattleSystem battlesystem,
-        VisionGenerater visiongenerater,
-        MoveGererater movegenerater,
-        MapCreate mapcreate,
-        CrystalSystem crystalsystem,
-        UnitSetting unitset)
+    public PlayerMove(GameContext ctx)
     {
-        this.turngenerater = turngenerater;
-        this.unitclick = unitclick;
-        this.attackpoint = attackpoint;
-        this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater;
-        this.movegenerater = movegenerater;
-        this.mapcreate = mapcreate;
-        this.crystalsystem = crystalsystem;
+        _ctx = ctx;
         MenuSwitch = false;
-        this.unitset = unitset;
-        this.buildsystem = turngenerater.buildsystem;
-        this.summonsystem = turngenerater.summonsystem;
+        buildsystem = ctx.TurnGen.buildsystem;
+        summonsystem = ctx.TurnGen.summonsystem;
     }
 
     public void Entry()
     {
-        unitclick.UC(this, turngenerater, attackpoint);
+        _ctx.UnitClick.UC(this, _ctx.TurnGen, _ctx.AttackPoint);
         attackmode = AttackMode.None;
 
         // タイマーのコールバック接続
-        if (turngenerater.timerSystem != null && !timerWired)
+        if (_ctx.TurnGen.timerSystem != null && !timerWired)
         {
             timerWired = true;
-            turngenerater.timerSystem.OnTurnTimeExpired += OnTurnTimeExpired;
-            turngenerater.timerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
+            _ctx.TurnGen.timerSystem.OnTurnTimeExpired += OnTurnTimeExpired;
+            _ctx.TurnGen.timerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
         }
 
         Debug.Log("プレイヤーターン開始");
 
         // InputHintUI を更新
-        if (turngenerater.inputHintUI != null)
-            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.PlayerMove);
+        if (_ctx.TurnGen.inputHintUI != null)
+            _ctx.TurnGen.inputHintUI.SetHints(InputHintUI.Hints.PlayerMove);
     }
 
     public void Update()
@@ -121,8 +95,8 @@ public class PlayerMove : StateCore
     {
         if (_lastHintKey == hints) return;
         _lastHintKey = hints;
-        if (turngenerater.inputHintUI != null)
-            turngenerater.inputHintUI.SetHints(hints);
+        if (_ctx.TurnGen.inputHintUI != null)
+            _ctx.TurnGen.inputHintUI.SetHints(hints);
     }
 
     public void Exit()
@@ -133,17 +107,17 @@ public class PlayerMove : StateCore
             summonsystem.CancelSummonMode();
 
         // タイマーコールバック解除
-        if (turngenerater.timerSystem != null && timerWired)
+        if (_ctx.TurnGen.timerSystem != null && timerWired)
         {
-            turngenerater.timerSystem.OnTurnTimeExpired -= OnTurnTimeExpired;
-            turngenerater.timerSystem.OnTotalTimeExpired -= OnTotalTimeExpired;
+            _ctx.TurnGen.timerSystem.OnTurnTimeExpired -= OnTurnTimeExpired;
+            _ctx.TurnGen.timerSystem.OnTotalTimeExpired -= OnTotalTimeExpired;
             timerWired = false;
         }
     }
 
     public void Reset()
     {
-        turngenerater.SelectUnit = null;
+        _ctx.TurnGen.SelectUnit = null;
         Obj = null;
         MP = null;
         MenuSwitch = false;
@@ -161,16 +135,16 @@ public class PlayerMove : StateCore
         buildsystem.UpdateCursor();
 
         // 左クリック: 設置試行
-        if (turngenerater.LeftClickDown)
+        if (_ctx.TurnGen.LeftClickDown)
         {
             if (buildsystem.TryPlace())
             {
-                RefreshVision();
+                _ctx.RefreshVision();
             }
         }
 
         // 右クリック: 建築モード解除
-        if (turngenerater.RightClickDown)
+        if (_ctx.TurnGen.RightClickDown)
         {
             buildsystem.CancelBuildMode();
         }
@@ -183,15 +157,15 @@ public class PlayerMove : StateCore
 
         summonsystem.UpdateCursor();
 
-        if (turngenerater.LeftClickDown)
+        if (_ctx.TurnGen.LeftClickDown)
         {
             if (summonsystem.TryPlace())
             {
-                RefreshVision();
+                _ctx.RefreshVision();
             }
         }
 
-        if (turngenerater.RightClickDown)
+        if (_ctx.TurnGen.RightClickDown)
         {
             summonsystem.CancelSummonMode();
         }
@@ -200,21 +174,21 @@ public class PlayerMove : StateCore
     // ---- Q/Eキー：ユニット方向反転 (N↔S) ----
     private void HandleDirectionToggle()
     {
-        if (!turngenerater.ToggleNSDown) return;
-        if (turngenerater.SelectUnit == null) return;
+        if (!_ctx.TurnGen.ToggleNSDown) return;
+        if (_ctx.TurnGen.SelectUnit == null) return;
 
-        Status unit = turngenerater.SelectUnit;
+        Status unit = _ctx.TurnGen.SelectUnit;
         unit.direction = (unit.direction == Direction.N) ? Direction.S : Direction.N;
 
         // 方向変更後、移動範囲を再計算（方向依存パターンのため）
         if (MenuSwitch)
         {
-            turngenerater.movegenerater.MoveReset();
-            turngenerater.movegenerater.MoveCore(unit, unit.transform.position);
+            _ctx.MoveGen.MoveReset();
+            _ctx.MoveGen.MoveCore(unit, unit.transform.position);
         }
 
         // 視界も再計算
-        RefreshVision();
+        _ctx.RefreshVision();
 
         string dirName = unit.direction == Direction.N ? "北" : "南";
         ToastMessageUI.Show($"向き変更: {dirName}", ToastMessageUI.MessageType.Info);
@@ -223,63 +197,57 @@ public class PlayerMove : StateCore
     // ---- 左クリック ----
     private void HandleLeftClick()
     {
-        if (!turngenerater.LeftClickDown) return;
+        if (!_ctx.TurnGen.LeftClickDown) return;
 
         if (!MenuSwitch)
         {
-            unitclick.Click1();
+            _ctx.UnitClick.Click1();
         }
         else
         {
-            // Click2開始
-            unitclick.Click2();
-            RefreshVision();
+            _ctx.UnitClick.Click2();
+            _ctx.RefreshVision();
         }
     }
 
     // ---- 右クリック ----
     private void HandleRightClick()
     {
-        if (!turngenerater.RightClickDown) return;
+        if (!_ctx.TurnGen.RightClickDown) return;
 
-        turngenerater.movegenerater.MoveReset();
-        RefreshVision();
+        _ctx.MoveGen.MoveReset();
+        _ctx.RefreshVision();
         Reset();
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
+        if (_ctx.TurnGen.unitPanelUI != null)
+            _ctx.TurnGen.unitPanelUI.Hide();
     }
 
-    // ---- ターン終了 ----
-    private void HandleTurnEnd()
+    // ---- ターン終了（通常＋タイマー強制の共通処理） ----
+    private void EndPlayerTurn()
     {
-        if (!turngenerater.TurnEndDown) return;
-
         // タイマー停止
-        if (turngenerater.timerSystem != null)
-            turngenerater.timerSystem.StopTurn();
+        if (_ctx.TurnGen.timerSystem != null)
+            _ctx.TurnGen.timerSystem.StopTurn();
 
-        turngenerater.movegenerater.MoveReset();
-        RefreshVision();
+        _ctx.MoveGen.MoveReset();
+        _ctx.RefreshVision();
         Reset();
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
+        if (_ctx.TurnGen.unitPanelUI != null)
+            _ctx.TurnGen.unitPanelUI.Hide();
 
-        // Special Ability: ターン終了時処理（応急処置、聖域反応）
-        SpecialAbilitySystem.OnTurnEnd(unitset.PlayerUnit);
+        // Player の Special Ability + 資源獲得＋建築物攻撃
+        _ctx.ProcessTurnEnd(Team.Player);
 
-        // Player の資源獲得（ターン終了時）
-        if (turngenerater.economysystem != null)
-            turngenerater.economysystem.ProcessTurn(Team.Player);
+        _ctx.TurnGen.ChangeState(new EnemyStart(_ctx));
+    }
 
-        // Player の攻撃建築物による自動攻撃
-        if (turngenerater.buildingAttackSystem != null)
-            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
-
-        turngenerater.ChangeState(new EnemyStart(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+    // ---- ターン終了キー ----
+    private void HandleTurnEnd()
+    {
+        if (!_ctx.TurnGen.TurnEndDown) return;
+        EndPlayerTurn();
     }
 
     // ---- 攻撃モード選択（メニュー表示のみ） ----
@@ -287,11 +255,11 @@ public class PlayerMove : StateCore
     {
         if (!MenuSwitch) return;
 
-        if (turngenerater.SelectNormalDown)
+        if (_ctx.TurnGen.SelectNormalDown)
         {
             StartAttack(AttackMode.Normal);
         }
-        else if (turngenerater.SelectSkillDown)
+        else if (_ctx.TurnGen.SelectSkillDown)
         {
             StartAttack(AttackMode.Skill);
         }
@@ -300,52 +268,26 @@ public class PlayerMove : StateCore
     // ---- 攻撃ステートへ遷移 ----
     private void StartAttack(AttackMode mode)
     {
-        turngenerater.movegenerater.MoveReset();
+        _ctx.MoveGen.MoveReset();
         MP = null;
         attackmode = mode;
-        turngenerater.ChangeState(new PlayerAttack(
-            mapcreate, this, attackmode, attackpoint, turngenerater,
-            unitclick, battlesystem, visiongenerater, movegenerater, crystalsystem, unitset));
+        _ctx.TurnGen.ChangeState(new PlayerAttack(_ctx, this, attackmode));
     }
 
     // ---- タイマー自動ターン終了 ----
     private void OnTurnTimeExpired()
     {
         ToastMessageUI.Show("ターン制限時間終了", ToastMessageUI.MessageType.Warning);
-        ForceEndTurn();
+        EndPlayerTurn();
     }
 
     // ---- 持ち時間切れ → ゲーム終了 ----
     private void OnTotalTimeExpired(GameResult result)
     {
         ToastMessageUI.Show("持ち時間終了", ToastMessageUI.MessageType.Error);
-        turngenerater.movegenerater.MoveReset();
+        _ctx.MoveGen.MoveReset();
         Reset();
-        turngenerater.ChangeState(new GameEndState(turngenerater, result));
-    }
-
-    // ---- 強制ターン終了（タイマー切れ） ----
-    private void ForceEndTurn()
-    {
-        turngenerater.movegenerater.MoveReset();
-        RefreshVision();
-        Reset();
-
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
-
-        // Special Ability: ターン終了時処理（応急処置、聖域反応）
-        SpecialAbilitySystem.OnTurnEnd(unitset.PlayerUnit);
-
-        if (turngenerater.economysystem != null)
-            turngenerater.economysystem.ProcessTurn(Team.Player);
-
-        if (turngenerater.buildingAttackSystem != null)
-            turngenerater.buildingAttackSystem.ProcessAttacks(Team.Player);
-
-        turngenerater.ChangeState(new EnemyStart(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        _ctx.TurnGen.ChangeState(new GameEndState(_ctx.TurnGen, result));
     }
 
     // ---- カメラフォーカス（Cキー）: 選択ユニットにカメラを向ける ----
@@ -354,13 +296,13 @@ public class PlayerMove : StateCore
         if (Keyboard.current == null) return;
         if (!Keyboard.current.cKey.wasPressedThisFrame) return;
 
-        Status target = turngenerater.SelectUnit;
+        Status target = _ctx.TurnGen.SelectUnit;
         if (target == null) return;
 
-        Vector3 pos = turngenerater.CameraObject.position;
+        Vector3 pos = _ctx.TurnGen.CameraObject.position;
         pos.x = target.transform.position.x;
         pos.z = target.transform.position.z;
-        turngenerater.CameraObject.position = pos;
+        _ctx.TurnGen.CameraObject.position = pos;
     }
 
     // ---- ユニット巡回（Tabキー）: 味方ユニットを順に選択＆カメラ追従 ----
@@ -368,10 +310,10 @@ public class PlayerMove : StateCore
     {
         if (Keyboard.current == null) return;
         if (!Keyboard.current.tabKey.wasPressedThisFrame) return;
-        if (unitset == null) return;
+        if (_ctx.UnitSetting == null) return;
 
         // 行動可能な味方ユニットを収集
-        var playerParent = unitset.PlayerUnit;
+        var playerParent = _ctx.UnitSetting.PlayerUnit;
         if (playerParent == null) return;
 
         var units = new System.Collections.Generic.List<Status>();
@@ -390,22 +332,22 @@ public class PlayerMove : StateCore
         Status next = units[unitCycleIndex];
 
         // 既存選択をリセットして新ユニットを選択
-        turngenerater.movegenerater.MoveReset();
+        _ctx.MoveGen.MoveReset();
         Obj = next;
         ObjP = next.transform.position;
-        turngenerater.movegenerater.MoveCore(next, ObjP);
-        turngenerater.SelectUnit = next;
-        turngenerater.OldCell = next.transform.position;
+        _ctx.MoveGen.MoveCore(next, ObjP);
+        _ctx.TurnGen.SelectUnit = next;
+        _ctx.TurnGen.OldCell = next.transform.position;
         MenuSwitch = true;
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Show(next);
+        if (_ctx.TurnGen.unitPanelUI != null)
+            _ctx.TurnGen.unitPanelUI.Show(next);
 
         // カメラ追従
-        Vector3 camPos = turngenerater.CameraObject.position;
+        Vector3 camPos = _ctx.TurnGen.CameraObject.position;
         camPos.x = next.transform.position.x;
         camPos.z = next.transform.position.z;
-        turngenerater.CameraObject.position = camPos;
+        _ctx.TurnGen.CameraObject.position = camPos;
     }
 
     // ---- 移動取り消し（Zキー） ----
@@ -413,19 +355,13 @@ public class PlayerMove : StateCore
     {
         if (Keyboard.current == null) return;
         if (!Keyboard.current.zKey.wasPressedThisFrame) return;
-        if (turngenerater.moveUndoSystem == null) return;
-        if (!turngenerater.moveUndoSystem.CanUndo) return;
+        if (_ctx.TurnGen.moveUndoSystem == null) return;
+        if (!_ctx.TurnGen.moveUndoSystem.CanUndo) return;
 
-        turngenerater.movegenerater.MoveReset();
-        turngenerater.moveUndoSystem.Undo(turngenerater, this, visiongenerater, mapcreate, crystalsystem);
+        _ctx.MoveGen.MoveReset();
+        _ctx.TurnGen.moveUndoSystem.Undo(_ctx.TurnGen, this, _ctx.VisionGen, _ctx.MapCreate, _ctx.CrystalSystem);
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Hide();
-    }
-
-    // ---- 視界更新（VisionPoint のショートハンド） ----
-    private void RefreshVision()
-    {
-        visiongenerater.VisionPoint(mapcreate, movegenerater, crystalsystem);
+        if (_ctx.TurnGen.unitPanelUI != null)
+            _ctx.TurnGen.unitPanelUI.Hide();
     }
 }

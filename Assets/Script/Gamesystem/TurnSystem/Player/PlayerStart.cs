@@ -2,30 +2,11 @@ using UnityEngine;
 
 public class PlayerStart : StateCore
 {
-    private TurnGenerater turngenerater;
-    private UnitClick unitclick;
-    public AttackPointt attackpoint;
-    public BattleSystem battlesystem;
-    public VisionGenerater visiongenerater;
-    public MoveGererater movegenerater;
-    public MapCreate mapcreate;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
+    private readonly GameContext _ctx;
 
-    public PlayerStart(TurnGenerater turngenerater, UnitClick unitclick,
-        AttackPointt attackpoint, BattleSystem battlesystem,
-        VisionGenerater visiongenerater, MoveGererater movegenerater,
-        MapCreate mapcreate, CrystalSystem crystalsystem, UnitSetting unitset)
+    public PlayerStart(GameContext ctx)
     {
-        this.turngenerater = turngenerater;
-        this.unitclick = unitclick;
-        this.attackpoint = attackpoint;
-        this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater;
-        this.movegenerater = movegenerater;
-        this.mapcreate = mapcreate;
-        this.crystalsystem = crystalsystem;
-        this.unitset = unitset;
+        _ctx = ctx;
     }
 
     public void Entry()
@@ -34,41 +15,39 @@ public class PlayerStart : StateCore
         EnemyTurnBannerUI.Hide();
 
         // ターンカウント更新
-        turngenerater.Turn++;
-        ActionLogUI.LogTurnStart(turngenerater.Turn, Team.Player);
+        _ctx.TurnGen.Turn++;
+        ActionLogUI.LogTurnStart(_ctx.TurnGen.Turn, Team.Player);
 
         // クリスタルシールドのターン経過（自陣営 — 敵側は EnemyStart で処理）
-        BattleSystem.TickCrystalShields(crystalsystem.Playercrystal);
+        BattleSystem.TickCrystalShields(_ctx.CrystalSystem.Playercrystal);
 
         // 状態異常ティック（DoTダメージ + ターン経過）
-        StatusEffectSystem.TickAllUnits(unitset.PlayerUnit);
+        StatusEffectSystem.TickAllUnits(_ctx.UnitSetting.PlayerUnit);
 
         // Special Ability: ターン開始時処理（フラグリセット + 浄化光輪）
-        SpecialAbilitySystem.OnTurnStart(unitset.PlayerUnit);
+        SpecialAbilitySystem.OnTurnStart(_ctx.UnitSetting.PlayerUnit);
 
         // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
-        turngenerater.apsystem.ResetAP(Team.Player);
+        _ctx.TurnGen.apsystem.ResetAP(Team.Player);
 
         // 疲労リセット
-        turngenerater.apsystem.ResetFatigue(unitset.PlayerUnit);
+        _ctx.TurnGen.apsystem.ResetFatigue(_ctx.UnitSetting.PlayerUnit);
 
         // サブクリスタル返却待ちタイマー処理
-        if (turngenerater.subCrystalSystem != null)
-            turngenerater.subCrystalSystem.TickPendingReturns(Team.Player);
+        if (_ctx.TurnGen.subCrystalSystem != null)
+            _ctx.TurnGen.subCrystalSystem.TickPendingReturns(Team.Player);
         else
             Debug.LogWarning("[PlayerStart] subCrystalSystem が null のため TickPendingReturns をスキップ");
 
         // 移動Undo履歴クリア
-        if (turngenerater.moveUndoSystem != null)
-            turngenerater.moveUndoSystem.Clear();
+        if (_ctx.TurnGen.moveUndoSystem != null)
+            _ctx.TurnGen.moveUndoSystem.Clear();
 
         // タイマー開始（プレイヤーターン）
-        if (turngenerater.timerSystem != null)
-            turngenerater.timerSystem.StartTurn(Team.Player);
+        if (_ctx.TurnGen.timerSystem != null)
+            _ctx.TurnGen.timerSystem.StartTurn(Team.Player);
 
-        turngenerater.ChangeState(new PlayerMove(turngenerater, unitclick,
-            attackpoint, battlesystem, visiongenerater,
-            movegenerater, mapcreate, crystalsystem, unitset));
+        _ctx.TurnGen.ChangeState(new PlayerMove(_ctx));
     }
 
     public void Update() { }

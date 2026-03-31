@@ -1,14 +1,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// ゲーム起動時のオーケストレーター。
+/// 各初期化責務は専用クラス（MapInitializer, SystemInitializer, UXInitializer,
+/// AIInitializer, ResourceInitializer）に委譲し、この クラスは呼び出し順序のみを管理する。
+/// </summary>
 public class GameGenerater : MonoBehaviour
 {
+    // ================================================================
+    //  SerializeField（Inspector設定）
+    // ================================================================
+    [Header("マップ・ユニット基盤")]
     [SerializeField] MapCreate _MapCreate;
     [SerializeField] CrystalSystem _CrystalSystem;
     [SerializeField] TerritorySystem _TerritorySystem;
     [SerializeField] UnitSetting _UnitSetting;
     [SerializeField] MoveGererater _MoveGenerater;
     [SerializeField] VisionGenerater _VisionGenerater;
+
+    [Header("コアゲームシステム")]
     [SerializeField] APSystem _APSystem;
     [SerializeField] BuildSystem _BuildSystem;
     [SerializeField] SummonSystem _SummonSystem;
@@ -35,11 +46,13 @@ public class GameGenerater : MonoBehaviour
     private bool _waitingForTitle = true;
     private FactionState _cachedFactionState;
 
+    // ================================================================
+    //  ライフサイクル
+    // ================================================================
     void Awake()
     {
         InitSingletons();
 
-        // タイトル画面を表示するか判定
         bool showTitle = ShouldShowTitle();
         if (showTitle)
         {
@@ -47,40 +60,35 @@ public class GameGenerater : MonoBehaviour
             return;
         }
 
-        // タイトルスキップ（ロードまたはReturnToTitle=falseからの直行）
         _waitingForTitle = false;
         StartGameInit();
     }
 
     void Update()
     {
-        // タイトル画面の閉じ待ち
-        if (_waitingForTitle)
+        if (!_waitingForTitle) return;
+
+        var title = TitleScreenUI.Instance;
+        if (title != null && !title.IsActive)
         {
-            var title = TitleScreenUI.Instance;
-            if (title != null && !title.IsActive)
-            {
-                _waitingForTitle = false;
-                int loadSlot = title.SelectedLoadSlot;
-                Destroy(title.gameObject);
-                StartGameInit(loadSlot);
-            }
+            _waitingForTitle = false;
+            int loadSlot = title.SelectedLoadSlot;
+            Destroy(title.gameObject);
+            StartGameInit(loadSlot);
         }
     }
 
+    // ================================================================
+    //  タイトル画面判定
+    // ================================================================
     private bool ShouldShowTitle()
     {
-        // ロード要求がある場合はタイトルをスキップしてゲーム開始
         if (GameMenuUI.PendingLoadSlot >= 0) return false;
-
-        // タイトルへ戻る要求がある場合はタイトルを表示
         if (GameMenuUI.ReturnToTitle)
         {
             GameMenuUI.ReturnToTitle = false;
             return true;
         }
-
-        // 初回起動時はタイトル表示
         return true;
     }
 
@@ -90,6 +98,9 @@ public class GameGenerater : MonoBehaviour
         titleGo.AddComponent<TitleScreenUI>();
     }
 
+    // ================================================================
+    //  ゲーム初期化（メインフロー）
+    // ================================================================
     private void StartGameInit(int loadSlot = -1)
     {
         // ロード要求のstaticフラグをクリア
@@ -98,7 +109,7 @@ public class GameGenerater : MonoBehaviour
         if (loadSlot < 0 && pendingLoad >= 0)
             loadSlot = pendingLoad;
 
-        // ロードデータを先読み（マップ生成前にシード復元が必要）
+        // ロードデータを先読み
         SaveSystem.GameSaveData loadData = null;
         if (loadSlot >= 0)
         {
@@ -110,18 +121,30 @@ public class GameGenerater : MonoBehaviour
             }
         }
 
-        // マップ・ユニット生成（ロード時はシード・クリスタル位置を復元）
-        InitMapAndUnits(loadData);
+        // Phase 1: マップ・ユニット生成
+        MapInitializer.Init(_MapCreate, _CrystalSystem, _UnitSetting, _TerritorySystem,
+                            _MoveGenerater, _VisionGenerater, loadData);
+        CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
+        CollectChildren(_EnemyCrystal, EnemyCrystalChildren);
 
+        // Phase 2: FactionState 生成
         FactionState factionState = InitFactionState();
         _cachedFactionState = factionState;
 
-        InitGameSystems(factionState);
+        // Phase 3: ゲームシステム初期化
+        SystemInitializer.Init(this, _TurnGenerater,
+            ref _BuildSystem, ref _SummonSystem, ref _EconomySystem,
+            ref _BuildingAttackSystem, ref _SubCrystalSystem,
+            _TerritorySystem, _APSystem, factionState,
+            _MoveGenerater, _MapCreate, _UnitSetting, _VisionGenerater,
+            _CrystalSystem, _uiBuilder);
+
+        // Phase 4: スキル・タイマー
         InitSkillsAndTimer(factionState);
 
+        // Phase 5: 資源・UnitRegistry
         if (loadData != null)
         {
-            // ロード時: 初期資源設定をスキップしてUI初期化だけ行う
             if (_APPanelUI != null) _APPanelUI.Init(factionState);
             if (_ResourceBarUI != null) _ResourceBarUI.Init(factionState);
             if (UnitRegistry.Instance != null)
@@ -134,148 +157,39 @@ public class GameGenerater : MonoBehaviour
         }
         else
         {
-            // 新規ゲーム: 初期資源設定を含む完全初期化
-            InitEconomyAndResources(factionState);
+            ResourceInitializer.Init(factionState, _APPanelUI, _ResourceBarUI,
+                                     _UnitSetting, _BuildSystem);
         }
 
-        InitUXSystems();
+        // Phase 6: UXシステム
+        UXInitializer.Init(_TurnGenerater, _APSystem, _MoveGenerater);
+
+        // Phase 7: ObjectPool プレウォーム
         PrewarmObjectPools();
-        InitAI(factionState);
+
+        // Phase 8: AI
+        AIInitializer.Init(_TurnGenerater, _MoveGenerater, _VisionGenerater,
+                           _APSystem, _UnitSetting, _CrystalSystem, _MapCreate,
+                           _BuildSystem, _SummonSystem, factionState, _SkillSystem,
+                           _SubCrystalSystem);
+
+        // Phase 9: インゲームメニュー
         InitGameMenu(factionState);
 
-        // ロードデータがあれば全状態を適用
+        // Phase 10: ロードデータ適用
         if (loadData != null)
         {
-            ApplyLoadData(loadData, factionState);
+            LoadDataApplier.Apply(loadData, factionState, _TurnGenerater,
+                                  _UnitSetting, _CrystalSystem, _BuildSystem,
+                                  _MoveGenerater, _VisionGenerater, _MapCreate);
         }
 
         _TurnGenerater.StartFirstTurn();
     }
 
-    // =====================================================================
-    //  インゲームメニューの初期化
-    // =====================================================================
-    private void InitGameMenu(FactionState factionState)
-    {
-        var menuGo = new GameObject("GameMenuUI");
-        var menu = menuGo.AddComponent<GameMenuUI>();
-        menu.Init(_TurnGenerater, factionState);
-    }
-
-    // =====================================================================
-    //  ロードデータの適用
-    // =====================================================================
-    private void ApplyLoadData(SaveSystem.GameSaveData data, FactionState factionState)
-    {
-        Debug.Log($"[GameGerater] ロード適用: Turn{data.Turn} 脅威度{data.ThreatLevel}");
-
-        // ターン数復元（PlayerStart.Entry()でTurn++されるので1引く）
-        _TurnGenerater.Turn = data.Turn - 1;
-
-        // 資源復元
-        SaveSystem.RestoreResources(data.PlayerResources, factionState.PlayerResources);
-        SaveSystem.RestoreResources(data.EnemyResources, factionState.EnemyResources);
-
-        // AP復元
-        SaveSystem.RestoreAP(data.PlayerAP, factionState.PlayerAP);
-        SaveSystem.RestoreAP(data.EnemyAP, factionState.EnemyAP);
-
-        // サブクリスタル復元
-        factionState.PlayerSubCrystals = data.PlayerSubCrystals;
-        factionState.EnemySubCrystals = data.EnemySubCrystals;
-
-        // NationState追加データ復元
-        SaveSystem.RestoreNationExtra(data.PlayerNationExtra, factionState.PlayerNation);
-        SaveSystem.RestoreNationExtra(data.EnemyNationExtra, factionState.EnemyNation);
-
-        // ユニットのステータス・位置を復元
-        ApplyUnitLoadData(data, _UnitSetting.PlayerUnit);
-        ApplyUnitLoadData(data, _UnitSetting.EnemyUnit);
-
-        // クリスタルのステータス復元
-        ApplyUnitLoadData(data, _CrystalSystem.Playercrystal);
-        ApplyUnitLoadData(data, _CrystalSystem.Enemycrystal);
-
-        // 建築物のステータス復元
-        if (_BuildSystem != null)
-        {
-            ApplyUnitLoadData(data, _BuildSystem.PlayerBuildingParent);
-            ApplyUnitLoadData(data, _BuildSystem.EnemyBuildingParent);
-        }
-
-        // タイマー復元
-        if (_TurnGenerater.timerSystem != null)
-            SaveSystem.RestoreTimer(data.Timer, _TurnGenerater.timerSystem);
-
-        // 霧の戦争（探索済み）復元
-        if (_TurnGenerater.visiongenerater != null)
-            SaveSystem.RestoreFog(data.Fog, _TurnGenerater.visiongenerater);
-
-        // AI状態復元
-        if (_TurnGenerater.aiCommander != null)
-            SaveSystem.RestoreAICommander(data.AI, _TurnGenerater.aiCommander);
-
-        // 占有セル・視界を再計算
-        _MoveGenerater.UnitPointCore();
-        _VisionGenerater.VisionPoint(_MapCreate, _MoveGenerater, _CrystalSystem);
-
-        ToastMessageUI.Show("セーブデータをロードしました", ToastMessageUI.MessageType.Info, 3f);
-    }
-
-    private void ApplyUnitLoadData(SaveSystem.GameSaveData data, Transform unitParent)
-    {
-        if (unitParent == null) return;
-
-        // セーブデータからの復元用マッチリスト（使い回し防止）
-        var usedIndices = new HashSet<int>();
-
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>(true))
-        {
-            // セーブデータから同じ種類・チームのユニットを探す
-            for (int i = 0; i < data.Units.Count; i++)
-            {
-                if (usedIndices.Contains(i)) continue;
-                var ud = data.Units[i];
-
-                if (ud.Kind == s.kind.ToString() && ud.Team == s.team.ToString())
-                {
-                    // 位置を復元（ロード時は保存位置に移動）
-                    s.transform.position = new Vector3(ud.PosX, ud.PosY, ud.PosZ);
-
-                    s.HP = ud.HP;
-                    s.MaxHP = ud.MaxHP;
-                    s.ATK = ud.ATK;
-                    s.DEF = ud.DEF;
-                    s.Level = ud.Level;
-                    s.ShieldTurns = ud.ShieldTurns;
-                    s.ShieldActivated = ud.ShieldActivated;
-                    s.SkillCooldown = ud.SkillCooldown;
-                    s.AssignedSkillId = ud.AssignedSkillId;
-                    s.Fatigue = ud.Fatigue;
-
-                    // 状態異常・バフ復元
-                    s.ActiveEffects.Clear();
-                    foreach (var ef in ud.ActiveEffects)
-                    {
-                        if (System.Enum.TryParse<StatusEffectType>(ef.DebuffType, out var debuff)
-                            && debuff != StatusEffectType.None)
-                            s.ActiveEffects.Add(new ActiveEffect(debuff, ef.RemainingTurns));
-                        else if (System.Enum.TryParse<BuffType>(ef.BuffType, out var buff)
-                                 && buff != BuffType.None)
-                            s.ActiveEffects.Add(new ActiveEffect(buff, ef.RemainingTurns));
-                    }
-
-                    s.gameObject.SetActive(ud.IsActive);
-                    usedIndices.Add(i);
-                    break;
-                }
-            }
-        }
-    }
-
-    // =====================================================================
+    // ================================================================
     //  シングルトン・UIの生成
-    // =====================================================================
+    // ================================================================
     private void InitSingletons()
     {
         if (ObjectPool.Instance == null)
@@ -303,51 +217,9 @@ public class GameGenerater : MonoBehaviour
             _ResourceBarUI = _uiBuilder.ResourceBar;
     }
 
-    // =====================================================================
-    //  マップ生成・ユニット配置・視界構築
-    // =====================================================================
-    private void InitMapAndUnits(SaveSystem.GameSaveData loadData = null)
-    {
-        if (loadData != null && (loadData.MapSeedX != 0f || loadData.MapSeedZ != 0f))
-        {
-            // ロード: 保存されたシードで同じ地形を再生成
-            _MapCreate.noisegenerater(loadData.MapSeedX, loadData.MapSeedZ);
-        }
-        else
-        {
-            // 新規: ランダムシード
-            _MapCreate.noisegenerater();
-        }
-        _MapCreate.BuildTop();
-
-        if (loadData != null && (loadData.PCPx != 0f || loadData.PCPz != 0f))
-        {
-            // ロード: 保存されたクリスタル位置に配置
-            var pcp = new Vector3(loadData.PCPx, loadData.PCPy, loadData.PCPz);
-            var ecp = new Vector3(loadData.ECPx, loadData.ECPy, loadData.ECPz);
-            _CrystalSystem.CrystalCore(pcp, ecp);
-        }
-        else
-        {
-            // 新規: ランダム配置
-            _CrystalSystem.CrystalCore();
-        }
-
-        _UnitSetting.UnitSet();
-        ApplyAllUnitData(_UnitSetting.PlayerUnit);
-        ApplyAllUnitData(_UnitSetting.EnemyUnit);
-
-        _TerritorySystem.Territory();
-        _MoveGenerater.UnitPointCore();
-        _VisionGenerater.VisionPoint(_MapCreate, _MoveGenerater, _CrystalSystem);
-
-        CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
-        CollectChildren(_EnemyCrystal, EnemyCrystalChildren);
-    }
-
-    // =====================================================================
+    // ================================================================
     //  NationState / FactionState の生成
-    // =====================================================================
+    // ================================================================
     private FactionState InitFactionState()
     {
         var playerNationGo = new GameObject("PlayerNation");
@@ -367,92 +239,9 @@ public class GameGenerater : MonoBehaviour
         return factionState;
     }
 
-    // =====================================================================
-    //  ゲームシステムの初期化（Build, Summon, Economy, Attack, SubCrystal）
-    // =====================================================================
-    private void InitGameSystems(FactionState factionState)
-    {
-        // ---- BuildSystem ----
-        if (_BuildSystem == null)
-        {
-            _BuildSystem = Object.FindFirstObjectByType<BuildSystem>();
-            if (_BuildSystem == null)
-                _BuildSystem = gameObject.AddComponent<BuildSystem>();
-            Debug.LogWarning("[GameGerater] _BuildSystem未設定 → 自動検出/生成");
-        }
-        if (_BuildSystem != null)
-        {
-            _BuildSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,
-                              factionState, _MoveGenerater, _MapCreate);
-            _TurnGenerater.buildsystem = _BuildSystem;
-
-            if (_uiBuilder != null)
-                _uiBuilder.InitBuildButtons(_BuildSystem, _APSystem, factionState);
-        }
-
-        // ---- SummonSystem ----
-        if (_SummonSystem == null)
-        {
-            _SummonSystem = Object.FindFirstObjectByType<SummonSystem>();
-            if (_SummonSystem != null)
-                Debug.LogWarning("[GameGerater] _SummonSystem未設定 → 自動検出");
-        }
-        if (_SummonSystem != null)
-        {
-            _SummonSystem.Init(_TurnGenerater, _TerritorySystem, _APSystem,
-                               factionState, _MoveGenerater, _MapCreate,
-                               _UnitSetting, _VisionGenerater);
-            _TurnGenerater.summonsystem = _SummonSystem;
-
-            if (_uiBuilder != null)
-                _uiBuilder.InitSummonButtons(_SummonSystem, _APSystem, factionState, _UnitSetting);
-        }
-
-        // ---- EconomySystem ----
-        if (_EconomySystem == null)
-        {
-            _EconomySystem = gameObject.GetComponent<EconomySystem>();
-            if (_EconomySystem == null)
-                _EconomySystem = gameObject.AddComponent<EconomySystem>();
-        }
-        _EconomySystem.Init(_BuildSystem, factionState, _UnitSetting, _CrystalSystem);
-        _TurnGenerater.economysystem = _EconomySystem;
-
-        // ---- BuildingAttackSystem ----
-        if (_BuildingAttackSystem == null)
-        {
-            _BuildingAttackSystem = gameObject.GetComponent<BuildingAttackSystem>();
-            if (_BuildingAttackSystem == null)
-                _BuildingAttackSystem = gameObject.AddComponent<BuildingAttackSystem>();
-        }
-        _BuildingAttackSystem.Init(_BuildSystem, _MoveGenerater, _UnitSetting,
-                                   _VisionGenerater, _MapCreate, _CrystalSystem);
-        _TurnGenerater.buildingAttackSystem = _BuildingAttackSystem;
-
-        // ---- SubCrystalSystem ----
-        if (_SubCrystalSystem == null)
-        {
-            _SubCrystalSystem = gameObject.GetComponent<SubCrystalSystem>();
-            if (_SubCrystalSystem == null)
-                _SubCrystalSystem = gameObject.AddComponent<SubCrystalSystem>();
-        }
-        _SubCrystalSystem.Init(_TurnGenerater, _TerritorySystem, factionState,
-                                _MapCreate, _BuildSystem, _VisionGenerater,
-                                _MoveGenerater, _CrystalSystem);
-        _TurnGenerater.subCrystalSystem = _SubCrystalSystem;
-
-        // ---- クロスリファレンス ----
-        if (_BuildSystem != null)
-            _BuildSystem.subCrystalSystem = _SubCrystalSystem;
-        if (_BuildingAttackSystem != null)
-            _BuildingAttackSystem.SetSubCrystalSystem(_SubCrystalSystem);
-        if (_BuildSystem != null)
-            _VisionGenerater.SetBuildingParents(_BuildSystem.PlayerBuildingParent, _BuildSystem.EnemyBuildingParent);
-    }
-
-    // =====================================================================
+    // ================================================================
     //  スキル・タイマーの初期化
-    // =====================================================================
+    // ================================================================
     private void InitSkillsAndTimer(FactionState factionState)
     {
         if (_SkillSystem == null)
@@ -477,96 +266,19 @@ public class GameGenerater : MonoBehaviour
         _TurnGenerater.timerSystem = timerSystem;
     }
 
-    // =====================================================================
-    //  経済・資源・UnitRegistryの初期化
-    // =====================================================================
-    private void InitEconomyAndResources(FactionState factionState)
+    // ================================================================
+    //  インゲームメニューの初期化
+    // ================================================================
+    private void InitGameMenu(FactionState factionState)
     {
-        if (_APPanelUI != null) _APPanelUI.Init(factionState);
-        if (_ResourceBarUI != null) _ResourceBarUI.Init(factionState);
-
-        if (factionState != null)
-        {
-            InitResources(factionState.PlayerResources);
-            InitResources(factionState.EnemyResources);
-
-            factionState.PlayerAP.Plus = factionState.PlayerResources.Citizen * EconomySystem.APPerCitizen;
-            factionState.EnemyAP.Plus = factionState.EnemyResources.Citizen * EconomySystem.APPerCitizen;
-
-            factionState.PlayerSubCrystals = 2;
-            factionState.EnemySubCrystals = 2;
-        }
-
-        if (UnitRegistry.Instance != null)
-        {
-            UnitRegistry.Instance.ScanAndRegister(
-                _UnitSetting.PlayerUnit, _UnitSetting.EnemyUnit,
-                _BuildSystem != null ? _BuildSystem.PlayerBuildingParent : null,
-                _BuildSystem != null ? _BuildSystem.EnemyBuildingParent : null);
-        }
+        var menuGo = new GameObject("GameMenuUI");
+        var menu = menuGo.AddComponent<GameMenuUI>();
+        menu.Init(_TurnGenerater, factionState);
     }
 
-    // =====================================================================
-    //  UX系システムの初期化
-    // =====================================================================
-    private void InitUXSystems()
-    {
-        if (ToastMessageUI.Instance == null)
-        {
-            var toastGo = new GameObject("ToastMessageUI");
-            toastGo.AddComponent<ToastMessageUI>();
-        }
-
-        var hintGo = new GameObject("InputHintUI");
-        var inputHint = hintGo.AddComponent<InputHintUI>();
-        _TurnGenerater.inputHintUI = inputHint;
-
-        var dmgPreviewGo = new GameObject("DamagePreviewUI");
-        var dmgPreview = dmgPreviewGo.AddComponent<DamagePreviewUI>();
-        dmgPreview.turngenerater = _TurnGenerater;
-        _TurnGenerater.damagePreviewUI = dmgPreview;
-
-        if (FloatingDamageUI.Instance == null)
-        {
-            var floatDmgGo = new GameObject("FloatingDamageUI");
-            floatDmgGo.AddComponent<FloatingDamageUI>();
-        }
-
-        if (EnemyTurnBannerUI.Instance == null)
-        {
-            var bannerGo = new GameObject("EnemyTurnBannerUI");
-            bannerGo.AddComponent<EnemyTurnBannerUI>();
-        }
-
-        if (TurnAPIndicatorUI.Instance == null)
-        {
-            var indicatorGo = new GameObject("TurnAPIndicatorUI");
-            var indicator = indicatorGo.AddComponent<TurnAPIndicatorUI>();
-            indicator.Init(_TurnGenerater, _APSystem);
-        }
-
-        if (UnitHoverTooltipUI.Instance == null)
-        {
-            var tooltipGo = new GameObject("UnitHoverTooltipUI");
-            tooltipGo.AddComponent<UnitHoverTooltipUI>();
-        }
-
-        var highlightGo = new GameObject("UnitSelectionHighlight");
-        var highlight = highlightGo.AddComponent<UnitSelectionHighlight>();
-        highlight.Init(_TurnGenerater);
-
-        _TurnGenerater.moveUndoSystem = new MoveUndoSystem(_APSystem, _MoveGenerater);
-
-        if (ActionLogUI.Instance == null)
-        {
-            var logGo = new GameObject("ActionLogUI");
-            logGo.AddComponent<ActionLogUI>();
-        }
-    }
-
-    // =====================================================================
+    // ================================================================
     //  ObjectPool プレウォーム
-    // =====================================================================
+    // ================================================================
     private void PrewarmObjectPools()
     {
         if (ObjectPool.Instance != null && _MoveGenerater.MovePoint != null)
@@ -576,70 +288,9 @@ public class GameGenerater : MonoBehaviour
             ObjectPool.Instance.Prewarm(_TurnGenerater.attackpoint.AttackPoint, 15, _TurnGenerater.attackpoint.APparent);
     }
 
-    // =====================================================================
-    //  AI指揮官の初期化
-    // =====================================================================
-    private void InitAI(FactionState factionState)
-    {
-        var aiMajor = AIPersonality.RandomMajor();
-        int threatLevel = SaveSystem.LoadProfile().ThreatLevel;
-        _TurnGenerater.aiCommander = new AICommander(
-            _TurnGenerater, _MoveGenerater, _TurnGenerater.attackpoint,
-            _TurnGenerater.battlesystem, _VisionGenerater,
-            _APSystem, _UnitSetting, _CrystalSystem, _MapCreate, aiMajor,
-            _BuildSystem, _SummonSystem, factionState, _SkillSystem,
-            _SubCrystalSystem, threatLevel);
-    }
-
-    // =====================================================================
-    //  ゲーム開始時の全ユニット適用
-    // =====================================================================
-    private void ApplyAllUnitData(Transform unitParent)
-    {
-        foreach (Status status in unitParent.GetComponentsInChildren<Status>())
-        {
-            if (status.type != Type.Unit) continue;
-
-            if (_UnitSetting.UnitDataMap.TryGetValue(status.kind, out UnitData data))
-                data.ApplyToStatus(status, status.Level);
-            else
-                Debug.LogWarning($"[GameGenerater] Kind:{status.kind} のUnitDataが未登録です");
-        }
-    }
-
-    // =====================================================================
-    //  初期資源設定
-    // =====================================================================
-    private void InitResources(FactionState.ResourceData res)
-    {
-        const int InitWood = 200;
-        const int InitStone = 200;
-        const int InitWater = 50;
-        const int InitPlank = 50;
-        const int InitCutStone = 50;
-        const int InitBread = 100;
-        const int InitCitizen = 5;
-        const int InitIron = 30;
-        const int InitMagicOre = 15;
-        const int InitIronOre = 10;
-        const int InitCoal = 10;
-
-        res.Wood = InitWood;
-        res.Stone = InitStone;
-        res.Water = InitWater;
-        res.Plank = InitPlank;
-        res.CutStone = InitCutStone;
-        res.Bread = InitBread;
-        res.Citizen = InitCitizen;
-        res.Iron = InitIron;
-        res.MagicOre = InitMagicOre;
-        res.IronOre = InitIronOre;
-        res.Coal = InitCoal;
-    }
-
-    // =====================================================================
+    // ================================================================
     //  ユーティリティ
-    // =====================================================================
+    // ================================================================
     private void CollectChildren(Transform parent, List<GameObject> result)
     {
         result.Clear();

@@ -2,69 +2,42 @@ using UnityEngine;
 
 public class PlayerAttack : StateCore
 {
-    public MapCreate mapcreate;
+    private readonly GameContext _ctx;
     public PlayerMove move;
-    public AttackPointt attackpoint;
-    public TurnGenerater turngenerater;
-    public PlayerAttack playerattack;
     public PlayerMove.AttackMode attackmode;
-    public BattleSystem battlesystem;
-    public UnitClick unitclick;
     public Status Attack;
-    public VisionGenerater visiongenerater;
-    public MoveGererater movegenerater;
-    public CrystalSystem crystalsystem;
-    public UnitSetting unitset;
 
     public bool AttackSetting;
     public bool AttackSuccess;
 
     public PlayerAttack(
-        MapCreate mapcreate,
+        GameContext ctx,
         PlayerMove move,
-        PlayerMove.AttackMode attackmode,
-        AttackPointt attackpoint,
-        TurnGenerater turngenerater,
-        UnitClick unitclick,
-        BattleSystem battlesystem,
-        VisionGenerater visiongenerater,
-        MoveGererater movegenerater,
-        CrystalSystem crystalsystem,
-        UnitSetting unitset)
+        PlayerMove.AttackMode attackmode)
     {
-        this.mapcreate = mapcreate;
+        _ctx = ctx;
         this.move = move;
         this.attackmode = attackmode;
-        this.attackpoint = attackpoint;
-        this.turngenerater = turngenerater;
-        this.unitclick = unitclick;
-        this.battlesystem = battlesystem;
-        this.visiongenerater = visiongenerater; // 旧コードで未代入だったバグ修正
-        this.movegenerater = movegenerater;
-        this.crystalsystem = crystalsystem;
-        this.unitset = unitset;
     }
 
     public void Entry()
     {
-        attackpoint.AttackPointCall(move.Obj, move.ObjP, move);
+        _ctx.AttackPoint.AttackPointCall(move.Obj, move.ObjP, move);
         AttackSuccess = false;
 
         // DamagePreviewUI を有効化
-        if (turngenerater.damagePreviewUI != null)
-            turngenerater.damagePreviewUI.Activate();
+        if (_ctx.TurnGen.damagePreviewUI != null)
+            _ctx.TurnGen.damagePreviewUI.Activate();
 
         // InputHintUI を攻撃モード用に更新
-        if (turngenerater.inputHintUI != null)
-            turngenerater.inputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
+        if (_ctx.TurnGen.inputHintUI != null)
+            _ctx.TurnGen.inputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
         // 攻撃範囲内に敵がいない場合は即座にPlayerMoveへ戻る
-        if (attackpoint.AttackP == null || attackpoint.AttackP.Count == 0)
+        if (_ctx.AttackPoint.AttackP == null || _ctx.AttackPoint.AttackP.Count == 0)
         {
             ToastMessageUI.Show("攻撃範囲内に対象がいません", ToastMessageUI.MessageType.Warning);
-            attackpoint.AtkpDestroy();
-            turngenerater.ChangeState(new PlayerMove(
-                turngenerater, unitclick, attackpoint, battlesystem,
-                visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+            _ctx.AttackPoint.AtkpDestroy();
+            _ctx.TurnGen.ChangeState(new PlayerMove(_ctx));
         }
 
     }
@@ -83,34 +56,31 @@ public class PlayerAttack : StateCore
 
     public void Exit()
     {
-        if (turngenerater.damagePreviewUI != null)
-            turngenerater.damagePreviewUI.Hide();
+        if (_ctx.TurnGen.damagePreviewUI != null)
+            _ctx.TurnGen.damagePreviewUI.Hide();
     }
 
     public void Reset()
     {
-        attackpoint.obj = null;
-        unitclick.ATKC = null;
-        battlesystem.target = null;
-        battlesystem.AttackSide = null;
+        _ctx.AttackPoint.obj = null;
+        _ctx.UnitClick.ATKC = null;
+        _ctx.BattleSystem.target = null;
+        _ctx.BattleSystem.AttackSide = null;
         AttackSuccess = false;
-        attackpoint.AtkpDestroy();
+        _ctx.AttackPoint.AtkpDestroy();
     }
 
     // ==== 攻撃成功時：PlayerMove へ戻る ====
     private void HandleAttackSuccess()
     {
         Reset();
-        turngenerater.ChangeState(new PlayerMove(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem,unitset
-            ));
+        _ctx.TurnGen.ChangeState(new PlayerMove(_ctx));
     }
 
     // ==== 攻撃クリック（左クリック） ====
     private void HandleAttackClick()
     {
-        if (!turngenerater.LeftClickDown) return;
+        if (!_ctx.TurnGen.LeftClickDown) return;
 
         // スキルモードで自身対象スキルの場合は即実行
         if (attackmode == PlayerMove.AttackMode.Skill
@@ -122,7 +92,7 @@ public class PlayerAttack : StateCore
             if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
             {
                 // APチェック
-                if (turngenerater.apsystem.GetAP(Team.Player) < skill.APCost)
+                if (_ctx.TurnGen.apsystem.GetAP(Team.Player) < skill.APCost)
                 {
                     ToastMessageUI.Show("AP不足：スキルを使用できません", ToastMessageUI.MessageType.Warning);
                     return;
@@ -135,22 +105,22 @@ public class PlayerAttack : StateCore
                 }
                 else
                 {
-                    turngenerater.skillsystem.ExecuteSkill(move.Obj, move.Obj, skill);
+                    _ctx.TurnGen.skillsystem.ExecuteSkill(move.Obj, move.Obj, skill);
                 }
 
-                turngenerater.apsystem.ConsumeSkill(Team.Player, skill.APCost, move.Obj);
+                _ctx.TurnGen.apsystem.ConsumeSkill(Team.Player, skill.APCost, move.Obj);
                 AttackSuccess = true;
                 return;
             }
         }
 
-        unitclick.AttackClick(battlesystem, this, attackpoint, move);
+        _ctx.UnitClick.AttackClick(_ctx.BattleSystem, this, _ctx.AttackPoint, move);
     }
 
     // ==== 自身中心の範囲スキル実行 ====
     private void ExecuteSelfAreaSkill(Status caster, SkillData skill)
     {
-        if (turngenerater.skillsystem == null) return;
+        if (_ctx.TurnGen.skillsystem == null) return;
 
         Vector3Int center = new Vector3Int(
             Mathf.RoundToInt(caster.transform.position.x),
@@ -162,7 +132,7 @@ public class PlayerAttack : StateCore
 
         // 味方ユニットを収集
         var allies = new System.Collections.Generic.List<Status>();
-        Transform parent = turngenerater.unitset.PlayerUnit;
+        Transform parent = _ctx.UnitSetting.PlayerUnit;
         foreach (Status s in parent.GetComponentsInChildren<Status>())
         {
             if (s.type != Type.Unit) continue;
@@ -179,23 +149,20 @@ public class PlayerAttack : StateCore
             foreach (Status ally in allies)
             {
                 StatusEffectSystem.ApplyBuff(ally, BuffType.Offensive);
-                // AP+2 は FactionState 経由
             }
             Debug.Log($"[SkillSystem] ラストシグナル: 範囲内味方 {allies.Count}体に攻勢付与");
         }
         else
         {
-            turngenerater.skillsystem.ExecuteAreaSupportSkill(caster, skill, allies);
+            _ctx.TurnGen.skillsystem.ExecuteAreaSupportSkill(caster, skill, allies);
         }
     }
 
     // ==== 攻撃キャンセル（右クリック）→ PlayerMove へ戻る ====
     private void HandleCancelAttack()
     {
-        if (!turngenerater.RightClickDown) return;
+        if (!_ctx.TurnGen.RightClickDown) return;
         Reset();
-        turngenerater.ChangeState(new PlayerMove(
-            turngenerater, unitclick, attackpoint, battlesystem,
-            visiongenerater, movegenerater, mapcreate, crystalsystem, unitset));
+        _ctx.TurnGen.ChangeState(new PlayerMove(_ctx));
     }
 }

@@ -81,6 +81,8 @@ public static class GameConstants
     public const int BaseMoveAPCost = 3;
     /// <summary>攻撃の基本APコスト</summary>
     public const int BaseAttackAPCost = 2;
+    /// <summary>高低差による追加AP</summary>
+    public const int HeightMoveCost = 2;
 
     // =====================================================================
     //  パッシブスキル
@@ -129,6 +131,28 @@ public static class GameConstants
     public const float CameraMoveSpeed = 10f;
     /// <summary>カメラズーム速度</summary>
     public const float CameraScrollSpeed = 5f;
+
+    // =====================================================================
+    //  初期資源（新規ゲーム開始時）
+    // =====================================================================
+    public const int InitWood     = 200;
+    public const int InitStone    = 200;
+    public const int InitWater    = 50;
+    public const int InitPlank    = 50;
+    public const int InitCutStone = 50;
+    public const int InitBread    = 100;
+    public const int InitCitizen  = 5;
+    public const int InitIron     = 30;
+    public const int InitMagicOre = 15;
+    public const int InitIronOre  = 10;
+    public const int InitCoal     = 10;
+    public const int InitialSubCrystals = 2;
+
+    // =====================================================================
+    //  テリトリー
+    // =====================================================================
+    /// <summary>テリトリータイルのYオフセット</summary>
+    public const float TerritoryYOffset = 0.475f;
 
     // =====================================================================
     //  グリッド計算ヘルパー

@@ -98,7 +98,7 @@ public class SubCrystalSystem : MonoBehaviour
 
                 // 領地タイルを生成
                 Vector3 tilePos = tPos;
-                tilePos.y -= 0.475f;
+                tilePos.y -= GameConstants.TerritoryYOffset;
                 Transform parent = team == Team.Player
                     ? territorysystem.Playerterritory
                     : territorysystem.Enemyterritory;

@@ -43,10 +43,28 @@ public class VisionGenerater : MonoBehaviour
     private Transform _playerBuildingParent;
     private Transform _enemyBuildingParent;
 
+    // ---- パフォーマンス: 視界ダーティフラグ ----
+    // 同一フレーム内で複数回 VisionPoint が呼ばれた場合、2回目以降をスキップする。
+    private int _lastVisionFrame = -1;
+
+    // ---- パフォーマンス: Fog XZ セットのキャッシュ ----
+    // VisionSetting で毎回 new HashSet を生成していたのをフィールドに保持して再利用する。
+    private readonly HashSet<Vector3Int> _cachedPlayerVisionXZ = new HashSet<Vector3Int>();
+    private readonly HashSet<Vector3Int> _cachedPlayerExploardXZ = new HashSet<Vector3Int>();
+
     public void SetBuildingParents(Transform playerParent, Transform enemyParent)
     {
         _playerBuildingParent = playerParent;
         _enemyBuildingParent = enemyParent;
+    }
+
+    /// <summary>
+    /// ダーティフラグをリセットし、次の VisionPoint 呼び出しを強制実行させる。
+    /// AI行動後など同一フレーム内で確実に視界更新が必要な場面で使用する。
+    /// </summary>
+    public void InvalidateCache()
+    {
+        _lastVisionFrame = -1;
     }
 
     int blockLayerMask;
@@ -295,6 +313,17 @@ public class VisionGenerater : MonoBehaviour
 
     public void VisionPoint(MapCreate mapcreate, MoveGererater movegenerater, CrystalSystem crystalsystem)
     {
+        if (mapcreate == null || movegenerater == null || crystalsystem == null)
+        {
+            Debug.LogError("[Vision] 視界計算に必要な参照が null です");
+            return;
+        }
+
+        // 同一フレーム内の重複呼び出しをスキップ
+        int currentFrame = Time.frameCount;
+        if (currentFrame == _lastVisionFrame) return;
+        _lastVisionFrame = currentFrame;
+
         this.mapcreate = mapcreate;
         this.movegenerater = movegenerater;
         this.crystalsystem = crystalsystem;
@@ -373,6 +402,12 @@ public class VisionGenerater : MonoBehaviour
 
     public void VisionCreate(Status status, MapCreate mapcreate, CrystalSystem crystalsystem)
     {
+        if (status == null || status.transform == null)
+        {
+            Debug.LogWarning("[Vision] VisionCreate に null の Status が渡されました");
+            return;
+        }
+
         if (!VisionDataMap.TryGetValue(status.kind, out Vector3Int[] visionData))
         {
             return;
@@ -455,18 +490,21 @@ public class VisionGenerater : MonoBehaviour
 
     public void VisionSetting(MapCreate mapcreate)
     {
-        // PlayerVisionBoxとPlayerExploardのXZ成分をとるための半変換
-        var playervisionXZ = new HashSet<Vector3Int>();
-        var playerexploardXZ = new HashSet<Vector3Int>();
+        // PlayerVisionBoxとPlayerExploardのXZ成分をとるための半変換（キャッシュ再利用）
+        _cachedPlayerVisionXZ.Clear();
+        _cachedPlayerExploardXZ.Clear();
 
         foreach (var Temporary in PlayerVisionBox)
         {
-            playervisionXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
+            _cachedPlayerVisionXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
         }
         foreach (var Temporary in PlayerExploard)
         {
-            playerexploardXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
+            _cachedPlayerExploardXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
         }
+
+        var playervisionXZ = _cachedPlayerVisionXZ;
+        var playerexploardXZ = _cachedPlayerExploardXZ;
 
         // Fog表示制御（視界外かつ未探索 → 完全な霧を表示）
         SetFogVisibility(mapcreate.FogParent, playervisionXZ, playerexploardXZ, false);

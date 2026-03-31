@@ -9,14 +9,14 @@ public class APSystem : MonoBehaviour
     static readonly Dictionary<ActionType, int> BaseCost =
         new Dictionary<ActionType, int>
         {
-            { ActionType.Move,   3 },
-            { ActionType.Attack, 2 },
+            { ActionType.Move,   GameConstants.BaseMoveAPCost },
+            { ActionType.Attack, GameConstants.BaseAttackAPCost },
         };
 
     static readonly HashSet<Kind> HeightCostExempt =
         new HashSet<Kind> { Kind.Assassin };
 
-    const int HeightCost = 2;
+    const int HeightCost = GameConstants.HeightMoveCost;
 
     // ==== GameGenerater.Awake() で初期化される ====
     private FactionState _factionState;
