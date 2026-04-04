@@ -46,13 +46,16 @@ public class AIBoardState
     public Dictionary<FacilityKind, int> EnemyBuildingCounts { get; private set; }
     public int TurnCount { get; private set; }
 
-    // ---- 索敵・Last Known Position データ ----
+    // ---- 索敵・Last Known Position データ（インスタンスフィールド化: 複数AI対応） ----
     // 最後にPlayerユニットを視認した位置とターン (key=ユニットinstanceID)
-    static Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions = new Dictionary<int, LastKnownInfo>();
+    readonly Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions;
     // 最後にPlayerクリスタルを視認した位置とターン
-    static LastKnownInfo _lastKnownPlayerCrystal = new LastKnownInfo { Position = Vector3Int.zero, Turn = -1, Valid = false };
+    LastKnownInfo _lastKnownPlayerCrystal;
     // 前ターンでPlayerが見えていたか（初接敵検知用）
-    static bool _hadVisiblePlayersLastTurn = false;
+    bool _hadVisiblePlayersLastTurn;
+
+    // 共有メモリ: 外部から注入することで試合を跨いだ蓄積も可能
+    public static Dictionary<int, LastKnownInfo> CreateSharedMemory() => new Dictionary<int, LastKnownInfo>();
     // 今ターンで初めてPlayerを視認したか
     public bool IsFirstContact { get; private set; }
 
@@ -69,9 +72,12 @@ public class AIBoardState
         CrystalSystem crystalSystem, VisionGenerater visionGen,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
         FactionState factionState = null, SubCrystalSystem subCrystalSystem = null,
-        int turnCount = 1)
+        int turnCount = 1,
+        Dictionary<int, LastKnownInfo> sharedMemory = null)
     {
         TurnCount = turnCount;
+        _lastKnownPlayerPositions = sharedMemory ?? new Dictionary<int, LastKnownInfo>();
+        _lastKnownPlayerCrystal = new LastKnownInfo { Position = Vector3Int.zero, Turn = -1, Valid = false };
         _moveGen = moveGen;
         _attackPoint = attackPoint;
         _apSystem = apSystem;

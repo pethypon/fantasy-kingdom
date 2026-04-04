@@ -125,20 +125,20 @@ public static class AIActionEvaluator
             action.Score = CalcScore(action, personality, board, learning);
         }
 
-        // ターン方針ボーナス
-        ApplyStrategyBonus(actions, strategy, board);
+        // ターン方針ボーナス（AIStrategyBonusに委譲）
+        AIStrategyBonus.Apply(actions, strategy, board);
 
         // 次ターン反撃圏ペナルティ
-        ApplyCounterDangerPenalty(actions, board, personality);
+        ApplyCounterDangerPenaltyInternal(actions, board, personality);
 
         // 撤退→回復チェーンボーナス（強化版: ヒーラー/壁/味方カバーまで見る）
-        ApplyRetreatRegroupBonus(actions, personality, board);
+        ApplyRetreatRegroupBonusInternal(actions, personality, board);
 
         // BOSS前線参加条件チェック
-        ApplyBossFrontlineConditions(actions, personality, board);
+        ApplyBossFrontlineConditionsInternal(actions, personality, board);
 
         // 経済余裕による段階的召喚ボーナス
-        ApplyGradualArmyExpansion(actions, board);
+        ApplyGradualArmyExpansionInternal(actions, board);
 
         // スコア降順
         actions.Sort((a, b) => b.Score.CompareTo(a.Score));
@@ -152,268 +152,13 @@ public static class AIActionEvaluator
     //  ターン方針ボーナス
     //  AICommander が選んだ方針に合う行動にボーナスを与える
     // ================================================================
-    static void ApplyStrategyBonus(List<AIAction> actions, TurnStrategy strategy, AIBoardState board)
-    {
-        foreach (var action in actions)
-        {
-            float bonus = 0f;
-            switch (strategy)
-            {
-                case TurnStrategy.Assault:
-                    if (action.ActionType == AIActionType.Attack) bonus += 18f;
-                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0) bonus += 15f;
-                    if (action.ActionType == AIActionType.Surround) bonus += 12f;
-                    if (action.ActionType == AIActionType.Move)
-                        bonus += GetApproachToEnemy(action, board) * 4f;
-                    if (action.ActionType == AIActionType.Retreat) bonus -= 10f;
-                    if (action.ActionType == AIActionType.Build) bonus -= 5f;
-                    break;
-
-                case TurnStrategy.CrystalDefense:
-                    if (action.ActionType == AIActionType.DefenseRepos) bonus += 22f;
-                    if (action.ActionType == AIActionType.Move && action.Unit != null)
-                    {
-                        // Scoutは防衛時でも偵察に出す（早期警戒）
-                        if (action.Unit.kind == Kind.Scout)
-                        {
-                            int scoutNewCells = board.EstimateNewVisionCells(action.TargetPos);
-                            if (scoutNewCells > 3) bonus += 15f;
-                        }
-                        else
-                        {
-                            float dist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
-                            if (dist < 4f) bonus += 18f;
-                            else if (dist < 6f) bonus += 8f;
-                        }
-                    }
-                    if (action.ActionType == AIActionType.Build && FacilityData.IsWall(action.Facility)) bonus += 15f;
-                    if (action.ActionType == AIActionType.Attack)
-                    {
-                        // クリスタル付近の敵への攻撃は加点
-                        if (action.TargetUnit != null)
-                        {
-                            float tDist = Vector3.Distance(action.TargetUnit.transform.position, board.EnemyCrystalPos);
-                            if (tDist < 5f) bonus += 15f;
-                        }
-                    }
-                    // クリスタルから離れる動きを抑制（Scoutは例外）
-                    if (action.ActionType == AIActionType.Surround || action.ActionType == AIActionType.Move)
-                    {
-                        if (action.Unit != null && action.Unit.kind != Kind.Scout)
-                        {
-                            float destDist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
-                            if (destDist > 8f) bonus -= 12f;
-                        }
-                    }
-                    break;
-
-                case TurnStrategy.RetreatRegroup:
-                    if (action.ActionType == AIActionType.Retreat) bonus += 20f;
-                    if (action.ActionType == AIActionType.Support) bonus += 15f;
-                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.FixedHeal > 0) bonus += 18f;
-                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.GrantBuff == BuffType.Defensive) bonus += 10f;
-                    if (action.ActionType == AIActionType.Attack) bonus -= 8f;
-                    if (action.ActionType == AIActionType.Surround) bonus -= 12f;
-                    break;
-
-                case TurnStrategy.EconomyBuild:
-                {
-                    int coreCount = CalcCoreEconomyCount(board);
-
-                    if (action.ActionType == AIActionType.Build)
-                    {
-                        bonus += 30f;
-                        if (coreCount < 5)
-                            bonus += IsMissingCoreFacility(action.Facility, board) ? 40f : -15f;
-
-                        // ★ 生産チェーン逆算: 不足資源を生む施設を強く加点
-                        var deficits = board.DiagnoseProductionChainDeficit();
-                        for (int i = 0; i < deficits.Count; i++)
-                        {
-                            if (deficits[i] == action.Facility)
-                            {
-                                // リスト先頭ほど優先度が高い
-                                bonus += Mathf.Max(5f, 50f - i * 10f);
-                                break;
-                            }
-                        }
-                    }
-                    if (action.ActionType == AIActionType.SubCrystal) bonus += 15f;
-                    if (action.ActionType == AIActionType.Summon)
-                    {
-                        bool hasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
-                        bonus += (coreCount >= 5 && hasBakery) ? 10f : -40f;
-                    }
-                    if (action.ActionType == AIActionType.Attack)   bonus -= 10f;
-                    if (action.ActionType == AIActionType.Move)     bonus -= 8f;
-                    if (action.ActionType == AIActionType.Surround) bonus -= 8f;
-                    if (action.ActionType == AIActionType.Retreat)  bonus -= 5f;
-                    break;
-                }
-
-                case TurnStrategy.Balanced:
-                {
-                    int coreEconCount = CalcCoreEconomyCount(board);
-                    bool econEstablished = coreEconCount >= 5;
-
-                    if (action.ActionType == AIActionType.Summon)
-                    {
-                        bool hasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
-                        bonus += (econEstablished && hasBakery) ? 20f : -30f;
-                    }
-                    if (action.ActionType == AIActionType.Build)
-                    {
-                        // 経済未成熟時は建築を強く推奨
-                        if (!econEstablished)
-                        {
-                            bonus += 35f;
-                            if (IsMissingCoreFacility(action.Facility, board))
-                                bonus += 25f;
-                            // 加工施設不足ボーナス
-                            if (IsProcessingFacility(action.Facility) &&
-                                board.GetBuildingCount(action.Facility) == 0)
-                                bonus += 20f;
-                        }
-                        else
-                        {
-                            bonus += 8f;
-                        }
-
-                        // ★ 生産チェーン逆算ボーナス（Balancedでも適用）
-                        var deficits = board.DiagnoseProductionChainDeficit();
-                        for (int i = 0; i < deficits.Count; i++)
-                        {
-                            if (deficits[i] == action.Facility)
-                            {
-                                bonus += Mathf.Max(5f, 35f - i * 8f);
-                                break;
-                            }
-                        }
-                    }
-                    if (action.ActionType == AIActionType.Attack)   bonus += 8f;
-                    if (action.ActionType == AIActionType.SkillUse) bonus += 5f;
-                    if (action.ActionType == AIActionType.Move)
-                    {
-                        // 経済未成熟時は移動ボーナスを抑制
-                        float moveBonus = GetApproachToEnemy(action, board) * 3f;
-                        if (!econEstablished) moveBonus *= 0.5f;
-                        bonus += moveBonus;
-                    }
-                    break;
-                }
-
-                case TurnStrategy.ScoutSearch:
-                {
-                    // 索敵戦略: 偵察・未探索展開を最優先
-                    if (action.ActionType == AIActionType.Move && action.Unit != null)
-                    {
-                        int newCells = board.EstimateNewVisionCells(action.TargetPos);
-                        if (newCells > 0)
-                            bonus += Mathf.Min(newCells * 4f, 35f);
-
-                        // Scoutは特に強い索敵ボーナス
-                        if (action.Unit.kind == Kind.Scout)
-                            bonus += 20f;
-
-                        // 味方連携維持
-                        float allyDist = GetNearestAllyDist(action.TargetPos, action.Unit, board);
-                        if (allyDist >= 2f && allyDist <= 5f)
-                            bonus += 8f;
-                        else if (allyDist > 7f)
-                            bonus -= 10f;
-                    }
-                    // 索敵中は攻撃・スキルが発生したら優先（見つけた敵を逃さない）
-                    if (action.ActionType == AIActionType.Attack) bonus += 12f;
-                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0) bonus += 10f;
-                    // 建築は索敵中でも維持（経済が弱い時はむしろ推奨）
-                    if (action.ActionType == AIActionType.Build)
-                    {
-                        int econCount = CalcCoreEconomyCount(board);
-                        bonus += econCount < 5 ? 10f : -5f;
-                    }
-                    // Waitを強く減点
-                    if (action.ActionType == AIActionType.Wait) bonus -= 15f;
-                    break;
-                }
-
-                case TurnStrategy.ContactEngage:
-                {
-                    // 初接敵戦略: 攻撃・スキル・交戦前進を最優先
-                    if (action.ActionType == AIActionType.Attack) bonus += 25f;
-                    if (action.ActionType == AIActionType.SkillUse && action.Skill != null)
-                    {
-                        if (action.Skill.Multiplier > 0)
-                            bonus += 22f; // 攻撃スキル
-                        // 範囲攻撃で複数巻き込み
-                        if (action.AreaTargets != null && action.AreaTargets.Count > 1)
-                            bonus += action.AreaTargets.Count * 8f;
-                    }
-                    if (action.ActionType == AIActionType.Move)
-                    {
-                        // 次ターン攻撃可能になる位置を強く加点
-                        float approach = GetApproachToEnemy(action, board);
-                        bonus += approach * 6f;
-
-                        // 次ターン攻撃圏内に入れる位置を高評価
-                        float nearestEnemy = GetNearestPlayerDist(action.TargetPos, board);
-                        if (nearestEnemy <= 2f)
-                            bonus += 15f;
-                        else if (nearestEnemy <= 3.5f)
-                            bonus += 8f;
-                    }
-                    if (action.ActionType == AIActionType.Surround) bonus += 18f;
-                    // Waitを非常に強く減点
-                    if (action.ActionType == AIActionType.Wait) bonus -= 25f;
-                    if (action.ActionType == AIActionType.Retreat) bonus -= 12f;
-                    if (action.ActionType == AIActionType.Build) bonus -= 10f;
-                    break;
-                }
-            }
-            action.Score += bonus;
-
-            // ================================================================
-            //  ★★ 30ターン以降: 戦略に関係なく建築を超優先
-            //  経済が未成熟なまま30ターン経過=深刻な問題
-            //  移動アクションを大幅に減点し、建築が確実に選ばれるようにする
-            // ================================================================
-            if (board.TurnCount >= TurnLateBuildBoost)
-            {
-                int coreEcon = CalcCoreEconomyCount(board);
-                bool econWeak = coreEcon < 5;
-
-                if (econWeak)
-                {
-                    // 建築系アクションは大幅加点
-                    if (action.ActionType == AIActionType.Build)
-                        action.Score += 100f;
-                    if (action.ActionType == AIActionType.SubCrystal)
-                        action.Score += 60f;
-
-                    // 移動系アクションは大幅減点（建築にAPを回す）
-                    if (action.ActionType == AIActionType.Move
-                        || action.ActionType == AIActionType.Support
-                        || action.ActionType == AIActionType.Surround)
-                        action.Score -= 50f;
-                    if (action.ActionType == AIActionType.Wait)
-                        action.Score -= 100f;
-                }
-                else
-                {
-                    // 経済は充足しているが、上位施設がない場合は建築推奨
-                    int proc = CalcProcessingFacilityCount(board);
-                    if (proc < 3 && action.ActionType == AIActionType.Build)
-                        action.Score += 50f;
-                }
-            }
-        }
-    }
 
     // ================================================================
     //  次ターン反撃圏ペナルティ
     //  行動後の位置でプレイヤーに狙われやすいかを評価し減点
     //  中核ユニット・ヒーラー・BOSS護衛・召喚直後は死亡リスクを重く見る
     // ================================================================
-    static void ApplyCounterDangerPenalty(List<AIAction> actions, AIBoardState board, AIPersonality personality)
+    public static void ApplyCounterDangerPenaltyInternal(List<AIAction> actions, AIBoardState board, AIPersonality personality)
     {
         foreach (var action in actions)
         {
@@ -495,7 +240,7 @@ public static class AIActionEvaluator
     //  撤退→再編チェーンボーナス（強化版）
     //  撤退先で: ヒーラー圏内 / 壁の後ろ / 味方がカバー / 次ターン反撃位置
     // ================================================================
-    static void ApplyRetreatRegroupBonus(List<AIAction> actions, AIPersonality p, AIBoardState board)
+    public static void ApplyRetreatRegroupBonusInternal(List<AIAction> actions, AIPersonality p, AIBoardState board)
     {
         float chainMultiplier = 1f;
         if (p.ShouldApplyMajorBonus && p.Major == MajorPersonality.Intellect)
@@ -548,7 +293,7 @@ public static class AIActionEvaluator
     //  BOSS前線参加条件
     //  ただ前に出るだけでなく、価値がある時だけ前進させる
     // ================================================================
-    static void ApplyBossFrontlineConditions(List<AIAction> actions, AIPersonality p, AIBoardState board)
+    public static void ApplyBossFrontlineConditionsInternal(List<AIAction> actions, AIPersonality p, AIBoardState board)
     {
         if (!p.HasBoss) return;
         var boss = p.BossUnit;
@@ -631,7 +376,7 @@ public static class AIActionEvaluator
     //  経済余裕による段階的軍拡
     //  資源に余裕が出てきて維持費も払えるなら少しずつ駒を増やす
     // ================================================================
-    static void ApplyGradualArmyExpansion(List<AIAction> actions, AIBoardState board)
+    public static void ApplyGradualArmyExpansionInternal(List<AIAction> actions, AIBoardState board)
     {
         int allyCount = board.AliveEnemyUnits.Count;
         float surplus = board.GetEconomicSurplus();
@@ -1694,84 +1439,16 @@ public static class AIActionEvaluator
     //  ヘルパー
     // ================================================================
     static int EstimateDamage(Status attacker, Status defender)
-    {
-        int atk = attacker.ATK;
-        int def = defender.DEF;
-        return Mathf.Max(0, 1 + (atk / 6) + ((atk / 2) - (def / 4)));
-    }
+        => AIEvalHelpers.EstimateDamage(attacker, defender);
 
     static float GetApproachToEnemy(AIAction action, AIBoardState board)
-    {
-        if (action.Unit == null) return 0f;
-        Vector3 from = action.Unit.transform.position;
-        Vector3 to = action.TargetPos;
-
-        // ★ 視界内の敵がいれば、最寄りの敵への接近度を使う
-        if (board.AlivePlayerUnits.Count > 0)
-        {
-            float bestApproach = 0f;
-            foreach (var pu in board.AlivePlayerUnits)
-            {
-                if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-                float dBefore = Vector3.Distance(from, pu.transform.position);
-                float dAfter = Vector3.Distance(to, pu.transform.position);
-                float a = dBefore - dAfter;
-                if (a > bestApproach) bestApproach = a;
-            }
-            return bestApproach;
-        }
-
-        // ★ Playerクリスタル未視認時は直接接近を使わない
-        if (!board.CanUsePlayerCrystalAsTarget())
-        {
-            // Last Known Position があれば軽い接近評価
-            var lkCrystal = board.GetLastKnownPlayerCrystal();
-            if (lkCrystal.Valid)
-            {
-                int age = board.TurnCount - lkCrystal.Turn;
-                float reliability = Mathf.Clamp01(1f - age * 0.15f);
-                if (reliability > 0.1f)
-                {
-                    Vector3 lkPos = new Vector3(lkCrystal.Position.x, 0, lkCrystal.Position.z);
-                    float dBefore = Vector3.Distance(from, lkPos);
-                    float dAfter = Vector3.Distance(to, lkPos);
-                    return (dBefore - dAfter) * reliability * 0.5f;
-                }
-            }
-            return 0f; // 情報なし = 接近評価なし
-        }
-
-        // Playerクリスタル視認済みの場合のみ従来のロジック
-        float distBefore = Vector3.Distance(from, board.PlayerCrystalPos);
-        float distAfter = Vector3.Distance(to, board.PlayerCrystalPos);
-        return distBefore - distAfter;
-    }
+        => AIEvalHelpers.GetApproachToEnemy(action, board);
 
     static float GetNearestPlayerDist(Vector3 pos, AIBoardState board)
-    {
-        float nearest = float.MaxValue;
-        foreach (var pu in board.AlivePlayerUnits)
-        {
-            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-            float d = Vector3.Distance(pos, pu.transform.position);
-            if (d < nearest) nearest = d;
-        }
-        return nearest;
-    }
+        => AIEvalHelpers.GetNearestPlayerDist(pos, board);
 
     static float GetNearestAllyDist(Vector3 pos, Status self, AIBoardState board)
-    {
-        float nearest = float.MaxValue;
-        if (self == null) return nearest;
-        foreach (var au in board.AliveEnemyUnits)
-        {
-            if (au == null || !au.gameObject.activeInHierarchy) continue;
-            if (au == self) continue;
-            float d = Vector3.Distance(pos, au.transform.position);
-            if (d < nearest) nearest = d;
-        }
-        return nearest;
-    }
+        => AIEvalHelpers.GetNearestAllyDist(pos, self, board);
 
     /// <summary>
     /// 退路安全性評価: 撤退先からさらに移動可能なマスのうち
@@ -1850,4 +1527,5 @@ public static class AIActionEvaluator
     /// <summary>建築アクション用のスコアを計算する</summary>
     public static float CalcBuildScorePublic(AIAction action, AIPersonality p, AIBoardState board, AILearning learning)
         => CalcScore(action, p, board, learning);
+
 }
