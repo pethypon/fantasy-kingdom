@@ -1,14 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class UnitClick : MonoBehaviour
 {
     [SerializeField] private PlayerMove playermove;
-    [SerializeField] private TurnGenerater turngenerater;
+    [FormerlySerializedAs("turngenerater")]
+    [SerializeField] private TurnGenerator turnGenerator;
     [SerializeField] private PlayerAttack playerattack;
     [SerializeField] private BattleSystem battlesystem;
-    [SerializeField] private AttackPointt attackpoint;
+    [FormerlySerializedAs("attackpoint")]
+    [SerializeField] private AttackGenerator attackGenerator;
     public Status ATKC;
 
     public RaycastHit attackhit;
@@ -21,11 +24,11 @@ public class UnitClick : MonoBehaviour
         MovePointLayerMask = 1 << LayerMask.NameToLayer("MovePoint");
     }
 
-    public void UC(PlayerMove playermove, TurnGenerater turngenerater, AttackPointt attackpoint)
+    public void UC(PlayerMove playermove, TurnGenerator turnGenerator, AttackGenerator attackGenerator)
     {
         this.playermove = playermove;
-        this.turngenerater = turngenerater;
-        this.attackpoint = attackpoint;
+        this.turnGenerator = turnGenerator;
+        this.attackGenerator = attackGenerator;
     }
 
     // ---- 左クリック：プレイヤーユニットまたは建築物選択 ----
@@ -43,8 +46,8 @@ public class UnitClick : MonoBehaviour
         // 敵ユニット/建築物をクリック → 情報パネルのみ表示（操作不可）
         if (playermove.Obj.team == Team.Enemy)
         {
-            if (turngenerater.unitPanelUI != null)
-                turngenerater.unitPanelUI.Show(playermove.Obj);
+            if (turnGenerator.unitPanelUI != null)
+                turnGenerator.unitPanelUI.Show(playermove.Obj);
             playermove.Obj = null; // 選択状態にはしない
             return;
         }
@@ -54,9 +57,9 @@ public class UnitClick : MonoBehaviour
         // 建築物・壁クリック（移動ポイントは生成しない）
         if (playermove.Obj.type == Type.Building || playermove.Obj.type == Type.Wall)
         {
-            turngenerater.SelectUnit = playermove.Obj;
-            if (turngenerater.unitPanelUI != null)
-                turngenerater.unitPanelUI.Show(playermove.Obj);
+            turnGenerator.SelectUnit = playermove.Obj;
+            if (turnGenerator.unitPanelUI != null)
+                turnGenerator.unitPanelUI.Show(playermove.Obj);
             Debug.Log("<color=#00ff00ff>[Controller]</color> 建築物選択");
             return;
         }
@@ -70,13 +73,13 @@ public class UnitClick : MonoBehaviour
             return;
         }
 
-        turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
-        turngenerater.SelectUnit = playermove.Obj;
-        turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
+        turnGenerator.moveGenerator.MoveCore(playermove.Obj, playermove.ObjP);
+        turnGenerator.SelectUnit = playermove.Obj;
+        turnGenerator.OldCell = turnGenerator.SelectUnit.transform.position;
         playermove.MenuSwitch = true;
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Show(playermove.Obj);
+        if (turnGenerator.unitPanelUI != null)
+            turnGenerator.unitPanelUI.Show(playermove.Obj);
 
         // ユニット選択成功
     }
@@ -112,24 +115,24 @@ public class UnitClick : MonoBehaviour
     public void AttackClick(
         BattleSystem battlesystem,
         PlayerAttack playerattack,
-        AttackPointt attackpoint,
+        AttackGenerator attackGenerator,
         PlayerMove playermove)
     {
         this.playermove = playermove;
         this.battlesystem = battlesystem;
         this.playerattack = playerattack;
-        this.attackpoint = attackpoint;
+        this.attackGenerator = attackGenerator;
 
         if (!TryGetMouseRay(out Ray ray)) return;
         if (!Physics.Raycast(ray, out attackhit, RayDistance)) return;
-        if (attackpoint.AttackP == null) return;
+        if (attackGenerator.AttackP == null) return;
 
         // スキルモード判定
         bool isSkillMode = playerattack.attackmode == PlayerMove.AttackMode.Skill
             && playermove.Obj != null
             && playermove.Obj.AssignedSkillId >= 0
             && SkillData.Table.ContainsKey(playermove.Obj.AssignedSkillId)
-            && turngenerater.skillsystem != null;
+            && turnGenerator.skillsystem != null;
 
         if (isSkillMode)
         {
@@ -148,10 +151,10 @@ public class UnitClick : MonoBehaviour
         if (ATKC.team != Team.Enemy || ATKC.type != Type.Unit) return;
 
         Vector3 attackSame = ATKC.transform.position;
-        bool isInRange = IsInAttackRange(attackpoint.AttackP, attackSame);
+        bool isInRange = IsInAttackRange(attackGenerator.AttackP, attackSame);
         if (!isInRange) return;
 
-        if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
+        if (!turnGenerator.apsystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.Obj))
         {
             ToastMessageUI.Show("AP不足：攻撃できません", ToastMessageUI.MessageType.Warning);
             return;
@@ -160,10 +163,10 @@ public class UnitClick : MonoBehaviour
         battlesystem.target = ATKC;
         playermove.MenuSwitch = false;
         int hpBefore = ATKC.HP;
-        battlesystem.DamageGenerater(turngenerater);
+        battlesystem.DamageGenerater(turnGenerator);
         int dmgDealt = hpBefore - ATKC.HP;
         ActionLogUI.LogAttack(KindNameJP.Get(playermove.Obj.kind), KindNameJP.Get(ATKC.kind), dmgDealt, ATKC.HP <= 0);
-        turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
+        turnGenerator.apsystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.Obj);
         playerattack.AttackSuccess = true;
     }
 
@@ -173,7 +176,7 @@ public class UnitClick : MonoBehaviour
         SkillData skill = SkillData.Table[playermove.Obj.AssignedSkillId];
 
         // APチェック
-        if (!turngenerater.apsystem.CanUseSkill(Team.Player, skill.APCost))
+        if (!turnGenerator.apsystem.CanUseSkill(Team.Player, skill.APCost))
         {
             ToastMessageUI.Show("AP不足：スキルを使用できません", ToastMessageUI.MessageType.Warning);
             return;
@@ -184,7 +187,7 @@ public class UnitClick : MonoBehaviour
         Vector3 clickPos = hit.transform.position;
 
         // 攻撃ポイント範囲内チェック
-        bool isInRange = IsInAttackRangeRounded(attackpoint.AttackP, clickPos);
+        bool isInRange = IsInAttackRangeRounded(attackGenerator.AttackP, clickPos);
         if (!isInRange) return;
 
         switch (skill.Target)
@@ -192,7 +195,7 @@ public class UnitClick : MonoBehaviour
             case SkillTarget.EnemySingle:
                 if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
                 ATKC = clickTarget;
-                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                turnGenerator.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
                 break;
 
             case SkillTarget.EnemyOrBuilding:
@@ -200,13 +203,13 @@ public class UnitClick : MonoBehaviour
                 if (clickTarget.team != Team.Enemy) return;
                 if (clickTarget.type != Type.Unit && clickTarget.type != Type.Building) return;
                 ATKC = clickTarget;
-                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                turnGenerator.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
                 break;
 
             case SkillTarget.AllySingle:
                 if (clickTarget == null || clickTarget.team != Team.Player || clickTarget.type != Type.Unit) return;
                 ATKC = clickTarget;
-                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                turnGenerator.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
                 break;
 
             case SkillTarget.LowHPEnemy:
@@ -217,13 +220,13 @@ public class UnitClick : MonoBehaviour
                     return;
                 }
                 ATKC = clickTarget;
-                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                turnGenerator.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
                 break;
 
             case SkillTarget.FlyingEnemy:
                 if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
                 ATKC = clickTarget;
-                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                turnGenerator.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
                 break;
 
             case SkillTarget.DesignatedTile:
@@ -232,7 +235,7 @@ public class UnitClick : MonoBehaviour
                     Vector3Int center = new Vector3Int(
                         Mathf.RoundToInt(clickPos.x), 0, Mathf.RoundToInt(clickPos.z));
                     List<Status> targets = FindEnemiesInSkillArea(skill, center, playermove.Obj.direction);
-                    turngenerater.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
+                    turnGenerator.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
                 }
                 break;
 
@@ -242,7 +245,7 @@ public class UnitClick : MonoBehaviour
                     Vector3Int center = new Vector3Int(
                         Mathf.RoundToInt(clickPos.x), 0, Mathf.RoundToInt(clickPos.z));
                     List<Status> targets = FindEnemiesInSkillArea(skill, center, playermove.Obj.direction);
-                    turngenerater.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
+                    turnGenerator.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
                 }
                 break;
 
@@ -253,26 +256,26 @@ public class UnitClick : MonoBehaviour
                     Vector3Int lineOrigin = new Vector3Int(
                         Mathf.RoundToInt(playermove.ObjP.x), 0, Mathf.RoundToInt(playermove.ObjP.z));
                     List<Status> targets = FindEnemiesInSkillArea(skill, lineOrigin, playermove.Obj.direction);
-                    turngenerater.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
+                    turnGenerator.skillsystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
                 }
                 break;
 
             default:
                 if (clickTarget == null || clickTarget.team != Team.Enemy) return;
                 ATKC = clickTarget;
-                turngenerater.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
+                turnGenerator.skillsystem.ExecuteSkill(playermove.Obj, ATKC, skill);
                 break;
         }
 
         playermove.MenuSwitch = false;
-        turngenerater.apsystem.ConsumeSkill(Team.Player, skill.APCost, playermove.Obj);
+        turnGenerator.apsystem.ConsumeSkill(Team.Player, skill.APCost, playermove.Obj);
         playerattack.AttackSuccess = true;
 
         // ---- ML観測: プレイヤーのスキル使用をMLシステムに記録 ----
-        if (turngenerater.aiCommander != null)
+        if (turnGenerator.aiCommander != null)
         {
-            turngenerater.aiCommander.MLIntegration.ObservePlayerSkill(
-                playermove.Obj, turngenerater.Turn);
+            turnGenerator.aiCommander.MLIntegration.ObservePlayerSkill(
+                playermove.Obj, turnGenerator.Turn);
         }
     }
 
@@ -286,7 +289,7 @@ public class UnitClick : MonoBehaviour
         var posSet = new HashSet<Vector3Int>(positions);
         var targets = new List<Status>();
 
-        Transform enemyParent = turngenerater.unitset.EnemyUnit;
+        Transform enemyParent = turnGenerator.unitset.EnemyUnit;
         if (enemyParent == null) return targets;
 
         foreach (Status s in enemyParent.GetComponentsInChildren<Status>())
@@ -314,74 +317,74 @@ public class UnitClick : MonoBehaviour
             return;
         }
 
-        Vector3 from = turngenerater.OldCell;           // 移動元（選択時に記録済み）
+        Vector3 from = turnGenerator.OldCell;           // 移動元（選択時に記録済み）
         Vector3 to = playermove.hit.transform.position;
         to.y += GameConstants.MovePointYOffset;           // MovePoint の Y オフセットを戻す
 
         // ---- APチェック ----
-        if (!turngenerater.apsystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to))
+        if (!turnGenerator.apsystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to))
         {
             ToastMessageUI.Show("AP不足：移動できません", ToastMessageUI.MessageType.Warning);
             return;
         }
 
         // ---- 移動確定 ----
-        Status movedUnit = turngenerater.SelectUnit;
+        Status movedUnit = turnGenerator.SelectUnit;
 
         // ---- Undo用に移動コストを事前計算・記録 ----
-        int moveCost = turngenerater.apsystem.CalcCost(APSystem.ActionType.Move, playermove.Obj, from, to);
-        if (turngenerater.moveUndoSystem != null)
-            turngenerater.moveUndoSystem.Record(movedUnit, from, to, moveCost);
+        int moveCost = turnGenerator.apsystem.CalcCost(APSystem.ActionType.Move, playermove.Obj, from, to);
+        if (turnGenerator.moveUndoSystem != null)
+            turnGenerator.moveUndoSystem.Record(movedUnit, from, to, moveCost);
 
-        turngenerater.SelectUnit.transform.position = to;
-        turngenerater.NewCell = turngenerater.SelectUnit.transform.position;
-        turngenerater.movegenerater.MoveUpdate(turngenerater.OldCell, turngenerater.NewCell);
-        turngenerater.movegenerater.MoveReset();
+        turnGenerator.SelectUnit.transform.position = to;
+        turnGenerator.NewCell = turnGenerator.SelectUnit.transform.position;
+        turnGenerator.moveGenerator.MoveUpdate(turnGenerator.OldCell, turnGenerator.NewCell);
+        turnGenerator.moveGenerator.MoveReset();
 
         // Special Ability: 移動フラグセット（迅速体勢・集中維持・鉄壁歩法で使用）
         movedUnit.HasMovedThisTurn = true;
 
         // ---- AP消費（移動コスト） ----
-        turngenerater.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
+        turnGenerator.apsystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.Obj, from, to);
 
         // ---- アクションログ ----
         ActionLogUI.LogMove(KindNameJP.Get(movedUnit.kind), from, to);
 
         // ---- ML観測: プレイヤーの移動をMLシステムに記録 ----
-        if (turngenerater.aiCommander != null)
+        if (turnGenerator.aiCommander != null)
         {
-            var ml = turngenerater.aiCommander.MLIntegration;
-            Vector3 ecPos = turngenerater.crystalsystem.ECP;
-            ml.ObservePlayerMove(movedUnit, from, to, ecPos, turngenerater.Turn);
+            var ml = turnGenerator.aiCommander.MLIntegration;
+            Vector3 ecPos = turnGenerator.crystalsystem.ECP;
+            ml.ObservePlayerMove(movedUnit, from, to, ecPos, turnGenerator.Turn);
         }
 
         // 移動後もユニットを選択状態に保持（攻撃など連続行動を可能に）
-        turngenerater.OldCell = to;
+        turnGenerator.OldCell = to;
         playermove.MP = null;
         playermove.ObjP = to;
         playermove.MenuSwitch = true;
 
         // 移動後の位置で移動範囲を再表示
-        turngenerater.movegenerater.MoveCore(movedUnit, to);
+        turnGenerator.moveGenerator.MoveCore(movedUnit, to);
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Refresh();
+        if (turnGenerator.unitPanelUI != null)
+            turnGenerator.unitPanelUI.Refresh();
     }
 
     // ---- プレイヤーユニット再選択時の処理 ----
     private void HandlePlayerUnitReselect()
     {
-        turngenerater.movegenerater.MoveReset();
+        turnGenerator.moveGenerator.MoveReset();
         playermove.Obj = playermove.hit.transform.GetComponent<Status>();
         playermove.ObjP = playermove.hit.transform.position;
-        turngenerater.movegenerater.MoveCore(playermove.Obj, playermove.ObjP);
-        turngenerater.SelectUnit = playermove.Obj;
-        turngenerater.movegenerater.UnitPointData.Remove(
-            turngenerater.movegenerater.Cell(turngenerater.OldCell));
-        turngenerater.OldCell = turngenerater.SelectUnit.transform.position;
+        turnGenerator.moveGenerator.MoveCore(playermove.Obj, playermove.ObjP);
+        turnGenerator.SelectUnit = playermove.Obj;
+        turnGenerator.moveGenerator.UnitPointData.Remove(
+            turnGenerator.moveGenerator.Cell(turnGenerator.OldCell));
+        turnGenerator.OldCell = turnGenerator.SelectUnit.transform.position;
 
-        if (turngenerater.unitPanelUI != null)
-            turngenerater.unitPanelUI.Show(playermove.Obj);
+        if (turnGenerator.unitPanelUI != null)
+            turnGenerator.unitPanelUI.Show(playermove.Obj);
 
         // ユニット選択成功
     }

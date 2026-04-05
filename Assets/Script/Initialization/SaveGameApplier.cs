@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// セーブデータの適用（ユニット復元・資源復元・タイマー復元等）を担当する。
-/// GameGerater の ApplyLoadData() から分離された単一責任クラス。
+/// GameGenerator の ApplyLoadData() から分離された単一責任クラス。
 /// </summary>
 public static class SaveGameApplier
 {
@@ -11,12 +11,12 @@ public static class SaveGameApplier
     public static void Apply(
         SaveSystem.GameSaveData data,
         FactionState factionState,
-        TurnGenerater turnGen,
+        TurnGenerator turnGen,
         UnitSetting unitSetting,
         CrystalSystem crystalSystem,
         BuildSystem buildSystem,
-        MoveGererater moveGenerator,
-        VisionGenerater visionGenerator,
+        MoveGenerator moveGenerator,
+        VisionGenerator visionGenerator,
         MapCreate mapCreate)
     {
         if (data == null)

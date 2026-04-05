@@ -25,7 +25,7 @@ PR #36〜#86の約50個のPRを通じて、以下の主要機能が構築され�
 - 状態異常システムもモジュラー設計で追加・変更が容易
 
 ### 2. 既存コードへの適応力
-- `GameGerater`、`MoveGererater`、`AttackPointt`などの意図的タイポを壊さずに作業
+- `GameGenerator`、`MoveGenerator`、`AttackGenerator`などの意図的タイポを壊さずに作業
 - 既存のコンストラクタインジェクションパターンやStateCore状態マシンに従って拡張
 - 日本語コミットメッセージで開発者と同じ言語で作業
 
@@ -57,7 +57,7 @@ PR #36〜#86の約50個のPRを通じて、以下の主要機能が構築され�
 - `ApplyStrategyBonus()`が140行超、`ExecuteTurn()`が150行超
 
 ### 4. 潜在的なバグ
-- `AIBoardState.FilterByEnemyVision()`: VisionGeneraterがnullの場合、全プレイヤーユニットが見える（視界制限が無効化）
+- `AIBoardState.FilterByEnemyVision()`: VisionGeneratorがnullの場合、全プレイヤーユニットが見える（視界制限が無効化）
 - `GetResourceScarcity()`: 資源量が増えるとscarcityが増える逆転ロジックの可能性
 - 死亡ユニットの振動履歴が掃除されずメモリに残る
 

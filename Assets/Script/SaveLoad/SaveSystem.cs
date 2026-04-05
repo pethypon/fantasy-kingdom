@@ -374,10 +374,10 @@ public static class SaveSystem
 
     /// <summary>現在のゲーム状態をセーブデータに変換</summary>
     public static GameSaveData CollectGameState(
-        TurnGenerater turnGen,
+        TurnGenerator turnGen,
         FactionState factionState,
         TimerSystem timerSystem = null,
-        VisionGenerater visionGen = null,
+        VisionGenerator visionGen = null,
         AICommander aiCommander = null)
     {
         var data = new GameSaveData
@@ -533,7 +533,7 @@ public static class SaveSystem
     //  霧の戦争収集
     // ================================================================
 
-    static void CollectFog(FogSaveData dst, VisionGenerater visionGen)
+    static void CollectFog(FogSaveData dst, VisionGenerator visionGen)
     {
         if (visionGen.PlayerExploard != null)
             foreach (var cell in visionGen.PlayerExploard)
@@ -667,7 +667,7 @@ public static class SaveSystem
     //  霧の戦争復元
     // ================================================================
 
-    public static void RestoreFog(FogSaveData src, VisionGenerater visionGen)
+    public static void RestoreFog(FogSaveData src, VisionGenerator visionGen)
     {
         if (src == null || visionGen == null) return;
 

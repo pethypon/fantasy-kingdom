@@ -337,7 +337,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7089459674278792063, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       propertyPath: m_Name
-      value: GameGenerater
+      value: GameGenerator
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

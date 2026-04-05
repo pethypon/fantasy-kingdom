@@ -1,6 +1,6 @@
 /// <summary>
 /// ターン状態マシンの状態インターフェース。
-/// 各状態は TurnGenerater から GameSystems / GameContext にアクセスする。
+/// 各状態は TurnGenerator から GameSystems / GameContext にアクセスする。
 ///
 /// ステート遷移:
 ///   PlayerStart → PlayerMove → PlayerAttack → PlayerMove
@@ -20,17 +20,17 @@ public interface StateCore
 }
 
 /// <summary>
-/// TurnGenerater への参照を保持するステート基底クラス。
+/// TurnGenerator への参照を保持するステート基底クラス。
 /// 各ステートはこのクラスを継承して GameSystems / GameContext に
-/// 簡潔にアクセスできる。コンストラクタは TurnGenerater のみ。
+/// 簡潔にアクセスできる。コンストラクタは TurnGenerator のみ。
 /// </summary>
 public abstract class TurnState : StateCore
 {
-    protected readonly TurnGenerater Turn;
+    protected readonly TurnGenerator Turn;
     protected GameSystems Systems => Turn.Systems;
     protected GameContext Context => Turn.Context;
 
-    protected TurnState(TurnGenerater turn)
+    protected TurnState(TurnGenerator turn)
     {
         Turn = turn;
     }

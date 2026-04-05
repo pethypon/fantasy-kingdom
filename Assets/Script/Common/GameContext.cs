@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// ゲームの選択状態・ターン情報を管理する。
-/// TurnGenerater の散在した状態フィールドを集約し、状態管理を明確化する。
+/// TurnGenerator の散在した状態フィールドを集約し、状態管理を明確化する。
 /// </summary>
 public class GameContext
 {

@@ -14,7 +14,7 @@ public class TurnAPIndicatorUI : MonoBehaviour
     private TextMeshProUGUI _phaseText;
     private Image _phaseBg;
 
-    private TurnGenerater _turn;
+    private TurnGenerator _turn;
     private APSystem _ap;
 
     private int _lastTurn = -1;
@@ -28,7 +28,7 @@ public class TurnAPIndicatorUI : MonoBehaviour
         BuildUI();
     }
 
-    public void Init(TurnGenerater turn, APSystem ap)
+    public void Init(TurnGenerator turn, APSystem ap)
     {
         _turn = turn;
         _ap = ap;

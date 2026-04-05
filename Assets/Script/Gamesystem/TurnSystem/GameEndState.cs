@@ -7,7 +7,7 @@ public class GameEndState : TurnState
 {
     private GameResult _result;
 
-    public GameEndState(TurnGenerater turn, GameResult result) : base(turn)
+    public GameEndState(TurnGenerator turn, GameResult result) : base(turn)
     {
         _result = result;
     }
@@ -24,7 +24,7 @@ public class GameEndState : TurnState
             Systems.InputHintUI.SetHints(InputHintUI.Hints.GameEnd);
 
         Systems.MoveGenerator.MoveReset();
-        Systems.AttackPoint.AtkpDestroy();
+        Systems.AttackGenerator.AtkpDestroy();
 
         UpdateThreatLevel();
         BuildGameEndUI();

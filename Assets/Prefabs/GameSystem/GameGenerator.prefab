@@ -964,7 +964,7 @@ GameObject:
   - component: {fileID: 1475051387577852325}
   - component: {fileID: 3602693625135808231}
   m_Layer: 0
-  m_Name: VisionGenerater
+  m_Name: VisionGenerator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1322,7 +1322,7 @@ GameObject:
   - component: {fileID: 4499551948389444497}
   - component: {fileID: 1447019358899514485}
   m_Layer: 0
-  m_Name: GameGenerater 1
+  m_Name: GameGenerator 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1364,14 +1364,14 @@ MonoBehaviour:
   _TerritorySystem: {fileID: 2062607336267636952}
   _UnitSetting: {fileID: 2016138472223423674}
   _MoveGenerater: {fileID: 8578343405585137304}
-  _VisionGenerater: {fileID: 3602693625135808231}
+  _VisionGenerator: {fileID: 3602693625135808231}
   _APSystem: {fileID: 7645234116136393639}
   _BuildSystem: {fileID: 6024509996401371809}
   _SummonSystem: {fileID: 7352426302764300076}
   _EconomySystem: {fileID: 8487786860940740289}
   _BuildingAttackSystem: {fileID: 8305594928923662664}
   _SubCrystalSystem: {fileID: 5290239381159056479}
-  _TurnGenerater: {fileID: 894480253581181924}
+  _TurnGenerator: {fileID: 894480253581181924}
   _SkillSystem: {fileID: 7962283582702066516}
   _APPanelUI: {fileID: 0}
   _ResourceBarUI: {fileID: 0}

@@ -29,11 +29,11 @@ public class PlayerMove : TurnState
     private int unitCycleIndex = -1;
     private string _lastHintKey = "";
 
-    public PlayerMove(TurnGenerater turn) : base(turn) { }
+    public PlayerMove(TurnGenerator turn) : base(turn) { }
 
     public override void Entry()
     {
-        Systems.UnitClick.UC(this, Turn, Systems.AttackPoint);
+        Systems.UnitClick.UC(this, Turn, Systems.AttackGenerator);
         attackmode = AttackMode.None;
 
         // タイマーのコールバック接続

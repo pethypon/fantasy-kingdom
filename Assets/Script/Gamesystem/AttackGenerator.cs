@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AttackPointt : MonoBehaviour
+public class AttackGenerator : MonoBehaviour
 {
     public PlayerMove.AttackMode attackmode;
     public List<Vector3> AttackP;
@@ -23,7 +23,7 @@ public class AttackPointt : MonoBehaviour
     public PlayerMove move;
 
     [Header("ムーブジェネレーター")]
-    public MoveGererater movegenerater;
+    public MoveGenerator moveGenerator;
 
     [Header("アタックポイント")]
     public GameObject AttackPoint;
@@ -94,13 +94,13 @@ public class AttackPointt : MonoBehaviour
 
         if (obj.AssignedSkillId < 0 || !SkillData.Table.ContainsKey(obj.AssignedSkillId))
         {
-            Debug.Log("[AttackPointt] スキル未割り当て");
+            Debug.Log("[AttackGenerator] スキル未割り当て");
             return;
         }
 
         SkillData skill = SkillData.Table[obj.AssignedSkillId];
-        movegenerater.UnitPointCore();
-        unitdata = movegenerater.UnitPointData;
+        moveGenerator.UnitPointCore();
+        unitdata = moveGenerator.UnitPointData;
 
         // Self / SelfArea → 自分の位置のみ
         if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
@@ -126,13 +126,13 @@ public class AttackPointt : MonoBehaviour
 
         if (offsets == null)
         {
-            Debug.Log($"[AttackPointt] Kind '{obj.kind}' / Skill '{skill.Name}' の攻撃位置は未定義です");
+            Debug.Log($"[AttackGenerator] Kind '{obj.kind}' / Skill '{skill.Name}' の攻撃位置は未定義です");
             return;
         }
 
         AttackP = new List<Vector3>();
-        Vector3 ownCell = movegenerater.Cell(objp);
-        Vector3 pcpCell = movegenerater.Cell(movegenerater.pcp);
+        Vector3 ownCell = moveGenerator.Cell(objp);
+        Vector3 pcpCell = moveGenerator.Cell(moveGenerator.pcp);
 
         foreach (Vector2Int off in offsets)
         {
@@ -146,7 +146,7 @@ public class AttackPointt : MonoBehaviour
                 if (Mathf.RoundToInt(p.x) != wx || Mathf.RoundToInt(p.z) != wz)
                     continue;
 
-                Vector3 cell = movegenerater.Cell(p);
+                Vector3 cell = moveGenerator.Cell(p);
 
                 switch (skill.Target)
                 {
@@ -186,17 +186,17 @@ public class AttackPointt : MonoBehaviour
         AttackP?.Clear();
         obj = Obj;
         objp = ObjP;
-        movegenerater.UnitPointCore();
-        unitdata = movegenerater.UnitPointData;
+        moveGenerator.UnitPointCore();
+        unitdata = moveGenerator.UnitPointData;
 
         if (!AttackPatterns.NormalMap.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
         {
-            Debug.Log($"[AttackPointt] Kind '{obj.kind}' の攻撃パターンは未定義です");
+            Debug.Log($"[AttackGenerator] Kind '{obj.kind}' の攻撃パターンは未定義です");
             return;
         }
 
-        Vector3 ownCell = movegenerater.Cell(objp);
-        Vector3 pcpCell = movegenerater.Cell(movegenerater.pcp);
+        Vector3 ownCell = moveGenerator.Cell(objp);
+        Vector3 pcpCell = moveGenerator.Cell(moveGenerator.pcp);
         bool dirIndependent = AttackPatterns.DirectionIndependent.Contains(obj.kind);
         int dirZ = MovePatterns.DirZ(obj.direction);
 
@@ -209,7 +209,7 @@ public class AttackPointt : MonoBehaviour
 
             float checkDz = dirIndependent ? dz : dz * dirZ;
 
-            Vector3 cell = movegenerater.Cell(p);
+            Vector3 cell = moveGenerator.Cell(p);
             if (!unitdata.Contains(cell)) continue;
             if (cell == ownCell || cell == pcpCell) continue;
             if (!predicate(dx, checkDz)) continue;

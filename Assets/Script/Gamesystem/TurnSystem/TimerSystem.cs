@@ -32,7 +32,7 @@ public class TimerSystem : MonoBehaviour
     private bool warned10s;
 
     // ---- 外部参照 ----
-    private TurnGenerater turngenerater;
+    private TurnGenerator turnGenerator;
     private CrystalSystem crystalsystem;
 
     // ---- コールバック: ターン自動終了 ----
@@ -49,9 +49,9 @@ public class TimerSystem : MonoBehaviour
     /// <summary>セーブデータからターン残り時間を復元</summary>
     public void RestoreTurnTimeRemaining(float value) { turnTimeRemaining = value; }
 
-    public void Init(TurnGenerater turngenerater, CrystalSystem crystalsystem)
+    public void Init(TurnGenerator turnGenerator, CrystalSystem crystalsystem)
     {
-        this.turngenerater = turngenerater;
+        this.turnGenerator = turnGenerator;
         this.crystalsystem = crystalsystem;
     }
 
@@ -170,10 +170,10 @@ public class TimerSystem : MonoBehaviour
 
     private Status FindKing(Team team)
     {
-        if (turngenerater == null) return null;
+        if (turnGenerator == null) return null;
         Transform parent = team == Team.Player
-            ? turngenerater.unitset.PlayerUnit
-            : turngenerater.unitset.EnemyUnit;
+            ? turnGenerator.unitset.PlayerUnit
+            : turnGenerator.unitset.EnemyUnit;
         if (parent == null) return null;
         foreach (Status s in parent.GetComponentsInChildren<Status>())
         {

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class EnemyStart : TurnState
 {
-    public EnemyStart(TurnGenerater turn) : base(turn) { }
+    public EnemyStart(TurnGenerator turn) : base(turn) { }
 
     public override void Entry()
     {
@@ -10,7 +10,7 @@ public class EnemyStart : TurnState
 
         // プレイヤーの残留MovePoint/AttackPointをクリア
         Systems.MoveGenerator.MoveReset();
-        Systems.AttackPoint.AtkpDestroy();
+        Systems.AttackGenerator.AtkpDestroy();
 
         // 選択状態もクリア
         Context.SelectUnit = null;

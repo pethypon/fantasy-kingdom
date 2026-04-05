@@ -19,18 +19,18 @@ All code is in `Assets/Script/`. Scripts are plain C# MonoBehaviours and plain c
 
 ### Initialization Sequence
 
-`GameGerater` (on the `GameSystem` prefab) orchestrates startup in `Start()`:
+`GameGenerator` (on the `GameSystem` prefab) orchestrates startup in `Awake()`:
 1. `MapCreate.noisegenerater()` — generate Perlin noise heightmap
 2. `MapCreate.BuildTop()` — instantiate terrain tiles and fog objects
 3. `CrystalSystem.CrystalCore()` — place player and enemy crystals randomly
 4. `UnitSetting.UnitSet()` — spawn initial units near each crystal
 5. `TerritorySystem.Territory()` — mark territory zones around each crystal
-6. `MoveGererater.UnitPointCore()` — build the initial set of occupied cells
-7. `VisionGenerater.VisionPoint(...)` — compute initial fog of war state
+6. `MoveGenerator.UnitPointCore()` — build the initial set of occupied cells
+7. `VisionGenerator.VisionPoint(...)` — compute initial fog of war state
 
 ### Turn State Machine
 
-`TurnGenerater` is the central hub. It holds references to all game systems and drives a `StateCore`-based state machine via `ChangeState()`.
+`TurnGenerator` is the central hub. It holds references to all game systems and drives a `StateCore`-based state machine via `ChangeState()`.
 
 ```
 PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)──→ PlayerMove
@@ -41,7 +41,7 @@ PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)
 ```
 
 - `StateCore` is an interface with default-empty `Entry()`, `Update()`, `Exit()` methods.
-- Each state class is a plain C# class (not MonoBehaviour) that receives all dependencies via constructor injection from `TurnGenerater`.
+- Each state class is a plain C# class (not MonoBehaviour) that receives all dependencies via constructor injection from `TurnGenerator`.
 - `EnemyMove` currently skips AI and immediately returns to `PlayerStart`.
 
 ### Map System (`Assets/Script/Mapsystem/`)
@@ -59,11 +59,11 @@ PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)
 
 | Class | Responsibility |
 |---|---|
-| `MoveGererater` | Computes valid move destinations per `Kind` using LINQ over `MapCreate.SetPos`; instantiates `MovePoint` markers; tracks occupied cells in `UnitPointData` |
-| `AttackPointt` | Computes valid attack positions per `Kind`; instantiates `AttackPoint` markers |
+| `MoveGenerator` | Computes valid move destinations per `Kind` using pattern matching over `MapCreate.SetPos`; instantiates `MovePoint` markers; tracks occupied cells in `UnitPointData` |
+| `AttackGenerator` | Computes valid attack positions per `Kind`; instantiates `AttackPoint` markers |
 | `BattleSystem` | Applies damage: `ATK - DEF`, clamped to 0; passive skill hooks exist but are mostly unimplemented |
 | `UnitClick` | Handles raycasting for unit selection (`Click1`), movement (`Click2`), and attack target selection (`AttackClick`) |
-| `VisionGenerater` | Fog of War — computes per-unit vision via Raycast on the "Block" layer; controls fog object visibility and enemy renderer visibility |
+| `VisionGenerator` | Fog of War — computes per-unit vision via Raycast on the "Block" layer; controls fog object visibility and enemy renderer visibility |
 
 ### Unit Data (`Assets/Script/Unit&Battle/Status.cs`)
 
@@ -72,7 +72,7 @@ PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)
 - `Kind`: `Crystal`, `King`, `Knight`, `Archer`, `Magic`, `Assassin`, `Scout`, `Priest`, `Guardian`, `Crossbow`, `Magicsniper`, `Bomber`
 - `Type`: `Unit`, `Building`, `MovePoint`, `AttackPoint`
 - `PassiveSkill`: `None`, `Impregnable`, `HunterEyes`, `Destroyer`, `Assassination`, `Sniper`
-- `Direction`: `N`, `S` — used by VisionGenerater to mirror vision patterns for south-facing units
+- `Direction`: `N`, `S` — used by VisionGenerator to mirror vision patterns for south-facing units
 
 ### Fog of War
 
@@ -82,11 +82,11 @@ Four fog object types are placed over every tile at startup by `MapCreate.BuildT
 - **FogExploard** — explored-but-not-currently-visible overlay (shown in explored-but-dark areas)
 - **FogExploardBoard** — board version of explored overlay
 
-`VisionGenerater.VisionPoint()` recalculates and updates these every time a unit moves or the turn changes. Vision shapes are defined as static `Vector3Int[]` arrays per unit kind (using `VisionBox` or `RangeVisionBox` helpers). Raycasts use the `"Block"` physics layer.
+`VisionGenerator.VisionPoint()` recalculates and updates these every time a unit moves or the turn changes. Vision shapes are defined as static `Vector3Int[]` arrays per unit kind (using `VisionBox` or `RangeVisionBox` helpers). Raycasts use the `"Block"` physics layer.
 
 ### Input
 
-Input is handled via Unity's new Input System. `Assets/Action/PlayerAction.inputactions` defines bindings; `Assets/Action/PlayerAction.cs` is the generated wrapper. `TurnGenerater` instantiates `GameAction` and enables/disables it via `OnEnable`/`OnDisable`.
+Input is handled via Unity's new Input System. `Assets/Action/PlayerAction.inputactions` defines bindings; `Assets/Action/PlayerAction.cs` is the generated wrapper. `TurnGenerator` instantiates `GameAction` and enables/disables it via `OnEnable`/`OnDisable`.
 
 Player controls during `PlayerMove`:
 - **WASD / Arrow keys** — move camera
@@ -99,16 +99,20 @@ Player controls during `PlayerMove`:
 
 ## Naming Conventions
 
-The codebase has intentional (or legacy) typos in class names — do not rename them as prefabs reference them:
-- `GameGerater` (not `GameGenerator`)
-- `MoveGererater` (not `MoveGenerator`)
-- `AttackPointt` (two t's)
+Class names now follow standard C# naming conventions. Legacy typos have been corrected:
+- `GameGenerator` (formerly `GameGerater`)
+- `MoveGenerator` (formerly `MoveGererater`)
+- `AttackGenerator` (formerly `AttackPointt`)
+- `VisionGenerator` (formerly `VisionGenerater`)
+- `TurnGenerator` (formerly `TurnGenerater`)
+
+Serialized field references are preserved via `[FormerlySerializedAs]` attributes.
 
 Comments in code are written in Japanese and may appear garbled in some editors due to Shift-JIS encoding.
 
 ## Adding a New Unit Kind
 
 1. Add the kind to the `Kind` enum in `Status.cs`
-2. Add a `case Kind.YourKind:` block in `MoveGererater.MoveCore()` defining move pattern
-3. Add a corresponding case in `AttackPointt.NormalAttackPData()` defining attack range
-4. Add vision data (`static readonly Vector3Int[] YourKindVisionData`) and a case in `VisionGenerater.VisionCreate()` and `VisionGenerater.VisionPoint()` (for the static array)
+2. Add a movement pattern entry in `MovePatterns.cs`
+3. Add an attack pattern entry in `AttackPatterns.cs`
+4. Add vision data in `VisionGenerator.VisionDataMap`

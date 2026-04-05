@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// ゲーム起動のオーケストレーター。
 /// 各初期化ステップを専用クラスに委譲し、起動シーケンスの制御のみを担当する。
 /// </summary>
-public class GameGenerater : MonoBehaviour
+public class GameGenerator : MonoBehaviour
 {
     // ================================================================
     //  SerializeField（Inspector設定）
@@ -15,8 +16,10 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] CrystalSystem _CrystalSystem;
     [SerializeField] TerritorySystem _TerritorySystem;
     [SerializeField] UnitSetting _UnitSetting;
-    [SerializeField] MoveGererater _MoveGenerater;
-    [SerializeField] VisionGenerater _VisionGenerater;
+    [FormerlySerializedAs("_MoveGenerater")]
+    [SerializeField] MoveGenerator _MoveGenerator;
+    [FormerlySerializedAs("_VisionGenerater")]
+    [SerializeField] VisionGenerator _VisionGenerator;
 
     [Header("ゲームシステム")]
     [SerializeField] APSystem _APSystem;
@@ -25,11 +28,11 @@ public class GameGenerater : MonoBehaviour
     [SerializeField] EconomySystem _EconomySystem;
     [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
     [SerializeField] SubCrystalSystem _SubCrystalSystem;
-    [SerializeField] TurnGenerater _TurnGenerater;
+    [SerializeField] TurnGenerator _TurnGenerator;
     [SerializeField] SkillSystem _SkillSystem;
 
     // ★ 追加: PlayerMove / PlayerStart が直参照する系
-    [SerializeField] AttackPointt _AttackPoint;
+    [SerializeField] AttackGenerator _AttackPoint;
     [SerializeField] UnitClick _UnitClick;
     [SerializeField] BattleSystem _BattleSystem;
     [SerializeField] TimerSystem _TimerSystem;
@@ -109,7 +112,7 @@ public class GameGenerater : MonoBehaviour
             loadData = SaveSystem.LoadGame(loadSlot);
             if (loadData == null)
             {
-                Debug.LogWarning("[GameGerater] ロードデータが見つかりません、新規ゲームを開始");
+                Debug.LogWarning("[GameGenerator] ロードデータが見つかりません、新規ゲームを開始");
                 loadSlot = -1;
             }
         }
@@ -117,9 +120,9 @@ public class GameGenerater : MonoBehaviour
         // Step 1: マップ・ユニット生成
         MapInitializer.Initialize(
             _MapCreate, _CrystalSystem, _UnitSetting, _TerritorySystem,
-            _MoveGenerater, _VisionGenerater, loadData);
+            _MoveGenerator, _VisionGenerator, loadData);
 
-        // ★ TurnGenerater へ参照注入（最重要）
+        // ★ TurnGenerator へ参照注入（最重要）
         WireTurnGeneratorReferences();
 
         MapInitializer.CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
@@ -131,26 +134,26 @@ public class GameGenerater : MonoBehaviour
 
         // Step 3: ゲームシステム初期化
         SystemInitializer.InitGameSystems(
-            this, _TurnGenerater, factionState,
+            this, _TurnGenerator, factionState,
             _MapCreate, _TerritorySystem, _APSystem,
-            _MoveGenerater, _VisionGenerater, _CrystalSystem, _UnitSetting,
+            _MoveGenerator, _VisionGenerator, _CrystalSystem, _UnitSetting,
             ref _BuildSystem, ref _SummonSystem, ref _EconomySystem,
             ref _BuildingAttackSystem, ref _SubCrystalSystem, _uiBuilder);
 
         SystemInitializer.InitSkillsAndTimer(
-            this, _TurnGenerater, factionState,
-            _MoveGenerater, _UnitSetting, ref _SkillSystem);
+            this, _TurnGenerator, factionState,
+            _MoveGenerator, _UnitSetting, ref _SkillSystem);
 
         // SystemInitializer で生成されるものを再注入（上書き）
-        if (_TurnGenerater != null)
+        if (_TurnGenerator != null)
         {
-            _TurnGenerater.buildsystem = _BuildSystem;
-            _TurnGenerater.summonsystem = _SummonSystem;
-            _TurnGenerater.economysystem = _EconomySystem;
-            _TurnGenerater.buildingAttackSystem = _BuildingAttackSystem;
-            _TurnGenerater.subCrystalSystem = _SubCrystalSystem;
-            _TurnGenerater.skillsystem = _SkillSystem;
-            _TurnGenerater.timerSystem = _TurnGenerater.timerSystem ?? _TimerSystem;
+            _TurnGenerator.buildsystem = _BuildSystem;
+            _TurnGenerator.summonsystem = _SummonSystem;
+            _TurnGenerator.economysystem = _EconomySystem;
+            _TurnGenerator.buildingAttackSystem = _BuildingAttackSystem;
+            _TurnGenerator.subCrystalSystem = _SubCrystalSystem;
+            _TurnGenerator.skillsystem = _SkillSystem;
+            _TurnGenerator.timerSystem = _TurnGenerator.timerSystem ?? _TimerSystem;
         }
 
         // Step 4: 経済・資源・UnitRegistry
@@ -160,14 +163,14 @@ public class GameGenerater : MonoBehaviour
             EconomyInitializer.InitializeNewGame(factionState, _APPanelUI, _ResourceBarUI, _UnitSetting, _BuildSystem);
 
         // Step 5: UX系UI
-        UIInitializer.Initialize(_TurnGenerater, _APSystem);
+        UIInitializer.Initialize(_TurnGenerator, _APSystem);
 
         // Step 6: ObjectPool プレウォーム
         PrewarmObjectPools();
 
         // Step 7: AI
         SystemInitializer.InitAI(
-            _TurnGenerater, _MoveGenerater, _VisionGenerater,
+            _TurnGenerator, _MoveGenerator, _VisionGenerator,
             _APSystem, _UnitSetting, _CrystalSystem, _MapCreate,
             _BuildSystem, _SummonSystem, _cachedFactionState,
             _SkillSystem, _SubCrystalSystem);
@@ -179,28 +182,28 @@ public class GameGenerater : MonoBehaviour
         if (loadData != null)
         {
             SaveGameApplier.Apply(
-                loadData, factionState, _TurnGenerater,
+                loadData, factionState, _TurnGenerator,
                 _UnitSetting, _CrystalSystem, _BuildSystem,
-                _MoveGenerater, _VisionGenerater, _MapCreate);
+                _MoveGenerator, _VisionGenerator, _MapCreate);
         }
 
         // ★ 最終チェック
         ValidateTurnGeneratorWiring();
 
         // Step 10: 最初のターン開始
-        _TurnGenerater.StartFirstTurn();
+        _TurnGenerator.StartFirstTurn();
     }
 
     private void WireTurnGeneratorReferences()
     {
-        if (_TurnGenerater == null)
+        if (_TurnGenerator == null)
         {
-            Debug.LogError("[GameGerater] TurnGenerater が未設定です");
+            Debug.LogError("[GameGenerator] TurnGenerator が未設定です");
             return;
         }
 
         // フォールバック取得
-        _AttackPoint ??= Object.FindFirstObjectByType<AttackPointt>();
+        _AttackPoint ??= Object.FindFirstObjectByType<AttackGenerator>();
         _UnitClick ??= Object.FindFirstObjectByType<UnitClick>();
         _BattleSystem ??= Object.FindFirstObjectByType<BattleSystem>();
         _TimerSystem ??= Object.FindFirstObjectByType<TimerSystem>();
@@ -209,34 +212,34 @@ public class GameGenerater : MonoBehaviour
             _CameraTransform = Camera.main.transform;
 
         // 基盤
-        _TurnGenerater.mapcreate = _MapCreate;
-        _TurnGenerater.crystalsystem = _CrystalSystem;
-        _TurnGenerater.unitset = _UnitSetting;
-        _TurnGenerater.movegenerater = _MoveGenerater;
-        _TurnGenerater.visiongenerater = _VisionGenerater;
-        _TurnGenerater.apsystem = _APSystem;
+        _TurnGenerator.mapcreate = _MapCreate;
+        _TurnGenerator.crystalsystem = _CrystalSystem;
+        _TurnGenerator.unitset = _UnitSetting;
+        _TurnGenerator.moveGenerator = _MoveGenerator;
+        _TurnGenerator.visionGenerator = _VisionGenerator;
+        _TurnGenerator.apsystem = _APSystem;
 
         // コア
-        _TurnGenerater.attackpoint = _AttackPoint;
-        _TurnGenerater.unitclick = _UnitClick;
-        _TurnGenerater.battlesystem = _BattleSystem;
-        _TurnGenerater.timerSystem = _TimerSystem;
+        _TurnGenerator.attackGenerator = _AttackPoint;
+        _TurnGenerator.unitclick = _UnitClick;
+        _TurnGenerator.battlesystem = _BattleSystem;
+        _TurnGenerator.timerSystem = _TimerSystem;
 
         // カメラ
-        _TurnGenerater.CameraObject = _CameraTransform;
+        _TurnGenerator.CameraObject = _CameraTransform;
     }
 
     private void ValidateTurnGeneratorWiring()
     {
-        if (_TurnGenerater == null) return;
+        if (_TurnGenerator == null) return;
 
-        if (_TurnGenerater.crystalsystem == null) Debug.LogError("[WireCheck] crystalsystem is null");
-        if (_TurnGenerater.unitset == null) Debug.LogError("[WireCheck] unitset is null");
-        if (_TurnGenerater.apsystem == null) Debug.LogError("[WireCheck] apsystem is null");
-        if (_TurnGenerater.movegenerater == null) Debug.LogError("[WireCheck] movegenerater is null");
-        if (_TurnGenerater.visiongenerater == null) Debug.LogError("[WireCheck] visiongenerater is null");
-        if (_TurnGenerater.unitclick == null) Debug.LogError("[WireCheck] unitclick is null");
-        if (_TurnGenerater.attackpoint == null) Debug.LogError("[WireCheck] attackpoint is null");
+        if (_TurnGenerator.crystalsystem == null) Debug.LogError("[WireCheck] crystalsystem is null");
+        if (_TurnGenerator.unitset == null) Debug.LogError("[WireCheck] unitset is null");
+        if (_TurnGenerator.apsystem == null) Debug.LogError("[WireCheck] apsystem is null");
+        if (_TurnGenerator.moveGenerator == null) Debug.LogError("[WireCheck] moveGenerator is null");
+        if (_TurnGenerator.visionGenerator == null) Debug.LogError("[WireCheck] visionGenerator is null");
+        if (_TurnGenerator.unitclick == null) Debug.LogError("[WireCheck] unitclick is null");
+        if (_TurnGenerator.attackGenerator == null) Debug.LogError("[WireCheck] attackGenerator is null");
     }
 
     private void InitSingletons()
@@ -289,17 +292,17 @@ public class GameGenerater : MonoBehaviour
     {
         var menuGo = new GameObject("GameMenuUI");
         var menu = menuGo.AddComponent<GameMenuUI>();
-        menu.Init(_TurnGenerater, factionState);
+        menu.Init(_TurnGenerator, factionState);
     }
 
     private void PrewarmObjectPools()
     {
         if (ObjectPool.Instance == null) return;
 
-        if (_MoveGenerater != null && _MoveGenerater.MovePoint != null)
-            ObjectPool.Instance.Prewarm(_MoveGenerater.MovePoint, 30, _MoveGenerater.Move);
+        if (_MoveGenerator != null && _MoveGenerator.MovePoint != null)
+            ObjectPool.Instance.Prewarm(_MoveGenerator.MovePoint, 30, _MoveGenerator.Move);
 
-        if (_TurnGenerater != null && _TurnGenerater.attackpoint != null && _TurnGenerater.attackpoint.AttackPoint != null)
-            ObjectPool.Instance.Prewarm(_TurnGenerater.attackpoint.AttackPoint, 15, _TurnGenerater.attackpoint.APparent);
+        if (_TurnGenerator != null && _TurnGenerator.attackGenerator != null && _TurnGenerator.attackGenerator.AttackPoint != null)
+            ObjectPool.Instance.Prewarm(_TurnGenerator.attackGenerator.AttackPoint, 15, _TurnGenerator.attackGenerator.APparent);
     }
 }

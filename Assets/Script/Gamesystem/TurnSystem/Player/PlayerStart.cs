@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerStart : TurnState
 {
-    public PlayerStart(TurnGenerater turn) : base(turn) { }
+    public PlayerStart(TurnGenerator turn) : base(turn) { }
 
     public override void Entry()
     {
@@ -14,19 +14,23 @@ public class PlayerStart : TurnState
         ActionLogUI.LogTurnStart(Context.Turn, Team.Player);
 
         // クリスタルシールドのターン経過（自陣営 — 敵側は EnemyStart で処理）
-        BattleSystem.TickCrystalShields(Systems.CrystalSystem.Playercrystal);
+        if (Systems.CrystalSystem != null)
+            BattleSystem.TickCrystalShields(Systems.CrystalSystem.Playercrystal);
 
         // 状態異常ティック（DoTダメージ + ターン経過）
-        StatusEffectSystem.TickAllUnits(Systems.UnitSetting.PlayerUnit);
+        if (Systems.UnitSetting != null)
+            StatusEffectSystem.TickAllUnits(Systems.UnitSetting.PlayerUnit);
 
         // Special Ability: ターン開始時処理（フラグリセット + 浄化光輪）
-        SpecialAbilitySystem.OnTurnStart(Systems.UnitSetting.PlayerUnit);
+        if (Systems.UnitSetting != null)
+            SpecialAbilitySystem.OnTurnStart(Systems.UnitSetting.PlayerUnit);
 
         // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
-        Systems.APSystem.ResetAP(Team.Player);
+        Systems.APSystem?.ResetAP(Team.Player);
 
         // 疲労リセット
-        Systems.APSystem.ResetFatigue(Systems.UnitSetting.PlayerUnit);
+        if (Systems.APSystem != null && Systems.UnitSetting != null)
+            Systems.APSystem.ResetFatigue(Systems.UnitSetting.PlayerUnit);
 
         // サブクリスタル返却待ちタイマー処理
         if (Systems.SubCrystalSystem != null)

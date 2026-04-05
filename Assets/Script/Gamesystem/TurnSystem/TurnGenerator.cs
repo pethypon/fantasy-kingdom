@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 /// ゲーム全体の中央ハブ。ステートマシン駆動、入力管理、サブシステム参照を保持する。
 /// GameSystems / GameContext を内部保持し、各ステートへ統一的にアクセスを提供する。
 /// </summary>
-public class TurnGenerater : MonoBehaviour
+public class TurnGenerator : MonoBehaviour
 {
     // ================================================================
     //  集約コンテナ（新アーキテクチャ）
@@ -68,22 +68,22 @@ public class TurnGenerater : MonoBehaviour
     public Status status; // 参照用（単一インスタンス）
 
     // --- コアゲームシステム ---
-    public MoveGererater movegenerater
+    public MoveGenerator moveGenerator
     {
         get => Systems.MoveGenerator;
         set => Systems.MoveGenerator = value;
     }
-    public AttackPointt attackpoint
+    public AttackGenerator attackGenerator
     {
-        get => Systems.AttackPoint;
-        set => Systems.AttackPoint = value;
+        get => Systems.AttackGenerator;
+        set => Systems.AttackGenerator = value;
     }
     public BattleSystem battlesystem
     {
         get => Systems.BattleSystem;
         set => Systems.BattleSystem = value;
     }
-    public VisionGenerater visiongenerater
+    public VisionGenerator visionGenerator
     {
         get => Systems.VisionGenerator;
         set => Systems.VisionGenerator = value;

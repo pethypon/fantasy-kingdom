@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// 駒の移動パターンを一元管理する静的クラス。
-/// MoveGererater と SimActionGenerator の両方から参照される。
+/// MoveGenerator と SimActionGenerator の両方から参照される。
 /// dx = 目標X - 現在X, dz = 目標Z - 現在Z（符号付き）。
 /// 方向依存の駒は dz に方向係数（N=+1, S=-1）を掛けてから判定する。
 /// </summary>

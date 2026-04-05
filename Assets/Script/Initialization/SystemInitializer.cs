@@ -2,23 +2,23 @@ using UnityEngine;
 
 /// <summary>
 /// ゲームシステム（Build, Summon, Economy, Attack, SubCrystal, Skill, Timer）の
-/// 検出・生成・初期化を担当する。GameGerater から分離された単一責任クラス。
+/// 検出・生成・初期化を担当する。GameGenerator から分離された単一責任クラス。
 /// </summary>
 public static class SystemInitializer
 {
     /// <summary>
     /// BuildSystem, SummonSystem, EconomySystem, BuildingAttackSystem, SubCrystalSystem を
-    /// 初期化し、TurnGenerater に登録する。
+    /// 初期化し、TurnGenerator に登録する。
     /// </summary>
     public static void InitGameSystems(
-        GameGenerater owner,
-        TurnGenerater turnGen,
+        GameGenerator owner,
+        TurnGenerator turnGen,
         FactionState factionState,
         MapCreate mapCreate,
         TerritorySystem territorySystem,
         APSystem apSystem,
-        MoveGererater moveGenerator,
-        VisionGenerater visionGenerator,
+        MoveGenerator moveGenerator,
+        VisionGenerator visionGenerator,
         CrystalSystem crystalSystem,
         UnitSetting unitSetting,
         ref BuildSystem buildSystem,
@@ -84,17 +84,17 @@ public static class SystemInitializer
     /// SkillSystem と TimerSystem を初期化する。
     /// </summary>
     public static void InitSkillsAndTimer(
-        GameGenerater owner,
-        TurnGenerater turnGen,
+        GameGenerator owner,
+        TurnGenerator turnGen,
         FactionState factionState,
-        MoveGererater moveGenerator,
+        MoveGenerator moveGenerator,
         UnitSetting unitSetting,
         ref SkillSystem skillSystem)
     {
         skillSystem = EnsureComponent(owner, skillSystem);
-        skillSystem.turngenerater = turnGen;
+        skillSystem.turnGenerator = turnGen;
         skillSystem.battlesystem = turnGen.battlesystem;
-        skillSystem.movegenerater = moveGenerator;
+        skillSystem.moveGenerator = moveGenerator;
         skillSystem.Init(factionState);
         turnGen.skillsystem = skillSystem;
 
@@ -108,9 +108,9 @@ public static class SystemInitializer
 
     /// <summary>AI指揮官を初期化する。</summary>
     public static void InitAI(
-        TurnGenerater turnGen,
-        MoveGererater moveGenerator,
-        VisionGenerater visionGenerator,
+        TurnGenerator turnGen,
+        MoveGenerator moveGenerator,
+        VisionGenerator visionGenerator,
         APSystem apSystem,
         UnitSetting unitSetting,
         CrystalSystem crystalSystem,
@@ -124,7 +124,7 @@ public static class SystemInitializer
         var aiMajor = AIPersonality.RandomMajor();
         int threatLevel = SaveSystem.LoadProfile().ThreatLevel;
         turnGen.aiCommander = new AICommander(
-            turnGen, moveGenerator, turnGen.attackpoint,
+            turnGen, moveGenerator, turnGen.attackGenerator,
             turnGen.battlesystem, visionGenerator,
             apSystem, unitSetting, crystalSystem, mapCreate, aiMajor,
             buildSystem, summonSystem, factionState, skillSystem,
@@ -136,7 +136,7 @@ public static class SystemInitializer
     // ================================================================
 
     /// <summary>コンポーネントが null なら owner から取得 or 追加する</summary>
-    private static T EnsureComponent<T>(GameGenerater owner, T existing) where T : Component
+    private static T EnsureComponent<T>(GameGenerator owner, T existing) where T : Component
     {
         if (existing != null) return existing;
         var found = owner.gameObject.GetComponent<T>();

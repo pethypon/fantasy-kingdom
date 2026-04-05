@@ -10,9 +10,9 @@ using UnityEngine;
 public class BuildingAttackSystem : MonoBehaviour
 {
     private BuildSystem buildSystem;
-    private MoveGererater moveGererater;
+    private MoveGenerator moveGererater;
     private UnitSetting unitSetting;
-    private VisionGenerater visionGenerater;
+    private VisionGenerator visionGenerater;
     private MapCreate mapCreate;
     private CrystalSystem crystalSystem;
     private SubCrystalSystem subCrystalSystem;
@@ -21,8 +21,8 @@ public class BuildingAttackSystem : MonoBehaviour
     private HashSet<Vector3Int> _currentVision;
     private Team _currentEnemyTeam;
 
-    public void Init(BuildSystem buildSystem, MoveGererater moveGererater,
-                     UnitSetting unitSetting, VisionGenerater visionGenerater,
+    public void Init(BuildSystem buildSystem, MoveGenerator moveGererater,
+                     UnitSetting unitSetting, VisionGenerator visionGenerater,
                      MapCreate mapCreate, CrystalSystem crystalSystem)
     {
         this.buildSystem = buildSystem;

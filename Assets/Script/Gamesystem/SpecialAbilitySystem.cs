@@ -428,7 +428,7 @@ public static class SpecialAbilitySystem
 
     // =====================================================================
     //  視界ボーナス
-    //  VisionGenerater / StatusEffectSystem から呼ばれる
+    //  VisionGenerator / StatusEffectSystem から呼ばれる
     // =====================================================================
     public static int GetVisionBonus(Status unit)
     {

@@ -149,7 +149,7 @@ public class UnitHeadUI : MonoBehaviour
         if (status == null || canvas == null) return;
 
         // 視界判定: ユニットの Renderer が非表示なら UI も隠す
-        // VisionGenerater が敵ユニットの Renderer.enabled を切り替えるので、それに連動
+        // VisionGenerator が敵ユニットの Renderer.enabled を切り替えるので、それに連動
         if (unitRenderer != null)
         {
             bool visible = unitRenderer.enabled;

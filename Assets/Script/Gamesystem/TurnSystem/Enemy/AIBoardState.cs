@@ -11,12 +11,12 @@ using UnityEngine;
 public class AIBoardState
 {
     // ---- 参照 ----
-    readonly MoveGererater _moveGen;
-    readonly AttackPointt _attackPoint;
+    readonly MoveGenerator _moveGen;
+    readonly AttackGenerator _attackPoint;
     readonly APSystem _apSystem;
     readonly UnitSetting _unitSet;
     readonly CrystalSystem _crystalSystem;
-    readonly VisionGenerater _visionGen;
+    readonly VisionGenerator _visionGen;
     readonly BuildSystem _buildSystem;
     readonly SummonSystem _summonSystem;
     readonly FactionState _factionState;
@@ -67,9 +67,9 @@ public class AIBoardState
     }
 
     public AIBoardState(
-        MoveGererater moveGen, AttackPointt attackPoint,
+        MoveGenerator moveGen, AttackGenerator attackPoint,
         APSystem apSystem, UnitSetting unitSet,
-        CrystalSystem crystalSystem, VisionGenerater visionGen,
+        CrystalSystem crystalSystem, VisionGenerator visionGen,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
         FactionState factionState = null, SubCrystalSystem subCrystalSystem = null,
         int turnCount = 1,

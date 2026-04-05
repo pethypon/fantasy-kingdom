@@ -8,7 +8,7 @@ public class PlayerAttack : TurnState
     public bool AttackSetting;
     public bool AttackSuccess;
 
-    public PlayerAttack(TurnGenerater turn, PlayerMove move, PlayerMove.AttackMode attackmode)
+    public PlayerAttack(TurnGenerator turn, PlayerMove move, PlayerMove.AttackMode attackmode)
         : base(turn)
     {
         this.move = move;
@@ -17,7 +17,7 @@ public class PlayerAttack : TurnState
 
     public override void Entry()
     {
-        Systems.AttackPoint.AttackPointCall(move.Obj, move.ObjP, move);
+        Systems.AttackGenerator.AttackPointCall(move.Obj, move.ObjP, move);
         AttackSuccess = false;
 
         if (Systems.DamagePreviewUI != null)
@@ -27,10 +27,10 @@ public class PlayerAttack : TurnState
             Systems.InputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
 
         // 攻撃範囲内に敵がいない場合は即座にPlayerMoveへ戻る
-        if (Systems.AttackPoint.AttackP == null || Systems.AttackPoint.AttackP.Count == 0)
+        if (Systems.AttackGenerator.AttackP == null || Systems.AttackGenerator.AttackP.Count == 0)
         {
             ToastMessageUI.Show("攻撃範囲内に対象がいません", ToastMessageUI.MessageType.Warning);
-            Systems.AttackPoint.AtkpDestroy();
+            Systems.AttackGenerator.AtkpDestroy();
             Turn.ChangeState(new PlayerMove(Turn));
         }
     }
@@ -55,12 +55,12 @@ public class PlayerAttack : TurnState
 
     public void Reset()
     {
-        Systems.AttackPoint.obj = null;
+        Systems.AttackGenerator.obj = null;
         Systems.UnitClick.ATKC = null;
         Systems.BattleSystem.target = null;
         Systems.BattleSystem.AttackSide = null;
         AttackSuccess = false;
-        Systems.AttackPoint.AtkpDestroy();
+        Systems.AttackGenerator.AtkpDestroy();
     }
 
     private void HandleAttackSuccess()
@@ -99,7 +99,7 @@ public class PlayerAttack : TurnState
             }
         }
 
-        Systems.UnitClick.AttackClick(Systems.BattleSystem, this, Systems.AttackPoint, move);
+        Systems.UnitClick.AttackClick(Systems.BattleSystem, this, Systems.AttackGenerator, move);
     }
 
     private void ExecuteSelfAreaSkill(Status caster, SkillData skill)
