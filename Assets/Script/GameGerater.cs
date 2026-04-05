@@ -125,9 +125,6 @@ public class GameGenerater : MonoBehaviour
         MapInitializer.CollectChildren(_PlayerCrystal, PlayerCrystalChildren);
         MapInitializer.CollectChildren(_EnemyCrystal, EnemyCrystalChildren);
 
-        // Step 1.5: コアシステム参照を TurnGenerater に登録
-        WireCoreSystemsToTurnGen();
-
         // Step 2: FactionState 生成
         FactionState factionState = InitFactionState();
         _cachedFactionState = factionState;
@@ -293,29 +290,6 @@ public class GameGenerater : MonoBehaviour
         var menuGo = new GameObject("GameMenuUI");
         var menu = menuGo.AddComponent<GameMenuUI>();
         menu.Init(_TurnGenerater, factionState);
-    }
-
-    /// <summary>
-    /// コアシステム参照を TurnGenerater に登録する。
-    /// リファクタリングで Inspector→プロパティ委譲に変わったため、手動で注入が必要。
-    /// </summary>
-    private void WireCoreSystemsToTurnGen()
-    {
-        _TurnGenerater.mapcreate = _MapCreate;
-        _TurnGenerater.crystalsystem = _CrystalSystem;
-        _TurnGenerater.unitset = _UnitSetting;
-        _TurnGenerater.movegenerater = _MoveGenerater;
-        _TurnGenerater.visiongenerater = _VisionGenerater;
-        _TurnGenerater.apsystem = _APSystem;
-
-        // AttackPointt, BattleSystem, UnitClick は SerializeField 未定義のため自動検出
-        _TurnGenerater.attackpoint = Object.FindFirstObjectByType<AttackPointt>();
-        _TurnGenerater.battlesystem = Object.FindFirstObjectByType<BattleSystem>();
-        _TurnGenerater.unitclick = Object.FindFirstObjectByType<UnitClick>();
-
-        // カメラ
-        if (_TurnGenerater.CameraObject == null && Camera.main != null)
-            _TurnGenerater.CameraObject = Camera.main.transform;
     }
 
     private void PrewarmObjectPools()
