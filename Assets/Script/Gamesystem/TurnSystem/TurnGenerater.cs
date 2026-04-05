@@ -227,7 +227,11 @@ public class TurnGenerater : MonoBehaviour
         set => Context.ToggleNSDown = value;
     }
 
-    private GameAction gameaction;
+    // ================================================================
+    //  入力・カメラ（専用クラスに委譲）
+    // ================================================================
+    private InputReader _inputReader;
+    private CameraController _cameraController;
 
     // ================================================================
     //  ステート切り替え
@@ -241,7 +245,9 @@ public class TurnGenerater : MonoBehaviour
 
     public void Awake()
     {
-        gameaction = new GameAction();
+        var gameAction = new GameAction();
+        _inputReader = new InputReader(gameAction, Context);
+        _cameraController = new CameraController(Context, Systems);
     }
 
     public void StartFirstTurn()
@@ -251,54 +257,12 @@ public class TurnGenerater : MonoBehaviour
 
     void Update()
     {
-        ReadInputs();
-        UpdateCamera();
+        _inputReader.ReadInputs();
+        _cameraController.UpdateCamera();
         _stateManager?.Update();
     }
 
-    // ---- カメラ操作（全ステートで常時有効） ----
-    private void UpdateCamera()
-    {
-        // WASD移動
-        Vector2 move = Context.MoveInput;
-        Transform cam = Context.CameraObject;
-        if (move != Vector2.zero && cam != null)
-        {
-            Vector3 moveDir = new Vector3(move.x, 0f, move.y).normalized;
-            cam.Translate(moveDir * GameConstants.CameraMoveSpeed * Time.deltaTime, Space.World);
-
-            Vector3 pos = cam.position;
-            var mc = Systems.MapCreate;
-            if (mc != null)
-            {
-                pos.x = Mathf.Clamp(pos.x, 0f, mc.maxX - 10);
-                pos.z = Mathf.Clamp(pos.z, 0f, mc.maxZ - 10);
-            }
-            cam.position = pos;
-        }
-
-        // スクロールズーム
-        float scroll = Context.ScrollInput;
-        if (scroll != 0f && Camera.main != null)
-        {
-            float fov = Camera.main.fieldOfView - scroll * GameConstants.CameraScrollSpeed;
-            Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
-        }
-    }
-
-    private void ReadInputs()
-    {
-        Context.MoveInput = gameaction.GamePlay.Move.ReadValue<Vector2>();
-        Context.ScrollInput = gameaction.GamePlay.Scroll.ReadValue<float>();
-        Context.LeftClickDown = gameaction.GamePlay.LeftClick.WasPressedThisFrame();
-        Context.RightClickDown = gameaction.GamePlay.RightClick.WasPressedThisFrame();
-        Context.TurnEndDown = gameaction.GamePlay.TurnEnd.WasPressedThisFrame();
-        Context.SelectNormalDown = gameaction.GamePlay.SelectNormal.WasPressedThisFrame();
-        Context.SelectSkillDown = gameaction.GamePlay.SelectSkill.WasPressedThisFrame();
-        Context.ToggleNSDown = gameaction.GamePlay.ToggleNS.WasPressedThisFrame();
-    }
-
-    public void OnEnable() => gameaction.Enable();
-    public void OnDisable() => gameaction.Disable();
-    public void OnDestroy() => gameaction.Dispose();
+    public void OnEnable() => _inputReader.Enable();
+    public void OnDisable() => _inputReader.Disable();
+    public void OnDestroy() => _inputReader.Dispose();
 }
