@@ -23,12 +23,12 @@ public class BattleSystem : MonoBehaviour
             Debug.LogWarning("[Battle] target が null のためダメージ処理をスキップ");
             return;
         }
-        if (turnGenerator.SelectUnit == null)
+        if (turnGenerator.Context.SelectUnit == null)
         {
             Debug.LogWarning("[Battle] SelectUnit が null のためダメージ処理をスキップ");
             return;
         }
-        AttackSide = turnGenerator.SelectUnit;
+        AttackSide = turnGenerator.Context.SelectUnit;
 
         // スタン中は行動不可
         if (StatusEffectSystem.IsStunned(AttackSide))
@@ -85,15 +85,15 @@ public class BattleSystem : MonoBehaviour
         SpecialAbilitySystem.OnAttackHit(AttackSide, target, damage, true);
 
         // ---- ML観測: プレイヤーの攻撃をMLシステムに記録 ----
-        if (AttackSide.team == Team.Player && turnGenerator.aiCommander != null)
+        if (AttackSide.team == Team.Player && turnGenerator.Systems.AICommander != null)
         {
-            var ml = turnGenerator.aiCommander.MLIntegration;
-            Vector3 ecPos = turnGenerator.crystalsystem.ECP;
-            ml.ObservePlayerAttack(AttackSide, target, damage, ecPos, turnGenerator.Turn);
+            var ml = turnGenerator.Systems.AICommander.MLIntegration;
+            Vector3 ecPos = turnGenerator.Systems.CrystalSystem.ECP;
+            ml.ObservePlayerAttack(AttackSide, target, damage, ecPos, turnGenerator.Context.Turn);
 
             // クリスタルへの直接攻撃は別途記録
             if (target.kind == Kind.Crystal && target.team == Team.Enemy)
-                ml.ObservePlayerCrystalAttack(damage, target.MaxHP, turnGenerator.Turn);
+                ml.ObservePlayerCrystalAttack(damage, target.MaxHP, turnGenerator.Context.Turn);
         }
 
         // 反射処理
@@ -193,21 +193,21 @@ public class BattleSystem : MonoBehaviour
         if (target == null) return;
         Debug.Log($"[Battle] {target.team} の {target.kind} が撃破された");
 
-        if (turnGenerator.moveGenerator != null)
+        if (turnGenerator.Systems.MoveGenerator != null)
         {
-            Vector3 cellPos = turnGenerator.moveGenerator.Cell(target.transform.position);
-            turnGenerator.moveGenerator.UnitPointData.Remove(cellPos);
+            Vector3 cellPos = turnGenerator.Systems.MoveGenerator.Cell(target.transform.position);
+            turnGenerator.Systems.MoveGenerator.UnitPointData.Remove(cellPos);
         }
 
-        if (turnGenerator.SelectUnit == target)
+        if (turnGenerator.Context.SelectUnit == target)
         {
-            turnGenerator.SelectUnit = null;
+            turnGenerator.Context.SelectUnit = null;
         }
 
         // 死亡した駒の視界セルを探索済みに保存（半透明フォグとして残す）
         if (target.VisionCell != null && target.VisionCell.Count > 0)
         {
-            var visionGen = turnGenerator.visionGenerator;
+            var visionGen = turnGenerator.Systems.VisionGenerator;
             if (target.team == Team.Player && visionGen.PlayerExploard != null)
             {
                 visionGen.PlayerExploard.UnionWith(target.VisionCell);
@@ -220,10 +220,10 @@ public class BattleSystem : MonoBehaviour
 
         target.gameObject.SetActive(false);
 
-        turnGenerator.visionGenerator.VisionPoint(
-            turnGenerator.mapcreate,
-            turnGenerator.moveGenerator,
-            turnGenerator.crystalsystem
+        turnGenerator.Systems.VisionGenerator.VisionPoint(
+            turnGenerator.Systems.MapCreate,
+            turnGenerator.Systems.MoveGenerator,
+            turnGenerator.Systems.CrystalSystem
         );
     }
 

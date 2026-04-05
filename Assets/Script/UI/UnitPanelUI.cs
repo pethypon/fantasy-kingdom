@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -36,7 +37,8 @@ public class UnitPanelUI : MonoBehaviour
     private GameObject destroyArea;
 
     [Header("参照")]
-    [SerializeField] private TurnGenerator turnGenerater;
+    [FormerlySerializedAs("turnGenerater")]
+    [SerializeField] private TurnGenerator turnGenerator;
     [SerializeField] private APSystem apSystem;
 
     [Header("パネル本体")]
@@ -78,8 +80,8 @@ public class UnitPanelUI : MonoBehaviour
 
     private void AutoFindReferences()
     {
-        if (turnGenerater == null)
-            turnGenerater = Object.FindFirstObjectByType<TurnGenerator>();
+        if (turnGenerator == null)
+            turnGenerator = Object.FindFirstObjectByType<TurnGenerator>();
         if (apSystem == null)
             apSystem = Object.FindFirstObjectByType<APSystem>();
     }
@@ -445,14 +447,14 @@ public class UnitPanelUI : MonoBehaviour
     // --------------------------------------------------
     public void OnClickAttack()
     {
-        if (turnGenerater == null) return;
-        turnGenerater.SelectNormalDown = true;
+        if (turnGenerator == null) return;
+        turnGenerator.Context.SelectNormalDown = true;
     }
 
     public void OnClickSkill()
     {
-        if (turnGenerater == null) return;
-        turnGenerater.SelectSkillDown = true;
+        if (turnGenerator == null) return;
+        turnGenerator.Context.SelectSkillDown = true;
     }
 
     public void OnClickWait()
@@ -462,17 +464,17 @@ public class UnitPanelUI : MonoBehaviour
 
     public void OnClickCancel()
     {
-        if (turnGenerater == null) return;
-        turnGenerater.RightClickDown = true;
+        if (turnGenerator == null) return;
+        turnGenerator.Context.RightClickDown = true;
         Hide();
     }
 
     public void OnClickUpgrade()
     {
         if (currentUnit == null || !isBuilding) return;
-        if (turnGenerater == null || turnGenerater.buildsystem == null) return;
+        if (turnGenerator == null || turnGenerator.Systems.BuildSystem == null) return;
 
-        if (turnGenerater.buildsystem.TryUpgrade(currentUnit))
+        if (turnGenerator.Systems.BuildSystem.TryUpgrade(currentUnit))
         {
             Refresh();
         }
@@ -481,9 +483,9 @@ public class UnitPanelUI : MonoBehaviour
     public void OnClickDestroy()
     {
         if (currentUnit == null || !isBuilding) return;
-        if (turnGenerater == null) return;
+        if (turnGenerator == null) return;
 
-        var subCrystalSystem = turnGenerater.subCrystalSystem;
+        var subCrystalSystem = turnGenerator.Systems.SubCrystalSystem;
         if (subCrystalSystem == null) return;
 
         subCrystalSystem.DestroyBuilding(currentUnit);

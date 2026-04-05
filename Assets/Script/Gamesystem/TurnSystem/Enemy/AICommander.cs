@@ -305,7 +305,7 @@ public class AICommander
         // BuildSystem の遅延取得（SerializeField未設定対策）
         if (_buildSystem == null)
         {
-            _buildSystem = _turnGen.buildsystem;
+            _buildSystem = _turnGen.Systems.BuildSystem;
             if (_buildSystem == null)
                 _buildSystem = Object.FindFirstObjectByType<BuildSystem>();
             if (_buildSystem != null)
@@ -320,7 +320,7 @@ public class AICommander
         // SummonSystem の遅延取得
         if (_summonSystem == null)
         {
-            _summonSystem = _turnGen.summonsystem;
+            _summonSystem = _turnGen.Systems.SummonSystem;
             if (_summonSystem == null)
                 _summonSystem = Object.FindFirstObjectByType<SummonSystem>();
             if (_summonSystem != null)

@@ -19,11 +19,11 @@ public static class UIInitializer
         EnsureSingleton<ToastMessageUI>("ToastMessageUI");
 
         var inputHint = CreateComponent<InputHintUI>("InputHintUI");
-        turnGen.inputHintUI = inputHint;
+        turnGen.Systems.InputHintUI = inputHint;
 
         var dmgPreview = CreateComponent<DamagePreviewUI>("DamagePreviewUI");
         dmgPreview.turnGenerator = turnGen;
-        turnGen.damagePreviewUI = dmgPreview;
+        turnGen.Systems.DamagePreviewUI = dmgPreview;
 
         EnsureSingleton<FloatingDamageUI>("FloatingDamageUI");
         EnsureSingleton<EnemyTurnBannerUI>("EnemyTurnBannerUI");
@@ -39,7 +39,7 @@ public static class UIInitializer
         var highlight = CreateComponent<UnitSelectionHighlight>("UnitSelectionHighlight");
         highlight.Init(turnGen);
 
-        turnGen.moveUndoSystem = new MoveUndoSystem(apSystem, turnGen.moveGenerator);
+        turnGen.Systems.MoveUndoSystem = new MoveUndoSystem(apSystem, turnGen.Systems.MoveGenerator);
 
         EnsureSingleton<ActionLogUI>("ActionLogUI");
     }

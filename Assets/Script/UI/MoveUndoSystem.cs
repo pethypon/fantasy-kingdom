@@ -66,7 +66,7 @@ public class MoveUndoSystem
         _moveGen.MoveReset();
 
         // 選択状態をリセット
-        turnGen.SelectUnit = null;
+        turnGen.Context.SelectUnit = null;
         playerMove.MenuSwitch = false;
         playerMove.Obj = null;
         playerMove.MP = null;

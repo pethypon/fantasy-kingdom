@@ -110,7 +110,7 @@ public class DamagePreviewUI : MonoBehaviour
     private void Update()
     {
         if (!_isActive) return;
-        if (turnGenerator == null || turnGenerator.SelectUnit == null) { Hide(); return; }
+        if (turnGenerator == null || turnGenerator.Context.SelectUnit == null) { Hide(); return; }
         if (Mouse.current == null) return;
 
         Vector2 mousePos = Mouse.current.position.ReadValue();
@@ -122,7 +122,7 @@ public class DamagePreviewUI : MonoBehaviour
             if (target != null && target.team == Team.Enemy && target != _lastHovered)
             {
                 _lastHovered = target;
-                ShowPreview(turnGenerator.SelectUnit, target, mousePos);
+                ShowPreview(turnGenerator.Context.SelectUnit, target, mousePos);
                 return;
             }
             else if (target != null && target.team == Team.Enemy && target == _lastHovered)

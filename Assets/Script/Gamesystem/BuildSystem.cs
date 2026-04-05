@@ -276,10 +276,10 @@ public class BuildSystem : MonoBehaviour
         }
 
         // ---- ML観測: プレイヤーの建築をMLシステムに記録 ----
-        if (turnGenerator != null && turnGenerator.aiCommander != null)
+        if (turnGenerator != null && turnGenerator.Systems.AICommander != null)
         {
             Vector3 buildPos = new Vector3(lastCursorPos.x, 0, lastCursorPos.z);
-            turnGenerator.aiCommander.MLIntegration.ObservePlayerBuild(buildPos, turnGenerator.Turn);
+            turnGenerator.Systems.AICommander.MLIntegration.ObservePlayerBuild(buildPos, turnGenerator.Context.Turn);
         }
 
         // 建築モード解除
@@ -289,7 +289,7 @@ public class BuildSystem : MonoBehaviour
 
     // 設置可否チェック → BuildValidator に委譲
     private bool CheckCanPlace(Vector3Int pos)
-        => validator.CheckCanPlace(pos, SelectedFacility, subCrystalSystem, turnGenerator.crystalsystem);
+        => validator.CheckCanPlace(pos, SelectedFacility, subCrystalSystem, turnGenerator.Systems.CrystalSystem);
 
     // ==================================================================
     //  内部: 建築物の配置
@@ -577,14 +577,14 @@ public class BuildSystem : MonoBehaviour
         }
 
         // クリスタル位置チェック（XZのみで比較）
-        Vector3 pcpVec = turnGenerator.crystalsystem.PCP;
+        Vector3 pcpVec = turnGenerator.Systems.CrystalSystem.PCP;
         if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z)
         {
             Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) はPlayerクリスタル位置");
             return false;
         }
 
-        Vector3 ecpVec = turnGenerator.crystalsystem.ECP;
+        Vector3 ecpVec = turnGenerator.Systems.CrystalSystem.ECP;
         if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z)
         {
             Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) はEnemyクリスタル位置");
