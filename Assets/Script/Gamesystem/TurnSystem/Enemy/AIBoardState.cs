@@ -46,13 +46,16 @@ public class AIBoardState
     public Dictionary<FacilityKind, int> EnemyBuildingCounts { get; private set; }
     public int TurnCount { get; private set; }
 
-    // ---- 索敵・Last Known Position データ ----
+    // ---- 索敵・Last Known Position データ（インスタンスフィールド化: 複数AI対応） ----
     // 最後にPlayerユニットを視認した位置とターン (key=ユニットinstanceID)
-    static Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions = new Dictionary<int, LastKnownInfo>();
+    readonly Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions;
     // 最後にPlayerクリスタルを視認した位置とターン
-    static LastKnownInfo _lastKnownPlayerCrystal = new LastKnownInfo { Position = Vector3Int.zero, Turn = -1, Valid = false };
+    LastKnownInfo _lastKnownPlayerCrystal;
     // 前ターンでPlayerが見えていたか（初接敵検知用）
-    static bool _hadVisiblePlayersLastTurn = false;
+    bool _hadVisiblePlayersLastTurn;
+
+    // 共有メモリ: 外部から注入することで試合を跨いだ蓄積も可能
+    public static Dictionary<int, LastKnownInfo> CreateSharedMemory() => new Dictionary<int, LastKnownInfo>();
     // 今ターンで初めてPlayerを視認したか
     public bool IsFirstContact { get; private set; }
 
@@ -69,9 +72,12 @@ public class AIBoardState
         CrystalSystem crystalSystem, VisionGenerater visionGen,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
         FactionState factionState = null, SubCrystalSystem subCrystalSystem = null,
-        int turnCount = 1)
+        int turnCount = 1,
+        Dictionary<int, LastKnownInfo> sharedMemory = null)
     {
         TurnCount = turnCount;
+        _lastKnownPlayerPositions = sharedMemory ?? new Dictionary<int, LastKnownInfo>();
+        _lastKnownPlayerCrystal = new LastKnownInfo { Position = Vector3Int.zero, Turn = -1, Valid = false };
         _moveGen = moveGen;
         _attackPoint = attackPoint;
         _apSystem = apSystem;
@@ -255,55 +261,12 @@ public class AIBoardState
         return PlayerCrystalVisible;
     }
 
-    /// <summary>未探索方向の概算ベクトル（自陣クリスタルから見て未探索が多い方向）</summary>
+    /// <summary>未探索方向の概算ベクトル → AIBoardQuery に委譲</summary>
     public Vector3 GetUnexploredDirection()
-    {
-        if (_visionGen == null || _visionGen.EnemyExploard == null || _moveGen == null)
-            return Vector3.forward;
+        => AIBoardQuery.GetUnexploredDirection(this, _visionGen);
 
-        Vector3 center = EnemyCrystalPos;
-        Vector3 bestDir = Vector3.zero;
-        float bestScore = 0f;
-
-        // 8方向を調べて最も未探索セルが多い方向を返す
-        Vector3[] dirs = {
-            Vector3.forward, Vector3.back, Vector3.left, Vector3.right,
-            new Vector3(1,0,1).normalized, new Vector3(1,0,-1).normalized,
-            new Vector3(-1,0,1).normalized, new Vector3(-1,0,-1).normalized
-        };
-
-        foreach (var dir in dirs)
-        {
-            int unexplored = 0;
-            for (int step = 2; step <= 8; step += 2)
-            {
-                var checkPos = center + dir * step;
-                var cell = new Vector3Int(Mathf.RoundToInt(checkPos.x), 0, Mathf.RoundToInt(checkPos.z));
-                if (!_visionGen.EnemyExploard.Contains(cell))
-                    unexplored++;
-            }
-            if (unexplored > bestScore)
-            {
-                bestScore = unexplored;
-                bestDir = dir;
-            }
-        }
-
-        return bestDir == Vector3.zero ? Vector3.forward : bestDir;
-    }
-
-    // ---- 駒の有利度（LINQなし高速版） ----
-    public float GetAdvantageRatio()
-    {
-        int enemyPower = 0;
-        for (int i = 0; i < AliveEnemyUnits.Count; i++)
-            enemyPower += AliveEnemyUnits[i].HP + AliveEnemyUnits[i].ATK;
-        int playerPower = 0;
-        for (int i = 0; i < AlivePlayerUnits.Count; i++)
-            playerPower += AlivePlayerUnits[i].HP + AlivePlayerUnits[i].ATK;
-        if (playerPower + enemyPower == 0) return 0f;
-        return (enemyPower - playerPower) / (float)(enemyPower + playerPower);
-    }
+    // ---- 駒の有利度 → AIBoardQuery に委譲 ----
+    public float GetAdvantageRatio() => AIBoardQuery.GetAdvantageRatio(this);
 
     // ---- 移動可能マス ----
     public List<Vector3> GetValidMoves(Status unit)
@@ -432,38 +395,12 @@ public class AIBoardState
     public List<Status> GetAlliesInSkillArea(Status unit, SkillData skill, Vector3 targetPos)
         => CollectUnitsInArea(skill, targetPos, unit.direction, AliveEnemyUnits);
 
-    /// <summary>スキル範囲内のユニットを収集する共通メソッド</summary>
     List<Status> CollectUnitsInArea(SkillData skill, Vector3 targetPos, Direction dir, List<Status> candidates)
-    {
-        var result = new List<Status>();
-        var center = ToCell(targetPos);
-        var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, dir);
+        => AIBoardQuery.CollectUnitsInArea(skill, targetPos, dir, candidates);
 
-        foreach (var ac in areaCells)
-        {
-            foreach (var u in candidates)
-            {
-                if (u == null || !u.gameObject.activeInHierarchy) continue;
-                int ux = Mathf.RoundToInt(u.transform.position.x);
-                int uz = Mathf.RoundToInt(u.transform.position.z);
-                if (SameCellXZ(ac, ux, uz)) result.Add(u);
-            }
-        }
-        return result;
-    }
-
-    // ---- 味方の最寄り駒距離 ----
+    // ---- 味方の最寄り駒距離 → AIBoardQuery に委譲 ----
     public float GetNearestAllyDist(Vector3 pos, Status self)
-    {
-        float nearestSqr = float.MaxValue;
-        foreach (var u in AliveEnemyUnits)
-        {
-            if (u == null || !u.gameObject.activeInHierarchy || u == self) continue;
-            float sqr = (pos - u.transform.position).sqrMagnitude;
-            if (sqr < nearestSqr) nearestSqr = sqr;
-        }
-        return nearestSqr < float.MaxValue ? Mathf.Sqrt(nearestSqr) : float.MaxValue;
-    }
+        => AIBoardQuery.GetNearestAllyDist(this, pos, self);
 
     // ---- スキルAP消費 ----
     public void ConsumeSkill(Status unit, int apCost)
@@ -548,28 +485,14 @@ public class AIBoardState
     //  座標ヘルパー
     // ================================================================
 
-    /// <summary>ワールド座標をセル座標(Vector3Int)に変換</summary>
+    /// <summary>ワールド座標をセル座標に変換 → AIBoardQuery に委譲</summary>
     public static Vector3Int ToCell(Vector3 worldPos)
-        => new Vector3Int(Mathf.RoundToInt(worldPos.x), Mathf.RoundToInt(worldPos.y), Mathf.RoundToInt(worldPos.z));
+        => AIBoardQuery.ToCell(worldPos);
 
-    /// <summary>2つのセル座標が同一のXZ位置かどうか</summary>
-    static bool SameCellXZ(Vector3Int a, int x, int z) => a.x == x && a.z == z;
+    static bool SameCellXZ(Vector3Int a, int x, int z) => AIBoardQuery.SameCellXZ(a, x, z);
 
-    /// <summary>範囲セル内に存在する最初のユニットを返す（見つからなければnull）</summary>
     static Status FindFirstUnitInArea(List<Vector3Int> areaCells, List<Status> units)
-    {
-        foreach (var ac in areaCells)
-        {
-            foreach (var u in units)
-            {
-                if (u == null || !u.gameObject.activeInHierarchy) continue;
-                int ux = Mathf.RoundToInt(u.transform.position.x);
-                int uz = Mathf.RoundToInt(u.transform.position.z);
-                if (SameCellXZ(ac, ux, uz)) return u;
-            }
-        }
-        return null;
-    }
+        => AIBoardQuery.FindFirstUnitInArea(areaCells, units);
 
     // ================================================================
     //  ユニット収集ヘルパー
@@ -636,292 +559,57 @@ public class AIBoardState
     }
 
     public int GetBuildingCount(FacilityKind kind)
-    {
-        return EnemyBuildingCounts.TryGetValue(kind, out int c) ? c : 0;
-    }
+        => AIBoardQuery.GetBuildingCount(this, kind);
 
-    /// <summary>
-    /// 生産チェーンの不足を判定。
-    /// 原料が足りないのに加工施設を建てても無意味なので、
-    /// 上流の建物が存在するかチェックする。
-    /// </summary>
+    /// <summary>生産チェーンの不足判定 → AIBoardQuery に委譲</summary>
     public bool HasUpstreamProducer(FacilityKind facility)
-    {
-        switch (facility)
-        {
-            // Bakery は Field(小麦)と Well(水)が必要
-            case FacilityKind.Bakery:
-                return GetBuildingCount(FacilityKind.Field) > 0 &&
-                       GetBuildingCount(FacilityKind.Well) > 0;
-            // LumberMill は LoggingCamp(木材)が必要
-            case FacilityKind.LumberMill:
-                return GetBuildingCount(FacilityKind.LoggingCamp) > 0;
-            // StoneWorks は Quarry(石材)が必要
-            case FacilityKind.StoneWorks:
-                return GetBuildingCount(FacilityKind.Quarry) > 0;
-            // Smelter は Mine(鉄鉱石+石炭)が必要
-            case FacilityKind.Smelter:
-                return GetBuildingCount(FacilityKind.Mine) > 0;
-            // Field は Well(水)が必要
-            case FacilityKind.Field:
-                return GetBuildingCount(FacilityKind.Well) > 0;
-            default:
-                return true; // 上流不要
-        }
-    }
+        => AIBoardQuery.HasUpstreamProducer(this, facility);
 
-    /// <summary>
-    /// 生産チェーンの数量不足を判定。
-    /// 「上流施設が1棟あるか」ではなく「需要に対して生産量が足りるか」を判断する。
-    /// 戻り値: 不足施設のFacilityKindリスト（優先度順）
-    /// </summary>
+    /// <summary>生産チェーンの数量不足判定 → AIBoardQuery に委譲</summary>
     public List<FacilityKind> DiagnoseProductionChainDeficit()
-    {
-        var needed = new List<FacilityKind>();
-        if (EnemyResources == null) return needed;
-
-        var res = EnemyResources;
-
-        // パン不足 → 最優先
-        if (res.Bread <= 15)
-        {
-            if (GetBuildingCount(FacilityKind.Bakery) == 0)
-            {
-                // Bakery建設に必要な上流を先にチェック
-                if (GetBuildingCount(FacilityKind.Field) == 0)
-                    needed.Add(FacilityKind.Field);
-                if (GetBuildingCount(FacilityKind.Well) == 0)
-                    needed.Add(FacilityKind.Well);
-                needed.Add(FacilityKind.Bakery);
-            }
-            else
-            {
-                // Bakeryはあるが小麦/水が足りない
-                if (res.Wheat <= 10 && GetBuildingCount(FacilityKind.Field) < 2)
-                    needed.Add(FacilityKind.Field);
-                if (res.Water <= 10 && GetBuildingCount(FacilityKind.Well) < 2)
-                    needed.Add(FacilityKind.Well);
-                // Bakery追加も検討
-                if (res.Wheat > 20 && res.Water > 10 && GetBuildingCount(FacilityKind.Bakery) < 2)
-                    needed.Add(FacilityKind.Bakery);
-            }
-        }
-
-        // 加工材不足 → Plank
-        if (res.Plank <= 10)
-        {
-            if (GetBuildingCount(FacilityKind.LoggingCamp) == 0)
-                needed.Add(FacilityKind.LoggingCamp);
-            if (GetBuildingCount(FacilityKind.LumberMill) == 0 && GetBuildingCount(FacilityKind.LoggingCamp) > 0)
-                needed.Add(FacilityKind.LumberMill);
-        }
-
-        // CutStone不足
-        if (res.CutStone <= 10)
-        {
-            if (GetBuildingCount(FacilityKind.Quarry) == 0)
-                needed.Add(FacilityKind.Quarry);
-            if (GetBuildingCount(FacilityKind.StoneWorks) == 0 && GetBuildingCount(FacilityKind.Quarry) > 0)
-                needed.Add(FacilityKind.StoneWorks);
-        }
-
-        // Iron不足
-        if (res.Iron <= 5)
-        {
-            if (GetBuildingCount(FacilityKind.Mine) == 0)
-                needed.Add(FacilityKind.Mine);
-            if (GetBuildingCount(FacilityKind.Smelter) == 0 && GetBuildingCount(FacilityKind.Mine) > 0)
-                needed.Add(FacilityKind.Smelter);
-        }
-
-        // 市民不足
-        if (res.Citizen <= 1)
-            needed.Add(FacilityKind.House);
-
-        // 基礎資源の基本確保（まだ1棟もない場合）
-        if (GetBuildingCount(FacilityKind.Well) == 0 && !needed.Contains(FacilityKind.Well))
-            needed.Add(FacilityKind.Well);
-        if (GetBuildingCount(FacilityKind.LoggingCamp) == 0 && !needed.Contains(FacilityKind.LoggingCamp))
-            needed.Add(FacilityKind.LoggingCamp);
-        if (GetBuildingCount(FacilityKind.Quarry) == 0 && !needed.Contains(FacilityKind.Quarry))
-            needed.Add(FacilityKind.Quarry);
-        if (GetBuildingCount(FacilityKind.Field) == 0 && !needed.Contains(FacilityKind.Field))
-            needed.Add(FacilityKind.Field);
-
-        return needed;
-    }
+        => AIBoardQuery.DiagnoseProductionChainDeficit(this);
 
     // ================================================================
     //  次ターン反撃圏の危険度評価
     // ================================================================
 
-    /// <summary>
-    /// あるマスに駒が立ったとき、次ターンにプレイヤーから受ける予想ダメージ合計。
-    /// 視界内のプレイヤー駒それぞれについて、攻撃が届くかを簡易判定する。
-    /// </summary>
+    /// <summary>次ターン反撃圏の危険度 → AIBoardQuery に委譲</summary>
     public int EstimateCounterDamageAt(Vector3 pos, Status self)
-    {
-        int totalDmg = 0;
-        foreach (var pu in AlivePlayerUnits)
-        {
-            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-            float maxRange = EstimateAttackRange(pu) + 1.5f; // 移動+攻撃マージン
-            float sqrThreshold = maxRange * maxRange;
-            if ((pos - pu.transform.position).sqrMagnitude > sqrThreshold) continue;
-            int dmg = Mathf.Max(0, 1 + (pu.ATK / 6) + ((pu.ATK / 2) - (self.DEF / 4)));
-            totalDmg += dmg;
-        }
-        return totalDmg;
-    }
+        => AIBoardQuery.EstimateCounterDamageAt(this, pos, self);
 
-    /// <summary>駒種から大まかな攻撃射程を返す</summary>
-    static float EstimateAttackRange(Status unit)
-    {
-        switch (unit.kind)
-        {
-            case Kind.Archer:      return 3f;
-            case Kind.Magic:       return 2f;
-            case Kind.Crossbow:    return 2f;
-            case Kind.Magicsniper: return 4f;
-            case Kind.Bomber:      return 3f;
-            default:               return 1.5f;
-        }
-    }
-
-    /// <summary>指定位置から一定距離内の味方ユニット数</summary>
+    /// <summary>指定位置から一定距離内の味方ユニット数 → AIBoardQuery に委譲</summary>
     public int CountAlliesNear(Vector3 pos, Status self, float radius)
-    {
-        int count = 0;
-        float sqrRadius = radius * radius;
-        foreach (var u in AliveEnemyUnits)
-        {
-            if (u == null || !u.gameObject.activeInHierarchy || u == self) continue;
-            if ((pos - u.transform.position).sqrMagnitude <= sqrRadius) count++;
-        }
-        return count;
-    }
+        => AIBoardQuery.CountAlliesNear(this, pos, self, radius);
 
-    /// <summary>指定位置に到達可能な味方ヒーラーがいるか</summary>
+    /// <summary>指定位置に到達可能な味方ヒーラーがいるか → AIBoardQuery に委譲</summary>
     public bool HasHealerInRange(Vector3 pos, float range)
-    {
-        float sqrRange = range * range;
-        foreach (var u in AliveEnemyUnits)
-        {
-            if (u == null || !u.gameObject.activeInHierarchy) continue;
-            if (u.AssignedSkillId < 0) continue;
-            if (!SkillData.Table.TryGetValue(u.AssignedSkillId, out var skill)) continue;
-            if (skill.FixedHeal > 0 && (pos - u.transform.position).sqrMagnitude <= sqrRange)
-                return true;
-        }
-        return false;
-    }
+        => AIBoardQuery.HasHealerInRange(this, pos, range);
 
-    /// <summary>指定位置の近くに壁/防衛建築があるか</summary>
+    /// <summary>指定位置の近くに壁/防衛建築があるか → AIBoardQuery に委譲</summary>
     public bool HasDefensiveStructureNear(Vector3 pos, float range)
-    {
-        if (_buildSystem == null) return false;
-        Transform parent = _buildSystem.GetBuildingParent(Team.Enemy);
-        if (parent == null) return false;
-        float sqrRange = range * range;
-        foreach (Transform child in parent)
-        {
-            var s = child.GetComponent<Status>();
-            if (s == null || s.HP <= 0) continue;
-            if (s.facilityKind == FacilityKind.WoodWall || s.facilityKind == FacilityKind.StoneWall
-                || s.facilityKind == FacilityKind.Mortar || s.facilityKind == FacilityKind.Cannon)
-            {
-                if ((pos - child.position).sqrMagnitude <= sqrRange) return true;
-            }
-        }
-        return false;
-    }
+        => AIBoardQuery.HasDefensiveStructureNear(_buildSystem, pos, range);
 
     // ================================================================
     //  索敵・偵察用
     // ================================================================
 
-    /// <summary>
-    /// ある位置に駒を置いた場合、新たに探索されるマス数を概算する。
-    /// Scout等の偵察ユニットが未探索エリアへ向かうべきかの判断に使用。
-    /// </summary>
+    /// <summary>新規探索マス数の概算 → AIBoardQuery に委譲</summary>
     public int EstimateNewVisionCells(Vector3 pos)
-    {
-        if (_visionGen == null || _visionGen.EnemyExploard == null) return 0;
+        => AIBoardQuery.EstimateNewVisionCells(_visionGen, pos);
 
-        int newCells = 0;
-        var c = ToCell(pos);
-        int cx = c.x;
-        int cz = c.z;
-        // Scoutの視界範囲（-2~+2 x -2~+2）を概算チェック
-        for (int dx = -2; dx <= 2; dx++)
-        {
-            for (int dz = -2; dz <= 2; dz++)
-            {
-                var cell = new Vector3Int(cx + dx, 0, cz + dz);
-                if (!_visionGen.EnemyExploard.Contains(cell))
-                    newCells++;
-            }
-        }
-        return newCells;
-    }
-
-    /// <summary>探索済み面積の割合（0～1）</summary>
+    /// <summary>探索済み面積の割合 → AIBoardQuery に委譲</summary>
     public float GetExplorationRatio()
-    {
-        if (_visionGen == null || _visionGen.EnemyExploard == null || _moveGen == null) return 1f;
-        int totalTiles = _moveGen.mapcreate.SetPos.Count;
-        if (totalTiles == 0) return 1f;
-        return (float)_visionGen.EnemyExploard.Count / totalTiles;
-    }
+        => AIBoardQuery.GetExplorationRatio(_visionGen, _moveGen);
 
-    /// <summary>経済余剰スコア: 維持費に余裕があるかの指標 (0=ギリギリ 1=余裕)</summary>
+    /// <summary>経済余剰スコア → AIBoardQuery に委譲</summary>
     public float GetEconomicSurplus()
-    {
-        if (EnemyResources == null) return 0f;
-        // パン・鉄・木を総合的に判断。各30以上で余裕あり
-        float breadSurplus = Mathf.Clamp01(EnemyResources.Bread / 30f);
-        float ironSurplus = Mathf.Clamp01(EnemyResources.Iron / 20f);
-        float woodSurplus = Mathf.Clamp01(EnemyResources.Wood / 20f);
-        return (breadSurplus + ironSurplus + woodSurplus) / 3f;
-    }
+        => AIBoardQuery.GetEconomicSurplus(this);
 
-    /// <summary>
-    /// 資源のボトルネック度を返す（0〜1、高いほど不足）。
-    /// AIが「何を建てるべきか」の判断に使用。30以下で不足感、0で最大不足。
-    /// </summary>
+    /// <summary>資源ボトルネック度 → AIBoardQuery に委譲</summary>
     public float GetResourceScarcity(string resourceName)
-    {
-        if (EnemyResources == null) return 0f;
-        int amount = GetResourceAmount(resourceName);
-        return amount < 0 ? 0f : Mathf.Clamp01(1f - amount / 30f);
-    }
+        => AIBoardQuery.GetResourceScarcity(this, resourceName);
 
-    /// <summary>資源名から現在量を取得（不明なら-1）</summary>
-    int GetResourceAmount(string resourceName)
-    {
-        if (EnemyResources == null) return -1;
-        switch (resourceName)
-        {
-            case "Wood":     return EnemyResources.Wood;
-            case "Stone":    return EnemyResources.Stone;
-            case "Water":    return EnemyResources.Water;
-            case "Wheat":    return EnemyResources.Wheat;
-            case "Bread":    return EnemyResources.Bread;
-            case "Plank":    return EnemyResources.Plank;
-            case "CutStone": return EnemyResources.CutStone;
-            case "IronOre":  return EnemyResources.IronOre;
-            case "Iron":     return EnemyResources.Iron;
-            case "Coal":     return EnemyResources.Coal;
-            case "MagicOre": return EnemyResources.MagicOre;
-            default:         return -1;
-        }
-    }
-
-    /// <summary>指定位置が有効なマップタイルかどうか</summary>
+    /// <summary>有効マップタイル判定 → AIBoardQuery に委譲</summary>
     public bool IsValidTile(Vector3 pos)
-    {
-        if (_moveGen == null || _moveGen.mapcreate == null) return false;
-        var cell = new Vector3(Mathf.Round(pos.x), 1f, Mathf.Round(pos.z));
-        return _moveGen.mapcreate.SetPos.Contains(cell);
-    }
+        => AIBoardQuery.IsValidTile(_moveGen, pos);
 }

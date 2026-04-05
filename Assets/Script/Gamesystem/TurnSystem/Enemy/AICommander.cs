@@ -38,6 +38,10 @@ public class AICommander
     readonly AIDeterministicRandom _rng;
     readonly TurnStrategyPlanner _strategyPlanner;
 
+    // ---- 分離クラス ----
+    readonly AIActionExecutor _actionExecutor;
+    readonly AIBuildPlanner _buildPlanner;
+
     // AP予算配分（TurnStrategyPlannerが毎ターン計画）
     TurnStrategyPlanner.APBudget _apBudget;
 
@@ -48,6 +52,9 @@ public class AICommander
 
     // 駒ごとの直近位置履歴（振動防止用）
     Dictionary<Status, List<Vector3Int>> _unitPositionHistory = new Dictionary<Status, List<Vector3Int>>();
+
+    // 索敵メモリ（AIBoardState間で共有、試合中永続）
+    readonly Dictionary<int, AIBoardState.LastKnownInfo> _sharedMemory = AIBoardState.CreateSharedMemory();
 
     // 今ターンの方針（ターン冒頭で決定）
     TurnStrategy _currentStrategy = TurnStrategy.Balanced;
@@ -127,6 +134,12 @@ public class AICommander
         _rng = new AIDeterministicRandom(randomSeed >= 0 ? randomSeed : System.Environment.TickCount);
         _strategyPlanner = new TurnStrategyPlanner();
 
+        // 分離クラス初期化
+        _actionExecutor = new AIActionExecutor(
+            turnGen, moveGen, attackPoint, battleSystem, apSystem,
+            skillSystem, subCrystalSystem, buildSystem, summonSystem, _learning);
+        _buildPlanner = new AIBuildPlanner(apSystem, factionState, _actionExecutor, _personality, _learning);
+
         Debug.Log("=== [AICommander] ==============================");
         Debug.Log($"[AICommander] 初期化完了");
         Debug.Log($"[AICommander] 大きい性格 = {major}  脅威度={_threatLevel.Level} ({_threatLevel.GetTierName()})");
@@ -166,35 +179,6 @@ public class AICommander
     public int SaveTurnCount     { get => _turnCount;  set => _turnCount = value; }
 
     public void RestoreStrategy(TurnStrategy strategy) { _currentStrategy = strategy; }
-
-    /// <summary>原料生産施設(Well,LoggingCamp,Quarry,Field,Mine)の合計棟数</summary>
-    static int CountEconBuildings(AIBoardState board)
-    {
-        return board.GetBuildingCount(FacilityKind.Well)
-             + board.GetBuildingCount(FacilityKind.LoggingCamp)
-             + board.GetBuildingCount(FacilityKind.Quarry)
-             + board.GetBuildingCount(FacilityKind.Field)
-             + board.GetBuildingCount(FacilityKind.Mine);
-    }
-
-    /// <summary>加工施設(LumberMill,StoneWorks,Smelter,Bakery)の合計棟数</summary>
-    static int CountProcessingBuildings(AIBoardState board)
-    {
-        return board.GetBuildingCount(FacilityKind.LumberMill)
-             + board.GetBuildingCount(FacilityKind.StoneWorks)
-             + board.GetBuildingCount(FacilityKind.Smelter)
-             + board.GetBuildingCount(FacilityKind.Bakery);
-    }
-
-    /// <summary>経済全体の充実度判定: 原料+加工+House</summary>
-    static bool IsEconomySufficient(AIBoardState board)
-    {
-        int raw = CountEconBuildings(board);
-        int proc = CountProcessingBuildings(board);
-        int house = board.GetBuildingCount(FacilityKind.House);
-        // 原料4棟以上 + 加工2棟以上 + 住宅1棟以上で充実とみなす
-        return raw >= 4 && proc >= 2 && house >= 1;
-    }
 
     // ================================================================
     //  ターン方針の決定
@@ -325,7 +309,10 @@ public class AICommander
             if (_buildSystem == null)
                 _buildSystem = Object.FindFirstObjectByType<BuildSystem>();
             if (_buildSystem != null)
+            {
+                _actionExecutor.BuildSystem = _buildSystem;
                 Debug.Log("[AICommander] BuildSystem を遅延取得しました");
+            }
             else
                 Debug.LogWarning("[AICommander] BuildSystem が見つかりません — 建築不可");
         }
@@ -337,12 +324,15 @@ public class AICommander
             if (_summonSystem == null)
                 _summonSystem = Object.FindFirstObjectByType<SummonSystem>();
             if (_summonSystem != null)
+            {
+                _actionExecutor.SummonSystem = _summonSystem;
                 Debug.Log("[AICommander] SummonSystem を遅延取得しました");
+            }
         }
 
         _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet,
             _crystalSystem, _visionGen, _buildSystem, _summonSystem, _factionState,
-            _subCrystalSystem, _turnCount);
+            _subCrystalSystem, _turnCount, _sharedMemory);
 
         // スキルクールダウンを全敵駒で減少
         TickSkillCooldowns();
@@ -399,10 +389,10 @@ public class AICommander
         {
             Debug.Log($"[AICommander] 建築可能: {string.Join(", ", _board.AffordableBuildings)}");
         }
-        Debug.Log($"[AICommander] 経済: 原料施設={CountEconBuildings(_board)}  " +
-                  $"加工施設={CountProcessingBuildings(_board)}  " +
+        Debug.Log($"[AICommander] 経済: 原料施設={EconomyHelper.CountEconBuildings(_board)}  " +
+                  $"加工施設={EconomyHelper.CountProcessingBuildings(_board)}  " +
                   $"住宅={_board.GetBuildingCount(FacilityKind.House)}  " +
-                  $"経済充足={IsEconomySufficient(_board)}");
+                  $"経済充足={EconomyHelper.IsEconomySufficient(_board)}");
         if (_board.EnemyResources != null)
         {
             var r = _board.EnemyResources;
@@ -436,7 +426,8 @@ public class AICommander
         //  ★ 建築先行フェーズ: 経済未成熟時は移動の前に建築を試みる
         //  これにより移動でAPを使い切って建築不能になる問題を防止する
         // ================================================================
-        TryEarlyBuildPhase(ref turnStats);
+        int earlyBuilds = _buildPlanner.TryEarlyBuildPhase(_board, _currentStrategy, _turnCount);
+        for (int eb = 0; eb < earlyBuilds; eb++) turnStats.Record(AIActionType.Build);
 
         // AP予算: 建築/召喚が可能なら最低限のAPを予約する
         int reservedAP = CalcReservedAP();
@@ -546,7 +537,7 @@ public class AICommander
                 break;
             }
 
-            bool success = ExecuteAction(bestAction);
+            bool success = _actionExecutor.Execute(bestAction, _board);
             if (!success)
             {
                 consecutiveFailures++;
@@ -594,7 +585,24 @@ public class AICommander
             _mlIntegration.RecordAction(bestAction, _board, true, _turnCount);
 
             if (bestAction.Unit != null)
+            {
                 _actedUnits.Add(bestAction.Unit);
+
+                // 位置履歴を記録（振動防止用）— 移動系行動のみ
+                if (bestAction.ActionType == AIActionType.Move
+                    || bestAction.ActionType == AIActionType.Retreat
+                    || bestAction.ActionType == AIActionType.Support
+                    || bestAction.ActionType == AIActionType.Surround
+                    || bestAction.ActionType == AIActionType.DefenseRepos)
+                {
+                    var cellInt = AIBoardState.ToCell(bestAction.TargetPos);
+                    if (!_unitPositionHistory.ContainsKey(bestAction.Unit))
+                        _unitPositionHistory[bestAction.Unit] = new List<Vector3Int>();
+                    _unitPositionHistory[bestAction.Unit].Add(cellInt);
+                    if (_unitPositionHistory[bestAction.Unit].Count > 4)
+                        _unitPositionHistory[bestAction.Unit].RemoveAt(0);
+                }
+            }
         }
 
         // ================================================================
@@ -602,15 +610,11 @@ public class AICommander
         //  まだ1棟も建てていない場合は再度建築を試みる
         //  30ターン以降は経済充足でも実行（上位施設を建てるため）
         // ================================================================
-        bool shouldPostBuild = turnStats.Builds == 0 && _board.EnemyAP >= 3
-            && (!IsEconomySufficient(_board) || _turnCount >= 30);
-        if (shouldPostBuild)
-        {
-            Debug.Log($"[AI-Build] メインループで建築0棟 → 後手建築フェーズ (ターン{_turnCount})");
-            _board.Refresh();
-            int lateBuilds = ForceDirectBuild(ref turnStats);
-            Debug.Log($"[AI-Build] 後手建築フェーズ: {lateBuilds}棟建築");
-        }
+        int lateBuilds = _buildPlanner.TryLateBuildPhase(_board, turnStats.Builds, _turnCount);
+        for (int lb = 0; lb < lateBuilds; lb++) turnStats.Record(AIActionType.Build);
+
+        // 撃破数を executor から同期
+        _totalKills = _actionExecutor.TotalKills;
 
         _totalStats.Moves += turnStats.Moves;
         _totalStats.Attacks += turnStats.Attacks;
@@ -729,7 +733,7 @@ public class AICommander
         int cheapest = int.MaxValue;
 
         // 原料施設が4棟未満 → 安い原料施設のAP分を予約
-        int rawCount = CountEconBuildings(_board);
+        int rawCount = EconomyHelper.CountEconBuildings(_board);
         if (rawCount < 4)
         {
             // Well(3), Field(3), LoggingCamp(4), Quarry(4)
@@ -737,7 +741,7 @@ public class AICommander
         }
 
         // 加工施設が0 → 加工施設のAP分を予約
-        int procCount = CountProcessingBuildings(_board);
+        int procCount = EconomyHelper.CountProcessingBuildings(_board);
         if (procCount == 0 && rawCount >= 2)
         {
             // LumberMill(6), StoneWorks(6), Bakery(5)
@@ -755,275 +759,6 @@ public class AICommander
     }
 
     // ================================================================
-    //  建築先行フェーズ: 経済未成熟時、メインループの前に建築を優先実行
-    //  移動でAPを使い切る前に、最低1棟は建てるようにする
-    // ================================================================
-    void TryEarlyBuildPhase(ref TurnStats turnStats)
-    {
-        Debug.Log($"[AI-Build] === 先行建築フェーズ開始 === AP={_board.EnemyAP} ターン={_turnCount}");
-
-        // 30ターン以降は常に建築を試みる（経済充足でも上位施設が必要）
-        bool forceByTurn = _turnCount >= 30;
-
-        // 経済が十分に成熟していれば先行建築不要（30ターン以降は例外）
-        if (IsEconomySufficient(_board) && !forceByTurn)
-        {
-            Debug.Log("[AI-Build] 経済充足 → 先行建築スキップ");
-            return;
-        }
-
-        // 戦闘中は建築抑制（ただし30ターン以降は1棟だけ許可）
-        if (_currentStrategy == TurnStrategy.CrystalDefense && !forceByTurn)
-        {
-            Debug.Log("[AI-Build] クリスタル防衛中 → 先行建築スキップ");
-            return;
-        }
-        if (_currentStrategy == TurnStrategy.ContactEngage && !forceByTurn)
-        {
-            Debug.Log("[AI-Build] 交戦開始中 → 先行建築スキップ");
-            return;
-        }
-
-        Debug.Log($"[AI-Build] BuildablePositions={_board.BuildablePositions.Count}  " +
-                  $"AffordableBuildings={_board.AffordableBuildings.Count}  " +
-                  $"({string.Join(",", _board.AffordableBuildings)})");
-
-        // 建築可能条件チェック → スコア評価パスを試行
-        int earlyBuilds = 0;
-        const int maxEarlyBuilds = 2;
-
-        if (_board.BuildablePositions.Count > 0 && _board.AffordableBuildings.Count > 0)
-        {
-            // 建築候補のみを生成・評価
-            var buildActions = new List<AIAction>();
-            AIActionEvaluator.GenerateBuildCandidatesPublic(_board, buildActions);
-            AIActionEvaluator.GenerateSubCrystalCandidatesPublic(_board, buildActions);
-
-            Debug.Log($"[AI-Build] 生成された建築候補数={buildActions.Count}");
-
-            if (buildActions.Count > 0)
-            {
-                // スコア付け
-                foreach (var action in buildActions)
-                {
-                    action.Score = AIActionEvaluator.CalcBuildScorePublic(action, _personality, _board, _learning);
-                }
-
-                // 戦略ボーナス適用
-                foreach (var action in buildActions)
-                {
-                    if (_currentStrategy == TurnStrategy.EconomyBuild)
-                    {
-                        action.Score += 30f;
-                        if (IsMissingCoreFacility(action.Facility))
-                            action.Score += 40f;
-                    }
-                    else if (_currentStrategy == TurnStrategy.Balanced)
-                    {
-                        action.Score += 15f;
-                    }
-                }
-
-                // スコア降順ソート
-                buildActions.Sort((a, b) => b.Score.CompareTo(a.Score));
-
-                // 上位3つをログ出力
-                for (int i = 0; i < Mathf.Min(3, buildActions.Count); i++)
-                {
-                    var ba = buildActions[i];
-                    Debug.Log($"[AI-Build] 候補{i+1}: {ba.Facility} score={ba.Score:F1} AP={ba.APCost} pos={ba.TargetPos}");
-                }
-
-                foreach (var action in buildActions)
-                {
-                    if (earlyBuilds >= maxEarlyBuilds) break;
-                    if (action.APCost > _board.EnemyAP)
-                    {
-                        Debug.Log($"[AI-Build] AP不足でスキップ: {action.Facility} APコスト={action.APCost} 残AP={_board.EnemyAP}");
-                        continue;
-                    }
-
-                    Debug.Log($"[AI-Build] 建築試行: {action.Facility} @{action.TargetPos} score={action.Score:F1}");
-                    bool success = ExecuteAction(action);
-                    if (success)
-                    {
-                        earlyBuilds++;
-                        turnStats.Record(action.ActionType);
-                        _board.Refresh();
-                        Debug.Log($"[AI-Build] ★先行建築{earlyBuilds}成功: {action.Facility} 残AP={_board.EnemyAP}");
-                    }
-                    else
-                    {
-                        Debug.Log($"[AI-Build] ✗先行建築失敗: {action.Facility} @{action.TargetPos}");
-                    }
-                }
-            }
-        }
-
-        // ================================================================
-        //  直接建築フォールバック: スコアパイプラインが0棟しか建てられなかった場合
-        //  BuildSystem.AIPlaceBuilding を直接呼び出して確実に建てる
-        // ================================================================
-        if (earlyBuilds == 0 && _buildSystem != null && _board.EnemyAP >= 3)
-        {
-            Debug.Log("[AI-Build] スコアパスで建築0棟 → 直接建築フォールバック開始");
-            earlyBuilds += ForceDirectBuild(ref turnStats);
-        }
-
-        Debug.Log($"[AI-Build] === 先行建築フェーズ終了: {earlyBuilds}棟建築  残AP={_board.EnemyAP} ===");
-    }
-
-    /// <summary>
-    /// 直接建築フォールバック: スコアリングを完全にバイパスし、
-    /// 最も安価な建物を領地内の最初の空き位置に直接配置する。
-    /// try-catch で例外が出ても安全に継続する。
-    /// </summary>
-    int ForceDirectBuild(ref TurnStats turnStats)
-    {
-        if (_buildSystem == null)
-        {
-            Debug.LogWarning("[AI-ForceBuild] _buildSystem==null → 建築不可");
-            return 0;
-        }
-        if (_factionState == null)
-        {
-            Debug.LogWarning("[AI-ForceBuild] _factionState==null → 建築不可");
-            return 0;
-        }
-
-        try
-        {
-            return ForceDirectBuildInternal(ref turnStats);
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"[AI-ForceBuild] 例外発生: {e.Message}\n{e.StackTrace}");
-            return 0;
-        }
-    }
-
-    int ForceDirectBuildInternal(ref TurnStats turnStats)
-    {
-        int built = 0;
-
-        // 建てるべき施設を優先順に列挙
-        FacilityKind[] buildOrder = {
-            FacilityKind.Well,          // AP=3  上流不要
-            FacilityKind.LoggingCamp,   // AP=4  上流不要
-            FacilityKind.Quarry,        // AP=4  上流不要
-            FacilityKind.Field,         // AP=3  Well必要
-            FacilityKind.Mine,          // AP=7  上流不要
-            FacilityKind.House,         // AP=7  上流不要
-            FacilityKind.LumberMill,    // AP=6  LoggingCamp必要
-            FacilityKind.StoneWorks,    // AP=6  Quarry必要
-            FacilityKind.Bakery,        // AP=5  Field+Well必要
-            FacilityKind.Smelter,       // AP=7  Mine必要
-            FacilityKind.Warehouse,     // AP=7  上流不要
-            FacilityKind.Barracks,      // AP=10 上流不要
-        };
-
-        // 建築可能位置を直接取得
-        var positions = _buildSystem.AIGetBuildablePositions(Team.Enemy);
-        Debug.Log($"[AI-ForceBuild] 建築可能位置数={positions.Count}  AP={_apSystem.GetAP(Team.Enemy)}");
-
-        if (positions.Count == 0)
-        {
-            Debug.LogWarning("[AI-ForceBuild] 建築可能位置がゼロ！ 領地が存在しないか全て埋まっている");
-            return 0;
-        }
-
-        // 資源状態をログ出力
-        var res = _factionState.EnemyResources;
-        if (res != null)
-        {
-            Debug.Log($"[AI-ForceBuild] 資源: Wood={res.Wood} Stone={res.Stone} Water={res.Water} " +
-                      $"Plank={res.Plank} CutStone={res.CutStone} Iron={res.Iron} " +
-                      $"Bread={res.Bread} Citizen={res.Citizen}");
-        }
-
-        foreach (var facility in buildOrder)
-        {
-            if (built >= 3) break; // 最大3棟まで
-
-            int currentAP = _apSystem.GetAP(Team.Enemy);
-            if (currentAP < 3) break; // AP=3未満なら何も建てられない
-
-            if (!FacilityData.Table.TryGetValue(facility, out var info)) continue;
-
-            // AP足りるか
-            if (currentAP < info.APCost) continue;
-
-            // 資源足りるか（CanBuildはAP+資源の両方をチェック）
-            if (!_apSystem.CanBuild(Team.Enemy, facility, _factionState)) continue;
-
-            // 上流施設チェック（加工施設は上流が必要）
-            if (_board != null && !_board.HasUpstreamProducer(facility)) continue;
-
-            // 同種の既存数チェック（初回は上限緩く、ターン30以降は複数OK）
-            int existing = _board != null ? _board.GetBuildingCount(facility) : 0;
-            int maxForForce = _turnCount >= 30 ? 3 : 1;
-            if (facility == FacilityKind.House) maxForForce = 3;
-            if (existing >= maxForForce) continue;
-
-            // 各位置で建築を試みる（最初の1位置だけログ詳細）
-            bool placed = false;
-            for (int i = 0; i < positions.Count; i++)
-            {
-                var pos = positions[i];
-                bool success = _buildSystem.AIPlaceBuilding(pos, facility, Team.Enemy);
-                if (success)
-                {
-                    built++;
-                    turnStats.Record(AIActionType.Build);
-                    if (_board != null) _board.Refresh();
-                    Debug.Log($"[AI-ForceBuild] ★★ {facility} @({pos.x},{pos.y},{pos.z}) 建築成功! " +
-                              $"残AP={_apSystem.GetAP(Team.Enemy)} (今ターン{built}棟目)");
-                    placed = true;
-                    // 成功後に位置リストを再取得
-                    positions = _buildSystem.AIGetBuildablePositions(Team.Enemy);
-                    break;
-                }
-            }
-
-            if (!placed)
-            {
-                Debug.Log($"[AI-ForceBuild] {facility}: 全{positions.Count}位置で失敗");
-            }
-        }
-
-        if (built == 0)
-        {
-            Debug.LogWarning("[AI-ForceBuild] 全施設の建築に失敗！ CanBuildまたはAICheckCanPlaceの問題");
-        }
-
-        return built;
-    }
-
-    /// <summary>コア施設（原料+加工+住宅）が不足しているかチェック</summary>
-    bool IsMissingCoreFacility(FacilityKind facility)
-    {
-        switch (facility)
-        {
-            case FacilityKind.Well:
-            case FacilityKind.LoggingCamp:
-            case FacilityKind.Quarry:
-            case FacilityKind.Field:
-                return _board.GetBuildingCount(facility) == 0;
-            case FacilityKind.LumberMill:
-            case FacilityKind.StoneWorks:
-            case FacilityKind.Bakery:
-            case FacilityKind.Smelter:
-                return _board.GetBuildingCount(facility) == 0;
-            case FacilityKind.House:
-                return _board.GetBuildingCount(FacilityKind.House) == 0;
-            case FacilityKind.Mine:
-                return _board.GetBuildingCount(FacilityKind.Mine) == 0;
-            default:
-                return false;
-        }
-    }
-
-    // ================================================================
     //  AP予約ペナルティ: 移動系が予約APを食い込む場合に減点
     // ================================================================
     void ApplyAPReservationPenalty(List<AIAction> actions, int reservedAP)
@@ -1031,7 +766,7 @@ public class AICommander
         if (reservedAP <= 0) return;
 
         // 経済が未成熟かどうかで重みを変える
-        bool econWeak = !IsEconomySufficient(_board);
+        bool econWeak = !EconomyHelper.IsEconomySufficient(_board);
 
         foreach (var action in actions)
         {
@@ -1179,324 +914,6 @@ public class AICommander
     }
 
     // ================================================================
-    //  行動実行
-    // ================================================================
-    bool ExecuteAction(AIAction action)
-    {
-        switch (action.ActionType)
-        {
-            case AIActionType.Move:
-                return ExecuteMove(action);
-            case AIActionType.Attack:
-                return ExecuteAttack(action);
-            case AIActionType.SkillUse:
-                return ExecuteSkill(action);
-            case AIActionType.Retreat:
-            case AIActionType.Support:
-            case AIActionType.Surround:
-            case AIActionType.DefenseRepos:
-                return ExecuteMove(action); // 移動として実行
-            case AIActionType.Build:
-                return ExecuteBuild(action);
-            case AIActionType.Summon:
-                return ExecuteSummon(action);
-            case AIActionType.SubCrystal:
-                return ExecuteSubCrystal(action);
-            default:
-                Debug.Log($"[AICommander] 未実装アクション: {action.ActionType}");
-                return false;
-        }
-    }
-
-    // ---- 移動実行 ----
-    bool ExecuteMove(AIAction action)
-    {
-        var unit = action.Unit;
-        var dest = action.TargetPos;
-
-        if (!_apSystem.CanAct(Team.Enemy, APSystem.ActionType.Move, unit,
-                unit.transform.position, dest))
-            return false;
-
-        Vector3 oldPos = unit.transform.position;
-        Vector3 oldCell = _moveGen.Cell(oldPos);
-
-        Vector3 actualDest = dest;
-        foreach (var sp in _moveGen.mapcreate.SetPos)
-        {
-            if (Mathf.RoundToInt(sp.x) == Mathf.RoundToInt(dest.x) &&
-                Mathf.RoundToInt(sp.z) == Mathf.RoundToInt(dest.z))
-            {
-                actualDest = new Vector3(sp.x, sp.y, sp.z);
-                break;
-            }
-        }
-
-        _board.ConsumeMove(unit, actualDest);
-        unit.transform.position = actualDest;
-        _moveGen.MoveUpdate(oldCell, _moveGen.Cell(actualDest));
-
-        // Special Ability: 移動フラグセット
-        unit.HasMovedThisTurn = true;
-
-        // 位置履歴を記録（振動防止用）
-        var cellInt = AIBoardState.ToCell(actualDest);
-        if (!_unitPositionHistory.ContainsKey(unit))
-            _unitPositionHistory[unit] = new List<Vector3Int>();
-        _unitPositionHistory[unit].Add(cellInt);
-        if (_unitPositionHistory[unit].Count > 4)
-            _unitPositionHistory[unit].RemoveAt(0);
-
-        string moveType = GetMoveTypeName(action.ActionType);
-        Debug.Log($"[AICommander] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={_board.EnemyAP}");
-
-        // ★ 学習記録: PlayerCrystalVisible チェック必須
-        if (_learning.IsActive && _board.CanUsePlayerCrystalAsTarget())
-        {
-            float distBefore = Vector3.Distance(oldPos, _board.PlayerCrystalPos);
-            float distAfter = Vector3.Distance(actualDest, _board.PlayerCrystalPos);
-            if (distAfter < distBefore)
-                _learning.RecordRouteResult(actualDest, true);
-        }
-
-        return true;
-    }
-
-    // ---- 攻撃実行 ----
-    bool ExecuteAttack(AIAction action)
-    {
-        var unit = action.Unit;
-        var target = action.TargetUnit;
-
-        if (target == null || !target.gameObject.activeInHierarchy) return false;
-        if (!_apSystem.CanAct(Team.Enemy, APSystem.ActionType.Attack, unit)) return false;
-
-        var prevSelect = _turnGen.SelectUnit;
-        _turnGen.SelectUnit = unit;
-        _battleSystem.target = target;
-
-        int hpBefore = target.HP;
-        _board.ConsumeAttack(unit);
-        _battleSystem.DamageGenerater(_turnGen);
-
-        int hpAfter = target.HP;
-        bool killed = hpAfter <= 0;
-
-        if (killed)
-        {
-            _totalKills++;
-            Debug.Log($"[AICommander] ★撃破! {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}");
-        }
-        else
-        {
-            Debug.Log($"[AICommander] 攻撃: {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}  残HP={hpAfter}");
-        }
-
-        if (_learning.IsActive)
-        {
-            if (killed)
-            {
-                Vector3 diff = unit.transform.position - target.transform.position;
-                if (Mathf.Abs(diff.x) > Mathf.Abs(diff.z))
-                    _learning.RecordFlankSuccess(target.transform.position);
-            }
-            else
-            {
-                int dmgDealt = hpBefore - hpAfter;
-                int expectedDmg = Mathf.Max(0, 1 + (unit.ATK / 6) + ((unit.ATK / 2) - (target.DEF / 4)));
-                if (dmgDealt < expectedDmg * 0.5f)
-                    _learning.RecordFrontalFailure(target.transform.position);
-            }
-        }
-
-        _turnGen.SelectUnit = prevSelect;
-        return true;
-    }
-
-    // ---- スキル実行 ----
-    bool ExecuteSkill(AIAction action)
-    {
-        var unit = action.Unit;
-        var skill = action.Skill;
-        if (unit == null || skill == null) return false;
-        if (!_apSystem.CanUseSkill(Team.Enemy, skill.APCost)) return false;
-
-        var prevSelect = _turnGen.SelectUnit;
-        _turnGen.SelectUnit = unit;
-
-        bool success = false;
-
-        switch (skill.Target)
-        {
-            case SkillTarget.Self:
-                _board.ConsumeSkill(unit, skill.APCost);
-                _skillSystem.ExecuteSkill(unit, unit, skill);
-                Debug.Log($"[AICommander] スキル(自己): {unit.kind} '{skill.Name}'  残AP={_board.EnemyAP}");
-                success = true;
-                break;
-
-            case SkillTarget.SelfArea:
-                _board.ConsumeSkill(unit, skill.APCost);
-                if (skill.Multiplier > 0)
-                {
-                    // 攻撃範囲スキル
-                    var enemies = _board.GetEnemiesInSkillArea(unit, skill, unit.transform.position);
-                    _skillSystem.ExecuteAreaSkill(unit, skill, enemies);
-                    Debug.Log($"[AICommander] スキル(自己範囲攻撃): {unit.kind} '{skill.Name}' 対象{enemies.Count}体  残AP={_board.EnemyAP}");
-                }
-                else
-                {
-                    // 支援範囲スキル
-                    var allies = _board.GetAlliesInSkillArea(unit, skill, unit.transform.position);
-                    _skillSystem.ExecuteAreaSupportSkill(unit, skill, allies);
-                    Debug.Log($"[AICommander] スキル(自己範囲支援): {unit.kind} '{skill.Name}' 対象{allies.Count}体  残AP={_board.EnemyAP}");
-                }
-                success = true;
-                break;
-
-            case SkillTarget.AllySingle:
-                if (action.TargetUnit != null)
-                {
-                    _board.ConsumeSkill(unit, skill.APCost);
-                    _skillSystem.ExecuteSkill(unit, action.TargetUnit, skill);
-                    Debug.Log($"[AICommander] スキル(味方): {unit.kind}→{action.TargetUnit.kind} '{skill.Name}'  残AP={_board.EnemyAP}");
-                    success = true;
-                }
-                break;
-
-            case SkillTarget.EnemySingle:
-            case SkillTarget.EnemyOrBuilding:
-            case SkillTarget.LowHPEnemy:
-            case SkillTarget.FlyingEnemy:
-                if (action.TargetUnit != null)
-                {
-                    _board.ConsumeSkill(unit, skill.APCost);
-                    int hpBefore = action.TargetUnit.HP;
-                    _battleSystem.target = action.TargetUnit;
-                    _skillSystem.ExecuteSkill(unit, action.TargetUnit, skill);
-                    int hpAfter = action.TargetUnit.HP;
-                    bool killed = hpAfter <= 0;
-                    if (killed)
-                    {
-                        _totalKills++;
-                        Debug.Log($"[AICommander] ★スキル撃破! {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter}");
-                    }
-                    else
-                    {
-                        Debug.Log($"[AICommander] スキル攻撃: {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter} 残HP={hpAfter}  残AP={_board.EnemyAP}");
-                    }
-                    success = true;
-                }
-                break;
-
-            case SkillTarget.DesignatedTile:
-            case SkillTarget.AdjacentCenter:
-            case SkillTarget.DirectionLine:
-            case SkillTarget.DesignatedRow:
-                // 範囲攻撃スキル
-                {
-                    var enemies = _board.GetEnemiesInSkillArea(unit, skill, action.TargetPos);
-                    if (enemies.Count > 0)
-                    {
-                        _board.ConsumeSkill(unit, skill.APCost);
-                        _skillSystem.ExecuteAreaSkill(unit, skill, enemies);
-                        Debug.Log($"[AICommander] スキル(範囲): {unit.kind} '{skill.Name}' @{action.TargetPos} 対象{enemies.Count}体  残AP={_board.EnemyAP}");
-                        success = true;
-                    }
-                }
-                break;
-        }
-
-        // スキル使用成功時にクールダウン設定
-        if (success)
-        {
-            int cooldown = GetSkillCooldown(skill);
-            unit.SkillCooldown = cooldown;
-            Debug.Log($"[AICommander] スキルクールダウン設定: {unit.kind} '{skill.Name}' → {cooldown}ターン");
-        }
-
-        _turnGen.SelectUnit = prevSelect;
-        return success;
-    }
-
-    // ---- スキルクールダウン計算 ----
-    int GetSkillCooldown(SkillData skill)
-    {
-        switch (skill.Rarity)
-        {
-            case SkillRarity.Normal:    return 1; // 1ターン後に再使用可能
-            case SkillRarity.Rare:      return 2;
-            case SkillRarity.SuperRare: return 3;
-            case SkillRarity.Legendary: return 4;
-            default: return 2;
-        }
-    }
-
-    // ---- 建築実行 ----
-    bool ExecuteBuild(AIAction action)
-    {
-        if (_buildSystem == null)
-        {
-            Debug.LogWarning("[AI-Build] ExecuteBuild: _buildSystem==null!");
-            return false;
-        }
-
-        var pos = AIBoardState.ToCell(action.TargetPos);
-        int apBefore = _apSystem.GetAP(Team.Enemy);
-
-        Debug.Log($"[AI-Build] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={apBefore}");
-
-        bool success = _buildSystem.AIPlaceBuilding(pos, action.Facility, Team.Enemy);
-        if (success)
-        {
-            _board.RefreshAP();
-            Debug.Log($"[AI-Build] ★建築成功: {action.Facility} @({pos.x},{pos.y},{pos.z})  残AP={_board.EnemyAP}");
-        }
-        else
-        {
-            Debug.LogWarning($"[AI-Build] ✗建築失敗: {action.Facility} @({pos.x},{pos.y},{pos.z})  " +
-                             $"CanBuild={_apSystem.CanBuild(Team.Enemy, action.Facility, _factionState)}");
-        }
-        return success;
-    }
-
-    // ---- 召喚実行 ----
-    bool ExecuteSummon(AIAction action)
-    {
-        if (_summonSystem == null) return false;
-
-        var pos = AIBoardState.ToCell(action.TargetPos);
-
-        bool success = _summonSystem.AISummonUnit(pos, action.SummonKind, Team.Enemy);
-        if (success)
-        {
-            _board.RefreshAP();
-            Debug.Log($"[AICommander] 召喚: {action.SummonKind} @({pos.x},{pos.y},{pos.z})  残AP={_board.EnemyAP}");
-        }
-        return success;
-    }
-
-    // ---- サブクリスタル展開実行 ----
-    bool ExecuteSubCrystal(AIAction action)
-    {
-        if (_subCrystalSystem == null || _buildSystem == null) return false;
-
-        var pos = AIBoardState.ToCell(action.TargetPos);
-
-        if (!_subCrystalSystem.CanPlaceSubCrystal(pos, Team.Enemy))
-            return false;
-
-        bool success = _buildSystem.AIPlaceBuilding(pos, FacilityKind.SubCrystal, Team.Enemy);
-        if (success)
-        {
-            // 領地拡張は AIPlaceBuilding 内で既に実行済み（二重呼び出し防止）
-            _board.RefreshAP();
-            Debug.Log($"[AICommander] サブクリ展開: @({pos.x},{pos.y},{pos.z})  残AP={_board.EnemyAP}");
-        }
-        return success;
-    }
-
-    // ================================================================
     //  スキルクールダウン管理
     // ================================================================
     void TickSkillCooldowns()
@@ -1506,21 +923,6 @@ public class AICommander
             if (unit == null || !unit.gameObject.activeInHierarchy) continue;
             if (unit.SkillCooldown > 0)
                 unit.SkillCooldown--;
-        }
-    }
-
-    // ================================================================
-    //  表示ヘルパー
-    // ================================================================
-    static string GetMoveTypeName(AIActionType type)
-    {
-        switch (type)
-        {
-            case AIActionType.Retreat:     return "撤退";
-            case AIActionType.Support:     return "援護";
-            case AIActionType.Surround:    return "包囲";
-            case AIActionType.DefenseRepos:return "防衛再配置";
-            default:                       return "移動";
         }
     }
 

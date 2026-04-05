@@ -23,20 +23,14 @@ public class UIBuilder : MonoBehaviour
     private Canvas canvas;
     private TMP_FontAsset defaultFont;
 
-    // 建築ボタン管理用
-    private readonly List<(Button btn, Image bg, FacilityKind kind)> buildButtons
-        = new List<(Button, Image, FacilityKind)>();
-    // 召喚ボタン管理用
-    private readonly List<(Button btn, Image bg, Kind kind)> summonButtons
-        = new List<(Button, Image, Kind)>();
-    private APSystem cachedAPSystem;
-    private FactionState cachedFactionState;
-    private UnitSetting cachedUnitSetting;
+    // 建築・召喚UIの生成とボタン管理を委譲
+    private BuildSummonUIBuilder buildSummonUI;
 
     private void Awake()
     {
         defaultFont = LoadDefaultFont();
         SetAsTMPFallback(defaultFont);
+        buildSummonUI = new BuildSummonUIBuilder(defaultFont);
         BuildCanvas();
         BuildTopBar();        // 1段バー: 資源(左) + ターン(中) + 制限時間・メニュー(右)
         BuildLeftMenu();
@@ -349,7 +343,7 @@ public class UIBuilder : MonoBehaviour
         closeBtnRT.anchoredPosition = Vector2.zero;
 
         // ---- BuildScrollView ----
-        var buildRoot = CreateBuildScrollView("BuildScrollView", panel);
+        var buildRoot = buildSummonUI.CreateBuildScrollView("BuildScrollView", panel);
         var buildRootRT = buildRoot.GetComponent<RectTransform>();
         StretchFill(buildRootRT);
         buildRootRT.offsetMin = new Vector2(4, 4);
@@ -357,7 +351,7 @@ public class UIBuilder : MonoBehaviour
         buildRoot.SetActive(false);
 
         // ---- UnitScrollView ----
-        var unitRoot = CreateScrollView("UnitScrollView", panel);
+        var unitRoot = buildSummonUI.CreateScrollView("UnitScrollView", panel);
         var unitRootRT = unitRoot.GetComponent<RectTransform>();
         StretchFill(unitRootRT);
         unitRootRT.offsetMin = new Vector2(4, 4);
@@ -366,6 +360,7 @@ public class UIBuilder : MonoBehaviour
 
         // ---- SlidePanelUI コンポーネントを追加 ----
         SlidePanel = panel.gameObject.AddComponent<SlidePanelUI>();
+        buildSummonUI.SetSlidePanel(SlidePanel);
 
         // ---- ボタンイベント接続 ----
         buildBtn.onClick.AddListener(SlidePanel.ToggleBuildPanel);
@@ -519,536 +514,69 @@ public class UIBuilder : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// BuildSystem と FactionState の参照を受け取り、建築ボタンの有効/無効を制御可能にする。
-    /// GameGenerater.Awake() から呼ばれる。
-    /// </summary>
+    /// <summary>建築ボタン初期化 → BuildSummonUIBuilder に委譲</summary>
     public void InitBuildButtons(BuildSystem bs, APSystem ap, FactionState fs)
     {
         BuildSystem = bs;
-        cachedAPSystem = ap;
-        cachedFactionState = fs;
-
-        // スライドパネルが開かれるたびにボタン状態を更新
-        if (SlidePanel != null)
-            SlidePanel.OnBuildPanelOpened += RefreshBuildButtons;
+        buildSummonUI.InitBuildButtons(bs, ap, fs);
     }
 
-    /// <summary>
-    /// 建築ボタンの有効/無効・色を更新する。
-    /// </summary>
-    public void RefreshBuildButtons()
-    {
-        if (cachedAPSystem == null || cachedFactionState == null) return;
-
-        foreach (var (btn, bg, kind) in buildButtons)
-        {
-            bool canBuild;
-            if (FacilityData.IsSubCrystal(kind))
-            {
-                canBuild = cachedFactionState.GetSubCrystals(Team.Player) > 0;
-            }
-            else
-            {
-                canBuild = cachedAPSystem.CanBuild(Team.Player, kind, cachedFactionState);
-            }
-            btn.interactable = canBuild;
-            if (FacilityData.IsSubCrystal(kind))
-            {
-                bg.color = canBuild
-                    ? BrandGuide.BtnSubCrystalEnabled
-                    : BrandGuide.BtnDisabled;
-            }
-            else
-            {
-                bg.color = canBuild
-                    ? BrandGuide.BtnBuildEnabled
-                    : BrandGuide.BtnDisabled;
-            }
-        }
-    }
-
-    /// <summary>
-    /// SummonSystem と UnitSetting の参照を受け取り、召喚ボタンを制御可能にする。
-    /// GameGenerater.Awake() から呼ばれる。
-    /// </summary>
+    /// <summary>召喚ボタン初期化 → BuildSummonUIBuilder に委譲</summary>
     public void InitSummonButtons(SummonSystem ss, APSystem ap, FactionState fs, UnitSetting us)
     {
         SummonSystem = ss;
-        cachedAPSystem = ap;
-        cachedFactionState = fs;
-        cachedUnitSetting = us;
-
-        if (SlidePanel != null)
-            SlidePanel.OnUnitPanelOpened += RefreshSummonButtons;
+        buildSummonUI.InitSummonButtons(ss, ap, fs, us);
     }
 
-    /// <summary>
-    /// 召喚ボタンの有効/無効・色を更新する。
-    /// </summary>
-    public void RefreshSummonButtons()
-    {
-        if (SummonSystem == null || cachedUnitSetting == null) return;
-
-        foreach (var (btn, bg, kind) in summonButtons)
-        {
-            bool canSummon = SummonSystem.CanSummon(Team.Player, kind);
-            btn.interactable = canSummon;
-            bg.color = canSummon
-                ? BrandGuide.BtnSummonEnabled
-                : BrandGuide.BtnDisabled;
-        }
-    }
 
     // ==================================================================
-    //  BuildScrollView（建築物一覧を生成）
-    // ==================================================================
-    private GameObject CreateBuildScrollView(string name, RectTransform parent)
-    {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        var rt = go.GetComponent<RectTransform>();
-        StretchFill(rt);
-
-        var scrollImg = go.AddComponent<Image>();
-        scrollImg.color = new Color(0.12f, 0.12f, 0.12f, 0.5f);
-
-        // Viewport
-        var viewport = new GameObject("Viewport", typeof(RectTransform));
-        viewport.transform.SetParent(go.transform, false);
-        var vpRT = viewport.GetComponent<RectTransform>();
-        StretchFill(vpRT);
-        var vpImg = viewport.AddComponent<Image>();
-        vpImg.color = Color.white;
-        var mask = viewport.AddComponent<Mask>();
-        mask.showMaskGraphic = false;
-
-        // Content
-        var content = new GameObject("Content", typeof(RectTransform));
-        content.transform.SetParent(viewport.transform, false);
-        var contentRT = content.GetComponent<RectTransform>();
-        contentRT.anchorMin = new Vector2(0, 1);
-        contentRT.anchorMax = new Vector2(1, 1);
-        contentRT.pivot = new Vector2(0.5f, 1);
-        contentRT.sizeDelta = new Vector2(0, 400);
-
-        var vlg = content.AddComponent<VerticalLayoutGroup>();
-        vlg.spacing = 4;
-        vlg.padding = new RectOffset(4, 4, 4, 4);
-        vlg.childControlWidth = true;
-        vlg.childControlHeight = false;
-        vlg.childForceExpandWidth = true;
-        vlg.childForceExpandHeight = false;
-
-        var csf = content.AddComponent<ContentSizeFitter>();
-        csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-        // Viewport を右側にスクロールバー分の余白
-        vpRT.offsetMax = new Vector2(-10, 0);
-
-        // ScrollRect
-        var sr = go.AddComponent<ScrollRect>();
-        sr.viewport = vpRT;
-        sr.content = contentRT;
-        sr.horizontal = false;
-        sr.vertical = true;
-        sr.movementType = ScrollRect.MovementType.Clamped;
-
-        // 縦スクロールバー
-        sr.verticalScrollbar = CreateVerticalScrollbar(go.transform);
-        sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
-
-        // 建築物ボタン + コスト表示を生成
-        foreach (var kvp in FacilityData.Table)
-        {
-            var facility = kvp.Key;
-            var info = kvp.Value;
-
-            // ---- 行コンテナ（ボタン + コスト） ----
-            var row = new GameObject("Row_" + facility, typeof(RectTransform));
-            row.transform.SetParent(content.transform, false);
-            var rowLE = row.AddComponent<LayoutElement>();
-            rowLE.preferredHeight = 80;
-
-            var rowVLG = row.AddComponent<VerticalLayoutGroup>();
-            rowVLG.spacing = 2;
-            rowVLG.childControlWidth = true;
-            rowVLG.childControlHeight = true;
-            rowVLG.childForceExpandWidth = true;
-            rowVLG.childForceExpandHeight = false;
-
-            // ---- ボタン ----
-            bool isSubCrystal = FacilityData.IsSubCrystal(facility);
-            string label = isSubCrystal
-                ? $"{info.DisplayName}  副晶x1"
-                : $"{info.DisplayName}  AP:{info.APCost}";
-            var btn = CreateButton("Build_" + facility, row.transform,
-                label, BrandGuide.FontCaption, isSubCrystal
-                    ? BrandGuide.BtnSubCrystalEnabled
-                    : BrandGuide.BtnBuildEnabled);
-            var btnLE = btn.gameObject.AddComponent<LayoutElement>();
-            btnLE.preferredHeight = 40;
-
-            var bg = btn.GetComponent<Image>();
-            buildButtons.Add((btn, bg, facility));
-
-            FacilityKind captured = facility;
-            btn.onClick.AddListener(() => OnBuildButtonClicked(captured));
-
-            // ---- コスト表示 ----
-            string costStr = isSubCrystal ? "サブクリスタル1消費 (破壊後5T返却)" : FormatBuildCost(info.BuildCost);
-            var costTMP = CreateTMP("Cost_" + facility, row.transform, costStr, BrandGuide.FontSmall + 2);
-            costTMP.color = BrandGuide.TextSecondary;
-            costTMP.alignment = TextAlignmentOptions.MidlineLeft;
-            costTMP.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
-            costTMP.overflowMode = TextOverflowModes.Ellipsis;
-            var costLE = costTMP.gameObject.AddComponent<LayoutElement>();
-            costLE.preferredHeight = 28;
-            var costRT = costTMP.GetComponent<RectTransform>();
-            costRT.offsetMin = new Vector2(8, 0);
-        }
-
-        return go;
-    }
-
-    private static string FormatBuildCost(FacilityData.ResourceCost c)
-    {
-        var p = new System.Collections.Generic.List<string>();
-        if (c.Wood > 0) p.Add($"木{c.Wood}");
-        if (c.Stone > 0) p.Add($"石{c.Stone}");
-        if (c.Iron > 0) p.Add($"鉄{c.Iron}");
-        if (c.MagicOre > 0) p.Add($"魔{c.MagicOre}");
-        if (c.Water > 0) p.Add($"水{c.Water}");
-        if (c.Plank > 0) p.Add($"板{c.Plank}");
-        if (c.CutStone > 0) p.Add($"切{c.CutStone}");
-        if (c.Citizen > 0) p.Add($"民{c.Citizen}");
-        return string.Join(" ", p);
-    }
-
-    private void OnBuildButtonClicked(FacilityKind facility)
-    {
-        if (BuildSystem == null) return;
-
-        // パネルを閉じる
-        if (SlidePanel != null) SlidePanel.ClosePanel();
-
-        // 建築モード開始
-        BuildSystem.StartBuildMode(facility);
-
-        // PlayerMove の BuildMode を有効にする
-        var turnGen = Object.FindFirstObjectByType<TurnGenerater>();
-        if (turnGen != null)
-        {
-            // 現在のステートが PlayerMove であることを前提にフラグを設定
-            // BuildSystem.IsActive で PlayerMove.Update 内で判定する
-        }
-    }
-
-    // ==================================================================
-    //  ヘルパーメソッド
+    //  ヘルパー → UIFactory に委譲
     // ==================================================================
 
     private RectTransform CreatePanel(string name, Transform parent,
         Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 sizeDelta)
-    {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        var rt = go.GetComponent<RectTransform>();
-        rt.anchorMin = anchorMin;
-        rt.anchorMax = anchorMax;
-        rt.pivot = pivot;
-        rt.sizeDelta = sizeDelta;
-        return rt;
-    }
+        => UIFactory.CreatePanel(name, parent, anchorMin, anchorMax, pivot, sizeDelta);
 
     private RectTransform CreatePanel(string name, RectTransform parent,
         Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 sizeDelta)
-    {
-        return CreatePanel(name, (Transform)parent, anchorMin, anchorMax, pivot, sizeDelta);
-    }
+        => UIFactory.CreatePanel(name, parent, anchorMin, anchorMax, pivot, sizeDelta);
 
-    private TextMeshProUGUI CreateTMP(string name, RectTransform parent,
-        string text, float fontSize)
-    {
-        return CreateTMP(name, (Transform)parent, text, fontSize);
-    }
+    private TextMeshProUGUI CreateTMP(string name, RectTransform parent, string text, float fontSize)
+        => UIFactory.CreateTMP(name, parent, text, fontSize, defaultFont);
 
-    private TextMeshProUGUI CreateTMP(string name, Transform parent,
-        string text, float fontSize)
-    {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        var tmp = go.AddComponent<TextMeshProUGUI>();
-        tmp.text = text;
-        tmp.fontSize = fontSize;
-        tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = BrandGuide.TextPrimary;
-        if (defaultFont != null) tmp.font = defaultFont;
-        return tmp;
-    }
+    private TextMeshProUGUI CreateTMP(string name, Transform parent, string text, float fontSize)
+        => UIFactory.CreateTMP(name, parent, text, fontSize, defaultFont);
 
-    private Button CreateButton(string name, RectTransform parent,
-        string label, float fontSize, Color bgColor)
-    {
-        return CreateButton(name, (Transform)parent, label, fontSize, bgColor);
-    }
+    private Button CreateButton(string name, RectTransform parent, string label, float fontSize, Color bgColor)
+        => UIFactory.CreateButton(name, parent, label, fontSize, bgColor, defaultFont);
 
-    private Button CreateButton(string name, Transform parent,
-        string label, float fontSize, Color bgColor)
-    {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-
-        var img = go.AddComponent<Image>();
-        img.color = bgColor;
-
-        var btn = go.AddComponent<Button>();
-        BrandGuide.ApplyButtonStyle(btn, bgColor);
-
-        var txt = CreateTMP("Label", go.transform, label, fontSize);
-        txt.color = BrandGuide.TextPrimary;
-        txt.fontStyle = FontStyles.Bold;
-        StretchFill(txt.GetComponent<RectTransform>());
-
-        return btn;
-    }
-
-    // 召喚可能なユニット種別（Crystal/King/壁は除外）
-    private static readonly Kind[] SummonableKinds = {
-        Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
-        Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
-        Kind.Magicsniper, Kind.Bomber,
-    };
-
-    private static readonly System.Collections.Generic.Dictionary<Kind, string> KindDisplayNames
-        = new System.Collections.Generic.Dictionary<Kind, string>
-    {
-        { Kind.Knight,      "騎士" },
-        { Kind.Archer,      "弓兵" },
-        { Kind.Magic,       "魔法使い" },
-        { Kind.Assassin,    "暗殺者" },
-        { Kind.Scout,       "斥候" },
-        { Kind.Priest,      "司祭" },
-        { Kind.Guardian,    "守護者" },
-        { Kind.Crossbow,    "弩兵" },
-        { Kind.Magicsniper, "魔法狙撃" },
-        { Kind.Bomber,      "爆撃手" },
-    };
-
-    private GameObject CreateScrollView(string name, RectTransform parent)
-    {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        var rt = go.GetComponent<RectTransform>();
-        StretchFill(rt);
-
-        var scrollImg = go.AddComponent<Image>();
-        scrollImg.color = new Color(0.12f, 0.12f, 0.12f, 0.5f);
-
-        // Viewport
-        var viewport = new GameObject("Viewport", typeof(RectTransform));
-        viewport.transform.SetParent(go.transform, false);
-        var vpRT = viewport.GetComponent<RectTransform>();
-        StretchFill(vpRT);
-        var vpImg = viewport.AddComponent<Image>();
-        vpImg.color = Color.white;
-        var mask = viewport.AddComponent<Mask>();
-        mask.showMaskGraphic = false;
-
-        // Content
-        var content = new GameObject("Content", typeof(RectTransform));
-        content.transform.SetParent(viewport.transform, false);
-        var contentRT = content.GetComponent<RectTransform>();
-        contentRT.anchorMin = new Vector2(0, 1);
-        contentRT.anchorMax = new Vector2(1, 1);
-        contentRT.pivot = new Vector2(0.5f, 1);
-        contentRT.sizeDelta = new Vector2(0, 400);
-
-        var vlg = content.AddComponent<VerticalLayoutGroup>();
-        vlg.spacing = 4;
-        vlg.padding = new RectOffset(4, 4, 4, 4);
-        vlg.childControlWidth = true;
-        vlg.childControlHeight = false;
-        vlg.childForceExpandWidth = true;
-        vlg.childForceExpandHeight = false;
-
-        var csf = content.AddComponent<ContentSizeFitter>();
-        csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-        // Viewport を右側にスクロールバー分の余白
-        vpRT.offsetMax = new Vector2(-10, 0);
-
-        // ScrollRect
-        var sr = go.AddComponent<ScrollRect>();
-        sr.viewport = vpRT;
-        sr.content = contentRT;
-        sr.horizontal = false;
-        sr.vertical = true;
-        sr.movementType = ScrollRect.MovementType.Clamped;
-
-        // 縦スクロールバー
-        sr.verticalScrollbar = CreateVerticalScrollbar(go.transform);
-        sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
-
-        // ユニット召喚ボタンを生成
-        foreach (var kind in SummonableKinds)
-        {
-            string displayName = KindDisplayNames.TryGetValue(kind, out string dn) ? dn : kind.ToString();
-            string label = $"{displayName}";
-            var btn = CreateButton("Summon_" + kind, content.transform,
-                label, BrandGuide.FontCaption, BrandGuide.BtnSummonEnabled);
-
-            var le = btn.gameObject.AddComponent<LayoutElement>();
-            le.preferredHeight = 36;
-
-            var bg = btn.GetComponent<Image>();
-            summonButtons.Add((btn, bg, kind));
-
-            Kind captured = kind;
-            btn.onClick.AddListener(() => OnSummonButtonClicked(captured));
-        }
-
-        return go;
-    }
-
-    private void OnSummonButtonClicked(Kind kind)
-    {
-        if (SummonSystem == null) return;
-
-        if (SlidePanel != null) SlidePanel.ClosePanel();
-
-        SummonSystem.StartSummonMode(kind);
-    }
+    private Button CreateButton(string name, Transform parent, string label, float fontSize, Color bgColor)
+        => UIFactory.CreateButton(name, parent, label, fontSize, bgColor, defaultFont);
 
     private Scrollbar CreateVerticalScrollbar(Transform parent)
-    {
-        // スクロールバー本体
-        var sbGo = new GameObject("Scrollbar", typeof(RectTransform));
-        sbGo.transform.SetParent(parent, false);
-        var sbRT = sbGo.GetComponent<RectTransform>();
-        sbRT.anchorMin = new Vector2(1, 0);
-        sbRT.anchorMax = new Vector2(1, 1);
-        sbRT.pivot = new Vector2(1, 0.5f);
-        sbRT.sizeDelta = new Vector2(8, 0);
-        sbRT.anchoredPosition = Vector2.zero;
-
-        var sbImg = sbGo.AddComponent<Image>();
-        sbImg.color = new Color(0.1f, 0.1f, 0.1f, 0.4f);
-
-        // スライドエリア
-        var slideArea = new GameObject("SlidingArea", typeof(RectTransform));
-        slideArea.transform.SetParent(sbGo.transform, false);
-        var saRT = slideArea.GetComponent<RectTransform>();
-        StretchFill(saRT);
-
-        // ハンドル
-        var handle = new GameObject("Handle", typeof(RectTransform));
-        handle.transform.SetParent(slideArea.transform, false);
-        var hRT = handle.GetComponent<RectTransform>();
-        StretchFill(hRT);
-
-        var hImg = handle.AddComponent<Image>();
-        hImg.color = new Color(0.55f, 0.50f, 0.38f, 0.65f);
-
-        // Scrollbar コンポーネント
-        var sb = sbGo.AddComponent<Scrollbar>();
-        sb.handleRect = hRT;
-        sb.targetGraphic = hImg;
-        sb.direction = Scrollbar.Direction.BottomToTop;
-
-        // ハンドルのホバー色設定
-        var colors = sb.colors;
-        colors.normalColor = new Color(0.55f, 0.50f, 0.38f, 0.65f);
-        colors.highlightedColor = new Color(0.72f, 0.65f, 0.45f, 0.85f);
-        colors.pressedColor = new Color(0.42f, 0.38f, 0.28f, 0.90f);
-        sb.colors = colors;
-
-        return sb;
-    }
+        => UIFactory.CreateVerticalScrollbar(parent);
 
     private Image AddImage(GameObject go, Color color)
-    {
-        var img = go.GetComponent<Image>();
-        if (img == null) img = go.AddComponent<Image>();
-        img.color = color;
-        return img;
-    }
+        => UIFactory.AddImage(go, color);
 
     private void AddHorizontalLayout(GameObject go, float spacing = 4)
-    {
-        var hlg = go.AddComponent<HorizontalLayoutGroup>();
-        hlg.spacing = spacing;
-        hlg.padding = new RectOffset(2, 2, 0, 0);
-        hlg.childControlWidth = true;
-        hlg.childControlHeight = true;
-        hlg.childForceExpandWidth = true;
-        hlg.childForceExpandHeight = true;
-    }
+        => UIFactory.AddHorizontalLayout(go, spacing);
 
     private void StretchFill(RectTransform rt)
-    {
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
-    }
+        => UIFactory.StretchFill(rt);
 
     private void SetAnchors(RectTransform rt, float xMin, float yMin, float xMax, float yMax)
-    {
-        rt.anchorMin = new Vector2(xMin, yMin);
-        rt.anchorMax = new Vector2(xMax, yMax);
-        rt.offsetMin = new Vector2(2, 2);
-        rt.offsetMax = new Vector2(-2, -2);
-    }
+        => UIFactory.SetAnchors(rt, xMin, yMin, xMax, yMax);
 
     private void SetAnchors(TextMeshProUGUI tmp, float xMin, float yMin, float xMax, float yMax)
-    {
-        SetAnchors(tmp.GetComponent<RectTransform>(), xMin, yMin, xMax, yMax);
-    }
+        => UIFactory.SetAnchors(tmp, xMin, yMin, xMax, yMax);
 
     private TMP_FontAsset LoadDefaultFont()
-    {
-        // NotoSansJP SDF を優先読み込み（日本語対応）
-        var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/NotoSansJP-VariableFont_wght SDF");
-        if (font != null) return font;
-
-        // SDF アセットがない場合、TTF から動的に生成
-        var ttf = Resources.Load<Font>("Fonts & Materials/NotoSansJP-VariableFont_wght");
-        if (ttf != null)
-        {
-            font = TMP_FontAsset.CreateFontAsset(ttf);
-            if (font != null)
-            {
-                font.atlasPopulationMode = AtlasPopulationMode.Dynamic;
-                return font;
-            }
-        }
-
-        // フォールバック: LiberationSans SDF
-        font = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
-        if (font == null)
-            font = TMP_Settings.defaultFontAsset;
-        return font;
-    }
+        => UIFactory.LoadDefaultFont();
 
     private static void SetAsTMPFallback(TMP_FontAsset font)
-    {
-        if (font == null) return;
-        var settings = TMP_Settings.defaultFontAsset;
-        if (settings == null || settings == font) return;
-        if (settings.fallbackFontAssetTable == null)
-            settings.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
-        if (!settings.fallbackFontAssetTable.Contains(font))
-            settings.fallbackFontAssetTable.Add(font);
-    }
+        => UIFactory.SetAsTMPFallback(font);
 
     private static void SetSerializedField(object target, string fieldName, object value)
-    {
-        var field = target.GetType().GetField(fieldName,
-            System.Reflection.BindingFlags.NonPublic |
-            System.Reflection.BindingFlags.Instance |
-            System.Reflection.BindingFlags.Public);
-        if (field != null)
-            field.SetValue(target, value);
-    }
+        => UIFactory.SetSerializedField(target, fieldName, value);
 }
