@@ -119,6 +119,17 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &541160130 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4706676400242129584, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+  m_PrefabInstance: {fileID: 4572865823870615324}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20dc0b2c40faa2941bc8894a73e6ec74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,6 +227,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &858563621 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 626454542031409696, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+  m_PrefabInstance: {fileID: 4572865823870615324}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71b31f03cbe1c784d893341a15349900, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TimerSystem
+--- !u!4 &924636555 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6839888487985009394, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+  m_PrefabInstance: {fileID: 4572865823870615324}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1202527492 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 137091759520840510, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+  m_PrefabInstance: {fileID: 4572865823870615324}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 273a6c55279146c4a98a3553d1dfccdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &1310416742 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5196177430794174198, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+  m_PrefabInstance: {fileID: 4572865823870615324}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1310416744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1310416742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd9085ab6142ca44c9bdd769d8ca526c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingAttackSystem
 --- !u!1001 &4572865823870615324
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -224,6 +279,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1447019358899514485, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: _UnitClick
+      value: 
+      objectReference: {fileID: 541160130}
+    - target: {fileID: 1447019358899514485, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: _TimerSystem
+      value: 
+      objectReference: {fileID: 858563621}
+    - target: {fileID: 1447019358899514485, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: _BattleSystem
+      value: 
+      objectReference: {fileID: 1202527492}
+    - target: {fileID: 1447019358899514485, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: _CameraTransform
+      value: 
+      objectReference: {fileID: 924636555}
     - target: {fileID: 4499551948389444497, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -271,7 +342,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5196177430794174198, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1310416744}
   m_SourcePrefab: {fileID: 100100000, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

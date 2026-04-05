@@ -268,7 +268,7 @@ public class AIThreatLevel
     /// <summary>
     /// MLオンライン学習が有効かどうか（脅威度50以上でターン中に即座に学習）
     /// </summary>
-    public bool UseOnlineLearning => Level >= 50;
+    public bool UseOnlineLearning => Level >= 10;
 
     /// <summary>
     /// ML探索統合が有効かどうか（脅威度30以上で3手先探索にML評価を統合）
