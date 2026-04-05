@@ -215,14 +215,14 @@ public class AICommander
             return TurnStrategy.RetreatRegroup;
 
         // 経済基盤の充実度で判断（原料 + 加工 + 住宅の全体で見る）
-        int econBuildingCount = CountEconBuildings(board);
-        int processingCount = CountProcessingBuildings(board);
+        int econBuildingCount = EconomyHelper.CountEconBuildings(board);
+        int processingCount = EconomyHelper.CountProcessingBuildings(board);
         int houseCount = board.GetBuildingCount(FacilityKind.House);
         bool hasMinimalRaw = econBuildingCount >= 2;       // 最低限の原料施設
         bool hasBasicEconomy = econBuildingCount >= 4;     // 基礎原料が充実
         bool hasProcessing = processingCount >= 1;         // 加工施設あり
         bool hasMatureEconomy = hasBasicEconomy && processingCount >= 2 && houseCount >= 1;
-        bool econSufficient = IsEconomySufficient(board);
+        bool econSufficient = EconomyHelper.IsEconomySufficient(board);
 
         // 原料施設が最低限もない → 経済最優先
         if (!hasMinimalRaw)
