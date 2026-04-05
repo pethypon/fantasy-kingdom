@@ -17,9 +17,9 @@ public class MoveUndoSystem
 
     readonly Stack<MoveRecord> _history = new Stack<MoveRecord>();
     readonly APSystem _apSystem;
-    readonly MoveGererater _moveGen;
+    readonly MoveGenerator _moveGen;
 
-    public MoveUndoSystem(APSystem apSystem, MoveGererater moveGen)
+    public MoveUndoSystem(APSystem apSystem, MoveGenerator moveGen)
     {
         _apSystem = apSystem;
         _moveGen = moveGen;
@@ -41,7 +41,7 @@ public class MoveUndoSystem
     public bool CanUndo => _history.Count > 0;
 
     /// <summary>直前の移動を巻き戻す</summary>
-    public bool Undo(TurnGenerater turnGen, PlayerMove playerMove, VisionGenerater visionGen,
+    public bool Undo(TurnGenerator turnGen, PlayerMove playerMove, VisionGenerator visionGen,
         MapCreate mapCreate, CrystalSystem crystalSystem)
     {
         if (_history.Count == 0) return false;

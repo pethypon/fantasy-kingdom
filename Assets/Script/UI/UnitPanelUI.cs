@@ -36,7 +36,7 @@ public class UnitPanelUI : MonoBehaviour
     private GameObject destroyArea;
 
     [Header("参照")]
-    [SerializeField] private TurnGenerater turnGenerater;
+    [SerializeField] private TurnGenerator turnGenerater;
     [SerializeField] private APSystem apSystem;
 
     [Header("パネル本体")]
@@ -79,7 +79,7 @@ public class UnitPanelUI : MonoBehaviour
     private void AutoFindReferences()
     {
         if (turnGenerater == null)
-            turnGenerater = Object.FindFirstObjectByType<TurnGenerater>();
+            turnGenerater = Object.FindFirstObjectByType<TurnGenerator>();
         if (apSystem == null)
             apSystem = Object.FindFirstObjectByType<APSystem>();
     }
@@ -514,7 +514,7 @@ public class UnitPanelUI : MonoBehaviour
     private FactionState GetFactionState()
     {
         if (apSystem == null) return null;
-        // APSystem has _factionState private — use reflection-free approach via TurnGenerater
+        // APSystem has _factionState private — use reflection-free approach via TurnGenerator
         // Find FactionState from scene
         return Object.FindFirstObjectByType<FactionState>();
     }

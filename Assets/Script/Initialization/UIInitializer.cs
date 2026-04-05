@@ -2,17 +2,17 @@ using UnityEngine;
 
 /// <summary>
 /// UX系UIシステム（Toast, InputHint, DamagePreview, FloatingDamage 等）の
-/// 生成と TurnGenerater への登録を担当する。
-/// GameGerater の InitUXSystems() から分離された単一責任クラス。
+/// 生成と TurnGenerator への登録を担当する。
+/// GameGenerator の InitUXSystems() から分離された単一責任クラス。
 /// </summary>
 public static class UIInitializer
 {
-    /// <summary>全UXシステムを生成して TurnGenerater に登録する。</summary>
-    public static void Initialize(TurnGenerater turnGen, APSystem apSystem)
+    /// <summary>全UXシステムを生成して TurnGenerator に登録する。</summary>
+    public static void Initialize(TurnGenerator turnGen, APSystem apSystem)
     {
         if (turnGen == null)
         {
-            Debug.LogError("[UIInitializer] TurnGenerater が null です");
+            Debug.LogError("[UIInitializer] TurnGenerator が null です");
             return;
         }
 
@@ -22,7 +22,7 @@ public static class UIInitializer
         turnGen.inputHintUI = inputHint;
 
         var dmgPreview = CreateComponent<DamagePreviewUI>("DamagePreviewUI");
-        dmgPreview.turngenerater = turnGen;
+        dmgPreview.turnGenerator = turnGen;
         turnGen.damagePreviewUI = dmgPreview;
 
         EnsureSingleton<FloatingDamageUI>("FloatingDamageUI");
@@ -39,7 +39,7 @@ public static class UIInitializer
         var highlight = CreateComponent<UnitSelectionHighlight>("UnitSelectionHighlight");
         highlight.Init(turnGen);
 
-        turnGen.moveUndoSystem = new MoveUndoSystem(apSystem, turnGen.movegenerater);
+        turnGen.moveUndoSystem = new MoveUndoSystem(apSystem, turnGen.moveGenerator);
 
         EnsureSingleton<ActionLogUI>("ActionLogUI");
     }

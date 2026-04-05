@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// UI をランタイムで生成し、ゲームシステムへ自動接続する。
-/// GameGenerater.Awake() より先に実行する必要があるため ExecutionOrder を -100 に設定。
+/// GameGenerator.Awake() より先に実行する必要があるため ExecutionOrder を -100 に設定。
 /// シーン上の任意の GameObject に付けるだけで動作する。
 /// </summary>
 [DefaultExecutionOrder(-100)]
@@ -499,16 +499,16 @@ public class UIBuilder : MonoBehaviour
     // ==================================================================
     private void WireToGameSystems()
     {
-        var turnGen = Object.FindFirstObjectByType<TurnGenerater>();
+        var turnGen = Object.FindFirstObjectByType<TurnGenerator>();
         if (turnGen != null && UnitPanel != null)
         {
             turnGen.unitPanelUI = UnitPanel;
         }
 
-        var gameGen = Object.FindFirstObjectByType<GameGenerater>();
+        var gameGen = Object.FindFirstObjectByType<GameGenerator>();
         if (gameGen != null)
         {
-            // GameGenerater の UI フィールドに値を注入
+            // GameGenerator の UI フィールドに値を注入
             SetSerializedField(gameGen, "_APPanelUI", APPanel);
             SetSerializedField(gameGen, "_ResourceBarUI", ResourceBar);
         }

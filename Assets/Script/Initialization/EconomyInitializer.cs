@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 初期資源の設定、AP初期化、UnitRegistry スキャンを担当する。
-/// GameGerater の InitEconomyAndResources() / InitResources() から分離。
+/// GameGenerator の InitEconomyAndResources() / InitResources() から分離。
 /// </summary>
 public static class EconomyInitializer
 {

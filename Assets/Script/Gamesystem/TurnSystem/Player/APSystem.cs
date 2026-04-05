@@ -18,7 +18,7 @@ public class APSystem : MonoBehaviour
 
     const int HeightCost = 2;
 
-    // ==== GameGenerater.Awake() で初期化される ====
+    // ==== GameGenerator.Awake() で初期化される ====
     private FactionState _factionState;
 
     public void Init(FactionState factionState)

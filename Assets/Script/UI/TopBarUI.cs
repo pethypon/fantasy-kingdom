@@ -15,14 +15,14 @@ public class TopBarUI : MonoBehaviour
     [SerializeField] private Image timerFill;
 
     [Header("参照")]
-    [SerializeField] private TurnGenerater turnGenerater;
+    [SerializeField] private TurnGenerator turnGenerater;
 
     private int lastTurn = -1;
 
     private void Awake()
     {
         if (turnGenerater == null)
-            turnGenerater = Object.FindFirstObjectByType<TurnGenerater>();
+            turnGenerater = Object.FindFirstObjectByType<TurnGenerator>();
 
         if (turnText == null || timerText == null || timerFill == null)
         {

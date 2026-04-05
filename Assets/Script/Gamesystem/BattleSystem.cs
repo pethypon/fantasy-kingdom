@@ -6,29 +6,29 @@ public class BattleSystem : MonoBehaviour
 {
     public Status target;
     public Status AttackSide;
-    public TurnGenerater turngenerater;
+    public TurnGenerator turnGenerator;
 
     // ─── ダメージ発生（入口） ─────────────────────────────────────────
-    public void DamageGenerater(TurnGenerater turngenerater)
+    public void DamageGenerater(TurnGenerator turnGenerator)
     {
-        if (turngenerater == null)
+        if (turnGenerator == null)
         {
-            Debug.LogError("[Battle] TurnGenerater が null です");
+            Debug.LogError("[Battle] TurnGenerator が null です");
             return;
         }
-        this.turngenerater = turngenerater;
+        this.turnGenerator = turnGenerator;
 
         if (target == null)
         {
             Debug.LogWarning("[Battle] target が null のためダメージ処理をスキップ");
             return;
         }
-        if (turngenerater.SelectUnit == null)
+        if (turnGenerator.SelectUnit == null)
         {
             Debug.LogWarning("[Battle] SelectUnit が null のためダメージ処理をスキップ");
             return;
         }
-        AttackSide = turngenerater.SelectUnit;
+        AttackSide = turnGenerator.SelectUnit;
 
         // スタン中は行動不可
         if (StatusEffectSystem.IsStunned(AttackSide))
@@ -85,15 +85,15 @@ public class BattleSystem : MonoBehaviour
         SpecialAbilitySystem.OnAttackHit(AttackSide, target, damage, true);
 
         // ---- ML観測: プレイヤーの攻撃をMLシステムに記録 ----
-        if (AttackSide.team == Team.Player && turngenerater.aiCommander != null)
+        if (AttackSide.team == Team.Player && turnGenerator.aiCommander != null)
         {
-            var ml = turngenerater.aiCommander.MLIntegration;
-            Vector3 ecPos = turngenerater.crystalsystem.ECP;
-            ml.ObservePlayerAttack(AttackSide, target, damage, ecPos, turngenerater.Turn);
+            var ml = turnGenerator.aiCommander.MLIntegration;
+            Vector3 ecPos = turnGenerator.crystalsystem.ECP;
+            ml.ObservePlayerAttack(AttackSide, target, damage, ecPos, turnGenerator.Turn);
 
             // クリスタルへの直接攻撃は別途記録
             if (target.kind == Kind.Crystal && target.team == Team.Enemy)
-                ml.ObservePlayerCrystalAttack(damage, target.MaxHP, turngenerater.Turn);
+                ml.ObservePlayerCrystalAttack(damage, target.MaxHP, turnGenerator.Turn);
         }
 
         // 反射処理
@@ -193,21 +193,21 @@ public class BattleSystem : MonoBehaviour
         if (target == null) return;
         Debug.Log($"[Battle] {target.team} の {target.kind} が撃破された");
 
-        if (turngenerater.movegenerater != null)
+        if (turnGenerator.moveGenerator != null)
         {
-            Vector3 cellPos = turngenerater.movegenerater.Cell(target.transform.position);
-            turngenerater.movegenerater.UnitPointData.Remove(cellPos);
+            Vector3 cellPos = turnGenerator.moveGenerator.Cell(target.transform.position);
+            turnGenerator.moveGenerator.UnitPointData.Remove(cellPos);
         }
 
-        if (turngenerater.SelectUnit == target)
+        if (turnGenerator.SelectUnit == target)
         {
-            turngenerater.SelectUnit = null;
+            turnGenerator.SelectUnit = null;
         }
 
         // 死亡した駒の視界セルを探索済みに保存（半透明フォグとして残す）
         if (target.VisionCell != null && target.VisionCell.Count > 0)
         {
-            var visionGen = turngenerater.visiongenerater;
+            var visionGen = turnGenerator.visionGenerator;
             if (target.team == Team.Player && visionGen.PlayerExploard != null)
             {
                 visionGen.PlayerExploard.UnionWith(target.VisionCell);
@@ -220,10 +220,10 @@ public class BattleSystem : MonoBehaviour
 
         target.gameObject.SetActive(false);
 
-        turngenerater.visiongenerater.VisionPoint(
-            turngenerater.mapcreate,
-            turngenerater.movegenerater,
-            turngenerater.crystalsystem
+        turnGenerator.visionGenerator.VisionPoint(
+            turnGenerator.mapcreate,
+            turnGenerator.moveGenerator,
+            turnGenerator.crystalsystem
         );
     }
 
@@ -245,6 +245,6 @@ public class BattleSystem : MonoBehaviour
             Debug.Log($"[Battle] 自軍 {target.kind} 破壊 → 敗北…");
         }
 
-        turngenerater.ChangeState(new GameEndState(turngenerater, result));
+        turnGenerator.ChangeState(new GameEndState(turnGenerator, result));
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// 駒の攻撃パターンを一元管理する静的クラス。
-/// AttackPointt と SimActionGenerator の両方から参照される。
+/// AttackGenerator と SimActionGenerator の両方から参照される。
 /// dx = 目標X - 現在X, dz = 目標Z - 現在Z（符号付き）。
 /// </summary>
 public static class AttackPatterns

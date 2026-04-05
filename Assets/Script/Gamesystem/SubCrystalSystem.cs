@@ -11,13 +11,13 @@ public class SubCrystalSystem : MonoBehaviour
     public enum RewardType { Bread, Wood, Stone, Iron }
     public const int RewardAmount = 50;
     // ---- 外部参照（Init で注入） ----
-    private TurnGenerater turngenerater;
+    private TurnGenerator turnGenerator;
     private TerritorySystem territorysystem;
     private FactionState factionState;
     private MapCreate mapcreate;
     private BuildSystem buildsystem;
-    private VisionGenerater visiongenerater;
-    private MoveGererater movegenerater;
+    private VisionGenerator visionGenerator;
+    private MoveGenerator moveGenerator;
     private CrystalSystem crystalsystem;
 
     // ---- サブクリスタル領地データ ----
@@ -47,18 +47,18 @@ public class SubCrystalSystem : MonoBehaviour
     // ==================================================================
     //  初期化
     // ==================================================================
-    public void Init(TurnGenerater turngenerater, TerritorySystem territorysystem,
+    public void Init(TurnGenerator turnGenerator, TerritorySystem territorysystem,
                      FactionState factionState, MapCreate mapcreate,
-                     BuildSystem buildsystem, VisionGenerater visiongenerater,
-                     MoveGererater movegenerater, CrystalSystem crystalsystem)
+                     BuildSystem buildsystem, VisionGenerator visionGenerator,
+                     MoveGenerator moveGenerator, CrystalSystem crystalsystem)
     {
-        this.turngenerater = turngenerater;
+        this.turnGenerator = turnGenerator;
         this.territorysystem = territorysystem;
         this.factionState = factionState;
         this.mapcreate = mapcreate;
         this.buildsystem = buildsystem;
-        this.visiongenerater = visiongenerater;
-        this.movegenerater = movegenerater;
+        this.visionGenerator = visionGenerator;
+        this.moveGenerator = moveGenerator;
         this.crystalsystem = crystalsystem;
     }
 
@@ -218,7 +218,7 @@ public class SubCrystalSystem : MonoBehaviour
         // 壁の場合は UnitPointData から除去
         if (FacilityData.IsWall(target.facilityKind))
         {
-            movegenerater.UnitPointData.RemoveWhere(p =>
+            moveGenerator.UnitPointData.RemoveWhere(p =>
                 Mathf.RoundToInt(p.x) == posInt.x &&
                 Mathf.RoundToInt(p.y) == posInt.y &&
                 Mathf.RoundToInt(p.z) == posInt.z);
@@ -315,11 +315,11 @@ public class SubCrystalSystem : MonoBehaviour
     {
         var visionXZ = new Vector3Int(pos.x, 0, pos.z);
         if (team == Team.Player)
-            return visiongenerater.PlayerVisionBox != null &&
-                   visiongenerater.PlayerVisionBox.Any(v => v.x == pos.x && v.z == pos.z);
+            return visionGenerator.PlayerVisionBox != null &&
+                   visionGenerator.PlayerVisionBox.Any(v => v.x == pos.x && v.z == pos.z);
         else
-            return visiongenerater.EnemyVisionBox != null &&
-                   visiongenerater.EnemyVisionBox.Any(v => v.x == pos.x && v.z == pos.z);
+            return visionGenerator.EnemyVisionBox != null &&
+                   visionGenerator.EnemyVisionBox.Any(v => v.x == pos.x && v.z == pos.z);
     }
 
     // ==================================================================

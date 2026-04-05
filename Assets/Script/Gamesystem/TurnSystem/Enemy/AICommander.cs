@@ -19,11 +19,11 @@ public class AICommander
 {
     readonly AIPersonality _personality;
     readonly AILearning _learning;
-    readonly TurnGenerater _turnGen;
-    readonly MoveGererater _moveGen;
-    readonly AttackPointt _attackPoint;
+    readonly TurnGenerator _turnGen;
+    readonly MoveGenerator _moveGen;
+    readonly AttackGenerator _attackPoint;
     readonly BattleSystem _battleSystem;
-    readonly VisionGenerater _visionGen;
+    readonly VisionGenerator _visionGen;
     readonly APSystem _apSystem;
     readonly UnitSetting _unitSet;
     readonly CrystalSystem _crystalSystem;
@@ -100,8 +100,8 @@ public class AICommander
 
     // ---- 生成（試合開始時に1回） ----
     public AICommander(
-        TurnGenerater turnGen, MoveGererater moveGen, AttackPointt attackPoint,
-        BattleSystem battleSystem, VisionGenerater visionGen,
+        TurnGenerator turnGen, MoveGenerator moveGen, AttackGenerator attackPoint,
+        BattleSystem battleSystem, VisionGenerator visionGen,
         APSystem apSystem, UnitSetting unitSet, CrystalSystem crystalSystem,
         MapCreate mapCreate, MajorPersonality major,
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,

@@ -198,7 +198,7 @@ public class BuildSummonUIBuilder
         buildSystem.StartBuildMode(facility);
 
         // PlayerMove の BuildMode を有効にする
-        var turnGen = Object.FindFirstObjectByType<TurnGenerater>();
+        var turnGen = Object.FindFirstObjectByType<TurnGenerator>();
         if (turnGen != null)
         {
             // 現在のステートが PlayerMove であることを前提にフラグを設定

@@ -25,7 +25,7 @@ public class AISearchEngine
     AIDeterministicRandom _rng;
 
     // ---- シミュレーション用の追加参照 ----
-    MoveGererater _moveGen;
+    MoveGenerator _moveGen;
     UnitSetting _unitSet;
     CrystalSystem _crystalSystem;
     APSystem _apSystem;
@@ -42,7 +42,7 @@ public class AISearchEngine
     }
 
     /// <summary>シミュレーション用の参照を設定する</summary>
-    public void SetSimulationReferences(MoveGererater moveGen, UnitSetting unitSet,
+    public void SetSimulationReferences(MoveGenerator moveGen, UnitSetting unitSet,
         CrystalSystem crystalSystem, APSystem apSystem)
     {
         _moveGen = moveGen;

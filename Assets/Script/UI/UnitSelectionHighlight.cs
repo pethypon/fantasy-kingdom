@@ -2,11 +2,11 @@ using UnityEngine;
 
 /// <summary>
 /// 選択中のユニットに視覚的なハイライト（下部に光るリング）を表示する。
-/// TurnGenerater.SelectUnit の変化を毎フレーム監視し、自動で表示/非表示を切り替える。
+/// TurnGenerator.SelectUnit の変化を毎フレーム監視し、自動で表示/非表示を切り替える。
 /// </summary>
 public class UnitSelectionHighlight : MonoBehaviour
 {
-    private TurnGenerater _turnGenerater;
+    private TurnGenerator _turnGenerater;
     private GameObject _ringObj;
     private MeshRenderer _ringRenderer;
     private Status _currentTarget;
@@ -20,7 +20,7 @@ public class UnitSelectionHighlight : MonoBehaviour
     private static readonly Color PlayerColor = new Color(0.3f, 0.7f, 1f, 0.7f);
     private static readonly Color EnemyColor = new Color(1f, 0.3f, 0.3f, 0.5f);
 
-    public void Init(TurnGenerater turnGenerater)
+    public void Init(TurnGenerator turnGenerater)
     {
         _turnGenerater = turnGenerater;
         CreateRing();

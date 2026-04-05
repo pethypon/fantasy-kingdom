@@ -9,14 +9,14 @@ using UnityEngine.InputSystem;
 public class SummonSystem : MonoBehaviour
 {
     // ---- 外部参照（Init で注入） ----
-    private TurnGenerater turngenerater;
+    private TurnGenerator turnGenerator;
     private TerritorySystem territorysystem;
     private APSystem apsystem;
     private FactionState factionState;
-    private MoveGererater movegenerater;
+    private MoveGenerator moveGenerator;
     private MapCreate mapcreate;
     private UnitSetting unitset;
-    private VisionGenerater visiongenerater;
+    private VisionGenerator visionGenerator;
 
     // ---- プレハブ（Inspector で割り当て） ----
     [Header("ユニットプレハブ（Inspector割当）")]
@@ -53,19 +53,19 @@ public class SummonSystem : MonoBehaviour
     // ==================================================================
     //  初期化
     // ==================================================================
-    public void Init(TurnGenerater turngenerater, TerritorySystem territorysystem,
+    public void Init(TurnGenerator turnGenerator, TerritorySystem territorysystem,
                      APSystem apsystem, FactionState factionState,
-                     MoveGererater movegenerater, MapCreate mapcreate,
-                     UnitSetting unitset, VisionGenerater visiongenerater)
+                     MoveGenerator moveGenerator, MapCreate mapcreate,
+                     UnitSetting unitset, VisionGenerator visionGenerator)
     {
-        this.turngenerater = turngenerater;
+        this.turnGenerator = turnGenerator;
         this.territorysystem = territorysystem;
         this.apsystem = apsystem;
         this.factionState = factionState;
-        this.movegenerater = movegenerater;
+        this.moveGenerator = moveGenerator;
         this.mapcreate = mapcreate;
         this.unitset = unitset;
-        this.visiongenerater = visiongenerater;
+        this.visionGenerator = visionGenerator;
 
         blockLayerMask = LayerMask.GetMask("Block");
 
@@ -173,10 +173,10 @@ public class SummonSystem : MonoBehaviour
         ConsumeSummon(Team.Player, SelectedKind);
 
         // ---- ML観測: プレイヤーの召喚をMLシステムに記録 ----
-        if (turngenerater != null && turngenerater.aiCommander != null)
+        if (turnGenerator != null && turnGenerator.aiCommander != null)
         {
             Vector3 summonPos = new Vector3(lastCursorPos.x, 0, lastCursorPos.z);
-            turngenerater.aiCommander.MLIntegration.ObservePlayerBuild(summonPos, turngenerater.Turn);
+            turnGenerator.aiCommander.MLIntegration.ObservePlayerBuild(summonPos, turnGenerator.Turn);
         }
 
         CancelSummonMode();
@@ -241,15 +241,15 @@ public class SummonSystem : MonoBehaviour
         if (!onMap) return false;
 
         // クリスタル位置チェック（XZのみで比較）
-        Vector3 pcpVec = turngenerater.crystalsystem.PCP;
+        Vector3 pcpVec = turnGenerator.crystalsystem.PCP;
         if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
 
-        Vector3 ecpVec = turngenerater.crystalsystem.ECP;
+        Vector3 ecpVec = turnGenerator.crystalsystem.ECP;
         if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
 
         // 既にユニットがいる場所には不可（UnitPointDataはY=0で管理）
         Vector3 posVec = new Vector3(pos.x, 0f, pos.z);
-        if (movegenerater.UnitPointData.Contains(posVec)) return false;
+        if (moveGenerator.UnitPointData.Contains(posVec)) return false;
 
         return true;
     }
@@ -320,10 +320,10 @@ public class SummonSystem : MonoBehaviour
         }
 
         // ユニット位置を記録（UnitPointDataはY=0で管理）
-        movegenerater.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
+        moveGenerator.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
 
         // 視界更新
-        visiongenerater.VisionPoint(mapcreate, movegenerater, turngenerater.crystalsystem);
+        visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.crystalsystem);
 
         Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {pos.y}, {pos.z}) に召喚");
     }
@@ -488,15 +488,15 @@ public class SummonSystem : MonoBehaviour
         if (!onMap) return false;
 
         // クリスタル位置チェック（XZのみで比較）
-        Vector3 pcpVec = turngenerater.crystalsystem.PCP;
+        Vector3 pcpVec = turnGenerator.crystalsystem.PCP;
         if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
 
-        Vector3 ecpVec = turngenerater.crystalsystem.ECP;
+        Vector3 ecpVec = turnGenerator.crystalsystem.ECP;
         if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
 
         // UnitPointDataはY=0で管理されているため、Y=0で比較する
         Vector3 posVec = new Vector3(pos.x, 0f, pos.z);
-        if (movegenerater.UnitPointData.Contains(posVec)) return false;
+        if (moveGenerator.UnitPointData.Contains(posVec)) return false;
 
         return true;
     }
@@ -587,8 +587,8 @@ public class SummonSystem : MonoBehaviour
         }
 
         // UnitPointDataはY=0で管理
-        movegenerater.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
-        visiongenerater.VisionPoint(mapcreate, movegenerater, turngenerater.crystalsystem);
+        moveGenerator.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
+        visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.crystalsystem);
     }
 
     /// <summary>

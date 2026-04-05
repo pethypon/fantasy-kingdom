@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class EnemyMove : TurnState
 {
-    public EnemyMove(TurnGenerater turn) : base(turn) { }
+    public EnemyMove(TurnGenerator turn) : base(turn) { }
 
     public override void Entry()
     {

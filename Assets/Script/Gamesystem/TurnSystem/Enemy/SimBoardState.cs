@@ -400,7 +400,7 @@ public class SimBoardState
     // ================================================================
     //  生成: 実際のゲーム状態からスナップショットを作成
     // ================================================================
-    public static SimBoardState CreateFromGame(AIBoardState realBoard, MoveGererater moveGen,
+    public static SimBoardState CreateFromGame(AIBoardState realBoard, MoveGenerator moveGen,
         UnitSetting unitSet, CrystalSystem crystalSystem, APSystem apSystem)
     {
         var state = new SimBoardState();

@@ -3,12 +3,12 @@ using UnityEngine;
 
 // =====================================================================
 //  SimActionGenerator — SimBoardState上で候補行動を生成する
-//  MoveGererater / AttackPointt の移動・攻撃パターンを純粋関数として再現
+//  MoveGenerator / AttackGenerator の移動・攻撃パターンを純粋関数として再現
 //  GameObjectに一切依存しない
 //
 //  改善点:
 //  - Direction.S のZ反転を完全再現
-//  - スキル攻撃位置をAttackPointt.AttackPatterns.SkillAttackPositions/AttackPatterns.SkillFixedPositionsと同一に再現
+//  - スキル攻撃位置をAttackGenerator.AttackPatterns.SkillAttackPositions/AttackPatterns.SkillFixedPositionsと同一に再現
 //  - スタン・凍結・束縛による行動制限を考慮
 //  - 召喚候補も生成
 //  - 壁建築候補も生成

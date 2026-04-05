@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public class DamagePreviewUI : MonoBehaviour
 {
     [Header("参照")]
-    public TurnGenerater turngenerater;
+    public TurnGenerator turnGenerator;
 
     // ---- ランタイム生成UI ----
     private Canvas _canvas;
@@ -110,7 +110,7 @@ public class DamagePreviewUI : MonoBehaviour
     private void Update()
     {
         if (!_isActive) return;
-        if (turngenerater == null || turngenerater.SelectUnit == null) { Hide(); return; }
+        if (turnGenerator == null || turnGenerator.SelectUnit == null) { Hide(); return; }
         if (Mouse.current == null) return;
 
         Vector2 mousePos = Mouse.current.position.ReadValue();
@@ -122,7 +122,7 @@ public class DamagePreviewUI : MonoBehaviour
             if (target != null && target.team == Team.Enemy && target != _lastHovered)
             {
                 _lastHovered = target;
-                ShowPreview(turngenerater.SelectUnit, target, mousePos);
+                ShowPreview(turnGenerator.SelectUnit, target, mousePos);
                 return;
             }
             else if (target != null && target.team == Team.Enemy && target == _lastHovered)

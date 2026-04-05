@@ -18,7 +18,7 @@ public class GameMenuUI : MonoBehaviour
     private bool isSaveMode; // true=セーブ, false=ロード
 
     // ゲームシステム参照（セーブ用）
-    private TurnGenerater turnGen;
+    private TurnGenerator turnGen;
     private FactionState factionState;
 
     void Awake()
@@ -31,7 +31,7 @@ public class GameMenuUI : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
-    public void Init(TurnGenerater tg, FactionState fs)
+    public void Init(TurnGenerator tg, FactionState fs)
     {
         turnGen = tg;
         factionState = fs;
@@ -224,7 +224,7 @@ public class GameMenuUI : MonoBehaviour
                 var data = SaveSystem.CollectGameState(
                     turnGen, factionState,
                     turnGen.timerSystem,
-                    turnGen.visiongenerater,
+                    turnGen.visionGenerator,
                     turnGen.aiCommander);
                 SaveSystem.SaveGame(slot, data);
                 ToastMessageUI.Show($"スロット{slot + 1}にセーブしました", ToastMessageUI.MessageType.Info, 3f);

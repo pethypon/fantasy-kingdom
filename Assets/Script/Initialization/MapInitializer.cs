@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// マップ生成・クリスタル配置・ユニット初期配置・領地設定・視界構築を担当する。
-/// GameGerater から分離された単一責任クラス。
+/// GameGenerator から分離された単一責任クラス。
 /// </summary>
 public static class MapInitializer
 {
@@ -16,8 +16,8 @@ public static class MapInitializer
         CrystalSystem crystalSystem,
         UnitSetting unitSetting,
         TerritorySystem territorySystem,
-        MoveGererater moveGenerator,
-        VisionGenerater visionGenerator,
+        MoveGenerator moveGenerator,
+        VisionGenerator visionGenerator,
         SaveSystem.GameSaveData loadData = null)
     {
         if (mapCreate == null)

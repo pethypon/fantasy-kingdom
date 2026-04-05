@@ -7,9 +7,9 @@ using UnityEngine;
 // =====================================================================
 public class AIActionExecutor
 {
-    readonly TurnGenerater _turnGen;
-    readonly MoveGererater _moveGen;
-    readonly AttackPointt _attackPoint;
+    readonly TurnGenerator _turnGen;
+    readonly MoveGenerator _moveGen;
+    readonly AttackGenerator _attackPoint;
     readonly BattleSystem _battleSystem;
     readonly APSystem _apSystem;
     readonly SkillSystem _skillSystem;
@@ -26,7 +26,7 @@ public class AIActionExecutor
     public SummonSystem SummonSystem { get => _summonSystem; set => _summonSystem = value; }
 
     public AIActionExecutor(
-        TurnGenerater turnGen, MoveGererater moveGen, AttackPointt attackPoint,
+        TurnGenerator turnGen, MoveGenerator moveGen, AttackGenerator attackPoint,
         BattleSystem battleSystem, APSystem apSystem,
         SkillSystem skillSystem, SubCrystalSystem subCrystalSystem,
         BuildSystem buildSystem, SummonSystem summonSystem,

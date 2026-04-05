@@ -11,8 +11,8 @@ using UnityEngine.UI;
 //  ・ロード（セーブデータから再開）
 //  ・終了
 //
-//  UIBuilder の後、GameGenerater の前に実行される。
-//  GameGenerater.Awake は TitleScreenUI が閉じるまで待機する。
+//  UIBuilder の後、GameGenerator の前に実行される。
+//  GameGenerator.Awake は TitleScreenUI が閉じるまで待機する。
 // =====================================================================
 [DefaultExecutionOrder(-50)]
 public class TitleScreenUI : MonoBehaviour

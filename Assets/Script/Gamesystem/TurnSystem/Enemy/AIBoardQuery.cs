@@ -156,7 +156,7 @@ public static class AIBoardQuery
     // ================================================================
 
     /// <summary>未探索方向の概算ベクトル（自陣クリスタルから見て未探索が多い方向）</summary>
-    public static Vector3 GetUnexploredDirection(AIBoardState board, VisionGenerater visionGen)
+    public static Vector3 GetUnexploredDirection(AIBoardState board, VisionGenerator visionGen)
     {
         if (visionGen == null || visionGen.EnemyExploard == null)
             return Vector3.forward;
@@ -196,7 +196,7 @@ public static class AIBoardQuery
     /// ある位置に駒を置いた場合、新たに探索されるマス数を概算する。
     /// Scout等の偵察ユニットが未探索エリアへ向かうべきかの判断に使用。
     /// </summary>
-    public static int EstimateNewVisionCells(VisionGenerater visionGen, Vector3 pos)
+    public static int EstimateNewVisionCells(VisionGenerator visionGen, Vector3 pos)
     {
         if (visionGen == null || visionGen.EnemyExploard == null) return 0;
 
@@ -218,7 +218,7 @@ public static class AIBoardQuery
     }
 
     /// <summary>探索済み面積の割合（0～1）</summary>
-    public static float GetExplorationRatio(VisionGenerater visionGen, MoveGererater moveGen)
+    public static float GetExplorationRatio(VisionGenerator visionGen, MoveGenerator moveGen)
     {
         if (visionGen == null || visionGen.EnemyExploard == null || moveGen == null) return 1f;
         int totalTiles = moveGen.mapcreate.SetPos.Count;
@@ -233,7 +233,7 @@ public static class AIBoardQuery
     }
 
     /// <summary>指定位置が有効なマップタイルかどうか</summary>
-    public static bool IsValidTile(MoveGererater moveGen, Vector3 pos)
+    public static bool IsValidTile(MoveGenerator moveGen, Vector3 pos)
     {
         if (moveGen == null || moveGen.mapcreate == null) return false;
         var cell = new Vector3(Mathf.Round(pos.x), 1f, Mathf.Round(pos.z));

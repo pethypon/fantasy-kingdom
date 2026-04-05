@@ -27,7 +27,7 @@ public class UnitSetting : MonoBehaviour
     [Header("ユニットデータ（Kind別）")]
     [SerializeField] private List<UnitDataEntry> _unitDataList;
 
-    // 外部からの読み取り用（GameGenerater・BattleSystem・PlayerSummon が参照）
+    // 外部からの読み取り用（GameGenerator・BattleSystem・PlayerSummon が参照）
     public Dictionary<Kind, UnitData> UnitDataMap { get; private set; }
 
     // ==== 初期化 ====

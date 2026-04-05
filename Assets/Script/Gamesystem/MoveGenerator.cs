@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoveGererater : MonoBehaviour
+public class MoveGenerator : MonoBehaviour
 {
     public MapCreate mapcreate;
-    public TurnGenerater turngenerater;
+    public TurnGenerator turnGenerator;
 
     [Header("移動位置表示のオブジェクト")]
     public GameObject MovePoint;
@@ -75,7 +75,7 @@ public class MoveGererater : MonoBehaviour
 
         if (!MovePatterns.Map.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
         {
-            Debug.LogWarning($"[MoveGererater] Kind '{obj.kind}' の移動パターンが未定義です");
+            Debug.LogWarning($"[MoveGenerator] Kind '{obj.kind}' の移動パターンが未定義です");
             return;
         }
 

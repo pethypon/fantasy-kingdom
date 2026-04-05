@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public class VisionGenerater : MonoBehaviour
+public class VisionGenerator : MonoBehaviour
 {
     public List<Vector3> _setpos;
 
@@ -24,7 +25,8 @@ public class VisionGenerater : MonoBehaviour
     [SerializeField] MapCreate mapcreate;
 
     [Header("ムーブジェネレーター")]
-    [SerializeField] MoveGererater movegenerater;
+    [FormerlySerializedAs("movegenerater")]
+    [SerializeField] MoveGenerator moveGenerator;
 
     [Header("プレイヤームーブ")]
     [SerializeField] PlayerMove playermove;
@@ -310,11 +312,11 @@ public class VisionGenerater : MonoBehaviour
 
     // ==== メインメソッド ====
 
-    public void VisionPoint(MapCreate mapcreate, MoveGererater movegenerater, CrystalSystem crystalsystem)
+    public void VisionPoint(MapCreate mapcreate, MoveGenerator moveGenerator, CrystalSystem crystalsystem)
     {
-        if (mapcreate == null || movegenerater == null || crystalsystem == null)
+        if (mapcreate == null || moveGenerator == null || crystalsystem == null)
         {
-            Debug.LogWarning("[VisionGenerater] VisionPoint に null 引数が渡されました");
+            Debug.LogWarning("[VisionGenerator] VisionPoint に null 引数が渡されました");
             return;
         }
 
@@ -327,7 +329,7 @@ public class VisionGenerater : MonoBehaviour
         _visionDirty = false;
 
         this.mapcreate = mapcreate;
-        this.movegenerater = movegenerater;
+        this.moveGenerator = moveGenerator;
         this.crystalsystem = crystalsystem;
 
         if (PlayerVisionBox != null) PlayerVisionBox.Clear();

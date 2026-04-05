@@ -1,6 +1,6 @@
 /// <summary>
 /// 全ゲームシステムへの参照を一元管理するコンテナ。
-/// TurnGenerater の 20+ 公開フィールドを集約し、結合度を低減する。
+/// TurnGenerator の 20+ 公開フィールドを集約し、結合度を低減する。
 /// 各ステートクラスは GameSystems 経由でシステムにアクセスする。
 /// </summary>
 public class GameSystems
@@ -15,10 +15,10 @@ public class GameSystems
     // ================================================================
     //  コアゲームシステム
     // ================================================================
-    public MoveGererater MoveGenerator { get; set; }
-    public AttackPointt AttackPoint { get; set; }
+    public MoveGenerator MoveGenerator { get; set; }
+    public AttackGenerator AttackGenerator { get; set; }
     public BattleSystem BattleSystem { get; set; }
-    public VisionGenerater VisionGenerator { get; set; }
+    public VisionGenerator VisionGenerator { get; set; }
     public UnitClick UnitClick { get; set; }
     public SkillSystem SkillSystem { get; set; }
 

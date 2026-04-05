@@ -10,15 +10,15 @@ public class BuildValidator
 {
     private readonly TerritorySystem territorysystem;
     private readonly MapCreate mapcreate;
-    private readonly MoveGererater movegenerater;
+    private readonly MoveGenerator moveGenerator;
     private readonly HashSet<Vector3Int> buildingPositions;
 
     public BuildValidator(TerritorySystem territorysystem, MapCreate mapcreate,
-                          MoveGererater movegenerater, HashSet<Vector3Int> buildingPositions)
+                          MoveGenerator moveGenerator, HashSet<Vector3Int> buildingPositions)
     {
         this.territorysystem = territorysystem;
         this.mapcreate = mapcreate;
-        this.movegenerater = movegenerater;
+        this.moveGenerator = moveGenerator;
         this.buildingPositions = buildingPositions;
     }
 

@@ -9,11 +9,11 @@ using UnityEngine.InputSystem;
 public class BuildSystem : MonoBehaviour
 {
     // ---- 外部参照（Init で注入） ----
-    private TurnGenerater turngenerater;
+    private TurnGenerator turnGenerator;
     private TerritorySystem territorysystem;
     private APSystem apsystem;
     private FactionState factionState;
-    private MoveGererater movegenerater;
+    private MoveGenerator moveGenerator;
     private MapCreate mapcreate;
 
     // ---- サブクリスタルシステム（後から注入） ----
@@ -83,15 +83,15 @@ public class BuildSystem : MonoBehaviour
     // ==================================================================
     //  初期化
     // ==================================================================
-    public void Init(TurnGenerater turngenerater, TerritorySystem territorysystem,
+    public void Init(TurnGenerator turnGenerator, TerritorySystem territorysystem,
                      APSystem apsystem, FactionState factionState,
-                     MoveGererater movegenerater, MapCreate mapcreate)
+                     MoveGenerator moveGenerator, MapCreate mapcreate)
     {
-        this.turngenerater = turngenerater;
+        this.turnGenerator = turnGenerator;
         this.territorysystem = territorysystem;
         this.apsystem = apsystem;
         this.factionState = factionState;
-        this.movegenerater = movegenerater;
+        this.moveGenerator = moveGenerator;
         this.mapcreate = mapcreate;
 
         blockLayerMask = LayerMask.GetMask("Block");
@@ -108,7 +108,7 @@ public class BuildSystem : MonoBehaviour
         }
 
         // BuildValidator初期化
-        validator = new BuildValidator(territorysystem, mapcreate, movegenerater, buildingPositions);
+        validator = new BuildValidator(territorysystem, mapcreate, moveGenerator, buildingPositions);
 
         // 建築物の親が無ければ作成（チーム別）
         if (PlayerBuildingParent == null)
@@ -276,10 +276,10 @@ public class BuildSystem : MonoBehaviour
         }
 
         // ---- ML観測: プレイヤーの建築をMLシステムに記録 ----
-        if (turngenerater != null && turngenerater.aiCommander != null)
+        if (turnGenerator != null && turnGenerator.aiCommander != null)
         {
             Vector3 buildPos = new Vector3(lastCursorPos.x, 0, lastCursorPos.z);
-            turngenerater.aiCommander.MLIntegration.ObservePlayerBuild(buildPos, turngenerater.Turn);
+            turnGenerator.aiCommander.MLIntegration.ObservePlayerBuild(buildPos, turnGenerator.Turn);
         }
 
         // 建築モード解除
@@ -289,7 +289,7 @@ public class BuildSystem : MonoBehaviour
 
     // 設置可否チェック → BuildValidator に委譲
     private bool CheckCanPlace(Vector3Int pos)
-        => validator.CheckCanPlace(pos, SelectedFacility, subCrystalSystem, turngenerater.crystalsystem);
+        => validator.CheckCanPlace(pos, SelectedFacility, subCrystalSystem, turnGenerator.crystalsystem);
 
     // ==================================================================
     //  内部: 建築物の配置
@@ -350,7 +350,7 @@ public class BuildSystem : MonoBehaviour
         // 壁の場合は UnitPointData に追加（全駒通過不可、Y=0で管理）
         if (FacilityData.IsWall(facility))
         {
-            movegenerater.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
+            moveGenerator.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
         }
 
         Debug.Log($"[BuildSystem] {info.DisplayName} を ({pos.x}, {pos.y}, {pos.z}) に設置");
@@ -577,14 +577,14 @@ public class BuildSystem : MonoBehaviour
         }
 
         // クリスタル位置チェック（XZのみで比較）
-        Vector3 pcpVec = turngenerater.crystalsystem.PCP;
+        Vector3 pcpVec = turnGenerator.crystalsystem.PCP;
         if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z)
         {
             Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) はPlayerクリスタル位置");
             return false;
         }
 
-        Vector3 ecpVec = turngenerater.crystalsystem.ECP;
+        Vector3 ecpVec = turnGenerator.crystalsystem.ECP;
         if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z)
         {
             Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) はEnemyクリスタル位置");
@@ -675,7 +675,7 @@ public class BuildSystem : MonoBehaviour
 
         if (FacilityData.IsWall(facility))
         {
-            movegenerater.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
+            moveGenerator.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
         }
     }
 
