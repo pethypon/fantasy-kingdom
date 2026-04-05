@@ -77,6 +77,9 @@ public class BuildSystem : MonoBehaviour
     // ---- 設置済み建築物の位置管理 ----
     private HashSet<Vector3Int> buildingPositions = new HashSet<Vector3Int>();
 
+    // ---- 検証ロジック（BuildValidatorに委譲） ----
+    private BuildValidator validator;
+
     // ==================================================================
     //  初期化
     // ==================================================================
@@ -103,6 +106,9 @@ public class BuildSystem : MonoBehaviour
                     prefabMap[entry.kind] = entry.prefab;
             }
         }
+
+        // BuildValidator初期化
+        validator = new BuildValidator(territorysystem, mapcreate, movegenerater, buildingPositions);
 
         // 建築物の親が無ければ作成（チーム別）
         if (PlayerBuildingParent == null)
@@ -281,43 +287,9 @@ public class BuildSystem : MonoBehaviour
         return true;
     }
 
-    // ==================================================================
-    //  内部: 設置可否チェック
-    // ==================================================================
+    // 設置可否チェック → BuildValidator に委譲
     private bool CheckCanPlace(Vector3Int pos)
-    {
-        bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
-
-        if (isSubCrystal)
-        {
-            // サブクリスタル: SubCrystalSystem に委譲
-            if (subCrystalSystem == null) return false;
-            return subCrystalSystem.CanPlaceSubCrystal(pos, Team.Player);
-        }
-
-        // 通常建築物: 領地内でなければ不可
-        if (!IsInTerritory(pos)) return false;
-
-        // クリスタル位置チェック
-        Vector3 pcpVec = turngenerater.crystalsystem.PCP;
-        Vector3Int pcp = new Vector3Int(
-            Mathf.RoundToInt(pcpVec.x),
-            Mathf.RoundToInt(pcpVec.y),
-            Mathf.RoundToInt(pcpVec.z));
-        if (pos == pcp) return false;
-
-        Vector3 ecpVec = turngenerater.crystalsystem.ECP;
-        Vector3Int ecp = new Vector3Int(
-            Mathf.RoundToInt(ecpVec.x),
-            Mathf.RoundToInt(ecpVec.y),
-            Mathf.RoundToInt(ecpVec.z));
-        if (pos == ecp) return false;
-
-        // 既設の建築物チェック
-        if (buildingPositions.Contains(pos)) return false;
-
-        return true;
-    }
+        => validator.CheckCanPlace(pos, SelectedFacility, subCrystalSystem, turngenerater.crystalsystem);
 
     // ==================================================================
     //  内部: 建築物の配置
@@ -429,120 +401,21 @@ public class BuildSystem : MonoBehaviour
         return true;
     }
 
-    // ==================================================================
-    //  内部: 領地判定
-    // ==================================================================
+    // 領地判定 → BuildValidator に委譲
     private bool IsInTerritory(Vector3Int pos)
-    {
-        if (territorysystem.PTSetPos == null) return false;
-        return territorysystem.PTSetPos.Any(p =>
-            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
-    }
+        => validator.IsInTerritory(pos);
 
-    // ==================================================================
-    //  内部: 領地端へクランプ
-    // ==================================================================
+    // 領地端クランプ → BuildValidator に委譲
     private Vector3Int ClampToTerritory(Vector3Int pos)
-    {
-        if (territorysystem.PTSetPos == null || territorysystem.PTSetPos.Count == 0)
-            return new Vector3Int(int.MinValue, 0, 0);
+        => validator.ClampToTerritory(pos);
 
-        float minDist = float.MaxValue;
-        Vector3 closest = territorysystem.PTSetPos[0];
-
-        foreach (var p in territorysystem.PTSetPos)
-        {
-            float dx = p.x - pos.x;
-            float dz = p.z - pos.z;
-            float dist = dx * dx + dz * dz;
-            if (dist < minDist)
-            {
-                minDist = dist;
-                closest = p;
-            }
-        }
-
-        return new Vector3Int(
-            Mathf.RoundToInt(closest.x),
-            Mathf.RoundToInt(closest.y),
-            Mathf.RoundToInt(closest.z));
-    }
-
-    // ==================================================================
-    //  内部: 領地外の最も近い座標にクランプ（サブクリスタル用）
-    // ==================================================================
+    // 領地外クランプ → BuildValidator に委譲
     private Vector3Int ClampToOutsideTerritory(Vector3Int pos)
-    {
-        if (mapcreate.SetPos == null || mapcreate.SetPos.Count == 0)
-            return new Vector3Int(int.MinValue, 0, 0);
+        => validator.ClampToOutsideTerritory(pos);
 
-        float minDist = float.MaxValue;
-        Vector3 closest = Vector3.zero;
-        bool found = false;
-
-        foreach (var p in mapcreate.SetPos)
-        {
-            int px = Mathf.RoundToInt(p.x);
-            int pz = Mathf.RoundToInt(p.z);
-
-            // 領地内のマスはスキップ
-            bool inTerritory = false;
-            if (territorysystem.PTSetPos != null)
-                inTerritory |= territorysystem.PTSetPos.Any(t =>
-                    Mathf.RoundToInt(t.x) == px && Mathf.RoundToInt(t.z) == pz);
-            if (territorysystem.ETSetPos != null)
-                inTerritory |= territorysystem.ETSetPos.Any(t =>
-                    Mathf.RoundToInt(t.x) == px && Mathf.RoundToInt(t.z) == pz);
-            if (inTerritory) continue;
-
-            float dx = p.x - pos.x;
-            float dz = p.z - pos.z;
-            float dist = dx * dx + dz * dz;
-            if (dist < minDist)
-            {
-                minDist = dist;
-                closest = p;
-                found = true;
-            }
-        }
-
-        if (!found)
-            return new Vector3Int(int.MinValue, 0, 0);
-
-        return new Vector3Int(
-            Mathf.RoundToInt(closest.x),
-            Mathf.RoundToInt(closest.y),
-            Mathf.RoundToInt(closest.z));
-    }
-
-    // ==================================================================
-    //  内部: SetPos 上の最も近い座標にスナップ
-    // ==================================================================
+    // SetPosスナップ → BuildValidator に委譲
     private Vector3Int SnapToSetPos(Vector3Int gridPos)
-    {
-        if (mapcreate.SetPos == null || mapcreate.SetPos.Count == 0)
-            return gridPos;
-
-        float minDist = float.MaxValue;
-        Vector3 closest = mapcreate.SetPos[0];
-
-        foreach (var p in mapcreate.SetPos)
-        {
-            float dx = p.x - gridPos.x;
-            float dz = p.z - gridPos.z;
-            float dist = dx * dx + dz * dz;
-            if (dist < minDist)
-            {
-                minDist = dist;
-                closest = p;
-            }
-        }
-
-        return new Vector3Int(
-            Mathf.RoundToInt(closest.x),
-            Mathf.RoundToInt(closest.y),
-            Mathf.RoundToInt(closest.z));
-    }
+        => validator.SnapToSetPos(gridPos);
 
     // ==================================================================
     //  内部: カーソル生成 / 破棄
