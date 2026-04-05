@@ -502,7 +502,7 @@ public class UIBuilder : MonoBehaviour
         var turnGen = Object.FindFirstObjectByType<TurnGenerator>();
         if (turnGen != null && UnitPanel != null)
         {
-            turnGen.unitPanelUI = UnitPanel;
+            turnGen.Systems.UnitPanelUI = UnitPanel;
         }
 
         var gameGen = Object.FindFirstObjectByType<GameGenerator>();

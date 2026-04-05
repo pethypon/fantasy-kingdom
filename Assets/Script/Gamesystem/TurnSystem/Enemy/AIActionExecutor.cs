@@ -139,8 +139,8 @@ public class AIActionExecutor
         if (target == null || !target.gameObject.activeInHierarchy) return false;
         if (!_apSystem.CanAct(Team.Enemy, APSystem.ActionType.Attack, unit)) return false;
 
-        var prevSelect = _turnGen.SelectUnit;
-        _turnGen.SelectUnit = unit;
+        var prevSelect = _turnGen.Context.SelectUnit;
+        _turnGen.Context.SelectUnit = unit;
         _battleSystem.target = target;
 
         int hpBefore = target.HP;
@@ -161,7 +161,7 @@ public class AIActionExecutor
         }
 
         RecordAttackLearning(unit, target, hpBefore, hpAfter, killed);
-        _turnGen.SelectUnit = prevSelect;
+        _turnGen.Context.SelectUnit = prevSelect;
         return true;
     }
 
@@ -194,8 +194,8 @@ public class AIActionExecutor
         if (unit == null || skill == null) return false;
         if (!_apSystem.CanUseSkill(Team.Enemy, skill.APCost)) return false;
 
-        var prevSelect = _turnGen.SelectUnit;
-        _turnGen.SelectUnit = unit;
+        var prevSelect = _turnGen.Context.SelectUnit;
+        _turnGen.Context.SelectUnit = unit;
 
         bool success = ExecuteSkillByTarget(action, board, unit, skill);
 
@@ -206,7 +206,7 @@ public class AIActionExecutor
             Debug.Log($"[AIActionExecutor] スキルクールダウン設定: {unit.kind} '{skill.Name}' → {cooldown}ターン");
         }
 
-        _turnGen.SelectUnit = prevSelect;
+        _turnGen.Context.SelectUnit = prevSelect;
         return success;
     }
 

@@ -147,13 +147,14 @@ public class GameGenerator : MonoBehaviour
         // SystemInitializer で生成されるものを再注入（上書き）
         if (_TurnGenerator != null)
         {
-            _TurnGenerator.buildsystem = _BuildSystem;
-            _TurnGenerator.summonsystem = _SummonSystem;
-            _TurnGenerator.economysystem = _EconomySystem;
-            _TurnGenerator.buildingAttackSystem = _BuildingAttackSystem;
-            _TurnGenerator.subCrystalSystem = _SubCrystalSystem;
-            _TurnGenerator.skillsystem = _SkillSystem;
-            _TurnGenerator.timerSystem = _TurnGenerator.timerSystem ?? _TimerSystem;
+            var sys = _TurnGenerator.Systems;
+            sys.BuildSystem = _BuildSystem;
+            sys.SummonSystem = _SummonSystem;
+            sys.EconomySystem = _EconomySystem;
+            sys.BuildingAttackSystem = _BuildingAttackSystem;
+            sys.SubCrystalSystem = _SubCrystalSystem;
+            sys.SkillSystem = _SkillSystem;
+            sys.TimerSystem = sys.TimerSystem ?? _TimerSystem;
         }
 
         // Step 4: 経済・資源・UnitRegistry
@@ -211,35 +212,38 @@ public class GameGenerator : MonoBehaviour
         if (_CameraTransform == null && Camera.main != null)
             _CameraTransform = Camera.main.transform;
 
+        var sys = _TurnGenerator.Systems;
+
         // 基盤
-        _TurnGenerator.mapcreate = _MapCreate;
-        _TurnGenerator.crystalsystem = _CrystalSystem;
-        _TurnGenerator.unitset = _UnitSetting;
-        _TurnGenerator.moveGenerator = _MoveGenerator;
-        _TurnGenerator.visionGenerator = _VisionGenerator;
-        _TurnGenerator.apsystem = _APSystem;
+        sys.MapCreate = _MapCreate;
+        sys.CrystalSystem = _CrystalSystem;
+        sys.UnitSetting = _UnitSetting;
+        sys.MoveGenerator = _MoveGenerator;
+        sys.VisionGenerator = _VisionGenerator;
+        sys.APSystem = _APSystem;
 
         // コア
-        _TurnGenerator.attackGenerator = _AttackPoint;
-        _TurnGenerator.unitclick = _UnitClick;
-        _TurnGenerator.battlesystem = _BattleSystem;
-        _TurnGenerator.timerSystem = _TimerSystem;
+        sys.AttackGenerator = _AttackPoint;
+        sys.UnitClick = _UnitClick;
+        sys.BattleSystem = _BattleSystem;
+        sys.TimerSystem = _TimerSystem;
 
         // カメラ
-        _TurnGenerator.CameraObject = _CameraTransform;
+        _TurnGenerator.Context.CameraObject = _CameraTransform;
     }
 
     private void ValidateTurnGeneratorWiring()
     {
         if (_TurnGenerator == null) return;
+        var sys = _TurnGenerator.Systems;
 
-        if (_TurnGenerator.crystalsystem == null) Debug.LogError("[WireCheck] crystalsystem is null");
-        if (_TurnGenerator.unitset == null) Debug.LogError("[WireCheck] unitset is null");
-        if (_TurnGenerator.apsystem == null) Debug.LogError("[WireCheck] apsystem is null");
-        if (_TurnGenerator.moveGenerator == null) Debug.LogError("[WireCheck] moveGenerator is null");
-        if (_TurnGenerator.visionGenerator == null) Debug.LogError("[WireCheck] visionGenerator is null");
-        if (_TurnGenerator.unitclick == null) Debug.LogError("[WireCheck] unitclick is null");
-        if (_TurnGenerator.attackGenerator == null) Debug.LogError("[WireCheck] attackGenerator is null");
+        if (sys.CrystalSystem == null) Debug.LogError("[WireCheck] CrystalSystem is null");
+        if (sys.UnitSetting == null) Debug.LogError("[WireCheck] UnitSetting is null");
+        if (sys.APSystem == null) Debug.LogError("[WireCheck] APSystem is null");
+        if (sys.MoveGenerator == null) Debug.LogError("[WireCheck] MoveGenerator is null");
+        if (sys.VisionGenerator == null) Debug.LogError("[WireCheck] VisionGenerator is null");
+        if (sys.UnitClick == null) Debug.LogError("[WireCheck] UnitClick is null");
+        if (sys.AttackGenerator == null) Debug.LogError("[WireCheck] AttackGenerator is null");
     }
 
     private void InitSingletons()
@@ -302,7 +306,7 @@ public class GameGenerator : MonoBehaviour
         if (_MoveGenerator != null && _MoveGenerator.MovePoint != null)
             ObjectPool.Instance.Prewarm(_MoveGenerator.MovePoint, 30, _MoveGenerator.Move);
 
-        if (_TurnGenerator != null && _TurnGenerator.attackGenerator != null && _TurnGenerator.attackGenerator.AttackPoint != null)
-            ObjectPool.Instance.Prewarm(_TurnGenerator.attackGenerator.AttackPoint, 15, _TurnGenerator.attackGenerator.APparent);
+        if (_TurnGenerator != null && _TurnGenerator.Systems.AttackGenerator != null && _TurnGenerator.Systems.AttackGenerator.AttackPoint != null)
+            ObjectPool.Instance.Prewarm(_TurnGenerator.Systems.AttackGenerator.AttackPoint, 15, _TurnGenerator.Systems.AttackGenerator.APparent);
     }
 }

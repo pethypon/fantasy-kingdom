@@ -33,7 +33,7 @@ public static class SaveGameApplier
         Debug.Log($"[SaveGameApplier] ロード適用: Turn{data.Turn} 脅威度{data.ThreatLevel}");
 
         // ターン数復元（PlayerStart.Entry()でTurn++されるので1引く）
-        turnGen.Turn = data.Turn - 1;
+        turnGen.Context.Turn = data.Turn - 1;
 
         // 資源復元
         SaveSystem.RestoreResources(data.PlayerResources, factionState.PlayerResources);
@@ -70,16 +70,16 @@ public static class SaveGameApplier
         }
 
         // タイマー復元
-        if (turnGen.timerSystem != null)
-            SaveSystem.RestoreTimer(data.Timer, turnGen.timerSystem);
+        if (turnGen.Systems.TimerSystem != null)
+            SaveSystem.RestoreTimer(data.Timer, turnGen.Systems.TimerSystem);
 
         // 霧の戦争（探索済み）復元
         if (visionGenerator != null)
             SaveSystem.RestoreFog(data.Fog, visionGenerator);
 
         // AI状態復元
-        if (turnGen.aiCommander != null)
-            SaveSystem.RestoreAICommander(data.AI, turnGen.aiCommander);
+        if (turnGen.Systems.AICommander != null)
+            SaveSystem.RestoreAICommander(data.AI, turnGen.Systems.AICommander);
 
         // 占有セル・視界を再計算
         if (moveGenerator != null) moveGenerator.UnitPointCore();

@@ -79,8 +79,8 @@ public class SkillSystem : MonoBehaviour
             if (!skill.BuffToSelf && buffTarget != attacker)
             {
                 Transform unitParent = attacker.team == Team.Player
-                    ? turnGenerator.GetComponent<UnitSetting>()?.PlayerUnit
-                    : turnGenerator.GetComponent<UnitSetting>()?.EnemyUnit;
+                    ? turnGenerator.Systems.UnitSetting?.PlayerUnit
+                    : turnGenerator.Systems.UnitSetting?.EnemyUnit;
                 SpecialAbilitySystem.ProcessSupportSpread(attacker, buffTarget, skill.GrantBuff, 0, unitParent);
             }
         }
@@ -160,8 +160,8 @@ public class SkillSystem : MonoBehaviour
 
         // Special Ability: 支援波及（回復を周囲味方に50%波及）
         Transform unitParent = attacker.team == Team.Player
-            ? turnGenerator.GetComponent<UnitSetting>()?.PlayerUnit
-            : turnGenerator.GetComponent<UnitSetting>()?.EnemyUnit;
+            ? turnGenerator.Systems.UnitSetting?.PlayerUnit
+            : turnGenerator.Systems.UnitSetting?.EnemyUnit;
         SpecialAbilitySystem.ProcessSupportSpread(attacker, t, BuffType.None, heal, unitParent);
     }
 

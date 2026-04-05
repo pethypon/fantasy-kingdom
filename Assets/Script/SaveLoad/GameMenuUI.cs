@@ -223,9 +223,9 @@ public class GameMenuUI : MonoBehaviour
             {
                 var data = SaveSystem.CollectGameState(
                     turnGen, factionState,
-                    turnGen.timerSystem,
-                    turnGen.visionGenerator,
-                    turnGen.aiCommander);
+                    turnGen.Systems.TimerSystem,
+                    turnGen.Systems.VisionGenerator,
+                    turnGen.Systems.AICommander);
                 SaveSystem.SaveGame(slot, data);
                 ToastMessageUI.Show($"スロット{slot + 1}にセーブしました", ToastMessageUI.MessageType.Info, 3f);
             }

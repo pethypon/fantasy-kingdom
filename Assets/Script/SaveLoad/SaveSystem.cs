@@ -382,30 +382,30 @@ public static class SaveSystem
     {
         var data = new GameSaveData
         {
-            Turn = turnGen.Turn,
+            Turn = turnGen.Context.Turn,
             ThreatLevel = LoadProfile().ThreatLevel,
-            MapSeedX = turnGen.mapcreate.SeedX,
-            MapSeedZ = turnGen.mapcreate.SeedZ,
-            PCPx = turnGen.crystalsystem.PCP.x,
-            PCPy = turnGen.crystalsystem.PCP.y,
-            PCPz = turnGen.crystalsystem.PCP.z,
-            ECPx = turnGen.crystalsystem.ECP.x,
-            ECPy = turnGen.crystalsystem.ECP.y,
-            ECPz = turnGen.crystalsystem.ECP.z
+            MapSeedX = turnGen.Systems.MapCreate.SeedX,
+            MapSeedZ = turnGen.Systems.MapCreate.SeedZ,
+            PCPx = turnGen.Systems.CrystalSystem.PCP.x,
+            PCPy = turnGen.Systems.CrystalSystem.PCP.y,
+            PCPz = turnGen.Systems.CrystalSystem.PCP.z,
+            ECPx = turnGen.Systems.CrystalSystem.ECP.x,
+            ECPy = turnGen.Systems.CrystalSystem.ECP.y,
+            ECPz = turnGen.Systems.CrystalSystem.ECP.z
         };
 
         // ユニット収集
-        CollectUnits(data, turnGen.unitset.PlayerUnit, turnGen.unitset.EnemyUnit);
+        CollectUnits(data, turnGen.Systems.UnitSetting.PlayerUnit, turnGen.Systems.UnitSetting.EnemyUnit);
 
         // 建築物収集
-        if (turnGen.buildsystem != null)
+        if (turnGen.Systems.BuildSystem != null)
         {
-            CollectBuildings(data, turnGen.buildsystem.PlayerBuildingParent);
-            CollectBuildings(data, turnGen.buildsystem.EnemyBuildingParent);
+            CollectBuildings(data, turnGen.Systems.BuildSystem.PlayerBuildingParent);
+            CollectBuildings(data, turnGen.Systems.BuildSystem.EnemyBuildingParent);
         }
 
         // クリスタル収集
-        CollectCrystals(data, turnGen.crystalsystem);
+        CollectCrystals(data, turnGen.Systems.CrystalSystem);
 
         // 資源
         CopyResources(factionState.PlayerResources, data.PlayerResources);

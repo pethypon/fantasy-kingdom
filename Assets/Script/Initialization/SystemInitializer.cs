@@ -34,7 +34,7 @@ public static class SystemInitializer
         {
             buildSystem.Init(turnGen, territorySystem, apSystem,
                              factionState, moveGenerator, mapCreate);
-            turnGen.buildsystem = buildSystem;
+            turnGen.Systems.BuildSystem = buildSystem;
 
             if (uiBuilder != null)
                 uiBuilder.InitBuildButtons(buildSystem, apSystem, factionState);
@@ -47,7 +47,7 @@ public static class SystemInitializer
             summonSystem.Init(turnGen, territorySystem, apSystem,
                               factionState, moveGenerator, mapCreate,
                               unitSetting, visionGenerator);
-            turnGen.summonsystem = summonSystem;
+            turnGen.Systems.SummonSystem = summonSystem;
 
             if (uiBuilder != null)
                 uiBuilder.InitSummonButtons(summonSystem, apSystem, factionState, unitSetting);
@@ -56,20 +56,20 @@ public static class SystemInitializer
         // ---- EconomySystem ----
         economySystem = EnsureComponent(owner, economySystem);
         economySystem.Init(buildSystem, factionState, unitSetting, crystalSystem);
-        turnGen.economysystem = economySystem;
+        turnGen.Systems.EconomySystem = economySystem;
 
         // ---- BuildingAttackSystem ----
         buildingAttackSystem = EnsureComponent(owner, buildingAttackSystem);
         buildingAttackSystem.Init(buildSystem, moveGenerator, unitSetting,
                                   visionGenerator, mapCreate, crystalSystem);
-        turnGen.buildingAttackSystem = buildingAttackSystem;
+        turnGen.Systems.BuildingAttackSystem = buildingAttackSystem;
 
         // ---- SubCrystalSystem ----
         subCrystalSystem = EnsureComponent(owner, subCrystalSystem);
         subCrystalSystem.Init(turnGen, territorySystem, factionState,
                                mapCreate, buildSystem, visionGenerator,
                                moveGenerator, crystalSystem);
-        turnGen.subCrystalSystem = subCrystalSystem;
+        turnGen.Systems.SubCrystalSystem = subCrystalSystem;
 
         // ---- クロスリファレンス ----
         if (buildSystem != null)
@@ -93,17 +93,17 @@ public static class SystemInitializer
     {
         skillSystem = EnsureComponent(owner, skillSystem);
         skillSystem.turnGenerator = turnGen;
-        skillSystem.battlesystem = turnGen.battlesystem;
+        skillSystem.battlesystem = turnGen.Systems.BattleSystem;
         skillSystem.moveGenerator = moveGenerator;
         skillSystem.Init(factionState);
-        turnGen.skillsystem = skillSystem;
+        turnGen.Systems.SkillSystem = skillSystem;
 
         SkillData.AssignSkillsToAll(unitSetting.PlayerUnit);
         SkillData.AssignSkillsToAll(unitSetting.EnemyUnit);
 
         var timerSystem = EnsureComponent<TimerSystem>(owner, null);
-        timerSystem.Init(turnGen, turnGen.crystalsystem);
-        turnGen.timerSystem = timerSystem;
+        timerSystem.Init(turnGen, turnGen.Systems.CrystalSystem);
+        turnGen.Systems.TimerSystem = timerSystem;
     }
 
     /// <summary>AI指揮官を初期化する。</summary>
@@ -123,9 +123,9 @@ public static class SystemInitializer
     {
         var aiMajor = AIPersonality.RandomMajor();
         int threatLevel = SaveSystem.LoadProfile().ThreatLevel;
-        turnGen.aiCommander = new AICommander(
-            turnGen, moveGenerator, turnGen.attackGenerator,
-            turnGen.battlesystem, visionGenerator,
+        turnGen.Systems.AICommander = new AICommander(
+            turnGen, moveGenerator, turnGen.Systems.AttackGenerator,
+            turnGen.Systems.BattleSystem, visionGenerator,
             apSystem, unitSetting, crystalSystem, mapCreate, aiMajor,
             buildSystem, summonSystem, factionState, skillSystem,
             subCrystalSystem, threatLevel);

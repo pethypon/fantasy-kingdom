@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -15,14 +16,15 @@ public class TopBarUI : MonoBehaviour
     [SerializeField] private Image timerFill;
 
     [Header("参照")]
-    [SerializeField] private TurnGenerator turnGenerater;
+    [FormerlySerializedAs("turnGenerater")]
+    [SerializeField] private TurnGenerator turnGenerator;
 
     private int lastTurn = -1;
 
     private void Awake()
     {
-        if (turnGenerater == null)
-            turnGenerater = Object.FindFirstObjectByType<TurnGenerator>();
+        if (turnGenerator == null)
+            turnGenerator = Object.FindFirstObjectByType<TurnGenerator>();
 
         if (turnText == null || timerText == null || timerFill == null)
         {
@@ -55,9 +57,9 @@ public class TopBarUI : MonoBehaviour
 
     private void UpdateTurn()
     {
-        if (turnGenerater == null || turnText == null) return;
+        if (turnGenerator == null || turnText == null) return;
 
-        int current = turnGenerater.Turn;
+        int current = turnGenerator.Context.Turn;
         if (current == lastTurn) return;
 
         lastTurn = current;
@@ -66,9 +68,9 @@ public class TopBarUI : MonoBehaviour
 
     private void UpdateTimer()
     {
-        if (turnGenerater == null) return;
+        if (turnGenerator == null) return;
 
-        var timer = turnGenerater.timerSystem;
+        var timer = turnGenerator.Systems.TimerSystem;
         if (timer == null)
         {
             if (timerText != null) timerText.text = "制限時間";

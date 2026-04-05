@@ -173,10 +173,10 @@ public class SummonSystem : MonoBehaviour
         ConsumeSummon(Team.Player, SelectedKind);
 
         // ---- ML観測: プレイヤーの召喚をMLシステムに記録 ----
-        if (turnGenerator != null && turnGenerator.aiCommander != null)
+        if (turnGenerator != null && turnGenerator.Systems.AICommander != null)
         {
             Vector3 summonPos = new Vector3(lastCursorPos.x, 0, lastCursorPos.z);
-            turnGenerator.aiCommander.MLIntegration.ObservePlayerBuild(summonPos, turnGenerator.Turn);
+            turnGenerator.Systems.AICommander.MLIntegration.ObservePlayerBuild(summonPos, turnGenerator.Context.Turn);
         }
 
         CancelSummonMode();
@@ -241,10 +241,10 @@ public class SummonSystem : MonoBehaviour
         if (!onMap) return false;
 
         // クリスタル位置チェック（XZのみで比較）
-        Vector3 pcpVec = turnGenerator.crystalsystem.PCP;
+        Vector3 pcpVec = turnGenerator.Systems.CrystalSystem.PCP;
         if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
 
-        Vector3 ecpVec = turnGenerator.crystalsystem.ECP;
+        Vector3 ecpVec = turnGenerator.Systems.CrystalSystem.ECP;
         if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
 
         // 既にユニットがいる場所には不可（UnitPointDataはY=0で管理）
@@ -323,7 +323,7 @@ public class SummonSystem : MonoBehaviour
         moveGenerator.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
 
         // 視界更新
-        visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.crystalsystem);
+        visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
 
         Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {pos.y}, {pos.z}) に召喚");
     }
@@ -488,10 +488,10 @@ public class SummonSystem : MonoBehaviour
         if (!onMap) return false;
 
         // クリスタル位置チェック（XZのみで比較）
-        Vector3 pcpVec = turnGenerator.crystalsystem.PCP;
+        Vector3 pcpVec = turnGenerator.Systems.CrystalSystem.PCP;
         if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
 
-        Vector3 ecpVec = turnGenerator.crystalsystem.ECP;
+        Vector3 ecpVec = turnGenerator.Systems.CrystalSystem.ECP;
         if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
 
         // UnitPointDataはY=0で管理されているため、Y=0で比較する
@@ -588,7 +588,7 @@ public class SummonSystem : MonoBehaviour
 
         // UnitPointDataはY=0で管理
         moveGenerator.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
-        visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.crystalsystem);
+        visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
     }
 
     /// <summary>

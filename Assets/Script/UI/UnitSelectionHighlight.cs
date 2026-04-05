@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class UnitSelectionHighlight : MonoBehaviour
 {
-    private TurnGenerator _turnGenerater;
+    private TurnGenerator _turnGenerator;
     private GameObject _ringObj;
     private MeshRenderer _ringRenderer;
     private Status _currentTarget;
@@ -20,9 +20,9 @@ public class UnitSelectionHighlight : MonoBehaviour
     private static readonly Color PlayerColor = new Color(0.3f, 0.7f, 1f, 0.7f);
     private static readonly Color EnemyColor = new Color(1f, 0.3f, 0.3f, 0.5f);
 
-    public void Init(TurnGenerator turnGenerater)
+    public void Init(TurnGenerator turnGenerator)
     {
-        _turnGenerater = turnGenerater;
+        _turnGenerator = turnGenerator;
         CreateRing();
     }
 
@@ -50,9 +50,9 @@ public class UnitSelectionHighlight : MonoBehaviour
 
     private void Update()
     {
-        if (_turnGenerater == null) return;
+        if (_turnGenerator == null) return;
 
-        Status selected = _turnGenerater.SelectUnit;
+        Status selected = _turnGenerator.Context.SelectUnit;
 
         if (selected != _currentTarget)
         {

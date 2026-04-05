@@ -172,8 +172,8 @@ public class TimerSystem : MonoBehaviour
     {
         if (turnGenerator == null) return null;
         Transform parent = team == Team.Player
-            ? turnGenerator.unitset.PlayerUnit
-            : turnGenerator.unitset.EnemyUnit;
+            ? turnGenerator.Systems.UnitSetting.PlayerUnit
+            : turnGenerator.Systems.UnitSetting.EnemyUnit;
         if (parent == null) return null;
         foreach (Status s in parent.GetComponentsInChildren<Status>())
         {
