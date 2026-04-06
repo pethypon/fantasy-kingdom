@@ -65,7 +65,11 @@ public class AICommander
     readonly SkillSystem _skillSystem;
     readonly SubCrystalSystem _subCrystalSystem;
 
-    // ---- 機械学習AI (脅威度20以降で有効) ----
+    // ---- 師団長制AI（階層指揮システム） ----
+    readonly KingCommanderSystem _kingCommanderSystem;
+    bool _hierarchicalMode = true; // 師団長制を有効にするフラグ
+
+    // ---- 機械学習AI (脅威度20以降で有効、師団長制では無効) ----
     readonly MLIntegration _mlIntegration;
 
     // 統計（動作確認用）
@@ -140,6 +144,9 @@ public class AICommander
             skillSystem, subCrystalSystem, buildSystem, summonSystem, _learning);
         _buildPlanner = new AIBuildPlanner(apSystem, factionState, _actionExecutor, _personality, _learning);
 
+        // 師団長制AI初期化
+        _kingCommanderSystem = new KingCommanderSystem(_personality, _rng);
+
         Debug.Log("=== [AICommander] ==============================");
         Debug.Log($"[AICommander] 初期化完了");
         Debug.Log($"[AICommander] 大きい性格 = {major}  脅威度={_threatLevel.Level} ({_threatLevel.GetTierName()})");
@@ -157,6 +164,10 @@ public class AICommander
                   $"ロール={(_threatLevel.UseRoleAssignment ? "有効" : "無効")}  " +
                   $"学習率={_threatLevel.LearningRate:F1}  シード={_rng.Seed}");
         Debug.Log($"[AICommander] {_mlIntegration.GetDebugInfo()}");
+        Debug.Log($"[AICommander] 師団長制={(_hierarchicalMode ? "有効" : "無効")}  " +
+                  $"最大師団数={KingCommanderSystem.MaxDivisions}  " +
+                  $"師団兵上限={KingCommanderSystem.MaxDivisionUnits}  " +
+                  $"王直轄上限={KingCommanderSystem.MaxKingDirectUnits}");
         Debug.Log("=== [AICommander] ==============================");
     }
 
@@ -167,6 +178,8 @@ public class AICommander
     public AIRoleAssigner RoleAssigner => _roleAssigner;
     public TurnStrategyPlanner StrategyPlanner => _strategyPlanner;
     public MLIntegration MLIntegration => _mlIntegration;
+    public KingCommanderSystem KingCommander => _kingCommanderSystem;
+    public bool HierarchicalMode { get => _hierarchicalMode; set => _hierarchicalMode = value; }
 
     // ---- セーブ/ロード用アクセサ ----
     public int SaveTotalMoves    { get => _totalStats.Moves;    set => _totalStats.Moves = value; }
@@ -352,9 +365,12 @@ public class AICommander
         // 決定論的乱数のターンシード設定
         _rng.SetTurnSeed(_turnCount);
 
-        // 機械学習AIのターン開始通知（プレイヤー陣形観測 + カウンター方針決定 + 行動予測）
-        _mlIntegration.ObservePlayerFormation(_board.AlivePlayerUnits, _board.EnemyCrystalPos, _turnCount);
-        _mlIntegration.OnTurnStart(_currentStrategy, _threatLevel.Level, _board, _turnCount);
+        // 機械学習AIのターン開始通知（師団長制では無効）
+        if (!_hierarchicalMode)
+        {
+            _mlIntegration.ObservePlayerFormation(_board.AlivePlayerUnits, _board.EnemyCrystalPos, _turnCount);
+            _mlIntegration.OnTurnStart(_currentStrategy, _threatLevel.Level, _board, _turnCount);
+        }
 
         // ロール割当（脅威度が通常知能以上で有効）
         if (_threatLevel.UseRoleAssignment)
@@ -368,6 +384,15 @@ public class AICommander
         const int maxConsecutiveFailures = 8;
         int strategyFailures = 0;
         var turnStats = new TurnStats();
+
+        // ================================================================
+        //  ★ 師団長制AI: 師団長を選出→兵を割当→提案収集→採択→実行
+        //  ML機能は師団長制モードでは無効化される。
+        // ================================================================
+        if (_hierarchicalMode)
+        {
+            ExecuteHierarchicalPhase(ref turnStats);
+        }
 
         // 探索エンジンとtopCandidatesリストをループ外で事前確保（GC削減）
         var searchEngine = new AISearchEngine(_threatLevel.SearchDepth, _threatLevel.SearchCandidateLimit, _rng);
@@ -461,8 +486,16 @@ public class AICommander
                 action.Score += _threatLevel.GetThreatBonus(action, _board);
             }
 
-            // ---- 機械学習AIスコア適用（脅威度20以上で有効） ----
-            _mlIntegration.EvaluateActions(actions, _board);
+            // ---- 機械学習AIスコア適用（脅威度20以上で有効、師団長制では無効） ----
+            if (!_hierarchicalMode)
+                _mlIntegration.EvaluateActions(actions, _board);
+
+            // ---- 師団長制: 王直轄ユニットのアクションのみに絞る ----
+            if (_hierarchicalMode && _kingCommanderSystem.HasDivisions)
+            {
+                var kingUnits = _kingCommanderSystem.GetKingDirectUnitSet();
+                actions.RemoveAll(a => a.Unit != null && !kingUnits.Contains(a.Unit));
+            }
 
             // ---- ロールボーナス適用（脅威度が通常知能以上で有効） ----
             if (_threatLevel.UseRoleAssignment)
@@ -581,8 +614,9 @@ public class AICommander
 
             turnStats.Record(bestAction.ActionType);
 
-            // 機械学習AI: 成功した行動を記録
-            _mlIntegration.RecordAction(bestAction, _board, true, _turnCount);
+            // 機械学習AI: 成功した行動を記録（師団長制では無効）
+            if (!_hierarchicalMode)
+                _mlIntegration.RecordAction(bestAction, _board, true, _turnCount);
 
             if (bestAction.Unit != null)
             {
@@ -625,6 +659,12 @@ public class AICommander
         Debug.Log($"--- [AICommander] ターン{_turnCount}終了: {turnStats}  " +
                   $"残AP={_board.EnemyAP}  累計({_totalStats}/撃破{_totalKills})  " +
                   $"脅威度={_threatLevel.Level}({_threatLevel.GetTierName()}) ---");
+
+        // 師団長制ログ出力
+        if (_hierarchicalMode && _kingCommanderSystem.HasDivisions)
+        {
+            _kingCommanderSystem.LogTurnSummary(_turnCount);
+        }
     }
 
     /// <summary>
@@ -635,9 +675,92 @@ public class AICommander
     {
         _threatLevel.RecordMatchResult(playerWon, analysis);
 
-        // 機械学習AIの試合終了学習
-        _mlIntegration.OnMatchEnd(playerWon, analysis);
-        _mlIntegration.UpdateThreatLevel(_threatLevel.Level);
+        // 機械学習AIの試合終了学習（師団長制では無効）
+        if (!_hierarchicalMode)
+        {
+            _mlIntegration.OnMatchEnd(playerWon, analysis);
+            _mlIntegration.UpdateThreatLevel(_threatLevel.Level);
+        }
+    }
+
+    // ================================================================
+    //  師団長制AI: 階層的なターン処理
+    //  1. 師団長を選出し、兵を割り当てる
+    //  2. 各師団長が提案を生成
+    //  3. 王が競合解決・予算予約・戦略整合を評価して採択
+    //  4. 採択された行動を実行
+    //  ML機能は師団長制モードでは無効化される。
+    // ================================================================
+    void ExecuteHierarchicalPhase(ref TurnStats turnStats)
+    {
+        Debug.Log("[AICommander] === 師団長制フェーズ開始 ===");
+
+        // 1. 師団長の選出
+        _kingCommanderSystem.SelectDivisionCommanders(_board.AliveEnemyUnits, _turnCount);
+
+        if (!_kingCommanderSystem.HasDivisions)
+        {
+            Debug.Log("[AICommander] 師団長なし → 全ユニット王直轄で通常処理");
+            return;
+        }
+
+        // 2. 兵の割り当て
+        _kingCommanderSystem.AssignUnits(_board.AliveEnemyUnits, _board);
+
+        // 3. 各師団長の提案を収集
+        var proposals = _kingCommanderSystem.CollectProposals(
+            _board, _learning, _currentStrategy, _roleAssigner, _threatLevel);
+
+        // 4. 王による採択処理（競合解決 + 予算予約 + 戦略整合評価）
+        int availableAP = _board.EnemyAP;
+        var acceptedActions = _kingCommanderSystem.EvaluateAndAcceptProposals(
+            proposals, _board, _currentStrategy, availableAP);
+
+        Debug.Log($"[AICommander] 師団長提案から{acceptedActions.Count}件を採択  AP残={availableAP}");
+
+        // 5. 採択された行動を実行
+        int executed = 0;
+        foreach (var action in acceptedActions)
+        {
+            // AP再チェック（実行中にAPが変化する可能性）
+            _board.Refresh();
+            if (_board.EnemyAP < action.APCost)
+            {
+                Debug.Log($"[AICommander] 師団行動スキップ(AP不足): {action}  " +
+                          $"必要AP={action.APCost} 残AP={_board.EnemyAP}");
+                continue;
+            }
+
+            bool success = _actionExecutor.Execute(action, _board);
+            if (success)
+            {
+                executed++;
+                turnStats.Record(action.ActionType);
+
+                if (action.Unit != null)
+                    _actedUnits.Add(action.Unit);
+
+                Debug.Log($"[AICommander] 師団行動実行: {action}");
+            }
+            else
+            {
+                Debug.Log($"[AICommander] 師団行動失敗: {action}");
+            }
+        }
+
+        // 不採用理由ログ出力
+        foreach (var proposal in proposals)
+        {
+            if (!proposal.Accepted && proposal.Rejection.HasValue)
+            {
+                Debug.Log($"[AICommander] 【不採用ログ】 {proposal.DivisionName}  " +
+                          $"理由コード={proposal.Rejection.Value}  " +
+                          $"詳細=\"{proposal.RejectionDetail}\"  " +
+                          $"提案スコア={proposal.TotalScore:F1}  提案AP={proposal.TotalAPCost}");
+            }
+        }
+
+        Debug.Log($"[AICommander] === 師団長制フェーズ完了: 実行={executed}/{acceptedActions.Count} ===");
     }
 
     // ================================================================
