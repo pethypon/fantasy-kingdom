@@ -365,6 +365,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameGenerator
       objectReference: {fileID: 0}
+    - target: {fileID: 7962283582702066516, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: moveGenerator
+      value: 
+      objectReference: {fileID: 1051664334}
+    - target: {fileID: 7962283582702066516, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: turnGenerator
+      value: 
+      objectReference: {fileID: 1051664333}
     - target: {fileID: 8578343405585137304, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       propertyPath: turnGenerator
       value: 
