@@ -117,9 +117,9 @@ public class TurnAPIndicatorUI : MonoBehaviour
         if (_turn == null) return;
 
         // ターン数
-        if (_turn.Turn != _lastTurn)
+        if (_turn.Context.Turn != _lastTurn)
         {
-            _lastTurn = _turn.Turn;
+            _lastTurn = _turn.Context.Turn;
             _turnText.text = $"Turn {_lastTurn}";
         }
 
@@ -149,7 +149,7 @@ public class TurnAPIndicatorUI : MonoBehaviour
 
     private string GetCurrentPhase()
     {
-        if (_turn.SelectUnit != null)
+        if (_turn.Context.SelectUnit != null)
             return "Player - 行動中";
         // Check simple approach: if Turn is updating and no enemy banner
         if (EnemyTurnBannerUI.Instance != null && EnemyTurnBannerUI.IsShowing)
