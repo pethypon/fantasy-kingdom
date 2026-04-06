@@ -66,7 +66,12 @@ public class MLBrain
     // ---- Dropout（過学習防止） ----
     public float DropoutRate = 0.15f;       // 共有層のDropout率
     public float HeadDropoutRate = 0.1f;    // ヘッド層のDropout率
-    bool _isTraining = false;               // 学習モードフラグ
+    // 学習モードフラグ（Forward/Backward内のDropout挙動を制御）
+    // 現在はForward=常にDropout適用、Predict=常にDropoutなしで
+    // メソッド単位で分離しているため、このフラグは将来の拡張用に保持
+    #pragma warning disable CS0414
+    bool _isTraining = false;
+    #pragma warning restore CS0414
     float[] _dropoutMaskShared;             // 共有層のDropoutマスク
     float[][] _dropoutMaskHead;             // ヘッド層のDropoutマスク
 
