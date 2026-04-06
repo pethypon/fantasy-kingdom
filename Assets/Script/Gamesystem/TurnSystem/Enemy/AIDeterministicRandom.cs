@@ -32,6 +32,12 @@ public class AIDeterministicRandom
         _rng = new System.Random(_seed ^ (turn * 31));
     }
 
+    /// <summary>0以上の整数乱数</summary>
+    public int Next()
+    {
+        return _rng.Next();
+    }
+
     /// <summary>0.0〜1.0のfloat乱数</summary>
     public float NextFloat()
     {
