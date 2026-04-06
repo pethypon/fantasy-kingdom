@@ -30,6 +30,12 @@ public class MLIntegration
     TurnStrategy _currentStrategy;
     MajorPersonality _personality;
 
+    /// <summary>
+    /// trueの場合、脅威度に関係なくMLを完全無効化し、ルールAIのみで動作する。
+    /// 挙動再現性が必要な場合やチューニング時に使用する。
+    /// </summary>
+    bool _forceRuleOnly;
+
     // ---- MLスコアの影響力 ----
     float _mlScoreWeight = 1.0f;
 
@@ -49,7 +55,20 @@ public class MLIntegration
     float[] _cachedProfileFeatures;         // ターン中のプロファイルキャッシュ
 
     // ---- 統計 ----
-    public bool IsActive => _isActive;
+    /// <summary>MLが実際に有効かどうか（ForceRuleOnly時はfalse）</summary>
+    public bool IsActive => _isActive && !_forceRuleOnly;
+
+    /// <summary>ルールAI専用モードの取得・設定</summary>
+    public bool ForceRuleOnly
+    {
+        get => _forceRuleOnly;
+        set
+        {
+            _forceRuleOnly = value;
+            Debug.Log($"[MLIntegration] ルールAI専用モード: {(value ? "有効（ML無効化）" : "無効（ML許可）")}");
+        }
+    }
+
     public int TotalTrainingSteps => _brain.TotalTrainingSteps;
     public int TotalMatchesTrained => _trainer.TotalMatchesTrained;
     public float AverageLoss => _trainer.AverageLoss;
@@ -204,7 +223,7 @@ public class MLIntegration
     // ================================================================
     public void OnTurnStart(TurnStrategy strategy, int threatLevel, AIBoardState board, int turn)
     {
-        if (!_isActive) return;
+        if (!IsActive) return;
 
         _currentStrategy = strategy;
         _threatLevel = threatLevel;
@@ -249,7 +268,7 @@ public class MLIntegration
     // ================================================================
     public void EvaluateActions(List<AIAction> actions, AIBoardState board)
     {
-        if (!_isActive || actions == null || actions.Count == 0) return;
+        if (!IsActive || actions == null || actions.Count == 0) return;
 
         // プロファイルとボード特徴はターン中キャッシュ済み — 再計算不要
         float[] profileFeatures = _cachedProfileFeatures ?? _profiler.ToFeatureVector();
@@ -348,7 +367,7 @@ public class MLIntegration
     // ================================================================
     public void RecordAction(AIAction action, AIBoardState board, bool success, int turn)
     {
-        if (!_isActive) return;
+        if (!IsActive) return;
 
         // RecordStepはバッファにコピーするので、_inputBufferを再利用しても安全
         float[] profileFeatures = _cachedProfileFeatures ?? _profiler.ToFeatureVector();
@@ -363,7 +382,7 @@ public class MLIntegration
     // ================================================================
     public void OnMatchEnd(bool playerWon, MatchAnalysis analysis)
     {
-        if (!_isActive) return;
+        if (!IsActive) return;
 
         float terminalReward = playerWon ? -0.8f : 0.8f;
         _buffer.FinalizeMatch(terminalReward);
@@ -469,7 +488,7 @@ public class MLIntegration
     // ================================================================
     public float EvaluateBoard(AIBoardState board)
     {
-        if (!_isActive) return 0f;
+        if (!IsActive) return 0f;
         float[] features = new float[MLBrain.InputSize];
         float[] boardF = MLFeatureExtractor.ExtractBoardFeatures(board);
         int len = Mathf.Min(64, boardF.Length);
@@ -522,7 +541,8 @@ public class MLIntegration
     // ================================================================
     public string GetDebugInfo()
     {
-        if (!_isActive) return "ML: 無効";
+        if (!_isActive) return "ML: 無効（未初期化）";
+        if (_forceRuleOnly) return "ML: 無効（ルールAI専用モード）";
         return $"ML: 有効  重み={_mlScoreWeight:F2}  " +
                $"パラメ={_brain.ParameterCount}  " +
                $"バッファ={_buffer.CurrentSize}/{_buffer.Capacity}  " +
