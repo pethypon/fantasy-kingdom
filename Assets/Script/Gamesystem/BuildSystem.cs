@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 /// <summary>
 /// 建築システム: カーソル追従・設置可否判定・建築物の設置を管理する。
@@ -36,17 +35,9 @@ public class BuildSystem : MonoBehaviour
     public bool IsActive { get; private set; }
     public FacilityKind SelectedFacility { get; private set; }
 
-    // ---- カーソル ----
-    private GameObject cursorObj;
-    private Renderer cursorRenderer;
-    private Material cursorMaterial;
+    // ---- カーソル（BuildCursorController に委譲） ----
+    private BuildCursorController cursor;
     private bool canPlace;
-    private Vector3Int lastCursorPos;
-    private bool cursorVisible;
-
-    // ---- 色定義 ----
-    private static readonly Color ColorValid   = new Color(0.5f, 1f, 0.5f, 0.5f);
-    private static readonly Color ColorInvalid = new Color(1f, 0.3f, 0.3f, 0.5f);
 
     // ---- 建築物の親（チーム別） ----
     [Header("建築物の親Transform（チーム別）")]
@@ -71,9 +62,6 @@ public class BuildSystem : MonoBehaviour
         return count;
     }
 
-    // ---- Raycast レイヤー ----
-    private int blockLayerMask;
-
     // ---- 設置済み建築物の位置管理 ----
     private HashSet<Vector3Int> buildingPositions = new HashSet<Vector3Int>();
 
@@ -94,8 +82,6 @@ public class BuildSystem : MonoBehaviour
         this.moveGenerator = moveGenerator;
         this.mapcreate = mapcreate;
 
-        blockLayerMask = LayerMask.GetMask("Block");
-
         // プレハブマップ構築
         prefabMap = new Dictionary<FacilityKind, GameObject>();
         if (facilityPrefabs != null)
@@ -109,6 +95,9 @@ public class BuildSystem : MonoBehaviour
 
         // BuildValidator初期化
         validator = new BuildValidator(territorysystem, mapcreate, moveGenerator, buildingPositions);
+
+        // カーソルコントローラー初期化
+        cursor = new BuildCursorController();
 
         // 建築物の親が無ければ作成（チーム別）
         if (PlayerBuildingParent == null)
@@ -133,9 +122,8 @@ public class BuildSystem : MonoBehaviour
         SelectedFacility = facility;
         IsActive = true;
         canPlace = false;
-        cursorVisible = false;
 
-        CreateCursor();
+        cursor.Create();
         Debug.Log($"[BuildSystem] 建築モード開始: {facility}");
     }
 
@@ -145,7 +133,7 @@ public class BuildSystem : MonoBehaviour
     public void CancelBuildMode()
     {
         IsActive = false;
-        DestroyCursor();
+        cursor.Destroy();
         Debug.Log("[BuildSystem] 建築モード解除");
     }
 
@@ -155,26 +143,12 @@ public class BuildSystem : MonoBehaviour
     public void UpdateCursor()
     {
         if (!IsActive) return;
-        if (cursorObj == null) return;
 
-        if (!TryGetMouseRay(out Ray ray))
+        if (!cursor.TryGetGridPosition(out Vector3Int gridPos))
         {
-            SetCursorVisible(false);
+            cursor.SetVisible(false);
             return;
         }
-
-        if (!Physics.Raycast(ray, out RaycastHit hit, 100f, blockLayerMask))
-        {
-            SetCursorVisible(false);
-            return;
-        }
-
-        // Raycast のヒット位置をグリッドにスナップ
-        Vector3Int gridPos = new Vector3Int(
-            Mathf.RoundToInt(hit.point.x),
-            Mathf.RoundToInt(hit.point.y),
-            Mathf.RoundToInt(hit.point.z)
-        );
 
         // SetPos 上の最も近い有効座標に合わせる
         Vector3Int snapped = SnapToSetPos(gridPos);
@@ -184,19 +158,12 @@ public class BuildSystem : MonoBehaviour
         if (isSubCrystal)
         {
             // サブクリスタル: 領地外でもカーソルが追従する
-            // 領地内の場合は領地端にクランプ（領地端についていく動作）
+            // 領地内の場合は領地端にクランプ
             if (IsInTerritory(snapped))
             {
-                // 領地内: 最も近い領地外座標にクランプ
                 Vector3Int clamped = ClampToOutsideTerritory(snapped);
-                if (clamped.x == int.MinValue)
-                {
-                    // 全て領地内の場合はそのまま表示（赤表示）
-                }
-                else
-                {
+                if (clamped.x != int.MinValue)
                     snapped = clamped;
-                }
             }
         }
         else
@@ -204,25 +171,19 @@ public class BuildSystem : MonoBehaviour
             // 通常建築物: 領地内チェック
             if (!IsInTerritory(snapped))
             {
-                // 領地外: 最も近い領地座標にクランプ
                 Vector3Int clamped = ClampToTerritory(snapped);
                 if (clamped.x == int.MinValue)
                 {
-                    SetCursorVisible(false);
+                    cursor.SetVisible(false);
                     return;
                 }
                 snapped = clamped;
             }
         }
 
-        // カーソル位置の更新
-        lastCursorPos = snapped;
-        cursorObj.transform.position = new Vector3(snapped.x, snapped.y, snapped.z);
-        SetCursorVisible(true);
-
-        // 設置可否の判定
+        // 設置可否の判定 & カーソル更新
         canPlace = CheckCanPlace(snapped);
-        cursorMaterial.color = canPlace ? ColorValid : ColorInvalid;
+        cursor.UpdatePosition(snapped, canPlace);
     }
 
     // ==================================================================
@@ -232,7 +193,7 @@ public class BuildSystem : MonoBehaviour
     {
         if (!IsActive) return false;
         if (!canPlace) return false;
-        if (!cursorVisible) return false;
+        if (!cursor.IsVisible) return false;
 
         bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
 
@@ -246,7 +207,7 @@ public class BuildSystem : MonoBehaviour
             }
 
             // 設置実行
-            PlaceBuilding(lastCursorPos, SelectedFacility);
+            PlaceBuilding(cursor.LastPosition, SelectedFacility);
 
             // サブクリスタル消費（クールダウンなし、破壊時に5ターン後返却）
             factionState.ModifySubCrystals(Team.Player, -1);
@@ -269,7 +230,7 @@ public class BuildSystem : MonoBehaviour
             }
 
             // 設置実行
-            PlaceBuilding(lastCursorPos, SelectedFacility);
+            PlaceBuilding(cursor.LastPosition, SelectedFacility);
 
             // AP・リソース消費
             apsystem.ConsumeBuild(Team.Player, SelectedFacility, factionState);
@@ -278,7 +239,7 @@ public class BuildSystem : MonoBehaviour
         // ---- ML観測: プレイヤーの建築をMLシステムに記録 ----
         if (turnGenerator != null && turnGenerator.Systems.AICommander != null)
         {
-            Vector3 buildPos = new Vector3(lastCursorPos.x, 0, lastCursorPos.z);
+            Vector3 buildPos = new Vector3(cursor.LastPosition.x, 0, cursor.LastPosition.z);
             turnGenerator.Systems.AICommander.MLIntegration.ObservePlayerBuild(buildPos, turnGenerator.Context.Turn);
         }
 
@@ -416,69 +377,6 @@ public class BuildSystem : MonoBehaviour
     // SetPosスナップ → BuildValidator に委譲
     private Vector3Int SnapToSetPos(Vector3Int gridPos)
         => validator.SnapToSetPos(gridPos);
-
-    // ==================================================================
-    //  内部: カーソル生成 / 破棄
-    // ==================================================================
-    private void CreateCursor()
-    {
-        if (cursorObj != null) DestroyCursor();
-
-        cursorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cursorObj.name = "BuildCursor";
-        cursorObj.transform.localScale = new Vector3(0.95f, 0.95f, 0.95f);
-
-        // コライダーを無効化（Raycast に干渉しないように）
-        var col = cursorObj.GetComponent<Collider>();
-        if (col != null) col.enabled = false;
-
-        // 半透明マテリアル
-        cursorRenderer = cursorObj.GetComponent<Renderer>();
-        cursorMaterial = new Material(Shader.Find("Standard"));
-        cursorMaterial.SetFloat("_Mode", 3); // Transparent
-        cursorMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        cursorMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        cursorMaterial.SetInt("_ZWrite", 0);
-        cursorMaterial.DisableKeyword("_ALPHATEST_ON");
-        cursorMaterial.EnableKeyword("_ALPHABLEND_ON");
-        cursorMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        cursorMaterial.renderQueue = 3000;
-        cursorMaterial.color = ColorValid;
-        cursorRenderer.material = cursorMaterial;
-
-        SetCursorVisible(false);
-    }
-
-    private void DestroyCursor()
-    {
-        if (cursorObj != null)
-        {
-            Destroy(cursorMaterial);
-            Destroy(cursorObj);
-            cursorObj = null;
-            cursorRenderer = null;
-            cursorMaterial = null;
-        }
-    }
-
-    private void SetCursorVisible(bool visible)
-    {
-        cursorVisible = visible;
-        if (cursorObj != null)
-            cursorObj.SetActive(visible);
-    }
-
-    // ==================================================================
-    //  内部: マウス Ray 取得
-    // ==================================================================
-    private bool TryGetMouseRay(out Ray ray)
-    {
-        ray = default;
-        if (Mouse.current == null) return false;
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        ray = Camera.main.ScreenPointToRay(mousePos);
-        return true;
-    }
 
     // ==================================================================
     //  外部: 建築物位置管理

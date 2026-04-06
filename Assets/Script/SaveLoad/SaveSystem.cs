@@ -16,6 +16,9 @@ public static class SaveSystem
     const string ProfileFile = "profile.json";
     const int MaxSlots = 3;
 
+    /// <summary>現在のセーブデータバージョン。構造変更時にインクリメントする。</summary>
+    public const int CurrentSaveVersion = 1;
+
     // ================================================================
     //  プロファイルデータ（脅威度 + 通算データ）
     // ================================================================
@@ -48,6 +51,9 @@ public static class SaveSystem
     [Serializable]
     public class GameSaveData
     {
+        /// <summary>セーブデータバージョン（互換性管理用）</summary>
+        public int Version = CurrentSaveVersion;
+
         public string SaveDate;
         public int Turn;
         public int ThreatLevel;
@@ -343,7 +349,20 @@ public static class SaveSystem
         try
         {
             string json = File.ReadAllText(path);
-            return JsonUtility.FromJson<GameSaveData>(json);
+            var data = JsonUtility.FromJson<GameSaveData>(json);
+
+            // バージョンチェック（未設定=0 は v1以前の旧データとして許容）
+            if (data.Version > CurrentSaveVersion)
+            {
+                Debug.LogWarning($"[SaveSystem] セーブデータのバージョン({data.Version})が現在のバージョン({CurrentSaveVersion})より新しいです。互換性の問題が発生する可能性があります。");
+            }
+            else if (data.Version == 0)
+            {
+                Debug.Log("[SaveSystem] 旧バージョンのセーブデータを検出。現行バージョンとして読み込みます。");
+                data.Version = CurrentSaveVersion;
+            }
+
+            return data;
         }
         catch (Exception e)
         {

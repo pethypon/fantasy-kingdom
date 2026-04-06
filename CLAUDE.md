@@ -61,7 +61,9 @@ PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)
 |---|---|
 | `MoveGenerator` | Computes valid move destinations per `Kind` using pattern matching over `MapCreate.SetPos`; instantiates `MovePoint` markers; tracks occupied cells in `UnitPointData` |
 | `AttackGenerator` | Computes valid attack positions per `Kind`; instantiates `AttackPoint` markers |
-| `BattleSystem` | Applies damage: `ATK - DEF`, clamped to 0; passive skill hooks exist but are mostly unimplemented |
+| `BattleSystem` | Applies damage: `ATK - DEF`, clamped to 0; manages crystal shield (activation/tick/reset) |
+| `BuildSystem` | Building placement, validation (delegates to `BuildValidator`), AI placement, upgrade |
+| `BuildCursorController` | Cursor rendering, mouse raycast, grid snapping, visibility control for build mode |
 | `UnitClick` | Handles raycasting for unit selection (`Click1`), movement (`Click2`), and attack target selection (`AttackClick`) |
 | `VisionGenerator` | Fog of War — computes per-unit vision via Raycast on the "Block" layer; controls fog object visibility and enemy renderer visibility |
 
