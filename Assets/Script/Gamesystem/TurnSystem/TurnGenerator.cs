@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// ゲーム全体の中央ハブ。ステートマシン駆動と入力管理のみを担当する。
-/// GameSystems / GameContext を公開し、各ステートやシステムが直接アクセスする。
-/// 後方互換の委譲プロパティは廃止し、責務を最小化した。
+/// ゲーム全体の中央ハブ。ステートマシン駆動と AI モード切替のみを担当する。
+/// 入力読み取りは TurnInputHandler、カメラ操作は TurnCameraController に委譲。
+/// いずれも同一 GameObject 上の MonoBehaviour として GetComponent で取得する。
 /// </summary>
 public class TurnGenerator : MonoBehaviour
 {
@@ -13,6 +13,13 @@ public class TurnGenerator : MonoBehaviour
     // ================================================================
     public GameSystems Systems { get; private set; } = new GameSystems();
     public GameContext Context { get; private set; } = new GameContext();
+
+    // ================================================================
+    //  AI モード切替（ML有効/無効）
+    // ================================================================
+    [Header("AI 設定")]
+    [Tooltip("ML 補正を含めた AI にするか。OFF で純粋ルール決定論モード。")]
+    [SerializeField] private bool useMLAssistedAI = true;
 
     // ================================================================
     //  ステート管理
@@ -31,10 +38,26 @@ public class TurnGenerator : MonoBehaviour
     //  ライフサイクル
     // ================================================================
     private GameAction gameaction;
+    private TurnInputHandler _inputHandler;
+    private TurnCameraController _cameraController;
+
+    public GameAction GameAction => gameaction;
 
     public void Awake()
     {
         gameaction = new GameAction();
+
+        // ML モードを AIConfig へ反映（コンパイル/実行双方で1回だけ）
+        AIConfig.Mode = useMLAssistedAI ? AIMode.MLAssisted : AIMode.PureRule;
+
+        // 同じ GameObject 上のヘルパーコンポーネントを取得（無ければ追加）
+        _inputHandler = GetComponent<TurnInputHandler>();
+        if (_inputHandler == null) _inputHandler = gameObject.AddComponent<TurnInputHandler>();
+        _inputHandler.Bind(this);
+
+        _cameraController = GetComponent<TurnCameraController>();
+        if (_cameraController == null) _cameraController = gameObject.AddComponent<TurnCameraController>();
+        _cameraController.Bind(this);
     }
 
     public void StartFirstTurn()
@@ -44,57 +67,12 @@ public class TurnGenerator : MonoBehaviour
 
     void Update()
     {
-        ReadInputs();
-        UpdateCamera();
+        _inputHandler?.Tick();
+        _cameraController?.Tick();
         _stateManager?.Update();
     }
 
-    public void OnEnable() => gameaction.Enable();
-    public void OnDisable() => gameaction.Disable();
-    public void OnDestroy() => gameaction.Dispose();
-
-    // ================================================================
-    //  入力読み取り
-    // ================================================================
-    private void ReadInputs()
-    {
-        Context.MoveInput = gameaction.GamePlay.Move.ReadValue<Vector2>();
-        Context.ScrollInput = gameaction.GamePlay.Scroll.ReadValue<float>();
-        Context.LeftClickDown = gameaction.GamePlay.LeftClick.WasPressedThisFrame();
-        Context.RightClickDown = gameaction.GamePlay.RightClick.WasPressedThisFrame();
-        Context.TurnEndDown = gameaction.GamePlay.TurnEnd.WasPressedThisFrame();
-        Context.SelectNormalDown = gameaction.GamePlay.SelectNormal.WasPressedThisFrame();
-        Context.SelectSkillDown = gameaction.GamePlay.SelectSkill.WasPressedThisFrame();
-        Context.ToggleNSDown = gameaction.GamePlay.ToggleNS.WasPressedThisFrame();
-    }
-
-    // ================================================================
-    //  カメラ操作（全ステートで常時有効）
-    // ================================================================
-    private void UpdateCamera()
-    {
-        Vector2 move = Context.MoveInput;
-        Transform cam = Context.CameraObject;
-        if (move != Vector2.zero && cam != null)
-        {
-            Vector3 moveDir = new Vector3(move.x, 0f, move.y).normalized;
-            cam.Translate(moveDir * GameConstants.CameraMoveSpeed * Time.deltaTime, Space.World);
-
-            Vector3 pos = cam.position;
-            var mc = Systems.MapCreate;
-            if (mc != null)
-            {
-                pos.x = Mathf.Clamp(pos.x, 0f, mc.maxX - 10);
-                pos.z = Mathf.Clamp(pos.z, 0f, mc.maxZ - 10);
-            }
-            cam.position = pos;
-        }
-
-        float scroll = Context.ScrollInput;
-        if (scroll != 0f && Camera.main != null)
-        {
-            float fov = Camera.main.fieldOfView - scroll * GameConstants.CameraScrollSpeed;
-            Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
-        }
-    }
+    public void OnEnable() => gameaction?.Enable();
+    public void OnDisable() => gameaction?.Disable();
+    public void OnDestroy() => gameaction?.Dispose();
 }
