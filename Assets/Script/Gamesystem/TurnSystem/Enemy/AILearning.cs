@@ -152,6 +152,7 @@ public class AILearning
     public float GetBonus(AIAction action, AIBoardState board)
     {
         if (!IsActive) return 0f;
+        if (!AIConfig.IsMLEnabled) return 0f;
 
         float bonus = 0f;
         var targetCell = ToCell(action.TargetPos);

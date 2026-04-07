@@ -366,7 +366,7 @@ public class AICommander
         _rng.SetTurnSeed(_turnCount);
 
         // 機械学習AIのターン開始通知（師団長制では無効）
-        if (!_hierarchicalMode)
+        if (!_hierarchicalMode && AIConfig.IsMLEnabled)
         {
             _mlIntegration.ObservePlayerFormation(_board.AlivePlayerUnits, _board.EnemyCrystalPos, _turnCount);
             _mlIntegration.OnTurnStart(_currentStrategy, _threatLevel.Level, _board, _turnCount);
@@ -487,7 +487,7 @@ public class AICommander
             }
 
             // ---- 機械学習AIスコア適用（脅威度20以上で有効、師団長制では無効） ----
-            if (!_hierarchicalMode)
+            if (!_hierarchicalMode && AIConfig.IsMLEnabled)
                 _mlIntegration.EvaluateActions(actions, _board);
 
             // ---- 師団長制: 王直轄ユニットのアクションのみに絞る ----
@@ -615,7 +615,7 @@ public class AICommander
             turnStats.Record(bestAction.ActionType);
 
             // 機械学習AI: 成功した行動を記録（師団長制では無効）
-            if (!_hierarchicalMode)
+            if (!_hierarchicalMode && AIConfig.IsMLEnabled)
                 _mlIntegration.RecordAction(bestAction, _board, true, _turnCount);
 
             if (bestAction.Unit != null)
@@ -676,7 +676,7 @@ public class AICommander
         _threatLevel.RecordMatchResult(playerWon, analysis);
 
         // 機械学習AIの試合終了学習（師団長制では無効）
-        if (!_hierarchicalMode)
+        if (!_hierarchicalMode && AIConfig.IsMLEnabled)
         {
             _mlIntegration.OnMatchEnd(playerWon, analysis);
             _mlIntegration.UpdateThreatLevel(_threatLevel.Level);

@@ -85,7 +85,7 @@ public class BattleSystem : MonoBehaviour
         SpecialAbilitySystem.OnAttackHit(AttackSide, target, damage, true);
 
         // ---- ML観測: プレイヤーの攻撃をMLシステムに記録 ----
-        if (AttackSide.team == Team.Player && turnGenerator.Systems.AICommander != null)
+        if (AttackSide.team == Team.Player && turnGenerator.Systems.AICommander != null && AIConfig.IsMLEnabled)
         {
             var ml = turnGenerator.Systems.AICommander.MLIntegration;
             Vector3 ecPos = turnGenerator.Systems.CrystalSystem.ECP;
