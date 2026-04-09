@@ -11,98 +11,77 @@ public static class SpecialAbilitySystem
     //  定数（GameConstants に追記分と連動）
     // =====================================================================
     // ノーマル
-    public const float SwiftPostureMoveReduction = 1;      // 移動AP-1
-    public const float InterceptPostureReduction = 0.10f;   // 被ダメ-10%
-    public const float PierceEnhanceBonus        = 0.10f;   // 与ダメ+10%
-    public const float SiegeAdaptBonus           = 0.10f;   // 与ダメ+10%
-    public const int   WatchEyeVisionBonus       = 1;       // 視界+1
-    public const float TenacityReduction         = 0.10f;   // 被ダメ-10%
-    public const float PursuitInstinctBonus      = 0.10f;   // 与ダメ+10%
-    public const float WallFamiliarDEFBonus      = 0.10f;   // DEF+10%
-    public const float FocusMaintainBonus        = 0.10f;   // 与ダメ+10%
-    public const float FirstAidHealRatio         = 0.03f;   // 最大HP3%
-    public const float PoisonCoatChance          = 0.10f;   // 10%
-    public const float FrostBladeChance          = 0.10f;   // 10%
-    public const float ForesightReduction        = 0.05f;   // 被ダメ-5%
-    public const float PressureShotChance        = 0.10f;   // 10%
-    public const int   EfficiencyAPReduction     = 1;       // AP-1
+    public const float SwiftPostureMoveReduction = 1;
+    public const float InterceptPostureReduction = 0.10f;
+    public const float PierceEnhanceBonus        = 0.10f;
+    public const float SiegeAdaptBonus           = 0.10f;
+    public const int   WatchEyeVisionBonus       = 1;
+    public const float TenacityReduction         = 0.10f;
+    public const float PursuitInstinctBonus      = 0.10f;
+    public const float WallFamiliarDEFBonus      = 0.10f;
+    public const float FocusMaintainBonus        = 0.10f;
+    public const float FirstAidHealRatio         = 0.03f;
+    public const float PoisonCoatChance          = 0.10f;
+    public const float FrostBladeChance          = 0.10f;
+    public const float ForesightReduction        = 0.05f;
+    public const float PressureShotChance        = 0.10f;
+    public const int   EfficiencyAPReduction     = 1;
 
     // レア
-    public const float DesperationATKBonus       = 0.20f;   // ATK+20%
-    public const float DesperationHPThreshold    = 0.30f;   // HP30%以下
-    public const float IronWalkReduction         = 0.15f;   // 被ダメ-15%
-    public const float HeightAdaptBonus          = 0.15f;   // 与ダメ+15%
-    public const float LowHuntChance             = 0.15f;   // 15%
-    public const float MagicResistReduction      = 0.15f;   // 被ダメ-15%
-    public const float BreachChance              = 0.15f;   // 15%
-    public const float VenomBladeChance          = 0.15f;   // 15%
-    public const float FrostPressureChillChance  = 0.10f;   // 10%
-    public const float FrostPressureFreezeChance = 0.05f;   // 5%
-    public const float SupportSpreadRatio        = 0.50f;   // 50%
+    public const float DesperationATKBonus       = 0.20f;
+    public const float DesperationHPThreshold    = 0.30f;
+    public const float IronWalkReduction         = 0.15f;
+    public const float HeightAdaptBonus          = 0.15f;
+    public const float LowHuntChance             = 0.15f;
+    public const float MagicResistReduction      = 0.15f;
+    public const float BreachChance              = 0.15f;
+    public const float VenomBladeChance          = 0.15f;
+    public const float FrostPressureChillChance  = 0.10f;
+    public const float FrostPressureFreezeChance = 0.05f;
+    public const float SupportSpreadRatio        = 0.50f;
 
     // スーパーレア
-    public const float ShadowCrossBonus          = 0.25f;   // +0.25倍率
-    public const float GuardianZoneReduction     = 0.10f;   // 被ダメ-10%
-    public const float SniperCorrectionBonus     = 0.20f;   // 与ダメ+20%
-    public const float SniperCorrectionMinDist   = 3f;      // 3マス以上
-    public const float HolyReactionHealRatio     = 0.05f;   // 最大HP5%
+    public const float ShadowCrossBonus          = 0.25f;
+    public const float GuardianZoneReduction     = 0.10f;
+    public const float SniperCorrectionBonus     = 0.20f;
+    public const float SniperCorrectionMinDist   = 3f;
+    public const float HolyReactionHealRatio     = 0.05f;
 
     // レジェンダリー
-    public const float BattlefieldDominationBonus = 0.10f;  // 被ダメ+10%
-    public const float IndomitableWillReduction   = 0.10f;  // 被ダメ-10%
-    public const float ThunderChainChance         = 0.20f;  // 20%
-    public const float IcePrisonChance            = 0.10f;  // 10%
+    public const float BattlefieldDominationBonus = 0.10f;
+    public const float IndomitableWillReduction   = 0.10f;
+    public const float ThunderChainChance         = 0.20f;
+    public const float IcePrisonChance            = 0.10f;
 
     // =====================================================================
     //  攻撃側 Special Ability のダメージ倍率修飾
-    //  DamageCalculator から呼ばれる
     // =====================================================================
     public static float GetAttackerModifier(Status attacker, Status target, bool isSingleTarget)
     {
         float mod = 0f;
         SpecialAbility sa = attacker.specialAbility;
 
-        // 刺突強化: 単体攻撃の与ダメ+10%
         if (sa == SpecialAbility.PierceEnhance && isSingleTarget)
             mod += PierceEnhanceBonus;
 
-        // 追撃本能: HP50%以下の敵への与ダメ+10%
-        if (sa == SpecialAbility.PursuitInstinct && target.MaxHP > 0
-            && (float)target.HP / target.MaxHP <= 0.5f)
+        if (sa == SpecialAbility.PursuitInstinct && target.HPRatio <= 0.5f)
             mod += PursuitInstinctBonus;
 
-        // 集中維持: 未移動なら与ダメ+10%
         if (sa == SpecialAbility.FocusMaintain && !attacker.HasMovedThisTurn)
             mod += FocusMaintainBonus;
 
-        // 背水: HP30%以下でATK+20%（倍率として加算）
-        if (sa == SpecialAbility.Desperation && attacker.MaxHP > 0
-            && (float)attacker.HP / attacker.MaxHP <= DesperationHPThreshold)
+        if (sa == SpecialAbility.Desperation && attacker.HPRatio <= DesperationHPThreshold)
             mod += DesperationATKBonus;
 
-        // 高所順応: 自分が高い位置にいる時、与ダメ+15%
-        if (sa == SpecialAbility.HeightAdapt)
-        {
-            float attackerY = Mathf.RoundToInt(attacker.transform.position.y);
-            float targetY = Mathf.RoundToInt(target.transform.position.y);
-            if (attackerY > targetY) mod += HeightAdaptBonus;
-        }
+        if (sa == SpecialAbility.HeightAdapt && IsHigherThan(attacker, target))
+            mod += HeightAdaptBonus;
 
-        // 影渡り: 視界外から攻撃時+0.25
-        if (sa == SpecialAbility.ShadowCross)
-        {
-            if (target.VisionCell != null)
-            {
-                Vector3Int attackerCell = ToGrid(attacker.transform.position);
-                if (!target.VisionCell.Contains(attackerCell))
-                    mod += ShadowCrossBonus;
-            }
-        }
+        if (sa == SpecialAbility.ShadowCross && !IsInTargetVision(attacker, target))
+            mod += ShadowCrossBonus;
 
-        // 狙撃補正: 3マス以上離れた敵への与ダメ+20%
         if (sa == SpecialAbility.SniperCorrection)
         {
-            float dist = GridDistance(attacker.transform.position, target.transform.position);
+            float dist = GridHelper.ChebyshevDistance(attacker.transform.position, target.transform.position);
             if (dist >= SniperCorrectionMinDist)
                 mod += SniperCorrectionBonus;
         }
@@ -112,55 +91,39 @@ public static class SpecialAbilitySystem
 
     // =====================================================================
     //  防御側 Special Ability のダメージ倍率修飾
-    //  DamageCalculator から呼ばれる
     // =====================================================================
     public static float GetDefenderModifier(Status attacker, Status target)
     {
         float mod = 0f;
         SpecialAbility sa = target.specialAbility;
 
-        // 迎撃姿勢: HP100%時、そのターン最初の被ダメ-10%
         if (sa == SpecialAbility.InterceptPosture
             && target.HP == target.MaxHP && !target.InterceptUsedThisTurn)
         {
             mod -= InterceptPostureReduction;
-            // フラグはダメージ適用時にセットする（BattleSystem から）
         }
 
-        // 粘り腰: HP50%以下で被ダメ-10%
-        if (sa == SpecialAbility.Tenacity && target.MaxHP > 0
-            && (float)target.HP / target.MaxHP <= 0.5f)
+        if (sa == SpecialAbility.Tenacity && target.HPRatio <= 0.5f)
             mod -= TenacityReduction;
 
-        // 見切り: 攻撃者が自分の視界内にいるなら被ダメ-5%
-        if (sa == SpecialAbility.Foresight && target.VisionCell != null)
-        {
-            Vector3Int attackerCell = ToGrid(attacker.transform.position);
-            if (target.VisionCell.Contains(attackerCell))
-                mod -= ForesightReduction;
-        }
+        if (sa == SpecialAbility.Foresight && IsInTargetVision(attacker, target))
+            mod -= ForesightReduction;
 
-        // 鉄壁歩法: 移動後、そのターン被ダメ-15%
         if (sa == SpecialAbility.IronWalkDefense && target.HasMovedThisTurn)
             mod -= IronWalkReduction;
 
-        // 耐魔皮膜: 魔法/遠距離から被ダメ-15%
         if (sa == SpecialAbility.MagicResist && IsRangedOrMagic(attacker.kind))
             mod -= MagicResistReduction;
 
-        // 不滅の意志: 被ダメ-10%
         if (sa == SpecialAbility.IndomitableWill)
             mod -= IndomitableWillReduction;
 
-        // 防壁慣れ: 建物隣接マスにいる時（DEF+10%相当 → 被ダメ軽減として近似）
         if (sa == SpecialAbility.WallFamiliar && IsAdjacentToBuilding(target))
             mod -= WallFamiliarDEFBonus;
 
-        // 守護圏: 周囲1マスに GuardianZone 持ちの味方がいれば被ダメ-10%
         if (HasNearbyAllyWithAbility(target, SpecialAbility.GuardianZone))
             mod -= GuardianZoneReduction;
 
-        // 戦場支配: 攻撃者の視界内に BattlefieldDomination 持ちの敵がいれば被ダメ+10%
         if (HasBattlefieldDominationFrom(attacker, target))
             mod += BattlefieldDominationBonus;
 
@@ -169,7 +132,6 @@ public static class SpecialAbilitySystem
 
     // =====================================================================
     //  攻撃命中時の Special Ability 効果
-    //  BattleSystem / SkillSystem から呼ばれる
     // =====================================================================
     public static void OnAttackHit(Status attacker, Status target, int damage, bool isSingleTarget)
     {
@@ -177,55 +139,20 @@ public static class SpecialAbilitySystem
 
         SpecialAbility sa = attacker.specialAbility;
 
-        // 毒塗り: 単体攻撃命中時10%で毒付与
-        if (sa == SpecialAbility.PoisonCoat && isSingleTarget)
-        {
-            if (Random.value < PoisonCoatChance)
-            {
-                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Poison);
-                Debug.Log($"[SpecialAbility] 毒塗り発動！ {target.kind} に毒付与");
-            }
-        }
+        TryApplyOnHitDebuff(sa, SpecialAbility.PoisonCoat, isSingleTarget,
+            PoisonCoatChance, target, StatusEffectType.Poison, "毒塗り", "毒");
 
-        // 冷気刃: 攻撃命中時10%で冷気付与
-        if (sa == SpecialAbility.FrostBlade)
-        {
-            if (Random.value < FrostBladeChance)
-            {
-                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Chill);
-                Debug.Log($"[SpecialAbility] 冷気刃発動！ {target.kind} に冷気付与");
-            }
-        }
+        TryApplyOnHitDebuff(sa, SpecialAbility.FrostBlade, true,
+            FrostBladeChance, target, StatusEffectType.Chill, "冷気刃", "冷気");
 
-        // 圧迫射: 攻撃命中時10%で弱体付与
-        if (sa == SpecialAbility.PressureShot)
-        {
-            if (Random.value < PressureShotChance)
-            {
-                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Weaken);
-                Debug.Log($"[SpecialAbility] 圧迫射発動！ {target.kind} に弱体付与");
-            }
-        }
+        TryApplyOnHitDebuff(sa, SpecialAbility.PressureShot, true,
+            PressureShotChance, target, StatusEffectType.Weaken, "圧迫射", "弱体");
 
-        // 破勢: 攻撃命中時15%で破甲付与
-        if (sa == SpecialAbility.Breach)
-        {
-            if (Random.value < BreachChance)
-            {
-                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.ArmorBreak);
-                Debug.Log($"[SpecialAbility] 破勢発動！ {target.kind} に破甲付与");
-            }
-        }
+        TryApplyOnHitDebuff(sa, SpecialAbility.Breach, true,
+            BreachChance, target, StatusEffectType.ArmorBreak, "破勢", "破甲");
 
-        // 猛毒刃: 単体攻撃命中時15%で毒付与
-        if (sa == SpecialAbility.VenomBlade && isSingleTarget)
-        {
-            if (Random.value < VenomBladeChance)
-            {
-                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Poison);
-                Debug.Log($"[SpecialAbility] 猛毒刃発動！ {target.kind} に毒付与");
-            }
-        }
+        TryApplyOnHitDebuff(sa, SpecialAbility.VenomBlade, isSingleTarget,
+            VenomBladeChance, target, StatusEffectType.Poison, "猛毒刃", "毒");
 
         // 氷結圧: 攻撃命中時10%で冷気、5%で凍結付与
         if (sa == SpecialAbility.FrostPressure)
@@ -243,11 +170,9 @@ public static class SpecialAbilitySystem
         }
 
         // 低所狩り: 高い位置にいる時15%で鈍足付与
-        if (sa == SpecialAbility.LowHunt)
+        if (sa == SpecialAbility.LowHunt && IsHigherThan(attacker, target))
         {
-            float attackerY = Mathf.RoundToInt(attacker.transform.position.y);
-            float targetY = Mathf.RoundToInt(target.transform.position.y);
-            if (attackerY > targetY && Random.value < LowHuntChance)
+            if (Random.value < LowHuntChance)
             {
                 StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Slow);
                 Debug.Log($"[SpecialAbility] 低所狩り発動！ {target.kind} に鈍足付与");
@@ -255,56 +180,46 @@ public static class SpecialAbilitySystem
         }
 
         // 雷印連鎖: マーク状態の敵に攻撃命中時20%でスタン付与
-        if (sa == SpecialAbility.ThunderChain)
+        if (sa == SpecialAbility.ThunderChain
+            && StatusEffectSystem.HasDebuff(target, StatusEffectType.Mark)
+            && Random.value < ThunderChainChance)
         {
-            if (StatusEffectSystem.HasDebuff(target, StatusEffectType.Mark))
-            {
-                if (Random.value < ThunderChainChance)
-                {
-                    StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Stun, 1);
-                    Debug.Log($"[SpecialAbility] 雷印連鎖発動！ {target.kind} にスタン付与");
-                }
-            }
+            StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Stun, 1);
+            Debug.Log($"[SpecialAbility] 雷印連鎖発動！ {target.kind} にスタン付与");
         }
 
         // 氷牢結界: 冷気状態の敵を攻撃時10%で凍結付与
-        if (sa == SpecialAbility.IcePrison)
+        if (sa == SpecialAbility.IcePrison
+            && StatusEffectSystem.HasDebuff(target, StatusEffectType.Chill)
+            && Random.value < IcePrisonChance)
         {
-            if (StatusEffectSystem.HasDebuff(target, StatusEffectType.Chill))
-            {
-                if (Random.value < IcePrisonChance)
-                {
-                    StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Freeze);
-                    Debug.Log($"[SpecialAbility] 氷牢結界発動！ {target.kind} に凍結付与");
-                }
-            }
+            StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Freeze);
+            Debug.Log($"[SpecialAbility] 氷牢結界発動！ {target.kind} に凍結付与");
         }
 
-        // 迎撃姿勢: 使用フラグを立てる（ダメージ計算後に呼ばれるため）
+        // 迎撃姿勢: 使用フラグを立てる
         if (target.specialAbility == SpecialAbility.InterceptPosture && !target.InterceptUsedThisTurn)
             target.InterceptUsedThisTurn = true;
     }
 
     // =====================================================================
     //  致死ダメージ耐え判定（生還本能）
-    //  BattleSystem の ApplyDamage から呼ばれる
     // =====================================================================
     public static bool TrySurviveLethal(Status target, int damage)
     {
         if (target.specialAbility != SpecialAbility.SurvivalInstinct) return false;
         if (target.SurvivalInstinctUsed) return false;
-        if (target.HP - damage > 0) return false; // 致死ではない
+        if (target.HP - damage > 0) return false;
 
         target.SurvivalInstinctUsed = true;
         target.HP = 1;
         Debug.Log($"[SpecialAbility] 生還本能発動！ {target.kind} がHP1で耐えた");
-        FloatingDamageUI.ShowHeal(target.transform.position, 0); // 生存演出
+        FloatingDamageUI.ShowHeal(target.transform.position, 0);
         return true;
     }
 
     // =====================================================================
     //  ターン開始時処理
-    //  PlayerStart / EnemyStart から呼ばれる
     // =====================================================================
     public static void OnTurnStart(Transform unitParent)
     {
@@ -314,13 +229,8 @@ public static class SpecialAbilitySystem
         {
             if (s.type != Type.Unit) continue;
 
-            // フラグリセット
-            s.HasMovedThisTurn = false;
-            s.FirstSkillUsedThisTurn = false;
-            s.DebuffNullifiedThisTurn = false;
-            s.InterceptUsedThisTurn = false;
+            s.ResetTurnFlags();
 
-            // 浄化光輪: 周囲1マスの味方1体の状態異常を1つ解除+守勢
             if (s.specialAbility == SpecialAbility.PurifyHalo)
                 ProcessPurifyHalo(s, unitParent);
         }
@@ -328,7 +238,6 @@ public static class SpecialAbilitySystem
 
     // =====================================================================
     //  ターン終了時処理
-    //  PlayerMove.HandleTurnEnd / EnemyMove から呼ばれる
     // =====================================================================
     public static void OnTurnEnd(Transform unitParent)
     {
@@ -338,29 +247,22 @@ public static class SpecialAbilitySystem
         {
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
 
-            // 応急処置: 周囲1マスに味方なしなら最大HP3%回復
             if (s.specialAbility == SpecialAbility.FirstAid)
                 ProcessFirstAid(s, unitParent);
 
-            // 聖域反応: 周囲1マスの味方が状態異常持ちならHP5%回復
             if (s.specialAbility == SpecialAbility.HolyReaction)
                 ProcessHolyReaction(s, unitParent);
         }
     }
 
     // =====================================================================
-    //  範囲攻撃の Special Ability 効果（迫撃適応 / 砲撃管制）
-    //  SkillSystem.ExecuteAreaSkill から呼ばれる
+    //  範囲攻撃の Special Ability 効果
     // =====================================================================
     public static float GetAreaAttackModifier(Status attacker, int enemyCount)
     {
-        float mod = 0f;
-
-        // 迫撃適応: 2体以上巻き込みで+10%
         if (attacker.specialAbility == SpecialAbility.SiegeAdapt && enemyCount >= 2)
-            mod += SiegeAdaptBonus;
-
-        return mod;
+            return SiegeAdaptBonus;
+        return 0f;
     }
 
     public static void OnAreaAttackComplete(Status attacker, List<Status> targets)
@@ -368,17 +270,14 @@ public static class SpecialAbilitySystem
         if (attacker.specialAbility != SpecialAbility.ArtilleryControl) return;
         if (targets == null || targets.Count < 3) return;
 
-        // 砲撃管制: 3体以上巻き込みで全員にマーク付与
         foreach (Status t in targets)
-        {
             StatusEffectSystem.ApplyDebuff(t, StatusEffectType.Mark);
-        }
+
         Debug.Log($"[SpecialAbility] 砲撃管制発動！ {targets.Count}体にマーク付与");
     }
 
     // =====================================================================
     //  支援波及処理
-    //  SkillSystem から呼ばれる
     // =====================================================================
     public static void ProcessSupportSpread(Status caster, Status primaryTarget,
                                              BuffType buff, int healAmount, Transform unitParent)
@@ -386,35 +285,17 @@ public static class SpecialAbilitySystem
         if (caster.specialAbility != SpecialAbility.SupportSpread) return;
         if (unitParent == null) return;
 
-        Vector3Int casterCell = ToGrid(primaryTarget.transform.position);
-        Status bestAlly = null;
-        float bestDist = float.MaxValue;
-
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
-        {
-            if (s == primaryTarget || s == caster) continue;
-            if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
-            if (s.team != caster.team) continue;
-
-            Vector3Int sCell = ToGrid(s.transform.position);
-            float dist = Mathf.Max(Mathf.Abs(sCell.x - casterCell.x), Mathf.Abs(sCell.z - casterCell.z));
-            if (dist <= 1 && dist < bestDist)
-            {
-                bestDist = dist;
-                bestAlly = s;
-            }
-        }
+        Vector3Int casterCell = GridHelper.ToGrid(primaryTarget.transform.position);
+        Status bestAlly = FindNearestAlly(caster, primaryTarget, casterCell, unitParent);
 
         if (bestAlly == null) return;
 
-        // バフ波及
         if (buff != BuffType.None)
         {
             StatusEffectSystem.ApplyBuff(bestAlly, buff);
             Debug.Log($"[SpecialAbility] 支援波及: {bestAlly.kind} にも {buff} 付与");
         }
 
-        // 回復波及（50%）
         if (healAmount > 0)
         {
             int spreadHeal = Mathf.RoundToInt(healAmount * SupportSpreadRatio);
@@ -427,41 +308,28 @@ public static class SpecialAbilitySystem
     }
 
     // =====================================================================
-    //  視界ボーナス
-    //  VisionGenerator / StatusEffectSystem から呼ばれる
+    //  視界ボーナス / AP コスト削減
     // =====================================================================
+
     public static int GetVisionBonus(Status unit)
     {
-        if (unit.specialAbility == SpecialAbility.WatchEye)
-            return WatchEyeVisionBonus;
-        return 0;
+        return unit.specialAbility == SpecialAbility.WatchEye ? WatchEyeVisionBonus : 0;
     }
 
-    // =====================================================================
-    //  移動APコスト削減（迅速体勢）
-    //  APSystem から呼ばれる
-    // =====================================================================
     public static int GetMoveAPReduction(Status unit)
     {
-        if (unit.specialAbility == SpecialAbility.SwiftPosture && !unit.HasMovedThisTurn)
-            return (int)SwiftPostureMoveReduction;
-        return 0;
+        return unit.specialAbility == SpecialAbility.SwiftPosture && !unit.HasMovedThisTurn
+            ? (int)SwiftPostureMoveReduction : 0;
     }
 
-    // =====================================================================
-    //  スキルAPコスト削減（省力化）
-    //  APSystem から呼ばれる
-    // =====================================================================
     public static int GetSkillAPReduction(Status unit)
     {
-        if (unit.specialAbility == SpecialAbility.Efficiency && !unit.FirstSkillUsedThisTurn)
-            return EfficiencyAPReduction;
-        return 0;
+        return unit.specialAbility == SpecialAbility.Efficiency && !unit.FirstSkillUsedThisTurn
+            ? EfficiencyAPReduction : 0;
     }
 
     // =====================================================================
     //  不滅の意志: デバフ無効化判定
-    //  StatusEffectSystem から呼ばれる
     // =====================================================================
     public static bool TryNullifyDebuff(Status target)
     {
@@ -474,22 +342,20 @@ public static class SpecialAbilitySystem
     }
 
     // =====================================================================
-    //  内部ヘルパー
+    //  内部ヘルパー: 条件判定
     // =====================================================================
 
-    private static Vector3Int ToGrid(Vector3 pos)
+    /// <summary>攻撃者が防御者より高い位置にいるか</summary>
+    private static bool IsHigherThan(Status attacker, Status target)
     {
-        return new Vector3Int(
-            Mathf.RoundToInt(pos.x),
-            Mathf.RoundToInt(pos.y),
-            Mathf.RoundToInt(pos.z));
+        return Mathf.RoundToInt(attacker.transform.position.y) > Mathf.RoundToInt(target.transform.position.y);
     }
 
-    private static float GridDistance(Vector3 a, Vector3 b)
+    /// <summary>攻撃者がターゲットの視界内にいるか</summary>
+    private static bool IsInTargetVision(Status unit, Status target)
     {
-        float dx = Mathf.Abs(Mathf.RoundToInt(a.x) - Mathf.RoundToInt(b.x));
-        float dz = Mathf.Abs(Mathf.RoundToInt(a.z) - Mathf.RoundToInt(b.z));
-        return Mathf.Max(dx, dz);
+        if (target.VisionCell == null) return false;
+        return target.VisionCell.Contains(GridHelper.ToGrid(unit.transform.position));
     }
 
     /// <summary>遠距離/魔法系ユニットかどうか</summary>
@@ -499,19 +365,41 @@ public static class SpecialAbilitySystem
             || kind == Kind.Magicsniper || kind == Kind.Bomber;
     }
 
-    /// <summary>建物隣接マスにいるか</summary>
+    // =====================================================================
+    //  内部ヘルパー: 近傍ユニット検索
+    // =====================================================================
+
+    /// <summary>建物隣接マスにいるか（UnitRegistry 使用）</summary>
     private static bool IsAdjacentToBuilding(Status unit)
     {
-        Vector3Int uCell = ToGrid(unit.transform.position);
+        Vector3Int uCell = GridHelper.ToGrid(unit.transform.position);
 
-        // シーン内の全Statusから建物を探索（パフォーマンスは許容範囲）
+        // UnitRegistry が利用可能ならキャッシュから検索
+        if (UnitRegistry.Instance != null)
+        {
+            return CheckBuildingsAdjacent(UnitRegistry.Instance.PlayerBuildings, uCell)
+                || CheckBuildingsAdjacent(UnitRegistry.Instance.EnemyBuildings, uCell);
+        }
+
+        // フォールバック: FindObjectsByType
         Status[] allStatuses = Object.FindObjectsByType<Status>(FindObjectsSortMode.None);
         foreach (Status s in allStatuses)
         {
             if (s.type != Type.Building && s.type != Type.Wall) continue;
             if (!s.gameObject.activeSelf) continue;
-            Vector3Int bCell = ToGrid(s.transform.position);
-            if (Mathf.Abs(uCell.x - bCell.x) <= 1 && Mathf.Abs(uCell.z - bCell.z) <= 1)
+            if (GridHelper.IsWithinRange(uCell, GridHelper.ToGrid(s.transform.position), 1))
+                return true;
+        }
+        return false;
+    }
+
+    private static bool CheckBuildingsAdjacent(IReadOnlyList<Status> buildings, Vector3Int cell)
+    {
+        for (int i = 0; i < buildings.Count; i++)
+        {
+            var s = buildings[i];
+            if (s == null || !s.gameObject.activeSelf) continue;
+            if (GridHelper.IsWithinRange(cell, GridHelper.ToGrid(s.transform.position), 1))
                 return true;
         }
         return false;
@@ -520,7 +408,7 @@ public static class SpecialAbilitySystem
     /// <summary>周囲1マスに指定 SpecialAbility 持ちの味方がいるか</summary>
     private static bool HasNearbyAllyWithAbility(Status target, SpecialAbility ability)
     {
-        Vector3Int tCell = ToGrid(target.transform.position);
+        Vector3Int tCell = GridHelper.ToGrid(target.transform.position);
 
         Status[] allStatuses = Object.FindObjectsByType<Status>(FindObjectsSortMode.None);
         foreach (Status s in allStatuses)
@@ -529,8 +417,7 @@ public static class SpecialAbilitySystem
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
             if (s.team != target.team) continue;
             if (s.specialAbility != ability) continue;
-            Vector3Int sCell = ToGrid(s.transform.position);
-            if (Mathf.Abs(tCell.x - sCell.x) <= 1 && Mathf.Abs(tCell.z - sCell.z) <= 1)
+            if (GridHelper.IsWithinRange(tCell, GridHelper.ToGrid(s.transform.position), 1))
                 return true;
         }
         return false;
@@ -539,7 +426,7 @@ public static class SpecialAbilitySystem
     /// <summary>攻撃者チームに BattlefieldDomination 持ちがいて、ターゲットがその視界内か</summary>
     private static bool HasBattlefieldDominationFrom(Status attacker, Status target)
     {
-        Vector3Int targetCell = ToGrid(target.transform.position);
+        Vector3Int targetCell = GridHelper.ToGrid(target.transform.position);
 
         Status[] allStatuses = Object.FindObjectsByType<Status>(FindObjectsSortMode.None);
         foreach (Status s in allStatuses)
@@ -553,20 +440,63 @@ public static class SpecialAbilitySystem
         return false;
     }
 
+    // =====================================================================
+    //  内部ヘルパー: デバフ付与の共通パターン
+    // =====================================================================
+
+    /// <summary>攻撃命中時に確率でデバフを付与する共通処理</summary>
+    private static void TryApplyOnHitDebuff(SpecialAbility current, SpecialAbility required,
+                                             bool condition, float chance,
+                                             Status target, StatusEffectType debuff,
+                                             string abilityName, string debuffName)
+    {
+        if (current != required || !condition) return;
+        if (Random.value < chance)
+        {
+            StatusEffectSystem.ApplyDebuff(target, debuff);
+            Debug.Log($"[SpecialAbility] {abilityName}発動！ {target.kind} に{debuffName}付与");
+        }
+    }
+
+    // =====================================================================
+    //  内部ヘルパー: ターン処理
+    // =====================================================================
+
+    /// <summary>周囲1マスの最も近い味方を見つける</summary>
+    private static Status FindNearestAlly(Status caster, Status primaryTarget,
+                                           Vector3Int centerCell, Transform unitParent)
+    {
+        Status bestAlly = null;
+        float bestDist = float.MaxValue;
+
+        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        {
+            if (s == primaryTarget || s == caster) continue;
+            if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
+            if (s.team != caster.team) continue;
+
+            Vector3Int sCell = GridHelper.ToGrid(s.transform.position);
+            int dist = GridHelper.ChebyshevDistance(sCell, centerCell);
+            if (dist <= 1 && dist < bestDist)
+            {
+                bestDist = dist;
+                bestAlly = s;
+            }
+        }
+        return bestAlly;
+    }
+
     /// <summary>浄化光輪: 周囲1マスの味方1体の状態異常を1つ解除+守勢付与</summary>
     private static void ProcessPurifyHalo(Status caster, Transform unitParent)
     {
-        Vector3Int cCell = ToGrid(caster.transform.position);
+        Vector3Int cCell = GridHelper.ToGrid(caster.transform.position);
 
         foreach (Status s in unitParent.GetComponentsInChildren<Status>())
         {
             if (s == caster) continue;
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
+            if (!GridHelper.IsWithinRange(cCell, GridHelper.ToGrid(s.transform.position), 1)) continue;
 
-            Vector3Int sCell = ToGrid(s.transform.position);
-            if (Mathf.Abs(cCell.x - sCell.x) > 1 || Mathf.Abs(cCell.z - sCell.z) > 1) continue;
-
-            // 状態異常を持っている味方を探す
             ActiveEffect debuffToRemove = null;
             for (int i = 0; i < s.ActiveEffects.Count; i++)
             {
@@ -582,7 +512,7 @@ public static class SpecialAbilitySystem
                 Debug.Log($"[SpecialAbility] 浄化光輪: {s.kind} の {debuffToRemove.debuffType} を解除");
                 s.ActiveEffects.Remove(debuffToRemove);
                 StatusEffectSystem.ApplyBuff(s, BuffType.Defensive);
-                return; // 1体のみ
+                return;
             }
         }
     }
@@ -590,19 +520,16 @@ public static class SpecialAbilitySystem
     /// <summary>応急処置: 周囲1マスに味方なしなら最大HP3%回復</summary>
     private static void ProcessFirstAid(Status unit, Transform unitParent)
     {
-        Vector3Int uCell = ToGrid(unit.transform.position);
+        Vector3Int uCell = GridHelper.ToGrid(unit.transform.position);
 
         foreach (Status s in unitParent.GetComponentsInChildren<Status>())
         {
             if (s == unit) continue;
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
-
-            Vector3Int sCell = ToGrid(s.transform.position);
-            if (Mathf.Abs(uCell.x - sCell.x) <= 1 && Mathf.Abs(uCell.z - sCell.z) <= 1)
+            if (GridHelper.IsWithinRange(uCell, GridHelper.ToGrid(s.transform.position), 1))
                 return; // 味方がいるので発動しない
         }
 
-        // 味方なし → 回復
         int heal = Mathf.Max(1, Mathf.RoundToInt(unit.MaxHP * FirstAidHealRatio));
         unit.HP = Mathf.Min(unit.MaxHP, unit.HP + heal);
         Debug.Log($"[SpecialAbility] 応急処置: {unit.kind} が {heal} 回復 (残HP:{unit.HP})");
@@ -611,17 +538,14 @@ public static class SpecialAbilitySystem
     /// <summary>聖域反応: 周囲1マスの味方で状態異常持ちのHP5%回復</summary>
     private static void ProcessHolyReaction(Status caster, Transform unitParent)
     {
-        Vector3Int cCell = ToGrid(caster.transform.position);
+        Vector3Int cCell = GridHelper.ToGrid(caster.transform.position);
 
         foreach (Status s in unitParent.GetComponentsInChildren<Status>())
         {
             if (s == caster) continue;
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
+            if (!GridHelper.IsWithinRange(cCell, GridHelper.ToGrid(s.transform.position), 1)) continue;
 
-            Vector3Int sCell = ToGrid(s.transform.position);
-            if (Mathf.Abs(cCell.x - sCell.x) > 1 || Mathf.Abs(cCell.z - sCell.z) > 1) continue;
-
-            // 状態異常持ちか
             bool hasDebuff = false;
             for (int i = 0; i < s.ActiveEffects.Count; i++)
             {

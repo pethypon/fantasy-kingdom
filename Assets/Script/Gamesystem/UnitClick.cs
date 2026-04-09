@@ -230,20 +230,10 @@ public class UnitClick : MonoBehaviour
                 break;
 
             case SkillTarget.DesignatedTile:
+            case SkillTarget.AdjacentCenter:
                 // クリック位置を中心に範囲内の敵を収集して範囲攻撃
                 {
-                    Vector3Int center = new Vector3Int(
-                        Mathf.RoundToInt(clickPos.x), 0, Mathf.RoundToInt(clickPos.z));
-                    List<Status> targets = FindEnemiesInSkillArea(skill, center, playermove.Obj.direction);
-                    turnGenerator.Systems.SkillSystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
-                }
-                break;
-
-            case SkillTarget.AdjacentCenter:
-                // クリック位置を中心に範囲内の敵を収集
-                {
-                    Vector3Int center = new Vector3Int(
-                        Mathf.RoundToInt(clickPos.x), 0, Mathf.RoundToInt(clickPos.z));
+                    Vector3Int center = GridHelper.ToGridXZ(clickPos);
                     List<Status> targets = FindEnemiesInSkillArea(skill, center, playermove.Obj.direction);
                     turnGenerator.Systems.SkillSystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
                 }
@@ -253,8 +243,7 @@ public class UnitClick : MonoBehaviour
             case SkillTarget.DesignatedRow:
                 // ライン攻撃: 攻撃者の位置を基準にライン上の敵を収集
                 {
-                    Vector3Int lineOrigin = new Vector3Int(
-                        Mathf.RoundToInt(playermove.ObjP.x), 0, Mathf.RoundToInt(playermove.ObjP.z));
+                    Vector3Int lineOrigin = GridHelper.ToGridXZ(playermove.ObjP);
                     List<Status> targets = FindEnemiesInSkillArea(skill, lineOrigin, playermove.Obj.direction);
                     turnGenerator.Systems.SkillSystem.ExecuteAreaSkill(playermove.Obj, skill, targets);
                 }
@@ -296,9 +285,7 @@ public class UnitClick : MonoBehaviour
         {
             if (!s.gameObject.activeSelf) continue;
             if (s.type != Type.Unit && s.type != Type.Building) continue;
-            Vector3Int cell = new Vector3Int(
-                Mathf.RoundToInt(s.transform.position.x), 0,
-                Mathf.RoundToInt(s.transform.position.z));
+            Vector3Int cell = GridHelper.ToGridXZ(s.transform.position);
             if (posSet.Contains(cell))
                 targets.Add(s);
         }

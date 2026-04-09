@@ -112,6 +112,44 @@ Serialized field references are preserved via `[FormerlySerializedAs]` attribute
 
 Comments in code are written in Japanese and may appear garbled in some editors due to Shift-JIS encoding.
 
+## Shared Utilities
+
+### `GridHelper` (`Assets/Script/Common/GridHelper.cs`)
+
+Static utility consolidating all grid coordinate operations. Use instead of raw `Mathf.RoundToInt`:
+
+| Method | Purpose |
+|---|---|
+| `ToGrid(Vector3)` | World pos → `Vector3Int` (x,y,z rounded) |
+| `ToGridXZ(Vector3)` | World pos → `Vector3Int` (y=0, XZ only) |
+| `ToUnitPoint(Vector3Int)` | Grid pos → `Vector3(x, 0, z)` for UnitPointData |
+| `MatchXZ(a, b)` | Compare two positions ignoring Y |
+| `ChebyshevDistance(a, b)` | Max of dx/dz (8-directional distance) |
+| `IsWithinRange(a, b, range)` | Chebyshev distance ≤ range |
+| `TryGetHeight(setPos, x, z, out y)` | Find Y from SetPos list |
+| `ExistsOnMap(setPos, x, z)` | Check tile existence |
+| `SnapToNearest(positions, target)` | Snap to closest position in list |
+| `BuildHeightLookup(setPos)` | Create `(x,z)→y` dictionary |
+| `ContainsXZ(positions, target)` | Check if XZ match exists in list |
+
+### `BrandGuide` Color Constants
+
+All UI and fallback object colors are centralized in `BrandGuide`. Key additions:
+
+- `CursorBuildValid/Invalid`, `CursorSummonValid/Invalid` — placement cursor colors
+- `FallbackWall`, `FallbackSubCrystal`, `FallbackBuilding` — prefab-less building colors
+- `FallbackPlayerUnit`, `FallbackEnemyUnit` — prefab-less unit colors
+- `GetFacilityFallbackColor(FacilityKind)` — facility color lookup
+- `GetUnitFallbackColor(Team)` — unit color lookup
+
+### System Query Methods
+
+Instead of accessing system internals directly, use query methods:
+
+**`TerritorySystem`**: `IsInTerritory(pos, team)`, `IsInAnyTerritory(x, z)`, `GetTerritory(team)`, `ClampToTerritory(pos, team)`
+
+**`MapCreate`**: `HasTileAt(x, z)`, `TryGetHeight(x, z, out y)`, `SnapToSetPos(gridPos)`, `BuildHeightLookup()`
+
 ## Adding a New Unit Kind
 
 1. Add the kind to the `Kind` enum in `Status.cs`

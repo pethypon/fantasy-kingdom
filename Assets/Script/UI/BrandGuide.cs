@@ -126,6 +126,48 @@ public static class BrandGuide
     public static readonly Color TeamEnemy = new Color(1f, 0.53f, 0.53f);
 
     // ==================================================================
+    //  カーソル・配置プレビュー色
+    // ==================================================================
+
+    /// <summary>建築カーソル: 設置可能（緑半透明）</summary>
+    public static readonly Color CursorBuildValid = new Color(0.5f, 1f, 0.5f, 0.5f);
+    /// <summary>建築カーソル: 設置不可（赤半透明）</summary>
+    public static readonly Color CursorBuildInvalid = new Color(1f, 0.3f, 0.3f, 0.5f);
+    /// <summary>召喚カーソル: 設置可能（青半透明）</summary>
+    public static readonly Color CursorSummonValid = new Color(0.5f, 0.5f, 1f, 0.5f);
+    /// <summary>召喚カーソル: 設置不可（赤半透明）</summary>
+    public static readonly Color CursorSummonInvalid = new Color(1f, 0.3f, 0.3f, 0.5f);
+
+    // ==================================================================
+    //  フォールバックオブジェクト色（プレハブ未割当時）
+    // ==================================================================
+
+    /// <summary>壁（フォールバック用グレー）</summary>
+    public static readonly Color FallbackWall = new Color(0.6f, 0.6f, 0.6f);
+    /// <summary>サブクリスタル（フォールバック用シアン）</summary>
+    public static readonly Color FallbackSubCrystal = new Color(0.3f, 0.7f, 0.9f);
+    /// <summary>通常建築物（フォールバック用ブラウン）</summary>
+    public static readonly Color FallbackBuilding = new Color(0.6f, 0.4f, 0.2f);
+    /// <summary>プレイヤーユニット（フォールバック用ブルー）</summary>
+    public static readonly Color FallbackPlayerUnit = new Color(0.3f, 0.5f, 0.9f);
+    /// <summary>敵ユニット（フォールバック用レッド）</summary>
+    public static readonly Color FallbackEnemyUnit = new Color(0.9f, 0.3f, 0.3f);
+
+    /// <summary>施設種別に応じたフォールバック色を返す</summary>
+    public static Color GetFacilityFallbackColor(FacilityKind facility)
+    {
+        if (FacilityData.IsWall(facility)) return FallbackWall;
+        if (FacilityData.IsSubCrystal(facility)) return FallbackSubCrystal;
+        return FallbackBuilding;
+    }
+
+    /// <summary>チームに応じたユニットフォールバック色を返す</summary>
+    public static Color GetUnitFallbackColor(Team team)
+    {
+        return team == Team.Player ? FallbackPlayerUnit : FallbackEnemyUnit;
+    }
+
+    // ==================================================================
     //  フォントサイズ定義
     // ==================================================================
 
