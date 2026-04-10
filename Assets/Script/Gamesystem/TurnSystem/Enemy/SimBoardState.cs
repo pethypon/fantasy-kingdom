@@ -58,8 +58,7 @@ public partial class SimBoardState
         {
             foreach (var sp in moveGen.mapcreate.SetPos)
             {
-                state.MapTiles.Add(new Vector3Int(
-                    Mathf.RoundToInt(sp.x), 0, Mathf.RoundToInt(sp.z)));
+                state.MapTiles.Add(GridHelper.ToGridXZ(sp));
             }
         }
 
@@ -125,9 +124,7 @@ public partial class SimBoardState
             MaxHP = s.MaxHP,
             ATK = s.ATK,
             DEF = s.DEF,
-            Position = new Vector3Int(
-                Mathf.RoundToInt(s.transform.position.x), 0,
-                Mathf.RoundToInt(s.transform.position.z)),
+            Position = GridHelper.ToGridXZ(s.transform.position),
             Direction = s.direction,
             IsBoss = s.IsBoss,
             AssignedSkillId = s.AssignedSkillId,
@@ -328,10 +325,10 @@ public partial class SimBoardState
     }
 
     // ================================================================
-    //  ユーティリティ
+    //  ユーティリティ — GridHelper に委譲
     // ================================================================
-    public static Vector3Int ToCell(Vector3 v)
-        => new Vector3Int(Mathf.RoundToInt(v.x), 0, Mathf.RoundToInt(v.z));
+    /// <summary>ワールド座標をXZ平面セル座標に変換（GridHelper.ToGridXZ のエイリアス）</summary>
+    public static Vector3Int ToCell(Vector3 v) => GridHelper.ToGridXZ(v);
 
     public int GetAP(Team team) => team == Team.Enemy ? EnemyAP : PlayerAP;
 

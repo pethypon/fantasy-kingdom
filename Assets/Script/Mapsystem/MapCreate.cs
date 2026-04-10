@@ -136,4 +136,32 @@ public class MapCreate : MonoBehaviour
     {
         Instantiate(prefab, new Vector3(x, y, z), Quaternion.identity, parent);
     }
+
+    // ==================================================================
+    //  クエリメソッド（外部からの SetPos 直接操作を解消）
+    // ==================================================================
+
+    /// <summary>指定 XZ 座標にタイルが存在するかを判定する</summary>
+    public bool HasTileAt(int x, int z)
+    {
+        return GridHelper.ExistsOnMap(SetPos, x, z);
+    }
+
+    /// <summary>指定 XZ 座標の配置高さ（SetPos.y）を取得する</summary>
+    public bool TryGetHeight(int x, int z, out float y)
+    {
+        return GridHelper.TryGetHeight(SetPos, x, z, out y);
+    }
+
+    /// <summary>指定グリッド座標を SetPos 上の最も近い座標にスナップする</summary>
+    public Vector3Int SnapToSetPos(Vector3Int gridPos)
+    {
+        return GridHelper.SnapToNearest(SetPos, gridPos);
+    }
+
+    /// <summary>SetPos の XZ→Y ルックアップ辞書を構築する</summary>
+    public Dictionary<(int, int), int> BuildHeightLookup()
+    {
+        return GridHelper.BuildHeightLookup(SetPos);
+    }
 }

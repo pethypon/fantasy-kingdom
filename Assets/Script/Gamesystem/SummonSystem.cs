@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// ユニット召喚システム: BuildSystem と同じパターンでカーソル追従・設置可否判定・ユニット生成を管理する。
+/// ユニット召喚システム: カーソル追従・設置可否判定・ユニット生成を管理する。
 /// </summary>
 public class SummonSystem : MonoBehaviour
 {
@@ -43,9 +42,9 @@ public class SummonSystem : MonoBehaviour
     private Vector3Int lastCursorPos;
     private bool cursorVisible;
 
-    // ---- 色定義 ----
-    private static readonly Color ColorValid   = new Color(0.5f, 0.5f, 1f, 0.5f);
-    private static readonly Color ColorInvalid = new Color(1f, 0.3f, 0.3f, 0.5f);
+    // ---- 色定義（BrandGuide に一元化） ----
+    private static Color ColorValid   => BrandGuide.CursorSummonValid;
+    private static Color ColorInvalid => BrandGuide.CursorSummonInvalid;
 
     // ---- Raycast レイヤー ----
     private int blockLayerMask;
@@ -82,7 +81,7 @@ public class SummonSystem : MonoBehaviour
     }
 
     // ==================================================================
-    //  召喚モード開始
+    //  召喚モード開始 / 解除
     // ==================================================================
     public void StartSummonMode(Kind kind)
     {
@@ -97,9 +96,6 @@ public class SummonSystem : MonoBehaviour
         Debug.Log($"[SummonSystem] 召喚モード開始: {kind}");
     }
 
-    // ==================================================================
-    //  召喚モード解除
-    // ==================================================================
     public void CancelSummonMode()
     {
         IsActive = false;
@@ -112,8 +108,7 @@ public class SummonSystem : MonoBehaviour
     // ==================================================================
     public void UpdateCursor()
     {
-        if (!IsActive) return;
-        if (cursorObj == null) return;
+        if (!IsActive || cursorObj == null) return;
 
         if (!TryGetMouseRay(out Ray ray))
         {
@@ -121,23 +116,18 @@ public class SummonSystem : MonoBehaviour
             return;
         }
 
-        if (!Physics.Raycast(ray, out RaycastHit hit, 100f, blockLayerMask))
+        if (!Physics.Raycast(ray, out RaycastHit hit, GameConstants.DefaultRayDistance, blockLayerMask))
         {
             SetCursorVisible(false);
             return;
         }
 
-        Vector3Int gridPos = new Vector3Int(
-            Mathf.RoundToInt(hit.point.x),
-            Mathf.RoundToInt(hit.point.y),
-            Mathf.RoundToInt(hit.point.z)
-        );
+        Vector3Int gridPos = GridHelper.ToGrid(hit.point);
+        Vector3Int snapped = mapcreate.SnapToSetPos(gridPos);
 
-        Vector3Int snapped = SnapToSetPos(gridPos);
-
-        if (!IsInTerritory(snapped))
+        if (!territorysystem.IsInTerritory(snapped, Team.Player))
         {
-            Vector3Int clamped = ClampToTerritory(snapped);
+            Vector3Int clamped = territorysystem.ClampToTerritory(snapped, Team.Player);
             if (clamped.x == int.MinValue)
             {
                 SetCursorVisible(false);
@@ -159,9 +149,7 @@ public class SummonSystem : MonoBehaviour
     // ==================================================================
     public bool TryPlace()
     {
-        if (!IsActive) return false;
-        if (!canPlace) return false;
-        if (!cursorVisible) return false;
+        if (!IsActive || !canPlace || !cursorVisible) return false;
 
         if (!CanSummon(Team.Player, SelectedKind))
         {
@@ -169,15 +157,11 @@ public class SummonSystem : MonoBehaviour
             return false;
         }
 
-        PlaceUnit(lastCursorPos, SelectedKind);
-        ConsumeSummon(Team.Player, SelectedKind);
+        InstantiateUnit(lastCursorPos, SelectedKind, Team.Player);
+        ConsumeSummonResources(Team.Player, SelectedKind);
 
-        // ---- ML観測: プレイヤーの召喚をMLシステムに記録 ----
-        if (turnGenerator != null && turnGenerator.Systems.AICommander != null)
-        {
-            Vector3 summonPos = new Vector3(lastCursorPos.x, 0, lastCursorPos.z);
-            turnGenerator.Systems.AICommander.MLIntegration.ObservePlayerBuild(summonPos, turnGenerator.Context.Turn);
-        }
+        // ML観測: プレイヤーの召喚をMLシステムに記録
+        NotifyMLObservation(lastCursorPos);
 
         CancelSummonMode();
         return true;
@@ -189,7 +173,6 @@ public class SummonSystem : MonoBehaviour
     public bool CanSummon(Team team, Kind kind)
     {
         if (!unitset.UnitDataMap.TryGetValue(kind, out UnitData data)) return false;
-
         if (factionState.GetAP(team) < data.costAP) return false;
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
@@ -205,9 +188,9 @@ public class SummonSystem : MonoBehaviour
     }
 
     // ==================================================================
-    //  AP・リソース消費
+    //  リソース消費（共通）
     // ==================================================================
-    private void ConsumeSummon(Team team, Kind kind)
+    private void ConsumeSummonResources(Team team, Kind kind)
     {
         if (!unitset.UnitDataMap.TryGetValue(kind, out UnitData data)) return;
 
@@ -228,170 +211,163 @@ public class SummonSystem : MonoBehaviour
     }
 
     // ==================================================================
-    //  内部: 設置可否チェック
-    //  SetPosを使って正確な位置判定を行う
+    //  設置可否チェック（共通）
     // ==================================================================
     private bool CheckCanPlace(Vector3Int pos)
     {
-        if (!IsInTerritory(pos)) return false;
+        return CheckCanPlaceForTeam(pos, Team.Player);
+    }
 
-        // SetPosに存在するマスかチェック（有効なタイルのみ許可）
-        bool onMap = mapcreate.SetPos.Any(p =>
-            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
-        if (!onMap) return false;
+    /// <summary>指定チームでの設置可否を判定する（プレイヤー・AI共通）</summary>
+    private bool CheckCanPlaceForTeam(Vector3Int pos, Team team)
+    {
+        if (!territorysystem.IsInTerritory(pos, team)) return false;
+        if (!mapcreate.HasTileAt(pos.x, pos.z)) return false;
+        if (IsCrystalPosition(pos)) return false;
 
-        // クリスタル位置チェック（XZのみで比較）
-        Vector3 pcpVec = turnGenerator.Systems.CrystalSystem.PCP;
-        if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
-
-        Vector3 ecpVec = turnGenerator.Systems.CrystalSystem.ECP;
-        if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
-
-        // 既にユニットがいる場所には不可（UnitPointDataはY=0で管理）
-        Vector3 posVec = new Vector3(pos.x, 0f, pos.z);
+        // 既にユニットがいる場所には不可（UnitPointData は Y=0 で管理）
+        Vector3 posVec = GridHelper.ToUnitPoint(pos);
         if (moveGenerator.UnitPointData.Contains(posVec)) return false;
 
         return true;
     }
 
     // ==================================================================
-    //  内部: ユニットの配置
-    //  SetPosから正しいY座標を取得して配置する
+    //  ユニット生成（共通処理）
     // ==================================================================
-    private void PlaceUnit(Vector3Int pos, Kind kind)
+
+    /// <summary>ユニットを指定位置に生成する。プレイヤー・AI共通のコアロジック。</summary>
+    private void InstantiateUnit(Vector3Int pos, Kind kind, Team team)
     {
-        GameObject prefab = null;
+        Transform parent = team == Team.Player ? unitset.PlayerUnit : unitset.EnemyUnit;
+        Direction dir = team == Team.Player ? Direction.N : Direction.S;
 
-        // まずプレハブマップから取得
-        if (prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
-        {
-            prefab = mapped;
-        }
-
-        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1 = ユニット配置高さ）
+        // SetPos から正しい Y 座標を取得
         float spawnY = pos.y;
-        foreach (var sp in mapcreate.SetPos)
-        {
-            if (Mathf.RoundToInt(sp.x) == pos.x && Mathf.RoundToInt(sp.z) == pos.z)
-            {
-                spawnY = sp.y;
-                break;
-            }
-        }
+        if (mapcreate.TryGetHeight(pos.x, pos.z, out float height))
+            spawnY = height;
         Vector3 spawnPos = new Vector3(pos.x, spawnY, pos.z);
+
+        // プレハブ or フォールバック生成
+        GameObject prefab = null;
+        if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
+            prefab = mapped;
 
         if (prefab != null)
         {
-            // SpawnUnit でプレハブを使って生成（UnitData 適用 + HeadUI 付与）
-            var obj = unitset.SpawnUnit(prefab, spawnPos, unitset.PlayerUnit);
+            var obj = unitset.SpawnUnit(prefab, spawnPos, parent);
             var status = obj.GetComponentInChildren<Status>();
             if (status != null)
             {
-                status.team = Team.Player;
-                status.direction = Direction.N;
+                status.team = team;
+                status.direction = dir;
             }
         }
         else
         {
-            // フォールバック: Sphere を生成
-            var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            obj.transform.position = spawnPos;
-            obj.transform.SetParent(unitset.PlayerUnit);
-            obj.name = kind.ToString();
-
-            var renderer = obj.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                var mat = new Material(Shader.Find("Standard"));
-                mat.color = new Color(0.3f, 0.5f, 0.9f);
-                renderer.material = mat;
-            }
-
-            var status = obj.AddComponent<Status>();
-            status.kind = kind;
-            status.team = Team.Player;
-            status.type = Type.Unit;
-            status.direction = Direction.N;
-
-            if (unitset.UnitDataMap.TryGetValue(kind, out UnitData data))
-                data.ApplyToStatus(status, 1);
-
-            UnitHeadUI.Attach(obj);
+            CreateFallbackUnit(spawnPos, kind, team, dir, parent);
         }
 
-        // ユニット位置を記録（UnitPointDataはY=0で管理）
-        moveGenerator.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
+        // ユニット位置を記録
+        moveGenerator.UnitPointData.Add(GridHelper.ToUnitPoint(pos));
 
         // 視界更新
         visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
 
-        Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {pos.y}, {pos.z}) に召喚");
+        Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {Mathf.RoundToInt(spawnY)}, {pos.z}) に召喚 ({team})");
     }
 
-    // ==================================================================
-    //  内部: 領地判定
-    // ==================================================================
-    private bool IsInTerritory(Vector3Int pos)
+    /// <summary>プレハブ未割当時のフォールバックユニットを生成する</summary>
+    private void CreateFallbackUnit(Vector3 spawnPos, Kind kind, Team team,
+                                     Direction dir, Transform parent)
     {
-        if (territorysystem.PTSetPos == null) return false;
-        return territorysystem.PTSetPos.Any(p =>
-            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
-    }
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        obj.transform.position = spawnPos;
+        obj.transform.SetParent(parent);
+        obj.name = kind.ToString();
 
-    private Vector3Int ClampToTerritory(Vector3Int pos)
-    {
-        if (territorysystem.PTSetPos == null || territorysystem.PTSetPos.Count == 0)
-            return new Vector3Int(int.MinValue, 0, 0);
-
-        float minDist = float.MaxValue;
-        Vector3 closest = territorysystem.PTSetPos[0];
-
-        foreach (var p in territorysystem.PTSetPos)
+        var renderer = obj.GetComponent<Renderer>();
+        if (renderer != null)
         {
-            float dx = p.x - pos.x;
-            float dz = p.z - pos.z;
-            float dist = dx * dx + dz * dz;
-            if (dist < minDist)
-            {
-                minDist = dist;
-                closest = p;
-            }
+            var mat = new Material(Shader.Find("Standard"));
+            mat.color = BrandGuide.GetUnitFallbackColor(team);
+            renderer.material = mat;
         }
 
-        return new Vector3Int(
-            Mathf.RoundToInt(closest.x),
-            Mathf.RoundToInt(closest.y),
-            Mathf.RoundToInt(closest.z));
-    }
+        var status = obj.AddComponent<Status>();
+        status.kind = kind;
+        status.team = team;
+        status.type = Type.Unit;
+        status.direction = dir;
 
-    private Vector3Int SnapToSetPos(Vector3Int gridPos)
-    {
-        if (mapcreate.SetPos == null || mapcreate.SetPos.Count == 0)
-            return gridPos;
+        if (unitset.UnitDataMap.TryGetValue(kind, out UnitData data))
+            data.ApplyToStatus(status, 1);
 
-        float minDist = float.MaxValue;
-        Vector3 closest = mapcreate.SetPos[0];
-
-        foreach (var p in mapcreate.SetPos)
-        {
-            float dx = p.x - gridPos.x;
-            float dz = p.z - gridPos.z;
-            float dist = dx * dx + dz * dz;
-            if (dist < minDist)
-            {
-                minDist = dist;
-                closest = p;
-            }
-        }
-
-        return new Vector3Int(
-            Mathf.RoundToInt(closest.x),
-            Mathf.RoundToInt(closest.y),
-            Mathf.RoundToInt(closest.z));
+        UnitHeadUI.Attach(obj);
     }
 
     // ==================================================================
-    //  内部: カーソル生成 / 破棄
+    //  AI用: カーソル不要の直接召喚
+    // ==================================================================
+
+    /// <summary>AI用: 指定位置にユニットを召喚する（カーソル・UI不要）</summary>
+    public bool AISummonUnit(Vector3Int pos, Kind kind, Team team)
+    {
+        if (!CanSummon(team, kind)) return false;
+        if (!CheckCanPlaceForTeam(pos, team)) return false;
+
+        ConsumeSummonResources(team, kind);
+        InstantiateUnit(pos, kind, team);
+
+        Debug.Log($"[SummonSystem] AI({team}) {kind} を ({pos.x},{pos.y},{pos.z}) に召喚");
+        return true;
+    }
+
+    /// <summary>AI用: 指定チームの領地内で召喚可能な位置一覧を返す</summary>
+    public List<Vector3Int> AIGetSummonablePositions(Team team)
+    {
+        var result = new List<Vector3Int>();
+        var territory = territorysystem.GetTerritory(team);
+        if (territory == null) return result;
+
+        var heightLookup = mapcreate.BuildHeightLookup();
+
+        foreach (var p in territory)
+        {
+            int px = Mathf.RoundToInt(p.x);
+            int pz = Mathf.RoundToInt(p.z);
+            if (!heightLookup.TryGetValue((px, pz), out int py)) continue;
+            var pos = new Vector3Int(px, py, pz);
+            if (CheckCanPlaceForTeam(pos, team))
+                result.Add(pos);
+        }
+        return result;
+    }
+
+    // ==================================================================
+    //  内部ヘルパー
+    // ==================================================================
+
+    /// <summary>指定座標がクリスタル位置かどうかを判定する</summary>
+    private bool IsCrystalPosition(Vector3Int pos)
+    {
+        var crystalSystem = turnGenerator.Systems.CrystalSystem;
+        return GridHelper.MatchXZ(crystalSystem.PCP, pos)
+            || GridHelper.MatchXZ(crystalSystem.ECP, pos);
+    }
+
+    /// <summary>ML観測: プレイヤーの召喚をMLシステムに記録</summary>
+    private void NotifyMLObservation(Vector3Int pos)
+    {
+        if (turnGenerator != null && turnGenerator.Systems.AICommander != null)
+        {
+            Vector3 summonPos = new Vector3(pos.x, 0, pos.z);
+            turnGenerator.Systems.AICommander.MLIntegration.ObservePlayerBuild(summonPos, turnGenerator.Context.Turn);
+        }
+    }
+
+    // ==================================================================
+    //  カーソル生成 / 破棄
     // ==================================================================
     private void CreateCursor()
     {
@@ -446,180 +422,5 @@ public class SummonSystem : MonoBehaviour
         Vector2 mousePos = Mouse.current.position.ReadValue();
         ray = Camera.main.ScreenPointToRay(mousePos);
         return true;
-    }
-
-    // ==================================================================
-    //  AI用: カーソル不要の直接召喚
-    // ==================================================================
-
-    /// <summary>
-    /// AI用: 指定位置にユニットを召喚する（カーソル・UI不要）
-    /// </summary>
-    public bool AISummonUnit(Vector3Int pos, Kind kind, Team team)
-    {
-        if (!CanSummon(team, kind)) return false;
-        if (!AICheckCanPlace(pos, team)) return false;
-
-        // リソース消費
-        AIConsumeSummon(team, kind);
-
-        // ユニット配置
-        AIPlaceUnit(pos, kind, team);
-
-        Debug.Log($"[SummonSystem] AI({team}) {kind} を ({pos.x},{pos.y},{pos.z}) に召喚");
-        return true;
-    }
-
-    /// <summary>
-    /// AI用: 設置可否チェック（任意チーム対応）
-    /// SetPosを使って正確な位置判定を行う
-    /// </summary>
-    private bool AICheckCanPlace(Vector3Int pos, Team team)
-    {
-        var territory = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
-        if (territory == null) return false;
-        bool inTerritory = territory.Any(p =>
-            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
-        if (!inTerritory) return false;
-
-        // SetPosに存在するマスかチェック（有効なタイルのみ許可）
-        bool onMap = mapcreate.SetPos.Any(p =>
-            Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z);
-        if (!onMap) return false;
-
-        // クリスタル位置チェック（XZのみで比較）
-        Vector3 pcpVec = turnGenerator.Systems.CrystalSystem.PCP;
-        if (Mathf.RoundToInt(pcpVec.x) == pos.x && Mathf.RoundToInt(pcpVec.z) == pos.z) return false;
-
-        Vector3 ecpVec = turnGenerator.Systems.CrystalSystem.ECP;
-        if (Mathf.RoundToInt(ecpVec.x) == pos.x && Mathf.RoundToInt(ecpVec.z) == pos.z) return false;
-
-        // UnitPointDataはY=0で管理されているため、Y=0で比較する
-        Vector3 posVec = new Vector3(pos.x, 0f, pos.z);
-        if (moveGenerator.UnitPointData.Contains(posVec)) return false;
-
-        return true;
-    }
-
-    /// <summary>
-    /// AI用: リソース消費（public版 ConsumeSummon）
-    /// </summary>
-    private void AIConsumeSummon(Team team, Kind kind)
-    {
-        if (!unitset.UnitDataMap.TryGetValue(kind, out UnitData data)) return;
-
-        factionState.ModifyAP(team, -data.costAP);
-
-        var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
-        res.Wood     -= data.costWood;
-        res.Stone    -= data.costStone;
-        res.Iron     -= data.costIron;
-        res.MagicOre -= data.costMagic;
-        res.Water    -= data.costWater;
-        res.Plank    -= data.costPlank;
-        res.CutStone -= data.costCutStone;
-        res.Bread    -= data.costBread;
-        res.Citizen  -= data.costCitizen;
-    }
-
-    /// <summary>
-    /// AI用: ユニット配置（任意チーム対応）
-    /// SetPosから正しいY座標を取得して配置する
-    /// </summary>
-    private void AIPlaceUnit(Vector3Int pos, Kind kind, Team team)
-    {
-        Transform parent = team == Team.Player ? unitset.PlayerUnit : unitset.EnemyUnit;
-        Direction dir = team == Team.Player ? Direction.N : Direction.S;
-
-        GameObject prefab = null;
-        if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
-            prefab = mapped;
-
-        // SetPosから正しいY座標を取得（SetPos.y = 地形高さ+1 = ユニット配置高さ）
-        float spawnY = pos.y;
-        foreach (var sp in mapcreate.SetPos)
-        {
-            if (Mathf.RoundToInt(sp.x) == pos.x && Mathf.RoundToInt(sp.z) == pos.z)
-            {
-                spawnY = sp.y;
-                break;
-            }
-        }
-        Vector3 spawnPos = new Vector3(pos.x, spawnY, pos.z);
-
-        if (prefab != null)
-        {
-            var obj = unitset.SpawnUnit(prefab, spawnPos, parent);
-            var status = obj.GetComponentInChildren<Status>();
-            if (status != null)
-            {
-                status.team = team;
-                status.direction = dir;
-            }
-        }
-        else
-        {
-            var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            obj.transform.position = spawnPos;
-            obj.transform.SetParent(parent);
-            obj.name = kind.ToString();
-
-            var renderer = obj.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                var mat = new Material(Shader.Find("Standard"));
-                mat.color = team == Team.Player
-                    ? new Color(0.3f, 0.5f, 0.9f)
-                    : new Color(0.9f, 0.3f, 0.3f);
-                renderer.material = mat;
-            }
-
-            var status = obj.AddComponent<Status>();
-            status.kind = kind;
-            status.team = team;
-            status.type = Type.Unit;
-            status.direction = dir;
-
-            if (unitset.UnitDataMap.TryGetValue(kind, out UnitData data))
-                data.ApplyToStatus(status, 1);
-
-            UnitHeadUI.Attach(obj);
-        }
-
-        // UnitPointDataはY=0で管理
-        moveGenerator.UnitPointData.Add(new Vector3(pos.x, 0f, pos.z));
-        visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
-    }
-
-    /// <summary>
-    /// AI用: 指定チームの領地内で召喚可能な位置一覧を返す
-    /// SetPosからY座標を取得して正しい高さで返す
-    /// </summary>
-    public List<Vector3Int> AIGetSummonablePositions(Team team)
-    {
-        var result = new List<Vector3Int>();
-        var territory = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
-        if (territory == null) return result;
-
-        // SetPosをXZ→Yのルックアップ用に変換
-        var setposLookup = new Dictionary<(int, int), int>();
-        foreach (var sp in mapcreate.SetPos)
-        {
-            var key = (Mathf.RoundToInt(sp.x), Mathf.RoundToInt(sp.z));
-            if (!setposLookup.ContainsKey(key))
-                setposLookup[key] = Mathf.RoundToInt(sp.y);
-        }
-
-        foreach (var p in territory)
-        {
-            int px = Mathf.RoundToInt(p.x);
-            int pz = Mathf.RoundToInt(p.z);
-            // SetPosのY座標を使う（マップ上に存在するタイルのみ）
-            if (!setposLookup.TryGetValue((px, pz), out int py)) continue;
-            var pos = new Vector3Int(px, py, pz);
-            if (AICheckCanPlace(pos, team))
-                result.Add(pos);
-        }
-        return result;
     }
 }

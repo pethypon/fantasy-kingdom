@@ -81,15 +81,13 @@ public class SubCrystalSystem : MonoBehaviour
         }).ToList();
 
         // 既存領地と重複しないものだけ追加
-        List<Vector3> ptSetPos = team == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
+        List<Vector3> ptSetPos = territorysystem.GetTerritory(team);
         List<Vector3> addedPositions = new List<Vector3>();
         List<GameObject> addedTiles = new List<GameObject>();
 
         foreach (var tPos in newTerritory)
         {
-            bool alreadyExists = ptSetPos.Any(p =>
-                Mathf.RoundToInt(p.x) == Mathf.RoundToInt(tPos.x) &&
-                Mathf.RoundToInt(p.z) == Mathf.RoundToInt(tPos.z));
+            bool alreadyExists = GridHelper.ContainsXZ(ptSetPos, GridHelper.ToGrid(tPos));
 
             if (!alreadyExists)
             {
@@ -126,12 +124,11 @@ public class SubCrystalSystem : MonoBehaviour
         // このサブクリスタルが追加した領地を削除
         if (subCrystalTerritories.TryGetValue(subCrystal, out var positions))
         {
-            List<Vector3> ptSetPos = ownerTeam == Team.Player ? territorysystem.PTSetPos : territorysystem.ETSetPos;
+            List<Vector3> ptSetPos = territorysystem.GetTerritory(ownerTeam);
             foreach (var pos in positions)
             {
-                ptSetPos.RemoveAll(p =>
-                    Mathf.RoundToInt(p.x) == Mathf.RoundToInt(pos.x) &&
-                    Mathf.RoundToInt(p.z) == Mathf.RoundToInt(pos.z));
+                Vector3Int posGrid = GridHelper.ToGrid(pos);
+                ptSetPos.RemoveAll(p => GridHelper.MatchXZ(p, posGrid));
             }
             subCrystalTerritories.Remove(subCrystal);
         }
@@ -203,11 +200,7 @@ public class SubCrystalSystem : MonoBehaviour
     {
         if (target == null) return;
 
-        Vector3 pos = target.transform.position;
-        Vector3Int posInt = new Vector3Int(
-            Mathf.RoundToInt(pos.x),
-            Mathf.RoundToInt(pos.y),
-            Mathf.RoundToInt(pos.z));
+        Vector3Int posInt = GridHelper.ToGrid(target.transform.position);
 
         // サブクリスタルの場合は領地も削除
         if (target.facilityKind == FacilityKind.SubCrystal)
@@ -239,57 +232,14 @@ public class SubCrystalSystem : MonoBehaviour
     // ==================================================================
     public bool CanPlaceSubCrystal(Vector3Int pos, Team team)
     {
-        // サブクリスタル資源チェック
         if (factionState.GetSubCrystals(team) <= 0) return false;
-
-        // Player領地内は設置不可
-        if (IsInAnyTerritory(pos)) return false;
-
-        // サブクリスタルを中心とした半径1マスに領地がある場合も設置不可
+        if (territorysystem.IsInAnyTerritory(pos.x, pos.z)) return false;
         if (HasTerritoryInRadius1(pos)) return false;
-
-        // 駒の視界内チェック
-        if (!IsInPlayerVision(pos, team)) return false;
-
-        // 既存建築物チェック
+        if (!IsInTeamVision(pos, team)) return false;
         if (buildsystem.HasBuildingAt(pos)) return false;
-
-        // クリスタル位置チェック
-        Vector3 pcpVec = crystalsystem.PCP;
-        Vector3Int pcp = new Vector3Int(
-            Mathf.RoundToInt(pcpVec.x),
-            Mathf.RoundToInt(pcpVec.y),
-            Mathf.RoundToInt(pcpVec.z));
-        if (pos == pcp) return false;
-
-        Vector3 ecpVec = crystalsystem.ECP;
-        Vector3Int ecp = new Vector3Int(
-            Mathf.RoundToInt(ecpVec.x),
-            Mathf.RoundToInt(ecpVec.y),
-            Mathf.RoundToInt(ecpVec.z));
-        if (pos == ecp) return false;
+        if (IsCrystalPosition(pos)) return false;
 
         return true;
-    }
-
-    // ==================================================================
-    //  領地チェック: Player領地とEnemy領地の両方をチェック
-    // ==================================================================
-    private bool IsInAnyTerritory(Vector3Int pos)
-    {
-        if (territorysystem.PTSetPos != null)
-        {
-            if (territorysystem.PTSetPos.Any(p =>
-                Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z))
-                return true;
-        }
-        if (territorysystem.ETSetPos != null)
-        {
-            if (territorysystem.ETSetPos.Any(p =>
-                Mathf.RoundToInt(p.x) == pos.x && Mathf.RoundToInt(p.z) == pos.z))
-                return true;
-        }
-        return false;
     }
 
     // ==================================================================
@@ -301,25 +251,32 @@ public class SubCrystalSystem : MonoBehaviour
         {
             for (int dz = -1; dz <= 1; dz++)
             {
-                Vector3Int checkPos = new Vector3Int(pos.x + dx, pos.y, pos.z + dz);
-                if (IsInAnyTerritory(checkPos)) return true;
+                if (territorysystem.IsInAnyTerritory(pos.x + dx, pos.z + dz))
+                    return true;
             }
         }
         return false;
     }
 
-    // ==================================================================
-    //  駒の視界内かチェック
-    // ==================================================================
-    private bool IsInPlayerVision(Vector3Int pos, Team team)
+    /// <summary>指定座標がチームの視界内にあるかを判定する</summary>
+    private bool IsInTeamVision(Vector3Int pos, Team team)
     {
-        var visionXZ = new Vector3Int(pos.x, 0, pos.z);
-        if (team == Team.Player)
-            return visionGenerator.PlayerVisionBox != null &&
-                   visionGenerator.PlayerVisionBox.Any(v => v.x == pos.x && v.z == pos.z);
-        else
-            return visionGenerator.EnemyVisionBox != null &&
-                   visionGenerator.EnemyVisionBox.Any(v => v.x == pos.x && v.z == pos.z);
+        var visionBox = team == Team.Player ? visionGenerator.PlayerVisionBox : visionGenerator.EnemyVisionBox;
+        if (visionBox == null) return false;
+
+        // VisionBox は Y 付きで格納されているため、XZ 一致で検索
+        foreach (var v in visionBox)
+        {
+            if (v.x == pos.x && v.z == pos.z) return true;
+        }
+        return false;
+    }
+
+    /// <summary>指定座標がクリスタル位置かどうかを判定する</summary>
+    private bool IsCrystalPosition(Vector3Int pos)
+    {
+        return GridHelper.ToGrid(crystalsystem.PCP) == pos
+            || GridHelper.ToGrid(crystalsystem.ECP) == pos;
     }
 
     // ==================================================================

@@ -357,10 +357,7 @@ public class Status : MonoBehaviour
     public bool IsAlive => HP > 0 && gameObject.activeInHierarchy;
 
     /// <summary>グリッド座標（Y=0）を返す</summary>
-    public UnityEngine.Vector3Int GridPosition => new UnityEngine.Vector3Int(
-        UnityEngine.Mathf.RoundToInt(transform.position.x),
-        0,
-        UnityEngine.Mathf.RoundToInt(transform.position.z));
+    public UnityEngine.Vector3Int GridPosition => GridHelper.ToGridXZ(transform.position);
 }
 
 // =====================================================================

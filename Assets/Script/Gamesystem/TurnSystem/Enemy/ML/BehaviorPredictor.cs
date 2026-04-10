@@ -129,7 +129,7 @@ public class BehaviorPredictor
         {
             Turn = turn,
             ActionCode = actionCode,
-            Position = new Vector3Int(Mathf.RoundToInt(position.x), 0, Mathf.RoundToInt(position.z)),
+            Position = GridHelper.ToGridXZ(position),
             UnitKind = unitKind
         });
 

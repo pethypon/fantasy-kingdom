@@ -476,20 +476,17 @@ public class AIBoardState
             _visionCacheVersion = curCount;
         }
 
-        int x = Mathf.RoundToInt(worldPos.x);
-        int z = Mathf.RoundToInt(worldPos.z);
-        return _visionXZCache.Contains(PackXZ(x, z));
+        var cell = GridHelper.ToGridXZ(worldPos);
+        return _visionXZCache.Contains(PackXZ(cell.x, cell.z));
     }
 
     // ================================================================
-    //  座標ヘルパー
+    //  座標ヘルパー — GridHelper に委譲
     // ================================================================
 
-    /// <summary>ワールド座標をセル座標に変換 → AIBoardQuery に委譲</summary>
+    /// <summary>ワールド座標をセル座標に変換（GridHelper.ToGrid のエイリアス）</summary>
     public static Vector3Int ToCell(Vector3 worldPos)
-        => AIBoardQuery.ToCell(worldPos);
-
-    static bool SameCellXZ(Vector3Int a, int x, int z) => AIBoardQuery.SameCellXZ(a, x, z);
+        => GridHelper.ToGrid(worldPos);
 
     static Status FindFirstUnitInArea(List<Vector3Int> areaCells, List<Status> units)
         => AIBoardQuery.FindFirstUnitInArea(areaCells, units);
@@ -599,7 +596,7 @@ public class AIBoardState
 
     /// <summary>探索済み面積の割合 → AIBoardQuery に委譲</summary>
     public float GetExplorationRatio()
-        => AIBoardQuery.GetExplorationRatio(_visionGen, _moveGen);
+        => AIBoardQuery.GetExplorationRatio(_visionGen, _moveGen?.mapcreate);
 
     /// <summary>経済余剰スコア → AIBoardQuery に委譲</summary>
     public float GetEconomicSurplus()

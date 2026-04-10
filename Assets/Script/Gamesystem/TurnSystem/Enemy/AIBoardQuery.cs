@@ -10,15 +10,8 @@ using UnityEngine;
 public static class AIBoardQuery
 {
     // ================================================================
-    //  座標ヘルパー
+    //  座標ヘルパー — GridHelper に委譲
     // ================================================================
-
-    /// <summary>ワールド座標をセル座標(Vector3Int)に変換</summary>
-    public static Vector3Int ToCell(Vector3 worldPos)
-        => new Vector3Int(Mathf.RoundToInt(worldPos.x), Mathf.RoundToInt(worldPos.y), Mathf.RoundToInt(worldPos.z));
-
-    /// <summary>2つのセル座標が同一のXZ位置かどうか</summary>
-    public static bool SameCellXZ(Vector3Int a, int x, int z) => a.x == x && a.z == z;
 
     /// <summary>範囲セル内に存在する最初のユニットを返す（見つからなければnull）</summary>
     public static Status FindFirstUnitInArea(List<Vector3Int> areaCells, List<Status> units)
@@ -28,9 +21,8 @@ public static class AIBoardQuery
             foreach (var u in units)
             {
                 if (u == null || !u.gameObject.activeInHierarchy) continue;
-                int ux = Mathf.RoundToInt(u.transform.position.x);
-                int uz = Mathf.RoundToInt(u.transform.position.z);
-                if (SameCellXZ(ac, ux, uz)) return u;
+                var uCell = GridHelper.ToGridXZ(u.transform.position);
+                if (GridHelper.MatchXZ(ac, uCell)) return u;
             }
         }
         return null;
@@ -40,7 +32,7 @@ public static class AIBoardQuery
     public static List<Status> CollectUnitsInArea(SkillData skill, Vector3 targetPos, Direction dir, List<Status> candidates)
     {
         var result = new List<Status>();
-        var center = ToCell(targetPos);
+        var center = GridHelper.ToGrid(targetPos);
         var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, dir);
 
         foreach (var ac in areaCells)
@@ -48,9 +40,8 @@ public static class AIBoardQuery
             foreach (var u in candidates)
             {
                 if (u == null || !u.gameObject.activeInHierarchy) continue;
-                int ux = Mathf.RoundToInt(u.transform.position.x);
-                int uz = Mathf.RoundToInt(u.transform.position.z);
-                if (SameCellXZ(ac, ux, uz)) result.Add(u);
+                var uCell = GridHelper.ToGridXZ(u.transform.position);
+                if (GridHelper.MatchXZ(ac, uCell)) result.Add(u);
             }
         }
         return result;
@@ -178,7 +169,7 @@ public static class AIBoardQuery
             for (int step = 2; step <= 8; step += 2)
             {
                 var checkPos = center + dir * step;
-                var cell = new Vector3Int(Mathf.RoundToInt(checkPos.x), 0, Mathf.RoundToInt(checkPos.z));
+                var cell = GridHelper.ToGridXZ(checkPos);
                 if (!visionGen.EnemyExploard.Contains(cell))
                     unexplored++;
             }
@@ -201,7 +192,7 @@ public static class AIBoardQuery
         if (visionGen == null || visionGen.EnemyExploard == null) return 0;
 
         int newCells = 0;
-        var c = ToCell(pos);
+        var c = GridHelper.ToGridXZ(pos);
         int cx = c.x;
         int cz = c.z;
         // Scoutの視界範囲（-2~+2 x -2~+2）を概算チェック
@@ -218,10 +209,10 @@ public static class AIBoardQuery
     }
 
     /// <summary>探索済み面積の割合（0～1）</summary>
-    public static float GetExplorationRatio(VisionGenerator visionGen, MoveGenerator moveGen)
+    public static float GetExplorationRatio(VisionGenerator visionGen, MapCreate mapCreate)
     {
-        if (visionGen == null || visionGen.EnemyExploard == null || moveGen == null) return 1f;
-        int totalTiles = moveGen.mapcreate.SetPos.Count;
+        if (visionGen == null || visionGen.EnemyExploard == null || mapCreate == null) return 1f;
+        int totalTiles = mapCreate.SetPos.Count;
         if (totalTiles == 0) return 1f;
         return (float)visionGen.EnemyExploard.Count / totalTiles;
     }
@@ -236,8 +227,8 @@ public static class AIBoardQuery
     public static bool IsValidTile(MoveGenerator moveGen, Vector3 pos)
     {
         if (moveGen == null || moveGen.mapcreate == null) return false;
-        var cell = new Vector3(Mathf.Round(pos.x), 1f, Mathf.Round(pos.z));
-        return moveGen.mapcreate.SetPos.Contains(cell);
+        var cell = GridHelper.ToGridXZ(pos);
+        return moveGen.mapcreate.HasTileAt(cell.x, cell.z);
     }
 
     // ================================================================

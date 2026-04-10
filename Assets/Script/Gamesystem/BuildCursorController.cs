@@ -18,9 +18,9 @@ public class BuildCursorController
     bool _visible;
     Vector3Int _lastPos;
 
-    // ---- 色定義 ----
-    static readonly Color ColorValid   = new Color(0.5f, 1f, 0.5f, 0.5f);
-    static readonly Color ColorInvalid = new Color(1f, 0.3f, 0.3f, 0.5f);
+    // ---- 色定義（BrandGuide に一元化） ----
+    static Color ColorValid   => BrandGuide.CursorBuildValid;
+    static Color ColorInvalid => BrandGuide.CursorBuildInvalid;
 
     // ---- Raycast ----
     readonly int _blockLayerMask;

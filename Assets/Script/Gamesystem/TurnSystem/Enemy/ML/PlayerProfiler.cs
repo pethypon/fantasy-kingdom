@@ -513,8 +513,7 @@ public class PlayerProfiler
     // ================================================================
     //  ユーティリティ
     // ================================================================
-    static Vector3Int ToCell(Vector3 v)
-        => new Vector3Int(Mathf.RoundToInt(v.x), 0, Mathf.RoundToInt(v.z));
+    static Vector3Int ToCell(Vector3 v) => GridHelper.ToGridXZ(v);
 
     static void IncrementDict<TKey>(Dictionary<TKey, int> dict, TKey key)
     {

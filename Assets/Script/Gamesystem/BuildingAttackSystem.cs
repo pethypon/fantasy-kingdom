@@ -170,54 +170,29 @@ public class BuildingAttackSystem : MonoBehaviour
         // 視界外のセルは攻撃対象にしない
         if (_currentVision != null)
         {
-            var cellKey = new Vector3Int(Mathf.RoundToInt(cellPos.x), 0, Mathf.RoundToInt(cellPos.z));
+            var cellKey = GridHelper.ToGridXZ(cellPos);
             if (!_currentVision.Contains(cellKey)) return null;
         }
+
+        int cx = Mathf.RoundToInt(cellPos.x);
+        int cz = Mathf.RoundToInt(cellPos.z);
 
         // 敵ユニットを検索
         Transform enemyParent = (enemyTeam == Team.Enemy)
             ? unitSetting.EnemyUnit
             : unitSetting.PlayerUnit;
 
-        if (enemyParent != null)
-        {
-            foreach (Transform child in enemyParent)
-            {
-                if (!child.gameObject.activeSelf) continue;
-                var st = child.GetComponent<Status>();
-                if (st == null) continue;
-                if (st.team != enemyTeam) continue;
-                if (st.HP <= 0) continue;
-                Vector3 unitCell = moveGererater.Cell(child.position);
-                if (Mathf.RoundToInt(unitCell.x) == Mathf.RoundToInt(cellPos.x) &&
-                    Mathf.RoundToInt(unitCell.z) == Mathf.RoundToInt(cellPos.z))
-                    return st;
-            }
-        }
+        Status found = FindStatusAtCell(enemyParent, cx, cz, enemyTeam);
+        if (found != null) return found;
 
         // 敵の建築物も検索
-        Transform enemyBuildingParent = buildSystem.GetBuildingParent(enemyTeam);
-        if (enemyBuildingParent != null)
-        {
-            foreach (Transform child in enemyBuildingParent)
-            {
-                if (!child.gameObject.activeSelf) continue;
-                var st = child.GetComponent<Status>();
-                if (st == null) continue;
-                if (st.HP <= 0) continue;
-                Vector3 bCell = moveGererater.Cell(child.position);
-                if (Mathf.RoundToInt(bCell.x) == Mathf.RoundToInt(cellPos.x) &&
-                    Mathf.RoundToInt(bCell.z) == Mathf.RoundToInt(cellPos.z))
-                    return st;
-            }
-        }
+        found = FindStatusAtCell(buildSystem.GetBuildingParent(enemyTeam), cx, cz);
+        if (found != null) return found;
 
-        // クリスタルも検索（親Transform の子からStatusを取得）
-        Vector3 pcp = moveGererater.Cell(crystalSystem.PCP);
-        Vector3 ecp = moveGererater.Cell(crystalSystem.ECP);
-        Vector3 targetCrystalPos = (enemyTeam == Team.Enemy) ? ecp : pcp;
-        if (Mathf.RoundToInt(targetCrystalPos.x) == Mathf.RoundToInt(cellPos.x) &&
-            Mathf.RoundToInt(targetCrystalPos.z) == Mathf.RoundToInt(cellPos.z))
+        // クリスタルも検索
+        Vector3 targetCrystalPos = (enemyTeam == Team.Enemy)
+            ? crystalSystem.ECP : crystalSystem.PCP;
+        if (GridHelper.MatchXZ(targetCrystalPos, cx, cz))
         {
             Transform crystalParent = (enemyTeam == Team.Enemy)
                 ? crystalSystem.Enemycrystal
@@ -230,6 +205,23 @@ public class BuildingAttackSystem : MonoBehaviour
             }
         }
 
+        return null;
+    }
+
+    /// <summary>指定セルの Transform 子から Status を検索する</summary>
+    private Status FindStatusAtCell(Transform parent, int x, int z, Team? teamFilter = null)
+    {
+        if (parent == null) return null;
+        foreach (Transform child in parent)
+        {
+            if (!child.gameObject.activeSelf) continue;
+            var st = child.GetComponent<Status>();
+            if (st == null || st.HP <= 0) continue;
+            if (teamFilter.HasValue && st.team != teamFilter.Value) continue;
+            Vector3 cell = moveGererater.Cell(child.position);
+            if (GridHelper.MatchXZ(cell, x, z))
+                return st;
+        }
         return null;
     }
 

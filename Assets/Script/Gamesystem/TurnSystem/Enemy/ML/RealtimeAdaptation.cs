@@ -93,9 +93,7 @@ public class RealtimeAdaptation
 
         float severity = (float)damage / Mathf.Max(1, target.MaxHP);
         bool isFlanking = target.VisionCell != null &&
-            !target.VisionCell.Contains(new Vector3Int(
-                Mathf.RoundToInt(attacker.transform.position.x), 0,
-                Mathf.RoundToInt(attacker.transform.position.z)));
+            !target.VisionCell.Contains(GridHelper.ToGridXZ(attacker.transform.position));
 
         var threat = new ThreatEvent
         {
@@ -466,6 +464,5 @@ public class RealtimeAdaptation
         foreach (var k in toRemove) _hotZones.Remove(k);
     }
 
-    static Vector3Int ToCell(Vector3 v)
-        => new Vector3Int(Mathf.RoundToInt(v.x), 0, Mathf.RoundToInt(v.z));
+    static Vector3Int ToCell(Vector3 v) => GridHelper.ToGridXZ(v);
 }
