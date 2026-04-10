@@ -10,7 +10,7 @@ public class PlayerMove : TurnState
         Skill
     }
 
-    public AttackMode AttackMode { get; set; }
+    public AttackMode CurrentAttackMode { get; set; }
     public bool MenuSwitch { get; set; }
     public Status SelectedUnit { get; set; }
     public Vector3 SelectedUnitPosition { get; set; }
@@ -34,7 +34,7 @@ public class PlayerMove : TurnState
     public override void Entry()
     {
         Systems.UnitClick.UC(this, Turn, Systems.AttackGenerator);
-        AttackMode = AttackMode.None;
+        CurrentAttackMode = AttackMode.None;
 
         // タイマーのコールバック接続
         if (Systems.TimerSystem != null && !timerWired)
@@ -226,8 +226,8 @@ public class PlayerMove : TurnState
     {
         Systems.MoveGenerator.MoveReset();
         ClickedUnit = null;
-        AttackMode = mode;
-        Turn.ChangeState(new PlayerAttack(Turn, this, AttackMode));
+        CurrentAttackMode = mode;
+        Turn.ChangeState(new PlayerAttack(Turn, this, CurrentAttackMode));
     }
 
     // ---- タイマー自動ターン終了 ----
