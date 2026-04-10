@@ -123,7 +123,7 @@ Static utility consolidating all grid coordinate operations. Use instead of raw 
 | `ToGrid(Vector3)` | World pos → `Vector3Int` (x,y,z rounded) |
 | `ToGridXZ(Vector3)` | World pos → `Vector3Int` (y=0, XZ only) |
 | `ToUnitPoint(Vector3Int)` | Grid pos → `Vector3(x, 0, z)` for UnitPointData |
-| `MatchXZ(a, b)` | Compare two positions ignoring Y |
+| `MatchXZ(a, b)` | Compare two positions ignoring Y (multiple overloads: Vector3/Vector3Int/int,int) |
 | `ChebyshevDistance(a, b)` | Max of dx/dz (8-directional distance) |
 | `IsWithinRange(a, b, range)` | Chebyshev distance ≤ range |
 | `TryGetHeight(setPos, x, z, out y)` | Find Y from SetPos list |
@@ -149,6 +149,14 @@ Instead of accessing system internals directly, use query methods:
 **`TerritorySystem`**: `IsInTerritory(pos, team)`, `IsInAnyTerritory(x, z)`, `GetTerritory(team)`, `ClampToTerritory(pos, team)`
 
 **`MapCreate`**: `HasTileAt(x, z)`, `TryGetHeight(x, z, out y)`, `SnapToSetPos(gridPos)`, `BuildHeightLookup()`
+
+### AI Coordinate Convention
+
+All AI files (under `Assets/Script/Gamesystem/TurnSystem/Enemy/`) use `GridHelper` for coordinate conversions:
+- `AIBoardState.ToCell()` → delegates to `GridHelper.ToGrid()` (preserves Y)
+- `SimBoardState.ToCell()` → delegates to `GridHelper.ToGridXZ()` (Y=0, for simulation)
+- Private `ToCell()` in `AILearning`, `PlayerProfiler`, `RealtimeAdaptation` → delegates to `GridHelper.ToGridXZ()`
+- Do **not** add new `Mathf.RoundToInt` grid conversions; always use `GridHelper` methods.
 
 ## Adding a New Unit Kind
 

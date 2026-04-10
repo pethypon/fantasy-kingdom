@@ -317,9 +317,7 @@ public class CounterStrategyEngine
         var attackDir = profile.PreferredAttackDirection;
         if (attackDir != Vector3.zero)
         {
-            var crystalCell = new Vector3Int(
-                Mathf.RoundToInt(board.EnemyCrystalPos.x), 0,
-                Mathf.RoundToInt(board.EnemyCrystalPos.z));
+            var crystalCell = GridHelper.ToGridXZ(board.EnemyCrystalPos);
 
             // 攻撃方向からクリスタルまでのライン上を危険ゾーンに
             for (int i = 1; i <= 8; i++)
@@ -377,9 +375,7 @@ public class CounterStrategyEngine
                         bonus += _modifiers.AggressiveAdvance * 0.3f; // 前進
                 }
                 // 危険ゾーン回避ボーナス
-                var targetCell = new Vector3Int(
-                    Mathf.RoundToInt(action.TargetPos.x), 0,
-                    Mathf.RoundToInt(action.TargetPos.z));
+                var targetCell = GridHelper.ToGridXZ(action.TargetPos);
                 if (_predictedDangerZones.Contains(targetCell))
                     bonus -= 5f * _planConfidence; // 危険ゾーンへの移動を避ける
                 break;

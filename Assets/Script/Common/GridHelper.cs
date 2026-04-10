@@ -57,6 +57,12 @@ public static class GridHelper
         return a.x == b.x && a.z == b.z;
     }
 
+    /// <summary>Vector3Int と個別の XZ 座標が一致するかを判定する</summary>
+    public static bool MatchXZ(Vector3Int a, int x, int z)
+    {
+        return a.x == x && a.z == z;
+    }
+
     // =====================================================================
     //  距離計算
     // =====================================================================

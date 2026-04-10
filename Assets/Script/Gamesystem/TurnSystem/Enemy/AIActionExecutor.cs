@@ -117,13 +117,10 @@ public class AIActionExecutor
     /// <summary>SetPosからY座標を含む正確な位置を解決する</summary>
     Vector3 ResolveDestination(Vector3 dest)
     {
-        foreach (var sp in _moveGen.mapcreate.SetPos)
+        var grid = GridHelper.ToGridXZ(dest);
+        if (_moveGen.mapcreate != null && _moveGen.mapcreate.TryGetHeight(grid.x, grid.z, out float y))
         {
-            if (Mathf.RoundToInt(sp.x) == Mathf.RoundToInt(dest.x) &&
-                Mathf.RoundToInt(sp.z) == Mathf.RoundToInt(dest.z))
-            {
-                return new Vector3(sp.x, sp.y, sp.z);
-            }
+            return new Vector3(grid.x, y, grid.z);
         }
         return dest;
     }

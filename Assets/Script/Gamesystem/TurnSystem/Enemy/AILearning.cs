@@ -242,8 +242,7 @@ public class AILearning
     // ================================================================
     //  ヘルパー
     // ================================================================
-    static Vector3Int ToCell(Vector3 v)
-        => new Vector3Int(Mathf.RoundToInt(v.x), 0, Mathf.RoundToInt(v.z));
+    static Vector3Int ToCell(Vector3 v) => GridHelper.ToGridXZ(v);
 
     static void Increment(Dictionary<Vector3Int, int> dict, Vector3Int key)
     {

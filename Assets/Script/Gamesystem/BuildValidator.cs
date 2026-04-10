@@ -71,11 +71,10 @@ public class BuildValidator
 
         foreach (var p in mapcreate.SetPos)
         {
-            int px = Mathf.RoundToInt(p.x);
-            int pz = Mathf.RoundToInt(p.z);
+            var cell = GridHelper.ToGridXZ(p);
 
             // 領地内のマスはスキップ
-            if (territorysystem.IsInAnyTerritory(px, pz))
+            if (territorysystem.IsInAnyTerritory(cell.x, cell.z))
                 continue;
 
             float dx = p.x - pos.x;

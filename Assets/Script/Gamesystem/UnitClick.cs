@@ -391,11 +391,10 @@ public class UnitClick : MonoBehaviour
     private static bool IsInAttackRangeRounded(List<Vector3> attackP, Vector3 pos)
     {
         if (attackP == null) return false;
-        int px = Mathf.RoundToInt(pos.x);
-        int pz = Mathf.RoundToInt(pos.z);
+        var target = GridHelper.ToGridXZ(pos);
         for (int i = 0, count = attackP.Count; i < count; i++)
         {
-            if (Mathf.RoundToInt(attackP[i].x) == px && Mathf.RoundToInt(attackP[i].z) == pz)
+            if (GridHelper.MatchXZ(attackP[i], target))
                 return true;
         }
         return false;

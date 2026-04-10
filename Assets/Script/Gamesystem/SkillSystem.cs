@@ -358,10 +358,7 @@ public class SkillSystem : MonoBehaviour
             case "ShadowRush":
                 if (target != null && attacker != null && target.VisionCell != null)
                 {
-                    Vector3Int attackerCell = new Vector3Int(
-                        Mathf.RoundToInt(attacker.transform.position.x),
-                        Mathf.RoundToInt(attacker.transform.position.y),
-                        Mathf.RoundToInt(attacker.transform.position.z));
+                    Vector3Int attackerCell = GridHelper.ToGrid(attacker.transform.position);
                     if (!target.VisionCell.Contains(attackerCell))
                     {
                         int bonus = CalcBonusDamage(attacker, target, GameConstants.ShadowRushBonusMultiplier);

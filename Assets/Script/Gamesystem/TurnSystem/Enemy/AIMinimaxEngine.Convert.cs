@@ -74,9 +74,7 @@ public partial class AIMinimaxEngine
     {
         if (realUnit == null) return -1;
 
-        var pos = new Vector3Int(
-            Mathf.RoundToInt(realUnit.transform.position.x), 0,
-            Mathf.RoundToInt(realUnit.transform.position.z));
+        var pos = GridHelper.ToGridXZ(realUnit.transform.position);
 
         // 位置 + チーム + Kind で完全一致
         for (int i = 0; i < board.Units.Count; i++)
