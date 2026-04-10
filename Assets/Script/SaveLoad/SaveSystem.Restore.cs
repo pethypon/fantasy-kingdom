@@ -46,20 +46,13 @@ public static partial class SaveSystem
     {
         if (src == null || visionGen == null) return;
 
-        if (visionGen.PlayerExploard == null)
-            visionGen.PlayerExploard = new HashSet<Vector3Int>();
-        else
-            visionGen.PlayerExploard.Clear();
-
-        if (visionGen.EnemyExploard == null)
-            visionGen.EnemyExploard = new HashSet<Vector3Int>();
-        else
-            visionGen.EnemyExploard.Clear();
+        visionGen.ClearExplored(Team.Player);
+        visionGen.ClearExplored(Team.Enemy);
 
         foreach (var v in src.PlayerExplored)
-            visionGen.PlayerExploard.Add(v.ToVector3Int());
+            visionGen.AddExplored(Team.Player, v.ToVector3Int());
         foreach (var v in src.EnemyExplored)
-            visionGen.EnemyExploard.Add(v.ToVector3Int());
+            visionGen.AddExplored(Team.Enemy, v.ToVector3Int());
     }
 
     // ================================================================

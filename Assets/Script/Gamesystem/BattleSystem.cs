@@ -4,12 +4,15 @@ public enum GameResult { Win, Lose, TimeUpWin, TimeUpLose, TimeUpDraw }
 
 public class BattleSystem : MonoBehaviour
 {
-    public Status target;
-    public Status AttackSide;
-    public TurnGenerator turnGenerator;
+    public Status Target { get; private set; }
+    public Status Attacker { get; private set; }
+    private TurnGenerator turnGenerator;
+
+    /// <summary>攻撃対象を設定する（UnitClick から呼ばれる）</summary>
+    public void SetTarget(Status target) => Target = target;
 
     // ─── ダメージ発生（入口） ─────────────────────────────────────────
-    public void DamageGenerater(TurnGenerator turnGenerator)
+    public void ProcessDamage(TurnGenerator turnGenerator)
     {
         if (turnGenerator == null)
         {
@@ -18,9 +21,9 @@ public class BattleSystem : MonoBehaviour
         }
         this.turnGenerator = turnGenerator;
 
-        if (target == null)
+        if (Target == null)
         {
-            Debug.LogWarning("[Battle] target が null のためダメージ処理をスキップ");
+            Debug.LogWarning("[Battle] Target が null のためダメージ処理をスキップ");
             return;
         }
         if (turnGenerator.Context.SelectUnit == null)
@@ -28,53 +31,52 @@ public class BattleSystem : MonoBehaviour
             Debug.LogWarning("[Battle] SelectUnit が null のためダメージ処理をスキップ");
             return;
         }
-        AttackSide = turnGenerator.Context.SelectUnit;
+        Attacker = turnGenerator.Context.SelectUnit;
 
         // スタン中は行動不可
-        if (StatusEffectSystem.IsStunned(AttackSide))
+        if (StatusEffectSystem.IsStunned(Attacker))
         {
-            Debug.Log($"[Battle] {AttackSide.kind} はスタン中で行動不可");
+            Debug.Log($"[Battle] {Attacker.kind} はスタン中で行動不可");
             return;
         }
 
         // シールド中はダメージ無効
-        if (target.ShieldTurns > 0)
+        if (Target.ShieldTurns > 0)
         {
-            Debug.Log($"[Battle] {target.kind} はシールド中！ ダメージ無効（残り{target.ShieldTurns}ターン）");
-            FloatingDamageUI.ShowShield(target.transform.position);
+            Debug.Log($"[Battle] {Target.kind} はシールド中！ ダメージ無効（残り{Target.ShieldTurns}ターン）");
+            FloatingDamageUI.ShowShield(Target.transform.position);
             return;
         }
 
         // ダメージ計算（パッシブスキル補正は DamageCalculator 内で自動適用）
-        int damage = SkillSystem.CalcNormalDamage(AttackSide, target);
+        int damage = SkillSystem.CalcNormalDamage(Attacker, Target);
 
         // Crossbow: 命中時10%でスタン付与
-        if (AttackSide.kind == Kind.Crossbow && damage > 0)
+        if (Attacker.kind == Kind.Crossbow && damage > 0)
         {
             if (Random.value < GameConstants.CrossbowStunChance)
             {
-                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Stun, 1);
-                Debug.Log($"[Battle] {AttackSide.kind} のスタン発動！ {target.kind} は1ターン行動不可");
+                StatusEffectSystem.ApplyDebuff(Target, StatusEffectType.Stun, 1);
+                Debug.Log($"[Battle] {Attacker.kind} のスタン発動！ {Target.kind} は1ターン行動不可");
             }
         }
 
         // MagicSniper: 攻撃ごとに最大HPの20%自傷 + 敵にマーキング
-        if (AttackSide.kind == Kind.Magicsniper && damage > 0)
+        if (Attacker.kind == Kind.Magicsniper && damage > 0)
         {
-            int selfDmg = Mathf.RoundToInt(AttackSide.MaxHP * GameConstants.MagicSniperSelfDamageRatio);
-            AttackSide.HP -= selfDmg;
-            AttackSide.HP = Mathf.Max(0, AttackSide.HP);
-            Debug.Log($"[Battle] {AttackSide.kind} 自傷ダメージ {selfDmg}（残HP:{AttackSide.HP}）");
-            FloatingDamageUI.ShowDamage(AttackSide.transform.position, selfDmg, AttackSide.HP <= 0);
+            int selfDmg = Mathf.RoundToInt(Attacker.MaxHP * GameConstants.MagicSniperSelfDamageRatio);
+            Attacker.ApplyDamage(selfDmg);
+            Debug.Log($"[Battle] {Attacker.kind} 自傷ダメージ {selfDmg}（残HP:{Attacker.HP}）");
+            FloatingDamageUI.ShowDamage(Attacker.transform.position, selfDmg, !Attacker.IsAlive);
 
-            StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Mark, 1);
-            Debug.Log($"[Battle] {target.kind} にマーキング付与（被ダメ+10%、1ターン）");
+            StatusEffectSystem.ApplyDebuff(Target, StatusEffectType.Mark, 1);
+            Debug.Log($"[Battle] {Target.kind} にマーキング付与（被ダメ+10%、1ターン）");
         }
 
         // Special Ability: 致死ダメージ耐え（生還本能）
-        if (SpecialAbilitySystem.TrySurviveLethal(target, damage))
+        if (SpecialAbilitySystem.TrySurviveLethal(Target, damage))
         {
-            FloatingDamageUI.ShowDamage(target.transform.position, damage, false);
+            FloatingDamageUI.ShowDamage(Target.transform.position, damage, false);
         }
         else
         {
@@ -82,22 +84,22 @@ public class BattleSystem : MonoBehaviour
         }
 
         // Special Ability: 攻撃命中時効果（単体攻撃 = true）
-        SpecialAbilitySystem.OnAttackHit(AttackSide, target, damage, true);
+        SpecialAbilitySystem.OnAttackHit(Attacker, Target, damage, true);
 
         // ---- ML観測: プレイヤーの攻撃をMLシステムに記録 ----
-        if (AttackSide.team == Team.Player && turnGenerator.Systems.AICommander != null && AIConfig.IsMLEnabled)
+        if (Attacker.team == Team.Player && turnGenerator.Systems.AICommander != null && AIConfig.IsMLEnabled)
         {
             var ml = turnGenerator.Systems.AICommander.MLIntegration;
             Vector3 ecPos = turnGenerator.Systems.CrystalSystem.ECP;
-            ml.ObservePlayerAttack(AttackSide, target, damage, ecPos, turnGenerator.Context.Turn);
+            ml.ObservePlayerAttack(Attacker, Target, damage, ecPos, turnGenerator.Context.Turn);
 
             // クリスタルへの直接攻撃は別途記録
-            if (target.kind == Kind.Crystal && target.team == Team.Enemy)
-                ml.ObservePlayerCrystalAttack(damage, target.MaxHP, turnGenerator.Context.Turn);
+            if (Target.kind == Kind.Crystal && Target.team == Team.Enemy)
+                ml.ObservePlayerCrystalAttack(damage, Target.MaxHP, turnGenerator.Context.Turn);
         }
 
         // 反射処理
-        StatusEffectSystem.ProcessReflect(target, AttackSide);
+        StatusEffectSystem.ProcessReflect(Target, Attacker);
 
         CheckCrystalShield();
         CheckDeath();
@@ -111,17 +113,17 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private void CheckCrystalShield()
     {
-        if (target.kind != Kind.Crystal) return;
-        if (target.ShieldActivated) return;
-        if (target.MaxHP <= 0) return;
+        if (Target.kind != Kind.Crystal) return;
+        if (Target.ShieldActivated) return;
+        if (Target.MaxHP <= 0) return;
 
-        float hpRatio = (float)target.HP / target.MaxHP;
-        if (target.HP > 0 && hpRatio < GameConstants.CrystalShieldThreshold)
+        float hpRatio = (float)Target.HP / Target.MaxHP;
+        if (Target.HP > 0 && hpRatio < GameConstants.CrystalShieldThreshold)
         {
-            target.ShieldTurns = GameConstants.CrystalShieldDuration;
-            target.ShieldActivated = true;
-            Debug.Log($"[Battle] {target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！");
-            string teamLabel = target.team == Team.Player ? "味方" : "敵";
+            Target.ShieldTurns = GameConstants.CrystalShieldDuration;
+            Target.ShieldActivated = true;
+            Debug.Log($"[Battle] {Target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！");
+            string teamLabel = Target.team == Team.Player ? "味方" : "敵";
             ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{GameConstants.CrystalShieldDuration}ターン）",
                 ToastMessageUI.MessageType.Info, 4f);
         }
@@ -139,7 +141,6 @@ public class BattleSystem : MonoBehaviour
             {
                 s.ShieldTurns--;
                 Debug.Log($"[Battle] {s.team} クリスタルシールド残り {s.ShieldTurns} ターン");
-                // シールド終了時にフラグをリセット → 再度HP50%以下で再発動可能
                 if (s.ShieldTurns <= 0)
                 {
                     s.ShieldActivated = false;
@@ -154,17 +155,14 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private void ApplyDamage(int damage)
     {
-        damage = Mathf.Max(0, damage);
-        target.HP -= damage;
-        target.HP = Mathf.Max(0, target.HP);
-        Debug.Log($"[Battle] {AttackSide.kind} → {target.kind}  DMG:{damage}  残HP:{target.HP}");
+        damage = Target.ApplyDamage(damage);
+        Debug.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}");
 
-        // フローティングダメージ表示
-        bool isKill = target.HP <= 0;
+        bool isKill = !Target.IsAlive;
         if (damage > 0)
-            FloatingDamageUI.ShowDamage(target.transform.position, damage, isKill);
+            FloatingDamageUI.ShowDamage(Target.transform.position, damage, isKill);
         else
-            FloatingDamageUI.ShowMiss(target.transform.position);
+            FloatingDamageUI.ShowMiss(Target.transform.position);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -172,14 +170,13 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private void CheckDeath()
     {
-        if (target.HP > 0) return;
+        if (Target.HP > 0) return;
 
-        // Crystal か King のどちらかが倒れたら即ゲーム終了
-        if (target.kind == Kind.Crystal || target.kind == Kind.King)
+        if (Target.kind == Kind.Crystal || Target.kind == Kind.King)
         {
             HandleGameEnd();
         }
-        else if (target.type == Type.Unit)
+        else if (Target.type == Type.Unit)
         {
             HandleUnitDeath();
         }
@@ -190,35 +187,28 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private void HandleUnitDeath()
     {
-        if (target == null) return;
-        Debug.Log($"[Battle] {target.team} の {target.kind} が撃破された");
+        if (Target == null) return;
+        Debug.Log($"[Battle] {Target.team} の {Target.kind} が撃破された");
 
         if (turnGenerator.Systems.MoveGenerator != null)
         {
-            Vector3 cellPos = turnGenerator.Systems.MoveGenerator.Cell(target.transform.position);
-            turnGenerator.Systems.MoveGenerator.UnitPointData.Remove(cellPos);
+            Vector3 cellPos = turnGenerator.Systems.MoveGenerator.Cell(Target.transform.position);
+            turnGenerator.Systems.MoveGenerator.RemoveOccupied(cellPos);
         }
 
-        if (turnGenerator.Context.SelectUnit == target)
+        if (turnGenerator.Context.SelectUnit == Target)
         {
             turnGenerator.Context.SelectUnit = null;
         }
 
         // 死亡した駒の視界セルを探索済みに保存（半透明フォグとして残す）
-        if (target.VisionCell != null && target.VisionCell.Count > 0)
+        if (Target.VisionCell != null && Target.VisionCell.Count > 0)
         {
             var visionGen = turnGenerator.Systems.VisionGenerator;
-            if (target.team == Team.Player && visionGen.PlayerExploard != null)
-            {
-                visionGen.PlayerExploard.UnionWith(target.VisionCell);
-            }
-            else if (target.team == Team.Enemy && visionGen.EnemyExploard != null)
-            {
-                visionGen.EnemyExploard.UnionWith(target.VisionCell);
-            }
+            visionGen.AddExploredRange(Target.team, Target.VisionCell);
         }
 
-        target.gameObject.SetActive(false);
+        Target.gameObject.SetActive(false);
 
         turnGenerator.Systems.VisionGenerator.VisionPoint(
             turnGenerator.Systems.MapCreate,
@@ -234,15 +224,15 @@ public class BattleSystem : MonoBehaviour
     {
         GameResult result;
 
-        if (target.team == Team.Enemy)
+        if (Target.team == Team.Enemy)
         {
             result = GameResult.Win;
-            Debug.Log($"[Battle] 敵 {target.kind} 破壊 → 勝利！");
+            Debug.Log($"[Battle] 敵 {Target.kind} 破壊 → 勝利！");
         }
         else
         {
             result = GameResult.Lose;
-            Debug.Log($"[Battle] 自軍 {target.kind} 破壊 → 敗北…");
+            Debug.Log($"[Battle] 自軍 {Target.kind} 破壊 → 敗北…");
         }
 
         turnGenerator.ChangeState(new GameEndState(turnGenerator, result));

@@ -10,14 +10,14 @@ public class PlayerMove : TurnState
         Skill
     }
 
-    public AttackMode attackmode;
-    public bool MenuSwitch;
-    public Status Obj;
-    public Vector3 ObjP;
-    public Status MP;
-    public RaycastHit hit;
-    public Vector3 oldcell;
-    public Vector3 newcell;
+    public AttackMode AttackMode { get; set; }
+    public bool MenuSwitch { get; set; }
+    public Status SelectedUnit { get; set; }
+    public Vector3 SelectedUnitPosition { get; set; }
+    public Status ClickedUnit { get; set; }
+    public RaycastHit LastHit { get; set; }
+    private Vector3 oldcell;
+    private Vector3 newcell;
 
     /// <summary>建築モード中かどうか</summary>
     public bool BuildMode => Systems.BuildSystem != null && Systems.BuildSystem.IsActive;
@@ -34,7 +34,7 @@ public class PlayerMove : TurnState
     public override void Entry()
     {
         Systems.UnitClick.UC(this, Turn, Systems.AttackGenerator);
-        attackmode = AttackMode.None;
+        AttackMode = AttackMode.None;
 
         // タイマーのコールバック接続
         if (Systems.TimerSystem != null && !timerWired)
@@ -106,8 +106,8 @@ public class PlayerMove : TurnState
     public void Reset()
     {
         Context.SelectUnit = null;
-        Obj = null;
-        MP = null;
+        SelectedUnit = null;
+        ClickedUnit = null;
         MenuSwitch = false;
         if (Systems.BuildSystem != null && Systems.BuildSystem.IsActive)
             Systems.BuildSystem.CancelBuildMode();
@@ -207,22 +207,7 @@ public class PlayerMove : TurnState
         if (Systems.TimerSystem != null)
             Systems.TimerSystem.StopTurn();
 
-        Systems.MoveGenerator.MoveReset();
-        RefreshVision();
-        Reset();
-
-        if (Systems.UnitPanelUI != null)
-            Systems.UnitPanelUI.Hide();
-
-        SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.PlayerUnit);
-
-        if (Systems.EconomySystem != null)
-            Systems.EconomySystem.ProcessTurn(Team.Player);
-
-        if (Systems.BuildingAttackSystem != null)
-            Systems.BuildingAttackSystem.ProcessAttacks(Team.Player);
-
-        Turn.ChangeState(new EnemyStart(Turn));
+        ExecuteTurnEnd();
     }
 
     // ---- 攻撃モード選択 ----
@@ -240,9 +225,9 @@ public class PlayerMove : TurnState
     private void StartAttack(AttackMode mode)
     {
         Systems.MoveGenerator.MoveReset();
-        MP = null;
-        attackmode = mode;
-        Turn.ChangeState(new PlayerAttack(Turn, this, attackmode));
+        ClickedUnit = null;
+        AttackMode = mode;
+        Turn.ChangeState(new PlayerAttack(Turn, this, AttackMode));
     }
 
     // ---- タイマー自動ターン終了 ----
@@ -261,6 +246,11 @@ public class PlayerMove : TurnState
     }
 
     private void ForceEndTurn()
+    {
+        ExecuteTurnEnd();
+    }
+
+    private void ExecuteTurnEnd()
     {
         Systems.MoveGenerator.MoveReset();
         RefreshVision();
@@ -320,9 +310,9 @@ public class PlayerMove : TurnState
         Status next = units[unitCycleIndex];
 
         Systems.MoveGenerator.MoveReset();
-        Obj = next;
-        ObjP = next.transform.position;
-        Systems.MoveGenerator.MoveCore(next, ObjP);
+        SelectedUnit = next;
+        SelectedUnitPosition = next.transform.position;
+        Systems.MoveGenerator.MoveCore(next, SelectedUnitPosition);
         Context.SelectUnit = next;
         Context.OldCell = next.transform.position;
         MenuSwitch = true;

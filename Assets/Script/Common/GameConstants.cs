@@ -145,12 +145,22 @@ public static class GameConstants
     public const int InitialSubCrystals = 2;
 
     // =====================================================================
-    //  Raycast
+    //  Raycast / Vision
     // =====================================================================
     /// <summary>ユニット選択等の最大レイ距離</summary>
     public const float DefaultRayDistance = 100f;
     /// <summary>MovePoint検出用の最大レイ距離</summary>
     public const float MovePointRayDistance = 50f;
+    /// <summary>視界Raycastの高さオフセット（タイル中心からの上方向）</summary>
+    public const float VisionRayHeightOffset = 0.5f;
+
+    // =====================================================================
+    //  タイマー
+    // =====================================================================
+    /// <summary>ターン残り時間の警告閾値（秒）</summary>
+    public const float TimerWarningThreshold = 30f;
+    /// <summary>ターン残り時間の危険閾値（秒）</summary>
+    public const float TimerCriticalThreshold = 10f;
 
     // =====================================================================
     //  カメラ

@@ -17,8 +17,8 @@ public class BuildingAttackSystem : MonoBehaviour
     private CrystalSystem crystalSystem;
     private SubCrystalSystem subCrystalSystem;
 
-    // 現在の攻撃チームの視界データ（ProcessAttacks で設定）
-    private HashSet<Vector3Int> _currentVision;
+    // 現在の攻撃チーム（ProcessAttacks で設定）
+    private Team _currentAttackTeam;
     private Team _currentEnemyTeam;
 
     public void Init(BuildSystem buildSystem, MoveGenerator moveGererater,
@@ -65,10 +65,8 @@ public class BuildingAttackSystem : MonoBehaviour
         Transform buildingParent = buildSystem.GetBuildingParent(team);
         if (buildingParent == null) return;
 
-        // 視界データ取得（自チームの視界内のみ攻撃可能）
-        _currentVision = (team == Team.Player)
-            ? visionGenerater?.PlayerVisionBox
-            : visionGenerater?.EnemyVisionBox;
+        // 攻撃チーム記録（自チームの視界内のみ攻撃可能）
+        _currentAttackTeam = team;
 
         // 敵チーム判定
         _currentEnemyTeam = (team == Team.Player) ? Team.Enemy : Team.Player;
@@ -168,10 +166,10 @@ public class BuildingAttackSystem : MonoBehaviour
     private Status FindEnemyAtCell(Vector3 cellPos, Team enemyTeam)
     {
         // 視界外のセルは攻撃対象にしない
-        if (_currentVision != null)
+        if (visionGenerater != null)
         {
             var cellKey = GridHelper.ToGridXZ(cellPos);
-            if (!_currentVision.Contains(cellKey)) return null;
+            if (!visionGenerater.IsInVision(_currentAttackTeam, cellKey)) return null;
         }
 
         int cx = Mathf.RoundToInt(cellPos.x);
@@ -237,15 +235,13 @@ public class BuildingAttackSystem : MonoBehaviour
             return;
         }
 
-        int damage = Mathf.Max(0, attacker.ATK - target.DEF);
-        target.HP -= damage;
-        target.HP = Mathf.Max(0, target.HP);
+        int damage = target.ApplyDamage(Mathf.Max(0, attacker.ATK - target.DEF));
 
         string attackerName = FacilityData.Table.TryGetValue(attacker.facilityKind, out var info)
             ? info.DisplayName : attacker.facilityKind.ToString();
         Debug.Log($"[BuildingAttack] {attackerName} → {target.kind} ({target.team})  DMG:{damage}  残HP:{target.HP}");
 
-        if (target.HP <= 0)
+        if (!target.IsAlive)
             HandleTargetDeath(target);
     }
 
@@ -264,7 +260,7 @@ public class BuildingAttackSystem : MonoBehaviour
         else
         {
             Vector3 cellPos = moveGererater.Cell(target.transform.position);
-            moveGererater.UnitPointData.Remove(cellPos);
+            moveGererater.RemoveOccupied(cellPos);
             target.gameObject.SetActive(false);
         }
 

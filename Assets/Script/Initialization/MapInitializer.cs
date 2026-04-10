@@ -29,11 +29,11 @@ public static class MapInitializer
         // マップ生成
         if (loadData != null && (loadData.MapSeedX != 0f || loadData.MapSeedZ != 0f))
         {
-            mapCreate.noisegenerater(loadData.MapSeedX, loadData.MapSeedZ);
+            mapCreate.GenerateNoise(loadData.MapSeedX, loadData.MapSeedZ);
         }
         else
         {
-            mapCreate.noisegenerater();
+            mapCreate.GenerateNoise();
         }
         mapCreate.BuildTop();
 

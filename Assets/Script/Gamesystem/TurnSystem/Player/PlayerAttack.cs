@@ -17,7 +17,7 @@ public class PlayerAttack : TurnState
 
     public override void Entry()
     {
-        Systems.AttackGenerator.AttackPointCall(move.Obj, move.ObjP, move);
+        Systems.AttackGenerator.AttackPointCall(move.SelectedUnit, move.SelectedUnitPosition, move);
         AttackSuccess = false;
 
         if (Systems.DamagePreviewUI != null)
@@ -55,10 +55,9 @@ public class PlayerAttack : TurnState
 
     public void Reset()
     {
-        Systems.AttackGenerator.obj = null;
-        Systems.UnitClick.ATKC = null;
-        Systems.BattleSystem.target = null;
-        Systems.BattleSystem.AttackSide = null;
+        Systems.AttackGenerator.TargetUnit = null;
+        Systems.UnitClick.AttackTarget = null;
+        Systems.BattleSystem.SetTarget(null);
         AttackSuccess = false;
         Systems.AttackGenerator.AtkpDestroy();
     }
@@ -75,11 +74,11 @@ public class PlayerAttack : TurnState
 
         // スキルモードで自身対象スキルの場合は即実行
         if (attackmode == PlayerMove.AttackMode.Skill
-            && move.Obj != null
-            && move.Obj.AssignedSkillId >= 0
-            && SkillData.Table.ContainsKey(move.Obj.AssignedSkillId))
+            && move.SelectedUnit != null
+            && move.SelectedUnit.AssignedSkillId >= 0
+            && SkillData.Table.ContainsKey(move.SelectedUnit.AssignedSkillId))
         {
-            SkillData skill = SkillData.Table[move.Obj.AssignedSkillId];
+            SkillData skill = SkillData.Table[move.SelectedUnit.AssignedSkillId];
             if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
             {
                 if (Systems.APSystem.GetAP(Team.Player) < skill.APCost)
@@ -89,11 +88,11 @@ public class PlayerAttack : TurnState
                 }
 
                 if (skill.Target == SkillTarget.SelfArea)
-                    ExecuteSelfAreaSkill(move.Obj, skill);
+                    ExecuteSelfAreaSkill(move.SelectedUnit, skill);
                 else
-                    Systems.SkillSystem.ExecuteSkill(move.Obj, move.Obj, skill);
+                    Systems.SkillSystem.ExecuteSkill(move.SelectedUnit, move.SelectedUnit, skill);
 
-                Systems.APSystem.ConsumeSkill(Team.Player, skill.APCost, move.Obj);
+                Systems.APSystem.ConsumeSkill(Team.Player, skill.APCost, move.SelectedUnit);
                 AttackSuccess = true;
                 return;
             }

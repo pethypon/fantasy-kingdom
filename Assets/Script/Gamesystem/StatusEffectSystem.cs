@@ -142,15 +142,13 @@ public static class StatusEffectSystem
             var e = target.ActiveEffects[i];
             if (e.debuffType == StatusEffectType.Poison)
             {
-                int dmg = 8;
-                target.HP = Mathf.Max(0, target.HP - dmg);
-                Debug.Log($"[StatusEffect] {target.kind} が毒で {dmg} ダメージ (残HP:{target.HP})");
+                target.ApplyDamage(GameConstants.PoisonDamagePerTurn);
+                Debug.Log($"[StatusEffect] {target.kind} が毒で {GameConstants.PoisonDamagePerTurn} ダメージ (残HP:{target.HP})");
             }
             else if (e.debuffType == StatusEffectType.Bleed)
             {
-                int dmg = 6;
-                target.HP = Mathf.Max(0, target.HP - dmg);
-                Debug.Log($"[StatusEffect] {target.kind} が出血で {dmg} ダメージ (残HP:{target.HP})");
+                target.ApplyDamage(GameConstants.BleedDamagePerTurn);
+                Debug.Log($"[StatusEffect] {target.kind} が出血で {GameConstants.BleedDamagePerTurn} ダメージ (残HP:{target.HP})");
             }
         }
 
@@ -293,7 +291,7 @@ public static class StatusEffectSystem
     {
         if (!HasBuff(target, BuffType.Reflect)) return 0;
         int reflectDmg = Random.Range(5, 11); // 5〜10
-        attacker.HP = Mathf.Max(0, attacker.HP - reflectDmg);
+        attacker.ApplyDamage(reflectDmg);
         Debug.Log($"[StatusEffect] {target.kind} の反射で {attacker.kind} に {reflectDmg} ダメージ");
         return reflectDmg;
     }

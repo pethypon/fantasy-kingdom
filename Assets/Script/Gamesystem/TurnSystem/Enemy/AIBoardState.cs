@@ -274,7 +274,7 @@ public class AIBoardState
         var unitPos = unit.transform.position;
         var result = new List<Vector3>();
         _moveGen.MoveCore(unit, unitPos);
-        result.AddRange(_moveGen.MoveUnitP);
+        result.AddRange(_moveGen.MovePositions);
         _moveGen.MoveReset();
         return result;
     }

@@ -8,10 +8,7 @@ public class AttackGenerator : MonoBehaviour
     public List<Vector3> AttackP;
     public List<Vector3> setpos;
 
-    [Header("ユニット座標")]
-    public HashSet<Vector3> unitdata;
-
-    public Status obj;
+    public Status TargetUnit;
     public Vector3 objp;
     public Vector3 attackpos;
     public RaycastHit targethit;
@@ -36,7 +33,7 @@ public class AttackGenerator : MonoBehaviour
     {
         this.move = move;
         setpos = mapcreate.SetPos;
-        attackmode = move.attackmode;
+        attackmode = move.AttackMode;
 
         switch (attackmode)
         {
@@ -89,18 +86,17 @@ public class AttackGenerator : MonoBehaviour
     public void SkillAttackPData(Status Obj, Vector3 ObjP)
     {
         AttackP?.Clear();
-        obj = Obj;
+        TargetUnit = Obj;
         objp = ObjP;
 
-        if (obj.AssignedSkillId < 0 || !SkillData.Table.ContainsKey(obj.AssignedSkillId))
+        if (TargetUnit.AssignedSkillId < 0 || !SkillData.Table.ContainsKey(TargetUnit.AssignedSkillId))
         {
             Debug.Log("[AttackGenerator] スキル未割り当て");
             return;
         }
 
-        SkillData skill = SkillData.Table[obj.AssignedSkillId];
+        SkillData skill = SkillData.Table[TargetUnit.AssignedSkillId];
         moveGenerator.UnitPointCore();
-        unitdata = moveGenerator.UnitPointData;
 
         // Self / SelfArea → 自分の位置のみ
         if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
@@ -110,7 +106,7 @@ public class AttackGenerator : MonoBehaviour
         }
 
         // 方向係数（南向きなら Z 反転）
-        int dirZ = MovePatterns.DirZ(obj.direction);
+        int dirZ = MovePatterns.DirZ(TargetUnit.direction);
 
         // 攻撃位置座標の決定（共有パターンを使用）
         Vector2Int[] offsets = null;
@@ -119,20 +115,20 @@ public class AttackGenerator : MonoBehaviour
         {
             offsets = AttackPatterns.SkillFixedPositions[skill.Id];
         }
-        else if (AttackPatterns.SkillAttackPositions.ContainsKey(obj.kind))
+        else if (AttackPatterns.SkillAttackPositions.ContainsKey(TargetUnit.kind))
         {
-            offsets = AttackPatterns.SkillAttackPositions[obj.kind];
+            offsets = AttackPatterns.SkillAttackPositions[TargetUnit.kind];
         }
 
         if (offsets == null)
         {
-            Debug.Log($"[AttackGenerator] Kind '{obj.kind}' / Skill '{skill.Name}' の攻撃位置は未定義です");
+            Debug.Log($"[AttackGenerator] Kind '{TargetUnit.kind}' / Skill '{skill.Name}' の攻撃位置は未定義です");
             return;
         }
 
         AttackP = new List<Vector3>();
         Vector3 ownCell = moveGenerator.Cell(objp);
-        Vector3 pcpCell = moveGenerator.Cell(moveGenerator.pcp);
+        Vector3 pcpCell = moveGenerator.Cell(moveGenerator.PlayerCrystalPos);
 
         foreach (Vector2Int off in offsets)
         {
@@ -154,12 +150,12 @@ public class AttackGenerator : MonoBehaviour
                     case SkillTarget.EnemyOrBuilding:
                     case SkillTarget.LowHPEnemy:
                     case SkillTarget.FlyingEnemy:
-                        if (unitdata.Contains(cell) && cell != ownCell && cell != pcpCell)
+                        if (moveGenerator.IsOccupied(cell) && cell != ownCell && cell != pcpCell)
                             AttackP.Add(p);
                         break;
 
                     case SkillTarget.AllySingle:
-                        if (unitdata.Contains(cell) && cell != ownCell)
+                        if (moveGenerator.IsOccupied(cell) && cell != ownCell)
                             AttackP.Add(p);
                         break;
 
@@ -171,7 +167,7 @@ public class AttackGenerator : MonoBehaviour
                         break;
 
                     default:
-                        if (unitdata.Contains(cell) && cell != ownCell && cell != pcpCell)
+                        if (moveGenerator.IsOccupied(cell) && cell != ownCell && cell != pcpCell)
                             AttackP.Add(p);
                         break;
                 }
@@ -184,21 +180,20 @@ public class AttackGenerator : MonoBehaviour
     public void NormalAttackPData(Status Obj, Vector3 ObjP)
     {
         AttackP?.Clear();
-        obj = Obj;
+        TargetUnit = Obj;
         objp = ObjP;
         moveGenerator.UnitPointCore();
-        unitdata = moveGenerator.UnitPointData;
 
-        if (!AttackPatterns.NormalMap.TryGetValue(obj.kind, out Func<float, float, bool> predicate))
+        if (!AttackPatterns.NormalMap.TryGetValue(TargetUnit.kind, out Func<float, float, bool> predicate))
         {
-            Debug.Log($"[AttackGenerator] Kind '{obj.kind}' の攻撃パターンは未定義です");
+            Debug.Log($"[AttackGenerator] Kind '{TargetUnit.kind}' の攻撃パターンは未定義です");
             return;
         }
 
         Vector3 ownCell = moveGenerator.Cell(objp);
-        Vector3 pcpCell = moveGenerator.Cell(moveGenerator.pcp);
-        bool dirIndependent = AttackPatterns.DirectionIndependent.Contains(obj.kind);
-        int dirZ = MovePatterns.DirZ(obj.direction);
+        Vector3 pcpCell = moveGenerator.Cell(moveGenerator.PlayerCrystalPos);
+        bool dirIndependent = AttackPatterns.DirectionIndependent.Contains(TargetUnit.kind);
+        int dirZ = MovePatterns.DirZ(TargetUnit.direction);
 
         AttackP = new List<Vector3>();
         for (int i = 0, count = setpos.Count; i < count; i++)
@@ -210,7 +205,7 @@ public class AttackGenerator : MonoBehaviour
             float checkDz = dirIndependent ? dz : dz * dirZ;
 
             Vector3 cell = moveGenerator.Cell(p);
-            if (!unitdata.Contains(cell)) continue;
+            if (!moveGenerator.IsOccupied(cell)) continue;
             if (cell == ownCell || cell == pcpCell) continue;
             if (!predicate(dx, checkDz)) continue;
 

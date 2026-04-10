@@ -122,7 +122,7 @@ public static class AIBoardQuery
             float maxRange = EstimateAttackRange(pu) + 1.5f; // 移動+攻撃マージン
             float sqrThreshold = maxRange * maxRange;
             if ((pos - pu.transform.position).sqrMagnitude > sqrThreshold) continue;
-            int dmg = Mathf.Max(0, 1 + (pu.ATK / 6) + ((pu.ATK / 2) - (self.DEF / 4)));
+            int dmg = DamageCalculator.EstimateBaseDamage(pu.ATK, self.DEF);
             totalDmg += dmg;
         }
         return totalDmg;
@@ -149,7 +149,7 @@ public static class AIBoardQuery
     /// <summary>未探索方向の概算ベクトル（自陣クリスタルから見て未探索が多い方向）</summary>
     public static Vector3 GetUnexploredDirection(AIBoardState board, VisionGenerator visionGen)
     {
-        if (visionGen == null || visionGen.EnemyExploard == null)
+        if (visionGen == null || visionGen.EnemyExplored == null)
             return Vector3.forward;
 
         Vector3 center = board.EnemyCrystalPos;
@@ -170,7 +170,7 @@ public static class AIBoardQuery
             {
                 var checkPos = center + dir * step;
                 var cell = GridHelper.ToGridXZ(checkPos);
-                if (!visionGen.EnemyExploard.Contains(cell))
+                if (!visionGen.IsExplored(Team.Enemy, cell))
                     unexplored++;
             }
             if (unexplored > bestScore)
@@ -189,7 +189,7 @@ public static class AIBoardQuery
     /// </summary>
     public static int EstimateNewVisionCells(VisionGenerator visionGen, Vector3 pos)
     {
-        if (visionGen == null || visionGen.EnemyExploard == null) return 0;
+        if (visionGen == null || visionGen.EnemyExplored == null) return 0;
 
         int newCells = 0;
         var c = GridHelper.ToGridXZ(pos);
@@ -201,7 +201,7 @@ public static class AIBoardQuery
             for (int dz = -2; dz <= 2; dz++)
             {
                 var cell = new Vector3Int(cx + dx, 0, cz + dz);
-                if (!visionGen.EnemyExploard.Contains(cell))
+                if (!visionGen.IsExplored(Team.Enemy, cell))
                     newCells++;
             }
         }
@@ -211,10 +211,10 @@ public static class AIBoardQuery
     /// <summary>探索済み面積の割合（0～1）</summary>
     public static float GetExplorationRatio(VisionGenerator visionGen, MapCreate mapCreate)
     {
-        if (visionGen == null || visionGen.EnemyExploard == null || mapCreate == null) return 1f;
+        if (visionGen == null || visionGen.EnemyExplored == null || mapCreate == null) return 1f;
         int totalTiles = mapCreate.SetPos.Count;
         if (totalTiles == 0) return 1f;
-        return (float)visionGen.EnemyExploard.Count / totalTiles;
+        return (float)visionGen.EnemyExplored.Count / totalTiles;
     }
 
     /// <summary>Playerクリスタル座標を「確定目標」として使ってよいか</summary>

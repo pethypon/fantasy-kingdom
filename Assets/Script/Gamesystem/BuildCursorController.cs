@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 // =====================================================================
-//  BuildCursorController — 建築モードのカーソル描画・追従・可視制御
+//  BuildCursorController — 配置モードの汎用カーソル描画・追従・可視制御
 //
-//  BuildSystem からカーソル関連のロジックを分離。
+//  BuildSystem / SummonSystem から共用される。
 //  カーソルの生成/破棄、マウスRay取得、半透明マテリアル管理を担当する。
 // =====================================================================
 public class BuildCursorController
@@ -18,9 +18,14 @@ public class BuildCursorController
     bool _visible;
     Vector3Int _lastPos;
 
-    // ---- 色定義（BrandGuide に一元化） ----
-    static Color ColorValid   => BrandGuide.CursorBuildValid;
-    static Color ColorInvalid => BrandGuide.CursorBuildInvalid;
+    // ---- 色定義 ----
+    readonly Color _colorValid;
+    readonly Color _colorInvalid;
+
+    // ---- 形状設定 ----
+    readonly PrimitiveType _shape;
+    readonly Vector3 _scale;
+    readonly string _name;
 
     // ---- Raycast ----
     readonly int _blockLayerMask;
@@ -28,8 +33,20 @@ public class BuildCursorController
     public Vector3Int LastPosition => _lastPos;
     public bool IsVisible => _visible;
 
+    /// <summary>建築カーソル用のデフォルトコンストラクタ</summary>
     public BuildCursorController()
+        : this(PrimitiveType.Cube, new Vector3(0.95f, 0.95f, 0.95f), "BuildCursor",
+               BrandGuide.CursorBuildValid, BrandGuide.CursorBuildInvalid) { }
+
+    /// <summary>汎用コンストラクタ（形状・スケール・色を指定）</summary>
+    public BuildCursorController(PrimitiveType shape, Vector3 scale, string name,
+                                  Color colorValid, Color colorInvalid)
     {
+        _shape = shape;
+        _scale = scale;
+        _name = name;
+        _colorValid = colorValid;
+        _colorInvalid = colorInvalid;
         _blockLayerMask = LayerMask.GetMask("Block");
     }
 
@@ -40,26 +57,15 @@ public class BuildCursorController
     {
         Destroy();
 
-        _cursorObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        _cursorObj.name = "BuildCursor";
-        _cursorObj.transform.localScale = new Vector3(0.95f, 0.95f, 0.95f);
+        _cursorObj = GameObject.CreatePrimitive(_shape);
+        _cursorObj.name = _name;
+        _cursorObj.transform.localScale = _scale;
 
-        // コライダーを無効化（Raycast に干渉しないように）
         var col = _cursorObj.GetComponent<Collider>();
         if (col != null) col.enabled = false;
 
-        // 半透明マテリアル
         _cursorRenderer = _cursorObj.GetComponent<Renderer>();
-        _cursorMaterial = new Material(Shader.Find("Standard"));
-        _cursorMaterial.SetFloat("_Mode", 3); // Transparent
-        _cursorMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        _cursorMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        _cursorMaterial.SetInt("_ZWrite", 0);
-        _cursorMaterial.DisableKeyword("_ALPHATEST_ON");
-        _cursorMaterial.EnableKeyword("_ALPHABLEND_ON");
-        _cursorMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        _cursorMaterial.renderQueue = 3000;
-        _cursorMaterial.color = ColorValid;
+        _cursorMaterial = CreateTransparentMaterial(_colorValid);
         _cursorRenderer.material = _cursorMaterial;
 
         SetVisible(false);
@@ -105,7 +111,7 @@ public class BuildCursorController
         if (_cursorObj == null) return false;
 
         if (!TryGetMouseRay(out Ray ray)) return false;
-        if (!Physics.Raycast(ray, out RaycastHit hit, 100f, _blockLayerMask)) return false;
+        if (!Physics.Raycast(ray, out RaycastHit hit, GameConstants.DefaultRayDistance, _blockLayerMask)) return false;
 
         gridPos = new Vector3Int(
             Mathf.RoundToInt(hit.point.x),
@@ -123,14 +129,32 @@ public class BuildCursorController
         {
             _cursorObj.transform.position = new Vector3(pos.x, pos.y, pos.z);
             SetVisible(true);
-            _cursorMaterial.color = canPlace ? ColorValid : ColorInvalid;
+            _cursorMaterial.color = canPlace ? _colorValid : _colorInvalid;
         }
+    }
+
+    // ================================================================
+    //  内部: 半透明マテリアル生成
+    // ================================================================
+    static Material CreateTransparentMaterial(Color color)
+    {
+        var mat = new Material(Shader.Find("Standard"));
+        mat.SetFloat("_Mode", 3); // Transparent
+        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetInt("_ZWrite", 0);
+        mat.DisableKeyword("_ALPHATEST_ON");
+        mat.EnableKeyword("_ALPHABLEND_ON");
+        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        mat.renderQueue = 3000;
+        mat.color = color;
+        return mat;
     }
 
     // ================================================================
     //  内部: マウス Ray 取得
     // ================================================================
-    bool TryGetMouseRay(out Ray ray)
+    static bool TryGetMouseRay(out Ray ray)
     {
         ray = default;
         if (Mouse.current == null) return false;

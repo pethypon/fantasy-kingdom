@@ -461,7 +461,7 @@ public class AISearchEngine
     static int EstimateDamage(Status attacker, Status defender)
     {
         if (attacker == null || defender == null) return 0;
-        return Mathf.Max(0, 1 + (attacker.ATK / 6) + ((attacker.ATK / 2) - (defender.DEF / 4)));
+        return DamageCalculator.EstimateBaseDamage(attacker.ATK, defender.DEF);
     }
 
     static float GetPieceValue(Status unit)

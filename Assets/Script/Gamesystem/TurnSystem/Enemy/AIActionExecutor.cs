@@ -138,11 +138,11 @@ public class AIActionExecutor
 
         var prevSelect = _turnGen.Context.SelectUnit;
         _turnGen.Context.SelectUnit = unit;
-        _battleSystem.target = target;
+        _battleSystem.SetTarget(target);
 
         int hpBefore = target.HP;
         board.ConsumeAttack(unit);
-        _battleSystem.DamageGenerater(_turnGen);
+        _battleSystem.ProcessDamage(_turnGen);
 
         int hpAfter = target.HP;
         bool killed = hpAfter <= 0;
@@ -175,7 +175,7 @@ public class AIActionExecutor
         else
         {
             int dmgDealt = hpBefore - hpAfter;
-            int expectedDmg = Mathf.Max(0, 1 + (unit.ATK / 6) + ((unit.ATK / 2) - (target.DEF / 4)));
+            int expectedDmg = DamageCalculator.EstimateBaseDamage(unit.ATK, target.DEF);
             if (dmgDealt < expectedDmg * 0.5f)
                 _learning.RecordFrontalFailure(target.transform.position);
         }

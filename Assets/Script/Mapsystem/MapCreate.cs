@@ -57,7 +57,7 @@ public class MapCreate : MonoBehaviour
     }
 
     // ==== ノイズ生成 ====
-    public void noisegenerater()
+    public void GenerateNoise()
     {
         seedx = Random.Range(0f, 1_000_000f);
         seedz = Random.Range(0f, 1_000_000f);
@@ -65,7 +65,7 @@ public class MapCreate : MonoBehaviour
     }
 
     /// <summary>保存されたシードからノイズを再生成する</summary>
-    public void noisegenerater(float savedSeedX, float savedSeedZ)
+    public void GenerateNoise(float savedSeedX, float savedSeedZ)
     {
         seedx = savedSeedX;
         seedz = savedSeedZ;

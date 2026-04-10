@@ -428,8 +428,7 @@ public class AIThreatLevel
 
             if (action.ActionType == AIActionType.Attack && action.TargetUnit != null)
             {
-                int dmg = Mathf.Max(0, 1 + (action.Unit.ATK / 6) +
-                    ((action.Unit.ATK / 2) - (action.TargetUnit.DEF / 4)));
+                int dmg = DamageCalculator.EstimateBaseDamage(action.Unit.ATK, action.TargetUnit.DEF);
                 if (dmg >= action.TargetUnit.HP)
                     bonus += LearnedAggressionBias * 10f;
             }

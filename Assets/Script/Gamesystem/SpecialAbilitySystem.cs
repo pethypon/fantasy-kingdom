@@ -410,6 +410,19 @@ public static class SpecialAbilitySystem
     {
         Vector3Int tCell = GridHelper.ToGrid(target.transform.position);
 
+        if (UnitRegistry.Instance != null)
+        {
+            var allies = UnitRegistry.Instance.GetActiveUnits(target.team);
+            foreach (Status s in allies)
+            {
+                if (s == target) continue;
+                if (s.specialAbility != ability) continue;
+                if (GridHelper.IsWithinRange(tCell, GridHelper.ToGrid(s.transform.position), 1))
+                    return true;
+            }
+            return false;
+        }
+
         Status[] allStatuses = Object.FindObjectsByType<Status>(FindObjectsSortMode.None);
         foreach (Status s in allStatuses)
         {
@@ -427,6 +440,18 @@ public static class SpecialAbilitySystem
     private static bool HasBattlefieldDominationFrom(Status attacker, Status target)
     {
         Vector3Int targetCell = GridHelper.ToGrid(target.transform.position);
+
+        if (UnitRegistry.Instance != null)
+        {
+            var allies = UnitRegistry.Instance.GetActiveUnits(attacker.team);
+            foreach (Status s in allies)
+            {
+                if (s.specialAbility != SpecialAbility.BattlefieldDomination) continue;
+                if (s.VisionCell != null && s.VisionCell.Contains(targetCell))
+                    return true;
+            }
+            return false;
+        }
 
         Status[] allStatuses = Object.FindObjectsByType<Status>(FindObjectsSortMode.None);
         foreach (Status s in allStatuses)
