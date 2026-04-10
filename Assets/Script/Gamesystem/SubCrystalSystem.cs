@@ -211,7 +211,7 @@ public class SubCrystalSystem : MonoBehaviour
         // 壁の場合は UnitPointData から除去
         if (FacilityData.IsWall(target.facilityKind))
         {
-            moveGenerator.UnitPointData.RemoveWhere(p =>
+            moveGenerator.RemoveOccupiedWhere(p =>
                 Mathf.RoundToInt(p.x) == posInt.x &&
                 Mathf.RoundToInt(p.y) == posInt.y &&
                 Mathf.RoundToInt(p.z) == posInt.z);
@@ -261,15 +261,8 @@ public class SubCrystalSystem : MonoBehaviour
     /// <summary>指定座標がチームの視界内にあるかを判定する</summary>
     private bool IsInTeamVision(Vector3Int pos, Team team)
     {
-        var visionBox = team == Team.Player ? visionGenerator.PlayerVisionBox : visionGenerator.EnemyVisionBox;
-        if (visionBox == null) return false;
-
-        // VisionBox は Y 付きで格納されているため、XZ 一致で検索
-        foreach (var v in visionBox)
-        {
-            if (v.x == pos.x && v.z == pos.z) return true;
-        }
-        return false;
+        if (visionGenerator == null) return false;
+        return visionGenerator.IsInVision(team, pos);
     }
 
     /// <summary>指定座標がクリスタル位置かどうかを判定する</summary>

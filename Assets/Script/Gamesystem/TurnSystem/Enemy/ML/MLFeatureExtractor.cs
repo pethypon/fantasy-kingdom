@@ -381,16 +381,14 @@ public static class MLFeatureExtractor
     static float EstimatedDamageRatio(AIAction action)
     {
         if (action.Unit == null || action.TargetUnit == null) return 0f;
-        int dmg = Mathf.Max(0, 1 + (action.Unit.ATK / 6) +
-            ((action.Unit.ATK / 2) - (action.TargetUnit.DEF / 4)));
+        int dmg = DamageCalculator.EstimateBaseDamage(action.Unit.ATK, action.TargetUnit.DEF);
         return Normalize(dmg, 0, action.TargetUnit.MaxHP);
     }
 
     static bool CanKillTarget(AIAction action)
     {
         if (action.Unit == null || action.TargetUnit == null) return false;
-        int dmg = Mathf.Max(0, 1 + (action.Unit.ATK / 6) +
-            ((action.Unit.ATK / 2) - (action.TargetUnit.DEF / 4)));
+        int dmg = DamageCalculator.EstimateBaseDamage(action.Unit.ATK, action.TargetUnit.DEF);
         return dmg >= action.TargetUnit.HP;
     }
 

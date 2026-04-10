@@ -156,6 +156,15 @@ public static class DamageCalculator
     }
 
     /// <summary>
+    /// ステータス修飾なしの基礎ダメージ（int）を計算する。
+    /// AI の簡易見積り用。式: max(0, 1 + ATK/6 + (ATK/2 - DEF/4))
+    /// </summary>
+    public static int EstimateBaseDamage(int atk, int def)
+    {
+        return Mathf.Max(0, Mathf.RoundToInt(CalcRawBase(atk, def)));
+    }
+
+    /// <summary>
     /// AI シミュレーション用: float値からダメージを計算する。
     /// </summary>
     public static int CalcFromValues(float atk, float def, float incomingMod)

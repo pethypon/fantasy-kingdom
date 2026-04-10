@@ -511,8 +511,7 @@ public class MLIntegration
             case AIActionType.Attack:
                 if (action.Unit != null && action.TargetUnit != null)
                 {
-                    int dmg = Mathf.Max(0, 1 + (action.Unit.ATK / 6) +
-                        ((action.Unit.ATK / 2) - (action.TargetUnit.DEF / 4)));
+                    int dmg = DamageCalculator.EstimateBaseDamage(action.Unit.ATK, action.TargetUnit.DEF);
                     reward += Mathf.Clamp(dmg * 0.03f, 0f, 0.4f);
                     if (dmg >= action.TargetUnit.HP) reward += 0.4f; // キル報酬を強化
                 }

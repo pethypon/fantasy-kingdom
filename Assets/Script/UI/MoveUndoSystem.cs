@@ -68,8 +68,8 @@ public class MoveUndoSystem
         // 選択状態をリセット
         turnGen.Context.SelectUnit = null;
         playerMove.MenuSwitch = false;
-        playerMove.Obj = null;
-        playerMove.MP = null;
+        playerMove.SelectedUnit = null;
+        playerMove.ClickedUnit = null;
 
         // 視界再計算
         visionGen.VisionPoint(mapCreate, _moveGen, crystalSystem);

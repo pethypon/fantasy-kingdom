@@ -24,25 +24,8 @@ public class EnemyStart : TurnState
         // 敵ターンバナー表示
         EnemyTurnBannerUI.Show();
 
-        // クリスタルシールドのターン経過（敵陣営）
-        BattleSystem.TickCrystalShields(Systems.CrystalSystem.Enemycrystal);
-
-        // 状態異常ティック
-        StatusEffectSystem.TickAllUnits(Systems.UnitSetting.EnemyUnit);
-
-        // Special Ability: ターン開始時処理
-        SpecialAbilitySystem.OnTurnStart(Systems.UnitSetting.EnemyUnit);
-
-        Systems.APSystem.ResetAP(Team.Enemy);
-        Systems.APSystem.ResetFatigue(Systems.UnitSetting.EnemyUnit);
-
-        // サブクリスタル返却待ちタイマー処理
-        if (Systems.SubCrystalSystem != null)
-            Systems.SubCrystalSystem.TickPendingReturns(Team.Enemy);
-
-        // タイマー開始（敵ターン）
-        if (Systems.TimerSystem != null)
-            Systems.TimerSystem.StartTurn(Team.Enemy);
+        // 共通ターン開始処理
+        TurnStartHelper.ProcessTurnStart(Systems, Team.Enemy);
 
         Turn.ChangeState(new EnemyMove(Turn));
     }

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 /// <summary>
 /// ユニット召喚システム: カーソル追従・設置可否判定・ユニット生成を管理する。
@@ -34,20 +33,9 @@ public class SummonSystem : MonoBehaviour
     public bool IsActive { get; private set; }
     public Kind SelectedKind { get; private set; }
 
-    // ---- カーソル ----
-    private GameObject cursorObj;
-    private Renderer cursorRenderer;
-    private Material cursorMaterial;
+    // ---- カーソル（BuildCursorController に委譲） ----
+    private BuildCursorController _cursor;
     private bool canPlace;
-    private Vector3Int lastCursorPos;
-    private bool cursorVisible;
-
-    // ---- 色定義（BrandGuide に一元化） ----
-    private static Color ColorValid   => BrandGuide.CursorSummonValid;
-    private static Color ColorInvalid => BrandGuide.CursorSummonInvalid;
-
-    // ---- Raycast レイヤー ----
-    private int blockLayerMask;
 
     // ==================================================================
     //  初期化
@@ -66,7 +54,12 @@ public class SummonSystem : MonoBehaviour
         this.unitset = unitset;
         this.visionGenerator = visionGenerator;
 
-        blockLayerMask = LayerMask.GetMask("Block");
+        _cursor = new BuildCursorController(
+            PrimitiveType.Sphere,
+            new Vector3(0.8f, 0.8f, 0.8f),
+            "SummonCursor",
+            BrandGuide.CursorSummonValid,
+            BrandGuide.CursorSummonInvalid);
 
         // プレハブマップ構築
         prefabMap = new Dictionary<Kind, GameObject>();
@@ -90,16 +83,15 @@ public class SummonSystem : MonoBehaviour
         SelectedKind = kind;
         IsActive = true;
         canPlace = false;
-        cursorVisible = false;
 
-        CreateCursor();
+        _cursor.Create();
         Debug.Log($"[SummonSystem] 召喚モード開始: {kind}");
     }
 
     public void CancelSummonMode()
     {
         IsActive = false;
-        DestroyCursor();
+        _cursor.Destroy();
         Debug.Log("[SummonSystem] 召喚モード解除");
     }
 
@@ -108,21 +100,14 @@ public class SummonSystem : MonoBehaviour
     // ==================================================================
     public void UpdateCursor()
     {
-        if (!IsActive || cursorObj == null) return;
+        if (!IsActive) return;
 
-        if (!TryGetMouseRay(out Ray ray))
+        if (!_cursor.TryGetGridPosition(out Vector3Int gridPos))
         {
-            SetCursorVisible(false);
+            _cursor.SetVisible(false);
             return;
         }
 
-        if (!Physics.Raycast(ray, out RaycastHit hit, GameConstants.DefaultRayDistance, blockLayerMask))
-        {
-            SetCursorVisible(false);
-            return;
-        }
-
-        Vector3Int gridPos = GridHelper.ToGrid(hit.point);
         Vector3Int snapped = mapcreate.SnapToSetPos(gridPos);
 
         if (!territorysystem.IsInTerritory(snapped, Team.Player))
@@ -130,18 +115,14 @@ public class SummonSystem : MonoBehaviour
             Vector3Int clamped = territorysystem.ClampToTerritory(snapped, Team.Player);
             if (clamped.x == int.MinValue)
             {
-                SetCursorVisible(false);
+                _cursor.SetVisible(false);
                 return;
             }
             snapped = clamped;
         }
 
-        lastCursorPos = snapped;
-        cursorObj.transform.position = new Vector3(snapped.x, snapped.y, snapped.z);
-        SetCursorVisible(true);
-
         canPlace = CheckCanPlace(snapped);
-        cursorMaterial.color = canPlace ? ColorValid : ColorInvalid;
+        _cursor.UpdatePosition(snapped, canPlace);
     }
 
     // ==================================================================
@@ -149,7 +130,7 @@ public class SummonSystem : MonoBehaviour
     // ==================================================================
     public bool TryPlace()
     {
-        if (!IsActive || !canPlace || !cursorVisible) return false;
+        if (!IsActive || !canPlace || !_cursor.IsVisible) return false;
 
         if (!CanSummon(Team.Player, SelectedKind))
         {
@@ -157,11 +138,12 @@ public class SummonSystem : MonoBehaviour
             return false;
         }
 
-        InstantiateUnit(lastCursorPos, SelectedKind, Team.Player);
+        Vector3Int pos = _cursor.LastPosition;
+        InstantiateUnit(pos, SelectedKind, Team.Player);
         ConsumeSummonResources(Team.Player, SelectedKind);
 
         // ML観測: プレイヤーの召喚をMLシステムに記録
-        NotifyMLObservation(lastCursorPos);
+        NotifyMLObservation(pos);
 
         CancelSummonMode();
         return true;
@@ -227,7 +209,7 @@ public class SummonSystem : MonoBehaviour
 
         // 既にユニットがいる場所には不可（UnitPointData は Y=0 で管理）
         Vector3 posVec = GridHelper.ToUnitPoint(pos);
-        if (moveGenerator.UnitPointData.Contains(posVec)) return false;
+        if (moveGenerator.IsOccupied(posVec)) return false;
 
         return true;
     }
@@ -269,7 +251,7 @@ public class SummonSystem : MonoBehaviour
         }
 
         // ユニット位置を記録
-        moveGenerator.UnitPointData.Add(GridHelper.ToUnitPoint(pos));
+        moveGenerator.AddOccupied(GridHelper.ToUnitPoint(pos));
 
         // 視界更新
         visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
@@ -366,61 +348,4 @@ public class SummonSystem : MonoBehaviour
         }
     }
 
-    // ==================================================================
-    //  カーソル生成 / 破棄
-    // ==================================================================
-    private void CreateCursor()
-    {
-        if (cursorObj != null) DestroyCursor();
-
-        cursorObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        cursorObj.name = "SummonCursor";
-        cursorObj.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
-
-        var col = cursorObj.GetComponent<Collider>();
-        if (col != null) col.enabled = false;
-
-        cursorRenderer = cursorObj.GetComponent<Renderer>();
-        cursorMaterial = new Material(Shader.Find("Standard"));
-        cursorMaterial.SetFloat("_Mode", 3);
-        cursorMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        cursorMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        cursorMaterial.SetInt("_ZWrite", 0);
-        cursorMaterial.DisableKeyword("_ALPHATEST_ON");
-        cursorMaterial.EnableKeyword("_ALPHABLEND_ON");
-        cursorMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        cursorMaterial.renderQueue = 3000;
-        cursorMaterial.color = ColorValid;
-        cursorRenderer.material = cursorMaterial;
-
-        SetCursorVisible(false);
-    }
-
-    private void DestroyCursor()
-    {
-        if (cursorObj != null)
-        {
-            Destroy(cursorMaterial);
-            Destroy(cursorObj);
-            cursorObj = null;
-            cursorRenderer = null;
-            cursorMaterial = null;
-        }
-    }
-
-    private void SetCursorVisible(bool visible)
-    {
-        cursorVisible = visible;
-        if (cursorObj != null)
-            cursorObj.SetActive(visible);
-    }
-
-    private bool TryGetMouseRay(out Ray ray)
-    {
-        ray = default;
-        if (Mouse.current == null) return false;
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        ray = Camera.main.ScreenPointToRay(mousePos);
-        return true;
-    }
 }

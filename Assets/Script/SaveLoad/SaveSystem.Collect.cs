@@ -173,12 +173,12 @@ public static partial class SaveSystem
 
     static void CollectFog(FogSaveData dst, VisionGenerator visionGen)
     {
-        if (visionGen.PlayerExploard != null)
-            foreach (var cell in visionGen.PlayerExploard)
+        if (visionGen.PlayerExplored != null)
+            foreach (var cell in visionGen.PlayerExplored)
                 dst.PlayerExplored.Add(new Vec3IntData(cell));
 
-        if (visionGen.EnemyExploard != null)
-            foreach (var cell in visionGen.EnemyExploard)
+        if (visionGen.EnemyExplored != null)
+            foreach (var cell in visionGen.EnemyExplored)
                 dst.EnemyExplored.Add(new Vec3IntData(cell));
     }
 

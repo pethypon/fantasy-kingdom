@@ -13,38 +13,12 @@ public class PlayerStart : TurnState
         Context.Turn++;
         ActionLogUI.LogTurnStart(Context.Turn, Team.Player);
 
-        // クリスタルシールドのターン経過（自陣営 — 敵側は EnemyStart で処理）
-        if (Systems.CrystalSystem != null)
-            BattleSystem.TickCrystalShields(Systems.CrystalSystem.Playercrystal);
-
-        // 状態異常ティック（DoTダメージ + ターン経過）
-        if (Systems.UnitSetting != null)
-            StatusEffectSystem.TickAllUnits(Systems.UnitSetting.PlayerUnit);
-
-        // Special Ability: ターン開始時処理（フラグリセット + 浄化光輪）
-        if (Systems.UnitSetting != null)
-            SpecialAbilitySystem.OnTurnStart(Systems.UnitSetting.PlayerUnit);
-
-        // AP リセット（FactionState.ResetAPForTurn で Reset+Plus-Minus を計算）
-        Systems.APSystem?.ResetAP(Team.Player);
-
-        // 疲労リセット
-        if (Systems.APSystem != null && Systems.UnitSetting != null)
-            Systems.APSystem.ResetFatigue(Systems.UnitSetting.PlayerUnit);
-
-        // サブクリスタル返却待ちタイマー処理
-        if (Systems.SubCrystalSystem != null)
-            Systems.SubCrystalSystem.TickPendingReturns(Team.Player);
-        else
-            Debug.LogWarning("[PlayerStart] subCrystalSystem が null のため TickPendingReturns をスキップ");
+        // 共通ターン開始処理
+        TurnStartHelper.ProcessTurnStart(Systems, Team.Player);
 
         // 移動Undo履歴クリア
         if (Systems.MoveUndoSystem != null)
             Systems.MoveUndoSystem.Clear();
-
-        // タイマー開始（プレイヤーターン）
-        if (Systems.TimerSystem != null)
-            Systems.TimerSystem.StartTurn(Team.Player);
 
         Turn.ChangeState(new PlayerMove(Turn));
     }

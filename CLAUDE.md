@@ -20,7 +20,7 @@ All code is in `Assets/Script/`. Scripts are plain C# MonoBehaviours and plain c
 ### Initialization Sequence
 
 `GameGenerator` (on the `GameSystem` prefab) orchestrates startup in `Awake()`:
-1. `MapCreate.noisegenerater()` — generate Perlin noise heightmap
+1. `MapCreate.GenerateNoise()` — generate Perlin noise heightmap
 2. `MapCreate.BuildTop()` — instantiate terrain tiles and fog objects
 3. `CrystalSystem.CrystalCore()` — place player and enemy crystals randomly
 4. `UnitSetting.UnitSet()` — spawn initial units near each crystal
@@ -59,13 +59,15 @@ PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)
 
 | Class | Responsibility |
 |---|---|
-| `MoveGenerator` | Computes valid move destinations per `Kind` using pattern matching over `MapCreate.SetPos`; instantiates `MovePoint` markers; tracks occupied cells in `UnitPointData` |
+| `MoveGenerator` | Computes valid move destinations per `Kind`; instantiates `MovePoint` markers; tracks occupied cells via `IsOccupied()`/`AddOccupied()`/`RemoveOccupied()` |
 | `AttackGenerator` | Computes valid attack positions per `Kind`; instantiates `AttackPoint` markers |
-| `BattleSystem` | Applies damage: `ATK - DEF`, clamped to 0; manages crystal shield (activation/tick/reset) |
+| `BattleSystem` | Damage processing via `ProcessDamage()`; exposes `Target`/`Attacker` as read-only properties; use `SetTarget()` to set target |
 | `BuildSystem` | Building placement, validation (delegates to `BuildValidator`), AI placement, upgrade |
-| `BuildCursorController` | Cursor rendering, mouse raycast, grid snapping, visibility control for build mode |
+| `BuildCursorController` | Generic cursor controller for build/summon modes — configurable shape, scale, colors. Used by both `BuildSystem` and `SummonSystem` |
 | `UnitClick` | Handles raycasting for unit selection (`Click1`), movement (`Click2`), and attack target selection (`AttackClick`) |
-| `VisionGenerator` | Fog of War — computes per-unit vision via Raycast on the "Block" layer; controls fog object visibility and enemy renderer visibility |
+| `VisionGenerator` | Fog of War — vision data accessed via `IsInVision()`/`IsExplored()`/`AddExplored()` etc.; internal HashSets are private |
+| `DamageCalculator` | Centralized damage formula; use `EstimateBaseDamage(atk, def)` for AI quick estimates instead of inline formulas |
+| `TurnStartHelper` | Static helper for shared turn-start logic (shield tick, status effects, AP reset, fatigue, sub-crystals, timer) used by `PlayerStart`/`EnemyStart` |
 
 ### Unit Data (`Assets/Script/Unit&Battle/Status.cs`)
 
@@ -81,8 +83,8 @@ PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)
 Four fog object types are placed over every tile at startup by `MapCreate.BuildTop()`:
 - **Fog** — completely hides the tile (active when tile has never been seen)
 - **FogBoard** — opaque overlay board (active when not explored)
-- **FogExploard** — explored-but-not-currently-visible overlay (shown in explored-but-dark areas)
-- **FogExploardBoard** — board version of explored overlay
+- **FogExplored** — explored-but-not-currently-visible overlay (shown in explored-but-dark areas)
+- **FogExploredBoard** — board version of explored overlay
 
 `VisionGenerator.VisionPoint()` recalculates and updates these every time a unit moves or the turn changes. Vision shapes are defined as static `Vector3Int[]` arrays per unit kind (using `VisionBox` or `RangeVisionBox` helpers). Raycasts use the `"Block"` physics layer.
 
@@ -146,9 +148,51 @@ All UI and fallback object colors are centralized in `BrandGuide`. Key additions
 
 Instead of accessing system internals directly, use query methods:
 
+**`MoveGenerator`**: `IsOccupied(cellPos)`, `AddOccupied(cellPos)`, `RemoveOccupied(cellPos)`, `RemoveOccupiedWhere(predicate)`, `MovePositions` (read-only), `PlayerCrystalPos`, `EnemyCrystalPos`
+
+**`VisionGenerator`**: `IsInVision(team, cell)`, `IsExplored(team, cell)`, `AddExplored(team, cell)`, `AddExploredRange(team, cells)`, `ClearExplored(team)`, `PlayerExplored`/`EnemyExplored` (read-only)
+
+**`BattleSystem`**: `SetTarget(target)`, `ProcessDamage(turnGenerator)`, `Target`/`Attacker` (read-only properties)
+
 **`TerritorySystem`**: `IsInTerritory(pos, team)`, `IsInAnyTerritory(x, z)`, `GetTerritory(team)`, `ClampToTerritory(pos, team)`
 
 **`MapCreate`**: `HasTileAt(x, z)`, `TryGetHeight(x, z, out y)`, `SnapToSetPos(gridPos)`, `BuildHeightLookup()`
+
+### `DamageCalculator` (`Assets/Script/Common/DamageCalculator.cs`)
+
+Centralized damage calculation. Do **not** inline the damage formula `1 + ATK/6 + (ATK/2 - DEF/4)` — use these methods instead:
+
+| Method | Purpose |
+|---|---|
+| `CalcRawBase(atk, def)` | Raw float base damage (no modifiers) |
+| `EstimateBaseDamage(atk, def)` | Quick int estimate for AI (equivalent to `max(0, round(CalcRawBase))`) |
+| `CalcNormal(attacker, target)` | Full normal attack damage (passives + buffs + special abilities) |
+| `CalcSkill(attacker, target, skill)` | Full skill damage with multiplier |
+| `CalcFromValues(atk, def, incomingMod)` | AI simulation with float inputs |
+
+### `UnitRegistry` (`Assets/Script/Common/UnitRegistry.cs`)
+
+Singleton cache for unit/building lookups. Prefer over `FindObjectsByType<Status>()` or `GetComponentsInChildren<Status>()`:
+
+| Method | Purpose |
+|---|---|
+| `GetActiveUnits(team)` | All active units for a team |
+| `CountActive(team, type)` | Count active units/buildings |
+| `PlayerUnits` / `EnemyUnits` | Read-only lists of cached units |
+| `PlayerBuildings` / `EnemyBuildings` | Read-only lists of cached buildings |
+
+### `Status` Helpers (`Assets/Script/Unit&Battle/Status.cs`)
+
+When modifying unit HP, prefer these helpers over direct field writes:
+
+| Method/Property | Purpose |
+|---|---|
+| `ApplyDamage(damage)` | Apply damage, clamp to 0, returns actual damage dealt |
+| `ApplyHeal(amount)` | Apply healing, clamp to MaxHP, returns actual heal |
+| `HPRatio` | `HP / MaxHP` as float (1.0 if MaxHP is 0) |
+| `IsAlive` | `HP > 0 && gameObject.activeInHierarchy` |
+| `GridPosition` | Grid position via `GridHelper.ToGridXZ` |
+| `ResetTurnFlags()` | Reset all per-turn tracking flags |
 
 ### AI Coordinate Convention
 

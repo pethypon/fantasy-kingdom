@@ -5,21 +5,71 @@ using UnityEngine.Serialization;
 
 public class VisionGenerator : MonoBehaviour
 {
-    public List<Vector3> _setpos;
+    private List<Vector3> _setpos;
 
     // Player が現在見えるマス
-    public HashSet<Vector3Int> PlayerVisionBox;
+    private HashSet<Vector3Int> _playerVisionBox;
     // Player が一度見たマス
-    public HashSet<Vector3Int> PlayerExploard;
+    private HashSet<Vector3Int> _playerExplored;
 
-    public List<Status> playerunitbox;
+    private List<Status> _playerUnitBox;
 
     // Enemy が現在見えるマス
-    public HashSet<Vector3Int> EnemyVisionBox;
+    private HashSet<Vector3Int> _enemyVisionBox;
     // Enemy が一度見たマス
-    public HashSet<Vector3Int> EnemyExploard;
+    private HashSet<Vector3Int> _enemyExplored;
 
-    public List<Status> enemyunitbox;
+    private List<Status> _enemyUnitBox;
+
+    // ---- 読み取り専用プロパティ ----
+    public IReadOnlyCollection<Vector3Int> PlayerVisionBox => _playerVisionBox;
+    public IReadOnlyCollection<Vector3Int> PlayerExplored => _playerExplored;
+    public IReadOnlyCollection<Vector3Int> EnemyVisionBox => _enemyVisionBox;
+    public IReadOnlyCollection<Vector3Int> EnemyExplored => _enemyExplored;
+
+    // ---- 探索済みデータ操作メソッド ----
+    /// <summary>探索済みセルを追加する（セーブデータ復元・駒死亡時用）</summary>
+    public void AddExplored(Team team, Vector3Int cell)
+    {
+        if (team == Team.Player) _playerExplored?.Add(cell);
+        else _enemyExplored?.Add(cell);
+    }
+
+    /// <summary>探索済みセルを一括追加する</summary>
+    public void AddExploredRange(Team team, IEnumerable<Vector3Int> cells)
+    {
+        var set = team == Team.Player ? _playerExplored : _enemyExplored;
+        if (set != null) set.UnionWith(cells);
+    }
+
+    /// <summary>探索済みデータをクリアする（セーブデータ復元用）</summary>
+    public void ClearExplored(Team team)
+    {
+        if (team == Team.Player)
+        {
+            if (_playerExplored == null) _playerExplored = new HashSet<Vector3Int>();
+            else _playerExplored.Clear();
+        }
+        else
+        {
+            if (_enemyExplored == null) _enemyExplored = new HashSet<Vector3Int>();
+            else _enemyExplored.Clear();
+        }
+    }
+
+    /// <summary>視界セットが指定セルを含むか</summary>
+    public bool IsInVision(Team team, Vector3Int cell)
+    {
+        var set = team == Team.Player ? _playerVisionBox : _enemyVisionBox;
+        return set != null && set.Contains(cell);
+    }
+
+    /// <summary>探索済みセットが指定セルを含むか</summary>
+    public bool IsExplored(Team team, Vector3Int cell)
+    {
+        var set = team == Team.Player ? _playerExplored : _enemyExplored;
+        return set != null && set.Contains(cell);
+    }
 
     [Header("マップクリエイト")]
     [SerializeField] MapCreate mapcreate;
@@ -134,10 +184,10 @@ public class VisionGenerator : MonoBehaviour
     {
         blockLayerMask = LayerMask.GetMask("Block");
 
-        if (PlayerVisionBox == null) PlayerVisionBox = new HashSet<Vector3Int>();
-        if (PlayerExploard == null) PlayerExploard = new HashSet<Vector3Int>();
-        if (EnemyVisionBox == null) EnemyVisionBox = new HashSet<Vector3Int>();
-        if (EnemyExploard == null) EnemyExploard = new HashSet<Vector3Int>();
+        if (_playerVisionBox == null) _playerVisionBox = new HashSet<Vector3Int>();
+        if (_playerExplored == null) _playerExplored = new HashSet<Vector3Int>();
+        if (_enemyVisionBox == null) _enemyVisionBox = new HashSet<Vector3Int>();
+        if (_enemyExplored == null) _enemyExplored = new HashSet<Vector3Int>();
     }
 
     // ==== ヘルパーメソッド ====
@@ -196,7 +246,7 @@ public class VisionGenerator : MonoBehaviour
     /// </summary>
     void RaycastCrystalVision(Status status, MapCreate mapcreate, int px, int py, int pz)
     {
-        Vector3 goal = new Vector3(px, py, pz) + Vector3.up * 0.5f;
+        Vector3 goal = new Vector3(px, py, pz) + Vector3.up * GameConstants.VisionRayHeightOffset;
         float startHigh = mapcreate.maxY + 10f;
         Vector3 visionstart = goal + Vector3.up * startHigh;
         float distance = startHigh + 20f;
@@ -227,8 +277,8 @@ public class VisionGenerator : MonoBehaviour
     /// </summary>
     void RaycastDirectVision(Status status, int statusX, int statusY, int statusZ, int px, int py, int pz)
     {
-        Vector3 start = new Vector3(statusX, statusY, statusZ) + Vector3.up * 0.5f;
-        Vector3 goal = new Vector3(px, py, pz) + Vector3.up * 0.5f;
+        Vector3 start = new Vector3(statusX, statusY, statusZ) + Vector3.up * GameConstants.VisionRayHeightOffset;
+        Vector3 goal = new Vector3(px, py, pz) + Vector3.up * GameConstants.VisionRayHeightOffset;
         Vector3 direction = goal - start;
         float distance = direction.magnitude;
 
@@ -332,29 +382,29 @@ public class VisionGenerator : MonoBehaviour
         this.moveGenerator = moveGenerator;
         this.crystalsystem = crystalsystem;
 
-        if (PlayerVisionBox != null) PlayerVisionBox.Clear();
-        if (EnemyVisionBox != null) EnemyVisionBox.Clear();
+        if (_playerVisionBox != null) _playerVisionBox.Clear();
+        if (_enemyVisionBox != null) _enemyVisionBox.Clear();
 
         _setpos = mapcreate.SetPos;
 
         // Player、Enemyの駒のStatusを収集する
-        if (playerunitbox == null) playerunitbox = new List<Status>();
-        CollectStatuses(PlayerUnit, playerunitbox);
+        if (_playerUnitBox == null) _playerUnitBox = new List<Status>();
+        CollectStatuses(PlayerUnit, _playerUnitBox);
 
-        if (enemyunitbox == null) enemyunitbox = new List<Status>();
-        CollectStatuses(EnemyUnit, enemyunitbox);
+        if (_enemyUnitBox == null) _enemyUnitBox = new List<Status>();
+        CollectStatuses(EnemyUnit, _enemyUnitBox);
 
         // Player駒の視界計算
-        foreach (Status status in playerunitbox)
+        foreach (Status status in _playerUnitBox)
         {
-            CalculateAndMergeVision(status, mapcreate, crystalsystem, PlayerVisionBox);
+            CalculateAndMergeVision(status, mapcreate, crystalsystem, _playerVisionBox);
         }
 
         // Playerクリスタル駒の視界計算
         foreach (Transform Temporary in crystalsystem.Playercrystal)
         {
             Status status = Temporary.GetComponentInChildren<Status>();
-            CalculateAndMergeVision(status, mapcreate, crystalsystem, PlayerVisionBox);
+            CalculateAndMergeVision(status, mapcreate, crystalsystem, _playerVisionBox);
         }
 
         // Player建築物（サブクリスタル）の視界計算
@@ -366,22 +416,22 @@ public class VisionGenerator : MonoBehaviour
                 Status bStatus = child.GetComponent<Status>();
                 if (bStatus != null && bStatus.kind == Kind.SubCrystal)
                 {
-                    CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, PlayerVisionBox);
+                    CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, _playerVisionBox);
                 }
             }
         }
 
         // Enemy駒の視界計算（AI視界制限に使用）
-        foreach (Status status in enemyunitbox)
+        foreach (Status status in _enemyUnitBox)
         {
-            CalculateAndMergeVision(status, mapcreate, crystalsystem, EnemyVisionBox);
+            CalculateAndMergeVision(status, mapcreate, crystalsystem, _enemyVisionBox);
         }
 
         // Enemyクリスタル駒の視界計算
         foreach (Transform Temporary in crystalsystem.Enemycrystal)
         {
             Status status = Temporary.GetComponentInChildren<Status>();
-            CalculateAndMergeVision(status, mapcreate, crystalsystem, EnemyVisionBox);
+            CalculateAndMergeVision(status, mapcreate, crystalsystem, _enemyVisionBox);
         }
 
         // Enemy建築物（サブクリスタル）の視界計算
@@ -393,14 +443,14 @@ public class VisionGenerator : MonoBehaviour
                 Status bStatus = child.GetComponent<Status>();
                 if (bStatus != null && bStatus.kind == Kind.SubCrystal)
                 {
-                    CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, EnemyVisionBox);
+                    CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, _enemyVisionBox);
                 }
             }
         }
 
-        // VisionBoxをExploardに入れる
-        PlayerExploard.UnionWith(PlayerVisionBox);
-        EnemyExploard.UnionWith(EnemyVisionBox);
+        // VisionBoxをExploredに入れる
+        _playerExplored.UnionWith(_playerVisionBox);
+        _enemyExplored.UnionWith(_enemyVisionBox);
         VisionSetting(mapcreate);
     }
 
@@ -494,13 +544,13 @@ public class VisionGenerator : MonoBehaviour
         _reusableVisionXZ.Clear();
         _reusableExploardXZ.Clear();
 
-        foreach (var Temporary in PlayerVisionBox)
+        foreach (var cell in _playerVisionBox)
         {
-            _reusableVisionXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
+            _reusableVisionXZ.Add(new Vector3Int(cell.x, 0, cell.z));
         }
-        foreach (var Temporary in PlayerExploard)
+        foreach (var cell in _playerExplored)
         {
-            _reusableExploardXZ.Add(new Vector3Int(Temporary.x, 0, Temporary.z));
+            _reusableExploardXZ.Add(new Vector3Int(cell.x, 0, cell.z));
         }
 
         var playervisionXZ = _reusableVisionXZ;

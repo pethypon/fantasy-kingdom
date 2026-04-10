@@ -275,7 +275,7 @@ MonoBehaviour:
   turngenerater: {fileID: 894480253581181924}
   battlesystem: {fileID: 137091759520840510}
   attackpoint: {fileID: 4790615875598760186}
-  ATKC: {fileID: 0}
+  AttackTarget: {fileID: 0}
 --- !u!1 &1434770282366709095
 GameObject:
   m_ObjectHideFlags: 0

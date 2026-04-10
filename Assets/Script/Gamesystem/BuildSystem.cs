@@ -270,7 +270,7 @@ public class BuildSystem : MonoBehaviour
         // 壁の場合は UnitPointData に追加（全駒通過不可）
         if (FacilityData.IsWall(facility))
         {
-            moveGenerator.UnitPointData.Add(GridHelper.ToUnitPoint(pos));
+            moveGenerator.AddOccupied(GridHelper.ToUnitPoint(pos));
         }
 
         Debug.Log($"[BuildSystem] {info.DisplayName} を ({pos.x}, {Mathf.RoundToInt(placeY)}, {pos.z}) に設置 ({team})");

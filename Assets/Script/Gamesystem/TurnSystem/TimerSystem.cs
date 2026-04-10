@@ -98,15 +98,15 @@ public class TimerSystem : MonoBehaviour
         // プレイヤーターン中の残り時間警告
         if (currentTeam == Team.Player)
         {
-            if (!warned30s && turnTimeRemaining <= 30f)
+            if (!warned30s && turnTimeRemaining <= GameConstants.TimerWarningThreshold)
             {
                 warned30s = true;
-                ToastMessageUI.Show("残り30秒", ToastMessageUI.MessageType.Warning);
+                ToastMessageUI.Show($"残り{(int)GameConstants.TimerWarningThreshold}秒", ToastMessageUI.MessageType.Warning);
             }
-            if (!warned10s && turnTimeRemaining <= 10f)
+            if (!warned10s && turnTimeRemaining <= GameConstants.TimerCriticalThreshold)
             {
                 warned10s = true;
-                ToastMessageUI.Show("残り10秒！", ToastMessageUI.MessageType.Error);
+                ToastMessageUI.Show($"残り{(int)GameConstants.TimerCriticalThreshold}秒！", ToastMessageUI.MessageType.Error);
             }
         }
 
