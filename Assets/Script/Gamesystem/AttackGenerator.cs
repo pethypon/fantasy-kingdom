@@ -33,7 +33,7 @@ public class AttackGenerator : MonoBehaviour
     {
         this.move = move;
         setpos = mapcreate.SetPos;
-        attackmode = move.AttackMode;
+        attackmode = move.CurrentAttackMode;
 
         switch (attackmode)
         {

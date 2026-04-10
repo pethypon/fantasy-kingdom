@@ -297,7 +297,7 @@ public class BuildSystem : MonoBehaviour
 
     /// <summary>建築物の Status コンポーネントを設定する</summary>
     private static void ConfigureBuildingStatus(GameObject building, FacilityKind facility,
-                                                 Team team, FacilityInfo info)
+                                                 Team team, FacilityData.FacilityInfo info)
     {
         var status = building.GetComponent<Status>();
         if (status == null) status = building.AddComponent<Status>();
