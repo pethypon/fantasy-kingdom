@@ -15,7 +15,7 @@ public class TerritorySystem : MonoBehaviour
     public List<Vector3> PTSetPos;
     public List<Vector3> ETSetPos;
 
-    private const int TerritoryRadius = 3;
+    private const int TerritoryRadius = 5;
 
     public void Territory()
     {

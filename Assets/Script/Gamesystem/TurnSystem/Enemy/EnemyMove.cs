@@ -26,7 +26,7 @@ public class EnemyMove : TurnState
 
         // Enemy の資源獲得（ターン終了時）
         if (Systems.EconomySystem != null)
-            Systems.EconomySystem.ProcessTurn(Team.Enemy);
+            Systems.EconomySystem.ProcessTurn(Team.Enemy, Context.Turn);
 
         // Enemy の攻撃建築物による自動攻撃
         if (Systems.BuildingAttackSystem != null)

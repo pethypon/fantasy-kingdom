@@ -20,11 +20,11 @@ public static class GameConstants
     /// <summary>基本ダメージの固定加算値</summary>
     public const float DamageBase = 1f;
     /// <summary>ATK÷この値が基本ダメージに加算される</summary>
-    public const float DamageATKDivisor = 6f;
+    public const float DamageATKDivisor = 5f;
     /// <summary>ATK÷この値が攻撃側の実効攻撃力</summary>
     public const float DamageATKHalf = 2f;
     /// <summary>DEF÷この値が防御側の実効防御力</summary>
-    public const float DamageDEFQuarter = 4f;
+    public const float DamageDEFQuarter = 3f;
 
     // =====================================================================
     //  クリスタルシールド

@@ -9,6 +9,11 @@ public class UnitSetting : MonoBehaviour
     [Header("異形")]
     [SerializeField] GameObject StrangePiece;
 
+    [Header("初期ユニット（未設定ならフォールバック生成）")]
+    [SerializeField] GameObject KnightPiece;
+    [SerializeField] GameObject ArcherPiece;
+    [SerializeField] GameObject ScoutPiece;
+
     [Header("ユニット配置親オブジェクト")]
     public Transform PlayerUnit;
     public Transform EnemyUnit;
@@ -124,5 +129,104 @@ public class UnitSetting : MonoBehaviour
         Vector3 SP = StrangePoint[Random.Range(0, StrangePoint.Count)];
         SpawnUnit(StrangePiece, SP, EnemyUnit);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>異形の王設置");
+
+        // ==== 初期ユニット（騎士・弓・斥候）を領土内にランダム配置 ====
+        const int territoryRadius = 5;
+        var initialUnits = new (GameObject prefab, Kind kind)[]
+        {
+            (KnightPiece, Kind.Knight),
+            (ArcherPiece, Kind.Archer),
+            (ScoutPiece, Kind.Scout),
+        };
+
+        // プレイヤー側
+        SpawnInitialUnits(initialUnits, pcp, KP, setpos, PlayerUnit, Team.Player, territoryRadius);
+        // 敵側
+        SpawnInitialUnits(initialUnits, ecp, SP, setpos, EnemyUnit, Team.Enemy, territoryRadius);
+    }
+
+    /// <summary>
+    /// 初期ユニットを領土範囲内のランダム位置に配置する。
+    /// </summary>
+    private void SpawnInitialUnits(
+        (GameObject prefab, Kind kind)[] units,
+        Vector3 crystalPos, Vector3 kingPos,
+        List<Vector3> setpos, Transform parent, Team team, int radius)
+    {
+        // 領土範囲内の候補位置を取得（クリスタル・キング位置を除外）
+        var candidates = setpos.Where(p =>
+        {
+            float dx = Mathf.Abs(p.x - crystalPos.x);
+            float dz = Mathf.Abs(p.z - crystalPos.z);
+            return dx <= radius && dz <= radius && p != crystalPos && p != kingPos;
+        }).ToList();
+
+        var usedPositions = new List<Vector3>();
+        Direction dir = team == Team.Player ? Direction.N : Direction.S;
+
+        foreach (var (prefab, kind) in units)
+        {
+            // 使用済み位置を除外
+            var available = candidates.Where(p => !usedPositions.Contains(p)).ToList();
+            if (available.Count == 0)
+            {
+                Debug.LogWarning($"[UnitSetting] {kind} の配置候補がありません");
+                continue;
+            }
+
+            Vector3 pos = available[Random.Range(0, available.Count)];
+            usedPositions.Add(pos);
+
+            if (prefab != null)
+            {
+                var obj = SpawnUnit(prefab, pos, parent);
+                var status = obj.GetComponentInChildren<Status>();
+                if (status != null)
+                {
+                    status.team = team;
+                    status.direction = dir;
+                }
+            }
+            else
+            {
+                // フォールバック: プレハブ未設定時はプリミティブで生成
+                CreateFallbackUnit(pos, kind, team, dir, parent);
+            }
+
+            Debug.Log($"<color=#ffff00ff>[StartSetting]</color>{kind} 配置 ({team})");
+        }
+    }
+
+    /// <summary>
+    /// プレハブ未割当時のフォールバックユニットを生成する。
+    /// </summary>
+    private void CreateFallbackUnit(Vector3 pos, Kind kind, Team team,
+                                     Direction dir, Transform parent)
+    {
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        obj.transform.position = pos;
+        obj.transform.SetParent(parent);
+        obj.name = kind.ToString();
+
+        var renderer = obj.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            var mat = new Material(Shader.Find("Standard"));
+            mat.color = BrandGuide.GetUnitFallbackColor(team);
+            renderer.material = mat;
+        }
+
+        var status = obj.AddComponent<Status>();
+        status.kind = kind;
+        status.team = team;
+        status.type = Type.Unit;
+        status.direction = dir;
+
+        if (UnitDataMap.TryGetValue(kind, out UnitData data))
+            data.ApplyToStatus(status, 1);
+
+        SkillData.AssignRandomSkill(status);
+        SpecialAbilityData.AssignRandom(status);
+        UnitHeadUI.Attach(obj);
     }
 }

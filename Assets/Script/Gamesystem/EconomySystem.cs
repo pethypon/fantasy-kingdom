@@ -35,16 +35,16 @@ public class EconomySystem : MonoBehaviour
     /// 指定チームの全建築物を走査し、生産・維持費・特殊効果を処理する。
     /// その後ユニット維持費・市民パン消費を行い、市民APボーナスを FactionState に反映する。
     /// </summary>
-    public void ProcessTurn(Team team)
+    public void ProcessTurn(Team team, int turnCount = 0)
     {
         if (buildSystem == null || factionState == null) return;
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
 
-        Debug.Log($"[EconomySystem] === {team} ターン経済処理開始 === パン={res.Bread} 市民={res.Citizen}");
+        Debug.Log($"[EconomySystem] === {team} ターン{turnCount} 経済処理開始 === パン={res.Bread} 市民={res.Citizen}");
 
         // ---- 0. クリスタル基本収入（クリスタルが生存していれば毎ターン供給） ----
-        ProcessCrystalIncome(team, res);
+        ProcessCrystalIncome(team, res, turnCount);
 
         // ---- 1. 建築物の生産・維持費・特殊効果 ----
         ProcessBuildings(team, res);
@@ -70,17 +70,16 @@ public class EconomySystem : MonoBehaviour
     //  0. クリスタル基本収入
     // ==================================================================
 
-    // クリスタル基本収入：全資源を建築物依存に変更し、蓄積問題を根本解決
-    private const int CrystalWood    = 0;
-    private const int CrystalStone   = 0;
-    private const int CrystalWater   = 0;
-    private const int CrystalWheat   = 0;
-    private const int CrystalBread   = 0;
-    private const int CrystalCoal    = 0;
-    private const int CrystalIronOre = 0;
-    private const int CrystalIron    = 0;
+    // クリスタル序盤収入（10ターン逓減式）
+    // ターン1: 100% → ターン10: 10% → ターン11以降: 0%
+    private const int CrystalBaseWood  = 20;
+    private const int CrystalBaseStone = 20;
+    private const int CrystalBaseWater = 10;
+    private const int CrystalBaseBread = 10;
+    private const int CrystalBaseIron  = 5;
+    private const int CrystalIncomeMaxTurn = 10;
 
-    private void ProcessCrystalIncome(Team team, FactionState.ResourceData res)
+    private void ProcessCrystalIncome(Team team, FactionState.ResourceData res, int turnCount)
     {
         // クリスタルの生存チェック
         if (crystalSystem != null)
@@ -95,16 +94,29 @@ public class EconomySystem : MonoBehaviour
             }
         }
 
-        res.Wood    += CrystalWood;
-        res.Stone   += CrystalStone;
-        res.Water   += CrystalWater;
-        res.Wheat   += CrystalWheat;
-        res.Bread   += CrystalBread;
-        res.Coal    += CrystalCoal;
-        res.IronOre += CrystalIronOre;
-        res.Iron    += CrystalIron;
+        // 11ターン以降は収入なし
+        if (turnCount > CrystalIncomeMaxTurn)
+        {
+            Debug.Log($"[EconomySystem] {team} クリスタル収入: ターン{turnCount} (序盤ボーナス終了)");
+            return;
+        }
 
-        Debug.Log($"[EconomySystem] {team} クリスタル基本収入: 木+{CrystalWood} 石+{CrystalStone} 水+{CrystalWater} 小麦+{CrystalWheat} パン+{CrystalBread} 石炭+{CrystalCoal} 鉄鉱+{CrystalIronOre} 鉄+{CrystalIron}");
+        // 逓減率: max(0, 11 - turn) / 10
+        float ratio = Mathf.Max(0f, CrystalIncomeMaxTurn + 1 - turnCount) / (float)CrystalIncomeMaxTurn;
+
+        int wood  = Mathf.RoundToInt(CrystalBaseWood  * ratio);
+        int stone = Mathf.RoundToInt(CrystalBaseStone * ratio);
+        int water = Mathf.RoundToInt(CrystalBaseWater * ratio);
+        int bread = Mathf.RoundToInt(CrystalBaseBread * ratio);
+        int iron  = Mathf.RoundToInt(CrystalBaseIron  * ratio);
+
+        res.Wood  += wood;
+        res.Stone += stone;
+        res.Water += water;
+        res.Bread += bread;
+        res.Iron  += iron;
+
+        Debug.Log($"[EconomySystem] {team} クリスタル序盤収入 (ターン{turnCount}, {ratio:P0}): 木+{wood} 石+{stone} 水+{water} パン+{bread} 鉄+{iron}");
     }
 
     // ==================================================================

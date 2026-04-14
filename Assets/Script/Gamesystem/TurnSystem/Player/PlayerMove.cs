@@ -262,7 +262,7 @@ public class PlayerMove : TurnState
         SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.PlayerUnit);
 
         if (Systems.EconomySystem != null)
-            Systems.EconomySystem.ProcessTurn(Team.Player);
+            Systems.EconomySystem.ProcessTurn(Team.Player, Context.Turn);
 
         if (Systems.BuildingAttackSystem != null)
             Systems.BuildingAttackSystem.ProcessAttacks(Team.Player);
