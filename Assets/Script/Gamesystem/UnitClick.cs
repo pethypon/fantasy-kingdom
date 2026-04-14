@@ -45,8 +45,8 @@ public class UnitClick : MonoBehaviour
 
         if (playermove.SelectedUnit == null) return;
 
-        // 敵ユニット/建築物をクリック → 情報パネルのみ表示（操作不可）
-        if (playermove.SelectedUnit.team == Team.Enemy)
+        // 敵/魔物ユニット/建築物をクリック → 情報パネルのみ表示（操作不可）
+        if (playermove.SelectedUnit.team == Team.Enemy || playermove.SelectedUnit.team == Team.Monster)
         {
             if (turnGenerator.Systems.UnitPanelUI != null)
                 turnGenerator.Systems.UnitPanelUI.Show(playermove.SelectedUnit);
@@ -152,7 +152,7 @@ public class UnitClick : MonoBehaviour
     private void HandleNormalAttackClick(RaycastHit hit)
     {
         if (!hit.transform.TryGetComponent<Status>(out AttackTarget)) return;
-        if (AttackTarget.team != Team.Enemy || AttackTarget.type != Type.Unit) return;
+        if ((AttackTarget.team != Team.Enemy && AttackTarget.team != Team.Monster) || AttackTarget.type != Type.Unit) return;
 
         Vector3 attackSame = AttackTarget.transform.position;
         bool isInRange = IsInAttackRange(attackGenerator.AttackP, attackSame);
@@ -197,14 +197,14 @@ public class UnitClick : MonoBehaviour
         switch (skill.Target)
         {
             case SkillTarget.EnemySingle:
-                if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
+                if (clickTarget == null || (clickTarget.team != Team.Enemy && clickTarget.team != Team.Monster) || clickTarget.type != Type.Unit) return;
                 AttackTarget = clickTarget;
                 turnGenerator.Systems.SkillSystem.ExecuteSkill(playermove.SelectedUnit, AttackTarget, skill);
                 break;
 
             case SkillTarget.EnemyOrBuilding:
                 if (clickTarget == null) return;
-                if (clickTarget.team != Team.Enemy) return;
+                if (clickTarget.team != Team.Enemy && clickTarget.team != Team.Monster) return;
                 if (clickTarget.type != Type.Unit && clickTarget.type != Type.Building) return;
                 AttackTarget = clickTarget;
                 turnGenerator.Systems.SkillSystem.ExecuteSkill(playermove.SelectedUnit, AttackTarget, skill);

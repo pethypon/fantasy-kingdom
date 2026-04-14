@@ -183,6 +183,13 @@ public class BuildingAttackSystem : MonoBehaviour
         Status found = FindStatusAtCell(enemyParent, cx, cz, enemyTeam);
         if (found != null) return found;
 
+        // 魔物ユニットも検索（両陣営の建物が魔物を攻撃できる）
+        if (unitSetting.MonsterUnit != null)
+        {
+            found = FindStatusAtCell(unitSetting.MonsterUnit, cx, cz, Team.Monster);
+            if (found != null) return found;
+        }
+
         // 敵の建築物も検索
         found = FindStatusAtCell(buildSystem.GetBuildingParent(enemyTeam), cx, cz);
         if (found != null) return found;

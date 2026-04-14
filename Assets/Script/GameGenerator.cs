@@ -176,6 +176,9 @@ public class GameGenerator : MonoBehaviour
             _BuildSystem, _SummonSystem, _cachedFactionState,
             _SkillSystem, _SubCrystalSystem);
 
+        // Step 7.5: 魔物陣営
+        InitMonsterSystem();
+
         // Step 8: ゲームメニュー
         InitGameMenu(factionState);
 
@@ -297,6 +300,41 @@ public class GameGenerator : MonoBehaviour
         var menuGo = new GameObject("GameMenuUI");
         var menu = menuGo.AddComponent<GameMenuUI>();
         menu.Init(_TurnGenerator, factionState);
+    }
+
+    private void InitMonsterSystem()
+    {
+        // MonsterUnit 親オブジェクトを作成
+        if (_UnitSetting.MonsterUnit == null)
+        {
+            var monsterParent = new GameObject("MonsterUnit");
+            _UnitSetting.MonsterUnit = monsterParent.transform;
+        }
+
+        // MonsterSystem コンポーネントを作成
+        var msGo = new GameObject("MonsterSystem");
+        var monsterSystem = msGo.AddComponent<MonsterSystem>();
+        monsterSystem.Init(_UnitSetting, _MapCreate, _MoveGenerator, _CrystalSystem);
+
+        // MonsterAI を作成
+        var monsterAI = new MonsterAI(monsterSystem, _MoveGenerator, _MapCreate, _UnitSetting);
+
+        // GameSystems に登録
+        if (_TurnGenerator != null)
+        {
+            _TurnGenerator.Systems.MonsterSystem = monsterSystem;
+            _TurnGenerator.Systems.MonsterAI = monsterAI;
+        }
+
+        // 初期魔物をスポーン
+        monsterSystem.SpawnInitialMonsters();
+
+        // UnitRegistry にスキャン
+        if (UnitRegistry.Instance != null)
+            UnitRegistry.Instance.ScanAndRegister(
+                _UnitSetting.PlayerUnit, _UnitSetting.EnemyUnit);
+
+        Debug.Log("[GameGenerator] MonsterSystem 初期化完了");
     }
 
     private void PrewarmObjectPools()

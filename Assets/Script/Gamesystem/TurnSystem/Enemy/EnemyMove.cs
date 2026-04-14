@@ -36,8 +36,8 @@ public class EnemyMove : TurnState
         if (Systems.TimerSystem != null)
             Systems.TimerSystem.StopTurn();
 
-        // プレイヤーターンへ
-        Turn.ChangeState(new PlayerStart(Turn));
+        // 魔物ターンへ（MonsterTurn → PlayerStart）
+        Turn.ChangeState(new MonsterTurn(Turn));
 
         Debug.Log("[EnemyMove] 敵ターン終了");
     }

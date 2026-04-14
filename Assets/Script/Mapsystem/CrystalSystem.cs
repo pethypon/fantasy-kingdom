@@ -22,7 +22,7 @@ public class CrystalSystem : MonoBehaviour
     public Vector3 ECP;
 
     /// <summary> クリスタルの基本HP </summary>
-    public const int CrystalHP = 15000;
+    public const int CrystalHP = 20000;
 
     private List<Vector3> _SetPos;
     private int maxx;

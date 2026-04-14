@@ -5,6 +5,7 @@ public enum Team
 {
     Player,
     Enemy,
+    Monster,
     Obstacle,
     None
 }

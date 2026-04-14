@@ -123,7 +123,8 @@ public class BattleSystem : MonoBehaviour
             Target.ShieldTurns = GameConstants.CrystalShieldDuration;
             Target.ShieldActivated = true;
             Debug.Log($"[Battle] {Target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！");
-            string teamLabel = Target.team == Team.Player ? "味方" : "敵";
+            string teamLabel = Target.team == Team.Player ? "味方"
+                              : Target.team == Team.Monster ? "魔物" : "敵";
             ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{GameConstants.CrystalShieldDuration}ターン）",
                 ToastMessageUI.MessageType.Info, 4f);
         }

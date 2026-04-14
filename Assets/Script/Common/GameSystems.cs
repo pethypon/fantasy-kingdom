@@ -39,6 +39,12 @@ public class GameSystems
     public AICommander AICommander { get; set; }
 
     // ================================================================
+    //  魔物陣営
+    // ================================================================
+    public MonsterSystem MonsterSystem { get; set; }
+    public MonsterAI MonsterAI { get; set; }
+
+    // ================================================================
     //  UI
     // ================================================================
     public UnitPanelUI UnitPanelUI { get; set; }

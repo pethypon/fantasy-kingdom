@@ -161,9 +161,13 @@ public static class BrandGuide
         return FallbackBuilding;
     }
 
+    /// <summary>魔物チームのフォールバック色</summary>
+    public static readonly Color FallbackMonsterUnit = new Color(0.6f, 0.1f, 0.6f); // 紫
+
     /// <summary>チームに応じたユニットフォールバック色を返す</summary>
     public static Color GetUnitFallbackColor(Team team)
     {
+        if (team == Team.Monster) return FallbackMonsterUnit;
         return team == Team.Player ? FallbackPlayerUnit : FallbackEnemyUnit;
     }
 

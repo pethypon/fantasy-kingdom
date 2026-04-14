@@ -17,6 +17,7 @@ public class UnitSetting : MonoBehaviour
     [Header("ユニット配置親オブジェクト")]
     public Transform PlayerUnit;
     public Transform EnemyUnit;
+    public Transform MonsterUnit;
 
     // ==== UnitData 管理（Dictionary 版） ====
     // SerializeField が11個並べない理由：

@@ -92,9 +92,9 @@ public partial class SimBoardState
 
         // AP
         state.EnemyAP = realBoard.EnemyAP;
-        state.PlayerAP = 30; // プレイヤーAPは概算
+        state.PlayerAP = 25; // プレイヤーAPは概算
         state.EnemyAPReset = Mathf.Max(15, realBoard.EnemyAP);
-        state.PlayerAPReset = 30;
+        state.PlayerAPReset = 25;
 
         // 建築カウント
         state.EnemyBuildingCounts = new Dictionary<FacilityKind, int>(realBoard.EnemyBuildingCounts);

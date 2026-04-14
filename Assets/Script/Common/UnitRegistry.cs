@@ -14,12 +14,14 @@ public class UnitRegistry : MonoBehaviour
 
     private readonly List<Status> _playerUnits = new List<Status>();
     private readonly List<Status> _enemyUnits = new List<Status>();
+    private readonly List<Status> _monsterUnits = new List<Status>();
     private readonly List<Status> _playerBuildings = new List<Status>();
     private readonly List<Status> _enemyBuildings = new List<Status>();
 
     // 読み取り専用アクセス
     public IReadOnlyList<Status> PlayerUnits => _playerUnits;
     public IReadOnlyList<Status> EnemyUnits => _enemyUnits;
+    public IReadOnlyList<Status> MonsterUnits => _monsterUnits;
     public IReadOnlyList<Status> PlayerBuildings => _playerBuildings;
     public IReadOnlyList<Status> EnemyBuildings => _enemyBuildings;
 
@@ -70,6 +72,7 @@ public class UnitRegistry : MonoBehaviour
     {
         _playerUnits.Clear();
         _enemyUnits.Clear();
+        _monsterUnits.Clear();
         _playerBuildings.Clear();
         _enemyBuildings.Clear();
 
@@ -114,7 +117,8 @@ public class UnitRegistry : MonoBehaviour
         if (result == null) return;
         result.Clear();
 
-        var source = team == Team.Player ? _playerUnits : _enemyUnits;
+        var source = team == Team.Monster ? _monsterUnits
+                   : team == Team.Player ? _playerUnits : _enemyUnits;
         for (int i = 0; i < source.Count; i++)
         {
             if (source[i] != null && source[i].gameObject.activeInHierarchy)
@@ -135,6 +139,7 @@ public class UnitRegistry : MonoBehaviour
     {
         CleanList(_playerUnits);
         CleanList(_enemyUnits);
+        CleanList(_monsterUnits);
         CleanList(_playerBuildings);
         CleanList(_enemyBuildings);
     }
@@ -156,6 +161,7 @@ public class UnitRegistry : MonoBehaviour
         }
         if (type == Type.Unit)
         {
+            if (team == Team.Monster) return _monsterUnits;
             return team == Team.Player ? _playerUnits : _enemyUnits;
         }
         return null;
