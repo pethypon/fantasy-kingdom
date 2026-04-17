@@ -261,12 +261,23 @@ public class EconomySystem : MonoBehaviour
             if (FacilityData.CanAffordProduction(res, upkeep))
             {
                 FacilityData.ConsumeProduction(res, upkeep);
+                status.UnpaidUpkeepTurns = 0;
                 paidCount++;
             }
             else
             {
-                // 維持費が払えない場合はログのみ（将来的にデバフ等を追加可能）
-                Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level}: 維持費不足");
+                status.UnpaidUpkeepTurns++;
+
+                if (status.UnpaidUpkeepTurns >= 10)
+                {
+                    Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level}: 維持費未払い10ターン → 離脱");
+                    status.HP = 0;
+                    status.gameObject.SetActive(false);
+                }
+                else
+                {
+                    Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level}: 維持費不足 ({status.UnpaidUpkeepTurns}ターン目, ATK/DEF -{status.UpkeepPenalty * 100}%)");
+                }
                 unpaidCount++;
             }
         }

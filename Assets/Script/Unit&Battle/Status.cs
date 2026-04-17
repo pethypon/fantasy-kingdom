@@ -312,6 +312,28 @@ public class Status : MonoBehaviour
     [HideInInspector] public bool DebuffNullifiedThisTurn = false;
     [HideInInspector] public bool InterceptUsedThisTurn = false;
 
+    // ---- 維持費未払いトラッキング ----
+    [HideInInspector] public int UnpaidUpkeepTurns = 0;
+
+    /// <summary>維持費ペナルティによるATK/DEF低下率（0.0〜1.0）</summary>
+    public float UpkeepPenalty
+    {
+        get
+        {
+            if (UnpaidUpkeepTurns <= 0) return 0f;
+            if (UnpaidUpkeepTurns <= 3) return 0.10f;
+            if (UnpaidUpkeepTurns <= 6) return 0.25f;
+            if (UnpaidUpkeepTurns <= 9) return 0.40f;
+            return 1f; // 10ターン以上: 離脱（呼び出し側で処理）
+        }
+    }
+
+    /// <summary>維持費ペナルティ込みの実効ATK</summary>
+    public int EffectiveATK => Mathf.RoundToInt(ATK * (1f - UpkeepPenalty));
+
+    /// <summary>維持費ペナルティ込みの実効DEF</summary>
+    public int EffectiveDEF => Mathf.RoundToInt(DEF * (1f - UpkeepPenalty));
+
     /// <summary>BOSS駒かどうか（Kind.Boss または Kind.King かつ Enemy チームで判定）</summary>
     public bool IsBoss => kind == Kind.Boss;
 

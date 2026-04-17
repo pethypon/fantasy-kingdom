@@ -111,6 +111,26 @@ public static class GameConstants
     public const float PassiveMultiplierMax = 2.0f;
 
     // =====================================================================
+    //  PassiveSkill（ユニット個別パッシブ）
+    // =====================================================================
+    /// <summary>Impregnable: 被ダメージ軽減率</summary>
+    public const float ImpregnableDamageReduction = 0.85f;
+    /// <summary>HunterEyes: 視界内の敵に対するダメージ倍率</summary>
+    public const float HunterEyesDamageBonus = 1.15f;
+    /// <summary>Destroyer: 建物・クリスタルへのダメージ倍率</summary>
+    public const float DestroyerBuildingBonus = 1.30f;
+    /// <summary>Assassination: 背面攻撃時の追加ダメージ倍率（FlankingMultiplierに乗算）</summary>
+    public const float AssassinationFlankBonus = 1.20f;
+    /// <summary>Sniper: 距離3以上のダメージ倍率</summary>
+    public const float SniperLongRangeBonus = 1.20f;
+
+    // =====================================================================
+    //  方向（背面攻撃）
+    // =====================================================================
+    /// <summary>背面からの攻撃時のダメージ倍率</summary>
+    public const float FlankingDamageMultiplier = 1.15f;
+
+    // =====================================================================
     //  スキル特殊効果の追加ダメージ倍率
     // =====================================================================
     /// <summary>シャドウラッシュ: 視界外攻撃時の追加ダメージ倍率</summary>

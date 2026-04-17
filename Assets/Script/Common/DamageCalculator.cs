@@ -5,8 +5,8 @@ using UnityEngine;
 /// BattleSystem, SkillSystem, AI シミュレーション全てがこの式を使用する。
 /// 計算式: 1 + (ATK/6) + ((ATK/2) - (DEF/4))
 ///
-/// パッシブスキル適用順序:
-///   基礎ダメージ → 攻撃側パッシブ → 防御側パッシブ → バフ/デバフ → 最終確定
+/// ダメージ適用順序:
+///   基礎ダメージ → Kind別パッシブ → PassiveSkill → Special Ability → バフ/デバフ → 背面判定 → 最終確定
 /// </summary>
 public static class DamageCalculator
 {
@@ -107,20 +107,26 @@ public static class DamageCalculator
         float defMod = StatusEffectSystem.GetDEFModifier(target);
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
 
-        float atk = attacker.ATK * atkMod;
-        float def = target.DEF * defMod;
+        float atk = attacker.EffectiveATK * atkMod;
+        float def = target.EffectiveDEF * defMod;
 
         float baseDmg = CalcRawBase(atk, def);
 
-        // パッシブスキル適用（攻撃側 → 防御側）
+        // Kind別パッシブ（攻撃側 → 防御側）
         float passiveMod = GetAttackerPassiveMultiplier(attacker, target)
                          * GetDefenderPassiveMultiplier(attacker, target);
+
+        // PassiveSkill（ユニット個別パッシブ）
+        float pskillMod = GetPassiveSkillAttackMultiplier(attacker, target)
+                        * GetPassiveSkillDefendMultiplier(target);
 
         // Special Ability 修飾（通常攻撃は単体扱い）
         float saAttack = SpecialAbilitySystem.GetAttackerModifier(attacker, target, true);
         float saDefend = SpecialAbilitySystem.GetDefenderModifier(attacker, target);
 
-        float finalDmg = baseDmg * passiveMod * (1f + saAttack + saDefend) * incomingMod;
+        float flankMod = GetFlankingMultiplier(attacker, target);
+
+        float finalDmg = baseDmg * passiveMod * pskillMod * (1f + saAttack + saDefend) * incomingMod * flankMod;
         return Mathf.Max(0, Mathf.RoundToInt(finalDmg));
     }
 
@@ -134,15 +140,19 @@ public static class DamageCalculator
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
         float sealMod = StatusEffectSystem.GetSkillMultiplierModifier(attacker);
 
-        float atk = attacker.ATK * atkMod;
-        float def = target.DEF * defMod;
+        float atk = attacker.EffectiveATK * atkMod;
+        float def = target.EffectiveDEF * defMod;
 
         float baseDmg = CalcRawBase(atk, def);
         float effectiveMultiplier = Mathf.Clamp(skill.Multiplier + sealMod, 0f, 2f);
 
-        // パッシブスキル適用（攻撃側 → 防御側）
+        // Kind別パッシブ（攻撃側 → 防御側）
         float passiveMod = GetAttackerPassiveMultiplier(attacker, target)
                          * GetDefenderPassiveMultiplier(attacker, target);
+
+        // PassiveSkill（ユニット個別パッシブ）
+        float pskillMod = GetPassiveSkillAttackMultiplier(attacker, target)
+                        * GetPassiveSkillDefendMultiplier(target);
 
         // Special Ability 修飾（単体スキルかどうかで判定）
         bool isSingle = skill.Area == SkillAreaShape.Single
@@ -151,7 +161,9 @@ public static class DamageCalculator
         float saAttack = SpecialAbilitySystem.GetAttackerModifier(attacker, target, isSingle);
         float saDefend = SpecialAbilitySystem.GetDefenderModifier(attacker, target);
 
-        float skillDmg = baseDmg * effectiveMultiplier * passiveMod * (1f + saAttack + saDefend) * incomingMod;
+        float flankMod = GetFlankingMultiplier(attacker, target);
+
+        float skillDmg = baseDmg * effectiveMultiplier * passiveMod * pskillMod * (1f + saAttack + saDefend) * incomingMod * flankMod;
         return Mathf.Max(0, Mathf.RoundToInt(skillDmg));
     }
 
@@ -182,6 +194,72 @@ public static class DamageCalculator
         float effectiveMultiplier = Mathf.Clamp(skillMultiplier + sealMod, 0f, 2f);
         float skillDmg = baseDmg * effectiveMultiplier * incomingMod;
         return Mathf.Max(0, Mathf.RoundToInt(skillDmg));
+    }
+
+    /// <summary>
+    /// PassiveSkill による攻撃側の追加倍率を計算する。
+    /// Kind別パッシブとは独立して適用される。
+    /// </summary>
+    public static float GetPassiveSkillAttackMultiplier(Status attacker, Status target)
+    {
+        float multiplier = 1f;
+
+        switch (attacker.passiveskill)
+        {
+            case PassiveSkill.HunterEyes:
+                if (attacker.VisionCell != null &&
+                    attacker.VisionCell.Contains(ToGridPos(target.transform.position)))
+                    multiplier *= GameConstants.HunterEyesDamageBonus;
+                break;
+
+            case PassiveSkill.Destroyer:
+                if (target.type == Type.Building || target.kind == Kind.Crystal)
+                    multiplier *= GameConstants.DestroyerBuildingBonus;
+                break;
+
+            case PassiveSkill.Sniper:
+                if (GridDistance(attacker.transform.position, target.transform.position) >= 3f)
+                    multiplier *= GameConstants.SniperLongRangeBonus;
+                break;
+        }
+
+        return multiplier;
+    }
+
+    /// <summary>
+    /// PassiveSkill による防御側の倍率を計算する。
+    /// </summary>
+    public static float GetPassiveSkillDefendMultiplier(Status target)
+    {
+        if (target.passiveskill == PassiveSkill.Impregnable)
+            return GameConstants.ImpregnableDamageReduction;
+        return 1f;
+    }
+
+    /// <summary>
+    /// 攻撃者が防御者の背面にいるかを判定し、背面なら倍率を返す。
+    /// N向きユニットの背面 = 攻撃者がZ座標で南側（小さい側）にいる。
+    /// S向きユニットの背面 = 攻撃者がZ座標で北側（大きい側）にいる。
+    /// </summary>
+    public static float GetFlankingMultiplier(Status attacker, Status target)
+    {
+        if (target.type != Type.Unit) return 1f;
+
+        int attackerZ = Mathf.RoundToInt(attacker.transform.position.z);
+        int targetZ = Mathf.RoundToInt(target.transform.position.z);
+
+        bool isFlanking = false;
+        if (target.direction == Direction.N && attackerZ < targetZ)
+            isFlanking = true;
+        else if (target.direction == Direction.S && attackerZ > targetZ)
+            isFlanking = true;
+
+        if (!isFlanking) return 1f;
+
+        float flank = GameConstants.FlankingDamageMultiplier;
+        if (attacker.passiveskill == PassiveSkill.Assassination)
+            flank *= GameConstants.AssassinationFlankBonus;
+        return flank;
     }
 
     // ─── ヘルパー ─────────────────────────────────────────────────────
