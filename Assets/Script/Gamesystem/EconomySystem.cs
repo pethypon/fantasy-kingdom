@@ -67,18 +67,15 @@ public class EconomySystem : MonoBehaviour
     }
 
     // ==================================================================
-    //  0. クリスタル基本収入
+    //  0. クリスタル基本収入（序盤10ターン逓減式）
+    //  木20/石20/水10/パン10/鉄5 から毎ターン10%ずつ減少。
     // ==================================================================
-
-    // クリスタル基本収入：全資源を建築物依存に変更し、蓄積問題を根本解決
-    private const int CrystalWood    = 0;
-    private const int CrystalStone   = 0;
-    private const int CrystalWater   = 0;
-    private const int CrystalWheat   = 0;
-    private const int CrystalBread   = 0;
-    private const int CrystalCoal    = 0;
-    private const int CrystalIronOre = 0;
-    private const int CrystalIron    = 0;
+    private const int CrystalIncomeTurns = 10;
+    private const int CrystalBaseWood  = 20;
+    private const int CrystalBaseStone = 20;
+    private const int CrystalBaseWater = 10;
+    private const int CrystalBaseBread = 10;
+    private const int CrystalBaseIron  = 5;
 
     private void ProcessCrystalIncome(Team team, FactionState.ResourceData res)
     {
@@ -95,16 +92,26 @@ public class EconomySystem : MonoBehaviour
             }
         }
 
-        res.Wood    += CrystalWood;
-        res.Stone   += CrystalStone;
-        res.Water   += CrystalWater;
-        res.Wheat   += CrystalWheat;
-        res.Bread   += CrystalBread;
-        res.Coal    += CrystalCoal;
-        res.IronOre += CrystalIronOre;
-        res.Iron    += CrystalIron;
+        var nation = factionState.GetNation(team);
+        int turn = nation.TurnsAlive;
+        if (turn >= CrystalIncomeTurns) return;
 
-        Debug.Log($"[EconomySystem] {team} クリスタル基本収入: 木+{CrystalWood} 石+{CrystalStone} 水+{CrystalWater} 小麦+{CrystalWheat} パン+{CrystalBread} 石炭+{CrystalCoal} 鉄鉱+{CrystalIronOre} 鉄+{CrystalIron}");
+        float decay = 1f - (0.10f * turn); // ターン0で1.0、ターン9で0.10
+        if (decay <= 0f) return;
+
+        int wood  = Mathf.RoundToInt(CrystalBaseWood  * decay);
+        int stone = Mathf.RoundToInt(CrystalBaseStone * decay);
+        int water = Mathf.RoundToInt(CrystalBaseWater * decay);
+        int bread = Mathf.RoundToInt(CrystalBaseBread * decay);
+        int iron  = Mathf.RoundToInt(CrystalBaseIron  * decay);
+
+        res.Wood  += wood;
+        res.Stone += stone;
+        res.Water += water;
+        res.Bread += bread;
+        res.Iron  += iron;
+
+        Debug.Log($"[EconomySystem] {team} クリスタル序盤収入(T{turn}): 木+{wood} 石+{stone} 水+{water} パン+{bread} 鉄+{iron}");
     }
 
     // ==================================================================
@@ -138,7 +145,7 @@ public class EconomySystem : MonoBehaviour
                 totalBarracksXP += levelData.SpecialValue;
                 continue;
             }
-            if (facility == FacilityKind.House)
+            if (facility == FacilityKind.House || facility == FacilityKind.LuxuryHouse)
             {
                 totalCitizenCap += levelData.SpecialValue;
                 continue;
@@ -219,6 +226,8 @@ public class EconomySystem : MonoBehaviour
 
     // ==================================================================
     //  2. ユニット維持費（Lv6以上のユニットが毎ターン資源を消費）
+    //  未払いターン数を Status.UpkeepUnpaidTurns で管理。
+    //    1-3: ATK/DEF -10%, 4-6: -25%, 7-9: -40%, 10+: 離脱
     // ==================================================================
     private void ProcessUnitMaintenance(Team team, FactionState.ResourceData res)
     {
@@ -229,6 +238,7 @@ public class EconomySystem : MonoBehaviour
 
         int paidCount = 0;
         int unpaidCount = 0;
+        int defectCount = 0;
 
         foreach (Transform child in unitParent)
         {
@@ -238,29 +248,51 @@ public class EconomySystem : MonoBehaviour
             if (status.HP <= 0) continue;
 
             // Lv5以下は維持費なし
-            if (status.Level <= 5) continue;
+            if (status.Level <= 5)
+            {
+                status.UpkeepUnpaidTurns = 0;
+                continue;
+            }
 
-            // UnitData から維持費を取得
-            if (!unitSetting.UnitDataMap.TryGetValue(status.kind, out UnitData data)) continue;
+            if (!unitSetting.UnitDataMap.TryGetValue(status.kind, out UnitData data))
+            {
+                status.UpkeepUnpaidTurns = 0;
+                continue;
+            }
 
             var upkeep = data.GetUpkeep(status.Level);
-            if (upkeep.IsEmpty) continue;
+            if (upkeep.IsEmpty)
+            {
+                status.UpkeepUnpaidTurns = 0;
+                continue;
+            }
 
             if (FacilityData.CanAffordProduction(res, upkeep))
             {
                 FacilityData.ConsumeProduction(res, upkeep);
+                status.UpkeepUnpaidTurns = 0;
                 paidCount++;
             }
             else
             {
-                // 維持費が払えない場合はログのみ（将来的にデバフ等を追加可能）
-                Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level}: 維持費不足");
+                status.UpkeepUnpaidTurns++;
                 unpaidCount++;
+                if (status.UpkeepUnpaidTurns >= GameConstants.UpkeepPenaltyDefectTurns)
+                {
+                    // 10ターン不足 → 離脱
+                    Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level} が維持費不足で離脱");
+                    status.gameObject.SetActive(false);
+                    defectCount++;
+                }
+                else
+                {
+                    Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level} 維持費不足 ({status.UpkeepUnpaidTurns}T)");
+                }
             }
         }
 
-        if (paidCount > 0 || unpaidCount > 0)
-            Debug.Log($"[EconomySystem] {team} ユニット維持費: 支払{paidCount}, 不足{unpaidCount}");
+        if (paidCount > 0 || unpaidCount > 0 || defectCount > 0)
+            Debug.Log($"[EconomySystem] {team} ユニット維持費: 支払{paidCount}, 不足{unpaidCount}, 離脱{defectCount}");
     }
 
     // ==================================================================

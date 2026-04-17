@@ -202,6 +202,8 @@ public class BuildSystem : MonoBehaviour
             {
                 var lastBuilding = PlayerBuildingParent.GetChild(PlayerBuildingParent.childCount - 1).gameObject;
                 subCrystalSystem.ExpandTerritory(lastBuilding, Team.Player);
+                turnGenerator.Systems.DungeonSystem?.ActivateFromSubCrystal(
+                    GridHelper.ToGrid(lastBuilding.transform.position), Team.Player);
             }
         }
         else
@@ -400,7 +402,11 @@ public class BuildSystem : MonoBehaviour
         {
             factionState.ModifySubCrystals(team, -1);
             if (building != null)
+            {
                 subCrystalSystem.ExpandTerritory(building, team);
+                turnGenerator.Systems.DungeonSystem?.ActivateFromSubCrystal(
+                    GridHelper.ToGrid(building.transform.position), team);
+            }
         }
 
         Debug.Log($"[BuildSystem] AI({team}) {info.DisplayName} を ({pos.x},{pos.y},{pos.z}) に設置");

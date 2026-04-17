@@ -28,4 +28,7 @@ public class NationState : MonoBehaviour
 
     /// <summary>パン不足が連続しているターン数（10ターン連続で市民減少）</summary>
     [HideInInspector] public int StarvationCounter = 0;
+
+    /// <summary>この国が生存しているターン数（クリスタル序盤収入の逓減に使用）</summary>
+    [HideInInspector] public int TurnsAlive = 0;
 }
