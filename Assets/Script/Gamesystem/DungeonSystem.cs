@@ -32,7 +32,6 @@ public class DungeonSystem : MonoBehaviour
 
         // ---- ダンジョン内モンスター（踏破阻害要素） ----
         public int MonsterHP = MonsterMaxHP;
-        public int MonsterMaxHPCache = MonsterMaxHP;
         public int MonsterATK = MonsterATKValue;
         public bool MonsterAlive => MonsterHP > 0;
     }
@@ -78,17 +77,24 @@ public class DungeonSystem : MonoBehaviour
         Vector3Int pcp = GridHelper.ToGrid(crystalsystem.PCP);
         Vector3Int ecp = GridHelper.ToGrid(crystalsystem.ECP);
 
-        // 両クリスタルから十分離れた候補を抽出（最小距離6）
-        var candidates = setpos
-            .Select(v => GridHelper.ToGrid(v))
-            .Where(p => GridHelper.ChebyshevDistance(p, pcp) >= 6
-                     && GridHelper.ChebyshevDistance(p, ecp) >= 6)
-            .Where(p => !territorysystem.IsInAnyTerritory(p.x, p.z))
-            .ToList();
-
-        if (candidates.Count < DungeonCount)
+        // 両クリスタルから十分離れた領土外候補を抽出。
+        // マップサイズ/領土半径に応じて段階的に最小距離を緩める。
+        List<Vector3Int> candidates = null;
+        int[] minDistances = { 6, 5, 4, 3 };
+        foreach (int minDist in minDistances)
         {
-            Debug.LogWarning("[DungeonSystem] ダンジョン候補が不足しています");
+            candidates = setpos
+                .Select(v => GridHelper.ToGrid(v))
+                .Where(p => GridHelper.ChebyshevDistance(p, pcp) >= minDist
+                         && GridHelper.ChebyshevDistance(p, ecp) >= minDist)
+                .Where(p => !territorysystem.IsInAnyTerritory(p.x, p.z))
+                .ToList();
+            if (candidates.Count >= DungeonCount) break;
+        }
+
+        if (candidates == null || candidates.Count < DungeonCount)
+        {
+            Debug.LogWarning("[DungeonSystem] ダンジョン候補が不足（全SetPosへフォールバック）");
             candidates = setpos.Select(v => GridHelper.ToGrid(v)).ToList();
         }
 
@@ -98,8 +104,9 @@ public class DungeonSystem : MonoBehaviour
             Vector3Int picked = candidates[idx];
             candidates.RemoveAt(idx);
 
-            // 既存ダンジョンから最低距離4
-            if (_dungeons.Any(d => GridHelper.ChebyshevDistance(d.Position, picked) < 4))
+            // 既存ダンジョンから最低距離3（候補枯渇時は許容）
+            if (candidates.Count > 0
+                && _dungeons.Any(d => GridHelper.ChebyshevDistance(d.Position, picked) < 3))
             {
                 i--;
                 continue;

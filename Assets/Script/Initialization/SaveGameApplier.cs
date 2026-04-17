@@ -114,6 +114,7 @@ public static class SaveGameApplier
                     s.Level = ud.Level;
                     s.ShieldTurns = ud.ShieldTurns;
                     s.ShieldActivated = ud.ShieldActivated;
+                    s.ShieldEverActivated = ud.ShieldEverActivated;
                     s.SkillCooldown = ud.SkillCooldown;
                     s.AssignedSkillId = ud.AssignedSkillId;
                     s.Fatigue = ud.Fatigue;

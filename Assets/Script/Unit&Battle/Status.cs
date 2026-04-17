@@ -287,6 +287,8 @@ public class Status : MonoBehaviour
     [Header("シールド（無敵バフ）")]
     public int ShieldTurns = 0;
     [HideInInspector] public bool ShieldActivated = false;
+    /// <summary>シールドが一度でも発動したか（クリスタル反撃の3体拡大判定用・永続）</summary>
+    [HideInInspector] public bool ShieldEverActivated = false;
     [HideInInspector] public int MaxHP;
 
     [Header("建築物の種類")]

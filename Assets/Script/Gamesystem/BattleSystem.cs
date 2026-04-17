@@ -122,6 +122,7 @@ public class BattleSystem : MonoBehaviour
         {
             Target.ShieldTurns = GameConstants.CrystalShieldDuration;
             Target.ShieldActivated = true;
+            Target.ShieldEverActivated = true;
             Debug.Log($"[Battle] {Target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！");
             string teamLabel = Target.team == Team.Player ? "味方" : "敵";
             ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{GameConstants.CrystalShieldDuration}ターン）",
@@ -203,7 +204,7 @@ public class BattleSystem : MonoBehaviour
         if (candidates.Count == 0) return;
 
         candidates.Sort((a, b) => a.d.CompareTo(b.d));
-        int targetCount = crystal.ShieldActivated ? GameConstants.CrystalCounterTargetsAfterShield : 1;
+        int targetCount = crystal.ShieldEverActivated ? GameConstants.CrystalCounterTargetsAfterShield : 1;
         int count = Mathf.Min(targetCount, candidates.Count);
 
         for (int i = 0; i < count; i++)
