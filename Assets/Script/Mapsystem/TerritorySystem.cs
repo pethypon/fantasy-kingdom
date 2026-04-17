@@ -15,7 +15,7 @@ public class TerritorySystem : MonoBehaviour
     public List<Vector3> PTSetPos;
     public List<Vector3> ETSetPos;
 
-    private const int TerritoryRadius = 3;
+    private const int TerritoryRadius = 5;
 
     public void Territory()
     {
@@ -25,7 +25,7 @@ public class TerritorySystem : MonoBehaviour
         Vector3 pcp = crystalsystem.PCP;
         Vector3 ecp = crystalsystem.ECP;
 
-        // PCP 周辺の半径3マス以内を領地として設定
+        // PCP 周辺の半径5マス以内を領地として設定
         PTSetPos = setpos.Where(p =>
         {
             float px = Mathf.Abs(p.x - pcp.x);
@@ -33,7 +33,7 @@ public class TerritorySystem : MonoBehaviour
             return px <= TerritoryRadius && pz <= TerritoryRadius && p != pcp;
         }).ToList();
 
-        // ECP 周辺の半径3マス以内を領地として設定
+        // ECP 周辺の半径5マス以内を領地として設定
         ETSetPos = setpos.Where(e =>
         {
             float ex = Mathf.Abs(e.x - ecp.x);

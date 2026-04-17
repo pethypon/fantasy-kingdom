@@ -154,6 +154,7 @@ public static partial class FacilityData
         BuildWell();
         BuildBarracks();
         BuildHouse();
+        BuildLuxuryHouse();
         BuildWarehouse();
 
         // ---- 壁 ----

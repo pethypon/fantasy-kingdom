@@ -234,6 +234,88 @@ public static class AIActionModifiers
     }
 
     // ================================================================
+    //  地形ボーナス: 高台への移動を優先、低地から移動中の優位
+    // ================================================================
+    public static void ApplyTerrainAwareness(List<AIAction> actions, AIBoardState board)
+    {
+        if (board.MapCreate == null) return;
+        var setPos = board.MapCreate.SetPos;
+        if (setPos == null || setPos.Count == 0) return;
+
+        foreach (var action in actions)
+        {
+            if (action.Unit == null) continue;
+            if (action.ActionType != AIActionType.Move
+                && action.ActionType != AIActionType.Surround
+                && action.ActionType != AIActionType.Support
+                && action.ActionType != AIActionType.Retreat) continue;
+
+            int tx = Mathf.RoundToInt(action.TargetPos.x);
+            int tz = Mathf.RoundToInt(action.TargetPos.z);
+            int cx = Mathf.RoundToInt(action.Unit.transform.position.x);
+            int cz = Mathf.RoundToInt(action.Unit.transform.position.z);
+
+            if (!GridHelper.TryGetHeight(setPos, tx, tz, out float ty)) continue;
+            if (!GridHelper.TryGetHeight(setPos, cx, cz, out float cy)) continue;
+
+            int dy = Mathf.RoundToInt(ty) - Mathf.RoundToInt(cy);
+            if (dy >= GameConstants.HighGroundYThreshold)
+                action.Score += 6f; // 高台への移動
+            else if (dy <= -GameConstants.HighGroundYThreshold)
+                action.Score -= 3f; // 低地への移動
+        }
+    }
+
+    // ================================================================
+    //  ダンジョン占有ボーナス: 未制圧ダンジョンへの接近・占有を優遇
+    // ================================================================
+    public static void ApplyDungeonAwareness(List<AIAction> actions, AIBoardState board)
+    {
+        if (board.DungeonSystem == null) return;
+        var dungeons = board.DungeonSystem.GetActiveDungeons();
+        if (dungeons == null || dungeons.Count == 0) return;
+
+        foreach (var action in actions)
+        {
+            if (action.Unit == null) continue;
+            if (action.ActionType != AIActionType.Move
+                && action.ActionType != AIActionType.Surround
+                && action.ActionType != AIActionType.Support) continue;
+
+            Vector3Int targetGrid = GridHelper.ToGridXZ(action.TargetPos);
+
+            foreach (var d in dungeons)
+            {
+                int dist = GridHelper.ChebyshevDistance(targetGrid, d.Position);
+                // モンスター生存時は突撃の期待値を下げる: 自HPに対する推定被ダメ比で減衰
+                float monsterRisk = 0f;
+                if (d.MonsterAlive)
+                {
+                    int estCounter = Mathf.Max(1, d.MonsterATK - action.Unit.DEF / 4);
+                    float hpRatio = action.Unit.MaxHP > 0 ? (float)estCounter / action.Unit.MaxHP : 1f;
+                    monsterRisk = Mathf.Clamp01(hpRatio) * 10f;
+                }
+
+                if (dist == 0)
+                {
+                    if (d.ClaimingTeam == Team.Player && d.ClaimProgress > 0)
+                        action.Score += 18f + d.ClaimProgress * 1.5f - monsterRisk;
+                    else
+                        action.Score += 12f - monsterRisk;
+
+                    // モンスター残HPが低いほど踏破価値が上がる
+                    if (d.MonsterAlive && d.MonsterHP <= DungeonSystem.UnitAttackDamagePerTurn)
+                        action.Score += 6f;
+                }
+                else if (dist <= 3)
+                {
+                    action.Score += (4 - dist) * 3f - monsterRisk * 0.3f;
+                }
+            }
+        }
+    }
+
+    // ================================================================
     //  ヘルパー: 退路安全性評価
     // ================================================================
 

@@ -469,6 +469,10 @@ public class VisionGenerator : MonoBehaviour
         int visionBonus = SpecialAbilitySystem.GetVisionBonus(status)
                         + StatusEffectSystem.GetVisionModifier(status);
 
+        // 高台ボーナス: 周囲1マス平均より高ければ視界+1
+        if (IsOnHighGround(status, mapcreate))
+            visionBonus += 1;
+
         foreach (Vector3Int p in visionData)
         {
             Vector3Int directionP = ApplyDirection(p, status.direction);
@@ -496,6 +500,35 @@ public class VisionGenerator : MonoBehaviour
         {
             ApplyVisionBonus(status, mapcreate, statusX, statusY, statusZ, visionBonus);
         }
+    }
+
+    /// <summary>
+    /// 高台判定: 駒の足元Yが、隣接8マスの平均 +1 以上なら高台とみなす。
+    /// </summary>
+    private static bool IsOnHighGround(Status status, MapCreate mapcreate)
+    {
+        if (status == null || mapcreate == null) return false;
+        int sx = Mathf.RoundToInt(status.transform.position.x);
+        int sz = Mathf.RoundToInt(status.transform.position.z);
+        if (!mapcreate.TryGetHeight(sx, sz, out float selfY)) return false;
+
+        float sum = 0f;
+        int count = 0;
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dz = -1; dz <= 1; dz++)
+            {
+                if (dx == 0 && dz == 0) continue;
+                if (mapcreate.TryGetHeight(sx + dx, sz + dz, out float nY))
+                {
+                    sum += nY;
+                    count++;
+                }
+            }
+        }
+        if (count == 0) return false;
+        float avg = sum / count;
+        return selfY >= avg + 1f;
     }
 
     /// <summary>

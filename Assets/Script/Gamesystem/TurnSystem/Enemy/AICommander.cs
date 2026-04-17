@@ -233,6 +233,8 @@ public partial class AICommander
         _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet,
             _crystalSystem, _visionGen, _buildSystem, _summonSystem, _factionState,
             _subCrystalSystem, _turnCount, _sharedMemory);
+        _board.DungeonSystem = _turnGen?.Systems?.DungeonSystem;
+        _board.MapCreate = _mapCreate;
 
         // スキルクールダウンを全敵駒で減少
         TickSkillCooldowns();

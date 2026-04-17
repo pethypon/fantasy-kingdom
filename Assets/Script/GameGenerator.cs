@@ -28,6 +28,7 @@ public class GameGenerator : MonoBehaviour
     [SerializeField] EconomySystem _EconomySystem;
     [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
     [SerializeField] SubCrystalSystem _SubCrystalSystem;
+    [SerializeField] DungeonSystem _DungeonSystem;
     [SerializeField] TurnGenerator _TurnGenerator;
     [SerializeField] SkillSystem _SkillSystem;
 
@@ -138,7 +139,8 @@ public class GameGenerator : MonoBehaviour
             _MapCreate, _TerritorySystem, _APSystem,
             _MoveGenerator, _VisionGenerator, _CrystalSystem, _UnitSetting,
             ref _BuildSystem, ref _SummonSystem, ref _EconomySystem,
-            ref _BuildingAttackSystem, ref _SubCrystalSystem, _uiBuilder);
+            ref _BuildingAttackSystem, ref _SubCrystalSystem,
+            ref _DungeonSystem, _uiBuilder);
 
         SystemInitializer.InitSkillsAndTimer(
             this, _TurnGenerator, factionState,
@@ -153,8 +155,11 @@ public class GameGenerator : MonoBehaviour
             sys.EconomySystem = _EconomySystem;
             sys.BuildingAttackSystem = _BuildingAttackSystem;
             sys.SubCrystalSystem = _SubCrystalSystem;
+            sys.DungeonSystem = _DungeonSystem;
             sys.SkillSystem = _SkillSystem;
             sys.TimerSystem = sys.TimerSystem ?? _TimerSystem;
+            sys.FactionState = factionState;
+            sys.TerritorySystem = _TerritorySystem;
         }
 
         // Step 4: 経済・資源・UnitRegistry

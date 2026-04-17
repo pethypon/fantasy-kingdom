@@ -122,6 +122,7 @@ public class BattleSystem : MonoBehaviour
         {
             Target.ShieldTurns = GameConstants.CrystalShieldDuration;
             Target.ShieldActivated = true;
+            Target.ShieldEverActivated = true;
             Debug.Log($"[Battle] {Target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！");
             string teamLabel = Target.team == Team.Player ? "味方" : "敵";
             ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{GameConstants.CrystalShieldDuration}ターン）",
@@ -158,11 +159,75 @@ public class BattleSystem : MonoBehaviour
         damage = Target.ApplyDamage(damage);
         Debug.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}");
 
+        // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）
+        if (damage > 0 && Attacker != null && Attacker.type == Type.Unit && Attacker.team != Target.team)
+            Attacker.GainExperience(damage);
+
+        // クリスタル反撃: クリスタルが攻撃された時、領土内の敵に反撃
+        if (Target.kind == Kind.Crystal && damage > 0 && Attacker != null && Attacker.team != Target.team)
+            ProcessCrystalCounterAttack(Target, Attacker);
+
         bool isKill = !Target.IsAlive;
         if (damage > 0)
             FloatingDamageUI.ShowDamage(Target.transform.position, damage, isKill);
         else
             FloatingDamageUI.ShowMiss(Target.transform.position);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  クリスタル反撃: 被弾クリスタルの領土内にいる最も近い敵にMaxHP×30%ダメージ
+    //  シールド発動後は3体まで拡大
+    // ═══════════════════════════════════════════════════════════════════
+    private void ProcessCrystalCounterAttack(Status crystal, Status attacker)
+    {
+        var systems = turnGenerator.Systems;
+        if (systems == null) return;
+
+        Team crystalTeam = crystal.team;
+        Team enemyTeam = crystalTeam == Team.Player ? Team.Enemy : Team.Player;
+
+        Transform enemyParent = enemyTeam == Team.Player
+            ? systems.UnitSetting?.PlayerUnit
+            : systems.UnitSetting?.EnemyUnit;
+        if (enemyParent == null) return;
+
+        Vector3Int crystalPos = GridHelper.ToGridXZ(crystal.transform.position);
+        var candidates = new System.Collections.Generic.List<(Status s, int d)>();
+        foreach (Transform child in enemyParent)
+        {
+            var s = child.GetComponent<Status>();
+            if (s == null || !s.IsAlive) continue;
+            if (systems.TerritorySystem != null && !systems.TerritorySystem.IsInTerritory(GridHelper.ToGridXZ(s.transform.position), crystalTeam)) continue;
+            int d = GridHelper.ChebyshevDistance(crystalPos, GridHelper.ToGridXZ(s.transform.position));
+            candidates.Add((s, d));
+        }
+        if (candidates.Count == 0) return;
+
+        candidates.Sort((a, b) => a.d.CompareTo(b.d));
+        int targetCount = crystal.ShieldEverActivated ? GameConstants.CrystalCounterTargetsAfterShield : 1;
+        int count = Mathf.Min(targetCount, candidates.Count);
+
+        for (int i = 0; i < count; i++)
+        {
+            var t = candidates[i].s;
+            int dmg = Mathf.RoundToInt(t.MaxHP * GameConstants.CrystalCounterDamageRatio);
+            int actual = t.ApplyDamage(dmg);
+            FloatingDamageUI.ShowDamage(t.transform.position, actual, !t.IsAlive);
+            Debug.Log($"[Battle] クリスタル反撃: {t.kind} に {actual} ダメージ（残HP:{t.HP}）");
+
+            if (!t.IsAlive && t.type == Type.Unit)
+            {
+                if (systems.MoveGenerator != null)
+                {
+                    Vector3 cellPos = systems.MoveGenerator.Cell(t.transform.position);
+                    systems.MoveGenerator.RemoveOccupied(cellPos);
+                }
+                t.gameObject.SetActive(false);
+            }
+        }
+
+        if (systems.VisionGenerator != null)
+            systems.RefreshVision();
     }
 
     // ═══════════════════════════════════════════════════════════════════

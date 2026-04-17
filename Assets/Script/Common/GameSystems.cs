@@ -31,6 +31,9 @@ public class GameSystems
     public EconomySystem EconomySystem { get; set; }
     public BuildingAttackSystem BuildingAttackSystem { get; set; }
     public SubCrystalSystem SubCrystalSystem { get; set; }
+    public FactionState FactionState { get; set; }
+    public TerritorySystem TerritorySystem { get; set; }
+    public DungeonSystem DungeonSystem { get; set; }
 
     // ================================================================
     //  タイマー・AI

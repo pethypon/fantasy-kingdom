@@ -18,5 +18,7 @@ public static partial class AIActionEvaluator
         AIActionModifiers.ApplyRetreatRegroupBonus(actions, personality, board);
         AIActionModifiers.ApplyBossFrontlineConditions(actions, personality, board);
         AIActionModifiers.ApplyGradualArmyExpansion(actions, board);
+        AIActionModifiers.ApplyTerrainAwareness(actions, board);
+        AIActionModifiers.ApplyDungeonAwareness(actions, board);
     }
 }

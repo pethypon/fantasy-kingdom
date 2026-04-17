@@ -562,6 +562,7 @@ public class UnitPanelUI : MonoBehaviour
             case FacilityKind.Barracks:
                 return $"経験値+{data.SpecialValue}%";
             case FacilityKind.House:
+            case FacilityKind.LuxuryHouse:
                 return $"収容+{data.SpecialValue}";
             case FacilityKind.Warehouse:
                 return $"容量+{data.SpecialValue}";

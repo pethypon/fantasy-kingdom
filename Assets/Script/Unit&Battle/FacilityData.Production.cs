@@ -381,6 +381,37 @@ public static partial class FacilityData
         Register(kind, "家", 7, new ResourceCost(wood: 60, stone: 60, water: 10, plank: 25, cutStone: 25), 3, levels);
     }
 
+    // ---- 高級住宅（Houseの上位互換: +3/Lv1, +4/Lv2, +6/Lv3） ----
+    private static void BuildLuxuryHouse()
+    {
+        var kind = FacilityKind.LuxuryHouse;
+        var levels = new FacilityLevelData[]
+        {
+            new FacilityLevelData
+            {
+                HP = 120, DEF = 0, ATK = 0,
+                SpecialValue = 3,
+            },
+            new FacilityLevelData
+            {
+                HP = 120, DEF = 0, ATK = 0,
+                SpecialValue = 4,
+                UpgradeCost = new ResourceCost(wood: 80, stone: 80, iron: 40, water: 20, plank: 40, cutStone: 40),
+                UpgradeAP = 10,
+            },
+            new FacilityLevelData
+            {
+                HP = 120, DEF = 0, ATK = 0,
+                SpecialValue = 6,
+                UpgradeCost = new ResourceCost(wood: 80, stone: 80, iron: 60, magicOre: 5, water: 20, plank: 40, cutStone: 40),
+                UpgradeAP = 12,
+            },
+        };
+        Register(kind, "高級住宅", 10,
+            new ResourceCost(wood: 100, stone: 100, iron: 20, water: 20, plank: 40, cutStone: 40, citizen: 2),
+            3, levels);
+    }
+
     // ---- 倉庫 ----
     private static void BuildWarehouse()
     {

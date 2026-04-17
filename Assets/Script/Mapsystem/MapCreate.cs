@@ -25,10 +25,10 @@ public class MapCreate : MonoBehaviour
     [SerializeField] private Transform MapBox;
 
     [Header("マップサイズ")]
-    public int maxX = 50;
+    public int maxX = 40;
     public int maxY = 2;
     public int minY = 0;
-    public int maxZ = 50;
+    public int maxZ = 40;
 
     [Header("シード値")]
     [SerializeField] private float seedx, seedz;

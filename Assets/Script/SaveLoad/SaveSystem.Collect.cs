@@ -127,6 +127,7 @@ public static partial class SaveSystem
             Level = s.Level,
             ShieldTurns = s.ShieldTurns,
             ShieldActivated = s.ShieldActivated,
+            ShieldEverActivated = s.ShieldEverActivated,
             PosX = s.transform.position.x,
             PosY = s.transform.position.y,
             PosZ = s.transform.position.z,

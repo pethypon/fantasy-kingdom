@@ -16,15 +16,74 @@ public static class GameConstants
 
     // =====================================================================
     //  ダメージ計算式の係数
+    //  新式: 3 + (ATK/4) + ((ATK/2) - (DEF/4))
     // =====================================================================
     /// <summary>基本ダメージの固定加算値</summary>
-    public const float DamageBase = 1f;
+    public const float DamageBase = 3f;
     /// <summary>ATK÷この値が基本ダメージに加算される</summary>
-    public const float DamageATKDivisor = 6f;
+    public const float DamageATKDivisor = 4f;
     /// <summary>ATK÷この値が攻撃側の実効攻撃力</summary>
     public const float DamageATKHalf = 2f;
     /// <summary>DEF÷この値が防御側の実効防御力</summary>
     public const float DamageDEFQuarter = 4f;
+
+    // =====================================================================
+    //  パッシブスキル（再設計後の戦闘効果）
+    // =====================================================================
+    /// <summary>Impregnable: 被ダメ軽減率（-15%）</summary>
+    public const float ImpregnableDamageReduction = 0.85f;
+    /// <summary>HunterEyes: 視界内の敵への与ダメ倍率（+15%）</summary>
+    public const float HunterEyesDamageBonus = 1.15f;
+    /// <summary>Destroyer: 建物・クリスタルへの与ダメ倍率（+30%）</summary>
+    public const float DestroyerBuildingBonus = 1.30f;
+    /// <summary>Sniper: 距離3以上への与ダメ倍率（+20%）</summary>
+    public const float SniperLongRangeBonus = 1.20f;
+    /// <summary>Sniper: ボーナスが発動する最小距離</summary>
+    public const int SniperMinRange = 3;
+    /// <summary>Assassination: 背面攻撃時の追加倍率（+20%）</summary>
+    public const float AssassinationBackAttackBonus = 1.20f;
+    /// <summary>背面攻撃基本倍率（+15%）</summary>
+    public const float BackAttackBonus = 1.15f;
+
+    // =====================================================================
+    //  地形効果（高低差ボーナス）
+    // =====================================================================
+    /// <summary>低地→高台への攻撃倍率（+35%）</summary>
+    public const float LowToHighAttackBonus = 1.35f;
+    /// <summary>高台からの遠距離攻撃でY-1対象への与ダメ倍率（+10%）</summary>
+    public const float HighGroundRangedBonus = 1.10f;
+    /// <summary>高台の対象に範囲スキル着弾時の被ダメ倍率（-20%）</summary>
+    public const float AreaSkillHighTargetMod = 0.80f;
+    /// <summary>低地の対象に範囲スキル着弾時の被ダメ倍率（+10%）</summary>
+    public const float AreaSkillLowTargetMod = 1.10f;
+    /// <summary>高台とみなすY差の閾値</summary>
+    public const int HighGroundYThreshold = 1;
+    /// <summary>直線スキル遮蔽: この高低差以上のタイルで遮断</summary>
+    public const int LineSkillBlockYDiff = 2;
+
+    // =====================================================================
+    //  経験値システム
+    // =====================================================================
+    /// <summary>Lv2に必要なXP</summary>
+    public const int XPRequiredLv2 = 10;
+    /// <summary>レベルごとのXP必要量乗数</summary>
+    public const float XPLevelMultiplier = 1.15f;
+
+    // =====================================================================
+    //  クリスタル反撃
+    // =====================================================================
+    /// <summary>クリスタル反撃: 対象MaxHP比のダメージ</summary>
+    public const float CrystalCounterDamageRatio = 0.30f;
+    /// <summary>クリスタル反撃: シールド発動後の対象数</summary>
+    public const int CrystalCounterTargetsAfterShield = 3;
+
+    // =====================================================================
+    //  維持費未払いペナルティ（ATK/DEF低下率）
+    // =====================================================================
+    public const float UpkeepPenaltyStage1 = 0.10f; // 1-3ターン: -10%
+    public const float UpkeepPenaltyStage2 = 0.25f; // 4-6ターン: -25%
+    public const float UpkeepPenaltyStage3 = 0.40f; // 7-9ターン: -40%
+    public const int UpkeepPenaltyDefectTurns = 10; // 10ターン以上で離脱
 
     // =====================================================================
     //  クリスタルシールド

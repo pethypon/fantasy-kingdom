@@ -46,6 +46,10 @@ public class AIBoardState
     public Dictionary<FacilityKind, int> EnemyBuildingCounts { get; private set; }
     public int TurnCount { get; private set; }
 
+    // ---- 地形・ダンジョン（後からAICommanderが注入） ----
+    public DungeonSystem DungeonSystem { get; set; }
+    public MapCreate MapCreate { get; set; }
+
     // ---- 索敵・Last Known Position データ（インスタンスフィールド化: 複数AI対応） ----
     // 最後にPlayerユニットを視認した位置とターン (key=ユニットinstanceID)
     readonly Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions;

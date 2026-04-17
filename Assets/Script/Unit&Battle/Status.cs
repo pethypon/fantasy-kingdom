@@ -278,9 +278,17 @@ public class Status : MonoBehaviour
     [Header("疲労")]
     public int Fatigue = 0;
 
+    [Header("維持費未払いターン数")]
+    public int UpkeepUnpaidTurns = 0;
+
+    [Header("累積経験値")]
+    public int Experience = 0;
+
     [Header("シールド（無敵バフ）")]
     public int ShieldTurns = 0;
     [HideInInspector] public bool ShieldActivated = false;
+    /// <summary>シールドが一度でも発動したか（クリスタル反撃の3体拡大判定用・永続）</summary>
+    [HideInInspector] public bool ShieldEverActivated = false;
     [HideInInspector] public int MaxHP;
 
     [Header("建築物の種類")]
@@ -358,6 +366,59 @@ public class Status : MonoBehaviour
 
     /// <summary>グリッド座標（Y=0）を返す</summary>
     public UnityEngine.Vector3Int GridPosition => GridHelper.ToGridXZ(transform.position);
+
+    /// <summary>
+    /// 維持費未払いターン数に応じた ATK/DEF 低下率（0.0〜0.40）。
+    /// 1-3: -10%、4-6: -25%、7-9: -40%。10以上は離脱処理側が担当。
+    /// </summary>
+    public float UpkeepPenaltyATKDEF
+    {
+        get
+        {
+            int t = UpkeepUnpaidTurns;
+            if (t <= 0) return 0f;
+            if (t <= 3) return GameConstants.UpkeepPenaltyStage1;
+            if (t <= 6) return GameConstants.UpkeepPenaltyStage2;
+            if (t <= 9) return GameConstants.UpkeepPenaltyStage3;
+            return GameConstants.UpkeepPenaltyStage3;
+        }
+    }
+
+    // =====================================================================
+    //  経験値・レベルアップ
+    // =====================================================================
+    /// <summary>指定レベルに必要な累計XP（Lv1=0、Lv2=10、以後×1.15切り上げ）</summary>
+    public static int XPRequiredForLevel(int level)
+    {
+        if (level <= 1) return 0;
+        int required = GameConstants.XPRequiredLv2;
+        int total = required;
+        for (int lv = 3; lv <= level; lv++)
+        {
+            required = UnityEngine.Mathf.CeilToInt(required * GameConstants.XPLevelMultiplier);
+            total += required;
+        }
+        return total;
+    }
+
+    /// <summary>XPを加算し、必要XPに達していればレベルアップする。</summary>
+    public void GainExperience(int amount)
+    {
+        if (amount <= 0) return;
+        Experience += amount;
+        while (Level < 10 && Experience >= XPRequiredForLevel(Level + 1))
+        {
+            Level++;
+            // シンプルなステータス成長（ATK/DEF/MaxHP +10%）
+            ATK = UnityEngine.Mathf.RoundToInt(ATK * 1.10f);
+            DEF = UnityEngine.Mathf.RoundToInt(DEF * 1.10f);
+            int newMax = UnityEngine.Mathf.RoundToInt(MaxHP * 1.10f);
+            int gained = newMax - MaxHP;
+            MaxHP = newMax;
+            HP += gained;
+            UnityEngine.Debug.Log($"[Level] {kind} → Lv{Level} (XP:{Experience})");
+        }
+    }
 }
 
 // =====================================================================
@@ -428,7 +489,7 @@ public enum FacilityKind
 {
     Field, Bakery, LoggingCamp, LumberMill,
     Quarry, StoneWorks, Mine, Smelter,
-    Barracks, House, Well, Warehouse,
+    Barracks, House, LuxuryHouse, Well, Warehouse,
     WoodWall, StoneWall,
     Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword,
     SubCrystal

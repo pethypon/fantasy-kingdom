@@ -166,6 +166,67 @@ public class SkillSystem : MonoBehaviour
     }
 
     // =====================================================================
+    //  直線スキル遮蔽判定
+    //  壁（WoodWall/StoneWall）または高低差が LineSkillBlockYDiff 以上のタイルで遮断される。
+    //  使う側は GetAreaPositions の戻り値を FilterLineSkillBlocked で絞り込む。
+    // =====================================================================
+    public static List<Vector3Int> FilterLineSkillBlocked(
+        List<Vector3Int> positions, SkillAreaShape area, Vector3Int origin,
+        MapCreate mapCreate, MoveGenerator moveGenerator)
+    {
+        // 直線系以外はそのまま返す
+        if (!(area == SkillAreaShape.Line3 || area == SkillAreaShape.Line4 ||
+              area == SkillAreaShape.Line5 || area == SkillAreaShape.Line7))
+            return positions;
+
+        int originY = 0;
+        if (mapCreate != null && mapCreate.TryGetHeight(origin.x, origin.z, out float oy))
+            originY = Mathf.RoundToInt(oy);
+
+        var result = new List<Vector3Int>();
+        foreach (var p in positions)
+        {
+            int py = originY;
+            if (mapCreate != null && mapCreate.TryGetHeight(p.x, p.z, out float h))
+                py = Mathf.RoundToInt(h);
+
+            // 高低差で遮断
+            if (Mathf.Abs(py - originY) >= GameConstants.LineSkillBlockYDiff)
+                break;
+
+            // 壁による遮断
+            if (HasWallAt(moveGenerator, p))
+                break;
+
+            result.Add(p);
+        }
+        return result;
+    }
+
+    private static bool HasWallAt(MoveGenerator moveGenerator, Vector3Int pos)
+    {
+        var reg = UnitRegistry.Instance;
+        if (reg == null) return false;
+        if (ContainsWallAt(reg.PlayerBuildings, pos)) return true;
+        if (ContainsWallAt(reg.EnemyBuildings, pos)) return true;
+        return false;
+    }
+
+    private static bool ContainsWallAt(IReadOnlyList<Status> list, Vector3Int pos)
+    {
+        if (list == null) return false;
+        for (int i = 0; i < list.Count; i++)
+        {
+            var s = list[i];
+            if (s == null || !s.IsAlive) continue;
+            if (s.kind != Kind.WoodWall && s.kind != Kind.StoneWall) continue;
+            var g = s.GridPosition;
+            if (g.x == pos.x && g.z == pos.z) return true;
+        }
+        return false;
+    }
+
+    // =====================================================================
     //  範囲スキルの対象座標取得
     // =====================================================================
     public static List<Vector3Int> GetAreaPositions(SkillAreaShape area, Vector3Int center, Direction dir)

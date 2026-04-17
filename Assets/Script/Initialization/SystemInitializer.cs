@@ -26,6 +26,7 @@ public static class SystemInitializer
         ref EconomySystem economySystem,
         ref BuildingAttackSystem buildingAttackSystem,
         ref SubCrystalSystem subCrystalSystem,
+        ref DungeonSystem dungeonSystem,
         UIBuilder uiBuilder)
     {
         // ---- BuildSystem ----
@@ -70,6 +71,13 @@ public static class SystemInitializer
                                mapCreate, buildSystem, visionGenerator,
                                moveGenerator, crystalSystem);
         turnGen.Systems.SubCrystalSystem = subCrystalSystem;
+
+        // ---- DungeonSystem ----
+        dungeonSystem = EnsureComponent(owner, dungeonSystem);
+        dungeonSystem.Init(mapCreate, crystalSystem, territorySystem,
+                           factionState, unitSetting, buildSystem);
+        dungeonSystem.GenerateDungeons();
+        turnGen.Systems.DungeonSystem = dungeonSystem;
 
         // ---- クロスリファレンス ----
         if (buildSystem != null)

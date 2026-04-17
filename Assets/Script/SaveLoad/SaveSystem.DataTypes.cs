@@ -97,6 +97,7 @@ public static partial class SaveSystem
         public int Level;
         public int ShieldTurns;
         public bool ShieldActivated;
+        public bool ShieldEverActivated;
         public float PosX, PosY, PosZ;
         public string Direction;
         public string PassiveSkill;

@@ -25,6 +25,10 @@ public static class TurnStartHelper
         if (crystal != null)
             BattleSystem.TickCrystalShields(crystal);
 
+        // 国の生存ターン数を加算（クリスタル序盤収入の逓減に使用）
+        if (systems.FactionState != null)
+            systems.FactionState.GetNation(team).TurnsAlive++;
+
         // 状態異常ティック（DoTダメージ + ターン経過）
         if (unitParent != null)
             StatusEffectSystem.TickAllUnits(unitParent);
@@ -49,5 +53,9 @@ public static class TurnStartHelper
         // タイマー開始
         if (systems.TimerSystem != null)
             systems.TimerSystem.StartTurn(team);
+
+        // ダンジョン占有判定・タイマー進行
+        if (systems.DungeonSystem != null)
+            systems.DungeonSystem.ProcessTurn(team);
     }
 }
