@@ -29,11 +29,20 @@ public class DungeonSystem : MonoBehaviour
         public bool Cleared;         // アーティファクト獲得済み
         public Artifact Reward = Artifact.None;
         public GameObject Marker;    // 視覚表示用
+
+        // ---- ダンジョン内モンスター（踏破阻害要素） ----
+        public int MonsterHP = MonsterMaxHP;
+        public int MonsterMaxHPCache = MonsterMaxHP;
+        public int MonsterATK = MonsterATKValue;
+        public bool MonsterAlive => MonsterHP > 0;
     }
 
     [Header("定数")]
     public const int DungeonCount = 2;
     public const int ClaimTurns = 10;
+    public const int MonsterMaxHP = 120;
+    public const int MonsterATKValue = 25;
+    public const int UnitAttackDamagePerTurn = 30;
 
     public IReadOnlyList<DungeonInfo> Dungeons => _dungeons;
     private readonly List<DungeonInfo> _dungeons = new List<DungeonInfo>();
@@ -159,6 +168,21 @@ public class DungeonSystem : MonoBehaviour
 
             d.Contested = false;
 
+            // モンスター討伐フェーズ: 未討伐なら先にHPを削る（占有タイマーは進めない）
+            if (d.MonsterAlive && (playerPresent || enemyPresent))
+            {
+                Team invader = playerPresent ? Team.Player : Team.Enemy;
+                int dealt = Mathf.Min(UnitAttackDamagePerTurn, d.MonsterHP);
+                d.MonsterHP -= dealt;
+                Debug.Log($"[DungeonSystem] {invader} がダンジョン{d.Position}のモンスターに{dealt}ダメージ(残{d.MonsterHP})");
+
+                // 反撃: 踏み入ったユニット群にATKダメージを分配
+                CounterMonsterAttack(invader, d.Position, d.MonsterATK);
+
+                if (d.MonsterAlive) continue; // まだ生きている → 占有開始しない
+                Debug.Log($"[DungeonSystem] ダンジョン{d.Position}のモンスター討伐！ 占有開始可能");
+            }
+
             if (playerPresent)
             {
                 if (d.ClaimingTeam != Team.Player)
@@ -189,6 +213,26 @@ public class DungeonSystem : MonoBehaviour
                 if (d.Marker != null) Destroy(d.Marker);
                 Debug.Log($"[DungeonSystem] {d.ClaimingTeam} がダンジョン{d.Position}を制圧、{d.Reward}を獲得");
             }
+        }
+    }
+
+    /// <summary>ダンジョン内モンスターから踏破ユニットへの反撃処理</summary>
+    private void CounterMonsterAttack(Team team, Vector3Int pos, int atk)
+    {
+        if (unitSetting == null) return;
+        Transform parent = team == Team.Player ? unitSetting.PlayerUnit : unitSetting.EnemyUnit;
+        if (parent == null) return;
+
+        foreach (Transform child in parent)
+        {
+            if (child == null || !child.gameObject.activeInHierarchy) continue;
+            var s = child.GetComponent<Status>();
+            if (s == null || !s.IsAlive) continue;
+            if (s.GridPosition.x != pos.x || s.GridPosition.z != pos.z) continue;
+
+            int dmg = Mathf.Max(1, atk - s.DEF / 4);
+            s.ApplyDamage(dmg);
+            Debug.Log($"[DungeonSystem] モンスター反撃: {s.kind} に {dmg} ダメージ（残HP:{s.HP}）");
         }
     }
 
