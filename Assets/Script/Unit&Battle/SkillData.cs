@@ -129,7 +129,7 @@ public class SkillData
         Register(new SkillData {
             Id = 6, Name = "ハムストリング", Rarity = SkillRarity.Normal,
             APCost = 4, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.Single,
-            Multiplier = 0.90f, InflictDebuff = StatusEffectType.Slow, DebuffChance = 1f
+            Multiplier = 0.90f, InflictDebuff = StatusEffectType.Chill, DebuffChance = 1f
         });
 
         Register(new SkillData {

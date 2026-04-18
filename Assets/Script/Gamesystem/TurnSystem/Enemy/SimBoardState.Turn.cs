@@ -45,8 +45,6 @@ public partial class SimBoardState
             var eff = u.Effects[j];
             if (eff.Debuff == StatusEffectType.Poison)
                 u.HP = Mathf.Max(0, u.HP - GameConstants.PoisonDamagePerTurn);
-            else if (eff.Debuff == StatusEffectType.Bleed)
-                u.HP = Mathf.Max(0, u.HP - GameConstants.BleedDamagePerTurn);
         }
     }
 

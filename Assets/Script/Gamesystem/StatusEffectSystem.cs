@@ -15,8 +15,6 @@ public static class StatusEffectSystem
         switch (t)
         {
             case StatusEffectType.Poison:
-            case StatusEffectType.Curse:
-            case StatusEffectType.Bleed:
                 return 2;
             default:
                 return 1;
@@ -145,11 +143,6 @@ public static class StatusEffectSystem
                 target.ApplyDamage(GameConstants.PoisonDamagePerTurn);
                 Debug.Log($"[StatusEffect] {target.kind} が毒で {GameConstants.PoisonDamagePerTurn} ダメージ (残HP:{target.HP})");
             }
-            else if (e.debuffType == StatusEffectType.Bleed)
-            {
-                target.ApplyDamage(GameConstants.BleedDamagePerTurn);
-                Debug.Log($"[StatusEffect] {target.kind} が出血で {GameConstants.BleedDamagePerTurn} ダメージ (残HP:{target.HP})");
-            }
         }
 
         // ターン数減算 → 0以下は除去
@@ -244,29 +237,26 @@ public static class StatusEffectSystem
         return 0f;
     }
 
-    /// <summary>回復量修飾: 毒-25%, 呪傷-50%</summary>
+    /// <summary>回復量修飾: 毒-40%</summary>
     public static float GetHealModifier(Status target)
     {
         float mod = 1f;
         if (HasDebuff(target, StatusEffectType.Poison)) mod -= (1f - GameConstants.PoisonHealReduction);
-        if (HasDebuff(target, StatusEffectType.Curse))  mod -= (1f - GameConstants.CurseHealReduction);
         return Mathf.Max(0f, mod);
     }
 
-    /// <summary>移動AP追加コスト: 鈍足+2, 冷気+2</summary>
+    /// <summary>移動AP追加コスト: 冷気+2</summary>
     public static int GetMoveAPCostBonus(Status unit)
     {
         int bonus = 0;
-        if (HasDebuff(unit, StatusEffectType.Slow))  bonus += GameConstants.DebuffMoveAPBonus;
         if (HasDebuff(unit, StatusEffectType.Chill)) bonus += GameConstants.DebuffMoveAPBonus;
         return bonus;
     }
 
-    /// <summary>移動不可チェック: 凍結 or 束縛</summary>
+    /// <summary>移動不可チェック: 凍結</summary>
     public static bool IsMovementBlocked(Status unit)
     {
-        return HasDebuff(unit, StatusEffectType.Freeze)
-            || HasDebuff(unit, StatusEffectType.Bind);
+        return HasDebuff(unit, StatusEffectType.Freeze);
     }
 
     /// <summary>行動不可チェック: スタン</summary>
@@ -275,12 +265,11 @@ public static class StatusEffectSystem
         return HasDebuff(unit, StatusEffectType.Stun);
     }
 
-    /// <summary>視界修飾: 盲目-1, 看破+1</summary>
+    /// <summary>視界修飾: 看破+1</summary>
     public static int GetVisionModifier(Status unit)
     {
         int mod = 0;
-        if (HasDebuff(unit, StatusEffectType.Blind)) mod -= 1;
-        if (HasBuff(unit, BuffType.Insight))          mod += 1;
+        if (HasBuff(unit, BuffType.Insight)) mod += 1;
         return mod;
     }
 

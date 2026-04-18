@@ -412,7 +412,7 @@ public class SkillSystem : MonoBehaviour
                 if (target != null && !StatusEffectSystem.HasDebuff(target, StatusEffectType.Poison))
                 {
                     if (Random.Range(0f, 1f) <= GameConstants.FlamePoisonBleedChance)
-                        StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Bleed);
+                        StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Poison);
                 }
                 break;
 

@@ -64,7 +64,7 @@ public class SimUnit
     }
 
     public bool IsStunned => HasDebuff(StatusEffectType.Stun);
-    public bool IsMovementBlocked => HasDebuff(StatusEffectType.Freeze) || HasDebuff(StatusEffectType.Bind);
+    public bool IsMovementBlocked => HasDebuff(StatusEffectType.Freeze);
 
     // ---- ステータス修飾値 ----
     public float GetATKMod()
@@ -96,7 +96,6 @@ public class SimUnit
     public int GetMoveAPBonus()
     {
         int bonus = 0;
-        if (HasDebuff(StatusEffectType.Slow)) bonus += GameConstants.DebuffMoveAPBonus;
         if (HasDebuff(StatusEffectType.Chill)) bonus += GameConstants.DebuffMoveAPBonus;
         return bonus;
     }
