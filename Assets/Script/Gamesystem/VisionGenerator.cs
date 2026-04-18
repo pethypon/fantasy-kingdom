@@ -335,7 +335,8 @@ public class VisionGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 視界内かどうかでRendererの有効/無効を切り替える
+    /// 視界内かどうかでRenderer/Collider/Canvasの有効/無効を切り替える
+    /// 視界外では Collider も無効化しクリックできないようにする
     /// </summary>
     void SetRendererVisibility(IEnumerable targets, HashSet<Vector3Int> visionXZ)
     {
@@ -351,6 +352,10 @@ public class VisionGenerator : MonoBehaviour
             foreach (var renderer in Temporary.GetComponentsInChildren<Renderer>(true))
             {
                 renderer.enabled = visible;
+            }
+            foreach (var collider in Temporary.GetComponentsInChildren<Collider>(true))
+            {
+                collider.enabled = visible;
             }
             // WorldSpace Canvas（HeadUI等）も連動して表示/非表示にする
             foreach (var canvas in Temporary.GetComponentsInChildren<Canvas>(true))
@@ -606,6 +611,14 @@ public class VisionGenerator : MonoBehaviour
         if (_enemyBuildingParent != null)
         {
             SetRendererVisibility(_enemyBuildingParent, playervisionXZ);
+        }
+
+        // プレイヤー側の駒・建築物・クリスタルも視界外で非表示にする（すべての駒/建築物を対象）
+        SetRendererVisibility(PlayerUnit, playervisionXZ);
+        SetRendererVisibility(crystalsystem.Playercrystal, playervisionXZ);
+        if (_playerBuildingParent != null)
+        {
+            SetRendererVisibility(_playerBuildingParent, playervisionXZ);
         }
     }
 }
