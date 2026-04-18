@@ -98,16 +98,12 @@ public static class GameConstants
     // =====================================================================
     /// <summary>毒の毎ターンダメージ</summary>
     public const int PoisonDamagePerTurn = 8;
-    /// <summary>出血の毎ターンダメージ</summary>
-    public const int BleedDamagePerTurn = 6;
 
     // =====================================================================
     //  回復修飾
     // =====================================================================
-    /// <summary>毒状態での回復減少率</summary>
-    public const float PoisonHealReduction = 0.75f;
-    /// <summary>呪傷状態での回復減少率</summary>
-    public const float CurseHealReduction = 0.50f;
+    /// <summary>毒状態での回復減少率（-40%なので0.60）</summary>
+    public const float PoisonHealReduction = 0.60f;
 
     // =====================================================================
     //  ステータス効果修飾値（StatusEffectSystem / SimUnit 共用）

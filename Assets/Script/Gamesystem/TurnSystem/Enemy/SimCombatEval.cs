@@ -50,7 +50,6 @@ public static class SimCombatEval
         if (unit.IsStunned) val *= 0.5f;
         if (unit.IsMovementBlocked) val *= 0.7f;
         if (unit.HasDebuff(StatusEffectType.Poison)) val *= 0.85f;
-        if (unit.HasDebuff(StatusEffectType.Bleed)) val *= 0.9f;
 
         // バフボーナス
         if (unit.HasBuff(BuffType.Offensive)) val *= 1.1f;

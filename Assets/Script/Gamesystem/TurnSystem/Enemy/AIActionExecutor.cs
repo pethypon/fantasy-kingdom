@@ -263,7 +263,7 @@ public class AIActionExecutor
 
         board.ConsumeSkill(unit, skill.APCost);
         int hpBefore = action.TargetUnit.HP;
-        _battleSystem.target = action.TargetUnit;
+        _battleSystem.SetTarget(action.TargetUnit);
         _skillSystem.ExecuteSkill(unit, action.TargetUnit, skill);
         int hpAfter = action.TargetUnit.HP;
         bool killed = hpAfter <= 0;

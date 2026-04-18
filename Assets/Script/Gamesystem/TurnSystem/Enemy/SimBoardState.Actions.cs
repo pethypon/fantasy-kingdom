@@ -135,7 +135,6 @@ public partial class SimBoardState
                     // 回復スキル
                     float healMod = 1f;
                     if (target.HasDebuff(StatusEffectType.Poison)) healMod -= (1f - GameConstants.PoisonHealReduction);
-                    if (target.HasDebuff(StatusEffectType.Curse)) healMod -= (1f - GameConstants.CurseHealReduction);
                     healMod = Mathf.Max(0f, healMod);
                     int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
                     target.HP = Mathf.Min(target.HP + heal, target.MaxHP);
@@ -172,8 +171,6 @@ public partial class SimBoardState
         switch (t)
         {
             case StatusEffectType.Poison:
-            case StatusEffectType.Curse:
-            case StatusEffectType.Bleed:
                 return 2;
             default:
                 return 1;

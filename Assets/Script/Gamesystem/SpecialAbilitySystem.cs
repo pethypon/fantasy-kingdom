@@ -174,8 +174,8 @@ public static class SpecialAbilitySystem
         {
             if (Random.value < LowHuntChance)
             {
-                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Slow);
-                Debug.Log($"[SpecialAbility] 低所狩り発動！ {target.kind} に鈍足付与");
+                StatusEffectSystem.ApplyDebuff(target, StatusEffectType.Chill);
+                Debug.Log($"[SpecialAbility] 低所狩り発動！ {target.kind} に冷気付与");
             }
         }
 
