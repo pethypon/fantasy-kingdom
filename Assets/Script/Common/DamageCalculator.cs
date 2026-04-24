@@ -64,6 +64,12 @@ public static class DamageCalculator
         // PassiveSkill 再設計: 攻撃側効果
         switch (attacker.passiveskill)
         {
+            case PassiveSkill.StrangeKingAura:
+                // HP50%以下で激昂: ATK+25%
+                if (attacker.HPRatio <= GameConstants.StrangeKingRageThreshold)
+                    multiplier *= GameConstants.StrangeKingRageATKBonus;
+                break;
+
             case PassiveSkill.HunterEyes:
                 // 攻撃者の視界内に対象があれば +15%
                 if (attacker.VisionCell != null &&
@@ -115,6 +121,11 @@ public static class DamageCalculator
         if (target.passiveskill == PassiveSkill.Impregnable)
         {
             multiplier *= GameConstants.ImpregnableDamageReduction;
+        }
+        else if (target.passiveskill == PassiveSkill.StrangeKingAura)
+        {
+            // 異形の王: 被ダメージ-40%（クリスタル級の耐久）
+            multiplier *= GameConstants.StrangeKingDamageReduction;
         }
 
         return multiplier;

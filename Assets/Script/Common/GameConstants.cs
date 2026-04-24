@@ -72,6 +72,18 @@ public static class GameConstants
     public const float KingAuraDEFBonus = 1.10f;
 
     // =====================================================================
+    //  StrangeKing（異形の王）固有パッシブ
+    // =====================================================================
+    /// <summary>StrangeKingAura: 被ダメージ倍率（-40%）</summary>
+    public const float StrangeKingDamageReduction = 0.60f;
+    /// <summary>StrangeKingAura: 受けたダメージの回復割合（20%吸収）</summary>
+    public const float StrangeKingLifesteal = 0.20f;
+    /// <summary>StrangeKingAura: HP閾値以下でATK倍率（+25%）</summary>
+    public const float StrangeKingRageATKBonus = 1.25f;
+    /// <summary>StrangeKingAura: 激昂発動のHP比率</summary>
+    public const float StrangeKingRageThreshold = 0.50f;
+
+    // =====================================================================
     //  経験値システム
     // =====================================================================
     /// <summary>Lv2に必要なXP</summary>

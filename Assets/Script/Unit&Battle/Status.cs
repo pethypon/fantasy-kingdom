@@ -116,7 +116,12 @@ public enum PassiveSkill
     HunterEyes,
     Destroyer,
     Assassination,
-    Sniper
+    Sniper,
+    /// <summary>
+    /// 異形の王専用: 被ダメージ-40% + 受けたダメージの20%をHP回復（吸血）+
+    /// 自身HP50%以下時にATK+25%。クリスタル級の耐久と脅威度を実現する。
+    /// </summary>
+    StrangeKingAura,
 }
 
 // =====================================================================

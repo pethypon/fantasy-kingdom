@@ -83,6 +83,10 @@ public class UnitSetting : MonoBehaviour
         else
             Debug.LogWarning($"[UnitSetting] Kind:{status.kind} のUnitDataが未登録です");
 
+        // 異形の王は固有パッシブを強制付与（クリスタル級の脅威）
+        if (status.kind == Kind.Boss)
+            status.passiveskill = PassiveSkill.StrangeKingAura;
+
         // スキルをランダム配布
         SkillData.AssignRandomSkill(status);
 

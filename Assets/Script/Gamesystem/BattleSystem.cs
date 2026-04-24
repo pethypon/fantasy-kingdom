@@ -163,6 +163,14 @@ public class BattleSystem : MonoBehaviour
         if (damage > 0 && Attacker != null && Attacker.type == Type.Unit && Attacker.team != Target.team)
             Attacker.GainExperience(damage);
 
+        // StrangeKingAura: 与ダメージの20%を吸収してHP回復
+        if (damage > 0 && Attacker != null &&
+            Attacker.passiveskill == PassiveSkill.StrangeKingAura && Attacker.team != Target.team)
+        {
+            int heal = Mathf.RoundToInt(damage * GameConstants.StrangeKingLifesteal);
+            if (heal > 0) Attacker.ApplyHeal(heal);
+        }
+
         // クリスタル反撃: クリスタルが攻撃された時、領土内の敵に反撃
         if (Target.kind == Kind.Crystal && damage > 0 && Attacker != null && Attacker.team != Target.team)
             ProcessCrystalCounterAttack(Target, Attacker);
