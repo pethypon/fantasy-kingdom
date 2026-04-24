@@ -267,6 +267,13 @@ public class Status : MonoBehaviour
     public Direction direction;
     [Header("パッシブスキル")]
     public PassiveSkill passiveskill;
+    [Header("強敵（縄張り付き中立ボス）")]
+    [Tooltip("trueなら縄張り外では被弾無効、縄張り外からも出ない")]
+    public bool isWildBoss;
+    [Tooltip("強敵の縄張り中心（Y=0）")]
+    public Vector3Int wildBossTerritoryCenter;
+    [Tooltip("強敵の縄張り半径（チェビシェフ距離）")]
+    public int wildBossTerritoryRadius = 3;
     [Header("ステータス")]
     public int HP;
     public int ATK;
@@ -341,12 +348,44 @@ public class Status : MonoBehaviour
         SurvivalInstinctUsed = false;
     }
 
-    /// <summary>ダメージを適用する（0未満にならない）</summary>
+    /// <summary>ダメージを適用する（0未満にならない）。強敵の無敵判定もここで行う。</summary>
     public int ApplyDamage(int damage)
     {
         damage = UnityEngine.Mathf.Max(0, damage);
+        if (isWildBoss && IsWildBossInvulnerable())
+        {
+            UnityEngine.Debug.Log($"[WildBoss] 縄張り外のため無敵: ダメージ{damage}を無効化");
+            return 0;
+        }
         HP = UnityEngine.Mathf.Max(0, HP - damage);
         return damage;
+    }
+
+    /// <summary>
+    /// 強敵の無敵判定: 縄張り内にPlayer/Enemyの駒がいれば解除（= false）、
+    /// いなければ無敵（= true）。
+    /// </summary>
+    private bool IsWildBossInvulnerable()
+    {
+        var reg = UnitRegistry.Instance;
+        if (reg == null) return true;
+        return !HasAnyUnitInTerritory(reg.PlayerUnits)
+            && !HasAnyUnitInTerritory(reg.EnemyUnits);
+    }
+
+    private bool HasAnyUnitInTerritory(System.Collections.Generic.IReadOnlyList<Status> list)
+    {
+        if (list == null) return false;
+        for (int i = 0; i < list.Count; i++)
+        {
+            var u = list[i];
+            if (u == null || !u.IsAlive || u == this) continue;
+            var g = u.GridPosition;
+            int dx = UnityEngine.Mathf.Abs(g.x - wildBossTerritoryCenter.x);
+            int dz = UnityEngine.Mathf.Abs(g.z - wildBossTerritoryCenter.z);
+            if (UnityEngine.Mathf.Max(dx, dz) <= wildBossTerritoryRadius) return true;
+        }
+        return false;
     }
 
     /// <summary>回復を適用する（MaxHPを超えない）</summary>

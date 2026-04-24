@@ -29,6 +29,7 @@ public class GameGenerator : MonoBehaviour
     [SerializeField] BuildingAttackSystem _BuildingAttackSystem;
     [SerializeField] SubCrystalSystem _SubCrystalSystem;
     [SerializeField] DungeonSystem _DungeonSystem;
+    [SerializeField] WildBossSystem _WildBossSystem;
     [SerializeField] TurnGenerator _TurnGenerator;
     [SerializeField] SkillSystem _SkillSystem;
 
@@ -140,7 +141,7 @@ public class GameGenerator : MonoBehaviour
             _MoveGenerator, _VisionGenerator, _CrystalSystem, _UnitSetting,
             ref _BuildSystem, ref _SummonSystem, ref _EconomySystem,
             ref _BuildingAttackSystem, ref _SubCrystalSystem,
-            ref _DungeonSystem, _uiBuilder);
+            ref _DungeonSystem, ref _WildBossSystem, _uiBuilder);
 
         SystemInitializer.InitSkillsAndTimer(
             this, _TurnGenerator, factionState,
@@ -156,6 +157,7 @@ public class GameGenerator : MonoBehaviour
             sys.BuildingAttackSystem = _BuildingAttackSystem;
             sys.SubCrystalSystem = _SubCrystalSystem;
             sys.DungeonSystem = _DungeonSystem;
+            sys.WildBossSystem = _WildBossSystem;
             sys.SkillSystem = _SkillSystem;
             sys.TimerSystem = sys.TimerSystem ?? _TimerSystem;
             sys.FactionState = factionState;
