@@ -529,8 +529,6 @@ public class UnitPanelUI : MonoBehaviour
         if (cost.Iron > 0) parts.Add($"鉄{cost.Iron}");
         if (cost.MagicOre > 0) parts.Add($"魔{cost.MagicOre}");
         if (cost.Water > 0) parts.Add($"水{cost.Water}");
-        if (cost.Plank > 0) parts.Add($"板{cost.Plank}");
-        if (cost.CutStone > 0) parts.Add($"切{cost.CutStone}");
         if (cost.Citizen > 0) parts.Add($"民{cost.Citizen}");
         if (ap > 0) parts.Add($"AP{ap}");
         return string.Join(" ", parts);
@@ -547,16 +545,10 @@ public class UnitPanelUI : MonoBehaviour
                 return $"小麦{data.Input.Wheat}+水{data.Input.Water}→パン{data.Output.Bread}";
             case FacilityKind.LoggingCamp:
                 return $"木+{data.Output.Wood}";
-            case FacilityKind.LumberMill:
-                return $"木{data.Input.Wood}→板{data.Output.Plank}";
             case FacilityKind.Quarry:
-                return $"石+{data.Output.Stone} 炭+{data.Output.Coal}";
-            case FacilityKind.StoneWorks:
-                return $"石{data.Input.Stone}→切石{data.Output.CutStone}";
+                return $"石+{data.Output.Stone}";
             case FacilityKind.Mine:
-                return $"鉄鉱+{data.Output.IronOre}";
-            case FacilityKind.Smelter:
-                return $"鉄鉱{data.Input.IronOre}+炭{data.Input.Coal}→鉄{data.Output.Iron}";
+                return $"鉄+{data.Output.Iron} 魔石(確率)";
             case FacilityKind.Well:
                 return $"水+{data.Output.Water}";
             case FacilityKind.Barracks:

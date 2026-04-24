@@ -371,8 +371,7 @@ public static class SimBoardEvaluator
 
         // 加工施設
         FacilityKind[] procKinds = {
-            FacilityKind.LumberMill, FacilityKind.StoneWorks,
-            FacilityKind.Bakery, FacilityKind.Smelter
+            FacilityKind.Bakery,
         };
         foreach (var fk in procKinds)
         {
@@ -435,21 +434,10 @@ public static class SimBoardEvaluator
             }
         }
 
-        // シナジーボーナス（原料→加工チェーン）
-        int logging = 0, lumber = 0, quarry = 0, stone = 0;
-        int mine = 0, smelter = 0, field = 0, bakery = 0;
-        counts.TryGetValue(FacilityKind.LoggingCamp, out logging);
-        counts.TryGetValue(FacilityKind.LumberMill, out lumber);
-        counts.TryGetValue(FacilityKind.Quarry, out quarry);
-        counts.TryGetValue(FacilityKind.StoneWorks, out stone);
-        counts.TryGetValue(FacilityKind.Mine, out mine);
-        counts.TryGetValue(FacilityKind.Smelter, out smelter);
+        // シナジーボーナス（Field→Bakery）
+        int field = 0, bakery = 0;
         counts.TryGetValue(FacilityKind.Field, out field);
         counts.TryGetValue(FacilityKind.Bakery, out bakery);
-
-        if (logging > 0 && lumber > 0) proj += AIConstants.SYNERGY_LogLumber;
-        if (quarry > 0 && stone > 0)   proj += AIConstants.SYNERGY_QuarryStone;
-        if (mine > 0 && smelter > 0)   proj += AIConstants.SYNERGY_MineSmelter;
         if (field > 0 && bakery > 0)    proj += AIConstants.SYNERGY_FieldBakery;
 
         return proj;

@@ -189,14 +189,10 @@ public static class GameConstants
     public const int InitWood = 200;
     public const int InitStone = 200;
     public const int InitWater = 50;
-    public const int InitPlank = 50;
-    public const int InitCutStone = 50;
     public const int InitBread = 100;
     public const int InitCitizen = 5;
     public const int InitIron = 30;
     public const int InitMagicOre = 15;
-    public const int InitIronOre = 10;
-    public const int InitCoal = 10;
     public const int InitialSubCrystals = 2;
 
     // =====================================================================

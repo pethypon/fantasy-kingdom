@@ -274,15 +274,6 @@ public static class AIBoardQuery
             case FacilityKind.Bakery:
                 return GetBuildingCount(board, FacilityKind.Field) > 0 &&
                        GetBuildingCount(board, FacilityKind.Well) > 0;
-            // LumberMill は LoggingCamp(木材)が必要
-            case FacilityKind.LumberMill:
-                return GetBuildingCount(board, FacilityKind.LoggingCamp) > 0;
-            // StoneWorks は Quarry(石材)が必要
-            case FacilityKind.StoneWorks:
-                return GetBuildingCount(board, FacilityKind.Quarry) > 0;
-            // Smelter は Mine(鉄鉱石+石炭)が必要
-            case FacilityKind.Smelter:
-                return GetBuildingCount(board, FacilityKind.Mine) > 0;
             // Field は Well(水)が必要
             case FacilityKind.Field:
                 return GetBuildingCount(board, FacilityKind.Well) > 0;
@@ -328,32 +319,17 @@ public static class AIBoardQuery
             }
         }
 
-        // 加工材不足 → Plank
-        if (res.Plank <= 10)
-        {
-            if (GetBuildingCount(board, FacilityKind.LoggingCamp) == 0)
-                needed.Add(FacilityKind.LoggingCamp);
-            if (GetBuildingCount(board, FacilityKind.LumberMill) == 0 && GetBuildingCount(board, FacilityKind.LoggingCamp) > 0)
-                needed.Add(FacilityKind.LumberMill);
-        }
+        // 木材不足
+        if (res.Wood <= 10 && GetBuildingCount(board, FacilityKind.LoggingCamp) == 0)
+            needed.Add(FacilityKind.LoggingCamp);
 
-        // CutStone不足
-        if (res.CutStone <= 10)
-        {
-            if (GetBuildingCount(board, FacilityKind.Quarry) == 0)
-                needed.Add(FacilityKind.Quarry);
-            if (GetBuildingCount(board, FacilityKind.StoneWorks) == 0 && GetBuildingCount(board, FacilityKind.Quarry) > 0)
-                needed.Add(FacilityKind.StoneWorks);
-        }
+        // 石材不足
+        if (res.Stone <= 10 && GetBuildingCount(board, FacilityKind.Quarry) == 0)
+            needed.Add(FacilityKind.Quarry);
 
-        // Iron不足
-        if (res.Iron <= 5)
-        {
-            if (GetBuildingCount(board, FacilityKind.Mine) == 0)
-                needed.Add(FacilityKind.Mine);
-            if (GetBuildingCount(board, FacilityKind.Smelter) == 0 && GetBuildingCount(board, FacilityKind.Mine) > 0)
-                needed.Add(FacilityKind.Smelter);
-        }
+        // Iron不足（Mineが直接生産）
+        if (res.Iron <= 5 && GetBuildingCount(board, FacilityKind.Mine) == 0)
+            needed.Add(FacilityKind.Mine);
 
         // 市民不足
         if (res.Citizen <= 1)
@@ -405,11 +381,7 @@ public static class AIBoardQuery
             case "Water":    return board.EnemyResources.Water;
             case "Wheat":    return board.EnemyResources.Wheat;
             case "Bread":    return board.EnemyResources.Bread;
-            case "Plank":    return board.EnemyResources.Plank;
-            case "CutStone": return board.EnemyResources.CutStone;
-            case "IronOre":  return board.EnemyResources.IronOre;
             case "Iron":     return board.EnemyResources.Iron;
-            case "Coal":     return board.EnemyResources.Coal;
             case "MagicOre": return board.EnemyResources.MagicOre;
             default:         return -1;
         }

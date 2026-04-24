@@ -29,8 +29,6 @@ MonoBehaviour:
   costIron: 0
   costMagic: 30
   costWater: 50
-  costPlank: 0
-  costCutStone: 0
   costBread: 0
   costCitizen: 0
   costAP: 10

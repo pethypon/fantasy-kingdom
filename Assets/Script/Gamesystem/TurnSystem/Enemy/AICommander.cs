@@ -311,8 +311,7 @@ public partial class AICommander
         {
             var r = _board.EnemyResources;
             Debug.Log($"[AICommander] 資源: 木={r.Wood} 石={r.Stone} 鉄={r.Iron} 魔={r.MagicOre} " +
-                      $"水={r.Water} 板={r.Plank} 石材={r.CutStone} パン={r.Bread} " +
-                      $"市民={r.Citizen} 鉄鉱={r.IronOre} 石炭={r.Coal}");
+                      $"水={r.Water} パン={r.Bread} 市民={r.Citizen}");
         }
         if (_board.AffordableUnits.Count > 0)
         {

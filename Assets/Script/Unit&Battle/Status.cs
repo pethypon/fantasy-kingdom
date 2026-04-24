@@ -482,8 +482,8 @@ public enum TurnStrategy
 // 建築の種別（FacilityData と EconomySystem で使用）
 public enum FacilityKind
 {
-    Field, Bakery, LoggingCamp, LumberMill,
-    Quarry, StoneWorks, Mine, Smelter,
+    Field, Bakery, LoggingCamp,
+    Quarry, Mine,
     Barracks, House, LuxuryHouse, Well, Warehouse,
     WoodWall, StoneWall,
     Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword,
@@ -493,6 +493,6 @@ public enum FacilityKind
 // 資源の種別（FacilityData と EconomySystem で使用）
 public enum ResourceKind
 {
-    Wood, Stone, IronOre, Iron, MagicOre, Coal,
-    Wheat, Bread, Water, Plank, CutStone, Citizen, None
+    Wood, Stone, Iron, MagicOre,
+    Wheat, Bread, Water, Citizen, None
 }

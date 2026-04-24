@@ -212,8 +212,6 @@ public static class AIBoardEvaluator
         score += Mathf.Clamp(res.Citizen, 0, 10) * 2f;
 
         // 加工資源
-        score += Mathf.Clamp(res.Plank, 0, 30) * 0.15f;
-        score += Mathf.Clamp(res.CutStone, 0, 30) * 0.15f;
         score += Mathf.Clamp(res.Iron, 0, 20) * 0.2f;
 
         // 基礎資源（木/石/水/小麦）

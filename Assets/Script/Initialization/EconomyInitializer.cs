@@ -56,14 +56,10 @@ public static class EconomyInitializer
         res.Wood = GameConstants.InitWood;
         res.Stone = GameConstants.InitStone;
         res.Water = GameConstants.InitWater;
-        res.Plank = GameConstants.InitPlank;
-        res.CutStone = GameConstants.InitCutStone;
         res.Bread = GameConstants.InitBread;
         res.Citizen = GameConstants.InitCitizen;
         res.Iron = GameConstants.InitIron;
         res.MagicOre = GameConstants.InitMagicOre;
-        res.IronOre = GameConstants.InitIronOre;
-        res.Coal = GameConstants.InitCoal;
     }
 
     /// <summary>UnitRegistry にユニットを登録する</summary>

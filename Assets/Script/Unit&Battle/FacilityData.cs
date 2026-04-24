@@ -14,7 +14,7 @@ using UnityEngine;
 public static partial class FacilityData
 {
     // ==================================================================
-    //  リソースコスト（建築・強化時消費用、8種）
+    //  リソースコスト（建築・強化時消費用、6種）
     // ==================================================================
     public struct ResourceCost
     {
@@ -23,41 +23,34 @@ public static partial class FacilityData
         public int Iron;
         public int MagicOre;
         public int Water;
-        public int Plank;
-        public int CutStone;
         public int Citizen;
 
         public ResourceCost(int wood = 0, int stone = 0, int iron = 0,
-                            int magicOre = 0, int water = 0,
-                            int plank = 0, int cutStone = 0, int citizen = 0)
+                            int magicOre = 0, int water = 0, int citizen = 0)
         {
             Wood = wood; Stone = stone; Iron = iron; MagicOre = magicOre;
-            Water = water; Plank = plank; CutStone = cutStone; Citizen = citizen;
+            Water = water; Citizen = citizen;
         }
     }
 
     // ==================================================================
-    //  生産バンドル（毎ターン生産用、全12資源対応）
+    //  生産バンドル（毎ターン生産用、8資源対応）
     // ==================================================================
     public struct ProductionBundle
     {
         public int Wood;
         public int Stone;
-        public int Coal;
-        public int IronOre;
         public int Iron;
         public int MagicOre;
         public int Wheat;
         public int Bread;
         public int Water;
-        public int Plank;
-        public int CutStone;
         public int Citizen;
 
         public bool IsEmpty =>
-            Wood == 0 && Stone == 0 && Coal == 0 && IronOre == 0 &&
+            Wood == 0 && Stone == 0 &&
             Iron == 0 && MagicOre == 0 && Wheat == 0 && Bread == 0 &&
-            Water == 0 && Plank == 0 && CutStone == 0 && Citizen == 0;
+            Water == 0 && Citizen == 0;
     }
 
     // ==================================================================
@@ -146,11 +139,8 @@ public static partial class FacilityData
         BuildField();
         BuildBakery();
         BuildLoggingCamp();
-        BuildLumberMill();
         BuildQuarry();
-        BuildStoneWorks();
         BuildMine();
-        BuildSmelter();
         BuildWell();
         BuildBarracks();
         BuildHouse();

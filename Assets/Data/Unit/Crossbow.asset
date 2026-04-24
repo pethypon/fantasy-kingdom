@@ -24,13 +24,11 @@ MonoBehaviour:
   upkeepBread: 3
   upkeepWood: 3
   upkeepStone: 0
-  costWood: 20
-  costStone: 0
+  costWood: 60
+  costStone: 40
   costIron: 30
   costMagic: 0
   costWater: 0
-  costPlank: 40
-  costCutStone: 40
   costBread: 10
   costCitizen: 1
   costAP: 8

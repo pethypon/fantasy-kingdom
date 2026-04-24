@@ -32,13 +32,9 @@ public class FactionState : MonoBehaviour
         public int Water;
 
         [Header("採掘資源")]
-        public int Coal;
-        public int IronOre;
         public int MagicOre;
 
-        [Header("加工資源")]
-        public int Plank;
-        public int CutStone;
+        [Header("精錬資源")]
         public int Iron;
 
         [Header("食料")]

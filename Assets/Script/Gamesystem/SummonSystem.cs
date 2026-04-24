@@ -163,8 +163,6 @@ public class SummonSystem : MonoBehaviour
             && res.Iron     >= data.costIron
             && res.MagicOre >= data.costMagic
             && res.Water    >= data.costWater
-            && res.Plank    >= data.costPlank
-            && res.CutStone >= data.costCutStone
             && res.Bread    >= data.costBread
             && res.Citizen  >= data.costCitizen;
     }
@@ -184,8 +182,6 @@ public class SummonSystem : MonoBehaviour
         res.Iron     -= data.costIron;
         res.MagicOre -= data.costMagic;
         res.Water    -= data.costWater;
-        res.Plank    -= data.costPlank;
-        res.CutStone -= data.costCutStone;
         res.Bread    -= data.costBread;
         res.Citizen  -= data.costCitizen;
 

@@ -194,8 +194,7 @@ public class AIBuildPlanner
         FacilityKind[] buildOrder = {
             FacilityKind.Well, FacilityKind.LoggingCamp, FacilityKind.Quarry,
             FacilityKind.Field, FacilityKind.Mine, FacilityKind.House,
-            FacilityKind.LumberMill, FacilityKind.StoneWorks,
-            FacilityKind.Bakery, FacilityKind.Smelter,
+            FacilityKind.Bakery,
             FacilityKind.Warehouse, FacilityKind.Barracks,
         };
 
@@ -263,10 +262,7 @@ public static class EconomyHelper
 
     public static int CountProcessingBuildings(AIBoardState board)
     {
-        return board.GetBuildingCount(FacilityKind.LumberMill)
-             + board.GetBuildingCount(FacilityKind.StoneWorks)
-             + board.GetBuildingCount(FacilityKind.Smelter)
-             + board.GetBuildingCount(FacilityKind.Bakery);
+        return board.GetBuildingCount(FacilityKind.Bakery);
     }
 
     public static bool IsEconomySufficient(AIBoardState board)
@@ -285,10 +281,7 @@ public static class EconomyHelper
             case FacilityKind.LoggingCamp:
             case FacilityKind.Quarry:
             case FacilityKind.Field:
-            case FacilityKind.LumberMill:
-            case FacilityKind.StoneWorks:
             case FacilityKind.Bakery:
-            case FacilityKind.Smelter:
             case FacilityKind.Mine:
             case FacilityKind.House:
                 return board.GetBuildingCount(facility) == 0;
@@ -309,9 +302,6 @@ public static class EconomyHelper
 
     public static bool IsProcessingFacility(FacilityKind facility)
     {
-        return facility == FacilityKind.LumberMill
-            || facility == FacilityKind.StoneWorks
-            || facility == FacilityKind.Bakery
-            || facility == FacilityKind.Smelter;
+        return facility == FacilityKind.Bakery;
     }
 }

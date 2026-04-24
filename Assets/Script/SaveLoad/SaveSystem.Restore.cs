@@ -14,8 +14,7 @@ public static partial class SaveSystem
     public static void RestoreResources(ResourceSaveData src, FactionState.ResourceData dst)
     {
         dst.Wood = src.Wood; dst.Stone = src.Stone; dst.Water = src.Water;
-        dst.Coal = src.Coal; dst.IronOre = src.IronOre; dst.MagicOre = src.MagicOre;
-        dst.Plank = src.Plank; dst.CutStone = src.CutStone; dst.Iron = src.Iron;
+        dst.MagicOre = src.MagicOre; dst.Iron = src.Iron;
         dst.Wheat = src.Wheat; dst.Bread = src.Bread; dst.Citizen = src.Citizen;
     }
 

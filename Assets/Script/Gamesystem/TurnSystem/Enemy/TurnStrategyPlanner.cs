@@ -358,9 +358,6 @@ public class TurnStrategyPlanner
 
     static int CountProcessingBuildings(AIBoardState board)
     {
-        return board.GetBuildingCount(FacilityKind.LumberMill)
-             + board.GetBuildingCount(FacilityKind.StoneWorks)
-             + board.GetBuildingCount(FacilityKind.Smelter)
-             + board.GetBuildingCount(FacilityKind.Bakery);
+        return board.GetBuildingCount(FacilityKind.Bakery);
     }
 }

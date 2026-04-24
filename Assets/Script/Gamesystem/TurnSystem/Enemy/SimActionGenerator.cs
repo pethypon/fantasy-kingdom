@@ -269,8 +269,7 @@ public static class SimActionGenerator
         FacilityKind[] priorities = {
             FacilityKind.Well, FacilityKind.LoggingCamp, FacilityKind.Quarry,
             FacilityKind.Field, FacilityKind.House, FacilityKind.Bakery,
-            FacilityKind.LumberMill, FacilityKind.StoneWorks, FacilityKind.Smelter,
-            FacilityKind.Barracks,
+            FacilityKind.Mine, FacilityKind.Barracks,
         };
 
         foreach (var fk in priorities)
