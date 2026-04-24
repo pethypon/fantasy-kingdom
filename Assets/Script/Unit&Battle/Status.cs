@@ -456,6 +456,8 @@ public class Status : MonoBehaviour
             MaxHP = newMax;
             HP += gained;
             UnityEngine.Debug.Log($"[Level] {kind} → Lv{Level} (XP:{Experience})");
+            if (team == Team.Player && AchievementSystem.Instance != null)
+                AchievementSystem.Instance.OnLevelUp(Level);
         }
     }
 }

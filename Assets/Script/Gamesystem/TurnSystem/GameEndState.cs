@@ -30,6 +30,11 @@ public class GameEndState : TurnState
         Systems.AttackGenerator.AtkpDestroy();
 
         UpdateThreatLevel();
+
+        // 実績（試合全体判定）
+        bool isWinFinal = _result == GameResult.Win || _result == GameResult.TimeUpWin;
+        AchievementSystem.GetOrCreate().OnMatchEnd(isWinFinal);
+
         BuildGameEndUI();
     }
 

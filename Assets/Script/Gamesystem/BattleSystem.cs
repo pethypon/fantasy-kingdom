@@ -181,6 +181,16 @@ public class BattleSystem : MonoBehaviour
         else
             FloatingDamageUI.ShowMiss(Target.transform.position);
 
+        // 実績
+        if (isKill && Attacker != null && Attacker.team == Team.Player && Target.team != Team.Player)
+        {
+            AchievementSystem.GetOrCreate().OnKill();
+            if (Target.kind == Kind.Crystal)
+                AchievementSystem.Instance.OnCrystalKill((float)damage / System.Math.Max(1, Target.MaxHP));
+            if (Target.isWildBoss)
+                AchievementSystem.Instance.OnWildBossDefeated();
+        }
+
         // 統計記録
         if (MatchStats.Instance != null)
         {

@@ -224,6 +224,8 @@ public class DungeonSystem : MonoBehaviour
                     MatchStats.Instance.DungeonsClaimed++;
                     MatchStats.Instance.ArtifactsAcquired++;
                 }
+                if (d.ClaimingTeam == Team.Player)
+                    AchievementSystem.GetOrCreate().OnDungeonCleared();
             }
         }
     }
