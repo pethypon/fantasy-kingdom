@@ -16,6 +16,9 @@ public class GameEndState : TurnState
     {
         Debug.Log($"[GameEnd] ゲーム終了 結果: {_result}");
 
+        if (MatchStats.Instance != null)
+            MatchStats.Instance.TurnsPlayed = Context.Turn;
+
         if (Systems.TimerSystem != null)
             Systems.TimerSystem.StopTurn();
 
@@ -27,6 +30,11 @@ public class GameEndState : TurnState
         Systems.AttackGenerator.AtkpDestroy();
 
         UpdateThreatLevel();
+
+        // 実績（試合全体判定）
+        bool isWinFinal = _result == GameResult.Win || _result == GameResult.TimeUpWin;
+        AchievementSystem.GetOrCreate().OnMatchEnd(isWinFinal);
+
         BuildGameEndUI();
     }
 
@@ -84,7 +92,7 @@ public class GameEndState : TurnState
         panelRT.anchorMin = new Vector2(0.5f, 0.5f);
         panelRT.anchorMax = new Vector2(0.5f, 0.5f);
         panelRT.pivot = new Vector2(0.5f, 0.5f);
-        panelRT.sizeDelta = new Vector2(600, 400);
+        panelRT.sizeDelta = new Vector2(640, 520);
         var panelImg = panel.AddComponent<Image>();
         panelImg.color = new Color(0.1f, 0.1f, 0.15f, 0.95f);
 
@@ -254,20 +262,24 @@ public class GameEndState : TurnState
 
     private string GetDetailText()
     {
+        string outcome;
         switch (_result)
         {
-            case GameResult.Win:
-                return "敵のクリスタルまたは王を破壊しました";
-            case GameResult.Lose:
-                return "自軍のクリスタルまたは王が破壊されました";
-            case GameResult.TimeUpWin:
-                return "持ち時間終了 - クリスタルHP優勢で勝利";
-            case GameResult.TimeUpLose:
-                return "持ち時間終了 - クリスタルHP劣勢で敗北";
-            case GameResult.TimeUpDraw:
-                return "持ち時間終了 - 引き分け";
-            default:
-                return "";
+            case GameResult.Win:        outcome = "敵のクリスタルまたは王を破壊しました"; break;
+            case GameResult.Lose:       outcome = "自軍のクリスタルまたは王が破壊されました"; break;
+            case GameResult.TimeUpWin:  outcome = "持ち時間終了 - クリスタルHP優勢で勝利"; break;
+            case GameResult.TimeUpLose: outcome = "持ち時間終了 - クリスタルHP劣勢で敗北"; break;
+            case GameResult.TimeUpDraw: outcome = "持ち時間終了 - 引き分け"; break;
+            default:                    outcome = ""; break;
         }
+
+        var m = MatchStats.Instance;
+        if (m == null) return outcome;
+
+        return outcome + "\n\n"
+            + $"<size=16>ターン数: {m.TurnsPlayed}  /  討伐: <color=#8FDFB0>{m.PlayerKills}</color>  敗北駒: <color=#E08080>{m.PlayerLosses}</color>\n"
+            + $"与ダメ: {m.PlayerDamageDealt}  被ダメ: {m.PlayerDamageTaken}  獲得XP: {m.PlayerXPGained}\n"
+            + $"召喚: {m.PlayerSummons}  建築: {m.PlayerBuildings}  スキル使用: {m.PlayerSkillsUsed}\n"
+            + $"ダンジョン制圧: {m.DungeonsClaimed}  強敵ダメージ: {m.WildBossDamage}</size>";
     }
 }

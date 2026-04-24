@@ -378,6 +378,7 @@ public class AIBoardState
                     {
                         var center = ToCell(pos);
                         var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, unit.direction);
+                        areaCells = SkillSystem.FilterLineSkillBlocked(areaCells, skill.Area, center, MapCreate, _moveGen);
                         // 範囲内の最初のプレイヤーユニットを探す
                         Status foundTarget = FindFirstUnitInArea(areaCells, AlivePlayerUnits);
                         if (foundTarget != null)

@@ -90,39 +90,12 @@ static class AIBuildEvaluator
                 }
                 break;
 
-            case FacilityKind.LumberMill:
-                score += AIActionEvaluator.PhaseScore(turn, 25f, 22f, 10f);
-                if (turn >= TurnProductionBoost) score += ProductionBoostScore;
-                if (board.GetBuildingCount(FacilityKind.LumberMill) == 0 &&
-                    board.GetBuildingCount(FacilityKind.LoggingCamp) > 0) score += 35f;
-                if (board.EnemyResources != null && board.EnemyResources.Plank < 10)
-                    score += 20f;
-                break;
-
-            case FacilityKind.StoneWorks:
-                score += AIActionEvaluator.PhaseScore(turn, 25f, 22f, 10f);
-                if (turn >= TurnProductionBoost) score += ProductionBoostScore;
-                if (board.GetBuildingCount(FacilityKind.StoneWorks) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Quarry) > 0) score += 35f;
-                if (board.EnemyResources != null && board.EnemyResources.CutStone < 10)
-                    score += 20f;
-                break;
-
             case FacilityKind.Bakery:
                 score += AIActionEvaluator.PhaseScore(turn, 35f, 25f, 12f);
                 if (board.GetBuildingCount(FacilityKind.Bakery) == 0 &&
                     board.GetBuildingCount(FacilityKind.Field) > 0) score += 40f;
                 if (board.EnemyResources != null && board.EnemyResources.Bread < 20)
                     score += 25f;
-                break;
-
-            case FacilityKind.Smelter:
-                score += AIActionEvaluator.PhaseScore(turn, 20f, 22f, 14f);
-                if (turn >= TurnProductionBoost) score += ProductionBoostScore;
-                if (board.GetBuildingCount(FacilityKind.Smelter) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Mine) > 0) score += 30f;
-                if (board.EnemyResources != null && board.EnemyResources.Iron <= 5)
-                    score += 20f;
                 break;
 
             case FacilityKind.House:
@@ -208,11 +181,6 @@ static class AIBuildEvaluator
 
             switch (facility)
             {
-                case FacilityKind.LumberMill:
-                case FacilityKind.StoneWorks:
-                case FacilityKind.Smelter:
-                    if (existingCount == 0) score += 60f;
-                    break;
                 case FacilityKind.Mine:
                     if (existingCount == 0) score += 50f;
                     break;
@@ -239,12 +207,6 @@ static class AIBuildEvaluator
 
         switch (facility)
         {
-            case FacilityKind.LumberMill:
-                return (res.Wood > 200 && res.Plank < 20) ? 40f : 0f;
-            case FacilityKind.StoneWorks:
-                return (res.Stone > 200 && res.CutStone < 20) ? 40f : 0f;
-            case FacilityKind.Smelter:
-                return ((res.IronOre > 10 || res.Coal > 20) && res.Iron < 10) ? 35f : 0f;
             case FacilityKind.Bakery:
                 return (res.Wheat > 30 && res.Bread < 20) ? 40f : 0f;
             default:
@@ -267,27 +229,17 @@ static class AIBuildEvaluator
                 break;
             case FacilityKind.Quarry:
                 bonus += board.GetResourceScarcity("Stone") * 28f;
-                bonus += board.GetResourceScarcity("Coal") * 10f;
                 if (board.GetBuildingCount(FacilityKind.Quarry) == 0) bonus += 15f;
                 break;
             case FacilityKind.Field:
                 bonus += board.GetResourceScarcity("Wheat") * 15f;
                 break;
             case FacilityKind.Mine:
-                bonus += board.GetResourceScarcity("IronOre") * 18f;
+                bonus += board.GetResourceScarcity("Iron") * 20f;
                 bonus += board.GetResourceScarcity("MagicOre") * 12f;
-                break;
-            case FacilityKind.LumberMill:
-                bonus += board.GetResourceScarcity("Plank") * 18f;
-                break;
-            case FacilityKind.StoneWorks:
-                bonus += board.GetResourceScarcity("CutStone") * 18f;
                 break;
             case FacilityKind.Bakery:
                 bonus += board.GetResourceScarcity("Bread") * 22f;
-                break;
-            case FacilityKind.Smelter:
-                bonus += board.GetResourceScarcity("Iron") * 20f;
                 break;
         }
         return bonus;

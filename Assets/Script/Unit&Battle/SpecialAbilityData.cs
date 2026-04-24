@@ -54,83 +54,53 @@ public static class SpecialAbilityData
 
     static void InitAll()
     {
-        // ============== ノーマル (15) ==============
+        // ============== ノーマル (8) ==============
         Reg(new SpecialAbilityInfo(SpecialAbility.SwiftPosture,     "迅速体勢", SpecialAbilityRarity.Normal,
             "ターン開始時、未移動ならそのターン最初の移動コスト-1"));
         Reg(new SpecialAbilityInfo(SpecialAbility.InterceptPosture, "迎撃姿勢", SpecialAbilityRarity.Normal,
             "HP100%の時、そのターン最初に受けるダメージ-10%"));
         Reg(new SpecialAbilityInfo(SpecialAbility.PierceEnhance,    "刺突強化", SpecialAbilityRarity.Normal,
             "単体攻撃時のみ与ダメージ+10%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.SiegeAdapt,       "迫撃適応", SpecialAbilityRarity.Normal,
-            "範囲攻撃で敵2体以上を巻き込んだ時、与ダメージ+10%"));
         Reg(new SpecialAbilityInfo(SpecialAbility.WatchEye,         "監視眼", SpecialAbilityRarity.Normal,
             "視界+1"));
         Reg(new SpecialAbilityInfo(SpecialAbility.Tenacity,         "粘り腰", SpecialAbilityRarity.Normal,
             "HP50%以下の時、被ダメージ-10%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.PursuitInstinct,  "追撃本能", SpecialAbilityRarity.Normal,
-            "HP50%以下の敵への与ダメージ+10%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.WallFamiliar,     "防壁慣れ", SpecialAbilityRarity.Normal,
-            "建物隣接マスにいる時、DEF+10%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.FocusMaintain,    "集中維持", SpecialAbilityRarity.Normal,
-            "そのターン移動していない場合、攻撃時の与ダメージ+10%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.FirstAid,         "応急処置", SpecialAbilityRarity.Normal,
-            "ターン終了時、周囲1マスに味方がいないなら最大HPの3%回復"));
         Reg(new SpecialAbilityInfo(SpecialAbility.PoisonCoat,       "毒塗り", SpecialAbilityRarity.Normal,
             "単体攻撃命中時10%で毒付与"));
         Reg(new SpecialAbilityInfo(SpecialAbility.FrostBlade,       "冷気刃", SpecialAbilityRarity.Normal,
             "攻撃命中時10%で冷気付与"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.Foresight,        "見切り", SpecialAbilityRarity.Normal,
-            "視界内の敵から受けるダメージ-5%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.PressureShot,     "圧迫射", SpecialAbilityRarity.Normal,
-            "攻撃命中時10%で弱体付与"));
         Reg(new SpecialAbilityInfo(SpecialAbility.Efficiency,       "省力化", SpecialAbilityRarity.Normal,
             "最初に使うスキルのAP消費-1（最低1）"));
 
-        // ============== レア (10) ==============
+        // ============== レア (7) ==============
         Reg(new SpecialAbilityInfo(SpecialAbility.Desperation,      "背水", SpecialAbilityRarity.Rare,
             "HP30%以下でATK+20%"));
         Reg(new SpecialAbilityInfo(SpecialAbility.IronWalkDefense,  "鉄壁歩法", SpecialAbilityRarity.Rare,
             "移動後、そのターン被ダメージ-15%"));
         Reg(new SpecialAbilityInfo(SpecialAbility.HeightAdapt,      "高所順応", SpecialAbilityRarity.Rare,
             "自分が相手より高い位置にいる時、与ダメージ+15%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.LowHunt,          "低所狩り", SpecialAbilityRarity.Rare,
-            "自分が相手より高い位置にいる時、命中した敵へ15%で鈍足付与"));
         Reg(new SpecialAbilityInfo(SpecialAbility.MagicResist,      "耐魔皮膜", SpecialAbilityRarity.Rare,
             "魔法/遠距離属性から受けるダメージ-15%"));
         Reg(new SpecialAbilityInfo(SpecialAbility.Breach,           "破勢", SpecialAbilityRarity.Rare,
             "攻撃命中時15%で破甲付与"));
         Reg(new SpecialAbilityInfo(SpecialAbility.VenomBlade,       "猛毒刃", SpecialAbilityRarity.Rare,
             "単体攻撃命中時15%で毒付与"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.FrostPressure,    "氷結圧", SpecialAbilityRarity.Rare,
-            "攻撃命中時10%で冷気、5%で凍結付与"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.SupportSpread,    "支援波及", SpecialAbilityRarity.Rare,
-            "バフ/回復を与えた時、周囲1マスの別味方1体にも効果量50%で波及"));
         Reg(new SpecialAbilityInfo(SpecialAbility.SurvivalInstinct, "生還本能", SpecialAbilityRarity.Rare,
             "1戦闘に1回だけ、致死ダメージをHP1で耐える"));
 
-        // ============== スーパーレア (5) ==============
+        // ============== スーパーレア (3) ==============
         Reg(new SpecialAbilityInfo(SpecialAbility.ShadowCross,       "影渡り", SpecialAbilityRarity.SuperRare,
             "視界外から攻撃した時のダメージ倍率をさらに+0.25"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.ArtilleryControl,  "砲撃管制", SpecialAbilityRarity.SuperRare,
-            "範囲攻撃が敵3体以上を巻き込んだ時、その攻撃にマーク付与"));
         Reg(new SpecialAbilityInfo(SpecialAbility.GuardianZone,      "守護圏", SpecialAbilityRarity.SuperRare,
             "周囲1マスの味方が受けるダメージ-10%"));
         Reg(new SpecialAbilityInfo(SpecialAbility.SniperCorrection,  "狙撃補正", SpecialAbilityRarity.SuperRare,
             "3マス以上離れた敵への与ダメージ+20%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.HolyReaction,      "聖域反応", SpecialAbilityRarity.SuperRare,
-            "周囲1マスの味方が状態異常を受けた時、ターン終了時にその味方の最大HPの5%回復"));
 
-        // ============== レジェンダリー (5) ==============
+        // ============== レジェンダリー (2) ==============
         Reg(new SpecialAbilityInfo(SpecialAbility.BattlefieldDomination, "戦場支配", SpecialAbilityRarity.Legendary,
             "自身の視界内にいる敵全員に被ダメージ+10%"));
         Reg(new SpecialAbilityInfo(SpecialAbility.IndomitableWill,  "不滅の意志", SpecialAbilityRarity.Legendary,
             "毎ターン最初に受ける状態異常を無効化し、さらに被ダメージ-10%"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.ThunderChain,     "雷印連鎖", SpecialAbilityRarity.Legendary,
-            "攻撃命中時、対象がマーク状態なら20%でスタン付与"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.IcePrison,        "氷牢結界", SpecialAbilityRarity.Legendary,
-            "自身が攻撃した敵に冷気が入っていた場合、10%で凍結付与"));
-        Reg(new SpecialAbilityInfo(SpecialAbility.PurifyHalo,       "浄化光輪", SpecialAbilityRarity.Legendary,
-            "ターン開始時、周囲1マスの味方1体の状態異常を1つ解除し、その味方に守勢（1ターン）"));
     }
 
     // =====================================================================

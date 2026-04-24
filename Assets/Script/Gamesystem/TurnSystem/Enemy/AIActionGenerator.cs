@@ -15,8 +15,7 @@ public static class AIActionGenerator
     {
         { FacilityKind.Well,          3 }, { FacilityKind.LoggingCamp,   3 },
         { FacilityKind.Quarry,        3 }, { FacilityKind.Field,         3 },
-        { FacilityKind.Mine,          2 }, { FacilityKind.LumberMill,    2 },
-        { FacilityKind.StoneWorks,    2 }, { FacilityKind.Smelter,       2 },
+        { FacilityKind.Mine,          2 },
         { FacilityKind.Bakery,        2 }, { FacilityKind.House,         4 },
         { FacilityKind.Warehouse,     2 }, { FacilityKind.Barracks,      1 },
         { FacilityKind.Mortar,        3 }, { FacilityKind.Cannon,        3 },

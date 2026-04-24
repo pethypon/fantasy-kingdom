@@ -159,9 +159,20 @@ public class BattleSystem : MonoBehaviour
         damage = Target.ApplyDamage(damage);
         Debug.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}");
 
+        // 反逆の騎士王: 反撃バフ有効時は受けたダメージの1.5倍を反射
+        if (damage > 0) WildBossSystem.TryReflectDamage(Target, Attacker, damage);
+
         // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）
         if (damage > 0 && Attacker != null && Attacker.type == Type.Unit && Attacker.team != Target.team)
             Attacker.GainExperience(damage);
+
+        // StrangeKingAura: 与ダメージの20%を吸収してHP回復
+        if (damage > 0 && Attacker != null &&
+            Attacker.passiveskill == PassiveSkill.StrangeKingAura && Attacker.team != Target.team)
+        {
+            int heal = Mathf.RoundToInt(damage * GameConstants.StrangeKingLifesteal);
+            if (heal > 0) Attacker.ApplyHeal(heal);
+        }
 
         // クリスタル反撃: クリスタルが攻撃された時、領土内の敵に反撃
         if (Target.kind == Kind.Crystal && damage > 0 && Attacker != null && Attacker.team != Target.team)
@@ -172,6 +183,28 @@ public class BattleSystem : MonoBehaviour
             FloatingDamageUI.ShowDamage(Target.transform.position, damage, isKill);
         else
             FloatingDamageUI.ShowMiss(Target.transform.position);
+
+        // 実績
+        if (isKill && Attacker != null && Attacker.team == Team.Player && Target.team != Team.Player)
+        {
+            AchievementSystem.GetOrCreate().OnKill();
+            if (Target.kind == Kind.Crystal)
+                AchievementSystem.Instance.OnCrystalKill((float)damage / System.Math.Max(1, Target.MaxHP));
+            if (Target.isWildBoss)
+                AchievementSystem.Instance.OnWildBossDefeated();
+        }
+
+        // 統計記録
+        if (MatchStats.Instance != null)
+        {
+            MatchStats.Instance.RecordDamage(Attacker != null ? Attacker.team : Team.None,
+                Target.team, damage, isKill, Target.isWildBoss);
+            if (damage > 0 && Attacker != null && Attacker.type == Type.Unit
+                && Attacker.team != Target.team)
+            {
+                MatchStats.Instance.RecordXPGain(Attacker.team, damage);
+            }
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════

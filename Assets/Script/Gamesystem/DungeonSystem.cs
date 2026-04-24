@@ -219,6 +219,13 @@ public class DungeonSystem : MonoBehaviour
                 d.Cleared = true;
                 if (d.Marker != null) Destroy(d.Marker);
                 Debug.Log($"[DungeonSystem] {d.ClaimingTeam} がダンジョン{d.Position}を制圧、{d.Reward}を獲得");
+                if (MatchStats.Instance != null && d.ClaimingTeam == Team.Player)
+                {
+                    MatchStats.Instance.DungeonsClaimed++;
+                    MatchStats.Instance.ArtifactsAcquired++;
+                }
+                if (d.ClaimingTeam == Team.Player)
+                    AchievementSystem.GetOrCreate().OnDungeonCleared();
             }
         }
     }

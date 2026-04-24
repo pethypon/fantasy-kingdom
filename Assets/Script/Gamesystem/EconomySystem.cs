@@ -355,15 +355,11 @@ public class EconomySystem : MonoBehaviour
         int cap = FactionState.BaseResourceCap + warehouseBonus;
         res.Wood     = Mathf.Min(res.Wood, cap);
         res.Stone    = Mathf.Min(res.Stone, cap);
-        res.Coal     = Mathf.Min(res.Coal, cap);
-        res.IronOre  = Mathf.Min(res.IronOre, cap);
         res.Iron     = Mathf.Min(res.Iron, cap);
         res.MagicOre = Mathf.Min(res.MagicOre, cap);
         res.Wheat    = Mathf.Min(res.Wheat, cap);
         res.Bread    = Mathf.Min(res.Bread, cap);
         res.Water    = Mathf.Min(res.Water, cap);
-        res.Plank    = Mathf.Min(res.Plank, cap);
-        res.CutStone = Mathf.Min(res.CutStone, cap);
         // Citizen は倉庫容量の対象外（House の収容で管理）
     }
 }

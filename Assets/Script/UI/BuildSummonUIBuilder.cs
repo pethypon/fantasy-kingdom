@@ -181,8 +181,6 @@ public class BuildSummonUIBuilder
         if (c.Iron > 0) p.Add($"鉄{c.Iron}");
         if (c.MagicOre > 0) p.Add($"魔{c.MagicOre}");
         if (c.Water > 0) p.Add($"水{c.Water}");
-        if (c.Plank > 0) p.Add($"板{c.Plank}");
-        if (c.CutStone > 0) p.Add($"切{c.CutStone}");
         if (c.Citizen > 0) p.Add($"民{c.Citizen}");
         return string.Join(" ", p);
     }

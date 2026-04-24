@@ -107,11 +107,11 @@ public class UIBuilder : MonoBehaviour
         Color fooC  = BrandGuide.ResCatFood;
         Color popC  = BrandGuide.ResCatPopulation;
 
-        string[] r1Names  = { "Wood",  "Stone", "Coal",   "IronOre", "Iron",     "MagicOre" };
-        Color[]  r1Colors = { rawC,    rawC,    minC,     minC,      proC,       proC };
+        string[] r1Names  = { "Wood",  "Stone", "Iron",     "MagicOre" };
+        Color[]  r1Colors = { rawC,    rawC,    proC,       proC };
         Color scC  = BrandGuide.ResCatCrystal;
-        string[] r2Names  = { "Wheat", "Bread", "Water",  "Plank",   "CutStone", "Citizen", "SubCrystal" };
-        Color[]  r2Colors = { fooC,    fooC,    rawC,     proC,      proC,       popC,      scC };
+        string[] r2Names  = { "Wheat", "Bread", "Water",  "Citizen", "SubCrystal" };
+        Color[]  r2Colors = { fooC,    fooC,    rawC,     popC,      scC };
 
         for (int i = 0; i < r1Names.Length; i++)
             CreateResourceCell(r1Names[i], row1, r1Colors[i]);

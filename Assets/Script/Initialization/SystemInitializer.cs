@@ -27,6 +27,7 @@ public static class SystemInitializer
         ref BuildingAttackSystem buildingAttackSystem,
         ref SubCrystalSystem subCrystalSystem,
         ref DungeonSystem dungeonSystem,
+        ref WildBossSystem wildBossSystem,
         UIBuilder uiBuilder)
     {
         // ---- BuildSystem ----
@@ -78,6 +79,13 @@ public static class SystemInitializer
                            factionState, unitSetting, buildSystem);
         dungeonSystem.GenerateDungeons();
         turnGen.Systems.DungeonSystem = dungeonSystem;
+
+        // ---- WildBossSystem ----（ダンジョンと領土が確定した後に配置）
+        wildBossSystem = EnsureComponent(owner, wildBossSystem);
+        wildBossSystem.Init(mapCreate, crystalSystem, territorySystem,
+                            dungeonSystem, unitSetting);
+        wildBossSystem.GenerateWildBoss();
+        turnGen.Systems.WildBossSystem = wildBossSystem;
 
         // ---- クロスリファレンス ----
         if (buildSystem != null)

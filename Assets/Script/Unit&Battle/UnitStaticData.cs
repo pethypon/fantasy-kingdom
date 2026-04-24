@@ -21,14 +21,12 @@ public static class UnitStaticData
         public float HpGrowth;
         public float DefGrowth;
 
-        // 制作コスト（木/石/鉄/魔法鉱石/水/木板/石材/パン/市民/AP）
+        // 制作コスト（木/石/鉄/魔法鉱石/水/パン/市民/AP）
         public int CostWood;
         public int CostStone;
         public int CostIron;
         public int CostMagicOre;
         public int CostWater;
-        public int CostPlank;
-        public int CostCutStone;
         public int CostBread;
         public int CostCitizen;
         public int CostAP;
@@ -39,8 +37,6 @@ public static class UnitStaticData
         public int UpkeepIron;
         public int UpkeepMagicOre;
         public int UpkeepWater;
-        public int UpkeepPlank;
-        public int UpkeepCutStone;
         public int UpkeepBread;
 
         // 維持費でLv15ごとに魔法鉱石が増えるか（false = 魔法鉱石は固定）
@@ -160,7 +156,7 @@ public static class UnitStaticData
             DisplayName = "28式クロスボウ",
             BaseATK = 13, BaseHP = 17, BaseDEF = 16,
             AtkGrowth = 0.20f, HpGrowth = 0.15f, DefGrowth = 0.15f,
-            CostWood = 20, CostIron = 30, CostPlank = 40, CostCutStone = 40, CostBread = 10, CostCitizen = 1, CostAP = 8,
+            CostWood = 60, CostStone = 40, CostIron = 30, CostBread = 10, CostCitizen = 1, CostAP = 8,
             UpkeepWood = 3, UpkeepIron = 3, UpkeepBread = 3,
             UpkeepMagicScales = true,
         };
@@ -189,13 +185,14 @@ public static class UnitStaticData
             UpkeepMagicScales = true,
         };
 
-        // ---- BOSS（指揮官） ----
-        // 高HPの指揮官ユニット。周囲のユニットに指揮影響を与える
+        // ---- BOSS（異形の王／指揮官） ----
+        // キングと同等の初期ステータスだが、レベルアップ時の成長率がキングより高い。
+        // クリスタル級の脅威となる指揮官ユニット（特殊パッシブ/スキルは別途データで付与）。
         Table[Kind.Boss] = new UnitInfo
         {
-            DisplayName = "ボス",
-            BaseATK = 18, BaseHP = 60, BaseDEF = 18,
-            AtkGrowth = 0.15f, HpGrowth = 0.20f, DefGrowth = 0.15f,
+            DisplayName = "異形の王",
+            BaseATK = 20, BaseHP = 800, BaseDEF = 16,
+            AtkGrowth = 0.35f, HpGrowth = 0.10f, DefGrowth = 0.30f,
             CostIron = 30, CostMagicOre = 20, CostBread = 15, CostCitizen = 1, CostAP = 10,
             UpkeepIron = 3, UpkeepMagicOre = 2, UpkeepBread = 3,
             UpkeepMagicScales = true,
@@ -227,8 +224,6 @@ public static class UnitStaticData
         target.costIron = info.CostIron;
         target.costMagic = info.CostMagicOre;
         target.costWater = info.CostWater;
-        target.costPlank = info.CostPlank;
-        target.costCutStone = info.CostCutStone;
         target.costBread = info.CostBread;
         target.costCitizen = info.CostCitizen;
         target.costAP = info.CostAP;
@@ -238,8 +233,6 @@ public static class UnitStaticData
         target.upkeepIron = info.UpkeepIron;
         target.upkeepMagic = info.UpkeepMagicOre;
         target.upkeepWater = info.UpkeepWater;
-        target.upkeepPlank = info.UpkeepPlank;
-        target.upkeepCutStone = info.UpkeepCutStone;
         target.upkeepBread = info.UpkeepBread;
         target.upkeepMagicScales = info.UpkeepMagicScales;
     }

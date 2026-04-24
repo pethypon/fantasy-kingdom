@@ -129,6 +129,10 @@ public class GameMenuUI : MonoBehaviour
         vlg.childControlWidth = true;
         vlg.childControlHeight = false;
 
+        // 駒・ルール説明書
+        var manualBtn = CreateBtn("駒・ルール説明書", btnArea.transform, BrandGuide.BtnUnit);
+        manualBtn.onClick.AddListener(() => GameManualUI.ShowOrToggle());
+
         // セーブ
         var saveBtn = CreateBtn("セーブ", btnArea.transform, BrandGuide.BtnBuild);
         saveBtn.onClick.AddListener(() => ShowSlotPanel(true));

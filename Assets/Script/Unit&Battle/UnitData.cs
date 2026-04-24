@@ -22,22 +22,18 @@ public class UnitData : ScriptableObject
     public int upkeepIron;
     public int upkeepMagic;
     public int upkeepWater;
-    public int upkeepPlank;
-    public int upkeepCutStone;
     public int upkeepBread;
 
     [Header("維持費スケーリング")]
     [Tooltip("falseの場合、魔法鉱石の維持費はLv15ごとに増えない")]
     public bool upkeepMagicScales = true;
 
-    [Header("制作コスト（木/石/鉄/魔/水/木板/石材/パン/市民/AP）")]
+    [Header("制作コスト（木/石/鉄/魔/水/パン/市民/AP）")]
     public int costWood;
     public int costStone;
     public int costIron;
     public int costMagic;
     public int costWater;
-    public int costPlank;
-    public int costCutStone;
     public int costBread;
     public int costCitizen;
     public int costAP;
@@ -69,8 +65,6 @@ public class UnitData : ScriptableObject
             Iron     = upkeepIron * mult,
             MagicOre = upkeepMagicScales ? upkeepMagic * mult : upkeepMagic, // 魔法鉱石はスケールしない駒は固定
             Water    = upkeepWater * mult,
-            Plank    = upkeepPlank * mult,
-            CutStone = upkeepCutStone * mult,
             Bread    = upkeepBread * mult,
         };
     }

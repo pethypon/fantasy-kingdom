@@ -111,6 +111,8 @@ public class PlayerAttack : TurnState
             Mathf.RoundToInt(caster.transform.position.z));
 
         var positions = SkillSystem.GetAreaPositions(skill.Area, center, caster.direction);
+        positions = SkillSystem.FilterLineSkillBlocked(positions, skill.Area, center,
+            Systems.MapCreate, Systems.MoveGenerator);
         var posSet = new System.Collections.Generic.HashSet<Vector3Int>(positions);
 
         var allies = new System.Collections.Generic.List<Status>();

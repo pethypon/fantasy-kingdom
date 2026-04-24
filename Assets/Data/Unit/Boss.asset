@@ -16,24 +16,20 @@ MonoBehaviour:
   baseHP: 800
   baseATK: 20
   baseDEF: 16
-  hpGrowth: 0
-  atkGrowth: 0
-  defGrowth: 0
+  hpGrowth: 0.10
+  atkGrowth: 0.35
+  defGrowth: 0.30
   upkeepWood: 0
   upkeepStone: 0
   upkeepIron: 0
   upkeepMagic: 0
   upkeepWater: 0
-  upkeepPlank: 0
-  upkeepCutStone: 0
   upkeepBread: 0
   costWood: 0
   costStone: 0
   costIron: 0
   costMagic: 0
   costWater: 0
-  costPlank: 0
-  costCutStone: 0
   costBread: 0
   costCitizen: 0
   costAP: 0

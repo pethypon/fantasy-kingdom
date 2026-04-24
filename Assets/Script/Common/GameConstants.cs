@@ -62,6 +62,28 @@ public static class GameConstants
     public const int LineSkillBlockYDiff = 2;
 
     // =====================================================================
+    //  指揮官オーラ（Kingの周囲バフ）
+    // =====================================================================
+    /// <summary>Kingから指揮バフを受けるチェビシェフ距離</summary>
+    public const int KingAuraRange = 2;
+    /// <summary>King指揮バフ: 味方ATK倍率（+10%）</summary>
+    public const float KingAuraATKBonus = 1.10f;
+    /// <summary>King指揮バフ: 味方DEF倍率（+10%）</summary>
+    public const float KingAuraDEFBonus = 1.10f;
+
+    // =====================================================================
+    //  StrangeKing（異形の王）固有パッシブ
+    // =====================================================================
+    /// <summary>StrangeKingAura: 被ダメージ倍率（-40%）</summary>
+    public const float StrangeKingDamageReduction = 0.60f;
+    /// <summary>StrangeKingAura: 受けたダメージの回復割合（20%吸収）</summary>
+    public const float StrangeKingLifesteal = 0.20f;
+    /// <summary>StrangeKingAura: HP閾値以下でATK倍率（+25%）</summary>
+    public const float StrangeKingRageATKBonus = 1.25f;
+    /// <summary>StrangeKingAura: 激昂発動のHP比率</summary>
+    public const float StrangeKingRageThreshold = 0.50f;
+
+    // =====================================================================
     //  経験値システム
     // =====================================================================
     /// <summary>Lv2に必要なXP</summary>
@@ -189,14 +211,10 @@ public static class GameConstants
     public const int InitWood = 200;
     public const int InitStone = 200;
     public const int InitWater = 50;
-    public const int InitPlank = 50;
-    public const int InitCutStone = 50;
     public const int InitBread = 100;
     public const int InitCitizen = 5;
     public const int InitIron = 30;
     public const int InitMagicOre = 15;
-    public const int InitIronOre = 10;
-    public const int InitCoal = 10;
     public const int InitialSubCrystals = 2;
 
     // =====================================================================

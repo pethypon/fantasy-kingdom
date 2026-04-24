@@ -831,6 +831,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   KingPiece: {fileID: 1137179441160810629, guid: 9646cdbe5428b54498e44ba761e24977, type: 3}
   StrangePiece: {fileID: 278015695529729436, guid: 8e43a77c1af032c4a8189a586db02656, type: 3}
+  KnightPiece: {fileID: 5702459098739905946, guid: ad985085cd9a19e45be1d6b42b1e4d8c, type: 3}
+  ArcherPiece: {fileID: 9157691242623236745, guid: 07a182a50923e1e41ae77a628fc7e0c4, type: 3}
+  ScoutPiece: {fileID: 5262881611718164221, guid: 382c5885cf6605f43a17004dc2c338ce, type: 3}
   PlayerUnit: {fileID: 8126672788786915408}
   EnemyUnit: {fileID: 1796438203024195305}
   _unitDataList:

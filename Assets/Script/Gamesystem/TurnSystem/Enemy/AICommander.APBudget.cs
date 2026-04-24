@@ -75,7 +75,7 @@ public partial class AICommander
         int procCount = EconomyHelper.CountProcessingBuildings(_board);
         if (procCount == 0 && rawCount >= 2)
         {
-            // LumberMill(6), StoneWorks(6), Bakery(5)
+            // Bakery(5)
             cheapest = Mathf.Min(cheapest, 5);
         }
 

@@ -13,8 +13,6 @@ public static partial class FacilityData
             && res.Iron     >= cost.Iron
             && res.MagicOre >= cost.MagicOre
             && res.Water    >= cost.Water
-            && res.Plank    >= cost.Plank
-            && res.CutStone >= cost.CutStone
             && res.Citizen  >= cost.Citizen;
     }
 
@@ -25,15 +23,11 @@ public static partial class FacilityData
     {
         return res.Wood     >= cost.Wood
             && res.Stone    >= cost.Stone
-            && res.Coal     >= cost.Coal
-            && res.IronOre  >= cost.IronOre
             && res.Iron     >= cost.Iron
             && res.MagicOre >= cost.MagicOre
             && res.Wheat    >= cost.Wheat
             && res.Bread    >= cost.Bread
             && res.Water    >= cost.Water
-            && res.Plank    >= cost.Plank
-            && res.CutStone >= cost.CutStone
             && res.Citizen  >= cost.Citizen;
     }
 
@@ -47,8 +41,6 @@ public static partial class FacilityData
         res.Iron     -= cost.Iron;
         res.MagicOre -= cost.MagicOre;
         res.Water    -= cost.Water;
-        res.Plank    -= cost.Plank;
-        res.CutStone -= cost.CutStone;
         res.Citizen  -= cost.Citizen;
     }
 
@@ -59,15 +51,11 @@ public static partial class FacilityData
     {
         res.Wood     -= cost.Wood;
         res.Stone    -= cost.Stone;
-        res.Coal     -= cost.Coal;
-        res.IronOre  -= cost.IronOre;
         res.Iron     -= cost.Iron;
         res.MagicOre -= cost.MagicOre;
         res.Wheat    -= cost.Wheat;
         res.Bread    -= cost.Bread;
         res.Water    -= cost.Water;
-        res.Plank    -= cost.Plank;
-        res.CutStone -= cost.CutStone;
         res.Citizen  -= cost.Citizen;
     }
 
@@ -78,15 +66,11 @@ public static partial class FacilityData
     {
         res.Wood     += output.Wood;
         res.Stone    += output.Stone;
-        res.Coal     += output.Coal;
-        res.IronOre  += output.IronOre;
         res.Iron     += output.Iron;
         res.MagicOre += output.MagicOre;
         res.Wheat    += output.Wheat;
         res.Bread    += output.Bread;
         res.Water    += output.Water;
-        res.Plank    += output.Plank;
-        res.CutStone += output.CutStone;
         res.Citizen  += output.Citizen;
     }
 

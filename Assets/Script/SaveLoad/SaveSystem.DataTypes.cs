@@ -122,8 +122,8 @@ public static partial class SaveSystem
     [Serializable]
     public class ResourceSaveData
     {
-        public int Wood, Stone, Water, Coal, IronOre, MagicOre;
-        public int Plank, CutStone, Iron, Wheat, Bread, Citizen;
+        public int Wood, Stone, Water, MagicOre;
+        public int Iron, Wheat, Bread, Citizen;
     }
 
     [Serializable]

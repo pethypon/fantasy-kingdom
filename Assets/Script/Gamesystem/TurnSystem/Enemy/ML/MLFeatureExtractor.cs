@@ -204,8 +204,7 @@ public static class MLFeatureExtractor
     {
         if (board.EnemyResources == null) return 0f;
         var r = board.EnemyResources;
-        float score = r.Wood + r.Stone + r.Water + r.Plank + r.CutStone +
-                      r.Iron + r.Bread + r.Citizen * 20f;
+        float score = r.Wood + r.Stone + r.Water + r.Iron + r.Bread + r.Citizen * 20f;
         return Normalize(score, 0, 500);
     }
 
@@ -348,10 +347,7 @@ public static class MLFeatureExtractor
             case FacilityKind.Field:       return -0.2f;
             case FacilityKind.Mine:        return 0.0f;
             case FacilityKind.House:       return 0.2f;
-            case FacilityKind.LumberMill:  return 0.4f;
-            case FacilityKind.StoneWorks:  return 0.5f;
             case FacilityKind.Bakery:      return 0.6f;
-            case FacilityKind.Smelter:     return 0.7f;
             default: return 0f;
         }
     }

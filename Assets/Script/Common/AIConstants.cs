@@ -82,9 +82,6 @@ public static class AIConstants
     // =====================================================================
     //  建築シナジーボーナス（原料→加工チェーンが揃っている場合）
     // =====================================================================
-    public const float SYNERGY_LogLumber    = 8f;  // LoggingCamp + LumberMill
-    public const float SYNERGY_QuarryStone  = 8f;  // Quarry + StoneWorks
-    public const float SYNERGY_MineSmelter  = 10f; // Mine + Smelter
     public const float SYNERGY_FieldBakery  = 7f;  // Field + Bakery
 
     // =====================================================================
@@ -95,9 +92,6 @@ public static class AIConstants
     public const float RP_Quarry         = 2.5f;
     public const float RP_Field          = 2.0f;
     public const float RP_Mine           = 3.0f;
-    public const float RP_LumberMill     = 3.5f;
-    public const float RP_StoneWorks     = 3.5f;
-    public const float RP_Smelter        = 4.0f;
     public const float RP_Bakery         = 3.0f;
     public const float RP_Projection_Turns = 6f;  // 何ターン先の収入まで考慮するか（割引率付き）
     public const float RP_Discount_Rate    = 0.85f; // 1ターンごとの割引率
@@ -208,9 +202,6 @@ public static class AIConstants
             case FacilityKind.Quarry:      return RP_Quarry;
             case FacilityKind.Field:       return RP_Field;
             case FacilityKind.Mine:        return RP_Mine;
-            case FacilityKind.LumberMill:  return RP_LumberMill;
-            case FacilityKind.StoneWorks:  return RP_StoneWorks;
-            case FacilityKind.Smelter:     return RP_Smelter;
             case FacilityKind.Bakery:      return RP_Bakery;
             default: return 0f;
         }

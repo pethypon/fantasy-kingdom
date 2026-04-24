@@ -57,5 +57,9 @@ public static class TurnStartHelper
         // ダンジョン占有判定・タイマー進行
         if (systems.DungeonSystem != null)
             systems.DungeonSystem.ProcessTurn(team);
+
+        // 強敵ターン処理（縄張り内の駒への攻撃・特殊行動）
+        if (systems.WildBossSystem != null)
+            systems.WildBossSystem.ProcessTurn(team);
     }
 }

@@ -23,13 +23,10 @@ public static partial class AIActionEvaluator
              + (board.GetBuildingCount(FacilityKind.Mine) > 0 ? 1 : 0);
     }
 
-    /// <summary>加工施設4種(Smelter,Bakery,LumberMill,StoneWorks)の設置済み種類数</summary>
+    /// <summary>加工施設(Bakery)の設置済み種類数</summary>
     internal static int CalcProcessingFacilityCount(AIBoardState board)
     {
-        return (board.GetBuildingCount(FacilityKind.Smelter) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.Bakery) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.LumberMill) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.StoneWorks) > 0 ? 1 : 0);
+        return (board.GetBuildingCount(FacilityKind.Bakery) > 0 ? 1 : 0);
     }
 
     /// <summary>資源量に応じた緊急度ボーナス(枯渇→最大, 少量→中, やや不足→小)</summary>
@@ -52,10 +49,7 @@ public static partial class AIActionEvaluator
             case FacilityKind.Quarry:      return board.GetBuildingCount(FacilityKind.Quarry) == 0;
             case FacilityKind.Field:       return board.GetBuildingCount(FacilityKind.Field) == 0;
             case FacilityKind.House:       return board.GetBuildingCount(FacilityKind.House) == 0;
-            case FacilityKind.LumberMill:  return board.GetBuildingCount(FacilityKind.LumberMill) == 0;
-            case FacilityKind.StoneWorks:  return board.GetBuildingCount(FacilityKind.StoneWorks) == 0;
             case FacilityKind.Bakery:      return board.GetBuildingCount(FacilityKind.Bakery) == 0;
-            case FacilityKind.Smelter:     return board.GetBuildingCount(FacilityKind.Smelter) == 0;
             case FacilityKind.Mine:        return board.GetBuildingCount(FacilityKind.Mine) == 0;
             default: return false;
         }
@@ -63,9 +57,6 @@ public static partial class AIActionEvaluator
 
     internal static bool IsProcessingFacility(FacilityKind facility)
     {
-        return facility == FacilityKind.LumberMill
-            || facility == FacilityKind.StoneWorks
-            || facility == FacilityKind.Bakery
-            || facility == FacilityKind.Smelter;
+        return facility == FacilityKind.Bakery;
     }
 }

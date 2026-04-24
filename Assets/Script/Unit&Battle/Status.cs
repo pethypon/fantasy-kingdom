@@ -116,7 +116,24 @@ public enum PassiveSkill
     HunterEyes,
     Destroyer,
     Assassination,
-    Sniper
+    Sniper,
+    /// <summary>
+    /// 異形の王専用: 被ダメージ-40% + 受けたダメージの20%をHP回復（吸血）+
+    /// 自身HP50%以下時にATK+25%。クリスタル級の耐久と脅威度を実現する。
+    /// </summary>
+    StrangeKingAura,
+}
+
+/// <summary>
+/// 強敵（ワイルドボス）のアーキタイプ。縄張り内行動・固有AIのディスパッチに使う。
+/// </summary>
+public enum WildBossArchetype
+{
+    None,
+    GhostKing,      // テレポート+視界外攻撃（2ターン毎）
+    Dragon,         // 炎ブレス（4ターン毎）+バフ/前方攻撃
+    RebelKnight,    // 反撃付与（2ターン毎）+親衛騎士召喚
+    ThunderMagus,   // 雷クリスタル設置+5ターン毎に一斉起爆
 }
 
 // =====================================================================
@@ -262,6 +279,25 @@ public class Status : MonoBehaviour
     public Direction direction;
     [Header("パッシブスキル")]
     public PassiveSkill passiveskill;
+    [Header("強敵（縄張り付き中立ボス）")]
+    [Tooltip("trueなら縄張り外では被弾無効、縄張り外からも出ない")]
+    public bool isWildBoss;
+    [Tooltip("強敵の縄張り中心（Y=0）")]
+    public Vector3Int wildBossTerritoryCenter;
+    [Tooltip("強敵の縄張り半径（チェビシェフ距離）")]
+    public int wildBossTerritoryRadius = 3;
+    [Tooltip("強敵アーキタイプ（固有AI・行動周期）")]
+    public WildBossArchetype wildBossArchetype;
+    [Tooltip("強敵の所持AP（毎ターン最大値までリフィル）")]
+    public int wildBossAP;
+    [Tooltip("強敵の最大AP")]
+    public int wildBossMaxAP;
+    [Tooltip("強敵の行動カウンタ（ターン毎の周期判定用）")]
+    public int wildBossTurnCounter;
+    [Tooltip("反撃バフの残ターン（反逆の騎士王用）")]
+    public int wildBossCounterTurns;
+    [Tooltip("攻撃バフの残ターン（ドラゴン用）")]
+    public int wildBossAtkBuffTurns;
     [Header("ステータス")]
     public int HP;
     public int ATK;
@@ -336,12 +372,44 @@ public class Status : MonoBehaviour
         SurvivalInstinctUsed = false;
     }
 
-    /// <summary>ダメージを適用する（0未満にならない）</summary>
+    /// <summary>ダメージを適用する（0未満にならない）。強敵の無敵判定もここで行う。</summary>
     public int ApplyDamage(int damage)
     {
         damage = UnityEngine.Mathf.Max(0, damage);
+        if (isWildBoss && IsWildBossInvulnerable())
+        {
+            UnityEngine.Debug.Log($"[WildBoss] 縄張り外のため無敵: ダメージ{damage}を無効化");
+            return 0;
+        }
         HP = UnityEngine.Mathf.Max(0, HP - damage);
         return damage;
+    }
+
+    /// <summary>
+    /// 強敵の無敵判定: 縄張り内にPlayer/Enemyの駒がいれば解除（= false）、
+    /// いなければ無敵（= true）。
+    /// </summary>
+    private bool IsWildBossInvulnerable()
+    {
+        var reg = UnitRegistry.Instance;
+        if (reg == null) return true;
+        return !HasAnyUnitInTerritory(reg.PlayerUnits)
+            && !HasAnyUnitInTerritory(reg.EnemyUnits);
+    }
+
+    private bool HasAnyUnitInTerritory(System.Collections.Generic.IReadOnlyList<Status> list)
+    {
+        if (list == null) return false;
+        for (int i = 0; i < list.Count; i++)
+        {
+            var u = list[i];
+            if (u == null || !u.IsAlive || u == this) continue;
+            var g = u.GridPosition;
+            int dx = UnityEngine.Mathf.Abs(g.x - wildBossTerritoryCenter.x);
+            int dz = UnityEngine.Mathf.Abs(g.z - wildBossTerritoryCenter.z);
+            if (UnityEngine.Mathf.Max(dx, dz) <= wildBossTerritoryRadius) return true;
+        }
+        return false;
     }
 
     /// <summary>回復を適用する（MaxHPを超えない）</summary>
@@ -412,6 +480,8 @@ public class Status : MonoBehaviour
             MaxHP = newMax;
             HP += gained;
             UnityEngine.Debug.Log($"[Level] {kind} → Lv{Level} (XP:{Experience})");
+            if (team == Team.Player && AchievementSystem.Instance != null)
+                AchievementSystem.Instance.OnLevelUp(Level);
         }
     }
 }
@@ -482,8 +552,8 @@ public enum TurnStrategy
 // 建築の種別（FacilityData と EconomySystem で使用）
 public enum FacilityKind
 {
-    Field, Bakery, LoggingCamp, LumberMill,
-    Quarry, StoneWorks, Mine, Smelter,
+    Field, Bakery, LoggingCamp,
+    Quarry, Mine,
     Barracks, House, LuxuryHouse, Well, Warehouse,
     WoodWall, StoneWall,
     Mortar, Cannon, RestraintTrap, SpikeTrap, HeroSword,
@@ -493,6 +563,6 @@ public enum FacilityKind
 // 資源の種別（FacilityData と EconomySystem で使用）
 public enum ResourceKind
 {
-    Wood, Stone, IronOre, Iron, MagicOre, Coal,
-    Wheat, Bread, Water, Plank, CutStone, Citizen, None
+    Wood, Stone, Iron, MagicOre,
+    Wheat, Bread, Water, Citizen, None
 }

@@ -163,8 +163,6 @@ public class SummonSystem : MonoBehaviour
             && res.Iron     >= data.costIron
             && res.MagicOre >= data.costMagic
             && res.Water    >= data.costWater
-            && res.Plank    >= data.costPlank
-            && res.CutStone >= data.costCutStone
             && res.Bread    >= data.costBread
             && res.Citizen  >= data.costCitizen;
     }
@@ -184,8 +182,6 @@ public class SummonSystem : MonoBehaviour
         res.Iron     -= data.costIron;
         res.MagicOre -= data.costMagic;
         res.Water    -= data.costWater;
-        res.Plank    -= data.costPlank;
-        res.CutStone -= data.costCutStone;
         res.Bread    -= data.costBread;
         res.Citizen  -= data.costCitizen;
 
@@ -235,6 +231,7 @@ public class SummonSystem : MonoBehaviour
         if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
             prefab = mapped;
 
+        Status spawnedStatus = null;
         if (prefab != null)
         {
             var obj = unitset.SpawnUnit(prefab, spawnPos, parent);
@@ -243,12 +240,17 @@ public class SummonSystem : MonoBehaviour
             {
                 status.team = team;
                 status.direction = dir;
+                spawnedStatus = status;
             }
         }
         else
         {
             CreateFallbackUnit(spawnPos, kind, team, dir, parent);
         }
+
+        // プレイヤー召喚時はスキル3択UIで上書き
+        if (team == Team.Player && spawnedStatus != null)
+            SkillData.OfferPlayerChoice(spawnedStatus);
 
         // ユニット位置を記録
         moveGenerator.AddOccupied(GridHelper.ToUnitPoint(pos));
@@ -257,6 +259,7 @@ public class SummonSystem : MonoBehaviour
         visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
 
         Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {Mathf.RoundToInt(spawnY)}, {pos.z}) に召喚 ({team})");
+        MatchStats.Instance?.RecordSummon(team);
     }
 
     /// <summary>プレハブ未割当時のフォールバックユニットを生成する</summary>
