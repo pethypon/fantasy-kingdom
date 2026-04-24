@@ -159,6 +159,9 @@ public class BattleSystem : MonoBehaviour
         damage = Target.ApplyDamage(damage);
         Debug.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}");
 
+        // 反逆の騎士王: 反撃バフ有効時は受けたダメージの1.5倍を反射
+        if (damage > 0) WildBossSystem.TryReflectDamage(Target, Attacker, damage);
+
         // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）
         if (damage > 0 && Attacker != null && Attacker.type == Type.Unit && Attacker.team != Target.team)
             Attacker.GainExperience(damage);

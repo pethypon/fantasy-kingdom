@@ -124,6 +124,18 @@ public enum PassiveSkill
     StrangeKingAura,
 }
 
+/// <summary>
+/// 強敵（ワイルドボス）のアーキタイプ。縄張り内行動・固有AIのディスパッチに使う。
+/// </summary>
+public enum WildBossArchetype
+{
+    None,
+    GhostKing,      // テレポート+視界外攻撃（2ターン毎）
+    Dragon,         // 炎ブレス（4ターン毎）+バフ/前方攻撃
+    RebelKnight,    // 反撃付与（2ターン毎）+親衛騎士召喚
+    ThunderMagus,   // 雷クリスタル設置+5ターン毎に一斉起爆
+}
+
 // =====================================================================
 //  状態異常（デバフ）
 // =====================================================================
@@ -274,6 +286,18 @@ public class Status : MonoBehaviour
     public Vector3Int wildBossTerritoryCenter;
     [Tooltip("強敵の縄張り半径（チェビシェフ距離）")]
     public int wildBossTerritoryRadius = 3;
+    [Tooltip("強敵アーキタイプ（固有AI・行動周期）")]
+    public WildBossArchetype wildBossArchetype;
+    [Tooltip("強敵の所持AP（毎ターン最大値までリフィル）")]
+    public int wildBossAP;
+    [Tooltip("強敵の最大AP")]
+    public int wildBossMaxAP;
+    [Tooltip("強敵の行動カウンタ（ターン毎の周期判定用）")]
+    public int wildBossTurnCounter;
+    [Tooltip("反撃バフの残ターン（反逆の騎士王用）")]
+    public int wildBossCounterTurns;
+    [Tooltip("攻撃バフの残ターン（ドラゴン用）")]
+    public int wildBossAtkBuffTurns;
     [Header("ステータス")]
     public int HP;
     public int ATK;
