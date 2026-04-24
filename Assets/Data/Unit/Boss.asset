@@ -16,9 +16,9 @@ MonoBehaviour:
   baseHP: 800
   baseATK: 20
   baseDEF: 16
-  hpGrowth: 0
-  atkGrowth: 0
-  defGrowth: 0
+  hpGrowth: 0.10
+  atkGrowth: 0.35
+  defGrowth: 0.30
   upkeepWood: 0
   upkeepStone: 0
   upkeepIron: 0
