@@ -62,6 +62,16 @@ public static class GameConstants
     public const int LineSkillBlockYDiff = 2;
 
     // =====================================================================
+    //  指揮官オーラ（Kingの周囲バフ）
+    // =====================================================================
+    /// <summary>Kingから指揮バフを受けるチェビシェフ距離</summary>
+    public const int KingAuraRange = 2;
+    /// <summary>King指揮バフ: 味方ATK倍率（+10%）</summary>
+    public const float KingAuraATKBonus = 1.10f;
+    /// <summary>King指揮バフ: 味方DEF倍率（+10%）</summary>
+    public const float KingAuraDEFBonus = 1.10f;
+
+    // =====================================================================
     //  経験値システム
     // =====================================================================
     /// <summary>Lv2に必要なXP</summary>

@@ -184,6 +184,40 @@ public static class DamageCalculator
     }
 
     /// <summary>
+    /// King指揮オーラ: チェビシェフ距離2以内に生存する味方Kingがいれば ATK/DEF に +10% を付与する。
+    /// King自身は対象外（自分自身のATKに適用しない）。
+    /// </summary>
+    public static float GetKingAuraATKMultiplier(Status unit)
+    {
+        return HasKingAura(unit) ? GameConstants.KingAuraATKBonus : 1f;
+    }
+
+    public static float GetKingAuraDEFMultiplier(Status unit)
+    {
+        return HasKingAura(unit) ? GameConstants.KingAuraDEFBonus : 1f;
+    }
+
+    private static bool HasKingAura(Status unit)
+    {
+        if (unit == null || unit.kind == Kind.King) return false;
+        var reg = UnitRegistry.Instance;
+        if (reg == null) return false;
+        var allies = unit.team == Team.Player ? reg.PlayerUnits : reg.EnemyUnits;
+        if (allies == null) return false;
+        Vector3Int upos = ToGridPos(unit.transform.position);
+        for (int i = 0; i < allies.Count; i++)
+        {
+            var king = allies[i];
+            if (king == null || king.kind != Kind.King || !king.IsAlive) continue;
+            Vector3Int kpos = ToGridPos(king.transform.position);
+            int dx = Mathf.Abs(kpos.x - upos.x);
+            int dz = Mathf.Abs(kpos.z - upos.z);
+            if (Mathf.Max(dx, dz) <= GameConstants.KingAuraRange) return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// 通常攻撃のダメージを計算する（パッシブ + 状態異常修飾 + Special Ability込み）。
     /// </summary>
     public static int CalcNormal(Status attacker, Status target)
@@ -191,6 +225,10 @@ public static class DamageCalculator
         float atkMod = ApplyUpkeepATKPenalty(attacker, StatusEffectSystem.GetATKModifier(attacker));
         float defMod = ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target));
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
+
+        // 指揮オーラ: King周囲2マス以内の味方は ATK/DEF +10%
+        atkMod *= GetKingAuraATKMultiplier(attacker);
+        defMod *= GetKingAuraDEFMultiplier(target);
 
         float atk = attacker.ATK * atkMod;
         float def = target.DEF * defMod;
@@ -237,6 +275,10 @@ public static class DamageCalculator
         float defMod = ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target));
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
         float sealMod = StatusEffectSystem.GetSkillMultiplierModifier(attacker);
+
+        // 指揮オーラ
+        atkMod *= GetKingAuraATKMultiplier(attacker);
+        defMod *= GetKingAuraDEFMultiplier(target);
 
         float atk = attacker.ATK * atkMod;
         float def = target.DEF * defMod;

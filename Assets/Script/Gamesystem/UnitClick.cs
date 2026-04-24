@@ -279,6 +279,8 @@ public class UnitClick : MonoBehaviour
     private List<Status> FindEnemiesInSkillArea(SkillData skill, Vector3Int origin, Direction dir)
     {
         var positions = SkillSystem.GetAreaPositions(skill.Area, origin, dir);
+        positions = SkillSystem.FilterLineSkillBlocked(positions, skill.Area, origin,
+            turnGenerator.Systems.MapCreate, turnGenerator.Systems.MoveGenerator);
         var posSet = new HashSet<Vector3Int>(positions);
         var targets = new List<Status>();
 
