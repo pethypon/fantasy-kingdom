@@ -253,6 +253,7 @@ public class SummonSystem : MonoBehaviour
         visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
 
         Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {Mathf.RoundToInt(spawnY)}, {pos.z}) に召喚 ({team})");
+        MatchStats.Instance?.RecordSummon(team);
     }
 
     /// <summary>プレハブ未割当時のフォールバックユニットを生成する</summary>

@@ -102,6 +102,9 @@ public class GameGenerator : MonoBehaviour
 
     private void StartGameInit(int loadSlot = -1)
     {
+        // 統計をリセット
+        MatchStats.GetOrCreate().Reset();
+
         // ロード要求解決
         int pendingLoad = GameMenuUI.PendingLoadSlot;
         GameMenuUI.PendingLoadSlot = -1;

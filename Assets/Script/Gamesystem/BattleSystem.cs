@@ -180,6 +180,18 @@ public class BattleSystem : MonoBehaviour
             FloatingDamageUI.ShowDamage(Target.transform.position, damage, isKill);
         else
             FloatingDamageUI.ShowMiss(Target.transform.position);
+
+        // 統計記録
+        if (MatchStats.Instance != null)
+        {
+            MatchStats.Instance.RecordDamage(Attacker != null ? Attacker.team : Team.None,
+                Target.team, damage, isKill, Target.isWildBoss);
+            if (damage > 0 && Attacker != null && Attacker.type == Type.Unit
+                && Attacker.team != Target.team)
+            {
+                MatchStats.Instance.RecordXPGain(Attacker.team, damage);
+            }
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
