@@ -231,6 +231,7 @@ public class SummonSystem : MonoBehaviour
         if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
             prefab = mapped;
 
+        Status spawnedStatus = null;
         if (prefab != null)
         {
             var obj = unitset.SpawnUnit(prefab, spawnPos, parent);
@@ -239,12 +240,17 @@ public class SummonSystem : MonoBehaviour
             {
                 status.team = team;
                 status.direction = dir;
+                spawnedStatus = status;
             }
         }
         else
         {
             CreateFallbackUnit(spawnPos, kind, team, dir, parent);
         }
+
+        // プレイヤー召喚時はスキル3択UIで上書き
+        if (team == Team.Player && spawnedStatus != null)
+            SkillData.OfferPlayerChoice(spawnedStatus);
 
         // ユニット位置を記録
         moveGenerator.AddOccupied(GridHelper.ToUnitPoint(pos));

@@ -360,15 +360,38 @@ public class SkillData
     }
 
     // =====================================================================
-    //  ユニットにスキルをランダム配布
+    //  ユニットにスキルを配布（敵AIは3択からベストを自動選択）
+    //  プレイヤー向けには SkillChoiceUI.ShowOrCreate を使う OfferPlayerChoice を別途呼ぶ
     // =====================================================================
     public static void AssignRandomSkill(Status unit)
     {
         if (unit.type != Type.Unit) return;
         if (unit.kind == Kind.Crystal || unit.kind == Kind.SubCrystal) return;
-        unit.AssignedSkillId = DrawRandomSkillId();
-        var skill = Table[unit.AssignedSkillId];
+
+        var candidates = DrawCandidateSkillIds(3);
+        int picked = (unit.team == Team.Enemy || unit.team == Team.Obstacle)
+            ? PickBestForAI(candidates)
+            : candidates[Random.Range(0, candidates.Count)]; // 初期配置プレイヤー駒は即ランダム
+        unit.AssignedSkillId = picked;
+        var skill = Table[picked];
         Debug.Log($"[SkillData] {unit.team} {unit.kind} にスキル '{skill.Name}' ({skill.Rarity}) を配布");
+    }
+
+    /// <summary>
+    /// プレイヤー召喚時の3択UI。ユニットに既にデフォルト割り当てがあっても上書きする。
+    /// UI が出せない環境ではベストピックでフォールバック。
+    /// </summary>
+    public static void OfferPlayerChoice(Status unit)
+    {
+        if (unit == null) return;
+        var candidates = DrawCandidateSkillIds(3);
+        SkillChoiceUI.ShowOrCreate(candidates, picked =>
+        {
+            if (picked < 0) picked = PickBestForAI(candidates);
+            unit.AssignedSkillId = picked;
+            if (Table.TryGetValue(picked, out var s))
+                Debug.Log($"[SkillData] プレイヤー選択: '{s.Name}' ({s.Rarity}) → {unit.kind}");
+        });
     }
 
     /// <summary>全ユニットにスキルをランダム配布</summary>
