@@ -121,21 +121,9 @@ public class SkillData
         });
 
         Register(new SkillData {
-            Id = 5, Name = "クイックステップ", Rarity = SkillRarity.Normal,
-            APCost = 4, Target = SkillTarget.Self, Area = SkillAreaShape.Single,
-            GrantBuff = BuffType.Haste
-        });
-
-        Register(new SkillData {
             Id = 6, Name = "ハムストリング", Rarity = SkillRarity.Normal,
             APCost = 4, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.Single,
             Multiplier = 0.90f, InflictDebuff = StatusEffectType.Chill, DebuffChance = 1f
-        });
-
-        Register(new SkillData {
-            Id = 7, Name = "ワイドスイング", Rarity = SkillRarity.Normal,
-            APCost = 5, Target = SkillTarget.AdjacentCenter, Area = SkillAreaShape.Cross1,
-            Multiplier = 0.80f
         });
 
         Register(new SkillData {
@@ -145,51 +133,15 @@ public class SkillData
         });
 
         Register(new SkillData {
-            Id = 9, Name = "アークショット", Rarity = SkillRarity.Normal,
-            APCost = 5, Target = SkillTarget.DesignatedTile, Area = SkillAreaShape.Landing1,
-            Multiplier = 0.85f
-        });
-
-        Register(new SkillData {
             Id = 10, Name = "ヒールライト", Rarity = SkillRarity.Normal,
             APCost = 4, Target = SkillTarget.AllySingle, Area = SkillAreaShape.Single,
             FixedHeal = 10
         });
 
         Register(new SkillData {
-            Id = 11, Name = "ブレスアップ", Rarity = SkillRarity.Normal,
-            APCost = 3, Target = SkillTarget.AllySingle, Area = SkillAreaShape.Single,
-            GrantBuff = BuffType.Offensive
-        });
-
-        Register(new SkillData {
-            Id = 12, Name = "プロテクト", Rarity = SkillRarity.Normal,
-            APCost = 3, Target = SkillTarget.AllySingle, Area = SkillAreaShape.Single,
-            GrantBuff = BuffType.Defensive
-        });
-
-        Register(new SkillData {
             Id = 13, Name = "マークショット", Rarity = SkillRarity.Normal,
             APCost = 4, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.Single,
             Multiplier = 0.80f, InflictDebuff = StatusEffectType.Mark, DebuffChance = 1f
-        });
-
-        Register(new SkillData {
-            Id = 14, Name = "サプレッション", Rarity = SkillRarity.Normal,
-            APCost = 4, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.Single,
-            Multiplier = 0.85f, InflictDebuff = StatusEffectType.Weaken, DebuffChance = 1f
-        });
-
-        Register(new SkillData {
-            Id = 15, Name = "トラッキング", Rarity = SkillRarity.Normal,
-            APCost = 3, Target = SkillTarget.Self, Area = SkillAreaShape.Single,
-            GrantBuff = BuffType.Insight
-        });
-
-        Register(new SkillData {
-            Id = 16, Name = "リカバー", Rarity = SkillRarity.Normal,
-            APCost = 3, Target = SkillTarget.Self, Area = SkillAreaShape.Single,
-            FixedHeal = 8
         });
 
         Register(new SkillData {
@@ -231,12 +183,6 @@ public class SkillData
         });
 
         Register(new SkillData {
-            Id = 23, Name = "スモークエッジ", Rarity = SkillRarity.Rare,
-            APCost = 5, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.Single,
-            Multiplier = 1.00f, GrantBuff = BuffType.Barrier, BuffToSelf = true
-        });
-
-        Register(new SkillData {
             Id = 24, Name = "ラピッドファイア", Rarity = SkillRarity.Rare,
             APCost = 7, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.SingleDouble,
             Multiplier = 0.80f, SecondMultiplier = 0.80f
@@ -256,33 +202,9 @@ public class SkillData
         });
 
         Register(new SkillData {
-            Id = 27, Name = "フィールドエイド", Rarity = SkillRarity.Rare,
-            APCost = 8, Target = SkillTarget.SelfArea, Area = SkillAreaShape.Surround1,
-            FixedHeal = 10, SpecialEffect = "AreaAllyHeal"
-        });
-
-        Register(new SkillData {
-            Id = 28, Name = "ウォークライ", Rarity = SkillRarity.Rare,
-            APCost = 5, Target = SkillTarget.SelfArea, Area = SkillAreaShape.Surround1,
-            GrantBuff = BuffType.Offensive, SpecialEffect = "AreaAllyBuff"
-        });
-
-        Register(new SkillData {
-            Id = 29, Name = "アイアンウォール", Rarity = SkillRarity.Rare,
-            APCost = 5, Target = SkillTarget.SelfArea, Area = SkillAreaShape.Surround1,
-            GrantBuff = BuffType.Defensive, SpecialEffect = "AreaAllyBuff"
-        });
-
-        Register(new SkillData {
             Id = 30, Name = "チェインショット", Rarity = SkillRarity.Rare,
             APCost = 6, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.SingleChain,
             Multiplier = 1.00f, SecondMultiplier = 0.60f
-        });
-
-        Register(new SkillData {
-            Id = 31, Name = "サイレンスマーク", Rarity = SkillRarity.Rare,
-            APCost = 5, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.Single,
-            Multiplier = 0.90f, InflictDebuff = StatusEffectType.Seal, DebuffChance = 1f
         });
 
         Register(new SkillData {
@@ -295,12 +217,6 @@ public class SkillData
             Id = 33, Name = "スカイハント", Rarity = SkillRarity.Rare,
             APCost = 6, Target = SkillTarget.FlyingEnemy, Area = SkillAreaShape.Single,
             Multiplier = 1.40f
-        });
-
-        Register(new SkillData {
-            Id = 34, Name = "グラウンドブレイク", Rarity = SkillRarity.Rare,
-            APCost = 7, Target = SkillTarget.DesignatedTile, Area = SkillAreaShape.Cross2,
-            Multiplier = 1.00f, InflictDebuff = StatusEffectType.Chill, DebuffChance = 1f
         });
 
         Register(new SkillData {
@@ -318,21 +234,9 @@ public class SkillData
         });
 
         Register(new SkillData {
-            Id = 37, Name = "ペネトレイトレイン", Rarity = SkillRarity.SuperRare,
-            APCost = 8, Target = SkillTarget.DesignatedRow, Area = SkillAreaShape.Line5,
-            Multiplier = 1.10f, InflictDebuff = StatusEffectType.Mark, DebuffChance = 1f
-        });
-
-        Register(new SkillData {
             Id = 38, Name = "メテオシャード", Rarity = SkillRarity.SuperRare,
             APCost = 10, Target = SkillTarget.DesignatedTile, Area = SkillAreaShape.Area3x3,
             Multiplier = 1.25f
-        });
-
-        Register(new SkillData {
-            Id = 39, Name = "ディバインサークル", Rarity = SkillRarity.SuperRare,
-            APCost = 9, Target = SkillTarget.SelfArea, Area = SkillAreaShape.Surround2,
-            FixedHeal = 16, GrantBuff = BuffType.Defensive, SpecialEffect = "AreaAllyHealBuff"
         });
 
         Register(new SkillData {
@@ -342,21 +246,9 @@ public class SkillData
         });
 
         Register(new SkillData {
-            Id = 41, Name = "ファントムドライブ", Rarity = SkillRarity.SuperRare,
-            APCost = 7, Target = SkillTarget.EnemySingle, Area = SkillAreaShape.Single,
-            Multiplier = 1.50f, SpecialEffect = "PhantomDrive"
-        });
-
-        Register(new SkillData {
             Id = 42, Name = "フリーズバインド", Rarity = SkillRarity.SuperRare,
             APCost = 8, Target = SkillTarget.DesignatedTile, Area = SkillAreaShape.Area2x2,
             Multiplier = 0.90f, InflictDebuff = StatusEffectType.Freeze, DebuffChance = 0.35f
-        });
-
-        Register(new SkillData {
-            Id = 43, Name = "バスティオンコール", Rarity = SkillRarity.SuperRare,
-            APCost = 6, Target = SkillTarget.SelfArea, Area = SkillAreaShape.Surround2,
-            SpecialEffect = "BastionCall"
         });
 
         Register(new SkillData {
@@ -381,21 +273,9 @@ public class SkillData
         });
 
         Register(new SkillData {
-            Id = 47, Name = "フェニックスヒール", Rarity = SkillRarity.Legendary,
-            APCost = 7, Target = SkillTarget.AllySingle, Area = SkillAreaShape.Single,
-            FixedHeal = 30, GrantBuff = BuffType.Offensive
-        });
-
-        Register(new SkillData {
             Id = 48, Name = "ワールドエッジ", Rarity = SkillRarity.Legendary,
             APCost = 12, Target = SkillTarget.DirectionLine, Area = SkillAreaShape.Line7,
             Multiplier = 1.35f
-        });
-
-        Register(new SkillData {
-            Id = 49, Name = "ラストシグナル", Rarity = SkillRarity.Legendary,
-            APCost = 6, Target = SkillTarget.SelfArea, Area = SkillAreaShape.Surround2,
-            SpecialEffect = "LastSignal"
         });
 
         Register(new SkillData {
@@ -424,6 +304,59 @@ public class SkillData
 
         if (pool.Count == 0) pool = NormalIds;
         return pool[Random.Range(0, pool.Count)];
+    }
+
+    // =====================================================================
+    //  召喚時の3択候補抽選
+    //  - レアリティは従来の確率で1回決定 → その帯から重複なしで3枚抽選。
+    //  - 枚数が不足する場合は隣接帯で補う（下位 → 上位の順に探索）。
+    // =====================================================================
+    public static List<int> DrawCandidateSkillIds(int count = 3)
+    {
+        float roll = Random.Range(0f, 1f);
+        List<int> primary;
+        if (roll < 0.05f) primary = LegendaryIds;
+        else if (roll < 0.20f) primary = SuperRareIds;
+        else if (roll < 0.40f) primary = RareIds;
+        else primary = NormalIds;
+        if (primary.Count == 0) primary = NormalIds;
+
+        var picked = new List<int>();
+        var pool = new List<int>(primary);
+        while (picked.Count < count && pool.Count > 0)
+        {
+            int idx = Random.Range(0, pool.Count);
+            picked.Add(pool[idx]);
+            pool.RemoveAt(idx);
+        }
+
+        // 候補不足なら下位帯から補充
+        List<List<int>> fallback = new List<List<int>> { NormalIds, RareIds, SuperRareIds, LegendaryIds };
+        int fIdx = 0;
+        while (picked.Count < count && fIdx < fallback.Count)
+        {
+            foreach (var id in fallback[fIdx])
+                if (!picked.Contains(id)) { picked.Add(id); if (picked.Count >= count) break; }
+            fIdx++;
+        }
+        return picked;
+    }
+
+    /// <summary>敵AI: 候補から最もスコアの高いスキルを選ぶ。</summary>
+    public static int PickBestForAI(List<int> candidates)
+    {
+        int bestId = candidates[0];
+        float bestScore = float.MinValue;
+        foreach (var id in candidates)
+        {
+            if (!Table.TryGetValue(id, out var s)) continue;
+            float score = s.Multiplier * 2f + s.FixedDamage * 0.5f + s.FixedHeal * 0.3f - s.APCost * 0.2f;
+            if (s.InflictDebuff != StatusEffectType.None) score += 1.5f;
+            if (s.GrantBuff != BuffType.None) score += 1.0f;
+            score += (int)s.Rarity * 1.0f;
+            if (score > bestScore) { bestScore = score; bestId = id; }
+        }
+        return bestId;
     }
 
     // =====================================================================
