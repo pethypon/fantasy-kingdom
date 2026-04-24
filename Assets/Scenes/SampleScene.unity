@@ -293,6 +293,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd9085ab6142ca44c9bdd769d8ca526c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingAttackSystem
+--- !u!4 &1385463639 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3276075482232035196, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+  m_PrefabInstance: {fileID: 4572865823870615324}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1580161991
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1580161992}
+  - component: {fileID: 1580161993}
+  m_Layer: 0
+  m_Name: DungeonSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1580161992
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1580161991}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1385463639}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1580161993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1580161991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f41c822dcc74df34b9213dc8d3b6cd40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DungeonSystem
 --- !u!1001 &4572865823870615324
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -313,6 +362,10 @@ PrefabInstance:
       propertyPath: _BattleSystem
       value: 
       objectReference: {fileID: 1202527492}
+    - target: {fileID: 1447019358899514485, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: _DungeonSystem
+      value: 
+      objectReference: {fileID: 1580161993}
     - target: {fileID: 1447019358899514485, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       propertyPath: _CameraTransform
       value: 
@@ -379,7 +432,10 @@ PrefabInstance:
       objectReference: {fileID: 1051664333}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3276075482232035196, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1580161992}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5196177430794174198, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       insertIndex: -1
