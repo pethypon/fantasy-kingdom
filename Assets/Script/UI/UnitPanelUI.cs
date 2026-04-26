@@ -40,6 +40,7 @@ public class UnitPanelUI : MonoBehaviour
     [FormerlySerializedAs("turnGenerater")]
     [SerializeField] private TurnGenerator turnGenerator;
     [SerializeField] private APSystem apSystem;
+    private FactionState factionState;
 
     [Header("パネル本体")]
     [SerializeField] private CanvasGroup canvasGroup;
@@ -84,6 +85,8 @@ public class UnitPanelUI : MonoBehaviour
             turnGenerator = Object.FindFirstObjectByType<TurnGenerator>();
         if (apSystem == null)
             apSystem = Object.FindFirstObjectByType<APSystem>();
+        if (factionState == null)
+            factionState = Object.FindFirstObjectByType<FactionState>();
     }
 
     private TextMeshProUGUI FindTMP(string childName)
@@ -515,10 +518,9 @@ public class UnitPanelUI : MonoBehaviour
 
     private FactionState GetFactionState()
     {
-        if (apSystem == null) return null;
-        // APSystem has _factionState private — use reflection-free approach via TurnGenerator
-        // Find FactionState from scene
-        return Object.FindFirstObjectByType<FactionState>();
+        if (factionState == null)
+            factionState = Object.FindFirstObjectByType<FactionState>();
+        return factionState;
     }
 
     private static string FormatUpgradeCost(FacilityData.ResourceCost cost, int ap)

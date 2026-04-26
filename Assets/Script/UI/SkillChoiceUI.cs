@@ -44,7 +44,7 @@ public class SkillChoiceUI : MonoBehaviour
         pendingCallback = onPicked;
         if (overlay != null) Destroy(overlay);
 
-        var canvas = Object.FindFirstObjectByType<Canvas>();
+        var canvas = UnityEngine.Object.FindFirstObjectByType<Canvas>();
         if (canvas == null)
         {
             // Canvasがない場合はUIを出さずに先頭を自動選択
@@ -124,7 +124,7 @@ public class SkillChoiceUI : MonoBehaviour
         body.text = FormatDescription(s);
         body.fontSize = 13;
         body.alignment = TextAlignmentOptions.TopLeft;
-        body.enableWordWrapping = true;
+        body.textWrappingMode = TextWrappingModes.Normal;
         body.color = new Color(0.95f, 0.93f, 0.85f);
     }
 
@@ -168,7 +168,7 @@ public class SkillChoiceUI : MonoBehaviour
         go.transform.SetParent(parent, false);
         var tmp = go.AddComponent<TextMeshProUGUI>();
         tmp.text = text; tmp.fontSize = size; tmp.color = c;
-        tmp.enableWordWrapping = true;
+        tmp.textWrappingMode = TextWrappingModes.Normal;
         return tmp;
     }
 }

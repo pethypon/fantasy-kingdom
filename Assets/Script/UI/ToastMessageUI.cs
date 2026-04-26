@@ -27,6 +27,7 @@ public class ToastMessageUI : MonoBehaviour
     private struct ToastEntry
     {
         public GameObject Go;
+        public RectTransform Rect;
         public CanvasGroup Group;
         public float ExpireTime;
         public float FadeStart;
@@ -145,6 +146,7 @@ public class ToastMessageUI : MonoBehaviour
         _activeToasts.Add(new ToastEntry
         {
             Go = toastGo,
+            Rect = rect,
             Group = group,
             ExpireTime = now + duration,
             FadeStart = now + duration - FadeOutTime
@@ -189,9 +191,7 @@ public class ToastMessageUI : MonoBehaviour
     {
         for (int i = 0; i < _activeToasts.Count; i++)
         {
-            var rect = _activeToasts[i].Go.GetComponent<RectTransform>();
-            float y = i * (ToastHeight + ToastSpacing);
-            rect.anchoredPosition = new Vector2(0, y);
+            _activeToasts[i].Rect.anchoredPosition = new Vector2(0, i * (ToastHeight + ToastSpacing));
         }
     }
 }
