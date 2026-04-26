@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class UnitSetting : MonoBehaviour
@@ -109,31 +108,30 @@ public class UnitSetting : MonoBehaviour
         Vector3 ecp = crystalsystem.ECP;
         var setpos = mapcreate.SetPos;
 
-        // 配置位置絞り込み（KingPoint：PCPから1マス以内）
-        var KingPoint = setpos.Where(p =>
+        var KingPoint    = new List<Vector3>();
+        var StrangePoint = new List<Vector3>();
+        foreach (var p in setpos)
         {
-            float px = Mathf.Abs(p.x - pcp.x);
-            float pz = Mathf.Abs(p.z - pcp.z);
-            return px <= 1 && pz <= 1 && p != pcp;
-        }).ToList();
+            float pkx = Mathf.Abs(p.x - pcp.x);
+            float pkz = Mathf.Abs(p.z - pcp.z);
+            if (pkx <= 1 && pkz <= 1 && p != pcp) KingPoint.Add(p);
 
-        // 配置位置絞り込み（StrangePoint：ECPから1マス以内）
-        var StrangePoint = setpos.Where(p =>
-        {
-            float px = Mathf.Abs(p.x - ecp.x);
-            float pz = Mathf.Abs(p.z - ecp.z);
-            return px <= 1 && pz <= 1 && p != ecp;
-        }).ToList();
+            float pex = Mathf.Abs(p.x - ecp.x);
+            float pez = Mathf.Abs(p.z - ecp.z);
+            if (pex <= 1 && pez <= 1 && p != ecp) StrangePoint.Add(p);
+        }
 
         // Instantiate を SpawnUnit に置き換え（ステータス適用済み）
         var usedPlayer = new HashSet<Vector3>();
         var usedEnemy = new HashSet<Vector3>();
 
+        if (KingPoint.Count == 0) { Debug.LogError("[UnitSetting] 王の配置候補なし"); return; }
         Vector3 KP = KingPoint[Random.Range(0, KingPoint.Count)];
         SpawnUnit(KingPiece, KP, PlayerUnit);
         usedPlayer.Add(KP);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>王設置");
 
+        if (StrangePoint.Count == 0) { Debug.LogError("[UnitSetting] 異形の王の配置候補なし"); return; }
         Vector3 SP = StrangePoint[Random.Range(0, StrangePoint.Count)];
         SpawnUnit(StrangePiece, SP, EnemyUnit);
         usedEnemy.Add(SP);
@@ -153,12 +151,14 @@ public class UnitSetting : MonoBehaviour
                                    HashSet<Vector3> usedPositions)
     {
         // 領土範囲（Chebyshev距離5）内の配置候補
-        var candidates = setpos.Where(p =>
+        var candidates = new List<Vector3>();
+        foreach (var p in setpos)
         {
+            if (p == crystalPos || usedPositions.Contains(p)) continue;
             float dx = Mathf.Abs(p.x - crystalPos.x);
             float dz = Mathf.Abs(p.z - crystalPos.z);
-            return dx <= 5 && dz <= 5 && p != crystalPos && !usedPositions.Contains(p);
-        }).ToList();
+            if (dx <= 5 && dz <= 5) candidates.Add(p);
+        }
 
         var pieces = new (GameObject prefab, Kind kind)[]
         {

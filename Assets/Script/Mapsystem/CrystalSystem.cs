@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class CrystalSystem : MonoBehaviour
@@ -69,10 +68,10 @@ public class CrystalSystem : MonoBehaviour
     // ==== プレイヤークリスタル配置 ====
     private void PlacePlayerCrystal()
     {
-        var candidates = _SetPos.Where(p =>
-            p.x >= 6 && p.x <= maxx - 6 &&
-            p.z >= 6 && p.z <= maxz - 6
-        ).ToList();
+        var candidates = new List<Vector3>();
+        foreach (var p in _SetPos)
+            if (p.x >= 6 && p.x <= maxx - 6 && p.z >= 6 && p.z <= maxz - 6)
+                candidates.Add(p);
 
         if (candidates.Count == 0)
         {
@@ -123,13 +122,16 @@ public class CrystalSystem : MonoBehaviour
 
     private List<Vector3> GetEnemyCandidates(float minDistX, float minDistZ, int margin)
     {
-        return _SetPos.Where(p =>
+        var result = new List<Vector3>();
+        foreach (var p in _SetPos)
         {
             float dx = Mathf.Abs(p.x - PCP.x);
             float dz = Mathf.Abs(p.z - PCP.z);
-            bool inBoundsX = p.x >= margin && p.x <= maxx - margin;
-            bool inBoundsZ = p.z >= margin && p.z <= maxz - margin;
-            return dx >= minDistX && dz >= minDistZ && inBoundsX && inBoundsZ;
-        }).ToList();
+            if (dx < minDistX || dz < minDistZ) continue;
+            if (p.x < margin || p.x > maxx - margin) continue;
+            if (p.z < margin || p.z > maxz - margin) continue;
+            result.Add(p);
+        }
+        return result;
     }
 }

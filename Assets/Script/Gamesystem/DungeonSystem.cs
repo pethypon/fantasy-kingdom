@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -83,19 +82,23 @@ public class DungeonSystem : MonoBehaviour
         int[] minDistances = { 6, 5, 4, 3 };
         foreach (int minDist in minDistances)
         {
-            candidates = setpos
-                .Select(v => GridHelper.ToGrid(v))
-                .Where(p => GridHelper.ChebyshevDistance(p, pcp) >= minDist
-                         && GridHelper.ChebyshevDistance(p, ecp) >= minDist)
-                .Where(p => !territorysystem.IsInAnyTerritory(p.x, p.z))
-                .ToList();
+            candidates = new List<Vector3Int>();
+            foreach (var v in setpos)
+            {
+                var p = GridHelper.ToGrid(v);
+                if (GridHelper.ChebyshevDistance(p, pcp) < minDist) continue;
+                if (GridHelper.ChebyshevDistance(p, ecp) < minDist) continue;
+                if (territorysystem.IsInAnyTerritory(p.x, p.z)) continue;
+                candidates.Add(p);
+            }
             if (candidates.Count >= DungeonCount) break;
         }
 
         if (candidates == null || candidates.Count < DungeonCount)
         {
             Debug.LogWarning("[DungeonSystem] ダンジョン候補が不足（全SetPosへフォールバック）");
-            candidates = setpos.Select(v => GridHelper.ToGrid(v)).ToList();
+            candidates = new List<Vector3Int>(setpos.Count);
+            foreach (var v in setpos) candidates.Add(GridHelper.ToGrid(v));
         }
 
         for (int i = 0; i < DungeonCount && candidates.Count > 0; i++)
@@ -106,7 +109,7 @@ public class DungeonSystem : MonoBehaviour
 
             // 既存ダンジョンから最低距離3（候補枯渇時は許容）
             if (candidates.Count > 0
-                && _dungeons.Any(d => GridHelper.ChebyshevDistance(d.Position, picked) < 3))
+                && DungeonTooClose(picked, 3))
             {
                 i--;
                 continue;
@@ -123,12 +126,20 @@ public class DungeonSystem : MonoBehaviour
         }
     }
 
+    private bool DungeonTooClose(Vector3Int pos, int minDist)
+    {
+        for (int i = 0; i < _dungeons.Count; i++)
+            if (GridHelper.ChebyshevDistance(_dungeons[i].Position, pos) < minDist) return true;
+        return false;
+    }
+
     private Artifact RollArtifact()
     {
         var values = (Artifact[])System.Enum.GetValues(typeof(Artifact));
-        // None を除外
-        var pool = values.Where(a => a != Artifact.None).ToArray();
-        return pool[Random.Range(0, pool.Length)];
+        var pool = new List<Artifact>(values.Length);
+        foreach (var a in values) if (a != Artifact.None) pool.Add(a);
+        if (pool.Count == 0) return Artifact.None;
+        return pool[Random.Range(0, pool.Count)];
     }
 
     private GameObject CreateMarker(Vector3Int pos)
@@ -359,6 +370,9 @@ public class DungeonSystem : MonoBehaviour
     /// <summary>未制圧ダンジョン一覧（AI参照用）</summary>
     public List<DungeonInfo> GetActiveDungeons()
     {
-        return _dungeons.Where(d => !d.Cleared).ToList();
+        var result = new List<DungeonInfo>();
+        for (int i = 0; i < _dungeons.Count; i++)
+            if (!_dungeons[i].Cleared) result.Add(_dungeons[i]);
+        return result;
     }
 }

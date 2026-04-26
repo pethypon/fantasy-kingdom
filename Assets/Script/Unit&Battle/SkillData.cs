@@ -303,6 +303,7 @@ public class SkillData
             pool = NormalIds;
 
         if (pool.Count == 0) pool = NormalIds;
+        if (pool.Count == 0) return -1;
         return pool[Random.Range(0, pool.Count)];
     }
 

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class TerritorySystem : MonoBehaviour
@@ -25,21 +24,20 @@ public class TerritorySystem : MonoBehaviour
         Vector3 pcp = crystalsystem.PCP;
         Vector3 ecp = crystalsystem.ECP;
 
-        // PCP 周辺の半径5マス以内を領地として設定
-        PTSetPos = setpos.Where(p =>
+        PTSetPos = new List<Vector3>();
+        ETSetPos = new List<Vector3>();
+        foreach (var p in setpos)
         {
             float px = Mathf.Abs(p.x - pcp.x);
             float pz = Mathf.Abs(p.z - pcp.z);
-            return px <= TerritoryRadius && pz <= TerritoryRadius && p != pcp;
-        }).ToList();
+            if (px <= TerritoryRadius && pz <= TerritoryRadius && p != pcp)
+                PTSetPos.Add(p);
 
-        // ECP 周辺の半径5マス以内を領地として設定
-        ETSetPos = setpos.Where(e =>
-        {
-            float ex = Mathf.Abs(e.x - ecp.x);
-            float ez = Mathf.Abs(e.z - ecp.z);
-            return ex <= TerritoryRadius && ez <= TerritoryRadius && e != ecp;
-        }).ToList();
+            float ex = Mathf.Abs(p.x - ecp.x);
+            float ez = Mathf.Abs(p.z - ecp.z);
+            if (ex <= TerritoryRadius && ez <= TerritoryRadius && p != ecp)
+                ETSetPos.Add(p);
+        }
 
         SpawnTerritoryTiles(PTSetPos, PlayerTerritory, Playerterritory);
         SpawnTerritoryTiles(ETSetPos, EnemyTerritory, Enemyterritory);
