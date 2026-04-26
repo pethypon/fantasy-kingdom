@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -113,15 +112,16 @@ public class WildBossSystem : MonoBehaviour
         List<Vector3> candidates = null;
         foreach (int minDist in minDistances)
         {
-            candidates = setpos.Where(p =>
+            candidates = new List<Vector3>();
+            foreach (var p in setpos)
             {
                 Vector3Int g = GridHelper.ToGrid(p);
-                if (GridHelper.ChebyshevDistance(g, pcp) < minDist) return false;
-                if (GridHelper.ChebyshevDistance(g, ecp) < minDist) return false;
-                if (territorysystem != null && territorysystem.IsInAnyTerritory(g.x, g.z)) return false;
-                if (IsNearDungeon(g, TerritoryRadius)) return false;
-                return true;
-            }).ToList();
+                if (GridHelper.ChebyshevDistance(g, pcp) < minDist) continue;
+                if (GridHelper.ChebyshevDistance(g, ecp) < minDist) continue;
+                if (territorysystem != null && territorysystem.IsInAnyTerritory(g.x, g.z)) continue;
+                if (IsNearDungeon(g, TerritoryRadius)) continue;
+                candidates.Add(p);
+            }
             if (candidates.Count > 0) break;
         }
 
@@ -135,8 +135,10 @@ public class WildBossSystem : MonoBehaviour
 
         // ランダムアーキタイプ選択
         var archetypes = (WildBossArchetype[])System.Enum.GetValues(typeof(WildBossArchetype));
-        var pool = archetypes.Where(a => a != WildBossArchetype.None).ToArray();
-        var archetype = pool[Random.Range(0, pool.Length)];
+        var pool = new List<WildBossArchetype>(archetypes.Length);
+        foreach (var a in archetypes) if (a != WildBossArchetype.None) pool.Add(a);
+        if (pool.Count == 0) return;
+        var archetype = pool[Random.Range(0, pool.Count)];
 
         SpawnAt(picked, archetype);
     }

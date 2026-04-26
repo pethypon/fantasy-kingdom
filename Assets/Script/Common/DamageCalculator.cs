@@ -165,8 +165,10 @@ public static class DamageCalculator
     {
         if (attacker == null || target == null) return 1f;
 
-        int ay = Mathf.RoundToInt(attacker.transform.position.y);
-        int ty = Mathf.RoundToInt(target.transform.position.y);
+        Vector3 aPos = attacker.transform.position;
+        Vector3 tPos = target.transform.position;
+        int ay = Mathf.RoundToInt(aPos.y);
+        int ty = Mathf.RoundToInt(tPos.y);
         int dy = ty - ay; // プラスなら target が高い
 
         float mult = 1f;
@@ -179,7 +181,7 @@ public static class DamageCalculator
         // 高台→低地: 遠距離攻撃かつ 1段差（Y-1）で+10%
         else if (dy <= -GameConstants.HighGroundYThreshold)
         {
-            float dist = GridDistance(attacker.transform.position, target.transform.position);
+            float dist = GridDistance(aPos, tPos);
             bool isRanged = IsRangedKind(attacker.kind) && dist >= 2f;
             if (isRanged && dy == -1)
                 mult *= GameConstants.HighGroundRangedBonus;

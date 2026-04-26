@@ -71,9 +71,8 @@ public partial class SimBoardState
     bool ApplyBuild(SimAction action)
     {
         var counts = action.ActorTeam == Team.Enemy ? EnemyBuildingCounts : PlayerBuildingCounts;
-        if (!counts.ContainsKey(action.Facility))
-            counts[action.Facility] = 0;
-        counts[action.Facility]++;
+        counts.TryGetValue(action.Facility, out int cur);
+        counts[action.Facility] = cur + 1;
 
         ConsumeAP(action.ActorTeam, action.APCost);
         return true;

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -73,12 +72,13 @@ public class SubCrystalSystem : MonoBehaviour
         var setpos = mapcreate.SetPos;
 
         // サブクリスタル周辺の半径3マス以内を新領地として追加
-        List<Vector3> newTerritory = setpos.Where(p =>
+        var newTerritory = new List<Vector3>();
+        foreach (var p in setpos)
         {
-            float px = Mathf.Abs(p.x - pos.x);
-            float pz = Mathf.Abs(p.z - pos.z);
-            return px <= SubCrystalTerritoryRadius && pz <= SubCrystalTerritoryRadius;
-        }).ToList();
+            if (Mathf.Abs(p.x - pos.x) <= SubCrystalTerritoryRadius &&
+                Mathf.Abs(p.z - pos.z) <= SubCrystalTerritoryRadius)
+                newTerritory.Add(p);
+        }
 
         // 既存領地と重複しないものだけ追加
         List<Vector3> ptSetPos = territorysystem.GetTerritory(team);
