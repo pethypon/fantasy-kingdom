@@ -121,6 +121,7 @@ public static class SpecialAbilityData
             pool = NormalList;
 
         if (pool.Count == 0) pool = NormalList;
+        if (pool.Count == 0) return SpecialAbility.None;
         return pool[Random.Range(0, pool.Count)];
     }
 

@@ -160,25 +160,19 @@ public class AILearning
         switch (action.ActionType)
         {
             case AIActionType.Attack:
-                // 正面突破が失敗した位置では減点
-                if (_failedFrontalAttacks.ContainsKey(targetCell))
-                    bonus -= Mathf.Min(_failedFrontalAttacks[targetCell] * 3f, MaxBonus);
-                // 奇襲成功位置では加点
-                if (_successFlanks.ContainsKey(targetCell))
-                    bonus += Mathf.Min(_successFlanks[targetCell] * 3f, MaxBonus);
-                // プレイヤーが頻繁に守る位置からは避ける
-                if (_playerDefensePositions.ContainsKey(targetCell) &&
-                    _playerDefensePositions[targetCell] >= MinOccurrences)
-                    bonus -= _playerDefensePositions[targetCell] * 2f;
+                if (_failedFrontalAttacks.TryGetValue(targetCell, out int ffa))
+                    bonus -= Mathf.Min(ffa * 3f, MaxBonus);
+                if (_successFlanks.TryGetValue(targetCell, out int sfa))
+                    bonus += Mathf.Min(sfa * 3f, MaxBonus);
+                if (_playerDefensePositions.TryGetValue(targetCell, out int pdpa) && pdpa >= MinOccurrences)
+                    bonus -= pdpa * 2f;
                 break;
 
             case AIActionType.SkillUse:
-                // スキルも攻撃同様の学習適用
-                if (_failedFrontalAttacks.ContainsKey(targetCell))
-                    bonus -= Mathf.Min(_failedFrontalAttacks[targetCell] * 2f, MaxBonus);
-                if (_successFlanks.ContainsKey(targetCell))
-                    bonus += Mathf.Min(_successFlanks[targetCell] * 2f, MaxBonus);
-                // 戦術性補正: スキル使用を好む
+                if (_failedFrontalAttacks.TryGetValue(targetCell, out int ffas))
+                    bonus -= Mathf.Min(ffas * 2f, MaxBonus);
+                if (_successFlanks.TryGetValue(targetCell, out int sfas))
+                    bonus += Mathf.Min(sfas * 2f, MaxBonus);
                 bonus += _tacticsModifier * 0.2f;
                 break;
 
@@ -199,15 +193,12 @@ public class AILearning
                 break;
 
             case AIActionType.Move:
-                // 孤立被撃破位置には行きにくくなる
-                if (_isolatedDeaths.ContainsKey(targetCell))
-                    bonus -= Mathf.Min(_isolatedDeaths[targetCell] * 4f, MaxBonus);
-                // 失敗ルートは避ける
-                if (_routeFailure.ContainsKey(targetCell))
-                    bonus -= Mathf.Min(_routeFailure[targetCell] * 2f, MaxBonus);
-                // 成功ルートは好む
-                if (_routeSuccess.ContainsKey(targetCell))
-                    bonus += Mathf.Min(_routeSuccess[targetCell] * 2f, MaxBonus);
+                if (_isolatedDeaths.TryGetValue(targetCell, out int id))
+                    bonus -= Mathf.Min(id * 4f, MaxBonus);
+                if (_routeFailure.TryGetValue(targetCell, out int rf))
+                    bonus -= Mathf.Min(rf * 2f, MaxBonus);
+                if (_routeSuccess.TryGetValue(targetCell, out int rs))
+                    bonus += Mathf.Min(rs * 2f, MaxBonus);
                 // 指揮性補正: 味方から離れすぎる移動を減点
                 bonus -= _commandModifier * 0.3f *
                     Mathf.Max(0, GetNearestAllyDist(action.TargetPos, action.Unit, board) - 3f);

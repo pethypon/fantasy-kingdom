@@ -47,6 +47,13 @@ public class BuildingAttackSystem : MonoBehaviour
         new Vector2Int(1, 0),  new Vector2Int(2, 0),
     };
 
+    // 迫撃砲の爆発範囲オフセット（メインターゲットの左右2マス）
+    private static readonly Vector2Int[] MortarSplashOffsets = new Vector2Int[]
+    {
+        new Vector2Int(-1, 0), new Vector2Int(1, 0),
+        new Vector2Int(-2, 0), new Vector2Int(2, 0),
+    };
+
     // 大砲の攻撃範囲オフセット（半径1 = 8近傍）
     private static readonly Vector2Int[] CannonOffsets = new Vector2Int[]
     {
@@ -54,6 +61,9 @@ public class BuildingAttackSystem : MonoBehaviour
         new Vector2Int(-1,  0),                        new Vector2Int(1,  0),
         new Vector2Int(-1,  1), new Vector2Int(0,  1), new Vector2Int(1,  1),
     };
+
+    // ターゲット探索用の再利用バッファ
+    private readonly List<Status> _targetsBuffer = new List<Status>(16);
 
     /// <summary>
     /// 指定チームの攻撃型建築物による自動攻撃を実行する。
@@ -99,19 +109,19 @@ public class BuildingAttackSystem : MonoBehaviour
         int bz = Mathf.RoundToInt(basePos.z);
 
         // 範囲内の敵ユニットを探す
-        List<Status> targetsInRange = new List<Status>();
+        _targetsBuffer.Clear();
         foreach (var offset in MortarOffsets)
         {
             Vector3 checkPos = new Vector3(bx + offset.x, 0f, bz + offset.y);
             Status enemy = FindEnemyAtCell(checkPos, enemyTeam);
             if (enemy != null)
-                targetsInRange.Add(enemy);
+                _targetsBuffer.Add(enemy);
         }
 
-        if (targetsInRange.Count == 0) return;
+        if (_targetsBuffer.Count == 0) return;
 
         // ランダムに1体選ぶ
-        Status primaryTarget = targetsInRange[Random.Range(0, targetsInRange.Count)];
+        Status primaryTarget = _targetsBuffer[Random.Range(0, _targetsBuffer.Count)];
         Vector3 targetCell = moveGererater.Cell(primaryTarget.transform.position);
         int tx = Mathf.RoundToInt(targetCell.x);
         int tz = Mathf.RoundToInt(targetCell.z);
@@ -120,13 +130,7 @@ public class BuildingAttackSystem : MonoBehaviour
         ApplyBuildingDamage(mortar, primaryTarget);
 
         // 左右隣接2マスにも攻撃（x±1, x±2）
-        Vector2Int[] splashOffsets = new Vector2Int[]
-        {
-            new Vector2Int(-1, 0), new Vector2Int(1, 0),
-            new Vector2Int(-2, 0), new Vector2Int(2, 0),
-        };
-
-        foreach (var splash in splashOffsets)
+        foreach (var splash in MortarSplashOffsets)
         {
             Vector3 splashPos = new Vector3(tx + splash.x, 0f, tz + splash.y);
             Status splashTarget = FindEnemyAtCell(splashPos, enemyTeam);
@@ -145,18 +149,18 @@ public class BuildingAttackSystem : MonoBehaviour
         int bx = Mathf.RoundToInt(basePos.x);
         int bz = Mathf.RoundToInt(basePos.z);
 
-        List<Status> targetsInRange = new List<Status>();
+        _targetsBuffer.Clear();
         foreach (var offset in CannonOffsets)
         {
             Vector3 checkPos = new Vector3(bx + offset.x, 0f, bz + offset.y);
             Status enemy = FindEnemyAtCell(checkPos, enemyTeam);
             if (enemy != null)
-                targetsInRange.Add(enemy);
+                _targetsBuffer.Add(enemy);
         }
 
-        if (targetsInRange.Count == 0) return;
+        if (_targetsBuffer.Count == 0) return;
 
-        Status target = targetsInRange[Random.Range(0, targetsInRange.Count)];
+        Status target = _targetsBuffer[Random.Range(0, _targetsBuffer.Count)];
         ApplyBuildingDamage(cannon, target);
     }
 

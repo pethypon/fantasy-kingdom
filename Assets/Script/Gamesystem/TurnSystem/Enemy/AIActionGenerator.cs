@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -427,7 +426,7 @@ public static class AIActionGenerator
         Debug.Log($"[AI Build] 建築候補合計: {totalNew}件 (建築可能位置={board.BuildablePositions.Count} 購入可能={board.AffordableBuildings.Count})");
     }
 
-    static IEnumerable<Vector3Int> SelectBuildPositions(FacilityKind facility, AIBoardState board)
+    static List<Vector3Int> SelectBuildPositions(FacilityKind facility, AIBoardState board)
     {
         if (FacilityData.IsWall(facility) || FacilityData.IsOffensive(facility))
         {
@@ -435,14 +434,35 @@ public static class AIActionGenerator
                 ? board.PlayerCrystalPos
                 : board.EnemyCrystalPos + board.GetUnexploredDirection() * 8f;
             Vector3 frontline = Vector3.Lerp(board.EnemyCrystalPos, targetDir, 0.35f);
-            return board.BuildablePositions
-                .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), frontline))
-                .Take(3);
+            return TakeNClosest(board.BuildablePositions, frontline, 3);
         }
 
-        return board.BuildablePositions
-            .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), board.EnemyCrystalPos))
-            .Take(3);
+        return TakeNClosest(board.BuildablePositions, board.EnemyCrystalPos, 3);
+    }
+
+    /// <summary>positionsの中からtargetに最も近いn個をsqrMagnitude比較で選ぶ</summary>
+    static List<Vector3Int> TakeNClosest(IReadOnlyList<Vector3Int> positions, Vector3 target, int n)
+    {
+        var result = new List<Vector3Int>(n);
+        var sqrDists = new List<float>(n);
+        foreach (var p in positions)
+        {
+            float dx = p.x - target.x;
+            float dz = p.z - target.z;
+            float sqr = dx * dx + dz * dz;
+            int insertAt = result.Count;
+            for (int i = 0; i < result.Count; i++)
+            {
+                if (sqr < sqrDists[i]) { insertAt = i; break; }
+            }
+            if (insertAt < n)
+            {
+                result.Insert(insertAt, p);
+                sqrDists.Insert(insertAt, sqr);
+                if (result.Count > n) { result.RemoveAt(n); sqrDists.RemoveAt(n); }
+            }
+        }
+        return result;
     }
 
     // ================================================================
@@ -466,16 +486,15 @@ public static class AIActionGenerator
         {
             if (!UnitStaticData.Table.TryGetValue(kind, out var info)) continue;
 
-            int existingOfKind = board.AliveEnemyUnits.Count(u => u.kind == kind);
+            int existingOfKind = 0;
+            foreach (var u in board.AliveEnemyUnits) if (u.kind == kind) existingOfKind++;
             int maxOfKind = GetMaxUnitCount(kind);
             if (existingOfKind >= maxOfKind) continue;
 
             Vector3 summonTarget = board.CanUsePlayerCrystalAsTarget()
                 ? board.PlayerCrystalPos
                 : board.EnemyCrystalPos + board.GetUnexploredDirection() * 8f;
-            var positions = board.SummonablePositions
-                .OrderBy(p => Vector3.Distance(new Vector3(p.x, 0, p.z), summonTarget))
-                .Take(2);
+            var positions = TakeNClosest(board.SummonablePositions, summonTarget, 2);
 
             foreach (var pos in positions)
             {

@@ -96,10 +96,14 @@ static class AICombatEvaluator
             foreach (var pu in board.AlivePlayerUnits)
             {
                 if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-                float dist = Vector3.Distance(dest, pu.transform.position);
-                if (dist <= 2f)
+                Vector3 puPos = pu.transform.position;
+                float dx = dest.x - puPos.x;
+                float dy = dest.y - puPos.y;
+                float dz = dest.z - puPos.z;
+                float sqrDist = dx * dx + dy * dy + dz * dz;
+                if (sqrDist <= 4f)        // 2f²
                     score += 8f;
-                else if (dist <= 3.5f)
+                else if (sqrDist <= 12.25f) // 3.5f²
                     score += 4f;
             }
         }
@@ -188,14 +192,19 @@ static class AICombatEvaluator
                     score -= 30f;
                 else
                 {
-                    float nearestEnemy = float.MaxValue;
+                    Vector3 selfPos = action.Unit.transform.position;
+                    float nearestSqr = float.MaxValue;
                     foreach (var pu in board.AlivePlayerUnits)
                     {
                         if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-                        float d = Vector3.Distance(action.Unit.transform.position, pu.transform.position);
-                        if (d < nearestEnemy) nearestEnemy = d;
+                        Vector3 puPos = pu.transform.position;
+                        float dx = selfPos.x - puPos.x;
+                        float dy = selfPos.y - puPos.y;
+                        float dz = selfPos.z - puPos.z;
+                        float sqrD = dx * dx + dy * dy + dz * dz;
+                        if (sqrD < nearestSqr) nearestSqr = sqrD;
                     }
-                    if (nearestEnemy > 8f)
+                    if (nearestSqr > 64f) // 8f²
                         score -= 15f;
                 }
             }

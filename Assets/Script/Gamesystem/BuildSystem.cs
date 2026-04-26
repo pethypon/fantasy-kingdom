@@ -198,7 +198,7 @@ public class BuildSystem : MonoBehaviour
             InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player);
             factionState.ModifySubCrystals(Team.Player, -1);
 
-            if (subCrystalSystem != null)
+            if (subCrystalSystem != null && PlayerBuildingParent.childCount > 0)
             {
                 var lastBuilding = PlayerBuildingParent.GetChild(PlayerBuildingParent.childCount - 1).gameObject;
                 subCrystalSystem.ExpandTerritory(lastBuilding, Team.Player);
