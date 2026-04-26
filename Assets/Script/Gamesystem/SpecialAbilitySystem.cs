@@ -225,14 +225,15 @@ public static class SpecialAbilitySystem
     {
         if (unitParent == null) return;
 
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        Status[] units = unitParent.GetComponentsInChildren<Status>();
+        foreach (Status s in units)
         {
             if (s.type != Type.Unit) continue;
 
             s.ResetTurnFlags();
 
             if (s.specialAbility == SpecialAbility.PurifyHalo)
-                ProcessPurifyHalo(s, unitParent);
+                ProcessPurifyHalo(s, units);
         }
     }
 
@@ -243,15 +244,16 @@ public static class SpecialAbilitySystem
     {
         if (unitParent == null) return;
 
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        Status[] units = unitParent.GetComponentsInChildren<Status>();
+        foreach (Status s in units)
         {
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
 
             if (s.specialAbility == SpecialAbility.FirstAid)
-                ProcessFirstAid(s, unitParent);
+                ProcessFirstAid(s, units);
 
             if (s.specialAbility == SpecialAbility.HolyReaction)
-                ProcessHolyReaction(s, unitParent);
+                ProcessHolyReaction(s, units);
         }
     }
 
@@ -286,7 +288,8 @@ public static class SpecialAbilitySystem
         if (unitParent == null) return;
 
         Vector3Int casterCell = GridHelper.ToGrid(primaryTarget.transform.position);
-        Status bestAlly = FindNearestAlly(caster, primaryTarget, casterCell, unitParent);
+        Status bestAlly = FindNearestAlly(caster, primaryTarget, casterCell,
+                                          unitParent.GetComponentsInChildren<Status>());
 
         if (bestAlly == null) return;
 
@@ -489,12 +492,12 @@ public static class SpecialAbilitySystem
 
     /// <summary>周囲1マスの最も近い味方を見つける</summary>
     private static Status FindNearestAlly(Status caster, Status primaryTarget,
-                                           Vector3Int centerCell, Transform unitParent)
+                                           Vector3Int centerCell, Status[] units)
     {
         Status bestAlly = null;
         float bestDist = float.MaxValue;
 
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        foreach (Status s in units)
         {
             if (s == primaryTarget || s == caster) continue;
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
@@ -512,11 +515,11 @@ public static class SpecialAbilitySystem
     }
 
     /// <summary>浄化光輪: 周囲1マスの味方1体の状態異常を1つ解除+守勢付与</summary>
-    private static void ProcessPurifyHalo(Status caster, Transform unitParent)
+    private static void ProcessPurifyHalo(Status caster, Status[] units)
     {
         Vector3Int cCell = GridHelper.ToGrid(caster.transform.position);
 
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        foreach (Status s in units)
         {
             if (s == caster) continue;
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
@@ -543,11 +546,11 @@ public static class SpecialAbilitySystem
     }
 
     /// <summary>応急処置: 周囲1マスに味方なしなら最大HP3%回復</summary>
-    private static void ProcessFirstAid(Status unit, Transform unitParent)
+    private static void ProcessFirstAid(Status unit, Status[] units)
     {
         Vector3Int uCell = GridHelper.ToGrid(unit.transform.position);
 
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        foreach (Status s in units)
         {
             if (s == unit) continue;
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
@@ -561,11 +564,11 @@ public static class SpecialAbilitySystem
     }
 
     /// <summary>聖域反応: 周囲1マスの味方で状態異常持ちのHP5%回復</summary>
-    private static void ProcessHolyReaction(Status caster, Transform unitParent)
+    private static void ProcessHolyReaction(Status caster, Status[] units)
     {
         Vector3Int cCell = GridHelper.ToGrid(caster.transform.position);
 
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        foreach (Status s in units)
         {
             if (s == caster) continue;
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;

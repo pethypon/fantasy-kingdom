@@ -7,6 +7,11 @@ public class VisionGenerator : MonoBehaviour
 {
     private List<Vector3> _setpos;
 
+    // SetRendererVisibility 用の再利用バッファ（アロケーション削減）
+    private static readonly List<Renderer> _visRenderers = new List<Renderer>();
+    private static readonly List<Collider> _visColliders = new List<Collider>();
+    private static readonly List<Canvas>   _visCanvases  = new List<Canvas>();
+
     // Player が現在見えるマス
     private HashSet<Vector3Int> _playerVisionBox;
     // Player が一度見たマス
@@ -349,19 +354,15 @@ public class VisionGenerator : MonoBehaviour
             var data = new Vector3Int(x, 0, z);
 
             bool visible = visionXZ.Contains(data);
-            foreach (var renderer in Temporary.GetComponentsInChildren<Renderer>(true))
-            {
-                renderer.enabled = visible;
-            }
-            foreach (var collider in Temporary.GetComponentsInChildren<Collider>(true))
-            {
-                collider.enabled = visible;
-            }
+            Temporary.GetComponentsInChildren(true, _visRenderers);
+            foreach (var r in _visRenderers) r.enabled = visible;
+
+            Temporary.GetComponentsInChildren(true, _visColliders);
+            foreach (var c in _visColliders) c.enabled = visible;
+
             // WorldSpace Canvas（HeadUI等）も連動して表示/非表示にする
-            foreach (var canvas in Temporary.GetComponentsInChildren<Canvas>(true))
-            {
-                canvas.gameObject.SetActive(visible);
-            }
+            Temporary.GetComponentsInChildren(true, _visCanvases);
+            foreach (var cv in _visCanvases) cv.gameObject.SetActive(visible);
         }
     }
 
