@@ -470,6 +470,16 @@ public class VisionGenerator : MonoBehaviour
         int statusY = Mathf.RoundToInt(status.transform.position.y);
         int statusZ = Mathf.RoundToInt(status.transform.position.z);
 
+        // 視界封じ（Blind）: 前方1マスのみに制限して即リターン
+        if (StatusEffectSystem.HasDebuff(status, StatusEffectType.Blind))
+        {
+            int fz = status.direction == Direction.S ? -1 : 1;
+            int bx = statusX, bz = statusZ + fz;
+            if (bx >= 0 && bx < mapcreate.maxX && bz >= 0 && bz < mapcreate.maxZ)
+                RaycastDirectVision(status, statusX, statusY, statusZ, bx, statusY, bz);
+            return;
+        }
+
         // Special Ability: 監視眼（視界+1）+ StatusEffect の視界修飾
         int visionBonus = SpecialAbilitySystem.GetVisionBonus(status)
                         + StatusEffectSystem.GetVisionModifier(status);

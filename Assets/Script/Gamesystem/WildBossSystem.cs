@@ -39,12 +39,17 @@ public class WildBossSystem : MonoBehaviour
         public string DisplayName;
     }
 
+    // 成長率はメモ用（ボスはレベルスケールしないため現状未使用）
+    // GhostKing:    ATK +0.34/Lv  HP +0.13/Lv  DEF +0.22/Lv
+    // Dragon:       ATK +0.24/Lv  HP +0.15/Lv  DEF +0.18/Lv
+    // RebelKnight:  ATK +0.30/Lv  HP +0.14/Lv  DEF +0.26/Lv
+    // ThunderMagus: ATK +0.33/Lv  HP +0.12/Lv  DEF +0.20/Lv
     static readonly Dictionary<WildBossArchetype, Profile> Profiles = new Dictionary<WildBossArchetype, Profile>
     {
-        { WildBossArchetype.GhostKing,    new Profile { DisplayName = "ゴーストキング",   HP = 4000, ATK = 45, DEF = 10, MaxAP = 10 } },
-        { WildBossArchetype.Dragon,       new Profile { DisplayName = "ドラゴン",         HP = 8500, ATK = 32, DEF = 28, MaxAP = 20 } },
-        { WildBossArchetype.RebelKnight,  new Profile { DisplayName = "反逆の騎士王",     HP = 7000, ATK = 30, DEF = 24, MaxAP = 15 } },
-        { WildBossArchetype.ThunderMagus, new Profile { DisplayName = "雷の魔導兵",       HP = 3500, ATK = 38, DEF = 12, MaxAP = 20 } },
+        { WildBossArchetype.GhostKing,    new Profile { DisplayName = "ゴーストキング",   HP = 6200, ATK = 26, DEF = 18, MaxAP = 23 } },
+        { WildBossArchetype.Dragon,       new Profile { DisplayName = "ドラゴン",         HP = 8200, ATK = 32, DEF = 24, MaxAP = 20 } },
+        { WildBossArchetype.RebelKnight,  new Profile { DisplayName = "反逆の騎士王",     HP = 7600, ATK = 28, DEF = 28, MaxAP = 15 } },
+        { WildBossArchetype.ThunderMagus, new Profile { DisplayName = "雷の魔導兵",       HP = 7000, ATK = 30, DEF = 20, MaxAP = 20 } },
     };
 
     public void Init(MapCreate mapcreate, CrystalSystem crystalsystem,
@@ -193,19 +198,28 @@ public class WildBossSystem : MonoBehaviour
     //  アーキタイプ別AI
     // ================================================================
 
-    /// <summary>ゴーストキング: 2ターン毎にテレポート(3AP)+視界外攻撃でWeakenを付与。</summary>
+    /// <summary>
+    /// ゴーストキング:
+    /// 2ターン毎: テレポート(3AP) → 視界外から攻撃+Blind付与(5AP) → デコイ召喚(10AP)。
+    /// 奇数ターン: 通常攻撃(3AP)。
+    /// </summary>
     void TurnGhostKing()
     {
-        if (SpawnedBoss.wildBossTurnCounter % 2 == 0 && TrySpendAP(3))
-        {
-            TeleportInTerritory();
-        }
-
         var targets = GetIntruders();
-        if (targets.Count > 0 && TrySpendAP(4))
+        if (targets.Count == 0) return;
+
+        if (SpawnedBoss.wildBossTurnCounter % 2 == 0)
         {
-            var t = targets[Random.Range(0, targets.Count)];
-            AttackTargetWithDebuff(t, StatusEffectType.Weaken, 2);
+            // 2ターン毎のサイクル
+            if (TrySpendAP(3)) TeleportInTerritory();
+            if (TrySpendAP(5)) AttackFromOutsideVision(targets);
+            if (CountDecoys() == 0 && TrySpendAP(10)) SummonGhostDecoy();
+        }
+        else
+        {
+            // 奇数ターン: 通常攻撃
+            if (TrySpendAP(3))
+                AttackTarget(targets[Random.Range(0, targets.Count)]);
         }
     }
 
@@ -233,26 +247,37 @@ public class WildBossSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 反逆の騎士王: 2ターン毎に反撃バフ(5AP,2ターン)、親衛騎士がいなければ召喚(10AP)。
+    /// 反逆の騎士王:
+    /// 2ターン毎: 反撃付与(1.5倍返し, 5AP) + 親衛騎士がいなければ最大2体召喚(10AP)。
+    /// HP50%以下でPhase2: 反撃→3倍返し・親衛隊上限4体・脅威度引き上げ。
     /// </summary>
     void TurnRebelKnight()
     {
+        CheckRebelKnightPhase2();
+
+        int maxGuards = SpawnedBoss.wildBossPhase2Active ? 4 : 2;
+
         if (SpawnedBoss.wildBossTurnCounter % 2 == 0 && TrySpendAP(5))
         {
             SpawnedBoss.wildBossCounterTurns = 2;
-            Debug.Log("[WildBoss/RebelKnight] 反撃の誓い（2ターン）");
+            string mult = SpawnedBoss.wildBossPhase2Active ? "3.0" : "1.5";
+            Debug.Log($"[WildBoss/RebelKnight] 反撃の誓い（2ターン, 返しダメ×{mult}）");
         }
 
-        if (CountGuardKnights() < 2 && TrySpendAP(10))
+        int current = CountGuardKnights();
+        if (current < maxGuards && TrySpendAP(10))
         {
-            SummonGuardKnights(2 - CountGuardKnights());
+            SummonGuardKnights(maxGuards - current);
         }
+    }
 
-        var targets = GetIntruders();
-        if (targets.Count > 0 && TrySpendAP(3))
-        {
-            AttackTarget(targets[Random.Range(0, targets.Count)]);
-        }
+    void CheckRebelKnightPhase2()
+    {
+        if (SpawnedBoss.wildBossPhase2Active) return;
+        if (SpawnedBoss.HPRatio >= 0.5f) return;
+
+        SpawnedBoss.wildBossPhase2Active = true;
+        Debug.Log("[WildBoss/RebelKnight] ★Phase2突入★ HP50%以下: 反撃3倍・親衛4体・脅威度50");
     }
 
     /// <summary>
@@ -424,6 +449,76 @@ public class WildBossSystem : MonoBehaviour
         return null;
     }
 
+    // ---- ゴーストキング ----
+    readonly List<Status> _ghostDecoys = new List<Status>();
+
+    int CountDecoys()
+    {
+        _ghostDecoys.RemoveAll(d => d == null || !d.IsAlive);
+        return _ghostDecoys.Count;
+    }
+
+    /// <summary>縄張り内を高速移動後、ターゲットの視界外から攻撃+Blind付与（重複不可）。</summary>
+    void AttackFromOutsideVision(List<Status> targets)
+    {
+        if (targets.Count == 0) return;
+
+        var bossPos = SpawnedBoss.GridPosition;
+
+        // ターゲットの VisionCell にボス位置が含まれない（=視界外）ものを優先
+        var blindTargets = new List<Status>();
+        foreach (var t in targets)
+        {
+            if (t.VisionCell == null || !t.VisionCell.Contains(bossPos))
+                blindTargets.Add(t);
+        }
+
+        var chosen = blindTargets.Count > 0
+            ? blindTargets[Random.Range(0, blindTargets.Count)]
+            : targets[Random.Range(0, targets.Count)];
+
+        AttackTarget(chosen);
+
+        // Blind付与（重複不可: ApplyDebuff 内の重複チェックが自動で処理）
+        if (chosen.IsAlive)
+        {
+            bool applied = StatusEffectSystem.ApplyDebuff(chosen, StatusEffectType.Blind, 1);
+            if (applied) Debug.Log($"[WildBoss/GhostKing] 視界封じ付与: {chosen.kind}（1T）");
+        }
+    }
+
+    /// <summary>一発で死ぬゴーストキングのデコイを隣接マスに召喚。ATKはゴーストキングと同値。</summary>
+    void SummonGhostDecoy()
+    {
+        var adj = FindFreeAdjacentCell();
+        if (!adj.HasValue) return;
+
+        var g = adj.Value;
+        var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        go.name = "GhostDecoy";
+        go.transform.SetParent(parent != null ? parent : transform);
+        go.transform.position = new Vector3(g.x, g.y, g.z);
+        go.transform.localScale = new Vector3(0.9f, 1.1f, 0.9f);
+        var r = go.GetComponent<Renderer>();
+        if (r != null)
+        {
+            var m = new Material(Shader.Find("Standard"));
+            m.color = new Color(0.6f, 0.8f, 1f, 0.7f); // 半透明ブルー
+            r.material = m;
+        }
+        var s = go.AddComponent<Status>();
+        s.kind = Kind.King;
+        s.team = Team.Obstacle;
+        s.type = Type.Unit;
+        s.MaxHP = 1;
+        s.HP = 1;
+        s.ATK = SpawnedBoss.ATK; // ゴーストキングと同じ攻撃力
+        s.DEF = 0;
+        s.Level = SpawnedBoss.Level;
+        _ghostDecoys.Add(s);
+        Debug.Log($"[WildBoss/GhostKing] デコイ召喚 at {g} ATK={s.ATK}");
+    }
+
     // ---- 反逆の騎士王 ----
     readonly List<Status> _guardKnights = new List<Status>();
     int CountGuardKnights()
@@ -539,8 +634,10 @@ public class WildBossSystem : MonoBehaviour
         if (target.wildBossArchetype != WildBossArchetype.RebelKnight) return;
         if (target.wildBossCounterTurns <= 0) return;
         if (!attacker.IsAlive) return;
-        int reflect = Mathf.RoundToInt(receivedDamage * 1.5f);
+        // Phase2: 反撃3倍（1.5×2）、通常: 1.5倍
+        float mult = target.wildBossPhase2Active ? 3.0f : 1.5f;
+        int reflect = Mathf.RoundToInt(receivedDamage * mult);
         attacker.ApplyDamage(reflect);
-        Debug.Log($"[WildBoss/RebelKnight] 反撃: {attacker.kind} に {reflect} dmg");
+        Debug.Log($"[WildBoss/RebelKnight] 反撃×{mult}: {attacker.kind} に {reflect} dmg");
     }
 }
