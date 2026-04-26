@@ -552,10 +552,8 @@ public class AIBoardState
         {
             var s = child.GetComponent<Status>();
             if (s == null || s.HP <= 0) continue;
-            if (_buildingCountsCache.ContainsKey(s.facilityKind))
-                _buildingCountsCache[s.facilityKind]++;
-            else
-                _buildingCountsCache[s.facilityKind] = 1;
+            _buildingCountsCache.TryGetValue(s.facilityKind, out int cnt);
+            _buildingCountsCache[s.facilityKind] = cnt + 1;
         }
         return _buildingCountsCache;
     }

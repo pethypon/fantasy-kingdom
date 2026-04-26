@@ -146,10 +146,8 @@ public static class SimActionGenerator
 
         // スキル攻撃位置を決定
         Vector2Int[] offsets = null;
-        if (AttackPatterns.SkillFixedPositions.ContainsKey(skill.Id))
-            offsets = AttackPatterns.SkillFixedPositions[skill.Id];
-        else if (AttackPatterns.SkillAttackPositions.ContainsKey(unit.Kind))
-            offsets = AttackPatterns.SkillAttackPositions[unit.Kind];
+        if (!AttackPatterns.SkillFixedPositions.TryGetValue(skill.Id, out offsets))
+            AttackPatterns.SkillAttackPositions.TryGetValue(unit.Kind, out offsets);
 
         if (offsets == null) return;
 
