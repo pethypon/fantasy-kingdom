@@ -10,13 +10,17 @@ using UnityEngine;
 /// </summary>
 public class WildBossSystem : MonoBehaviour
 {
-    public const int TerritoryRadius = 3;
+    public const int TerritoryRadius = 1; // 3×3（チェビシェフ距離1）
 
     [Header("強敵プレハブ（StrangeKingを流用）")]
     [SerializeField] GameObject wildBossPrefab;
 
     [Header("配置親")]
     [SerializeField] Transform parent;
+
+    [Header("縄張り表示")]
+    [SerializeField] GameObject wildBossTerritoryPrefab;
+    [SerializeField] Transform wildBossTerritoryParent;
 
     private MapCreate mapcreate;
     private CrystalSystem crystalsystem;
@@ -28,6 +32,9 @@ public class WildBossSystem : MonoBehaviour
 
     // 雷の魔導兵が設置した雷クリスタル群
     private readonly List<GameObject> _thunderCrystals = new List<GameObject>();
+
+    // 縄張りタイル
+    private readonly List<GameObject> _territoryTiles = new List<GameObject>();
 
     // ================================================================
     //  アーキタイプ別ステータスプロファイル（クリスタル級）
@@ -61,6 +68,32 @@ public class WildBossSystem : MonoBehaviour
         this.territorysystem = territorysystem;
         this.dungeonSystem = dungeonSystem;
         this.unitSetting = unitSetting;
+    }
+
+    /// <summary>
+    /// 縄張り範囲内の SetPos タイルにテリトリーオブジェクトを配置する。
+    /// TerritorySystem と同じパターン（y -0.475f で地面に埋め込む）。
+    /// </summary>
+    void SpawnTerritoryTiles(Vector3 center)
+    {
+        if (wildBossTerritoryPrefab == null)
+        {
+            Debug.LogWarning("[WildBoss] 縄張りプレハブ未割当のためタイル設置スキップ");
+            return;
+        }
+        if (mapcreate == null) return;
+        Transform tParent = wildBossTerritoryParent != null ? wildBossTerritoryParent : transform;
+        int cx = Mathf.RoundToInt(center.x);
+        int cz = Mathf.RoundToInt(center.z);
+        foreach (var p in mapcreate.SetPos)
+        {
+            int dx = Mathf.Abs(Mathf.RoundToInt(p.x) - cx);
+            int dz = Mathf.Abs(Mathf.RoundToInt(p.z) - cz);
+            if (Mathf.Max(dx, dz) > TerritoryRadius) continue;
+            var tilePos = new Vector3(p.x, p.y - 0.475f, p.z);
+            _territoryTiles.Add(Instantiate(wildBossTerritoryPrefab, tilePos, Quaternion.identity, tParent));
+        }
+        Debug.Log($"[WildBoss] 縄張りタイル設置 ({_territoryTiles.Count}マス)");
     }
 
     public void GenerateWildBoss()
@@ -161,19 +194,21 @@ public class WildBossSystem : MonoBehaviour
             obj.name = $"WildBoss_{prof.DisplayName}";
 
         SpawnedBoss = status;
+        SpawnTerritoryTiles(pos);
         Debug.Log($"[WildBoss] 配置: {prof.DisplayName} at {pos} HP{prof.HP} ATK{prof.ATK} DEF{prof.DEF} AP{prof.MaxAP}");
     }
 
     // ================================================================
-    //  ターン処理（TurnStartHelper から呼ばれる）
+    //  ターン処理（WildBossState から呼ばれる専用ターン）
     // ================================================================
-    public void ProcessTurn(Team team)
+    /// <summary>
+    /// 強敵の専用ターン。
+    /// ターン順: プレイヤー → 異形（敵） → [魔物] → 強敵 → プレイヤー。
+    /// 縄張り内にプレイヤー・敵・魔物がいれば行動し、いなければスキップ。
+    /// </summary>
+    public void ProcessTurn()
     {
         if (SpawnedBoss == null || !SpawnedBoss.IsAlive) return;
-
-        // Player ターン開始でのみカウンタ進行・AP回復・行動実行
-        // （毎ターン両チームで呼ばれると2倍速くなるので Player のみに絞る）
-        if (team != Team.Player) return;
 
         SpawnedBoss.wildBossTurnCounter++;
         SpawnedBoss.wildBossAP = SpawnedBoss.wildBossMaxAP; // AP リフィル
@@ -182,7 +217,7 @@ public class WildBossSystem : MonoBehaviour
         if (SpawnedBoss.wildBossCounterTurns > 0) SpawnedBoss.wildBossCounterTurns--;
         if (SpawnedBoss.wildBossAtkBuffTurns > 0) SpawnedBoss.wildBossAtkBuffTurns--;
 
-        // 縄張り内に駒がいないなら行動しない
+        // 縄張り内にプレイヤー/敵/魔物がいなければスキップ
         if (!HasAnyIntruder()) return;
 
         switch (SpawnedBoss.wildBossArchetype)

@@ -5,7 +5,10 @@
 /// ステート遷移:
 ///   PlayerStart → PlayerMove → PlayerAttack → PlayerMove
 ///                                               ↓ (ターン終了)
-///   EnemyStart → EnemyMove → PlayerStart
+///   EnemyStart → EnemyMove → WildBossState → PlayerStart
+///
+/// ターン順: プレイヤー → 異形（敵）→ [魔物] → 強敵 → プレイヤー
+/// 強敵は縄張り内に駒がいれば行動、いなければ即スキップ。
 /// </summary>
 public interface StateCore
 {
