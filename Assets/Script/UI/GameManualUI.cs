@@ -246,7 +246,7 @@ $"  Sniper: 距離{GameConstants.SniperMinRange}以上で+{(GameConstants.Sniper
         go.transform.SetParent(parent, false);
         var tmp = go.AddComponent<TextMeshProUGUI>();
         tmp.text = text; tmp.fontSize = size; tmp.color = color;
-        tmp.enableWordWrapping = true;
+        tmp.textWrappingMode = TextWrappingModes.Normal;
         return tmp;
     }
 
