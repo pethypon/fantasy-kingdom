@@ -36,8 +36,8 @@ public class EnemyMove : TurnState
         if (Systems.TimerSystem != null)
             Systems.TimerSystem.StopTurn();
 
-        // プレイヤーターンへ
-        Turn.ChangeState(new PlayerStart(Turn));
+        // 強敵ターンへ（スポーン済みでなければ即 PlayerStart へ）
+        Turn.ChangeState(new WildBossState(Turn));
 
         Debug.Log("[EnemyMove] 敵ターン終了");
     }

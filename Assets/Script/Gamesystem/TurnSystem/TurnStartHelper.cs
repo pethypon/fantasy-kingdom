@@ -58,8 +58,6 @@ public static class TurnStartHelper
         if (systems.DungeonSystem != null)
             systems.DungeonSystem.ProcessTurn(team);
 
-        // 強敵ターン処理（縄張り内の駒への攻撃・特殊行動）
-        if (systems.WildBossSystem != null)
-            systems.WildBossSystem.ProcessTurn(team);
+        // 強敵ターン処理は WildBossState（専用ターン）で行うためここでは呼ばない
     }
 }
