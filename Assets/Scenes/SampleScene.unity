@@ -119,6 +119,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &34347607
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 34347608}
+  m_Layer: 0
+  m_Name: WildBossTerritorry
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &34347608
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34347607}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1125776107}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &541160130 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4706676400242129584, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
@@ -265,6 +296,59 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfa964e9ebdcfd941bb8a4b3f697f010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1098503613
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1098503614}
+  - component: {fileID: 1098503615}
+  m_Layer: 0
+  m_Name: WildBossSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1098503614
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1098503613}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1385463639}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1098503615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1098503613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f849456a4190434c920c01f7965a644, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildBossSystem
+  wildBossPrefab: {fileID: 0}
+  parent: {fileID: 1887303472}
+  wildBossTerritoryPrefab: {fileID: 0}
+  wildBossTerritoryParent: {fileID: 34347608}
+--- !u!4 &1125776107 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1105473048227971926, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+  m_PrefabInstance: {fileID: 4572865823870615324}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1202527492 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 137091759520840510, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
@@ -342,6 +426,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f41c822dcc74df34b9213dc8d3b6cd40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonSystem
+--- !u!4 &1691680915 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4890257530166970754, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+  m_PrefabInstance: {fileID: 4572865823870615324}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1887303471
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1887303472}
+  m_Layer: 0
+  m_Name: WildBoss
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1887303472
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1887303471}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1691680915}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &4572865823870615324
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -433,9 +553,18 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1105473048227971926, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 34347608}
+    - targetCorrespondingSourceObject: {fileID: 4890257530166970754, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1887303472}
     - targetCorrespondingSourceObject: {fileID: 3276075482232035196, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1580161992}
+    - targetCorrespondingSourceObject: {fileID: 3276075482232035196, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1098503614}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5196177430794174198, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       insertIndex: -1
