@@ -16,7 +16,7 @@ public static class GameConstants
 
     // =====================================================================
     //  ダメージ計算式の係数
-    //  新式: 3 + (ATK/4) + ((ATK/2) - (DEF/4))
+    //  新式: 3 + (ATK/4) + ((ATK/2) - (DEF/3))
     // =====================================================================
     /// <summary>基本ダメージの固定加算値</summary>
     public const float DamageBase = 3f;
@@ -24,8 +24,8 @@ public static class GameConstants
     public const float DamageATKDivisor = 4f;
     /// <summary>ATK÷この値が攻撃側の実効攻撃力</summary>
     public const float DamageATKHalf = 2f;
-    /// <summary>DEF÷この値が防御側の実効防御力</summary>
-    public const float DamageDEFQuarter = 4f;
+    /// <summary>DEF÷この値が防御側の実効防御力（小さいほどDEFが効く）</summary>
+    public const float DamageDEFDivisor = 3f;
 
     // =====================================================================
     //  パッシブスキル（再設計後の戦闘効果）
@@ -180,8 +180,10 @@ public static class GameConstants
     public const float GuardianBuildingBonus = 2.0f;
     /// <summary>Crossbow: スタン付与確率</summary>
     public const float CrossbowStunChance = 0.10f;
-    /// <summary>MagicSniper: 自傷ダメージ（最大HPの割合）</summary>
-    public const float MagicSniperSelfDamageRatio = 0.20f;
+    /// <summary>MagicSniper: 単体通常攻撃時の自傷ダメージ（最大HPの割合）</summary>
+    public const float MagicSniperSelfDamageRatio = 0.12f;
+    /// <summary>Assassin: 行動ごとの追加疲労（既存+1に加算）。連続攻撃を抑制する</summary>
+    public const int AssassinExtraFatiguePerAction = 1;
     /// <summary>Priest: 隣接味方の回復量（最大HPの割合）</summary>
     public const float PriestHealRatio = 0.05f;
     /// <summary>パッシブ倍率の上限</summary>
@@ -260,5 +262,11 @@ public static class GameConstants
     public static float Distance(Vector3Int a, Vector3Int b)
     {
         return Vector3.Distance((Vector3)a, (Vector3)b);
+    }
+
+    /// <summary>Kindごとの追加疲労（行動ごとに加算される）。Assassinは強力な機動と被弾外特性の代償として+1</summary>
+    public static int GetExtraFatiguePerAction(Kind kind)
+    {
+        return kind == Kind.Assassin ? AssassinExtraFatiguePerAction : 0;
     }
 }

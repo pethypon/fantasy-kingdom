@@ -54,7 +54,7 @@ public class APSystem : MonoBehaviour
     {
         int cost = CalcCost(action, obj, from, to);
         _factionState.ModifyAP(team, -cost);
-        obj.Fatigue++;
+        obj.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(obj.kind);
         Debug.Log($"[APSystem] {team} / {action}  コスト:{cost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
     }
 
@@ -93,7 +93,7 @@ public class APSystem : MonoBehaviour
         // Special Ability: 省力化（最初のスキルのAP消費-1）
         int actualCost = CalcSkillCost(apCost, obj);
         _factionState.ModifyAP(team, -actualCost);
-        obj.Fatigue++;
+        obj.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(obj.kind);
         obj.FirstSkillUsedThisTurn = true;
         Debug.Log($"[APSystem] {team} / Skill  コスト:{actualCost}(元:{apCost})  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
     }

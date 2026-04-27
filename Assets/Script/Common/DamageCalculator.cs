@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// ダメージ計算を一元管理するユーティリティクラス。
 /// BattleSystem, SkillSystem, AI シミュレーション全てがこの式を使用する。
-/// 計算式: 3 + (ATK/4) + ((ATK/2) - (DEF/4))
+/// 計算式: 3 + (ATK/4) + ((ATK/2) - (DEF/3))
 ///
 /// パッシブスキル適用順序:
 ///   基礎ダメージ → 攻撃側パッシブ → 防御側パッシブ → 地形補正 → バフ/デバフ → 最終確定
@@ -17,7 +17,7 @@ public static class DamageCalculator
     {
         return GameConstants.DamageBase
              + (atk / GameConstants.DamageATKDivisor)
-             + ((atk / GameConstants.DamageATKHalf) - (def / GameConstants.DamageDEFQuarter));
+             + ((atk / GameConstants.DamageATKHalf) - (def / GameConstants.DamageDEFDivisor));
     }
 
     /// <summary>

@@ -52,9 +52,13 @@ public static class CoreLogicTests
 
     static void TestDamageBaseFormula()
     {
-        // CalcRawBase = 1 + atk/6 + atk/2 - def/4
-        float expected = 1f + (60f / 6f) + (60f / 2f) - (20f / 4f);
-        float actual = DamageCalculator.CalcRawBase(60f, 20f);
+        // CalcRawBase = DamageBase + atk/DamageATKDivisor + atk/DamageATKHalf - def/DamageDEFDivisor
+        const float atk = 60f;
+        const float def = 20f;
+        float expected = GameConstants.DamageBase
+                       + (atk / GameConstants.DamageATKDivisor)
+                       + ((atk / GameConstants.DamageATKHalf) - (def / GameConstants.DamageDEFDivisor));
+        float actual = DamageCalculator.CalcRawBase(atk, def);
         Assert($"CalcRawBase formula (expected={expected}, actual={actual})",
             Mathf.Abs(expected - actual) < 0.0001f);
     }
