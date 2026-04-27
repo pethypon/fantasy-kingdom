@@ -31,7 +31,7 @@ public partial class SimBoardState
         _occupiedCells.Remove(unit.Position);
         unit.Position = action.TargetPos;
         _occupiedCells.Add(unit.Position);
-        unit.Fatigue++;
+        unit.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(unit.Kind);
 
         ConsumeAP(action.ActorTeam, action.APCost);
         return true;
@@ -48,14 +48,14 @@ public partial class SimBoardState
         // シールドチェック
         if (target.ShieldTurns > 0)
         {
-            attacker.Fatigue++;
+            attacker.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(attacker.Kind);
             ConsumeAP(action.ActorTeam, action.APCost);
             return true;
         }
 
         int damage = CalcDamage(attacker, target);
         target.HP = Mathf.Max(0, target.HP - damage);
-        attacker.Fatigue++;
+        attacker.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(attacker.Kind);
 
         // クリスタルシールドチェック (HPが50%以下に初めて到達した場合)
         CheckCrystalShield(target);

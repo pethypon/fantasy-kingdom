@@ -767,10 +767,10 @@ MonoBehaviour:
   dirtPrefab: {fileID: 8928983776201502893, guid: ce4ee01db1f4ac141bf4e2e9b4ce30f1, type: 3}
   stonePrefab: {fileID: 0}
   MapBox: {fileID: 4165791860508889335}
-  maxX: 50
+  maxX: 35
   maxY: 2
   minY: 0
-  maxZ: 50
+  maxZ: 35
   seedx: 0
   seedz: 0
   noiseScale: 0.096
