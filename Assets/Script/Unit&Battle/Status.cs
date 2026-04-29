@@ -487,6 +487,17 @@ public class Status : MonoBehaviour
                 AchievementSystem.Instance.OnLevelUp(Level);
         }
     }
+
+    /// <summary>
+    /// 与ダメージから獲得XPを計算して加算する（兵舎XPボーナス込み）。
+    /// 実獲得XP = floor(damage * (1 + barracksXPPercent/100))
+    /// </summary>
+    public void GainExperienceFromDamage(int damage, int barracksXPPercent)
+    {
+        if (damage <= 0) return;
+        int actualXP = UnityEngine.Mathf.FloorToInt(damage * (1f + barracksXPPercent / 100f));
+        GainExperience(actualXP);
+    }
 }
 
 // =====================================================================

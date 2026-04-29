@@ -162,9 +162,14 @@ public class BattleSystem : MonoBehaviour
         // 反逆の騎士王: 反撃バフ有効時は受けたダメージの1.5倍を反射
         if (damage > 0) WildBossSystem.TryReflectDamage(Target, Attacker, damage);
 
-        // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）
+        // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）。兵舎XP%を乗算
         if (damage > 0 && Attacker != null && Attacker.type == Type.Unit && Attacker.team != Target.team)
-            Attacker.GainExperience(damage);
+        {
+            int barracksXP = turnGenerator?.Systems?.FactionState != null
+                ? turnGenerator.Systems.FactionState.GetBarracksXP(Attacker.team)
+                : 0;
+            Attacker.GainExperienceFromDamage(damage, barracksXP);
+        }
 
         // StrangeKingAura: 与ダメージの20%を吸収してHP回復
         if (damage > 0 && Attacker != null &&
@@ -213,8 +218,18 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private void ProcessCrystalCounterAttack(Status crystal, Status attacker)
     {
-        var systems = turnGenerator.Systems;
-        if (systems == null) return;
+        ProcessCrystalCounter(turnGenerator?.Systems, crystal, "OnHit");
+    }
+
+    /// <summary>
+    /// クリスタル反撃のコアロジック（被弾時 / ターン開始時の双方から呼ばれる）。
+    /// 領土内の敵候補を最近接順に最大N体（シールド前=1, シールド発動後=3）選び、
+    /// 各々の MaxHP × 30% を DEF 無視固定ダメージとして適用する。
+    /// </summary>
+    public static void ProcessCrystalCounter(GameSystems systems, Status crystal, string trigger)
+    {
+        if (systems == null || crystal == null) return;
+        if (!crystal.IsAlive || crystal.HP <= 0) return;
 
         Team crystalTeam = crystal.team;
         Team enemyTeam = crystalTeam == Team.Player ? Team.Enemy : Team.Player;
@@ -246,7 +261,7 @@ public class BattleSystem : MonoBehaviour
             int dmg = Mathf.RoundToInt(t.MaxHP * GameConstants.CrystalCounterDamageRatio);
             int actual = t.ApplyDamage(dmg);
             FloatingDamageUI.ShowDamage(t.transform.position, actual, !t.IsAlive);
-            Debug.Log($"[Battle] クリスタル反撃: {t.kind} に {actual} ダメージ（残HP:{t.HP}）");
+            Debug.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} に {actual} ダメージ（残HP:{t.HP}）  targets={count}");
 
             if (!t.IsAlive && t.type == Type.Unit)
             {
@@ -261,6 +276,29 @@ public class BattleSystem : MonoBehaviour
 
         if (systems.VisionGenerator != null)
             systems.RefreshVision();
+    }
+
+    /// <summary>
+    /// ターン開始時にクリスタル反撃を発動する。
+    /// 引数 team は「これからターンを開始する側」(=領土侵入されている側ではなく侵入している側)。
+    /// 反撃対象となるのは team の敵側クリスタルの領土に侵入している team のユニット。
+    /// </summary>
+    public static void ProcessCrystalCounterAtTurnStart(GameSystems systems, Team team)
+    {
+        if (systems?.CrystalSystem == null) return;
+        // 侵入される側（敵側）のクリスタルから反撃
+        Team enemyTeam = team == Team.Player ? Team.Enemy : Team.Player;
+        Transform crystalParent = enemyTeam == Team.Player
+            ? systems.CrystalSystem.Playercrystal
+            : systems.CrystalSystem.Enemycrystal;
+        if (crystalParent == null) return;
+
+        foreach (Transform t in crystalParent)
+        {
+            var s = t.GetComponent<Status>();
+            if (s == null || s.kind != Kind.Crystal) continue;
+            ProcessCrystalCounter(systems, s, "TurnStart");
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
