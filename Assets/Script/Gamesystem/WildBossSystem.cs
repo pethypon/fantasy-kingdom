@@ -98,18 +98,30 @@ public class WildBossSystem : MonoBehaviour
     public void GenerateWildBoss()
     {
         if (mapcreate == null || crystalsystem == null) return;
-        if (wildBossPrefab == null)
+
+        // プレハブフォールバック: wildBossPrefab 未割当なら UnitSetting.StrangePiece を流用
+        GameObject prefabToUse = wildBossPrefab;
+        string prefabSource = "wildBossPrefab";
+        if (prefabToUse == null)
         {
-            Debug.LogWarning("[WildBoss] プレハブ未割当のためスポーンをスキップ");
-            return;
+            prefabToUse = unitSetting != null ? unitSetting.StrangePiecePrefab : null;
+            prefabSource = "StrangePiece(fallback)";
+            if (prefabToUse == null)
+            {
+                Debug.LogError("[WildBoss] wildBossPrefab も StrangePiece も未割当のためスポーン不可");
+                return;
+            }
+            Debug.LogWarning($"[WildBoss] wildBossPrefab 未割当 → StrangePiece からフォールバック生成");
         }
 
         Vector3Int pcp = GridHelper.ToGrid(crystalsystem.PCP);
         Vector3Int ecp = GridHelper.ToGrid(crystalsystem.ECP);
         var setpos = mapcreate.SetPos;
 
+        // 段階1: 距離・領土・ダンジョン全制約で候補抽出（minDist緩和）
         int[] minDistances = { 10, 8, 6, 4 };
         List<Vector3> candidates = null;
+        string fallbackReason = "strict";
         foreach (int minDist in minDistances)
         {
             candidates = new List<Vector3>();
@@ -125,9 +137,45 @@ public class WildBossSystem : MonoBehaviour
             if (candidates.Count > 0) break;
         }
 
+        // 段階2: ダンジョン回避を解除して再試行
         if (candidates == null || candidates.Count == 0)
         {
-            Debug.LogWarning("[WildBoss] 配置候補が見つからずスポーン中止");
+            candidates = new List<Vector3>();
+            foreach (var p in setpos)
+            {
+                Vector3Int g = GridHelper.ToGrid(p);
+                if (GridHelper.ChebyshevDistance(g, pcp) < 4) continue;
+                if (GridHelper.ChebyshevDistance(g, ecp) < 4) continue;
+                if (territorysystem != null && territorysystem.IsInAnyTerritory(g.x, g.z)) continue;
+                candidates.Add(p);
+            }
+            if (candidates.Count > 0) fallbackReason = "ignoreDungeon";
+        }
+
+        // 段階3: 領土回避も解除し、距離最小のみ要求
+        if (candidates == null || candidates.Count == 0)
+        {
+            candidates = new List<Vector3>();
+            foreach (var p in setpos)
+            {
+                Vector3Int g = GridHelper.ToGrid(p);
+                if (GridHelper.ChebyshevDistance(g, pcp) < 2) continue;
+                if (GridHelper.ChebyshevDistance(g, ecp) < 2) continue;
+                candidates.Add(p);
+            }
+            if (candidates.Count > 0) fallbackReason = "ignoreTerritory";
+        }
+
+        // 段階4: 全制約解除 — SetPos 全体から選択（最終保証）
+        if (candidates == null || candidates.Count == 0)
+        {
+            candidates = new List<Vector3>(setpos);
+            fallbackReason = "anywhere";
+        }
+
+        if (candidates.Count == 0)
+        {
+            Debug.LogError("[WildBoss] SetPos 自体が空のためスポーン不可");
             return;
         }
 
@@ -140,7 +188,8 @@ public class WildBossSystem : MonoBehaviour
         if (pool.Count == 0) return;
         var archetype = pool[Random.Range(0, pool.Count)];
 
-        SpawnAt(picked, archetype);
+        Debug.Log($"[WildBoss] 出現: archetype={archetype}  pos={picked}  prefab={prefabSource}  fallback={fallbackReason}");
+        SpawnAt(picked, archetype, prefabToUse);
     }
 
     bool IsNearDungeon(Vector3Int pos, int range)
@@ -151,12 +200,18 @@ public class WildBossSystem : MonoBehaviour
         return false;
     }
 
-    void SpawnAt(Vector3 pos, WildBossArchetype archetype)
+    void SpawnAt(Vector3 pos, WildBossArchetype archetype, GameObject prefab = null)
     {
+        if (prefab == null) prefab = wildBossPrefab;
+        if (prefab == null)
+        {
+            Debug.LogError("[WildBoss] SpawnAt: prefab が null");
+            return;
+        }
         Transform spawnParent = parent != null ? parent : transform;
         GameObject obj = unitSetting != null
-            ? unitSetting.SpawnUnit(wildBossPrefab, pos, spawnParent, 1)
-            : Instantiate(wildBossPrefab, pos, Quaternion.identity, spawnParent);
+            ? unitSetting.SpawnUnit(prefab, pos, spawnParent, 1)
+            : Instantiate(prefab, pos, Quaternion.identity, spawnParent);
 
         var status = obj.GetComponentInChildren<Status>();
         if (status == null)
