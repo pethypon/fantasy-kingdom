@@ -58,6 +58,9 @@ public static class TurnStartHelper
         if (systems.DungeonSystem != null)
             systems.DungeonSystem.ProcessTurn(team);
 
+        // クリスタル反撃: 敵側クリスタル領土に侵入している自軍ユニットへ自動ダメージ
+        BattleSystem.ProcessCrystalCounterAtTurnStart(systems, team);
+
         // 強敵ターン処理は WildBossState（専用ターン）で行うためここでは呼ばない
     }
 }

@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Boss
   m_EditorClassIdentifier: Assembly-CSharp::UnitData
   kind: 12
-  baseHP: 4000
-  baseATK: 45
-  baseDEF: 35
-  hpGrowth: 0.30
-  atkGrowth: 0.50
-  defGrowth: 0.45
+  baseHP: 20000
+  baseATK: 90
+  baseDEF: 65
+  hpGrowth: 0.85
+  atkGrowth: 0.85
+  defGrowth: 0.80
   upkeepWood: 0
   upkeepStone: 0
   upkeepIron: 0

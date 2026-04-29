@@ -8,6 +8,9 @@ public class UnitSetting : MonoBehaviour
     [Header("異形")]
     [SerializeField] GameObject StrangePiece;
 
+    /// <summary>異形の王プレハブへの読み取り公開（WildBoss フォールバック用）</summary>
+    public GameObject StrangePiecePrefab => StrangePiece;
+
     [Header("初期配置ユニット（両陣営共通プレハブ）")]
     [SerializeField] GameObject KnightPiece;
     [SerializeField] GameObject ArcherPiece;
