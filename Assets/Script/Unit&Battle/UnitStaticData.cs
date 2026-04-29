@@ -188,12 +188,13 @@ public static class UnitStaticData
         // ---- BOSS（異形の王／指揮官） ----
         // クリスタル級の攻略難度を持つ指揮官ユニット。Kingより大幅に高ステータス。
         // StrangeKingAura パッシブ（被ダメ-40%、吸血20%、HP50%以下で激昂ATK+25%）と合算で
-        // 実効HPがクリスタル(10000)に近い水準となる。能動防御可能なため基礎HPは6000ではなく4000に抑制。
+        // 実効HPがクリスタル(10000)を上回る水準。一般駒の通常攻撃ではほぼ削れない設計とし、
+        // スキル倍率・視界外・背面・低地→高台等の補正を重ねて初めて有効打となる。
         Table[Kind.Boss] = new UnitInfo
         {
             DisplayName = "異形の王",
-            BaseATK = 45, BaseHP = 4000, BaseDEF = 35,
-            AtkGrowth = 0.50f, HpGrowth = 0.30f, DefGrowth = 0.45f,
+            BaseATK = 65, BaseHP = 7500, BaseDEF = 48,
+            AtkGrowth = 0.65f, HpGrowth = 0.45f, DefGrowth = 0.60f,
             CostIron = 30, CostMagicOre = 20, CostBread = 15, CostCitizen = 1, CostAP = 10,
             UpkeepIron = 3, UpkeepMagicOre = 2, UpkeepBread = 3,
             UpkeepMagicScales = true,
