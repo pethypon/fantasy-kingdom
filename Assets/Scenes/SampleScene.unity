@@ -487,6 +487,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1580161993}
     - target: {fileID: 1447019358899514485, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: _WildBossSystem
+      value: 
+      objectReference: {fileID: 1098503615}
+    - target: {fileID: 1447019358899514485, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       propertyPath: _CameraTransform
       value: 
       objectReference: {fileID: 924636555}
