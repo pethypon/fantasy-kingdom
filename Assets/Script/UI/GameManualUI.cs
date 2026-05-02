@@ -16,7 +16,7 @@ public class GameManualUI : MonoBehaviour
     private GameObject overlay;
     private TextMeshProUGUI bodyText;
 
-    private enum Tab { Pieces, Rules, Artifacts, Terrain }
+    private enum Tab { Pieces, Rules, Artifacts, Terrain, WildBoss }
     private Tab currentTab = Tab.Pieces;
 
     void Awake() { Instance = this; }
@@ -97,6 +97,7 @@ public class GameManualUI : MonoBehaviour
         AddTabButton(tabRow.transform, "ルール", Tab.Rules);
         AddTabButton(tabRow.transform, "アーティファクト", Tab.Artifacts);
         AddTabButton(tabRow.transform, "地形・戦闘", Tab.Terrain);
+        AddTabButton(tabRow.transform, "強敵", Tab.WildBoss);
 
         // 本文（スクロール）
         var scrollGO = new GameObject("ScrollView", typeof(RectTransform));
@@ -156,6 +157,7 @@ public class GameManualUI : MonoBehaviour
             case Tab.Rules:     bodyText.text = BuildRulesText(); break;
             case Tab.Artifacts: bodyText.text = BuildArtifactsText(); break;
             case Tab.Terrain:   bodyText.text = BuildTerrainText(); break;
+            case Tab.WildBoss:  bodyText.text = BuildWildBossText(); break;
         }
     }
 
@@ -192,15 +194,21 @@ public class GameManualUI : MonoBehaviour
 $"  市民{EconomySystem.APPerCitizen}ごとに追加APを得る。移動{GameConstants.BaseMoveAPCost}・攻撃{GameConstants.BaseAttackAPCost}・建築/召喚でAPを消費する。\n\n" +
 "<b>■ 経験値</b>\n" +
 $"  Lv2に必要なXP: {GameConstants.XPRequiredLv2}、各レベルで ×{GameConstants.XPLevelMultiplier} 倍ずつ増加。\n" +
-"  与ダメージがそのままXPとして獲得できる（倒さなくても蓄積）。兵舎ボーナスで+%が乗る。\n\n" +
+"  与ダメージがそのままXPとして獲得できる（倒さなくても蓄積）。兵舎ボーナスで+%が乗る。\n" +
+"  実獲得XP = floor(damage × (1 + BarracksXP%/100))\n\n" +
 "<b>■ クリスタル反撃</b>\n" +
-$"  クリスタルが攻撃された時、領土内の敵のうち最も近い1体に相手MaxHPの{GameConstants.CrystalCounterDamageRatio*100:F0}%ダメージ。\n" +
+$"  ターン開始時 / クリスタル被弾時の双方で発動。領土内の敵で最近接1体に MaxHP×{GameConstants.CrystalCounterDamageRatio*100:F0}%ダメージ。\n" +
 $"  シールド発動後は最大{GameConstants.CrystalCounterTargetsAfterShield}体まで拡大する。DEF無視の固定ダメージ。\n\n" +
-"<b>■ 指揮官バフ（キング）</b>\n" +
-$"  自軍キングから{GameConstants.KingAuraRange}マス以内の味方はATK+{(GameConstants.KingAuraATKBonus-1)*100:F0}%、DEF+{(GameConstants.KingAuraDEFBonus-1)*100:F0}%。\n\n" +
+"<b>■ 指揮官バフ（キング/異形の王）</b>\n" +
+$"  自軍 King または Boss(異形の王) から{GameConstants.KingAuraRange}マス以内の味方は\n" +
+$"  ATK+{(GameConstants.KingAuraATKBonus-1)*100:F0}%、DEF+{(GameConstants.KingAuraDEFBonus-1)*100:F0}%。指揮官自身は対象外。\n\n" +
 "<b>■ ダンジョン</b>\n" +
-$"  マップに2箇所ランダム生成。サブクリスタルで起動し、{DungeonSystem.ClaimTurns}ターン占有でアーティファクトを獲得。\n" +
-"  両陣営が同じダンジョンに侵入するとタイマー停止（競合状態）。";
+$"  マップに2箇所ランダム生成。サブクリスタルで起動し、共有{DungeonSystem.ClaimTurns}ターンタイマーが0に達した側がアーティファクトを獲得。\n" +
+"  陣営が変わってもタイマーは引き継がれる（残りターンを消費する形式）。\n" +
+"  両陣営が同じダンジョンに侵入するとタイマー停止（競合状態、残ターン保持）。\n\n" +
+"<b>■ スキル3択</b>\n" +
+"  召喚時、レアリティが1度抽選 → 同帯から3スキルを提示しプレイヤーが選択。\n" +
+"  プール不足の場合は警告のみで他レア帯フォールバックは行われない。";
     }
 
     private string BuildArtifactsText()
@@ -222,13 +230,39 @@ $"  <b>低地→高台への攻撃</b>: ダメージ×{GameConstants.LowToHighAt
 $"  <b>高台からの遠距離攻撃（Y-1対象）</b>: ダメージ+{(GameConstants.HighGroundRangedBonus-1)*100:F0}%\n" +
 $"  <b>範囲スキル対象が高台</b>: ダメージ×{GameConstants.AreaSkillHighTargetMod} （-20%）\n" +
 $"  <b>範囲スキル対象が低地</b>: ダメージ×{GameConstants.AreaSkillLowTargetMod} （+10%）\n" +
-"  <b>高台ユニット</b>: 視界+1マス（周囲1マス平均 +1 以上）\n\n" +
+"  <b>高台ユニット</b>: 視界+1マス（隣接8マスの最小Yより1段以上高い場合）\n\n" +
 "<b>■ 直線スキルの遮蔽</b>\n" +
 $"  壁（WoodWall/StoneWall）または高低差{GameConstants.LineSkillBlockYDiff}以上のタイルがあると、それ以降のマスには当たらない。\n\n" +
 "<b>■ パッシブ・背面攻撃</b>\n" +
 $"  背面攻撃ダメージ +{(GameConstants.BackAttackBonus-1)*100:F0}%、Assassinationパッシブでさらに×{GameConstants.AssassinationBackAttackBonus}。\n" +
 $"  HunterEyes: 視界内敵へ +{(GameConstants.HunterEyesDamageBonus-1)*100:F0}%  /  Destroyer: 建物・クリスタルへ +{(GameConstants.DestroyerBuildingBonus-1)*100:F0}%\n" +
 $"  Sniper: 距離{GameConstants.SniperMinRange}以上で+{(GameConstants.SniperLongRangeBonus-1)*100:F0}%  /  Impregnable: 被ダメ×{GameConstants.ImpregnableDamageReduction}";
+    }
+
+    private string BuildWildBossText()
+    {
+        return
+"<b>■ 強敵（縄張り中立ボス）</b>\n" +
+"  ゲーム開始時にマップ上へ1体ランダム配置。両陣営の領土とダンジョンを避ける。\n" +
+"  縄張り（中心3×3）の外では被弾無効。縄張り内に駒が入ると攻撃可能になる。\n\n" +
+"<b>■ アーキタイプと固有行動</b>\n\n" +
+"  <b>ゴーストキング</b> (HP6200/ATK26/DEF18/MaxAP23)\n" +
+"    2T毎: テレポート(3AP)→視界外攻撃+NarrowVision付与(5AP)→デコイ召喚(10AP)\n" +
+"    奇数T: 通常攻撃(3AP)\n\n" +
+"  <b>ドラゴン</b> (HP8200/ATK32/DEF24/MaxAP20)\n" +
+"    4T毎: 炎ブレス=縄張り内全体攻撃(10AP)\n" +
+"    その他: 50%でATK×1.25バフ(5AP) / 50%で前方3マス攻撃(4AP)\n\n" +
+"  <b>反逆の騎士王</b> (HP7600/ATK28/DEF28/MaxAP15)\n" +
+"    2T毎: 反撃の誓い(2T間1.5倍返し, 5AP) + 親衛騎士最大2体召喚(10AP)\n" +
+"    HP50%以下でPhase2: 反撃3倍・親衛4体\n\n" +
+"  <b>雷の魔導兵</b> (HP7000/ATK30/DEF20/MaxAP20)\n" +
+"    毎T: 雷クリスタル設置(3AP)\n" +
+"    5T毎: 起爆=半径1範囲攻撃(10AP) / その他: ランダム3体に雷撃(5AP)\n\n" +
+"<b>■ 脅威度システム</b>\n" +
+"  通常時=25、HP50%以下に到達すると75へ昇格（一度のみ）。\n" +
+"  高脅威時は周期判定を無視して高期待値行動（起爆・反撃・召喚）を毎ターン優先実行。\n\n" +
+"<b>■ NarrowVision（視界縮小）</b>\n" +
+"  ゴーストキング専用デバフ。対象の視界を「前方1マス」に1ターン制限。重複付与不可。";
     }
 
     // ================================================================

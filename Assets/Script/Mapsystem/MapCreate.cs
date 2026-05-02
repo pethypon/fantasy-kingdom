@@ -1,6 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// マップサイズのプリセット。Custom はインスペクタの maxX/maxZ をそのまま使用。
+/// セーブロード時はプリセットでなく保存値を優先するため、ロード側で Custom 強制。
+/// </summary>
+public enum MapPresetSize { Small35, Normal40, Custom }
+
 public class MapCreate : MonoBehaviour
 {
     [Header("霧タイル")]
@@ -25,6 +31,8 @@ public class MapCreate : MonoBehaviour
     [SerializeField] private Transform MapBox;
 
     [Header("マップサイズ")]
+    [Tooltip("プリセット適用: Awake時に Small35/Normal40 のサイズを maxX/maxZ へ反映する。Customは手動値を維持")]
+    public MapPresetSize preset = MapPresetSize.Small35;
     public int maxX = 35;
     public int maxY = 2;
     public int minY = 0;
@@ -54,6 +62,27 @@ public class MapCreate : MonoBehaviour
     private void Awake()
     {
         SetPos = new List<Vector3>();
+        ApplyPreset();
+    }
+
+    /// <summary>
+    /// プリセット値を maxX/maxZ に反映する。Custom の場合はインスペクタ値を維持。
+    /// セーブロード時に保存値を優先したい場合は preset = Custom にしてから maxX/maxZ を上書きすること。
+    /// </summary>
+    public void ApplyPreset()
+    {
+        switch (preset)
+        {
+            case MapPresetSize.Small35:
+                maxX = 35; maxZ = 35;
+                break;
+            case MapPresetSize.Normal40:
+                maxX = 40; maxZ = 40;
+                break;
+            case MapPresetSize.Custom:
+                // 何もしない（インスペクタ値を維持）
+                break;
+        }
     }
 
     // ==== ノイズ生成 ====
