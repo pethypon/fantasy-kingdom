@@ -274,6 +274,13 @@ public class WildBossSystem : MonoBehaviour
         if (SpawnedBoss.wildBossCounterTurns > 0) SpawnedBoss.wildBossCounterTurns--;
         if (SpawnedBoss.wildBossAtkBuffTurns > 0) SpawnedBoss.wildBossAtkBuffTurns--;
 
+        // 仕様3.12: 脅威度遷移（HP50%以下で 25→75 へ昇格、一度のみ）
+        if (SpawnedBoss.wildBossCurrentThreat < 75 && SpawnedBoss.HPRatio <= 0.5f)
+        {
+            SpawnedBoss.wildBossCurrentThreat = 75;
+            Debug.Log($"[WildBoss] 脅威度上昇: 25 → 75 (HP={SpawnedBoss.HP}/{SpawnedBoss.MaxHP}) archetype={SpawnedBoss.wildBossArchetype}");
+        }
+
         // 縄張り内にプレイヤー/敵/魔物がいなければスキップ
         if (!HasAnyIntruder()) return;
 
@@ -300,6 +307,20 @@ public class WildBossSystem : MonoBehaviour
         var targets = GetIntruders();
         if (targets.Count == 0) return;
 
+        bool highThreat = SpawnedBoss.wildBossCurrentThreat >= 75;
+
+        if (highThreat)
+        {
+            // 仕様3.12: 高脅威時は周期無視で高期待値行動を毎ターン優先
+            // テレポート → 視界外攻撃+NarrowVision → デコイ補充 → 通常攻撃で AP 使い切り
+            if (TrySpendAP(3)) TeleportInTerritory();
+            if (TrySpendAP(5)) AttackFromOutsideVision(targets);
+            if (CountDecoys() == 0 && TrySpendAP(10)) SummonGhostDecoy();
+            if (TrySpendAP(3))
+                AttackTarget(targets[Random.Range(0, targets.Count)]);
+            return;
+        }
+
         if (SpawnedBoss.wildBossTurnCounter % 2 == 0)
         {
             // 2ターン毎のサイクル
@@ -321,6 +342,16 @@ public class WildBossSystem : MonoBehaviour
     /// </summary>
     void TurnDragon()
     {
+        bool highThreat = SpawnedBoss.wildBossCurrentThreat >= 75;
+
+        if (highThreat)
+        {
+            // 仕様3.12: 高脅威時は周期無視で炎ブレス優先 → 余ったAPで前方攻撃
+            if (TrySpendAP(10)) FireBreathAll();
+            if (TrySpendAP(4)) AttackFrontLine(3);
+            return;
+        }
+
         if (SpawnedBoss.wildBossTurnCounter % 4 == 0 && TrySpendAP(10))
         {
             FireBreathAll();
@@ -348,6 +379,22 @@ public class WildBossSystem : MonoBehaviour
         CheckRebelKnightPhase2();
 
         int maxGuards = SpawnedBoss.wildBossPhase2Active ? 4 : 2;
+        bool highThreat = SpawnedBoss.wildBossCurrentThreat >= 75;
+
+        if (highThreat)
+        {
+            // 仕様3.12: 高脅威時は反撃と親衛隊召喚を毎ターン同時試行
+            if (TrySpendAP(5))
+            {
+                SpawnedBoss.wildBossCounterTurns = 2;
+                string mult = SpawnedBoss.wildBossPhase2Active ? "3.0" : "1.5";
+                Debug.Log($"[WildBoss/RebelKnight] 反撃の誓い（2ターン, 返しダメ×{mult}, 高脅威）");
+            }
+            int curHigh = CountGuardKnights();
+            if (curHigh < maxGuards && TrySpendAP(10))
+                SummonGuardKnights(maxGuards - curHigh);
+            return;
+        }
 
         if (SpawnedBoss.wildBossTurnCounter % 2 == 0 && TrySpendAP(5))
         {
@@ -379,8 +426,18 @@ public class WildBossSystem : MonoBehaviour
     /// </summary>
     void TurnThunderMagus()
     {
+        bool highThreat = SpawnedBoss.wildBossCurrentThreat >= 75;
+
         // 毎ターン設置
         if (TrySpendAP(3)) PlaceThunderCrystal();
+
+        if (highThreat)
+        {
+            // 仕様3.12: 高脅威時は周期無視で起爆優先 → 余ったAPで雷撃
+            if (_thunderCrystals.Count > 0 && TrySpendAP(10)) DetonateThunderCrystals();
+            if (TrySpendAP(5)) ThunderStrikeRandom(3);
+            return;
+        }
 
         if (SpawnedBoss.wildBossTurnCounter % 5 == 0 && _thunderCrystals.Count > 0 && TrySpendAP(10))
         {
@@ -571,11 +628,11 @@ public class WildBossSystem : MonoBehaviour
 
         AttackTarget(chosen);
 
-        // Blind付与（重複不可: ApplyDebuff 内の重複チェックが自動で処理）
+        // NarrowVision付与（強敵専用デバフ。Blindと同効果だが識別を分離して仕様3.11準拠）
         if (chosen.IsAlive)
         {
-            bool applied = StatusEffectSystem.ApplyDebuff(chosen, StatusEffectType.Blind, 1);
-            if (applied) Debug.Log($"[WildBoss/GhostKing] 視界封じ付与: {chosen.kind}（1T）");
+            bool applied = StatusEffectSystem.ApplyDebuff(chosen, StatusEffectType.NarrowVision, 1);
+            if (applied) Debug.Log($"[WildBoss/GhostKing] 視界縮小付与: {chosen.kind}（1T）");
         }
     }
 

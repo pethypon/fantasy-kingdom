@@ -310,17 +310,24 @@ public class SkillData
     // =====================================================================
     //  召喚時の3択候補抽選
     //  - レアリティは従来の確率で1回決定 → その帯から重複なしで3枚抽選。
-    //  - 枚数が不足する場合は隣接帯で補う（下位 → 上位の順に探索）。
+    //  - 同帯で枚数が不足する場合は警告ログを出し、不足のまま返す（仕様3.7同レアリティ厳守）。
+    //    呼び出し側は picked.Count == count を保証として扱わないこと。
     // =====================================================================
     public static List<int> DrawCandidateSkillIds(int count = 3)
     {
         float roll = Random.Range(0f, 1f);
         List<int> primary;
-        if (roll < 0.05f) primary = LegendaryIds;
-        else if (roll < 0.20f) primary = SuperRareIds;
-        else if (roll < 0.40f) primary = RareIds;
-        else primary = NormalIds;
-        if (primary.Count == 0) primary = NormalIds;
+        Rarity primaryRarity;
+        if (roll < 0.05f) { primary = LegendaryIds;  primaryRarity = Rarity.Legendary;  }
+        else if (roll < 0.20f) { primary = SuperRareIds; primaryRarity = Rarity.SuperRare; }
+        else if (roll < 0.40f) { primary = RareIds;      primaryRarity = Rarity.Rare;      }
+        else                   { primary = NormalIds;    primaryRarity = Rarity.Normal;    }
+        if (primary.Count == 0)
+        {
+            Debug.LogError($"[SkillData] {primaryRarity} スキルプールが空のため Normal にフォールバック（要プール定義修正）");
+            primary = NormalIds;
+            primaryRarity = Rarity.Normal;
+        }
 
         var picked = new List<int>();
         var pool = new List<int>(primary);
@@ -331,14 +338,11 @@ public class SkillData
             pool.RemoveAt(idx);
         }
 
-        // 候補不足なら下位帯から補充
-        List<List<int>> fallback = new List<List<int>> { NormalIds, RareIds, SuperRareIds, LegendaryIds };
-        int fIdx = 0;
-        while (picked.Count < count && fIdx < fallback.Count)
+        // 同帯で count 件未満なら警告（仕様: 他レア帯フォールバック禁止）
+        if (picked.Count < count)
         {
-            foreach (var id in fallback[fIdx])
-                if (!picked.Contains(id)) { picked.Add(id); if (picked.Count >= count) break; }
-            fIdx++;
+            Debug.LogWarning($"[SkillData] {primaryRarity} 帯で {count} 件抽選できません（取得={picked.Count}件）。" +
+                             $"プール定義を見直してください。代替候補は提供しません。");
         }
         return picked;
     }

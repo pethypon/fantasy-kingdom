@@ -212,7 +212,8 @@ public static class DamageCalculator
 
     private static bool HasKingAura(Status unit)
     {
-        if (unit == null || unit.kind == Kind.King) return false;
+        // 指揮官自身にはオーラを適用しない（自分自身はソース対象外）
+        if (unit == null || unit.kind == Kind.King || unit.kind == Kind.Boss) return false;
         var reg = UnitRegistry.Instance;
         if (reg == null) return false;
         var allies = unit.team == Team.Player ? reg.PlayerUnits : reg.EnemyUnits;
@@ -220,9 +221,11 @@ public static class DamageCalculator
         Vector3Int upos = ToGridPos(unit.transform.position);
         for (int i = 0; i < allies.Count; i++)
         {
-            var king = allies[i];
-            if (king == null || king.kind != Kind.King || !king.IsAlive) continue;
-            Vector3Int kpos = ToGridPos(king.transform.position);
+            var commander = allies[i];
+            // 仕様3.3: King または Boss(異形の王) のいずれもオーラ発信源
+            if (commander == null || !commander.IsAlive) continue;
+            if (commander.kind != Kind.King && commander.kind != Kind.Boss) continue;
+            Vector3Int kpos = ToGridPos(commander.transform.position);
             int dx = Mathf.Abs(kpos.x - upos.x);
             int dz = Mathf.Abs(kpos.z - upos.z);
             if (Mathf.Max(dx, dz) <= GameConstants.KingAuraRange) return true;

@@ -150,7 +150,8 @@ public enum StatusEffectType
     Chill,          // 冷気: 移動AP+2 + ATK-10% (1T) ※Slow統合
     Freeze,         // 凍結: 移動不可 + 被ダメ+10% (1T) ※Bind統合
     Seal,           // 封技: スキル倍率-20% (1T)
-    Blind           // 視界封じ: 視界を前方1マスに制限 (1T) ※重複不可
+    Blind,          // 視界封じ: 視界を前方1マスに制限 (1T) ※重複不可
+    NarrowVision    // 視界縮小: 視界を前方1マスに制限 (1T、強敵専用) ※重複不可
 }
 
 // =====================================================================
@@ -301,6 +302,8 @@ public class Status : MonoBehaviour
     public int wildBossAtkBuffTurns;
     [Tooltip("強敵がPhase2に移行済みか（反逆の騎士王: HP50%以下で発動）")]
     public bool wildBossPhase2Active;
+    [Tooltip("強敵の脅威度（25=通常/75=激怒）。HP50%以下で75へ昇格")]
+    public int wildBossCurrentThreat = 25;
     [Header("ステータス")]
     public int HP;
     public int ATK;
