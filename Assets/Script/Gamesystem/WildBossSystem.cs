@@ -293,6 +293,9 @@ public class WildBossSystem : MonoBehaviour
         }
     }
 
+    /// <summary>仕様3.12: HP50%以下で 25→75 へ昇格した「激怒モード」かを判定。</summary>
+    bool IsHighThreat() => SpawnedBoss != null && SpawnedBoss.wildBossCurrentThreat >= 75;
+
     // ================================================================
     //  アーキタイプ別AI
     // ================================================================
@@ -307,9 +310,8 @@ public class WildBossSystem : MonoBehaviour
         var targets = GetIntruders();
         if (targets.Count == 0) return;
 
-        bool highThreat = SpawnedBoss.wildBossCurrentThreat >= 75;
 
-        if (highThreat)
+        if (IsHighThreat())
         {
             // 仕様3.12: 高脅威時は周期無視で高期待値行動を毎ターン優先
             // テレポート → 視界外攻撃+NarrowVision → デコイ補充 → 通常攻撃で AP 使い切り
@@ -342,9 +344,8 @@ public class WildBossSystem : MonoBehaviour
     /// </summary>
     void TurnDragon()
     {
-        bool highThreat = SpawnedBoss.wildBossCurrentThreat >= 75;
 
-        if (highThreat)
+        if (IsHighThreat())
         {
             // 仕様3.12: 高脅威時は周期無視で炎ブレス優先 → 余ったAPで前方攻撃
             if (TrySpendAP(10)) FireBreathAll();
@@ -379,9 +380,8 @@ public class WildBossSystem : MonoBehaviour
         CheckRebelKnightPhase2();
 
         int maxGuards = SpawnedBoss.wildBossPhase2Active ? 4 : 2;
-        bool highThreat = SpawnedBoss.wildBossCurrentThreat >= 75;
 
-        if (highThreat)
+        if (IsHighThreat())
         {
             // 仕様3.12: 高脅威時は反撃と親衛隊召喚を毎ターン同時試行
             if (TrySpendAP(5))
@@ -426,12 +426,11 @@ public class WildBossSystem : MonoBehaviour
     /// </summary>
     void TurnThunderMagus()
     {
-        bool highThreat = SpawnedBoss.wildBossCurrentThreat >= 75;
 
         // 毎ターン設置
         if (TrySpendAP(3)) PlaceThunderCrystal();
 
-        if (highThreat)
+        if (IsHighThreat())
         {
             // 仕様3.12: 高脅威時は周期無視で起爆優先 → 余ったAPで雷撃
             if (_thunderCrystals.Count > 0 && TrySpendAP(10)) DetonateThunderCrystals();

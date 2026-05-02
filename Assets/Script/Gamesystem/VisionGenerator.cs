@@ -467,9 +467,10 @@ public class VisionGenerator : MonoBehaviour
             return;
         }
 
-        int statusX = Mathf.RoundToInt(status.transform.position.x);
-        int statusY = Mathf.RoundToInt(status.transform.position.y);
-        int statusZ = Mathf.RoundToInt(status.transform.position.z);
+        Vector3Int statusGrid = GridHelper.ToGrid(status.transform.position);
+        int statusX = statusGrid.x;
+        int statusY = statusGrid.y;
+        int statusZ = statusGrid.z;
 
         // 視界封じ（Blind/NarrowVision）: 前方1マスのみに制限して即リターン
         if (StatusEffectSystem.HasDebuff(status, StatusEffectType.Blind) ||
@@ -527,9 +528,9 @@ public class VisionGenerator : MonoBehaviour
     private static bool IsOnHighGround(Status status, MapCreate mapcreate)
     {
         if (status == null || mapcreate == null) return false;
-        int sx = Mathf.RoundToInt(status.transform.position.x);
-        int sz = Mathf.RoundToInt(status.transform.position.z);
-        if (!mapcreate.TryGetHeight(sx, sz, out float selfY)) return false;
+        Vector3Int g = GridHelper.ToGridXZ(status.transform.position);
+        if (!mapcreate.TryGetHeight(g.x, g.z, out float selfY)) return false;
+        int sx = g.x, sz = g.z;
 
         float minAdjacentY = float.MaxValue;
         for (int dx = -1; dx <= 1; dx++)

@@ -23,12 +23,14 @@ public class DungeonSystem : MonoBehaviour
     {
         public Vector3Int Position;
         public Team ClaimingTeam = Team.None;
-        public int ClaimProgress;             // 0〜ClaimTurns（後方互換のため維持。SharedRemainingTurnsから派生）
         public int SharedRemainingTurns = ClaimTurns; // 共有タイマー残ターン (10→0)。陣営変更時も引き継がれる
         public bool Contested;       // 双方が同一ダンジョンに存在
         public bool Cleared;         // アーティファクト獲得済み
         public Artifact Reward = Artifact.None;
         public GameObject Marker;    // 視覚表示用
+
+        /// <summary>後方互換: SharedRemainingTurns から派生する占有進捗 (0〜ClaimTurns)</summary>
+        public int ClaimProgress => ClaimTurns - SharedRemainingTurns;
 
         // ---- ダンジョン内モンスター（踏破阻害要素） ----
         public int MonsterHP = MonsterMaxHP;
@@ -223,9 +225,6 @@ public class DungeonSystem : MonoBehaviour
             }
             // 誰もいない場合はタイマー停止（残ターン保持）
 
-            // 後方互換: ClaimProgress を SharedRemainingTurns から派生
-            d.ClaimProgress = ClaimTurns - d.SharedRemainingTurns;
-
             if (d.SharedRemainingTurns <= 0 && d.ClaimingTeam != Team.None)
             {
                 GrantArtifact(d.ClaimingTeam, d.Reward);
@@ -291,7 +290,6 @@ public class DungeonSystem : MonoBehaviour
                 {
                     d.ClaimingTeam = team;
                     d.SharedRemainingTurns = Mathf.Max(1, d.SharedRemainingTurns - 2);
-                    d.ClaimProgress = ClaimTurns - d.SharedRemainingTurns;
                     Debug.Log($"[DungeonSystem] {team} のサブクリスタルがダンジョン{d.Position}を起動 (-2T → 残り{d.SharedRemainingTurns}T)");
                 }
             }
