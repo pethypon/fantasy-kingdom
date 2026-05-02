@@ -467,12 +467,14 @@ public class VisionGenerator : MonoBehaviour
             return;
         }
 
-        int statusX = Mathf.RoundToInt(status.transform.position.x);
-        int statusY = Mathf.RoundToInt(status.transform.position.y);
-        int statusZ = Mathf.RoundToInt(status.transform.position.z);
+        Vector3Int statusGrid = GridHelper.ToGrid(status.transform.position);
+        int statusX = statusGrid.x;
+        int statusY = statusGrid.y;
+        int statusZ = statusGrid.z;
 
-        // 視界封じ（Blind）: 前方1マスのみに制限して即リターン
-        if (StatusEffectSystem.HasDebuff(status, StatusEffectType.Blind))
+        // 視界封じ（Blind/NarrowVision）: 前方1マスのみに制限して即リターン
+        if (StatusEffectSystem.HasDebuff(status, StatusEffectType.Blind) ||
+            StatusEffectSystem.HasDebuff(status, StatusEffectType.NarrowVision))
         {
             int fz = status.direction == Direction.S ? -1 : 1;
             int bx = statusX, bz = statusZ + fz;
@@ -519,17 +521,18 @@ public class VisionGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 高台判定: 駒の足元Yが、隣接8マスの平均 +1 以上なら高台とみなす。
+    /// 高台判定: 仕様3.10「unitY - baseTileY >= 1」準拠。
+    /// baseTileY = 隣接8マスの最小Y。隣接タイルのいずれかより1段以上高ければ高台扱い。
+    /// 「全方位が同高度のプラトー」も、わずかでも一方が低ければ高台と判定される。
     /// </summary>
     private static bool IsOnHighGround(Status status, MapCreate mapcreate)
     {
         if (status == null || mapcreate == null) return false;
-        int sx = Mathf.RoundToInt(status.transform.position.x);
-        int sz = Mathf.RoundToInt(status.transform.position.z);
-        if (!mapcreate.TryGetHeight(sx, sz, out float selfY)) return false;
+        Vector3Int g = GridHelper.ToGridXZ(status.transform.position);
+        if (!mapcreate.TryGetHeight(g.x, g.z, out float selfY)) return false;
+        int sx = g.x, sz = g.z;
 
-        float sum = 0f;
-        int count = 0;
+        float minAdjacentY = float.MaxValue;
         for (int dx = -1; dx <= 1; dx++)
         {
             for (int dz = -1; dz <= 1; dz++)
@@ -537,14 +540,12 @@ public class VisionGenerator : MonoBehaviour
                 if (dx == 0 && dz == 0) continue;
                 if (mapcreate.TryGetHeight(sx + dx, sz + dz, out float nY))
                 {
-                    sum += nY;
-                    count++;
+                    if (nY < minAdjacentY) minAdjacentY = nY;
                 }
             }
         }
-        if (count == 0) return false;
-        float avg = sum / count;
-        return selfY >= avg + 1f;
+        if (minAdjacentY == float.MaxValue) return false;
+        return selfY >= minAdjacentY + 1f;
     }
 
     /// <summary>

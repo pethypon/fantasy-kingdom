@@ -212,20 +212,20 @@ public static class DamageCalculator
 
     private static bool HasKingAura(Status unit)
     {
-        if (unit == null || unit.kind == Kind.King) return false;
+        if (unit == null || unit.kind == Kind.King || unit.kind == Kind.Boss) return false;
         var reg = UnitRegistry.Instance;
         if (reg == null) return false;
         var allies = unit.team == Team.Player ? reg.PlayerUnits : reg.EnemyUnits;
         if (allies == null) return false;
-        Vector3Int upos = ToGridPos(unit.transform.position);
+        Vector3Int upos = GridHelper.ToGrid(unit.transform.position);
         for (int i = 0; i < allies.Count; i++)
         {
-            var king = allies[i];
-            if (king == null || king.kind != Kind.King || !king.IsAlive) continue;
-            Vector3Int kpos = ToGridPos(king.transform.position);
-            int dx = Mathf.Abs(kpos.x - upos.x);
-            int dz = Mathf.Abs(kpos.z - upos.z);
-            if (Mathf.Max(dx, dz) <= GameConstants.KingAuraRange) return true;
+            var commander = allies[i];
+            // 仕様3.3: King または Boss(異形の王) のいずれもオーラ発信源
+            if (commander == null || !commander.IsAlive) continue;
+            if (commander.kind != Kind.King && commander.kind != Kind.Boss) continue;
+            if (GridHelper.IsWithinRange(GridHelper.ToGrid(commander.transform.position), upos, GameConstants.KingAuraRange))
+                return true;
         }
         return false;
     }
@@ -372,14 +372,8 @@ public static class DamageCalculator
 
     // ─── ヘルパー ─────────────────────────────────────────────────────
 
-    /// <summary>ワールド座標をグリッド座標に変換</summary>
-    private static Vector3Int ToGridPos(Vector3 worldPos)
-    {
-        return new Vector3Int(
-            Mathf.RoundToInt(worldPos.x),
-            Mathf.RoundToInt(worldPos.y),
-            Mathf.RoundToInt(worldPos.z));
-    }
+    /// <summary>ワールド座標をグリッド座標に変換（GridHelper への薄いラッパ）</summary>
+    private static Vector3Int ToGridPos(Vector3 worldPos) => GridHelper.ToGrid(worldPos);
 
     /// <summary>2点間のグリッド距離（XZ平面、チェビシェフ距離）</summary>
     private static float GridDistance(Vector3 a, Vector3 b)

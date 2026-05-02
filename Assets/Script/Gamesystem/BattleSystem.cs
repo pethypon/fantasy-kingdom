@@ -2,6 +2,9 @@ using UnityEngine;
 
 public enum GameResult { Win, Lose, TimeUpWin, TimeUpLose, TimeUpDraw }
 
+/// <summary>クリスタル反撃の発動契機（被弾時 / ターン開始時）。ログ・統計識別に使用。</summary>
+public enum CrystalCounterTrigger { OnHit, TurnStart }
+
 public class BattleSystem : MonoBehaviour
 {
     public Status Target { get; private set; }
@@ -218,7 +221,7 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private void ProcessCrystalCounterAttack(Status crystal, Status attacker)
     {
-        ProcessCrystalCounter(turnGenerator?.Systems, crystal, "OnHit");
+        ProcessCrystalCounter(turnGenerator?.Systems, crystal, CrystalCounterTrigger.OnHit);
     }
 
     /// <summary>
@@ -226,7 +229,7 @@ public class BattleSystem : MonoBehaviour
     /// 領土内の敵候補を最近接順に最大N体（シールド前=1, シールド発動後=3）選び、
     /// 各々の MaxHP × 30% を DEF 無視固定ダメージとして適用する。
     /// </summary>
-    public static void ProcessCrystalCounter(GameSystems systems, Status crystal, string trigger)
+    public static void ProcessCrystalCounter(GameSystems systems, Status crystal, CrystalCounterTrigger trigger)
     {
         if (systems == null || crystal == null) return;
         if (!crystal.IsAlive || crystal.HP <= 0) return;
@@ -297,7 +300,7 @@ public class BattleSystem : MonoBehaviour
         {
             var s = t.GetComponent<Status>();
             if (s == null || s.kind != Kind.Crystal) continue;
-            ProcessCrystalCounter(systems, s, "TurnStart");
+            ProcessCrystalCounter(systems, s, CrystalCounterTrigger.TurnStart);
         }
     }
 
