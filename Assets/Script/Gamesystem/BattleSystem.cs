@@ -347,6 +347,9 @@ public class BattleSystem : MonoBehaviour
             visionGen.AddExploredRange(Target.team, Target.VisionCell);
         }
 
+        // レベル・経験値・ステータスを Lv1 にリセット（次回スポーン時のために）
+        Target.ResetToLv1();
+
         Target.gameObject.SetActive(false);
 
         turnGenerator.Systems.VisionGenerator.VisionPoint(

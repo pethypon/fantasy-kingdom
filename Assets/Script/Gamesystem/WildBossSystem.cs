@@ -94,10 +94,12 @@ public class WildBossSystem : MonoBehaviour
             int dx = Mathf.Abs(Mathf.RoundToInt(p.x) - cx);
             int dz = Mathf.Abs(Mathf.RoundToInt(p.z) - cz);
             if (Mathf.Max(dx, dz) > TerritoryRadius) continue;
+            // 強敵自身が立つ中心タイルには縄張りタイルを置かない（3×3 から中心を除外して8マス）
+            if (dx == 0 && dz == 0) continue;
             var tilePos = new Vector3(p.x, p.y - 0.475f, p.z);
             _territoryTiles.Add(Instantiate(wildBossTerritoryPrefab, tilePos, Quaternion.identity, tParent));
         }
-        Debug.Log($"[WildBoss] 縄張りタイル設置 ({_territoryTiles.Count}マス)");
+        Debug.Log($"[WildBoss] 縄張りタイル設置 ({_territoryTiles.Count}マス、中心除外）");
     }
 
     public void GenerateWildBoss()

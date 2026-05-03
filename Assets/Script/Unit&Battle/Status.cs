@@ -501,6 +501,22 @@ public class Status : MonoBehaviour
         int actualXP = UnityEngine.Mathf.FloorToInt(damage * (1f + barracksXPPercent / 100f));
         GainExperience(actualXP);
     }
+
+    /// <summary>
+    /// レベル・経験値・ATK/DEF/MaxHP を Lv1 の基礎値にリセットする（駒撃破時に呼ばれる）。
+    /// HP は 0 のまま維持（次回スポーン時に MaxHP 付与される想定）。
+    /// </summary>
+    public void ResetToLv1()
+    {
+        if (!UnitStaticData.Table.TryGetValue(kind, out var info)) return;
+        Level = 1;
+        Experience = 0;
+        ATK = info.BaseATK;
+        DEF = info.BaseDEF;
+        MaxHP = info.BaseHP;
+        // HP は 0 のまま（撃破直後）
+        UnityEngine.Debug.Log($"[Status] {kind} を Lv1 にリセット (ATK={ATK} DEF={DEF} MaxHP={MaxHP})");
+    }
 }
 
 // =====================================================================
