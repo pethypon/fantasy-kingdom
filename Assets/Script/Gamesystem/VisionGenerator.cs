@@ -376,6 +376,27 @@ public class VisionGenerator : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 自陣オブジェクト用: 視界に関係なく Renderer/Collider/Canvas を強制的に有効化する。
+    /// 過去に SetRendererVisibility で無効化された場合の復帰も担保する。
+    /// </summary>
+    void ForceShowAll(IEnumerable targets)
+    {
+        if (targets == null) return;
+
+        foreach (Transform Temporary in targets)
+        {
+            Temporary.GetComponentsInChildren(true, _visRenderers);
+            foreach (var r in _visRenderers) r.enabled = true;
+
+            Temporary.GetComponentsInChildren(true, _visColliders);
+            foreach (var c in _visColliders) c.enabled = true;
+
+            Temporary.GetComponentsInChildren(true, _visCanvases);
+            foreach (var cv in _visCanvases) cv.gameObject.SetActive(true);
+        }
+    }
+
     // ==== メインメソッド ====
 
     public void VisionPoint(MapCreate mapcreate, MoveGenerator moveGenerator, CrystalSystem crystalsystem)
@@ -624,7 +645,8 @@ public class VisionGenerator : MonoBehaviour
         SetFogVisibility(mapcreate.FogExploardBoardParent, playervisionXZ, playerexploardXZ, true);
         SetFogVisibility(mapcreate.FogExploardParent, playervisionXZ, playerexploardXZ, true);
 
-        // 駒の視界外の敵を見えないようにする
+        // 視界外で非表示化する対象は「敵側のみ」: 駒・クリスタル・領土・建物・強敵
+        // 自陣の駒/クリスタル/サブクリスタル/建物は常に表示する（プレイヤー所有）
         SetRendererVisibility(EnemyUnit, playervisionXZ);
         SetRendererVisibility(crystalsystem.Enemycrystal, playervisionXZ);
         SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);
@@ -635,12 +657,14 @@ public class VisionGenerator : MonoBehaviour
             SetRendererVisibility(_enemyBuildingParent, playervisionXZ);
         }
 
-        // プレイヤー側の駒・建築物・クリスタルも視界外で非表示にする（すべての駒/建築物を対象）
-        SetRendererVisibility(PlayerUnit, playervisionXZ);
-        SetRendererVisibility(crystalsystem.Playercrystal, playervisionXZ);
+        // 自陣（Player）の駒・クリスタル・建物は視界外でも常時表示する
+        // → SetRendererVisibility は呼ばない（一度無効化されると次フレームで戻らないため、
+        //   全 Renderer/Collider/Canvas を強制的に有効化する）
+        ForceShowAll(PlayerUnit);
+        ForceShowAll(crystalsystem.Playercrystal);
         if (_playerBuildingParent != null)
         {
-            SetRendererVisibility(_playerBuildingParent, playervisionXZ);
+            ForceShowAll(_playerBuildingParent);
         }
 
         // 強敵(WildBoss)本体と縄張りタイルも視界外で非表示にする
