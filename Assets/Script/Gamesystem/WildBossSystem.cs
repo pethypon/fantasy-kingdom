@@ -21,6 +21,11 @@ public class WildBossSystem : MonoBehaviour
     [SerializeField] GameObject wildBossTerritoryPrefab;
     [SerializeField] Transform wildBossTerritoryParent;
 
+    /// <summary>強敵(WildBoss)本体の配置親 (VisionGeneratorからの読み取り用)</summary>
+    public Transform BossParent => parent != null ? parent : transform;
+    /// <summary>縄張りタイルの配置親 (VisionGeneratorからの読み取り用)</summary>
+    public Transform TerritoryParent => wildBossTerritoryParent != null ? wildBossTerritoryParent : transform;
+
     private MapCreate mapcreate;
     private CrystalSystem crystalsystem;
     private TerritorySystem territorysystem;
