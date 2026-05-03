@@ -94,6 +94,8 @@ public static class SystemInitializer
             buildingAttackSystem.SetSubCrystalSystem(subCrystalSystem);
         if (buildSystem != null)
             visionGenerator.SetBuildingParents(buildSystem.PlayerBuildingParent, buildSystem.EnemyBuildingParent);
+        // 強敵(WildBoss)本体と縄張りも視界外で非表示にする
+        visionGenerator.SetWildBossParents(wildBossSystem.BossParent, wildBossSystem.TerritoryParent);
     }
 
     /// <summary>

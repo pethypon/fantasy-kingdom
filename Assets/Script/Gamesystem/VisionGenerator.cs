@@ -100,10 +100,20 @@ public class VisionGenerator : MonoBehaviour
     private Transform _playerBuildingParent;
     private Transform _enemyBuildingParent;
 
+    [Header("強敵関連の親")]
+    private Transform _wildBossParent;
+    private Transform _wildBossTerritoryParent;
+
     public void SetBuildingParents(Transform playerParent, Transform enemyParent)
     {
         _playerBuildingParent = playerParent;
         _enemyBuildingParent = enemyParent;
+    }
+
+    public void SetWildBossParents(Transform bossParent, Transform territoryParent)
+    {
+        _wildBossParent = bossParent;
+        _wildBossTerritoryParent = territoryParent;
     }
 
     int blockLayerMask;
@@ -632,5 +642,11 @@ public class VisionGenerator : MonoBehaviour
         {
             SetRendererVisibility(_playerBuildingParent, playervisionXZ);
         }
+
+        // 強敵(WildBoss)本体と縄張りタイルも視界外で非表示にする
+        if (_wildBossParent != null)
+            SetRendererVisibility(_wildBossParent, playervisionXZ);
+        if (_wildBossTerritoryParent != null)
+            SetRendererVisibility(_wildBossTerritoryParent, playervisionXZ);
     }
 }
