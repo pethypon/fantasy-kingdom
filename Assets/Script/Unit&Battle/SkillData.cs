@@ -317,16 +317,16 @@ public class SkillData
     {
         float roll = Random.Range(0f, 1f);
         List<int> primary;
-        Rarity primaryRarity;
-        if (roll < 0.05f) { primary = LegendaryIds;  primaryRarity = Rarity.Legendary;  }
-        else if (roll < 0.20f) { primary = SuperRareIds; primaryRarity = Rarity.SuperRare; }
-        else if (roll < 0.40f) { primary = RareIds;      primaryRarity = Rarity.Rare;      }
-        else                   { primary = NormalIds;    primaryRarity = Rarity.Normal;    }
+        SkillRarity primaryRarity;
+        if (roll < 0.05f) { primary = LegendaryIds;  primaryRarity = SkillRarity.Legendary;  }
+        else if (roll < 0.20f) { primary = SuperRareIds; primaryRarity = SkillRarity.SuperRare; }
+        else if (roll < 0.40f) { primary = RareIds;      primaryRarity = SkillRarity.Rare;      }
+        else                   { primary = NormalIds;    primaryRarity = SkillRarity.Normal;    }
         if (primary.Count == 0)
         {
             Debug.LogError($"[SkillData] {primaryRarity} スキルプールが空のため Normal にフォールバック（要プール定義修正）");
             primary = NormalIds;
-            primaryRarity = Rarity.Normal;
+            primaryRarity = SkillRarity.Normal;
         }
 
         var picked = new List<int>();
