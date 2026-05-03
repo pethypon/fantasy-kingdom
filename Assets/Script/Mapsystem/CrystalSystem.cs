@@ -9,9 +9,9 @@ public class CrystalSystem : MonoBehaviour
 
     [Header("クリスタル間距離")]
     public int CrystalDistanceXmin = 1;
-    public int CrystalDistanceXmax = 10;
+    public int CrystalDistanceXmax = 8;
     public int CrystalDistanceZmin = 1;
-    public int CrystalDistanceZmax = 10;
+    public int CrystalDistanceZmax = 8;
 
     [Header("クリスタル親オブジェクト")]
     public Transform Playercrystal;
