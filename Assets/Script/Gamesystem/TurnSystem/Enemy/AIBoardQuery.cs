@@ -12,6 +12,9 @@ public static class AIBoardQuery
     //  座標ヘルパー — GridHelper に委譲
     // ================================================================
 
+    /// <summary>有効ユニット判定: null でない && GameObject がアクティブ。Status.IsAlive と異なり HP=0 でも true を返す（旧来の `u == null || !u.gameObject.activeInHierarchy` 反転チェックと等価）。</summary>
+    private static bool IsActiveUnit(Status u) => u != null && u.gameObject.activeInHierarchy;
+
     /// <summary>範囲セル内に存在する最初のユニットを返す（見つからなければnull）</summary>
     public static Status FindFirstUnitInArea(List<Vector3Int> areaCells, List<Status> units)
     {
@@ -19,7 +22,7 @@ public static class AIBoardQuery
         {
             foreach (var u in units)
             {
-                if (u == null || !u.gameObject.activeInHierarchy) continue;
+                if (!IsActiveUnit(u)) continue;
                 var uCell = GridHelper.ToGridXZ(u.transform.position);
                 if (GridHelper.MatchXZ(ac, uCell)) return u;
             }
@@ -38,7 +41,7 @@ public static class AIBoardQuery
         {
             foreach (var u in candidates)
             {
-                if (u == null || !u.gameObject.activeInHierarchy) continue;
+                if (!IsActiveUnit(u)) continue;
                 var uCell = GridHelper.ToGridXZ(u.transform.position);
                 if (GridHelper.MatchXZ(ac, uCell)) result.Add(u);
             }
@@ -69,7 +72,7 @@ public static class AIBoardQuery
         float nearestSqr = float.MaxValue;
         foreach (var u in board.AliveEnemyUnits)
         {
-            if (u == null || !u.gameObject.activeInHierarchy || u == self) continue;
+            if (!IsActiveUnit(u) || u == self) continue;
             float sqr = (pos - u.transform.position).sqrMagnitude;
             if (sqr < nearestSqr) nearestSqr = sqr;
         }
@@ -83,7 +86,7 @@ public static class AIBoardQuery
         float sqrRadius = radius * radius;
         foreach (var u in board.AliveEnemyUnits)
         {
-            if (u == null || !u.gameObject.activeInHierarchy || u == self) continue;
+            if (!IsActiveUnit(u) || u == self) continue;
             if ((pos - u.transform.position).sqrMagnitude <= sqrRadius) count++;
         }
         return count;
@@ -95,7 +98,7 @@ public static class AIBoardQuery
         float sqrRange = range * range;
         foreach (var u in board.AliveEnemyUnits)
         {
-            if (u == null || !u.gameObject.activeInHierarchy) continue;
+            if (!IsActiveUnit(u)) continue;
             if (u.AssignedSkillId < 0) continue;
             if (!SkillData.Table.TryGetValue(u.AssignedSkillId, out var skill)) continue;
             if (skill.FixedHeal > 0 && (pos - u.transform.position).sqrMagnitude <= sqrRange)
@@ -117,7 +120,7 @@ public static class AIBoardQuery
         int totalDmg = 0;
         foreach (var pu in board.AlivePlayerUnits)
         {
-            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
+            if (!IsActiveUnit(pu)) continue;
             float maxRange = EstimateAttackRange(pu) + 1.5f; // 移動+攻撃マージン
             float sqrThreshold = maxRange * maxRange;
             if ((pos - pu.transform.position).sqrMagnitude > sqrThreshold) continue;
@@ -351,22 +354,22 @@ public static class AIBoardQuery
     public static float GetEconomicSurplus(AIBoardState board)
     {
         if (board.EnemyResources == null) return 0f;
-        // パン・鉄・木を総合的に判断。各30以上で余裕あり
-        float breadSurplus = Mathf.Clamp01(board.EnemyResources.Bread / 30f);
-        float ironSurplus = Mathf.Clamp01(board.EnemyResources.Iron / 20f);
-        float woodSurplus = Mathf.Clamp01(board.EnemyResources.Wood / 20f);
+        // パン・鉄・木を総合的に判断。各 ResourceSurplus_* 以上で余裕あり
+        float breadSurplus = Mathf.Clamp01(board.EnemyResources.Bread / AIConstants.ResourceSurplus_Bread);
+        float ironSurplus = Mathf.Clamp01(board.EnemyResources.Iron / AIConstants.ResourceSurplus_Iron);
+        float woodSurplus = Mathf.Clamp01(board.EnemyResources.Wood / AIConstants.ResourceSurplus_Wood);
         return (breadSurplus + ironSurplus + woodSurplus) / 3f;
     }
 
     /// <summary>
     /// 資源のボトルネック度を返す（0〜1、高いほど不足）。
-    /// AIが「何を建てるべきか」の判断に使用。30以下で不足感、0で最大不足。
+    /// AIが「何を建てるべきか」の判断に使用。閾値未満で不足感、0で最大不足。
     /// </summary>
     public static float GetResourceScarcity(AIBoardState board, string resourceName)
     {
         if (board.EnemyResources == null) return 0f;
         int amount = GetResourceAmount(board, resourceName);
-        return amount < 0 ? 0f : Mathf.Clamp01(1f - amount / 30f);
+        return amount < 0 ? 0f : Mathf.Clamp01(1f - amount / AIConstants.ResourceScarcity_Threshold);
     }
 
     /// <summary>資源名から現在量を取得（不明なら-1）</summary>

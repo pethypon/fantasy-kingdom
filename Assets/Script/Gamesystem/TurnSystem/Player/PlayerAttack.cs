@@ -105,10 +105,7 @@ public class PlayerAttack : TurnState
     {
         if (Systems.SkillSystem == null) return;
 
-        Vector3Int center = new Vector3Int(
-            Mathf.RoundToInt(caster.transform.position.x),
-            0,
-            Mathf.RoundToInt(caster.transform.position.z));
+        Vector3Int center = GridHelper.ToGridXZ(caster.transform.position);
 
         var positions = SkillSystem.GetAreaPositions(skill.Area, center, caster.direction);
         positions = SkillSystem.FilterLineSkillBlocked(positions, skill.Area, center,
@@ -120,10 +117,7 @@ public class PlayerAttack : TurnState
         foreach (Status s in parent.GetComponentsInChildren<Status>())
         {
             if (s.type != Type.Unit) continue;
-            Vector3Int cell = new Vector3Int(
-                Mathf.RoundToInt(s.transform.position.x), 0,
-                Mathf.RoundToInt(s.transform.position.z));
-            if (posSet.Contains(cell))
+            if (posSet.Contains(GridHelper.ToGridXZ(s.transform.position)))
                 allies.Add(s);
         }
 

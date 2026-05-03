@@ -250,13 +250,11 @@ public static class AIActionModifiers
                 && action.ActionType != AIActionType.Support
                 && action.ActionType != AIActionType.Retreat) continue;
 
-            int tx = Mathf.RoundToInt(action.TargetPos.x);
-            int tz = Mathf.RoundToInt(action.TargetPos.z);
-            int cx = Mathf.RoundToInt(action.Unit.transform.position.x);
-            int cz = Mathf.RoundToInt(action.Unit.transform.position.z);
+            var t = GridHelper.ToGridXZ(action.TargetPos);
+            var c = GridHelper.ToGridXZ(action.Unit.transform.position);
 
-            if (!GridHelper.TryGetHeight(setPos, tx, tz, out float ty)) continue;
-            if (!GridHelper.TryGetHeight(setPos, cx, cz, out float cy)) continue;
+            if (!GridHelper.TryGetHeight(setPos, t.x, t.z, out float ty)) continue;
+            if (!GridHelper.TryGetHeight(setPos, c.x, c.z, out float cy)) continue;
 
             int dy = Mathf.RoundToInt(ty) - Mathf.RoundToInt(cy);
             if (dy >= GameConstants.HighGroundYThreshold)

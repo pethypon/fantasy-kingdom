@@ -97,6 +97,19 @@ public static class AIConstants
     public const float RP_Discount_Rate    = 0.85f; // 1ターンごとの割引率
 
     // =====================================================================
+    //  資源余剰・希少度の判定閾値（AIBoardQuery で使用）
+    //  この値を上回ると「余裕あり」、下回ると「不足」と判定される。
+    // =====================================================================
+    /// <summary>パン: 充足とみなす閾値</summary>
+    public const float ResourceSurplus_Bread = 30f;
+    /// <summary>鉄: 充足とみなす閾値</summary>
+    public const float ResourceSurplus_Iron = 20f;
+    /// <summary>木: 充足とみなす閾値</summary>
+    public const float ResourceSurplus_Wood = 20f;
+    /// <summary>資源希少度判定の基準量（これ未満で不足、0で最大不足）</summary>
+    public const float ResourceScarcity_Threshold = 30f;
+
+    // =====================================================================
     //  領土/視界
     // =====================================================================
     public const float TERRITORY_Per_Cell  = 0.3f;
