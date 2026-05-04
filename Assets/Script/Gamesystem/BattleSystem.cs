@@ -273,6 +273,7 @@ public class BattleSystem : MonoBehaviour
                     Vector3 cellPos = systems.MoveGenerator.Cell(t.transform.position);
                     systems.MoveGenerator.RemoveOccupied(cellPos);
                 }
+                t.ResetToLv1();
                 t.gameObject.SetActive(false);
             }
         }

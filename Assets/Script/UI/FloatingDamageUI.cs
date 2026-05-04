@@ -107,8 +107,26 @@ public class FloatingDamageUI : MonoBehaviour
     //  内部処理
     // ================================================================
 
+    /// <summary>
+    /// プレイヤー視界内にこのワールド座標があるか。視界外の演出を抑制し
+    /// フォグオブウォーの情報漏洩を防ぐ。VisionGenerator は遅延キャッシュ。
+    /// </summary>
+    private static VisionGenerator _cachedVisionGen;
+    private static bool IsPositionVisibleToPlayer(Vector3 worldPos)
+    {
+        if (_cachedVisionGen == null)
+            _cachedVisionGen = Object.FindFirstObjectByType<VisionGenerator>();
+        if (_cachedVisionGen == null) return true; // 未起動時は表示する
+        var cell = new Vector3Int(
+            Mathf.RoundToInt(worldPos.x), 0, Mathf.RoundToInt(worldPos.z));
+        return _cachedVisionGen.IsInVision(Team.Player, cell);
+    }
+
     private void Spawn(Vector3 worldPos, string text, Color color)
     {
+        // 視界外の位置で発生した演出は抑制（フォグオブウォーの整合性）
+        if (!IsPositionVisibleToPlayer(worldPos)) return;
+
         ref var popup = ref _pool[_nextIndex];
 
         // 古いのが使用中でも強制リサイクル
