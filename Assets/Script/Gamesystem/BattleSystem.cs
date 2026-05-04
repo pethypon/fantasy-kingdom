@@ -233,6 +233,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (systems == null || crystal == null) return;
         if (!crystal.IsAlive || crystal.HP <= 0) return;
+        if (crystal.MaxHP <= 0) return; // 未初期化クリスタル等の防御的ガード
 
         Team crystalTeam = crystal.team;
         Team enemyTeam = crystalTeam == Team.Player ? Team.Enemy : Team.Player;
