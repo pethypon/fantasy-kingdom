@@ -517,6 +517,30 @@ public class Status : MonoBehaviour
         // HP は 0 のまま（撃破直後）
         UnityEngine.Debug.Log($"[Status] {kind} を Lv1 にリセット (ATK={ATK} DEF={DEF} MaxHP={MaxHP})");
     }
+
+    /// <summary>
+    /// HP が 0 になった駒の共通クリーンアップ処理。
+    /// BattleSystem 経由でない攻撃 (WildBoss/BuildingAttack/Dungeon モンスター反撃 等)
+    /// が ApplyDamage 後に呼び、ゴースト駒（HP=0 だが scene に残る）を防ぐ。
+    /// 既に非アクティブなら何もしない（idempotent）。
+    /// </summary>
+    public void HandleDeathIfDead()
+    {
+        if (HP > 0 || type != Type.Unit) return;
+        if (!gameObject.activeInHierarchy) return;
+
+        // MoveGenerator の占有セル解除
+        var moveGen = UnityEngine.Object.FindFirstObjectByType<MoveGenerator>();
+        if (moveGen != null)
+        {
+            UnityEngine.Vector3 cellPos = moveGen.Cell(transform.position);
+            moveGen.RemoveOccupied(cellPos);
+        }
+
+        ResetToLv1();
+        gameObject.SetActive(false);
+        UnityEngine.Debug.Log($"[Status] {team} {kind} が HP=0 で非表示化（HandleDeathIfDead）");
+    }
 }
 
 // =====================================================================

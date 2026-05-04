@@ -523,6 +523,7 @@ public class WildBossSystem : MonoBehaviour
         if (SpawnedBoss.wildBossAtkBuffTurns > 0) dmg = Mathf.RoundToInt(dmg * 1.25f);
         target.ApplyDamage(dmg);
         Debug.Log($"[WildBoss] 通常攻撃: {target.kind} に {dmg} dmg");
+        target.HandleDeathIfDead();
     }
 
     void AttackTargetWithDebuff(Status target, StatusEffectType debuff, int duration)
@@ -776,6 +777,7 @@ public class WildBossSystem : MonoBehaviour
             int dmg = Mathf.RoundToInt(DamageCalculator.CalcNormal(SpawnedBoss, t) * 1.25f);
             t.ApplyDamage(dmg);
             Debug.Log($"[WildBoss/ThunderMagus] 雷直撃: {t.kind} に {dmg}");
+            t.HandleDeathIfDead();
         }
     }
 
@@ -794,5 +796,6 @@ public class WildBossSystem : MonoBehaviour
         int reflect = Mathf.RoundToInt(receivedDamage * mult);
         attacker.ApplyDamage(reflect);
         Debug.Log($"[WildBoss/RebelKnight] 反撃×{mult}: {attacker.kind} に {reflect} dmg");
+        attacker.HandleDeathIfDead();
     }
 }
