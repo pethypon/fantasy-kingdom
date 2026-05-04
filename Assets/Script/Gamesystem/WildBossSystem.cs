@@ -21,10 +21,29 @@ public class WildBossSystem : MonoBehaviour
     [SerializeField] GameObject wildBossTerritoryPrefab;
     [SerializeField] Transform wildBossTerritoryParent;
 
-    /// <summary>強敵(WildBoss)本体の配置親 (VisionGeneratorからの読み取り用)。未設定時はnullを返す。</summary>
-    public Transform BossParent => parent;
-    /// <summary>縄張りタイルの配置親 (VisionGeneratorからの読み取り用)。未設定時はnullを返す。</summary>
-    public Transform TerritoryParent => wildBossTerritoryParent;
+    /// <summary>
+    /// WildBoss関連オブジェクトの自動コンテナ。
+    /// Inspector で parent / wildBossTerritoryParent が未設定でも、
+    /// transform=GameGenerator 直下にぶら下げず、専用の子GameObjectにまとめる。
+    /// これにより VisionGenerator.SetRendererVisibility が
+    /// GameGenerator の子全部 (=世界全体) を巻き込むバグを防ぐ。
+    /// </summary>
+    Transform _autoContainer;
+    Transform GetOrCreateAutoContainer()
+    {
+        if (_autoContainer == null)
+        {
+            var go = new GameObject("WildBossContainer");
+            go.transform.SetParent(transform, false);
+            _autoContainer = go.transform;
+        }
+        return _autoContainer;
+    }
+
+    /// <summary>強敵(WildBoss)本体の配置親 (VisionGeneratorからの読み取り用)。Inspector未設定時は自動コンテナ。</summary>
+    public Transform BossParent => parent != null ? parent : GetOrCreateAutoContainer();
+    /// <summary>縄張りタイルの配置親 (VisionGeneratorからの読み取り用)。Inspector未設定時は自動コンテナ。</summary>
+    public Transform TerritoryParent => wildBossTerritoryParent != null ? wildBossTerritoryParent : GetOrCreateAutoContainer();
 
     private MapCreate mapcreate;
     private CrystalSystem crystalsystem;
@@ -86,7 +105,7 @@ public class WildBossSystem : MonoBehaviour
             return;
         }
         if (mapcreate == null) return;
-        Transform tParent = wildBossTerritoryParent != null ? wildBossTerritoryParent : transform;
+        Transform tParent = TerritoryParent;
         int cx = Mathf.RoundToInt(center.x);
         int cz = Mathf.RoundToInt(center.z);
         foreach (var p in mapcreate.SetPos)
@@ -215,7 +234,7 @@ public class WildBossSystem : MonoBehaviour
             Debug.LogError("[WildBoss] SpawnAt: prefab が null");
             return;
         }
-        Transform spawnParent = parent != null ? parent : transform;
+        Transform spawnParent = BossParent;
         GameObject obj = unitSetting != null
             ? unitSetting.SpawnUnit(prefab, pos, spawnParent, 1)
             : Instantiate(prefab, pos, Quaternion.identity, spawnParent);
@@ -523,6 +542,7 @@ public class WildBossSystem : MonoBehaviour
         if (SpawnedBoss.wildBossAtkBuffTurns > 0) dmg = Mathf.RoundToInt(dmg * 1.25f);
         target.ApplyDamage(dmg);
         Debug.Log($"[WildBoss] 通常攻撃: {target.kind} に {dmg} dmg");
+        target.HandleDeathIfDead();
     }
 
     void AttackTargetWithDebuff(Status target, StatusEffectType debuff, int duration)
@@ -651,7 +671,7 @@ public class WildBossSystem : MonoBehaviour
         var g = adj.Value;
         var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
         go.name = "GhostDecoy";
-        go.transform.SetParent(parent != null ? parent : transform);
+        go.transform.SetParent(BossParent);
         go.transform.position = new Vector3(g.x, g.y, g.z);
         go.transform.localScale = new Vector3(0.9f, 1.1f, 0.9f);
         var r = go.GetComponent<Renderer>();
@@ -691,7 +711,7 @@ public class WildBossSystem : MonoBehaviour
             var g = adj.Value;
             var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             go.name = "GuardKnight";
-            go.transform.SetParent(parent != null ? parent : transform);
+            go.transform.SetParent(BossParent);
             go.transform.position = new Vector3(g.x, g.y, g.z);
             go.transform.localScale = new Vector3(0.8f, 1f, 0.8f);
             var r = go.GetComponent<Renderer>();
@@ -730,7 +750,7 @@ public class WildBossSystem : MonoBehaviour
         var g = adj.Value;
         var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
         go.name = "ThunderCrystal";
-        go.transform.SetParent(parent != null ? parent : transform);
+        go.transform.SetParent(BossParent);
         go.transform.position = new Vector3(g.x, g.y + 0.3f, g.z);
         go.transform.localScale = new Vector3(0.4f, 0.6f, 0.4f);
         var col = go.GetComponent<Collider>(); if (col != null) col.enabled = false;
@@ -776,6 +796,7 @@ public class WildBossSystem : MonoBehaviour
             int dmg = Mathf.RoundToInt(DamageCalculator.CalcNormal(SpawnedBoss, t) * 1.25f);
             t.ApplyDamage(dmg);
             Debug.Log($"[WildBoss/ThunderMagus] 雷直撃: {t.kind} に {dmg}");
+            t.HandleDeathIfDead();
         }
     }
 
@@ -794,5 +815,6 @@ public class WildBossSystem : MonoBehaviour
         int reflect = Mathf.RoundToInt(receivedDamage * mult);
         attacker.ApplyDamage(reflect);
         Debug.Log($"[WildBoss/RebelKnight] 反撃×{mult}: {attacker.kind} に {reflect} dmg");
+        attacker.HandleDeathIfDead();
     }
 }

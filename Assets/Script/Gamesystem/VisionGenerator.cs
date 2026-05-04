@@ -104,6 +104,9 @@ public class VisionGenerator : MonoBehaviour
     private Transform _wildBossParent;
     private Transform _wildBossTerritoryParent;
 
+    [Header("ダンジョン関連の親")]
+    private Transform _dungeonMarkerParent;
+
     public void SetBuildingParents(Transform playerParent, Transform enemyParent)
     {
         _playerBuildingParent = playerParent;
@@ -114,6 +117,11 @@ public class VisionGenerator : MonoBehaviour
     {
         _wildBossParent = bossParent;
         _wildBossTerritoryParent = territoryParent;
+    }
+
+    public void SetDungeonMarkerParent(Transform markerParent)
+    {
+        _dungeonMarkerParent = markerParent;
     }
 
     int blockLayerMask;
@@ -672,5 +680,9 @@ public class VisionGenerator : MonoBehaviour
             SetRendererVisibility(_wildBossParent, playervisionXZ);
         if (_wildBossTerritoryParent != null)
             SetRendererVisibility(_wildBossTerritoryParent, playervisionXZ);
+
+        // ダンジョンマーカーも視界外で非表示にする
+        if (_dungeonMarkerParent != null)
+            SetRendererVisibility(_dungeonMarkerParent, playervisionXZ);
     }
 }

@@ -48,6 +48,9 @@ public class DungeonSystem : MonoBehaviour
     public IReadOnlyList<DungeonInfo> Dungeons => _dungeons;
     private readonly List<DungeonInfo> _dungeons = new List<DungeonInfo>();
 
+    /// <summary>ダンジョンマーカーの専用親コンテナ（VisionGeneratorからの視界制御用）。Init で生成。</summary>
+    public Transform MarkerParent { get; private set; }
+
     private MapCreate mapcreate;
     private CrystalSystem crystalsystem;
     private TerritorySystem territorysystem;
@@ -65,6 +68,14 @@ public class DungeonSystem : MonoBehaviour
         this.factionState = factionState;
         this.unitSetting = unitSetting;
         this.buildsystem = buildsystem;
+
+        // マーカー専用コンテナを生成（VisionGenerator が一括で表示制御するため）
+        if (MarkerParent == null)
+        {
+            var holder = new GameObject("DungeonMarkers");
+            holder.transform.SetParent(transform, false);
+            MarkerParent = holder.transform;
+        }
     }
 
     // ==================================================================
@@ -149,6 +160,7 @@ public class DungeonSystem : MonoBehaviour
     {
         var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
         marker.name = $"Dungeon_{pos.x}_{pos.z}";
+        if (MarkerParent != null) marker.transform.SetParent(MarkerParent, false);
         marker.transform.position = new Vector3(pos.x, pos.y + 0.2f, pos.z);
         marker.transform.localScale = new Vector3(0.6f, 0.4f, 0.6f);
         var col = marker.GetComponent<Collider>();
@@ -259,6 +271,7 @@ public class DungeonSystem : MonoBehaviour
             int dmg = Mathf.Max(1, atk - s.DEF / 4);
             s.ApplyDamage(dmg);
             Debug.Log($"[DungeonSystem] モンスター反撃: {s.kind} に {dmg} ダメージ（残HP:{s.HP}）");
+            s.HandleDeathIfDead();
         }
     }
 

@@ -265,6 +265,8 @@ public class BuildingAttackSystem : MonoBehaviour
         {
             Vector3 cellPos = moveGererater.Cell(target.transform.position);
             moveGererater.RemoveOccupied(cellPos);
+            // ユニットの場合は Lv1 ステータスにリセットしてから非表示化
+            if (target.type == Type.Unit) target.ResetToLv1();
             target.gameObject.SetActive(false);
         }
 
