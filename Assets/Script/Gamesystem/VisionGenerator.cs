@@ -590,15 +590,20 @@ public class VisionGenerator : MonoBehaviour
     /// <summary>
     /// 視界ボーナス分の追加マスを既存視界の外周に拡張する
     /// </summary>
+    // ApplyVisionBonus 用の再利用バッファ（毎駒・毎ターン呼ばれるため GC圧削減）
+    private readonly HashSet<Vector3Int> _reusableCurrentVision = new HashSet<Vector3Int>();
+    private readonly List<Vector3Int> _reusableExpansion = new List<Vector3Int>();
+
     private void ApplyVisionBonus(Status status, MapCreate mapcreate,
                                    int statusX, int statusY, int statusZ, int bonus)
     {
         // 既存視界セルの外周1マスを追加（bonus回繰り返し）
-        var currentVision = new HashSet<Vector3Int>(status.VisionCell);
+        _reusableCurrentVision.Clear();
+        _reusableCurrentVision.UnionWith(status.VisionCell);
         for (int b = 0; b < bonus; b++)
         {
-            var expansion = new HashSet<Vector3Int>();
-            foreach (var cell in currentVision)
+            _reusableExpansion.Clear();
+            foreach (var cell in _reusableCurrentVision)
             {
                 for (int dx = -1; dx <= 1; dx++)
                 {
@@ -616,12 +621,13 @@ public class VisionGenerator : MonoBehaviour
                             // Raycast で遮蔽チェック
                             RaycastDirectVision(status, statusX, statusY, statusZ, nx, cell.y, nz);
                             if (status.VisionCell.Contains(newCell))
-                                expansion.Add(newCell);
+                                _reusableExpansion.Add(newCell);
                         }
                     }
                 }
             }
-            currentVision.UnionWith(expansion);
+            for (int i = 0; i < _reusableExpansion.Count; i++)
+                _reusableCurrentVision.Add(_reusableExpansion[i]);
         }
     }
 

@@ -201,6 +201,12 @@ public class GameGenerator : MonoBehaviour
         // ★ 最終チェック
         ValidateTurnGeneratorWiring();
 
+        // 初期化完了後の視界再計算: MapInitializer.Initialize 時点では
+        // WildBoss/Dungeon マーカーがまだ生成されていないため、
+        // ここで明示的に VisionPoint を呼んで Turn1 開始前に正しい視界状態にする
+        if (_VisionGenerator != null && _MapCreate != null && _MoveGenerator != null && _CrystalSystem != null)
+            _VisionGenerator.VisionPoint(_MapCreate, _MoveGenerator, _CrystalSystem);
+
         // Step 10: 最初のターン開始
         _TurnGenerator.StartFirstTurn();
     }

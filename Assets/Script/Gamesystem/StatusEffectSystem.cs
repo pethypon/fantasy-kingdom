@@ -142,6 +142,8 @@ public static class StatusEffectSystem
             {
                 target.ApplyDamage(GameConstants.PoisonDamagePerTurn);
                 Debug.Log($"[StatusEffect] {target.kind} が毒で {GameConstants.PoisonDamagePerTurn} ダメージ (残HP:{target.HP})");
+                target.HandleDeathIfDead();
+                if (!target.IsAlive) return; // 死亡時は以降のループ・処理をスキップ
             }
         }
 
@@ -282,6 +284,7 @@ public static class StatusEffectSystem
         int reflectDmg = Random.Range(5, 11); // 5〜10
         attacker.ApplyDamage(reflectDmg);
         Debug.Log($"[StatusEffect] {target.kind} の反射で {attacker.kind} に {reflectDmg} ダメージ");
+        attacker.HandleDeathIfDead();
         return reflectDmg;
     }
 }
