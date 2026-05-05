@@ -505,9 +505,15 @@ public class Status : MonoBehaviour
     /// <summary>
     /// レベル・経験値・ATK/DEF/MaxHP を Lv1 の基礎値にリセットする（駒撃破時に呼ばれる）。
     /// HP は 0 のまま維持（次回スポーン時に MaxHP 付与される想定）。
+    ///
+    /// 注: WildBoss (isWildBoss==true) は WildBossSystem.Profile で
+    /// アーキタイプ別ステータス (HP=6200〜8200 等) を持つため、
+    /// UnitStaticData.Boss (HP=20000) で上書きすると整合性が崩れる。
+    /// WildBoss は撃破後に再活性化されない設計のため、リセット自体をスキップする。
     /// </summary>
     public void ResetToLv1()
     {
+        if (isWildBoss) return; // WildBoss は専用 Profile を持つためリセット対象外
         if (!UnitStaticData.Table.TryGetValue(kind, out var info)) return;
         Level = 1;
         Experience = 0;

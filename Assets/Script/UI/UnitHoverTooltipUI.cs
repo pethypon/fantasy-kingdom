@@ -15,6 +15,8 @@ public class UnitHoverTooltipUI : MonoBehaviour
     private TextMeshProUGUI _text;
     private CanvasGroup _group;
     private Status _lastHovered;
+    private Vector2 _lastMousePos = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+    private bool _lastFrameHadHit;
 
     private const float PanelWidth = 240f;
     private const float PanelHeight = 56f;
@@ -84,8 +86,27 @@ public class UnitHoverTooltipUI : MonoBehaviour
         }
 
         Vector2 mousePos = Mouse.current.position.ReadValue();
-        Ray ray = Camera.main.ScreenPointToRay(mousePos);
 
+        // パフォーマンス最適化: マウスが動いていなければ Raycast をスキップし、
+        // 前回の判定結果を使い回す（毎フレーム Physics.Raycast を抑制）。
+        bool mouseMoved = mousePos != _lastMousePos;
+        _lastMousePos = mousePos;
+
+        if (!mouseMoved && _lastHovered != null && _lastHovered.gameObject.activeInHierarchy)
+        {
+            // 既存ホバー状態を維持（位置・透明度のみ更新）
+            UpdatePosition(mousePos);
+            _group.alpha = Mathf.MoveTowards(_group.alpha, 1f, 8f * Time.deltaTime);
+            return;
+        }
+        if (!mouseMoved && !_lastFrameHadHit)
+        {
+            // 前回ヒットなしのまま静止 → フェードアウトのみ
+            _group.alpha = Mathf.MoveTowards(_group.alpha, 0f, 8f * Time.deltaTime);
+            return;
+        }
+
+        Ray ray = Camera.main.ScreenPointToRay(mousePos);
         if (Physics.Raycast(ray, out RaycastHit hit, GameConstants.DefaultRayDistance))
         {
             Status s = hit.transform.GetComponent<Status>();
@@ -96,6 +117,7 @@ public class UnitHoverTooltipUI : MonoBehaviour
                     _lastHovered = s;
                     UpdateTooltip(s);
                 }
+                _lastFrameHadHit = true;
                 UpdatePosition(mousePos);
                 _group.alpha = Mathf.MoveTowards(_group.alpha, 1f, 8f * Time.deltaTime);
                 return;
@@ -103,6 +125,7 @@ public class UnitHoverTooltipUI : MonoBehaviour
         }
 
         // ホバー解除
+        _lastFrameHadHit = false;
         if (_lastHovered != null)
         {
             _lastHovered = null;
