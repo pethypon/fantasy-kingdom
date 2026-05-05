@@ -792,9 +792,9 @@ MonoBehaviour:
   PlayerCrystal: {fileID: 5968385221705815995, guid: 79e2e7a16d4cb9f47abd9dba541fea55, type: 3}
   EnemyCrystal: {fileID: 4213766913943781015, guid: c54d983f8ca4bc04a91fd195f375f9a8, type: 3}
   CrystalDistanceXmin: 1
-  CrystalDistanceXmax: 20
+  CrystalDistanceXmax: 12
   CrystalDistanceZmin: 1
-  CrystalDistanceZmax: 20
+  CrystalDistanceZmax: 12
   Playercrystal: {fileID: 2240825122437951652}
   Enemycrystal: {fileID: 247707246277653756}
   PCP: {x: 0, y: 0, z: 0}
