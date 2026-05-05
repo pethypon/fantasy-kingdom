@@ -287,6 +287,8 @@ public partial class AICommander
         var searchEngine = new AISearchEngine(_threatLevel.SearchDepth, _threatLevel.SearchCandidateLimit, _rng);
         searchEngine.SetSimulationReferences(_moveGen, _unitSet, _crystalSystem, _apSystem);
         var topCandidates = new List<AIAction>();
+        // EvaluateAll の毎ループ new List を避けるための再利用バッファ
+        var actionsBuffer = new List<AIAction>(64);
 
         Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
         Debug.Log($"[AICommander] 方針={_currentStrategy}  理由=\"{strategyDecision.Reason}\"  AP={_board.EnemyAP}  " +
@@ -355,7 +357,8 @@ public partial class AICommander
             // AP予約を再計算（建築/召喚した後は予約を解除）
             reservedAP = CalcReservedAP();
 
-            var actions = AIActionEvaluator.EvaluateAll(_personality, _board, _learning, _currentStrategy);
+            AIActionEvaluator.EvaluateAllInto(actionsBuffer, _personality, _board, _learning, _currentStrategy);
+            var actions = actionsBuffer;
             if (actions.Count == 0)
             {
                 // 戦略フォールバック: 別の戦略を試す

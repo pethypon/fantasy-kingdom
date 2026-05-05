@@ -36,15 +36,31 @@ public static partial class AIActionEvaluator
         TurnStrategy strategy = TurnStrategy.Balanced)
     {
         var actions = new List<AIAction>();
+        EvaluateAllInto(actions, personality, board, learning, strategy);
+        return actions;
+    }
+
+    /// <summary>
+    /// 既存の List を再利用して候補を生成・スコア付けする。
+    /// AICommander.ExecuteTurn のホットループから毎回 new List を避けるための公開オーバーロード。
+    /// 入力 List は冒頭で Clear される。
+    /// </summary>
+    public static void EvaluateAllInto(
+        List<AIAction> actions,
+        AIPersonality personality,
+        AIBoardState board,
+        AILearning learning,
+        TurnStrategy strategy = TurnStrategy.Balanced)
+    {
+        if (actions == null) return;
+        actions.Clear();
 
         // 候補生成は AIActionGenerator に委譲
         AIActionGenerator.GenerateAllCandidates(board, actions);
 
         // 各候補にスコア付け
-        foreach (var action in actions)
-        {
-            action.Score = CalcScore(action, personality, board, learning);
-        }
+        for (int i = 0; i < actions.Count; i++)
+            actions[i].Score = CalcScore(actions[i], personality, board, learning);
 
         // ターン方針ボーナス（AIStrategyBonusに委譲）
         AIStrategyBonus.Apply(actions, strategy, board);
@@ -54,7 +70,6 @@ public static partial class AIActionEvaluator
 
         // スコア降順
         actions.Sort((a, b) => b.Score.CompareTo(a.Score));
-        return actions;
     }
 
     // ================================================================

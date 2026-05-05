@@ -68,14 +68,21 @@ public class CrystalSystem : MonoBehaviour
     // ==== プレイヤークリスタル配置 ====
     private void PlacePlayerCrystal()
     {
-        var candidates = new List<Vector3>();
-        foreach (var p in _SetPos)
-            if (p.x >= 6 && p.x <= maxx - 6 && p.z >= 6 && p.z <= maxz - 6)
-                candidates.Add(p);
-
-        if (candidates.Count == 0)
+        // 段階的に margin を緩めて候補抽出（小マップで margin=6 が厳しすぎる場合の保険）
+        int[] margins = { 6, 4, 2, 0 };
+        List<Vector3> candidates = null;
+        foreach (int margin in margins)
         {
-            Debug.LogError("[CrystalSystem] プレイヤークリスタルの配置候補が見つかりませんでした");
+            candidates = new List<Vector3>();
+            foreach (var p in _SetPos)
+                if (p.x >= margin && p.x <= maxx - margin && p.z >= margin && p.z <= maxz - margin)
+                    candidates.Add(p);
+            if (candidates.Count > 0) break;
+        }
+
+        if (candidates == null || candidates.Count == 0)
+        {
+            Debug.LogError("[CrystalSystem] プレイヤークリスタルの配置候補が見つかりませんでした (SetPos が空)");
             return;
         }
 
@@ -102,11 +109,26 @@ public class CrystalSystem : MonoBehaviour
             ECP = candidates[Random.Range(0, candidates.Count)];
             var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
             ApplyCrystalHP(eObj);
-            Debug.Log("<color=#ffff00ff>[StartSetting]</color> 敵クリスタル設置完了");
+            Debug.Log($"<color=#ffff00ff>[StartSetting]</color> 敵クリスタル設置完了 (relax={relax})");
             return;
         }
 
-        Debug.LogError("[CrystalSystem] 敵クリスタルの配置候補が見つかりませんでした");
+        // 最終フォールバック: 距離・margin 全制約を解除して PCP と異なる任意の位置に配置。
+        // 35×35 等の小マップで設定値が大きすぎる場合の保険。
+        var fallback = new List<Vector3>();
+        foreach (var p in _SetPos)
+            if (p != PCP) fallback.Add(p);
+
+        if (fallback.Count > 0)
+        {
+            ECP = fallback[Random.Range(0, fallback.Count)];
+            var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
+            ApplyCrystalHP(eObj);
+            Debug.LogWarning($"[CrystalSystem] 通常制約で配置不可 → 全制約解除でフォールバック配置 ECP={ECP}");
+            return;
+        }
+
+        Debug.LogError("[CrystalSystem] 敵クリスタルの配置候補が見つかりませんでした (SetPos が空)");
     }
 
     /// <summary> クリスタルの HP を CrystalHP 定数に設定する。 </summary>
