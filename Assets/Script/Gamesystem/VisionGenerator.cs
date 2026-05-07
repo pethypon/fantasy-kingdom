@@ -664,6 +664,7 @@ public class VisionGenerator : MonoBehaviour
         SetRendererVisibility(EnemyUnit, playervisionXZ);
         SetRendererVisibility(crystalsystem.Enemycrystal, playervisionXZ);
         SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);
+        SetRendererVisibility(territorysystem.Playerterritory, playervisionXZ);
 
         // 敵建築物をプレイヤー視界外で非表示にする
         if (_enemyBuildingParent != null)
@@ -671,14 +672,12 @@ public class VisionGenerator : MonoBehaviour
             SetRendererVisibility(_enemyBuildingParent, playervisionXZ);
         }
 
-        // 自陣（Player）の駒・クリスタル・建物は視界外でも常時表示する
-        // → SetRendererVisibility は呼ばない（一度無効化されると次フレームで戻らないため、
-        //   全 Renderer/Collider/Canvas を強制的に有効化する）
-        ForceShowAll(PlayerUnit);
-        ForceShowAll(crystalsystem.Playercrystal);
+        // 自陣（Player）の駒・クリスタル・建物も視界外では非表示にする
+        SetRendererVisibility(PlayerUnit, playervisionXZ);
+        SetRendererVisibility(crystalsystem.Playercrystal, playervisionXZ);
         if (_playerBuildingParent != null)
         {
-            ForceShowAll(_playerBuildingParent);
+            SetRendererVisibility(_playerBuildingParent, playervisionXZ);
         }
 
         // 強敵(WildBoss)本体と縄張りタイルも視界外で非表示にする
