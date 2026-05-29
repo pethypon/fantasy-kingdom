@@ -39,7 +39,7 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteSkill(Status attacker, Status target, SkillData skill)
     {
-        if (skill == null) return;
+        if (attacker == null || skill == null) return;
 
         Debug.Log($"[SkillSystem] {attacker.kind} がスキル '{skill.Name}' を使用 (AP:{skill.APCost})");
 

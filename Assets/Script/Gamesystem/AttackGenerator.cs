@@ -85,6 +85,7 @@ public class AttackGenerator : MonoBehaviour
     // ---- スキル攻撃の攻撃範囲計算 ----
     public void SkillAttackPData(Status Obj, Vector3 ObjP)
     {
+        if (Obj == null) return;
         AttackP?.Clear();
         TargetUnit = Obj;
         objp = ObjP;
@@ -179,6 +180,7 @@ public class AttackGenerator : MonoBehaviour
     // ---- 通常攻撃の攻撃範囲計算（LINQ排除） ----
     public void NormalAttackPData(Status Obj, Vector3 ObjP)
     {
+        if (Obj == null) return;
         AttackP?.Clear();
         TargetUnit = Obj;
         objp = ObjP;

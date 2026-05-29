@@ -104,9 +104,9 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     private void ProcessMortarAttack(Status mortar, Team enemyTeam)
     {
-        Vector3 basePos = moveGererater.Cell(mortar.transform.position);
-        int bx = Mathf.RoundToInt(basePos.x);
-        int bz = Mathf.RoundToInt(basePos.z);
+        var baseGrid = GridHelper.ToGridXZ(moveGererater.Cell(mortar.transform.position));
+        int bx = baseGrid.x;
+        int bz = baseGrid.z;
 
         // 範囲内の敵ユニットを探す
         _targetsBuffer.Clear();
@@ -122,9 +122,9 @@ public class BuildingAttackSystem : MonoBehaviour
 
         // ランダムに1体選ぶ
         Status primaryTarget = _targetsBuffer[Random.Range(0, _targetsBuffer.Count)];
-        Vector3 targetCell = moveGererater.Cell(primaryTarget.transform.position);
-        int tx = Mathf.RoundToInt(targetCell.x);
-        int tz = Mathf.RoundToInt(targetCell.z);
+        var targetGrid = GridHelper.ToGridXZ(moveGererater.Cell(primaryTarget.transform.position));
+        int tx = targetGrid.x;
+        int tz = targetGrid.z;
 
         // メイン攻撃
         ApplyBuildingDamage(mortar, primaryTarget);
@@ -145,9 +145,9 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     private void ProcessCannonAttack(Status cannon, Team enemyTeam)
     {
-        Vector3 basePos = moveGererater.Cell(cannon.transform.position);
-        int bx = Mathf.RoundToInt(basePos.x);
-        int bz = Mathf.RoundToInt(basePos.z);
+        var baseGrid = GridHelper.ToGridXZ(moveGererater.Cell(cannon.transform.position));
+        int bx = baseGrid.x;
+        int bz = baseGrid.z;
 
         _targetsBuffer.Clear();
         foreach (var offset in CannonOffsets)
@@ -176,8 +176,9 @@ public class BuildingAttackSystem : MonoBehaviour
             if (!visionGenerater.IsInVision(_currentAttackTeam, cellKey)) return null;
         }
 
-        int cx = Mathf.RoundToInt(cellPos.x);
-        int cz = Mathf.RoundToInt(cellPos.z);
+        var cellGrid = GridHelper.ToGridXZ(cellPos);
+        int cx = cellGrid.x;
+        int cz = cellGrid.z;
 
         // 敵ユニットを検索
         Transform enemyParent = (enemyTeam == Team.Enemy)
