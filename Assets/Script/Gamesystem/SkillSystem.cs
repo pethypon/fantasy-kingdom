@@ -103,7 +103,8 @@ public class SkillSystem : MonoBehaviour
         }
 
         int damage = CalcSkillDamage(attacker, target, skill);
-        target.HP = Mathf.Max(0, target.HP - damage);
+        if (!SpecialAbilitySystem.TrySurviveLethal(target, damage))
+            target.ApplyDamage(damage);
         Debug.Log($"[SkillSystem] {attacker.kind} → {target.kind} '{skill.Name}' DMG:{damage} 残HP:{target.HP}");
 
         // フローティングダメージ表示
@@ -123,7 +124,7 @@ public class SkillSystem : MonoBehaviour
                 atk, def,
                 StatusEffectSystem.GetIncomingDamageModifier(target),
                 skill.SecondMultiplier, sealMod);
-            target.HP = Mathf.Max(0, target.HP - dmg2);
+            target.ApplyDamage(dmg2);
             Debug.Log($"[SkillSystem] 2段目 DMG:{dmg2} 残HP:{target.HP}");
         }
 
@@ -154,7 +155,7 @@ public class SkillSystem : MonoBehaviour
         Status t = healTarget ?? attacker;
         float healMod = StatusEffectSystem.GetHealModifier(t);
         int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
-        t.HP = Mathf.Min(t.MaxHP, t.HP + heal);
+        t.ApplyHeal(heal);
         Debug.Log($"[SkillSystem] {t.kind} を {heal} 回復 (残HP:{t.HP})");
         FloatingDamageUI.ShowHeal(t.transform.position, heal);
 
@@ -336,9 +337,7 @@ public class SkillSystem : MonoBehaviour
 
                 // Special Ability: 致死ダメージ耐え（生還本能）
                 if (!SpecialAbilitySystem.TrySurviveLethal(t, damage))
-                {
-                    t.HP = Mathf.Max(0, t.HP - damage);
-                }
+                    t.ApplyDamage(damage);
                 Debug.Log($"[SkillSystem] 範囲 {attacker.kind} → {t.kind} '{skill.Name}' DMG:{damage} 残HP:{t.HP}");
 
                 enemyHitCount++;
@@ -364,7 +363,7 @@ public class SkillSystem : MonoBehaviour
         // 自傷処理
         if (skill.FixedDamage > 0)
         {
-            attacker.HP = Mathf.Max(0, attacker.HP - skill.FixedDamage);
+            attacker.ApplyDamage(skill.FixedDamage);
             Debug.Log($"[SkillSystem] {attacker.kind} 自傷 {skill.FixedDamage} (残HP:{attacker.HP})");
         }
     }
@@ -382,7 +381,7 @@ public class SkillSystem : MonoBehaviour
             {
                 float healMod = StatusEffectSystem.GetHealModifier(ally);
                 int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
-                ally.HP = Mathf.Min(ally.MaxHP, ally.HP + heal);
+                ally.ApplyHeal(heal);
                 Debug.Log($"[SkillSystem] 範囲回復 {ally.kind} +{heal} (残HP:{ally.HP})");
                 FloatingDamageUI.ShowHeal(ally.transform.position, heal);
             }
@@ -423,7 +422,7 @@ public class SkillSystem : MonoBehaviour
                     if (!target.VisionCell.Contains(attackerCell))
                     {
                         int bonus = CalcBonusDamage(attacker, target, GameConstants.ShadowRushBonusMultiplier);
-                        target.HP = Mathf.Max(0, target.HP - bonus);
+                        target.ApplyDamage(bonus);
                         Debug.Log($"[SkillSystem] シャドウラッシュ追加ダメージ +{bonus}");
                     }
                 }
@@ -433,7 +432,7 @@ public class SkillSystem : MonoBehaviour
                 if (attacker != null && attacker.MaxHP > 0)
                 {
                     int selfDmg = Mathf.RoundToInt(attacker.MaxHP * GameConstants.BloodSacrificeRatio);
-                    attacker.HP = Mathf.Max(0, attacker.HP - selfDmg);
+                    attacker.ApplyDamage(selfDmg);
                     Debug.Log($"[SkillSystem] ブラッドサクリファイス自傷 {selfDmg} (残HP:{attacker.HP})");
                 }
                 break;
@@ -458,7 +457,7 @@ public class SkillSystem : MonoBehaviour
                     if (hpRatio <= GameConstants.LowHPThreshold)
                     {
                         int bonus = CalcBonusDamage(attacker, target, GameConstants.DeathSightBonusMultiplier);
-                        target.HP = Mathf.Max(0, target.HP - bonus);
+                        target.ApplyDamage(bonus);
                         Debug.Log($"[SkillSystem] デスサイト追加ダメージ +{bonus} (HP50%以下)");
                     }
                 }
@@ -468,7 +467,7 @@ public class SkillSystem : MonoBehaviour
                 if (target != null && target.type == Type.Building)
                 {
                     int bonus = CalcBonusDamage(attacker, target, GameConstants.SiegeBreakerBonusMultiplier);
-                    target.HP = Mathf.Max(0, target.HP - bonus);
+                    target.ApplyDamage(bonus);
                     Debug.Log($"[SkillSystem] シージブレイカー建物追加 +{bonus}");
                 }
                 break;
@@ -484,7 +483,7 @@ public class SkillSystem : MonoBehaviour
             case "Catastrophe":
                 if (attacker != null)
                 {
-                    attacker.HP = Mathf.Max(0, attacker.HP - GameConstants.CatastropheSelfDamage);
+                    attacker.ApplyDamage(GameConstants.CatastropheSelfDamage);
                     Debug.Log($"[SkillSystem] カタストロフ使用者に{GameConstants.CatastropheSelfDamage}ダメージ (残HP:{attacker.HP})");
                 }
                 break;

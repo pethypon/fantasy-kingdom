@@ -345,7 +345,7 @@ public class DungeonSystem : MonoBehaviour
         var s = parent.GetChild(0).GetComponent<Status>();
         if (s == null) return;
         s.MaxHP += hpBonus;
-        s.HP = Mathf.Min(s.MaxHP, s.HP + hpBonus);
+        s.ApplyHeal(hpBonus);
     }
 
     private void BuffAllUnits(Team team, int atkDelta = 0, int defDelta = 0)

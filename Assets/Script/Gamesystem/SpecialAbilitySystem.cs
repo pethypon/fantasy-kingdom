@@ -228,7 +228,7 @@ public static class SpecialAbilitySystem
         Status[] units = unitParent.GetComponentsInChildren<Status>();
         foreach (Status s in units)
         {
-            if (s.type != Type.Unit) continue;
+            if (s == null || s.type != Type.Unit) continue;
 
             s.ResetTurnFlags();
 
@@ -247,7 +247,7 @@ public static class SpecialAbilitySystem
         Status[] units = unitParent.GetComponentsInChildren<Status>();
         foreach (Status s in units)
         {
-            if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
+            if (s == null || s.type != Type.Unit || !s.gameObject.activeSelf) continue;
 
             if (s.specialAbility == SpecialAbility.FirstAid)
                 ProcessFirstAid(s, units);
@@ -304,7 +304,7 @@ public static class SpecialAbilitySystem
             int spreadHeal = Mathf.RoundToInt(healAmount * SupportSpreadRatio);
             float healMod = StatusEffectSystem.GetHealModifier(bestAlly);
             spreadHeal = Mathf.RoundToInt(spreadHeal * healMod);
-            bestAlly.HP = Mathf.Min(bestAlly.MaxHP, bestAlly.HP + spreadHeal);
+            bestAlly.ApplyHeal(spreadHeal);
             Debug.Log($"[SpecialAbility] 支援波及: {bestAlly.kind} を {spreadHeal} 回復");
             FloatingDamageUI.ShowHeal(bestAlly.transform.position, spreadHeal);
         }
@@ -559,7 +559,7 @@ public static class SpecialAbilitySystem
         }
 
         int heal = Mathf.Max(1, Mathf.RoundToInt(unit.MaxHP * FirstAidHealRatio));
-        unit.HP = Mathf.Min(unit.MaxHP, unit.HP + heal);
+        unit.ApplyHeal(heal);
         Debug.Log($"[SpecialAbility] 応急処置: {unit.kind} が {heal} 回復 (残HP:{unit.HP})");
     }
 
@@ -583,7 +583,7 @@ public static class SpecialAbilitySystem
             if (hasDebuff)
             {
                 int heal = Mathf.Max(1, Mathf.RoundToInt(s.MaxHP * HolyReactionHealRatio));
-                s.HP = Mathf.Min(s.MaxHP, s.HP + heal);
+                s.ApplyHeal(heal);
                 Debug.Log($"[SpecialAbility] 聖域反応: {s.kind} を {heal} 回復 (残HP:{s.HP})");
             }
         }
