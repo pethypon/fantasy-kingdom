@@ -249,8 +249,9 @@ public class BattleSystem : MonoBehaviour
         {
             var s = child.GetComponent<Status>();
             if (s == null || !s.IsAlive) continue;
-            if (systems.TerritorySystem != null && !systems.TerritorySystem.IsInTerritory(GridHelper.ToGridXZ(s.transform.position), crystalTeam)) continue;
-            int d = GridHelper.ChebyshevDistance(crystalPos, GridHelper.ToGridXZ(s.transform.position));
+            var sPos = GridHelper.ToGridXZ(s.transform.position);
+            if (systems.TerritorySystem != null && !systems.TerritorySystem.IsInTerritory(sPos, crystalTeam)) continue;
+            int d = GridHelper.ChebyshevDistance(crystalPos, sPos);
             candidates.Add((s, d));
         }
         if (candidates.Count == 0) return;
