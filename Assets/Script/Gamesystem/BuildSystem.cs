@@ -222,6 +222,11 @@ public class BuildSystem : MonoBehaviour
         NotifyMLObservation(cursor.LastPosition);
 
         CancelBuildMode();
+
+        // 建物配置後に視界を即時更新して配置オブジェクトの表示状態を正しくする
+        turnGenerator.Systems.VisionGenerator?.MarkVisionDirty();
+        turnGenerator.Systems.RefreshVision();
+
         return true;
     }
 
@@ -410,6 +415,11 @@ public class BuildSystem : MonoBehaviour
         }
 
         Debug.Log($"[BuildSystem] AI({team}) {info.DisplayName} を ({pos.x},{pos.y},{pos.z}) に設置");
+
+        // 建物配置後に視界を即時更新して配置オブジェクトの表示状態を正しくする
+        turnGenerator.Systems.VisionGenerator?.MarkVisionDirty();
+        turnGenerator.Systems.RefreshVision();
+
         return true;
     }
 
