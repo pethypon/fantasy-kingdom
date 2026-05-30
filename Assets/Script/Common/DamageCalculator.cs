@@ -167,8 +167,8 @@ public static class DamageCalculator
 
         Vector3 aPos = attacker.transform.position;
         Vector3 tPos = target.transform.position;
-        int ay = Mathf.RoundToInt(aPos.y);
-        int ty = Mathf.RoundToInt(tPos.y);
+        int ay = GridHelper.ToGrid(aPos).y;
+        int ty = GridHelper.ToGrid(tPos).y;
         int dy = ty - ay; // プラスなら target が高い
 
         float mult = 1f;
@@ -333,8 +333,8 @@ public static class DamageCalculator
                      || skill.Area == SkillAreaShape.SingleChain);
         if (!isArea) return 1f;
 
-        int ay = Mathf.RoundToInt(attacker.transform.position.y);
-        int ty = Mathf.RoundToInt(target.transform.position.y);
+        int ay = GridHelper.ToGrid(attacker.transform.position).y;
+        int ty = GridHelper.ToGrid(target.transform.position).y;
         int dy = ty - ay;
         if (dy >= GameConstants.HighGroundYThreshold) return GameConstants.AreaSkillHighTargetMod;
         if (dy <= -GameConstants.HighGroundYThreshold) return GameConstants.AreaSkillLowTargetMod;
@@ -376,10 +376,5 @@ public static class DamageCalculator
     private static Vector3Int ToGridPos(Vector3 worldPos) => GridHelper.ToGrid(worldPos);
 
     /// <summary>2点間のグリッド距離（XZ平面、チェビシェフ距離）</summary>
-    private static float GridDistance(Vector3 a, Vector3 b)
-    {
-        float dx = Mathf.Abs(Mathf.RoundToInt(a.x) - Mathf.RoundToInt(b.x));
-        float dz = Mathf.Abs(Mathf.RoundToInt(a.z) - Mathf.RoundToInt(b.z));
-        return Mathf.Max(dx, dz);
-    }
+    private static float GridDistance(Vector3 a, Vector3 b) => GridHelper.ChebyshevDistance(a, b);
 }

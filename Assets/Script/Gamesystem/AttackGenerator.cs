@@ -130,17 +130,18 @@ public class AttackGenerator : MonoBehaviour
         AttackP = new List<Vector3>();
         Vector3 ownCell = moveGenerator.Cell(objp);
         Vector3 pcpCell = moveGenerator.Cell(moveGenerator.PlayerCrystalPos);
+        var objGrid = GridHelper.ToGridXZ(objp);
 
         foreach (Vector2Int off in offsets)
         {
-            int wx = Mathf.RoundToInt(objp.x) + off.x;
-            int wz = Mathf.RoundToInt(objp.z) + off.y * dirZ;
+            int wx = objGrid.x + off.x;
+            int wz = objGrid.z + off.y * dirZ;
 
             // setpos からマッチするタイルを探す
             for (int i = 0, count = setpos.Count; i < count; i++)
             {
                 Vector3 p = setpos[i];
-                if (Mathf.RoundToInt(p.x) != wx || Mathf.RoundToInt(p.z) != wz)
+                if (!GridHelper.MatchXZ(p, wx, wz))
                     continue;
 
                 Vector3 cell = moveGenerator.Cell(p);
@@ -198,11 +199,13 @@ public class AttackGenerator : MonoBehaviour
         int dirZ = MovePatterns.DirZ(TargetUnit.direction);
 
         AttackP = new List<Vector3>();
+        var objPosGrid = GridHelper.ToGridXZ(objp);
         for (int i = 0, count = setpos.Count; i < count; i++)
         {
             Vector3 p = setpos[i];
-            float dx = Mathf.RoundToInt(p.x - objp.x);
-            float dz = Mathf.RoundToInt(p.z - objp.z);
+            var pGrid = GridHelper.ToGridXZ(p);
+            float dx = pGrid.x - objPosGrid.x;
+            float dz = pGrid.z - objPosGrid.z;
 
             float checkDz = dirIndependent ? dz : dz * dirZ;
 

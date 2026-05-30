@@ -106,15 +106,13 @@ public class WildBossSystem : MonoBehaviour
         }
         if (mapcreate == null) return;
         Transform tParent = TerritoryParent;
-        int cx = Mathf.RoundToInt(center.x);
-        int cz = Mathf.RoundToInt(center.z);
+        var cGrid = GridHelper.ToGridXZ(center);
         foreach (var p in mapcreate.SetPos)
         {
-            int dx = Mathf.Abs(Mathf.RoundToInt(p.x) - cx);
-            int dz = Mathf.Abs(Mathf.RoundToInt(p.z) - cz);
-            if (Mathf.Max(dx, dz) > TerritoryRadius) continue;
+            var pGrid = GridHelper.ToGridXZ(p);
+            if (!GridHelper.IsWithinRange(cGrid, pGrid, TerritoryRadius)) continue;
             // 強敵自身が立つ中心タイルには縄張りタイルを置かない（3×3 から中心を除外して8マス）
-            if (dx == 0 && dz == 0) continue;
+            if (GridHelper.MatchXZ(cGrid, pGrid)) continue;
             var tilePos = new Vector3(p.x, p.y - 0.475f, p.z);
             _territoryTiles.Add(Instantiate(wildBossTerritoryPrefab, tilePos, Quaternion.identity, tParent));
         }
@@ -254,7 +252,7 @@ public class WildBossSystem : MonoBehaviour
 
         // 縄張り設定
         status.isWildBoss = true;
-        status.wildBossTerritoryCenter = new Vector3Int(Mathf.RoundToInt(pos.x), 0, Mathf.RoundToInt(pos.z));
+        status.wildBossTerritoryCenter = GridHelper.ToGridXZ(pos);
         status.wildBossTerritoryRadius = TerritoryRadius;
         status.wildBossArchetype = archetype;
         status.wildBossMaxAP = prof.MaxAP;

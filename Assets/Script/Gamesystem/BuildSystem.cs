@@ -465,10 +465,9 @@ public class BuildSystem : MonoBehaviour
 
         foreach (var p in territory)
         {
-            int px = Mathf.RoundToInt(p.x);
-            int pz = Mathf.RoundToInt(p.z);
-            if (!heightLookup.TryGetValue((px, pz), out int py)) continue;
-            var pos = new Vector3Int(px, py, pz);
+            var pGrid = GridHelper.ToGridXZ(p);
+            if (!heightLookup.TryGetValue((pGrid.x, pGrid.z), out int py)) continue;
+            var pos = new Vector3Int(pGrid.x, py, pGrid.z);
             if (AICheckCanPlace(pos, team))
                 result.Add(pos);
         }

@@ -113,11 +113,7 @@ public class BuildCursorController
         if (!TryGetMouseRay(out Ray ray)) return false;
         if (!Physics.Raycast(ray, out RaycastHit hit, GameConstants.DefaultRayDistance, _blockLayerMask)) return false;
 
-        gridPos = new Vector3Int(
-            Mathf.RoundToInt(hit.point.x),
-            Mathf.RoundToInt(hit.point.y),
-            Mathf.RoundToInt(hit.point.z)
-        );
+        gridPos = GridHelper.ToGrid(hit.point);
         return true;
     }
 

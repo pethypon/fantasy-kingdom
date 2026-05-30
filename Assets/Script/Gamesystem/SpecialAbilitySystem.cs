@@ -351,7 +351,7 @@ public static class SpecialAbilitySystem
     /// <summary>攻撃者が防御者より高い位置にいるか</summary>
     private static bool IsHigherThan(Status attacker, Status target)
     {
-        return Mathf.RoundToInt(attacker.transform.position.y) > Mathf.RoundToInt(target.transform.position.y);
+        return GridHelper.ToGrid(attacker.transform.position).y > GridHelper.ToGrid(target.transform.position).y;
     }
 
     /// <summary>攻撃者がターゲットの視界内にいるか</summary>
