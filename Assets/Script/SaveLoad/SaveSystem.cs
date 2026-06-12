@@ -26,7 +26,7 @@ public static partial class SaveSystem
     /// 構造変更時はインクリメントし、SaveSystem.Migration.cs の
     /// RunMigrations() にマイグレータを追加すること。
     /// </summary>
-    public const int CurrentSaveVersion = 1;
+    public const int CurrentSaveVersion = 2;
 
     // ================================================================
     //  パス管理

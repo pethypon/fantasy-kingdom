@@ -39,11 +39,9 @@ public static partial class SaveSystem
         Debug.Log($"[SaveSystem] マイグレーション開始 v{from} → v{to}");
 
         // バージョンごとの累積マイグレーション
-        // 将来的に v2, v3 が増えたらここに追加する
-        // 例:
-        //   if (from <= 1 && to >= 2) Migrate_V1_to_V2(data);
-        //   if (from <= 2 && to >= 3) Migrate_V2_to_V3(data);
+        // 将来的に v3, v4 が増えたらここに追加する
         if (from <= 0 && to >= 1) Migrate_V0_to_V1(data);
+        if (from <= 1 && to >= 2) Migrate_V1_to_V2(data);
 
         data.Version = to;
         Debug.Log($"[SaveSystem] マイグレーション完了 → v{to}");
@@ -73,5 +71,19 @@ public static partial class SaveSystem
         if (data.EnemyResources == null) data.EnemyResources = new ResourceSaveData();
         if (data.PlayerAP == null) data.PlayerAP = new APSaveData();
         if (data.EnemyAP == null) data.EnemyAP = new APSaveData();
+    }
+
+    // ================================================================
+    //  v1 → v2
+    //
+    //  UnitSaveData に Experience / SpecialAbility / SurvivalInstinctUsed を
+    //  追加し、建築物の MaxHP を保存するようになった。
+    //  JsonUtility は欠損フィールドを 0 / "" / false でパースするため
+    //  ロード側のガード（空 SpecialAbility はスキップ、MaxHP=0 は HP で補完）
+    //  で安全に読める。ここでの変換処理は不要。
+    // ================================================================
+    static void Migrate_V1_to_V2(GameSaveData data)
+    {
+        // フィールド追加のみのため変換不要（ドキュメント目的のマイグレータ）
     }
 }
