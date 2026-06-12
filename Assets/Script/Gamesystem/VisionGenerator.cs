@@ -407,6 +407,7 @@ public class VisionGenerator : MonoBehaviour
         }
 
         // Playerクリスタル駒の視界計算
+        if (crystalsystem.Playercrystal != null)
         foreach (Transform Temporary in crystalsystem.Playercrystal)
         {
             Status status = Temporary.GetComponentInChildren<Status>();
@@ -434,6 +435,7 @@ public class VisionGenerator : MonoBehaviour
         }
 
         // Enemyクリスタル駒の視界計算
+        if (crystalsystem.Enemycrystal != null)
         foreach (Transform Temporary in crystalsystem.Enemycrystal)
         {
             Status status = Temporary.GetComponentInChildren<Status>();

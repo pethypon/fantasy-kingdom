@@ -209,7 +209,10 @@ public class GameGenerator : MonoBehaviour
             _VisionGenerator.VisionPoint(_MapCreate, _MoveGenerator, _CrystalSystem);
 
         // Step 10: 最初のターン開始
-        _TurnGenerator.StartFirstTurn();
+        if (_TurnGenerator != null)
+            _TurnGenerator.StartFirstTurn();
+        else
+            Debug.LogError("[GameGenerator] TurnGenerator が null のためゲームを開始できません");
     }
 
     private void WireTurnGeneratorReferences()

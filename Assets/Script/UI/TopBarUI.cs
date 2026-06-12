@@ -73,7 +73,8 @@ public class TopBarUI : MonoBehaviour
         var timer = turnGenerator.Systems.TimerSystem;
         if (timer == null)
         {
-            if (timerText != null) timerText.text = "制限時間";
+            if (timerText != null) timerText.text = "";
+            if (timerFill != null) timerFill.fillAmount = 0f;
             return;
         }
 

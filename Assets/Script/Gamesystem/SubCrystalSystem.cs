@@ -229,8 +229,8 @@ public class SubCrystalSystem : MonoBehaviour
     // ==================================================================
     public bool CanPlaceSubCrystal(Vector3Int pos, Team team)
     {
-        if (factionState.GetSubCrystals(team) <= 0) return false;
-        if (territorysystem.IsInAnyTerritory(pos.x, pos.z)) return false;
+        if (factionState == null || factionState.GetSubCrystals(team) <= 0) return false;
+        if (territorysystem == null || territorysystem.IsInAnyTerritory(pos.x, pos.z)) return false;
         if (HasTerritoryInRadius1(pos)) return false;
         if (!IsInTeamVision(pos, team)) return false;
         if (buildsystem.HasBuildingAt(pos)) return false;
