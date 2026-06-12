@@ -765,6 +765,14 @@ public class WildBossSystem : MonoBehaviour
         if (last != null) SpawnedBoss.transform.position = last.transform.position;
 
         var reg = UnitRegistry.Instance;
+        if (reg == null)
+        {
+            Debug.LogWarning("[WildBoss/ThunderMagus] UnitRegistry未初期化 — クリスタルを破壊のみ");
+            foreach (var c in _thunderCrystals) if (c != null) Destroy(c);
+            _thunderCrystals.Clear();
+            return;
+        }
+
         foreach (var c in _thunderCrystals)
         {
             if (c == null) continue;
@@ -774,7 +782,7 @@ public class WildBossSystem : MonoBehaviour
                 for (int dz = -1; dz <= 1; dz++)
                 {
                     var cell = new Vector3Int(g.x + dx, 0, g.z + dz);
-                    var t = FindAt(reg?.PlayerUnits, cell) ?? FindAt(reg?.EnemyUnits, cell);
+                    var t = FindAt(reg.PlayerUnits, cell) ?? FindAt(reg.EnemyUnits, cell);
                     if (t != null) AttackTarget(t);
                 }
             Destroy(c);
