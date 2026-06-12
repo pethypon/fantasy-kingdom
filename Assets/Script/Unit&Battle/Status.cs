@@ -535,11 +535,38 @@ public class Status : MonoBehaviour
     /// </summary>
     // 死亡処理での FindFirstObjectByType 連発を避けるキャッシュ（シーン再読込時は Unity の null 比較で再取得）
     private static MoveGenerator _cachedMoveGenerator;
+    private static TurnGenerator _cachedTurnGenerator;
+
+    /// <summary>
+    /// King / Crystal が HP0 なら勝敗を確定させ GameEndState へ遷移する。
+    /// BattleSystem を経由しない攻撃経路 (WildBoss / BuildingAttack / Skill 等) の
+    /// 撃破処理から呼ぶこと。ゲーム終了を発火したら true。
+    /// </summary>
+    public bool TryTriggerGameEndIfDecisive()
+    {
+        if (HP > 0) return false;
+        if (kind != Kind.King && kind != Kind.Crystal) return false;
+        if (team != Team.Player && team != Team.Enemy) return false;
+
+        if (_cachedTurnGenerator == null)
+            _cachedTurnGenerator = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
+        if (_cachedTurnGenerator == null) return false;
+
+        GameResult result = team == Team.Enemy ? GameResult.Win : GameResult.Lose;
+        UnityEngine.Debug.Log($"[Status] {team} の {kind} 撃破 → ゲーム終了 ({result})");
+        _cachedTurnGenerator.ChangeState(new GameEndState(_cachedTurnGenerator, result));
+        return true;
+    }
 
     public void HandleDeathIfDead()
     {
-        if (HP > 0 || type != Type.Unit) return;
+        if (HP > 0) return;
         if (!gameObject.activeInHierarchy) return;
+
+        // King / Crystal の撃破は勝敗確定（駒のクリーンアップより優先）
+        if (TryTriggerGameEndIfDecisive()) return;
+
+        if (type != Type.Unit) return;
 
         // MoveGenerator の占有セル解除
         if (_cachedMoveGenerator == null)

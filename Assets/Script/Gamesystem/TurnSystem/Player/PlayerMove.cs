@@ -33,7 +33,10 @@ public class PlayerMove : TurnState
 
     public override void Entry()
     {
-        Systems.UnitClick.UC(this, Turn, Systems.AttackGenerator);
+        if (Systems.UnitClick != null && Systems.AttackGenerator != null)
+            Systems.UnitClick.UC(this, Turn, Systems.AttackGenerator);
+        else
+            Debug.LogError("[PlayerMove] UnitClick / AttackGenerator が未初期化です（GameGenerator の初期化順を確認）");
         CurrentAttackMode = AttackMode.None;
 
         // タイマーのコールバック接続

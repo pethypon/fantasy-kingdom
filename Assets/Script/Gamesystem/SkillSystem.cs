@@ -87,6 +87,52 @@ public class SkillSystem : MonoBehaviour
 
         // 特殊効果
         ProcessSpecialEffect(attacker, target, skill);
+
+        // 撃破処理（追加ダメージ・反射・自傷も含めた最終 HP で判定）
+        ProcessDeath(target);
+        ProcessDeath(attacker);
+    }
+
+    // =====================================================================
+    //  スキルダメージによる撃破処理
+    //  BattleSystem.CheckDeath 相当。スキルは BattleSystem.ProcessDamage を
+    //  経由しないため、ここで King/Crystal の勝敗確定と駒のクリーンアップを行う。
+    // =====================================================================
+    private void ProcessDeath(Status target)
+    {
+        if (target == null || target.HP > 0) return;
+        if (!target.gameObject.activeInHierarchy) return;
+
+        // King / Crystal 撃破 → 勝敗確定
+        if (target.TryTriggerGameEndIfDecisive()) return;
+
+        if (turnGenerator != null && turnGenerator.Context.SelectUnit == target)
+            turnGenerator.Context.SelectUnit = null;
+
+        if (target.type == Type.Unit)
+        {
+            // 死亡駒の視界を探索済みフォグとして残す（BattleSystem.HandleUnitDeath と同等）
+            if (target.VisionCell != null && target.VisionCell.Count > 0 && turnGenerator != null)
+                turnGenerator.Systems.VisionGenerator?.AddExploredRange(target.team, target.VisionCell);
+
+            target.HandleDeathIfDead();
+        }
+        else if (target.type == Type.Building || target.type == Type.Wall)
+        {
+            // サブクリスタルは報酬・領地削除を含む専用処理へ
+            if (target.facilityKind == FacilityKind.SubCrystal
+                && turnGenerator != null && turnGenerator.Systems.SubCrystalSystem != null)
+            {
+                turnGenerator.Systems.SubCrystalSystem.DestroyBuilding(target);
+            }
+            else
+            {
+                var moveGen = turnGenerator != null ? turnGenerator.Systems.MoveGenerator : null;
+                if (moveGen != null)
+                    moveGen.RemoveOccupied(moveGen.Cell(target.transform.position));
+                target.gameObject.SetActive(false);
+            }
+        }
     }
 
     // =====================================================================
@@ -356,6 +402,9 @@ public class SkillSystem : MonoBehaviour
 
                 // 反射
                 StatusEffectSystem.ProcessReflect(t, attacker);
+
+                // 撃破処理（King/Crystal の勝敗確定を含む）
+                ProcessDeath(t);
             }
         }
 
@@ -368,6 +417,9 @@ public class SkillSystem : MonoBehaviour
             attacker.ApplyDamage(skill.FixedDamage);
             Debug.Log($"[SkillSystem] {attacker.kind} 自傷 {skill.FixedDamage} (残HP:{attacker.HP})");
         }
+
+        // 反射・自傷で attacker 自身が倒れた場合の処理
+        ProcessDeath(attacker);
     }
 
     // =====================================================================

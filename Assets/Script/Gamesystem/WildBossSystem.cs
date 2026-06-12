@@ -538,6 +538,10 @@ public class WildBossSystem : MonoBehaviour
         if (target == null || !target.IsAlive) return;
         int dmg = DamageCalculator.CalcNormal(SpawnedBoss, target);
         if (SpawnedBoss.wildBossAtkBuffTurns > 0) dmg = Mathf.RoundToInt(dmg * 1.25f);
+
+        // Special Ability: 致死ダメージ耐え（生還本能）
+        if (SpecialAbilitySystem.TrySurviveLethal(target, dmg)) return;
+
         target.ApplyDamage(dmg);
         Debug.Log($"[WildBoss] 通常攻撃: {target.kind} に {dmg} dmg");
         target.HandleDeathIfDead();

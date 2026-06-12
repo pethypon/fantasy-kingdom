@@ -240,7 +240,13 @@ public class BuildingAttackSystem : MonoBehaviour
             return;
         }
 
-        int damage = target.ApplyDamage(Mathf.Max(0, attacker.ATK - target.DEF));
+        int raw = Mathf.Max(0, attacker.ATK - target.DEF);
+
+        // Special Ability: 致死ダメージ耐え（生還本能）— 他の攻撃経路と同等に判定する
+        if (SpecialAbilitySystem.TrySurviveLethal(target, raw))
+            return;
+
+        int damage = target.ApplyDamage(raw);
 
         string attackerName = FacilityData.Table.TryGetValue(attacker.facilityKind, out var info)
             ? info.DisplayName : attacker.facilityKind.ToString();
@@ -256,6 +262,10 @@ public class BuildingAttackSystem : MonoBehaviour
     private void HandleTargetDeath(Status target)
     {
         Debug.Log($"[BuildingAttack] {target.team} の {target.kind} が建築物攻撃により撃破");
+
+        // King / Crystal の撃破は勝敗確定 → GameEndState へ
+        // （BattleSystem.CheckDeath 相当の判定。砲撃でも勝敗がつくようにする）
+        if (target.TryTriggerGameEndIfDecisive()) return;
 
         // サブクリスタルの場合は SubCrystalSystem 経由で処理（報酬・領地削除含む）
         if (target.facilityKind == FacilityKind.SubCrystal && subCrystalSystem != null)
