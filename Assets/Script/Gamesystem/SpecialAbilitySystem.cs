@@ -287,8 +287,8 @@ public static class SpecialAbilitySystem
         if (caster.specialAbility != SpecialAbility.SupportSpread) return;
         if (unitParent == null) return;
 
-        Vector3Int casterCell = GridHelper.ToGrid(primaryTarget.transform.position);
-        Status bestAlly = FindNearestAlly(caster, primaryTarget, casterCell,
+        Vector3Int targetCell = GridHelper.ToGrid(primaryTarget.transform.position);
+        Status bestAlly = FindNearestAlly(caster, primaryTarget, targetCell,
                                           unitParent.GetComponentsInChildren<Status>());
 
         if (bestAlly == null) return;

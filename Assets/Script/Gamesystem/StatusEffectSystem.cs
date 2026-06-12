@@ -134,8 +134,7 @@ public static class StatusEffectSystem
     {
         if (target.ActiveEffects.Count == 0) return;
 
-        // DoT ダメージ（ターン終了時）
-        bool diedFromDoT = false;
+        // DoT ダメージ（ターン終了時）。死亡してもターン数減算は実行してステート残留を防ぐ
         for (int i = 0; i < target.ActiveEffects.Count; i++)
         {
             var e = target.ActiveEffects[i];
@@ -144,7 +143,7 @@ public static class StatusEffectSystem
                 target.ApplyDamage(GameConstants.PoisonDamagePerTurn);
                 Debug.Log($"[StatusEffect] {target.kind} が毒で {GameConstants.PoisonDamagePerTurn} ダメージ (残HP:{target.HP})");
                 target.HandleDeathIfDead();
-                if (!target.IsAlive) { diedFromDoT = true; break; }
+                if (!target.IsAlive) break;
             }
         }
 
@@ -160,8 +159,6 @@ public static class StatusEffectSystem
                 target.ActiveEffects.RemoveAt(i);
             }
         }
-
-        if (diedFromDoT) return;
     }
 
     // =====================================================================

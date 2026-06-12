@@ -21,7 +21,7 @@ public class SkillSystem : MonoBehaviour
 
     // =====================================================================
     //  ダメージ計算（仕様準拠）
-    //  通常: 1 + (ATK/6) + ((ATK/2) - (DEF/4))
+    //  通常: DamageCalculator.CalcRawBase（GameConstants の係数を参照）
     //  スキル: 通常ダメージ × スキル倍率
     // =====================================================================
     public static int CalcNormalDamage(Status attacker, Status target)
@@ -124,7 +124,8 @@ public class SkillSystem : MonoBehaviour
                 atk, def,
                 StatusEffectSystem.GetIncomingDamageModifier(target),
                 skill.SecondMultiplier, sealMod);
-            target.ApplyDamage(dmg2);
+            if (!SpecialAbilitySystem.TrySurviveLethal(target, dmg2))
+                target.ApplyDamage(dmg2);
             Debug.Log($"[SkillSystem] 2段目 DMG:{dmg2} 残HP:{target.HP}");
         }
 
@@ -318,6 +319,9 @@ public class SkillSystem : MonoBehaviour
         // Special Ability: 迫撃適応の対象数カウント
         int enemyHitCount = 0;
 
+        // Special Ability: 迫撃適応ボーナス（対象数のみに依存するためループ外で1回計算）
+        float saAreaMod = SpecialAbilitySystem.GetAreaAttackModifier(attacker, targets.Count);
+
         foreach (Status t in targets)
         {
             if (skill.Multiplier > 0)
@@ -330,8 +334,6 @@ public class SkillSystem : MonoBehaviour
 
                 int damage = CalcSkillDamage(attacker, t, skill);
 
-                // Special Ability: 迫撃適応ボーナス（対象数は全体で計算後に適用）
-                float saAreaMod = SpecialAbilitySystem.GetAreaAttackModifier(attacker, targets.Count);
                 if (saAreaMod > 0f)
                     damage = Mathf.RoundToInt(damage * (1f + saAreaMod));
 

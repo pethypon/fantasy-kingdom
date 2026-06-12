@@ -160,7 +160,7 @@ Instead of accessing system internals directly, use query methods:
 
 ### `DamageCalculator` (`Assets/Script/Common/DamageCalculator.cs`)
 
-Centralized damage calculation. Do **not** inline the damage formula `1 + ATK/6 + (ATK/2 - DEF/4)` — use these methods instead:
+Centralized damage calculation. Do **not** inline the damage formula (coefficients live in `GameConstants.Damage*` and are applied by `CalcRawBase`) — use these methods instead:
 
 | Method | Purpose |
 |---|---|

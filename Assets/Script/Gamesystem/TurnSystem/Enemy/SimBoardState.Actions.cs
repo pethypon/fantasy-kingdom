@@ -82,10 +82,7 @@ public partial class SimBoardState
     {
         if (IsOccupied(action.TargetPos)) return false;
 
-        int newId = 0;
-        for (int i = 0; i < Units.Count; i++)
-            if (Units[i].Id >= newId) newId = Units[i].Id + 1;
-
+        int newId = NextUnitId();
         var newUnit = CreateSimUnitFromKind(action.SummonKind, action.ActorTeam, action.TargetPos, newId);
         Units.Add(newUnit);
         _occupiedCells.Add(action.TargetPos);

@@ -305,9 +305,12 @@ public class BuildSummonUIBuilder
         cachedAPSystem = ap;
         cachedFactionState = fs;
 
-        // スライドパネルが開かれるたびにボタン状態を更新
+        // スライドパネルが開かれるたびにボタン状態を更新（再Init時の二重購読を防止）
         if (slidePanel != null)
+        {
+            slidePanel.OnBuildPanelOpened -= RefreshBuildButtons;
             slidePanel.OnBuildPanelOpened += RefreshBuildButtons;
+        }
     }
 
     /// <summary>
@@ -354,8 +357,12 @@ public class BuildSummonUIBuilder
         cachedFactionState = fs;
         cachedUnitSetting = us;
 
+        // 再Init時の二重購読を防止
         if (slidePanel != null)
+        {
+            slidePanel.OnUnitPanelOpened -= RefreshSummonButtons;
             slidePanel.OnUnitPanelOpened += RefreshSummonButtons;
+        }
     }
 
     /// <summary>

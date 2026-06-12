@@ -418,11 +418,11 @@ public class Status : MonoBehaviour
         return false;
     }
 
-    /// <summary>回復を適用する（MaxHPを超えない）</summary>
+    /// <summary>回復を適用する（MaxHPを超えない。HP > MaxHP の不整合時も減らさない）</summary>
     public int ApplyHeal(int amount)
     {
         amount = UnityEngine.Mathf.Max(0, amount);
-        int actual = UnityEngine.Mathf.Min(amount, MaxHP - HP);
+        int actual = UnityEngine.Mathf.Clamp(MaxHP - HP, 0, amount);
         HP += actual;
         return actual;
     }
@@ -520,7 +520,10 @@ public class Status : MonoBehaviour
         ATK = info.BaseATK;
         DEF = info.BaseDEF;
         MaxHP = info.BaseHP;
-        // HP は 0 のまま（撃破直後）
+        // HP は 0 のまま（撃破直後）。状態異常・シールド・CT も撃破時点で消滅させる
+        ActiveEffects.Clear();
+        ShieldTurns = 0;
+        SkillCooldown = 0;
         UnityEngine.Debug.Log($"[Status] {kind} を Lv1 にリセット (ATK={ATK} DEF={DEF} MaxHP={MaxHP})");
     }
 

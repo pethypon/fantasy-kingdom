@@ -284,7 +284,7 @@ public class UnitClick : MonoBehaviour
         var posSet = new HashSet<Vector3Int>(positions);
         var targets = new List<Status>();
 
-        Transform enemyParent = turnGenerator.Systems.UnitSetting.EnemyUnit;
+        Transform enemyParent = turnGenerator.Systems.UnitSetting?.EnemyUnit;
         if (enemyParent == null) return targets;
 
         foreach (Status s in enemyParent.GetComponentsInChildren<Status>())

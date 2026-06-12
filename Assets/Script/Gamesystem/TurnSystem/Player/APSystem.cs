@@ -136,6 +136,7 @@ public class APSystem : MonoBehaviour
     private int HeightBonus(Kind kind, Vector3 from, Vector3 to)
     {
         if (HeightCostExempt.Contains(kind)) return 0;
-        return Mathf.RoundToInt(to.y - from.y) == 1 ? HeightCost : 0;
+        int dy = GridHelper.ToGrid(to).y - GridHelper.ToGrid(from).y;
+        return dy == 1 ? HeightCost : 0;
     }
 }

@@ -264,6 +264,15 @@ public class BattleSystem : MonoBehaviour
         {
             var t = candidates[i].s;
             int dmg = Mathf.RoundToInt(t.MaxHP * GameConstants.CrystalCounterDamageRatio);
+
+            // Special Ability: 致死ダメージ耐え（生還本能）— 他のダメージ経路と同様に適用
+            if (SpecialAbilitySystem.TrySurviveLethal(t, dmg))
+            {
+                FloatingDamageUI.ShowDamage(t.transform.position, dmg, false);
+                Debug.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} は生還本能で耐えた  targets={count}");
+                continue;
+            }
+
             int actual = t.ApplyDamage(dmg);
             FloatingDamageUI.ShowDamage(t.transform.position, actual, !t.IsAlive);
             Debug.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} に {actual} ダメージ（残HP:{t.HP}）  targets={count}");

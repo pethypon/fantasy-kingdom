@@ -343,7 +343,7 @@ public static class DamageCalculator
 
     /// <summary>
     /// ステータス修飾なしの基礎ダメージ（int）を計算する。
-    /// AI の簡易見積り用。式: max(0, 1 + ATK/6 + (ATK/2 - DEF/4))
+    /// AI の簡易見積り用。式: max(0, round(CalcRawBase(atk, def)))
     /// </summary>
     public static int EstimateBaseDamage(int atk, int def)
     {

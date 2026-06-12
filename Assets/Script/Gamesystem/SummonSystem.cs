@@ -231,26 +231,29 @@ public class SummonSystem : MonoBehaviour
         if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
             prefab = mapped;
 
-        Status spawnedStatus = null;
+        Status spawnedStatus;
         if (prefab != null)
         {
             var obj = unitset.SpawnUnit(prefab, spawnPos, parent);
-            var status = obj.GetComponentInChildren<Status>();
-            if (status != null)
+            spawnedStatus = obj.GetComponentInChildren<Status>();
+            if (spawnedStatus != null)
             {
-                status.team = team;
-                status.direction = dir;
-                spawnedStatus = status;
+                spawnedStatus.team = team;
+                spawnedStatus.direction = dir;
             }
         }
         else
         {
-            CreateFallbackUnit(spawnPos, kind, team, dir, parent);
+            spawnedStatus = CreateFallbackUnit(spawnPos, kind, team, dir, parent);
         }
 
         // プレイヤー召喚時はスキル3択UIで上書き
         if (team == Team.Player && spawnedStatus != null)
             SkillData.OfferPlayerChoice(spawnedStatus);
+
+        // UnitRegistry へ登録（壁遮蔽判定・ボスAI等が参照する）
+        if (spawnedStatus != null)
+            UnitRegistry.Instance?.Register(spawnedStatus);
 
         // ユニット位置を記録
         moveGenerator.AddOccupied(GridHelper.ToUnitPoint(pos));
@@ -263,8 +266,8 @@ public class SummonSystem : MonoBehaviour
     }
 
     /// <summary>プレハブ未割当時のフォールバックユニットを生成する</summary>
-    private void CreateFallbackUnit(Vector3 spawnPos, Kind kind, Team team,
-                                     Direction dir, Transform parent)
+    private Status CreateFallbackUnit(Vector3 spawnPos, Kind kind, Team team,
+                                       Direction dir, Transform parent)
     {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         obj.transform.position = spawnPos;
@@ -289,6 +292,49 @@ public class SummonSystem : MonoBehaviour
             data.ApplyToStatus(status, 1);
 
         UnitHeadUI.Attach(obj);
+        return status;
+    }
+
+    // ==================================================================
+    //  ロード復元用: コスト消費・スキル選択UIなしのユニット生成
+    // ==================================================================
+
+    /// <summary>
+    /// セーブデータ復元用にユニットを生成する。
+    /// AP/資源を消費せず、スキル選択UIも表示しない（ステータスは呼び出し元が上書きする）。
+    /// </summary>
+    public Status SpawnUnitForLoad(Kind kind, Team team, Vector3 worldPos)
+    {
+        Transform parent = team == Team.Player ? unitset.PlayerUnit : unitset.EnemyUnit;
+        Direction dir = team == Team.Player ? Direction.N : Direction.S;
+
+        GameObject prefab = null;
+        if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
+            prefab = mapped;
+
+        Status status;
+        if (prefab != null)
+        {
+            var obj = unitset.SpawnUnit(prefab, worldPos, parent);
+            status = obj.GetComponentInChildren<Status>();
+            if (status != null)
+            {
+                status.team = team;
+                status.direction = dir;
+            }
+        }
+        else
+        {
+            status = CreateFallbackUnit(worldPos, kind, team, dir, parent);
+        }
+
+        if (status != null)
+        {
+            UnitRegistry.Instance?.Register(status);
+            moveGenerator.AddOccupied(GridHelper.ToUnitPoint(GridHelper.ToGrid(worldPos)));
+        }
+
+        return status;
     }
 
     // ==================================================================

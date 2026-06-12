@@ -34,7 +34,7 @@ public static class AIBoardQuery
     public static List<Status> CollectUnitsInArea(SkillData skill, Vector3 targetPos, Direction dir, List<Status> candidates)
     {
         var result = new List<Status>();
-        var center = GridHelper.ToGrid(targetPos);
+        var center = GridHelper.ToGridXZ(targetPos);
         var areaCells = SkillSystem.GetAreaPositions(skill.Area, center, dir);
 
         foreach (var ac in areaCells)
