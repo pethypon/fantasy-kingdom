@@ -12,10 +12,6 @@ public class EconomySystem : MonoBehaviour
     private UnitSetting unitSetting;
     private CrystalSystem crystalSystem;
 
-    // 前ターンに適用した特殊ボーナス（毎ターン差し替え用）
-    private int prevPlayerBarracksXP;
-    private int prevEnemyBarracksXP;
-
     /// <summary> 市民1人あたりのパン消費量/ターン </summary>
     public const int BreadPerCitizen = 1;
 
@@ -279,9 +275,10 @@ public class EconomySystem : MonoBehaviour
                 unpaidCount++;
                 if (status.UpkeepUnpaidTurns >= GameConstants.UpkeepPenaltyDefectTurns)
                 {
-                    // 10ターン不足 → 離脱
+                    // 10ターン不足 → 離脱（占有セル解除・Lv1リセット込みの共通死亡処理を使う）
                     Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level} が維持費不足で離脱");
-                    status.gameObject.SetActive(false);
+                    status.ApplyDamage(status.HP);
+                    status.HandleDeathIfDead();
                     defectCount++;
                 }
                 else

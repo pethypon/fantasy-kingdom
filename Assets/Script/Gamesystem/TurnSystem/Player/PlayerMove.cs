@@ -250,7 +250,8 @@ public class PlayerMove : TurnState
         ExecuteTurnEnd();
     }
 
-    private void ExecuteTurnEnd()
+    /// <summary>ターン終了の共通処理（PlayerAttack のタイマー切れからも呼ばれる）</summary>
+    public void ExecuteTurnEnd()
     {
         Systems.MoveGenerator.MoveReset();
         RefreshVision();

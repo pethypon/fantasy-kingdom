@@ -20,6 +20,14 @@ public class PlayerAttack : TurnState
         Systems.AttackGenerator.AttackPointCall(move.SelectedUnit, move.SelectedUnitPosition, move);
         AttackSuccess = false;
 
+        // 攻撃モード中もタイマー切れで強制ターン終了できるよう購読する
+        // （PlayerMove は Exit 時に購読解除するため、ここで引き継がないとタイマーが無効化される）
+        if (Systems.TimerSystem != null)
+        {
+            Systems.TimerSystem.OnTurnTimeExpired += OnTurnTimeExpired;
+            Systems.TimerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
+        }
+
         if (Systems.DamagePreviewUI != null)
             Systems.DamagePreviewUI.Activate();
 
@@ -49,8 +57,29 @@ public class PlayerAttack : TurnState
 
     public override void Exit()
     {
+        if (Systems.TimerSystem != null)
+        {
+            Systems.TimerSystem.OnTurnTimeExpired -= OnTurnTimeExpired;
+            Systems.TimerSystem.OnTotalTimeExpired -= OnTotalTimeExpired;
+        }
+
         if (Systems.DamagePreviewUI != null)
             Systems.DamagePreviewUI.Hide();
+    }
+
+    // ---- タイマー自動ターン終了（攻撃モード中） ----
+    private void OnTurnTimeExpired()
+    {
+        ToastMessageUI.Show("ターン制限時間終了", ToastMessageUI.MessageType.Warning);
+        Reset();
+        move.ExecuteTurnEnd();
+    }
+
+    private void OnTotalTimeExpired(GameResult result)
+    {
+        ToastMessageUI.Show("持ち時間終了", ToastMessageUI.MessageType.Error);
+        Reset();
+        Turn.ChangeState(new GameEndState(Turn, result));
     }
 
     public void Reset()

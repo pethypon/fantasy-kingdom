@@ -533,17 +533,21 @@ public class Status : MonoBehaviour
     /// が ApplyDamage 後に呼び、ゴースト駒（HP=0 だが scene に残る）を防ぐ。
     /// 既に非アクティブなら何もしない（idempotent）。
     /// </summary>
+    // 死亡処理での FindFirstObjectByType 連発を避けるキャッシュ（シーン再読込時は Unity の null 比較で再取得）
+    private static MoveGenerator _cachedMoveGenerator;
+
     public void HandleDeathIfDead()
     {
         if (HP > 0 || type != Type.Unit) return;
         if (!gameObject.activeInHierarchy) return;
 
         // MoveGenerator の占有セル解除
-        var moveGen = UnityEngine.Object.FindFirstObjectByType<MoveGenerator>();
-        if (moveGen != null)
+        if (_cachedMoveGenerator == null)
+            _cachedMoveGenerator = UnityEngine.Object.FindFirstObjectByType<MoveGenerator>();
+        if (_cachedMoveGenerator != null)
         {
-            UnityEngine.Vector3 cellPos = moveGen.Cell(transform.position);
-            moveGen.RemoveOccupied(cellPos);
+            UnityEngine.Vector3 cellPos = _cachedMoveGenerator.Cell(transform.position);
+            _cachedMoveGenerator.RemoveOccupied(cellPos);
         }
 
         ResetToLv1();
