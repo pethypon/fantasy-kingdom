@@ -462,6 +462,9 @@ public class UnitPanelUI : MonoBehaviour
 
     public void OnClickWait()
     {
+        // Wait = このユニットのアクションを終了して選択解除。右クリック（Cancel）と同等。
+        if (turnGenerator != null)
+            turnGenerator.Context.RightClickDown = true;
         Hide();
     }
 

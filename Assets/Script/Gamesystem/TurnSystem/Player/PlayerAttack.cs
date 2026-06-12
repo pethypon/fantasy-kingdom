@@ -34,12 +34,18 @@ public class PlayerAttack : TurnState
         if (Systems.InputHintUI != null)
             Systems.InputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
 
-        // 攻撃範囲内に敵がいない場合は即座にPlayerMoveへ戻る
+        // 攻撃範囲内に敵がいない場合は PlayerMove へ戻る（ユニット選択は維持）
         if (Systems.AttackGenerator.AttackP == null || Systems.AttackGenerator.AttackP.Count == 0)
         {
             ToastMessageUI.Show("攻撃範囲内に対象がいません", ToastMessageUI.MessageType.Warning);
             Systems.AttackGenerator.AtkpDestroy();
-            Turn.ChangeState(new PlayerMove(Turn));
+            Turn.ChangeState(move);
+            if (move.SelectedUnit != null)
+            {
+                Systems.MoveGenerator.MoveCore(move.SelectedUnit, move.SelectedUnit.transform.position);
+                Systems.UnitPanelUI?.Show(move.SelectedUnit);
+            }
+            return;
         }
     }
 
@@ -93,8 +99,25 @@ public class PlayerAttack : TurnState
 
     private void HandleAttackSuccess()
     {
+        var prevUnit = move.SelectedUnit;
         Reset();
-        Turn.ChangeState(new PlayerMove(Turn));
+
+        // 攻撃成功後、生存しているユニットを再選択状態で PlayerMove へ戻す。
+        // 同一ターン中にさらに移動・スキルを使えるよう移動範囲とパネルを復元する。
+        if (prevUnit != null && prevUnit.IsAlive)
+        {
+            move.SelectedUnit = prevUnit;
+            move.SelectedUnitPosition = prevUnit.transform.position;
+            move.MenuSwitch = true;
+        }
+
+        Turn.ChangeState(move);
+
+        if (prevUnit != null && prevUnit.IsAlive)
+        {
+            Systems.MoveGenerator.MoveCore(prevUnit, prevUnit.transform.position);
+            Systems.UnitPanelUI?.Show(prevUnit);
+        }
     }
 
     private void HandleAttackClick()

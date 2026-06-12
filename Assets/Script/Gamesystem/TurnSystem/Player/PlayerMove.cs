@@ -169,6 +169,9 @@ public class PlayerMove : TurnState
 
         RefreshVision();
 
+        // 方向変更をパネルに即反映（▲N / ▼S の表示を更新）
+        Systems.UnitPanelUI?.Refresh();
+
         string dirName = unit.direction == Direction.N ? "北" : "南";
         ToastMessageUI.Show($"向き変更: {dirName}", ToastMessageUI.MessageType.Info);
     }
@@ -263,7 +266,8 @@ public class PlayerMove : TurnState
         if (Systems.UnitPanelUI != null)
             Systems.UnitPanelUI.Hide();
 
-        SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.PlayerUnit);
+        if (Systems.UnitSetting != null)
+            SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.PlayerUnit);
 
         if (Systems.EconomySystem != null)
             Systems.EconomySystem.ProcessTurn(Team.Player);
@@ -299,8 +303,12 @@ public class PlayerMove : TurnState
         var playerParent = Systems.UnitSetting.PlayerUnit;
         if (playerParent == null) return;
 
+        // UnitRegistry キャッシュ経由でスキャン（GetComponentsInChildren の代替）
+        var reg = UnitRegistry.Instance;
+        var source = reg != null ? (System.Collections.Generic.IReadOnlyList<Status>)reg.PlayerUnits
+                                 : (System.Collections.Generic.IReadOnlyList<Status>)playerParent.GetComponentsInChildren<Status>();
         var units = new System.Collections.Generic.List<Status>();
-        foreach (Status s in playerParent.GetComponentsInChildren<Status>())
+        foreach (Status s in source)
         {
             if (!s.gameObject.activeSelf) continue;
             if (s.type != Type.Unit) continue;

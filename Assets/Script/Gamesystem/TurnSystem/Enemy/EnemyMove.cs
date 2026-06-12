@@ -22,7 +22,8 @@ public class EnemyMove : TurnState
         RefreshVision();
 
         // Special Ability: ターン終了時処理（応急処置、聖域反応）
-        SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.EnemyUnit);
+        if (Systems.UnitSetting != null)
+            SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.EnemyUnit);
 
         // Enemy の資源獲得（ターン終了時）
         if (Systems.EconomySystem != null)
