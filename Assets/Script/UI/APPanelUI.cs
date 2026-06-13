@@ -37,8 +37,19 @@ public class APPanelUI : MonoBehaviour
     private int lastAP = -1;
     private int lastMax = -1;
 
+    // シーン側の参照と UIBuilder の動的生成で APPanelUI が二重に存在し、
+    // 右下に「35/35」と「0/0」が縦に並ぶバグを防ぐためのシングルトン抑制。
+    private static APPanelUI _activeInstance;
+
     private void Awake()
     {
+        if (_activeInstance != null && _activeInstance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        _activeInstance = this;
+
         // テキスト自動検索（"APText" を名前で探す。先頭の TMP は "AP" ラベルのため、
         // 単純な GetComponentInChildren ではラベル側に数値が書き込まれてしまう）
         if (apText == null)
@@ -100,5 +111,10 @@ public class APPanelUI : MonoBehaviour
         var ap = displayTeam == Team.Player ? factionState.PlayerAP : factionState.EnemyAP;
         if (ap == null) return 0;
         return ap.Reset + ap.Plus - ap.Minus;
+    }
+
+    private void OnDestroy()
+    {
+        if (_activeInstance == this) _activeInstance = null;
     }
 }

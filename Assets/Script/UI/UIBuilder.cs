@@ -284,8 +284,9 @@ public class UIBuilder : MonoBehaviour
         StretchFill(root);
         root.anchorMin = new Vector2(0, 0);
         root.anchorMax = new Vector2(0, 1);
-        root.offsetMin = new Vector2(0, 120);
-        root.offsetMax = new Vector2(200, -130);
+        // TopBar(120px) から少し下に離す + 左に 8px のマージン
+        root.offsetMin = new Vector2(8, 120);
+        root.offsetMax = new Vector2(208, -150);
 
         // ---- 建築ボタン ----
         var buildBtn = CreateButton("BuildOpenButton", root, "建築", BrandGuide.FontCaption,
@@ -294,8 +295,8 @@ public class UIBuilder : MonoBehaviour
         buildBtnRT.anchorMin = new Vector2(0, 1);
         buildBtnRT.anchorMax = new Vector2(1, 1);
         buildBtnRT.pivot = new Vector2(0.5f, 1);
-        buildBtnRT.sizeDelta = new Vector2(0, 40);
-        buildBtnRT.anchoredPosition = Vector2.zero;
+        buildBtnRT.sizeDelta = new Vector2(0, 44);
+        buildBtnRT.anchoredPosition = new Vector2(0, -8);
 
         // ---- ユニット生成ボタン ----
         var unitBtn = CreateButton("UnitOpenButton", root, "Unit制作", BrandGuide.FontCaption,
@@ -304,8 +305,9 @@ public class UIBuilder : MonoBehaviour
         unitBtnRT.anchorMin = new Vector2(0, 1);
         unitBtnRT.anchorMax = new Vector2(1, 1);
         unitBtnRT.pivot = new Vector2(0.5f, 1);
-        unitBtnRT.sizeDelta = new Vector2(0, 40);
-        unitBtnRT.anchoredPosition = new Vector2(0, -40);
+        unitBtnRT.sizeDelta = new Vector2(0, 44);
+        // 建築ボタン (44px) の下に 6px の余白を入れて配置
+        unitBtnRT.anchoredPosition = new Vector2(0, -58);
 
         // ---- SlidePanel (スライドする本体) ----
         var panel = CreatePanel("SlidePanel", root,
