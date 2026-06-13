@@ -195,9 +195,10 @@ public class UIBuilder : MonoBehaviour
         rightArea.offsetMin = new Vector2(6, 4);
         rightArea.offsetMax = new Vector2(-6, -4);
 
-        // 右エリア内を HorizontalLayoutGroup で中央寄せ
+        // 右エリア内を HorizontalLayoutGroup で右寄せ
+        // （中央寄せだとメニューが右端に届かず浮いて見えるため、資源の左詰めと対に揃える）
         var rightHLG = rightArea.gameObject.AddComponent<HorizontalLayoutGroup>();
-        rightHLG.childAlignment = TextAnchor.MiddleCenter;
+        rightHLG.childAlignment = TextAnchor.MiddleRight;
         rightHLG.spacing = 12;
         rightHLG.childForceExpandWidth = false;
         rightHLG.childForceExpandHeight = false;

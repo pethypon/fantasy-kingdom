@@ -282,6 +282,10 @@ public class BuildingAttackSystem : MonoBehaviour
         }
 
         if (visionGenerater != null)
+        {
+            // 駒が消えたため dirty を立てて確実に視界を再計算する
+            visionGenerater.MarkVisionDirty();
             visionGenerater.VisionPoint(mapCreate, moveGererater, crystalSystem);
+        }
     }
 }

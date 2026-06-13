@@ -94,10 +94,13 @@ public static class SaveGameApplier
         if (turnGen.Systems.AICommander != null)
             SaveSystem.RestoreAICommander(data.AI, turnGen.Systems.AICommander);
 
-        // 占有セル・視界を再計算
+        // 占有セル・視界を再計算（ユニット位置を復元したため dirty を立てて確実に再計算）
         if (moveGenerator != null) moveGenerator.UnitPointCore();
         if (visionGenerator != null && mapCreate != null && moveGenerator != null)
+        {
+            visionGenerator.MarkVisionDirty();
             visionGenerator.VisionPoint(mapCreate, moveGenerator, crystalSystem);
+        }
 
         ToastMessageUI.Show("セーブデータをロードしました", ToastMessageUI.MessageType.Info, 3f);
     }
