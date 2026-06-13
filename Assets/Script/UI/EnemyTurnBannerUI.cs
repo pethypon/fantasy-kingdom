@@ -34,6 +34,8 @@ public class EnemyTurnBannerUI : MonoBehaviour
         BuildUI();
     }
 
+    private void OnDestroy() { if (Instance == this) Instance = null; }
+
     private void BuildUI()
     {
         var canvasGo = new GameObject("EnemyTurnBannerCanvas");

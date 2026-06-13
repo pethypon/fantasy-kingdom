@@ -78,11 +78,12 @@ public class InputHintUI : MonoBehaviour
         var panelGo = new GameObject("HintPanel");
         panelGo.transform.SetParent(canvasGo.transform, false);
         _panelRect = panelGo.AddComponent<RectTransform>();
+        // ユニットパネル（高さ180px・下端10px）の直上に配置して重なりを防ぐ
         _panelRect.anchorMin = new Vector2(0.1f, 0);
         _panelRect.anchorMax = new Vector2(0.9f, 0);
         _panelRect.pivot = new Vector2(0.5f, 0);
-        _panelRect.anchoredPosition = new Vector2(0, 8);
-        _panelRect.sizeDelta = new Vector2(0, 34);
+        _panelRect.anchoredPosition = new Vector2(0, 196);
+        _panelRect.sizeDelta = new Vector2(0, 38);
 
         var bg = panelGo.AddComponent<Image>();
         bg.color = new Color(0.04f, 0.04f, 0.06f, 0.82f);
@@ -94,7 +95,7 @@ public class InputHintUI : MonoBehaviour
         var textGo = new GameObject("HintText");
         textGo.transform.SetParent(panelGo.transform, false);
         _hintText = textGo.AddComponent<TextMeshProUGUI>();
-        _hintText.fontSize = 15;
+        _hintText.fontSize = 16;
         _hintText.color = BrandGuide.TextPrimary;
         _hintText.alignment = TextAlignmentOptions.Center;
         _hintText.richText = true;

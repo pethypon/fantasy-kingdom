@@ -108,6 +108,15 @@ public class APSystem : MonoBehaviour
     // ==== UI 表示などに使用 ====
     public int GetAP(Team team) => _factionState.GetAP(team);
 
+    /// <summary>ターン開始時に回復する最大AP（UI表示用）</summary>
+    public int GetMaxAP(Team team)
+    {
+        if (_factionState == null) return 0;
+        var ap = team == Team.Player ? _factionState.PlayerAP : _factionState.EnemyAP;
+        if (ap == null) return 0;
+        return ap.Reset + ap.Plus - ap.Minus;
+    }
+
     // ==== 内部ヘルパー ====
     // ---- 建築の実行可否（AP + リソース）----
     public bool CanBuild(Team team, FacilityKind facility, FactionState factionState)

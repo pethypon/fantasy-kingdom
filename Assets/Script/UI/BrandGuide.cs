@@ -59,8 +59,8 @@ public static class BrandGuide
     /// <summary>補助テキスト（薄め）</summary>
     public static readonly Color TextSecondary = new Color(0.70f, 0.68f, 0.62f, 1f);
 
-    /// <summary>無効テキスト</summary>
-    public static readonly Color TextDisabled = new Color(0.45f, 0.43f, 0.40f, 1f);
+    /// <summary>無効テキスト（暗背景でも判読できるコントラストを確保）</summary>
+    public static readonly Color TextDisabled = new Color(0.56f, 0.54f, 0.50f, 1f);
 
     /// <summary>ラベル色（項目名）</summary>
     public static readonly Color TextLabel = new Color(0.80f, 0.76f, 0.60f, 1f);
@@ -175,7 +175,7 @@ public static class BrandGuide
     public const float FontHeader = 28f;
     public const float FontBody = 20f;
     public const float FontCaption = 16f;
-    public const float FontSmall = 13f;
+    public const float FontSmall = 14f; // 可読性確保のため14未満にしない
 
     // ==================================================================
     //  ボタンスタイリング

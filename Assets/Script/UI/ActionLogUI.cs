@@ -34,6 +34,8 @@ public class ActionLogUI : MonoBehaviour
         BuildUI();
     }
 
+    void OnDestroy() { if (Instance == this) Instance = null; }
+
     void BuildUI()
     {
         var canvasGo = new GameObject("ActionLogCanvas");
@@ -71,7 +73,7 @@ public class ActionLogUI : MonoBehaviour
         var textGo = new GameObject("LogText");
         textGo.transform.SetParent(panelGo.transform, false);
         _logText = textGo.AddComponent<TextMeshProUGUI>();
-        _logText.fontSize = 13;
+        _logText.fontSize = 14;
         _logText.color = BrandGuide.TextPrimary;
         _logText.alignment = TextAlignmentOptions.BottomLeft;
         _logText.richText = true;

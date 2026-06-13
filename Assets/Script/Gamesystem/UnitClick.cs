@@ -372,8 +372,8 @@ public class UnitClick : MonoBehaviour
         playermove.SelectedUnitPosition = playermove.LastHit.transform.position;
         turnGenerator.Systems.MoveGenerator.MoveCore(playermove.SelectedUnit, playermove.SelectedUnitPosition);
         turnGenerator.Context.SelectUnit = playermove.SelectedUnit;
-        turnGenerator.Systems.MoveGenerator.RemoveOccupied(
-            turnGenerator.Systems.MoveGenerator.Cell(turnGenerator.Context.OldCell));
+        // 注意: ここで旧選択ユニットのセルを RemoveOccupied してはいけない。
+        // 旧ユニットはまだその位置に立っており、除去すると同一マスに2駒重なれてしまう。
         turnGenerator.Context.OldCell = turnGenerator.Context.SelectUnit.transform.position;
 
         if (turnGenerator.Systems.UnitPanelUI != null)

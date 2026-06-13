@@ -44,6 +44,8 @@ public class FloatingDamageUI : MonoBehaviour
         InitPool();
     }
 
+    private void OnDestroy() { if (Instance == this) Instance = null; }
+
     private void InitPool()
     {
         _pool = new DamagePopup[PoolSize];

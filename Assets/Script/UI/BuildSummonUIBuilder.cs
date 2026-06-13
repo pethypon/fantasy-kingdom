@@ -123,6 +123,7 @@ public class BuildSummonUIBuilder
     // ==================================================================
     public GameObject CreateBuildScrollView(string name, RectTransform parent)
     {
+        buildButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
         var (go, content) = CreateBaseScrollView(name, parent);
 
         // 建築物ボタン + コスト表示を生成
@@ -168,7 +169,10 @@ public class BuildSummonUIBuilder
             costTMP.color = BrandGuide.TextSecondary;
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
             costTMP.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
-            costTMP.overflowMode = TextOverflowModes.Ellipsis;
+            // コストが長い場合は省略せずフォントを自動縮小して全文表示する
+            costTMP.enableAutoSizing = true;
+            costTMP.fontSizeMin = 11;
+            costTMP.fontSizeMax = BrandGuide.FontSmall + 2;
             var costLE = costTMP.gameObject.AddComponent<LayoutElement>();
             costLE.preferredHeight = 28;
             var costRT = costTMP.GetComponent<RectTransform>();
@@ -203,6 +207,7 @@ public class BuildSummonUIBuilder
     // ==================================================================
     public GameObject CreateScrollView(string name, RectTransform parent)
     {
+        summonButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
         var (go, content) = CreateBaseScrollView(name, parent);
 
         foreach (var kind in SummonableKinds)
