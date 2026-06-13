@@ -134,7 +134,7 @@ public static class StatusEffectSystem
     {
         if (target.ActiveEffects.Count == 0) return;
 
-        // DoT ダメージ（ターン終了時）
+        // DoT ダメージ（ターン終了時）。死亡してもターン数減算は実行してステート残留を防ぐ
         for (int i = 0; i < target.ActiveEffects.Count; i++)
         {
             var e = target.ActiveEffects[i];
@@ -143,11 +143,11 @@ public static class StatusEffectSystem
                 target.ApplyDamage(GameConstants.PoisonDamagePerTurn);
                 Debug.Log($"[StatusEffect] {target.kind} が毒で {GameConstants.PoisonDamagePerTurn} ダメージ (残HP:{target.HP})");
                 target.HandleDeathIfDead();
-                if (!target.IsAlive) return; // 死亡時は以降のループ・処理をスキップ
+                if (!target.IsAlive) break;
             }
         }
 
-        // ターン数減算 → 0以下は除去
+        // ターン数減算 → 0以下は除去（死亡時も実行してステート残留を防ぐ）
         for (int i = target.ActiveEffects.Count - 1; i >= 0; i--)
         {
             target.ActiveEffects[i].remainingTurns--;
@@ -281,6 +281,7 @@ public static class StatusEffectSystem
     public static int ProcessReflect(Status target, Status attacker)
     {
         if (!HasBuff(target, BuffType.Reflect)) return 0;
+        if (attacker == null) return 0;
         int reflectDmg = Random.Range(5, 11); // 5〜10
         attacker.ApplyDamage(reflectDmg);
         Debug.Log($"[StatusEffect] {target.kind} の反射で {attacker.kind} に {reflectDmg} ダメージ");

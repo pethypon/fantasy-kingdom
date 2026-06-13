@@ -37,12 +37,14 @@ PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)
                          ↑                                          |
                          └──────────── (Enter/Shift ends turn) ─────┘
                                               ↓
-                                        EnemyStart → EnemyMove → PlayerStart
+                          EnemyStart → EnemyMove → WildBossState → PlayerStart
 ```
 
 - `StateCore` is an interface with default-empty `Entry()`, `Update()`, `Exit()` methods.
 - Each state class is a plain C# class (not MonoBehaviour) that receives all dependencies via constructor injection from `TurnGenerator`.
-- `EnemyMove` currently skips AI and immediately returns to `PlayerStart`.
+- `EnemyMove` runs the AI via `AICommander.ExecuteTurn()`, then processes enemy economy and building attacks.
+- `WildBossState` processes the wild boss turn (immediately passes to `PlayerStart` if no boss is spawned).
+- `GameEndState` is entered from anywhere when a crystal is destroyed.
 
 ### Map System (`Assets/Script/Mapsystem/`)
 
@@ -160,7 +162,7 @@ Instead of accessing system internals directly, use query methods:
 
 ### `DamageCalculator` (`Assets/Script/Common/DamageCalculator.cs`)
 
-Centralized damage calculation. Do **not** inline the damage formula `1 + ATK/6 + (ATK/2 - DEF/4)` — use these methods instead:
+Centralized damage calculation. Do **not** inline the damage formula (coefficients live in `GameConstants.Damage*` and are applied by `CalcRawBase`) — use these methods instead:
 
 | Method | Purpose |
 |---|---|

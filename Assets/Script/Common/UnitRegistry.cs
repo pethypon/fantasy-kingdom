@@ -41,6 +41,11 @@ public class UnitRegistry : MonoBehaviour
         Instance = this;
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
     /// <summary>ユニットを登録する</summary>
     public void Register(Status unit)
     {

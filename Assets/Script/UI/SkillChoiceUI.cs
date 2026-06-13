@@ -122,7 +122,7 @@ public class SkillChoiceUI : MonoBehaviour
         brt.offsetMin = new Vector2(8, 8); brt.offsetMax = new Vector2(-8, -8);
         var body = bodyGO.AddComponent<TextMeshProUGUI>();
         body.text = FormatDescription(s);
-        body.fontSize = 13;
+        body.fontSize = 15;
         body.alignment = TextAlignmentOptions.TopLeft;
         body.textWrappingMode = TextWrappingModes.Normal;
         body.color = new Color(0.95f, 0.93f, 0.85f);

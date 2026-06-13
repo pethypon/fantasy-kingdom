@@ -7,6 +7,9 @@ public class MoveGenerator : MonoBehaviour
     public MapCreate mapcreate;
     public TurnGenerator turnGenerator;
 
+    // 壁占有の再収集用（BuildSystem.Init から注入される）
+    [NonSerialized] public BuildSystem BuildSystemRef;
+
     [Header("移動位置表示のオブジェクト")]
     public GameObject MovePoint;
 
@@ -67,6 +70,16 @@ public class MoveGenerator : MonoBehaviour
 
         CollectUnitPositions(PlayerUnit);
         CollectUnitPositions(EnemyUnit);
+
+        // 壁は AddOccupied で個別追加されるだけだと再計算時に消えてしまうため、
+        // 建築物親からも毎回収集して通過不可を維持する
+        var buildSystem = BuildSystemRef != null ? BuildSystemRef
+            : (turnGenerator != null ? turnGenerator.Systems.BuildSystem : null);
+        if (buildSystem != null)
+        {
+            CollectWallPositions(buildSystem.PlayerBuildingParent);
+            CollectWallPositions(buildSystem.EnemyBuildingParent);
+        }
     }
 
     private void CollectUnitPositions(Transform parent)
@@ -78,6 +91,18 @@ public class MoveGenerator : MonoBehaviour
             Status us = child.GetComponentInChildren<Status>();
             if (us == null || us.type != Type.Unit) continue;
             _unitPoints.Add(Cell(us.transform.position));
+        }
+    }
+
+    private void CollectWallPositions(Transform buildingParent)
+    {
+        if (buildingParent == null) return;
+        foreach (Transform child in buildingParent)
+        {
+            if (child == null || !child.gameObject.activeSelf) continue;
+            Status st = child.GetComponent<Status>();
+            if (st == null || st.type != Type.Wall || st.HP <= 0) continue;
+            _unitPoints.Add(Cell(st.transform.position));
         }
     }
 

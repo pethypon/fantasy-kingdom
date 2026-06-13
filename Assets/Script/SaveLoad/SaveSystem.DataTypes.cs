@@ -106,6 +106,9 @@ public static partial class SaveSystem
         public string FacilityKind;
         public bool IsActive;
         public int Fatigue;
+        public int Experience;
+        public string SpecialAbility;
+        public bool SurvivalInstinctUsed;
 
         // 状態異常
         public List<EffectSaveData> ActiveEffects = new List<EffectSaveData>();

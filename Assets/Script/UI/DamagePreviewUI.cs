@@ -112,6 +112,7 @@ public class DamagePreviewUI : MonoBehaviour
         if (!_isActive) return;
         if (turnGenerator == null || turnGenerator.Context.SelectUnit == null) { Hide(); return; }
         if (Mouse.current == null) return;
+        if (Camera.main == null) return;
 
         Vector2 mousePos = Mouse.current.position.ReadValue();
         Ray ray = Camera.main.ScreenPointToRay(mousePos);

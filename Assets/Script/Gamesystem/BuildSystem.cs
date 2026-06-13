@@ -81,6 +81,10 @@ public class BuildSystem : MonoBehaviour
         this.moveGenerator = moveGenerator;
         this.mapcreate = mapcreate;
 
+        // MoveGenerator が占有セル再計算時に壁を再収集できるよう自身を注入
+        if (moveGenerator != null)
+            moveGenerator.BuildSystemRef = this;
+
         // プレハブマップ構築
         prefabMap = new Dictionary<FacilityKind, GameObject>();
         if (facilityPrefabs != null)
@@ -222,6 +226,11 @@ public class BuildSystem : MonoBehaviour
         NotifyMLObservation(cursor.LastPosition);
 
         CancelBuildMode();
+
+        // 建物配置後に視界を即時更新して配置オブジェクトの表示状態を正しくする
+        turnGenerator.Systems.VisionGenerator?.MarkVisionDirty();
+        turnGenerator.Systems.RefreshVision();
+
         return true;
     }
 
@@ -261,7 +270,11 @@ public class BuildSystem : MonoBehaviour
         }
 
         // Status コンポーネントを設定
-        ConfigureBuildingStatus(building, facility, team, info);
+        var status = ConfigureBuildingStatus(building, facility, team, info);
+
+        // UnitRegistry へ登録（壁遮蔽判定・ボスAI等が参照する）
+        if (status != null)
+            UnitRegistry.Instance?.Register(status);
 
         // Block レイヤーに設定
         building.layer = LayerMask.NameToLayer("Block");
@@ -298,8 +311,8 @@ public class BuildSystem : MonoBehaviour
     }
 
     /// <summary>建築物の Status コンポーネントを設定する</summary>
-    private static void ConfigureBuildingStatus(GameObject building, FacilityKind facility,
-                                                 Team team, FacilityData.FacilityInfo info)
+    private static Status ConfigureBuildingStatus(GameObject building, FacilityKind facility,
+                                                   Team team, FacilityData.FacilityInfo info)
     {
         var status = building.GetComponent<Status>();
         if (status == null) status = building.AddComponent<Status>();
@@ -309,10 +322,12 @@ public class BuildSystem : MonoBehaviour
         status.type = FacilityData.IsWall(facility) ? Type.Wall : Type.Building;
         status.direction = team == Team.Player ? Direction.N : Direction.S;
         status.HP = info.HP;
+        status.MaxHP = info.HP;
         status.DEF = info.DEF;
         status.ATK = info.ATK;
         status.Level = 1;
         status.facilityKind = facility;
+        return status;
     }
 
     // ==================================================================
@@ -347,6 +362,7 @@ public class BuildSystem : MonoBehaviour
         target.Level = currentLevel + 1;
         var newData = FacilityData.GetLevel(facility, target.Level);
         target.HP = newData.HP;
+        target.MaxHP = newData.HP;
         target.DEF = newData.DEF;
         target.ATK = newData.ATK;
 
@@ -359,6 +375,26 @@ public class BuildSystem : MonoBehaviour
     // ==================================================================
     public void RemoveBuildingPosition(Vector3Int pos) => buildingPositions.Remove(pos);
     public bool HasBuildingAt(Vector3Int pos) => buildingPositions.Contains(pos);
+
+    // ==================================================================
+    //  ロード復元用: コスト消費なしの建築物生成
+    // ==================================================================
+
+    /// <summary>
+    /// セーブデータ復元用に建築物を生成する。
+    /// AP/資源/サブクリスタル数を消費しない（資源状態はセーブデータから別途復元される）。
+    /// サブクリスタルの場合は領地拡張も再実行する。
+    /// </summary>
+    public Status PlaceBuildingForLoad(Vector3Int pos, FacilityKind facility, Team team)
+    {
+        var building = InstantiateBuilding(pos, facility, team);
+        if (building == null) return null;
+
+        if (FacilityData.IsSubCrystal(facility) && subCrystalSystem != null)
+            subCrystalSystem.ExpandTerritory(building, team);
+
+        return building.GetComponent<Status>();
+    }
 
     // ==================================================================
     //  AI用: カーソル不要の直接建築
@@ -410,6 +446,11 @@ public class BuildSystem : MonoBehaviour
         }
 
         Debug.Log($"[BuildSystem] AI({team}) {info.DisplayName} を ({pos.x},{pos.y},{pos.z}) に設置");
+
+        // 建物配置後に視界を即時更新して配置オブジェクトの表示状態を正しくする
+        turnGenerator.Systems.VisionGenerator?.MarkVisionDirty();
+        turnGenerator.Systems.RefreshVision();
+
         return true;
     }
 
@@ -455,10 +496,9 @@ public class BuildSystem : MonoBehaviour
 
         foreach (var p in territory)
         {
-            int px = Mathf.RoundToInt(p.x);
-            int pz = Mathf.RoundToInt(p.z);
-            if (!heightLookup.TryGetValue((px, pz), out int py)) continue;
-            var pos = new Vector3Int(px, py, pz);
+            var pGrid = GridHelper.ToGridXZ(p);
+            if (!heightLookup.TryGetValue((pGrid.x, pGrid.z), out int py)) continue;
+            var pos = new Vector3Int(pGrid.x, py, pGrid.z);
             if (AICheckCanPlace(pos, team))
                 result.Add(pos);
         }

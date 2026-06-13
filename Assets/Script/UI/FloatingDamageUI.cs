@@ -44,6 +44,8 @@ public class FloatingDamageUI : MonoBehaviour
         InitPool();
     }
 
+    private void OnDestroy() { if (Instance == this) Instance = null; }
+
     private void InitPool()
     {
         _pool = new DamagePopup[PoolSize];
@@ -117,8 +119,7 @@ public class FloatingDamageUI : MonoBehaviour
         if (_cachedVisionGen == null)
             _cachedVisionGen = Object.FindFirstObjectByType<VisionGenerator>();
         if (_cachedVisionGen == null) return true; // 未起動時は表示する
-        var cell = new Vector3Int(
-            Mathf.RoundToInt(worldPos.x), 0, Mathf.RoundToInt(worldPos.z));
+        var cell = GridHelper.ToGridXZ(worldPos);
         return _cachedVisionGen.IsInVision(Team.Player, cell);
     }
 

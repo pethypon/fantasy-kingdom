@@ -20,18 +20,32 @@ public class PlayerAttack : TurnState
         Systems.AttackGenerator.AttackPointCall(move.SelectedUnit, move.SelectedUnitPosition, move);
         AttackSuccess = false;
 
+        // 攻撃モード中もタイマー切れで強制ターン終了できるよう購読する
+        // （PlayerMove は Exit 時に購読解除するため、ここで引き継がないとタイマーが無効化される）
+        if (Systems.TimerSystem != null)
+        {
+            Systems.TimerSystem.OnTurnTimeExpired += OnTurnTimeExpired;
+            Systems.TimerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
+        }
+
         if (Systems.DamagePreviewUI != null)
             Systems.DamagePreviewUI.Activate();
 
         if (Systems.InputHintUI != null)
             Systems.InputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
 
-        // 攻撃範囲内に敵がいない場合は即座にPlayerMoveへ戻る
+        // 攻撃範囲内に敵がいない場合は PlayerMove へ戻る（ユニット選択は維持）
         if (Systems.AttackGenerator.AttackP == null || Systems.AttackGenerator.AttackP.Count == 0)
         {
             ToastMessageUI.Show("攻撃範囲内に対象がいません", ToastMessageUI.MessageType.Warning);
             Systems.AttackGenerator.AtkpDestroy();
-            Turn.ChangeState(new PlayerMove(Turn));
+            Turn.ChangeState(move);
+            if (move.SelectedUnit != null)
+            {
+                Systems.MoveGenerator.MoveCore(move.SelectedUnit, move.SelectedUnit.transform.position);
+                Systems.UnitPanelUI?.Show(move.SelectedUnit);
+            }
+            return;
         }
     }
 
@@ -49,8 +63,29 @@ public class PlayerAttack : TurnState
 
     public override void Exit()
     {
+        if (Systems.TimerSystem != null)
+        {
+            Systems.TimerSystem.OnTurnTimeExpired -= OnTurnTimeExpired;
+            Systems.TimerSystem.OnTotalTimeExpired -= OnTotalTimeExpired;
+        }
+
         if (Systems.DamagePreviewUI != null)
             Systems.DamagePreviewUI.Hide();
+    }
+
+    // ---- タイマー自動ターン終了（攻撃モード中） ----
+    private void OnTurnTimeExpired()
+    {
+        ToastMessageUI.Show("ターン制限時間終了", ToastMessageUI.MessageType.Warning);
+        Reset();
+        move.ExecuteTurnEnd();
+    }
+
+    private void OnTotalTimeExpired(GameResult result)
+    {
+        ToastMessageUI.Show("持ち時間終了", ToastMessageUI.MessageType.Error);
+        Reset();
+        Turn.ChangeState(new GameEndState(Turn, result));
     }
 
     public void Reset()
@@ -64,8 +99,25 @@ public class PlayerAttack : TurnState
 
     private void HandleAttackSuccess()
     {
+        var prevUnit = move.SelectedUnit;
         Reset();
-        Turn.ChangeState(new PlayerMove(Turn));
+
+        // 攻撃成功後、生存しているユニットを再選択状態で PlayerMove へ戻す。
+        // 同一ターン中にさらに移動・スキルを使えるよう移動範囲とパネルを復元する。
+        if (prevUnit != null && prevUnit.IsAlive)
+        {
+            move.SelectedUnit = prevUnit;
+            move.SelectedUnitPosition = prevUnit.transform.position;
+            move.MenuSwitch = true;
+        }
+
+        Turn.ChangeState(move);
+
+        if (prevUnit != null && prevUnit.IsAlive)
+        {
+            Systems.MoveGenerator.MoveCore(prevUnit, prevUnit.transform.position);
+            Systems.UnitPanelUI?.Show(prevUnit);
+        }
     }
 
     private void HandleAttackClick()

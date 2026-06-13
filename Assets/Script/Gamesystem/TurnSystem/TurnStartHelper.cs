@@ -27,7 +27,10 @@ public static class TurnStartHelper
 
         // 国の生存ターン数を加算（クリスタル序盤収入の逓減に使用）
         if (systems.FactionState != null)
-            systems.FactionState.GetNation(team).TurnsAlive++;
+        {
+            var nation = systems.FactionState.GetNation(team);
+            if (nation != null) nation.TurnsAlive++;
+        }
 
         // 状態異常ティック（DoTダメージ + ターン経過）
         if (unitParent != null)

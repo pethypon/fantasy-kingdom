@@ -512,6 +512,7 @@ public class AIBoardState
         {
             var s = _getCompBuffer[i];
             if (!s.gameObject.activeInHierarchy) continue;
+            if (s.HP <= 0) continue; // 撃破済みだが未非アクティブ化のユニットを除外
             if (s.team == team && s.type == Type.Unit)
                 list.Add(s);
         }

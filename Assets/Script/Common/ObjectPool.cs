@@ -25,6 +25,11 @@ public class ObjectPool : MonoBehaviour
         Instance = this;
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
     /// <summary>
     /// プールからオブジェクトを取得する。プールが空なら新規生成。
     /// </summary>

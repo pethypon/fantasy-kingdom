@@ -104,9 +104,9 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     private void ProcessMortarAttack(Status mortar, Team enemyTeam)
     {
-        Vector3 basePos = moveGererater.Cell(mortar.transform.position);
-        int bx = Mathf.RoundToInt(basePos.x);
-        int bz = Mathf.RoundToInt(basePos.z);
+        var baseGrid = GridHelper.ToGridXZ(moveGererater.Cell(mortar.transform.position));
+        int bx = baseGrid.x;
+        int bz = baseGrid.z;
 
         // 範囲内の敵ユニットを探す
         _targetsBuffer.Clear();
@@ -122,9 +122,9 @@ public class BuildingAttackSystem : MonoBehaviour
 
         // ランダムに1体選ぶ
         Status primaryTarget = _targetsBuffer[Random.Range(0, _targetsBuffer.Count)];
-        Vector3 targetCell = moveGererater.Cell(primaryTarget.transform.position);
-        int tx = Mathf.RoundToInt(targetCell.x);
-        int tz = Mathf.RoundToInt(targetCell.z);
+        var targetGrid = GridHelper.ToGridXZ(moveGererater.Cell(primaryTarget.transform.position));
+        int tx = targetGrid.x;
+        int tz = targetGrid.z;
 
         // メイン攻撃
         ApplyBuildingDamage(mortar, primaryTarget);
@@ -145,9 +145,9 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     private void ProcessCannonAttack(Status cannon, Team enemyTeam)
     {
-        Vector3 basePos = moveGererater.Cell(cannon.transform.position);
-        int bx = Mathf.RoundToInt(basePos.x);
-        int bz = Mathf.RoundToInt(basePos.z);
+        var baseGrid = GridHelper.ToGridXZ(moveGererater.Cell(cannon.transform.position));
+        int bx = baseGrid.x;
+        int bz = baseGrid.z;
 
         _targetsBuffer.Clear();
         foreach (var offset in CannonOffsets)
@@ -176,8 +176,9 @@ public class BuildingAttackSystem : MonoBehaviour
             if (!visionGenerater.IsInVision(_currentAttackTeam, cellKey)) return null;
         }
 
-        int cx = Mathf.RoundToInt(cellPos.x);
-        int cz = Mathf.RoundToInt(cellPos.z);
+        var cellGrid = GridHelper.ToGridXZ(cellPos);
+        int cx = cellGrid.x;
+        int cz = cellGrid.z;
 
         // 敵ユニットを検索
         Transform enemyParent = (enemyTeam == Team.Enemy)
@@ -239,7 +240,13 @@ public class BuildingAttackSystem : MonoBehaviour
             return;
         }
 
-        int damage = target.ApplyDamage(Mathf.Max(0, attacker.ATK - target.DEF));
+        int raw = Mathf.Max(0, attacker.ATK - target.DEF);
+
+        // Special Ability: 致死ダメージ耐え（生還本能）— 他の攻撃経路と同等に判定する
+        if (SpecialAbilitySystem.TrySurviveLethal(target, raw))
+            return;
+
+        int damage = target.ApplyDamage(raw);
 
         string attackerName = FacilityData.Table.TryGetValue(attacker.facilityKind, out var info)
             ? info.DisplayName : attacker.facilityKind.ToString();
@@ -255,6 +262,10 @@ public class BuildingAttackSystem : MonoBehaviour
     private void HandleTargetDeath(Status target)
     {
         Debug.Log($"[BuildingAttack] {target.team} の {target.kind} が建築物攻撃により撃破");
+
+        // King / Crystal の撃破は勝敗確定 → GameEndState へ
+        // （BattleSystem.CheckDeath 相当の判定。砲撃でも勝敗がつくようにする）
+        if (target.TryTriggerGameEndIfDecisive()) return;
 
         // サブクリスタルの場合は SubCrystalSystem 経由で処理（報酬・領地削除含む）
         if (target.facilityKind == FacilityKind.SubCrystal && subCrystalSystem != null)

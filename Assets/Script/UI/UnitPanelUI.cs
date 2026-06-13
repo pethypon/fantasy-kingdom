@@ -49,6 +49,9 @@ public class UnitPanelUI : MonoBehaviour
     private Status currentUnit;
     private bool isBuilding;
 
+    // HPバー（動的生成）
+    private Image hpBarFill;
+
     private void Awake()
     {
         if (canvasGroup == null)
@@ -60,8 +63,53 @@ public class UnitPanelUI : MonoBehaviour
         AutoFindReferences();
         BuildUpgradeUI();
         BuildDestroyUI();
+        BuildHPBar();
 
         Hide();
+    }
+
+    // --------------------------------------------------
+    //  HPバーの動的生成（HPテキスト直下の細いゲージ）
+    // --------------------------------------------------
+    private void BuildHPBar()
+    {
+        if (hpText == null) return;
+
+        var barBg = new GameObject("HPBarBg", typeof(RectTransform));
+        barBg.transform.SetParent(hpText.transform, false);
+        var bgImg = barBg.AddComponent<Image>();
+        bgImg.color = new Color(0.15f, 0.15f, 0.15f, 0.9f);
+        bgImg.raycastTarget = false;
+        var bgRT = barBg.GetComponent<RectTransform>();
+        bgRT.anchorMin = new Vector2(0, 0);
+        bgRT.anchorMax = new Vector2(1, 0);
+        bgRT.pivot = new Vector2(0.5f, 0);
+        bgRT.offsetMin = new Vector2(0, 0);
+        bgRT.offsetMax = new Vector2(0, 6);
+
+        var barFillGo = new GameObject("HPBarFill", typeof(RectTransform));
+        barFillGo.transform.SetParent(barBg.transform, false);
+        hpBarFill = barFillGo.AddComponent<Image>();
+        hpBarFill.raycastTarget = false;
+        hpBarFill.type = Image.Type.Filled;
+        hpBarFill.fillMethod = Image.FillMethod.Horizontal;
+        hpBarFill.fillOrigin = 0;
+        // Filled タイプには sprite が必要なため白テクスチャを生成
+        hpBarFill.sprite = Sprite.Create(Texture2D.whiteTexture,
+            new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
+        var fillRT = barFillGo.GetComponent<RectTransform>();
+        fillRT.anchorMin = Vector2.zero;
+        fillRT.anchorMax = Vector2.one;
+        fillRT.offsetMin = new Vector2(1, 1);
+        fillRT.offsetMax = new Vector2(-1, -1);
+    }
+
+    /// <summary>HPバーの量と色を更新する</summary>
+    private void UpdateHPBar(float ratio)
+    {
+        if (hpBarFill == null) return;
+        hpBarFill.fillAmount = Mathf.Clamp01(ratio);
+        hpBarFill.color = BrandGuide.HPColor(ratio);
     }
 
     private void AutoFindChildren()
@@ -256,6 +304,7 @@ public class UnitPanelUI : MonoBehaviour
             float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 0f;
             string hpColor = BrandGuide.HPColorHex(hpRatio);
             hpText.text = $"HP <color={hpColor}><b>{currentUnit.HP}</b></color>/{currentUnit.MaxHP}";
+            UpdateHPBar(hpRatio);
         }
 
         // 中央: ステータス
@@ -327,6 +376,7 @@ public class UnitPanelUI : MonoBehaviour
             float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 1f;
             string hpColor = BrandGuide.HPColorHex(hpRatio);
             hpText.text = $"HP <color={hpColor}><b>{currentUnit.HP}</b></color>/{currentUnit.MaxHP}";
+            UpdateHPBar(hpRatio);
         }
 
         // 中央: ステータス
@@ -370,7 +420,7 @@ public class UnitPanelUI : MonoBehaviour
         if (attackButton != null)
         {
             attackButton.interactable = canAttack;
-            UpdateButtonLabel(attackButton, "攻撃", GameConstants.BaseAttackAPCost, canAttack);
+            UpdateButtonLabel(attackButton, "攻撃 <size=70%>[1]</size>", GameConstants.BaseAttackAPCost, canAttack);
         }
         if (skillButton != null)
         {
@@ -383,7 +433,7 @@ public class UnitPanelUI : MonoBehaviour
                 canSkill = apSystem != null && apSystem.CanUseSkill(Team.Player, skillCost);
             }
             skillButton.interactable = canSkill;
-            UpdateButtonLabel(skillButton, "スキル", skillCost, canSkill);
+            UpdateButtonLabel(skillButton, "スキル <size=70%>[2]</size>", skillCost, canSkill);
         }
         if (waitButton != null) waitButton.interactable = true;
     }
@@ -462,6 +512,9 @@ public class UnitPanelUI : MonoBehaviour
 
     public void OnClickWait()
     {
+        // Wait = このユニットのアクションを終了して選択解除。右クリック（Cancel）と同等。
+        if (turnGenerator != null)
+            turnGenerator.Context.RightClickDown = true;
         Hide();
     }
 

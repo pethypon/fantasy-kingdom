@@ -61,6 +61,7 @@ public class CrystalSystem : MonoBehaviour
         ECP = savedECP;
         var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
         ApplyCrystalHP(eObj);
+        _SetPos.Remove(ECP);
 
         Debug.Log($"[CrystalSystem] セーブから復元: PCP={PCP} ECP={ECP}");
     }

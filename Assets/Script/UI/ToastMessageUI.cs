@@ -55,6 +55,11 @@ public class ToastMessageUI : MonoBehaviour
         BuildUI();
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
     private void BuildUI()
     {
         // Canvas
@@ -80,13 +85,25 @@ public class ToastMessageUI : MonoBehaviour
         _containerRect.sizeDelta = new Vector2(ToastWidth, 300);
     }
 
-    /// <summary>トーストメッセージを表示する（静的ヘルパー）</summary>
-    public static void Show(string message, MessageType type = MessageType.Info, float duration = DefaultDuration)
+    /// <summary>トーストメッセージを表示する（静的ヘルパー）。
+    /// duration 省略時は種別に応じた表示時間（警告4秒・エラー5秒・他3秒）を使う。</summary>
+    public static void Show(string message, MessageType type = MessageType.Info, float duration = -1f)
     {
+        if (duration <= 0f) duration = GetDefaultDuration(type);
         if (Instance != null)
             Instance.ShowInternal(message, type, duration);
         else
             Debug.Log($"[Toast] {message}");
+    }
+
+    private static float GetDefaultDuration(MessageType type)
+    {
+        switch (type)
+        {
+            case MessageType.Warning: return 4f;
+            case MessageType.Error:   return 5f;
+            default:                  return DefaultDuration;
+        }
     }
 
     private void ShowInternal(string message, MessageType type, float duration)

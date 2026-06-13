@@ -87,13 +87,9 @@ public class APPanelUI : MonoBehaviour
 
     private int GetMaxAP()
     {
-        if (displayTeam == Team.Player)
-            return factionState.PlayerAP.Reset
-                 + factionState.PlayerAP.Plus
-                 - factionState.PlayerAP.Minus;
-        else
-            return factionState.EnemyAP.Reset
-                 + factionState.EnemyAP.Plus
-                 - factionState.EnemyAP.Minus;
+        if (factionState == null) return 0;
+        var ap = displayTeam == Team.Player ? factionState.PlayerAP : factionState.EnemyAP;
+        if (ap == null) return 0;
+        return ap.Reset + ap.Plus - ap.Minus;
     }
 }

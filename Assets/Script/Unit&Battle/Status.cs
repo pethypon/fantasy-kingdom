@@ -418,11 +418,11 @@ public class Status : MonoBehaviour
         return false;
     }
 
-    /// <summary>回復を適用する（MaxHPを超えない）</summary>
+    /// <summary>回復を適用する（MaxHPを超えない。HP > MaxHP の不整合時も減らさない）</summary>
     public int ApplyHeal(int amount)
     {
         amount = UnityEngine.Mathf.Max(0, amount);
-        int actual = UnityEngine.Mathf.Min(amount, MaxHP - HP);
+        int actual = UnityEngine.Mathf.Clamp(MaxHP - HP, 0, amount);
         HP += actual;
         return actual;
     }
@@ -520,7 +520,10 @@ public class Status : MonoBehaviour
         ATK = info.BaseATK;
         DEF = info.BaseDEF;
         MaxHP = info.BaseHP;
-        // HP は 0 のまま（撃破直後）
+        // HP は 0 のまま（撃破直後）。状態異常・シールド・CT も撃破時点で消滅させる
+        ActiveEffects.Clear();
+        ShieldTurns = 0;
+        SkillCooldown = 0;
         UnityEngine.Debug.Log($"[Status] {kind} を Lv1 にリセット (ATK={ATK} DEF={DEF} MaxHP={MaxHP})");
     }
 
@@ -530,17 +533,48 @@ public class Status : MonoBehaviour
     /// が ApplyDamage 後に呼び、ゴースト駒（HP=0 だが scene に残る）を防ぐ。
     /// 既に非アクティブなら何もしない（idempotent）。
     /// </summary>
+    // 死亡処理での FindFirstObjectByType 連発を避けるキャッシュ（シーン再読込時は Unity の null 比較で再取得）
+    private static MoveGenerator _cachedMoveGenerator;
+    private static TurnGenerator _cachedTurnGenerator;
+
+    /// <summary>
+    /// King / Crystal が HP0 なら勝敗を確定させ GameEndState へ遷移する。
+    /// BattleSystem を経由しない攻撃経路 (WildBoss / BuildingAttack / Skill 等) の
+    /// 撃破処理から呼ぶこと。ゲーム終了を発火したら true。
+    /// </summary>
+    public bool TryTriggerGameEndIfDecisive()
+    {
+        if (HP > 0) return false;
+        if (kind != Kind.King && kind != Kind.Crystal) return false;
+        if (team != Team.Player && team != Team.Enemy) return false;
+
+        if (_cachedTurnGenerator == null)
+            _cachedTurnGenerator = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
+        if (_cachedTurnGenerator == null) return false;
+
+        GameResult result = team == Team.Enemy ? GameResult.Win : GameResult.Lose;
+        UnityEngine.Debug.Log($"[Status] {team} の {kind} 撃破 → ゲーム終了 ({result})");
+        _cachedTurnGenerator.ChangeState(new GameEndState(_cachedTurnGenerator, result));
+        return true;
+    }
+
     public void HandleDeathIfDead()
     {
-        if (HP > 0 || type != Type.Unit) return;
+        if (HP > 0) return;
         if (!gameObject.activeInHierarchy) return;
 
+        // King / Crystal の撃破は勝敗確定（駒のクリーンアップより優先）
+        if (TryTriggerGameEndIfDecisive()) return;
+
+        if (type != Type.Unit) return;
+
         // MoveGenerator の占有セル解除
-        var moveGen = UnityEngine.Object.FindFirstObjectByType<MoveGenerator>();
-        if (moveGen != null)
+        if (_cachedMoveGenerator == null)
+            _cachedMoveGenerator = UnityEngine.Object.FindFirstObjectByType<MoveGenerator>();
+        if (_cachedMoveGenerator != null)
         {
-            UnityEngine.Vector3 cellPos = moveGen.Cell(transform.position);
-            moveGen.RemoveOccupied(cellPos);
+            UnityEngine.Vector3 cellPos = _cachedMoveGenerator.Cell(transform.position);
+            _cachedMoveGenerator.RemoveOccupied(cellPos);
         }
 
         ResetToLv1();

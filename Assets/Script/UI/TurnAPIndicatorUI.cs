@@ -28,6 +28,8 @@ public class TurnAPIndicatorUI : MonoBehaviour
         BuildUI();
     }
 
+    private void OnDestroy() { if (Instance == this) Instance = null; }
+
     public void Init(TurnGenerator turn, APSystem ap)
     {
         _turn = turn;
@@ -123,14 +125,15 @@ public class TurnAPIndicatorUI : MonoBehaviour
             _turnText.text = $"Turn {_lastTurn}";
         }
 
-        // AP
+        // AP（現在/最大 を表示して残量が一目で分かるようにする）
         if (_ap != null)
         {
             int ap = _ap.GetAP(Team.Player);
             if (ap != _lastAP)
             {
                 _lastAP = ap;
-                _apText.text = $"AP: {ap}";
+                int max = _ap.GetMaxAP(Team.Player);
+                _apText.text = max > 0 ? $"AP {ap}/{max}" : $"AP {ap}";
                 _apText.color = ap <= 2
                     ? BrandGuide.Danger
                     : BrandGuide.Secondary;

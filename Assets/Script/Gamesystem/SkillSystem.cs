@@ -21,7 +21,7 @@ public class SkillSystem : MonoBehaviour
 
     // =====================================================================
     //  ダメージ計算（仕様準拠）
-    //  通常: 1 + (ATK/6) + ((ATK/2) - (DEF/4))
+    //  通常: DamageCalculator.CalcRawBase（GameConstants の係数を参照）
     //  スキル: 通常ダメージ × スキル倍率
     // =====================================================================
     public static int CalcNormalDamage(Status attacker, Status target)
@@ -39,7 +39,7 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteSkill(Status attacker, Status target, SkillData skill)
     {
-        if (skill == null) return;
+        if (attacker == null || skill == null) return;
 
         Debug.Log($"[SkillSystem] {attacker.kind} がスキル '{skill.Name}' を使用 (AP:{skill.APCost})");
 
@@ -87,6 +87,52 @@ public class SkillSystem : MonoBehaviour
 
         // 特殊効果
         ProcessSpecialEffect(attacker, target, skill);
+
+        // 撃破処理（追加ダメージ・反射・自傷も含めた最終 HP で判定）
+        ProcessDeath(target);
+        ProcessDeath(attacker);
+    }
+
+    // =====================================================================
+    //  スキルダメージによる撃破処理
+    //  BattleSystem.CheckDeath 相当。スキルは BattleSystem.ProcessDamage を
+    //  経由しないため、ここで King/Crystal の勝敗確定と駒のクリーンアップを行う。
+    // =====================================================================
+    private void ProcessDeath(Status target)
+    {
+        if (target == null || target.HP > 0) return;
+        if (!target.gameObject.activeInHierarchy) return;
+
+        // King / Crystal 撃破 → 勝敗確定
+        if (target.TryTriggerGameEndIfDecisive()) return;
+
+        if (turnGenerator != null && turnGenerator.Context.SelectUnit == target)
+            turnGenerator.Context.SelectUnit = null;
+
+        if (target.type == Type.Unit)
+        {
+            // 死亡駒の視界を探索済みフォグとして残す（BattleSystem.HandleUnitDeath と同等）
+            if (target.VisionCell != null && target.VisionCell.Count > 0 && turnGenerator != null)
+                turnGenerator.Systems.VisionGenerator?.AddExploredRange(target.team, target.VisionCell);
+
+            target.HandleDeathIfDead();
+        }
+        else if (target.type == Type.Building || target.type == Type.Wall)
+        {
+            // サブクリスタルは報酬・領地削除を含む専用処理へ
+            if (target.facilityKind == FacilityKind.SubCrystal
+                && turnGenerator != null && turnGenerator.Systems.SubCrystalSystem != null)
+            {
+                turnGenerator.Systems.SubCrystalSystem.DestroyBuilding(target);
+            }
+            else
+            {
+                var moveGen = turnGenerator != null ? turnGenerator.Systems.MoveGenerator : null;
+                if (moveGen != null)
+                    moveGen.RemoveOccupied(moveGen.Cell(target.transform.position));
+                target.gameObject.SetActive(false);
+            }
+        }
     }
 
     // =====================================================================
@@ -103,7 +149,8 @@ public class SkillSystem : MonoBehaviour
         }
 
         int damage = CalcSkillDamage(attacker, target, skill);
-        target.HP = Mathf.Max(0, target.HP - damage);
+        if (!SpecialAbilitySystem.TrySurviveLethal(target, damage))
+            target.ApplyDamage(damage);
         Debug.Log($"[SkillSystem] {attacker.kind} → {target.kind} '{skill.Name}' DMG:{damage} 残HP:{target.HP}");
 
         // フローティングダメージ表示
@@ -123,7 +170,8 @@ public class SkillSystem : MonoBehaviour
                 atk, def,
                 StatusEffectSystem.GetIncomingDamageModifier(target),
                 skill.SecondMultiplier, sealMod);
-            target.HP = Mathf.Max(0, target.HP - dmg2);
+            if (!SpecialAbilitySystem.TrySurviveLethal(target, dmg2))
+                target.ApplyDamage(dmg2);
             Debug.Log($"[SkillSystem] 2段目 DMG:{dmg2} 残HP:{target.HP}");
         }
 
@@ -154,7 +202,7 @@ public class SkillSystem : MonoBehaviour
         Status t = healTarget ?? attacker;
         float healMod = StatusEffectSystem.GetHealModifier(t);
         int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
-        t.HP = Mathf.Min(t.MaxHP, t.HP + heal);
+        t.ApplyHeal(heal);
         Debug.Log($"[SkillSystem] {t.kind} を {heal} 回復 (残HP:{t.HP})");
         FloatingDamageUI.ShowHeal(t.transform.position, heal);
 
@@ -317,6 +365,9 @@ public class SkillSystem : MonoBehaviour
         // Special Ability: 迫撃適応の対象数カウント
         int enemyHitCount = 0;
 
+        // Special Ability: 迫撃適応ボーナス（対象数のみに依存するためループ外で1回計算）
+        float saAreaMod = SpecialAbilitySystem.GetAreaAttackModifier(attacker, targets.Count);
+
         foreach (Status t in targets)
         {
             if (skill.Multiplier > 0)
@@ -329,16 +380,12 @@ public class SkillSystem : MonoBehaviour
 
                 int damage = CalcSkillDamage(attacker, t, skill);
 
-                // Special Ability: 迫撃適応ボーナス（対象数は全体で計算後に適用）
-                float saAreaMod = SpecialAbilitySystem.GetAreaAttackModifier(attacker, targets.Count);
                 if (saAreaMod > 0f)
                     damage = Mathf.RoundToInt(damage * (1f + saAreaMod));
 
                 // Special Ability: 致死ダメージ耐え（生還本能）
                 if (!SpecialAbilitySystem.TrySurviveLethal(t, damage))
-                {
-                    t.HP = Mathf.Max(0, t.HP - damage);
-                }
+                    t.ApplyDamage(damage);
                 Debug.Log($"[SkillSystem] 範囲 {attacker.kind} → {t.kind} '{skill.Name}' DMG:{damage} 残HP:{t.HP}");
 
                 enemyHitCount++;
@@ -355,6 +402,9 @@ public class SkillSystem : MonoBehaviour
 
                 // 反射
                 StatusEffectSystem.ProcessReflect(t, attacker);
+
+                // 撃破処理（King/Crystal の勝敗確定を含む）
+                ProcessDeath(t);
             }
         }
 
@@ -364,9 +414,12 @@ public class SkillSystem : MonoBehaviour
         // 自傷処理
         if (skill.FixedDamage > 0)
         {
-            attacker.HP = Mathf.Max(0, attacker.HP - skill.FixedDamage);
+            attacker.ApplyDamage(skill.FixedDamage);
             Debug.Log($"[SkillSystem] {attacker.kind} 自傷 {skill.FixedDamage} (残HP:{attacker.HP})");
         }
+
+        // 反射・自傷で attacker 自身が倒れた場合の処理
+        ProcessDeath(attacker);
     }
 
     // =====================================================================
@@ -382,7 +435,7 @@ public class SkillSystem : MonoBehaviour
             {
                 float healMod = StatusEffectSystem.GetHealModifier(ally);
                 int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
-                ally.HP = Mathf.Min(ally.MaxHP, ally.HP + heal);
+                ally.ApplyHeal(heal);
                 Debug.Log($"[SkillSystem] 範囲回復 {ally.kind} +{heal} (残HP:{ally.HP})");
                 FloatingDamageUI.ShowHeal(ally.transform.position, heal);
             }
@@ -423,7 +476,7 @@ public class SkillSystem : MonoBehaviour
                     if (!target.VisionCell.Contains(attackerCell))
                     {
                         int bonus = CalcBonusDamage(attacker, target, GameConstants.ShadowRushBonusMultiplier);
-                        target.HP = Mathf.Max(0, target.HP - bonus);
+                        target.ApplyDamage(bonus);
                         Debug.Log($"[SkillSystem] シャドウラッシュ追加ダメージ +{bonus}");
                     }
                 }
@@ -433,7 +486,7 @@ public class SkillSystem : MonoBehaviour
                 if (attacker != null && attacker.MaxHP > 0)
                 {
                     int selfDmg = Mathf.RoundToInt(attacker.MaxHP * GameConstants.BloodSacrificeRatio);
-                    attacker.HP = Mathf.Max(0, attacker.HP - selfDmg);
+                    attacker.ApplyDamage(selfDmg);
                     Debug.Log($"[SkillSystem] ブラッドサクリファイス自傷 {selfDmg} (残HP:{attacker.HP})");
                 }
                 break;
@@ -458,7 +511,7 @@ public class SkillSystem : MonoBehaviour
                     if (hpRatio <= GameConstants.LowHPThreshold)
                     {
                         int bonus = CalcBonusDamage(attacker, target, GameConstants.DeathSightBonusMultiplier);
-                        target.HP = Mathf.Max(0, target.HP - bonus);
+                        target.ApplyDamage(bonus);
                         Debug.Log($"[SkillSystem] デスサイト追加ダメージ +{bonus} (HP50%以下)");
                     }
                 }
@@ -468,7 +521,7 @@ public class SkillSystem : MonoBehaviour
                 if (target != null && target.type == Type.Building)
                 {
                     int bonus = CalcBonusDamage(attacker, target, GameConstants.SiegeBreakerBonusMultiplier);
-                    target.HP = Mathf.Max(0, target.HP - bonus);
+                    target.ApplyDamage(bonus);
                     Debug.Log($"[SkillSystem] シージブレイカー建物追加 +{bonus}");
                 }
                 break;
@@ -484,7 +537,7 @@ public class SkillSystem : MonoBehaviour
             case "Catastrophe":
                 if (attacker != null)
                 {
-                    attacker.HP = Mathf.Max(0, attacker.HP - GameConstants.CatastropheSelfDamage);
+                    attacker.ApplyDamage(GameConstants.CatastropheSelfDamage);
                     Debug.Log($"[SkillSystem] カタストロフ使用者に{GameConstants.CatastropheSelfDamage}ダメージ (残HP:{attacker.HP})");
                 }
                 break;

@@ -18,8 +18,8 @@ public class UnitHoverTooltipUI : MonoBehaviour
     private Vector2 _lastMousePos = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
     private bool _lastFrameHadHit;
 
-    private const float PanelWidth = 240f;
-    private const float PanelHeight = 56f;
+    private const float PanelWidth = 270f;
+    private const float PanelHeight = 62f;
 
     private void Awake()
     {
@@ -27,6 +27,8 @@ public class UnitHoverTooltipUI : MonoBehaviour
         Instance = this;
         BuildUI();
     }
+
+    private void OnDestroy() { if (Instance == this) Instance = null; }
 
     private void BuildUI()
     {
@@ -57,7 +59,7 @@ public class UnitHoverTooltipUI : MonoBehaviour
         var textGo = new GameObject("TooltipText");
         textGo.transform.SetParent(panelGo.transform, false);
         _text = textGo.AddComponent<TextMeshProUGUI>();
-        _text.fontSize = 14;
+        _text.fontSize = 16;
         _text.color = BrandGuide.TextPrimary;
         _text.alignment = TextAlignmentOptions.Left;
         _text.richText = true;

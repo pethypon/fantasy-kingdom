@@ -211,10 +211,7 @@ public class SubCrystalSystem : MonoBehaviour
         // 壁の場合は UnitPointData から除去
         if (FacilityData.IsWall(target.facilityKind))
         {
-            moveGenerator.RemoveOccupiedWhere(p =>
-                Mathf.RoundToInt(p.x) == posInt.x &&
-                Mathf.RoundToInt(p.y) == posInt.y &&
-                Mathf.RoundToInt(p.z) == posInt.z);
+            moveGenerator.RemoveOccupiedWhere(p => GridHelper.ToGrid(p) == posInt);
         }
 
         // BuildSystem の設置済み位置から除去
@@ -232,8 +229,8 @@ public class SubCrystalSystem : MonoBehaviour
     // ==================================================================
     public bool CanPlaceSubCrystal(Vector3Int pos, Team team)
     {
-        if (factionState.GetSubCrystals(team) <= 0) return false;
-        if (territorysystem.IsInAnyTerritory(pos.x, pos.z)) return false;
+        if (factionState == null || factionState.GetSubCrystals(team) <= 0) return false;
+        if (territorysystem == null || territorysystem.IsInAnyTerritory(pos.x, pos.z)) return false;
         if (HasTerritoryInRadius1(pos)) return false;
         if (!IsInTeamVision(pos, team)) return false;
         if (buildsystem.HasBuildingAt(pos)) return false;

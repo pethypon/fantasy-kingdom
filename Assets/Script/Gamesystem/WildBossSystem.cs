@@ -106,15 +106,13 @@ public class WildBossSystem : MonoBehaviour
         }
         if (mapcreate == null) return;
         Transform tParent = TerritoryParent;
-        int cx = Mathf.RoundToInt(center.x);
-        int cz = Mathf.RoundToInt(center.z);
+        var cGrid = GridHelper.ToGridXZ(center);
         foreach (var p in mapcreate.SetPos)
         {
-            int dx = Mathf.Abs(Mathf.RoundToInt(p.x) - cx);
-            int dz = Mathf.Abs(Mathf.RoundToInt(p.z) - cz);
-            if (Mathf.Max(dx, dz) > TerritoryRadius) continue;
+            var pGrid = GridHelper.ToGridXZ(p);
+            if (!GridHelper.IsWithinRange(cGrid, pGrid, TerritoryRadius)) continue;
             // 強敵自身が立つ中心タイルには縄張りタイルを置かない（3×3 から中心を除外して8マス）
-            if (dx == 0 && dz == 0) continue;
+            if (GridHelper.MatchXZ(cGrid, pGrid)) continue;
             var tilePos = new Vector3(p.x, p.y - 0.475f, p.z);
             _territoryTiles.Add(Instantiate(wildBossTerritoryPrefab, tilePos, Quaternion.identity, tParent));
         }
@@ -254,7 +252,7 @@ public class WildBossSystem : MonoBehaviour
 
         // 縄張り設定
         status.isWildBoss = true;
-        status.wildBossTerritoryCenter = new Vector3Int(Mathf.RoundToInt(pos.x), 0, Mathf.RoundToInt(pos.z));
+        status.wildBossTerritoryCenter = GridHelper.ToGridXZ(pos);
         status.wildBossTerritoryRadius = TerritoryRadius;
         status.wildBossArchetype = archetype;
         status.wildBossMaxAP = prof.MaxAP;
@@ -540,6 +538,10 @@ public class WildBossSystem : MonoBehaviour
         if (target == null || !target.IsAlive) return;
         int dmg = DamageCalculator.CalcNormal(SpawnedBoss, target);
         if (SpawnedBoss.wildBossAtkBuffTurns > 0) dmg = Mathf.RoundToInt(dmg * 1.25f);
+
+        // Special Ability: 致死ダメージ耐え（生還本能）
+        if (SpecialAbilitySystem.TrySurviveLethal(target, dmg)) return;
+
         target.ApplyDamage(dmg);
         Debug.Log($"[WildBoss] 通常攻撃: {target.kind} に {dmg} dmg");
         target.HandleDeathIfDead();
@@ -767,6 +769,14 @@ public class WildBossSystem : MonoBehaviour
         if (last != null) SpawnedBoss.transform.position = last.transform.position;
 
         var reg = UnitRegistry.Instance;
+        if (reg == null)
+        {
+            Debug.LogWarning("[WildBoss/ThunderMagus] UnitRegistry未初期化 — クリスタルを破壊のみ");
+            foreach (var c in _thunderCrystals) if (c != null) Destroy(c);
+            _thunderCrystals.Clear();
+            return;
+        }
+
         foreach (var c in _thunderCrystals)
         {
             if (c == null) continue;
@@ -776,7 +786,7 @@ public class WildBossSystem : MonoBehaviour
                 for (int dz = -1; dz <= 1; dz++)
                 {
                     var cell = new Vector3Int(g.x + dx, 0, g.z + dz);
-                    var t = FindAt(reg?.PlayerUnits, cell) ?? FindAt(reg?.EnemyUnits, cell);
+                    var t = FindAt(reg.PlayerUnits, cell) ?? FindAt(reg.EnemyUnits, cell);
                     if (t != null) AttackTarget(t);
                 }
             Destroy(c);

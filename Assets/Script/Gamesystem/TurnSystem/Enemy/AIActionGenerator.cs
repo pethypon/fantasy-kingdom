@@ -347,7 +347,7 @@ public static class AIActionGenerator
                             ActionType = AIActionType.Surround, Unit = unit,
                             TargetPos = dest, TargetUnit = nearestPlayer, APCost = cost
                         });
-                        return;
+                        break;
                     }
                 }
             }

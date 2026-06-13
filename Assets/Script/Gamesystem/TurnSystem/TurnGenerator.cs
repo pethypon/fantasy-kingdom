@@ -29,9 +29,24 @@ public class TurnGenerator : MonoBehaviour
 
     public void ChangeState(StateCore next)
     {
-        _stateManager?.Exit();
+        // ゲーム終了後は一切の遷移を受け付けない。
+        // ターン終了処理の途中で王/クリスタルが破壊された場合、続く
+        // EnemyStart 等への遷移が GameEndState を上書きしてしまうのを防ぐ。
+        // （リトライ/タイトルはシーン再読込で抜けるため復帰経路は不要）
+        if (_stateManager is GameEndState)
+        {
+            Debug.Log($"[TurnGenerator] ゲーム終了済みのため {next?.GetType().Name} への遷移を無視");
+            return;
+        }
+
+        // Entry/Exit の例外でステートマシンが止まらないよう保護する
+        try { _stateManager?.Exit(); }
+        catch (System.Exception e) { Debug.LogException(e); }
+
         _stateManager = next;
-        _stateManager?.Entry();
+
+        try { _stateManager?.Entry(); }
+        catch (System.Exception e) { Debug.LogException(e); }
     }
 
     // ================================================================

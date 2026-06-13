@@ -228,7 +228,7 @@ public static class SpecialAbilitySystem
         Status[] units = unitParent.GetComponentsInChildren<Status>();
         foreach (Status s in units)
         {
-            if (s.type != Type.Unit) continue;
+            if (s == null || s.type != Type.Unit) continue;
 
             s.ResetTurnFlags();
 
@@ -247,7 +247,7 @@ public static class SpecialAbilitySystem
         Status[] units = unitParent.GetComponentsInChildren<Status>();
         foreach (Status s in units)
         {
-            if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;
+            if (s == null || s.type != Type.Unit || !s.gameObject.activeSelf) continue;
 
             if (s.specialAbility == SpecialAbility.FirstAid)
                 ProcessFirstAid(s, units);
@@ -287,8 +287,8 @@ public static class SpecialAbilitySystem
         if (caster.specialAbility != SpecialAbility.SupportSpread) return;
         if (unitParent == null) return;
 
-        Vector3Int casterCell = GridHelper.ToGrid(primaryTarget.transform.position);
-        Status bestAlly = FindNearestAlly(caster, primaryTarget, casterCell,
+        Vector3Int targetCell = GridHelper.ToGrid(primaryTarget.transform.position);
+        Status bestAlly = FindNearestAlly(caster, primaryTarget, targetCell,
                                           unitParent.GetComponentsInChildren<Status>());
 
         if (bestAlly == null) return;
@@ -304,7 +304,7 @@ public static class SpecialAbilitySystem
             int spreadHeal = Mathf.RoundToInt(healAmount * SupportSpreadRatio);
             float healMod = StatusEffectSystem.GetHealModifier(bestAlly);
             spreadHeal = Mathf.RoundToInt(spreadHeal * healMod);
-            bestAlly.HP = Mathf.Min(bestAlly.MaxHP, bestAlly.HP + spreadHeal);
+            bestAlly.ApplyHeal(spreadHeal);
             Debug.Log($"[SpecialAbility] 支援波及: {bestAlly.kind} を {spreadHeal} 回復");
             FloatingDamageUI.ShowHeal(bestAlly.transform.position, spreadHeal);
         }
@@ -351,7 +351,7 @@ public static class SpecialAbilitySystem
     /// <summary>攻撃者が防御者より高い位置にいるか</summary>
     private static bool IsHigherThan(Status attacker, Status target)
     {
-        return Mathf.RoundToInt(attacker.transform.position.y) > Mathf.RoundToInt(target.transform.position.y);
+        return GridHelper.ToGrid(attacker.transform.position).y > GridHelper.ToGrid(target.transform.position).y;
     }
 
     /// <summary>攻撃者がターゲットの視界内にいるか</summary>
@@ -559,7 +559,7 @@ public static class SpecialAbilitySystem
         }
 
         int heal = Mathf.Max(1, Mathf.RoundToInt(unit.MaxHP * FirstAidHealRatio));
-        unit.HP = Mathf.Min(unit.MaxHP, unit.HP + heal);
+        unit.ApplyHeal(heal);
         Debug.Log($"[SpecialAbility] 応急処置: {unit.kind} が {heal} 回復 (残HP:{unit.HP})");
     }
 
@@ -583,7 +583,7 @@ public static class SpecialAbilitySystem
             if (hasDebuff)
             {
                 int heal = Mathf.Max(1, Mathf.RoundToInt(s.MaxHP * HolyReactionHealRatio));
-                s.HP = Mathf.Min(s.MaxHP, s.HP + heal);
+                s.ApplyHeal(heal);
                 Debug.Log($"[SpecialAbility] 聖域反応: {s.kind} を {heal} 回復 (残HP:{s.HP})");
             }
         }

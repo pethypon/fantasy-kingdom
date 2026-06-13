@@ -276,18 +276,11 @@ public class VisionGenerator : MonoBehaviour
 
         if (Physics.Raycast(visionstart, Vector3.down, out var hit, distance, blockLayerMask))
         {
-            int hitx = Mathf.RoundToInt(hit.collider.transform.position.x);
-            int hitz = Mathf.RoundToInt(hit.collider.transform.position.z);
-
-            if (hitx == px && hitz == pz)
-            {
-                int hity = Mathf.RoundToInt(hit.collider.transform.position.y);
-                status.VisionCell.Add(new Vector3Int(px, hity, pz));
-            }
+            var hitCell = GridHelper.ToGrid(hit.collider.transform.position);
+            if (hitCell.x == px && hitCell.z == pz)
+                status.VisionCell.Add(new Vector3Int(px, hitCell.y, pz));
             else
-            {
                 status.VisionCell.Add(new Vector3Int(px, 0, pz));
-            }
         }
         else
         {
@@ -313,14 +306,9 @@ public class VisionGenerator : MonoBehaviour
 
         if (Physics.Raycast(start, direction.normalized, out var hit, distance, blockLayerMask))
         {
-            int hitx = Mathf.RoundToInt(hit.collider.transform.position.x);
-            int hity = Mathf.RoundToInt(hit.collider.transform.position.y);
-            int hitz = Mathf.RoundToInt(hit.collider.transform.position.z);
-
-            if (px == hitx && py == hity && pz == hitz)
-            {
+            var hitCell = GridHelper.ToGrid(hit.collider.transform.position);
+            if (px == hitCell.x && py == hitCell.y && pz == hitCell.z)
                 status.VisionCell.Add(new Vector3Int(px, py, pz));
-            }
         }
         else
         {
@@ -339,10 +327,7 @@ public class VisionGenerator : MonoBehaviour
 
         foreach (Transform Temporary in parent)
         {
-            int x = Mathf.RoundToInt(Temporary.position.x);
-            int z = Mathf.RoundToInt(Temporary.position.z);
-            var data = new Vector3Int(x, 0, z);
-
+            var data = GridHelper.ToGridXZ(Temporary.position);
             bool nowVision = visionXZ.Contains(data);
             bool nowExploard = exploardXZ.Contains(data);
 
@@ -367,10 +352,7 @@ public class VisionGenerator : MonoBehaviour
 
         foreach (Transform Temporary in targets)
         {
-            int x = Mathf.RoundToInt(Temporary.position.x);
-            int z = Mathf.RoundToInt(Temporary.position.z);
-            var data = new Vector3Int(x, 0, z);
-
+            var data = GridHelper.ToGridXZ(Temporary.position);
             bool visible = visionXZ.Contains(data);
             Temporary.GetComponentsInChildren(true, _visRenderers);
             foreach (var r in _visRenderers) r.enabled = visible;
@@ -381,27 +363,6 @@ public class VisionGenerator : MonoBehaviour
             // WorldSpace Canvas（HeadUI等）も連動して表示/非表示にする
             Temporary.GetComponentsInChildren(true, _visCanvases);
             foreach (var cv in _visCanvases) cv.gameObject.SetActive(visible);
-        }
-    }
-
-    /// <summary>
-    /// 自陣オブジェクト用: 視界に関係なく Renderer/Collider/Canvas を強制的に有効化する。
-    /// 過去に SetRendererVisibility で無効化された場合の復帰も担保する。
-    /// </summary>
-    void ForceShowAll(IEnumerable targets)
-    {
-        if (targets == null) return;
-
-        foreach (Transform Temporary in targets)
-        {
-            Temporary.GetComponentsInChildren(true, _visRenderers);
-            foreach (var r in _visRenderers) r.enabled = true;
-
-            Temporary.GetComponentsInChildren(true, _visColliders);
-            foreach (var c in _visColliders) c.enabled = true;
-
-            Temporary.GetComponentsInChildren(true, _visCanvases);
-            foreach (var cv in _visCanvases) cv.gameObject.SetActive(true);
         }
     }
 
@@ -446,6 +407,7 @@ public class VisionGenerator : MonoBehaviour
         }
 
         // Playerクリスタル駒の視界計算
+        if (crystalsystem.Playercrystal != null)
         foreach (Transform Temporary in crystalsystem.Playercrystal)
         {
             Status status = Temporary.GetComponentInChildren<Status>();
@@ -473,6 +435,7 @@ public class VisionGenerator : MonoBehaviour
         }
 
         // Enemyクリスタル駒の視界計算
+        if (crystalsystem.Enemycrystal != null)
         foreach (Transform Temporary in crystalsystem.Enemycrystal)
         {
             Status status = Temporary.GetComponentInChildren<Status>();

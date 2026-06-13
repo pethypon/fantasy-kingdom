@@ -137,7 +137,10 @@ public static partial class SaveSystem
             SkillCooldown = s.SkillCooldown,
             FacilityKind = s.facilityKind.ToString(),
             IsActive = s.gameObject.activeSelf,
-            Fatigue = s.Fatigue
+            Fatigue = s.Fatigue,
+            Experience = s.Experience,
+            SpecialAbility = s.specialAbility.ToString(),
+            SurvivalInstinctUsed = s.SurvivalInstinctUsed
         };
 
         if (s.ActiveEffects != null)

@@ -63,19 +63,18 @@ public class BuildSummonUIBuilder
     }
 
     // ==================================================================
-    //  BuildScrollView（建築物一覧を生成）
+    //  ScrollView 共通スキャフォールド
     // ==================================================================
-    public GameObject CreateBuildScrollView(string name, RectTransform parent)
+    // Returns (scrollViewRoot, contentGameObject)
+    private static (GameObject root, GameObject content) CreateBaseScrollView(string name, RectTransform parent)
     {
         var go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(parent, false);
-        var rt = go.GetComponent<RectTransform>();
-        UIFactory.StretchFill(rt);
+        UIFactory.StretchFill(go.GetComponent<RectTransform>());
 
         var scrollImg = go.AddComponent<Image>();
         scrollImg.color = new Color(0.12f, 0.12f, 0.12f, 0.5f);
 
-        // Viewport
         var viewport = new GameObject("Viewport", typeof(RectTransform));
         viewport.transform.SetParent(go.transform, false);
         var vpRT = viewport.GetComponent<RectTransform>();
@@ -85,7 +84,6 @@ public class BuildSummonUIBuilder
         var mask = viewport.AddComponent<Mask>();
         mask.showMaskGraphic = false;
 
-        // Content
         var content = new GameObject("Content", typeof(RectTransform));
         content.transform.SetParent(viewport.transform, false);
         var contentRT = content.GetComponent<RectTransform>();
@@ -105,10 +103,8 @@ public class BuildSummonUIBuilder
         var csf = content.AddComponent<ContentSizeFitter>();
         csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        // Viewport を右側にスクロールバー分の余白
         vpRT.offsetMax = new Vector2(-10, 0);
 
-        // ScrollRect
         var sr = go.AddComponent<ScrollRect>();
         sr.viewport = vpRT;
         sr.content = contentRT;
@@ -116,9 +112,19 @@ public class BuildSummonUIBuilder
         sr.vertical = true;
         sr.movementType = ScrollRect.MovementType.Clamped;
 
-        // 縦スクロールバー
         sr.verticalScrollbar = UIFactory.CreateVerticalScrollbar(go.transform);
         sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+
+        return (go, content);
+    }
+
+    // ==================================================================
+    //  BuildScrollView（建築物一覧を生成）
+    // ==================================================================
+    public GameObject CreateBuildScrollView(string name, RectTransform parent)
+    {
+        buildButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
+        var (go, content) = CreateBaseScrollView(name, parent);
 
         // 建築物ボタン + コスト表示を生成
         foreach (var kvp in FacilityData.Table)
@@ -163,7 +169,10 @@ public class BuildSummonUIBuilder
             costTMP.color = BrandGuide.TextSecondary;
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
             costTMP.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
-            costTMP.overflowMode = TextOverflowModes.Ellipsis;
+            // コストが長い場合は省略せずフォントを自動縮小して全文表示する
+            costTMP.enableAutoSizing = true;
+            costTMP.fontSizeMin = 11;
+            costTMP.fontSizeMax = BrandGuide.FontSmall + 2;
             var costLE = costTMP.gameObject.AddComponent<LayoutElement>();
             costLE.preferredHeight = 28;
             var costRT = costTMP.GetComponent<RectTransform>();
@@ -189,19 +198,8 @@ public class BuildSummonUIBuilder
     {
         if (buildSystem == null) return;
 
-        // パネルを閉じる
         if (slidePanel != null) slidePanel.ClosePanel();
-
-        // 建築モード開始
         buildSystem.StartBuildMode(facility);
-
-        // PlayerMove の BuildMode を有効にする
-        var turnGen = Object.FindFirstObjectByType<TurnGenerator>();
-        if (turnGen != null)
-        {
-            // 現在のステートが PlayerMove であることを前提にフラグを設定
-            // BuildSystem.IsActive で PlayerMove.Update 内で判定する
-        }
     }
 
     // ==================================================================
@@ -209,66 +207,14 @@ public class BuildSummonUIBuilder
     // ==================================================================
     public GameObject CreateScrollView(string name, RectTransform parent)
     {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        var rt = go.GetComponent<RectTransform>();
-        UIFactory.StretchFill(rt);
+        summonButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
+        var (go, content) = CreateBaseScrollView(name, parent);
 
-        var scrollImg = go.AddComponent<Image>();
-        scrollImg.color = new Color(0.12f, 0.12f, 0.12f, 0.5f);
-
-        // Viewport
-        var viewport = new GameObject("Viewport", typeof(RectTransform));
-        viewport.transform.SetParent(go.transform, false);
-        var vpRT = viewport.GetComponent<RectTransform>();
-        UIFactory.StretchFill(vpRT);
-        var vpImg = viewport.AddComponent<Image>();
-        vpImg.color = Color.white;
-        var mask = viewport.AddComponent<Mask>();
-        mask.showMaskGraphic = false;
-
-        // Content
-        var content = new GameObject("Content", typeof(RectTransform));
-        content.transform.SetParent(viewport.transform, false);
-        var contentRT = content.GetComponent<RectTransform>();
-        contentRT.anchorMin = new Vector2(0, 1);
-        contentRT.anchorMax = new Vector2(1, 1);
-        contentRT.pivot = new Vector2(0.5f, 1);
-        contentRT.sizeDelta = new Vector2(0, 400);
-
-        var vlg = content.AddComponent<VerticalLayoutGroup>();
-        vlg.spacing = 4;
-        vlg.padding = new RectOffset(4, 4, 4, 4);
-        vlg.childControlWidth = true;
-        vlg.childControlHeight = false;
-        vlg.childForceExpandWidth = true;
-        vlg.childForceExpandHeight = false;
-
-        var csf = content.AddComponent<ContentSizeFitter>();
-        csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-        // Viewport を右側にスクロールバー分の余白
-        vpRT.offsetMax = new Vector2(-10, 0);
-
-        // ScrollRect
-        var sr = go.AddComponent<ScrollRect>();
-        sr.viewport = vpRT;
-        sr.content = contentRT;
-        sr.horizontal = false;
-        sr.vertical = true;
-        sr.movementType = ScrollRect.MovementType.Clamped;
-
-        // 縦スクロールバー
-        sr.verticalScrollbar = UIFactory.CreateVerticalScrollbar(go.transform);
-        sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
-
-        // ユニット召喚ボタンを生成
         foreach (var kind in SummonableKinds)
         {
             string displayName = KindDisplayNames.TryGetValue(kind, out string dn) ? dn : kind.ToString();
-            string label = $"{displayName}";
             var btn = UIFactory.CreateButton("Summon_" + kind, content.transform,
-                label, BrandGuide.FontCaption, BrandGuide.BtnSummonEnabled, defaultFont);
+                displayName, BrandGuide.FontCaption, BrandGuide.BtnSummonEnabled, defaultFont);
 
             var le = btn.gameObject.AddComponent<LayoutElement>();
             le.preferredHeight = 36;
@@ -305,9 +251,12 @@ public class BuildSummonUIBuilder
         cachedAPSystem = ap;
         cachedFactionState = fs;
 
-        // スライドパネルが開かれるたびにボタン状態を更新
+        // スライドパネルが開かれるたびにボタン状態を更新（再Init時の二重購読を防止）
         if (slidePanel != null)
+        {
+            slidePanel.OnBuildPanelOpened -= RefreshBuildButtons;
             slidePanel.OnBuildPanelOpened += RefreshBuildButtons;
+        }
     }
 
     /// <summary>
@@ -354,8 +303,12 @@ public class BuildSummonUIBuilder
         cachedFactionState = fs;
         cachedUnitSetting = us;
 
+        // 再Init時の二重購読を防止
         if (slidePanel != null)
+        {
+            slidePanel.OnUnitPanelOpened -= RefreshSummonButtons;
             slidePanel.OnUnitPanelOpened += RefreshSummonButtons;
+        }
     }
 
     /// <summary>
