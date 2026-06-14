@@ -30,6 +30,9 @@ public class SlidePanelUI : MonoBehaviour
 
     private Vector2 targetPos;
     private bool isOpen;
+    // 閉じている時に panel.gameObject ごと非表示にして、画面端への描画漏れを防ぐ。
+    // 開閉アニメーション完了後にのみ SetActive を切り替える。
+    private const float CloseThreshold = 1f;
 
     private void Start()
     {
@@ -42,6 +45,9 @@ public class SlidePanelUI : MonoBehaviour
 
         if (buildRoot != null) buildRoot.SetActive(false);
         if (unitRoot != null) unitRoot.SetActive(false);
+
+        // 初期は完全に非表示
+        panelRect.gameObject.SetActive(false);
     }
 
     private void AutoFindChildren()
@@ -65,11 +71,21 @@ public class SlidePanelUI : MonoBehaviour
     {
         if (panelRect == null) return;
 
+        // 閉じ切ったら gameObject ごと非表示にして、anchoredPosition の僅かな
+        // 残差や子要素の描画が画面端にチラつくのを防ぐ。
+        if (!isOpen && !panelRect.gameObject.activeSelf) return;
+
         panelRect.anchoredPosition = Vector2.Lerp(
             panelRect.anchoredPosition,
             targetPos,
             Time.deltaTime * slideSpeed
         );
+
+        if (!isOpen && Mathf.Abs(panelRect.anchoredPosition.x - closedX) <= CloseThreshold)
+        {
+            panelRect.anchoredPosition = new Vector2(closedX, panelRect.anchoredPosition.y);
+            panelRect.gameObject.SetActive(false);
+        }
     }
 
     // --------------------------------------------------
@@ -126,6 +142,9 @@ public class SlidePanelUI : MonoBehaviour
     private void Open()
     {
         isOpen = true;
+        // 開く時は gameObject を有効化してから lerp を再開する
+        if (panelRect != null && !panelRect.gameObject.activeSelf)
+            panelRect.gameObject.SetActive(true);
         targetPos = new Vector2(openX, panelRect.anchoredPosition.y);
     }
 
