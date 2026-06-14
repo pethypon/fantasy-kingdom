@@ -54,10 +54,21 @@ public class GameSystems
     //  便利メソッド
     // ================================================================
 
-    /// <summary>視界の再計算（ショートハンド）</summary>
+    /// <summary>
+    /// 視界の再計算（ショートハンド）。
+    /// RefreshVision は「盤面が変化したので今すぐ視界を更新したい」という意図で
+    /// 呼ばれる（移動・召喚・撃破・強敵の手下スポーン・ターン遷移など）。
+    /// VisionPoint には同一フレーム内の重複計算を抑止するキャッシュがあるため、
+    /// ターン遷移が1フレーム内に連鎖するとこの更新が握り潰され、
+    /// 視界外の駒・強敵の手下が霧を貫通して表示されてしまう。
+    /// そのため必ず MarkVisionDirty でキャッシュを無効化してから再計算する。
+    /// </summary>
     public void RefreshVision()
     {
         if (VisionGenerator != null && MapCreate != null && MoveGenerator != null && CrystalSystem != null)
+        {
+            VisionGenerator.MarkVisionDirty();
             VisionGenerator.VisionPoint(MapCreate, MoveGenerator, CrystalSystem);
+        }
     }
 }
