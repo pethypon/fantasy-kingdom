@@ -67,6 +67,8 @@ public class GameSystems
     {
         if (VisionGenerator != null && MapCreate != null && MoveGenerator != null && CrystalSystem != null)
         {
+            // 呼び出し側は「状態が変わったから再計算したい」場面で呼ぶため、
+            // 同一フレームキャッシュに弾かれないよう必ず dirty を立てる
             VisionGenerator.MarkVisionDirty();
             VisionGenerator.VisionPoint(MapCreate, MoveGenerator, CrystalSystem);
         }

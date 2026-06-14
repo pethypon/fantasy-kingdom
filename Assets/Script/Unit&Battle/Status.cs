@@ -536,6 +536,9 @@ public class Status : MonoBehaviour
     // 死亡処理での FindFirstObjectByType 連発を避けるキャッシュ（シーン再読込時は Unity の null 比較で再取得）
     private static MoveGenerator _cachedMoveGenerator;
     private static TurnGenerator _cachedTurnGenerator;
+    private static VisionGenerator _cachedVisionGenerator;
+    private static MapCreate _cachedMapCreate;
+    private static CrystalSystem _cachedCrystalSystem;
 
     /// <summary>
     /// King / Crystal が HP0 なら勝敗を確定させ GameEndState へ遷移する。
@@ -575,6 +578,27 @@ public class Status : MonoBehaviour
         {
             UnityEngine.Vector3 cellPos = _cachedMoveGenerator.Cell(transform.position);
             _cachedMoveGenerator.RemoveOccupied(cellPos);
+        }
+
+        // 死亡直前に駒の視界セルを「探索済み」として保存し、半透明フォグを残す。
+        // 加えて視界を dirty 化して次の VisionPoint で確実に再計算させる。
+        // （BattleSystem 経由でない攻撃 — 毒・スキル・反撃・WildBoss・ダンジョン反撃 — でも
+        //   視界外オブジェクトが死後も見えたままにならないようにする）
+        if (_cachedVisionGenerator == null)
+            _cachedVisionGenerator = UnityEngine.Object.FindFirstObjectByType<VisionGenerator>();
+        if (_cachedVisionGenerator != null)
+        {
+            if (VisionCell != null && VisionCell.Count > 0)
+                _cachedVisionGenerator.AddExploredRange(team, VisionCell);
+
+            if (_cachedMapCreate == null)
+                _cachedMapCreate = UnityEngine.Object.FindFirstObjectByType<MapCreate>();
+            if (_cachedCrystalSystem == null)
+                _cachedCrystalSystem = UnityEngine.Object.FindFirstObjectByType<CrystalSystem>();
+
+            _cachedVisionGenerator.MarkVisionDirty();
+            if (_cachedMapCreate != null && _cachedMoveGenerator != null && _cachedCrystalSystem != null)
+                _cachedVisionGenerator.VisionPoint(_cachedMapCreate, _cachedMoveGenerator, _cachedCrystalSystem);
         }
 
         ResetToLv1();

@@ -28,12 +28,6 @@ public static class UIInitializer
         EnsureSingleton<FloatingDamageUI>("FloatingDamageUI");
         EnsureSingleton<EnemyTurnBannerUI>("EnemyTurnBannerUI");
 
-        if (TurnAPIndicatorUI.Instance == null)
-        {
-            var indicator = CreateComponent<TurnAPIndicatorUI>("TurnAPIndicatorUI");
-            indicator.Init(turnGen, apSystem);
-        }
-
         EnsureSingleton<UnitHoverTooltipUI>("UnitHoverTooltipUI");
 
         var highlight = CreateComponent<UnitSelectionHighlight>("UnitSelectionHighlight");

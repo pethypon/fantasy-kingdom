@@ -148,6 +148,16 @@ public class UnitHeadUI : MonoBehaviour
     {
         if (status == null || canvas == null) return;
 
+        // 死亡駒は HandleDeathIfDead で SetActive(false) されるため
+        // LateUpdate 自体が呼ばれなくなるが、HP==0 のまま親が active な
+        // 過渡状態（毒ダメージ→VisionPoint まで）でも頭上UIを即時非表示にする。
+        if (status.HP <= 0)
+        {
+            if (canvas.gameObject.activeSelf)
+                canvas.gameObject.SetActive(false);
+            return;
+        }
+
         // 視界判定: ユニットの Renderer が非表示なら UI も隠す
         // VisionGenerator が敵ユニットの Renderer.enabled を切り替えるので、それに連動
         if (unitRenderer != null)

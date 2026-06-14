@@ -39,11 +39,21 @@ public class APPanelUI : MonoBehaviour
 
     private void Awake()
     {
-        // テキスト自動検索
+        // テキスト自動検索（"APText" を名前で探す。先頭の TMP は "AP" ラベルのため、
+        // 単純な GetComponentInChildren ではラベル側に数値が書き込まれ、
+        // 本来の APText が初期値 "0 / 0" のまま残って二重表示になる）
         if (apText == null)
         {
-            var tmp = GetComponentInChildren<TextMeshProUGUI>(true);
-            if (tmp != null) apText = tmp;
+            foreach (var tmp in GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (tmp.gameObject.name == "APText")
+                {
+                    apText = tmp;
+                    break;
+                }
+            }
+            if (apText == null)
+                apText = GetComponentInChildren<TextMeshProUGUI>(true);
         }
 
         // RectTransform を右下にアンカー
