@@ -364,7 +364,7 @@ public class BattleSystem : MonoBehaviour
 
         Target.gameObject.SetActive(false);
 
-        // 駒が消えたため dirty を立てて確実に視界を再計算する
+        // 駒の死亡で盤面が変化したため同フレームキャッシュを無効化してから再計算する
         turnGenerator.Systems.VisionGenerator.MarkVisionDirty();
         turnGenerator.Systems.VisionGenerator.VisionPoint(
             turnGenerator.Systems.MapCreate,

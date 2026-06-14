@@ -204,8 +204,10 @@ public class GameGenerator : MonoBehaviour
 
         // 初期化完了後の視界再計算: MapInitializer.Initialize 時点では
         // WildBoss/Dungeon マーカーがまだ生成されていないため、
-        // ここで明示的に VisionPoint を呼んで Turn1 開始前に正しい視界状態にする
-        // （MapInitializer の計算と同一フレームのため dirty を立てないと no-op になる）
+        // ここで明示的に VisionPoint を呼んで Turn1 開始前に正しい視界状態にする。
+        // MapInitializer 内の VisionPoint と同一フレームになるため、
+        // 必ず MarkVisionDirty で同フレームキャッシュを無効化してから再計算する
+        // （これを怠ると視界外の強敵・ダンジョン・頭上UIが初期表示されたまま残る）。
         if (_VisionGenerator != null && _MapCreate != null && _MoveGenerator != null && _CrystalSystem != null)
         {
             _VisionGenerator.MarkVisionDirty();

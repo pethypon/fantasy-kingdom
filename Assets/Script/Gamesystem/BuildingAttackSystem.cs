@@ -283,7 +283,7 @@ public class BuildingAttackSystem : MonoBehaviour
 
         if (visionGenerater != null)
         {
-            // 駒が消えたため dirty を立てて確実に視界を再計算する
+            // 駒の死亡で盤面が変化したため同フレームキャッシュを無効化してから再計算する
             visionGenerater.MarkVisionDirty();
             visionGenerater.VisionPoint(mapCreate, moveGererater, crystalSystem);
         }
