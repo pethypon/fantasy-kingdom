@@ -71,7 +71,8 @@ public class MoveUndoSystem
         playerMove.SelectedUnit = null;
         playerMove.ClickedUnit = null;
 
-        // 視界再計算
+        // 視界再計算（駒が移動して盤面が変化したため同フレームキャッシュを無効化）
+        visionGen.MarkVisionDirty();
         visionGen.VisionPoint(mapCreate, _moveGen, crystalSystem);
 
         ToastMessageUI.Show("移動を取り消しました", ToastMessageUI.MessageType.Info);

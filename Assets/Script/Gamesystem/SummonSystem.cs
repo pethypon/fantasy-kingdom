@@ -258,7 +258,8 @@ public class SummonSystem : MonoBehaviour
         // ユニット位置を記録
         moveGenerator.AddOccupied(GridHelper.ToUnitPoint(pos));
 
-        // 視界更新
+        // 視界更新（新規ユニット追加で盤面が変化したため同フレームキャッシュを無効化）
+        visionGenerator.MarkVisionDirty();
         visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
 
         Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {Mathf.RoundToInt(spawnY)}, {pos.z}) に召喚 ({team})");
