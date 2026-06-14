@@ -614,6 +614,19 @@ public class VisionGenerator : MonoBehaviour
             _reusableExploardXZ.Add(new Vector3Int(cell.x, 0, cell.z));
         }
 
+        // 自陣領土は常に「視界内」扱いにして霧オーバーレイを被せない。
+        // （Crystal の視界半径(3)より Territory 半径(5)の方が広く、領土の外周が
+        //   常に霧で隠れて自陣が暗く見えてしまう問題への対処）
+        if (territorysystem != null && territorysystem.PTSetPos != null)
+        {
+            foreach (var p in territorysystem.PTSetPos)
+            {
+                var cell = new Vector3Int(Mathf.RoundToInt(p.x), 0, Mathf.RoundToInt(p.z));
+                _reusableVisionXZ.Add(cell);
+                _reusableExploardXZ.Add(cell);
+            }
+        }
+
         var playervisionXZ = _reusableVisionXZ;
         var playerexploardXZ = _reusableExploardXZ;
 
