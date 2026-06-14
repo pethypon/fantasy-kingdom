@@ -224,8 +224,11 @@ public class VisionGenerator : MonoBehaviour
         foreach (Transform child in parent)
         {
             if (child == null) continue;
+            // 死亡駒 (SetActive(false)) は視界に寄与させない。
+            // foreach は inactive 子も列挙するため明示的にスキップする。
+            if (!child.gameObject.activeInHierarchy) continue;
             Status status = child.GetComponentInChildren<Status>();
-            if (status != null)
+            if (status != null && status.HP > 0)
             {
                 result.Add(status);
             }
