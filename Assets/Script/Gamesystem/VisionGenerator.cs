@@ -625,12 +625,10 @@ public class VisionGenerator : MonoBehaviour
         SetFogVisibility(mapcreate.FogExploardBoardParent, playervisionXZ, playerexploardXZ, true);
         SetFogVisibility(mapcreate.FogExploardParent, playervisionXZ, playerexploardXZ, true);
 
-        // 視界外で非表示化する対象は「敵側のみ」: 駒・クリスタル・領土・建物・強敵
-        // 自陣の駒/クリスタル/サブクリスタル/建物は常に表示する（プレイヤー所有）
+        // 視界外で非表示化する対象は「敵側のみ」: 駒・クリスタル・領土・建物
         SetRendererVisibility(EnemyUnit, playervisionXZ);
         SetRendererVisibility(crystalsystem.Enemycrystal, playervisionXZ);
         SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);
-        SetRendererVisibility(territorysystem.Playerterritory, playervisionXZ);
 
         // 敵建築物をプレイヤー視界外で非表示にする
         if (_enemyBuildingParent != null)
@@ -638,13 +636,9 @@ public class VisionGenerator : MonoBehaviour
             SetRendererVisibility(_enemyBuildingParent, playervisionXZ);
         }
 
-        // 自陣（Player）の駒・クリスタル・建物も視界外では非表示にする
-        SetRendererVisibility(PlayerUnit, playervisionXZ);
-        SetRendererVisibility(crystalsystem.Playercrystal, playervisionXZ);
-        if (_playerBuildingParent != null)
-        {
-            SetRendererVisibility(_playerBuildingParent, playervisionXZ);
-        }
+        // 自陣（Player）の駒・クリスタル・サブクリスタル・領土・建物は常に表示する
+        // （プレイヤー所有の情報は霧の中でも常に把握できる前提。Crystal の視界半径より
+        //   Territory 半径の方が広いため、視界カリングで自分の領土が隠れて見えない問題を防ぐ）
 
         // 強敵(WildBoss)本体と縄張りタイルも視界外で非表示にする
         if (_wildBossParent != null)
