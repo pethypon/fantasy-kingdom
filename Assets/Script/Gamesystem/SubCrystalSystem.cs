@@ -221,6 +221,16 @@ public class SubCrystalSystem : MonoBehaviour
         target.gameObject.SetActive(false);
         target.transform.position = new Vector3(-1000, -1000, -1000);
 
+        // SubCrystal は視界を提供するため、破壊後は確実に視界を再計算する。
+        // BuildingAttackSystem からの呼び出しは後段で再計算するが、
+        // UnitPanelUI の破壊ボタンなど他経路からの呼び出しでも漏れないよう
+        // ここで一括して dirty 化＋再計算する。
+        if (visionGenerator != null && mapcreate != null)
+        {
+            visionGenerator.MarkVisionDirty();
+            visionGenerator.VisionPoint(mapcreate, moveGenerator, crystalsystem);
+        }
+
         Debug.Log($"[SubCrystalSystem] 建築物破壊: {target.facilityKind} at ({posInt.x}, {posInt.y}, {posInt.z})");
     }
 
