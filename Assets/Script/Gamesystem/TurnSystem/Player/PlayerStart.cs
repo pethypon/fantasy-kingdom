@@ -16,6 +16,11 @@ public class PlayerStart : TurnState
         // 共通ターン開始処理
         TurnStartHelper.ProcessTurnStart(Systems, Team.Player);
 
+        // 占有セルを再構築（敵の最終位置・WildBoss本体/子駒を反映）。
+        // これがないと敵ターン中に動いた駒や WildBoss の上にプレイヤーが
+        // 移動できてしまう。
+        Systems.MoveGenerator?.UnitPointCore();
+
         // 移動Undo履歴クリア
         if (Systems.MoveUndoSystem != null)
             Systems.MoveUndoSystem.Clear();

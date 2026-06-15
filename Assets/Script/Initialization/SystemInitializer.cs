@@ -96,6 +96,8 @@ public static class SystemInitializer
             visionGenerator.SetBuildingParents(buildSystem.PlayerBuildingParent, buildSystem.EnemyBuildingParent);
         // 強敵(WildBoss)本体と縄張りも視界外で非表示にする
         visionGenerator.SetWildBossParents(wildBossSystem.BossParent, wildBossSystem.TerritoryParent);
+        // WildBoss本体・子駒を移動占有判定に含める（駒が重なって移動できないように）
+        moveGenerator.SetObstacleParent(wildBossSystem.BossParent);
         // ダンジョンマーカーも視界外で非表示にする
         visionGenerator.SetDungeonMarkerParent(dungeonSystem.MarkerParent);
     }

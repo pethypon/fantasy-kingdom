@@ -27,6 +27,9 @@ public class TurnGenerator : MonoBehaviour
     private StateCore _stateManager;
     public StateCore CurrentState => _stateManager;
 
+    /// <summary>ゲームが決着済み（GameEndState）かどうか。死亡処理の二重発火防止に使う。</summary>
+    public bool IsGameOver => _stateManager is GameEndState;
+
     public void ChangeState(StateCore next)
     {
         // ゲーム終了後は一切の遷移を受け付けない。

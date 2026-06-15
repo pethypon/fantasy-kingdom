@@ -10,9 +10,9 @@ using UnityEngine;
 public class BuildingAttackSystem : MonoBehaviour
 {
     private BuildSystem buildSystem;
-    private MoveGenerator moveGererater;
+    private MoveGenerator moveGenerator;
     private UnitSetting unitSetting;
-    private VisionGenerator visionGenerater;
+    private VisionGenerator visionGenerator;
     private MapCreate mapCreate;
     private CrystalSystem crystalSystem;
     private SubCrystalSystem subCrystalSystem;
@@ -21,14 +21,14 @@ public class BuildingAttackSystem : MonoBehaviour
     private Team _currentAttackTeam;
     private Team _currentEnemyTeam;
 
-    public void Init(BuildSystem buildSystem, MoveGenerator moveGererater,
-                     UnitSetting unitSetting, VisionGenerator visionGenerater,
+    public void Init(BuildSystem buildSystem, MoveGenerator moveGenerator,
+                     UnitSetting unitSetting, VisionGenerator visionGenerator,
                      MapCreate mapCreate, CrystalSystem crystalSystem)
     {
         this.buildSystem = buildSystem;
-        this.moveGererater = moveGererater;
+        this.moveGenerator = moveGenerator;
         this.unitSetting = unitSetting;
-        this.visionGenerater = visionGenerater;
+        this.visionGenerator = visionGenerator;
         this.mapCreate = mapCreate;
         this.crystalSystem = crystalSystem;
     }
@@ -104,7 +104,7 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     private void ProcessMortarAttack(Status mortar, Team enemyTeam)
     {
-        var baseGrid = GridHelper.ToGridXZ(moveGererater.Cell(mortar.transform.position));
+        var baseGrid = GridHelper.ToGridXZ(moveGenerator.Cell(mortar.transform.position));
         int bx = baseGrid.x;
         int bz = baseGrid.z;
 
@@ -122,7 +122,7 @@ public class BuildingAttackSystem : MonoBehaviour
 
         // ランダムに1体選ぶ
         Status primaryTarget = _targetsBuffer[Random.Range(0, _targetsBuffer.Count)];
-        var targetGrid = GridHelper.ToGridXZ(moveGererater.Cell(primaryTarget.transform.position));
+        var targetGrid = GridHelper.ToGridXZ(moveGenerator.Cell(primaryTarget.transform.position));
         int tx = targetGrid.x;
         int tz = targetGrid.z;
 
@@ -145,7 +145,7 @@ public class BuildingAttackSystem : MonoBehaviour
     /// </summary>
     private void ProcessCannonAttack(Status cannon, Team enemyTeam)
     {
-        var baseGrid = GridHelper.ToGridXZ(moveGererater.Cell(cannon.transform.position));
+        var baseGrid = GridHelper.ToGridXZ(moveGenerator.Cell(cannon.transform.position));
         int bx = baseGrid.x;
         int bz = baseGrid.z;
 
@@ -170,10 +170,10 @@ public class BuildingAttackSystem : MonoBehaviour
     private Status FindEnemyAtCell(Vector3 cellPos, Team enemyTeam)
     {
         // 視界外のセルは攻撃対象にしない
-        if (visionGenerater != null)
+        if (visionGenerator != null)
         {
             var cellKey = GridHelper.ToGridXZ(cellPos);
-            if (!visionGenerater.IsInVision(_currentAttackTeam, cellKey)) return null;
+            if (!visionGenerator.IsInVision(_currentAttackTeam, cellKey)) return null;
         }
 
         var cellGrid = GridHelper.ToGridXZ(cellPos);
@@ -221,7 +221,7 @@ public class BuildingAttackSystem : MonoBehaviour
             var st = child.GetComponent<Status>();
             if (st == null || st.HP <= 0) continue;
             if (teamFilter.HasValue && st.team != teamFilter.Value) continue;
-            Vector3 cell = moveGererater.Cell(child.position);
+            Vector3 cell = moveGenerator.Cell(child.position);
             if (GridHelper.MatchXZ(cell, x, z))
                 return st;
         }
@@ -274,18 +274,18 @@ public class BuildingAttackSystem : MonoBehaviour
         }
         else
         {
-            Vector3 cellPos = moveGererater.Cell(target.transform.position);
-            moveGererater.RemoveOccupied(cellPos);
+            Vector3 cellPos = moveGenerator.Cell(target.transform.position);
+            moveGenerator.RemoveOccupied(cellPos);
             // ユニットの場合は Lv1 ステータスにリセットしてから非表示化
             if (target.type == Type.Unit) target.ResetToLv1();
             target.gameObject.SetActive(false);
         }
 
-        if (visionGenerater != null)
+        if (visionGenerator != null)
         {
             // 駒の死亡で盤面が変化したため同フレームキャッシュを無効化してから再計算する
-            visionGenerater.MarkVisionDirty();
-            visionGenerater.VisionPoint(mapCreate, moveGererater, crystalSystem);
+            visionGenerator.MarkVisionDirty();
+            visionGenerator.VisionPoint(mapCreate, moveGenerator, crystalSystem);
         }
     }
 }
