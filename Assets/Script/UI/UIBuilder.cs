@@ -379,7 +379,8 @@ public class UIBuilder : MonoBehaviour
         var panel = CreatePanel("BottomUnitPanel", canvas.transform,
             new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0),
             new Vector2(800, 180));
-        panel.anchoredPosition = new Vector2(0, 10);
+        // 画面最下部の操作ヒントバー(高さ32px)の上に乗せる
+        panel.anchoredPosition = new Vector2(0, 44);
 
         AddImage(panel.gameObject, BrandGuide.PanelBgLight);
         BrandGuide.AddTopBorder(panel);
