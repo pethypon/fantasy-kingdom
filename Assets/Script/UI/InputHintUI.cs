@@ -74,16 +74,16 @@ public class InputHintUI : MonoBehaviour
 
         canvasGo.AddComponent<GraphicRaycaster>();
 
-        // Panel（画面下部中央）
+        // Panel（画面最下部・横幅いっぱい）
         var panelGo = new GameObject("HintPanel");
         panelGo.transform.SetParent(canvasGo.transform, false);
         _panelRect = panelGo.AddComponent<RectTransform>();
-        // ユニットパネル（高さ180px・下端10px）の直上に配置して重なりを防ぐ
-        _panelRect.anchorMin = new Vector2(0.1f, 0);
-        _panelRect.anchorMax = new Vector2(0.9f, 0);
+        // 画面の一番下に張り付ける（端から端まで、下端ぴったり）
+        _panelRect.anchorMin = new Vector2(0, 0);
+        _panelRect.anchorMax = new Vector2(1, 0);
         _panelRect.pivot = new Vector2(0.5f, 0);
-        _panelRect.anchoredPosition = new Vector2(0, 196);
-        _panelRect.sizeDelta = new Vector2(0, 38);
+        _panelRect.anchoredPosition = new Vector2(0, 0);
+        _panelRect.sizeDelta = new Vector2(0, 32);
 
         var bg = panelGo.AddComponent<Image>();
         bg.color = new Color(0.04f, 0.04f, 0.06f, 0.82f);

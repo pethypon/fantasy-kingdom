@@ -30,7 +30,8 @@ public class APPanelUI : MonoBehaviour
 
     [Header("右下配置")]
     [SerializeField] private float marginRight = 20f;
-    [SerializeField] private float marginBottom = 20f;
+    // 画面最下部の InputHintUI (高さ 32px) と被らないよう 40 に設定
+    [SerializeField] private float marginBottom = 40f;
     [SerializeField] private float panelWidth = 160f;
     [SerializeField] private float panelHeight = 80f;
 
