@@ -10,6 +10,13 @@ public class MoveGenerator : MonoBehaviour
     // 壁占有の再収集用（BuildSystem.Init から注入される）
     [NonSerialized] public BuildSystem BuildSystemRef;
 
+    // 中立障害物（WildBoss本体・親衛騎士・デコイ等）の親。
+    // PlayerUnit/EnemyUnit に属さないため、占有再計算時に別途走査する。
+    [NonSerialized] public Transform ObstacleParent;
+
+    /// <summary>WildBossコンテナ等、中立障害物の親を登録する（占有判定に含める）。</summary>
+    public void SetObstacleParent(Transform parent) => ObstacleParent = parent;
+
     [Header("移動位置表示のオブジェクト")]
     public GameObject MovePoint;
 
@@ -70,6 +77,10 @@ public class MoveGenerator : MonoBehaviour
 
         CollectUnitPositions(PlayerUnit);
         CollectUnitPositions(EnemyUnit);
+
+        // WildBoss本体・親衛騎士・デコイ（Team.Obstacle）も通過不可にする。
+        // これらは PlayerUnit/EnemyUnit ではなく専用コンテナ配下にあるため別途収集する。
+        CollectUnitPositions(ObstacleParent);
 
         // 壁は AddOccupied で個別追加されるだけだと再計算時に消えてしまうため、
         // 建築物親からも毎回収集して通過不可を維持する

@@ -286,8 +286,8 @@ public class Status : MonoBehaviour
     public bool isWildBoss;
     [Tooltip("強敵の縄張り中心（Y=0）")]
     public Vector3Int wildBossTerritoryCenter;
-    [Tooltip("強敵の縄張り半径（チェビシェフ距離）")]
-    public int wildBossTerritoryRadius = 3;
+    [Tooltip("強敵の縄張り半径（チェビシェフ距離）。スポーン時に WildBossSystem.TerritoryRadius で上書きされる")]
+    public int wildBossTerritoryRadius = WildBossSystem.TerritoryRadius;
     [Tooltip("強敵アーキタイプ（固有AI・行動周期）")]
     public WildBossArchetype wildBossArchetype;
     [Tooltip("強敵の所持AP（毎ターン最大値までリフィル）")]
@@ -533,12 +533,19 @@ public class Status : MonoBehaviour
     /// が ApplyDamage 後に呼び、ゴースト駒（HP=0 だが scene に残る）を防ぐ。
     /// 既に非アクティブなら何もしない（idempotent）。
     /// </summary>
-    // 死亡処理での FindFirstObjectByType 連発を避けるキャッシュ（シーン再読込時は Unity の null 比較で再取得）
-    private static MoveGenerator _cachedMoveGenerator;
+    // 死亡処理での FindFirstObjectByType 連発を避けるキャッシュ。
+    // 個別システムを別々に Find するのではなく TurnGenerator を1回だけ Find し、
+    // 以降は TurnGenerator.Systems 経由で全システムへアクセスする（シーン再読込時は
+    // Unity の null 比較で自動再取得される）。
     private static TurnGenerator _cachedTurnGenerator;
-    private static VisionGenerator _cachedVisionGenerator;
-    private static MapCreate _cachedMapCreate;
-    private static CrystalSystem _cachedCrystalSystem;
+
+    /// <summary>共有 TurnGenerator を取得（必要時のみ Find）。null の場合あり。</summary>
+    private static TurnGenerator GetTurnGenerator()
+    {
+        if (_cachedTurnGenerator == null)
+            _cachedTurnGenerator = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
+        return _cachedTurnGenerator;
+    }
 
     /// <summary>
     /// King / Crystal が HP0 なら勝敗を確定させ GameEndState へ遷移する。
@@ -551,13 +558,16 @@ public class Status : MonoBehaviour
         if (kind != Kind.King && kind != Kind.Crystal) return false;
         if (team != Team.Player && team != Team.Enemy) return false;
 
-        if (_cachedTurnGenerator == null)
-            _cachedTurnGenerator = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
-        if (_cachedTurnGenerator == null) return false;
+        var turnGen = GetTurnGenerator();
+        if (turnGen == null) return false;
+
+        // 既に決着済み（GameEndState 遷移済み）なら二重発火しない。
+        // 同フレームに両陣営の King/Crystal が落ちた場合の競合を防ぐ。
+        if (turnGen.IsGameOver) return false;
 
         GameResult result = team == Team.Enemy ? GameResult.Win : GameResult.Lose;
         UnityEngine.Debug.Log($"[Status] {team} の {kind} 撃破 → ゲーム終了 ({result})");
-        _cachedTurnGenerator.ChangeState(new GameEndState(_cachedTurnGenerator, result));
+        turnGen.ChangeState(new GameEndState(turnGen, result));
         return true;
     }
 
@@ -571,34 +581,25 @@ public class Status : MonoBehaviour
 
         if (type != Type.Unit) return;
 
+        var turnGen = GetTurnGenerator();
+        var systems = turnGen != null ? turnGen.Systems : null;
+
         // MoveGenerator の占有セル解除
-        if (_cachedMoveGenerator == null)
-            _cachedMoveGenerator = UnityEngine.Object.FindFirstObjectByType<MoveGenerator>();
-        if (_cachedMoveGenerator != null)
+        if (systems?.MoveGenerator != null)
         {
-            UnityEngine.Vector3 cellPos = _cachedMoveGenerator.Cell(transform.position);
-            _cachedMoveGenerator.RemoveOccupied(cellPos);
+            UnityEngine.Vector3 cellPos = systems.MoveGenerator.Cell(transform.position);
+            systems.MoveGenerator.RemoveOccupied(cellPos);
         }
 
         // 死亡直前に駒の視界セルを「探索済み」として保存し、半透明フォグを残す。
-        // 加えて視界を dirty 化して次の VisionPoint で確実に再計算させる。
-        // （BattleSystem 経由でない攻撃 — 毒・スキル・反撃・WildBoss・ダンジョン反撃 — でも
-        //   視界外オブジェクトが死後も見えたままにならないようにする）
-        if (_cachedVisionGenerator == null)
-            _cachedVisionGenerator = UnityEngine.Object.FindFirstObjectByType<VisionGenerator>();
-        if (_cachedVisionGenerator != null)
+        // 加えて視界を再計算させる（BattleSystem 経由でない攻撃 — 毒・スキル・反撃・
+        // WildBoss・ダンジョン反撃 — でも視界外オブジェクトが死後も見えたままにならないように）。
+        if (systems?.VisionGenerator != null)
         {
             if (VisionCell != null && VisionCell.Count > 0)
-                _cachedVisionGenerator.AddExploredRange(team, VisionCell);
+                systems.VisionGenerator.AddExploredRange(team, VisionCell);
 
-            if (_cachedMapCreate == null)
-                _cachedMapCreate = UnityEngine.Object.FindFirstObjectByType<MapCreate>();
-            if (_cachedCrystalSystem == null)
-                _cachedCrystalSystem = UnityEngine.Object.FindFirstObjectByType<CrystalSystem>();
-
-            _cachedVisionGenerator.MarkVisionDirty();
-            if (_cachedMapCreate != null && _cachedMoveGenerator != null && _cachedCrystalSystem != null)
-                _cachedVisionGenerator.VisionPoint(_cachedMapCreate, _cachedMoveGenerator, _cachedCrystalSystem);
+            systems.RefreshVision();
         }
 
         ResetToLv1();

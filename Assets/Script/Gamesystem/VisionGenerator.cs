@@ -355,6 +355,10 @@ public class VisionGenerator : MonoBehaviour
 
         foreach (Transform Temporary in targets)
         {
+            // 非アクティブな子（死亡駒など）は Renderer 状態を触らない。
+            // 再スポーン時に古い可視状態が残るのを防ぐ。
+            if (!Temporary.gameObject.activeInHierarchy) continue;
+
             var data = GridHelper.ToGridXZ(Temporary.position);
             bool visible = visionXZ.Contains(data);
             Temporary.GetComponentsInChildren(true, _visRenderers);
@@ -656,7 +660,8 @@ public class VisionGenerator : MonoBehaviour
         // 強敵(WildBoss)本体と縄張りタイルも視界外で非表示にする
         if (_wildBossParent != null)
             SetRendererVisibility(_wildBossParent, playervisionXZ);
-        if (_wildBossTerritoryParent != null)
+        // 本体と縄張りが同一 Transform を共有している場合は二重処理しない
+        if (_wildBossTerritoryParent != null && _wildBossTerritoryParent != _wildBossParent)
             SetRendererVisibility(_wildBossTerritoryParent, playervisionXZ);
 
         // ダンジョンマーカーも視界外で非表示にする

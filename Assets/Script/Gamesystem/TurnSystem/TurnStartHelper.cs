@@ -33,8 +33,7 @@ public static class TurnStartHelper
         }
 
         // 状態異常ティック（DoTダメージ + ターン経過）
-        if (unitParent != null)
-            StatusEffectSystem.TickAllUnits(unitParent);
+        StatusEffectSystem.TickAllUnits(team, unitParent);
 
         // Special Ability: ターン開始時処理（フラグリセット + 浄化光輪）
         if (unitParent != null)

@@ -164,29 +164,52 @@ public static class StatusEffectSystem
     // =====================================================================
     //  全ユニットのティック
     // =====================================================================
-    public static void TickAllUnits(Transform unitParent)
+    // ティック対象を一旦コピーするバッファ。
+    // ティック中に毒(DoT)で駒が死ぬ → HandleDeathIfDead が走るため、
+    // 反復中のコレクション構造変化を避ける目的でもスナップショットを取る。
+    private static readonly List<Status> _tickBuffer = new List<Status>();
+
+    public static void TickAllUnits(Team team, Transform fallbackParent)
     {
-        if (unitParent == null) return;
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
+        _tickBuffer.Clear();
+
+        // UnitRegistry のキャッシュ済みリストを優先（毎ターンの GetComponentsInChildren 確保を回避）
+        var reg = UnitRegistry.Instance;
+        if (reg != null)
         {
-            if (s.type == Type.Unit)
+            var src = team == Team.Player ? reg.PlayerUnits : reg.EnemyUnits;
+            for (int i = 0; i < src.Count; i++)
             {
-                TickEffects(s);
+                var s = src[i];
+                if (s != null && s.gameObject.activeInHierarchy && s.type == Type.Unit)
+                    _tickBuffer.Add(s);
+            }
+        }
+        else if (fallbackParent != null)
+        {
+            fallbackParent.GetComponentsInChildren(false, _tickBuffer);
+        }
 
-                // ユニットシールドのターン経過
-                if (s.ShieldTurns > 0)
-                {
-                    s.ShieldTurns--;
-                    Debug.Log($"[StatusEffect] {s.team} {s.kind} シールド残り {s.ShieldTurns} ターン");
-                }
+        for (int i = 0; i < _tickBuffer.Count; i++)
+        {
+            Status s = _tickBuffer[i];
+            if (s == null || s.type != Type.Unit) continue;
 
-                // スキルクールダウンのターン経過
-                if (s.SkillCooldown > 0)
-                {
-                    s.SkillCooldown--;
-                    if (s.SkillCooldown == 0)
-                        Debug.Log($"[StatusEffect] {s.team} {s.kind} のスキルクールダウンが解除");
-                }
+            TickEffects(s);
+
+            // ユニットシールドのターン経過
+            if (s.ShieldTurns > 0)
+            {
+                s.ShieldTurns--;
+                Debug.Log($"[StatusEffect] {s.team} {s.kind} シールド残り {s.ShieldTurns} ターン");
+            }
+
+            // スキルクールダウンのターン経過
+            if (s.SkillCooldown > 0)
+            {
+                s.SkillCooldown--;
+                if (s.SkillCooldown == 0)
+                    Debug.Log($"[StatusEffect] {s.team} {s.kind} のスキルクールダウンが解除");
             }
         }
     }

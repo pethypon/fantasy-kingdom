@@ -28,22 +28,25 @@ public class WildBossSystem : MonoBehaviour
     /// これにより VisionGenerator.SetRendererVisibility が
     /// GameGenerator の子全部 (=世界全体) を巻き込むバグを防ぐ。
     /// </summary>
-    Transform _autoContainer;
-    Transform GetOrCreateAutoContainer()
+    // 本体と縄張りで別々の自動コンテナを生成する。同一コンテナを共有すると
+    // VisionGenerator.SetRendererVisibility が同じ親に二重に呼ばれて冗長になる。
+    Transform _autoBossContainer;
+    Transform _autoTerritoryContainer;
+    Transform GetOrCreateAutoContainer(ref Transform slot, string name)
     {
-        if (_autoContainer == null)
+        if (slot == null)
         {
-            var go = new GameObject("WildBossContainer");
+            var go = new GameObject(name);
             go.transform.SetParent(transform, false);
-            _autoContainer = go.transform;
+            slot = go.transform;
         }
-        return _autoContainer;
+        return slot;
     }
 
     /// <summary>強敵(WildBoss)本体の配置親 (VisionGeneratorからの読み取り用)。Inspector未設定時は自動コンテナ。</summary>
-    public Transform BossParent => parent != null ? parent : GetOrCreateAutoContainer();
+    public Transform BossParent => parent != null ? parent : GetOrCreateAutoContainer(ref _autoBossContainer, "WildBossContainer");
     /// <summary>縄張りタイルの配置親 (VisionGeneratorからの読み取り用)。Inspector未設定時は自動コンテナ。</summary>
-    public Transform TerritoryParent => wildBossTerritoryParent != null ? wildBossTerritoryParent : GetOrCreateAutoContainer();
+    public Transform TerritoryParent => wildBossTerritoryParent != null ? wildBossTerritoryParent : GetOrCreateAutoContainer(ref _autoTerritoryContainer, "WildBossTerritoryContainer");
 
     private MapCreate mapcreate;
     private CrystalSystem crystalsystem;
@@ -271,8 +274,8 @@ public class WildBossSystem : MonoBehaviour
         status.team = Team.Obstacle;
         status.passiveskill = PassiveSkill.StrangeKingAura;
 
-        if (obj.name != null && !obj.name.Contains(prof.DisplayName))
-            obj.name = $"WildBoss_{prof.DisplayName}";
+        // スポーンしたボスは常にキヤノニカル名に統一（プレハブ名への部分一致依存を排除）
+        obj.name = $"WildBoss_{prof.DisplayName}";
 
         SpawnedBoss = status;
         SpawnTerritoryTiles(pos);

@@ -277,20 +277,14 @@ public class BattleSystem : MonoBehaviour
             FloatingDamageUI.ShowDamage(t.transform.position, actual, !t.IsAlive);
             Debug.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} に {actual} ダメージ（残HP:{t.HP}）  targets={count}");
 
-            if (!t.IsAlive && t.type == Type.Unit)
-            {
-                if (systems.MoveGenerator != null)
-                {
-                    Vector3 cellPos = systems.MoveGenerator.Cell(t.transform.position);
-                    systems.MoveGenerator.RemoveOccupied(cellPos);
-                }
-                t.ResetToLv1();
-                t.gameObject.SetActive(false);
-            }
+            // 死亡時は HandleDeathIfDead に一元委譲する。
+            // 旧コードは Unit のみインライン処理しており、King がクリスタル反撃で
+            // 倒れても勝敗判定(TryTriggerGameEndIfDecisive)が走らなかった。
+            // HandleDeathIfDead は占有解除・視界再計算・探索済み保存・勝敗判定を含む。
+            t.HandleDeathIfDead();
         }
 
-        if (systems.VisionGenerator != null)
-            systems.RefreshVision();
+        // 視界再計算は HandleDeathIfDead 内で実施済み（死者がいなければ盤面不変）。
     }
 
     /// <summary>

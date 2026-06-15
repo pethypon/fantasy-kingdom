@@ -52,7 +52,7 @@ PlayerStart → PlayerMove ──(1/2 key)──→ PlayerAttack ──(success)
 |---|---|
 | `MapCreate` | Perlin noise terrain, owns `SetPos` (list of all valid tile positions +1 in Y), manages all fog object parents |
 | `CrystalSystem` | Random crystal placement; exposes `PCP` (Player Crystal Position) and `ECP` (Enemy Crystal Position) |
-| `TerritorySystem` | Instantiates territory indicator tiles within radius 3 of each crystal |
+| `TerritorySystem` | Instantiates territory indicator tiles within Chebyshev radius 5 of each crystal (`TerritoryRadius`) |
 | `UnitSetting` | Spawns King (player) and StrangeKing (enemy) near their respective crystals |
 
 `MapCreate`, `CrystalSystem`, `TerritorySystem`, and `UnitSetting` all live on the same GameObject and use `GetComponent` to share data.
