@@ -51,14 +51,15 @@ public class ActionLogUI : MonoBehaviour
 
         canvasGo.AddComponent<GraphicRaycaster>();
 
-        // パネル（右下）
+        // パネル（右下: AP表示パネル(y=40〜120)の上に配置）
         var panelGo = new GameObject("LogPanel");
         panelGo.transform.SetParent(canvasGo.transform, false);
         var panelRT = panelGo.AddComponent<RectTransform>();
         panelRT.anchorMin = new Vector2(1f, 0f);
         panelRT.anchorMax = new Vector2(1f, 0f);
         panelRT.pivot = new Vector2(1f, 0f);
-        panelRT.anchoredPosition = new Vector2(-10, 45);
+        // AP パネル上端(y=120)から 8px の余白を空けて配置
+        panelRT.anchoredPosition = new Vector2(-20, 128);
         panelRT.sizeDelta = new Vector2(320, 200);
 
         var bg = panelGo.AddComponent<Image>();
