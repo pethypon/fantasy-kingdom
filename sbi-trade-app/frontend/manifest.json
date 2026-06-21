@@ -1,0 +1,17 @@
+{
+  "name": "SBI Trade Assist",
+  "short_name": "TradeAssist",
+  "description": "自分専用・短期トレード判断支援（独自AI）",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0d1b2a",
+  "theme_color": "#0d1b2a",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="36" fill="#0d1b2a"/>
+  <polyline points="28,130 64,96 92,118 132,64 164,84"
+            fill="none" stroke="#4ea8de" stroke-width="10"
+            stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="132" cy="64" r="9" fill="#2ecc71"/>
+  <text x="96" y="172" font-size="26" fill="#e0e6f0" text-anchor="middle"
+        font-family="sans-serif" font-weight="700">TA</text>
+</svg>

@@ -1,0 +1,10 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# DB（分析結果のローカルスナップショット）
+*.db
+
+# OS
+.DS_Store

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d1b2a" />
+  <title>SBI Trade Assist</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>SBI Trade Assist</h1>
+    <button id="refreshBtn" class="refresh" title="再分析">⟳</button>
+  </header>
+
+  <nav id="modeBar" class="mode-bar"><!-- モードボタンを動的生成 --></nav>
+
+  <p id="modeDesc" class="mode-desc"></p>
+  <p id="status" class="status"></p>
+
+  <main id="list" class="list"><!-- ランキングカードを動的生成 --></main>
+
+  <footer class="disclaimer">
+    ※本ツールは判断材料の可視化であり投資助言ではありません。最終判断はご自身で。
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
