@@ -173,7 +173,7 @@ public class BuildingAttackSystem : MonoBehaviour
         if (visionGenerator != null)
         {
             var cellKey = GridHelper.ToGridXZ(cellPos);
-            if (!visionGenerator.IsInVision(_currentAttackTeam, cellKey)) return null;
+            if (!visionGenerator.IsInVisionXZ(_currentAttackTeam, cellKey)) return null;
         }
 
         var cellGrid = GridHelper.ToGridXZ(cellPos);
@@ -186,6 +186,11 @@ public class BuildingAttackSystem : MonoBehaviour
             : unitSetting.PlayerUnit;
 
         Status found = FindStatusAtCell(enemyParent, cx, cz, enemyTeam);
+        if (found != null) return found;
+
+        found = FindStatusAtCell(moveGenerator.NeutralParent, cx, cz);
+        if (found != null) return found;
+        found = FindStatusAtCell(moveGenerator.ObstacleParent, cx, cz);
         if (found != null) return found;
 
         // 敵の建築物も検索
@@ -240,13 +245,15 @@ public class BuildingAttackSystem : MonoBehaviour
             return;
         }
 
-        int raw = Mathf.Max(0, attacker.ATK - target.DEF);
+        if (moveGenerator.mapcreate != null && !moveGenerator.mapcreate.HasClearTerrainLine(attacker.transform.position, target.transform.position)) return;
+        int raw = DamageCalculator.CalcNormal(attacker, target);
 
         // Special Ability: 致死ダメージ耐え（生還本能）— 他の攻撃経路と同等に判定する
         if (SpecialAbilitySystem.TrySurviveLethal(target, raw))
             return;
 
         int damage = target.ApplyDamage(raw);
+        Status.AwardDamageExperience(attacker, target, damage, null);
 
         string attackerName = FacilityData.Table.TryGetValue(attacker.facilityKind, out var info)
             ? info.DisplayName : attacker.facilityKind.ToString();

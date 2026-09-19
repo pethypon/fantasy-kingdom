@@ -90,7 +90,7 @@ public class UnitSetting : MonoBehaviour
             status.passiveskill = PassiveSkill.StrangeKingAura;
 
         // スキルをランダム配布
-        SkillData.AssignRandomSkill(status);
+        SkillData.AssignFixedSkill(status);
 
         // Special Ability をランダム配布
         SpecialAbilityData.AssignRandom(status);

@@ -56,7 +56,7 @@ public partial class SimBoardState
         state.MapTiles = new HashSet<Vector3Int>();
         if (moveGen != null && moveGen.mapcreate != null)
         {
-            foreach (var sp in moveGen.mapcreate.SetPos)
+            foreach (var sp in realBoard.KnownTerrain())
             {
                 state.MapTiles.Add(GridHelper.ToGridXZ(sp));
             }
@@ -79,21 +79,21 @@ public partial class SimBoardState
 
         // クリスタル
         state.EnemyCrystalPos = ToCell(crystalSystem.ECP);
-        state.PlayerCrystalPos = ToCell(crystalSystem.PCP);
+        state.PlayerCrystalPos = ToCell(realBoard.PlayerCrystalPos);
 
         // クリスタルをユニットとして追加 (まだ追加されていなければ)
-        var eCrystal = FindCrystalStatus(unitSet.EnemyUnit);
+        var eCrystal = FindCrystalStatus(crystalSystem.Enemycrystal);
         if (eCrystal != null && !HasCrystal(state, Team.Enemy))
             state.Units.Add(CaptureUnit(eCrystal, idCounter++));
 
-        var pCrystal = FindCrystalStatus(unitSet.PlayerUnit);
+        var pCrystal = FindCrystalStatus(crystalSystem.Playercrystal);
         if (pCrystal != null && realBoard.PlayerCrystalVisible && !HasCrystal(state, Team.Player))
             state.Units.Add(CaptureUnit(pCrystal, idCounter++));
 
         // AP
         state.EnemyAP = realBoard.EnemyAP;
         state.PlayerAP = 30; // プレイヤーAPは概算
-        state.EnemyAPReset = Mathf.Max(15, realBoard.EnemyAP);
+        state.EnemyAPReset = apSystem.GetMaxAP(Team.Enemy);
         state.PlayerAPReset = 30;
 
         // 建築カウント

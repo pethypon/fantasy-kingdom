@@ -35,6 +35,9 @@ public class BattleSystem : MonoBehaviour
             return;
         }
         Attacker = turnGenerator.Context.SelectUnit;
+        if (!Attacker.IsAlive || !Target.IsAlive || !NeutralFactionSystem.AreHostile(Attacker, Target)) return;
+        var terrain = turnGenerator.Systems.MapCreate;
+        if (terrain != null && !terrain.HasClearTerrainLine(Attacker.transform.position, Target.transform.position)) return;
 
         // スタン中は行動不可
         if (StatusEffectSystem.IsStunned(Attacker))
@@ -77,13 +80,16 @@ public class BattleSystem : MonoBehaviour
         }
 
         // Special Ability: 致死ダメージ耐え（生還本能）
+        int hpBeforeSurvival = Target.HP;
         if (SpecialAbilitySystem.TrySurviveLethal(Target, damage))
         {
+            damage = Mathf.Max(0, hpBeforeSurvival - Target.HP);
+            Status.AwardDamageExperience(Attacker, Target, damage, turnGenerator?.Systems?.FactionState);
             FloatingDamageUI.ShowDamage(Target.transform.position, damage, false);
         }
         else
         {
-            ApplyDamage(damage);
+            damage = ApplyDamage(damage);
         }
 
         // Special Ability: 攻撃命中時効果（単体攻撃 = true）
@@ -106,6 +112,7 @@ public class BattleSystem : MonoBehaviour
 
         CheckCrystalShield();
         CheckDeath();
+        if (!Attacker.IsAlive) Attacker.HandleDeathIfDead();
     }
 
     // ─── 防御側パッシブ ───────────────────────────────────────────────
@@ -157,7 +164,7 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     //  ダメージ適用
     // ═══════════════════════════════════════════════════════════════════
-    private void ApplyDamage(int damage)
+    private int ApplyDamage(int damage)
     {
         damage = Target.ApplyDamage(damage);
         Debug.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}");
@@ -168,10 +175,7 @@ public class BattleSystem : MonoBehaviour
         // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）。兵舎XP%を乗算
         if (damage > 0 && Attacker != null && Attacker.type == Type.Unit && Attacker.team != Target.team)
         {
-            int barracksXP = turnGenerator?.Systems?.FactionState != null
-                ? turnGenerator.Systems.FactionState.GetBarracksXP(Attacker.team)
-                : 0;
-            Attacker.GainExperienceFromDamage(damage, barracksXP);
+            Status.AwardDamageExperience(Attacker, Target, damage, turnGenerator?.Systems?.FactionState);
         }
 
         // StrangeKingAura: 与ダメージの20%を吸収してHP回復
@@ -213,6 +217,7 @@ public class BattleSystem : MonoBehaviour
                 MatchStats.Instance.RecordXPGain(Attacker.team, damage);
             }
         }
+        return damage;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -317,7 +322,8 @@ public class BattleSystem : MonoBehaviour
     {
         if (Target.HP > 0) return;
 
-        if (Target.kind == Kind.Crystal || Target.kind == Kind.King)
+        if ((Target.kind == Kind.Crystal || Target.kind == Kind.King)
+            && (Target.team == Team.Player || Target.team == Team.Enemy))
         {
             HandleGameEnd();
         }
@@ -325,6 +331,8 @@ public class BattleSystem : MonoBehaviour
         {
             HandleUnitDeath();
         }
+        else if (Target.type == Type.Building || Target.type == Type.Wall)
+            turnGenerator.Systems.SubCrystalSystem?.DestroyBuilding(Target);
     }
 
     // ═══════════════════════════════════════════════════════════════════

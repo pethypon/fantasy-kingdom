@@ -249,7 +249,7 @@ public class SummonSystem : MonoBehaviour
 
         // プレイヤー召喚時はスキル3択UIで上書き
         if (team == Team.Player && spawnedStatus != null)
-            SkillData.OfferPlayerChoice(spawnedStatus);
+            SkillData.AssignFixedSkill(spawnedStatus);
 
         // UnitRegistry へ登録（壁遮蔽判定・ボスAI等が参照する）
         if (spawnedStatus != null)

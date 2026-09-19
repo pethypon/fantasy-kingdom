@@ -6,7 +6,9 @@ public enum Team
     Player,
     Enemy,
     Obstacle,
-    None
+    None,
+    Monster,
+    Intruder
 }
 
 public enum Kind
@@ -310,6 +312,7 @@ public class Status : MonoBehaviour
     public int DEF;
     [Header("レベル")]
     public int Level = 1;
+    [System.NonSerialized] public UnitData GrowthData;
     [Header("駒の視界")]
     public HashSet<Vector3Int> VisionCell = new HashSet<Vector3Int>();
     [Header("疲労")]
@@ -320,6 +323,7 @@ public class Status : MonoBehaviour
 
     [Header("累積経験値")]
     public int Experience = 0;
+    private bool uniqueRewardGranted;
 
     [Header("シールド（無敵バフ）")]
     public int ShieldTurns = 0;
@@ -387,8 +391,9 @@ public class Status : MonoBehaviour
             UnityEngine.Debug.Log($"[WildBoss] 縄張り外のため無敵: ダメージ{damage}を無効化");
             return 0;
         }
-        HP = UnityEngine.Mathf.Max(0, HP - damage);
-        return damage;
+        int actual = UnityEngine.Mathf.Min(UnityEngine.Mathf.Max(0, HP), damage);
+        HP -= actual;
+        return actual;
     }
 
     /// <summary>
@@ -474,17 +479,34 @@ public class Status : MonoBehaviour
     public void GainExperience(int amount)
     {
         if (amount <= 0) return;
+        bool wasAlive = HP > 0;
         Experience += amount;
         while (Level < 10 && Experience >= XPRequiredForLevel(Level + 1))
         {
             Level++;
-            // シンプルなステータス成長（ATK/DEF/MaxHP +10%）
-            ATK = UnityEngine.Mathf.RoundToInt(ATK * 1.10f);
-            DEF = UnityEngine.Mathf.RoundToInt(DEF * 1.10f);
-            int newMax = UnityEngine.Mathf.RoundToInt(MaxHP * 1.10f);
+            // 生成時と同じ兵種別線形成長。獲得済みの追加ステータスは維持する。
+            if (!UnitStaticData.Table.TryGetValue(kind, out var growth)) continue;
+            if (GrowthData != null)
+            {
+                int hpGain = UnitData.CalcStat(GrowthData.baseHP, GrowthData.hpGrowth, Level)
+                    - UnitData.CalcStat(GrowthData.baseHP, GrowthData.hpGrowth, Level - 1);
+                ATK += UnitData.CalcStat(GrowthData.baseATK, GrowthData.atkGrowth, Level)
+                    - UnitData.CalcStat(GrowthData.baseATK, GrowthData.atkGrowth, Level - 1);
+                DEF += UnitData.CalcStat(GrowthData.baseDEF, GrowthData.defGrowth, Level)
+                    - UnitData.CalcStat(GrowthData.baseDEF, GrowthData.defGrowth, Level - 1);
+                MaxHP += hpGain; if (wasAlive) HP += hpGain;
+                if (team == Team.Player && AchievementSystem.Instance != null) AchievementSystem.Instance.OnLevelUp(Level);
+                continue;
+            }
+            ATK += UnitData.CalcStat(growth.BaseATK, growth.AtkGrowth, Level)
+                 - UnitData.CalcStat(growth.BaseATK, growth.AtkGrowth, Level - 1);
+            DEF += UnitData.CalcStat(growth.BaseDEF, growth.DefGrowth, Level)
+                 - UnitData.CalcStat(growth.BaseDEF, growth.DefGrowth, Level - 1);
+            int newMax = MaxHP + UnitData.CalcStat(growth.BaseHP, growth.HpGrowth, Level)
+                              - UnitData.CalcStat(growth.BaseHP, growth.HpGrowth, Level - 1);
             int gained = newMax - MaxHP;
             MaxHP = newMax;
-            HP += gained;
+            if (wasAlive) HP += gained;
             UnityEngine.Debug.Log($"[Level] {kind} → Lv{Level} (XP:{Experience})");
             if (team == Team.Player && AchievementSystem.Instance != null)
                 AchievementSystem.Instance.OnLevelUp(Level);
@@ -495,6 +517,29 @@ public class Status : MonoBehaviour
     /// 与ダメージから獲得XPを計算して加算する（兵舎XPボーナス込み）。
     /// 実獲得XP = floor(damage * (1 + barracksXPPercent/100))
     /// </summary>
+    [System.NonSerialized] public Team LastDamageTeam = Team.None;
+
+    public static void AwardDamageExperience(Status attacker, Status target, int damage, FactionState factions)
+    {
+        if (attacker == null || target == null || attacker.team == target.team || damage <= 0) return;
+        target.LastDamageTeam = attacker.team;
+        int bonus = factions != null && (attacker.team == Team.Player || attacker.team == Team.Enemy)
+            ? factions.GetBarracksXP(attacker.team) : 0;
+        if (attacker.type == Type.Unit) attacker.GainExperienceFromDamage(damage, bonus);
+        if (!target.IsAlive && !target.uniqueRewardGranted)
+        {
+            target.uniqueRewardGranted = true;
+            var systems = GetTurnGenerator()?.Systems;
+            if (target.isWildBoss)
+            {
+                var catalog = R1ContentCatalog.Load();
+                var reward = catalog != null ? catalog.BossArtifacts.Find(r => r.Boss == target.wildBossArchetype) : null;
+                UniqueRewardSystem.Grant(attacker.team, reward, RewardCategory.StrongEnemyArtifact, systems);
+            }
+            if (target.team == Team.Intruder) systems?.NeutralFactionSystem?.GrantRelic(target, attacker.team);
+        }
+    }
+
     public void GainExperienceFromDamage(int damage, int barracksXPPercent)
     {
         if (damage <= 0) return;

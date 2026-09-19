@@ -131,6 +131,7 @@ public partial class AICommander
         _personality = new AIPersonality(major);
         _learning = new AILearning(major == MajorPersonality.Growth);
         _mlIntegration = new MLIntegration(initialThreatLevel, major, randomSeed);
+        _mlIntegration.CanObservePosition = position => visionGen != null && visionGen.IsInVisionXZ(Team.Enemy, position);
 
         // 新システム初期化
         _roleAssigner = new AIRoleAssigner();

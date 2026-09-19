@@ -9,13 +9,15 @@ using UnityEngine;
 /// </summary>
 public class WildBossSystem : MonoBehaviour
 {
-    public const int TerritoryRadius = 1; // 3×3（チェビシェフ距離1）
+    public const int TerritoryRadius = 2; // 3×3（チェビシェフ距離1）
 
     [Header("強敵プレハブ（StrangeKingを流用）")]
     [SerializeField] GameObject wildBossPrefab;
 
     [Header("配置親")]
     [SerializeField] Transform parent;
+
+    [SerializeField] bool showTerritoryDebug = false;
 
     [Header("縄張り表示")]
     [SerializeField] GameObject wildBossTerritoryPrefab;
@@ -56,6 +58,73 @@ public class WildBossSystem : MonoBehaviour
 
     public Status SpawnedBoss { get; private set; }
 
+    [System.Serializable] public class Snapshot
+    {
+        public SaveSystem.UnitSaveData Unit;
+        public WildBossArchetype Archetype;
+        public Vector3Int Center;
+        public int Radius, AP, MaxAP, Turn, CounterTurns, AttackBuffTurns, Threat;
+        public bool Phase2;
+        public List<SaveSystem.UnitSaveData> Decoys = new List<SaveSystem.UnitSaveData>();
+        public List<SaveSystem.UnitSaveData> Guards = new List<SaveSystem.UnitSaveData>();
+        public List<Vector3> Thunder = new List<Vector3>();
+    }
+
+    public Snapshot Capture()
+    {
+        var boss = SpawnedBoss;
+        if (boss == null) return null;
+        var result = new Snapshot { Unit = SaveSystem.CaptureUnit(boss), Archetype = boss.wildBossArchetype,
+            Center = boss.wildBossTerritoryCenter, Radius = boss.wildBossTerritoryRadius,
+            AP = boss.wildBossAP, MaxAP = boss.wildBossMaxAP, Turn = boss.wildBossTurnCounter,
+            CounterTurns = boss.wildBossCounterTurns, AttackBuffTurns = boss.wildBossAtkBuffTurns,
+            Threat = boss.wildBossCurrentThreat, Phase2 = boss.wildBossPhase2Active };
+        foreach (var unit in _ghostDecoys) if (unit != null && unit.IsAlive) result.Decoys.Add(SaveSystem.CaptureUnit(unit));
+        foreach (var unit in _guardKnights) if (unit != null && unit.IsAlive) result.Guards.Add(SaveSystem.CaptureUnit(unit));
+        foreach (var crystal in _thunderCrystals) if (crystal != null) result.Thunder.Add(crystal.transform.position);
+        return result;
+    }
+
+    public void Restore(Snapshot saved)
+    {
+        if (saved?.Unit == null || SpawnedBoss == null) return;
+        foreach (var unit in _ghostDecoys) if (unit != null) { unit.gameObject.SetActive(false); Destroy(unit.gameObject); }
+        foreach (var unit in _guardKnights) if (unit != null) { unit.gameObject.SetActive(false); Destroy(unit.gameObject); }
+        foreach (var crystal in _thunderCrystals) if (crystal != null) Destroy(crystal);
+        _ghostDecoys.Clear(); _guardKnights.Clear(); _thunderCrystals.Clear();
+        var boss = SpawnedBoss;
+        SaveGameApplier.ApplyStatusFields(boss, saved.Unit);
+        boss.isWildBoss = true;
+        boss.wildBossArchetype = saved.Archetype;
+        boss.wildBossTerritoryCenter = saved.Center;
+        boss.wildBossTerritoryRadius = Mathf.Clamp(saved.Radius, 2, 6);
+        boss.wildBossAP = saved.AP; boss.wildBossMaxAP = saved.MaxAP;
+        boss.wildBossTurnCounter = saved.Turn;
+        boss.wildBossCounterTurns = saved.CounterTurns; boss.wildBossAtkBuffTurns = saved.AttackBuffTurns;
+        boss.wildBossCurrentThreat = saved.Threat; boss.wildBossPhase2Active = saved.Phase2;
+        foreach (var unit in saved.Decoys) _ghostDecoys.Add(RestoreFollower(unit, "GhostDecoy"));
+        foreach (var unit in saved.Guards) _guardKnights.Add(RestoreFollower(unit, "GuardKnight"));
+        foreach (var position in saved.Thunder)
+        {
+            var crystal = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            crystal.name = "ThunderCrystal"; crystal.transform.SetParent(BossParent);
+            crystal.transform.position = position; crystal.transform.localScale = new Vector3(0.4f, 0.6f, 0.4f);
+            crystal.GetComponent<Collider>().enabled = false;
+            _thunderCrystals.Add(crystal);
+        }
+    }
+
+    Status RestoreFollower(SaveSystem.UnitSaveData saved, string label)
+    {
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        obj.name = label; obj.transform.SetParent(BossParent);
+        var unit = obj.AddComponent<Status>();
+        unit.team = Team.Obstacle; unit.type = Type.Unit;
+        if (System.Enum.TryParse<Kind>(saved.Kind, out var kind)) unit.kind = kind;
+        SaveGameApplier.ApplyStatusFields(unit, saved);
+        return unit;
+    }
+
     // 雷の魔導兵が設置した雷クリスタル群
     private readonly List<GameObject> _thunderCrystals = new List<GameObject>();
 
@@ -69,6 +138,7 @@ public class WildBossSystem : MonoBehaviour
     struct Profile
     {
         public int HP, ATK, DEF, MaxAP;
+        public int Radius;
         public string DisplayName;
     }
 
@@ -79,10 +149,10 @@ public class WildBossSystem : MonoBehaviour
     // ThunderMagus: ATK +0.33/Lv  HP +0.12/Lv  DEF +0.20/Lv
     static readonly Dictionary<WildBossArchetype, Profile> Profiles = new Dictionary<WildBossArchetype, Profile>
     {
-        { WildBossArchetype.GhostKing,    new Profile { DisplayName = "ゴーストキング",   HP = 6200, ATK = 26, DEF = 18, MaxAP = 23 } },
-        { WildBossArchetype.Dragon,       new Profile { DisplayName = "ドラゴン",         HP = 8200, ATK = 32, DEF = 24, MaxAP = 20 } },
-        { WildBossArchetype.RebelKnight,  new Profile { DisplayName = "反逆の騎士王",     HP = 7600, ATK = 28, DEF = 28, MaxAP = 15 } },
-        { WildBossArchetype.ThunderMagus, new Profile { DisplayName = "雷の魔導兵",       HP = 7000, ATK = 30, DEF = 20, MaxAP = 20 } },
+        { WildBossArchetype.GhostKing,    new Profile { DisplayName = "ゴーストキング",   HP = 6200, ATK = 26, DEF = 18, MaxAP = 23, Radius = 3 } },
+        { WildBossArchetype.Dragon,       new Profile { DisplayName = "ドラゴン",         HP = 8200, ATK = 32, DEF = 24, MaxAP = 20, Radius = 6 } },
+        { WildBossArchetype.RebelKnight,  new Profile { DisplayName = "反逆の騎士王",     HP = 7600, ATK = 28, DEF = 28, MaxAP = 15, Radius = 2 } },
+        { WildBossArchetype.ThunderMagus, new Profile { DisplayName = "雷の魔導兵",       HP = 7000, ATK = 30, DEF = 20, MaxAP = 20, Radius = 4 } },
     };
 
     public void Init(MapCreate mapcreate, CrystalSystem crystalsystem,
@@ -102,6 +172,7 @@ public class WildBossSystem : MonoBehaviour
     /// </summary>
     void SpawnTerritoryTiles(Vector3 center)
     {
+        if (!Debug.isDebugBuild || !showTerritoryDebug) return;
         if (wildBossTerritoryPrefab == null)
         {
             Debug.LogWarning("[WildBoss] 縄張りプレハブ未割当のためタイル設置スキップ");
@@ -113,7 +184,7 @@ public class WildBossSystem : MonoBehaviour
         foreach (var p in mapcreate.SetPos)
         {
             var pGrid = GridHelper.ToGridXZ(p);
-            if (!GridHelper.IsWithinRange(cGrid, pGrid, TerritoryRadius)) continue;
+            if (!GridHelper.IsWithinRange(cGrid, pGrid, SpawnedBoss != null ? SpawnedBoss.wildBossTerritoryRadius : TerritoryRadius)) continue;
             // 強敵自身が立つ中心タイルには縄張りタイルを置かない（3×3 から中心を除外して8マス）
             if (GridHelper.MatchXZ(cGrid, pGrid)) continue;
             var tilePos = new Vector3(p.x, p.y - 0.475f, p.z);
@@ -256,7 +327,7 @@ public class WildBossSystem : MonoBehaviour
         // 縄張り設定
         status.isWildBoss = true;
         status.wildBossTerritoryCenter = GridHelper.ToGridXZ(pos);
-        status.wildBossTerritoryRadius = TerritoryRadius;
+        status.wildBossTerritoryRadius = Profiles[archetype].Radius;
         status.wildBossArchetype = archetype;
         status.wildBossMaxAP = prof.MaxAP;
         status.wildBossAP = prof.MaxAP;

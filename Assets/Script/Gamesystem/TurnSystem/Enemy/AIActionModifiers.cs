@@ -239,7 +239,7 @@ public static class AIActionModifiers
     public static void ApplyTerrainAwareness(List<AIAction> actions, AIBoardState board)
     {
         if (board.MapCreate == null) return;
-        var setPos = board.MapCreate.SetPos;
+        var setPos = board.KnownTerrain();
         if (setPos == null || setPos.Count == 0) return;
 
         foreach (var action in actions)
@@ -269,46 +269,17 @@ public static class AIActionModifiers
     // ================================================================
     public static void ApplyDungeonAwareness(List<AIAction> actions, AIBoardState board)
     {
-        if (board.DungeonSystem == null) return;
-        var dungeons = board.DungeonSystem.GetActiveDungeons();
-        if (dungeons == null || dungeons.Count == 0) return;
-
+        var dungeons = board.ObservedDungeons();
         foreach (var action in actions)
         {
-            if (action.Unit == null) continue;
-            if (action.ActionType != AIActionType.Move
-                && action.ActionType != AIActionType.Surround
-                && action.ActionType != AIActionType.Support) continue;
-
-            Vector3Int targetGrid = GridHelper.ToGridXZ(action.TargetPos);
-
-            foreach (var d in dungeons)
+            foreach (var dungeon in dungeons)
             {
-                int dist = GridHelper.ChebyshevDistance(targetGrid, d.Position);
-                // モンスター生存時は突撃の期待値を下げる: 自HPに対する推定被ダメ比で減衰
-                float monsterRisk = 0f;
-                if (d.MonsterAlive)
-                {
-                    int estCounter = Mathf.Max(1, d.MonsterATK - action.Unit.DEF / 4);
-                    float hpRatio = action.Unit.MaxHP > 0 ? (float)estCounter / action.Unit.MaxHP : 1f;
-                    monsterRisk = Mathf.Clamp01(hpRatio) * 10f;
-                }
-
-                if (dist == 0)
-                {
-                    if (d.ClaimingTeam == Team.Player && d.ClaimProgress > 0)
-                        action.Score += 18f + d.ClaimProgress * 1.5f - monsterRisk;
-                    else
-                        action.Score += 12f - monsterRisk;
-
-                    // モンスター残HPが低いほど踏破価値が上がる
-                    if (d.MonsterAlive && d.MonsterHP <= DungeonSystem.UnitAttackDamagePerTurn)
-                        action.Score += 6f;
-                }
-                else if (dist <= 3)
-                {
-                    action.Score += (4 - dist) * 3f - monsterRisk * 0.3f;
-                }
+                int distance = GridHelper.ChebyshevDistance(GridHelper.ToGridXZ(action.TargetPos), dungeon.Position);
+                if (action.Facility == FacilityKind.SubCrystal && distance <= SubCrystalSystem.SubCrystalTerritoryRadius)
+                    action.Score += 18f + dungeon.ClaimProgress * 1.5f;
+                else if (action.Unit != null && action.ActionType == AIActionType.Move && distance <= 3
+                    && dungeon.ClaimingTeam != Team.Enemy)
+                    action.Score += (4 - distance) * 3f;
             }
         }
     }

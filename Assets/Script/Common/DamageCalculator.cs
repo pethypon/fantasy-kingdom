@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// ダメージ計算を一元管理するユーティリティクラス。
 /// BattleSystem, SkillSystem, AI シミュレーション全てがこの式を使用する。
-/// 計算式: 3 + (ATK/4) + ((ATK/2) - (DEF/3))
+/// 計算式: 1 + (ATK/5) + ((ATK/2) - (DEF/3))
 ///
 /// パッシブスキル適用順序:
 ///   基礎ダメージ → 攻撃側パッシブ → 防御側パッシブ → 地形補正 → バフ/デバフ → 最終確定
@@ -158,7 +158,7 @@ public static class DamageCalculator
     }
 
     /// <summary>
-    /// 地形ボーナス倍率: 低地→高台攻撃で×1.35、高台から遠距離のY-1対象に×1.10。
+    /// 地形ボーナス倍率: 高台→低地攻撃で×1.35、高台から遠距離のY-1対象に×1.10。
     /// 高低差はワールド座標のY（タイル面の高さ）を使用する。
     /// </summary>
     public static float GetTerrainMultiplier(Status attacker, Status target)
@@ -173,13 +173,13 @@ public static class DamageCalculator
 
         float mult = 1f;
 
-        // 低地→高台: 全攻撃に×1.35
-        if (dy >= GameConstants.HighGroundYThreshold)
+        // 高台→低地: 既存倍率を高台有利の方向に適用
+        if (dy <= -GameConstants.HighGroundYThreshold)
         {
-            mult *= GameConstants.LowToHighAttackBonus;
+            mult *= GameConstants.HighToLowAttackBonus;
         }
         // 高台→低地: 遠距離攻撃かつ 1段差（Y-1）で+10%
-        else if (dy <= -GameConstants.HighGroundYThreshold)
+        if (dy <= -GameConstants.HighGroundYThreshold)
         {
             float dist = GridDistance(aPos, tPos);
             bool isRanged = IsRangedKind(attacker.kind) && dist >= 2f;

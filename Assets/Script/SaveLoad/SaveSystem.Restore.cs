@@ -20,7 +20,7 @@ public static partial class SaveSystem
 
     public static void RestoreAP(APSaveData src, FactionState.APData dst)
     {
-        dst.Current = src.Current; dst.Reset = src.Reset;
+        dst.Current = Mathf.Clamp(src.Current, 0, GameConstants.MaxAP); dst.Reset = src.Reset;
         dst.Plus = src.Plus; dst.Minus = src.Minus;
     }
 

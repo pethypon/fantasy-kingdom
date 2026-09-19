@@ -89,6 +89,7 @@ public class AttackGenerator : MonoBehaviour
         AttackP?.Clear();
         TargetUnit = Obj;
         objp = ObjP;
+        setpos = mapcreate.SetPos;
 
         if (TargetUnit.AssignedSkillId < 0 || !SkillData.Table.ContainsKey(TargetUnit.AssignedSkillId))
         {
@@ -129,7 +130,7 @@ public class AttackGenerator : MonoBehaviour
 
         AttackP = new List<Vector3>();
         Vector3 ownCell = moveGenerator.Cell(objp);
-        Vector3 pcpCell = moveGenerator.Cell(moveGenerator.PlayerCrystalPos);
+        Vector3 pcpCell = moveGenerator.Cell(Obj.team == Team.Player ? moveGenerator.PlayerCrystalPos : moveGenerator.EnemyCrystalPos);
         var objGrid = GridHelper.ToGridXZ(objp);
 
         foreach (Vector2Int off in offsets)
@@ -144,6 +145,7 @@ public class AttackGenerator : MonoBehaviour
                 if (!GridHelper.MatchXZ(p, wx, wz))
                     continue;
 
+                if (!mapcreate.HasClearTerrainLine(objp, p)) continue;
                 Vector3 cell = moveGenerator.Cell(p);
 
                 switch (skill.Target)
@@ -185,6 +187,7 @@ public class AttackGenerator : MonoBehaviour
         AttackP?.Clear();
         TargetUnit = Obj;
         objp = ObjP;
+        setpos = mapcreate.SetPos;
         moveGenerator.UnitPointCore();
 
         if (!AttackPatterns.NormalMap.TryGetValue(TargetUnit.kind, out Func<float, float, bool> predicate))
@@ -194,7 +197,7 @@ public class AttackGenerator : MonoBehaviour
         }
 
         Vector3 ownCell = moveGenerator.Cell(objp);
-        Vector3 pcpCell = moveGenerator.Cell(moveGenerator.PlayerCrystalPos);
+        Vector3 pcpCell = moveGenerator.Cell(Obj.team == Team.Player ? moveGenerator.PlayerCrystalPos : moveGenerator.EnemyCrystalPos);
         bool dirIndependent = AttackPatterns.DirectionIndependent.Contains(TargetUnit.kind);
         int dirZ = MovePatterns.DirZ(TargetUnit.direction);
 
@@ -213,6 +216,7 @@ public class AttackGenerator : MonoBehaviour
             if (!moveGenerator.IsOccupied(cell)) continue;
             if (cell == ownCell || cell == pcpCell) continue;
             if (!predicate(dx, checkDz)) continue;
+            if (!mapcreate.HasClearTerrainLine(objp, p)) continue;
 
             AttackP.Add(p);
         }

@@ -26,6 +26,12 @@ public static class MapInitializer
             return;
         }
 
+        mapCreate.UseR1Terrain = loadData == null || loadData.R1Terrain;
+        if (loadData != null && loadData.MapWidth > 0 && loadData.MapDepth > 0)
+        {
+            mapCreate.maxX = loadData.MapWidth;
+            mapCreate.maxZ = loadData.MapDepth;
+        }
         // マップ生成
         if (loadData != null && (loadData.MapSeedX != 0f || loadData.MapSeedZ != 0f))
         {

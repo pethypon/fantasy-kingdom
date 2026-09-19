@@ -368,6 +368,15 @@ public class SkillData
     //  ユニットにスキルを配布（敵AIは3択からベストを自動選択）
     //  プレイヤー向けには SkillChoiceUI.ShowOrCreate を使う OfferPlayerChoice を別途呼ぶ
     // =====================================================================
+    // R1: 最終割当表は未確定。設定されていない兵種にランダムな代替を与えない。
+    public static readonly Dictionary<Kind, int> FixedSkillIds = new Dictionary<Kind, int>();
+
+    public static void AssignFixedSkill(Status unit)
+    {
+        if (unit == null || unit.type != Type.Unit) return;
+        unit.AssignedSkillId = FixedSkillIds.TryGetValue(unit.kind, out int id) && Table.ContainsKey(id) ? id : -1;
+    }
+
     public static void AssignRandomSkill(Status unit)
     {
         if (unit.type != Type.Unit) return;
@@ -406,7 +415,7 @@ public class SkillData
         foreach (Status s in unitParent.GetComponentsInChildren<Status>())
         {
             if (s.type == Type.Unit && s.AssignedSkillId < 0)
-                AssignRandomSkill(s);
+                AssignFixedSkill(s);
         }
     }
 }

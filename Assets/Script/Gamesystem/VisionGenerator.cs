@@ -37,19 +37,21 @@ public class VisionGenerator : MonoBehaviour
     public void AddExplored(Team team, Vector3Int cell)
     {
         if (team == Team.Player) _playerExplored?.Add(cell);
-        else _enemyExplored?.Add(cell);
+        else if (team == Team.Enemy) _enemyExplored?.Add(cell);
     }
 
     /// <summary>探索済みセルを一括追加する</summary>
     public void AddExploredRange(Team team, IEnumerable<Vector3Int> cells)
     {
+        if (team != Team.Player && team != Team.Enemy) return;
         var set = team == Team.Player ? _playerExplored : _enemyExplored;
-        if (set != null) set.UnionWith(cells);
+        if (set != null && cells != null) set.UnionWith(cells);
     }
 
     /// <summary>探索済みデータをクリアする（セーブデータ復元用）</summary>
     public void ClearExplored(Team team)
     {
+        if (team != Team.Player && team != Team.Enemy) return;
         if (team == Team.Player)
         {
             if (_playerExplored == null) _playerExplored = new HashSet<Vector3Int>();
@@ -63,6 +65,18 @@ public class VisionGenerator : MonoBehaviour
     }
 
     /// <summary>視界セットが指定セルを含むか</summary>
+    public Transform NeutralParent;
+
+    public bool IsInVisionXZ(Team team, Vector3 position)
+    {
+        if (team != Team.Player && team != Team.Enemy) return false;
+        var set = team == Team.Player ? _playerVisionBox : _enemyVisionBox;
+        if (set == null) return false;
+        var cell = GridHelper.ToGridXZ(position);
+        foreach (var seen in set) if (seen.x == cell.x && seen.z == cell.z) return true;
+        return false;
+    }
+
     public bool IsInVision(Team team, Vector3Int cell)
     {
         var set = team == Team.Player ? _playerVisionBox : _enemyVisionBox;
@@ -272,6 +286,7 @@ public class VisionGenerator : MonoBehaviour
     /// </summary>
     void RaycastCrystalVision(Status status, MapCreate mapcreate, int px, int py, int pz)
     {
+        if (!mapcreate.HasClearTerrainLine(status.transform.position, new Vector3(px, py, pz), true)) return;
         Vector3 goal = new Vector3(px, py, pz) + Vector3.up * GameConstants.VisionRayHeightOffset;
         float startHigh = mapcreate.maxY + 10f;
         Vector3 visionstart = goal + Vector3.up * startHigh;
@@ -296,6 +311,7 @@ public class VisionGenerator : MonoBehaviour
     /// </summary>
     void RaycastDirectVision(Status status, int statusX, int statusY, int statusZ, int px, int py, int pz)
     {
+        if (mapcreate != null && !mapcreate.HasClearTerrainLine(status.transform.position, new Vector3(px, py, pz), true)) return;
         Vector3 start = new Vector3(statusX, statusY, statusZ) + Vector3.up * GameConstants.VisionRayHeightOffset;
         Vector3 goal = new Vector3(px, py, pz) + Vector3.up * GameConstants.VisionRayHeightOffset;
         Vector3 direction = goal - start;
@@ -644,6 +660,7 @@ public class VisionGenerator : MonoBehaviour
 
         // 視界外で非表示化する対象は「敵側のみ」: 駒・クリスタル・領土・建物
         SetRendererVisibility(EnemyUnit, playervisionXZ);
+        if (NeutralParent != null) SetRendererVisibility(NeutralParent, playervisionXZ);
         SetRendererVisibility(crystalsystem.Enemycrystal, playervisionXZ);
         SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);
 

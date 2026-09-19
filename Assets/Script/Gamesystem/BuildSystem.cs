@@ -280,7 +280,7 @@ public class BuildSystem : MonoBehaviour
         building.layer = LayerMask.NameToLayer("Block");
 
         // 建築物位置を記録
-        buildingPositions.Add(pos);
+        buildingPositions.Add(GridHelper.ToGrid(worldPos));
 
         // 壁の場合は UnitPointData に追加（全駒通過不可）
         if (FacilityData.IsWall(facility))
@@ -373,8 +373,13 @@ public class BuildSystem : MonoBehaviour
     // ==================================================================
     //  建築物位置管理
     // ==================================================================
-    public void RemoveBuildingPosition(Vector3Int pos) => buildingPositions.Remove(pos);
-    public bool HasBuildingAt(Vector3Int pos) => buildingPositions.Contains(pos);
+    public void RemoveBuildingPosition(Vector3Int pos) => buildingPositions.RemoveWhere(p => p.x == pos.x && p.z == pos.z);
+    public bool HasBuildingAt(Vector3Int pos)
+    {
+        foreach (var cell in buildingPositions)
+            if (cell.x == pos.x && cell.z == pos.z) return true;
+        return false;
+    }
 
     // ==================================================================
     //  ロード復元用: コスト消費なしの建築物生成

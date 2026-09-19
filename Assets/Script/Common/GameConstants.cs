@@ -16,12 +16,12 @@ public static class GameConstants
 
     // =====================================================================
     //  ダメージ計算式の係数
-    //  新式: 3 + (ATK/4) + ((ATK/2) - (DEF/3))
+    //  新式: 1 + (ATK/5) + ((ATK/2) - (DEF/3))
     // =====================================================================
     /// <summary>基本ダメージの固定加算値</summary>
-    public const float DamageBase = 3f;
+    public const float DamageBase = 1f;
     /// <summary>ATK÷この値が基本ダメージに加算される</summary>
-    public const float DamageATKDivisor = 4f;
+    public const float DamageATKDivisor = 5f;
     /// <summary>ATK÷この値が攻撃側の実効攻撃力</summary>
     public const float DamageATKHalf = 2f;
     /// <summary>DEF÷この値が防御側の実効防御力（小さいほどDEFが効く）</summary>
@@ -48,8 +48,8 @@ public static class GameConstants
     // =====================================================================
     //  地形効果（高低差ボーナス）
     // =====================================================================
-    /// <summary>低地→高台への攻撃倍率（+35%）</summary>
-    public const float LowToHighAttackBonus = 1.35f;
+    /// <summary>高台→低地への攻撃倍率（+35%）</summary>
+    public const float HighToLowAttackBonus = 1.35f;
     /// <summary>高台からの遠距離攻撃でY-1対象への与ダメ倍率（+10%）</summary>
     public const float HighGroundRangedBonus = 1.10f;
     /// <summary>高台の対象に範囲スキル着弾時の被ダメ倍率（-20%）</summary>
@@ -156,6 +156,7 @@ public static class GameConstants
     // =====================================================================
     /// <summary>移動の基本APコスト</summary>
     public const int BaseMoveAPCost = 3;
+    public const int MaxAP = 50;
     /// <summary>攻撃の基本APコスト</summary>
     public const int BaseAttackAPCost = 2;
 

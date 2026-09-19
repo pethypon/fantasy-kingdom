@@ -43,6 +43,15 @@ public static partial class SaveSystem
         if (from <= 0 && to >= 1) Migrate_V0_to_V1(data);
         if (from <= 1 && to >= 2) Migrate_V1_to_V2(data);
 
+        if (from <= 2 && to >= 3)
+        {
+            foreach (var unit in data.Units)
+                if (unit.Kind == Kind.Crystal.ToString())
+                {
+                    unit.MaxHP += 5000;
+                    if (unit.HP > 0) unit.HP = Mathf.Min(unit.MaxHP, unit.HP + 5000);
+                }
+        }
         data.Version = to;
         Debug.Log($"[SaveSystem] マイグレーション完了 → v{to}");
         return data;

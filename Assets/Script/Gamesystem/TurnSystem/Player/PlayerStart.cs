@@ -14,7 +14,12 @@ public class PlayerStart : TurnState
         ActionLogUI.LogTurnStart(Context.Turn, Team.Player);
 
         // 共通ターン開始処理
-        TurnStartHelper.ProcessTurnStart(Systems, Team.Player);
+        if (Context.ResumeSavedPlayerTurn)
+        {
+            Context.ResumeSavedPlayerTurn = false;
+            Systems.TimerSystem?.ResumeTurn(Team.Player);
+        }
+        else TurnStartHelper.ProcessTurnStart(Systems, Team.Player, Context.Turn);
 
         // 占有セルを再構築（敵の最終位置・WildBoss本体/子駒を反映）。
         // これがないと敵ターン中に動いた駒や WildBoss の上にプレイヤーが

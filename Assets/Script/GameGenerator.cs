@@ -102,6 +102,11 @@ public class GameGenerator : MonoBehaviour
 
     private void StartGameInit(int loadSlot = -1)
     {
+        UniqueRewardSystem.Records.Clear();
+        var content = R1ContentCatalog.Load();
+        SkillData.FixedSkillIds.Clear();
+        if (content != null) content.ApplyFixedSkills();
+
         // 統計をリセット
         MatchStats.GetOrCreate().Reset();
 
@@ -166,6 +171,12 @@ public class GameGenerator : MonoBehaviour
             sys.FactionState = factionState;
             sys.TerritorySystem = _TerritorySystem;
         }
+
+        var neutral = gameObject.AddComponent<NeutralFactionSystem>();
+        neutral.Init(_TurnGenerator.Systems);
+        _TurnGenerator.Systems.NeutralFactionSystem = neutral;
+        _MoveGenerator.NeutralParent = neutral.UnitParent;
+        _VisionGenerator.NeutralParent = neutral.UnitParent;
 
         // Step 4: 経済・資源・UnitRegistry
         if (loadData != null)

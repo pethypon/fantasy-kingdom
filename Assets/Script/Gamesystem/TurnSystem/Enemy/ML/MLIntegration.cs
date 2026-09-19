@@ -152,10 +152,14 @@ public class MLIntegration
     // ================================================================
 
     /// <summary>プレイヤーの攻撃を観測</summary>
+    public System.Func<Vector3, bool> CanObservePosition { private get; set; }
+
     public void ObservePlayerAttack(Status attacker, Status target, int damage,
         Vector3 enemyCrystalPos, int turn)
     {
         if (!_isActive) return;
+        if (attacker == null || target == null || CanObservePosition == null
+            || !CanObservePosition(attacker.transform.position) || !CanObservePosition(target.transform.position)) return;
         _profiler.ObserveAttack(attacker, target, enemyCrystalPos, turn);
         _realtimeAdapt.OnPlayerAttackedUnit(target, attacker, damage, turn);
 
@@ -171,6 +175,7 @@ public class MLIntegration
         Vector3 enemyCrystalPos, int turn)
     {
         if (!_isActive) return;
+        if (CanObservePosition == null || !CanObservePosition(from) || !CanObservePosition(to)) return;
         _profiler.ObserveMove(unit, from, to, enemyCrystalPos, turn);
 
         float distClosed = Vector3.Distance(from, enemyCrystalPos) -
@@ -188,6 +193,7 @@ public class MLIntegration
     public void ObservePlayerSkill(Status attacker, int turn)
     {
         if (!_isActive) return;
+        if (attacker == null || CanObservePosition == null || !CanObservePosition(attacker.transform.position)) return;
         _realtimeAdapt.OnPlayerUsedSkill(attacker, turn);
         if (attacker != null)
         {
@@ -200,6 +206,7 @@ public class MLIntegration
     public void ObservePlayerBuild(Vector3 position, int turn)
     {
         if (!_isActive) return;
+        if (CanObservePosition == null || !CanObservePosition(position)) return;
         _behaviorPredictor.ObserveAction(turn, 2, position, Kind.Crystal);
         _behaviorPredictor.Learn(2, position);
     }

@@ -14,6 +14,18 @@ public class SkillSystem : MonoBehaviour
 
     private FactionState _factionState;
 
+    private int ApplySkillDamage(Status attacker, Status target, int requested)
+    {
+        if (target == null || !target.IsAlive || target.ShieldTurns > 0) return 0;
+        var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
+        if (terrain != null && !terrain.HasClearTerrainLine(attacker.transform.position, target.transform.position)) return 0;
+        int before = target.HP;
+        if (!SpecialAbilitySystem.TrySurviveLethal(target, requested)) target.ApplyDamage(requested);
+        int actual = Mathf.Max(0, before - target.HP);
+        Status.AwardDamageExperience(attacker, target, actual, _factionState);
+        return actual;
+    }
+
     public void Init(FactionState factionState)
     {
         _factionState = factionState;
@@ -40,6 +52,9 @@ public class SkillSystem : MonoBehaviour
     public void ExecuteSkill(Status attacker, Status target, SkillData skill)
     {
         if (attacker == null || skill == null) return;
+        var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
+        if (target != null && target != attacker && terrain != null
+            && !terrain.HasClearTerrainLine(attacker.transform.position, target.transform.position)) return;
 
         Debug.Log($"[SkillSystem] {attacker.kind} がスキル '{skill.Name}' を使用 (AP:{skill.APCost})");
 
@@ -119,19 +134,9 @@ public class SkillSystem : MonoBehaviour
         }
         else if (target.type == Type.Building || target.type == Type.Wall)
         {
-            // サブクリスタルは報酬・領地削除を含む専用処理へ
-            if (target.facilityKind == FacilityKind.SubCrystal
-                && turnGenerator != null && turnGenerator.Systems.SubCrystalSystem != null)
-            {
+            if (turnGenerator?.Systems?.SubCrystalSystem != null)
                 turnGenerator.Systems.SubCrystalSystem.DestroyBuilding(target);
-            }
-            else
-            {
-                var moveGen = turnGenerator != null ? turnGenerator.Systems.MoveGenerator : null;
-                if (moveGen != null)
-                    moveGen.RemoveOccupied(moveGen.Cell(target.transform.position));
-                target.gameObject.SetActive(false);
-            }
+            else target.gameObject.SetActive(false);
         }
     }
 
@@ -149,8 +154,7 @@ public class SkillSystem : MonoBehaviour
         }
 
         int damage = CalcSkillDamage(attacker, target, skill);
-        if (!SpecialAbilitySystem.TrySurviveLethal(target, damage))
-            target.ApplyDamage(damage);
+        damage = ApplySkillDamage(attacker, target, damage);
         Debug.Log($"[SkillSystem] {attacker.kind} → {target.kind} '{skill.Name}' DMG:{damage} 残HP:{target.HP}");
 
         // フローティングダメージ表示
@@ -170,8 +174,7 @@ public class SkillSystem : MonoBehaviour
                 atk, def,
                 StatusEffectSystem.GetIncomingDamageModifier(target),
                 skill.SecondMultiplier, sealMod);
-            if (!SpecialAbilitySystem.TrySurviveLethal(target, dmg2))
-                target.ApplyDamage(dmg2);
+            dmg2 = ApplySkillDamage(attacker, target, dmg2);
             Debug.Log($"[SkillSystem] 2段目 DMG:{dmg2} 残HP:{target.HP}");
         }
 
@@ -234,6 +237,7 @@ public class SkillSystem : MonoBehaviour
         var result = new List<Vector3Int>();
         foreach (var p in positions)
         {
+            if (mapCreate != null && !mapCreate.HasClearTerrainLine(origin, p)) break;
             int py = originY;
             if (mapCreate != null && mapCreate.TryGetHeight(p.x, p.z, out float h))
                 py = Mathf.RoundToInt(h);
@@ -368,8 +372,10 @@ public class SkillSystem : MonoBehaviour
         // Special Ability: 迫撃適応ボーナス（対象数のみに依存するためループ外で1回計算）
         float saAreaMod = SpecialAbilitySystem.GetAreaAttackModifier(attacker, targets.Count);
 
+        var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
         foreach (Status t in targets)
         {
+            if (t == null || (terrain != null && !terrain.HasClearTerrainLine(attacker.transform.position, t.transform.position))) continue;
             if (skill.Multiplier > 0)
             {
                 if (t.ShieldTurns > 0)
@@ -384,8 +390,7 @@ public class SkillSystem : MonoBehaviour
                     damage = Mathf.RoundToInt(damage * (1f + saAreaMod));
 
                 // Special Ability: 致死ダメージ耐え（生還本能）
-                if (!SpecialAbilitySystem.TrySurviveLethal(t, damage))
-                    t.ApplyDamage(damage);
+                damage = ApplySkillDamage(attacker, t, damage);
                 Debug.Log($"[SkillSystem] 範囲 {attacker.kind} → {t.kind} '{skill.Name}' DMG:{damage} 残HP:{t.HP}");
 
                 enemyHitCount++;
@@ -476,7 +481,7 @@ public class SkillSystem : MonoBehaviour
                     if (!target.VisionCell.Contains(attackerCell))
                     {
                         int bonus = CalcBonusDamage(attacker, target, GameConstants.ShadowRushBonusMultiplier);
-                        target.ApplyDamage(bonus);
+                        ApplySkillDamage(attacker, target, bonus);
                         Debug.Log($"[SkillSystem] シャドウラッシュ追加ダメージ +{bonus}");
                     }
                 }
@@ -511,7 +516,7 @@ public class SkillSystem : MonoBehaviour
                     if (hpRatio <= GameConstants.LowHPThreshold)
                     {
                         int bonus = CalcBonusDamage(attacker, target, GameConstants.DeathSightBonusMultiplier);
-                        target.ApplyDamage(bonus);
+                        ApplySkillDamage(attacker, target, bonus);
                         Debug.Log($"[SkillSystem] デスサイト追加ダメージ +{bonus} (HP50%以下)");
                     }
                 }
@@ -521,7 +526,7 @@ public class SkillSystem : MonoBehaviour
                 if (target != null && target.type == Type.Building)
                 {
                     int bonus = CalcBonusDamage(attacker, target, GameConstants.SiegeBreakerBonusMultiplier);
-                    target.ApplyDamage(bonus);
+                    ApplySkillDamage(attacker, target, bonus);
                     Debug.Log($"[SkillSystem] シージブレイカー建物追加 +{bonus}");
                 }
                 break;

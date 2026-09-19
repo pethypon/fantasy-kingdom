@@ -50,6 +50,34 @@ public class AIBoardState
     public DungeonSystem DungeonSystem { get; set; }
     public MapCreate MapCreate { get; set; }
 
+    public bool IsTerrainKnown(Vector3 cell)
+    {
+        var grid = GridHelper.ToGrid(cell);
+        if (_visionGen == null) return false;
+        if (IsCellInEnemyVision(cell)) return true;
+        if (_visionGen.EnemyExplored != null)
+            foreach (var seen in _visionGen.EnemyExplored) if (seen.x == grid.x && seen.z == grid.z) return true;
+        return false;
+    }
+
+    public List<Vector3> KnownTerrain()
+    {
+        var result = new List<Vector3>();
+        if (_moveGen?.mapcreate?.SetPos != null)
+            foreach (var cell in _moveGen.mapcreate.SetPos)
+                if (IsTerrainKnown(cell)) result.Add(cell);
+        return result;
+    }
+
+    public List<DungeonSystem.DungeonInfo> ObservedDungeons()
+    {
+        var result = new List<DungeonSystem.DungeonInfo>();
+        if (DungeonSystem != null)
+            foreach (var d in DungeonSystem.Dungeons)
+                if (IsCellInEnemyVision(d.Position)) result.Add(d);
+        return result;
+    }
+
     // ---- 索敵・Last Known Position データ（インスタンスフィールド化: 複数AI対応） ----
     // 最後にPlayerユニットを視認した位置とターン (key=ユニットinstanceID)
     readonly Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions;
@@ -81,7 +109,8 @@ public class AIBoardState
     {
         TurnCount = turnCount;
         _lastKnownPlayerPositions = sharedMemory ?? new Dictionary<int, LastKnownInfo>();
-        _lastKnownPlayerCrystal = new LastKnownInfo { Position = Vector3Int.zero, Turn = -1, Valid = false };
+        _lastKnownPlayerCrystal = _lastKnownPlayerPositions.TryGetValue(int.MinValue, out var rememberedCrystal)
+            ? rememberedCrystal : new LastKnownInfo { Position = Vector3Int.zero, Turn = -1, Valid = false };
         _moveGen = moveGen;
         _attackPoint = attackPoint;
         _apSystem = apSystem;
@@ -99,14 +128,23 @@ public class AIBoardState
     // ---- 盤面情報を最新に更新 ----
     public void Refresh()
     {
+        _visionCacheVersion = -1; // Visibility can move without changing its cell count.
         _moveGen.UnitPointCore();
 
         AliveEnemyUnits = CollectUnits(_unitSet.EnemyUnit, Team.Enemy);
 
         var allPlayerUnits = CollectUnits(_unitSet.PlayerUnit, Team.Player);
         AlivePlayerUnits = FilterByEnemyVision(allPlayerUnits);
+        foreach (var parent in new[] { _moveGen.NeutralParent, _moveGen.ObstacleParent,
+            _buildSystem != null ? _buildSystem.PlayerBuildingParent : null })
+        {
+            if (parent == null) continue;
+            foreach (var hostile in parent.GetComponentsInChildren<Status>())
+                if (hostile.IsAlive && hostile.team != Team.Enemy && IsCellInEnemyVision(hostile.transform.position))
+                    AlivePlayerUnits.Add(hostile);
+        }
 
-        PlayerCrystalPos = _crystalSystem.PCP;
+        PlayerCrystalPos = _lastKnownPlayerCrystal.Valid ? (Vector3)_lastKnownPlayerCrystal.Position : Vector3.zero;
         EnemyCrystalPos = _crystalSystem.ECP;
         EnemyAP = _apSystem.GetAP(Team.Enemy);
 
@@ -115,9 +153,10 @@ public class AIBoardState
         EnemyCrystalHP = eCrystal != null ? eCrystal.HP : 0;
         EnemyCrystalMaxHP = eCrystal != null ? eCrystal.MaxHP : 1;
 
-        PlayerCrystalVisible = IsCellInEnemyVision(PlayerCrystalPos);
+        PlayerCrystalVisible = IsCellInEnemyVision(_crystalSystem.PCP);
         if (PlayerCrystalVisible)
         {
+            PlayerCrystalPos = _crystalSystem.PCP;
             var pCrystal = FindCrystal(_crystalSystem.Playercrystal);
             PlayerCrystalHP = pCrystal != null ? pCrystal.HP : 0;
         }
@@ -238,6 +277,7 @@ public class AIBoardState
                 Turn = TurnCount,
                 Valid = true
             };
+            _lastKnownPlayerPositions[int.MinValue] = _lastKnownPlayerCrystal;
         }
     }
 
@@ -247,7 +287,7 @@ public class AIBoardState
         var result = new List<(Vector3Int, float)>();
         foreach (var kvp in _lastKnownPlayerPositions)
         {
-            if (!kvp.Value.Valid) continue;
+            if (kvp.Key == int.MinValue || !kvp.Value.Valid) continue;
             int age = TurnCount - kvp.Value.Turn;
             float reliability = Mathf.Clamp01(1f - age * 0.15f); // 7ターンで信頼度0
             if (reliability > 0f)
@@ -277,9 +317,23 @@ public class AIBoardState
     {
         var unitPos = unit.transform.position;
         var result = new List<Vector3>();
-        _moveGen.MoveCore(unit, unitPos);
-        result.AddRange(_moveGen.MovePositions);
-        _moveGen.MoveReset();
+        if (!MovePatterns.Map.TryGetValue(unit.kind, out var pattern)) return result;
+        bool independent = MovePatterns.DirectionIndependent.Contains(unit.kind);
+        int direction = MovePatterns.DirZ(unit.direction);
+        foreach (var p in KnownTerrain())
+        {
+            if (!pattern(p.x - unitPos.x, (p.z - unitPos.z) * (independent ? 1 : direction))) continue;
+            bool knownPath = true;
+            int steps = Mathf.Max(Mathf.Abs(Mathf.RoundToInt(p.x - unitPos.x)), Mathf.Abs(Mathf.RoundToInt(p.z - unitPos.z)));
+            for (int step = 1; step <= steps; step++)
+                if (!IsTerrainKnown(Vector3.Lerp(unitPos, p, (float)step / steps))) knownPath = false;
+            if (!knownPath || !_moveGen.mapcreate.HasClearTerrainLine(unitPos, p)) continue;
+            bool occupied = GridHelper.MatchXZ(p, GridHelper.ToGrid(EnemyCrystalPos))
+                || (CanUsePlayerCrystalAsTarget() && GridHelper.MatchXZ(p, GridHelper.ToGrid(PlayerCrystalPos)));
+            foreach (var ally in AliveEnemyUnits) if (GridHelper.MatchXZ(p, ally.GridPosition)) occupied = true;
+            foreach (var enemy in AlivePlayerUnits) if (GridHelper.MatchXZ(p, enemy.GridPosition)) occupied = true;
+            if (!occupied) result.Add(p);
+        }
         return result;
     }
 
@@ -307,7 +361,7 @@ public class AIBoardState
                 var pcpCell = _moveGen.Cell(PlayerCrystalPos);
                 if (pcpCell == cell)
                 {
-                    var crystal = FindCrystal(_unitSet.PlayerUnit);
+                    var crystal = FindCrystal(_crystalSystem.Playercrystal);
                     if (crystal != null && crystal.HP > 0)
                         targets.Add(crystal);
                 }

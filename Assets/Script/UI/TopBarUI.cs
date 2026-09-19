@@ -20,6 +20,7 @@ public class TopBarUI : MonoBehaviour
     [SerializeField] private TurnGenerator turnGenerator;
 
     private int lastTurn = -1;
+    private int lastTimerSecond = -1;
 
     private void Awake()
     {
@@ -73,16 +74,18 @@ public class TopBarUI : MonoBehaviour
         var timer = turnGenerator.Systems.TimerSystem;
         if (timer == null)
         {
+            lastTimerSecond = -1;
             if (timerText != null) timerText.text = "";
             if (timerFill != null) timerFill.fillAmount = 0f;
             return;
         }
 
         // タイマーテキスト: 1ターン残り時間のみ表示
-        if (timerText != null)
+        int second = Mathf.Max(0, Mathf.FloorToInt(timer.TurnTimeRemaining));
+        if (timerText != null && second != lastTimerSecond)
         {
-            string turnTime = TimerSystem.FormatTime(timer.TurnTimeRemaining);
-            timerText.text = turnTime;
+            lastTimerSecond = second;
+            timerText.text = TimerSystem.FormatTime(second);
         }
 
         // タイマーバー: 1ターン制限時間の残り割合

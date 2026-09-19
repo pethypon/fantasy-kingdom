@@ -21,7 +21,7 @@ public class CrystalSystem : MonoBehaviour
     public Vector3 ECP;
 
     /// <summary> クリスタルの基本HP </summary>
-    public const int CrystalHP = 10000;
+    public const int CrystalHP = 15000;
 
     private List<Vector3> _SetPos;
     private int maxx;
@@ -43,6 +43,7 @@ public class CrystalSystem : MonoBehaviour
 
         PlacePlayerCrystal();
         PlaceEnemyCrystal();
+        mapcreate.ExcludePlacementCell(ECP);
     }
 
     /// <summary>セーブデータから指定位置にクリスタルを配置する</summary>
@@ -56,12 +57,12 @@ public class CrystalSystem : MonoBehaviour
         PCP = savedPCP;
         var pObj = Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
         ApplyCrystalHP(pObj);
-        _SetPos.Remove(PCP);
+        GetComponent<MapCreate>().ExcludePlacementCell(PCP);
 
         ECP = savedECP;
         var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
         ApplyCrystalHP(eObj);
-        _SetPos.Remove(ECP);
+        GetComponent<MapCreate>().ExcludePlacementCell(ECP);
 
         Debug.Log($"[CrystalSystem] セーブから復元: PCP={PCP} ECP={ECP}");
     }
@@ -90,7 +91,7 @@ public class CrystalSystem : MonoBehaviour
         PCP = candidates[Random.Range(0, candidates.Count)];
         var pObj = Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
         ApplyCrystalHP(pObj);
-        _SetPos.Remove(PCP);
+        GetComponent<MapCreate>().ExcludePlacementCell(PCP);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color> プレイヤークリスタル設置完了");
     }
 

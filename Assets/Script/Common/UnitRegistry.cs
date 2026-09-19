@@ -155,6 +155,7 @@ public class UnitRegistry : MonoBehaviour
 
     private List<Status> GetList(Team team, Type type)
     {
+        if (team != Team.Player && team != Team.Enemy) return null;
         if (type == Type.Building || type == Type.Wall)
         {
             return team == Team.Player ? _playerBuildings : _enemyBuildings;

@@ -175,7 +175,7 @@ public static class StatusEffectSystem
 
         // UnitRegistry のキャッシュ済みリストを優先（毎ターンの GetComponentsInChildren 確保を回避）
         var reg = UnitRegistry.Instance;
-        if (reg != null)
+        if (reg != null && (team == Team.Player || team == Team.Enemy))
         {
             var src = team == Team.Player ? reg.PlayerUnits : reg.EnemyUnits;
             for (int i = 0; i < src.Count; i++)
@@ -193,7 +193,7 @@ public static class StatusEffectSystem
         for (int i = 0; i < _tickBuffer.Count; i++)
         {
             Status s = _tickBuffer[i];
-            if (s == null || s.type != Type.Unit) continue;
+            if (s == null || !s.IsAlive || !s.gameObject.activeInHierarchy || s.team != team || s.type != Type.Unit) continue;
 
             TickEffects(s);
 

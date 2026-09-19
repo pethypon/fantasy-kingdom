@@ -10,7 +10,7 @@ public static class TurnStartHelper
     /// クリスタルシールドのティック、状態異常ティック、特殊能力開始処理、
     /// APリセット、疲労リセット、サブクリスタル返却、タイマー開始を行う。
     /// </summary>
-    public static void ProcessTurnStart(GameSystems systems, Team team)
+    public static void ProcessTurnStart(GameSystems systems, Team team, int round)
     {
         // チームに対応するクリスタル・ユニット親を取得
         Transform crystal = (team == Team.Player)
@@ -58,7 +58,7 @@ public static class TurnStartHelper
 
         // ダンジョン占有判定・タイマー進行
         if (systems.DungeonSystem != null)
-            systems.DungeonSystem.ProcessTurn(team);
+            systems.DungeonSystem.ProcessTurn(team, round);
 
         // クリスタル反撃: 敵側クリスタル領土に侵入している自軍ユニットへ自動ダメージ
         BattleSystem.ProcessCrystalCounterAtTurnStart(systems, team);

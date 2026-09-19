@@ -101,6 +101,6 @@ public class APPanelUI : MonoBehaviour
         if (factionState == null) return 0;
         var ap = displayTeam == Team.Player ? factionState.PlayerAP : factionState.EnemyAP;
         if (ap == null) return 0;
-        return ap.Reset + ap.Plus - ap.Minus;
+        return ap.Maximum;
     }
 }

@@ -117,9 +117,9 @@ public class SubCrystalSystem : MonoBehaviour
     // ==================================================================
     //  サブクリスタル破壊時のロジック
     // ==================================================================
-    public void OnSubCrystalDestroyed(GameObject subCrystal, Team ownerTeam)
+    public void OnSubCrystalDestroyed(GameObject subCrystal, Team ownerTeam, Team destroyerTeam = Team.None)
     {
-        if (subCrystal == null) return;
+        if (subCrystal == null || !subCrystalTerritories.ContainsKey(subCrystal)) return;
 
         // このサブクリスタルが追加した領地を削除
         if (subCrystalTerritories.TryGetValue(subCrystal, out var positions))
@@ -131,6 +131,16 @@ public class SubCrystalSystem : MonoBehaviour
                 ptSetPos.RemoveAll(p => GridHelper.MatchXZ(p, posGrid));
             }
             subCrystalTerritories.Remove(subCrystal);
+            var parent = buildsystem.GetBuildingParent(ownerTeam);
+            if (parent != null)
+            {
+                foreach (var building in parent.GetComponentsInChildren<Status>())
+                {
+                    if (building.gameObject == subCrystal || !building.IsAlive) continue;
+                    if (positions.Exists(p => GridHelper.MatchXZ(p, building.GridPosition)))
+                        DestroyBuilding(building);
+                }
+            }
         }
 
         // 領地タイルを破棄
@@ -155,8 +165,8 @@ public class SubCrystalSystem : MonoBehaviour
         }
 
         // 破壊報酬: 自陣以外の駒が壊した場合、破壊側にランダム報酬
-        Team destroyerTeam = ownerTeam == Team.Player ? Team.Enemy : Team.Player;
-        GrantDestructionReward(destroyerTeam);
+        if (destroyerTeam != ownerTeam && (destroyerTeam == Team.Player || destroyerTeam == Team.Enemy))
+            GrantDestructionReward(destroyerTeam);
     }
 
     /// <summary>
@@ -198,20 +208,20 @@ public class SubCrystalSystem : MonoBehaviour
     // ==================================================================
     public void DestroyBuilding(Status target)
     {
-        if (target == null) return;
+        if (target == null || !target.gameObject.activeSelf) return;
 
         Vector3Int posInt = GridHelper.ToGrid(target.transform.position);
 
         // サブクリスタルの場合は領地も削除
         if (target.facilityKind == FacilityKind.SubCrystal)
         {
-            OnSubCrystalDestroyed(target.gameObject, target.team);
+            OnSubCrystalDestroyed(target.gameObject, target.team, target.HP <= 0 ? target.LastDamageTeam : Team.None);
         }
 
         // 壁の場合は UnitPointData から除去
         if (FacilityData.IsWall(target.facilityKind))
         {
-            moveGenerator.RemoveOccupiedWhere(p => GridHelper.ToGrid(p) == posInt);
+            moveGenerator.RemoveOccupiedWhere(p => GridHelper.MatchXZ(p, posInt));
         }
 
         // BuildSystem の設置済み位置から除去
@@ -242,6 +252,10 @@ public class SubCrystalSystem : MonoBehaviour
         if (factionState == null || factionState.GetSubCrystals(team) <= 0) return false;
         if (territorysystem == null || territorysystem.IsInAnyTerritory(pos.x, pos.z)) return false;
         if (HasTerritoryInRadius1(pos)) return false;
+        if (mapcreate == null || !mapcreate.HasTileAt(pos.x, pos.z)) return false;
+        if (mapcreate == null || pos.x < SubCrystalTerritoryRadius || pos.z < SubCrystalTerritoryRadius
+            || pos.x >= mapcreate.maxX - SubCrystalTerritoryRadius
+            || pos.z >= mapcreate.maxZ - SubCrystalTerritoryRadius) return false;
         if (!IsInTeamVision(pos, team)) return false;
         if (buildsystem.HasBuildingAt(pos)) return false;
         if (IsCrystalPosition(pos)) return false;
@@ -269,7 +283,7 @@ public class SubCrystalSystem : MonoBehaviour
     private bool IsInTeamVision(Vector3Int pos, Team team)
     {
         if (visionGenerator == null) return false;
-        return visionGenerator.IsInVision(team, pos);
+        return visionGenerator.IsInVisionXZ(team, pos);
     }
 
     /// <summary>指定座標がクリスタル位置かどうかを判定する</summary>

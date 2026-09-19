@@ -17,6 +17,7 @@ public class GameContext
     //  ターン情報
     // ================================================================
     public int Turn { get; set; }
+    public bool ResumeSavedPlayerTurn { get; set; }
 
     // ================================================================
     //  カメラ

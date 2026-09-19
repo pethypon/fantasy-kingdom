@@ -35,6 +35,7 @@ public static class SaveGameApplier
 
         // ターン数復元（PlayerStart.Entry()でTurn++されるので1引く）
         turnGen.Context.Turn = data.Turn - 1;
+        turnGen.Context.ResumeSavedPlayerTurn = true;
 
         // 資源復元
         SaveSystem.RestoreResources(data.PlayerResources, factionState.PlayerResources);
@@ -72,6 +73,13 @@ public static class SaveGameApplier
 
         // シーンに存在しない駒（召喚ユニット・建築物）をセーブデータから再生成
         SpawnUnmatchedEntries(data, usedIndices, summonSystem, buildSystem);
+
+        turnGen.Systems.DungeonSystem?.RestoreDungeons(data.Dungeons, data.DungeonLastRound);
+        turnGen.Systems.NeutralFactionSystem?.Restore(data.IndependentUnits, data.PreviousMonsterCount,
+            data.IndependentLastRound, data.SpawnedIntruders);
+        turnGen.Systems.WildBossSystem?.Restore(data.WildBoss);
+        UniqueRewardSystem.Records.Clear();
+        if (data.Rewards != null) UniqueRewardSystem.Records.AddRange(data.Rewards);
 
         // 再生成された駒を UnitRegistry に反映
         if (UnitRegistry.Instance != null && unitSetting != null)
@@ -128,7 +136,7 @@ public static class SaveGameApplier
     }
 
     /// <summary>セーブエントリの全フィールドをStatusに書き戻す</summary>
-    static void ApplyStatusFields(Status s, SaveSystem.UnitSaveData ud)
+    public static void ApplyStatusFields(Status s, SaveSystem.UnitSaveData ud)
     {
         s.transform.position = new Vector3(ud.PosX, ud.PosY, ud.PosZ);
 
@@ -143,7 +151,7 @@ public static class SaveGameApplier
         s.ShieldActivated = ud.ShieldActivated;
         s.ShieldEverActivated = ud.ShieldEverActivated;
         s.SkillCooldown = ud.SkillCooldown;
-        s.AssignedSkillId = ud.AssignedSkillId;
+        SkillData.AssignFixedSkill(s);
         s.Fatigue = ud.Fatigue;
         s.SurvivalInstinctUsed = ud.SurvivalInstinctUsed;
 

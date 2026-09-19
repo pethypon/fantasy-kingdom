@@ -35,6 +35,7 @@ public class GameSystems
     public TerritorySystem TerritorySystem { get; set; }
     public DungeonSystem DungeonSystem { get; set; }
     public WildBossSystem WildBossSystem { get; set; }
+    public NeutralFactionSystem NeutralFactionSystem { get; set; }
 
     // ================================================================
     //  タイマー・AI

@@ -92,6 +92,10 @@ public class AIActionExecutor
         Vector3 oldCell = _moveGen.Cell(oldPos);
 
         Vector3 actualDest = ResolveDestination(dest);
+        _moveGen.UnitPointCore();
+        if (_moveGen.IsOccupied(_moveGen.Cell(actualDest))
+            || !_moveGen.mapcreate.HasTileAt(Mathf.RoundToInt(actualDest.x), Mathf.RoundToInt(actualDest.z))
+            || !_moveGen.mapcreate.HasClearTerrainLine(oldPos, actualDest)) return false;
 
         board.ConsumeMove(unit, actualDest);
         unit.transform.position = actualDest;

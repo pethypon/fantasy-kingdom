@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [CreateAssetMenu(menuName = "GameData/UnitData")]
 public class UnitData : ScriptableObject
@@ -96,6 +96,7 @@ public class UnitData : ScriptableObject
     /// </summary>
     public void ApplyToStatus(Status status, int level)
     {
+        status.GrowthData = this;
         status.Level = level;
         status.ATK = CalcStat(baseATK, atkGrowth, level);
         status.HP = CalcStat(baseHP, hpGrowth, level);

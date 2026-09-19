@@ -15,6 +15,8 @@ public class MoveGenerator : MonoBehaviour
     [NonSerialized] public Transform ObstacleParent;
 
     /// <summary>WildBossコンテナ等、中立障害物の親を登録する（占有判定に含める）。</summary>
+    public Transform NeutralParent;
+
     public void SetObstacleParent(Transform parent) => ObstacleParent = parent;
 
     [Header("移動位置表示のオブジェクト")]
@@ -81,6 +83,7 @@ public class MoveGenerator : MonoBehaviour
         // WildBoss本体・親衛騎士・デコイ（Team.Obstacle）も通過不可にする。
         // これらは PlayerUnit/EnemyUnit ではなく専用コンテナ配下にあるため別途収集する。
         CollectUnitPositions(ObstacleParent);
+        CollectUnitPositions(NeutralParent);
 
         // 壁は AddOccupied で個別追加されるだけだと再計算時に消えてしまうため、
         // 建築物親からも毎回収集して通過不可を維持する
@@ -100,7 +103,7 @@ public class MoveGenerator : MonoBehaviour
         {
             if (child == null) continue;
             Status us = child.GetComponentInChildren<Status>();
-            if (us == null || us.type != Type.Unit) continue;
+            if (us == null || us.type != Type.Unit || !us.IsAlive || !us.gameObject.activeInHierarchy) continue;
             _unitPoints.Add(Cell(us.transform.position));
         }
     }
@@ -145,6 +148,7 @@ public class MoveGenerator : MonoBehaviour
             float checkDz = dirIndependent ? dz : dz * dirZ;
 
             if (!predicate(dx, checkDz)) continue;
+            if (!mapcreate.HasClearTerrainLine(_objp, p)) continue;
             if (_unitPoints.Contains(Cell(p))) continue;
 
             _movePositions.Add(p);

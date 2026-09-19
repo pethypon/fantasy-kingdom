@@ -56,6 +56,14 @@ public class TimerSystem : MonoBehaviour
     }
 
     /// <summary>ターン開始時に呼ぶ</summary>
+    public void ResumeTurn(Team team)
+    {
+        currentTeam = team;
+        isRunning = true;
+        warned30s = turnTimeRemaining <= GameConstants.TimerWarningThreshold;
+        warned10s = turnTimeRemaining <= GameConstants.TimerCriticalThreshold;
+    }
+
     public void StartTurn(Team team)
     {
         currentTeam = team;

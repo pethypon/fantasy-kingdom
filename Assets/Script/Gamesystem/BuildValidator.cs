@@ -33,6 +33,7 @@ public class BuildValidator
                               SubCrystalSystem subCrystalSystem,
                               CrystalSystem crystalsystem)
     {
+        if (!mapcreate.HasTileAt(pos.x, pos.z)) return false;
         if (FacilityData.IsSubCrystal(facility))
         {
             if (subCrystalSystem == null) return false;

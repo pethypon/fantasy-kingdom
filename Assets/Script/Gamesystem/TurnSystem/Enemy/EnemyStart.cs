@@ -25,7 +25,7 @@ public class EnemyStart : TurnState
         EnemyTurnBannerUI.Show();
 
         // 共通ターン開始処理
-        TurnStartHelper.ProcessTurnStart(Systems, Team.Enemy);
+        TurnStartHelper.ProcessTurnStart(Systems, Team.Enemy, Context.Turn);
 
         Turn.ChangeState(new EnemyMove(Turn));
     }

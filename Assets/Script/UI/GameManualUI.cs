@@ -178,7 +178,7 @@ public class GameManualUI : MonoBehaviour
         }
 
         sb.AppendLine("<b>■ 特殊駒</b>");
-        sb.AppendLine("  <b>クリスタル</b>: 最大HP 10000。破壊されたら敗北。被弾時に反撃を行う");
+        sb.AppendLine("  <b>クリスタル</b>: 最大HP 15000。破壊されたら敗北。被弾時に反撃を行う");
         sb.AppendLine("  <b>異形の王</b>: Lv1ステータスはキング相当だが成長率が大幅に高く、専用パッシブにより");
         sb.AppendLine("    被ダメ-40%・ダメージの20%を吸血・HP50%以下でATK+25%となる");
         sb.AppendLine("  <b>強敵（縄張りボス）</b>: 縄張り外では被弾無効。縄張り内に駒が入ると攻撃可能");
@@ -205,10 +205,10 @@ $"  ATK+{(GameConstants.KingAuraATKBonus-1)*100:F0}%、DEF+{(GameConstants.KingA
 "<b>■ ダンジョン</b>\n" +
 $"  マップに2箇所ランダム生成。サブクリスタルで起動し、共有{DungeonSystem.ClaimTurns}ターンタイマーが0に達した側がアーティファクトを獲得。\n" +
 "  陣営が変わってもタイマーは引き継がれる（残りターンを消費する形式）。\n" +
-"  両陣営が同じダンジョンに侵入するとタイマー停止（競合状態、残ターン保持）。\n\n" +
-"<b>■ スキル3択</b>\n" +
-"  召喚時、レアリティが1度抽選 → 同帯から3スキルを提示しプレイヤーが選択。\n" +
-"  プール不足の場合は警告のみで他レア帯フォールバックは行われない。";
+"  サブクリスタル領地で支配。無支配では進捗を保持して停止。報酬後は次の10ターンへ。\n\n" +
+"<b>■ 固定スキル</b>\n" +
+"  ユニットの兵種ごとに設定された固定スキルを使用。召喚時の抽選はありません。\n" +
+"  固定割当が未設定の兵種はアクティブスキルなし。";
     }
 
     private string BuildArtifactsText()
@@ -226,7 +226,7 @@ $"  マップに2箇所ランダム生成。サブクリスタルで起動し、
     {
         return
 "<b>■ 高低差ルール</b>\n\n" +
-$"  <b>低地→高台への攻撃</b>: ダメージ×{GameConstants.LowToHighAttackBonus} （高台側が有利）\n" +
+$"  <b>高台→低地への攻撃</b>: ダメージ×{GameConstants.HighToLowAttackBonus} （高台側が有利）\n" +
 $"  <b>高台からの遠距離攻撃（Y-1対象）</b>: ダメージ+{(GameConstants.HighGroundRangedBonus-1)*100:F0}%\n" +
 $"  <b>範囲スキル対象が高台</b>: ダメージ×{GameConstants.AreaSkillHighTargetMod} （-20%）\n" +
 $"  <b>範囲スキル対象が低地</b>: ダメージ×{GameConstants.AreaSkillLowTargetMod} （+10%）\n" +
@@ -244,7 +244,7 @@ $"  Sniper: 距離{GameConstants.SniperMinRange}以上で+{(GameConstants.Sniper
         return
 "<b>■ 強敵（縄張り中立ボス）</b>\n" +
 "  ゲーム開始時にマップ上へ1体ランダム配置。両陣営の領土とダンジョンを避ける。\n" +
-"  縄張り（中心3×3）の外では被弾無効。縄張り内に駒が入ると攻撃可能になる。\n\n" +
+"  縄張りは強敵ごとに異なり、正確な境界は表示されない。縄張り外では被弾無効。縄張り内に駒が入ると攻撃可能になる。\n\n" +
 "<b>■ アーキタイプと固有行動</b>\n\n" +
 "  <b>ゴーストキング</b> (HP6200/ATK26/DEF18/MaxAP23)\n" +
 "    2T毎: テレポート(3AP)→視界外攻撃+NarrowVision付与(5AP)→デコイ召喚(10AP)\n" +

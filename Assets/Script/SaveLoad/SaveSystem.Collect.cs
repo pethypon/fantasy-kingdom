@@ -18,6 +18,9 @@ public static partial class SaveSystem
         {
             Turn = turnGen.Context.Turn,
             ThreatLevel = LoadProfile().ThreatLevel,
+            R1Terrain = turnGen.Systems.MapCreate.UseR1Terrain,
+            MapWidth = turnGen.Systems.MapCreate.maxX,
+            MapDepth = turnGen.Systems.MapCreate.maxZ,
             MapSeedX = turnGen.Systems.MapCreate.SeedX,
             MapSeedZ = turnGen.Systems.MapCreate.SeedZ,
             PCPx = turnGen.Systems.CrystalSystem.PCP.x,
@@ -28,6 +31,22 @@ public static partial class SaveSystem
             ECPz = turnGen.Systems.CrystalSystem.ECP.z
         };
 
+        if (turnGen.Systems.DungeonSystem != null)
+        {
+            data.Dungeons = new List<DungeonSystem.DungeonInfo>(turnGen.Systems.DungeonSystem.Dungeons);
+            data.DungeonLastRound = turnGen.Systems.DungeonSystem.LastProcessedRound;
+        }
+
+        var neutral = turnGen.Systems.NeutralFactionSystem;
+        if (neutral != null)
+        {
+            data.IndependentUnits = neutral.Capture();
+            data.PreviousMonsterCount = neutral.PreviousMonsterCount;
+            data.IndependentLastRound = neutral.LastRound;
+            data.SpawnedIntruders = new List<string>(neutral.SpawnedIntruders);
+        }
+        data.Rewards = new List<RewardRecord>(UniqueRewardSystem.Records);
+        data.WildBoss = turnGen.Systems.WildBossSystem?.Capture();
         // ユニット収集
         CollectUnits(data, turnGen.Systems.UnitSetting.PlayerUnit, turnGen.Systems.UnitSetting.EnemyUnit);
 
@@ -99,8 +118,8 @@ public static partial class SaveSystem
         if (cs == null) return;
 
         // クリスタル親からStatusを収集
-        var playerCrystalParent = cs.transform.parent?.Find("PlayerCrystal");
-        var enemyCrystalParent = cs.transform.parent?.Find("EnemyCrystal");
+        var playerCrystalParent = cs.Playercrystal;
+        var enemyCrystalParent = cs.Enemycrystal;
 
         if (playerCrystalParent != null)
             foreach (Status s in playerCrystalParent.GetComponentsInChildren<Status>(true))
@@ -112,6 +131,8 @@ public static partial class SaveSystem
                 if (s.kind == Kind.Crystal || s.kind == Kind.SubCrystal)
                     data.Units.Add(StatusToSaveData(s));
     }
+
+    public static UnitSaveData CaptureUnit(Status s) => StatusToSaveData(s);
 
     static UnitSaveData StatusToSaveData(Status s)
     {

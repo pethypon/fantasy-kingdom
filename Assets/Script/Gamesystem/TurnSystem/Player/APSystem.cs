@@ -114,7 +114,7 @@ public class APSystem : MonoBehaviour
         if (_factionState == null) return 0;
         var ap = team == Team.Player ? _factionState.PlayerAP : _factionState.EnemyAP;
         if (ap == null) return 0;
-        return ap.Reset + ap.Plus - ap.Minus;
+        return ap.Maximum;
     }
 
     // ==== 内部ヘルパー ====

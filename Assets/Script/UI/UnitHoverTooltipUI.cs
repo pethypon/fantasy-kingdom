@@ -16,7 +16,9 @@ public class UnitHoverTooltipUI : MonoBehaviour
     private CanvasGroup _group;
     private Status _lastHovered;
     private Vector2 _lastMousePos = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
-    private bool _lastFrameHadHit;
+    private float _nextProbeTime;
+    private Matrix4x4 _lastCameraMatrix;
+    private (Kind, Team, Direction, int, int, int, int) _displayedValues;
 
     private const float PanelWidth = 270f;
     private const float PanelHeight = 62f;
@@ -89,37 +91,39 @@ public class UnitHoverTooltipUI : MonoBehaviour
 
         Vector2 mousePos = Mouse.current.position.ReadValue();
 
-        // パフォーマンス最適化: マウスが動いていなければ Raycast をスキップし、
-        // 前回の判定結果を使い回す（毎フレーム Physics.Raycast を抑制）。
-        bool mouseMoved = mousePos != _lastMousePos;
+        var camera = Camera.main;
+        bool probe = mousePos != _lastMousePos || camera.worldToCameraMatrix != _lastCameraMatrix
+            || Time.unscaledTime >= _nextProbeTime;
         _lastMousePos = mousePos;
-
-        if (!mouseMoved && _lastHovered != null && _lastHovered.gameObject.activeInHierarchy)
+        _lastCameraMatrix = camera.worldToCameraMatrix;
+        if (!probe)
         {
-            // 既存ホバー状態を維持（位置・透明度のみ更新）
             UpdatePosition(mousePos);
-            _group.alpha = Mathf.MoveTowards(_group.alpha, 1f, 8f * Time.deltaTime);
+            _group.alpha = Mathf.MoveTowards(_group.alpha, _lastHovered != null ? 1f : 0f, 8f * Time.unscaledDeltaTime);
             return;
         }
-        if (!mouseMoved && !_lastFrameHadHit)
+        _nextProbeTime = Time.unscaledTime + 0.1f;
+        if (UnityEngine.EventSystems.EventSystem.current != null
+            && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
         {
-            // 前回ヒットなしのまま静止 → フェードアウトのみ
-            _group.alpha = Mathf.MoveTowards(_group.alpha, 0f, 8f * Time.deltaTime);
+            _lastHovered = null;
+            _group.alpha = 0f;
             return;
         }
 
-        Ray ray = Camera.main.ScreenPointToRay(mousePos);
+        Ray ray = camera.ScreenPointToRay(mousePos);
         if (Physics.Raycast(ray, out RaycastHit hit, GameConstants.DefaultRayDistance))
         {
-            Status s = hit.transform.GetComponent<Status>();
-            if (s != null && (s.type == Type.Unit || s.type == Type.Building))
+            Status s = hit.transform.GetComponentInParent<Status>();
+            if (s != null && s.IsAlive && (s.type == Type.Unit || s.type == Type.Building))
             {
-                if (s != _lastHovered)
+                var values = (s.kind, s.team, s.direction, s.HP, s.MaxHP, s.ATK, s.DEF);
+                if (s != _lastHovered || !values.Equals(_displayedValues))
                 {
-                    _lastHovered = s;
+                    _displayedValues = values;
                     UpdateTooltip(s);
                 }
-                _lastFrameHadHit = true;
+                _lastHovered = s;
                 UpdatePosition(mousePos);
                 _group.alpha = Mathf.MoveTowards(_group.alpha, 1f, 8f * Time.deltaTime);
                 return;
@@ -127,7 +131,6 @@ public class UnitHoverTooltipUI : MonoBehaviour
         }
 
         // ホバー解除
-        _lastFrameHadHit = false;
         if (_lastHovered != null)
         {
             _lastHovered = null;
@@ -140,7 +143,11 @@ public class UnitHoverTooltipUI : MonoBehaviour
         string teamColor = s.team == Team.Player
             ? "#" + ColorUtility.ToHtmlStringRGB(BrandGuide.TeamPlayer)
             : "#" + ColorUtility.ToHtmlStringRGB(BrandGuide.TeamEnemy);
-        string teamStr = s.team == Team.Player ? "味方" : "敵";
+        string teamStr = s.team switch
+        {
+            Team.Player => "味方", Team.Enemy => "異形の軍勢", Team.Monster => "魔物",
+            Team.Intruder => "乱入者", Team.Obstacle => "強敵", _ => "中立"
+        };
         string name = KindNameJP.Get(s.kind);
         string dir = s.direction == Direction.N ? "▲N" : "▼S";
 

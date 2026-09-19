@@ -46,9 +46,9 @@ public class UnitClick : MonoBehaviour
         if (playermove.SelectedUnit == null) return;
 
         // 敵ユニット/建築物をクリック → 情報パネルのみ表示（操作不可）
-        if (playermove.SelectedUnit.team == Team.Enemy)
+        if (playermove.SelectedUnit.team != Team.Player)
         {
-            if (turnGenerator.Systems.UnitPanelUI != null)
+            if (IsVisibleHostile(playermove.SelectedUnit) && turnGenerator.Systems.UnitPanelUI != null)
                 turnGenerator.Systems.UnitPanelUI.Show(playermove.SelectedUnit);
             playermove.SelectedUnit = null; // 選択状態にはしない
             return;
@@ -149,10 +149,15 @@ public class UnitClick : MonoBehaviour
     }
 
     // ---- 通常攻撃クリック処理 ----
+    private bool IsVisibleHostile(Status target) => target != null && target.IsAlive
+        && target.team != Team.Player && target.team != Team.None
+        && turnGenerator.Systems.VisionGenerator != null
+        && turnGenerator.Systems.VisionGenerator.IsInVisionXZ(Team.Player, target.transform.position);
+
     private void HandleNormalAttackClick(RaycastHit hit)
     {
         if (!hit.transform.TryGetComponent<Status>(out AttackTarget)) return;
-        if (AttackTarget.team != Team.Enemy || AttackTarget.type != Type.Unit) return;
+        if (!IsVisibleHostile(AttackTarget)) return;
 
         Vector3 attackSame = AttackTarget.transform.position;
         bool isInRange = IsInAttackRange(attackGenerator.AttackP, attackSame);
@@ -197,14 +202,14 @@ public class UnitClick : MonoBehaviour
         switch (skill.Target)
         {
             case SkillTarget.EnemySingle:
-                if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
+                if (clickTarget == null || !IsVisibleHostile(clickTarget) || clickTarget.type != Type.Unit) return;
                 AttackTarget = clickTarget;
                 turnGenerator.Systems.SkillSystem.ExecuteSkill(playermove.SelectedUnit, AttackTarget, skill);
                 break;
 
             case SkillTarget.EnemyOrBuilding:
                 if (clickTarget == null) return;
-                if (clickTarget.team != Team.Enemy) return;
+                if (!IsVisibleHostile(clickTarget)) return;
                 if (clickTarget.type != Type.Unit && clickTarget.type != Type.Building) return;
                 AttackTarget = clickTarget;
                 turnGenerator.Systems.SkillSystem.ExecuteSkill(playermove.SelectedUnit, AttackTarget, skill);
@@ -217,7 +222,7 @@ public class UnitClick : MonoBehaviour
                 break;
 
             case SkillTarget.LowHPEnemy:
-                if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
+                if (clickTarget == null || !IsVisibleHostile(clickTarget) || clickTarget.type != Type.Unit) return;
                 if (clickTarget.MaxHP <= 0 || (float)clickTarget.HP / clickTarget.MaxHP > 0.5f)
                 {
                     ToastMessageUI.Show("HP50%以下の敵のみ対象です", ToastMessageUI.MessageType.Warning);
@@ -228,7 +233,7 @@ public class UnitClick : MonoBehaviour
                 break;
 
             case SkillTarget.FlyingEnemy:
-                if (clickTarget == null || clickTarget.team != Team.Enemy || clickTarget.type != Type.Unit) return;
+                if (clickTarget == null || !IsVisibleHostile(clickTarget) || clickTarget.type != Type.Unit) return;
                 AttackTarget = clickTarget;
                 turnGenerator.Systems.SkillSystem.ExecuteSkill(playermove.SelectedUnit, AttackTarget, skill);
                 break;
@@ -254,7 +259,7 @@ public class UnitClick : MonoBehaviour
                 break;
 
             default:
-                if (clickTarget == null || clickTarget.team != Team.Enemy) return;
+                if (clickTarget == null || !IsVisibleHostile(clickTarget)) return;
                 AttackTarget = clickTarget;
                 turnGenerator.Systems.SkillSystem.ExecuteSkill(playermove.SelectedUnit, AttackTarget, skill);
                 break;
@@ -287,9 +292,9 @@ public class UnitClick : MonoBehaviour
         Transform enemyParent = turnGenerator.Systems.UnitSetting?.EnemyUnit;
         if (enemyParent == null) return targets;
 
-        foreach (Status s in enemyParent.GetComponentsInChildren<Status>())
+        foreach (Status s in Object.FindObjectsByType<Status>(FindObjectsSortMode.None))
         {
-            if (!s.gameObject.activeSelf) continue;
+            if (!s.gameObject.activeSelf || !IsVisibleHostile(s)) continue;
             if (s.type != Type.Unit && s.type != Type.Building) continue;
             Vector3Int cell = GridHelper.ToGridXZ(s.transform.position);
             if (posSet.Contains(cell))

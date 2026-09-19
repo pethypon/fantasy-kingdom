@@ -80,6 +80,7 @@ public class TurnGenerator : MonoBehaviour
 
     public void StartFirstTurn()
     {
+        _cameraController?.FocusPlayerBase();
         ChangeState(new PlayerStart(this));
     }
 

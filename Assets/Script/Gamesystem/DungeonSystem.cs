@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// ダンジョンシステム: マップ上にランダムで2箇所のダンジョンを配置する。
 /// サブクリスタルで起動し、共有10ターンタイマー中に占有し続けるとアーティファクトを獲得。
-/// 敵チームの駒が同じダンジョンに侵入するとタイマーはリセットされ競合状態となる。
+/// 支配変更でも進捗を保持し、報酬後は次の共有10ラウンドへ進む。
 /// </summary>
 public class DungeonSystem : MonoBehaviour
 {
@@ -27,13 +27,13 @@ public class DungeonSystem : MonoBehaviour
         public bool Contested;       // 双方が同一ダンジョンに存在
         public bool Cleared;         // アーティファクト獲得済み
         public Artifact Reward = Artifact.None;
-        public GameObject Marker;    // 視覚表示用
+        [System.NonSerialized] public GameObject Marker;    // 視覚表示用
 
         /// <summary>後方互換: SharedRemainingTurns から派生する占有進捗 (0〜ClaimTurns)</summary>
         public int ClaimProgress => ClaimTurns - SharedRemainingTurns;
 
         // ---- ダンジョン内モンスター（踏破阻害要素） ----
-        public int MonsterHP = MonsterMaxHP;
+        public int MonsterHP = 0; // Legacy field; control no longer requires a unit battle.
         public int MonsterATK = MonsterATKValue;
         public bool MonsterAlive => MonsterHP > 0;
     }
@@ -147,6 +147,23 @@ public class DungeonSystem : MonoBehaviour
         return false;
     }
 
+    private void Update()
+    {
+        var mouse = UnityEngine.InputSystem.Mouse.current;
+        if (mouse == null || !mouse.leftButton.wasPressedThisFrame || Camera.main == null) return;
+        if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
+        if (!Physics.Raycast(Camera.main.ScreenPointToRay(mouse.position.ReadValue()), out var hit, GameConstants.DefaultRayDistance)) return;
+        var vision = GetComponent<VisionGenerator>();
+        foreach (var dungeon in _dungeons)
+        {
+            if (!GridHelper.MatchXZ(hit.point, dungeon.Position) || vision == null
+                || !vision.IsInVisionXZ(Team.Player, dungeon.Position)) continue;
+            RefreshController(dungeon);
+            string owner = dungeon.ClaimingTeam == Team.Player ? "プレイヤー" : dungeon.ClaimingTeam == Team.Enemy ? "異形の軍勢" : "無支配・停止中";
+            ToastMessageUI.Show($"ダンジョン {dungeon.ClaimProgress}/{ClaimTurns} — {owner}", ToastMessageUI.MessageType.Info, 4f);
+        }
+    }
+
     private Artifact RollArtifact()
     {
         var values = (Artifact[])System.Enum.GetValues(typeof(Artifact));
@@ -178,135 +195,76 @@ public class DungeonSystem : MonoBehaviour
     // ==================================================================
     //  毎ターン処理（占有判定・タイマー進行・アーティファクト獲得）
     // ==================================================================
-    public void ProcessTurn(Team team)
-    {
-        if (_dungeons.Count == 0) return;
-        if (unitSetting == null) return;
+    public int LastProcessedRound { get; private set; } = -1;
 
+    // Exactly one shared tick after the previous full round, at PlayerStart.
+    public void ProcessTurn(Team team, int round)
+    {
+        if (team != Team.Player || round <= LastProcessedRound) return;
+        LastProcessedRound = round;
         foreach (var d in _dungeons)
         {
-            if (d.Cleared) continue;
-
-            bool playerPresent = HasTeamAt(Team.Player, d.Position);
-            bool enemyPresent = HasTeamAt(Team.Enemy, d.Position);
-
-            if (playerPresent && enemyPresent)
+            RefreshController(d);
+            if (!AdvanceCycle(d)) continue;
+            GrantArtifact(d.ClaimingTeam, d.Reward);
+            if (MatchStats.Instance != null && d.ClaimingTeam == Team.Player)
             {
-                d.Contested = true;
-                d.ClaimingTeam = Team.None;
-                // 競合時: タイマー停止（残ターンは引き継ぎ）
-                Debug.Log($"[DungeonSystem] ダンジョン{d.Position} 競合！ タイマー停止 残り={d.SharedRemainingTurns}T");
-                continue;
+                MatchStats.Instance.DungeonsClaimed++;
+                MatchStats.Instance.ArtifactsAcquired++;
             }
-
-            d.Contested = false;
-
-            // モンスター討伐フェーズ: 未討伐なら先にHPを削る（占有タイマーは進めない）
-            if (d.MonsterAlive && (playerPresent || enemyPresent))
-            {
-                Team invader = playerPresent ? Team.Player : Team.Enemy;
-                int dealt = Mathf.Min(UnitAttackDamagePerTurn, d.MonsterHP);
-                d.MonsterHP -= dealt;
-                Debug.Log($"[DungeonSystem] {invader} がダンジョン{d.Position}のモンスターに{dealt}ダメージ(残{d.MonsterHP})");
-
-                // 反撃: 踏み入ったユニット群にATKダメージを分配
-                CounterMonsterAttack(invader, d.Position, d.MonsterATK);
-
-                if (d.MonsterAlive) continue; // まだ生きている → 占有開始しない
-                Debug.Log($"[DungeonSystem] ダンジョン{d.Position}のモンスター討伐！ 占有開始可能");
-            }
-
-            // 残りターン減少型: 占有チームを設定（変更時もタイマー引き継ぎ）
-            if (playerPresent)
-            {
-                if (d.ClaimingTeam != Team.Player)
-                {
-                    Debug.Log($"[DungeonSystem] ダンジョン{d.Position} 奪取: {d.ClaimingTeam}→Player remainingTurns={d.SharedRemainingTurns}");
-                    d.ClaimingTeam = Team.Player;
-                }
-                d.SharedRemainingTurns = Mathf.Max(0, d.SharedRemainingTurns - 1);
-            }
-            else if (enemyPresent)
-            {
-                if (d.ClaimingTeam != Team.Enemy)
-                {
-                    Debug.Log($"[DungeonSystem] ダンジョン{d.Position} 奪取: {d.ClaimingTeam}→Enemy remainingTurns={d.SharedRemainingTurns}");
-                    d.ClaimingTeam = Team.Enemy;
-                }
-                d.SharedRemainingTurns = Mathf.Max(0, d.SharedRemainingTurns - 1);
-            }
-            // 誰もいない場合はタイマー停止（残ターン保持）
-
-            if (d.SharedRemainingTurns <= 0 && d.ClaimingTeam != Team.None)
-            {
-                GrantArtifact(d.ClaimingTeam, d.Reward);
-                d.Cleared = true;
-                if (d.Marker != null) Destroy(d.Marker);
-                Debug.Log($"[DungeonSystem] {d.ClaimingTeam} がダンジョン{d.Position}を制圧、{d.Reward}を獲得");
-                if (MatchStats.Instance != null && d.ClaimingTeam == Team.Player)
-                {
-                    MatchStats.Instance.DungeonsClaimed++;
-                    MatchStats.Instance.ArtifactsAcquired++;
-                }
-                if (d.ClaimingTeam == Team.Player)
-                    AchievementSystem.GetOrCreate().OnDungeonCleared();
-            }
+            if (d.ClaimingTeam == Team.Player) AchievementSystem.GetOrCreate().OnDungeonCleared();
+            d.Reward = RollArtifact();
         }
     }
 
-    /// <summary>ダンジョン内モンスターから踏破ユニットへの反撃処理</summary>
-    private void CounterMonsterAttack(Team team, Vector3Int pos, int atk)
+    public static bool AdvanceCycle(DungeonInfo d)
     {
-        if (unitSetting == null) return;
-        Transform parent = team == Team.Player ? unitSetting.PlayerUnit : unitSetting.EnemyUnit;
-        if (parent == null) return;
-
-        foreach (Transform child in parent)
-        {
-            if (child == null || !child.gameObject.activeInHierarchy) continue;
-            var s = child.GetComponent<Status>();
-            if (s == null || !s.IsAlive) continue;
-            if (s.GridPosition.x != pos.x || s.GridPosition.z != pos.z) continue;
-
-            int dmg = Mathf.Max(1, atk - s.DEF / 4);
-            s.ApplyDamage(dmg);
-            Debug.Log($"[DungeonSystem] モンスター反撃: {s.kind} に {dmg} ダメージ（残HP:{s.HP}）");
-            s.HandleDeathIfDead();
-        }
+        if (d.Contested || d.ClaimingTeam == Team.None) return false;
+        d.Cleared = false;
+        d.SharedRemainingTurns = Mathf.Clamp(d.SharedRemainingTurns, 1, ClaimTurns) - 1;
+        if (d.SharedRemainingTurns > 0) return false;
+        d.SharedRemainingTurns = ClaimTurns;
+        return true;
     }
 
-    private bool HasTeamAt(Team team, Vector3Int pos)
+    private bool HasSubCrystalControl(Team team, Vector3Int pos)
     {
-        if (unitSetting == null) return false;
-        Transform parent = team == Team.Player ? unitSetting.PlayerUnit : unitSetting.EnemyUnit;
+        var parent = buildsystem != null ? buildsystem.GetBuildingParent(team) : null;
         if (parent == null) return false;
-        foreach (Transform child in parent)
-        {
-            if (child == null || !child.gameObject.activeInHierarchy) continue;
-            var s = child.GetComponent<Status>();
-            if (s == null || !s.IsAlive) continue;
-            var g = s.GridPosition;
-            if (g.x == pos.x && g.z == pos.z) return true;
-        }
+        foreach (var building in parent.GetComponentsInChildren<Status>())
+            if (building.IsAlive && building.facilityKind == FacilityKind.SubCrystal
+                && GridHelper.ChebyshevDistance(building.GridPosition, pos) <= SubCrystalSystem.SubCrystalTerritoryRadius)
+                return true;
         return false;
     }
 
-    /// <summary>サブクリスタル配置時、近傍ダンジョンを起動（残りタイマーを2T加速）する</summary>
+    private void RefreshController(DungeonInfo d)
+    {
+        bool player = HasSubCrystalControl(Team.Player, d.Position);
+        bool enemy = HasSubCrystalControl(Team.Enemy, d.Position);
+        d.Contested = player && enemy;
+        d.ClaimingTeam = player == enemy ? Team.None : player ? Team.Player : Team.Enemy;
+    }
+
     public void ActivateFromSubCrystal(Vector3Int subCrystalPos, Team team)
     {
-        foreach (var d in _dungeons)
+        foreach (var d in _dungeons) RefreshController(d);
+    }
+
+    public void RestoreDungeons(List<DungeonInfo> saved, int lastRound)
+    {
+        if (saved == null) return; // Older saves had no dungeon snapshot.
+        foreach (var d in _dungeons) if (d.Marker != null) Destroy(d.Marker);
+        _dungeons.Clear();
+        foreach (var d in saved)
         {
-            if (d.Cleared) continue;
-            if (GridHelper.ChebyshevDistance(subCrystalPos, d.Position) <= 5)
-            {
-                if (d.ClaimingTeam == Team.None || d.ClaimingTeam == team)
-                {
-                    d.ClaimingTeam = team;
-                    d.SharedRemainingTurns = Mathf.Max(1, d.SharedRemainingTurns - 2);
-                    Debug.Log($"[DungeonSystem] {team} のサブクリスタルがダンジョン{d.Position}を起動 (-2T → 残り{d.SharedRemainingTurns}T)");
-                }
-            }
+            d.Cleared = false;
+            d.SharedRemainingTurns = Mathf.Clamp(d.SharedRemainingTurns, 1, ClaimTurns);
+            d.Marker = CreateMarker(d.Position);
+            _dungeons.Add(d);
+            RefreshController(d);
         }
+        LastProcessedRound = lastRound;
     }
 
     // ==================================================================

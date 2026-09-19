@@ -59,10 +59,20 @@ public static partial class SaveSystem
         public APSaveData EnemyAP = new APSaveData();
 
         // サブクリスタル
+        public List<NeutralFactionSystem.SpawnRecord> IndependentUnits;
+        public int PreviousMonsterCount;
+        public int IndependentLastRound = -1;
+        public List<string> SpawnedIntruders;
+        public List<RewardRecord> Rewards;
+        public WildBossSystem.Snapshot WildBoss;
+        public List<DungeonSystem.DungeonInfo> Dungeons;
+        public int DungeonLastRound = -1;
         public int PlayerSubCrystals;
         public int EnemySubCrystals;
 
         // マップシード（再生成用）
+        public bool R1Terrain;
+        public int MapWidth, MapDepth;
         public float MapSeedX;
         public float MapSeedZ;
 

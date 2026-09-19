@@ -16,10 +16,11 @@ public class FactionState : MonoBehaviour
         [Header("ボーナス")] public int Plus = 0;
         [Header("ペナルティ")] public int Minus = 0;
 
+        public int Maximum => Mathf.Clamp(Reset + Plus - Minus, 3, GameConstants.MaxAP);
+
         public void ResetForTurn()
         {
-            int raw = Reset + Plus - Minus;
-            Current = Mathf.Max(raw, 3);
+            Current = Maximum;
         }
     }
 
@@ -62,12 +63,12 @@ public class FactionState : MonoBehaviour
     public int PlayerSubCrystals
     {
         get => PlayerNation.SubCrystals;
-        set => PlayerNation.SubCrystals = value;
+        set => PlayerNation.SubCrystals = Mathf.Clamp(value, 0, GameConstants.InitialSubCrystals);
     }
     public int EnemySubCrystals
     {
         get => EnemyNation.SubCrystals;
-        set => EnemyNation.SubCrystals = value;
+        set => EnemyNation.SubCrystals = Mathf.Clamp(value, 0, GameConstants.InitialSubCrystals);
     }
 
     public List<int> PlayerPendingReturns => PlayerNation.PendingReturns;
@@ -107,8 +108,8 @@ public class FactionState : MonoBehaviour
 
     // ==== AP 取得 / 設定 ====
     public int GetAP(Team team) => GetNation(team).AP.Current;
-    public void SetAP(Team team, int value) => GetNation(team).AP.Current = value;
-    public void ModifyAP(Team team, int delta) => GetNation(team).AP.Current += delta;
+    public void SetAP(Team team, int value) => GetNation(team).AP.Current = Mathf.Clamp(value, 0, GameConstants.MaxAP);
+    public void ModifyAP(Team team, int delta) => SetAP(team, GetAP(team) + delta);
     public void ResetAPForTurn(Team team) => GetNation(team).AP.ResetForTurn();
 
     // ==== 資源取得 ====
@@ -120,7 +121,7 @@ public class FactionState : MonoBehaviour
 
     // ==== サブクリスタル ====
     public int GetSubCrystals(Team team) => GetNation(team).SubCrystals;
-    public void ModifySubCrystals(Team team, int delta) => GetNation(team).SubCrystals += delta;
+    public void ModifySubCrystals(Team team, int delta) => GetNation(team).SubCrystals = Mathf.Clamp(GetNation(team).SubCrystals + delta, 0, GameConstants.InitialSubCrystals);
 
     public void AddPendingReturn(Team team, int turns)
     {
