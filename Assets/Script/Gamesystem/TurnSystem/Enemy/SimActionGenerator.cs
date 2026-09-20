@@ -70,15 +70,11 @@ public static class SimActionGenerator
         int dirZ = MovePatterns.DirZ(unit.Direction);
         bool dirIndep = MovePatterns.DirectionIndependent.Contains(unit.Kind);
 
-        foreach (var tile in board.MapTiles)
+        foreach (var offset in MovePatterns.Offsets(unit.Kind))
         {
-            float dx = tile.x - pos.x;
-            float dz = tile.z - pos.z;
-
-            // Direction.S の場合、方向依存パターンは Z を反転
-            float dzAdj = dirIndep ? dz : dz * dirZ;
-
-            if (!predicate(dx, dzAdj)) continue;
+            var tile = pos + new Vector3Int(offset.x,0,offset.y * (dirIndep ? 1 : dirZ));
+            if (!board.MapTiles.Contains(tile)) continue;
+            if (!board.CanTraverse(pos,tile)) continue;
             if (board.IsOccupied(tile)) continue;
 
             results.Add(new SimAction

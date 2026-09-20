@@ -13,6 +13,8 @@ public class MoveUndoSystem
         public Vector3 FromPos;
         public Vector3 ToPos;
         public int APCost;
+        public int FatigueBefore;
+        public bool HadMovedBefore;
     }
 
     readonly Stack<MoveRecord> _history = new Stack<MoveRecord>();
@@ -23,6 +25,7 @@ public class MoveUndoSystem
     {
         _apSystem = apSystem;
         _moveGen = moveGen;
+        _apSystem.OnNonMoveAction += team => { if (team == Team.Player) Clear(); };
     }
 
     /// <summary>移動を記録する</summary>
@@ -33,7 +36,9 @@ public class MoveUndoSystem
             Unit = unit,
             FromPos = from,
             ToPos = to,
-            APCost = apCost
+            APCost = apCost,
+            FatigueBefore = unit.Fatigue,
+            HadMovedBefore = unit.HasMovedThisTurn
         });
     }
 
@@ -46,8 +51,13 @@ public class MoveUndoSystem
     {
         if (_history.Count == 0) return false;
 
-        var record = _history.Pop();
-        if (record.Unit == null || !record.Unit.gameObject.activeInHierarchy) return false;
+        var record = _history.Peek();
+        if (record.Unit == null || !record.Unit.IsAlive || !record.Unit.gameObject.activeInHierarchy
+            || record.Unit.transform.position != record.ToPos)
+        { Clear(); return false; }
+        _moveGen.UnitPointCore();
+        if (_moveGen.IsOccupied(_moveGen.Cell(record.FromPos))) return false;
+        _history.Pop();
 
         // ユニットを元の位置に戻す
         record.Unit.transform.position = record.FromPos;
@@ -58,9 +68,9 @@ public class MoveUndoSystem
         // AP返還
         _apSystem.RefundAP(Team.Player, record.APCost);
 
-        // 疲労を1減らす（移動で+1されたため）
-        if (record.Unit.Fatigue > 0)
-            record.Unit.Fatigue--;
+        // 駒固有の追加疲労や初回移動割引も、記録時点へ正確に戻す。
+        record.Unit.Fatigue = record.FatigueBefore;
+        record.Unit.HasMovedThisTurn = record.HadMovedBefore;
 
         // 移動範囲リセット
         _moveGen.MoveReset();

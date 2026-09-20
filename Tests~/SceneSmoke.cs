@@ -70,10 +70,21 @@ public static class SceneSmoke
             Check("new map uses passable heights 1/2", systems.MapCreate.SetPos.All(p => p.y == 1 || p.y == 2));
             Check("crystal HP 15000", systems.CrystalSystem.Playercrystal.GetComponentInChildren<Status>().MaxHP == 15000);
             Check("territory exact boundary hidden", systems.WildBossSystem.TerritoryParent.childCount == 0);
+            var viewport = Camera.main.WorldToViewportPoint(systems.CrystalSystem.PCP);
+            Check("player base centered on screen", viewport.z > 0 && Mathf.Abs(viewport.x - 0.5f) < 0.01f && Mathf.Abs(viewport.y - 0.5f) < 0.01f);
+            BenchmarkHeightLookup(systems.MapCreate);
+            TestMoveUndo(systems, turn);
             TestObservations(systems, turn);
             TestSubCrystalAndDungeon(systems);
             systems.FactionState.SetAP(Team.Player, 12);
             systems.TimerSystem.RestoreTurnTimeRemaining(43f);
+            var menu = GameMenuUI.Instance;
+            menu.Open();
+            float totalBefore = systems.TimerSystem.PlayerTotalTime;
+            typeof(TimerSystem).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(systems.TimerSystem, null);
+            Check("menu pauses both timers", menu.IsOpen && systems.TimerSystem.TurnTimeRemaining == 43f && systems.TimerSystem.PlayerTotalTime == totalBefore);
+            menu.Close();
+            Check("closing menu releases pause", !menu.IsOpen);
             var saved = SaveSystem.CollectGameState(turn, systems.FactionState, systems.TimerSystem, systems.VisionGenerator, systems.AICommander);
             var roundTrip = JsonUtility.FromJson<SaveSystem.GameSaveData>(JsonUtility.ToJson(saved));
             Check("save includes both crystals", roundTrip.Units.Count(u => u.Kind == Kind.Crystal.ToString()) == 2);
@@ -114,6 +125,52 @@ public static class SceneSmoke
             SessionState.SetBool(Running, false);
             EditorApplication.Exit(1);
         }
+    }
+
+    static void TestMoveUndo(GameSystems s, TurnGenerator turn)
+    {
+        var unit = s.UnitSetting.PlayerUnit.GetComponentsInChildren<Status>().First(u => u.kind == Kind.Knight);
+        var from = unit.transform.position;
+        var to = s.MapCreate.SetPos.First(p => !s.MoveGenerator.IsOccupied(s.MoveGenerator.Cell(p)));
+        int beforeAP = s.APSystem.GetAP(Team.Player);
+        unit.Fatigue = 3; unit.HasMovedThisTurn = false;
+        int cost = s.APSystem.CalcCost(APSystem.ActionType.Move, unit, from, to);
+        s.MoveUndoSystem.Record(unit, from, to, cost);
+        unit.transform.position = to;
+        s.APSystem.Consume(Team.Player, APSystem.ActionType.Move, unit, from, to);
+        unit.HasMovedThisTurn = true;
+        Check("undo restores move", s.MoveUndoSystem.Undo(turn, (PlayerMove)turn.CurrentState, s.VisionGenerator, s.MapCreate, s.CrystalSystem));
+        Check("undo restores AP fatigue and first-move state", s.APSystem.GetAP(Team.Player) == beforeAP && unit.Fatigue == 3 && !unit.HasMovedThisTurn && unit.transform.position == from);
+        s.MoveUndoSystem.Record(unit, from, to, cost);
+        s.APSystem.Consume(Team.Player, APSystem.ActionType.Attack, unit);
+        Check("attack invalidates old movement undo", !s.MoveUndoSystem.CanUndo);
+        unit.Fatigue = 0;
+        s.FactionState.SetAP(Team.Player, beforeAP);
+    }
+
+    static void BenchmarkHeightLookup(MapCreate map)
+    {
+        bool equivalent = true;
+        for (int x = -1; x <= map.maxX; x++)
+        for (int z = -1; z <= map.maxZ; z++)
+        {
+            bool oldResult = GridHelper.TryGetHeight(map.SetPos, x, z, out float oldY);
+            bool newResult = map.TryGetHeight(x, z, out float newY);
+            if (oldResult != newResult || (oldResult && oldY != newY)) equivalent = false;
+        }
+        Check("indexed terrain lookup matches original on every cell", equivalent);
+        const int iterations = 20000;
+        float checksumOld = 0, checksumNew = 0;
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        for (int i = 0; i < iterations; i++)
+            if (GridHelper.TryGetHeight(map.SetPos, i % map.maxX, (i / map.maxX) % map.maxZ, out float y)) checksumOld += y;
+        double oldMs = watch.Elapsed.TotalMilliseconds;
+        watch.Restart();
+        for (int i = 0; i < iterations; i++)
+            if (map.TryGetHeight(i % map.maxX, (i / map.maxX) % map.maxZ, out float y)) checksumNew += y;
+        double newMs = watch.Elapsed.TotalMilliseconds;
+        Check("terrain benchmark checksums match", checksumOld == checksumNew);
+        Debug.Log($"[Performance] Height lookup {iterations} calls: list={oldMs:F3}ms indexed={newMs:F3}ms; map={map.maxX}x{map.maxZ}");
     }
 
     static void TestObservations(GameSystems s, TurnGenerator turn)

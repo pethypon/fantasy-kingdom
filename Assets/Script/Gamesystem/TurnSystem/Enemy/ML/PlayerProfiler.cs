@@ -424,7 +424,7 @@ public class PlayerProfiler
             }
         }
 
-        Debug.Log($"[PlayerProfiler] プロファイル更新: " +
+        DevelopmentLog.Log($"[PlayerProfiler] プロファイル更新: " +
                   $"攻撃性={_profile.AggressionScore:F2} " +
                   $"ラッシュ={_profile.RushTendency:F2} " +
                   $"亀={_profile.TurtleTendency:F2} " +

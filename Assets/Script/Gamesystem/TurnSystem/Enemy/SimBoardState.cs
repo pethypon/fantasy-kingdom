@@ -36,6 +36,18 @@ public partial class SimBoardState
     // ---- マップデータ (共有・変更しない) ----
     public HashSet<Vector3Int> MapTiles; // 有効なタイル座標 (Y=0化済み)
 
+    public bool CanTraverse(Vector3Int from, Vector3Int to)
+    {
+        int dx = to.x-from.x, dz = to.z-from.z;
+        int steps = Mathf.Max(Mathf.Abs(dx),Mathf.Abs(dz));
+        for (int i=1;i<=steps;i++)
+        {
+            var cell = new Vector3Int(Mathf.RoundToInt(from.x + dx*(float)i/steps),0,Mathf.RoundToInt(from.z+dz*(float)i/steps));
+            if (!MapTiles.Contains(cell)) return false;
+        }
+        return true;
+    }
+
     // ---- 占有セル ----
     HashSet<Vector3Int> _occupiedCells;
 

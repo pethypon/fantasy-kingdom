@@ -103,7 +103,7 @@ public class AISearchEngine
             maxDepth: _maxDepth,
             candidateLimit: Mathf.Max(_candidateLimit, 14),
             greedyActionsPerTurn: 10,
-            timeBudgetMs: 5000f
+            timeBudgetMs: (float)AITurnBudget.RemainingMs
         );
 
         Dictionary<AIAction, float> result;
@@ -118,7 +118,7 @@ public class AISearchEngine
         }
 
         _elapsedMs = (Time.realtimeSinceStartup * 1000f) - startTime;
-        Debug.Log($"[AISearchEngine] 完全シミュレーション先読み完了: " +
+        DevelopmentLog.Log($"[AISearchEngine] 完全シミュレーション先読み完了: " +
             $"深さ{_maxDepth} 候補{topCandidates.Count} {_elapsedMs:F0}ms");
 
         return result;
@@ -137,9 +137,9 @@ public class AISearchEngine
         foreach (var action in topCandidates)
         {
             _elapsedMs = (Time.realtimeSinceStartup * 1000f) - startTime;
-            if (_elapsedMs > 2000f) // フォールバック時は2秒制限
+            if (_elapsedMs > 2000f || AITurnBudget.Expired) // フォールバック時は2秒制限
             {
-                Debug.Log($"[AISearchEngine] フォールバック時間切れ ({_elapsedMs:F0}ms)");
+                DevelopmentLog.Log($"[AISearchEngine] フォールバック時間切れ ({_elapsedMs:F0}ms)");
                 break;
             }
 
@@ -149,7 +149,7 @@ public class AISearchEngine
         }
 
         _elapsedMs = (Time.realtimeSinceStartup * 1000f) - startTime;
-        Debug.Log($"[AISearchEngine] フォールバック先読み完了: " +
+        DevelopmentLog.Log($"[AISearchEngine] フォールバック先読み完了: " +
             $"深さ{_maxDepth} 評価{_nodesEvaluated}ノード {_elapsedMs:F0}ms");
 
         return result;

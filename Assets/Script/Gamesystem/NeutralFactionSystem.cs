@@ -18,6 +18,7 @@ public class NeutralFactionSystem : MonoBehaviour
     public int LastRound { get; private set; } = -1;
     public readonly List<string> SpawnedIntruders = new List<string>();
     readonly Dictionary<Status, (R1ContentCatalog.Encounter encounter, int member)> origins = new Dictionary<Status, (R1ContentCatalog.Encounter, int)>();
+    readonly List<Status> combatTargets = new List<Status>();
     GameSystems systems;
     R1ContentCatalog catalog;
 
@@ -65,7 +66,8 @@ public class NeutralFactionSystem : MonoBehaviour
             for (int i = 0; i < entry.Retinue.Length; i++) Spawn(entry, Team.Intruder, i);
         }
         // No units are spawned during these actions. Recheck liveness before using this snapshot.
-        var targets = FindObjectsByType<Status>(FindObjectsSortMode.None);
+        CombatRegistry.Collect(combatTargets);
+        var targets = combatTargets;
         ActFaction(Team.Monster, targets);
         ActFaction(Team.Intruder, targets);
         systems.MoveGenerator.UnitPointCore();
@@ -110,7 +112,7 @@ public class NeutralFactionSystem : MonoBehaviour
         return count == 0 ? 1 : Mathf.Max(1, Mathf.RoundToInt((float)sum / count));
     }
 
-    void ActFaction(Team team, Status[] targets)
+    void ActFaction(Team team, List<Status> targets)
     {
         if (systems.MoveGenerator.turnGenerator != null && systems.MoveGenerator.turnGenerator.IsGameOver) return;
         StatusEffectSystem.TickAllUnits(team, UnitParent);
@@ -150,7 +152,7 @@ public class NeutralFactionSystem : MonoBehaviour
                 if (!systems.MapCreate.TryGetHeight(x, z, out float y)) continue;
                 var cell = new Vector3(x, y, z);
                 if (systems.MoveGenerator.IsOccupied(systems.MoveGenerator.Cell(cell))) continue;
-                if (!systems.MapCreate.HasClearTerrainLine(unit.transform.position, cell)) continue;
+                if (!systems.MapCreate.CanTraverse(unit.transform.position, cell)) continue;
                 moves.Add(cell);
             }
             if (moves.Count == 0) continue;

@@ -72,7 +72,7 @@ public class AILearning
         {
             _tacticsModifier = Mathf.Min(MaxBonus, _tacticsModifier + 2f);
             _cautionModifier = Mathf.Min(MaxBonus, _cautionModifier + 1f);
-            Debug.Log($"[AILearning] 正面突破失敗学習 @{cell} → 戦術性+2, 慎重性+1");
+            DevelopmentLog.Log($"[AILearning] 正面突破失敗学習 @{cell} → 戦術性+2, 慎重性+1");
         }
     }
 
@@ -86,7 +86,7 @@ public class AILearning
         if (_successFlanks[cell] >= MinOccurrences)
         {
             _tacticsModifier = Mathf.Min(MaxBonus, _tacticsModifier + 2f);
-            Debug.Log($"[AILearning] 奇襲成功学習 @{cell} → 戦術性+2");
+            DevelopmentLog.Log($"[AILearning] 奇襲成功学習 @{cell} → 戦術性+2");
         }
     }
 
@@ -100,7 +100,7 @@ public class AILearning
         if (_isolatedDeaths[cell] >= MinOccurrences)
         {
             _commandModifier = Mathf.Min(MaxBonus, _commandModifier + 3f);
-            Debug.Log($"[AILearning] 孤立被撃破学習 @{cell} → 指揮性+3");
+            DevelopmentLog.Log($"[AILearning] 孤立被撃破学習 @{cell} → 指揮性+3");
         }
     }
 
@@ -135,7 +135,7 @@ public class AILearning
         if (!IsActive) return;
         _defenseModifier = Mathf.Min(MaxBonus, _defenseModifier + 2f);
         _cautionModifier = Mathf.Min(MaxBonus, _cautionModifier + 1f);
-        Debug.Log("[AILearning] 攻め急ぎ崩壊学習 → 防衛性+2, 慎重性+1");
+        DevelopmentLog.Log("[AILearning] 攻め急ぎ崩壊学習 → 防衛性+2, 慎重性+1");
     }
 
     // 経済差で勝てていると感じた
@@ -143,7 +143,7 @@ public class AILearning
     {
         if (!IsActive) return;
         _developModifier = Mathf.Min(MaxBonus, _developModifier + 2f);
-        Debug.Log("[AILearning] 経済優位学習 → 発展性+2");
+        DevelopmentLog.Log("[AILearning] 経済優位学習 → 発展性+2");
     }
 
     // ================================================================

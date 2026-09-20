@@ -148,28 +148,28 @@ public partial class AICommander
         // 師団長制AI初期化
         _kingCommanderSystem = new KingCommanderSystem(_personality, _rng);
 
-        Debug.Log("=== [AICommander] ==============================");
-        Debug.Log($"[AICommander] 初期化完了");
-        Debug.Log($"[AICommander] 大きい性格 = {major}  脅威度={_threatLevel.Level} ({_threatLevel.GetTierName()})");
-        Debug.Log($"[AICommander] 慎重性={_personality.Traits.Caution}  " +
+        DevelopmentLog.Log("=== [AICommander] ==============================");
+        DevelopmentLog.Log($"[AICommander] 初期化完了");
+        DevelopmentLog.Log($"[AICommander] 大きい性格 = {major}  脅威度={_threatLevel.Level} ({_threatLevel.GetTierName()})");
+        DevelopmentLog.Log($"[AICommander] 慎重性={_personality.Traits.Caution}  " +
                   $"指揮性={_personality.Traits.Command}  " +
                   $"執着性={_personality.Traits.Obsession}");
-        Debug.Log($"[AICommander] 防衛性={_personality.Traits.Defense}  " +
+        DevelopmentLog.Log($"[AICommander] 防衛性={_personality.Traits.Defense}  " +
                   $"戦術性={_personality.Traits.Tactics}  " +
                   $"発展性={_personality.Traits.Development}");
-        Debug.Log($"[AICommander] 合計={_personality.Traits.Total}pt  " +
+        DevelopmentLog.Log($"[AICommander] 合計={_personality.Traits.Total}pt  " +
                   $"学習={(_learning.IsActive ? "有効" : "無効")}  " +
                   $"建築={(_buildSystem != null ? "有効" : "無効")}  " +
                   $"召喚={(_summonSystem != null ? "有効" : "無効")}");
-        Debug.Log($"[AICommander] 探索={(_threatLevel.UseSearchEngine ? $"有効(深さ{_threatLevel.SearchDepth})" : "無効")}  " +
+        DevelopmentLog.Log($"[AICommander] 探索={(_threatLevel.UseSearchEngine ? $"有効(深さ{_threatLevel.SearchDepth})" : "無効")}  " +
                   $"ロール={(_threatLevel.UseRoleAssignment ? "有効" : "無効")}  " +
                   $"学習率={_threatLevel.LearningRate:F1}  シード={_rng.Seed}");
-        Debug.Log($"[AICommander] {_mlIntegration.GetDebugInfo()}");
-        Debug.Log($"[AICommander] 師団長制={(_hierarchicalMode ? "有効" : "無効")}  " +
+        DevelopmentLog.Log($"[AICommander] {_mlIntegration.GetDebugInfo()}");
+        DevelopmentLog.Log($"[AICommander] 師団長制={(_hierarchicalMode ? "有効" : "無効")}  " +
                   $"最大師団数={KingCommanderSystem.MaxDivisions}  " +
                   $"師団兵上限={KingCommanderSystem.MaxDivisionUnits}  " +
                   $"王直轄上限={KingCommanderSystem.MaxKingDirectUnits}");
-        Debug.Log("=== [AICommander] ==============================");
+        DevelopmentLog.Log("=== [AICommander] ==============================");
     }
 
     public AIPersonality Personality => _personality;
@@ -197,8 +197,22 @@ public partial class AICommander
     // ================================================================
     //  ExecuteTurn — 1ターン分の全行動を実行
     // ================================================================
+    [SerializeField, Min(100)] private float turnThinkingBudgetMs = 3000f;
+    static bool IsCriticalPosition(List<AIAction> candidates, AIBoardState board)
+    {
+        if (board.AlivePlayerUnits.Count > 0 || board.EnemyCrystalHP < board.EnemyCrystalMaxHP / 2) return true;
+        var dungeons = board.ObservedDungeons();
+        foreach (var action in candidates)
+        {
+            if (action.ActionType == AIActionType.Attack || action.ActionType == AIActionType.SkillUse) return true;
+            foreach (var dungeon in dungeons)
+                if (GridHelper.ChebyshevDistance(action.TargetPos, dungeon.Position) <= 3) return true;
+        }
+        return false;
+    }
     public void ExecuteTurn()
     {
+        AITurnBudget.Begin(turnThinkingBudgetMs);
         _actedUnits.Clear();
         _triedStrategies.Clear();
         _turnCount++;
@@ -212,7 +226,7 @@ public partial class AICommander
             if (_buildSystem != null)
             {
                 _actionExecutor.BuildSystem = _buildSystem;
-                Debug.Log("[AICommander] BuildSystem を遅延取得しました");
+                DevelopmentLog.Log("[AICommander] BuildSystem を遅延取得しました");
             }
             else
                 Debug.LogWarning("[AICommander] BuildSystem が見つかりません — 建築不可");
@@ -227,7 +241,7 @@ public partial class AICommander
             if (_summonSystem != null)
             {
                 _actionExecutor.SummonSystem = _summonSystem;
-                Debug.Log("[AICommander] SummonSystem を遅延取得しました");
+                DevelopmentLog.Log("[AICommander] SummonSystem を遅延取得しました");
             }
         }
 
@@ -291,34 +305,34 @@ public partial class AICommander
         // EvaluateAll の毎ループ new List を避けるための再利用バッファ
         var actionsBuffer = new List<AIAction>(64);
 
-        Debug.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
-        Debug.Log($"[AICommander] 方針={_currentStrategy}  理由=\"{strategyDecision.Reason}\"  AP={_board.EnemyAP}  " +
+        DevelopmentLog.Log($"--- [AICommander] ターン{_turnCount}開始 ---");
+        DevelopmentLog.Log($"[AICommander] 方針={_currentStrategy}  理由=\"{strategyDecision.Reason}\"  AP={_board.EnemyAP}  " +
                   $"自軍駒数={_board.AliveEnemyUnits.Count}  " +
                   $"視界内敵駒数={_board.AlivePlayerUnits.Count}  " +
                   $"BOSS={(_personality.HasBoss ? _personality.BossUnit.kind.ToString() : "なし")}  " +
                   $"脅威度={_threatLevel.Level}({_threatLevel.GetTierName()})");
-        Debug.Log($"[AICommander] AP予算: {_apBudget}");
-        Debug.Log($"[AICommander] 建築可能位置={_board.BuildablePositions.Count}  " +
+        DevelopmentLog.Log($"[AICommander] AP予算: {_apBudget}");
+        DevelopmentLog.Log($"[AICommander] 建築可能位置={_board.BuildablePositions.Count}  " +
                   $"召喚可能位置={_board.SummonablePositions.Count}  " +
                   $"購入可能建物={_board.AffordableBuildings.Count}  " +
                   $"召喚可能駒種={_board.AffordableUnits.Count}");
         if (_board.AffordableBuildings.Count > 0)
         {
-            Debug.Log($"[AICommander] 建築可能: {string.Join(", ", _board.AffordableBuildings)}");
+            DevelopmentLog.Log($"[AICommander] 建築可能: {string.Join(", ", _board.AffordableBuildings)}");
         }
-        Debug.Log($"[AICommander] 経済: 原料施設={EconomyHelper.CountEconBuildings(_board)}  " +
+        DevelopmentLog.Log($"[AICommander] 経済: 原料施設={EconomyHelper.CountEconBuildings(_board)}  " +
                   $"加工施設={EconomyHelper.CountProcessingBuildings(_board)}  " +
                   $"住宅={_board.GetBuildingCount(FacilityKind.House)}  " +
                   $"経済充足={EconomyHelper.IsEconomySufficient(_board)}");
         if (_board.EnemyResources != null)
         {
             var r = _board.EnemyResources;
-            Debug.Log($"[AICommander] 資源: 木={r.Wood} 石={r.Stone} 鉄={r.Iron} 魔={r.MagicOre} " +
+            DevelopmentLog.Log($"[AICommander] 資源: 木={r.Wood} 石={r.Stone} 鉄={r.Iron} 魔={r.MagicOre} " +
                       $"水={r.Water} パン={r.Bread} 市民={r.Citizen}");
         }
         if (_board.AffordableUnits.Count > 0)
         {
-            Debug.Log($"[AICommander] 召喚可能: {string.Join(", ", _board.AffordableUnits)}");
+            DevelopmentLog.Log($"[AICommander] 召喚可能: {string.Join(", ", _board.AffordableUnits)}");
         }
 
         if (_board.AlivePlayerUnits.Count > 0)
@@ -330,7 +344,7 @@ public partial class AICommander
                 if (vi > 0) sb.Append(", ");
                 sb.Append($"{u.kind}(HP{u.HP} @{_moveGen.Cell(u.transform.position)})");
             }
-            Debug.Log($"[AICommander] 視界内敵駒: {sb}");
+            DevelopmentLog.Log($"[AICommander] 視界内敵駒: {sb}");
         }
 
         // 失敗した行動タイプ+対象を記録し、同じ行動を繰り返さない
@@ -348,7 +362,7 @@ public partial class AICommander
         // AP予算: 建築/召喚が可能なら最低限のAPを予約する
         int reservedAP = CalcReservedAP();
 
-        while (_board.EnemyAP > 0 && iteration < maxIterations)
+        while (_board.EnemyAP > 0 && iteration < maxIterations && !AITurnBudget.Expired)
         {
             iteration++;
 
@@ -365,10 +379,10 @@ public partial class AICommander
                 // 戦略フォールバック: 別の戦略を試す
                 if (TryFallbackStrategy())
                 {
-                    Debug.Log($"[AICommander] 候補行動なし → 戦略を{_currentStrategy}に切替");
+                    DevelopmentLog.Log($"[AICommander] 候補行動なし → 戦略を{_currentStrategy}に切替");
                     continue;
                 }
-                Debug.Log("[AICommander] 候補行動なし＆全戦略試行済み → ターン終了");
+                DevelopmentLog.Log("[AICommander] 候補行動なし＆全戦略試行済み → ターン終了");
                 break;
             }
 
@@ -411,7 +425,7 @@ public partial class AICommander
                         topCandidates.Add(actions[i]);
                 }
 
-                if (topCandidates.Count > 0)
+                if (topCandidates.Count > 0 && AITurnBudget.RemainingMs > 10 && IsCriticalPosition(topCandidates, _board))
                 {
                     var lookaheadScores = searchEngine.EvaluateWithLookahead(
                         topCandidates, _board, _personality, _learning);
@@ -437,7 +451,7 @@ public partial class AICommander
                 string targetInfo = a.TargetUnit != null ? $"→{a.TargetUnit.kind}" : "";
                 string roleInfo = (_threatLevel.UseRoleAssignment && a.Unit != null)
                     ? $" role={_roleAssigner.GetRole(a.Unit)}" : "";
-                Debug.Log($"[AICommander] 候補{i + 1}: {a.ActionType}{info}{targetInfo}{roleInfo}  " +
+                DevelopmentLog.Log($"[AICommander] 候補{i + 1}: {a.ActionType}{info}{targetInfo}{roleInfo}  " +
                           $"score={a.Score:F1}  AP={a.APCost}");
             }
 
@@ -453,12 +467,12 @@ public partial class AICommander
                 // 戦略フォールバック: 別の戦略を試す
                 if (TryFallbackStrategy())
                 {
-                    Debug.Log($"[AICommander] 有効行動なし → 戦略を{_currentStrategy}に切替");
+                    DevelopmentLog.Log($"[AICommander] 有効行動なし → 戦略を{_currentStrategy}に切替");
                     strategyFailures = 0;
                     consecutiveFailures = 0;
                     continue;
                 }
-                Debug.Log("[AICommander] 有効な行動なし＆全戦略試行済み → ターン終了");
+                DevelopmentLog.Log("[AICommander] 有効な行動なし＆全戦略試行済み → ターン終了");
                 break;
             }
 
@@ -480,22 +494,22 @@ public partial class AICommander
                 if (sameTypeFailCount >= 2)
                 {
                     failedActionTypes.Add(typeKey);
-                    Debug.Log($"[AICommander] 同種行動2回失敗 → {typeKey} を種類ごとブロック");
+                    DevelopmentLog.Log($"[AICommander] 同種行動2回失敗 → {typeKey} を種類ごとブロック");
                 }
 
                 // 現戦略で3回失敗したら戦略切替を試みる（連続失敗上限に達する前に回復）
                 if (strategyFailures >= 3 && TryFallbackStrategy())
                 {
-                    Debug.Log($"[AICommander] 戦略失敗{strategyFailures}回 → 戦略を{_currentStrategy}に切替");
+                    DevelopmentLog.Log($"[AICommander] 戦略失敗{strategyFailures}回 → 戦略を{_currentStrategy}に切替");
                     strategyFailures = 0;
                     consecutiveFailures = Mathf.Max(0, consecutiveFailures - 2); // 少しリセット
                     continue;
                 }
 
-                Debug.Log($"[AICommander] 行動実行失敗 ({consecutiveFailures}/{maxConsecutiveFailures}) → 次の候補へ");
+                DevelopmentLog.Log($"[AICommander] 行動実行失敗 ({consecutiveFailures}/{maxConsecutiveFailures}) → 次の候補へ");
                 if (consecutiveFailures >= maxConsecutiveFailures)
                 {
-                    Debug.Log("[AICommander] 連続失敗上限 → ターン終了");
+                    DevelopmentLog.Log("[AICommander] 連続失敗上限 → ターン終了");
                     break;
                 }
                 continue;
@@ -548,7 +562,7 @@ public partial class AICommander
         _totalStats.Retreats += turnStats.Retreats;
         _totalStats.Builds += turnStats.Builds;
         _totalStats.Summons += turnStats.Summons;
-        Debug.Log($"--- [AICommander] ターン{_turnCount}終了: {turnStats}  " +
+        DevelopmentLog.Log($"--- [AICommander] ターン{_turnCount}終了: {turnStats}  " +
                   $"残AP={_board.EnemyAP}  累計({_totalStats}/撃破{_totalKills})  " +
                   $"脅威度={_threatLevel.Level}({_threatLevel.GetTierName()}) ---");
 

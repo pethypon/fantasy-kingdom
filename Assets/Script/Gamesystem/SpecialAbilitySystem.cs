@@ -385,7 +385,7 @@ public static class SpecialAbilitySystem
         }
 
         // フォールバック: FindObjectsByType
-        Status[] allStatuses = Object.FindObjectsByType<Status>(FindObjectsSortMode.None);
+        Status[] allStatuses = CombatRegistry.Snapshot();
         foreach (Status s in allStatuses)
         {
             if (s.type != Type.Building && s.type != Type.Wall) continue;
@@ -426,7 +426,7 @@ public static class SpecialAbilitySystem
             return false;
         }
 
-        Status[] allStatuses = Object.FindObjectsByType<Status>(FindObjectsSortMode.None);
+        Status[] allStatuses = CombatRegistry.Snapshot();
         foreach (Status s in allStatuses)
         {
             if (s == target) continue;
@@ -456,7 +456,7 @@ public static class SpecialAbilitySystem
             return false;
         }
 
-        Status[] allStatuses = Object.FindObjectsByType<Status>(FindObjectsSortMode.None);
+        Status[] allStatuses = CombatRegistry.Snapshot();
         foreach (Status s in allStatuses)
         {
             if (s.type != Type.Unit || !s.gameObject.activeSelf) continue;

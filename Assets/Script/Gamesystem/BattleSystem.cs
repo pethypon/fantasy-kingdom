@@ -37,7 +37,7 @@ public class BattleSystem : MonoBehaviour
         Attacker = turnGenerator.Context.SelectUnit;
         if (!Attacker.IsAlive || !Target.IsAlive || !NeutralFactionSystem.AreHostile(Attacker, Target)) return;
         var terrain = turnGenerator.Systems.MapCreate;
-        if (terrain != null && !terrain.HasClearTerrainLine(Attacker.transform.position, Target.transform.position)) return;
+        if (terrain != null && !terrain.CanAttackAcrossTerrain(Attacker, Target.transform.position)) return;
 
         // スタン中は行動不可
         if (StatusEffectSystem.IsStunned(Attacker))

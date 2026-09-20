@@ -245,7 +245,7 @@ public class BuildingAttackSystem : MonoBehaviour
             return;
         }
 
-        if (moveGenerator.mapcreate != null && !moveGenerator.mapcreate.HasClearTerrainLine(attacker.transform.position, target.transform.position)) return;
+        if (moveGenerator.mapcreate != null && !moveGenerator.mapcreate.CanAttackAcrossTerrain(attacker, target.transform.position)) return;
         int raw = DamageCalculator.CalcNormal(attacker, target);
 
         // Special Ability: 致死ダメージ耐え（生還本能）— 他の攻撃経路と同等に判定する

@@ -87,6 +87,7 @@ public class TurnGenerator : MonoBehaviour
     void Update()
     {
         _inputHandler?.Tick();
+        if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen) return;
         _cameraController?.Tick();
         _stateManager?.Update();
     }

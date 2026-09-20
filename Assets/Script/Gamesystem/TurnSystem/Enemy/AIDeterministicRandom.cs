@@ -16,7 +16,7 @@ public class AIDeterministicRandom
     {
         _seed = seed;
         _rng = new System.Random(seed);
-        Debug.Log($"[AIDeterministicRandom] シード={seed}");
+        DevelopmentLog.Log($"[AIDeterministicRandom] シード={seed}");
     }
 
     /// <summary>試合開始時にシードを設定（再現性のため外部から指定可能）</summary>

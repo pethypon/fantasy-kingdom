@@ -81,7 +81,7 @@ public class TimerSystem : MonoBehaviour
 
     private void Update()
     {
-        if (!isRunning) return;
+        if (!isRunning || (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen)) return;
 
         float dt = Time.deltaTime;
 

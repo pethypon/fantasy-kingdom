@@ -18,7 +18,7 @@ public class SkillSystem : MonoBehaviour
     {
         if (target == null || !target.IsAlive || target.ShieldTurns > 0) return 0;
         var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
-        if (terrain != null && !terrain.HasClearTerrainLine(attacker.transform.position, target.transform.position)) return 0;
+        if (terrain != null && !terrain.CanAttackAcrossTerrain(attacker, target.transform.position)) return 0;
         int before = target.HP;
         if (!SpecialAbilitySystem.TrySurviveLethal(target, requested)) target.ApplyDamage(requested);
         int actual = Mathf.Max(0, before - target.HP);
@@ -54,7 +54,7 @@ public class SkillSystem : MonoBehaviour
         if (attacker == null || skill == null) return;
         var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
         if (target != null && target != attacker && terrain != null
-            && !terrain.HasClearTerrainLine(attacker.transform.position, target.transform.position)) return;
+            && !terrain.CanAttackAcrossTerrain(attacker, target.transform.position)) return;
 
         Debug.Log($"[SkillSystem] {attacker.kind} がスキル '{skill.Name}' を使用 (AP:{skill.APCost})");
 
@@ -375,7 +375,7 @@ public class SkillSystem : MonoBehaviour
         var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
         foreach (Status t in targets)
         {
-            if (t == null || (terrain != null && !terrain.HasClearTerrainLine(attacker.transform.position, t.transform.position))) continue;
+            if (t == null || (terrain != null && !terrain.CanAttackAcrossTerrain(attacker, t.transform.position))) continue;
             if (skill.Multiplier > 0)
             {
                 if (t.ShieldTurns > 0)

@@ -148,7 +148,9 @@ public class UnitHoverTooltipUI : MonoBehaviour
             Team.Player => "味方", Team.Enemy => "異形の軍勢", Team.Monster => "魔物",
             Team.Intruder => "乱入者", Team.Obstacle => "強敵", _ => "中立"
         };
-        string name = KindNameJP.Get(s.kind);
+        string name = (s.type == Type.Building || s.type == Type.Wall)
+            && FacilityData.Table.TryGetValue(s.facilityKind, out var facility)
+            ? facility.DisplayName : KindNameJP.Get(s.kind);
         string dir = s.direction == Direction.N ? "▲N" : "▼S";
 
         float hpRatio = s.MaxHP > 0 ? (float)s.HP / s.MaxHP : 1f;

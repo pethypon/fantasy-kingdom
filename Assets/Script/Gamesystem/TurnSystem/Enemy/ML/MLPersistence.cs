@@ -157,7 +157,7 @@ public static class MLPersistence
 
             string json = JsonUtility.ToJson(data, true);
             File.WriteAllText(Path.Combine(dir, WeightsFile), json);
-            Debug.Log($"[MLPersistence] 重み保存完了 (v2 マルチヘッド)  脅威度={threatLevel}");
+            DevelopmentLog.Log($"[MLPersistence] 重み保存完了 (v2 マルチヘッド)  脅威度={threatLevel}");
         }
         catch (Exception e)
         {
@@ -172,7 +172,7 @@ public static class MLPersistence
             string path = Path.Combine(GetMLDir(), WeightsFile);
             if (!File.Exists(path))
             {
-                Debug.Log("[MLPersistence] 重みファイルなし → 新規初期化");
+                DevelopmentLog.Log("[MLPersistence] 重みファイルなし → 新規初期化");
                 return false;
             }
 
@@ -209,7 +209,7 @@ public static class MLPersistence
             if (data.HeadWeights != null && data.HeadWeights.Length == MLBrain.NumHeads)
                 Array.Copy(data.HeadWeights, brain.HeadWeights, MLBrain.NumHeads);
 
-            Debug.Log($"[MLPersistence] 重み読込完了 (v2)  脅威度={data.ThreatLevel}  " +
+            DevelopmentLog.Log($"[MLPersistence] 重み読込完了 (v2)  脅威度={data.ThreatLevel}  " +
                       $"学習ステップ={data.TotalTrainingSteps}  保存日={data.SaveDate}");
             return true;
         }
@@ -242,7 +242,7 @@ public static class MLPersistence
                 });
             }
             File.WriteAllText(Path.Combine(dir, BufferFile), JsonUtility.ToJson(data));
-            Debug.Log($"[MLPersistence] バッファ保存: {recent.Count}件");
+            DevelopmentLog.Log($"[MLPersistence] バッファ保存: {recent.Count}件");
         }
         catch (Exception e) { Debug.LogError($"[MLPersistence] バッファ保存失敗: {e.Message}"); }
     }
@@ -264,7 +264,7 @@ public static class MLPersistence
                     TurnNumber = ed.TurnNumber
                 });
             buffer.LoadExperiences(exps);
-            Debug.Log($"[MLPersistence] バッファ読込: {exps.Count}件");
+            DevelopmentLog.Log($"[MLPersistence] バッファ読込: {exps.Count}件");
         }
         catch (Exception e) { Debug.LogError($"[MLPersistence] バッファ読込失敗: {e.Message}"); }
     }
@@ -284,7 +284,7 @@ public static class MLPersistence
                 CorrectPredictions = pred.SaveCorrectPredictions
             };
             File.WriteAllText(Path.Combine(GetMLDir(), PredictorFile), JsonUtility.ToJson(data));
-            Debug.Log($"[MLPersistence] 予測器保存: 精度={pred.Accuracy:F2}  予測数={pred.TotalPredictions}");
+            DevelopmentLog.Log($"[MLPersistence] 予測器保存: 精度={pred.Accuracy:F2}  予測数={pred.TotalPredictions}");
         }
         catch (Exception e) { Debug.LogError($"[MLPersistence] 予測器保存失敗: {e.Message}"); }
     }
@@ -301,7 +301,7 @@ public static class MLPersistence
             pred.SaveRunningAccuracy = data.RunningAccuracy;
             pred.SaveTotalPredictions = data.TotalPredictions;
             pred.SaveCorrectPredictions = data.CorrectPredictions;
-            Debug.Log($"[MLPersistence] 予測器読込: 精度={pred.Accuracy:F2}");
+            DevelopmentLog.Log($"[MLPersistence] 予測器読込: 精度={pred.Accuracy:F2}");
         }
         catch (Exception e) { Debug.LogError($"[MLPersistence] 予測器読込失敗: {e.Message}"); }
     }
@@ -334,7 +334,7 @@ public static class MLPersistence
                 MatchesObserved = p.MatchesObserved,
             };
             File.WriteAllText(Path.Combine(GetMLDir(), ProfileFile), JsonUtility.ToJson(data, true));
-            Debug.Log($"[MLPersistence] プロファイル保存: 攻撃性={p.AggressionScore:F2} " +
+            DevelopmentLog.Log($"[MLPersistence] プロファイル保存: 攻撃性={p.AggressionScore:F2} " +
                       $"信頼度={p.Confidence:F2}  観測試合={p.MatchesObserved}");
         }
         catch (Exception e) { Debug.LogError($"[MLPersistence] プロファイル保存失敗: {e.Message}"); }
@@ -366,7 +366,7 @@ public static class MLPersistence
             p.TurnPressurePattern = data.TurnPressurePattern;
             p.TotalObservations = data.TotalObservations;
             p.MatchesObserved = data.MatchesObserved;
-            Debug.Log($"[MLPersistence] プロファイル読込: 攻撃性={p.AggressionScore:F2}  " +
+            DevelopmentLog.Log($"[MLPersistence] プロファイル読込: 攻撃性={p.AggressionScore:F2}  " +
                       $"観測試合={p.MatchesObserved}");
         }
         catch (Exception e) { Debug.LogError($"[MLPersistence] プロファイル読込失敗: {e.Message}"); }

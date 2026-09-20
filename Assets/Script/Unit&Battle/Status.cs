@@ -269,6 +269,9 @@ public enum SkillRarity
 
 public class Status : MonoBehaviour
 {
+    void OnEnable() => CombatRegistry.Register(this);
+    void OnDisable() => CombatRegistry.Unregister(this);
+    void OnDestroy() => CombatRegistry.Unregister(this);
     [Header("種類")]
     public Kind kind;
     [Header("チーム")]

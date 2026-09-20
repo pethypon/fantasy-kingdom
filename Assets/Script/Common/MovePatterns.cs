@@ -77,6 +77,21 @@ public static class MovePatterns
     /// <summary>
     /// 方向係数を返す。Direction.S なら -1, Direction.N なら +1。
     /// </summary>
+    static readonly Dictionary<Kind, Vector2Int[]> offsets = BuildOffsets();
+    static Dictionary<Kind, Vector2Int[]> BuildOffsets()
+    {
+        var result = new Dictionary<Kind, Vector2Int[]>();
+        foreach (var entry in Map)
+        {
+            var list = new List<Vector2Int>();
+            for (int x = -3; x <= 3; x++) for (int z = -3; z <= 3; z++)
+                if ((x != 0 || z != 0) && entry.Value(x,z)) list.Add(new Vector2Int(x,z));
+            result[entry.Key] = list.ToArray();
+        }
+        return result;
+    }
+    public static IReadOnlyList<Vector2Int> Offsets(Kind kind) => offsets.TryGetValue(kind,out var value) ? value : Array.Empty<Vector2Int>();
+
     public static int DirZ(Direction d) => d == Direction.S ? -1 : 1;
 
     /// <summary>

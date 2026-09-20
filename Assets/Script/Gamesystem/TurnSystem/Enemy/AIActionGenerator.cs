@@ -374,9 +374,9 @@ public static class AIActionGenerator
         if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0)
         {
             if (board.BuildablePositions.Count == 0)
-                Debug.Log("[AI Build] 建築可能位置=0 → 建築候補なし（領地不足?）");
+                DevelopmentLog.Log("[AI Build] 建築可能位置=0 → 建築候補なし（領地不足?）");
             else
-                Debug.Log($"[AI Build] 購入可能建物=0 → 建築候補なし（AP={board.EnemyAP} 資源不足?）");
+                DevelopmentLog.Log($"[AI Build] 購入可能建物=0 → 建築候補なし（AP={board.EnemyAP} 資源不足?）");
             return;
         }
 
@@ -387,7 +387,7 @@ public static class AIActionGenerator
             if (FacilityData.IsSubCrystal(facility)) continue;
             if (!FacilityData.Table.TryGetValue(facility, out var info))
             {
-                Debug.Log($"[AI Build] {facility}: FacilityData未登録 → スキップ");
+                DevelopmentLog.Log($"[AI Build] {facility}: FacilityData未登録 → スキップ");
                 continue;
             }
 
@@ -395,13 +395,13 @@ public static class AIActionGenerator
             int maxAllowed = GetMaxBuildingCount(facility);
             if (existing >= maxAllowed)
             {
-                Debug.Log($"[AI Build] {facility}: 上限到達({existing}/{maxAllowed}) → スキップ");
+                DevelopmentLog.Log($"[AI Build] {facility}: 上限到達({existing}/{maxAllowed}) → スキップ");
                 continue;
             }
 
             if (!board.HasUpstreamProducer(facility))
             {
-                Debug.Log($"[AI Build] {facility}: 上流施設なし → スキップ");
+                DevelopmentLog.Log($"[AI Build] {facility}: 上流施設なし → スキップ");
                 continue;
             }
 
@@ -419,11 +419,11 @@ public static class AIActionGenerator
                 });
                 posCount++;
             }
-            Debug.Log($"[AI Build] {facility}: AP={info.APCost} 候補{posCount}位置 既存={existing}");
+            DevelopmentLog.Log($"[AI Build] {facility}: AP={info.APCost} 候補{posCount}位置 既存={existing}");
         }
 
         int totalNew = results.Count - candidatesBefore;
-        Debug.Log($"[AI Build] 建築候補合計: {totalNew}件 (建築可能位置={board.BuildablePositions.Count} 購入可能={board.AffordableBuildings.Count})");
+        DevelopmentLog.Log($"[AI Build] 建築候補合計: {totalNew}件 (建築可能位置={board.BuildablePositions.Count} 購入可能={board.AffordableBuildings.Count})");
     }
 
     static List<Vector3Int> SelectBuildPositions(FacilityKind facility, AIBoardState board)
@@ -472,13 +472,13 @@ public static class AIActionGenerator
     {
         if (board.SummonablePositions.Count == 0)
         {
-            Debug.Log("[AI Summon] 召喚可能位置なし — サブクリスタルを配置してください");
+            DevelopmentLog.Log("[AI Summon] 召喚可能位置なし — サブクリスタルを配置してください");
             return;
         }
         if (board.AffordableUnits.Count == 0)
         {
             var res = board.EnemyResources;
-            Debug.Log($"[AI Summon] 資源不足で召喚不可 — Bread:{res.Bread} Iron:{res.Iron} Wood:{res.Wood} Stone:{res.Stone} Water:{res.Water} Citizen:{res.Citizen}");
+            DevelopmentLog.Log($"[AI Summon] 資源不足で召喚不可 — Bread:{res.Bread} Iron:{res.Iron} Wood:{res.Wood} Stone:{res.Stone} Water:{res.Water} Citizen:{res.Citizen}");
             return;
         }
 

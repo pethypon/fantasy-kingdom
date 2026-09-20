@@ -21,6 +21,8 @@ public class APSystem : MonoBehaviour
     // ==== GameGenerator.Awake() で初期化される ====
     private FactionState _factionState;
 
+    public event System.Action<Team> OnNonMoveAction;
+
     public void Init(FactionState factionState)
     {
         _factionState = factionState;
@@ -53,6 +55,7 @@ public class APSystem : MonoBehaviour
                         Vector3 from = default, Vector3 to = default)
     {
         int cost = CalcCost(action, obj, from, to);
+        if (action != ActionType.Move) OnNonMoveAction?.Invoke(team);
         _factionState.ModifyAP(team, -cost);
         obj.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(obj.kind);
         Debug.Log($"[APSystem] {team} / {action}  コスト:{cost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
@@ -92,6 +95,7 @@ public class APSystem : MonoBehaviour
     {
         // Special Ability: 省力化（最初のスキルのAP消費-1）
         int actualCost = CalcSkillCost(apCost, obj);
+        OnNonMoveAction?.Invoke(team);
         _factionState.ModifyAP(team, -actualCost);
         obj.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(obj.kind);
         obj.FirstSkillUsedThisTurn = true;
@@ -133,6 +137,7 @@ public class APSystem : MonoBehaviour
     {
         if (!FacilityData.Table.TryGetValue(facility, out var info)) return;
 
+        OnNonMoveAction?.Invoke(team);
         _factionState.ModifyAP(team, -info.APCost);
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;

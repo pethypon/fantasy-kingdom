@@ -71,7 +71,7 @@ public class AIActionExecutor
             case AIActionType.Wait:
                 return true;
             default:
-                Debug.Log($"[AIActionExecutor] 未知のアクション: {action.ActionType}");
+                DevelopmentLog.Log($"[AIActionExecutor] 未知のアクション: {action.ActionType}");
                 return false;
         }
     }
@@ -95,7 +95,7 @@ public class AIActionExecutor
         _moveGen.UnitPointCore();
         if (_moveGen.IsOccupied(_moveGen.Cell(actualDest))
             || !_moveGen.mapcreate.HasTileAt(Mathf.RoundToInt(actualDest.x), Mathf.RoundToInt(actualDest.z))
-            || !_moveGen.mapcreate.HasClearTerrainLine(oldPos, actualDest)) return false;
+            || !_moveGen.mapcreate.CanTraverse(oldPos, actualDest)) return false;
 
         board.ConsumeMove(unit, actualDest);
         unit.transform.position = actualDest;
@@ -104,7 +104,7 @@ public class AIActionExecutor
         unit.HasMovedThisTurn = true;
 
         string moveType = GetMoveTypeName(action.ActionType);
-        Debug.Log($"[AIActionExecutor] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={board.EnemyAP}");
+        DevelopmentLog.Log($"[AIActionExecutor] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={board.EnemyAP}");
 
         // 学習記録
         if (_learning.IsActive && board.CanUsePlayerCrystalAsTarget())
@@ -154,11 +154,11 @@ public class AIActionExecutor
         if (killed)
         {
             _totalKills++;
-            Debug.Log($"[AIActionExecutor] ★撃破! {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}");
+            DevelopmentLog.Log($"[AIActionExecutor] ★撃破! {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}");
         }
         else
         {
-            Debug.Log($"[AIActionExecutor] 攻撃: {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}  残HP={hpAfter}");
+            DevelopmentLog.Log($"[AIActionExecutor] 攻撃: {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}  残HP={hpAfter}");
         }
 
         RecordAttackLearning(unit, target, hpBefore, hpAfter, killed);
@@ -204,7 +204,7 @@ public class AIActionExecutor
         {
             int cooldown = GetSkillCooldown(skill);
             unit.SkillCooldown = cooldown;
-            Debug.Log($"[AIActionExecutor] スキルクールダウン設定: {unit.kind} '{skill.Name}' → {cooldown}ターン");
+            DevelopmentLog.Log($"[AIActionExecutor] スキルクールダウン設定: {unit.kind} '{skill.Name}' → {cooldown}ターン");
         }
 
         _turnGen.Context.SelectUnit = prevSelect;
@@ -218,7 +218,7 @@ public class AIActionExecutor
             case SkillTarget.Self:
                 board.ConsumeSkill(unit, skill.APCost);
                 _skillSystem.ExecuteSkill(unit, unit, skill);
-                Debug.Log($"[AIActionExecutor] スキル(自己): {unit.kind} '{skill.Name}'  残AP={board.EnemyAP}");
+                DevelopmentLog.Log($"[AIActionExecutor] スキル(自己): {unit.kind} '{skill.Name}'  残AP={board.EnemyAP}");
                 return true;
 
             case SkillTarget.SelfArea:
@@ -227,13 +227,13 @@ public class AIActionExecutor
                 {
                     var enemies = board.GetEnemiesInSkillArea(unit, skill, unit.transform.position);
                     _skillSystem.ExecuteAreaSkill(unit, skill, enemies);
-                    Debug.Log($"[AIActionExecutor] スキル(自己範囲攻撃): {unit.kind} '{skill.Name}' 対象{enemies.Count}体  残AP={board.EnemyAP}");
+                    DevelopmentLog.Log($"[AIActionExecutor] スキル(自己範囲攻撃): {unit.kind} '{skill.Name}' 対象{enemies.Count}体  残AP={board.EnemyAP}");
                 }
                 else
                 {
                     var allies = board.GetAlliesInSkillArea(unit, skill, unit.transform.position);
                     _skillSystem.ExecuteAreaSupportSkill(unit, skill, allies);
-                    Debug.Log($"[AIActionExecutor] スキル(自己範囲支援): {unit.kind} '{skill.Name}' 対象{allies.Count}体  残AP={board.EnemyAP}");
+                    DevelopmentLog.Log($"[AIActionExecutor] スキル(自己範囲支援): {unit.kind} '{skill.Name}' 対象{allies.Count}体  残AP={board.EnemyAP}");
                 }
                 return true;
 
@@ -241,7 +241,7 @@ public class AIActionExecutor
                 if (action.TargetUnit == null) return false;
                 board.ConsumeSkill(unit, skill.APCost);
                 _skillSystem.ExecuteSkill(unit, action.TargetUnit, skill);
-                Debug.Log($"[AIActionExecutor] スキル(味方): {unit.kind}→{action.TargetUnit.kind} '{skill.Name}'  残AP={board.EnemyAP}");
+                DevelopmentLog.Log($"[AIActionExecutor] スキル(味方): {unit.kind}→{action.TargetUnit.kind} '{skill.Name}'  残AP={board.EnemyAP}");
                 return true;
 
             case SkillTarget.EnemySingle:
@@ -275,11 +275,11 @@ public class AIActionExecutor
         if (killed)
         {
             _totalKills++;
-            Debug.Log($"[AIActionExecutor] ★スキル撃破! {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter}");
+            DevelopmentLog.Log($"[AIActionExecutor] ★スキル撃破! {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter}");
         }
         else
         {
-            Debug.Log($"[AIActionExecutor] スキル攻撃: {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter} 残HP={hpAfter}  残AP={board.EnemyAP}");
+            DevelopmentLog.Log($"[AIActionExecutor] スキル攻撃: {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter} 残HP={hpAfter}  残AP={board.EnemyAP}");
         }
         return true;
     }
@@ -291,7 +291,7 @@ public class AIActionExecutor
 
         board.ConsumeSkill(unit, skill.APCost);
         _skillSystem.ExecuteAreaSkill(unit, skill, enemies);
-        Debug.Log($"[AIActionExecutor] スキル(範囲): {unit.kind} '{skill.Name}' @{action.TargetPos} 対象{enemies.Count}体  残AP={board.EnemyAP}");
+        DevelopmentLog.Log($"[AIActionExecutor] スキル(範囲): {unit.kind} '{skill.Name}' @{action.TargetPos} 対象{enemies.Count}体  残AP={board.EnemyAP}");
         return true;
     }
 
@@ -307,13 +307,13 @@ public class AIActionExecutor
         }
 
         var pos = AIBoardState.ToCell(action.TargetPos);
-        Debug.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(Team.Enemy)}");
+        DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(Team.Enemy)}");
 
         bool success = _buildSystem.AIPlaceBuilding(pos, action.Facility, Team.Enemy);
         if (success)
         {
             board.RefreshAP();
-            Debug.Log($"[AIActionExecutor] ★建築成功: {action.Facility} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
+            DevelopmentLog.Log($"[AIActionExecutor] ★建築成功: {action.Facility} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
         }
         else
         {
@@ -334,7 +334,7 @@ public class AIActionExecutor
         if (success)
         {
             board.RefreshAP();
-            Debug.Log($"[AIActionExecutor] 召喚: {action.SummonKind} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
+            DevelopmentLog.Log($"[AIActionExecutor] 召喚: {action.SummonKind} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
         }
         return success;
     }
@@ -354,7 +354,7 @@ public class AIActionExecutor
         if (success)
         {
             board.RefreshAP();
-            Debug.Log($"[AIActionExecutor] サブクリ展開: @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
+            DevelopmentLog.Log($"[AIActionExecutor] サブクリ展開: @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
         }
         return success;
     }

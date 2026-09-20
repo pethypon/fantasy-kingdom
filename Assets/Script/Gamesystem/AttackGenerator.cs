@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class AttackGenerator : MonoBehaviour
 {
+    readonly List<Vector3> attackTiles = new List<Vector3>();
     public PlayerMove.AttackMode attackmode;
     public List<Vector3> AttackP;
     public List<Vector3> setpos;
@@ -32,7 +33,9 @@ public class AttackGenerator : MonoBehaviour
     public void AttackPointCall(Status Obj, Vector3 ObjP, PlayerMove move)
     {
         this.move = move;
-        setpos = mapcreate.SetPos;
+        attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
+        attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
+        setpos = attackTiles;
         attackmode = move.CurrentAttackMode;
 
         switch (attackmode)
@@ -89,7 +92,9 @@ public class AttackGenerator : MonoBehaviour
         AttackP?.Clear();
         TargetUnit = Obj;
         objp = ObjP;
-        setpos = mapcreate.SetPos;
+        attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
+        attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
+        setpos = attackTiles;
 
         if (TargetUnit.AssignedSkillId < 0 || !SkillData.Table.ContainsKey(TargetUnit.AssignedSkillId))
         {
@@ -145,7 +150,7 @@ public class AttackGenerator : MonoBehaviour
                 if (!GridHelper.MatchXZ(p, wx, wz))
                     continue;
 
-                if (!mapcreate.HasClearTerrainLine(objp, p)) continue;
+                if (!mapcreate.CanAttackAcrossTerrain(TargetUnit, p)) continue;
                 Vector3 cell = moveGenerator.Cell(p);
 
                 switch (skill.Target)
@@ -187,7 +192,9 @@ public class AttackGenerator : MonoBehaviour
         AttackP?.Clear();
         TargetUnit = Obj;
         objp = ObjP;
-        setpos = mapcreate.SetPos;
+        attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
+        attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
+        setpos = attackTiles;
         moveGenerator.UnitPointCore();
 
         if (!AttackPatterns.NormalMap.TryGetValue(TargetUnit.kind, out Func<float, float, bool> predicate))
@@ -216,7 +223,7 @@ public class AttackGenerator : MonoBehaviour
             if (!moveGenerator.IsOccupied(cell)) continue;
             if (cell == ownCell || cell == pcpCell) continue;
             if (!predicate(dx, checkDz)) continue;
-            if (!mapcreate.HasClearTerrainLine(objp, p)) continue;
+            if (!mapcreate.CanAttackAcrossTerrain(TargetUnit, p)) continue;
 
             AttackP.Add(p);
         }

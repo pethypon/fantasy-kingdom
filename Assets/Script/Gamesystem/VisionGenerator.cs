@@ -650,13 +650,7 @@ public class VisionGenerator : MonoBehaviour
         var playervisionXZ = _reusableVisionXZ;
         var playerexploardXZ = _reusableExploardXZ;
 
-        // Fog表示制御（視界外かつ未探索 → 完全な霧を表示）
-        SetFogVisibility(mapcreate.FogParent, playervisionXZ, playerexploardXZ, false);
-        SetFogVisibility(mapcreate.FogBoardParent, playervisionXZ, playerexploardXZ, false);
-
-        // Fog表示制御（視界外かつ探索済み → 探索済み霧を表示）
-        SetFogVisibility(mapcreate.FogExploardBoardParent, playervisionXZ, playerexploardXZ, true);
-        SetFogVisibility(mapcreate.FogExploardParent, playervisionXZ, playerexploardXZ, true);
+        mapcreate.FogChunks?.Refresh(playervisionXZ, playerexploardXZ);
 
         // 視界外で非表示化する対象は「敵側のみ」: 駒・クリスタル・領土・建物
         SetRendererVisibility(EnemyUnit, playervisionXZ);

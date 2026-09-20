@@ -13,6 +13,8 @@ public class GameMenuUI : MonoBehaviour
 {
     public static GameMenuUI Instance { get; private set; }
 
+    public bool IsOpen => overlay != null && overlay.activeInHierarchy;
+
     private GameObject overlay;
     private GameObject slotPanel;
     private bool isSaveMode; // true=セーブ, false=ロード

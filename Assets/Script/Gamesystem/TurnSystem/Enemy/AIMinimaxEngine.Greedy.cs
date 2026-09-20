@@ -16,6 +16,7 @@ public partial class AIMinimaxEngine
 
         for (int step = 0; step < _greedyActionsPerTurn; step++)
         {
+            if (_stopwatch.Elapsed.TotalMilliseconds >= _timeBudgetMs) break;
             int ap = board.GetAP(team);
             if (ap <= 0) break;
 

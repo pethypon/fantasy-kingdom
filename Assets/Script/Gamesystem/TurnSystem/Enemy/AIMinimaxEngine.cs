@@ -36,6 +36,7 @@ public partial class AIMinimaxEngine
     readonly int _greedyActionsPerTurn;   // 1ターンのgreedy行動回数上限
 
     // ---- 統計 ----
+    public int CompletedDepth { get; private set; }
     int _nodesEvaluated;
     int _pruned;
     float _elapsedMs;
@@ -88,6 +89,7 @@ public partial class AIMinimaxEngine
     {
         var result = new Dictionary<AIAction, float>();
         _nodesEvaluated = 0;
+        CompletedDepth = 0;
         _pruned = 0;
         _stopwatch = Stopwatch.StartNew();
 
@@ -118,6 +120,8 @@ public partial class AIMinimaxEngine
             for (int i = 0; i < indices.Length; i++) indices[i] = i;
             System.Array.Sort(indices, (a, b) => candidateScores[b].CompareTo(candidateScores[a]));
 
+            var completedScores = (float[])candidateScores.Clone();
+            bool completed = true;
             float alpha = float.MinValue;
             float beta = float.MaxValue;
 
@@ -127,7 +131,7 @@ public partial class AIMinimaxEngine
                 var (candidate, simAction, _) = convertedCandidates[idx];
 
                 if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs)
-                    break;
+                { completed = false; break; }
 
                 if (simAction == null)
                 {
@@ -164,6 +168,9 @@ public partial class AIMinimaxEngine
 
                 if (score > alpha) alpha = score;
             }
+            if (!completed || _stopwatch.Elapsed.TotalMilliseconds >= _timeBudgetMs)
+            { candidateScores = completedScores; break; }
+            CompletedDepth = iterDepth;
         }
 
         // 結果をDictionaryに変換
@@ -177,7 +184,7 @@ public partial class AIMinimaxEngine
         _stopwatch.Stop();
         _elapsedMs = _stopwatch.ElapsedMilliseconds;
 
-        Debug.Log($"[AIMinimaxEngine] 探索完了: 深さ{_maxDepth} " +
+        DevelopmentLog.Log($"[AIMinimaxEngine] 探索完了: 設定深さ{_maxDepth} 完了深さ{CompletedDepth} " +
             $"評価{_nodesEvaluated}ノード 枝刈り{_pruned}回 TT{_transTable.Count}件 " +
             $"{_elapsedMs:F0}ms 基準値={baseScore:F1}");
 

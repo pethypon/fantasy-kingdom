@@ -23,6 +23,9 @@ public class MapCreate : MonoBehaviour
 
     [Header("土ブロック")]
     public GameObject dirtPrefab;
+    [SerializeField] private GameObject waterPrefab;
+    [SerializeField] private GameObject highMountainPrefab;
+    public FogChunkRenderer FogChunks { get; private set; }
 
     [Header("石ブロック")]
     [SerializeField] private GameObject stonePrefab;
@@ -138,14 +141,19 @@ public class MapCreate : MonoBehaviour
     {
         excludedPlacementCells.Clear();
         SetPos.Clear();
+        waterPrefab = waterPrefab != null ? waterPrefab : Resources.Load<GameObject>("Terrain/WaterBlock");
+        highMountainPrefab = highMountainPrefab != null ? highMountainPrefab : Resources.Load<GameObject>("Terrain/HighMountainBlock");
         for (int x = 0; x < maxX; x++)
         {
             for (int z = 0; z < maxZ; z++)
             {
                 SpawnTerrain(x, z);
-                SpawnFogTiles(x, z);
+
             }
         }
+        FogChunks = new GameObject("FogChunks").AddComponent<FogChunkRenderer>();
+        FogChunks.transform.SetParent(transform, false);
+        FogChunks.Initialize(this, Fog, FogExploard, FogBoard, FogExploardBoard);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color> マップ・Fog 完了");
     }
 
@@ -153,44 +161,13 @@ public class MapCreate : MonoBehaviour
     private void SpawnTerrain(int x, int z)
     {
         int y = topY[x, z];
-        var terrain = Instantiate(dirtPrefab, new Vector3(x, y, z), Quaternion.identity, MapBox);
-        if (IsRiver(x, z))
-        {
-            var renderer = terrain.GetComponentInChildren<Renderer>();
-            if (renderer != null)
-            {
-                var block = new MaterialPropertyBlock();
-                renderer.GetPropertyBlock(block);
-                block.SetColor("_Color", new Color(0.2f, 0.5f, 0.7f));
-                block.SetColor("_BaseColor", new Color(0.2f, 0.5f, 0.7f));
-                renderer.SetPropertyBlock(block);
-            }
-        }
-        if (!IsHighMountain(x, z)) SetPos.Add(new Vector3Int(x, y + 1, z));
-
-        int downY = y - 1;
-        if (downY >= minY)
-            Instantiate(dirtPrefab, new Vector3(x, downY, z), Quaternion.identity, MapBox);
-    }
-
-    // ==== Fog スポーン ====
-    private void SpawnFogTiles(int x, int z)
-    {
-        foreach (float offset in FogOffsets)
-        {
-            SpawnFog(Fog, x, maxY + offset, z, FogParent);
-            SpawnFog(FogExploard, x, maxY + offset, z, FogExploardParent);
-        }
-        foreach (float offset in FogBoardOffsets)
-        {
-            SpawnFog(FogBoard, x, maxY + offset, z, FogBoardParent);
-            SpawnFog(FogExploardBoard, x, maxY + offset, z, FogExploardBoardParent);
-        }
-    }
-
-    private void SpawnFog(GameObject prefab, float x, float y, float z, Transform parent)
-    {
-        Instantiate(prefab, new Vector3(x, y, z), Quaternion.identity, parent);
+        GameObject prefab = IsRiver(x,z) ? waterPrefab : IsHighMountain(x,z) ? highMountainPrefab : dirtPrefab;
+        if (prefab == null) throw new System.InvalidOperationException("Terrain prefabs are missing. Run Fantasy Kingdom/Create Terrain Prefabs.");
+        Instantiate(prefab, new Vector3(x,y,z), Quaternion.identity, MapBox);
+        if (!IsHighMountain(x,z) && !IsRiver(x,z)) SetPos.Add(new Vector3Int(x,y+1,z));
+        // Fill every level, not only the single block below the surface.
+        for (int downY = y - 1; downY >= minY; downY--)
+            Instantiate(IsHighMountain(x,z) ? highMountainPrefab : dirtPrefab, new Vector3(x,downY,z), Quaternion.identity, MapBox);
     }
 
     // ==================================================================
@@ -203,7 +180,7 @@ public class MapCreate : MonoBehaviour
         && x >= 0 && z >= 0 && x < maxX && z < maxZ && topY[x, z] + 1 == 3;
 
     // Supercover grid traversal: corner-touching high mountains also block a shot.
-    public bool HasClearTerrainLine(Vector3 from, Vector3 to, bool allowMountainEndpoint = false)
+    public bool HasClearTerrainLine(Vector3 from, Vector3 to, bool allowMountainEndpoint = false, bool blockWater = false)
     {
         var a = GridHelper.ToGridXZ(from);
         var b = GridHelper.ToGridXZ(to);
@@ -216,14 +193,25 @@ public class MapCreate : MonoBehaviour
             int decision = (1 + 2 * ix) * nz - (1 + 2 * iz) * nx;
             if (decision == 0)
             {
-                if (IsHighMountain(x + sx, z) || IsHighMountain(x, z + sz)) return false;
+                if (IsHighMountain(x + sx, z) || IsHighMountain(x, z + sz) || (blockWater && (IsRiver(x + sx,z) || IsRiver(x,z + sz)))) return false;
                 x += sx; z += sz; ix++; iz++;
             }
             else if (decision < 0) { x += sx; ix++; }
             else { z += sz; iz++; }
+            if (blockWater && IsRiver(x,z)) return false;
             if (IsHighMountain(x, z) && !(allowMountainEndpoint && x == b.x && z == b.z)) return false;
         }
-        return !IsHighMountain(a.x, a.z);
+        return !IsHighMountain(a.x, a.z) && !(blockWater && IsRiver(a.x,a.z));
+    }
+
+    public bool CanTraverse(Vector3 from, Vector3 to) => HasClearTerrainLine(from,to,false,true);
+
+    public bool CanAttackAcrossTerrain(Status attacker, Vector3 target)
+    {
+        if (attacker == null) return false;
+        bool highArc = attacker.kind == Kind.Archer || attacker.kind == Kind.Bomber || attacker.facilityKind == FacilityKind.Mortar;
+        return (highArc && GridHelper.ChebyshevDistance(attacker.transform.position,target) >= 2f)
+            || HasClearTerrainLine(attacker.transform.position,target);
     }
 
     /// <summary>指定 XZ 座標に通行可能なタイルが存在するかを判定する</summary>
@@ -238,7 +226,7 @@ public class MapCreate : MonoBehaviour
         if (topY == null) return GridHelper.TryGetHeight(SetPos, x, z, out y);
         y = 0f;
         if (excludedPlacementCells.Contains(new Vector3Int(x, 0, z))) return false;
-        if (x < 0 || z < 0 || x >= topY.GetLength(0) || z >= topY.GetLength(1) || IsHighMountain(x, z)) return false;
+        if (x < 0 || z < 0 || x >= topY.GetLength(0) || z >= topY.GetLength(1) || IsHighMountain(x, z) || IsRiver(x,z)) return false;
         y = topY[x, z] + 1;
         return true;
     }

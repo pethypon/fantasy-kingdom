@@ -84,7 +84,7 @@ public static class AIBoardQuery
     {
         int count = 0;
         float sqrRadius = radius * radius;
-        foreach (var u in board.AliveEnemyUnits)
+        foreach (var u in board.Allies.Near(pos, radius))
         {
             if (!IsActiveUnit(u) || u == self) continue;
             if ((pos - u.transform.position).sqrMagnitude <= sqrRadius) count++;
@@ -96,7 +96,7 @@ public static class AIBoardQuery
     public static bool HasHealerInRange(AIBoardState board, Vector3 pos, float range)
     {
         float sqrRange = range * range;
-        foreach (var u in board.AliveEnemyUnits)
+        foreach (var u in board.Allies.Near(pos, range))
         {
             if (!IsActiveUnit(u)) continue;
             if (u.AssignedSkillId < 0) continue;
@@ -118,7 +118,7 @@ public static class AIBoardQuery
     public static int EstimateCounterDamageAt(AIBoardState board, Vector3 pos, Status self)
     {
         int totalDmg = 0;
-        foreach (var pu in board.AlivePlayerUnits)
+        foreach (var pu in board.Enemies.Near(pos, 5.5f))
         {
             if (!IsActiveUnit(pu)) continue;
             float maxRange = EstimateAttackRange(pu) + 1.5f; // 移動+攻撃マージン

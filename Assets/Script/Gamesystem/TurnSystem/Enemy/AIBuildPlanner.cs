@@ -30,28 +30,28 @@ public class AIBuildPlanner
     public int TryEarlyBuildPhase(
         AIBoardState board, TurnStrategy strategy, int turnCount)
     {
-        Debug.Log($"[AIBuildPlanner] === 先行建築フェーズ開始 === AP={board.EnemyAP} ターン={turnCount}");
+        DevelopmentLog.Log($"[AIBuildPlanner] === 先行建築フェーズ開始 === AP={board.EnemyAP} ターン={turnCount}");
 
         bool forceByTurn = turnCount >= 30;
 
         if (EconomyHelper.IsEconomySufficient(board) && !forceByTurn)
         {
-            Debug.Log("[AIBuildPlanner] 経済充足 → 先行建築スキップ");
+            DevelopmentLog.Log("[AIBuildPlanner] 経済充足 → 先行建築スキップ");
             return 0;
         }
 
         if (strategy == TurnStrategy.CrystalDefense && !forceByTurn)
         {
-            Debug.Log("[AIBuildPlanner] クリスタル防衛中 → 先行建築スキップ");
+            DevelopmentLog.Log("[AIBuildPlanner] クリスタル防衛中 → 先行建築スキップ");
             return 0;
         }
         if (strategy == TurnStrategy.ContactEngage && !forceByTurn)
         {
-            Debug.Log("[AIBuildPlanner] 交戦開始中 → 先行建築スキップ");
+            DevelopmentLog.Log("[AIBuildPlanner] 交戦開始中 → 先行建築スキップ");
             return 0;
         }
 
-        Debug.Log($"[AIBuildPlanner] BuildablePositions={board.BuildablePositions.Count}  " +
+        DevelopmentLog.Log($"[AIBuildPlanner] BuildablePositions={board.BuildablePositions.Count}  " +
                   $"AffordableBuildings={board.AffordableBuildings.Count}  " +
                   $"({string.Join(",", board.AffordableBuildings)})");
 
@@ -59,11 +59,11 @@ public class AIBuildPlanner
 
         if (earlyBuilds == 0 && _executor.BuildSystem != null && board.EnemyAP >= 3)
         {
-            Debug.Log("[AIBuildPlanner] スコアパスで建築0棟 → 直接建築フォールバック開始");
+            DevelopmentLog.Log("[AIBuildPlanner] スコアパスで建築0棟 → 直接建築フォールバック開始");
             earlyBuilds += ForceDirectBuild(board, turnCount);
         }
 
-        Debug.Log($"[AIBuildPlanner] === 先行建築フェーズ終了: {earlyBuilds}棟建築  残AP={board.EnemyAP} ===");
+        DevelopmentLog.Log($"[AIBuildPlanner] === 先行建築フェーズ終了: {earlyBuilds}棟建築  残AP={board.EnemyAP} ===");
         return earlyBuilds;
     }
 
@@ -79,7 +79,7 @@ public class AIBuildPlanner
         AIActionEvaluator.GenerateBuildCandidatesPublic(board, buildActions);
         AIActionEvaluator.GenerateSubCrystalCandidatesPublic(board, buildActions);
 
-        Debug.Log($"[AIBuildPlanner] 生成された建築候補数={buildActions.Count}");
+        DevelopmentLog.Log($"[AIBuildPlanner] 生成された建築候補数={buildActions.Count}");
         if (buildActions.Count == 0) return 0;
 
         foreach (var action in buildActions)
@@ -94,7 +94,7 @@ public class AIBuildPlanner
         for (int i = 0; i < Mathf.Min(3, buildActions.Count); i++)
         {
             var ba = buildActions[i];
-            Debug.Log($"[AIBuildPlanner] 候補{i + 1}: {ba.Facility} score={ba.Score:F1} AP={ba.APCost} pos={ba.TargetPos}");
+            DevelopmentLog.Log($"[AIBuildPlanner] 候補{i + 1}: {ba.Facility} score={ba.Score:F1} AP={ba.APCost} pos={ba.TargetPos}");
         }
 
         int earlyBuilds = 0;
@@ -105,21 +105,21 @@ public class AIBuildPlanner
             if (earlyBuilds >= maxEarlyBuilds) break;
             if (action.APCost > board.EnemyAP)
             {
-                Debug.Log($"[AIBuildPlanner] AP不足でスキップ: {action.Facility} APコスト={action.APCost} 残AP={board.EnemyAP}");
+                DevelopmentLog.Log($"[AIBuildPlanner] AP不足でスキップ: {action.Facility} APコスト={action.APCost} 残AP={board.EnemyAP}");
                 continue;
             }
 
-            Debug.Log($"[AIBuildPlanner] 建築試行: {action.Facility} @{action.TargetPos} score={action.Score:F1}");
+            DevelopmentLog.Log($"[AIBuildPlanner] 建築試行: {action.Facility} @{action.TargetPos} score={action.Score:F1}");
             bool success = _executor.Execute(action, board);
             if (success)
             {
                 earlyBuilds++;
                 board.Refresh();
-                Debug.Log($"[AIBuildPlanner] ★先行建築{earlyBuilds}成功: {action.Facility} 残AP={board.EnemyAP}");
+                DevelopmentLog.Log($"[AIBuildPlanner] ★先行建築{earlyBuilds}成功: {action.Facility} 残AP={board.EnemyAP}");
             }
             else
             {
-                Debug.Log($"[AIBuildPlanner] ✗先行建築失敗: {action.Facility} @{action.TargetPos}");
+                DevelopmentLog.Log($"[AIBuildPlanner] ✗先行建築失敗: {action.Facility} @{action.TargetPos}");
             }
         }
         return earlyBuilds;
@@ -152,10 +152,10 @@ public class AIBuildPlanner
 
         if (!shouldPostBuild) return 0;
 
-        Debug.Log($"[AIBuildPlanner] メインループで建築0棟 → 後手建築フェーズ (ターン{turnCount})");
+        DevelopmentLog.Log($"[AIBuildPlanner] メインループで建築0棟 → 後手建築フェーズ (ターン{turnCount})");
         board.Refresh();
         int lateBuilds = ForceDirectBuild(board, turnCount);
-        Debug.Log($"[AIBuildPlanner] 後手建築フェーズ: {lateBuilds}棟建築");
+        DevelopmentLog.Log($"[AIBuildPlanner] 後手建築フェーズ: {lateBuilds}棟建築");
         return lateBuilds;
     }
 
@@ -199,7 +199,7 @@ public class AIBuildPlanner
         };
 
         var positions = buildSystem.AIGetBuildablePositions(Team.Enemy);
-        Debug.Log($"[AIBuildPlanner] 建築可能位置数={positions.Count}  AP={_apSystem.GetAP(Team.Enemy)}");
+        DevelopmentLog.Log($"[AIBuildPlanner] 建築可能位置数={positions.Count}  AP={_apSystem.GetAP(Team.Enemy)}");
 
         if (positions.Count == 0)
         {
@@ -231,7 +231,7 @@ public class AIBuildPlanner
                 {
                     built++;
                     if (board != null) board.Refresh();
-                    Debug.Log($"[AIBuildPlanner] ★★ {facility} @({pos.x},{pos.y},{pos.z}) 建築成功! " +
+                    DevelopmentLog.Log($"[AIBuildPlanner] ★★ {facility} @({pos.x},{pos.y},{pos.z}) 建築成功! " +
                               $"残AP={_apSystem.GetAP(Team.Enemy)} (今ターン{built}棟目)");
                     positions = buildSystem.AIGetBuildablePositions(Team.Enemy);
                     break;

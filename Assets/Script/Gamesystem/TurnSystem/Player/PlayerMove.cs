@@ -287,10 +287,8 @@ public class PlayerMove : TurnState
         Status target = Context.SelectUnit;
         if (target == null || Context.CameraObject == null) return;
 
-        Vector3 pos = Context.CameraObject.position;
-        pos.x = target.transform.position.x;
-        pos.z = target.transform.position.z;
-        Context.CameraObject.position = pos;
+        Context.CameraObject.position = TurnCameraController.FocusPosition(
+            Context.CameraObject.position, Context.CameraObject.forward, target.transform.position);
     }
 
     // ---- ユニット巡回（Tabキー） ----
@@ -334,10 +332,8 @@ public class PlayerMove : TurnState
 
         if (Context.CameraObject != null)
         {
-            Vector3 camPos = Context.CameraObject.position;
-            camPos.x = next.transform.position.x;
-            camPos.z = next.transform.position.z;
-            Context.CameraObject.position = camPos;
+            Context.CameraObject.position = TurnCameraController.FocusPosition(
+                Context.CameraObject.position, Context.CameraObject.forward, next.transform.position);
         }
     }
 

@@ -292,7 +292,7 @@ public class UnitClick : MonoBehaviour
         Transform enemyParent = turnGenerator.Systems.UnitSetting?.EnemyUnit;
         if (enemyParent == null) return targets;
 
-        foreach (Status s in Object.FindObjectsByType<Status>(FindObjectsSortMode.None))
+        foreach (Status s in CombatRegistry.Snapshot())
         {
             if (!s.gameObject.activeSelf || !IsVisibleHostile(s)) continue;
             if (s.type != Type.Unit && s.type != Type.Building) continue;
@@ -339,11 +339,9 @@ public class UnitClick : MonoBehaviour
         turnGenerator.Systems.MoveGenerator.MoveUpdate(turnGenerator.Context.OldCell, turnGenerator.Context.NewCell);
         turnGenerator.Systems.MoveGenerator.MoveReset();
 
-        // Special Ability: 移動フラグセット（迅速体勢・集中維持・鉄壁歩法で使用）
-        movedUnit.HasMovedThisTurn = true;
-
         // ---- AP消費（移動コスト） ----
         turnGenerator.Systems.APSystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.SelectedUnit, from, to);
+        movedUnit.HasMovedThisTurn = true;
 
         // ---- アクションログ ----
         ActionLogUI.LogMove(KindNameJP.Get(movedUnit.kind), from, to);

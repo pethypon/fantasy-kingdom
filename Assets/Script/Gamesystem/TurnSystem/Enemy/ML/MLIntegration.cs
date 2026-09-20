@@ -65,7 +65,7 @@ public class MLIntegration
         set
         {
             _forceRuleOnly = value;
-            Debug.Log($"[MLIntegration] ルールAI専用モード: {(value ? "有効（ML無効化）" : "無効（ML許可）")}");
+            DevelopmentLog.Log($"[MLIntegration] ルールAI専用モード: {(value ? "有効（ML無効化）" : "無効（ML許可）")}");
         }
     }
 
@@ -121,20 +121,20 @@ public class MLIntegration
                 _explorationRate = Mathf.Max(_minExplorationRate,
                     _explorationRate * _explorationDecay);
 
-            Debug.Log("=== [MLIntegration] ARC Raiders式 ML AI v3 ========================");
-            Debug.Log($"[MLIntegration] 脅威度={threatLevel}  重み読込={loaded}");
-            Debug.Log($"[MLIntegration] パラメータ={_brain.ParameterCount}  " +
+            DevelopmentLog.Log("=== [MLIntegration] ARC Raiders式 ML AI v3 ========================");
+            DevelopmentLog.Log($"[MLIntegration] 脅威度={threatLevel}  重み読込={loaded}");
+            DevelopmentLog.Log($"[MLIntegration] パラメータ={_brain.ParameterCount}  " +
                       $"バッファ={_buffer.CurrentSize}/{_buffer.Capacity}");
-            Debug.Log($"[MLIntegration] ヘッド重み: 戦略={_brain.HeadWeights[0]:F2} " +
+            DevelopmentLog.Log($"[MLIntegration] ヘッド重み: 戦略={_brain.HeadWeights[0]:F2} " +
                       $"戦術={_brain.HeadWeights[1]:F2} 経済={_brain.HeadWeights[2]:F2}");
-            Debug.Log($"[MLIntegration] 探索率={_explorationRate:F3}  " +
+            DevelopmentLog.Log($"[MLIntegration] 探索率={_explorationRate:F3}  " +
                       $"カリキュラム={_trainer.CurrentPhase}");
-            Debug.Log($"[MLIntegration] プロファイル: 攻撃性={_profiler.Profile.AggressionScore:F2} " +
+            DevelopmentLog.Log($"[MLIntegration] プロファイル: 攻撃性={_profiler.Profile.AggressionScore:F2} " +
                       $"信頼度={_profiler.Profile.Confidence:F2} " +
                       $"観測試合={_profiler.Profile.MatchesObserved}");
-            Debug.Log($"[MLIntegration] 予測器: 精度={_behaviorPredictor.Accuracy:F2} " +
+            DevelopmentLog.Log($"[MLIntegration] 予測器: 精度={_behaviorPredictor.Accuracy:F2} " +
                       $"予測数={_behaviorPredictor.TotalPredictions}");
-            Debug.Log("=== [MLIntegration] ==============================================");
+            DevelopmentLog.Log("=== [MLIntegration] ==============================================");
         }
     }
 
@@ -261,7 +261,7 @@ public class MLIntegration
 
         if (prediction.Confidence > 0.3f || freqSeq.Length > 0)
         {
-            Debug.Log($"[MLIntegration] 行動予測: " +
+            DevelopmentLog.Log($"[MLIntegration] 行動予測: " +
                       $"攻撃={prediction.AttackProbability:F2} " +
                       $"移動={prediction.MoveProbability:F2} " +
                       $"建築={prediction.BuildProbability:F2} " +
@@ -417,7 +417,7 @@ public class MLIntegration
         MLPersistence.SaveBehaviorPredictor(_behaviorPredictor);
         MLPersistence.SavePlayerProfile(_profiler);
 
-        Debug.Log($"[MLIntegration] 試合終了学習完了: {(playerWon ? "AI敗北" : "AI勝利")}  " +
+        DevelopmentLog.Log($"[MLIntegration] 試合終了学習完了: {(playerWon ? "AI敗北" : "AI勝利")}  " +
                   $"カウンター={_counterStrategy.CurrentPlan}+{_counterStrategy.SecondaryPlan}  " +
                   $"予測精度={_behaviorPredictor.Accuracy:F2}  " +
                   $"探索率={_explorationRate:F3}  フェーズ={_trainer.CurrentPhase}  " +
@@ -472,7 +472,7 @@ public class MLIntegration
 
         float elapsed = (Time.realtimeSinceStartup - startTime) * 1000f;
         if (steps > 0)
-            Debug.Log($"[MLIntegration] 自己対戦シミュレーション: {steps}ステップ  所要={elapsed:F1}ms");
+            DevelopmentLog.Log($"[MLIntegration] 自己対戦シミュレーション: {steps}ステップ  所要={elapsed:F1}ms");
     }
 
     // ================================================================

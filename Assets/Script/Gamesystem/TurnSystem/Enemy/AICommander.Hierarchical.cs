@@ -15,14 +15,14 @@ public partial class AICommander
     // ================================================================
     void ExecuteHierarchicalPhase(ref TurnStats turnStats)
     {
-        Debug.Log("[AICommander] === 師団長制フェーズ開始 ===");
+        DevelopmentLog.Log("[AICommander] === 師団長制フェーズ開始 ===");
 
         // 1. 師団長の選出
         _kingCommanderSystem.SelectDivisionCommanders(_board.AliveEnemyUnits, _turnCount);
 
         if (!_kingCommanderSystem.HasDivisions)
         {
-            Debug.Log("[AICommander] 師団長なし → 全ユニット王直轄で通常処理");
+            DevelopmentLog.Log("[AICommander] 師団長なし → 全ユニット王直轄で通常処理");
             return;
         }
 
@@ -38,7 +38,7 @@ public partial class AICommander
         var acceptedActions = _kingCommanderSystem.EvaluateAndAcceptProposals(
             proposals, _board, _currentStrategy, availableAP);
 
-        Debug.Log($"[AICommander] 師団長提案から{acceptedActions.Count}件を採択  AP残={availableAP}");
+        DevelopmentLog.Log($"[AICommander] 師団長提案から{acceptedActions.Count}件を採択  AP残={availableAP}");
 
         // 5. 採択された行動を実行
         int executed = 0;
@@ -48,7 +48,7 @@ public partial class AICommander
             _board.Refresh();
             if (_board.EnemyAP < action.APCost)
             {
-                Debug.Log($"[AICommander] 師団行動スキップ(AP不足): {action}  " +
+                DevelopmentLog.Log($"[AICommander] 師団行動スキップ(AP不足): {action}  " +
                           $"必要AP={action.APCost} 残AP={_board.EnemyAP}");
                 continue;
             }
@@ -62,11 +62,11 @@ public partial class AICommander
                 if (action.Unit != null)
                     _actedUnits.Add(action.Unit);
 
-                Debug.Log($"[AICommander] 師団行動実行: {action}");
+                DevelopmentLog.Log($"[AICommander] 師団行動実行: {action}");
             }
             else
             {
-                Debug.Log($"[AICommander] 師団行動失敗: {action}");
+                DevelopmentLog.Log($"[AICommander] 師団行動失敗: {action}");
             }
         }
 
@@ -75,13 +75,13 @@ public partial class AICommander
         {
             if (!proposal.Accepted && proposal.Rejection.HasValue)
             {
-                Debug.Log($"[AICommander] 【不採用ログ】 {proposal.DivisionName}  " +
+                DevelopmentLog.Log($"[AICommander] 【不採用ログ】 {proposal.DivisionName}  " +
                           $"理由コード={proposal.Rejection.Value}  " +
                           $"詳細=\"{proposal.RejectionDetail}\"  " +
                           $"提案スコア={proposal.TotalScore:F1}  提案AP={proposal.TotalAPCost}");
             }
         }
 
-        Debug.Log($"[AICommander] === 師団長制フェーズ完了: 実行={executed}/{acceptedActions.Count} ===");
+        DevelopmentLog.Log($"[AICommander] === 師団長制フェーズ完了: 実行={executed}/{acceptedActions.Count} ===");
     }
 }

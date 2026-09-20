@@ -10,6 +10,11 @@ using UnityEngine;
 // =====================================================================
 public class AIBoardState
 {
+    public int Generation { get; private set; }
+    public readonly ObservedUnitIndex Allies = new ObservedUnitIndex(), Enemies = new ObservedUnitIndex();
+    readonly HashSet<Vector3Int> knownCells = new HashSet<Vector3Int>();
+    readonly List<Vector3> knownTerrain = new List<Vector3>();
+    int terrainGeneration = -1;
     // ---- 参照 ----
     readonly MoveGenerator _moveGen;
     readonly AttackGenerator _attackPoint;
@@ -52,21 +57,15 @@ public class AIBoardState
 
     public bool IsTerrainKnown(Vector3 cell)
     {
-        var grid = GridHelper.ToGrid(cell);
-        if (_visionGen == null) return false;
-        if (IsCellInEnemyVision(cell)) return true;
-        if (_visionGen.EnemyExplored != null)
-            foreach (var seen in _visionGen.EnemyExplored) if (seen.x == grid.x && seen.z == grid.z) return true;
-        return false;
+        return knownCells.Contains(GridHelper.ToGridXZ(cell));
     }
 
     public List<Vector3> KnownTerrain()
     {
-        var result = new List<Vector3>();
-        if (_moveGen?.mapcreate?.SetPos != null)
-            foreach (var cell in _moveGen.mapcreate.SetPos)
-                if (IsTerrainKnown(cell)) result.Add(cell);
-        return result;
+        if (terrainGeneration == Generation) return knownTerrain;
+        terrainGeneration = Generation; knownTerrain.Clear();
+        foreach (var cell in _moveGen.mapcreate.SetPos) if (IsTerrainKnown(cell)) knownTerrain.Add(cell);
+        return knownTerrain;
     }
 
     public List<DungeonSystem.DungeonInfo> ObservedDungeons()
@@ -128,6 +127,10 @@ public class AIBoardState
     // ---- 盤面情報を最新に更新 ----
     public void Refresh()
     {
+        Generation++;
+        knownCells.Clear();
+        if (_visionGen?.EnemyExplored != null) foreach (var cell in _visionGen.EnemyExplored) knownCells.Add(GridHelper.ToGridXZ(cell));
+        if (_visionGen?.EnemyVisionBox != null) foreach (var cell in _visionGen.EnemyVisionBox) knownCells.Add(GridHelper.ToGridXZ(cell));
         _visionCacheVersion = -1; // Visibility can move without changing its cell count.
         _moveGen.UnitPointCore();
 
@@ -170,6 +173,7 @@ public class AIBoardState
 
         // 建築/召喚情報を更新
         RefreshEconomyData();
+        Allies.Rebuild(AliveEnemyUnits); Enemies.Rebuild(AlivePlayerUnits);
     }
 
     // ---- Enum.GetValues()キャッシュ（GC回避） ----
@@ -327,7 +331,7 @@ public class AIBoardState
             int steps = Mathf.Max(Mathf.Abs(Mathf.RoundToInt(p.x - unitPos.x)), Mathf.Abs(Mathf.RoundToInt(p.z - unitPos.z)));
             for (int step = 1; step <= steps; step++)
                 if (!IsTerrainKnown(Vector3.Lerp(unitPos, p, (float)step / steps))) knownPath = false;
-            if (!knownPath || !_moveGen.mapcreate.HasClearTerrainLine(unitPos, p)) continue;
+            if (!knownPath || !_moveGen.mapcreate.CanTraverse(unitPos, p)) continue;
             bool occupied = GridHelper.MatchXZ(p, GridHelper.ToGrid(EnemyCrystalPos))
                 || (CanUsePlayerCrystalAsTarget() && GridHelper.MatchXZ(p, GridHelper.ToGrid(PlayerCrystalPos)));
             foreach (var ally in AliveEnemyUnits) if (GridHelper.MatchXZ(p, ally.GridPosition)) occupied = true;

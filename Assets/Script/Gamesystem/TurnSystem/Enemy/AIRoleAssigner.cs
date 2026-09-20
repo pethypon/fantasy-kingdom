@@ -135,7 +135,7 @@ public class AIRoleAssigner
         string roleStr = "";
         foreach (var kvp in roleCounts)
             roleStr += $"{kvp.Key}={kvp.Value} ";
-        Debug.Log($"[AIRoleAssigner] ロール割当: {roleStr}");
+        DevelopmentLog.Log($"[AIRoleAssigner] ロール割当: {roleStr}");
     }
 
     // ---- 攻勢ロール ----

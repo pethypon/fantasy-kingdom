@@ -40,7 +40,7 @@ public class EnemyMove : TurnState
         // 強敵ターンへ（スポーン済みでなければ即 PlayerStart へ）
         Turn.ChangeState(new IndependentFactionState(Turn));
 
-        Debug.Log("[EnemyMove] 敵ターン終了");
+        DevelopmentLog.Log("[EnemyMove] 敵ターン終了");
     }
 
     public override void Update() { }

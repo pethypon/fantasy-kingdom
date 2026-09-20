@@ -82,7 +82,7 @@ public class MLTrainer
 
         if (_buffer.CurrentSize < _batchSize)
         {
-            Debug.Log($"[MLTrainer] バッファ不足 ({_buffer.CurrentSize}/{_batchSize}) → 学習スキップ");
+            DevelopmentLog.Log($"[MLTrainer] バッファ不足 ({_buffer.CurrentSize}/{_batchSize}) → 学習スキップ");
             return;
         }
 
@@ -127,7 +127,7 @@ public class MLTrainer
         TotalMatchesTrained++;
 
         float elapsed = (Time.realtimeSinceStartup - startTime) * 1000f;
-        Debug.Log($"[MLTrainer] 学習完了: {_epochsPerMatch}ep×{_batchSize}batch  " +
+        DevelopmentLog.Log($"[MLTrainer] 学習完了: {_epochsPerMatch}ep×{_batchSize}batch  " +
                   $"損失={LastEpochLoss:F4}  平均={AverageLoss:F4}  " +
                   $"累計試合={TotalMatchesTrained}  フェーズ={_phase}  所要={elapsed:F1}ms");
     }
@@ -267,7 +267,7 @@ public class MLTrainer
 
         if (newPhase != _phase)
         {
-            Debug.Log($"[MLTrainer] カリキュラムフェーズ変更: {_phase} → {newPhase}  " +
+            DevelopmentLog.Log($"[MLTrainer] カリキュラムフェーズ変更: {_phase} → {newPhase}  " +
                       $"勝率={_recentWinRate:F2}");
             _phase = newPhase;
         }

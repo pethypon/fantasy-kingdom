@@ -167,7 +167,7 @@ public class CounterStrategyEngine
         // 危険ゾーン予測
         PredictDangerZones(profile, board);
 
-        Debug.Log($"[CounterStrategy] 方針={bestPlan}({bestScore:F2})+{secondPlan}({secondScore:F2})  " +
+        DevelopmentLog.Log($"[CounterStrategy] 方針={bestPlan}({bestScore:F2})+{secondPlan}({secondScore:F2})  " +
                   $"ブレンド={_blendRatio:F2}  信頼度={_planConfidence:F2}  修正={_modifiers}");
     }
 

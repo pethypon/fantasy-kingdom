@@ -148,7 +148,7 @@ public class MoveGenerator : MonoBehaviour
             float checkDz = dirIndependent ? dz : dz * dirZ;
 
             if (!predicate(dx, checkDz)) continue;
-            if (!mapcreate.HasClearTerrainLine(_objp, p)) continue;
+            if (!mapcreate.CanTraverse(_objp, p)) continue;
             if (_unitPoints.Contains(Cell(p))) continue;
 
             _movePositions.Add(p);
