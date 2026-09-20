@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -69,6 +69,7 @@ public static class AIBoardQuery
     /// <summary>味方の最寄り駒距離</summary>
     public static float GetNearestAllyDist(AIBoardState board, Vector3 pos, Status self)
     {
+        if(board.NearestAllyCache.TryGetValue((pos,self),out var cached)) return cached;
         float nearestSqr = float.MaxValue;
         foreach (var u in board.AliveEnemyUnits)
         {
@@ -76,12 +77,13 @@ public static class AIBoardQuery
             float sqr = (pos - u.transform.position).sqrMagnitude;
             if (sqr < nearestSqr) nearestSqr = sqr;
         }
-        return nearestSqr < float.MaxValue ? Mathf.Sqrt(nearestSqr) : float.MaxValue;
+        return board.NearestAllyCache[(pos,self)] = nearestSqr < float.MaxValue ? Mathf.Sqrt(nearestSqr) : float.MaxValue;
     }
 
     /// <summary>指定位置から一定距離内の味方ユニット数</summary>
     public static int CountAlliesNear(AIBoardState board, Vector3 pos, Status self, float radius)
     {
+        if(board.AllyDensityCache.TryGetValue((pos,self,radius),out var cached)) return cached;
         int count = 0;
         float sqrRadius = radius * radius;
         foreach (var u in board.Allies.Near(pos, radius))
@@ -89,12 +91,13 @@ public static class AIBoardQuery
             if (!IsActiveUnit(u) || u == self) continue;
             if ((pos - u.transform.position).sqrMagnitude <= sqrRadius) count++;
         }
-        return count;
+        return board.AllyDensityCache[(pos,self,radius)] = count;
     }
 
     /// <summary>指定位置に到達可能な味方ヒーラーがいるか</summary>
     public static bool HasHealerInRange(AIBoardState board, Vector3 pos, float range)
     {
+        if(board.HealerCache.TryGetValue((pos,range),out var cached)) return cached;
         float sqrRange = range * range;
         foreach (var u in board.Allies.Near(pos, range))
         {
@@ -102,9 +105,9 @@ public static class AIBoardQuery
             if (u.AssignedSkillId < 0) continue;
             if (!SkillData.Table.TryGetValue(u.AssignedSkillId, out var skill)) continue;
             if (skill.FixedHeal > 0 && (pos - u.transform.position).sqrMagnitude <= sqrRange)
-                return true;
+                return board.HealerCache[(pos,range)] = true;
         }
-        return false;
+        return board.HealerCache[(pos,range)] = false;
     }
 
     // ================================================================
@@ -117,6 +120,7 @@ public static class AIBoardQuery
     /// </summary>
     public static int EstimateCounterDamageAt(AIBoardState board, Vector3 pos, Status self)
     {
+        if(board.CounterCache.TryGetValue((pos,self,self.DEF),out var cached)) return cached;
         int totalDmg = 0;
         foreach (var pu in board.Enemies.Near(pos, 5.5f))
         {
@@ -127,7 +131,7 @@ public static class AIBoardQuery
             int dmg = DamageCalculator.EstimateBaseDamage(pu.ATK, self.DEF);
             totalDmg += dmg;
         }
-        return totalDmg;
+        return board.CounterCache[(pos,self,self.DEF)] = totalDmg;
     }
 
     /// <summary>駒種から大まかな攻撃射程を返す</summary>

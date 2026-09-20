@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -23,7 +23,7 @@ public partial class AIMinimaxEngine
             // ゲーム終了チェック
             if (board.IsTerminal()) break;
 
-            var actions = SimActionGenerator.GenerateAllActions(board, team);
+            var actions = SimActionGenerator.GenerateAllActionsInto(board, team, greedyActions);
             if (actions.Count == 0) break;
 
             // 最高スコアの行動を選択

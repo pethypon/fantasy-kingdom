@@ -1,8 +1,9 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using Unity.Profiling;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ public static class SceneSmoke
         if (!Application.dataPath.Contains("UnityValidation")) throw new Exception("Smoke test requires isolated project");
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdomR1Validation";
+        TerrainPrefabEditor.Create();
         CoreLogicTests.RunAll();
         if (!AssetDatabase.IsValidFolder("Assets/Resources")) AssetDatabase.CreateFolder("Assets", "Resources");
         var catalog = AssetDatabase.LoadAssetAtPath<R1ContentCatalog>("Assets/Resources/R1ContentCatalog.asset");
@@ -59,6 +61,7 @@ public static class SceneSmoke
         {
             typeof(GameGenerator).GetField("_waitingForTitle", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(game, false);
             UnityEngine.Object.DestroyImmediate(TitleScreenUI.Instance.gameObject);
+            UnityEngine.Random.InitState(12345);
             typeof(GameGenerator).GetMethod("StartGameInit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(game, new object[] { -1 });
             var turn = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
             var systems = turn.Systems;
@@ -72,6 +75,7 @@ public static class SceneSmoke
             Check("territory exact boundary hidden", systems.WildBossSystem.TerritoryParent.childCount == 0);
             var viewport = Camera.main.WorldToViewportPoint(systems.CrystalSystem.PCP);
             Check("player base centered on screen", viewport.z > 0 && Mathf.Abs(viewport.x - 0.5f) < 0.01f && Mathf.Abs(viewport.y - 0.5f) < 0.01f);
+            TerrainOptimizationTests.Run(systems.MapCreate);
             BenchmarkHeightLookup(systems.MapCreate);
             TestMoveUndo(systems, turn);
             TestObservations(systems, turn);
@@ -115,6 +119,21 @@ public static class SceneSmoke
             var neutralSave = systems.NeutralFactionSystem.Capture();
             systems.NeutralFactionSystem.Restore(neutralSave, 2, 1, systems.NeutralFactionSystem.SpawnedIntruders.ToList());
             Check("neutral restore does not duplicate units", systems.NeutralFactionSystem.UnitParent.GetComponentsInChildren<Status>().Length == 2);
+            var threat=(AIThreatLevel)typeof(AICommander).GetField("_threatLevel",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(systems.AICommander);
+            typeof(AIThreatLevel).GetProperty("Level").SetValue(threat,100);
+            systems.FactionState.SetAP(Team.Enemy,50);
+            var enemy=systems.UnitSetting.EnemyUnit.GetComponentsInChildren<Status>().First(u=>u.IsAlive);
+            var playerNear=systems.MapCreate.SetPos.Where(p=>!systems.MoveGenerator.IsOccupied(GridHelper.ToGridXZ(p))&&systems.MapCreate.CanTraverse(enemy.transform.position,p)).OrderBy(p=>Vector3.Distance(p,enemy.transform.position)).First();
+            player.transform.position=playerNear;player.HP=player.MaxHP=100000;
+            systems.MoveGenerator.UnitPointCore();systems.RefreshVision();
+            var aiWatch=new System.Diagnostics.Stopwatch();
+            var aiGC=ProfilerRecorder.StartNew(ProfilerCategory.Internal,"GC.Alloc",1000000,ProfilerRecorderOptions.CollectOnlyOnCurrentThread);
+            aiWatch.Start();
+            systems.AICommander.ExecuteTurn();aiWatch.Stop();
+            aiGC.Stop();long aiAllocated=0;int aiAllocationCount=aiGC.Count;
+            for(int sample=0;sample<Math.Min(aiGC.Count,aiGC.Capacity);sample++) aiAllocated+=aiGC.GetSample(sample).Value;aiGC.Dispose();
+            Check("threat 100 whole thinking within 3s budget plus 0.75s tolerance",aiWatch.Elapsed.TotalMilliseconds<3750);
+            Debug.Log($"[Optimization] AI threat=100 wholeTurnMs={aiWatch.Elapsed.TotalMilliseconds:F3} sampledManagedBytes={aiAllocated} (sample-cap=1000000) allocations={aiAllocationCount} budgetMs=3000 (Editor including development logs)");
             Debug.Log("[SceneSmoke] ALL PASSED");
             SessionState.SetBool(Running, false);
             EditorApplication.Exit(0);
@@ -186,6 +205,13 @@ public static class SceneSmoke
         Check("observed player appears", board.AlivePlayerUnits.Contains(players[0]));
         sight.Clear(); sight.Add(players[1].GridPosition); board.Refresh();
         Check("same-count visibility updates", !board.AlivePlayerUnits.Contains(players[0]) && board.AlivePlayerUnits.Contains(players[1]));
+        var self=s.UnitSetting.EnemyUnit.GetComponentInChildren<Status>();
+        board.CountAlliesNear(self.transform.position,self,5f);board.EstimateCounterDamageAt(self.transform.position,self);
+        var density=(System.Collections.IDictionary)typeof(AIBoardState).GetField("AllyDensityCache",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(board);
+        var counter=(System.Collections.IDictionary)typeof(AIBoardState).GetField("CounterCache",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(board);
+        Check("board caches populated",density.Count>0&&counter.Count>0);
+        int generation=board.Generation;board.Refresh();
+        Check("refresh invalidates query caches",board.Generation==generation+1&&density.Count==0&&counter.Count==0);
         var previous = players[0].transform.position;
         players[0].transform.position += new Vector3(5, 0, 5); board.Refresh();
         Check("hidden movement does not update memory", board.GetLastKnownPlayerPositions().Any(p => p.pos == GridHelper.ToGrid(previous)));
@@ -195,10 +221,11 @@ public static class SceneSmoke
 
     static void TestSubCrystalAndDungeon(GameSystems s)
     {
-        var dungeon = s.DungeonSystem.Dungeons[0];
+        var dungeon = s.DungeonSystem.Dungeons.OrderByDescending(d=>GridHelper.ChebyshevDistance(d.Position,s.CrystalSystem.PCP)).First();
         var pos = dungeon.Position;
+        var originalTerritory=new System.Collections.Generic.HashSet<Vector3Int>(s.TerritorySystem.GetTerritory(Team.Player).Select(GridHelper.ToGridXZ));
         var sub = s.BuildSystem.PlaceBuildingForLoad(pos, FacilityKind.SubCrystal, Team.Player);
-        var neighbor = s.TerritorySystem.GetTerritory(Team.Player).First(p => GridHelper.ChebyshevDistance(GridHelper.ToGrid(p), pos) == 1);
+        var neighbor = s.TerritorySystem.GetTerritory(Team.Player).First(p => !originalTerritory.Contains(GridHelper.ToGridXZ(p)) && GridHelper.ChebyshevDistance(GridHelper.ToGrid(p), pos) == 1);
         var wall = s.BuildSystem.PlaceBuildingForLoad(GridHelper.ToGrid(neighbor), FacilityKind.WoodWall, Team.Player);
         s.DungeonSystem.ProcessTurn(Team.Player, 100);
         Check("subcrystal controls dungeon", dungeon.ClaimingTeam == Team.Player && dungeon.ClaimProgress == 1);

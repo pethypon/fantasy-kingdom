@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -609,6 +609,7 @@ public class WildBossSystem : MonoBehaviour
 
     void AttackTarget(Status target)
     {
+        if (mapcreate != null && target != null && !mapcreate.CanAttackAcrossTerrain(SpawnedBoss, target.transform.position)) return;
         if (target == null || !target.IsAlive) return;
         int dmg = DamageCalculator.CalcNormal(SpawnedBoss, target);
         if (SpawnedBoss.wildBossAtkBuffTurns > 0) dmg = Mathf.RoundToInt(dmg * 1.25f);
@@ -623,6 +624,7 @@ public class WildBossSystem : MonoBehaviour
 
     void AttackTargetWithDebuff(Status target, StatusEffectType debuff, int duration)
     {
+        if (mapcreate != null && target != null && !mapcreate.CanAttackAcrossTerrain(SpawnedBoss, target.transform.position)) return;
         AttackTarget(target);
         if (target.IsAlive)
         {
@@ -877,6 +879,7 @@ public class WildBossSystem : MonoBehaviour
             int idx = Random.Range(0, intruders.Count);
             var t = intruders[idx];
             intruders.RemoveAt(idx);
+            if (mapcreate != null && !mapcreate.CanAttackAcrossTerrain(SpawnedBoss, t.transform.position)) continue;
             int dmg = Mathf.RoundToInt(DamageCalculator.CalcNormal(SpawnedBoss, t) * 1.25f);
             t.ApplyDamage(dmg);
             Debug.Log($"[WildBoss/ThunderMagus] 雷直撃: {t.kind} に {dmg}");

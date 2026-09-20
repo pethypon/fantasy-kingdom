@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -41,6 +41,7 @@ public static class MapInitializer
         {
             mapCreate.GenerateNoise();
         }
+        mapCreate.RestoreSavedLand(loadData);
         mapCreate.BuildTop();
 
         // クリスタル配置

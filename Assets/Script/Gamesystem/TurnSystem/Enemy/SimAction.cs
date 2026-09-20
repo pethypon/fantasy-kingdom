@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 // =====================================================================
 //  SimAction — シミュレーション上の行動
@@ -25,6 +25,11 @@ public class SimAction
     public int SkillId;          // 使用スキルID (-1 = なし)
     public Team ActorTeam;       // 行動者のチーム
 
+    public void CopyFrom(SimAction other)
+    {
+        Type=other.Type;UnitId=other.UnitId;TargetPos=other.TargetPos;TargetUnitId=other.TargetUnitId;
+        APCost=other.APCost;Facility=other.Facility;SummonKind=other.SummonKind;SkillId=other.SkillId;ActorTeam=other.ActorTeam;
+    }
     public SimAction()
     {
         TargetUnitId = -1;

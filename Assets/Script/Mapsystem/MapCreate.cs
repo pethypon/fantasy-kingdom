@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -52,12 +52,6 @@ public class MapCreate : MonoBehaviour
 
     [Header("振れ幅")]
     public int Amplitude = 6;
-
-    // ==== Fog レイヤー設定 ====
-    // Fog レイヤーを増減したい場合はこちらの配列に値を追加・削除するだけでよい
-    // 値は maxY からの Y オフセット
-    private static readonly float[] FogOffsets = { -1.0f, -2.0f };
-    private static readonly float[] FogBoardOffsets = { -0.4f };
 
     // Older saves retain their original terrain layout.
     public bool UseR1Terrain { get; set; } = true;
@@ -174,6 +168,27 @@ public class MapCreate : MonoBehaviour
     //  クエリメソッド（外部からの SetPos 直接操作を解消）
     // ==================================================================
 
+    // Persist legacy building footprints that were placed on previously walkable rivers.
+    public readonly List<Vector3Int> SavedLandOverrides = new List<Vector3Int>();
+    public void RestoreSavedLand(SaveSystem.GameSaveData data)
+    {
+        SavedLandOverrides.Clear();
+        if (data == null) return;
+        if (data.LandOverrides != null) foreach (var cell in data.LandOverrides) PreserveLand(cell);
+        PreserveLand(new Vector3Int(Mathf.RoundToInt(data.PCPx),0,Mathf.RoundToInt(data.PCPz)));
+        PreserveLand(new Vector3Int(Mathf.RoundToInt(data.ECPx),0,Mathf.RoundToInt(data.ECPz)));
+        if (data.Units != null) foreach(var unit in data.Units)
+            if(unit != null && unit.HP > 0 && unit.Type != Type.Unit.ToString())
+                PreserveLand(new Vector3Int(Mathf.RoundToInt(unit.PosX),0,Mathf.RoundToInt(unit.PosZ)));
+    }
+    void PreserveLand(Vector3Int cell)
+    {
+        if(rivers == null || cell.x<0 || cell.z<0 || cell.x>=maxX || cell.z>=maxZ) return;
+        if (!IsRiver(cell.x,cell.z) && !SavedLandOverrides.Contains(cell)) return;
+        rivers[cell.x,cell.z]=false;
+        if(!SavedLandOverrides.Contains(cell)) SavedLandOverrides.Add(cell);
+    }
+
     public bool IsRiver(int x, int z) => rivers != null && x >= 0 && z >= 0 && x < maxX && z < maxZ && rivers[x, z];
 
     public bool IsHighMountain(int x, int z) => UseR1Terrain && topY != null
@@ -206,10 +221,12 @@ public class MapCreate : MonoBehaviour
 
     public bool CanTraverse(Vector3 from, Vector3 to) => HasClearTerrainLine(from,to,false,true);
 
+    public static bool IsArcingAttack(Kind kind, FacilityKind facility) => kind == Kind.Archer || kind == Kind.Bomber || facility == FacilityKind.Mortar;
+
     public bool CanAttackAcrossTerrain(Status attacker, Vector3 target)
     {
         if (attacker == null) return false;
-        bool highArc = attacker.kind == Kind.Archer || attacker.kind == Kind.Bomber || attacker.facilityKind == FacilityKind.Mortar;
+        bool highArc = IsArcingAttack(attacker.kind, attacker.facilityKind);
         return (highArc && GridHelper.ChebyshevDistance(attacker.transform.position,target) >= 2f)
             || HasClearTerrainLine(attacker.transform.position,target);
     }

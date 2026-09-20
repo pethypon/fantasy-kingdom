@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -6,6 +6,9 @@ using UnityEngine;
 // =====================================================================
 public partial class SimBoardState
 {
+    [System.ThreadStatic] static HashSet<Vector3Int> visionScratch;
+    static HashSet<Vector3Int> ClearVisionScratch() { if(visionScratch==null) visionScratch=new HashSet<Vector3Int>();visionScratch.Clear();return visionScratch; }
+
     // ---- 視界推定用の簡易視界半径テーブル (Raycast不要な近似) ----
     static readonly Dictionary<Kind, int> VisionRadiusMap = new Dictionary<Kind, int>
     {
@@ -22,7 +25,7 @@ public partial class SimBoardState
     /// </summary>
     public int EstimateVisionCells(Team team)
     {
-        var seen = new HashSet<Vector3Int>();
+        var seen = ClearVisionScratch();
         for (int i = 0; i < Units.Count; i++)
         {
             var u = Units[i];
@@ -48,7 +51,7 @@ public partial class SimBoardState
     public int EstimateNewVisionCellsAt(SimUnit unit, Vector3Int newPos, Team team)
     {
         // 現在のチーム視界を構築
-        var currentVision = new HashSet<Vector3Int>();
+        var currentVision = ClearVisionScratch();
         for (int i = 0; i < Units.Count; i++)
         {
             var u = Units[i];

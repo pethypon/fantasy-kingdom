@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 /// <summary>Only observed actors are indexed; rebuilt after every board refresh.</summary>
 public sealed class ObservedUnitIndex
@@ -16,11 +16,28 @@ public sealed class ObservedUnitIndex
             bucket.Add(actor);
         }
     }
-    public IEnumerable<Status> Near(Vector3 p, float radius)
+    public Nearby Near(Vector3 p, float radius) => new Nearby(buckets,p,radius);
+    public struct Nearby
     {
-        for (int x=Mathf.FloorToInt((p.x-radius)/Size);x<=Mathf.FloorToInt((p.x+radius)/Size);x++)
-        for (int z=Mathf.FloorToInt((p.z-radius)/Size);z<=Mathf.FloorToInt((p.z+radius)/Size);z++)
-            if (buckets.TryGetValue(new Vector2Int(x,z),out var bucket))
-                for (int i=0;i<bucket.Count;i++) yield return bucket[i];
+        readonly Dictionary<Vector2Int,List<Status>> buckets;
+        readonly int minX,maxX,minZ,maxZ;
+        int x,z,index; List<Status> bucket;
+        public Status Current { get; private set; }
+        internal Nearby(Dictionary<Vector2Int,List<Status>> source,Vector3 p,float radius)
+        {
+            buckets=source;minX=Mathf.FloorToInt((p.x-radius)/Size);maxX=Mathf.FloorToInt((p.x+radius)/Size);
+            minZ=Mathf.FloorToInt((p.z-radius)/Size);maxZ=Mathf.FloorToInt((p.z+radius)/Size);
+            x=minX;z=minZ;index=0;bucket=null;Current=null;
+        }
+        public Nearby GetEnumerator() => this;
+        public bool MoveNext()
+        {
+            while(true) {
+                if(bucket != null && index<bucket.Count) {Current=bucket[index++];return true;}
+                if(x>maxX) return false;
+                buckets.TryGetValue(new Vector2Int(x,z),out bucket);index=0;
+                if(++z>maxZ) {z=minZ;x++;}
+            }
+        }
     }
 }

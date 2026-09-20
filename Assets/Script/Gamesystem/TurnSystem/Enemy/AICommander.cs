@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -197,7 +197,7 @@ public partial class AICommander
     // ================================================================
     //  ExecuteTurn — 1ターン分の全行動を実行
     // ================================================================
-    [SerializeField, Min(100)] private float turnThinkingBudgetMs = 3000f;
+    public float TurnThinkingBudgetMs { get; set; } = 3000f;
     static bool IsCriticalPosition(List<AIAction> candidates, AIBoardState board)
     {
         if (board.AlivePlayerUnits.Count > 0 || board.EnemyCrystalHP < board.EnemyCrystalMaxHP / 2) return true;
@@ -212,7 +212,7 @@ public partial class AICommander
     }
     public void ExecuteTurn()
     {
-        AITurnBudget.Begin(turnThinkingBudgetMs);
+        AITurnBudget.Begin(TurnThinkingBudgetMs);
         _actedUnits.Clear();
         _triedStrategies.Clear();
         _turnCount++;
@@ -335,6 +335,7 @@ public partial class AICommander
             DevelopmentLog.Log($"[AICommander] 召喚可能: {string.Join(", ", _board.AffordableUnits)}");
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (_board.AlivePlayerUnits.Count > 0)
         {
             var sb = new System.Text.StringBuilder();
@@ -347,6 +348,7 @@ public partial class AICommander
             DevelopmentLog.Log($"[AICommander] 視界内敵駒: {sb}");
         }
 
+#endif
         // 失敗した行動タイプ+対象を記録し、同じ行動を繰り返さない
         var failedActions = new HashSet<string>();
         // 同種の行動が全位置で失敗する場合に備え、種類単位でもブロック
@@ -440,6 +442,7 @@ public partial class AICommander
             // 再ソート（ボーナス適用後）
             actions.Sort((a, b) => b.Score.CompareTo(a.Score));
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             int logCount = Mathf.Min(3, actions.Count);
             for (int i = 0; i < logCount; i++)
             {
@@ -455,6 +458,7 @@ public partial class AICommander
                           $"score={a.Score:F1}  AP={a.APCost}");
             }
 
+#endif
             // 振動防止: 直近の位置に戻る移動を減点
             ApplyAntiOscillationPenalty(actions);
 

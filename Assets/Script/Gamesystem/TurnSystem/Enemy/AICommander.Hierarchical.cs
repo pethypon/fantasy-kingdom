@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 // =====================================================================
 //  AICommander.Hierarchical — 師団長制AIフェーズ
@@ -15,6 +15,7 @@ public partial class AICommander
     // ================================================================
     void ExecuteHierarchicalPhase(ref TurnStats turnStats)
     {
+        if (AITurnBudget.Expired) return;
         DevelopmentLog.Log("[AICommander] === 師団長制フェーズ開始 ===");
 
         // 1. 師団長の選出
@@ -44,6 +45,7 @@ public partial class AICommander
         int executed = 0;
         foreach (var action in acceptedActions)
         {
+            if (AITurnBudget.Expired) break;
             // AP再チェック（実行中にAPが変化する可能性）
             _board.Refresh();
             if (_board.EnemyAP < action.APCost)

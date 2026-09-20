@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -72,6 +72,7 @@ public static partial class SaveSystem
 
         // マップシード（再生成用）
         public bool R1Terrain;
+        public List<Vector3Int> LandOverrides;
         public int MapWidth, MapDepth;
         public float MapSeedX;
         public float MapSeedZ;

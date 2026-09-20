@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -15,6 +15,16 @@ using UnityEngine;
 // =====================================================================
 public static class SimActionGenerator
 {
+    static readonly FacilityKind[] priorities = {
+            FacilityKind.Well, FacilityKind.LoggingCamp, FacilityKind.Quarry,
+            FacilityKind.Field, FacilityKind.House, FacilityKind.Bakery,
+            FacilityKind.Mine, FacilityKind.Barracks,
+        };
+    static readonly Kind[] summonableKinds = {
+            Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
+            Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
+        };
+
     // ================================================================
     //  パターン参照（MovePatterns / AttackPatterns に一元化済み）
     // ================================================================
@@ -27,10 +37,13 @@ public static class SimActionGenerator
     [System.ThreadStatic] static HashSet<Vector3Int> _skillPosBuffer;
 
     public static List<SimAction> GenerateAllActions(SimBoardState board, Team team)
+        => GenerateAllActionsInto(board,team,new SimActionBuffer());
+
+    public static List<SimAction> GenerateAllActionsInto(SimBoardState board, Team team, SimActionBuffer actions)
     {
-        var actions = new List<SimAction>();
+        actions.Clear();
         int ap = board.GetAP(team);
-        if (ap <= 0) return actions;
+        if (ap <= 0) return actions.Actions;
 
         // ユニットリスト再利用（GCゼロ）
         if (_unitBuffer == null) _unitBuffer = new List<SimUnit>();
@@ -52,14 +65,14 @@ public static class SimActionGenerator
         GenerateBuildActions(board, team, ap, actions);
         GenerateSummonActions(board, team, ap, actions);
 
-        return actions;
+        return actions.Actions;
     }
 
     // ================================================================
     //  移動候補
     // ================================================================
     static void GenerateMoveActions(SimBoardState board, SimUnit unit, Team team,
-        int ap, List<SimAction> results)
+        int ap, SimActionBuffer results)
     {
         if (!MovePatterns.Map.TryGetValue(unit.Kind, out var predicate)) return;
 
@@ -70,21 +83,21 @@ public static class SimActionGenerator
         int dirZ = MovePatterns.DirZ(unit.Direction);
         bool dirIndep = MovePatterns.DirectionIndependent.Contains(unit.Kind);
 
-        foreach (var offset in MovePatterns.Offsets(unit.Kind))
+        var offsets = MovePatterns.Offsets(unit.Kind);
+        for(int offsetIndex=0;offsetIndex<offsets.Count;offsetIndex++)
         {
+            var offset=offsets[offsetIndex];
             var tile = pos + new Vector3Int(offset.x,0,offset.y * (dirIndep ? 1 : dirZ));
             if (!board.MapTiles.Contains(tile)) continue;
             if (!board.CanTraverse(pos,tile)) continue;
             if (board.IsOccupied(tile)) continue;
 
-            results.Add(new SimAction
-            {
-                Type = SimActionType.Move,
-                UnitId = unit.Id,
-                TargetPos = tile,
-                APCost = cost,
-                ActorTeam = team
-            });
+            var candidate = results.Next();
+            candidate.Type = SimActionType.Move;
+            candidate.UnitId = unit.Id;
+            candidate.TargetPos = tile;
+            candidate.APCost = cost;
+            candidate.ActorTeam = team;
         }
     }
 
@@ -92,7 +105,7 @@ public static class SimActionGenerator
     //  攻撃候補
     // ================================================================
     static void GenerateAttackActions(SimBoardState board, SimUnit unit, Team team,
-        Team enemyTeam, int ap, List<SimAction> results)
+        Team enemyTeam, int ap, SimActionBuffer results)
     {
         if (!AttackPatterns.NormalMap.TryGetValue(unit.Kind, out var predicate)) return;
 
@@ -107,22 +120,20 @@ public static class SimActionGenerator
         for (int i = 0; i < board.Units.Count; i++)
         {
             var target = board.Units[i];
-            if (!target.IsAlive || target.Team != enemyTeam) continue;
+            if (!target.IsAlive || target.Team != enemyTeam || !board.CanAttack(unit, target.Position)) continue;
             float dx = target.Position.x - pos.x;
             float dz = target.Position.z - pos.z;
             float dzAdj = dirIndep ? dz : dz * dirZ;
 
             if (predicate(dx, dzAdj))
             {
-                results.Add(new SimAction
-                {
-                    Type = SimActionType.Attack,
-                    UnitId = unit.Id,
-                    TargetUnitId = target.Id,
-                    TargetPos = target.Position,
-                    APCost = cost,
-                    ActorTeam = team
-                });
+                var candidate = results.Next();
+                candidate.Type = SimActionType.Attack;
+                candidate.UnitId = unit.Id;
+                candidate.TargetUnitId = target.Id;
+                candidate.TargetPos = target.Position;
+                candidate.APCost = cost;
+                candidate.ActorTeam = team;
             }
         }
     }
@@ -131,7 +142,7 @@ public static class SimActionGenerator
     //  スキル候補 (正確なスキル攻撃位置を使用)
     // ================================================================
     static void GenerateSkillActions(SimBoardState board, SimUnit unit, Team team,
-        Team enemyTeam, int ap, List<SimAction> results)
+        Team enemyTeam, int ap, SimActionBuffer results)
     {
         if (unit.AssignedSkillId < 0) return;
         if (unit.SkillCooldown > 0) return;
@@ -153,16 +164,14 @@ public static class SimActionGenerator
             // 自分自身にスキル使用（バフ系）
             if (skill.GrantBuff != BuffType.None || skill.FixedHeal > 0)
             {
-                results.Add(new SimAction
-                {
-                    Type = SimActionType.SkillUse,
-                    UnitId = unit.Id,
-                    TargetUnitId = unit.Id,
-                    TargetPos = unit.Position,
-                    APCost = skill.APCost,
-                    SkillId = unit.AssignedSkillId,
-                    ActorTeam = team
-                });
+                var candidate = results.Next();
+                candidate.Type = SimActionType.SkillUse;
+                candidate.UnitId = unit.Id;
+                candidate.TargetUnitId = unit.Id;
+                candidate.TargetPos = unit.Position;
+                candidate.APCost = skill.APCost;
+                candidate.SkillId = unit.AssignedSkillId;
+                candidate.ActorTeam = team;
             }
             return;
         }
@@ -175,7 +184,7 @@ public static class SimActionGenerator
             int wx = unit.Position.x + offsets[i].x;
             int wz = unit.Position.z + offsets[i].y * dirZ;
             var sp = new Vector3Int(wx, 0, wz);
-            if (board.MapTiles.Contains(sp))
+            if (board.MapTiles.Contains(sp) || sp == board.PlayerCrystalPos || sp == board.EnemyCrystalPos)
                 _skillPosBuffer.Add(sp);
         }
 
@@ -185,19 +194,17 @@ public static class SimActionGenerator
             for (int i = 0; i < board.Units.Count; i++)
             {
                 var t = board.Units[i];
-                if (!t.IsAlive || t.Team != enemyTeam) continue;
+                if (!t.IsAlive || t.Team != enemyTeam || !board.CanAttack(unit, t.Position)) continue;
                 if (!_skillPosBuffer.Contains(t.Position)) continue;
 
-                results.Add(new SimAction
-                {
-                    Type = SimActionType.SkillUse,
-                    UnitId = unit.Id,
-                    TargetUnitId = t.Id,
-                    TargetPos = t.Position,
-                    APCost = skill.APCost,
-                    SkillId = unit.AssignedSkillId,
-                    ActorTeam = team
-                });
+                var candidate = results.Next();
+                candidate.Type = SimActionType.SkillUse;
+                candidate.UnitId = unit.Id;
+                candidate.TargetUnitId = t.Id;
+                candidate.TargetPos = t.Position;
+                candidate.APCost = skill.APCost;
+                candidate.SkillId = unit.AssignedSkillId;
+                candidate.ActorTeam = team;
             }
         }
 
@@ -212,16 +219,14 @@ public static class SimActionGenerator
                 if (a.HP >= a.MaxHP) continue;
                 if (!_skillPosBuffer.Contains(a.Position)) continue;
 
-                results.Add(new SimAction
-                {
-                    Type = SimActionType.SkillUse,
-                    UnitId = unit.Id,
-                    TargetUnitId = a.Id,
-                    TargetPos = a.Position,
-                    APCost = skill.APCost,
-                    SkillId = unit.AssignedSkillId,
-                    ActorTeam = team
-                });
+                var candidate = results.Next();
+                candidate.Type = SimActionType.SkillUse;
+                candidate.UnitId = unit.Id;
+                candidate.TargetUnitId = a.Id;
+                candidate.TargetPos = a.Position;
+                candidate.APCost = skill.APCost;
+                candidate.SkillId = unit.AssignedSkillId;
+                candidate.ActorTeam = team;
             }
         }
 
@@ -237,16 +242,14 @@ public static class SimActionGenerator
                     if (a.Id == unit.Id) continue;
                     if (!_skillPosBuffer.Contains(a.Position)) continue;
 
-                    results.Add(new SimAction
-                    {
-                        Type = SimActionType.SkillUse,
-                        UnitId = unit.Id,
-                        TargetUnitId = a.Id,
-                        TargetPos = a.Position,
-                        APCost = skill.APCost,
-                        SkillId = unit.AssignedSkillId,
-                        ActorTeam = team
-                    });
+                    var candidate = results.Next();
+                    candidate.Type = SimActionType.SkillUse;
+                    candidate.UnitId = unit.Id;
+                    candidate.TargetUnitId = a.Id;
+                    candidate.TargetPos = a.Position;
+                    candidate.APCost = skill.APCost;
+                    candidate.SkillId = unit.AssignedSkillId;
+                    candidate.ActorTeam = team;
                 }
             }
         }
@@ -256,15 +259,11 @@ public static class SimActionGenerator
     //  建築候補
     // ================================================================
     static void GenerateBuildActions(SimBoardState board, Team team, int ap,
-        List<SimAction> results)
+        SimActionBuffer results)
     {
         var counts = team == Team.Enemy ? board.EnemyBuildingCounts : board.PlayerBuildingCounts;
 
-        FacilityKind[] priorities = {
-            FacilityKind.Well, FacilityKind.LoggingCamp, FacilityKind.Quarry,
-            FacilityKind.Field, FacilityKind.House, FacilityKind.Bakery,
-            FacilityKind.Mine, FacilityKind.Barracks,
-        };
+
 
         foreach (var fk in priorities)
         {
@@ -277,14 +276,12 @@ public static class SimActionGenerator
 
             var crystalPos = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
 
-            results.Add(new SimAction
-            {
-                Type = SimActionType.Build,
-                Facility = fk,
-                TargetPos = crystalPos,
-                APCost = info.APCost,
-                ActorTeam = team
-            });
+            var candidate = results.Next();
+            candidate.Type = SimActionType.Build;
+            candidate.Facility = fk;
+            candidate.TargetPos = crystalPos;
+            candidate.APCost = info.APCost;
+            candidate.ActorTeam = team;
         }
     }
 
@@ -292,12 +289,9 @@ public static class SimActionGenerator
     //  召喚候補
     // ================================================================
     static void GenerateSummonActions(SimBoardState board, Team team, int ap,
-        List<SimAction> results)
+        SimActionBuffer results)
     {
-        Kind[] summonableKinds = {
-            Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
-            Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
-        };
+
 
         var crystalPos = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
 
@@ -310,14 +304,12 @@ public static class SimActionGenerator
             Vector3Int spawnPos = FindSpawnPosition(board, crystalPos);
             if (spawnPos.x == int.MinValue) continue;
 
-            results.Add(new SimAction
-            {
-                Type = SimActionType.Summon,
-                SummonKind = kind,
-                TargetPos = spawnPos,
-                APCost = data.CostAP,
-                ActorTeam = team
-            });
+            var candidate = results.Next();
+            candidate.Type = SimActionType.Summon;
+            candidate.SummonKind = kind;
+            candidate.TargetPos = spawnPos;
+            candidate.APCost = data.CostAP;
+            candidate.ActorTeam = team;
         }
     }
 
@@ -419,9 +411,10 @@ public static class SimActionGenerator
 
                     // 敵ユニットへの接近（攻撃射程に入る移動を高評価）
                     Team enemyTeam = isEnemy ? Team.Player : Team.Enemy;
-                    var enemies = board.GetAliveUnits(enemyTeam);
+                    var enemies = board.Units;
                     for (int i = 0; i < enemies.Count; i++)
                     {
+                        if(!enemies[i].IsAlive || enemies[i].Team != enemyTeam || enemies[i].Type != Type.Unit) continue;
                         float da = SimUtil.Distance(action.TargetPos, enemies[i].Position);
                         if (da <= 1.5f) score += AIConstants.QS_Move_AttackRange;
                         else if (da <= 3f) score += 2f;
@@ -540,7 +533,7 @@ public static class SimActionGenerator
         for (int i = 0; i < board.Units.Count; i++)
         {
             var t = board.Units[i];
-            if (!t.IsAlive || t.Team != enemyTeam) continue;
+            if (!t.IsAlive || t.Team != enemyTeam || !board.CanAttack(unit, t.Position)) continue;
             float dx = t.Position.x - pos.x;
             float dz = t.Position.z - pos.z;
             float dzAdj = dirIndep ? dz : dz * dirZ;

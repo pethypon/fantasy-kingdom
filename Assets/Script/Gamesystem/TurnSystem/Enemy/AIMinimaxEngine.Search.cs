@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -43,7 +43,7 @@ public partial class AIMinimaxEngine
         }
 
         // Playerの候補行動を生成
-        var actions = SimActionGenerator.GenerateAllActions(board, Team.Player);
+        var actions = SimActionGenerator.GenerateAllActionsInto(board, Team.Player, ActionsAt(depth));
         if (actions.Count == 0)
         {
             if (depth < maxDepth)
@@ -116,7 +116,7 @@ public partial class AIMinimaxEngine
 
         // キラームーブ記録
         if (bestAction != null && depth < _killerMoves.Length)
-            _killerMoves[depth] = bestAction;
+            StoreKiller(depth, bestAction);
 
         float result = minScore == float.MaxValue ? SimBoardEvaluator.Evaluate(board) : minScore;
 
@@ -167,7 +167,7 @@ public partial class AIMinimaxEngine
             if (ttEntry.Flag == TTFlag.UpperBound && ttEntry.Score <= alpha) return ttEntry.Score;
         }
 
-        var actions = SimActionGenerator.GenerateAllActions(board, Team.Enemy);
+        var actions = SimActionGenerator.GenerateAllActionsInto(board, Team.Enemy, ActionsAt(depth));
         if (actions.Count == 0)
         {
             _nodesEvaluated++;
@@ -236,7 +236,7 @@ public partial class AIMinimaxEngine
         }
 
         if (bestAction != null && depth < _killerMoves.Length)
-            _killerMoves[depth] = bestAction;
+            StoreKiller(depth, bestAction);
 
         float result = maxScore == float.MinValue ? SimBoardEvaluator.Evaluate(board) : maxScore;
 

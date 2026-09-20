@@ -1,0 +1,91 @@
+[CoreTest] Done: 54 passed, 0 failed
+[SceneSmoke] PASS game starts on player turn
+[SceneSmoke] PASS player starts with 35 AP
+[SceneSmoke] PASS initial player squad
+[SceneSmoke] PASS initial enemy squad
+[SceneSmoke] PASS two dungeons
+[SceneSmoke] PASS new map uses passable heights 1/2
+[SceneSmoke] PASS crystal HP 15000
+[SceneSmoke] PASS territory exact boundary hidden
+[SceneSmoke] PASS player base centered on screen
+[Optimization] PASS Unity allocation recorder detects known allocation
+[Optimization] PASS water and mountains reject placement
+[Optimization] PASS water blocks traversal
+[Optimization] PASS water corner cannot be cut
+[Optimization] PASS mountain blocks vision
+[Optimization] PASS mountain attack rule Knight
+[Optimization] PASS mountain attack rule Crossbow
+[Optimization] PASS mountain attack rule Magicsniper
+[Optimization] PASS mountain attack rule Archer
+[Optimization] PASS mountain attack rule Bomber
+[Optimization] PASS mortar arcs across mountain
+[Optimization] PASS simulation movement agrees for every fixture pair
+[Optimization] PASS simulation rejects straight shot
+[Optimization] PASS simulation accepts arc
+[Optimization] PASS offsets equal full scan for all kinds and directions
+[Optimization] PASS registry tracks enabled actors
+[Optimization] PASS registry removes disabled actors
+[Optimization] PASS registry restores reenabled actors
+[Optimization] PASS legacy water unit relocates to free land
+[Optimization] PASS legacy crystal footprint becomes land
+[Optimization] PASS land override persists after structure removal
+[Optimization] PASS dedicated prefab WaterBlock
+[Optimization] PASS dedicated prefab HighMountainBlock
+[Optimization] PASS 35 fog has 54 render objects
+[Optimization] PASS 35 fog three states
+[Optimization] PASS 35 fog only dirty chunk rebuilt
+[Optimization] PASS 35 unchanged fog skips mesh rebuild
+[Optimization] PASS 35 unchanged fog no managed allocations
+[Optimization] BENCH size=35 oldRenderObjects=7350 newRenderObjects=54 initialMs=19.546 unchanged100Ms=4.176 managedBytes=0 allocationCount=0 meshBytes=8348304
+[Optimization] COMPARE size=35 legacyInitialMs=39.667 chunkInitialMs=19.546 legacyNativeObjectBytes=12260808 chunkNativeObjectsAndMeshesBytes=8441426 (shared materials excluded)
+[Optimization] PASS 40 fog has 54 render objects
+[Optimization] PASS 40 fog three states
+[Optimization] PASS 40 fog only dirty chunk rebuilt
+[Optimization] PASS 40 unchanged fog skips mesh rebuild
+[Optimization] PASS 40 unchanged fog no managed allocations
+[Optimization] BENCH size=40 oldRenderObjects=9600 newRenderObjects=54 initialMs=20.899 unchanged100Ms=5.492 managedBytes=0 allocationCount=0 meshBytes=10880304
+[Optimization] COMPARE size=40 legacyInitialMs=54.448 chunkInitialMs=20.899 legacyNativeObjectBytes=15694880 chunkNativeObjectsAndMeshesBytes=10973426 (shared materials excluded)
+[Optimization] PASS candidate buffer reuses and resets entries
+[Optimization] PASS remembered killer move survives buffer reuse
+[Optimization] PASS warmed candidate buffer allocates nothing
+[Optimization] PASS expired thinking budget is enforced
+[SceneSmoke] PASS indexed terrain lookup matches original on every cell
+[SceneSmoke] PASS terrain benchmark checksums match
+[Performance] Height lookup 20000 calls: list=42.936ms indexed=0.870ms; map=35x35
+[SceneSmoke] PASS undo restores move
+[SceneSmoke] PASS undo restores AP fatigue and first-move state
+[SceneSmoke] PASS attack invalidates old movement undo
+[SceneSmoke] PASS undiscovered crystal data withheld
+[SceneSmoke] PASS observed player appears
+[SceneSmoke] PASS same-count visibility updates
+[SceneSmoke] PASS board caches populated
+[SceneSmoke] PASS refresh invalidates query caches
+[SceneSmoke] PASS hidden movement does not update memory
+[SceneSmoke] PASS subcrystal controls dungeon
+[SceneSmoke] PASS dungeon advances only once per round
+[SceneSmoke] PASS own dismantle grants no enemy reward
+[SceneSmoke] PASS dependent building destroyed without refund
+[SceneSmoke] PASS destroyed wall releases occupancy
+[SceneSmoke] PASS one delayed return scheduled
+[SceneSmoke] PASS duplicate destruction is harmless
+[SceneSmoke] PASS lost control pauses dungeon
+[SceneSmoke] PASS menu pauses both timers
+[SceneSmoke] PASS closing menu releases pause
+[SceneSmoke] PASS save includes both crystals
+[SceneSmoke] PASS save includes both dungeons
+[SceneSmoke] PASS loading does not refill AP
+[SceneSmoke] PASS loading does not reset turn time
+[SceneSmoke] PASS loading does not increment round
+[SceneSmoke] PASS boss state survives save
+[SceneSmoke] PASS enemy and independent turns return to player
+[SceneSmoke] PASS configured monsters spawn independently
+[SceneSmoke] PASS intruder excludes strong enemy
+[SceneSmoke] PASS intruder attacks both principal factions
+[SceneSmoke] PASS unique relic awarded once
+[SceneSmoke] PASS neutral restore does not duplicate units
+[AIMinimaxEngine] 探索完了: 設定深さ20 完了深さ4 評価1436ノード 枝刈り297回 TT198件 2947ms 基準値=1171.3
+[SceneSmoke] PASS threat 100 whole thinking within 3s budget plus 0.75s tolerance
+[Optimization] AI threat=100 wholeTurnMs=3032.732 sampledManagedBytes=6334200 (sample-cap=1000000) allocations=170428 budgetMs=3000 (Editor including development logs)
+[SceneSmoke] ALL PASSED
+[ReleaseValidation] result=Succeeded errors=0 warnings=0 seconds=33.6
+Release IL inspection: DevelopmentLog.Log call count = 0

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -199,6 +199,7 @@ public class KingCommanderSystem
 
         foreach (var division in _divisions)
         {
+            if (AITurnBudget.Expired) break;
             var proposal = division.GenerateProposal(
                 board, learning, kingStrategy, roleAssigner, threatLevel);
             _turnProposals.Add(proposal);

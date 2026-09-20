@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -7,6 +7,28 @@ using UnityEngine;
 /// </summary>
 public static class SaveGameApplier
 {
+    // Old saves allowed units on rivers. Relocate only blocked units, preserving occupied cells.
+    public static void RelocateBlockedUnits(MapCreate map)
+    {
+        if(map == null) return;
+        var actors = new List<Status>(); CombatRegistry.Collect(actors);
+        var occupied = new HashSet<Vector3Int>();
+        foreach(var actor in actors) occupied.Add(GridHelper.ToGridXZ(actor.transform.position));
+        foreach(var actor in actors) {
+            if(actor.type != Type.Unit) continue;
+            var cell=GridHelper.ToGridXZ(actor.transform.position);
+            if(!map.IsRiver(cell.x,cell.z) && !map.IsHighMountain(cell.x,cell.z)) continue;
+            float distance=float.MaxValue; Vector3 best=actor.transform.position; bool found=false;
+            foreach(var candidate in map.SetPos) {
+                if(occupied.Contains(GridHelper.ToGridXZ(candidate))) continue;
+                float d=((Vector3)candidate-actor.transform.position).sqrMagnitude;
+                if(d<distance) {distance=d;best=candidate;found=true;}
+            }
+            if(found) {actor.transform.position=best;occupied.Add(GridHelper.ToGridXZ(best));}
+            else Debug.LogWarning("[SaveGameApplier] No free land for saved unit: " + actor.kind);
+        }
+    }
+
     /// <summary>ロードデータを全システムに適用する。</summary>
     public static void Apply(
         SaveSystem.GameSaveData data,
@@ -78,6 +100,7 @@ public static class SaveGameApplier
         turnGen.Systems.NeutralFactionSystem?.Restore(data.IndependentUnits, data.PreviousMonsterCount,
             data.IndependentLastRound, data.SpawnedIntruders);
         turnGen.Systems.WildBossSystem?.Restore(data.WildBoss);
+        RelocateBlockedUnits(mapCreate);
         UniqueRewardSystem.Records.Clear();
         if (data.Rewards != null) UniqueRewardSystem.Records.AddRange(data.Rewards);
 

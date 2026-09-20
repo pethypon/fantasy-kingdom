@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,6 +10,10 @@ using UnityEngine;
 // =====================================================================
 public class AIBoardState
 {
+    internal readonly Dictionary<(Vector3,Status),float> NearestAllyCache = new Dictionary<(Vector3,Status),float>();
+    internal readonly Dictionary<(Vector3,Status,float),int> AllyDensityCache = new Dictionary<(Vector3,Status,float),int>();
+    internal readonly Dictionary<(Vector3,float),bool> HealerCache = new Dictionary<(Vector3,float),bool>();
+    internal readonly Dictionary<(Vector3,Status,int),int> CounterCache = new Dictionary<(Vector3,Status,int),int>();
     public int Generation { get; private set; }
     public readonly ObservedUnitIndex Allies = new ObservedUnitIndex(), Enemies = new ObservedUnitIndex();
     readonly HashSet<Vector3Int> knownCells = new HashSet<Vector3Int>();
@@ -128,6 +132,7 @@ public class AIBoardState
     public void Refresh()
     {
         Generation++;
+        NearestAllyCache.Clear(); AllyDensityCache.Clear(); HealerCache.Clear(); CounterCache.Clear();
         knownCells.Clear();
         if (_visionGen?.EnemyExplored != null) foreach (var cell in _visionGen.EnemyExplored) knownCells.Add(GridHelper.ToGridXZ(cell));
         if (_visionGen?.EnemyVisionBox != null) foreach (var cell in _visionGen.EnemyVisionBox) knownCells.Add(GridHelper.ToGridXZ(cell));

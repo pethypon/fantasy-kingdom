@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -24,6 +24,8 @@ using UnityEngine;
 // =====================================================================
 public static class SimBoardEvaluator
 {
+    [System.ThreadStatic] static List<SimUnit> enemyScratch, playerScratch;
+    static void FillUnits(SimBoardState board) { if(enemyScratch==null) enemyScratch=new List<SimUnit>();if(playerScratch==null) playerScratch=new List<SimUnit>();board.GetAliveUnitsNonAlloc(Team.Enemy,enemyScratch);board.GetAliveUnitsNonAlloc(Team.Player,playerScratch); }
     // ================================================================
     //  メイン評価関数
     // ================================================================
@@ -206,8 +208,9 @@ public static class SimBoardEvaluator
     // ================================================================
     static float EvalFrontline(SimBoardState board)
     {
-        var enemyUnits = board.GetAliveUnits(Team.Enemy);
-        var playerUnits = board.GetAliveUnits(Team.Player);
+        FillUnits(board);
+        var enemyUnits = enemyScratch;
+        var playerUnits = playerScratch;
         if (enemyUnits.Count == 0) return -20f;
 
         float score = 0f;
@@ -258,8 +261,9 @@ public static class SimBoardEvaluator
     static float EvalPositional(SimBoardState board)
     {
         float score = 0f;
-        var enemyUnits = board.GetAliveUnits(Team.Enemy);
-        var playerUnits = board.GetAliveUnits(Team.Player);
+        FillUnits(board);
+        var enemyUnits = enemyScratch;
+        var playerUnits = playerScratch;
 
         // 敵ユニットの位置評価
         for (int i = 0; i < enemyUnits.Count; i++)
@@ -312,8 +316,9 @@ public static class SimBoardEvaluator
     // ================================================================
     static float EvalMobility(SimBoardState board)
     {
-        var enemyUnits = board.GetAliveUnits(Team.Enemy);
-        var playerUnits = board.GetAliveUnits(Team.Player);
+        FillUnits(board);
+        var enemyUnits = enemyScratch;
+        var playerUnits = playerScratch;
 
         int enemyMobility = 0;
         for (int i = 0; i < enemyUnits.Count; i++)

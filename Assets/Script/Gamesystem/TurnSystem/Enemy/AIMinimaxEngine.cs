@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -48,6 +48,10 @@ public partial class AIMinimaxEngine
 
     // ---- キラームーブ (深さごとに最善だった行動を記録) ----
     SimAction[] _killerMoves;
+    readonly SimActionBuffer greedyActions = new SimActionBuffer();
+    readonly Dictionary<int,SimActionBuffer> depthActions = new Dictionary<int,SimActionBuffer>();
+    SimActionBuffer ActionsAt(int depth) { if(!depthActions.TryGetValue(depth,out var buffer)) depthActions[depth]=buffer=new SimActionBuffer();return buffer; }
+    void StoreKiller(int depth, SimAction action) { if(_killerMoves[depth]==null) _killerMoves[depth]=new SimAction();_killerMoves[depth].CopyFrom(action); }
 
     // ---- トランスポジションテーブル (盤面ハッシュ → 評価値キャッシュ) ----
     Dictionary<long, TTEntry> _transTable;
@@ -177,7 +181,7 @@ public partial class AIMinimaxEngine
         for (int i = 0; i < convertedCandidates.Count; i++)
         {
             var (candidate, _, _) = convertedCandidates[i];
-            float lookaheadDelta = candidateScores[i] - baseScore;
+            float lookaheadDelta = CompletedDepth == 0 ? 0f : candidateScores[i] - baseScore;
             result[candidate] = lookaheadDelta;
         }
 

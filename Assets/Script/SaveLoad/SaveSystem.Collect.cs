@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -18,6 +18,7 @@ public static partial class SaveSystem
         {
             Turn = turnGen.Context.Turn,
             ThreatLevel = LoadProfile().ThreatLevel,
+            LandOverrides = new List<Vector3Int>(turnGen.Systems.MapCreate.SavedLandOverrides),
             R1Terrain = turnGen.Systems.MapCreate.UseR1Terrain,
             MapWidth = turnGen.Systems.MapCreate.maxX,
             MapDepth = turnGen.Systems.MapCreate.maxZ,

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -36,16 +36,32 @@ public partial class SimBoardState
     // ---- マップデータ (共有・変更しない) ----
     public HashSet<Vector3Int> MapTiles; // 有効なタイル座標 (Y=0化済み)
 
-    public bool CanTraverse(Vector3Int from, Vector3Int to)
+    // Immutable observed terrain shared by search clones; never capture unexplored cells.
+    public HashSet<Vector3Int> Mountains = new HashSet<Vector3Int>();
+    public HashSet<Vector3Int> Water = new HashSet<Vector3Int>();
+    public bool CanTraverse(Vector3Int from, Vector3Int to) => Trace(from, to, true);
+    public bool CanAttack(SimUnit unit, Vector3Int to) =>
+        (MapCreate.IsArcingAttack(unit.Kind, unit.Facility) && GridHelper.ChebyshevDistance(unit.Position, to) >= 2f)
+        || Trace(unit.Position, to, false);
+    bool Blocked(int x, int z, bool movement)
     {
-        int dx = to.x-from.x, dz = to.z-from.z;
-        int steps = Mathf.Max(Mathf.Abs(dx),Mathf.Abs(dz));
-        for (int i=1;i<=steps;i++)
+        var cell = new Vector3Int(x,0,z);
+        return Mountains.Contains(cell) || (movement && (Water.Contains(cell) || !MapTiles.Contains(cell)));
+    }
+    bool Trace(Vector3Int from, Vector3Int to, bool movement)
+    {
+        int x=from.x,z=from.z,nx=Mathf.Abs(to.x-x),nz=Mathf.Abs(to.z-z);
+        int sx=System.Math.Sign(to.x-x),sz=System.Math.Sign(to.z-z),ix=0,iz=0;
+        while(ix<nx || iz<nz)
         {
-            var cell = new Vector3Int(Mathf.RoundToInt(from.x + dx*(float)i/steps),0,Mathf.RoundToInt(from.z+dz*(float)i/steps));
-            if (!MapTiles.Contains(cell)) return false;
+            int d=(1+2*ix)*nz-(1+2*iz)*nx;
+            if(d==0) {
+                if(Blocked(x+sx,z,movement)||Blocked(x,z+sz,movement)) return false;
+                x+=sx; z+=sz; ix++; iz++;
+            } else if(d<0) {x+=sx;ix++;} else {z+=sz;iz++;}
+            if(Blocked(x,z,movement)) return false;
         }
-        return true;
+        return !Mountains.Contains(from) && !(movement && Water.Contains(from));
     }
 
     // ---- 占有セル ----
@@ -74,6 +90,16 @@ public partial class SimBoardState
             }
         }
 
+        if (moveGen != null && moveGen.mapcreate != null)
+        {
+            var map = moveGen.mapcreate;
+            for(int x=0;x<map.maxX;x++) for(int z=0;z<map.maxZ;z++) {
+                var cell = new Vector3Int(x,0,z);
+                if (!realBoard.IsTerrainKnown(cell)) continue;
+                if(map.IsHighMountain(x,z)) state.Mountains.Add(cell);
+                if(map.IsRiver(x,z)) state.Water.Add(cell);
+            }
+        }
         // 敵ユニット
         int idCounter = 0;
         foreach (var u in realBoard.AliveEnemyUnits)
@@ -131,6 +157,7 @@ public partial class SimBoardState
             Id = id,
             Team = s.team,
             Kind = s.kind,
+            Facility = s.facilityKind,
             Type = s.type,
             HP = s.HP,
             MaxHP = s.MaxHP,
@@ -195,6 +222,7 @@ public partial class SimBoardState
         copy.PlayerBuildingCounts = SimBoardPool.RentDict();
         foreach (var kvp in PlayerBuildingCounts)
             copy.PlayerBuildingCounts[kvp.Key] = kvp.Value;
+        copy.Mountains = Mountains; copy.Water = Water;
         copy.MapTiles = MapTiles; // 共有参照 (変更しない)
         copy.TurnCount = TurnCount;
         copy.RebuildOccupied();
