@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -67,7 +67,7 @@ public class GameEndState : TurnState
     // ==== ゲーム終了UI構築 ====
     private void BuildGameEndUI()
     {
-        var canvas = Object.FindFirstObjectByType<Canvas>();
+        var canvas = UIBuilder.ScreenCanvas;
         if (canvas == null)
         {
             Debug.LogError("[GameEndState] Canvas が見つかりません");

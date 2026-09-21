@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +11,7 @@ public class ToastUI : MonoBehaviour
 {
     public static void Show(string message, float seconds = 3f)
     {
-        var canvas = Object.FindFirstObjectByType<Canvas>();
+        var canvas = UIBuilder.ScreenCanvas;
         if (canvas == null) return;
 
         var go = new GameObject("Toast", typeof(RectTransform));

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -44,7 +44,7 @@ public class SkillChoiceUI : MonoBehaviour
         pendingCallback = onPicked;
         if (overlay != null) Destroy(overlay);
 
-        var canvas = UnityEngine.Object.FindFirstObjectByType<Canvas>();
+        var canvas = UIBuilder.ScreenCanvas;
         if (canvas == null)
         {
             // Canvasがない場合はUIを出さずに先頭を自動選択

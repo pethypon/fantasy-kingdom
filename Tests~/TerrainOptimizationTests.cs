@@ -73,7 +73,7 @@ public static class TerrainOptimizationTests
             Check("dedicated prefab "+name,prefab!=null&&prefab.GetComponent<Collider>()!=null&&prefab.GetComponent<Status>()!=null);
         }
         foreach(int size in new[]{35,40}) {
-            map.maxX=size;map.maxZ=size;
+            map.maxX=size;map.maxZ=size;Set(map,"topY",new int[size,size]);
             var go=new GameObject("Fog benchmark");var fog=go.AddComponent<FogChunkRenderer>();
             var watch=System.Diagnostics.Stopwatch.StartNew();
             fog.Initialize(map,Prefab(live,"Fog"),Prefab(live,"FogExploard"),Prefab(live,"FogBoard"),Prefab(live,"FogExploardBoard"));

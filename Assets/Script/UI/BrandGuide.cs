@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
@@ -174,6 +174,9 @@ public static class BrandGuide
     public const float FontTitle = 36f;
     public const float FontHeader = 28f;
     public const float FontBody = 20f;
+    // HUD sizes at the 1920 x 1080 reference resolution.
+    public const float FontHud = 26f;
+    public const float FontHudCaption = 22f;
     public const float FontCaption = 16f;
     public const float FontSmall = 14f; // 可読性確保のため14未満にしない
 

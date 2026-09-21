@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
@@ -21,8 +21,8 @@ public class InputHintUI : MonoBehaviour
     public static class Hints
     {
         public const string PlayerMove =
-            "<color=#AAD4FF>[LClick]</color> 選択/移動  " +
-            "<color=#AAD4FF>[RClick]</color> キャンセル  " +
+            "<color=#AAD4FF>[左クリック]</color> 選択/移動  " +
+            "<color=#AAD4FF>[右クリック]</color> キャンセル  " +
             "<color=#AAD4FF>[1]</color> 攻撃  " +
             "<color=#AAD4FF>[2]</color> スキル  " +
             "<color=#AAD4FF>[Q/E]</color> 向き  " +
@@ -31,8 +31,8 @@ public class InputHintUI : MonoBehaviour
             "<color=#AAD4FF>[Enter]</color> ターン終了";
 
         public const string PlayerAttack =
-            "<color=#FFD4AA>[LClick]</color> 攻撃対象選択  " +
-            "<color=#FFD4AA>[RClick]</color> キャンセル  " +
+            "<color=#FFD4AA>[左クリック]</color> 攻撃対象選択  " +
+            "<color=#FFD4AA>[右クリック]</color> キャンセル  " +
             "<color=#FFD4AA>[1]</color> 通常攻撃  " +
             "<color=#FFD4AA>[2]</color> スキル";
 
@@ -40,13 +40,13 @@ public class InputHintUI : MonoBehaviour
             "<color=#888888>敵のターン...</color>";
 
         public const string BuildMode =
-            "<color=#AAFFAA>[LClick]</color> 設置  " +
-            "<color=#AAFFAA>[RClick]</color> キャンセル  " +
+            "<color=#AAFFAA>[左クリック]</color> 設置  " +
+            "<color=#AAFFAA>[右クリック]</color> キャンセル  " +
             "<color=#AAFFAA>[Enter/Shift]</color> ターン終了";
 
         public const string SummonMode =
-            "<color=#DDAAFF>[LClick]</color> 召喚  " +
-            "<color=#DDAAFF>[RClick]</color> キャンセル  " +
+            "<color=#DDAAFF>[左クリック]</color> 召喚  " +
+            "<color=#DDAAFF>[右クリック]</color> キャンセル  " +
             "<color=#DDAAFF>[Enter/Shift]</color> ターン終了";
 
         public const string GameEnd =
@@ -83,22 +83,25 @@ public class InputHintUI : MonoBehaviour
         _panelRect.anchorMax = new Vector2(1, 0);
         _panelRect.pivot = new Vector2(0.5f, 0);
         _panelRect.anchoredPosition = new Vector2(0, 0);
-        _panelRect.sizeDelta = new Vector2(0, 32);
+        _panelRect.sizeDelta = new Vector2(0, 48);
 
         var bg = panelGo.AddComponent<Image>();
         bg.color = new Color(0.04f, 0.04f, 0.06f, 0.82f);
 
         _group = panelGo.AddComponent<CanvasGroup>();
         _group.alpha = 0f;
+        _group.blocksRaycasts = false;
+        _group.interactable = false;
 
         // テキスト
         var textGo = new GameObject("HintText");
         textGo.transform.SetParent(panelGo.transform, false);
         _hintText = textGo.AddComponent<TextMeshProUGUI>();
-        _hintText.fontSize = 16;
+        _hintText.fontSize = BrandGuide.FontHudCaption;
         _hintText.color = BrandGuide.TextPrimary;
         _hintText.alignment = TextAlignmentOptions.Center;
         _hintText.richText = true;
+        _hintText.font = UIFactory.LoadDefaultFont();
 
         var textRect = _hintText.GetComponent<RectTransform>();
         textRect.anchorMin = Vector2.zero;

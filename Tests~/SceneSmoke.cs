@@ -75,6 +75,7 @@ public static class SceneSmoke
             Check("territory exact boundary hidden", systems.WildBossSystem.TerritoryParent.childCount == 0);
             var viewport = Camera.main.WorldToViewportPoint(systems.CrystalSystem.PCP);
             Check("player base centered on screen", viewport.z > 0 && Mathf.Abs(viewport.x - 0.5f) < 0.01f && Mathf.Abs(viewport.y - 0.5f) < 0.01f);
+            VisualRegressionTests.Run(systems);
             TerrainOptimizationTests.Run(systems.MapCreate);
             BenchmarkHeightLookup(systems.MapCreate);
             TestMoveUndo(systems, turn);

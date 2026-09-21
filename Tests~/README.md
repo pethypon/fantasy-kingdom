@@ -11,3 +11,5 @@
 GCの検証にはUnity ProfilerRecorderを使用し、既知の割り当てを検出できることを最初に検査する。一般的な.NETのGC.GetAllocatedBytesForCurrentThreadはこのUnity環境では使用しない。
 
 結果はOptimizationValidationResults.txt、実装と測定条件は../Docs/TerrainOptimization_R1.mdを参照。
+
+2026-09-21追記: 最新のSceneSmokeではVisualRegressionTests.csもコピー先Assets/Editorへ配置する。合計350項目。表示崩れの画像を出す場合は -nographics を省略する。画像はコピー先の隣のvisual-capturesへ出力される。

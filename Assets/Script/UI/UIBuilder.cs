@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,6 +21,8 @@ public class UIBuilder : MonoBehaviour
     public SummonSystem SummonSystem { get; private set; }
 
     private Canvas canvas;
+    public static Canvas ScreenCanvas { get; private set; }
+    private void OnDestroy() { if(ScreenCanvas == canvas) ScreenCanvas = null; }
     private TMP_FontAsset defaultFont;
 
     // 建築・召喚UIの生成とボタン管理を委譲
@@ -49,6 +51,7 @@ public class UIBuilder : MonoBehaviour
         canvas = go.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
+        ScreenCanvas = canvas;
 
         var scaler = go.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -73,11 +76,11 @@ public class UIBuilder : MonoBehaviour
 
         // ============ 左: 資源エリア (0% ~ 42%) ============
         var resArea = CreatePanel("ResourceBar", bar,
-            new Vector2(0, 0), new Vector2(0.42f, 1), new Vector2(0, 0.5f),
+            new Vector2(0, 0), new Vector2(0.50f, 1), new Vector2(0, 0.5f),
             Vector2.zero);
         StretchFill(resArea);
         resArea.anchorMin = new Vector2(0, 0);
-        resArea.anchorMax = new Vector2(0.42f, 1);
+        resArea.anchorMax = new Vector2(0.50f, 1);
         resArea.offsetMin = new Vector2(8, 0);
         resArea.offsetMax = new Vector2(-4, 0);
 
@@ -126,8 +129,8 @@ public class UIBuilder : MonoBehaviour
         var sep1Img = sep1.AddComponent<Image>();
         sep1Img.color = BrandGuide.BorderLight;
         var sep1RT = sep1.GetComponent<RectTransform>();
-        sep1RT.anchorMin = new Vector2(0.42f, 0);
-        sep1RT.anchorMax = new Vector2(0.42f, 1);
+        sep1RT.anchorMin = new Vector2(0.50f, 0);
+        sep1RT.anchorMax = new Vector2(0.50f, 1);
         sep1RT.pivot = new Vector2(0.5f, 0.5f);
         sep1RT.sizeDelta = new Vector2(1, 0);
         sep1RT.offsetMin = new Vector2(-0.5f, 8);
@@ -135,11 +138,11 @@ public class UIBuilder : MonoBehaviour
 
         // ============ 中央: ターン表示 (42% ~ 56%) ============
         var turnArea = CreatePanel("TurnArea", bar,
-            new Vector2(0.42f, 0), new Vector2(0.56f, 1), new Vector2(0.5f, 0.5f),
+            new Vector2(0.50f, 0), new Vector2(0.64f, 1), new Vector2(0.5f, 0.5f),
             Vector2.zero);
         StretchFill(turnArea);
-        turnArea.anchorMin = new Vector2(0.42f, 0);
-        turnArea.anchorMax = new Vector2(0.56f, 1);
+        turnArea.anchorMin = new Vector2(0.50f, 0);
+        turnArea.anchorMax = new Vector2(0.64f, 1);
         turnArea.offsetMin = new Vector2(10, 4);
         turnArea.offsetMax = new Vector2(-4, -4);
 
@@ -169,7 +172,8 @@ public class UIBuilder : MonoBehaviour
         turnText.fontStyle = FontStyles.Bold;
         turnText.alignment = TextAlignmentOptions.MidlineLeft;
         var turnTextLE = turnText.gameObject.AddComponent<LayoutElement>();
-        turnTextLE.preferredWidth = 100;
+        turnText.rectTransform.sizeDelta = new Vector2(180, 48);
+        turnTextLE.preferredWidth = 180;
         turnTextLE.preferredHeight = 40;
 
         // ============ 区切り線 ============
@@ -178,8 +182,8 @@ public class UIBuilder : MonoBehaviour
         var sep2Img = sep2.AddComponent<Image>();
         sep2Img.color = BrandGuide.BorderLight;
         var sep2RT = sep2.GetComponent<RectTransform>();
-        sep2RT.anchorMin = new Vector2(0.56f, 0);
-        sep2RT.anchorMax = new Vector2(0.56f, 1);
+        sep2RT.anchorMin = new Vector2(0.64f, 0);
+        sep2RT.anchorMax = new Vector2(0.64f, 1);
         sep2RT.pivot = new Vector2(0.5f, 0.5f);
         sep2RT.sizeDelta = new Vector2(1, 0);
         sep2RT.offsetMin = new Vector2(-0.5f, 8);
@@ -187,10 +191,10 @@ public class UIBuilder : MonoBehaviour
 
         // ============ 右: 制限時間 + メニュー (56% ~ 100%) ============
         var rightArea = CreatePanel("RightArea", bar,
-            new Vector2(0.56f, 0), new Vector2(1, 1), new Vector2(0.5f, 0.5f),
+            new Vector2(0.64f, 0), new Vector2(1, 1), new Vector2(0.5f, 0.5f),
             Vector2.zero);
         StretchFill(rightArea);
-        rightArea.anchorMin = new Vector2(0.56f, 0);
+        rightArea.anchorMin = new Vector2(0.64f, 0);
         rightArea.anchorMax = new Vector2(1, 1);
         rightArea.offsetMin = new Vector2(6, 4);
         rightArea.offsetMax = new Vector2(-6, -4);
@@ -209,7 +213,7 @@ public class UIBuilder : MonoBehaviour
         var timerArea = new GameObject("TimerArea", typeof(RectTransform));
         timerArea.transform.SetParent(rightArea, false);
         var timerAreaRT = timerArea.GetComponent<RectTransform>();
-        timerAreaRT.sizeDelta = new Vector2(300, 44);
+        timerAreaRT.sizeDelta = new Vector2(300, 56);
 
         // バー背景
         var timerBg = new GameObject("TimerBg", typeof(RectTransform));
@@ -228,16 +232,16 @@ public class UIBuilder : MonoBehaviour
         fillRT.offsetMax = new Vector2(-2, -2);
 
         // 制限時間テキスト
-        var timerText = CreateTMP("TimerText", timerArea.transform, "制限時間", BrandGuide.FontBody);
+        var timerText = CreateTMP("TimerText", timerArea.transform, "制限時間", BrandGuide.FontHud);
         timerText.fontStyle = FontStyles.Bold;
         timerText.alignment = TextAlignmentOptions.Center;
         StretchFill(timerText.GetComponent<RectTransform>());
 
         // メニューボタン
-        var menuBtn = CreateButton("MenuButton", rightArea, "メニュー", BrandGuide.FontBody,
+        var menuBtn = CreateButton("MenuButton", rightArea, "メニュー", BrandGuide.FontHud,
             BrandGuide.BtnMenu);
         var menuBtnRT = menuBtn.GetComponent<RectTransform>();
-        menuBtnRT.sizeDelta = new Vector2(120, 44);
+        menuBtnRT.sizeDelta = new Vector2(144, 56);
         menuBtn.onClick.AddListener(() =>
         {
             if (GameMenuUI.Instance != null)
@@ -259,10 +263,13 @@ public class UIBuilder : MonoBehaviour
         le.flexibleWidth = 1;
         le.minWidth = 30;
 
-        var tmp = CreateTMP(name, cell.transform, name + ": 0", BrandGuide.FontBody);
+        var tmp = CreateTMP(name, cell.transform, name + ": 0", BrandGuide.FontHud);
         tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
         tmp.overflowMode = TextOverflowModes.Ellipsis;
         tmp.richText = true;
+        tmp.enableAutoSizing = true;
+        tmp.fontSizeMin = BrandGuide.FontHudCaption;
+        tmp.fontSizeMax = BrandGuide.FontHud;
         tmp.color = BrandGuide.TextPrimary;
         var tmpRT = tmp.GetComponent<RectTransform>();
         StretchFill(tmpRT);
@@ -289,37 +296,37 @@ public class UIBuilder : MonoBehaviour
         root.offsetMax = new Vector2(208, -150);
 
         // ---- 建築ボタン ----
-        var buildBtn = CreateButton("BuildOpenButton", root, "建築", BrandGuide.FontCaption,
+        var buildBtn = CreateButton("BuildOpenButton", root, "建築", BrandGuide.FontHudCaption,
             BrandGuide.BtnBuild);
         var buildBtnRT = buildBtn.GetComponent<RectTransform>();
         buildBtnRT.anchorMin = new Vector2(0, 1);
         buildBtnRT.anchorMax = new Vector2(1, 1);
         buildBtnRT.pivot = new Vector2(0.5f, 1);
-        buildBtnRT.sizeDelta = new Vector2(0, 44);
+        buildBtnRT.sizeDelta = new Vector2(0, 60);
         buildBtnRT.anchoredPosition = new Vector2(0, -8);
 
         // ---- ユニット生成ボタン ----
-        var unitBtn = CreateButton("UnitOpenButton", root, "Unit制作", BrandGuide.FontCaption,
+        var unitBtn = CreateButton("UnitOpenButton", root, "ユニット召喚", BrandGuide.FontHudCaption,
             BrandGuide.BtnUnit);
         var unitBtnRT = unitBtn.GetComponent<RectTransform>();
         unitBtnRT.anchorMin = new Vector2(0, 1);
         unitBtnRT.anchorMax = new Vector2(1, 1);
         unitBtnRT.pivot = new Vector2(0.5f, 1);
-        unitBtnRT.sizeDelta = new Vector2(0, 44);
+        unitBtnRT.sizeDelta = new Vector2(0, 60);
         // 建築ボタン (44px) の下に 6px の余白を入れて配置
-        unitBtnRT.anchoredPosition = new Vector2(0, -58);
+        unitBtnRT.anchoredPosition = new Vector2(0, -80);
 
         // ---- SlidePanel (スライドする本体) ----
         var panel = CreatePanel("SlidePanel", root,
             new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f),
-            new Vector2(350, 0));
-        panel.anchoredPosition = new Vector2(-350, 0);
+            new Vector2(460, 0));
+        panel.anchoredPosition = new Vector2(-460, 0);
         panel.anchorMin = new Vector2(0, 0);
         panel.anchorMax = new Vector2(0, 1);
-        panel.offsetMin = new Vector2(-350, 0);
+        panel.offsetMin = new Vector2(-460, 0);
         panel.offsetMax = new Vector2(0, -80);
         panel.pivot = new Vector2(0, 0.5f);
-        panel.anchoredPosition = new Vector2(-350, 0);
+        panel.anchoredPosition = new Vector2(-460, 0);
 
         AddImage(panel.gameObject, BrandGuide.PanelBgLight);
         BrandGuide.AddPanelBorder(panel);
@@ -327,11 +334,11 @@ public class UIBuilder : MonoBehaviour
         // ---- Header ----
         var header = CreatePanel("Header", panel,
             new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
-            new Vector2(0, 36));
+            new Vector2(0, 52));
         header.anchoredPosition = Vector2.zero;
         AddImage(header.gameObject, new Color(0.08f, 0.08f, 0.10f, 1f));
 
-        var headerTitle = CreateTMP("Title", header, "メニュー", BrandGuide.FontBody);
+        var headerTitle = CreateTMP("Title", header, "メニュー", BrandGuide.FontHud);
         headerTitle.color = BrandGuide.Primary;
         headerTitle.fontStyle = FontStyles.Bold;
         StretchFill(headerTitle.GetComponent<RectTransform>());
@@ -342,7 +349,7 @@ public class UIBuilder : MonoBehaviour
         closeBtnRT.anchorMin = new Vector2(1, 0);
         closeBtnRT.anchorMax = new Vector2(1, 1);
         closeBtnRT.pivot = new Vector2(1, 0.5f);
-        closeBtnRT.sizeDelta = new Vector2(36, 0);
+        closeBtnRT.sizeDelta = new Vector2(52, 0);
         closeBtnRT.anchoredPosition = Vector2.zero;
 
         // ---- BuildScrollView ----
@@ -350,7 +357,7 @@ public class UIBuilder : MonoBehaviour
         var buildRootRT = buildRoot.GetComponent<RectTransform>();
         StretchFill(buildRootRT);
         buildRootRT.offsetMin = new Vector2(4, 4);
-        buildRootRT.offsetMax = new Vector2(-4, -40);
+        buildRootRT.offsetMax = new Vector2(-4, -56);
         buildRoot.SetActive(false);
 
         // ---- UnitScrollView ----
@@ -358,7 +365,7 @@ public class UIBuilder : MonoBehaviour
         var unitRootRT = unitRoot.GetComponent<RectTransform>();
         StretchFill(unitRootRT);
         unitRootRT.offsetMin = new Vector2(4, 4);
-        unitRootRT.offsetMax = new Vector2(-4, -40);
+        unitRootRT.offsetMax = new Vector2(-4, -56);
         unitRoot.SetActive(false);
 
         // ---- SlidePanelUI コンポーネントを追加 ----
@@ -378,9 +385,9 @@ public class UIBuilder : MonoBehaviour
     {
         var panel = CreatePanel("BottomUnitPanel", canvas.transform,
             new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0),
-            new Vector2(800, 180));
-        // 画面最下部の操作ヒントバー(高さ32px)の上に乗せる
-        panel.anchoredPosition = new Vector2(0, 44);
+            new Vector2(1000, 210));
+        // 操作ヒントバー(48px)の上に余白を確保する
+        panel.anchoredPosition = new Vector2(0, 60);
 
         AddImage(panel.gameObject, BrandGuide.PanelBgLight);
         BrandGuide.AddTopBorder(panel);
@@ -397,14 +404,14 @@ public class UIBuilder : MonoBehaviour
         left.offsetMin = new Vector2(10, 8);
         left.offsetMax = new Vector2(0, -8);
 
-        var nameText = CreateTMP("NameText", left, "---", 24);
+        var nameText = CreateTMP("NameText", left, "---", 30);
         nameText.color = BrandGuide.Primary;
         nameText.fontStyle = FontStyles.Bold;
         SetAnchors(nameText, 0, 0.66f, 1, 1);
-        var levelText = CreateTMP("LevelText", left, "Lv 1", BrandGuide.FontBody);
+        var levelText = CreateTMP("LevelText", left, "Lv 1", BrandGuide.FontHud);
         levelText.color = BrandGuide.TextSecondary;
         SetAnchors(levelText, 0, 0.33f, 1, 0.66f);
-        var hpText = CreateTMP("HPText", left, "HP 0", BrandGuide.FontBody);
+        var hpText = CreateTMP("HPText", left, "HP 0", BrandGuide.FontHud);
         SetAnchors(hpText, 0, 0, 1, 0.33f);
 
         // ---- CenterStats ----
@@ -417,16 +424,16 @@ public class UIBuilder : MonoBehaviour
         center.offsetMin = new Vector2(0, 8);
         center.offsetMax = new Vector2(0, -8);
 
-        var atkText = CreateTMP("ATKText", center, "ATK 0", BrandGuide.FontBody);
+        var atkText = CreateTMP("ATKText", center, "ATK 0", BrandGuide.FontHud);
         atkText.color = new Color(1f, 0.75f, 0.60f);
         SetAnchors(atkText, 0, 0.66f, 1, 1);
-        var defText = CreateTMP("DEFText", center, "DEF 0", BrandGuide.FontBody);
+        var defText = CreateTMP("DEFText", center, "DEF 0", BrandGuide.FontHud);
         defText.color = new Color(0.60f, 0.82f, 1f);
         SetAnchors(defText, 0, 0.33f, 1, 0.66f);
-        var kindText = CreateTMP("KindText", center, "", BrandGuide.FontCaption);
+        var kindText = CreateTMP("KindText", center, "", BrandGuide.FontHudCaption);
         kindText.color = BrandGuide.TextSecondary;
         SetAnchors(kindText, 0, 0, 0.5f, 0.33f);
-        var passiveText = CreateTMP("PassiveText", center, "", BrandGuide.FontCaption);
+        var passiveText = CreateTMP("PassiveText", center, "", BrandGuide.FontHudCaption);
         passiveText.color = BrandGuide.TextSecondary;
         SetAnchors(passiveText, 0.5f, 0, 1, 0.33f);
 
@@ -440,16 +447,16 @@ public class UIBuilder : MonoBehaviour
         right.offsetMin = new Vector2(4, 8);
         right.offsetMax = new Vector2(-10, -8);
 
-        var attackBtn = CreateButton("AttackBtn", right, "攻撃", BrandGuide.FontCaption,
+        var attackBtn = CreateButton("AttackBtn", right, "攻撃", BrandGuide.FontHudCaption,
             BrandGuide.BtnAttack);
         SetAnchors(attackBtn.GetComponent<RectTransform>(), 0, 0.5f, 0.5f, 1);
-        var skillBtn = CreateButton("SkillBtn", right, "スキル", BrandGuide.FontCaption,
+        var skillBtn = CreateButton("SkillBtn", right, "スキル", BrandGuide.FontHudCaption,
             BrandGuide.BtnSkill);
         SetAnchors(skillBtn.GetComponent<RectTransform>(), 0.5f, 0.5f, 1, 1);
-        var waitBtn = CreateButton("WaitBtn", right, "待機", BrandGuide.FontCaption,
+        var waitBtn = CreateButton("WaitBtn", right, "待機", BrandGuide.FontHudCaption,
             BrandGuide.BtnWait);
         SetAnchors(waitBtn.GetComponent<RectTransform>(), 0, 0, 0.5f, 0.5f);
-        var cancelBtn = CreateButton("CancelBtn", right, "取消", BrandGuide.FontCaption,
+        var cancelBtn = CreateButton("CancelBtn", right, "取消", BrandGuide.FontHudCaption,
             BrandGuide.BtnCancel);
         SetAnchors(cancelBtn.GetComponent<RectTransform>(), 0.5f, 0, 1, 0.5f);
 
@@ -470,14 +477,14 @@ public class UIBuilder : MonoBehaviour
     {
         var panel = CreatePanel("APPanel", canvas.transform,
             new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0),
-            new Vector2(160, 80));
-        panel.anchoredPosition = new Vector2(-20, 20);
+            new Vector2(200, 96));
+        panel.anchoredPosition = new Vector2(-20, 60);
 
         AddImage(panel.gameObject, BrandGuide.PanelBg);
         BrandGuide.AddPanelBorder(panel);
 
         // APラベル
-        var apLabel = CreateTMP("APLabel", panel, "AP", BrandGuide.FontSmall);
+        var apLabel = CreateTMP("APLabel", panel, "行動ポイント", BrandGuide.FontHudCaption);
         apLabel.color = BrandGuide.TextLabel;
         apLabel.fontStyle = FontStyles.Bold;
         apLabel.alignment = TextAlignmentOptions.Center;

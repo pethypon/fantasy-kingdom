@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -14,6 +14,8 @@ public class ObjectPool : MonoBehaviour
 
     private readonly Dictionary<GameObject, GameObject> _prefabLookup
         = new Dictionary<GameObject, GameObject>();
+
+    readonly HashSet<GameObject> returned = new HashSet<GameObject>();
 
     private void Awake()
     {
@@ -45,6 +47,7 @@ public class ObjectPool : MonoBehaviour
         if (pool.Count > 0)
         {
             obj = pool.Dequeue();
+            returned.Remove(obj);
             if (obj == null)
             {
                 // プール内のオブジェクトが破棄されていた場合は新規生成
@@ -52,7 +55,8 @@ public class ObjectPool : MonoBehaviour
                 _prefabLookup[obj] = prefab;
                 return obj;
             }
-            obj.transform.SetParent(parent);
+            obj.transform.SetParent(parent, false);
+            obj.transform.localScale = prefab.transform.localScale;
             obj.transform.position = position;
             obj.transform.rotation = rotation;
             obj.SetActive(true);
@@ -72,7 +76,9 @@ public class ObjectPool : MonoBehaviour
     {
         if (obj == null) return;
 
+        if (!returned.Add(obj)) return;
         obj.SetActive(false);
+        obj.transform.SetParent(transform, false);
 
         if (_prefabLookup.TryGetValue(obj, out var prefab))
         {
@@ -120,6 +126,8 @@ public class ObjectPool : MonoBehaviour
             var obj = Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
             obj.SetActive(false);
             _prefabLookup[obj] = prefab;
+            obj.transform.SetParent(transform, false);
+            returned.Add(obj);
             pool.Enqueue(obj);
         }
     }
@@ -135,6 +143,7 @@ public class ObjectPool : MonoBehaviour
                 if (obj != null) Destroy(obj);
             }
         }
+        returned.Clear();
         _pools.Clear();
         _prefabLookup.Clear();
     }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 /// <summary>
@@ -26,7 +26,7 @@ public class SlidePanelUI : MonoBehaviour
     [Header("スライド設定")]
     [SerializeField] private float slideSpeed = 12f;
     [SerializeField] private float openX = 200f;
-    [SerializeField] private float closedX = -350f;
+    [SerializeField] private float closedX = -460f;
 
     private Vector2 targetPos;
     private bool isOpen;

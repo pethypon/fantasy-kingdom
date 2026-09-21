@@ -1,9 +1,18 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class AttackGenerator : MonoBehaviour
 {
+    readonly List<Status> combatTargets = new List<Status>();
+    bool CanTarget(Vector3 cell, bool ally = false)
+    {
+        foreach(var target in combatTargets) {
+            if(target == TargetUnit || !GridHelper.MatchXZ(target.transform.position,GridHelper.ToGridXZ(cell))) continue;
+            if(ally ? target.team == TargetUnit.team : NeutralFactionSystem.AreHostile(TargetUnit,target)) return true;
+        }
+        return false;
+    }
     readonly List<Vector3> attackTiles = new List<Vector3>();
     public PlayerMove.AttackMode attackmode;
     public List<Vector3> AttackP;
@@ -91,6 +100,7 @@ public class AttackGenerator : MonoBehaviour
         if (Obj == null) return;
         AttackP?.Clear();
         TargetUnit = Obj;
+        CombatRegistry.Collect(combatTargets);
         objp = ObjP;
         attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
         attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
@@ -159,12 +169,12 @@ public class AttackGenerator : MonoBehaviour
                     case SkillTarget.EnemyOrBuilding:
                     case SkillTarget.LowHPEnemy:
                     case SkillTarget.FlyingEnemy:
-                        if (moveGenerator.IsOccupied(cell) && cell != ownCell && cell != pcpCell)
+                        if (CanTarget(cell))
                             AttackP.Add(p);
                         break;
 
                     case SkillTarget.AllySingle:
-                        if (moveGenerator.IsOccupied(cell) && cell != ownCell)
+                        if (CanTarget(cell, true))
                             AttackP.Add(p);
                         break;
 
@@ -176,7 +186,7 @@ public class AttackGenerator : MonoBehaviour
                         break;
 
                     default:
-                        if (moveGenerator.IsOccupied(cell) && cell != ownCell && cell != pcpCell)
+                        if (CanTarget(cell))
                             AttackP.Add(p);
                         break;
                 }
@@ -191,6 +201,7 @@ public class AttackGenerator : MonoBehaviour
         if (Obj == null) return;
         AttackP?.Clear();
         TargetUnit = Obj;
+        CombatRegistry.Collect(combatTargets);
         objp = ObjP;
         attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
         attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
@@ -220,7 +231,7 @@ public class AttackGenerator : MonoBehaviour
             float checkDz = dirIndependent ? dz : dz * dirZ;
 
             Vector3 cell = moveGenerator.Cell(p);
-            if (!moveGenerator.IsOccupied(cell)) continue;
+            if (!CanTarget(cell)) continue;
             if (cell == ownCell || cell == pcpCell) continue;
             if (!predicate(dx, checkDz)) continue;
             if (!mapcreate.CanAttackAcrossTerrain(TargetUnit, p)) continue;

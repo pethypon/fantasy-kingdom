@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -55,7 +55,7 @@ public class GameManualUI : MonoBehaviour
     // ================================================================
     private void Build()
     {
-        var canvas = Object.FindFirstObjectByType<Canvas>();
+        var canvas = UIBuilder.ScreenCanvas;
         if (canvas == null) return;
 
         overlay = new GameObject("GameManualOverlay", typeof(RectTransform));

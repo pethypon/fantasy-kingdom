@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -185,7 +185,7 @@ public class UnitPanelUI : MonoBehaviour
         btnLabel.transform.SetParent(btnGo.transform, false);
         var btnTMP = btnLabel.AddComponent<TextMeshProUGUI>();
         btnTMP.text = "強化";
-        btnTMP.fontSize = 16;
+        btnTMP.fontSize = BrandGuide.FontHud;
         btnTMP.alignment = TextAlignmentOptions.Center;
         btnTMP.color = Color.white;
         var lblRT = btnLabel.GetComponent<RectTransform>();
@@ -200,7 +200,7 @@ public class UnitPanelUI : MonoBehaviour
         var costGo = new GameObject("UpgradeCost", typeof(RectTransform));
         costGo.transform.SetParent(upgradeArea.transform, false);
         upgradeCostText = costGo.AddComponent<TextMeshProUGUI>();
-        upgradeCostText.fontSize = 15;
+        upgradeCostText.fontSize = BrandGuide.FontHudCaption;
         upgradeCostText.alignment = TextAlignmentOptions.MidlineLeft;
         upgradeCostText.color = BrandGuide.TextSecondary;
         upgradeCostText.textWrappingMode = TMPro.TextWrappingModes.Normal;
@@ -246,7 +246,7 @@ public class UnitPanelUI : MonoBehaviour
         btnLabel.transform.SetParent(btnGo.transform, false);
         var btnTMP = btnLabel.AddComponent<TextMeshProUGUI>();
         btnTMP.text = "破壊";
-        btnTMP.fontSize = 16;
+        btnTMP.fontSize = BrandGuide.FontHud;
         btnTMP.alignment = TextAlignmentOptions.Center;
         btnTMP.color = Color.white;
         var lblRT = btnLabel.GetComponent<RectTransform>();
@@ -444,7 +444,7 @@ public class UnitPanelUI : MonoBehaviour
         var label = btn.GetComponentInChildren<TextMeshProUGUI>();
         if (label == null) return;
         if (apCost > 0)
-            label.text = $"{baseName} <size=80%><color={BrandGuide.APCostColorHex(canAfford)}>AP{apCost}</color></size>";
+            label.text = $"{baseName}\n<size=90%><color={BrandGuide.APCostColorHex(canAfford)}>AP{apCost}</color></size>";
         else
             label.text = baseName;
     }

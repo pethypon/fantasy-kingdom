@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -359,6 +359,8 @@ public class UnitClick : MonoBehaviour
         playermove.ClickedUnit = null;
         playermove.SelectedUnitPosition = to;
         playermove.MenuSwitch = true;
+
+        turnGenerator.Systems.RefreshVision();
 
         // 移動後の位置で移動範囲を再表示
         turnGenerator.Systems.MoveGenerator.MoveCore(movedUnit, to);

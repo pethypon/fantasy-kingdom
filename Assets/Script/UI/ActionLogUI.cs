@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -59,8 +59,8 @@ public class ActionLogUI : MonoBehaviour
         panelRT.anchorMax = new Vector2(1f, 0f);
         panelRT.pivot = new Vector2(1f, 0f);
         // AP パネル上端(y=120)から 8px の余白を空けて配置
-        panelRT.anchoredPosition = new Vector2(-20, 128);
-        panelRT.sizeDelta = new Vector2(320, 200);
+        panelRT.anchoredPosition = new Vector2(-20, 168);
+        panelRT.sizeDelta = new Vector2(360, 260);
 
         var bg = panelGo.AddComponent<Image>();
         bg.color = new Color(0.03f, 0.03f, 0.05f, 0.65f);
@@ -74,10 +74,11 @@ public class ActionLogUI : MonoBehaviour
         var textGo = new GameObject("LogText");
         textGo.transform.SetParent(panelGo.transform, false);
         _logText = textGo.AddComponent<TextMeshProUGUI>();
-        _logText.fontSize = 14;
+        _logText.fontSize = BrandGuide.FontHudCaption;
         _logText.color = BrandGuide.TextPrimary;
         _logText.alignment = TextAlignmentOptions.BottomLeft;
         _logText.richText = true;
+        _logText.overflowMode = TextOverflowModes.Truncate;
         _logText.textWrappingMode = TextWrappingModes.Normal;
 
         var textRT = _logText.GetComponent<RectTransform>();

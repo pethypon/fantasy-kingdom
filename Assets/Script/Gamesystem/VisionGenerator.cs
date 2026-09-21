@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -406,6 +406,7 @@ public class VisionGenerator : MonoBehaviour
 
         _lastVisionFrame = currentFrame;
         _visionDirty = false;
+        Physics.SyncTransforms();
 
         this.mapcreate = mapcreate;
         this.moveGenerator = moveGenerator;
@@ -493,6 +494,7 @@ public class VisionGenerator : MonoBehaviour
         }
 
         Vector3Int statusGrid = GridHelper.ToGrid(status.transform.position);
+        status.VisionCell.Add(statusGrid);
         int statusX = statusGrid.x;
         int statusY = statusGrid.y;
         int statusZ = statusGrid.z;

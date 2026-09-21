@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -69,7 +69,7 @@ public class GameMenuUI : MonoBehaviour
 
     private void BuildMenuUI()
     {
-        var canvas = Object.FindFirstObjectByType<Canvas>();
+        var canvas = UIBuilder.ScreenCanvas;
         if (canvas == null) return;
 
         // オーバーレイ背景（半透明）
@@ -107,7 +107,7 @@ public class GameMenuUI : MonoBehaviour
         var profile = SaveSystem.LoadProfile();
         var threatText = CreateTMP("ThreatInfo", panel.transform,
             $"脅威度: {profile.ThreatLevel}  ({GetTierName(profile.ThreatLevel)})",
-            18, BrandGuide.TextLabel);
+            24, BrandGuide.TextLabel);
         var threatRT = threatText.GetComponent<RectTransform>();
         threatRT.anchorMin = new Vector2(0.05f, 0.80f);
         threatRT.anchorMax = new Vector2(0.95f, 0.88f);
@@ -129,7 +129,7 @@ public class GameMenuUI : MonoBehaviour
         vlg.childForceExpandWidth = true;
         vlg.childForceExpandHeight = false;
         vlg.childControlWidth = true;
-        vlg.childControlHeight = false;
+        vlg.childControlHeight = true;
 
         // 駒・ルール説明書
         var manualBtn = CreateBtn("駒・ルール説明書", btnArea.transform, BrandGuide.BtnUnit);
@@ -298,7 +298,7 @@ public class GameMenuUI : MonoBehaviour
         go.transform.SetParent(parent, false);
 
         var le = go.AddComponent<LayoutElement>();
-        le.preferredHeight = 50;
+        le.preferredHeight = 64;
 
         var img = go.AddComponent<Image>();
         img.color = bgColor;
@@ -311,7 +311,7 @@ public class GameMenuUI : MonoBehaviour
         StretchFill(labelGo.GetComponent<RectTransform>());
         var tmp = labelGo.AddComponent<TextMeshProUGUI>();
         tmp.text = label;
-        tmp.fontSize = 22;
+        tmp.fontSize = 28;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.color = BrandGuide.TextPrimary;
         tmp.fontStyle = FontStyles.Bold;
@@ -335,7 +335,7 @@ public class GameMenuUI : MonoBehaviour
         StretchFill(labelGo.GetComponent<RectTransform>());
         var tmp = labelGo.AddComponent<TextMeshProUGUI>();
         tmp.text = label;
-        tmp.fontSize = 18;
+        tmp.fontSize = 24;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.color = BrandGuide.TextPrimary;
 

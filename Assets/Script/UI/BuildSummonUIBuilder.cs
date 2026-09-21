@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -96,7 +96,7 @@ public class BuildSummonUIBuilder
         vlg.spacing = 4;
         vlg.padding = new RectOffset(4, 4, 4, 4);
         vlg.childControlWidth = true;
-        vlg.childControlHeight = false;
+        vlg.childControlHeight = true;
         vlg.childForceExpandWidth = true;
         vlg.childForceExpandHeight = false;
 
@@ -136,7 +136,7 @@ public class BuildSummonUIBuilder
             var row = new GameObject("Row_" + facility, typeof(RectTransform));
             row.transform.SetParent(content.transform, false);
             var rowLE = row.AddComponent<LayoutElement>();
-            rowLE.preferredHeight = 80;
+            rowLE.preferredHeight = 104;
 
             var rowVLG = row.AddComponent<VerticalLayoutGroup>();
             rowVLG.spacing = 2;
@@ -151,11 +151,11 @@ public class BuildSummonUIBuilder
                 ? $"{info.DisplayName}  副晶x1"
                 : $"{info.DisplayName}  AP:{info.APCost}";
             var btn = UIFactory.CreateButton("Build_" + facility, row.transform,
-                label, BrandGuide.FontCaption, isSubCrystal
+                label, BrandGuide.FontHud, isSubCrystal
                     ? BrandGuide.BtnSubCrystalEnabled
                     : BrandGuide.BtnBuildEnabled, defaultFont);
             var btnLE = btn.gameObject.AddComponent<LayoutElement>();
-            btnLE.preferredHeight = 40;
+            btnLE.preferredHeight = 56;
 
             var bg = btn.GetComponent<Image>();
             buildButtons.Add((btn, bg, facility));
@@ -165,16 +165,16 @@ public class BuildSummonUIBuilder
 
             // ---- コスト表示 ----
             string costStr = isSubCrystal ? "サブクリスタル1消費 (破壊後5T返却)" : FormatBuildCost(info.BuildCost);
-            var costTMP = UIFactory.CreateTMP("Cost_" + facility, row.transform, costStr, BrandGuide.FontSmall + 2, defaultFont);
+            var costTMP = UIFactory.CreateTMP("Cost_" + facility, row.transform, costStr, BrandGuide.FontHudCaption, defaultFont);
             costTMP.color = BrandGuide.TextSecondary;
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
-            costTMP.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
-            // コストが長い場合は省略せずフォントを自動縮小して全文表示する
+            costTMP.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            // 長いコストは折り返し、読み取れる文字サイズを保つ
             costTMP.enableAutoSizing = true;
-            costTMP.fontSizeMin = 11;
-            costTMP.fontSizeMax = BrandGuide.FontSmall + 2;
+            costTMP.fontSizeMin = 20;
+            costTMP.fontSizeMax = BrandGuide.FontHudCaption;
             var costLE = costTMP.gameObject.AddComponent<LayoutElement>();
-            costLE.preferredHeight = 28;
+            costLE.preferredHeight = 42;
             var costRT = costTMP.GetComponent<RectTransform>();
             costRT.offsetMin = new Vector2(8, 0);
         }
@@ -214,10 +214,10 @@ public class BuildSummonUIBuilder
         {
             string displayName = KindDisplayNames.TryGetValue(kind, out string dn) ? dn : kind.ToString();
             var btn = UIFactory.CreateButton("Summon_" + kind, content.transform,
-                displayName, BrandGuide.FontCaption, BrandGuide.BtnSummonEnabled, defaultFont);
+                displayName, BrandGuide.FontHud, BrandGuide.BtnSummonEnabled, defaultFont);
 
             var le = btn.gameObject.AddComponent<LayoutElement>();
-            le.preferredHeight = 36;
+            le.preferredHeight = 64;
 
             var bg = btn.GetComponent<Image>();
             summonButtons.Add((btn, bg, kind));

@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -219,7 +219,7 @@ public class TitleScreenUI : MonoBehaviour
 
     private Canvas FindFirstCanvas()
     {
-        return Object.FindFirstObjectByType<Canvas>();
+        return UIBuilder.ScreenCanvas;
     }
 
     private GameObject CreateTMPObject(string name, Transform parent, string text, float size, Color color)

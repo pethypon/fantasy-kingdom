@@ -189,6 +189,8 @@ public class MapCreate : MonoBehaviour
         if(!SavedLandOverrides.Contains(cell)) SavedLandOverrides.Add(cell);
     }
 
+    public float SurfaceTop(int x,int z) => topY[x,z] + 0.5f;
+
     public bool IsRiver(int x, int z) => rivers != null && x >= 0 && z >= 0 && x < maxX && z < maxZ && rivers[x, z];
 
     public bool IsHighMountain(int x, int z) => UseR1Terrain && topY != null
