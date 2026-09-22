@@ -1,0 +1,14 @@
+2026-09-22: Core 54 + Optimization 37 + Scene 43 + Visual 216 + StatusUI 11 = 361 passed.
+[StatusUI] PASS hover uses shared panel without action raycasts
+[StatusUI] PASS selection remains pinned after hover exit
+[StatusUI] PASS button command survives input sampling
+[StatusUI] PASS attack button enters attack state even without targets
+[StatusUI] PASS button command consumed once
+[StatusUI] PASS turn end button queues during attack mode
+[StatusUI] PASS turn end command consumed once
+[StatusUI] PASS cancel restores selected unit and move state
+[StatusUI] PASS hover preview cannot issue attack command
+[StatusUI] PASS upgrade and destroy occupy separate rows
+[StatusUI] PASS building effect does not overlap command column
+[SceneSmoke] ALL PASSED
+[ReleaseValidation] result=Succeeded errors=0 warnings=0 seconds=7.0

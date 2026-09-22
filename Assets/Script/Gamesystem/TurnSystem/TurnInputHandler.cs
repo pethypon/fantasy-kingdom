@@ -22,13 +22,18 @@ public class TurnInputHandler : MonoBehaviour
         if (gameaction == null) return;
 
         var ctx = _turn.Context;
+        var command = ctx.ConsumeUICommand();
+        if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen)
+            command = GameContext.UICommand.None;
+        bool overUI = UnityEngine.EventSystems.EventSystem.current != null
+            && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
         ctx.MoveInput        = gameaction.GamePlay.Move.ReadValue<Vector2>();
         ctx.ScrollInput      = gameaction.GamePlay.Scroll.ReadValue<float>();
-        ctx.LeftClickDown    = gameaction.GamePlay.LeftClick.WasPressedThisFrame();
-        ctx.RightClickDown   = gameaction.GamePlay.RightClick.WasPressedThisFrame();
-        ctx.TurnEndDown      = gameaction.GamePlay.TurnEnd.WasPressedThisFrame();
-        ctx.SelectNormalDown = gameaction.GamePlay.SelectNormal.WasPressedThisFrame();
-        ctx.SelectSkillDown  = gameaction.GamePlay.SelectSkill.WasPressedThisFrame();
+        ctx.LeftClickDown    = !overUI && gameaction.GamePlay.LeftClick.WasPressedThisFrame();
+        ctx.RightClickDown   = command == GameContext.UICommand.Cancel || gameaction.GamePlay.RightClick.WasPressedThisFrame();
+        ctx.TurnEndDown      = command == GameContext.UICommand.EndTurn || gameaction.GamePlay.TurnEnd.WasPressedThisFrame();
+        ctx.SelectNormalDown = command == GameContext.UICommand.Attack || gameaction.GamePlay.SelectNormal.WasPressedThisFrame();
+        ctx.SelectSkillDown  = command == GameContext.UICommand.Skill || gameaction.GamePlay.SelectSkill.WasPressedThisFrame();
         ctx.ToggleNSDown     = gameaction.GamePlay.ToggleNS.WasPressedThisFrame();
     }
 }

@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -48,6 +48,37 @@ public class UnitPanelUI : MonoBehaviour
 
     private Status currentUnit;
     private bool isBuilding;
+    private bool previewOnly;
+    private float nextRefresh;
+    private TextMeshProUGUI previewHint;
+    private TextMeshProUGUI headingText;
+    private void LateUpdate()
+    {
+        if (currentUnit == null || !currentUnit.IsAlive)
+        {
+            if (canvasGroup != null && canvasGroup.alpha > 0) Hide();
+            return;
+        }
+        if (HasSelection && Time.unscaledTime >= nextRefresh)
+        {
+            nextRefresh = Time.unscaledTime + 0.15f;
+            Refresh();
+        }
+    }
+    public bool HasSelection => currentUnit != null && !previewOnly;
+
+    public void Preview(Status unit)
+    {
+        if (HasSelection) return;
+        if (unit == null) { Hide(); return; }
+        currentUnit = unit;
+        previewOnly = true;
+        isBuilding = unit.type == Type.Building || unit.type == Type.Wall;
+        SetVisible(true);
+        Refresh();
+        canvasGroup.interactable = false;
+        canvasGroup.blocksRaycasts = false;
+    }
 
     // HPバー（動的生成）
     private Image hpBarFill;
@@ -60,10 +91,17 @@ public class UnitPanelUI : MonoBehaviour
             panelRoot = gameObject;
 
         AutoFindChildren();
+        headingText = FindTMP("StatusHeadingText");
         AutoFindReferences();
         BuildUpgradeUI();
         BuildDestroyUI();
         BuildHPBar();
+        previewHint = UIFactory.CreateTMP("PreviewHint", transform.Find("RightCommands"),
+            "プレビュー\nクリックで選択", BrandGuide.FontHud, UIFactory.LoadDefaultFont());
+        UIFactory.StretchFill(previewHint.rectTransform);
+        previewHint.color = BrandGuide.TextSecondary;
+        previewHint.raycastTarget = false;
+        previewHint.gameObject.SetActive(false);
 
         Hide();
     }
@@ -163,8 +201,8 @@ public class UnitPanelUI : MonoBehaviour
         upgradeArea = new GameObject("UpgradeArea", typeof(RectTransform));
         upgradeArea.transform.SetParent(parent, false);
         var areaRT = upgradeArea.GetComponent<RectTransform>();
-        areaRT.anchorMin = new Vector2(0.3f, 0);
-        areaRT.anchorMax = new Vector2(0.85f, 0.33f);
+        areaRT.anchorMin = new Vector2(0.6f, 0.38f);
+        areaRT.anchorMax = new Vector2(1f, 0.72f);
         areaRT.offsetMin = new Vector2(4, 4);
         areaRT.offsetMax = new Vector2(-4, -2);
 
@@ -177,7 +215,7 @@ public class UnitPanelUI : MonoBehaviour
         BrandGuide.ApplyButtonStyle(upgradeButton, BrandGuide.BtnUpgrade);
         var btnRT = btnGo.GetComponent<RectTransform>();
         btnRT.anchorMin = new Vector2(0, 0);
-        btnRT.anchorMax = new Vector2(0.4f, 1);
+        btnRT.anchorMax = new Vector2(0.34f, 1);
         btnRT.offsetMin = Vector2.zero;
         btnRT.offsetMax = Vector2.zero;
 
@@ -200,12 +238,12 @@ public class UnitPanelUI : MonoBehaviour
         var costGo = new GameObject("UpgradeCost", typeof(RectTransform));
         costGo.transform.SetParent(upgradeArea.transform, false);
         upgradeCostText = costGo.AddComponent<TextMeshProUGUI>();
-        upgradeCostText.fontSize = BrandGuide.FontHudCaption;
+        upgradeCostText.fontSize = 24;
         upgradeCostText.alignment = TextAlignmentOptions.MidlineLeft;
         upgradeCostText.color = BrandGuide.TextSecondary;
         upgradeCostText.textWrappingMode = TMPro.TextWrappingModes.Normal;
         var costRT = costGo.GetComponent<RectTransform>();
-        costRT.anchorMin = new Vector2(0.42f, 0);
+        costRT.anchorMin = new Vector2(0.36f, 0);
         costRT.anchorMax = new Vector2(1, 1);
         costRT.offsetMin = new Vector2(4, 0);
         costRT.offsetMax = Vector2.zero;
@@ -225,7 +263,7 @@ public class UnitPanelUI : MonoBehaviour
         destroyArea.transform.SetParent(parent, false);
         var areaRT = destroyArea.GetComponent<RectTransform>();
         areaRT.anchorMin = new Vector2(0.6f, 0);
-        areaRT.anchorMax = new Vector2(1f, 0.5f);
+        areaRT.anchorMax = new Vector2(1f, 0.34f);
         areaRT.offsetMin = new Vector2(4, 8);
         areaRT.offsetMax = new Vector2(-10, -2);
 
@@ -266,6 +304,7 @@ public class UnitPanelUI : MonoBehaviour
     {
         if (unit == null) return;
         currentUnit = unit;
+        previewOnly = false;
         isBuilding = (unit.type == Type.Building || unit.type == Type.Wall);
         SetVisible(true);
         Refresh();
@@ -274,8 +313,10 @@ public class UnitPanelUI : MonoBehaviour
     public void Hide()
     {
         currentUnit = null;
+        previewOnly = false;
         isBuilding = false;
         SetVisible(false);
+        if (previewHint != null) previewHint.gameObject.SetActive(false);
     }
 
     // --------------------------------------------------
@@ -285,10 +326,37 @@ public class UnitPanelUI : MonoBehaviour
     {
         if (currentUnit == null) return;
 
+        RefreshHeading();
         if (isBuilding)
             RefreshBuilding();
         else
             RefreshUnit();
+        if (previewHint != null) previewHint.gameObject.SetActive(previewOnly);
+        if (previewOnly)
+        {
+            SetButtonVisible(attackButton, false);
+            SetButtonVisible(skillButton, false);
+            SetButtonVisible(waitButton, false);
+            SetButtonVisible(cancelButton, false);
+            upgradeArea.SetActive(false);
+            destroyArea.SetActive(false);
+        }
+    }
+
+    private void RefreshHeading()
+    {
+        if (headingText == null) return;
+        string team = currentUnit.team switch
+        {
+            Team.Player => "味方", Team.Enemy => "敵軍", Team.Monster => "魔物",
+            Team.Intruder => "乱入者", Team.Obstacle => "強敵", _ => "中立"
+        };
+        string mode = previewOnly ? "プレビュー" : "選択中";
+        if (!previewOnly && turnGenerator != null && turnGenerator.Context.SelectUnit == currentUnit
+            && turnGenerator.CurrentState is PlayerAttack attack)
+            mode = attack.attackmode == PlayerMove.AttackMode.Skill ? "スキル対象を選択" : "攻撃対象を選択";
+        headingText.text = $"{team}  /  {(isBuilding ? "施設" : "ユニット")}    ・    {mode}";
+        headingText.color = currentUnit.team == Team.Player ? BrandGuide.TeamPlayer : BrandGuide.TextPrimary;
     }
 
     private void RefreshUnit()
@@ -307,9 +375,15 @@ public class UnitPanelUI : MonoBehaviour
             UpdateHPBar(hpRatio);
         }
 
+        if (levelText != null)
+        {
+            int remaining = Mathf.Max(0, Status.XPRequiredForLevel(currentUnit.Level + 1) - currentUnit.Experience);
+            levelText.text = currentUnit.Level >= 10 ? "Lv 10  <size=75%>MAX</size>"
+                : $"Lv {currentUnit.Level}\n<size=75%>次のレベルまで {remaining} XP</size>";
+        }
         // 中央: ステータス
-        if (atkText != null) atkText.text = "<b>ATK</b> " + currentUnit.ATK;
-        if (defText != null) defText.text = "<b>DEF</b> " + currentUnit.DEF;
+        if (atkText != null) atkText.text = "攻撃力  <b>" + currentUnit.ATK + "</b>";
+        if (defText != null) defText.text = "防御力  <b>" + currentUnit.DEF + "</b>";
         if (kindText != null)
         {
             // スキル名を表示
@@ -320,7 +394,7 @@ public class UnitPanelUI : MonoBehaviour
             }
             else
             {
-                kindText.text = currentUnit.kind.ToString();
+                kindText.text = KindNameJP.Get(currentUnit.kind);
             }
         }
         if (passiveText != null)
@@ -335,6 +409,8 @@ public class UnitPanelUI : MonoBehaviour
                 passiveText.text = "";
         }
 
+        UIFactory.SetAnchors(attackButton.GetComponent<RectTransform>(), 0, 0.5f, 0.5f, 1);
+        UIFactory.SetAnchors(cancelButton.GetComponent<RectTransform>(), 0.5f, 0, 1, 0.5f);
         // 敵ユニットは情報のみ表示（操作ボタン非表示）
         bool isPlayer = currentUnit.team == Team.Player;
         SetButtonVisible(attackButton, isPlayer);
@@ -380,8 +456,8 @@ public class UnitPanelUI : MonoBehaviour
         }
 
         // 中央: ステータス
-        if (atkText != null) atkText.text = currentUnit.ATK > 0 ? "<b>ATK</b> " + currentUnit.ATK : "";
-        if (defText != null) defText.text = currentUnit.DEF > 0 ? "<b>DEF</b> " + currentUnit.DEF : "";
+        if (atkText != null) atkText.text = currentUnit.ATK > 0 ? "攻撃力  <b>" + currentUnit.ATK + "</b>" : "";
+        if (defText != null) defText.text = currentUnit.DEF > 0 ? "防御力  <b>" + currentUnit.DEF + "</b>" : "";
 
         // 効果説明
         if (kindText != null)
@@ -391,7 +467,10 @@ public class UnitPanelUI : MonoBehaviour
 
         // 建築物用ボタン表示
         bool isOffensive = FacilityData.IsOffensive(facility);
-        SetButtonVisible(attackButton, isOffensive);
+        SetButtonVisible(attackButton, isOffensive && currentUnit.team == Team.Player);
+        SetButtonVisible(cancelButton, true);
+        UIFactory.SetAnchors(attackButton.GetComponent<RectTransform>(), 0, 0.76f, 0.5f, 1);
+        UIFactory.SetAnchors(cancelButton.GetComponent<RectTransform>(), 0.5f, 0.76f, 1, 1);
         SetButtonVisible(skillButton, false);
         SetButtonVisible(waitButton, false);
 
@@ -414,13 +493,13 @@ public class UnitPanelUI : MonoBehaviour
     {
         if (currentUnit == null) return;
 
-        bool canAttack = apSystem != null
+        bool canAttack = !StatusEffectSystem.IsStunned(currentUnit) && apSystem != null
             && apSystem.CanAct(Team.Player, APSystem.ActionType.Attack, currentUnit);
 
         if (attackButton != null)
         {
             attackButton.interactable = canAttack;
-            UpdateButtonLabel(attackButton, "攻撃 <size=70%>[1]</size>", GameConstants.BaseAttackAPCost, canAttack);
+            UpdateButtonLabel(attackButton, turnGenerator != null && turnGenerator.CurrentState is PlayerAttack attack && attack.attackmode == PlayerMove.AttackMode.Normal ? "攻撃モード" : "攻撃 <size=70%>[1]</size>", GameConstants.BaseAttackAPCost, canAttack);
         }
         if (skillButton != null)
         {
@@ -430,10 +509,10 @@ public class UnitPanelUI : MonoBehaviour
             if (hasSkill && SkillData.Table.TryGetValue(currentUnit.AssignedSkillId, out var skill))
             {
                 skillCost = skill.APCost;
-                canSkill = apSystem != null && apSystem.CanUseSkill(Team.Player, skillCost);
+                canSkill = !StatusEffectSystem.IsStunned(currentUnit) && apSystem != null && apSystem.CanUseSkill(Team.Player, skillCost);
             }
             skillButton.interactable = canSkill;
-            UpdateButtonLabel(skillButton, "スキル <size=70%>[2]</size>", skillCost, canSkill);
+            UpdateButtonLabel(skillButton, turnGenerator != null && turnGenerator.CurrentState is PlayerAttack skillAttack && skillAttack.attackmode == PlayerMove.AttackMode.Skill ? "スキルモード" : "スキル <size=70%>[2]</size>", skillCost, canSkill);
         }
         if (waitButton != null) waitButton.interactable = true;
     }
@@ -452,7 +531,7 @@ public class UnitPanelUI : MonoBehaviour
     private void UpdateUpgradeUI()
     {
         if (upgradeArea == null) return;
-        if (currentUnit == null || !isBuilding)
+        if (currentUnit == null || !isBuilding || currentUnit.team != Team.Player)
         {
             upgradeArea.SetActive(false);
             return;
@@ -498,36 +577,45 @@ public class UnitPanelUI : MonoBehaviour
     // --------------------------------------------------
     //  ボタン OnClick()
     // --------------------------------------------------
+    private bool CanIssueCommand()
+    {
+        return !previewOnly && currentUnit != null && currentUnit.team == Team.Player
+            && turnGenerator.Context.SelectUnit == currentUnit
+            && (turnGenerator.CurrentState is PlayerMove || turnGenerator.CurrentState is PlayerAttack);
+    }
+
     public void OnClickAttack()
     {
         if (turnGenerator == null) return;
-        turnGenerator.Context.SelectNormalDown = true;
+        if (!CanIssueCommand()) return;
+        turnGenerator.Context.QueueUICommand(GameContext.UICommand.Attack);
     }
 
     public void OnClickSkill()
     {
         if (turnGenerator == null) return;
-        turnGenerator.Context.SelectSkillDown = true;
+        if (!CanIssueCommand()) return;
+        turnGenerator.Context.QueueUICommand(GameContext.UICommand.Skill);
     }
 
     public void OnClickWait()
     {
         // Wait = このユニットのアクションを終了して選択解除。右クリック（Cancel）と同等。
         if (turnGenerator != null)
-            turnGenerator.Context.RightClickDown = true;
+            turnGenerator.Context.QueueUICommand(GameContext.UICommand.Cancel);
         Hide();
     }
 
     public void OnClickCancel()
     {
         if (turnGenerator == null) return;
-        turnGenerator.Context.RightClickDown = true;
+        turnGenerator.Context.QueueUICommand(GameContext.UICommand.Cancel);
         Hide();
     }
 
     public void OnClickUpgrade()
     {
-        if (currentUnit == null || !isBuilding) return;
+        if (currentUnit == null || !isBuilding || currentUnit.team != Team.Player) return;
         if (turnGenerator == null || turnGenerator.Systems.BuildSystem == null) return;
 
         if (turnGenerator.Systems.BuildSystem.TryUpgrade(currentUnit))
@@ -538,7 +626,7 @@ public class UnitPanelUI : MonoBehaviour
 
     public void OnClickDestroy()
     {
-        if (currentUnit == null || !isBuilding) return;
+        if (currentUnit == null || !isBuilding || currentUnit.team != Team.Player) return;
         if (turnGenerator == null) return;
 
         var subCrystalSystem = turnGenerator.Systems.SubCrystalSystem;

@@ -18,7 +18,7 @@ namespace TMPro.Examples
         public float MaxFollowDistance = 100.0f;
         public float MinFollowDistance = 2.0f;
 
-        public float ElevationAngle = 30.0f;
+        public float ElevationAngle = 15.0f;
         public float MaxElevationAngle = 85.0f;
         public float MinElevationAngle = 0f;
 

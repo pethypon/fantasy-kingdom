@@ -19,6 +19,7 @@ public class TopBarUI : MonoBehaviour
     [FormerlySerializedAs("turnGenerater")]
     [SerializeField] private TurnGenerator turnGenerator;
 
+    private Button endTurnButton;
     private int lastTurn = -1;
     private int lastTimerSecond = -1;
 
@@ -52,8 +53,21 @@ public class TopBarUI : MonoBehaviour
 
     private void Update()
     {
+        if (endTurnButton == null)
+            endTurnButton = transform.Find("RightArea/EndTurnButton")?.GetComponent<Button>();
+        if (endTurnButton != null)
+            endTurnButton.interactable = CanEndTurn();
         UpdateTurn();
         UpdateTimer();
+    }
+
+    private bool CanEndTurn() => turnGenerator != null
+        && (turnGenerator.CurrentState is PlayerMove || turnGenerator.CurrentState is PlayerAttack)
+        && (GameMenuUI.Instance == null || !GameMenuUI.Instance.IsOpen);
+
+    public void OnEndTurn()
+    {
+        if (CanEndTurn()) turnGenerator.Context.QueueUICommand(GameContext.UICommand.EndTurn);
     }
 
     private void UpdateTurn()

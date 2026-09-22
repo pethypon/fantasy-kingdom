@@ -34,29 +34,35 @@ public class PlayerAttack : TurnState
         if (Systems.InputHintUI != null)
             Systems.InputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
 
-        // 攻撃範囲内に敵がいない場合は PlayerMove へ戻る（ユニット選択は維持）
+        // 対象がいなくても攻撃モードを維持し、取消で選択へ戻れるようにする。
         if (Systems.AttackGenerator.AttackP == null || Systems.AttackGenerator.AttackP.Count == 0)
         {
             ToastMessageUI.Show("攻撃範囲内に対象がいません", ToastMessageUI.MessageType.Warning);
-            Systems.AttackGenerator.AtkpDestroy();
-            Turn.ChangeState(move);
-            if (move.SelectedUnit != null)
-            {
-                Systems.MoveGenerator.MoveCore(move.SelectedUnit, move.SelectedUnit.transform.position);
-                Systems.UnitPanelUI?.Show(move.SelectedUnit);
-            }
             return;
         }
     }
 
     public override void Update()
     {
+        if (Context.TurnEndDown)
+        {
+            Reset();
+            move.ExecuteTurnEnd();
+            return;
+        }
         if (AttackSuccess)
         {
             HandleAttackSuccess();
             return;
         }
 
+        if (Context.SelectNormalDown || Context.SelectSkillDown)
+        {
+            Reset();
+            move.CurrentAttackMode = Context.SelectSkillDown ? PlayerMove.AttackMode.Skill : PlayerMove.AttackMode.Normal;
+            Turn.ChangeState(new PlayerAttack(Turn, move, move.CurrentAttackMode));
+            return;
+        }
         HandleAttackClick();
         HandleCancelAttack();
     }
@@ -189,6 +195,11 @@ public class PlayerAttack : TurnState
     {
         if (!Context.RightClickDown) return;
         Reset();
-        Turn.ChangeState(new PlayerMove(Turn));
+        Turn.ChangeState(move);
+        if (move.SelectedUnit != null && move.SelectedUnit.IsAlive)
+        {
+            Systems.MoveGenerator.MoveCore(move.SelectedUnit, move.SelectedUnit.transform.position);
+            Systems.UnitPanelUI?.Show(move.SelectedUnit);
+        }
     }
 }

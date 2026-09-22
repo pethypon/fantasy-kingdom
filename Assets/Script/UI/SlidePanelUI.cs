@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -103,6 +103,7 @@ public class SlidePanelUI : MonoBehaviour
 
     public void OpenBuildPanel()
     {
+        SetTitle("建築 ・ 施設一覧");
         if (buildRoot != null) buildRoot.SetActive(true);
         if (unitRoot != null) unitRoot.SetActive(false);
         Open();
@@ -124,6 +125,7 @@ public class SlidePanelUI : MonoBehaviour
 
     public void OpenUnitPanel()
     {
+        SetTitle("召喚 ・ ユニット一覧");
         if (buildRoot != null) buildRoot.SetActive(false);
         if (unitRoot != null) unitRoot.SetActive(true);
         Open();
@@ -148,6 +150,11 @@ public class SlidePanelUI : MonoBehaviour
         targetPos = new Vector2(openX, panelRect.anchoredPosition.y);
     }
 
+    private void SetTitle(string title)
+    {
+        var label = transform.Find("Header/Title")?.GetComponent<TMPro.TextMeshProUGUI>();
+        if (label != null) label.text = title;
+    }
     public bool IsOpen => isOpen;
 
     // ---- パネルが開かれた時のコールバック ----

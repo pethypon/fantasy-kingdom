@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -20,9 +20,9 @@ public class ToastMessageUI : MonoBehaviour
     private const int MaxToasts = 5;
     private const float DefaultDuration = 3f;
     private const float FadeOutTime = 0.5f;
-    private const float ToastHeight = 36f;
+    private const float ToastHeight = 72f;
     private const float ToastSpacing = 4f;
-    private const float ToastWidth = 450f;
+    private const float ToastWidth = 520f;
 
     private struct ToastEntry
     {
@@ -74,14 +74,14 @@ public class ToastMessageUI : MonoBehaviour
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
 
-        // Container（画面右下）
+        // Container（右上、資源バーの下。下部の操作ボタンと重ねない）
         var containerGo = new GameObject("ToastContainer");
         containerGo.transform.SetParent(canvasGo.transform, false);
         _containerRect = containerGo.AddComponent<RectTransform>();
-        _containerRect.anchorMin = new Vector2(1, 0);
-        _containerRect.anchorMax = new Vector2(1, 0);
-        _containerRect.pivot = new Vector2(1, 0);
-        _containerRect.anchoredPosition = new Vector2(-20, 120);
+        _containerRect.anchorMin = new Vector2(1, 1);
+        _containerRect.anchorMax = new Vector2(1, 1);
+        _containerRect.pivot = new Vector2(1, 1);
+        _containerRect.anchoredPosition = new Vector2(-20, -140);
         _containerRect.sizeDelta = new Vector2(ToastWidth, 300);
     }
 
@@ -120,9 +120,9 @@ public class ToastMessageUI : MonoBehaviour
 
         var rect = toastGo.AddComponent<RectTransform>();
         rect.sizeDelta = new Vector2(ToastWidth, ToastHeight);
-        rect.anchorMin = new Vector2(0, 0);
-        rect.anchorMax = new Vector2(1, 0);
-        rect.pivot = new Vector2(0.5f, 0);
+        rect.anchorMin = new Vector2(0.5f, 1);
+        rect.anchorMax = new Vector2(0.5f, 1);
+        rect.pivot = new Vector2(0.5f, 1);
 
         // 背景
         var bg = toastGo.AddComponent<Image>();
@@ -137,7 +137,7 @@ public class ToastMessageUI : MonoBehaviour
         textGo.transform.SetParent(toastGo.transform, false);
         var text = textGo.AddComponent<TextMeshProUGUI>();
         text.text = message;
-        text.fontSize = BrandGuide.FontCaption;
+        text.fontSize = BrandGuide.FontHud;
         text.color = TypeColors.TryGetValue(type, out var c) ? c : Color.white;
         text.alignment = TextAlignmentOptions.Left;
         text.overflowMode = TextOverflowModes.Ellipsis;
@@ -208,7 +208,7 @@ public class ToastMessageUI : MonoBehaviour
     {
         for (int i = 0; i < _activeToasts.Count; i++)
         {
-            _activeToasts[i].Rect.anchoredPosition = new Vector2(0, i * (ToastHeight + ToastSpacing));
+            _activeToasts[i].Rect.anchoredPosition = new Vector2(0, -i * (ToastHeight + ToastSpacing));
         }
     }
 }

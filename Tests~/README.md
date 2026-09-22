@@ -13,3 +13,6 @@ GCの検証にはUnity ProfilerRecorderを使用し、既知の割り当てを�
 結果はOptimizationValidationResults.txt、実装と測定条件は../Docs/TerrainOptimization_R1.mdを参照。
 
 2026-09-21追記: 最新のSceneSmokeではVisualRegressionTests.csもコピー先Assets/Editorへ配置する。合計350項目。表示崩れの画像を出す場合は -nographics を省略する。画像はコピー先の隣のvisual-capturesへ出力される。
+2026-09-21 UI追記: StatusUIRegressionTests.csもAssets/Editorへ配置する。ホバー統合・選択固定・ボタン入力保持・攻撃移行・取消・施設レイアウトの9項目を追加し、合計359項目。
+頭上HPバーの個別検証: HeadHPRegressionTests.cs を隔離コピーの Assets/Editor に配置し、-batchmode -nographics -quit -executeMethod HeadHPRegressionTests.Run で実行する。負傷生成、実際の経験値によるレベルアップ、最大HPのみの変更、回復、被ダメージ、死亡表示を検証する。
+2026-09-22: StatusUIRegressionTestsはターン終了入力の保持・一度だけの消費を加え11項目。SceneSmoke全体で361項目。

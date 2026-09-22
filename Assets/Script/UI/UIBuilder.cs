@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -213,7 +213,7 @@ public class UIBuilder : MonoBehaviour
         var timerArea = new GameObject("TimerArea", typeof(RectTransform));
         timerArea.transform.SetParent(rightArea, false);
         var timerAreaRT = timerArea.GetComponent<RectTransform>();
-        timerAreaRT.sizeDelta = new Vector2(300, 56);
+        timerAreaRT.sizeDelta = new Vector2(240, 56);
 
         // バー背景
         var timerBg = new GameObject("TimerBg", typeof(RectTransform));
@@ -237,6 +237,10 @@ public class UIBuilder : MonoBehaviour
         timerText.alignment = TextAlignmentOptions.Center;
         StretchFill(timerText.GetComponent<RectTransform>());
 
+        var endTurn = CreateButton("EndTurnButton", rightArea, "ターン終了", BrandGuide.FontHudCaption,
+            BrandGuide.BtnBuild);
+        endTurn.GetComponent<RectTransform>().sizeDelta = new Vector2(160, 56);
+
         // メニューボタン
         var menuBtn = CreateButton("MenuButton", rightArea, "メニュー", BrandGuide.FontHud,
             BrandGuide.BtnMenu);
@@ -249,6 +253,7 @@ public class UIBuilder : MonoBehaviour
         });
 
         TopBar = bar.gameObject.AddComponent<TopBarUI>();
+        endTurn.onClick.AddListener(TopBar.OnEndTurn);
     }
 
     private void CreateResourceCell(string name, RectTransform parent, Color bgColor)
@@ -385,13 +390,22 @@ public class UIBuilder : MonoBehaviour
     {
         var panel = CreatePanel("BottomUnitPanel", canvas.transform,
             new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0),
-            new Vector2(1000, 210));
+            new Vector2(1100, 260));
         // 操作ヒントバー(48px)の上に余白を確保する
         panel.anchoredPosition = new Vector2(0, 60);
 
         AddImage(panel.gameObject, BrandGuide.PanelBgLight);
         BrandGuide.AddTopBorder(panel);
 
+        var heading = CreatePanel("StatusHeading", panel,
+            new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 0), new Vector2(0, 42));
+        AddImage(heading.gameObject, new Color(0.12f, 0.15f, 0.22f, 0.98f));
+        var headingText = CreateTMP("StatusHeadingText", heading, "", BrandGuide.FontHudCaption);
+        StretchFill(headingText.rectTransform);
+        headingText.rectTransform.offsetMin = new Vector2(16, 0);
+        headingText.rectTransform.offsetMax = new Vector2(-16, 0);
+        headingText.alignment = TextAlignmentOptions.MidlineLeft;
+        headingText.fontStyle = FontStyles.Bold;
         var cg = panel.gameObject.AddComponent<CanvasGroup>();
 
         // ---- LeftInfo ----
@@ -426,16 +440,16 @@ public class UIBuilder : MonoBehaviour
 
         var atkText = CreateTMP("ATKText", center, "ATK 0", BrandGuide.FontHud);
         atkText.color = new Color(1f, 0.75f, 0.60f);
-        SetAnchors(atkText, 0, 0.66f, 1, 1);
+        SetAnchors(atkText, 0, 0.75f, 1, 1);
         var defText = CreateTMP("DEFText", center, "DEF 0", BrandGuide.FontHud);
         defText.color = new Color(0.60f, 0.82f, 1f);
-        SetAnchors(defText, 0, 0.33f, 1, 0.66f);
+        SetAnchors(defText, 0, 0.50f, 1, 0.75f);
         var kindText = CreateTMP("KindText", center, "", BrandGuide.FontHudCaption);
         kindText.color = BrandGuide.TextSecondary;
-        SetAnchors(kindText, 0, 0, 0.5f, 0.33f);
+        SetAnchors(kindText, 0, 0.25f, 1, 0.50f);
         var passiveText = CreateTMP("PassiveText", center, "", BrandGuide.FontHudCaption);
         passiveText.color = BrandGuide.TextSecondary;
-        SetAnchors(passiveText, 0.5f, 0, 1, 0.33f);
+        SetAnchors(passiveText, 0, 0, 1, 0.25f);
 
         // ---- RightCommands ----
         var right = CreatePanel("RightCommands", panel,
@@ -447,16 +461,16 @@ public class UIBuilder : MonoBehaviour
         right.offsetMin = new Vector2(4, 8);
         right.offsetMax = new Vector2(-10, -8);
 
-        var attackBtn = CreateButton("AttackBtn", right, "攻撃", BrandGuide.FontHudCaption,
+        var attackBtn = CreateButton("AttackBtn", right, "攻撃", BrandGuide.FontHud,
             BrandGuide.BtnAttack);
         SetAnchors(attackBtn.GetComponent<RectTransform>(), 0, 0.5f, 0.5f, 1);
-        var skillBtn = CreateButton("SkillBtn", right, "スキル", BrandGuide.FontHudCaption,
+        var skillBtn = CreateButton("SkillBtn", right, "スキル", BrandGuide.FontHud,
             BrandGuide.BtnSkill);
         SetAnchors(skillBtn.GetComponent<RectTransform>(), 0.5f, 0.5f, 1, 1);
-        var waitBtn = CreateButton("WaitBtn", right, "待機", BrandGuide.FontHudCaption,
+        var waitBtn = CreateButton("WaitBtn", right, "待機", BrandGuide.FontHud,
             BrandGuide.BtnWait);
         SetAnchors(waitBtn.GetComponent<RectTransform>(), 0, 0, 0.5f, 0.5f);
-        var cancelBtn = CreateButton("CancelBtn", right, "取消", BrandGuide.FontHudCaption,
+        var cancelBtn = CreateButton("CancelBtn", right, "取消", BrandGuide.FontHud,
             BrandGuide.BtnCancel);
         SetAnchors(cancelBtn.GetComponent<RectTransform>(), 0.5f, 0, 1, 0.5f);
 

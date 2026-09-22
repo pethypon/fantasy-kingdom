@@ -60,7 +60,7 @@ public class ActionLogUI : MonoBehaviour
         panelRT.pivot = new Vector2(1f, 0f);
         // AP パネル上端(y=120)から 8px の余白を空けて配置
         panelRT.anchoredPosition = new Vector2(-20, 168);
-        panelRT.sizeDelta = new Vector2(360, 260);
+        panelRT.sizeDelta = new Vector2(320, 260);
 
         var bg = panelGo.AddComponent<Image>();
         bg.color = new Color(0.03f, 0.03f, 0.05f, 0.65f);

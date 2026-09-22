@@ -36,6 +36,16 @@ public class GameContext
     public bool SelectSkillDown { get; set; }
     public bool ToggleNSDown { get; set; }
 
+    public enum UICommand { None, Attack, Skill, Cancel, EndTurn }
+    private UICommand pendingUICommand;
+    public void QueueUICommand(UICommand command) => pendingUICommand = command;
+    public UICommand ConsumeUICommand()
+    {
+        var command = pendingUICommand;
+        pendingUICommand = UICommand.None;
+        return command;
+    }
+
     /// <summary>選択状態をクリアする</summary>
     public void ClearSelection()
     {

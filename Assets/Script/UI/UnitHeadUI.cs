@@ -9,7 +9,8 @@ using UnityEngine.UI;
 public class UnitHeadUI : MonoBehaviour
 {
     private Status status;
-    private int maxHP;
+    private int cachedMaxHP = -1;
+    private TextMeshProUGUI hpText;
     private Image hpFillImage;
     private TextMeshProUGUI lvText;
     private Canvas canvas;
@@ -32,7 +33,6 @@ public class UnitHeadUI : MonoBehaviour
 
         var ui = unitObj.AddComponent<UnitHeadUI>();
         ui.status = status;
-        ui.maxHP = Mathf.Max(1, status.HP);
         ui.unitRenderer = unitObj.GetComponentInChildren<Renderer>();
         ui.Build();
         return ui;
@@ -133,7 +133,7 @@ public class UnitHeadUI : MonoBehaviour
         fillRT.offsetMax = new Vector2(-1, -1);
 
         // HP テキスト
-        var hpText = CreateText("HPText", hpBar.transform, "HP", 10);
+        hpText = CreateText("HPText", hpBar.transform, "", 10);
         hpText.alignment = TextAlignmentOptions.Center;
         var hpTextRT = hpText.GetComponent<RectTransform>();
         hpTextRT.anchorMin = Vector2.zero;
@@ -176,19 +176,10 @@ public class UnitHeadUI : MonoBehaviour
         }
 
         // 値が変わった時だけ更新
-        if (cachedHP != status.HP || cachedLevel != status.Level)
+        if (cachedHP != status.HP || cachedMaxHP != status.MaxHP || cachedLevel != status.Level)
         {
             Refresh();
         }
-    }
-
-    /// <summary>
-    /// maxHP を再設定する（レベルアップ時など）。
-    /// </summary>
-    public void ResetMaxHP(int newMax)
-    {
-        maxHP = Mathf.Max(1, newMax);
-        Refresh();
     }
 
     private void Refresh()
@@ -196,6 +187,9 @@ public class UnitHeadUI : MonoBehaviour
         if (status == null) return;
 
         cachedHP = status.HP;
+        cachedMaxHP = status.MaxHP;
+        if (hpText != null)
+            hpText.text = $"{cachedHP}/{Mathf.Max(1, cachedMaxHP)}";
         cachedLevel = status.Level;
 
         // Lv テキスト
@@ -205,7 +199,7 @@ public class UnitHeadUI : MonoBehaviour
         // HP バー
         if (hpFillImage != null)
         {
-            float ratio = Mathf.Clamp01((float)cachedHP / maxHP);
+            float ratio = Mathf.Clamp01((float)cachedHP / Mathf.Max(1, cachedMaxHP));
             var fillRT = hpFillImage.GetComponent<RectTransform>();
             fillRT.anchorMax = new Vector2(ratio, 1);
 
