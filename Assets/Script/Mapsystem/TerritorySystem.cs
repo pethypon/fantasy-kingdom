@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class TerritorySystem : MonoBehaviour
@@ -39,21 +39,29 @@ public class TerritorySystem : MonoBehaviour
                 ETSetPos.Add(p);
         }
 
-        SpawnTerritoryTiles(PTSetPos, PlayerTerritory, Playerterritory);
-        SpawnTerritoryTiles(ETSetPos, EnemyTerritory, Enemyterritory);
+        RefreshVisuals();
     }
 
-    private void SpawnTerritoryTiles(List<Vector3> positions, GameObject prefab, Transform parent)
+    private TerritoryRegionOverlay playerOverlay, enemyOverlay;
+    private TerritoryRegionOverlay GetOverlay(ref TerritoryRegionOverlay overlay, Transform parent, string label)
     {
-        for (int i = 0; i < positions.Count; i++)
-        {
-            Vector3 pos = positions[i];
-            pos.y -= 0.475f;
-            Instantiate(prefab, pos, Quaternion.identity, parent);
-        }
-        Debug.Log($"<color=#ffff00ff>[StartSetting]</color> 領地設置完了 ({positions.Count}マス)");
+        if(overlay) return overlay;
+        var root=new GameObject(label);
+        root.transform.SetParent(parent,true);
+        overlay=root.AddComponent<TerritoryRegionOverlay>();
+        return overlay;
     }
-
+    public void RefreshVisuals()
+    {
+        var crystals=GetComponent<CrystalSystem>();
+        if(!crystals) return;
+        GetOverlay(ref playerOverlay,Playerterritory,"Player territory region").SetCells(PTSetPos,crystals.PCP,new Color(.18f,.72f,1f),false);
+        GetOverlay(ref enemyOverlay,Enemyterritory,"Enemy territory region").SetCells(ETSetPos,crystals.ECP,new Color(1f,.25f,.23f),true);
+    }
+    public void RefreshEnemyVisibility(HashSet<Vector3Int> visible)
+    {
+        if(enemyOverlay) enemyOverlay.SetVisibleCells(visible);
+    }
     // ==================================================================
     //  クエリメソッド（外部システムからの Feature Envy を解消）
     // ==================================================================

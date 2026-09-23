@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -22,8 +22,7 @@ public class SubCrystalSystem : MonoBehaviour
     // ---- サブクリスタル領地データ ----
     // 各サブクリスタルが所有する領地位置のマッピング
     private Dictionary<GameObject, List<Vector3>> subCrystalTerritories = new Dictionary<GameObject, List<Vector3>>();
-    // 各サブクリスタルが生成した領地タイルオブジェクト
-    private Dictionary<GameObject, List<GameObject>> subCrystalTerritoryTiles = new Dictionary<GameObject, List<GameObject>>();
+
 
     // ---- 定数 ----
     public const int SubCrystalTerritoryRadius = 1;
@@ -83,7 +82,7 @@ public class SubCrystalSystem : MonoBehaviour
         // 既存領地と重複しないものだけ追加
         List<Vector3> ptSetPos = territorysystem.GetTerritory(team);
         List<Vector3> addedPositions = new List<Vector3>();
-        List<GameObject> addedTiles = new List<GameObject>();
+
 
         foreach (var tPos in newTerritory)
         {
@@ -94,22 +93,11 @@ public class SubCrystalSystem : MonoBehaviour
                 ptSetPos.Add(tPos);
                 addedPositions.Add(tPos);
 
-                // 領地タイルを生成
-                Vector3 tilePos = tPos;
-                tilePos.y -= 0.475f;
-                Transform parent = team == Team.Player
-                    ? territorysystem.Playerterritory
-                    : territorysystem.Enemyterritory;
-
-                // TerritorySystem の Inspector で設定されたプレハブを使用
-                // フォールバック: 緑の平面を生成
-                GameObject tile = CreateTerritoryTile(tilePos, parent);
-                addedTiles.Add(tile);
             }
         }
 
         subCrystalTerritories[subCrystal] = addedPositions;
-        subCrystalTerritoryTiles[subCrystal] = addedTiles;
+        territorysystem.RefreshVisuals();
 
         Debug.Log($"[SubCrystalSystem] 領地拡張: {addedPositions.Count}マス追加 (計{ptSetPos.Count}マス)");
     }
@@ -143,15 +131,7 @@ public class SubCrystalSystem : MonoBehaviour
             }
         }
 
-        // 領地タイルを破棄
-        if (subCrystalTerritoryTiles.TryGetValue(subCrystal, out var tiles))
-        {
-            foreach (var tile in tiles)
-            {
-                if (tile != null) Destroy(tile);
-            }
-            subCrystalTerritoryTiles.Remove(subCrystal);
-        }
+        territorysystem.RefreshVisuals();
 
         // 5ターン後にサブクリスタル資源を返却（即時回復ではない）
         if (factionState != null)
@@ -293,40 +273,4 @@ public class SubCrystalSystem : MonoBehaviour
             || GridHelper.ToGrid(crystalsystem.ECP) == pos;
     }
 
-    // ==================================================================
-    //  領地タイル生成ヘルパー
-    // ==================================================================
-    private GameObject CreateTerritoryTile(Vector3 pos, Transform parent)
-    {
-        // TerritorySystem の Inspector 設定プレハブと同じ見た目のタイルを生成
-        var tile = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        tile.name = "SubCrystalTerritory";
-        tile.transform.position = pos;
-        tile.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-        tile.transform.localScale = new Vector3(1f, 1f, 1f);
-        tile.transform.SetParent(parent);
-
-        // コライダーを無効化
-        var col = tile.GetComponent<Collider>();
-        if (col != null) col.enabled = false;
-
-        // 半透明の色を設定
-        var renderer = tile.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            var mat = new Material(Shader.Find("Standard"));
-            mat.SetFloat("_Mode", 3);
-            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            mat.SetInt("_ZWrite", 0);
-            mat.DisableKeyword("_ALPHATEST_ON");
-            mat.EnableKeyword("_ALPHABLEND_ON");
-            mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            mat.renderQueue = 3000;
-            mat.color = new Color(0.2f, 0.6f, 1f, 0.3f);
-            renderer.material = mat;
-        }
-
-        return tile;
-    }
 }

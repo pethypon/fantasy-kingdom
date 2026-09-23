@@ -242,7 +242,7 @@ public static class GameConstants
     //  カメラ
     // =====================================================================
     /// <summary>カメラFOV最小値</summary>
-    public const float CameraFOVMin = 30f;
+    public const float CameraFOVMin = 10f;
     /// <summary>カメラFOV最大値</summary>
     public const float CameraFOVMax = 90f;
     /// <summary>カメラ移動速度</summary>

@@ -658,7 +658,7 @@ public class VisionGenerator : MonoBehaviour
         SetRendererVisibility(EnemyUnit, playervisionXZ);
         if (NeutralParent != null) SetRendererVisibility(NeutralParent, playervisionXZ);
         SetRendererVisibility(crystalsystem.Enemycrystal, playervisionXZ);
-        SetRendererVisibility(territorysystem.Enemyterritory, playervisionXZ);
+        territorysystem.RefreshEnemyVisibility(playervisionXZ);
 
         // 敵建築物をプレイヤー視界外で非表示にする
         if (_enemyBuildingParent != null)

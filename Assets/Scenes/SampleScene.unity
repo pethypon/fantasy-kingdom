@@ -189,7 +189,7 @@ Light:
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 0.9811321, g: 0.9423571, b: 0.83766466, a: 1}
-  m_Intensity: 1
+  m_Intensity: 1.5
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -342,6 +342,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildBossSystem
   wildBossPrefab: {fileID: 0}
   parent: {fileID: 1887303472}
+  showTerritoryDebug: 0
   wildBossTerritoryPrefab: {fileID: 0}
   wildBossTerritoryParent: {fileID: 34347608}
 --- !u!4 &1125776107 stripped
@@ -494,6 +495,22 @@ PrefabInstance:
       propertyPath: _CameraTransform
       value: 
       objectReference: {fileID: 924636555}
+    - target: {fileID: 2016138472223423674, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: KingPiece
+      value: 
+      objectReference: {fileID: 7391742572600562189, guid: 27cbaddc0c6533b49895b7b4cfbc50bb, type: 3}
+    - target: {fileID: 2016138472223423674, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: ScoutPiece
+      value: 
+      objectReference: {fileID: 972230474144479163, guid: e8cf342b929096044a44ec7ade58ae5b, type: 3}
+    - target: {fileID: 2016138472223423674, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: ArcherPiece
+      value: 
+      objectReference: {fileID: 7391742572600562189, guid: 27cbaddc0c6533b49895b7b4cfbc50bb, type: 3}
+    - target: {fileID: 2016138472223423674, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: KnightPiece
+      value: 
+      objectReference: {fileID: 6126673137768451475, guid: 1c0e9fcc3458a01438c9c62fe0aef15b, type: 3}
     - target: {fileID: 4499551948389444497, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -542,6 +559,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameGenerator
       objectReference: {fileID: 0}
+    - target: {fileID: 7352426302764300076, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
+      propertyPath: unitPrefabs.Array.data[0].prefab
+      value: 
+      objectReference: {fileID: 5702459098739905946, guid: ad985085cd9a19e45be1d6b42b1e4d8c, type: 3}
     - target: {fileID: 7962283582702066516, guid: 259ea4b7c36d96645be7a8935818daff, type: 3}
       propertyPath: moveGenerator
       value: 

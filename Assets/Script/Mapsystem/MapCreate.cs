@@ -148,6 +148,9 @@ public class MapCreate : MonoBehaviour
         FogChunks = new GameObject("FogChunks").AddComponent<FogChunkRenderer>();
         FogChunks.transform.SetParent(transform, false);
         FogChunks.Initialize(this, Fog, FogExploard, FogBoard, FogExploardBoard);
+        var grid = GetComponent<MapGridOverlay>();
+        if (grid == null) grid = gameObject.AddComponent<MapGridOverlay>();
+        grid.Rebuild(this);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color> マップ・Fog 完了");
     }
 

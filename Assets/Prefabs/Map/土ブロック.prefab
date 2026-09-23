@@ -63,10 +63,12 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4b31d84f0ccf8c543b7cbce72ff16665, type: 2}
+  - {fileID: 2100000, guid: abf4f30414fd14b40a8e51e3ddc21f6b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -84,9 +86,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4153079545514166097
 BoxCollider:
@@ -126,7 +130,37 @@ MonoBehaviour:
   type: 3
   state: 0
   skill: 0
+  direction: 0
   passiveskill: 0
+  isWildBoss: 0
+  wildBossTerritoryCenter: {x: 0, y: 0, z: 0}
+  wildBossTerritoryRadius: 2
+  wildBossArchetype: 0
+  wildBossAP: 0
+  wildBossMaxAP: 0
+  wildBossTurnCounter: 0
+  wildBossCounterTurns: 0
+  wildBossAtkBuffTurns: 0
+  wildBossPhase2Active: 0
+  wildBossCurrentThreat: 25
   HP: 0
   ATK: 0
   DEF: 0
+  Level: 1
+  Fatigue: 0
+  UpkeepUnpaidTurns: 0
+  Experience: 0
+  ShieldTurns: 0
+  ShieldActivated: 0
+  ShieldEverActivated: 0
+  MaxHP: 0
+  facilityKind: 0
+  ActiveEffects: []
+  AssignedSkillId: -1
+  SkillCooldown: 0
+  specialAbility: 0
+  HasMovedThisTurn: 0
+  SurvivalInstinctUsed: 0
+  FirstSkillUsedThisTurn: 0
+  DebuffNullifiedThisTurn: 0
+  InterceptUsedThisTurn: 0
