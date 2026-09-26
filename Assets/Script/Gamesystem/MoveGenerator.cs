@@ -52,6 +52,25 @@ public class MoveGenerator : MonoBehaviour
     /// <summary>移動可能位置の読み取り専用ビュー</summary>
     public IReadOnlyList<Vector3> MovePositions => _movePositions;
 
+    /// <summary>Shared by hover and click: only an unobscured, active move marker is actionable.</summary>
+    public bool TryGetMoveDestination(Ray ray, out RaycastHit hit, out Vector3 destination)
+    {
+        destination = default;
+        if (!Physics.Raycast(ray, out hit, GameConstants.DefaultRayDistance)) return false;
+        if (Move == null || !hit.transform.IsChildOf(Move)) return false;
+        var marker = hit.transform;
+        while (marker.parent != Move && marker.parent != null) marker = marker.parent;
+        if (!marker.gameObject.activeInHierarchy) return false;
+        var candidate = marker.position + Vector3.up * GameConstants.MovePointYOffset;
+        for (int i = 0; i < _movePositions.Count; i++)
+        {
+            if ((_movePositions[i] - candidate).sqrMagnitude >= .001f) continue;
+            destination = _movePositions[i];
+            return true;
+        }
+        return false;
+    }
+
     // ---- UnitPointData の操作メソッド ----
     /// <summary>指定セル座標が占有されているか</summary>
     public bool IsOccupied(Vector3 cellPos) => _unitPoints.Contains(cellPos);

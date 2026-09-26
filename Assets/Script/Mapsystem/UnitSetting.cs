@@ -69,15 +69,29 @@ public class UnitSetting : MonoBehaviour
     /// ゲーム中の新規生成はすべてこのメソッド経由で行う（駒の生成と適用を担保）。
     /// </summary>
     public GameObject SpawnUnit(GameObject prefab, Vector3 pos,
-                                Transform parent, int level = 1)
+                                Transform parent, int level = 1, Kind? initialKind = null, Team? initialTeam = null)
     {
         var obj = Instantiate(prefab, pos, Quaternion.identity, parent);
 
         var status = obj.GetComponentInChildren<Status>();
+        // Initial slots define gameplay identity even when the supplied prefab is only a model.
+        if (status == null && initialKind.HasValue) status = obj.AddComponent<Status>();
         if (status == null)
         {
             Debug.LogWarning($"[UnitSetting] {prefab.name} にStatusがありません");
             return obj;
+        }
+
+        if (initialKind.HasValue) { status.kind = initialKind.Value; status.type = Type.Unit; }
+        if (initialTeam.HasValue)
+        {
+            status.team = initialTeam.Value;
+            status.direction = status.team == Team.Player ? Direction.N : Direction.S;
+        }
+        if (initialKind.HasValue && obj.GetComponentInChildren<Collider>() == null)
+        {
+            var collider = obj.AddComponent<BoxCollider>();
+            collider.center = Vector3.up * .35f; collider.size = new Vector3(.8f,1f,.8f);
         }
 
         if (UnitDataMap.TryGetValue(status.kind, out UnitData data))
@@ -130,13 +144,13 @@ public class UnitSetting : MonoBehaviour
 
         if (KingPoint.Count == 0) { Debug.LogError("[UnitSetting] 王の配置候補なし"); return; }
         Vector3 KP = KingPoint[Random.Range(0, KingPoint.Count)];
-        SpawnUnit(KingPiece, KP, PlayerUnit);
+        SpawnUnit(KingPiece, KP, PlayerUnit, initialKind: Kind.King, initialTeam: Team.Player);
         usedPlayer.Add(KP);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>王設置");
 
         if (StrangePoint.Count == 0) { Debug.LogError("[UnitSetting] 異形の王の配置候補なし"); return; }
         Vector3 SP = StrangePoint[Random.Range(0, StrangePoint.Count)];
-        SpawnUnit(StrangePiece, SP, EnemyUnit);
+        SpawnUnit(StrangePiece, SP, EnemyUnit, initialKind: Kind.Boss, initialTeam: Team.Enemy);
         usedEnemy.Add(SP);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>異形の王設置");
 
@@ -191,7 +205,7 @@ public class UnitSetting : MonoBehaviour
             candidates.RemoveAt(idx);
             usedPositions.Add(pos);
 
-            var obj = SpawnUnit(prefab, pos, parent);
+            var obj = SpawnUnit(prefab, pos, parent, initialKind: kind, initialTeam: team);
             var status = obj.GetComponentInChildren<Status>();
             if (status != null)
             {

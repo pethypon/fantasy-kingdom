@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
@@ -27,7 +27,7 @@ public class InputHintUI : MonoBehaviour
             "<color=#AAD4FF>[2]</color> スキル  " +
             "<color=#AAD4FF>[Q/E]</color> 向き  " +
             "<color=#AAD4FF>[Z]</color> 移動取消  " +
-            "<color=#AAD4FF>[Tab]</color> 次ユニット  " +
+            "<color=#AAD4FF>[Tab / Shift+Tab]</color> 次 / 前ユニット  " +
             "<color=#AAD4FF>[Enter]</color> ターン終了";
 
         public const string PlayerAttack =
@@ -42,12 +42,12 @@ public class InputHintUI : MonoBehaviour
         public const string BuildMode =
             "<color=#AAFFAA>[左クリック]</color> 設置  " +
             "<color=#AAFFAA>[右クリック]</color> キャンセル  " +
-            "<color=#AAFFAA>[Enter/Shift]</color> ターン終了";
+            "<color=#AAFFAA>[Enter]</color> ターン終了";
 
         public const string SummonMode =
             "<color=#DDAAFF>[左クリック]</color> 召喚  " +
             "<color=#DDAAFF>[右クリック]</color> キャンセル  " +
-            "<color=#DDAAFF>[Enter/Shift]</color> ターン終了";
+            "<color=#DDAAFF>[Enter]</color> ターン終了";
 
         public const string GameEnd =
             "";

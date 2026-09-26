@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public class SummonSystem : MonoBehaviour
 {
+    private void OnDestroy() => _cursor?.Destroy();
     // ---- 外部参照（Init で注入） ----
     private TurnGenerator turnGenerator;
     private TerritorySystem territorysystem;
@@ -278,9 +279,7 @@ public class SummonSystem : MonoBehaviour
         var renderer = obj.GetComponent<Renderer>();
         if (renderer != null)
         {
-            var mat = new Material(Shader.Find("Standard"));
-            mat.color = BrandGuide.GetUnitFallbackColor(team);
-            renderer.material = mat;
+            PrimitiveMaterialBinding.Apply(renderer, BrandGuide.GetUnitFallbackColor(team));
         }
 
         var status = obj.AddComponent<Status>();

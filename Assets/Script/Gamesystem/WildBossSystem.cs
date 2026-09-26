@@ -755,9 +755,7 @@ public class WildBossSystem : MonoBehaviour
         var r = go.GetComponent<Renderer>();
         if (r != null)
         {
-            var m = new Material(Shader.Find("Standard"));
-            m.color = new Color(0.6f, 0.8f, 1f, 0.7f); // 半透明ブルー
-            r.material = m;
+            PrimitiveMaterialBinding.Apply(r, new Color(0.6f, 0.8f, 1f, 0.7f));
         }
         var s = go.AddComponent<Status>();
         s.kind = Kind.King;
@@ -793,7 +791,7 @@ public class WildBossSystem : MonoBehaviour
             go.transform.position = new Vector3(g.x, g.y, g.z);
             go.transform.localScale = new Vector3(0.8f, 1f, 0.8f);
             var r = go.GetComponent<Renderer>();
-            if (r != null) { var m = new Material(Shader.Find("Standard")); m.color = new Color(0.5f, 0.1f, 0.1f); r.material = m; }
+            PrimitiveMaterialBinding.Apply(r, new Color(0.5f, 0.1f, 0.1f));
             var s = go.AddComponent<Status>();
             s.kind = Kind.Knight;
             s.team = Team.Obstacle;
@@ -833,7 +831,7 @@ public class WildBossSystem : MonoBehaviour
         go.transform.localScale = new Vector3(0.4f, 0.6f, 0.4f);
         var col = go.GetComponent<Collider>(); if (col != null) col.enabled = false;
         var r = go.GetComponent<Renderer>();
-        if (r != null) { var m = new Material(Shader.Find("Standard")); m.color = new Color(0.4f, 0.7f, 1f); r.material = m; }
+        PrimitiveMaterialBinding.Apply(r, new Color(0.4f, 0.7f, 1f));
         _thunderCrystals.Add(go);
         Debug.Log($"[WildBoss/ThunderMagus] 雷クリスタル設置 at {g}");
     }

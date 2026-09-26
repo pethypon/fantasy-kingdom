@@ -23,6 +23,11 @@ public class MapCreate : MonoBehaviour
 
     [Header("土ブロック")]
     public GameObject dirtPrefab;
+    [Header("地形別Prefab（1マス = 1×1、中心原点）")]
+    [Tooltip("1段目の草原。未指定なら既存の土ブロック")]
+    [SerializeField] private GameObject grassPrefab;
+    [Tooltip("2段目の岩混じりの草")]
+    [SerializeField] private GameObject rockyGrassPrefab;
     [SerializeField] private GameObject waterPrefab;
     [SerializeField] private GameObject highMountainPrefab;
     public FogChunkRenderer FogChunks { get; private set; }
@@ -137,6 +142,8 @@ public class MapCreate : MonoBehaviour
         SetPos.Clear();
         waterPrefab = waterPrefab != null ? waterPrefab : Resources.Load<GameObject>("Terrain/WaterBlock");
         highMountainPrefab = highMountainPrefab != null ? highMountainPrefab : Resources.Load<GameObject>("Terrain/HighMountainBlock");
+        grassPrefab = grassPrefab != null ? grassPrefab : Resources.Load<GameObject>("Terrain/GrassBlock");
+        rockyGrassPrefab = rockyGrassPrefab != null ? rockyGrassPrefab : Resources.Load<GameObject>("Terrain/RockyGrassBlock");
         for (int x = 0; x < maxX; x++)
         {
             for (int z = 0; z < maxZ; z++)
@@ -158,13 +165,21 @@ public class MapCreate : MonoBehaviour
     private void SpawnTerrain(int x, int z)
     {
         int y = topY[x, z];
-        GameObject prefab = IsRiver(x,z) ? waterPrefab : IsHighMountain(x,z) ? highMountainPrefab : dirtPrefab;
+        GameObject prefab = IsRiver(x,z) ? waterPrefab : LandPrefab(y);
         if (prefab == null) throw new System.InvalidOperationException("Terrain prefabs are missing. Run Fantasy Kingdom/Create Terrain Prefabs.");
         Instantiate(prefab, new Vector3(x,y,z), Quaternion.identity, MapBox);
         if (!IsHighMountain(x,z) && !IsRiver(x,z)) SetPos.Add(new Vector3Int(x,y+1,z));
         // Fill every level, not only the single block below the surface.
         for (int downY = y - 1; downY >= minY; downY--)
-            Instantiate(IsHighMountain(x,z) ? highMountainPrefab : dirtPrefab, new Vector3(x,downY,z), Quaternion.identity, MapBox);
+            Instantiate(LandPrefab(downY), new Vector3(x,downY,z), Quaternion.identity, MapBox);
+    }
+
+    private GameObject LandPrefab(int level)
+    {
+        if (!UseR1Terrain) return dirtPrefab;
+        if (level >= 2) return highMountainPrefab;
+        if (level == 1 && rockyGrassPrefab != null) return rockyGrassPrefab;
+        return grassPrefab != null ? grassPrefab : dirtPrefab;
     }
 
     // ==================================================================

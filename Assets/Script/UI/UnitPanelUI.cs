@@ -10,6 +10,8 @@ using UnityEngine.UI;
 /// </summary>
 public class UnitPanelUI : MonoBehaviour
 {
+    private Sprite ownedHPBarSprite;
+    private void OnDestroy() { if (ownedHPBarSprite != null) Destroy(ownedHPBarSprite); }
     [Header("左: 基本情報")]
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI levelText;
@@ -52,6 +54,10 @@ public class UnitPanelUI : MonoBehaviour
     private float nextRefresh;
     private TextMeshProUGUI previewHint;
     private TextMeshProUGUI headingText;
+    private Image headingAccent;
+    private const float RefreshInterval = 0.15f;
+    private readonly System.Collections.Generic.Dictionary<Button, TextMeshProUGUI> buttonLabels =
+        new System.Collections.Generic.Dictionary<Button, TextMeshProUGUI>();
     private void LateUpdate()
     {
         if (currentUnit == null || !currentUnit.IsAlive)
@@ -59,9 +65,8 @@ public class UnitPanelUI : MonoBehaviour
             if (canvasGroup != null && canvasGroup.alpha > 0) Hide();
             return;
         }
-        if (HasSelection && Time.unscaledTime >= nextRefresh)
+        if (Time.unscaledTime >= nextRefresh)
         {
-            nextRefresh = Time.unscaledTime + 0.15f;
             Refresh();
         }
     }
@@ -71,6 +76,7 @@ public class UnitPanelUI : MonoBehaviour
     {
         if (HasSelection) return;
         if (unit == null) { Hide(); return; }
+        if (previewOnly && currentUnit == unit) return;
         currentUnit = unit;
         previewOnly = true;
         isBuilding = unit.type == Type.Building || unit.type == Type.Wall;
@@ -92,6 +98,7 @@ public class UnitPanelUI : MonoBehaviour
 
         AutoFindChildren();
         headingText = FindTMP("StatusHeadingText");
+        headingAccent = transform.Find("StatusHeading/TopBorder")?.GetComponent<Image>();
         AutoFindReferences();
         BuildUpgradeUI();
         BuildDestroyUI();
@@ -133,8 +140,10 @@ public class UnitPanelUI : MonoBehaviour
         hpBarFill.fillMethod = Image.FillMethod.Horizontal;
         hpBarFill.fillOrigin = 0;
         // Filled タイプには sprite が必要なため白テクスチャを生成
-        hpBarFill.sprite = Sprite.Create(Texture2D.whiteTexture,
-            new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
+        var white = Texture2D.whiteTexture;
+        ownedHPBarSprite = Sprite.Create(white,
+            new Rect(0, 0, white.width, white.height), new Vector2(0.5f, 0.5f));
+        hpBarFill.sprite = ownedHPBarSprite;
         var fillRT = barFillGo.GetComponent<RectTransform>();
         fillRT.anchorMin = Vector2.zero;
         fillRT.anchorMax = Vector2.one;
@@ -312,6 +321,7 @@ public class UnitPanelUI : MonoBehaviour
 
     public void Hide()
     {
+        if (currentUnit == null && canvasGroup != null && canvasGroup.alpha == 0) return;
         currentUnit = null;
         previewOnly = false;
         isBuilding = false;
@@ -325,6 +335,7 @@ public class UnitPanelUI : MonoBehaviour
     public void Refresh()
     {
         if (currentUnit == null) return;
+        nextRefresh = Time.unscaledTime + RefreshInterval;
 
         RefreshHeading();
         if (isBuilding)
@@ -357,6 +368,8 @@ public class UnitPanelUI : MonoBehaviour
             mode = attack.attackmode == PlayerMove.AttackMode.Skill ? "スキル対象を選択" : "攻撃対象を選択";
         headingText.text = $"{team}  /  {(isBuilding ? "施設" : "ユニット")}    ・    {mode}";
         headingText.color = currentUnit.team == Team.Player ? BrandGuide.TeamPlayer : BrandGuide.TextPrimary;
+        if (headingAccent != null) headingAccent.color = currentUnit.team == Team.Player
+            ? BrandGuide.TeamPlayer : BrandGuide.TeamEnemy;
     }
 
     private void RefreshUnit()
@@ -366,7 +379,6 @@ public class UnitPanelUI : MonoBehaviour
         string sCol = ColorUtility.ToHtmlStringRGB(BrandGuide.TeamEnemy);
         string dirMark = currentUnit.direction == Direction.N ? $" <color=#{nCol}>▲N</color>" : $" <color=#{sCol}>▼S</color>";
         if (nameText != null) nameText.text = KindNameJP.Get(currentUnit.kind) + dirMark;
-        if (levelText != null) levelText.text = "Lv " + currentUnit.Level;
         if (hpText != null)
         {
             float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 0f;
@@ -409,7 +421,10 @@ public class UnitPanelUI : MonoBehaviour
                 passiveText.text = "";
         }
 
-        UIFactory.SetAnchors(attackButton.GetComponent<RectTransform>(), 0, 0.5f, 0.5f, 1);
+        // Hover previews never activate command controls, even for a single refresh.
+        if (previewOnly) return;
+        UIFactory.SetAnchors(attackButton.GetComponent<RectTransform>(), 0, 0.5f,
+            currentUnit.AssignedSkillId >= 0 ? 0.5f : 1, 1);
         UIFactory.SetAnchors(cancelButton.GetComponent<RectTransform>(), 0.5f, 0, 1, 0.5f);
         // 敵ユニットは情報のみ表示（操作ボタン非表示）
         bool isPlayer = currentUnit.team == Team.Player;
@@ -465,6 +480,7 @@ public class UnitPanelUI : MonoBehaviour
         if (passiveText != null)
             passiveText.text = "";
 
+        if (previewOnly) return;
         // 建築物用ボタン表示
         bool isOffensive = FacilityData.IsOffensive(facility);
         SetButtonVisible(attackButton, isOffensive && currentUnit.team == Team.Player);
@@ -520,10 +536,14 @@ public class UnitPanelUI : MonoBehaviour
     /// <summary>ボタンラベルにAP消費量を付加し、不足時は色を変える</summary>
     private void UpdateButtonLabel(Button btn, string baseName, int apCost, bool canAfford)
     {
-        var label = btn.GetComponentInChildren<TextMeshProUGUI>();
+        if (!buttonLabels.TryGetValue(btn, out var label) || label == null)
+        {
+            label = btn.GetComponentInChildren<TextMeshProUGUI>(true);
+            buttonLabels[btn] = label;
+        }
         if (label == null) return;
         if (apCost > 0)
-            label.text = $"{baseName}\n<size=90%><color={BrandGuide.APCostColorHex(canAfford)}>AP{apCost}</color></size>";
+            label.text = $"{baseName}\n<size=90%><color={(WoodenUITheme.Current != null ? (canAfford ? "#D5EBB8" : "#FFD0A0") : BrandGuide.APCostColorHex(canAfford))}>AP{apCost}</color></size>";
         else
             label.text = baseName;
     }

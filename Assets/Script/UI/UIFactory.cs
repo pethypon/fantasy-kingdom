@@ -73,6 +73,7 @@ public static class UIFactory
 
         var txt = CreateTMP("Label", go.transform, label, fontSize, font);
         txt.color = BrandGuide.TextPrimary;
+        if (WoodenUITheme.Current != null) txt.color = WoodenUITheme.ButtonInk;
         txt.fontStyle = FontStyles.Bold;
         StretchFill(txt.GetComponent<RectTransform>());
 

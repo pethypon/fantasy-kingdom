@@ -17,13 +17,7 @@ public class UnitClick : MonoBehaviour
 
     public RaycastHit attackhit;
     private const float RayDistance = GameConstants.DefaultRayDistance;
-    private const float MovePointRayDistance = GameConstants.MovePointRayDistance;
-    private int MovePointLayerMask;
-
-    private void Awake()
-    {
-        MovePointLayerMask = 1 << LayerMask.NameToLayer("MovePoint");
-    }
+    private readonly List<Status> skillActors = new List<Status>();
 
     public void UC(PlayerMove playermove, TurnGenerator turnGenerator, AttackGenerator attackGenerator)
     {
@@ -40,10 +34,11 @@ public class UnitClick : MonoBehaviour
         if (!Physics.Raycast(ray, out RaycastHit hit, RayDistance)) return;
         playermove.LastHit = hit;
 
-        playermove.SelectedUnit = hit.transform.GetComponent<Status>();
-        playermove.SelectedUnitPosition = hit.transform.position;
-
-        if (playermove.SelectedUnit == null) return;
+        var candidate = hit.transform.GetComponentInParent<Status>();
+        if (candidate == null || !candidate.IsAlive) return;
+        if (candidate.team == Team.Player && !CanSelectPlayer(candidate)) return;
+        playermove.SelectedUnit = candidate;
+        playermove.SelectedUnitPosition = playermove.SelectedUnit.transform.position;
 
         // 敵ユニット/建築物をクリック → 情報パネルのみ表示（操作不可）
         if (playermove.SelectedUnit.team != Team.Player)
@@ -53,8 +48,6 @@ public class UnitClick : MonoBehaviour
             playermove.SelectedUnit = null; // 選択状態にはしない
             return;
         }
-
-        if (playermove.SelectedUnit.team != Team.Player) return;
 
         // 建築物・壁クリック（移動ポイントは生成しない）
         if (playermove.SelectedUnit.type == Type.Building || playermove.SelectedUnit.type == Type.Wall)
@@ -67,13 +60,6 @@ public class UnitClick : MonoBehaviour
         }
 
         if (playermove.SelectedUnit.type != Type.Unit) return;
-
-        // スタン中のユニットは選択不可（行動不可）
-        if (StatusEffectSystem.IsStunned(playermove.SelectedUnit))
-        {
-            ToastMessageUI.Show("スタン中のため行動できません", ToastMessageUI.MessageType.Warning);
-            return;
-        }
 
         turnGenerator.Systems.MoveGenerator.MoveCore(playermove.SelectedUnit, playermove.SelectedUnitPosition);
         turnGenerator.Context.SelectUnit = playermove.SelectedUnit;
@@ -93,12 +79,12 @@ public class UnitClick : MonoBehaviour
         // Click2処理
         if (!TryGetMouseRay(out Ray ray)) return;
 
-        // MovePoint レイヤーのみ検出（他オブジェクトは貫通、一定距離で打ち切り）
-        if (Physics.Raycast(ray, out RaycastHit hit, MovePointRayDistance, MovePointLayerMask))
+        // Use the same visible-marker hit test as the AP preview.
+        if (turnGenerator.Systems.MoveGenerator.TryGetMoveDestination(ray, out RaycastHit hit, out var destination))
         {
             playermove.LastHit = hit;
             // MovePointレイヤーにヒット
-            HandleMovePointClick();
+            HandleMovePointClick(destination);
             return;
         }
 
@@ -106,7 +92,7 @@ public class UnitClick : MonoBehaviour
         if (!Physics.Raycast(ray, out hit, RayDistance)) return;
         playermove.LastHit = hit;
 
-        playermove.ClickedUnit = hit.transform.GetComponent<Status>();
+        playermove.ClickedUnit = hit.transform.GetComponentInParent<Status>();
         if (playermove.ClickedUnit == null) return;
 
         if (playermove.ClickedUnit.team == Team.Player && playermove.ClickedUnit.type == Type.Unit)
@@ -156,12 +142,8 @@ public class UnitClick : MonoBehaviour
 
     private void HandleNormalAttackClick(RaycastHit hit)
     {
-        if (!hit.transform.TryGetComponent<Status>(out AttackTarget)) return;
-        if (!IsVisibleHostile(AttackTarget)) return;
-
-        Vector3 attackSame = AttackTarget.transform.position;
-        bool isInRange = IsInAttackRange(attackGenerator.AttackP, attackSame);
-        if (!isInRange) return;
+        AttackTarget = hit.transform.GetComponentInParent<Status>();
+        if (!CanTargetNormalAttack(AttackTarget)) return;
 
         if (!turnGenerator.Systems.APSystem.CanAct(Team.Player, APSystem.ActionType.Attack, playermove.SelectedUnit))
         {
@@ -192,8 +174,9 @@ public class UnitClick : MonoBehaviour
         }
 
         // クリック対象の Status を取得
-        Status clickTarget = hit.transform.GetComponent<Status>();
-        Vector3 clickPos = hit.transform.position;
+        Status clickTarget = hit.transform.GetComponentInParent<Status>();
+        // A model's collider may be offset from the actor's board cell.
+        Vector3 clickPos = clickTarget != null ? clickTarget.transform.position : hit.transform.position;
 
         // 攻撃ポイント範囲内チェック
         bool isInRange = IsInAttackRangeRounded(attackGenerator.AttackP, clickPos);
@@ -292,7 +275,8 @@ public class UnitClick : MonoBehaviour
         Transform enemyParent = turnGenerator.Systems.UnitSetting?.EnemyUnit;
         if (enemyParent == null) return targets;
 
-        foreach (Status s in CombatRegistry.Snapshot())
+        CombatRegistry.Collect(skillActors);
+        foreach (Status s in skillActors)
         {
             if (!s.gameObject.activeSelf || !IsVisibleHostile(s)) continue;
             if (s.type != Type.Unit && s.type != Type.Building) continue;
@@ -304,7 +288,7 @@ public class UnitClick : MonoBehaviour
     }
 
     // ---- 移動先(MovePoint)クリック時の処理 ----
-    private void HandleMovePointClick()
+    private void HandleMovePointClick(Vector3 to)
     {
         // 移動先クリック確定
 
@@ -316,8 +300,6 @@ public class UnitClick : MonoBehaviour
         }
 
         Vector3 from = turnGenerator.Context.OldCell;           // 移動元（選択時に記録済み）
-        Vector3 to = playermove.LastHit.transform.position;
-        to.y += GameConstants.MovePointYOffset;           // MovePoint の Y オフセットを戻す
 
         // ---- APチェック ----
         if (!turnGenerator.Systems.APSystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.SelectedUnit, from, to))
@@ -372,9 +354,11 @@ public class UnitClick : MonoBehaviour
     // ---- プレイヤーユニット再選択時の処理 ----
     private void HandlePlayerUnitReselect()
     {
+        // Validate before changing selection or clearing the previous move markers.
+        if (!CanSelectPlayer(playermove.ClickedUnit)) return;
         turnGenerator.Systems.MoveGenerator.MoveReset();
-        playermove.SelectedUnit = playermove.LastHit.transform.GetComponent<Status>();
-        playermove.SelectedUnitPosition = playermove.LastHit.transform.position;
+        playermove.SelectedUnit = playermove.ClickedUnit;
+        playermove.SelectedUnitPosition = playermove.SelectedUnit.transform.position;
         turnGenerator.Systems.MoveGenerator.MoveCore(playermove.SelectedUnit, playermove.SelectedUnitPosition);
         turnGenerator.Context.SelectUnit = playermove.SelectedUnit;
         // 注意: ここで旧選択ユニットのセルを RemoveOccupied してはいけない。
@@ -386,6 +370,21 @@ public class UnitClick : MonoBehaviour
 
         // ユニット選択成功
     }
+
+    private static bool CanSelectPlayer(Status candidate)
+    {
+        if (candidate == null || !candidate.IsAlive || candidate.team != Team.Player) return false;
+        if (candidate.type == Type.Unit && StatusEffectSystem.IsStunned(candidate))
+        {
+            ToastMessageUI.Show("スタン中のため行動できません", ToastMessageUI.MessageType.Warning);
+            return false;
+        }
+        return candidate.type == Type.Unit || candidate.type == Type.Building || candidate.type == Type.Wall;
+    }
+
+    /// <summary>Shared target eligibility for normal attack clicks and their preview.</summary>
+    public bool CanTargetNormalAttack(Status target) => attackGenerator != null
+        && IsVisibleHostile(target) && IsInAttackRange(attackGenerator.AttackP, target.transform.position);
 
     // ---- LINQ排除: 攻撃範囲内判定 ----
     private static bool IsInAttackRange(List<Vector3> attackP, Vector3 pos)
@@ -415,9 +414,10 @@ public class UnitClick : MonoBehaviour
     private bool TryGetMouseRay(out Ray ray)
     {
         ray = default;
-        if (Mouse.current == null) return false;
+        var camera = Camera.main;
+        if (Mouse.current == null || camera == null) return false;
         Vector2 mousePos = Mouse.current.position.ReadValue();
-        ray = Camera.main.ScreenPointToRay(mousePos);
+        ray = camera.ScreenPointToRay(mousePos);
         return true;
     }
 }

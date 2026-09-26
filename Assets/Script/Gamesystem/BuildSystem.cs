@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public class BuildSystem : MonoBehaviour
 {
+    private void OnDestroy() => cursor?.Destroy();
     // ---- 外部参照（Init で注入） ----
     private TurnGenerator turnGenerator;
     private TerritorySystem territorysystem;
@@ -303,9 +304,7 @@ public class BuildSystem : MonoBehaviour
         var renderer = building.GetComponent<Renderer>();
         if (renderer != null)
         {
-            var mat = new Material(Shader.Find("Standard"));
-            mat.color = BrandGuide.GetFacilityFallbackColor(facility);
-            renderer.material = mat;
+            PrimitiveMaterialBinding.Apply(renderer, BrandGuide.GetFacilityFallbackColor(facility));
         }
         return building;
     }

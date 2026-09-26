@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2be3dd121213454c8e4b9382731c7d80, type: 3}
+  m_Name: WoodenUITheme
+  m_EditorClassIdentifier:
+  panel: {fileID: 21300000, guid: 63655f4cc96936340989153c4eccea19, type: 3}
+  frame: {fileID: 21300000, guid: 8a7a753f989769c4ebd7f236420af813, type: 3}
+  title: {fileID: 21300000, guid: 3b6e1580e7c70554ea5f5c1efe2cb770, type: 3}
+  yellow: {fileID: 21300000, guid: cea0713ee45f67f4298535d6f04375fb, type: 3}
+  yellowHover: {fileID: 21300000, guid: d607994a7b2048c4aaf89193395af606, type: 3}
+  yellowDown: {fileID: 21300000, guid: 1bd8255ae2924d3469ead8bef9024f46, type: 3}
+  red: {fileID: 21300000, guid: 8052c63c80783bf46a31e84a198b9962, type: 3}
+  redHover: {fileID: 21300000, guid: 8132a3879c7cd764a878f9e79e7acb9b, type: 3}
+  redDown: {fileID: 21300000, guid: 5a50cb336e3d477449c27e82d5fe54cd, type: 3}
+  green: {fileID: 21300000, guid: 71913e25e1cad4e49b920f6821c46a65, type: 3}
+  greenHover: {fileID: 21300000, guid: 47a6c7964a89b654eb4d79ae84182549, type: 3}
+  greenDown: {fileID: 21300000, guid: 3ac316b4dedbc07478b986a3dcaf77a5, type: 3}
+  inactive: {fileID: 21300000, guid: 23eb8806d658f0b45bf19631ffeca5f3, type: 3}
+
+  swordIcon: {fileID: 21300000, guid: 37c7b2736de6a864c983a476d05e56d2, type: 3}
+  skillIcon: {fileID: 21300000, guid: 2b680f3085fe24b479990ab26d63e3ad, type: 3}
+  waitIcon: {fileID: 21300000, guid: c6571a6c75558ac48aaf99dad97fb4ff, type: 3}
+  cancelIcon: {fileID: 21300000, guid: 59333b056b974a041a213a27a0f07c8f, type: 3}
+  crestIcon: {fileID: 21300000, guid: 93f1ba051d8d29f4ba26b8befd959033, type: 3}

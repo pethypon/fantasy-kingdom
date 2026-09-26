@@ -1,0 +1,5 @@
+Unity 6000.3.8f1 / isolated UnityValidation / 2026-09-25
+376 PASS, ALL PASSED
+Previous regression checks: 367
+Material lifetime regression checks: 9
+Log: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/material-lifetime-validation.log

@@ -76,14 +76,14 @@ public class BuildCursorController
     // ================================================================
     public void Destroy()
     {
+        if (_cursorMaterial != null) Object.Destroy(_cursorMaterial);
         if (_cursorObj != null)
         {
-            Object.Destroy(_cursorMaterial);
             Object.Destroy(_cursorObj);
-            _cursorObj = null;
-            _cursorRenderer = null;
-            _cursorMaterial = null;
         }
+        _cursorObj = null;
+        _cursorRenderer = null;
+        _cursorMaterial = null;
         _visible = false;
     }
 

@@ -1,0 +1,386 @@
+[CoreTest] PASS  R1 AP citizens=0
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=5
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=10
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=20
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=30
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  Load clamps AP upper bound
+[CoreTest] PASS  Load clamps AP lower bound
+[CoreTest] PASS  R1 independent damage example
+[CoreTest] PASS  Crystal starts at 15000
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  Uncontrolled dungeon pauses
+[CoreTest] PASS  Takeover continues at 8
+[CoreTest] PASS  Takeover continues at 9
+[CoreTest] PASS  Reward for final controller
+[CoreTest] PASS  Dungeon remains for next cycle
+[CoreTest] PASS  High ground beats low ground
+[CoreTest] PASS  Actual damage excludes overkill
+[CoreTest] PASS  Skill XP equals actual damage
+[CoreTest] PASS  Shield gives no XP
+[CoreTest] PASS  Fixed skill is deterministic
+[CoreTest] PASS  High mountain blocks both directions
+[CoreTest] PASS  Mountain endpoint is visible but not attackable
+[CoreTest] PASS  Sight cannot pass beyond mountain
+[CoreTest] PASS  Height lookup excludes mountains and out of bounds
+[CoreTest] PASS  Height lookup returns standing height
+[CoreTest] PASS  Reserved crystal tile is not a placement candidate
+[CoreTest] PASS  Clear terrain remains traversable
+[CoreTest] PASS  Monster status ticks once
+[CoreTest] PASS  Monster turn does not tick other factions
+[CoreTest] PASS  Intruder status ticks independently
+[CoreTest] PASS  Neutral exploration does not leak to enemy
+[CoreTest] PASS  Neutral clear preserves enemy exploration
+[CoreTest] PASS  Initial camera centers player base
+[CoreTest] PASS  Camera clamp handles small maps
+[CoreTest] PASS  Damage clamped to 0 when DEF overwhelms ATK
+[CoreTest] PASS  Damage is positive when ATK >> DEF
+[CoreTest] PASS  CalcRawBase formula (expected=36.33334, actual=36.33333)
+[CoreTest] PASS  Shield activates when HP < 50%
+[CoreTest] PASS  Shield duration = 5
+[CoreTest] PASS  Shield resets ShieldActivated when turns reach 0
+[CoreTest] PASS  Crystal HP% takes precedence over King HP%
+[CoreTest] PASS  When crystals tie, King HP% decides
+[CoreTest] PASS  All equal = Draw
+[SceneSmoke] PASS game starts on player turn
+[SceneSmoke] PASS player starts with 35 AP
+[SceneSmoke] PASS initial player squad
+[SceneSmoke] PASS initial enemy squad
+[SceneSmoke] PASS two dungeons
+[SceneSmoke] PASS new map uses passable heights 1/2
+[SceneSmoke] PASS crystal HP 15000
+[SceneSmoke] PASS territory exact boundary hidden
+[SceneSmoke] PASS player base centered on screen
+[VisualRegression] PASS distinct markers cycle 0
+[VisualRegression] PASS returned markers detached cycle 0
+[VisualRegression] PASS distinct markers cycle 1
+[VisualRegression] PASS returned markers detached cycle 1
+[VisualRegression] PASS distinct markers cycle 2
+[VisualRegression] PASS returned markers detached cycle 2
+[VisualRegression] PASS distinct markers cycle 3
+[VisualRegression] PASS returned markers detached cycle 3
+[VisualRegression] PASS distinct markers cycle 4
+[VisualRegression] PASS returned markers detached cycle 4
+[VisualRegression] PASS distinct markers cycle 5
+[VisualRegression] PASS returned markers detached cycle 5
+[VisualRegression] PASS distinct markers cycle 6
+[VisualRegression] PASS returned markers detached cycle 6
+[VisualRegression] PASS distinct markers cycle 7
+[VisualRegression] PASS returned markers detached cycle 7
+[VisualRegression] PASS distinct markers cycle 8
+[VisualRegression] PASS returned markers detached cycle 8
+[VisualRegression] PASS distinct markers cycle 9
+[VisualRegression] PASS returned markers detached cycle 9
+[VisualRegression] PASS distinct markers cycle 10
+[VisualRegression] PASS returned markers detached cycle 10
+[VisualRegression] PASS distinct markers cycle 11
+[VisualRegression] PASS returned markers detached cycle 11
+[VisualRegression] PASS distinct markers cycle 12
+[VisualRegression] PASS returned markers detached cycle 12
+[VisualRegression] PASS distinct markers cycle 13
+[VisualRegression] PASS returned markers detached cycle 13
+[VisualRegression] PASS distinct markers cycle 14
+[VisualRegression] PASS returned markers detached cycle 14
+[VisualRegression] PASS distinct markers cycle 15
+[VisualRegression] PASS returned markers detached cycle 15
+[VisualRegression] PASS distinct markers cycle 16
+[VisualRegression] PASS returned markers detached cycle 16
+[VisualRegression] PASS distinct markers cycle 17
+[VisualRegression] PASS returned markers detached cycle 17
+[VisualRegression] PASS distinct markers cycle 18
+[VisualRegression] PASS returned markers detached cycle 18
+[VisualRegression] PASS distinct markers cycle 19
+[VisualRegression] PASS returned markers detached cycle 19
+[VisualRegression] PASS distinct markers cycle 20
+[VisualRegression] PASS returned markers detached cycle 20
+[VisualRegression] PASS distinct markers cycle 21
+[VisualRegression] PASS returned markers detached cycle 21
+[VisualRegression] PASS distinct markers cycle 22
+[VisualRegression] PASS returned markers detached cycle 22
+[VisualRegression] PASS distinct markers cycle 23
+[VisualRegression] PASS returned markers detached cycle 23
+[VisualRegression] PASS distinct markers cycle 24
+[VisualRegression] PASS returned markers detached cycle 24
+[VisualRegression] PASS distinct markers cycle 25
+[VisualRegression] PASS returned markers detached cycle 25
+[VisualRegression] PASS distinct markers cycle 26
+[VisualRegression] PASS returned markers detached cycle 26
+[VisualRegression] PASS distinct markers cycle 27
+[VisualRegression] PASS returned markers detached cycle 27
+[VisualRegression] PASS distinct markers cycle 28
+[VisualRegression] PASS returned markers detached cycle 28
+[VisualRegression] PASS distinct markers cycle 29
+[VisualRegression] PASS returned markers detached cycle 29
+[VisualRegression] PASS distinct markers cycle 30
+[VisualRegression] PASS returned markers detached cycle 30
+[VisualRegression] PASS distinct markers cycle 31
+[VisualRegression] PASS returned markers detached cycle 31
+[VisualRegression] PASS distinct markers cycle 32
+[VisualRegression] PASS returned markers detached cycle 32
+[VisualRegression] PASS distinct markers cycle 33
+[VisualRegression] PASS returned markers detached cycle 33
+[VisualRegression] PASS distinct markers cycle 34
+[VisualRegression] PASS returned markers detached cycle 34
+[VisualRegression] PASS distinct markers cycle 35
+[VisualRegression] PASS returned markers detached cycle 35
+[VisualRegression] PASS distinct markers cycle 36
+[VisualRegression] PASS returned markers detached cycle 36
+[VisualRegression] PASS distinct markers cycle 37
+[VisualRegression] PASS returned markers detached cycle 37
+[VisualRegression] PASS distinct markers cycle 38
+[VisualRegression] PASS returned markers detached cycle 38
+[VisualRegression] PASS distinct markers cycle 39
+[VisualRegression] PASS returned markers detached cycle 39
+[VisualRegression] PASS distinct markers cycle 40
+[VisualRegression] PASS returned markers detached cycle 40
+[VisualRegression] PASS distinct markers cycle 41
+[VisualRegression] PASS returned markers detached cycle 41
+[VisualRegression] PASS distinct markers cycle 42
+[VisualRegression] PASS returned markers detached cycle 42
+[VisualRegression] PASS distinct markers cycle 43
+[VisualRegression] PASS returned markers detached cycle 43
+[VisualRegression] PASS distinct markers cycle 44
+[VisualRegression] PASS returned markers detached cycle 44
+[VisualRegression] PASS distinct markers cycle 45
+[VisualRegression] PASS returned markers detached cycle 45
+[VisualRegression] PASS distinct markers cycle 46
+[VisualRegression] PASS returned markers detached cycle 46
+[VisualRegression] PASS distinct markers cycle 47
+[VisualRegression] PASS returned markers detached cycle 47
+[VisualRegression] PASS distinct markers cycle 48
+[VisualRegression] PASS returned markers detached cycle 48
+[VisualRegression] PASS distinct markers cycle 49
+[VisualRegression] PASS returned markers detached cycle 49
+[VisualRegression] PASS distinct markers cycle 50
+[VisualRegression] PASS returned markers detached cycle 50
+[VisualRegression] PASS distinct markers cycle 51
+[VisualRegression] PASS returned markers detached cycle 51
+[VisualRegression] PASS distinct markers cycle 52
+[VisualRegression] PASS returned markers detached cycle 52
+[VisualRegression] PASS distinct markers cycle 53
+[VisualRegression] PASS returned markers detached cycle 53
+[VisualRegression] PASS distinct markers cycle 54
+[VisualRegression] PASS returned markers detached cycle 54
+[VisualRegression] PASS distinct markers cycle 55
+[VisualRegression] PASS returned markers detached cycle 55
+[VisualRegression] PASS distinct markers cycle 56
+[VisualRegression] PASS returned markers detached cycle 56
+[VisualRegression] PASS distinct markers cycle 57
+[VisualRegression] PASS returned markers detached cycle 57
+[VisualRegression] PASS distinct markers cycle 58
+[VisualRegression] PASS returned markers detached cycle 58
+[VisualRegression] PASS distinct markers cycle 59
+[VisualRegression] PASS returned markers detached cycle 59
+[VisualRegression] PASS distinct markers cycle 60
+[VisualRegression] PASS returned markers detached cycle 60
+[VisualRegression] PASS distinct markers cycle 61
+[VisualRegression] PASS returned markers detached cycle 61
+[VisualRegression] PASS distinct markers cycle 62
+[VisualRegression] PASS returned markers detached cycle 62
+[VisualRegression] PASS distinct markers cycle 63
+[VisualRegression] PASS returned markers detached cycle 63
+[VisualRegression] PASS distinct markers cycle 64
+[VisualRegression] PASS returned markers detached cycle 64
+[VisualRegression] PASS distinct markers cycle 65
+[VisualRegression] PASS returned markers detached cycle 65
+[VisualRegression] PASS distinct markers cycle 66
+[VisualRegression] PASS returned markers detached cycle 66
+[VisualRegression] PASS distinct markers cycle 67
+[VisualRegression] PASS returned markers detached cycle 67
+[VisualRegression] PASS distinct markers cycle 68
+[VisualRegression] PASS returned markers detached cycle 68
+[VisualRegression] PASS distinct markers cycle 69
+[VisualRegression] PASS returned markers detached cycle 69
+[VisualRegression] PASS distinct markers cycle 70
+[VisualRegression] PASS returned markers detached cycle 70
+[VisualRegression] PASS distinct markers cycle 71
+[VisualRegression] PASS returned markers detached cycle 71
+[VisualRegression] PASS distinct markers cycle 72
+[VisualRegression] PASS returned markers detached cycle 72
+[VisualRegression] PASS distinct markers cycle 73
+[VisualRegression] PASS returned markers detached cycle 73
+[VisualRegression] PASS distinct markers cycle 74
+[VisualRegression] PASS returned markers detached cycle 74
+[VisualRegression] PASS distinct markers cycle 75
+[VisualRegression] PASS returned markers detached cycle 75
+[VisualRegression] PASS distinct markers cycle 76
+[VisualRegression] PASS returned markers detached cycle 76
+[VisualRegression] PASS distinct markers cycle 77
+[VisualRegression] PASS returned markers detached cycle 77
+[VisualRegression] PASS distinct markers cycle 78
+[VisualRegression] PASS returned markers detached cycle 78
+[VisualRegression] PASS distinct markers cycle 79
+[VisualRegression] PASS returned markers detached cycle 79
+[VisualRegression] PASS distinct markers cycle 80
+[VisualRegression] PASS returned markers detached cycle 80
+[VisualRegression] PASS distinct markers cycle 81
+[VisualRegression] PASS returned markers detached cycle 81
+[VisualRegression] PASS distinct markers cycle 82
+[VisualRegression] PASS returned markers detached cycle 82
+[VisualRegression] PASS distinct markers cycle 83
+[VisualRegression] PASS returned markers detached cycle 83
+[VisualRegression] PASS distinct markers cycle 84
+[VisualRegression] PASS returned markers detached cycle 84
+[VisualRegression] PASS distinct markers cycle 85
+[VisualRegression] PASS returned markers detached cycle 85
+[VisualRegression] PASS distinct markers cycle 86
+[VisualRegression] PASS returned markers detached cycle 86
+[VisualRegression] PASS distinct markers cycle 87
+[VisualRegression] PASS returned markers detached cycle 87
+[VisualRegression] PASS distinct markers cycle 88
+[VisualRegression] PASS returned markers detached cycle 88
+[VisualRegression] PASS distinct markers cycle 89
+[VisualRegression] PASS returned markers detached cycle 89
+[VisualRegression] PASS distinct markers cycle 90
+[VisualRegression] PASS returned markers detached cycle 90
+[VisualRegression] PASS distinct markers cycle 91
+[VisualRegression] PASS returned markers detached cycle 91
+[VisualRegression] PASS distinct markers cycle 92
+[VisualRegression] PASS returned markers detached cycle 92
+[VisualRegression] PASS distinct markers cycle 93
+[VisualRegression] PASS returned markers detached cycle 93
+[VisualRegression] PASS distinct markers cycle 94
+[VisualRegression] PASS returned markers detached cycle 94
+[VisualRegression] PASS distinct markers cycle 95
+[VisualRegression] PASS returned markers detached cycle 95
+[VisualRegression] PASS distinct markers cycle 96
+[VisualRegression] PASS returned markers detached cycle 96
+[VisualRegression] PASS distinct markers cycle 97
+[VisualRegression] PASS returned markers detached cycle 97
+[VisualRegression] PASS distinct markers cycle 98
+[VisualRegression] PASS returned markers detached cycle 98
+[VisualRegression] PASS distinct markers cycle 99
+[VisualRegression] PASS returned markers detached cycle 99
+[VisualRegression] PASS menu belongs to screen canvas
+[VisualRegression] PASS ally has no normal attack marker
+[VisualRegression] PASS hostile in same cell has attack marker
+[VisualRegression] PASS moved cell revealed immediately 0
+[VisualRegression] PASS moved cell revealed immediately 1
+[VisualRegression] PASS moved cell revealed immediately 2
+[VisualRegression] PASS moved cell revealed immediately 3
+[VisualRegression] PASS moved cell revealed immediately 4
+[VisualRegression] PASS moved cell revealed immediately 5
+[VisualRegression] PASS moved cell revealed immediately 6
+[VisualRegression] PASS moved cell revealed immediately 7
+[VisualRegression] PASS moved cell revealed immediately 8
+[VisualRegression] PASS moved cell revealed immediately 9
+[VisualRegression] PASS moved cell revealed immediately 10
+[VisualRegression] PASS moved cell revealed immediately 11
+[VisualRegression] PASS fog never overlaps terrain underside
+[StatusUI] PASS hover uses shared panel without action raycasts
+[StatusUI] PASS selection remains pinned after hover exit
+[StatusUI] PASS button command survives input sampling
+[StatusUI] PASS attack button enters attack state even without targets
+[StatusUI] PASS button command consumed once
+[StatusUI] PASS turn end button queues during attack mode
+[StatusUI] PASS turn end command consumed once
+[StatusUI] PASS cancel restores selected unit and move state
+[StatusUI] PASS hover preview cannot issue attack command
+[StatusUI] PASS upgrade and destroy occupy separate rows
+[StatusUI] PASS building effect does not overlap command column
+[Optimization] PASS Unity allocation recorder detects known allocation
+[Optimization] PASS water and mountains reject placement
+[Optimization] PASS water blocks traversal
+[Optimization] PASS water corner cannot be cut
+[Optimization] PASS mountain blocks vision
+[Optimization] PASS mountain attack rule Knight
+[Optimization] PASS mountain attack rule Crossbow
+[Optimization] PASS mountain attack rule Magicsniper
+[Optimization] PASS mountain attack rule Archer
+[Optimization] PASS mountain attack rule Bomber
+[Optimization] PASS mortar arcs across mountain
+[Optimization] PASS simulation movement agrees for every fixture pair
+[Optimization] PASS simulation rejects straight shot
+[Optimization] PASS simulation accepts arc
+[Optimization] PASS offsets equal full scan for all kinds and directions
+[Optimization] PASS registry tracks enabled actors
+[Optimization] PASS registry removes disabled actors
+[Optimization] PASS registry restores reenabled actors
+[Optimization] PASS legacy water unit relocates to free land
+[Optimization] PASS legacy crystal footprint becomes land
+[Optimization] PASS land override persists after structure removal
+[Optimization] PASS dedicated prefab WaterBlock
+[Optimization] PASS dedicated prefab HighMountainBlock
+[Optimization] PASS 35 fog has 54 render objects
+[Optimization] PASS 35 fog three states
+[Optimization] PASS 35 fog only dirty chunk rebuilt
+[Optimization] PASS 35 unchanged fog skips mesh rebuild
+[Optimization] PASS 35 unchanged fog no managed allocations
+[Optimization] PASS 40 fog has 54 render objects
+[Optimization] PASS 40 fog three states
+[Optimization] PASS 40 fog only dirty chunk rebuilt
+[Optimization] PASS 40 unchanged fog skips mesh rebuild
+[Optimization] PASS 40 unchanged fog no managed allocations
+[Optimization] PASS candidate buffer reuses and resets entries
+[Optimization] PASS remembered killer move survives buffer reuse
+[Optimization] PASS warmed candidate buffer allocates nothing
+[Optimization] PASS expired thinking budget is enforced
+[SceneSmoke] PASS indexed terrain lookup matches original on every cell
+[SceneSmoke] PASS terrain benchmark checksums match
+[SceneSmoke] PASS undo restores move
+[SceneSmoke] PASS undo restores AP fatigue and first-move state
+[SceneSmoke] PASS attack invalidates old movement undo
+[SceneSmoke] PASS undiscovered crystal data withheld
+[SceneSmoke] PASS observed player appears
+[SceneSmoke] PASS same-count visibility updates
+[SceneSmoke] PASS board caches populated
+[SceneSmoke] PASS refresh invalidates query caches
+[SceneSmoke] PASS hidden movement does not update memory
+[SceneSmoke] PASS subcrystal controls dungeon
+[SceneSmoke] PASS dungeon advances only once per round
+[SceneSmoke] PASS own dismantle grants no enemy reward
+[SceneSmoke] PASS dependent building destroyed without refund
+[SceneSmoke] PASS destroyed wall releases occupancy
+[SceneSmoke] PASS one delayed return scheduled
+[SceneSmoke] PASS duplicate destruction is harmless
+[SceneSmoke] PASS lost control pauses dungeon
+[SceneSmoke] PASS menu pauses both timers
+[SceneSmoke] PASS closing menu releases pause
+[SceneSmoke] PASS save includes both crystals
+[SceneSmoke] PASS save includes both dungeons
+[SceneSmoke] PASS loading does not refill AP
+[SceneSmoke] PASS loading does not reset turn time
+[SceneSmoke] PASS loading does not increment round
+[SceneSmoke] PASS boss state survives save
+[SceneSmoke] PASS enemy and independent turns return to player
+[SceneSmoke] PASS configured monsters spawn independently
+[SceneSmoke] PASS intruder excludes strong enemy
+[SceneSmoke] PASS intruder attacks both principal factions
+[SceneSmoke] PASS unique relic awarded once
+[SceneSmoke] PASS neutral restore does not duplicate units
+[SceneSmoke] PASS threat 100 whole thinking within 3s budget plus 0.75s tolerance
+[Maintenance] PASS clear preserves checked-out identity
+[Maintenance] PASS destroyed queue entry skips to reusable item
+[Maintenance] PASS duplicate return never lends same object twice
+[Maintenance] PASS child collider resolves canonical destination
+[Maintenance] PASS occluded marker cannot be clicked or previewed
+[Maintenance] PASS stale marker has no legal destination
+[MaterialLifetime] PASS 100 same-colour objects use one material
+[MaterialLifetime] PASS repeat apply preserves existing material
+[MaterialLifetime] PASS recolour does not change other objects
+[MaterialLifetime] PASS disabled last user releases palette entry
+[MaterialLifetime] PASS reenable reacquires correct colour
+[MaterialLifetime] PASS destroyed user preserves other users material
+[MaterialLifetime] PASS all disabled releases all fixture entries
+[MaterialLifetime] PASS all reenabled still share one entry
+[MaterialLifetime] PASS destroy leaves no fixture entries
+[InteractionMaintenance] PASS preview refresh never temporarily enables action buttons
+[InteractionMaintenance] PASS same hover target skips immediate UI rebuild
+[InteractionMaintenance] PASS hover HP still refreshes without target change
+[InteractionMaintenance] PASS selection stays pinned and commands return after preview
+[InteractionMaintenance] PASS stunned reselect preserves the previous actor
+[InteractionMaintenance] PASS dead reselect preserves the previous actor
+[InteractionMaintenance] PASS offset model collider fixture is hit
+[InteractionMaintenance] PASS attack resolves child collider to actor without attacking ally
+[InteractionMaintenance] PASS skill uses actor cell rather than offset collider cell
+[SceneSmoke] ALL PASSED

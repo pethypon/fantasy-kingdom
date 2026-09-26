@@ -164,14 +164,16 @@ public class DungeonSystem : MonoBehaviour
         }
     }
 
-    private Artifact RollArtifact()
+    static readonly Artifact[] artifactPool = BuildArtifactPool();
+    static Artifact[] BuildArtifactPool()
     {
         var values = (Artifact[])System.Enum.GetValues(typeof(Artifact));
         var pool = new List<Artifact>(values.Length);
         foreach (var a in values) if (a != Artifact.None) pool.Add(a);
-        if (pool.Count == 0) return Artifact.None;
-        return pool[Random.Range(0, pool.Count)];
+        return pool.ToArray();
     }
+
+    private Artifact RollArtifact() => artifactPool.Length == 0 ? Artifact.None : artifactPool[Random.Range(0, artifactPool.Length)];
 
     private GameObject CreateMarker(Vector3Int pos)
     {
@@ -185,9 +187,7 @@ public class DungeonSystem : MonoBehaviour
         var renderer = marker.GetComponent<Renderer>();
         if (renderer != null)
         {
-            var mat = new Material(Shader.Find("Standard"));
-            mat.color = new Color(0.6f, 0.2f, 0.8f, 1f);
-            renderer.material = mat;
+            PrimitiveMaterialBinding.Apply(renderer, new Color(0.6f, 0.2f, 0.8f, 1f));
         }
         return marker;
     }

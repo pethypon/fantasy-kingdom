@@ -76,6 +76,9 @@ public class TurnGenerator : MonoBehaviour
         _cameraController = GetComponent<TurnCameraController>();
         if (_cameraController == null) _cameraController = gameObject.AddComponent<TurnCameraController>();
         _cameraController.Bind(this);
+        var movePreview = GetComponent<MovementPreviewUI>();
+        if (movePreview == null) movePreview = gameObject.AddComponent<MovementPreviewUI>();
+        movePreview.Bind(this);
     }
 
     public void StartFirstTurn()

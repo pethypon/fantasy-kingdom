@@ -38,12 +38,37 @@ public class UIBuilder : MonoBehaviour
         BuildLeftMenu();
         BuildBottomUnitPanel();
         BuildAPPanel();
+        ApplyWoodenTheme();
         WireToGameSystems();
     }
 
     // ==================================================================
     //  Canvas
     // ==================================================================
+    private void ApplyWoodenTheme()
+    {
+        var theme = WoodenUITheme.Current;
+        if (theme == null) return;
+        foreach (var button in canvas.GetComponentsInChildren<Button>(true))
+        {
+            var label = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null) label.color = WoodenUITheme.ButtonInk;
+            theme.AddCommandIcon(button);
+        }
+        foreach (var image in canvas.GetComponentsInChildren<Image>(true))
+        {
+            switch (image.name)
+            {
+                case "TopBar": case "BottomUnitPanel": case "APPanel": case "SlidePanel":
+                    theme.StylePanel(image); break;
+                case "StatusHeading": case "Header":
+                    theme.StylePanel(image, true);
+                    if (image.name == "StatusHeading") theme.AddCrest(image.transform);
+                    break;
+            }
+        }
+    }
+
     private void BuildCanvas()
     {
         var go = new GameObject("UICanvas");
@@ -394,8 +419,8 @@ public class UIBuilder : MonoBehaviour
         // 操作ヒントバー(48px)の上に余白を確保する
         panel.anchoredPosition = new Vector2(0, 60);
 
-        AddImage(panel.gameObject, BrandGuide.PanelBgLight);
-        BrandGuide.AddTopBorder(panel);
+        AddImage(panel.gameObject, new Color(0.035f, 0.048f, 0.070f, 0.98f));
+        BrandGuide.AddPanelBorder(panel, 1);
 
         var heading = CreatePanel("StatusHeading", panel,
             new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 0), new Vector2(0, 42));
@@ -406,6 +431,7 @@ public class UIBuilder : MonoBehaviour
         headingText.rectTransform.offsetMax = new Vector2(-16, 0);
         headingText.alignment = TextAlignmentOptions.MidlineLeft;
         headingText.fontStyle = FontStyles.Bold;
+        BrandGuide.AddTopBorder(heading, 3);
         var cg = panel.gameObject.AddComponent<CanvasGroup>();
 
         // ---- LeftInfo ----
@@ -415,17 +441,18 @@ public class UIBuilder : MonoBehaviour
         StretchFill(left);
         left.anchorMin = new Vector2(0, 0);
         left.anchorMax = new Vector2(0.3f, 1);
-        left.offsetMin = new Vector2(10, 8);
-        left.offsetMax = new Vector2(0, -8);
+        left.offsetMin = new Vector2(22, 16);
+        left.offsetMax = new Vector2(-18, -12);
 
         var nameText = CreateTMP("NameText", left, "---", 30);
-        nameText.color = BrandGuide.Primary;
+        nameText.color = BrandGuide.TextPrimary;
         nameText.fontStyle = FontStyles.Bold;
         SetAnchors(nameText, 0, 0.66f, 1, 1);
         var levelText = CreateTMP("LevelText", left, "Lv 1", BrandGuide.FontHud);
         levelText.color = BrandGuide.TextSecondary;
         SetAnchors(levelText, 0, 0.33f, 1, 0.66f);
         var hpText = CreateTMP("HPText", left, "HP 0", BrandGuide.FontHud);
+        hpText.fontSize = 30;
         SetAnchors(hpText, 0, 0, 1, 0.33f);
 
         // ---- CenterStats ----
@@ -435,8 +462,8 @@ public class UIBuilder : MonoBehaviour
         StretchFill(center);
         center.anchorMin = new Vector2(0.3f, 0);
         center.anchorMax = new Vector2(0.6f, 1);
-        center.offsetMin = new Vector2(0, 8);
-        center.offsetMax = new Vector2(0, -8);
+        center.offsetMin = new Vector2(12, 16);
+        center.offsetMax = new Vector2(-16, -12);
 
         var atkText = CreateTMP("ATKText", center, "ATK 0", BrandGuide.FontHud);
         atkText.color = new Color(1f, 0.75f, 0.60f);
@@ -473,6 +500,10 @@ public class UIBuilder : MonoBehaviour
         var cancelBtn = CreateButton("CancelBtn", right, "取消", BrandGuide.FontHud,
             BrandGuide.BtnCancel);
         SetAnchors(cancelBtn.GetComponent<RectTransform>(), 0.5f, 0, 1, 0.5f);
+        BrandGuide.ApplyCommandStyle(attackBtn, new Color(0.95f, 0.40f, 0.30f));
+        BrandGuide.ApplyCommandStyle(skillBtn, new Color(0.55f, 0.48f, 0.95f));
+        BrandGuide.ApplyCommandStyle(waitBtn, new Color(0.42f, 0.63f, 0.68f));
+        BrandGuide.ApplyCommandStyle(cancelBtn, new Color(0.78f, 0.68f, 0.44f));
 
         // ---- UnitPanelUI コンポーネント追加 ----
         UnitPanel = panel.gameObject.AddComponent<UnitPanelUI>();

@@ -10,6 +10,9 @@ public sealed class MapGridOverlay : MonoBehaviour
     Mesh mesh;
     Material material;
     GameObject surface;
+    readonly List<Vector3> vertices = new List<Vector3>();
+    readonly List<Vector2> uv = new List<Vector2>();
+    readonly List<int> triangles = new List<int>();
 
     public void Rebuild(MapCreate map)
     {
@@ -27,18 +30,17 @@ public sealed class MapGridOverlay : MonoBehaviour
             renderer.lightProbeUsage = LightProbeUsage.Off;
             renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
         }
-        var vertices = new List<Vector3>(map.maxX * map.maxZ * 4);
-        var uv = new List<Vector2>(vertices.Capacity);
-        var triangles = new List<int>(map.maxX * map.maxZ * 6);
+        vertices.Clear(); uv.Clear(); triangles.Clear();
+        var worldToLocal = surface.transform.worldToLocalMatrix;
         for (int x = 0; x < map.maxX; x++)
         for (int z = 0; z < map.maxZ; z++)
         {
             float y = map.SurfaceTop(x, z) + 0.006f;
             int start = vertices.Count;
-            vertices.Add(surface.transform.InverseTransformPoint(new Vector3(x - .5f, y, z - .5f)));
-            vertices.Add(surface.transform.InverseTransformPoint(new Vector3(x - .5f, y, z + .5f)));
-            vertices.Add(surface.transform.InverseTransformPoint(new Vector3(x + .5f, y, z + .5f)));
-            vertices.Add(surface.transform.InverseTransformPoint(new Vector3(x + .5f, y, z - .5f)));
+            vertices.Add(worldToLocal.MultiplyPoint3x4(new Vector3(x - .5f, y, z - .5f)));
+            vertices.Add(worldToLocal.MultiplyPoint3x4(new Vector3(x - .5f, y, z + .5f)));
+            vertices.Add(worldToLocal.MultiplyPoint3x4(new Vector3(x + .5f, y, z + .5f)));
+            vertices.Add(worldToLocal.MultiplyPoint3x4(new Vector3(x + .5f, y, z - .5f)));
             uv.Add(new Vector2(0, 0)); uv.Add(new Vector2(0, 1));
             uv.Add(new Vector2(1, 1)); uv.Add(new Vector2(1, 0));
             triangles.Add(start); triangles.Add(start + 1); triangles.Add(start + 2);
@@ -47,6 +49,7 @@ public sealed class MapGridOverlay : MonoBehaviour
         mesh.Clear(); mesh.SetVertices(vertices); mesh.SetUVs(0, uv);
         mesh.SetTriangles(triangles, 0); mesh.RecalculateBounds();
         OnValidate();
+        surface.SetActive(isActiveAndEnabled);
     }
 
     void OnValidate()

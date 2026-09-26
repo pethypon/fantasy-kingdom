@@ -203,6 +203,7 @@ public static class BrandGuide
         cb.colorMultiplier = 1f;
         cb.fadeDuration = 0.08f;
         btn.colors = cb;
+        WoodenUITheme.Current?.StyleButton(btn, baseColor);
     }
 
     // ==================================================================
@@ -305,5 +306,22 @@ public static class BrandGuide
         if (ratio <= 0.15f) return Danger;
         if (ratio <= 0.35f) return Warning;
         return new Color(0.50f, 0.90f, 1f);
+    }
+    /// <summary>Restrained command surface with a colored edge; decoration never intercepts input.</summary>
+    public static void ApplyCommandStyle(Button button, Color accent)
+    {
+        ApplyButtonStyle(button, Color.Lerp(new Color(0.07f, 0.09f, 0.13f), accent, 0.22f));
+        if (button.transform.Find("CommandAccent") != null) return;
+        var edge = new GameObject("CommandAccent", typeof(RectTransform), typeof(Image));
+        edge.transform.SetParent(button.transform, false);
+        var rect = (RectTransform)edge.transform;
+        rect.anchorMin = Vector2.zero; rect.anchorMax = new Vector2(0, 1);
+        rect.pivot = new Vector2(0, 0.5f);
+        rect.sizeDelta = new Vector2(3, -16);
+        rect.anchoredPosition = new Vector2(0, 0);
+        var image = edge.GetComponent<Image>();
+        image.color = accent; image.raycastTarget = false;
+        var label = button.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        if (label != null) label.fontStyle = TMPro.FontStyles.Bold;
     }
 }

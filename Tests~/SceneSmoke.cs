@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Linq;
 using System.Reflection;
@@ -135,6 +135,10 @@ public static class SceneSmoke
             for(int sample=0;sample<Math.Min(aiGC.Count,aiGC.Capacity);sample++) aiAllocated+=aiGC.GetSample(sample).Value;aiGC.Dispose();
             Check("threat 100 whole thinking within 3s budget plus 0.75s tolerance",aiWatch.Elapsed.TotalMilliseconds<3750);
             Debug.Log($"[Optimization] AI threat=100 wholeTurnMs={aiWatch.Elapsed.TotalMilliseconds:F3} sampledManagedBytes={aiAllocated} (sample-cap=1000000) allocations={aiAllocationCount} budgetMs=3000 (Editor including development logs)");
+            MaintenanceRegressionTests.Run();
+            MaterialLifetimeRegressionTests.Run();
+            InteractionMaintenanceTests.Run(systems, turn);
+            TacticalUIRegressionTests.Run(systems, turn);
             Debug.Log("[SceneSmoke] ALL PASSED");
             SessionState.SetBool(Running, false);
             EditorApplication.Exit(0);
@@ -247,3 +251,6 @@ public static class SceneSmoke
     }
 }
 #endif
+
+
+

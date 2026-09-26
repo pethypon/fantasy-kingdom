@@ -1,0 +1,5 @@
+Unity 6000.3.8f1 / isolated UnityValidation
+367 PASS, ALL PASSED
+Existing regression checks: 361
+Maintenance regression checks: 6
+Log: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/maintenance-validation.log

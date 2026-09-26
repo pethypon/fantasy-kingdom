@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -255,7 +255,7 @@ public class TitleScreenUI : MonoBehaviour
         tmp.text = label;
         tmp.fontSize = BrandGuide.FontHeader;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = BrandGuide.TextPrimary;
+        tmp.color = WoodenUITheme.Current != null ? WoodenUITheme.ButtonInk : BrandGuide.TextPrimary;
         tmp.fontStyle = FontStyles.Bold;
 
         return btn;
@@ -279,7 +279,7 @@ public class TitleScreenUI : MonoBehaviour
         tmp.text = label;
         tmp.fontSize = BrandGuide.FontBody;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = BrandGuide.TextPrimary;
+        tmp.color = WoodenUITheme.Current != null ? WoodenUITheme.ButtonInk : BrandGuide.TextPrimary;
 
         return btn;
     }

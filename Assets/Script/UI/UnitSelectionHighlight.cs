@@ -9,6 +9,7 @@ public class UnitSelectionHighlight : MonoBehaviour
     private TurnGenerator _turnGenerator;
     private GameObject _ringObj;
     private MeshRenderer _ringRenderer;
+    private Material _ringMaterial;
     private Status _currentTarget;
 
     // ---- 設定 ----
@@ -23,7 +24,7 @@ public class UnitSelectionHighlight : MonoBehaviour
     public void Init(TurnGenerator turnGenerator)
     {
         _turnGenerator = turnGenerator;
-        CreateRing();
+        if (_ringObj == null) CreateRing();
     }
 
     private void CreateRing()
@@ -41,9 +42,9 @@ public class UnitSelectionHighlight : MonoBehaviour
         _ringRenderer = _ringObj.GetComponent<MeshRenderer>();
 
         // 半透明マテリアル
-        var mat = new Material(Shader.Find("Sprites/Default"));
-        mat.color = PlayerColor;
-        _ringRenderer.material = mat;
+        _ringMaterial = new Material(Shader.Find("Sprites/Default"));
+        _ringMaterial.color = PlayerColor;
+        _ringRenderer.sharedMaterial = _ringMaterial;
 
         _ringObj.SetActive(false);
     }
@@ -62,7 +63,7 @@ public class UnitSelectionHighlight : MonoBehaviour
             {
                 _ringObj.SetActive(true);
                 Color c = _currentTarget.team == Team.Player ? PlayerColor : EnemyColor;
-                _ringRenderer.material.color = c;
+                _ringMaterial.color = c;
             }
             else
             {
@@ -74,20 +75,21 @@ public class UnitSelectionHighlight : MonoBehaviour
         if (_ringObj.activeSelf && _currentTarget != null)
         {
             Vector3 pos = _currentTarget.transform.position;
-            pos.y = RingYOffset;
+            pos.y += -0.5f + RingYOffset;
             _ringObj.transform.position = pos;
 
             // パルス（明滅）
             float pulse = Mathf.Lerp(PulseMin, PulseMax,
                 (Mathf.Sin(Time.time * PulseSpeed) + 1f) * 0.5f);
-            Color c = _ringRenderer.material.color;
+            Color c = _ringMaterial.color;
             c.a = pulse * 0.7f;
-            _ringRenderer.material.color = c;
+            _ringMaterial.color = c;
         }
     }
 
     private void OnDestroy()
     {
         if (_ringObj != null) Destroy(_ringObj);
+        if (_ringMaterial != null) Destroy(_ringMaterial);
     }
 }

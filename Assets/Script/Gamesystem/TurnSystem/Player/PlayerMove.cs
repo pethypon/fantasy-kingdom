@@ -26,7 +26,7 @@ public class PlayerMove : TurnState
     public bool SummonMode => Systems.SummonSystem != null && Systems.SummonSystem.IsActive;
 
     private bool timerWired;
-    private int unitCycleIndex = -1;
+    private readonly System.Collections.Generic.List<Status> cycleFallback = new System.Collections.Generic.List<Status>();
     private string _lastHintKey = "";
 
     public PlayerMove(TurnGenerator turn) : base(turn) { }
@@ -187,8 +187,9 @@ public class PlayerMove : TurnState
         }
         else
         {
+            // UnitClick refreshes vision after a successful move. Reselection and
+            // rejected clicks do not change the board and need no full rebuild.
             Systems.UnitClick.Click2();
-            RefreshVision();
         }
     }
 
@@ -303,21 +304,11 @@ public class PlayerMove : TurnState
 
         // UnitRegistry キャッシュ経由でスキャン（GetComponentsInChildren の代替）
         var reg = UnitRegistry.Instance;
-        var source = reg != null ? (System.Collections.Generic.IReadOnlyList<Status>)reg.PlayerUnits
-                                 : (System.Collections.Generic.IReadOnlyList<Status>)playerParent.GetComponentsInChildren<Status>();
-        var units = new System.Collections.Generic.List<Status>();
-        foreach (Status s in source)
-        {
-            if (!s.gameObject.activeSelf) continue;
-            if (s.type != Type.Unit) continue;
-            if (StatusEffectSystem.IsStunned(s)) continue;
-            units.Add(s);
-        }
-
-        if (units.Count == 0) return;
-
-        unitCycleIndex = (unitCycleIndex + 1) % units.Count;
-        Status next = units[unitCycleIndex];
+        if (reg == null) playerParent.GetComponentsInChildren<Status>(false, cycleFallback);
+        var source = reg != null ? reg.PlayerUnits : cycleFallback;
+        bool backwards = Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed;
+        Status next = FindCycleTarget(source, Context.SelectUnit, backwards);
+        if (next == null || next == Context.SelectUnit) return;
 
         Systems.MoveGenerator.MoveReset();
         SelectedUnit = next;
@@ -335,6 +326,26 @@ public class PlayerMove : TurnState
             Context.CameraObject.position = TurnCameraController.FocusPosition(
                 Context.CameraObject.position, Context.CameraObject.forward, next.transform.position);
         }
+    }
+
+    // Use the actual selection, including mouse selection, rather than a stale list index.
+    internal static Status FindCycleTarget(System.Collections.Generic.IReadOnlyList<Status> units, Status selected, bool backwards)
+    {
+        if (units == null || units.Count == 0) return null;
+        int current = -1;
+        for (int i = 0; i < units.Count; i++)
+            if (units[i] == selected && selected != null) { current = i; break; }
+        if (current < 0) current = backwards ? 0 : -1;
+        int step = backwards ? -1 : 1;
+        for (int offset = 1; offset <= units.Count; offset++)
+        {
+            int index = (current + step * offset + units.Count) % units.Count;
+            Status candidate = units[index];
+            if (candidate != null && candidate.IsAlive && candidate.gameObject.activeInHierarchy
+                && candidate.team == Team.Player && candidate.type == Type.Unit
+                && !StatusEffectSystem.IsStunned(candidate)) return candidate;
+        }
+        return null;
     }
 
     // ---- 移動取り消し（Zキー） ----

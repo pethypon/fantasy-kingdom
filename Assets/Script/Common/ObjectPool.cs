@@ -43,18 +43,15 @@ public class ObjectPool : MonoBehaviour
             _pools[prefab] = pool;
         }
 
-        GameObject obj;
-        if (pool.Count > 0)
+        GameObject obj = null;
+        while (pool.Count > 0 && obj == null)
         {
             obj = pool.Dequeue();
             returned.Remove(obj);
-            if (obj == null)
-            {
-                // プール内のオブジェクトが破棄されていた場合は新規生成
-                obj = Instantiate(prefab, position, rotation, parent);
-                _prefabLookup[obj] = prefab;
-                return obj;
-            }
+            if (obj == null) _prefabLookup.Remove(obj);
+        }
+        if (obj != null)
+        {
             obj.transform.SetParent(parent, false);
             obj.transform.localScale = prefab.transform.localScale;
             obj.transform.position = position;
@@ -76,24 +73,22 @@ public class ObjectPool : MonoBehaviour
     {
         if (obj == null) return;
 
+        if (!_prefabLookup.TryGetValue(obj, out var source) || source == null)
+        {
+            _prefabLookup.Remove(obj);
+            Destroy(obj);
+            return;
+        }
         if (!returned.Add(obj)) return;
         obj.SetActive(false);
         obj.transform.SetParent(transform, false);
 
-        if (_prefabLookup.TryGetValue(obj, out var prefab))
+        if (!_pools.TryGetValue(source, out var pool))
         {
-            if (!_pools.TryGetValue(prefab, out var pool))
-            {
-                pool = new Queue<GameObject>();
-                _pools[prefab] = pool;
-            }
-            pool.Enqueue(obj);
+            pool = new Queue<GameObject>();
+            _pools[source] = pool;
         }
-        else
-        {
-            // プール管理外のオブジェクト → 通常のDestroy
-            Destroy(obj);
-        }
+        pool.Enqueue(obj);
     }
 
     /// <summary>
@@ -140,11 +135,12 @@ public class ObjectPool : MonoBehaviour
             while (kvp.Value.Count > 0)
             {
                 var obj = kvp.Value.Dequeue();
+                _prefabLookup.Remove(obj);
                 if (obj != null) Destroy(obj);
             }
         }
         returned.Clear();
         _pools.Clear();
-        _prefabLookup.Clear();
+        // Checked-out objects retain their prefab association and can still be returned.
     }
 }
