@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
@@ -203,7 +203,7 @@ public static class BrandGuide
         cb.colorMultiplier = 1f;
         cb.fadeDuration = 0.08f;
         btn.colors = cb;
-        WoodenUITheme.Current?.StyleButton(btn, baseColor);
+        GameUITheme.Current?.StyleButton(btn, baseColor);
     }
 
     // ==================================================================

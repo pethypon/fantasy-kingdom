@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2be3dd121213454c8e4b9382731c7d80, type: 3}
+  m_Name: SteampunkUITheme
+  m_EditorClassIdentifier: 
+  textTint: {r: 0.98, g: 0.94, b: 0.84, a: 1}
+  buttonTint: {r: 0.82, g: 0.86, b: 0.92, a: 1}
+  panelTint: {r: 0.68, g: 0.72, b: 0.80, a: 1}
+  headingTint: {r: 0.75, g: 0.82, b: 0.92, a: 1}
+  frameTint: {r: 1, g: 0.96, b: 0.88, a: 1}
+  borderScale: 3
+  levelBadge: {fileID: 8054999783658563491, guid: 2a074b3b141f32f4e8abeb83cb9e231f, type: 3}
+  healthFrame: {fileID: -3244063273821485595, guid: 17026eb7ce293644f8ed852822b7a7b2, type: 3}
+  healthFill: {fileID: 1493230970921902157, guid: 17026eb7ce293644f8ed852822b7a7b2, type: 3}
+  cornerLeft: {fileID: -595620182695351188, guid: c3cbd015370c5294385a8d880c234850, type: 3}
+  cornerRight: {fileID: 5654969685363657340, guid: c3cbd015370c5294385a8d880c234850, type: 3}
+  panel: {fileID: 802451727016168549, guid: c3cbd015370c5294385a8d880c234850, type: 3}
+  frame: {fileID: 113947384412704010, guid: c3cbd015370c5294385a8d880c234850, type: 3}
+  title: {fileID: 7030827936845937725, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  yellow: {fileID: 7030827936845937725, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  yellowHover: {fileID: 7942636985899258196, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  yellowDown: {fileID: 7108429565997640284, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  red: {fileID: 6891791666857573563, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  redHover: {fileID: -8620180257736979365, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  redDown: {fileID: 5498831262044042175, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  green: {fileID: -2159099536540598655, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  greenHover: {fileID: 9061260165312543400, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  greenDown: {fileID: -2617616368960522490, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  inactive: {fileID: 7108429565997640284, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}
+  swordIcon: {fileID: 21300000, guid: 37c7b2736de6a864c983a476d05e56d2, type: 3}
+  skillIcon: {fileID: 21300000, guid: 2b680f3085fe24b479990ab26d63e3ad, type: 3}
+  waitIcon: {fileID: 21300000, guid: c6571a6c75558ac48aaf99dad97fb4ff, type: 3}
+  cancelIcon: {fileID: 21300000, guid: 59333b056b974a041a213a27a0f07c8f, type: 3}
+  crestIcon: {fileID: -4374215236208778123, guid: 9291b39306d4ce640bf255c16c6ddf5b, type: 3}

@@ -543,7 +543,7 @@ public class UnitPanelUI : MonoBehaviour
         }
         if (label == null) return;
         if (apCost > 0)
-            label.text = $"{baseName}\n<size=90%><color={(WoodenUITheme.Current != null ? (canAfford ? "#D5EBB8" : "#FFD0A0") : BrandGuide.APCostColorHex(canAfford))}>AP{apCost}</color></size>";
+            label.text = $"{baseName}\n<size=90%><color={(GameUITheme.Current != null ? (canAfford ? "#D5EBB8" : "#FFD0A0") : BrandGuide.APCostColorHex(canAfford))}>AP{apCost}</color></size>";
         else
             label.text = baseName;
     }

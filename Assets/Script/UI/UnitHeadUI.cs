@@ -40,110 +40,62 @@ public class UnitHeadUI : MonoBehaviour
 
     private void Build()
     {
-        // ---- WorldSpace Canvas ----
-        var canvasGo = new GameObject("HeadUI");
+        var canvasGo = new GameObject("HeadUI", typeof(RectTransform));
         canvasGo.transform.SetParent(transform, false);
-        canvasGo.transform.localPosition = new Vector3(0, 0.8f, 0);
+        canvasGo.transform.localPosition = new Vector3(0, 1.05f, 0);
         canvasGo.transform.localScale = Vector3.one * 0.02f;
-
         canvas = canvasGo.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
         canvas.sortingOrder = 50;
-
-        var rt = canvasGo.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(120, 50);
+        var rt = (RectTransform)canvasGo.transform;
+        rt.sizeDelta = new Vector2(124, 34);
         rt.pivot = new Vector2(0.5f, 0);
-
-        canvasGo.AddComponent<CanvasScaler>();
-        canvasGo.AddComponent<GraphicRaycaster>();
-
-        // ---- Root レイアウト (横並び: Lvサークル + HPバー) ----
-        var root = new GameObject("Root", typeof(RectTransform));
-        root.transform.SetParent(canvasGo.transform, false);
-        var rootRT = root.GetComponent<RectTransform>();
-        rootRT.anchorMin = Vector2.zero;
-        rootRT.anchorMax = Vector2.one;
-        rootRT.offsetMin = Vector2.zero;
-        rootRT.offsetMax = Vector2.zero;
-
-        var hlg = root.AddComponent<HorizontalLayoutGroup>();
-        hlg.childAlignment = TextAnchor.MiddleCenter;
-        hlg.spacing = 4;
-        hlg.childForceExpandWidth = false;
-        hlg.childForceExpandHeight = false;
-        hlg.childControlWidth = false;
-        hlg.childControlHeight = false;
-
-        // ---- Lv サークル ----
-        var lvCircle = new GameObject("LvCircle", typeof(RectTransform));
-        lvCircle.transform.SetParent(root.transform, false);
-        var circleRT = lvCircle.GetComponent<RectTransform>();
-        circleRT.sizeDelta = new Vector2(32, 32);
-
-        var circleImg = lvCircle.AddComponent<Image>();
-        bool isPlayer = status.team == Team.Player;
-        circleImg.color = isPlayer
-            ? new Color(0.2f, 0.5f, 0.85f, 0.95f)
-            : new Color(0.75f, 0.2f, 0.2f, 0.95f);
-
-        var circleLE = lvCircle.AddComponent<LayoutElement>();
-        circleLE.preferredWidth = 32;
-        circleLE.preferredHeight = 32;
-
-        lvText = CreateText("LvText", lvCircle.transform, "1", 18);
-        lvText.alignment = TextAlignmentOptions.Center;
+        // Informational only: no raycaster or full-width backing plate.
+        var theme = GameUITheme.Current;
+        var badge = CreateGraphic("LevelBadge", canvasGo.transform, new Vector2(0, 0.5f),
+            new Vector2(16, 0), new Vector2(32, 32), theme != null ? theme.levelBadge : null);
+        badge.color = status.team == Team.Player ? new Color(0.8f, 0.92f, 1) : new Color(1, 0.65f, 0.55f);
+        lvText = CreateText("LvText", badge.transform, "1", 16);
         lvText.fontStyle = FontStyles.Bold;
-        var lvRT = lvText.GetComponent<RectTransform>();
-        lvRT.anchorMin = Vector2.zero;
-        lvRT.anchorMax = Vector2.one;
-        lvRT.offsetMin = Vector2.zero;
-        lvRT.offsetMax = Vector2.zero;
+        lvText.alignment = TextAlignmentOptions.Center;
+        UIFactory.StretchFill(lvText.rectTransform);
+        lvText.margin = new Vector4(5, 5, 5, 5);
 
-        // ---- HP バー ----
-        var hpBar = new GameObject("HPBar", typeof(RectTransform));
-        hpBar.transform.SetParent(root.transform, false);
-        var hpBarRT = hpBar.GetComponent<RectTransform>();
-        hpBarRT.sizeDelta = new Vector2(70, 16);
-
-        var hpBarLE = hpBar.AddComponent<LayoutElement>();
-        hpBarLE.preferredWidth = 70;
-        hpBarLE.preferredHeight = 16;
-
-        // 背景
-        var hpBg = new GameObject("HPBg", typeof(RectTransform));
-        hpBg.transform.SetParent(hpBar.transform, false);
-        var bgImg = hpBg.AddComponent<Image>();
-        bgImg.color = new Color(0.15f, 0.15f, 0.15f, 0.9f);
-        var bgRT = hpBg.GetComponent<RectTransform>();
-        bgRT.anchorMin = Vector2.zero;
-        bgRT.anchorMax = Vector2.one;
-        bgRT.offsetMin = Vector2.zero;
-        bgRT.offsetMax = Vector2.zero;
-
-        // 塗り
-        var hpFill = new GameObject("HPFill", typeof(RectTransform));
-        hpFill.transform.SetParent(hpBar.transform, false);
-        hpFillImage = hpFill.AddComponent<Image>();
-        hpFillImage.color = new Color(0.2f, 0.8f, 0.25f, 0.95f);
-        var fillRT = hpFill.GetComponent<RectTransform>();
-        fillRT.anchorMin = Vector2.zero;
-        fillRT.anchorMax = new Vector2(1, 1);
-        fillRT.pivot = new Vector2(0, 0.5f);
-        fillRT.offsetMin = new Vector2(1, 1);
-        fillRT.offsetMax = new Vector2(-1, -1);
-
-        // HP テキスト
-        hpText = CreateText("HPText", hpBar.transform, "", 10);
+        var hpFrame = CreateGraphic("HPFrame", canvasGo.transform, new Vector2(1, 0.5f),
+            new Vector2(-44, 0), new Vector2(88, 18), theme != null ? theme.healthFrame : null);
+        var well = CreateGraphic("HPWell", hpFrame.transform, new Vector2(0.5f, 0.5f),
+            Vector2.zero, new Vector2(64, 9), null);
+        well.color = new Color(0.04f, 0.06f, 0.07f, 1);
+        hpFillImage = CreateGraphic("HPFill", well.transform, new Vector2(0.5f, 0.5f),
+            Vector2.zero, new Vector2(64, 9), theme != null ? theme.healthFill : null);
+        hpFillImage.type = Image.Type.Filled;
+        hpFillImage.fillMethod = Image.FillMethod.Horizontal;
+        hpFillImage.fillOrigin = 0;
+        hpText = CreateText("HPText", hpFrame.transform, "", 10);
         hpText.alignment = TextAlignmentOptions.Center;
-        var hpTextRT = hpText.GetComponent<RectTransform>();
-        hpTextRT.anchorMin = Vector2.zero;
-        hpTextRT.anchorMax = Vector2.one;
-        hpTextRT.offsetMin = Vector2.zero;
-        hpTextRT.offsetMax = Vector2.zero;
-
+        hpText.fontStyle = FontStyles.Bold;
+        UIFactory.StretchFill(hpText.rectTransform);
+        hpText.margin = new Vector4(11, 2, 11, 2);
+        hpText.enableAutoSizing = true;
+        hpText.fontSizeMin = 8;
+        hpText.fontSizeMax = 10;
         Refresh();
     }
 
+    private static Image CreateGraphic(string name, Transform parent, Vector2 anchor,
+        Vector2 position, Vector2 size, Sprite sprite)
+    {
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(parent, false);
+        var rect = (RectTransform)go.transform;
+        rect.anchorMin = rect.anchorMax = anchor;
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+        var image = go.GetComponent<Image>();
+        image.sprite = sprite;
+        image.raycastTarget = false;
+        return image;
+    }
     private void LateUpdate()
     {
         if (status == null || canvas == null) return;
@@ -200,8 +152,7 @@ public class UnitHeadUI : MonoBehaviour
         if (hpFillImage != null)
         {
             float ratio = Mathf.Clamp01((float)cachedHP / Mathf.Max(1, cachedMaxHP));
-            var fillRT = hpFillImage.GetComponent<RectTransform>();
-            fillRT.anchorMax = new Vector2(ratio, 1);
+            hpFillImage.fillAmount = ratio;
 
             // HP に応じて色を変える
             if (ratio > 0.5f)
@@ -221,6 +172,7 @@ public class UnitHeadUI : MonoBehaviour
         tmp.text = text;
         tmp.fontSize = fontSize;
         tmp.color = Color.white;
+        tmp.raycastTarget = false;
         tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
         // フォント読み込み

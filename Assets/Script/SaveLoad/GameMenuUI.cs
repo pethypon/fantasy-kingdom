@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -93,6 +93,7 @@ public class GameMenuUI : MonoBehaviour
 
         var panelBg = panel.AddComponent<Image>();
         panelBg.color = BrandGuide.PanelBgLight;
+        GameUITheme.Current?.StylePanel(panelBg);
 
         // ヘッダー
         var header = CreateTMP("MenuHeader", panel.transform, "メニュー", 32, BrandGuide.Primary);
@@ -172,6 +173,7 @@ public class GameMenuUI : MonoBehaviour
 
         var bg = slotPanel.AddComponent<Image>();
         bg.color = BrandGuide.PanelBg;
+        GameUITheme.Current?.StylePanel(bg);
 
         // ヘッダー
         string headerText = saveMode ? "セーブスロット選択" : "ロードスロット選択";

@@ -38,21 +38,21 @@ public class UIBuilder : MonoBehaviour
         BuildLeftMenu();
         BuildBottomUnitPanel();
         BuildAPPanel();
-        ApplyWoodenTheme();
+        ApplyVisualTheme();
         WireToGameSystems();
     }
 
     // ==================================================================
     //  Canvas
     // ==================================================================
-    private void ApplyWoodenTheme()
+    private void ApplyVisualTheme()
     {
-        var theme = WoodenUITheme.Current;
+        var theme = GameUITheme.Current;
         if (theme == null) return;
         foreach (var button in canvas.GetComponentsInChildren<Button>(true))
         {
             var label = button.GetComponentInChildren<TextMeshProUGUI>(true);
-            if (label != null) label.color = WoodenUITheme.ButtonInk;
+            if (label != null) label.color = GameUITheme.ButtonInk;
             theme.AddCommandIcon(button);
         }
         foreach (var image in canvas.GetComponentsInChildren<Image>(true))
@@ -93,7 +93,7 @@ public class UIBuilder : MonoBehaviour
     {
         var bar = CreatePanel("TopBar", canvas.transform,
             new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1),
-            new Vector2(0, 120));
+            new Vector2(0, 140));
         bar.anchoredPosition = Vector2.zero;
 
         AddImage(bar.gameObject, BrandGuide.PanelBg);
@@ -106,8 +106,8 @@ public class UIBuilder : MonoBehaviour
         StretchFill(resArea);
         resArea.anchorMin = new Vector2(0, 0);
         resArea.anchorMax = new Vector2(0.50f, 1);
-        resArea.offsetMin = new Vector2(8, 0);
-        resArea.offsetMax = new Vector2(-4, 0);
+        resArea.offsetMin = new Vector2(22, 16);
+        resArea.offsetMax = new Vector2(-10, -16);
 
         // 資源を2行で配置
         var row1 = CreatePanel("Row1", resArea,
@@ -221,8 +221,8 @@ public class UIBuilder : MonoBehaviour
         StretchFill(rightArea);
         rightArea.anchorMin = new Vector2(0.64f, 0);
         rightArea.anchorMax = new Vector2(1, 1);
-        rightArea.offsetMin = new Vector2(6, 4);
-        rightArea.offsetMax = new Vector2(-6, -4);
+        rightArea.offsetMin = new Vector2(12, 16);
+        rightArea.offsetMax = new Vector2(-22, -16);
 
         // 右エリア内を HorizontalLayoutGroup で右寄せ
         // （中央寄せだとメニューが右端に届かず浮いて見えるため、資源の左詰めと対に揃える）
@@ -287,7 +287,9 @@ public class UIBuilder : MonoBehaviour
         cell.transform.SetParent(parent, false);
         StretchFill(cell.GetComponent<RectTransform>());
 
-        cell.AddComponent<Image>().color = bgColor;
+        var plate = cell.AddComponent<Image>();
+        plate.color = bgColor;
+        GameUITheme.Current?.StylePlate(plate, new Color(0.65f, 0.73f, 0.82f));
 
         var le = cell.AddComponent<LayoutElement>();
         le.flexibleWidth = 1;
@@ -303,8 +305,8 @@ public class UIBuilder : MonoBehaviour
         tmp.color = BrandGuide.TextPrimary;
         var tmpRT = tmp.GetComponent<RectTransform>();
         StretchFill(tmpRT);
-        tmpRT.offsetMin = new Vector2(6, 0);
-        tmpRT.offsetMax = new Vector2(-4, 0);
+        tmpRT.offsetMin = new Vector2(14, 0);
+        tmpRT.offsetMax = new Vector2(-10, 0);
         tmp.alignment = TextAlignmentOptions.MidlineLeft;
     }
 
@@ -415,7 +417,7 @@ public class UIBuilder : MonoBehaviour
     {
         var panel = CreatePanel("BottomUnitPanel", canvas.transform,
             new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0),
-            new Vector2(1100, 260));
+            new Vector2(1100, 300));
         // 操作ヒントバー(48px)の上に余白を確保する
         panel.anchoredPosition = new Vector2(0, 60);
 
@@ -423,7 +425,8 @@ public class UIBuilder : MonoBehaviour
         BrandGuide.AddPanelBorder(panel, 1);
 
         var heading = CreatePanel("StatusHeading", panel,
-            new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 0), new Vector2(0, 42));
+            new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), new Vector2(-40, 42));
+        heading.anchoredPosition = new Vector2(0, -16);
         AddImage(heading.gameObject, new Color(0.12f, 0.15f, 0.22f, 0.98f));
         var headingText = CreateTMP("StatusHeadingText", heading, "", BrandGuide.FontHudCaption);
         StretchFill(headingText.rectTransform);
@@ -441,8 +444,8 @@ public class UIBuilder : MonoBehaviour
         StretchFill(left);
         left.anchorMin = new Vector2(0, 0);
         left.anchorMax = new Vector2(0.3f, 1);
-        left.offsetMin = new Vector2(22, 16);
-        left.offsetMax = new Vector2(-18, -12);
+        left.offsetMin = new Vector2(28, 24);
+        left.offsetMax = new Vector2(-18, -68);
 
         var nameText = CreateTMP("NameText", left, "---", 30);
         nameText.color = BrandGuide.TextPrimary;
@@ -462,8 +465,8 @@ public class UIBuilder : MonoBehaviour
         StretchFill(center);
         center.anchorMin = new Vector2(0.3f, 0);
         center.anchorMax = new Vector2(0.6f, 1);
-        center.offsetMin = new Vector2(12, 16);
-        center.offsetMax = new Vector2(-16, -12);
+        center.offsetMin = new Vector2(18, 24);
+        center.offsetMax = new Vector2(-20, -68);
 
         var atkText = CreateTMP("ATKText", center, "ATK 0", BrandGuide.FontHud);
         atkText.color = new Color(1f, 0.75f, 0.60f);
@@ -485,8 +488,8 @@ public class UIBuilder : MonoBehaviour
         StretchFill(right);
         right.anchorMin = new Vector2(0.6f, 0);
         right.anchorMax = new Vector2(1, 1);
-        right.offsetMin = new Vector2(4, 8);
-        right.offsetMax = new Vector2(-10, -8);
+        right.offsetMin = new Vector2(12, 24);
+        right.offsetMax = new Vector2(-24, -68);
 
         var attackBtn = CreateButton("AttackBtn", right, "攻撃", BrandGuide.FontHud,
             BrandGuide.BtnAttack);
@@ -522,7 +525,7 @@ public class UIBuilder : MonoBehaviour
     {
         var panel = CreatePanel("APPanel", canvas.transform,
             new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0),
-            new Vector2(200, 96));
+            new Vector2(200, 110));
         panel.anchoredPosition = new Vector2(-20, 60);
 
         AddImage(panel.gameObject, BrandGuide.PanelBg);
@@ -534,17 +537,17 @@ public class UIBuilder : MonoBehaviour
         apLabel.fontStyle = FontStyles.Bold;
         apLabel.alignment = TextAlignmentOptions.Center;
         var apLabelRT = apLabel.GetComponent<RectTransform>();
-        apLabelRT.anchorMin = new Vector2(0, 0.7f);
+        apLabelRT.anchorMin = new Vector2(0, 0.55f);
         apLabelRT.anchorMax = new Vector2(1, 1);
-        apLabelRT.offsetMin = new Vector2(4, 0);
-        apLabelRT.offsetMax = new Vector2(-4, -2);
+        apLabelRT.offsetMin = new Vector2(16, 0);
+        apLabelRT.offsetMax = new Vector2(-16, -14);
 
         var apText = CreateTMP("APText", panel, "0 / 0", 30);
         apText.fontStyle = FontStyles.Bold;
         var apTextRT = apText.GetComponent<RectTransform>();
         apTextRT.anchorMin = new Vector2(0, 0);
-        apTextRT.anchorMax = new Vector2(1, 0.72f);
-        apTextRT.offsetMin = new Vector2(4, 2);
+        apTextRT.anchorMax = new Vector2(1, 0.58f);
+        apTextRT.offsetMin = new Vector2(16, 12);
         apTextRT.offsetMax = new Vector2(-4, 0);
 
         APPanel = panel.gameObject.AddComponent<APPanelUI>();
