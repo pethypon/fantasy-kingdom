@@ -26,6 +26,7 @@ public class PlayerMove : TurnState
     public bool SummonMode => Systems.SummonSystem != null && Systems.SummonSystem.IsActive;
 
     private bool timerWired;
+    private bool turnEnded;
     private readonly System.Collections.Generic.List<Status> cycleFallback = new System.Collections.Generic.List<Status>();
     private string _lastHintKey = "";
 
@@ -76,7 +77,9 @@ public class PlayerMove : TurnState
         HandleLeftClick();
         HandleRightClick();
         HandleTurnEnd();
+        if (Turn.CurrentState != this) return;
         HandleAttackModeSelect();
+        if (Turn.CurrentState != this) return;
         HandleDirectionToggle();
         HandleCameraFocus();
         HandleUnitCycle();
@@ -260,6 +263,10 @@ public class PlayerMove : TurnState
     /// <summary>ターン終了の共通処理（PlayerAttack のタイマー切れからも呼ばれる）</summary>
     public void ExecuteTurnEnd()
     {
+        if (turnEnded || Turn.IsGameOver) return;
+        if (Turn.CurrentState != this && !(Turn.CurrentState is PlayerAttack attack && attack.move == this)) return;
+        turnEnded = true;
+        Systems.TimerSystem?.StopTurn();
         Systems.MoveGenerator.MoveReset();
         RefreshVision();
         Reset();

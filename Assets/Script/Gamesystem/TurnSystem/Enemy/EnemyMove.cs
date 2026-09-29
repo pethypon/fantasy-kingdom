@@ -4,20 +4,32 @@ public class EnemyMove : TurnState
 {
     public EnemyMove(TurnGenerator turn) : base(turn) { }
 
+    private System.Collections.IEnumerator actions;
+    private bool finished;
+    private bool timeExpired;
     public override void Entry()
     {
+        if (Systems.TimerSystem != null) { Systems.TimerSystem.OnTurnTimeExpired += Expire; Systems.TimerSystem.OnTotalTimeExpired += EndGame; }
         RefreshVision();
-
-        // AI指揮官による全体指揮実行
-        if (Systems.AICommander != null)
-        {
-            Systems.AICommander.ExecuteTurn();
-        }
-        else
-        {
-            Debug.LogWarning("[EnemyMove] AICommander未初期化 — AI行動スキップ");
-        }
-
+        actions = Systems.AICommander?.ExecuteTurnSteps();
+    }
+    public override void Update()
+    {
+        if (finished || Turn.IsGameOver) return;
+        if (timeExpired) { finished = true; FinishTurn(); return; }
+        bool more = false;
+        try { AITurnBudget.Resume(); more = actions != null && actions.MoveNext(); }
+        catch (System.Exception e) { Debug.LogException(e); }
+        finally { AITurnBudget.Pause(); }
+        if (more || Turn.IsGameOver) return;
+        finished = true;
+        FinishTurn();
+    }
+    private void Expire() => timeExpired = true;
+    private void EndGame(GameResult result) => Turn.ChangeState(new GameEndState(Turn, result));
+    private void FinishTurn()
+    {
+        Systems.TimerSystem?.StopTurn();
         // 視界再計算（AI行動後）
         RefreshVision();
 
@@ -43,10 +55,12 @@ public class EnemyMove : TurnState
         DevelopmentLog.Log("[EnemyMove] 敵ターン終了");
     }
 
-    public override void Update() { }
 
     public override void Exit()
     {
+        if (Systems.TimerSystem != null) { Systems.TimerSystem.OnTurnTimeExpired -= Expire; Systems.TimerSystem.OnTotalTimeExpired -= EndGame; }
+        (actions as System.IDisposable)?.Dispose();
+        actions = null;
         RefreshVision();
     }
 }

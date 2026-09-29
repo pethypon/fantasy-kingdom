@@ -28,7 +28,7 @@ public class TurnInputHandler : MonoBehaviour
         bool overUI = UnityEngine.EventSystems.EventSystem.current != null
             && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
         ctx.MoveInput        = gameaction.GamePlay.Move.ReadValue<Vector2>();
-        ctx.ScrollInput      = gameaction.GamePlay.Scroll.ReadValue<float>();
+        ctx.ScrollInput      = overUI ? 0f : gameaction.GamePlay.Scroll.ReadValue<float>();
         ctx.LeftClickDown    = !overUI && gameaction.GamePlay.LeftClick.WasPressedThisFrame();
         ctx.RightClickDown   = command == GameContext.UICommand.Cancel || gameaction.GamePlay.RightClick.WasPressedThisFrame();
         ctx.TurnEndDown      = command == GameContext.UICommand.EndTurn || gameaction.GamePlay.TurnEnd.WasPressedThisFrame();

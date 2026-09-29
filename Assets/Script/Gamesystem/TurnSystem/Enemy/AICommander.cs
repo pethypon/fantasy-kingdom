@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -73,7 +73,7 @@ public partial class AICommander
     readonly MLIntegration _mlIntegration;
 
     // 統計（動作確認用）
-    struct TurnStats
+    sealed class TurnStats
     {
         public int Moves, Attacks, Skills, Retreats, Builds, Summons;
 
@@ -98,7 +98,7 @@ public partial class AICommander
             => $"移動{Moves} 攻撃{Attacks} スキル{Skills} 撤退{Retreats} 建築{Builds} 召喚{Summons}";
     }
 
-    TurnStats _totalStats;
+    TurnStats _totalStats = new TurnStats();
     int _totalKills = 0;
     int _turnCount = 0;
 
@@ -212,6 +212,13 @@ public partial class AICommander
     }
     public void ExecuteTurn()
     {
+        var steps = ExecuteTurnSteps();
+        try { while (steps.MoveNext()) { } }
+        finally { (steps as System.IDisposable)?.Dispose(); }
+    }
+
+    public System.Collections.IEnumerator ExecuteTurnSteps()
+    {
         AITurnBudget.Begin(TurnThinkingBudgetMs);
         _actedUnits.Clear();
         _triedStrategies.Clear();
@@ -295,9 +302,12 @@ public partial class AICommander
         // ================================================================
         if (_hierarchicalMode)
         {
-            ExecuteHierarchicalPhase(ref turnStats);
+            var phase = ExecuteHierarchicalPhase(turnStats);
+            while (phase.MoveNext()) yield return null;
         }
 
+        yield return null;
+        if (_turnGen.IsGameOver) yield break;
         // 探索エンジンとtopCandidatesリストをループ外で事前確保（GC削減）
         var searchEngine = new AISearchEngine(_threatLevel.SearchDepth, _threatLevel.SearchCandidateLimit, _rng);
         searchEngine.SetSimulationReferences(_moveGen, _unitSet, _crystalSystem, _apSystem);
@@ -366,6 +376,8 @@ public partial class AICommander
 
         while (_board.EnemyAP > 0 && iteration < maxIterations && !AITurnBudget.Expired)
         {
+            yield return null;
+            if (_turnGen.IsGameOver) yield break;
             iteration++;
 
             _board.Refresh();

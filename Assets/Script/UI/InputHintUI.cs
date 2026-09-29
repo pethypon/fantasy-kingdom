@@ -8,6 +8,8 @@ using UnityEngine.UI;
 /// </summary>
 public class InputHintUI : MonoBehaviour
 {
+    public const float PanelHeight = 76f;
+    public const float ContentBottom = PanelHeight + 12f;
     private Canvas _canvas;
     private RectTransform _panelRect;
     private TextMeshProUGUI _hintText;
@@ -21,13 +23,14 @@ public class InputHintUI : MonoBehaviour
     public static class Hints
     {
         public const string PlayerMove =
-            "<color=#AAD4FF>[左クリック]</color> 選択/移動  " +
+            "<color=#AAD4FF>[左クリック]</color> 選択/移動（同じ位置で奥の駒へ）  " +
             "<color=#AAD4FF>[右クリック]</color> キャンセル  " +
             "<color=#AAD4FF>[1]</color> 攻撃  " +
             "<color=#AAD4FF>[2]</color> スキル  " +
-            "<color=#AAD4FF>[Q/E]</color> 向き  " +
+            "\n<color=#AAD4FF>[Q/E]</color> 向き  " +
             "<color=#AAD4FF>[Z]</color> 移動取消  " +
             "<color=#AAD4FF>[Tab / Shift+Tab]</color> 次 / 前ユニット  " +
+            "<color=#AAD4FF>[中ドラッグ]</color> カメラ  " +
             "<color=#AAD4FF>[Enter]</color> ターン終了";
 
         public const string PlayerAttack =
@@ -37,7 +40,7 @@ public class InputHintUI : MonoBehaviour
             "<color=#FFD4AA>[2]</color> スキル";
 
         public const string EnemyTurn =
-            "<color=#888888>敵のターン...</color>";
+            "<color=#AACCDD>敵ターン：確認のみ  [左クリック] ステータス・範囲  [右クリック] 閉じる  [中ボタンドラッグ] カメラ移動</color>";
 
         public const string BuildMode =
             "<color=#AAFFAA>[左クリック]</color> 設置  " +
@@ -83,10 +86,10 @@ public class InputHintUI : MonoBehaviour
         _panelRect.anchorMax = new Vector2(1, 0);
         _panelRect.pivot = new Vector2(0.5f, 0);
         _panelRect.anchoredPosition = new Vector2(0, 0);
-        _panelRect.sizeDelta = new Vector2(0, 48);
+        _panelRect.sizeDelta = new Vector2(0, PanelHeight);
 
         var bg = panelGo.AddComponent<Image>();
-        bg.color = new Color(0.04f, 0.04f, 0.06f, 0.82f);
+        bg.color = new Color(0.04f, 0.04f, 0.06f, 0.95f);
 
         _group = panelGo.AddComponent<CanvasGroup>();
         _group.alpha = 0f;
@@ -97,7 +100,11 @@ public class InputHintUI : MonoBehaviour
         var textGo = new GameObject("HintText");
         textGo.transform.SetParent(panelGo.transform, false);
         _hintText = textGo.AddComponent<TextMeshProUGUI>();
-        _hintText.fontSize = BrandGuide.FontHudCaption;
+        _hintText.fontSize = 24;
+        _hintText.enableAutoSizing = true;
+        _hintText.fontSizeMin = 20; _hintText.fontSizeMax = 24;
+        _hintText.raycastTarget = false;
+        _hintText.lineSpacing = 5;
         _hintText.color = BrandGuide.TextPrimary;
         _hintText.alignment = TextAlignmentOptions.Center;
         _hintText.richText = true;

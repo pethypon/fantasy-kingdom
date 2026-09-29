@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -32,6 +32,7 @@ public sealed class MovementPreviewUI : MonoBehaviour
         box.transform.SetParent(go.transform,false);
         panel = box.GetComponent<RectTransform>(); panel.sizeDelta = new Vector2(380,108); panel.pivot = new Vector2(0,1);
         var bg = box.GetComponent<Image>(); bg.color = new Color(.025f,.045f,.07f,.96f); bg.raycastTarget = false;
+        GameUITheme.Current?.StylePlate(bg,new Color(.7f,.8f,.9f));
         var text = new GameObject("Cost",typeof(RectTransform),typeof(TextMeshProUGUI));
         text.transform.SetParent(box.transform,false);
         label = text.GetComponent<TextMeshProUGUI>(); label.fontSize = 30; label.raycastTarget = false;
@@ -66,7 +67,7 @@ public sealed class MovementPreviewUI : MonoBehaviour
         if (panel == null) Build();
         if (cost != lastCost || ap != lastAP)
         {
-            label.text = $"移動コスト <color=#80E7FF>{cost} AP</color>\n残りAP {ap} → <color=#B6F3A1>{ap-cost}</color>";
+            label.text = $"移動コスト <color=#80E7FF>{cost} AP</color>\n移動後AP {ap} → <color=#B6F3A1>{ap-cost}</color>";
             lastCost = cost; lastAP = ap;
         }
         UpdatePanelPosition(mouse);

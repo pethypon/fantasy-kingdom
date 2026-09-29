@@ -37,6 +37,15 @@ public class UnitSetting : MonoBehaviour
     // 外部からの読み取り用（GameGenerator・BattleSystem・PlayerSummon が参照）
     public Dictionary<Kind, UnitData> UnitDataMap { get; private set; }
 
+    private readonly Dictionary<Kind, GameObject> authoredPrefabs = new Dictionary<Kind, GameObject>();
+    private readonly List<UnitData> ownedDefaults = new List<UnitData>();
+    public bool TryGetAuthoredPrefab(Kind kind, out GameObject prefab) => authoredPrefabs.TryGetValue(kind, out prefab);
+    private void OnDestroy()
+    {
+        foreach (var data in ownedDefaults) if (data != null) Destroy(data);
+        ownedDefaults.Clear();
+    }
+
     // ==== 初期化 ====
     private void Awake()
     {
@@ -47,10 +56,12 @@ public class UnitSetting : MonoBehaviour
         {
             foreach (var entry in _unitDataList)
             {
-                if (entry.data != null)
+                if (entry != null && entry.data != null)
                     UnitDataMap[entry.kind] = entry.data;
             }
         }
+
+        UnitAuthoringCatalog.Load()?.Apply(UnitDataMap, authoredPrefabs);
 
         // UnitStaticData に定義があるが UnitDataMap に未登録の Kind を自動補完
         foreach (var kvp in UnitStaticData.Table)
@@ -58,6 +69,7 @@ public class UnitSetting : MonoBehaviour
             if (!UnitDataMap.ContainsKey(kvp.Key))
             {
                 UnitDataMap[kvp.Key] = UnitStaticData.CreateUnitData(kvp.Key);
+                ownedDefaults.Add(UnitDataMap[kvp.Key]);
             }
         }
     }
@@ -71,6 +83,8 @@ public class UnitSetting : MonoBehaviour
     public GameObject SpawnUnit(GameObject prefab, Vector3 pos,
                                 Transform parent, int level = 1, Kind? initialKind = null, Team? initialTeam = null)
     {
+        if (initialKind.HasValue && authoredPrefabs.TryGetValue(initialKind.Value, out var authored)) prefab = authored;
+        if (prefab == null) { Debug.LogError("[UnitSetting] Missing unit prefab"); return null; }
         var obj = Instantiate(prefab, pos, Quaternion.identity, parent);
 
         var status = obj.GetComponentInChildren<Status>();

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71ddaf05ff5a1904e8c28ad0b2e140c3, type: 3}
+  m_Name: TerrainVariants
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainVariantCatalog
+  grass:
+  - {fileID: 6179910347992592562, guid: 7184abdcef0307b45a802edd75e09590, type: 3}
+  - {fileID: 3456645886560296907, guid: 98aeb80179eafdb44b9587ed120ba3e6, type: 3}
+  - {fileID: 8115261110394638033, guid: 524e2bada425c6242b7ea70b88a88e31, type: 3}
+  lowMountain:
+  - {fileID: 4138649843111342330, guid: e2d0951b6439fea4d94f980dcdd340e3, type: 3}
+  - {fileID: 6083991994232926543, guid: ab674dde596470844bb0cb2f28a65e46, type: 3}
+  - {fileID: 8677966174373326249, guid: 8dd818b90083d2b4bb8d99d6bd93051f, type: 3}
+  highMountain:
+  - {fileID: 900215831684288171, guid: 6d8e1bce8f714b244b3a4b52a0df1c7c, type: 3}
+  - {fileID: 8429549490266944788, guid: edb5e2b639adb9340b78b914680babb3, type: 3}
+  - {fileID: 8007107111577947132, guid: f2231261d19681b498a53fef9df34b00, type: 3}

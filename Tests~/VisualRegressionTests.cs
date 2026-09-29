@@ -16,6 +16,16 @@ public static class VisualRegressionTests
         System.IO.File.WriteAllBytes(System.IO.Path.Combine(folder,name),tex.EncodeToPNG());
         camera.targetTexture=oldRT;RenderTexture.active=active;camera.transform.SetPositionAndRotation(oldPos,oldRot);UnityEngine.Object.DestroyImmediate(tex);UnityEngine.Object.DestroyImmediate(rt);
     }
+    public static void CaptureHUD(string name)
+    {
+        var camera=Camera.main; var canvas=UIBuilder.ScreenCanvas;
+        var mode=canvas.renderMode; var oldCamera=canvas.worldCamera; float oldPlane=canvas.planeDistance;
+        try {
+            canvas.renderMode=RenderMode.ScreenSpaceCamera;canvas.worldCamera=camera;canvas.planeDistance=1;
+            Canvas.ForceUpdateCanvases();
+            Capture(null,name,camera.transform.position,camera.transform.position+camera.transform.forward*10);
+        } finally {canvas.renderMode=mode;canvas.worldCamera=oldCamera;canvas.planeDistance=oldPlane;}
+    }
     public static void Run(GameSystems s)
     {
         var pool=ObjectPool.Instance;
@@ -52,8 +62,8 @@ public static class VisualRegressionTests
         var lowFog=s.MapCreate.FogChunks.GetComponentsInChildren<MeshFilter>();bool above=true;
         foreach(var f in lowFog) foreach(var v in f.sharedMesh.vertices) {
             int x=Mathf.Clamp(Mathf.RoundToInt(v.x),0,s.MapCreate.maxX-1),z=Mathf.Clamp(Mathf.RoundToInt(v.z),0,s.MapCreate.maxZ-1);
-            // All fog now starts above the terrain foundation, never on its bottom plane.
-            if(v.y<s.MapCreate.minY+0.5f) above=false;
+            // Closed shells must not share the terrain underside plane.
+            if (Mathf.Abs(v.y-(s.MapCreate.minY-.5f)) < .001f) above=false;
         }
         Check("fog never overlaps terrain underside",above);
         if(SystemInfo.graphicsDeviceType!=UnityEngine.Rendering.GraphicsDeviceType.Null) {

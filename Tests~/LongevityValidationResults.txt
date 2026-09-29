@@ -1,0 +1,6 @@
+Unity 6000.3.8f1, isolated validation project
+SceneSmoke: 454 PASS, including 21 Longevity regression assertions
+Timeout: movement, attack, construction, enemy; duplicate end, total timeout
+Damage pool: reload recovery without duplicate objects
+Unit Workshop: asset creation, registration, runtime spawn HP=777, negative-cost rejection
+Windows-20260929-Maintenance build: Succeeded; headless startup completed without logged exceptions. Editor shutdown emitted native JobTempAlloc warnings; full gameplay frame-rate benchmarking was not performed.

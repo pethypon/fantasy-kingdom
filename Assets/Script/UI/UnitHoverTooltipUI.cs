@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 
@@ -28,7 +28,7 @@ public class UnitHoverTooltipUI : MonoBehaviour
         if (panel.HasSelection) return;
         if (Time.unscaledTime < nextProbeTime) return;
         nextProbeTime = Time.unscaledTime + 0.1f;
-        if (Mouse.current == null || Camera.main == null || EnemyTurnBannerUI.IsShowing
+        if (Mouse.current == null || Camera.main == null
             || (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen)
             || (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()))
         {

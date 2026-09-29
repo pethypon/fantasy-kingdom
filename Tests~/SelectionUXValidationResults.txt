@@ -1,0 +1,6 @@
+Unity 6000.3.8f1 / isolated validation project
+SceneSmoke integration assertions: 433 PASS
+SelectionPickerTests: 12 PASS
+Visual capture: selection-hud.png, selection-build-reasons.png
+Layout follow-up: shared InputHintUI.ContentBottom; AP overlap fixed; graphics-enabled Unity compilation and capture completed.
+Windows-20260929/FantasyKingdom.exe: build succeeded; headless startup smoke passed.

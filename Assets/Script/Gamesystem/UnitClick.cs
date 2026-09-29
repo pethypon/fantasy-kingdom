@@ -18,6 +18,9 @@ public class UnitClick : MonoBehaviour
     public RaycastHit attackhit;
     private const float RayDistance = GameConstants.DefaultRayDistance;
     private readonly List<Status> skillActors = new List<Status>();
+    private readonly UnitSelectionPicker selectionPicker = new UnitSelectionPicker();
+    private bool CanPick(Status candidate) => UnitSelectionPicker.IsVisibleActor(candidate, turnGenerator.Systems.VisionGenerator)
+        && !(candidate.team == Team.Player && candidate.type == Type.Unit && StatusEffectSystem.IsStunned(candidate));
 
     public void UC(PlayerMove playermove, TurnGenerator turnGenerator, AttackGenerator attackGenerator)
     {
@@ -31,12 +34,18 @@ public class UnitClick : MonoBehaviour
     {
         if (playermove != null && playermove.BuildMode) return;
         if (!TryGetMouseRay(out Ray ray)) return;
-        if (!Physics.Raycast(ray, out RaycastHit hit, RayDistance)) return;
-        playermove.LastHit = hit;
+        if (!selectionPicker.Pick(ray, Mouse.current.position.ReadValue(), UnitPanelUI.SelectedStatus, CanPick, out var candidate, out var hit)) return;
+        SelectCandidate(candidate, hit);
+    }
 
-        var candidate = hit.transform.GetComponentInParent<Status>();
+    private void SelectCandidate(Status candidate, RaycastHit hit)
+    {
         if (candidate == null || !candidate.IsAlive) return;
         if (candidate.team == Team.Player && !CanSelectPlayer(candidate)) return;
+        turnGenerator.Systems.MoveGenerator.MoveReset();
+        playermove.MenuSwitch = false;
+        turnGenerator.Context.SelectUnit = null;
+        playermove.LastHit = hit;
         playermove.SelectedUnit = candidate;
         playermove.SelectedUnitPosition = playermove.SelectedUnit.transform.position;
 
@@ -79,26 +88,28 @@ public class UnitClick : MonoBehaviour
         // Click2処理
         if (!TryGetMouseRay(out Ray ray)) return;
 
+        // A repeated click over overlapping actors changes selection, even if the
+        // current actor's move markers also intersect that ray.
+        if (selectionPicker.Pick(ray, Mouse.current.position.ReadValue(), UnitPanelUI.SelectedStatus, CanPick,
+            out var next, out var nextHit, true))
+        {
+            SelectCandidate(next, nextHit);
+            return;
+        }
+
         // Use the same visible-marker hit test as the AP preview.
         if (turnGenerator.Systems.MoveGenerator.TryGetMoveDestination(ray, out RaycastHit hit, out var destination))
         {
             playermove.LastHit = hit;
             // MovePointレイヤーにヒット
             HandleMovePointClick(destination);
+            selectionPicker.Reset();
             return;
         }
 
         // MovePoint に当たらなかった場合、全レイヤーでユニット再選択を試みる
-        if (!Physics.Raycast(ray, out hit, RayDistance)) return;
-        playermove.LastHit = hit;
-
-        playermove.ClickedUnit = hit.transform.GetComponentInParent<Status>();
-        if (playermove.ClickedUnit == null) return;
-
-        if (playermove.ClickedUnit.team == Team.Player && playermove.ClickedUnit.type == Type.Unit)
-        {
-            HandlePlayerUnitReselect();
-        }
+        if (selectionPicker.Pick(ray, Mouse.current.position.ReadValue(), UnitPanelUI.SelectedStatus, CanPick, out var candidate, out hit))
+            SelectCandidate(candidate, hit);
     }
 
     // ---- 攻撃クリック ----

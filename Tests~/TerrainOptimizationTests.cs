@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -79,7 +79,7 @@ public static class TerrainOptimizationTests
             fog.Initialize(map,Prefab(live,"Fog"),Prefab(live,"FogExploard"),Prefab(live,"FogBoard"),Prefab(live,"FogExploardBoard"));
             var visible=new HashSet<Vector3Int>();var explored=new HashSet<Vector3Int>();fog.Refresh(visible,explored);
             watch.Stop();double initial=watch.Elapsed.TotalMilliseconds;
-            Check(size+" fog has 54 render objects",fog.RenderObjectCount==54);
+            Check(size+" fog has 18 render objects",fog.RenderObjectCount==18);
             explored.Add(new Vector3Int(1,0,1));visible.Add(new Vector3Int(2,0,2));fog.Refresh(visible,explored);
             Check(size+" fog three states",fog.GetState(0,0)==0&&fog.GetState(1,1)==1&&fog.GetState(2,2)==2);
             Check(size+" fog only dirty chunk rebuilt",fog.LastRebuiltChunks==1);

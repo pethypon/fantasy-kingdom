@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System;
 using TMPro;
 using UnityEngine;
@@ -7,6 +7,11 @@ public static class HeadHPRegressionTests
     static void Check(string label,bool ok) {if(!ok)throw new Exception("[HeadHP] "+label);Debug.Log("[HeadHP] PASS "+label);}
     public static void Run()
     {
+        var canvasObject = new GameObject("Head test canvas",typeof(Canvas));
+        var canvas = canvasObject.GetComponent<Canvas>(); canvas.renderMode=RenderMode.ScreenSpaceOverlay;
+        typeof(UIBuilder).GetProperty("ScreenCanvas").SetValue(null,canvas);
+        var cameraObject=new GameObject("Head test camera",typeof(Camera)); cameraObject.tag="MainCamera";
+        cameraObject.transform.position=new Vector3(0,1,-10);
         var go=GameObject.CreatePrimitive(PrimitiveType.Sphere);
         try
         {
@@ -14,9 +19,9 @@ public static class HeadHPRegressionTests
             status.Level=1;status.MaxHP=40;status.HP=10;
             var ui=UnitHeadUI.Attach(go);
             Check("theme has head sprites", GameUITheme.Current != null && GameUITheme.Current.healthFrame != null && GameUITheme.Current.healthFill != null && GameUITheme.Current.levelBadge != null);
-            var fill=go.transform.Find("HeadUI/HPFrame/HPWell/HPFill").GetComponent<UnityEngine.UI.Image>();
-            var label=go.transform.Find("HeadUI/HPFrame/HPText").GetComponent<TextMeshProUGUI>();
-            var level=go.transform.Find("HeadUI/LevelBadge/LvText").GetComponent<TextMeshProUGUI>();
+            var fill=canvas.transform.Find("UnitHeads/HeadUI/HPFrame/HPWell/HPFill").GetComponent<UnityEngine.UI.Image>();
+            var label=canvas.transform.Find("UnitHeads/HeadUI/HPFrame/HPText").GetComponent<TextMeshProUGUI>();
+            var level=canvas.transform.Find("UnitHeads/HeadUI/LevelBadge/LvText").GetComponent<TextMeshProUGUI>();
             Check("injured spawn uses actual max HP",Mathf.Approximately(fill.fillAmount,.25f)&&label.text=="10/40");
             status.GainExperience(Status.XPRequiredForLevel(2));typeof(UnitHeadUI).GetMethod("LateUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(ui, null);
             Check("level gain changes actual maximum",status.Level==2&&status.MaxHP>40);
@@ -27,10 +32,24 @@ public static class HeadHPRegressionTests
             Check("healing reaches full bar",Mathf.Approximately(fill.fillAmount,1));
             status.HP=1;typeof(UnitHeadUI).GetMethod("LateUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(ui, null);
             Check("damage after leveling uses grown maximum",Mathf.Approximately(fill.fillAmount,1f/status.MaxHP));
+            var other=GameObject.CreatePrimitive(PrimitiveType.Sphere);var otherStatus=other.AddComponent<Status>();otherStatus.kind=Kind.Knight;otherStatus.type=Type.Unit;otherStatus.HP=otherStatus.MaxHP=40;
+            UnitHeadUI.Attach(other);var heads=canvas.transform.Find("UnitHeads");
+            var head=fill.transform.parent.parent.parent;head.SetAsFirstSibling();
+            typeof(UnitPanelUI).GetProperty("SelectedStatus").SetValue(null,status);
+            typeof(UnitHeadUI).GetMethod("LateUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(ui,null);
+            Check("selected head draws above crowded heads",head.GetSiblingIndex()==heads.childCount-1);
+            UnityEngine.Object.DestroyImmediate((GameObject)typeof(UnitHeadUI).GetField("headUIObject",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(other.GetComponent<UnitHeadUI>()));
+            UnityEngine.Object.DestroyImmediate(other);
+            typeof(UnitPanelUI).GetProperty("SelectedStatus").SetValue(null,null);
             status.HP=0;typeof(UnitHeadUI).GetMethod("LateUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(ui, null);
-            Check("dead unit head bar stays hidden",!go.transform.Find("HeadUI").gameObject.activeSelf);
+            Check("dead unit head bar stays hidden",!canvas.transform.Find("UnitHeads/HeadUI").gameObject.activeSelf);
         }
-        finally {UnityEngine.Object.DestroyImmediate(go);}
+        finally {
+            UnityEngine.Object.DestroyImmediate(canvasObject);
+            UnityEngine.Object.DestroyImmediate(go);
+            UnityEngine.Object.DestroyImmediate(cameraObject);
+            typeof(UIBuilder).GetProperty("ScreenCanvas").SetValue(null,null);
+        }
     }
 }
 #endif

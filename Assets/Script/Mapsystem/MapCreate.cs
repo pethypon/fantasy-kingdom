@@ -30,6 +30,8 @@ public class MapCreate : MonoBehaviour
     [SerializeField] private GameObject rockyGrassPrefab;
     [SerializeField] private GameObject waterPrefab;
     [SerializeField] private GameObject highMountainPrefab;
+    [Header("高さ別ブロックの種類（未指定なら標準カタログ）")]
+    [SerializeField] private TerrainVariantCatalog terrainVariants;
     public FogChunkRenderer FogChunks { get; private set; }
 
     [Header("石ブロック")]
@@ -140,6 +142,7 @@ public class MapCreate : MonoBehaviour
     {
         excludedPlacementCells.Clear();
         SetPos.Clear();
+        if (terrainVariants == null) terrainVariants = Resources.Load<TerrainVariantCatalog>("Terrain/TerrainVariants");
         waterPrefab = waterPrefab != null ? waterPrefab : Resources.Load<GameObject>("Terrain/WaterBlock");
         highMountainPrefab = highMountainPrefab != null ? highMountainPrefab : Resources.Load<GameObject>("Terrain/HighMountainBlock");
         grassPrefab = grassPrefab != null ? grassPrefab : Resources.Load<GameObject>("Terrain/GrassBlock");
@@ -153,7 +156,8 @@ public class MapCreate : MonoBehaviour
             }
         }
         FogChunks = new GameObject("FogChunks").AddComponent<FogChunkRenderer>();
-        FogChunks.transform.SetParent(transform, false);
+        // Terrain cells are spawned in world coordinates, even when this generator is moved.
+        FogChunks.transform.SetParent(transform, true);
         FogChunks.Initialize(this, Fog, FogExploard, FogBoard, FogExploardBoard);
         var grid = GetComponent<MapGridOverlay>();
         if (grid == null) grid = gameObject.AddComponent<MapGridOverlay>();
@@ -165,21 +169,22 @@ public class MapCreate : MonoBehaviour
     private void SpawnTerrain(int x, int z)
     {
         int y = topY[x, z];
-        GameObject prefab = IsRiver(x,z) ? waterPrefab : LandPrefab(y);
+        GameObject prefab = IsRiver(x,z) ? waterPrefab : LandPrefab(y, x, z);
         if (prefab == null) throw new System.InvalidOperationException("Terrain prefabs are missing. Run Fantasy Kingdom/Create Terrain Prefabs.");
         Instantiate(prefab, new Vector3(x,y,z), Quaternion.identity, MapBox);
         if (!IsHighMountain(x,z) && !IsRiver(x,z)) SetPos.Add(new Vector3Int(x,y+1,z));
         // Fill every level, not only the single block below the surface.
         for (int downY = y - 1; downY >= minY; downY--)
-            Instantiate(LandPrefab(downY), new Vector3(x,downY,z), Quaternion.identity, MapBox);
+            Instantiate(LandPrefab(downY, x, z), new Vector3(x,downY,z), Quaternion.identity, MapBox);
     }
 
-    private GameObject LandPrefab(int level)
+    private GameObject LandPrefab(int level, int x, int z)
     {
         if (!UseR1Terrain) return dirtPrefab;
-        if (level >= 2) return highMountainPrefab;
-        if (level == 1 && rockyGrassPrefab != null) return rockyGrassPrefab;
-        return grassPrefab != null ? grassPrefab : dirtPrefab;
+        var fallback = level >= 2 ? highMountainPrefab
+            : level == 1 && rockyGrassPrefab != null ? rockyGrassPrefab
+            : grassPrefab != null ? grassPrefab : dirtPrefab;
+        return terrainVariants != null ? terrainVariants.Select(level, x, z, seedx, seedz, fallback) : fallback;
     }
 
     // ==================================================================

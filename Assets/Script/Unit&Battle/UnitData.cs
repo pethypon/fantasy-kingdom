@@ -38,6 +38,12 @@ public class UnitData : ScriptableObject
     public int costCitizen;
     public int costAP;
 
+    public bool IsValidForAuthoring => baseHP > 0 && baseATK >= 0 && baseDEF >= 0
+        && ValidGrowth(hpGrowth) && ValidGrowth(atkGrowth) && ValidGrowth(defGrowth)
+        && upkeepWood >= 0 && upkeepStone >= 0 && upkeepIron >= 0 && upkeepMagic >= 0 && upkeepWater >= 0 && upkeepBread >= 0
+        && costWood >= 0 && costStone >= 0 && costIron >= 0 && costMagic >= 0 && costWater >= 0 && costBread >= 0 && costCitizen >= 0 && costAP >= 0;
+    static bool ValidGrowth(float value) => !float.IsNaN(value) && !float.IsInfinity(value) && value >= 0;
+
     // ─────────────────────────────────────────────────────────────────
     //  維持費計算（Lv5まで無料、Lv6から発生、Lv15ごとに全項目+1）
     // ─────────────────────────────────────────────────────────────────

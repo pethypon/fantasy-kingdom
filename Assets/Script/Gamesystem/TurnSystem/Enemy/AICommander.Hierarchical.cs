@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 // =====================================================================
 //  AICommander.Hierarchical — 師団長制AIフェーズ
@@ -13,9 +13,9 @@ public partial class AICommander
     //  4. 採択された行動を実行
     //  ML機能は師団長制モードでは無効化される。
     // ================================================================
-    void ExecuteHierarchicalPhase(ref TurnStats turnStats)
+    System.Collections.IEnumerator ExecuteHierarchicalPhase(TurnStats turnStats)
     {
-        if (AITurnBudget.Expired) return;
+        if (AITurnBudget.Expired) yield break;
         DevelopmentLog.Log("[AICommander] === 師団長制フェーズ開始 ===");
 
         // 1. 師団長の選出
@@ -24,7 +24,7 @@ public partial class AICommander
         if (!_kingCommanderSystem.HasDivisions)
         {
             DevelopmentLog.Log("[AICommander] 師団長なし → 全ユニット王直轄で通常処理");
-            return;
+            yield break;
         }
 
         // 2. 兵の割り当て
@@ -45,7 +45,8 @@ public partial class AICommander
         int executed = 0;
         foreach (var action in acceptedActions)
         {
-            if (AITurnBudget.Expired) break;
+            yield return null;
+            if (AITurnBudget.Expired || _turnGen.IsGameOver) yield break;
             // AP再チェック（実行中にAPが変化する可能性）
             _board.Refresh();
             if (_board.EnemyAP < action.APCost)

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class CrystalSystem : MonoBehaviour
@@ -56,12 +56,12 @@ public class CrystalSystem : MonoBehaviour
 
         PCP = savedPCP;
         var pObj = Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
-        ApplyCrystalHP(pObj);
+        ConfigureCrystal(pObj, Team.Player);
         GetComponent<MapCreate>().ExcludePlacementCell(PCP);
 
         ECP = savedECP;
         var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
-        ApplyCrystalHP(eObj);
+        ConfigureCrystal(eObj, Team.Enemy);
         GetComponent<MapCreate>().ExcludePlacementCell(ECP);
 
         Debug.Log($"[CrystalSystem] セーブから復元: PCP={PCP} ECP={ECP}");
@@ -90,7 +90,7 @@ public class CrystalSystem : MonoBehaviour
 
         PCP = candidates[Random.Range(0, candidates.Count)];
         var pObj = Instantiate(PlayerCrystal, PCP, Quaternion.identity, Playercrystal);
-        ApplyCrystalHP(pObj);
+        ConfigureCrystal(pObj, Team.Player);
         GetComponent<MapCreate>().ExcludePlacementCell(PCP);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color> プレイヤークリスタル設置完了");
     }
@@ -110,7 +110,7 @@ public class CrystalSystem : MonoBehaviour
 
             ECP = candidates[Random.Range(0, candidates.Count)];
             var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
-            ApplyCrystalHP(eObj);
+            ConfigureCrystal(eObj, Team.Enemy);
             Debug.Log($"<color=#ffff00ff>[StartSetting]</color> 敵クリスタル設置完了 (relax={relax})");
             return;
         }
@@ -125,7 +125,7 @@ public class CrystalSystem : MonoBehaviour
         {
             ECP = fallback[Random.Range(0, fallback.Count)];
             var eObj = Instantiate(EnemyCrystal, ECP, Quaternion.identity, Enemycrystal);
-            ApplyCrystalHP(eObj);
+            ConfigureCrystal(eObj, Team.Enemy);
             Debug.LogWarning($"[CrystalSystem] 通常制約で配置不可 → 全制約解除でフォールバック配置 ECP={ECP}");
             return;
         }
@@ -134,13 +134,34 @@ public class CrystalSystem : MonoBehaviour
     }
 
     /// <summary> クリスタルの HP を CrystalHP 定数に設定する。 </summary>
-    private void ApplyCrystalHP(GameObject crystalObj)
+    /// <summary>Custom visual prefabs also receive the same crystal identity and hit points.</summary>
+    public static void ConfigureCrystal(GameObject crystal, Team team)
     {
-        var status = crystalObj.GetComponentInChildren<Status>();
-        if (status != null)
+        var status = crystal.GetComponentInChildren<Status>();
+        if (status == null) status = crystal.AddComponent<Status>();
+        status.kind = Kind.Crystal;
+        status.type = Type.Unit;
+        status.team = team;
+        status.direction = team == Team.Player ? Direction.N : Direction.S;
+        status.HP = status.MaxHP = CrystalHP;
+        status.ATK = status.DEF = 0;
+        status.Level = 1;
+        // A pedestal collider alone does not cover the crystal above it.
+        if (crystal.GetComponent<BoxCollider>() == null)
         {
-            status.HP = CrystalHP;
-            status.MaxHP = CrystalHP;
+            var renderers = crystal.GetComponentsInChildren<Renderer>();
+            var bounds = new Bounds(Vector3.zero, Vector3.one * .5f);
+            foreach (var renderer in renderers)
+            {
+                var b = renderer.localBounds;
+                for (int i=0;i<8;i++)
+                {
+                    var corner = b.center + Vector3.Scale(b.extents, new Vector3((i&1)==0?-1:1,(i&2)==0?-1:1,(i&4)==0?-1:1));
+                    bounds.Encapsulate(crystal.transform.InverseTransformPoint(renderer.transform.TransformPoint(corner)));
+                }
+            }
+            var collider = crystal.AddComponent<BoxCollider>();
+            collider.center = bounds.center; collider.size = bounds.size;
         }
     }
 

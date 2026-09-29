@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System;
 using System.Linq;
 using UnityEngine;
@@ -35,11 +35,12 @@ public static class StatusUIRegressionTests
         var buildingGo=new GameObject("Status panel building fixture");
         var building=buildingGo.AddComponent<Status>();building.type=Type.Building;building.facilityKind=FacilityKind.Field;building.team=Team.Player;building.Level=1;building.HP=100;building.MaxHP=100;
         panel.Show(building);Canvas.ForceUpdateCanvases();
-        var upgrade=panel.transform.Find("UpgradeArea").GetComponent<RectTransform>();
-        var destroy=panel.transform.Find("DestroyArea").GetComponent<RectTransform>();
+        var upgrade=panel.transform.Find("RightCommands/UpgradeArea").GetComponent<RectTransform>();
+        var destroy=panel.transform.Find("RightCommands/DestroyArea").GetComponent<RectTransform>();
         Check("upgrade and destroy occupy separate rows",upgrade.anchorMin.y>destroy.anchorMax.y);
         var effect=panel.transform.Find("CenterStats/KindText").GetComponent<RectTransform>();
-        Check("building effect does not overlap command column",effect.parent.GetComponent<RectTransform>().anchorMax.x<=upgrade.anchorMin.x);
+        Check("building effect does not overlap command column",effect.parent.GetComponent<RectTransform>().anchorMax.x<=upgrade.parent.GetComponent<RectTransform>().anchorMin.x);
+        VisualRegressionTests.CaptureHUD("building-hud.png");
         panel.Hide();UnityEngine.Object.DestroyImmediate(buildingGo);move.Reset();systems.MoveGenerator.MoveReset();
         turn.Context.ConsumeUICommand();input.Tick();
     }

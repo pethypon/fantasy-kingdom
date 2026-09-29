@@ -27,6 +27,13 @@ public class UIBuilder : MonoBehaviour
 
     // 建築・召喚UIの生成とボタン管理を委譲
     private BuildSummonUIBuilder buildSummonUI;
+    float nextBuildAvailabilityRefresh;
+    void Update()
+    {
+        if (SlidePanel == null || !SlidePanel.IsBuildPanelOpen || Time.unscaledTime < nextBuildAvailabilityRefresh) return;
+        nextBuildAvailabilityRefresh=Time.unscaledTime+.25f;
+        buildSummonUI?.RefreshBuildButtons();
+    }
 
     private void Awake()
     {
@@ -168,8 +175,11 @@ public class UIBuilder : MonoBehaviour
         StretchFill(turnArea);
         turnArea.anchorMin = new Vector2(0.50f, 0);
         turnArea.anchorMax = new Vector2(0.64f, 1);
-        turnArea.offsetMin = new Vector2(10, 4);
-        turnArea.offsetMax = new Vector2(-4, -4);
+        turnArea.offsetMin = new Vector2(10, 24);
+        turnArea.offsetMax = new Vector2(-4, -24);
+        var turnPlate = turnArea.GetComponent<Image>();
+        if (turnPlate == null) turnPlate = turnArea.gameObject.AddComponent<Image>();
+        GameUITheme.Current?.StylePlate(turnPlate,new Color(.65f,.73f,.82f));
 
         // ターン内部をHorizontalLayoutGroupで中央揃え
         var turnHLG = turnArea.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -185,6 +195,8 @@ public class UIBuilder : MonoBehaviour
         iconGo.transform.SetParent(turnArea, false);
         var iconImg = iconGo.AddComponent<Image>();
         iconImg.color = BrandGuide.Primary;
+        if (GameUITheme.Current != null) iconImg.sprite = GameUITheme.Current.levelBadge;
+        iconImg.raycastTarget = false;
         var iconRT = iconGo.GetComponent<RectTransform>();
         iconRT.sizeDelta = new Vector2(24, 24);
         var iconLE = iconGo.AddComponent<LayoutElement>();
@@ -197,7 +209,7 @@ public class UIBuilder : MonoBehaviour
         turnText.fontStyle = FontStyles.Bold;
         turnText.alignment = TextAlignmentOptions.MidlineLeft;
         var turnTextLE = turnText.gameObject.AddComponent<LayoutElement>();
-        turnText.rectTransform.sizeDelta = new Vector2(180, 48);
+        turnText.rectTransform.sizeDelta = new Vector2(145, 48);
         turnTextLE.preferredWidth = 180;
         turnTextLE.preferredHeight = 40;
 
@@ -243,18 +255,23 @@ public class UIBuilder : MonoBehaviour
         // バー背景
         var timerBg = new GameObject("TimerBg", typeof(RectTransform));
         timerBg.transform.SetParent(timerArea.transform, false);
-        timerBg.AddComponent<Image>().color = BrandGuide.TimerBg;
+        var clockFrame = timerBg.AddComponent<Image>();
+        clockFrame.color = BrandGuide.TimerBg;
+        GameUITheme.Current?.StylePlate(clockFrame,new Color(.65f,.73f,.82f));
         StretchFill(timerBg.GetComponent<RectTransform>());
 
         // バー本体
         var timerFill = new GameObject("TimerFill", typeof(RectTransform));
         timerFill.transform.SetParent(timerArea.transform, false);
-        timerFill.AddComponent<Image>().color = BrandGuide.TimerNormal;
+        var clockFill = timerFill.AddComponent<Image>();
+        clockFill.color = BrandGuide.TimerNormal;
+        if (GameUITheme.Current != null) clockFill.sprite = GameUITheme.Current.healthFill;
+        clockFill.type = Image.Type.Sliced; clockFill.raycastTarget = false;
         var fillRT = timerFill.GetComponent<RectTransform>();
         fillRT.anchorMin = Vector2.zero;
         fillRT.anchorMax = Vector2.one;
-        fillRT.offsetMin = new Vector2(2, 2);
-        fillRT.offsetMax = new Vector2(-2, -2);
+        fillRT.offsetMin = new Vector2(18, 7);
+        fillRT.offsetMax = new Vector2(-18, -38);
 
         // 制限時間テキスト
         var timerText = CreateTMP("TimerText", timerArea.transform, "制限時間", BrandGuide.FontHud);
@@ -290,17 +307,20 @@ public class UIBuilder : MonoBehaviour
         var plate = cell.AddComponent<Image>();
         plate.color = bgColor;
         GameUITheme.Current?.StylePlate(plate, new Color(0.65f, 0.73f, 0.82f));
+        plate.raycastTarget = true;
+        cell.AddComponent<ResourceValueTooltip>();
 
         var le = cell.AddComponent<LayoutElement>();
         le.flexibleWidth = 1;
-        le.minWidth = 30;
+        le.minWidth = 0;
+        le.preferredWidth = 0; // Equal cells do not grow with text length.
 
         var tmp = CreateTMP(name, cell.transform, name + ": 0", BrandGuide.FontHud);
         tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
         tmp.overflowMode = TextOverflowModes.Ellipsis;
         tmp.richText = true;
         tmp.enableAutoSizing = true;
-        tmp.fontSizeMin = BrandGuide.FontHudCaption;
+        tmp.fontSizeMin = 16;
         tmp.fontSizeMax = BrandGuide.FontHud;
         tmp.color = BrandGuide.TextPrimary;
         var tmpRT = tmp.GetComponent<RectTransform>();
@@ -418,8 +438,8 @@ public class UIBuilder : MonoBehaviour
         var panel = CreatePanel("BottomUnitPanel", canvas.transform,
             new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0),
             new Vector2(1100, 300));
-        // 操作ヒントバー(48px)の上に余白を確保する
-        panel.anchoredPosition = new Vector2(0, 60);
+        // 操作説明バーの上に共通の余白を確保する
+        panel.anchoredPosition = new Vector2(0, InputHintUI.ContentBottom);
 
         AddImage(panel.gameObject, new Color(0.035f, 0.048f, 0.070f, 0.98f));
         BrandGuide.AddPanelBorder(panel, 1);
@@ -526,7 +546,7 @@ public class UIBuilder : MonoBehaviour
         var panel = CreatePanel("APPanel", canvas.transform,
             new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0),
             new Vector2(200, 110));
-        panel.anchoredPosition = new Vector2(-20, 60);
+        panel.anchoredPosition = new Vector2(-20, InputHintUI.ContentBottom);
 
         AddImage(panel.gameObject, BrandGuide.PanelBg);
         BrandGuide.AddPanelBorder(panel);

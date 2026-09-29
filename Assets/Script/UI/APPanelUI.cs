@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,8 +30,8 @@ public class APPanelUI : MonoBehaviour
 
     [Header("右下配置")]
     [SerializeField] private float marginRight = 20f;
-    // 画面最下部の InputHintUI (高さ 32px) と被らないよう 40 に設定
-    [SerializeField] private float marginBottom = 60f;
+    // 操作説明バーより上に配置する。
+    [SerializeField] private float marginBottom = InputHintUI.ContentBottom;
     [SerializeField] private float panelWidth = 200f;
     [SerializeField] private float panelHeight = 96f;
 
@@ -65,7 +65,7 @@ public class APPanelUI : MonoBehaviour
             rt.anchorMax = new Vector2(1f, 0f);
             rt.pivot = new Vector2(1f, 0f);
             rt.sizeDelta = new Vector2(panelWidth, panelHeight);
-            rt.anchoredPosition = new Vector2(-marginRight, marginBottom);
+            rt.anchoredPosition = new Vector2(-marginRight, Mathf.Max(marginBottom, InputHintUI.ContentBottom));
         }
 
         // APテキストを大きめに

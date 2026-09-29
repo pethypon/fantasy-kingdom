@@ -72,6 +72,7 @@ public class SummonSystem : MonoBehaviour
                     prefabMap[entry.kind] = entry.prefab;
             }
         }
+        UnitAuthoringCatalog.Load()?.Apply(null, prefabMap);
     }
 
     // ==================================================================

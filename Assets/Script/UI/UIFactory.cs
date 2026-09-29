@@ -187,7 +187,7 @@ public static class UIFactory
         sbRT.anchorMin = new Vector2(1, 0);
         sbRT.anchorMax = new Vector2(1, 1);
         sbRT.pivot = new Vector2(1, 0.5f);
-        sbRT.sizeDelta = new Vector2(8, 0);
+        sbRT.sizeDelta = new Vector2(28, 0);
         sbRT.anchoredPosition = Vector2.zero;
 
         var sbImg = sbGo.AddComponent<Image>();
@@ -198,6 +198,7 @@ public static class UIFactory
         slideArea.transform.SetParent(sbGo.transform, false);
         var saRT = slideArea.GetComponent<RectTransform>();
         StretchFill(saRT);
+        saRT.offsetMin = new Vector2(3, 3); saRT.offsetMax = new Vector2(-3, -3);
 
         // ハンドル
         var handle = new GameObject("Handle", typeof(RectTransform));

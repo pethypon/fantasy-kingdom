@@ -37,24 +37,29 @@ public class FloatingDamageUI : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
+            enabled = false;
+            Destroy(this);
             return;
         }
         Instance = this;
         InitPool();
+        enabled = false; // No per-frame camera lookup when no popup is visible.
     }
 
     private void OnDestroy() { if (Instance == this) Instance = null; }
 
     private void InitPool()
     {
+        _nextIndex = 0;
         _pool = new DamagePopup[PoolSize];
         for (int i = 0; i < PoolSize; i++)
         {
-            var go = new GameObject($"DmgPopup_{i}");
+            var existing = transform.Find($"DmgPopup_{i}");
+            var go = existing != null ? existing.gameObject : new GameObject($"DmgPopup_{i}");
             go.transform.SetParent(transform);
 
-            var tmp = go.AddComponent<TextMeshPro>();
+            var tmp = go.GetComponent<TextMeshPro>();
+            if (tmp == null) tmp = go.AddComponent<TextMeshPro>();
             tmp.fontSize = FontSize;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.sortingOrder = 100;
@@ -128,6 +133,8 @@ public class FloatingDamageUI : MonoBehaviour
         // 視界外の位置で発生した演出は抑制（フォグオブウォーの整合性）
         if (!IsPositionVisibleToPlayer(worldPos)) return;
 
+        enabled = true;
+        if (_pool == null || _pool[_nextIndex].Go == null || _pool[_nextIndex].Text == null) InitPool();
         ref var popup = ref _pool[_nextIndex];
 
         // 古いのが使用中でも強制リサイクル
@@ -148,13 +155,15 @@ public class FloatingDamageUI : MonoBehaviour
 
     private void Update()
     {
+        if (_pool == null) { InitPool(); return; }
         float now = Time.time;
         Camera cam = Camera.main;
+        bool anyActive = false;
 
         for (int i = 0; i < PoolSize; i++)
         {
             ref var popup = ref _pool[i];
-            if (!popup.Go.activeSelf) continue;
+            if (popup.Go == null || popup.Text == null || !popup.Go.activeSelf) continue;
 
             if (now >= popup.ExpireTime)
             {
@@ -163,6 +172,7 @@ public class FloatingDamageUI : MonoBehaviour
             }
 
             // 上昇 + フェードアウト
+            anyActive = true;
             float elapsed = Duration - (popup.ExpireTime - now);
             float t = elapsed / Duration;
 
@@ -174,5 +184,6 @@ public class FloatingDamageUI : MonoBehaviour
             if (cam != null)
                 popup.Go.transform.rotation = cam.transform.rotation;
         }
+        if (!anyActive) enabled = false;
     }
 }

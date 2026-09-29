@@ -47,7 +47,7 @@ public class TimerSystem : MonoBehaviour
     public bool IsRunning => isRunning;
 
     /// <summary>セーブデータからターン残り時間を復元</summary>
-    public void RestoreTurnTimeRemaining(float value) { turnTimeRemaining = value; }
+    public void RestoreTurnTimeRemaining(float value) { turnTimeRemaining = SafeSeconds(value); }
 
     public void Init(TurnGenerator turnGenerator, CrystalSystem crystalsystem)
     {
@@ -67,7 +67,7 @@ public class TimerSystem : MonoBehaviour
     public void StartTurn(Team team)
     {
         currentTeam = team;
-        turnTimeRemaining = TurnTimeLimit;
+        turnTimeRemaining = Mathf.Max(1f, SafeSeconds(TurnTimeLimit));
         isRunning = true;
         warned30s = false;
         warned10s = false;
@@ -83,16 +83,21 @@ public class TimerSystem : MonoBehaviour
     {
         if (!isRunning || (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen)) return;
 
-        float dt = Time.deltaTime;
+        Advance(Time.deltaTime);
+    }
+
+    internal void Advance(float dt)
+    {
+        if (!isRunning || float.IsNaN(dt) || float.IsInfinity(dt) || dt < 0) return;
 
         // 1ターン制限時間を減算
-        turnTimeRemaining -= dt;
+        turnTimeRemaining = Mathf.Max(0, SafeSeconds(turnTimeRemaining) - dt);
 
         // 持ち時間を減算
         if (currentTeam == Team.Player)
-            PlayerTotalTime -= dt;
+            PlayerTotalTime = Mathf.Max(0, SafeSeconds(PlayerTotalTime) - dt);
         else
-            EnemyTotalTime -= dt;
+            EnemyTotalTime = Mathf.Max(0, SafeSeconds(EnemyTotalTime) - dt);
 
         // 持ち時間が切れたらゲーム終了
         if (PlayerTotalTime <= 0f || EnemyTotalTime <= 0f)
@@ -104,7 +109,7 @@ public class TimerSystem : MonoBehaviour
         }
 
         // プレイヤーターン中の残り時間警告
-        if (currentTeam == Team.Player)
+        if (currentTeam == Team.Player && turnTimeRemaining > 0)
         {
             if (!warned30s && turnTimeRemaining <= GameConstants.TimerWarningThreshold)
             {
@@ -130,8 +135,8 @@ public class TimerSystem : MonoBehaviour
     private GameResult DetermineTimeUpResult()
     {
         // クリスタルのHP比較
-        Status playerCrystal = GetCrystalStatus(crystalsystem.Playercrystal);
-        Status enemyCrystal = GetCrystalStatus(crystalsystem.Enemycrystal);
+        Status playerCrystal = GetCrystalStatus(crystalsystem != null ? crystalsystem.Playercrystal : null);
+        Status enemyCrystal = GetCrystalStatus(crystalsystem != null ? crystalsystem.Enemycrystal : null);
 
         if (playerCrystal == null || enemyCrystal == null)
         {
@@ -178,7 +183,7 @@ public class TimerSystem : MonoBehaviour
 
     private Status FindKing(Team team)
     {
-        if (turnGenerator == null) return null;
+        if (turnGenerator == null || turnGenerator.Systems.UnitSetting == null) return null;
         Transform parent = team == Team.Player
             ? turnGenerator.Systems.UnitSetting.PlayerUnit
             : turnGenerator.Systems.UnitSetting.EnemyUnit;
@@ -192,9 +197,11 @@ public class TimerSystem : MonoBehaviour
     }
 
     /// <summary>表示用: 秒を mm:ss に変換</summary>
+    private static float SafeSeconds(float value) => float.IsNaN(value) || float.IsInfinity(value) ? 0 : Mathf.Max(0,value);
+
     public static string FormatTime(float seconds)
     {
-        if (seconds < 0f) seconds = 0f;
+        seconds = SafeSeconds(seconds);
         int min = (int)(seconds / 60f);
         int sec = (int)(seconds % 60f);
         return $"{min:D2}:{sec:D2}";

@@ -9,6 +9,8 @@ using UnityEngine;
 public class TurnCameraController : MonoBehaviour
 {
     private TurnGenerator _turn;
+    private bool dragging;
+    private Vector2 previousPointer;
 
     public void Bind(TurnGenerator turn)
     {
@@ -56,6 +58,26 @@ public class TurnCameraController : MonoBehaviour
             if (map != null) cam.position = ClampPosition(cam.position, cam.forward, map.maxX, map.maxZ);
         }
 
+        var mouse = UnityEngine.InputSystem.Mouse.current;
+        var camera = Camera.main;
+        if (mouse != null && camera != null && cam != null)
+        {
+            Vector2 pointer = mouse.position.ReadValue();
+            bool overUI = UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
+            if (mouse.middleButton.wasPressedThisFrame && !overUI) { dragging = true; previousPointer = pointer; }
+            if (!mouse.middleButton.isPressed) dragging = false;
+            if (dragging)
+            {
+                var plane = new Plane(Vector3.up, Vector3.zero);
+                var previousRay = camera.ScreenPointToRay(previousPointer);
+                var currentRay = camera.ScreenPointToRay(pointer);
+                if (plane.Raycast(previousRay,out float a) && plane.Raycast(currentRay,out float b))
+                    cam.position += previousRay.GetPoint(a) - currentRay.GetPoint(b);
+                var map = _turn.Systems.MapCreate;
+                if (map != null) cam.position = ClampPosition(cam.position,cam.forward,map.maxX,map.maxZ);
+                previousPointer = pointer;
+            }
+        }
         float scroll = ctx.ScrollInput;
         if (scroll != 0f && Camera.main != null)
         {

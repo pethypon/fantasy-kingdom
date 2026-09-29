@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -124,6 +124,7 @@ public class BuildSystem : MonoBehaviour
         if (IsActive) CancelBuildMode();
 
         SelectedFacility = facility;
+        hasPlacementFeedback = false;
         IsActive = true;
         canPlace = false;
 
@@ -134,6 +135,8 @@ public class BuildSystem : MonoBehaviour
     public void CancelBuildMode()
     {
         IsActive = false;
+        PlacementFailureReason = null;
+        turnGenerator?.Systems.InputHintUI?.SetHints(InputHintUI.Hints.PlayerMove);
         cursor.Destroy();
         Debug.Log("[BuildSystem] 建築モード解除");
     }
@@ -148,39 +151,30 @@ public class BuildSystem : MonoBehaviour
         if (!cursor.TryGetGridPosition(out Vector3Int gridPos))
         {
             cursor.SetVisible(false);
+            SetPlacementFeedback("配置不可：マップ上のマスを選択してください");
             return;
         }
+        // Keep the pointed cell; silently clamping to another cell hides the reason.
+        var snapped = gridPos;
+        if (mapcreate.TryGetHeight(gridPos.x,gridPos.z,out float y)) snapped.y=Mathf.RoundToInt(y);
+        string reason=GetPlacementFailure(snapped);
+        canPlace=reason==null;
+        cursor.UpdatePosition(snapped,canPlace);
+        SetPlacementFeedback(reason);
+    }
 
-        Vector3Int snapped = mapcreate.SnapToSetPos(gridPos);
-        bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
+    public string PlacementFailureReason { get; private set; }
+    bool hasPlacementFeedback;
+    public string GetPlacementFailure(Vector3Int position) => BuildValidator.CostFailure(SelectedFacility,factionState)
+        ?? validator.PlacementFailure(position,SelectedFacility,subCrystalSystem,turnGenerator.Systems.CrystalSystem);
 
-        if (isSubCrystal)
-        {
-            // サブクリスタル: 領地内の場合は領地外にクランプ
-            if (territorysystem.IsInTerritory(snapped, Team.Player))
-            {
-                Vector3Int clamped = validator.ClampToOutsideTerritory(snapped);
-                if (clamped.x != int.MinValue)
-                    snapped = clamped;
-            }
-        }
-        else
-        {
-            // 通常建築物: 領地内チェック
-            if (!territorysystem.IsInTerritory(snapped, Team.Player))
-            {
-                Vector3Int clamped = territorysystem.ClampToTerritory(snapped, Team.Player);
-                if (clamped.x == int.MinValue)
-                {
-                    cursor.SetVisible(false);
-                    return;
-                }
-                snapped = clamped;
-            }
-        }
-
-        canPlace = CheckCanPlace(snapped);
-        cursor.UpdatePosition(snapped, canPlace);
+    void SetPlacementFeedback(string reason)
+    {
+        if (hasPlacementFeedback && PlacementFailureReason==reason) return;
+        hasPlacementFeedback=true;
+        PlacementFailureReason=reason;
+        turnGenerator?.Systems.InputHintUI?.SetHints(InputHintUI.Hints.BuildMode + "\n" +
+            (reason==null ? "<color=#A9E5B1>建築可能</color>" : "<color=#FFB7A3>"+reason+"</color>"));
     }
 
     // ==================================================================
@@ -188,7 +182,9 @@ public class BuildSystem : MonoBehaviour
     // ==================================================================
     public bool TryPlace()
     {
-        if (!IsActive || !canPlace || !cursor.IsVisible) return false;
+        if (!IsActive) return false;
+        string reason=cursor.IsVisible ? GetPlacementFailure(cursor.LastPosition) : "配置不可：マップ上のマスを選択してください";
+        if (reason!=null) {SetPlacementFeedback(reason);ToastMessageUI.Show(reason,ToastMessageUI.MessageType.Warning);return false;}
 
         bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
 

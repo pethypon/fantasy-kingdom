@@ -32,6 +32,7 @@ public class TurnGenerator : MonoBehaviour
 
     public void ChangeState(StateCore next)
     {
+        if (next == null) throw new System.ArgumentNullException(nameof(next));
         // ゲーム終了後は一切の遷移を受け付けない。
         // ターン終了処理の途中で王/クリスタルが破壊された場合、続く
         // EnemyStart 等への遷移が GameEndState を上書きしてしまうのを防ぐ。
@@ -46,6 +47,9 @@ public class TurnGenerator : MonoBehaviour
         try { _stateManager?.Exit(); }
         catch (System.Exception e) { Debug.LogException(e); }
 
+        // Exit may synchronously trigger a terminal transition (e.g. a death event).
+        if (_stateManager is GameEndState) return;
+
         _stateManager = next;
 
         try { _stateManager?.Entry(); }
@@ -58,6 +62,7 @@ public class TurnGenerator : MonoBehaviour
     private GameAction gameaction;
     private TurnInputHandler _inputHandler;
     private TurnCameraController _cameraController;
+    private TurnInspectionController _inspection;
 
     public GameAction GameAction => gameaction;
 
@@ -76,6 +81,8 @@ public class TurnGenerator : MonoBehaviour
         _cameraController = GetComponent<TurnCameraController>();
         if (_cameraController == null) _cameraController = gameObject.AddComponent<TurnCameraController>();
         _cameraController.Bind(this);
+        _inspection = gameObject.AddComponent<TurnInspectionController>();
+        _inspection.Bind(this);
         var movePreview = GetComponent<MovementPreviewUI>();
         if (movePreview == null) movePreview = gameObject.AddComponent<MovementPreviewUI>();
         movePreview.Bind(this);
@@ -92,6 +99,7 @@ public class TurnGenerator : MonoBehaviour
         _inputHandler?.Tick();
         if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen) return;
         _cameraController?.Tick();
+        _inspection?.Tick();
         _stateManager?.Update();
     }
 

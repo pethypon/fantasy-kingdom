@@ -48,7 +48,10 @@ public class UnitPanelUI : MonoBehaviour
     [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] private GameObject panelRoot;
 
+    public static Status SelectedStatus { get; private set; }
     private Status currentUnit;
+    private bool inspectionOnly;
+    public void ShowInspection(Status unit) { Show(unit); inspectionOnly = true; Refresh(); }
     private bool isBuilding;
     private bool previewOnly;
     private float nextRefresh;
@@ -204,14 +207,14 @@ public class UnitPanelUI : MonoBehaviour
     private void BuildUpgradeUI()
     {
         // パネル本体の直下に強化エリアを生成（中央統計の下に配置）
-        Transform parent = panelRoot != null ? panelRoot.transform : transform;
+        Transform parent = transform.Find("RightCommands");
 
         // 強化エリア（パネル下部に配置）
         upgradeArea = new GameObject("UpgradeArea", typeof(RectTransform));
         upgradeArea.transform.SetParent(parent, false);
         var areaRT = upgradeArea.GetComponent<RectTransform>();
-        areaRT.anchorMin = new Vector2(0.6f, 0.38f);
-        areaRT.anchorMax = new Vector2(1f, 0.72f);
+        areaRT.anchorMin = new Vector2(0, 0.31f);
+        areaRT.anchorMax = new Vector2(1, 0.70f);
         areaRT.offsetMin = new Vector2(4, 4);
         areaRT.offsetMax = new Vector2(-4, -2);
 
@@ -234,7 +237,9 @@ public class UnitPanelUI : MonoBehaviour
         btnTMP.text = "強化";
         btnTMP.fontSize = BrandGuide.FontHud;
         btnTMP.alignment = TextAlignmentOptions.Center;
-        btnTMP.color = Color.white;
+        btnTMP.color = GameUITheme.ButtonInk;
+        btnTMP.font = UIFactory.LoadDefaultFont();
+        btnTMP.raycastTarget = false;
         var lblRT = btnLabel.GetComponent<RectTransform>();
         lblRT.anchorMin = Vector2.zero;
         lblRT.anchorMax = Vector2.one;
@@ -247,7 +252,10 @@ public class UnitPanelUI : MonoBehaviour
         var costGo = new GameObject("UpgradeCost", typeof(RectTransform));
         costGo.transform.SetParent(upgradeArea.transform, false);
         upgradeCostText = costGo.AddComponent<TextMeshProUGUI>();
-        upgradeCostText.fontSize = 24;
+        upgradeCostText.fontSize = 22;
+        upgradeCostText.enableAutoSizing = true;
+        upgradeCostText.fontSizeMin = 16; upgradeCostText.fontSizeMax = 22;
+        upgradeCostText.raycastTarget = false;
         upgradeCostText.alignment = TextAlignmentOptions.MidlineLeft;
         upgradeCostText.color = BrandGuide.TextSecondary;
         upgradeCostText.textWrappingMode = TMPro.TextWrappingModes.Normal;
@@ -265,14 +273,14 @@ public class UnitPanelUI : MonoBehaviour
     // --------------------------------------------------
     private void BuildDestroyUI()
     {
-        Transform parent = panelRoot != null ? panelRoot.transform : transform;
+        Transform parent = transform.Find("RightCommands");
 
         // 破壊エリア（右コマンドエリアの下半分に配置）
         destroyArea = new GameObject("DestroyArea", typeof(RectTransform));
         destroyArea.transform.SetParent(parent, false);
         var areaRT = destroyArea.GetComponent<RectTransform>();
-        areaRT.anchorMin = new Vector2(0.6f, 0);
-        areaRT.anchorMax = new Vector2(1f, 0.34f);
+        areaRT.anchorMin = new Vector2(0, 0);
+        areaRT.anchorMax = new Vector2(1, 0.26f);
         areaRT.offsetMin = new Vector2(4, 8);
         areaRT.offsetMax = new Vector2(-10, -2);
 
@@ -295,7 +303,9 @@ public class UnitPanelUI : MonoBehaviour
         btnTMP.text = "破壊";
         btnTMP.fontSize = BrandGuide.FontHud;
         btnTMP.alignment = TextAlignmentOptions.Center;
-        btnTMP.color = Color.white;
+        btnTMP.color = GameUITheme.ButtonInk;
+        btnTMP.font = UIFactory.LoadDefaultFont();
+        btnTMP.raycastTarget = false;
         var lblRT = btnLabel.GetComponent<RectTransform>();
         lblRT.anchorMin = Vector2.zero;
         lblRT.anchorMax = Vector2.one;
@@ -313,6 +323,8 @@ public class UnitPanelUI : MonoBehaviour
     {
         if (unit == null) return;
         currentUnit = unit;
+        SelectedStatus = unit;
+        inspectionOnly = false;
         previewOnly = false;
         isBuilding = (unit.type == Type.Building || unit.type == Type.Wall);
         SetVisible(true);
@@ -322,7 +334,9 @@ public class UnitPanelUI : MonoBehaviour
     public void Hide()
     {
         if (currentUnit == null && canvasGroup != null && canvasGroup.alpha == 0) return;
+        if (SelectedStatus == currentUnit) SelectedStatus = null;
         currentUnit = null;
+        inspectionOnly = false;
         previewOnly = false;
         isBuilding = false;
         SetVisible(false);
@@ -342,8 +356,11 @@ public class UnitPanelUI : MonoBehaviour
             RefreshBuilding();
         else
             RefreshUnit();
-        if (previewHint != null) previewHint.gameObject.SetActive(previewOnly);
-        if (previewOnly)
+        if (previewHint != null) {
+            previewHint.gameObject.SetActive(previewOnly || inspectionOnly);
+            previewHint.text = inspectionOnly ? "敵ターン：確認のみ\n青：移動範囲　赤：攻撃範囲" : "プレビュー\nクリックで選択";
+        }
+        if (previewOnly || inspectionOnly)
         {
             SetButtonVisible(attackButton, false);
             SetButtonVisible(skillButton, false);
@@ -599,7 +616,7 @@ public class UnitPanelUI : MonoBehaviour
     // --------------------------------------------------
     private bool CanIssueCommand()
     {
-        return !previewOnly && currentUnit != null && currentUnit.team == Team.Player
+        return !previewOnly && !inspectionOnly && currentUnit != null && currentUnit.team == Team.Player
             && turnGenerator.Context.SelectUnit == currentUnit
             && (turnGenerator.CurrentState is PlayerMove || turnGenerator.CurrentState is PlayerAttack);
     }
@@ -620,6 +637,7 @@ public class UnitPanelUI : MonoBehaviour
 
     public void OnClickWait()
     {
+        if (!CanIssueCommand()) return;
         // Wait = このユニットのアクションを終了して選択解除。右クリック（Cancel）と同等。
         if (turnGenerator != null)
             turnGenerator.Context.QueueUICommand(GameContext.UICommand.Cancel);
@@ -635,7 +653,7 @@ public class UnitPanelUI : MonoBehaviour
 
     public void OnClickUpgrade()
     {
-        if (currentUnit == null || !isBuilding || currentUnit.team != Team.Player) return;
+        if (!CanIssueCommand() || !isBuilding) return;
         if (turnGenerator == null || turnGenerator.Systems.BuildSystem == null) return;
 
         if (turnGenerator.Systems.BuildSystem.TryUpgrade(currentUnit))
@@ -646,7 +664,7 @@ public class UnitPanelUI : MonoBehaviour
 
     public void OnClickDestroy()
     {
-        if (currentUnit == null || !isBuilding || currentUnit.team != Team.Player) return;
+        if (!CanIssueCommand() || !isBuilding) return;
         if (turnGenerator == null) return;
 
         var subCrystalSystem = turnGenerator.Systems.SubCrystalSystem;

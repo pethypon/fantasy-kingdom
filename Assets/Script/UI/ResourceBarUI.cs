@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 /// <summary>
 /// 資源バーUI：資源値を表示する
@@ -92,13 +92,27 @@ public class ResourceBarUI : MonoBehaviour
     private static void SetText(TextMeshProUGUI tmp, string label, int value, string colorHex)
     {
         if (tmp != null)
-            tmp.text = $"<color={colorHex}><b>{label}</b></color> <color=#EEEEEE>{value}</color>";
+            {
+            tmp.text = $"<color={colorHex}><b>{label}</b></color> <color=#EEEEEE>{FormatCount(value)}</color>";
+            var detail=tmp.GetComponentInParent<ResourceValueTooltip>(); if(detail!=null) detail.Value=$"{label}  {value:N0}";
+        }
     }
 
     private static void SetTextWithCap(TextMeshProUGUI tmp, string label, int value, int cap, string colorHex)
     {
         if (tmp != null)
-            tmp.text = $"<color={colorHex}><b>{label}</b></color> <color=#EEEEEE>{value}/{cap}</color>";
+            {
+            tmp.text = $"<color={colorHex}><b>{label}</b></color> <color=#EEEEEE>{FormatCount(value)}/{FormatCount(cap)}</color>";
+            var detail=tmp.GetComponentInParent<ResourceValueTooltip>(); if(detail!=null) detail.Value=$"{label}  {value:N0} / {cap:N0}";
+        }
+    }
+
+    public static string FormatCount(int value)
+    {
+        long magnitude=System.Math.Abs((long)value);
+        if (magnitude>=100000000) return (value/100000000d).ToString("0.#",System.Globalization.CultureInfo.InvariantCulture)+"億";
+        if (magnitude>=10000) return (value/10000d).ToString("0.#",System.Globalization.CultureInfo.InvariantCulture)+"万";
+        return value.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private bool HasChanged(FactionState.ResourceData res)

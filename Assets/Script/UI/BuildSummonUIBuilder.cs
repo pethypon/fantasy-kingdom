@@ -9,6 +9,7 @@ using UnityEngine.UI;
 /// </summary>
 public class BuildSummonUIBuilder
 {
+    readonly Dictionary<FacilityKind,TextMeshProUGUI> buildCostLabels = new Dictionary<FacilityKind,TextMeshProUGUI>();
     // 召喚可能なユニット種別（Crystal/King/壁は除外）
     public static readonly Kind[] SummonableKinds = {
         Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
@@ -103,17 +104,18 @@ public class BuildSummonUIBuilder
         var csf = content.AddComponent<ContentSizeFitter>();
         csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        vpRT.offsetMax = new Vector2(-10, 0);
+        vpRT.offsetMax = new Vector2(-34, 0);
 
         var sr = go.AddComponent<ScrollRect>();
         sr.viewport = vpRT;
         sr.content = contentRT;
         sr.horizontal = false;
         sr.vertical = true;
+        sr.scrollSensitivity = 42f;
         sr.movementType = ScrollRect.MovementType.Clamped;
 
         sr.verticalScrollbar = UIFactory.CreateVerticalScrollbar(go.transform);
-        sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+        sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
 
         return (go, content);
     }
@@ -166,6 +168,7 @@ public class BuildSummonUIBuilder
             // ---- コスト表示 ----
             string costStr = isSubCrystal ? "サブクリスタル1消費 (破壊後5T返却)" : FormatBuildCost(info.BuildCost);
             var costTMP = UIFactory.CreateTMP("Cost_" + facility, row.transform, costStr, BrandGuide.FontHudCaption, defaultFont);
+            buildCostLabels[facility] = costTMP;
             costTMP.color = BrandGuide.TextSecondary;
             costTMP.alignment = TextAlignmentOptions.MidlineLeft;
             costTMP.textWrappingMode = TMPro.TextWrappingModes.Normal;
@@ -278,6 +281,12 @@ public class BuildSummonUIBuilder
                 canBuild = cachedAPSystem.CanBuild(Team.Player, kind, cachedFactionState);
             }
             btn.interactable = canBuild;
+            if (buildCostLabels.TryGetValue(kind,out var costLabel) && FacilityData.Table.TryGetValue(kind,out var info))
+            {
+                string cost=FacilityData.IsSubCrystal(kind) ? "サブクリスタル1消費" : FormatBuildCost(info.BuildCost);
+                string reason=BuildValidator.CostFailure(kind,cachedFactionState);
+                costLabel.text=reason==null ? cost : cost+"\n<color=#FFB7A3>"+reason+"</color>";
+            }
             if (FacilityData.IsSubCrystal(kind))
             {
                 bg.color = canBuild

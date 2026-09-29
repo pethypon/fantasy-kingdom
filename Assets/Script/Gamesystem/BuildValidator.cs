@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -33,27 +33,34 @@ public class BuildValidator
                               SubCrystalSystem subCrystalSystem,
                               CrystalSystem crystalsystem)
     {
-        if (!mapcreate.HasTileAt(pos.x, pos.z)) return false;
+        return PlacementFailure(pos,facility,subCrystalSystem,crystalsystem) == null;
+    }
+
+    public string PlacementFailure(Vector3Int pos, FacilityKind facility, SubCrystalSystem subCrystalSystem, CrystalSystem crystalsystem)
+    {
+        if (mapcreate == null || !mapcreate.HasTileAt(pos.x,pos.z)) return "配置不可：建築できる地面がありません";
         if (FacilityData.IsSubCrystal(facility))
-        {
-            if (subCrystalSystem == null) return false;
-            return subCrystalSystem.CanPlaceSubCrystal(pos, Team.Player);
-        }
+            return subCrystalSystem != null && subCrystalSystem.CanPlaceSubCrystal(pos,Team.Player)
+                ? null : "配置不可：視界内・領地から離れた空き地が必要です";
+        if (territorysystem == null || !territorysystem.IsInTerritory(pos,Team.Player)) return "領地外：自分の領地に建築してください";
+        if (crystalsystem != null && (GridHelper.ToGrid(crystalsystem.PCP)==pos || GridHelper.ToGrid(crystalsystem.ECP)==pos))
+            return "配置不可：クリスタルのあるマスです";
+        if (buildingPositions.Contains(pos)) return "配置不可：建物があるマスです";
+        return null;
+    }
 
-        // 通常建築物: 領地内でなければ不可
-        if (!territorysystem.IsInTerritory(pos, Team.Player)) return false;
-
-        // クリスタル位置チェック
-        Vector3Int pcp = GridHelper.ToGrid(crystalsystem.PCP);
-        if (pos == pcp) return false;
-
-        Vector3Int ecp = GridHelper.ToGrid(crystalsystem.ECP);
-        if (pos == ecp) return false;
-
-        // 既設の建築物チェック
-        if (buildingPositions.Contains(pos)) return false;
-
-        return true;
+    public static string CostFailure(FacilityKind facility, FactionState faction)
+    {
+        if (faction == null || !FacilityData.Table.TryGetValue(facility,out var info)) return "配置不可：建築情報がありません";
+        if (FacilityData.IsSubCrystal(facility)) return faction.GetSubCrystals(Team.Player)>0 ? null : "副晶不足";
+        var r=faction.PlayerResources; var c=info.BuildCost;
+        if (r.Wood<c.Wood) return "木材不足";
+        if (r.Stone<c.Stone) return "石材不足";
+        if (r.Iron<c.Iron) return "鉄不足";
+        if (r.MagicOre<c.MagicOre) return "魔石不足";
+        if (r.Water<c.Water) return "水不足";
+        if (r.Citizen<c.Citizen) return "市民不足";
+        return faction.GetAP(Team.Player)<info.APCost ? "AP不足" : null;
     }
 
     // ==================================================================

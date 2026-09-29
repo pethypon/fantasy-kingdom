@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 /// <summary>
@@ -30,6 +30,7 @@ public class SlidePanelUI : MonoBehaviour
 
     private Vector2 targetPos;
     private bool isOpen;
+    public bool IsBuildPanelOpen => isOpen && buildRoot != null && buildRoot.activeSelf;
     // 閉じている時に panel.gameObject ごと非表示にして、画面端への描画漏れを防ぐ。
     // 開閉アニメーション完了後にのみ SetActive を切り替える。
     private const float CloseThreshold = 1f;
