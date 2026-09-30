@@ -1,0 +1,8 @@
+Unity 6000.3.8f1 / isolated validation project
+SceneSmoke: 493 PASS, ALL PASSED
+Windows build: Succeeded (Windows-20260930-Playtest)
+Desktop playtest 1920x1080: new game, construction panel open/close, menu, unit selection and movement/AP update
+Log/AP separation visually checked in first revised build
+Final dynamic log sizing and Escape: Unity input/layout regression tests passed
+Final build launched; final desktop re-capture unavailable after target window disappeared
+No long-duration soak or all-resolution coverage

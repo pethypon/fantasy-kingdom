@@ -197,7 +197,7 @@ public partial class AICommander
     // ================================================================
     //  ExecuteTurn — 1ターン分の全行動を実行
     // ================================================================
-    public float TurnThinkingBudgetMs { get; set; } = 3000f;
+    public float TurnThinkingBudgetMs { get; set; } = 8000f;
     static bool IsCriticalPosition(List<AIAction> candidates, AIBoardState board)
     {
         if (board.AlivePlayerUnits.Count > 0 || board.EnemyCrystalHP < board.EnemyCrystalMaxHP / 2) return true;
