@@ -1,0 +1,8 @@
+Unity 6000.3.8f1 - isolated UnityValidation
+SceneSmoke: 484 PASS; ALL PASSED
+AI action validation, failure isolation, AP discount: PASS
+External head UI lifecycle including HandleDeathIfDead: PASS
+Frame caps active 60 / inactive 15; restore settings: PASS
+CleanWindowsBuild: Succeeded
+Windows-20260930-Fixes/FantasyKingdom.exe: headless startup verified; no managed exception found
+FPS, fan noise and power usage: not measured

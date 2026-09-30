@@ -329,14 +329,12 @@ public class AIBoardState
         if (!MovePatterns.Map.TryGetValue(unit.kind, out var pattern)) return result;
         bool independent = MovePatterns.DirectionIndependent.Contains(unit.kind);
         int direction = MovePatterns.DirZ(unit.direction);
-        foreach (var p in KnownTerrain())
+        // Terrain discovery is information, not a movement restriction. Use the
+        // same legal terrain as player movement; hidden units remain unobserved.
+        foreach (var p in _moveGen.mapcreate.SetPos)
         {
             if (!pattern(p.x - unitPos.x, (p.z - unitPos.z) * (independent ? 1 : direction))) continue;
-            bool knownPath = true;
-            int steps = Mathf.Max(Mathf.Abs(Mathf.RoundToInt(p.x - unitPos.x)), Mathf.Abs(Mathf.RoundToInt(p.z - unitPos.z)));
-            for (int step = 1; step <= steps; step++)
-                if (!IsTerrainKnown(Vector3.Lerp(unitPos, p, (float)step / steps))) knownPath = false;
-            if (!knownPath || !_moveGen.mapcreate.CanTraverse(unitPos, p)) continue;
+            if (!_moveGen.mapcreate.CanTraverse(unitPos, p)) continue;
             bool occupied = GridHelper.MatchXZ(p, GridHelper.ToGrid(EnemyCrystalPos))
                 || (CanUsePlayerCrystalAsTarget() && GridHelper.MatchXZ(p, GridHelper.ToGrid(PlayerCrystalPos)));
             foreach (var ally in AliveEnemyUnits) if (GridHelper.MatchXZ(p, ally.GridPosition)) occupied = true;
@@ -483,6 +481,9 @@ public class AIBoardState
 
     public int CalcAttackCost(Status unit)
         => _apSystem.CalcCost(APSystem.ActionType.Attack, unit);
+
+    public int CalcSkillCost(Status unit, SkillData skill)
+        => _apSystem.CalcSkillCost(skill.APCost, unit);
 
     // ---- AP消費 ----
     public void ConsumeMove(Status unit, Vector3 dest)

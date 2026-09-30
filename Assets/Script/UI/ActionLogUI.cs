@@ -12,7 +12,7 @@ public class ActionLogUI : MonoBehaviour
 {
     public static ActionLogUI Instance { get; private set; }
 
-    const int MaxEntries = 8;
+    const int MaxEntries = 5;
     const float EntryLifetime = 12f;
     const float FadeSpeed = 3f;
 
@@ -25,6 +25,7 @@ public class ActionLogUI : MonoBehaviour
     readonly List<LogEntry> _entries = new List<LogEntry>();
     TextMeshProUGUI _logText;
     CanvasGroup _group;
+    RectTransform _panelRect;
     bool _dirty = true;
 
     void Awake()
@@ -49,24 +50,26 @@ public class ActionLogUI : MonoBehaviour
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
 
-        canvasGo.AddComponent<GraphicRaycaster>();
+        // Informational only: do not participate in pointer hit testing.
 
         // パネル（右下: AP表示パネル(y=40〜120)の上に配置）
         var panelGo = new GameObject("LogPanel");
         panelGo.transform.SetParent(canvasGo.transform, false);
         var panelRT = panelGo.AddComponent<RectTransform>();
+        _panelRect = panelRT;
         panelRT.anchorMin = new Vector2(1f, 0f);
         panelRT.anchorMax = new Vector2(1f, 0f);
         panelRT.pivot = new Vector2(1f, 0f);
         // AP パネル上端(y=120)から 8px の余白を空けて配置
-        panelRT.anchoredPosition = new Vector2(-20, 168);
-        panelRT.sizeDelta = new Vector2(320, 260);
+        panelRT.anchoredPosition = new Vector2(-20, 208);
+        panelRT.sizeDelta = new Vector2(360, 260);
 
         var bg = panelGo.AddComponent<Image>();
         bg.color = new Color(0.03f, 0.03f, 0.05f, 0.65f);
+        bg.raycastTarget = false;
 
         _group = panelGo.AddComponent<CanvasGroup>();
-        _group.alpha = 0.8f;
+        _group.alpha = 0f;
         _group.blocksRaycasts = false;
         _group.interactable = false;
 
@@ -75,6 +78,7 @@ public class ActionLogUI : MonoBehaviour
         textGo.transform.SetParent(panelGo.transform, false);
         _logText = textGo.AddComponent<TextMeshProUGUI>();
         _logText.fontSize = BrandGuide.FontHudCaption;
+        _logText.raycastTarget = false;
         _logText.color = BrandGuide.TextPrimary;
         _logText.alignment = TextAlignmentOptions.BottomLeft;
         _logText.richText = true;
@@ -111,7 +115,7 @@ public class ActionLogUI : MonoBehaviour
         if (removed) _dirty = true;
 
         // フェード
-        float targetAlpha = _entries.Count > 0 ? 0.8f : 0f;
+        float targetAlpha = _entries.Count > 0 ? 1f : 0f;
         if (!Mathf.Approximately(_group.alpha, targetAlpha))
             _group.alpha = Mathf.MoveTowards(_group.alpha, targetAlpha, FadeSpeed * Time.deltaTime);
 
@@ -121,6 +125,7 @@ public class ActionLogUI : MonoBehaviour
             _dirty = false;
             RefreshText();
         }
+        if (_entries.Count == 0 && _group.alpha == 0f) enabled = false;
     }
 
     void RefreshText()
@@ -136,12 +141,16 @@ public class ActionLogUI : MonoBehaviour
             sb.Append(_entries[i].Text);
         }
         _logText.text = sb.ToString();
+        // Fit short logs instead of covering the board with an empty fixed-height box.
+        float height = _logText.GetPreferredValues(_logText.text, _panelRect.rect.width - 16f, Mathf.Infinity).y + 12f;
+        _panelRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Clamp(height, 36f, 260f));
     }
 
     /// <summary>ログエントリを追加</summary>
     public static void Log(string message)
     {
         if (Instance == null) return;
+        Instance.enabled = true;
         Instance._entries.Add(new LogEntry { Text = message, TimeAdded = Time.time });
         if (Instance._entries.Count > MaxEntries * 2)
             Instance._entries.RemoveRange(0, Instance._entries.Count - MaxEntries);
@@ -151,34 +160,34 @@ public class ActionLogUI : MonoBehaviour
     /// <summary>Playerの移動ログ</summary>
     public static void LogMove(string unitName, Vector3 from, Vector3 to)
     {
-        Log($"<color=#AAD4FF>▶</color> {unitName} 移動 ({from.x:F0},{from.z:F0})→({to.x:F0},{to.z:F0})");
+        Log($"<color=#AAD4FF>移動</color> {unitName} ({from.x:F0},{from.z:F0})→({to.x:F0},{to.z:F0})");
     }
 
     /// <summary>攻撃ログ</summary>
     public static void LogAttack(string attackerName, string targetName, int damage, bool killed)
     {
-        string killMark = killed ? " <color=#FF4444>✕撃破</color>" : "";
-        Log($"<color=#FF8844>⚔</color> {attackerName}→{targetName} {damage}ダメージ{killMark}");
+        string killMark = killed ? " <color=#FF8888>撃破</color>" : "";
+        Log($"<color=#FFAA77>攻撃</color> {attackerName}→{targetName} {damage}ダメージ{killMark}");
     }
 
     /// <summary>建築ログ</summary>
     public static void LogBuild(string facilityName, Team team)
     {
         string teamColor = team == Team.Player ? "#AAFFAA" : "#FFAAAA";
-        Log($"<color={teamColor}>🏠</color> {facilityName} 建設");
+        Log($"<color={teamColor}>建築</color> {facilityName}");
     }
 
     /// <summary>召喚ログ</summary>
     public static void LogSummon(string unitName, Team team)
     {
         string teamColor = team == Team.Player ? "#DDAAFF" : "#FFAADD";
-        Log($"<color={teamColor}>★</color> {unitName} 召喚");
+        Log($"<color={teamColor}>召喚</color> {unitName}");
     }
 
     /// <summary>ターン開始ログ</summary>
     public static void LogTurnStart(int turn, Team team)
     {
         string teamName = team == Team.Player ? "プレイヤー" : "敵";
-        Log($"<color=#888888>── ターン{turn} {teamName} ──</color>");
+        Log($"<color=#C8C1AD>ターン{turn} / {teamName}</color>");
     }
 }

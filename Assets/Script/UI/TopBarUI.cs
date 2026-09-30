@@ -95,7 +95,7 @@ public class TopBarUI : MonoBehaviour
         }
 
         // タイマーテキスト: 1ターン残り時間のみ表示
-        int second = Mathf.Max(0, Mathf.FloorToInt(timer.TurnTimeRemaining));
+        int second = Mathf.Max(0, Mathf.CeilToInt(timer.TurnTimeRemaining));
         if (timerText != null && second != lastTimerSecond)
         {
             lastTimerSecond = second;
@@ -118,8 +118,13 @@ public class TopBarUI : MonoBehaviour
             else
                 timerFill.color = BrandGuide.TimerNormal;
 
-            // fillAmount を反映するために Image.type を Filled に設定
-            if (timerFill.type != Image.Type.Filled)
+            if (timerFill.sprite == null)
+            {
+                // Solid gauge: width remains reliable even without any UI asset.
+                timerFill.type = Image.Type.Simple;
+                timerFill.rectTransform.anchorMax = new Vector2(ratio, 1);
+            }
+            else if (timerFill.type != Image.Type.Filled)
             {
                 timerFill.type = Image.Type.Filled;
                 timerFill.fillMethod = Image.FillMethod.Horizontal;

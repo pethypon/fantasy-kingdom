@@ -49,6 +49,7 @@ public class AIActionExecutor
     // ================================================================
     public bool Execute(AIAction action, AIBoardState board)
     {
+        if (action == null || board == null || _turnGen.IsGameOver) return false;
         switch (action.ActionType)
         {
             case AIActionType.Move:
@@ -83,6 +84,9 @@ public class AIActionExecutor
     {
         var unit = action.Unit;
         var dest = action.TargetPos;
+        if (!CanAct(unit) || StatusEffectSystem.IsMovementBlocked(unit)) return false;
+        if (!MovePatterns.CanMove(unit.kind, unit.direction,
+            dest.x-unit.transform.position.x, dest.z-unit.transform.position.z)) return false;
 
         if (!_apSystem.CanAct(Team.Enemy, APSystem.ActionType.Move, unit,
                 unit.transform.position, dest))
@@ -102,6 +106,16 @@ public class AIActionExecutor
         _moveGen.MoveUpdate(oldCell, _moveGen.Cell(actualDest));
 
         unit.HasMovedThisTurn = true;
+
+        // A following action in this turn must see discoveries from this move.
+        // Mark dirty because multiple actions may run in the same frame.
+        var vision = _turnGen.Systems.VisionGenerator;
+        var crystal = _turnGen.Systems.CrystalSystem;
+        if (vision != null && crystal != null)
+        {
+            vision.MarkVisionDirty();
+            vision.VisionPoint(_moveGen.mapcreate, _moveGen, crystal);
+        }
 
         string moveType = GetMoveTypeName(action.ActionType);
         DevelopmentLog.Log($"[AIActionExecutor] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={board.EnemyAP}");
@@ -137,10 +151,19 @@ public class AIActionExecutor
         var unit = action.Unit;
         var target = action.TargetUnit;
 
-        if (target == null || !target.gameObject.activeInHierarchy) return false;
+        if (!CanAct(unit) || target == null || !target.IsAlive || !target.gameObject.activeInHierarchy
+            || !NeutralFactionSystem.AreHostile(unit, target)) return false;
+        var vision = _turnGen.Systems.VisionGenerator;
+        if (vision == null || !vision.IsInVisionXZ(Team.Enemy, target.transform.position)) return false;
+        if (!AttackPatterns.CanAttack(unit.kind, unit.direction,
+            target.transform.position.x-unit.transform.position.x, target.transform.position.z-unit.transform.position.z)
+            || !_moveGen.mapcreate.CanAttackAcrossTerrain(unit, target.transform.position)) return false;
         if (!_apSystem.CanAct(Team.Enemy, APSystem.ActionType.Attack, unit)) return false;
 
         var prevSelect = _turnGen.Context.SelectUnit;
+        var prevTarget = _battleSystem.Target;
+        try
+        {
         _turnGen.Context.SelectUnit = unit;
         _battleSystem.SetTarget(target);
 
@@ -162,8 +185,9 @@ public class AIActionExecutor
         }
 
         RecordAttackLearning(unit, target, hpBefore, hpAfter, killed);
-        _turnGen.Context.SelectUnit = prevSelect;
         return true;
+        }
+        finally { _turnGen.Context.SelectUnit = prevSelect; _battleSystem.SetTarget(prevTarget); }
     }
 
     void RecordAttackLearning(Status unit, Status target, int hpBefore, int hpAfter, bool killed)
@@ -192,10 +216,16 @@ public class AIActionExecutor
     {
         var unit = action.Unit;
         var skill = action.Skill;
-        if (unit == null || skill == null) return false;
-        if (!_apSystem.CanUseSkill(Team.Enemy, skill.APCost)) return false;
+        if (!CanAct(unit) || skill == null || _skillSystem == null || unit.SkillCooldown > 0
+            || StatusEffectSystem.HasDebuff(unit, StatusEffectType.Seal)) return false;
+        if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var assigned) || assigned != skill) return false;
+        if (!_apSystem.CanUseSkill(Team.Enemy, board.CalcSkillCost(unit, skill))) return false;
+        if (action.TargetUnit != null && (!action.TargetUnit.IsAlive || !action.TargetUnit.gameObject.activeInHierarchy)) return false;
 
         var prevSelect = _turnGen.Context.SelectUnit;
+        var prevTarget = _battleSystem.Target;
+        try
+        {
         _turnGen.Context.SelectUnit = unit;
 
         bool success = ExecuteSkillByTarget(action, board, unit, skill);
@@ -207,8 +237,9 @@ public class AIActionExecutor
             DevelopmentLog.Log($"[AIActionExecutor] スキルクールダウン設定: {unit.kind} '{skill.Name}' → {cooldown}ターン");
         }
 
-        _turnGen.Context.SelectUnit = prevSelect;
         return success;
+        }
+        finally { _turnGen.Context.SelectUnit = prevSelect; _battleSystem.SetTarget(prevTarget); }
     }
 
     bool ExecuteSkillByTarget(AIAction action, AIBoardState board, Status unit, SkillData skill)
@@ -362,6 +393,9 @@ public class AIActionExecutor
     // ================================================================
     //  ヘルパー
     // ================================================================
+    static bool CanAct(Status unit) => unit != null && unit.IsAlive && unit.gameObject.activeInHierarchy
+        && unit.team == Team.Enemy && !StatusEffectSystem.IsStunned(unit);
+
     static int GetSkillCooldown(SkillData skill)
     {
         switch (skill.Rarity)

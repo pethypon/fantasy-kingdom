@@ -114,7 +114,8 @@ public static class AIActionGenerator
     {
         if (unit.AssignedSkillId < 0) return;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
-        if (skill.APCost > board.EnemyAP) return;
+        int skillCost = board.CalcSkillCost(unit, skill);
+        if (skillCost > board.EnemyAP) return;
         if (StatusEffectSystem.HasDebuff(unit, StatusEffectType.Seal)) return;
         if (unit.SkillCooldown > 0) return;
 
@@ -128,7 +129,7 @@ public static class AIActionGenerator
                 {
                     ActionType = AIActionType.SkillUse, Unit = unit,
                     TargetPos = unit.transform.position, TargetUnit = unit,
-                    APCost = skill.APCost, Skill = skill
+                    APCost = skillCost, Skill = skill
                 });
                 break;
 
@@ -142,7 +143,7 @@ public static class AIActionGenerator
                         {
                             ActionType = AIActionType.SkillUse, Unit = unit,
                             TargetPos = unit.transform.position, TargetUnit = unit,
-                            APCost = skill.APCost, Skill = skill,
+                            APCost = skillCost, Skill = skill,
                             AreaTargets = skill.Multiplier > 0 ? enemies : allies
                         });
                     }
@@ -168,7 +169,7 @@ public static class AIActionGenerator
                         {
                             ActionType = AIActionType.SkillUse, Unit = unit,
                             TargetPos = bestAlly.transform.position, TargetUnit = bestAlly,
-                            APCost = skill.APCost, Skill = skill
+                            APCost = skillCost, Skill = skill
                         });
                     }
                 }
@@ -187,7 +188,7 @@ public static class AIActionGenerator
                         {
                             ActionType = AIActionType.SkillUse, Unit = unit,
                             TargetPos = t.transform.position, TargetUnit = t,
-                            APCost = skill.APCost, Skill = skill
+                            APCost = skillCost, Skill = skill
                         });
                         count++;
                     }
@@ -206,7 +207,7 @@ public static class AIActionGenerator
                         {
                             ActionType = AIActionType.SkillUse, Unit = unit,
                             TargetPos = t.transform.position, TargetUnit = t,
-                            APCost = skill.APCost, Skill = skill,
+                            APCost = skillCost, Skill = skill,
                             AreaTargets = enemies
                         });
                     }

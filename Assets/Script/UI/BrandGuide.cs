@@ -113,9 +113,9 @@ public static class BrandGuide
     //  タイマーバー色
     // ==================================================================
 
-    public static readonly Color TimerNormal = new Color(0.22f, 0.58f, 0.82f, 0.92f);
-    public static readonly Color TimerWarning = new Color(0.82f, 0.62f, 0.22f, 0.92f);
-    public static readonly Color TimerDanger = new Color(0.82f, 0.22f, 0.22f, 0.92f);
+    public static readonly Color TimerNormal = new Color(0.20f, 0.82f, 1f, 1f);
+    public static readonly Color TimerWarning = new Color(1f, 0.76f, 0.22f, 1f);
+    public static readonly Color TimerDanger = new Color(1f, 0.30f, 0.25f, 1f);
     public static readonly Color TimerBg = new Color(0.04f, 0.04f, 0.06f, 0.85f);
 
     // ==================================================================

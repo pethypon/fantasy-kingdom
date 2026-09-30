@@ -250,7 +250,7 @@ public class UIBuilder : MonoBehaviour
         var timerArea = new GameObject("TimerArea", typeof(RectTransform));
         timerArea.transform.SetParent(rightArea, false);
         var timerAreaRT = timerArea.GetComponent<RectTransform>();
-        timerAreaRT.sizeDelta = new Vector2(240, 56);
+        timerAreaRT.sizeDelta = new Vector2(240, 84);
 
         // バー背景
         var timerBg = new GameObject("TimerBg", typeof(RectTransform));
@@ -260,24 +260,43 @@ public class UIBuilder : MonoBehaviour
         GameUITheme.Current?.StylePlate(clockFrame,new Color(.65f,.73f,.82f));
         StretchFill(timerBg.GetComponent<RectTransform>());
 
-        // バー本体
+        // 残量と空き部分を同時に読める専用トラック。装飾テクスチャで色を暗くしない。
+        var trackBorder = new GameObject("TimerTrackBorder", typeof(RectTransform), typeof(Image));
+        trackBorder.transform.SetParent(timerArea.transform, false);
+        var borderRT = trackBorder.GetComponent<RectTransform>();
+        borderRT.anchorMin = new Vector2(0, 0); borderRT.anchorMax = new Vector2(1, 0);
+        borderRT.pivot = new Vector2(.5f, 0); borderRT.sizeDelta = new Vector2(-36, 24);
+        borderRT.anchoredPosition = new Vector2(0, 14);
+        var borderImage = trackBorder.GetComponent<Image>();
+        borderImage.color = new Color(.62f, .69f, .74f, 1); borderImage.raycastTarget = false;
+        var track = new GameObject("TimerTrack", typeof(RectTransform), typeof(Image));
+        track.transform.SetParent(trackBorder.transform, false);
+        var trackRT = track.GetComponent<RectTransform>(); StretchFill(trackRT);
+        trackRT.offsetMin = new Vector2(2, 2); trackRT.offsetMax = new Vector2(-2, -2);
+        var trackImage = track.GetComponent<Image>();
+        trackImage.color = new Color(.015f, .025f, .04f, 1); trackImage.raycastTarget = false;
+
+        // バー本体（無地の幅を更新するため、スプライトの余白や有無に依存しない）
         var timerFill = new GameObject("TimerFill", typeof(RectTransform));
-        timerFill.transform.SetParent(timerArea.transform, false);
+        timerFill.transform.SetParent(track.transform, false);
         var clockFill = timerFill.AddComponent<Image>();
         clockFill.color = BrandGuide.TimerNormal;
-        if (GameUITheme.Current != null) clockFill.sprite = GameUITheme.Current.healthFill;
-        clockFill.type = Image.Type.Sliced; clockFill.raycastTarget = false;
+        clockFill.type = Image.Type.Simple; clockFill.raycastTarget = false;
         var fillRT = timerFill.GetComponent<RectTransform>();
         fillRT.anchorMin = Vector2.zero;
         fillRT.anchorMax = Vector2.one;
-        fillRT.offsetMin = new Vector2(18, 7);
-        fillRT.offsetMax = new Vector2(-18, -38);
+        fillRT.offsetMin = Vector2.zero;
+        fillRT.offsetMax = Vector2.zero;
 
         // 制限時間テキスト
         var timerText = CreateTMP("TimerText", timerArea.transform, "制限時間", BrandGuide.FontHud);
         timerText.fontStyle = FontStyles.Bold;
         timerText.alignment = TextAlignmentOptions.Center;
         StretchFill(timerText.GetComponent<RectTransform>());
+        timerText.rectTransform.offsetMin = new Vector2(18, 38);
+        timerText.rectTransform.offsetMax = new Vector2(-18, -8);
+        timerText.color = Color.white;
+        timerText.raycastTarget = false;
 
         var endTurn = CreateButton("EndTurnButton", rightArea, "ターン終了", BrandGuide.FontHudCaption,
             BrandGuide.BtnBuild);

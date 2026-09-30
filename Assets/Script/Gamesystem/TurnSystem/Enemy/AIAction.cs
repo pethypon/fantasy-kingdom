@@ -18,6 +18,10 @@ public class AIAction
     public SkillData Skill;          // 使用スキル
     public List<Status> AreaTargets; // 範囲スキルの対象リスト
 
+    // One actor's blocked route must not suppress another actor's valid move.
+    public string FailureGroupKey => $"{ActionType}_{Facility}_{SummonKind}_{(Unit != null ? Unit.GetInstanceID() : 0)}";
+    public string FailureKey => $"{FailureGroupKey}|{TargetPos}|{(TargetUnit != null ? TargetUnit.GetInstanceID() : 0)}|{(Skill != null ? Skill.Id : -1)}";
+
     public override string ToString()
         => $"{ActionType}({Unit?.kind}/{Facility}/{SummonKind}) → {TargetPos} score={Score:F1}";
 }

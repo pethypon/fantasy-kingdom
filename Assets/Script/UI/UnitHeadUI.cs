@@ -100,6 +100,9 @@ public class UnitHeadUI : MonoBehaviour
     /// </summary>
     public static UnitHeadUI Attach(GameObject unitObj)
     {
+        if (unitObj == null) return null;
+        var existing = unitObj.GetComponent<UnitHeadUI>();
+        if (existing != null) return existing;
         if (unitObj == null)
             return null;
 
@@ -414,8 +417,11 @@ public class UnitHeadUI : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (status == null)
+        if (status == null || !status.gameObject.activeInHierarchy)
+        {
+            SetHeadUIVisible(false);
             return;
+        }
 
         if (headUIObject == null)
             return;
@@ -514,8 +520,9 @@ public class UnitHeadUI : MonoBehaviour
             );
 
 
-        headUIRect.localScale =
-            Vector3.one * uiScale;
+        var desiredScale = Vector3.one * uiScale;
+        if (headUIRect.localScale != desiredScale)
+            headUIRect.localScale = desiredScale;
 
 
         // ========================================================
@@ -527,12 +534,13 @@ public class UnitHeadUI : MonoBehaviour
             uiScale;
 
 
-        headUIRect.position =
-            new Vector3(
+        var desiredPosition = new Vector3(
                 screenPosition.x,
                 screenPosition.y + yOffset,
                 0f
             );
+        if (headUIRect.position != desiredPosition)
+            headUIRect.position = desiredPosition;
 
 
         // ========================================================
@@ -923,6 +931,12 @@ public class UnitHeadUI : MonoBehaviour
     // ============================================================
     // Destroy
     // ============================================================
+
+    private void OnDisable()
+    {
+        // Death and pooling disable the owner before LateUpdate can run.
+        SetHeadUIVisible(false);
+    }
 
     private void OnDestroy()
     {

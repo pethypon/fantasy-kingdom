@@ -76,6 +76,14 @@ public class SlidePanelUI : MonoBehaviour
         // 残差や子要素の描画が画面端にチラつくのを防ぐ。
         if (!isOpen && !panelRect.gameObject.activeSelf) return;
 
+        if (panelRect.anchoredPosition == targetPos) return;
+        if (Vector2.SqrMagnitude(panelRect.anchoredPosition - targetPos) <= CloseThreshold * CloseThreshold)
+        {
+            panelRect.anchoredPosition = targetPos;
+            if (!isOpen) panelRect.gameObject.SetActive(false);
+            return;
+        }
+
         panelRect.anchoredPosition = Vector2.Lerp(
             panelRect.anchoredPosition,
             targetPos,

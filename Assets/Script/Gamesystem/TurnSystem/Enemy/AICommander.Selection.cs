@@ -35,12 +35,12 @@ public partial class AICommander
             if (action.ActionType == AIActionType.Wait) continue;
             if (action.APCost > _board.EnemyAP) continue;
 
-            string failKey = $"{action.ActionType}_{action.Facility}_{action.SummonKind}_{action.TargetPos}";
+            string failKey = action.FailureKey;
             if (failedActions.Contains(failKey)) continue;
 
             if (failedActionTypes != null)
             {
-                string typeKey = $"{action.ActionType}_{action.Facility}_{action.SummonKind}";
+                string typeKey = action.FailureGroupKey;
                 if (failedActionTypes.Contains(typeKey)) continue;
             }
 

@@ -1,0 +1,2 @@
+Unity 6000.3.8f1 isolated SceneSmoke: 465 assertions passed, including 11 AI exploration assertions. Known/unknown terrain candidates, hidden-target filtering, occupied move rejection without AP consumption, same-frame discovery and attack generation, territory constraints.
+Windows-20260930-AI build succeeded; headless startup completed without logged exceptions.

@@ -498,14 +498,14 @@ public partial class AICommander
                 consecutiveFailures++;
                 strategyFailures++;
                 // この行動を失敗リストに追加して二度と選ばない
-                string failKey = $"{bestAction.ActionType}_{bestAction.Facility}_{bestAction.SummonKind}_{bestAction.TargetPos}";
+                string failKey = bestAction.FailureKey;
                 failedActions.Add(failKey);
                 // 同じ種類（ActionType+Facility or ActionType+SummonKind）の失敗が2回以上なら種類ごとブロック
-                string typeKey = $"{bestAction.ActionType}_{bestAction.Facility}_{bestAction.SummonKind}";
+                string typeKey = bestAction.FailureGroupKey;
                 int sameTypeFailCount = 0;
                 foreach (var fk in failedActions)
                 {
-                    if (fk.StartsWith(typeKey)) sameTypeFailCount++;
+                    if (fk.StartsWith(typeKey + "|", System.StringComparison.Ordinal)) sameTypeFailCount++;
                 }
                 if (sameTypeFailCount >= 2)
                 {

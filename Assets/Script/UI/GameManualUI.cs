@@ -12,6 +12,7 @@ using UnityEngine.UI;
 public class GameManualUI : MonoBehaviour
 {
     public static GameManualUI Instance { get; private set; }
+    public bool IsOpen => overlay != null && overlay.activeInHierarchy;
 
     private GameObject overlay;
     private TextMeshProUGUI bodyText;
@@ -47,6 +48,7 @@ public class GameManualUI : MonoBehaviour
 
     public void Close()
     {
+        if (overlay != null) overlay.SetActive(false);
         if (overlay != null) { Destroy(overlay); overlay = null; }
     }
 

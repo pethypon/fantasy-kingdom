@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 // =====================================================================
 //  GameMenuUI — インゲームメニュー（ポーズメニュー）
@@ -18,6 +19,7 @@ public class GameMenuUI : MonoBehaviour
     private GameObject overlay;
     private GameObject slotPanel;
     private bool isSaveMode; // true=セーブ, false=ロード
+    private InputAction backAction;
 
     // ゲームシステム参照（セーブ用）
     private TurnGenerator turnGen;
@@ -30,7 +32,35 @@ public class GameMenuUI : MonoBehaviour
 
     void OnDestroy()
     {
+        backAction?.Dispose();
         if (Instance == this) Instance = null;
+    }
+
+    void OnEnable()
+    {
+        if (backAction == null)
+        {
+            backAction = new InputAction("MenuBack", InputActionType.Button, "<Keyboard>/escape");
+            backAction.performed += OnBack;
+        }
+        backAction.Enable();
+    }
+
+    void OnDisable() => backAction?.Disable();
+    void OnBack(InputAction.CallbackContext context) { if (IsOpen) Back(); }
+
+    // Close only the topmost menu layer, preserving the user's place underneath.
+    public void Back()
+    {
+        if (GameManualUI.Instance != null && GameManualUI.Instance.IsOpen)
+            GameManualUI.Instance.Close();
+        else if (slotPanel != null)
+        {
+            slotPanel.SetActive(false);
+            Destroy(slotPanel);
+            slotPanel = null;
+        }
+        else Close();
     }
 
     public void Init(TurnGenerator tg, FactionState fs)
@@ -53,12 +83,14 @@ public class GameMenuUI : MonoBehaviour
 
     public void Open()
     {
+        if (IsOpen) return;
         if (overlay != null) Destroy(overlay);
         BuildMenuUI();
     }
 
     public void Close()
     {
+        if (overlay != null) overlay.SetActive(false);
         if (slotPanel != null) { Destroy(slotPanel); slotPanel = null; }
         if (overlay != null) { Destroy(overlay); overlay = null; }
     }
@@ -149,7 +181,7 @@ public class GameMenuUI : MonoBehaviour
         titleBtn.onClick.AddListener(OnReturnToTitle);
 
         // 閉じる
-        var closeBtn = CreateBtn("閉じる", btnArea.transform, BrandGuide.BtnWait);
+        var closeBtn = CreateBtn("閉じる [Esc]", btnArea.transform, BrandGuide.BtnWait);
         closeBtn.onClick.AddListener(Close);
     }
 
