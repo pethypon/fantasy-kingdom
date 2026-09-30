@@ -198,6 +198,8 @@ public partial class AICommander
     //  ExecuteTurn — 1ターン分の全行動を実行
     // ================================================================
     public float TurnThinkingBudgetMs { get; set; } = 8000f;
+    public double SearchSliceBudgetMs { get; set; } = 3;
+    public double LastSearchMaxSliceMs { get; private set; }
     static bool IsCriticalPosition(List<AIAction> candidates, AIBoardState board)
     {
         if (board.AlivePlayerUnits.Count > 0 || board.EnemyCrystalHP < board.EnemyCrystalMaxHP / 2) return true;
@@ -303,7 +305,8 @@ public partial class AICommander
         if (_hierarchicalMode)
         {
             var phase = ExecuteHierarchicalPhase(turnStats);
-            while (phase.MoveNext()) yield return null;
+            try { while (phase.MoveNext()) yield return null; }
+            finally { (phase as System.IDisposable)?.Dispose(); }
         }
 
         yield return null;
@@ -312,6 +315,7 @@ public partial class AICommander
         var searchEngine = new AISearchEngine(_threatLevel.SearchDepth, _threatLevel.SearchCandidateLimit, _rng);
         searchEngine.SetSimulationReferences(_moveGen, _unitSet, _crystalSystem, _apSystem);
         var topCandidates = new List<AIAction>();
+        var lookaheadScores = new Dictionary<AIAction, float>();
         // EvaluateAll の毎ループ new List を避けるための再利用バッファ
         var actionsBuffer = new List<AIAction>(64);
 
@@ -441,8 +445,20 @@ public partial class AICommander
 
                 if (topCandidates.Count > 0 && AITurnBudget.RemainingMs > 10 && IsCriticalPosition(topCandidates, _board))
                 {
-                    var lookaheadScores = searchEngine.EvaluateWithLookahead(
-                        topCandidates, _board, _personality, _learning);
+                    var searchSteps = searchEngine.EvaluateWithLookaheadSteps(
+                        topCandidates, _board, lookaheadScores, System.Math.Clamp(SearchSliceBudgetMs, 1, 5));
+                    try
+                    {
+                        while (searchSteps.MoveNext())
+                        {
+                            yield return null;
+                            if (_turnGen.IsGameOver) yield break;
+                        }
+                    }
+                    finally { (searchSteps as System.IDisposable)?.Dispose(); }
+                    LastSearchMaxSliceMs = searchEngine.LastMaxSliceMs;
+                    yield return null;
+                    if (_turnGen.IsGameOver) yield break;
 
                     foreach (var kvp in lookaheadScores)
                     {

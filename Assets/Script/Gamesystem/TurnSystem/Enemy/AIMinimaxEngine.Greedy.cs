@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -10,20 +11,23 @@ public partial class AIMinimaxEngine
     //  貪欲ターンシミュレーション
     //  あるチームの1ターン分をgreedy(最高スコアの行動を順次実行)で完了する
     // ================================================================
-    void SimulateGreedyTurn(SimBoardState board, Team team)
+    IEnumerator SimulateGreedyTurnSteps(SimBoardState board, Team team)
     {
         _greedyActedUnits.Clear();
 
         for (int step = 0; step < _greedyActionsPerTurn; step++)
         {
-            if (_stopwatch.Elapsed.TotalMilliseconds >= _timeBudgetMs) break;
+            if (SearchElapsedMs >= _timeBudgetMs) break;
             int ap = board.GetAP(team);
             if (ap <= 0) break;
 
             // ゲーム終了チェック
             if (board.IsTerminal()) break;
 
-            var actions = SimActionGenerator.GenerateAllActionsInto(board, team, greedyActions);
+            yield return null;
+            yield return SimActionGenerator.GenerateAllActionsSteps(board, team, greedyActions);
+            var actions = greedyActions.Actions;
+            yield return null;
             if (actions.Count == 0) break;
 
             // 最高スコアの行動を選択
@@ -32,6 +36,7 @@ public partial class AIMinimaxEngine
 
             for (int i = 0; i < actions.Count; i++)
             {
+                if ((i & 15) == 0) yield return null;
                 var a = actions[i];
                 if (a.APCost > ap) continue;
 
@@ -73,28 +78,41 @@ public partial class AIMinimaxEngine
     //  QuickScore事前計算＋降順ソート（比較中のQuickScore再計算を排除）
     //  N個の行動に対してQuickScoreがN回で済む（Sort比較でN log N回→N回に削減）
     // ================================================================
-    void PrecomputeAndSort(List<SimAction> actions, SimBoardState board)
+    IEnumerator PrecomputeAndSortSteps(List<SimAction> actions, SimBoardState board)
     {
         int count = actions.Count;
         // バッファサイズ確保
         while (_sortScoreBuffer.Count < count) _sortScoreBuffer.Add(0f);
         for (int i = 0; i < count; i++)
-            _sortScoreBuffer[i] = SimActionGenerator.QuickScore(actions[i], board);
-
-        // 挿入ソート（候補数が少ないため O(n^2) でも高速、GCゼロ）
-        for (int i = 1; i < count; i++)
         {
-            var keyAction = actions[i];
-            float keyScore = _sortScoreBuffer[i];
-            int j = i - 1;
-            while (j >= 0 && _sortScoreBuffer[j] < keyScore)
+            if ((i & 15) == 0) yield return null;
+            _sortScoreBuffer[i] = SimActionGenerator.QuickScore(actions[i], board);
+        }
+
+        // Stable bottom-up merge sort: O(n log n), buffers are retained between searches.
+        // Equal scores preserve generation order, as the former insertion sort did.
+        while (_mergeActions.Count < count) { _mergeActions.Add(null); _mergeScores.Add(0f); }
+        for (int width = 1; width < count; width *= 2)
+        {
+            for (int left = 0; left < count; left += width * 2)
             {
-                actions[j + 1] = actions[j];
-                _sortScoreBuffer[j + 1] = _sortScoreBuffer[j];
-                j--;
+                int middle = System.Math.Min(left + width, count);
+                int right = System.Math.Min(left + width * 2, count);
+                int a = left, b = middle;
+                for (int k = left; k < right; k++)
+                {
+                    if ((k & 31) == 0) yield return null;
+                    int source = a < middle && (b >= right || _sortScoreBuffer[a] >= _sortScoreBuffer[b]) ? a++ : b++;
+                    _mergeActions[k] = actions[source];
+                    _mergeScores[k] = _sortScoreBuffer[source];
+                }
             }
-            actions[j + 1] = keyAction;
-            _sortScoreBuffer[j + 1] = keyScore;
+            for (int k = 0; k < count; k++)
+            {
+                if ((k & 31) == 0) yield return null;
+                actions[k] = _mergeActions[k];
+                _sortScoreBuffer[k] = _mergeScores[k];
+            }
         }
     }
 }

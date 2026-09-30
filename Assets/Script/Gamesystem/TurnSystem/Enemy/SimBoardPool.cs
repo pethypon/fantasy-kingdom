@@ -32,7 +32,11 @@ public static class SimBoardPool
         if (board.EnemyBuildingCounts != null) { ReturnDict(board.EnemyBuildingCounts); board.EnemyBuildingCounts = null; }
         if (board.PlayerBuildingCounts != null) { ReturnDict(board.PlayerBuildingCounts); board.PlayerBuildingCounts = null; }
         board.ReturnOccupiedSet();
-        _boardPool.Push(board);
+        // Shared immutable snapshots must not be retained for the lifetime of the pool.
+        board.MapTiles = null;
+        board.Mountains = null;
+        board.Water = null;
+        if (_boardPool.Count < 64) _boardPool.Push(board);
     }
 
     public static SimUnit RentUnit()
@@ -49,7 +53,8 @@ public static class SimBoardPool
     public static void ReturnUnit(SimUnit unit)
     {
         if (unit == null) return;
-        _unitPool.Push(unit);
+        unit.Effects.Clear();
+        if (_unitPool.Count < 4096) _unitPool.Push(unit);
     }
 
     public static List<SimUnit> RentUnitList(int capacity)
@@ -67,7 +72,7 @@ public static class SimBoardPool
     {
         if (list == null) return;
         list.Clear();
-        _unitListPool.Push(list);
+        if (_unitListPool.Count < 64) _unitListPool.Push(list);
     }
 
     public static Dictionary<FacilityKind, int> RentDict()
@@ -85,7 +90,7 @@ public static class SimBoardPool
     {
         if (dict == null) return;
         dict.Clear();
-        _dictPool.Push(dict);
+        if (_dictPool.Count < 128) _dictPool.Push(dict);
     }
 
     public static HashSet<Vector3Int> RentHashSet()
@@ -103,6 +108,6 @@ public static class SimBoardPool
     {
         if (set == null) return;
         set.Clear();
-        _hashSetPool.Push(set);
+        if (_hashSetPool.Count < 64) _hashSetPool.Push(set);
     }
 }

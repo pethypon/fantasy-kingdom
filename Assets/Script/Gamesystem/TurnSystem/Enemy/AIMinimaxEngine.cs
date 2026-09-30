@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -45,6 +46,8 @@ public partial class AIMinimaxEngine
     const float DefaultTimeBudgetMs = 5000f;
     float _timeBudgetMs;
     Stopwatch _stopwatch;
+    Stopwatch _wallClock;
+    double SearchElapsedMs => System.Math.Max(_stopwatch.Elapsed.TotalMilliseconds, _wallClock.Elapsed.TotalMilliseconds);
 
     // ---- キラームーブ (深さごとに最善だった行動を記録) ----
     SimAction[] _killerMoves;
@@ -60,6 +63,8 @@ public partial class AIMinimaxEngine
     // ---- 再利用バッファ（GC削減） ----
     readonly HashSet<int> _greedyActedUnits = new HashSet<int>();
     readonly List<float> _sortScoreBuffer = new List<float>();
+    readonly List<SimAction> _mergeActions = new List<SimAction>();
+    readonly List<float> _mergeScores = new List<float>();
 
     struct TTEntry
     {
@@ -86,16 +91,51 @@ public partial class AIMinimaxEngine
     //  入力: AIの候補行動リスト (AIAction) と現在の盤面状態
     //  出力: 各AIActionに対する先読みスコア補正値
     // ================================================================
-    public Dictionary<AIAction, float> Search(
+    float _nodeScore;
+    bool _searchActive;
+    public AISlicedWork BeginSearch(List<AIAction> candidates, SimBoardState initialBoard,
+        AIBoardState realBoard, Dictionary<AIAction, float> result, float? timeBudgetMs = null)
+    {
+        if (candidates == null) throw new System.ArgumentNullException(nameof(candidates));
+        if (initialBoard == null) throw new System.ArgumentNullException(nameof(initialBoard));
+        if (result == null) throw new System.ArgumentNullException(nameof(result));
+        if (_searchActive) throw new System.InvalidOperationException("Search already active");
+        _searchActive = true;
+        if (timeBudgetMs.HasValue) _timeBudgetMs = Mathf.Max(0, timeBudgetMs.Value);
+        result.Clear();
+        _stopwatch = new Stopwatch();
+        _wallClock = Stopwatch.StartNew();
+        return new AISlicedWork(OwnedSearch(candidates, initialBoard, realBoard, result), _stopwatch, () => _searchActive = false);
+    }
+
+    IEnumerator OwnedSearch(List<AIAction> candidates, SimBoardState initialBoard,
+        AIBoardState realBoard, Dictionary<AIAction, float> result)
+    {
+        try { yield return SearchSteps(candidates, initialBoard, realBoard, result); }
+        finally { _searchActive = false; }
+    }
+
+    // Compatibility for offline tools/tests. Gameplay uses BeginSearch and bounded Step calls.
+    public Dictionary<AIAction, float> Search(List<AIAction> candidates,
+        SimBoardState initialBoard, AIBoardState realBoard)
+    {
+        var result = new Dictionary<AIAction, float>(candidates.Count);
+        using (var work = BeginSearch(candidates, initialBoard, realBoard, result))
+            while (work.Step(double.PositiveInfinity)) { }
+        return result;
+    }
+
+    IEnumerator SearchSteps(
         List<AIAction> candidates,
         SimBoardState initialBoard,
-        AIBoardState realBoard)
+        AIBoardState realBoard, Dictionary<AIAction, float> result)
     {
-        var result = new Dictionary<AIAction, float>();
         _nodesEvaluated = 0;
         CompletedDepth = 0;
         _pruned = 0;
-        _stopwatch = Stopwatch.StartNew();
+        _transTable.Clear();
+        System.Array.Clear(_killerMoves, 0, _killerMoves.Length);
+        yield return null;
 
         // 初期盤面の基準スコア
         float baseScore = SimBoardEvaluator.Evaluate(initialBoard);
@@ -115,16 +155,17 @@ public partial class AIMinimaxEngine
         for (int i = 0; i < candidateScores.Length; i++)
             candidateScores[i] = convertedCandidates[i].quickScore;
 
+        var indices = new int[convertedCandidates.Count];
+        var completedScores = new float[candidateScores.Length];
         for (int iterDepth = Mathf.Min(1, _maxDepth); iterDepth <= _maxDepth; iterDepth++)
         {
-            if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs * 0.9f) break;
+            if (SearchElapsedMs >= _timeBudgetMs * 0.9f) break;
 
             // 前回のスコアで降順ソート（最善手を先に探索）
-            var indices = new int[convertedCandidates.Count];
             for (int i = 0; i < indices.Length; i++) indices[i] = i;
             System.Array.Sort(indices, (a, b) => candidateScores[b].CompareTo(candidateScores[a]));
 
-            var completedScores = (float[])candidateScores.Clone();
+            System.Array.Copy(candidateScores, completedScores, candidateScores.Length);
             bool completed = true;
             float alpha = float.MinValue;
             float beta = float.MaxValue;
@@ -134,7 +175,7 @@ public partial class AIMinimaxEngine
                 int idx = indices[ii];
                 var (candidate, simAction, _) = convertedCandidates[idx];
 
-                if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs)
+                if (SearchElapsedMs >= _timeBudgetMs)
                 { completed = false; break; }
 
                 if (simAction == null)
@@ -144,22 +185,25 @@ public partial class AIMinimaxEngine
                 }
 
                 // 盤面をクローンして最初の行動を適用
+                yield return null;
                 var boardAfterAction = initialBoard.Clone();
+                try
+                {
                 if (!boardAfterAction.ApplyAction(simAction))
                 {
-                    SimBoardPool.ReturnBoard(boardAfterAction);
                     candidateScores[idx] = baseScore;
                     continue;
                 }
 
                 // 残りのAIターンをgreedyに実行
-                SimulateGreedyTurn(boardAfterAction, Team.Enemy);
+                yield return SimulateGreedyTurnSteps(boardAfterAction, Team.Enemy);
 
                 // 深さ2以降の探索
                 float score;
                 if (iterDepth >= 2)
                 {
-                    score = MinSearch(boardAfterAction, 2, iterDepth, alpha, beta);
+                    yield return MinSearchSteps(boardAfterAction, 2, iterDepth, alpha, beta);
+                    score = _nodeScore;
                 }
                 else
                 {
@@ -167,13 +211,14 @@ public partial class AIMinimaxEngine
                     _nodesEvaluated++;
                 }
 
-                SimBoardPool.ReturnBoard(boardAfterAction);
                 candidateScores[idx] = score;
 
                 if (score > alpha) alpha = score;
+                }
+                finally { SimBoardPool.ReturnBoard(boardAfterAction); }
             }
-            if (!completed || _stopwatch.Elapsed.TotalMilliseconds >= _timeBudgetMs)
-            { candidateScores = completedScores; break; }
+            if (!completed || SearchElapsedMs >= _timeBudgetMs)
+            { System.Array.Copy(completedScores, candidateScores, candidateScores.Length); break; }
             CompletedDepth = iterDepth;
         }
 
@@ -192,6 +237,6 @@ public partial class AIMinimaxEngine
             $"評価{_nodesEvaluated}ノード 枝刈り{_pruned}回 TT{_transTable.Count}件 " +
             $"{_elapsedMs:F0}ms 基準値={baseScore:F1}");
 
-        return result;
+        yield break;
     }
 }

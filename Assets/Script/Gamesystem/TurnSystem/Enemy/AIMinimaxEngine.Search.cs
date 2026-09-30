@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -9,26 +10,27 @@ public partial class AIMinimaxEngine
     // ================================================================
     //  Min探索 (Playerの応手): AIにとって最悪のスコアを返す
     // ================================================================
-    float MinSearch(SimBoardState board, int depth, int maxDepth, float alpha, float beta)
+    IEnumerator MinSearchSteps(SimBoardState board, int depth, int maxDepth, float alpha, float beta)
     {
-        if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs)
-            return SimBoardEvaluator.Evaluate(board);
+        if (SearchElapsedMs >= _timeBudgetMs)
+            { _nodeScore = SimBoardEvaluator.Evaluate(board); yield break; }
 
         // ゲーム終了チェック
         if (board.IsTerminal())
         {
             _nodesEvaluated++;
-            return SimBoardEvaluator.Evaluate(board);
+            { _nodeScore = SimBoardEvaluator.Evaluate(board); yield break; }
         }
 
         // ターン遷移: Player のターン開始をシミュレーション
+        yield return null;
         board.SimulateTurnTransition(Team.Player);
 
         // ゲーム終了チェック（DoTで死亡した場合）
         if (board.IsTerminal())
         {
             _nodesEvaluated++;
-            return SimBoardEvaluator.Evaluate(board);
+            { _nodeScore = SimBoardEvaluator.Evaluate(board); yield break; }
         }
 
         // トランスポジションテーブルルックアップ
@@ -37,23 +39,25 @@ public partial class AIMinimaxEngine
         TTEntry ttEntry;
         if (_transTable.TryGetValue(hash, out ttEntry) && ttEntry.Depth >= remainingDepth)
         {
-            if (ttEntry.Flag == TTFlag.Exact) return ttEntry.Score;
-            if (ttEntry.Flag == TTFlag.UpperBound && ttEntry.Score <= alpha) return ttEntry.Score;
-            if (ttEntry.Flag == TTFlag.LowerBound && ttEntry.Score >= beta) { _pruned++; return ttEntry.Score; }
+            if (ttEntry.Flag == TTFlag.Exact) { _nodeScore = ttEntry.Score; yield break; }
+            if (ttEntry.Flag == TTFlag.UpperBound && ttEntry.Score <= alpha) { _nodeScore = ttEntry.Score; yield break; }
+            if (ttEntry.Flag == TTFlag.LowerBound && ttEntry.Score >= beta) { _pruned++; { _nodeScore = ttEntry.Score; yield break; } }
         }
 
         // Playerの候補行動を生成
-        var actions = SimActionGenerator.GenerateAllActionsInto(board, Team.Player, ActionsAt(depth));
+        var buffer = ActionsAt(depth);
+        yield return SimActionGenerator.GenerateAllActionsSteps(board, Team.Player, buffer);
+        var actions = buffer.Actions;
         if (actions.Count == 0)
         {
             if (depth < maxDepth)
-                return MaxSearch(board, depth + 1, maxDepth, alpha, beta);
+                { yield return MaxSearchSteps(board, depth + 1, maxDepth, alpha, beta); yield break; }
             _nodesEvaluated++;
-            return SimBoardEvaluator.Evaluate(board);
+            { _nodeScore = SimBoardEvaluator.Evaluate(board); yield break; }
         }
 
         // 手順序: QuickScoreを事前計算してソート（比較時の再計算を排除）
-        PrecomputeAndSort(actions, board);
+        yield return PrecomputeAndSortSteps(actions, board);
 
         // キラームーブを先頭に移動
         if (depth < _killerMoves.Length && _killerMoves[depth] != null)
@@ -78,18 +82,22 @@ public partial class AIMinimaxEngine
 
         for (int i = 0; i < limit; i++)
         {
-            if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs) break;
+            if (SearchElapsedMs >= _timeBudgetMs) break;
 
+            yield return null;
             var boardCopy = board.Clone();
+            float score;
+            try
+            {
             boardCopy.ApplyAction(actions[i]);
 
             // Playerの残りターンをgreedyに実行
-            SimulateGreedyTurn(boardCopy, Team.Player);
+            yield return SimulateGreedyTurnSteps(boardCopy, Team.Player);
 
-            float score;
             if (depth < maxDepth)
             {
-                score = MaxSearch(boardCopy, depth + 1, maxDepth, alpha, beta);
+                yield return MaxSearchSteps(boardCopy, depth + 1, maxDepth, alpha, beta);
+                score = _nodeScore;
             }
             else
             {
@@ -97,7 +105,8 @@ public partial class AIMinimaxEngine
                 _nodesEvaluated++;
             }
 
-            SimBoardPool.ReturnBoard(boardCopy);
+            }
+            finally { SimBoardPool.ReturnBoard(boardCopy); }
 
             if (score < minScore)
             {
@@ -129,31 +138,32 @@ public partial class AIMinimaxEngine
             _transTable[hash] = new TTEntry { Score = result, Depth = remainingDepth, Flag = flag };
         }
 
-        return result;
+        { _nodeScore = result; yield break; }
     }
 
     // ================================================================
     //  Max探索 (AIの再応手): AIにとって最善のスコアを返す
     // ================================================================
-    float MaxSearch(SimBoardState board, int depth, int maxDepth, float alpha, float beta)
+    IEnumerator MaxSearchSteps(SimBoardState board, int depth, int maxDepth, float alpha, float beta)
     {
-        if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs)
-            return SimBoardEvaluator.Evaluate(board);
+        if (SearchElapsedMs >= _timeBudgetMs)
+            { _nodeScore = SimBoardEvaluator.Evaluate(board); yield break; }
 
         // ゲーム終了チェック
         if (board.IsTerminal())
         {
             _nodesEvaluated++;
-            return SimBoardEvaluator.Evaluate(board);
+            { _nodeScore = SimBoardEvaluator.Evaluate(board); yield break; }
         }
 
         // ターン遷移: AI(Enemy)のターン開始をシミュレーション
+        yield return null;
         board.SimulateTurnTransition(Team.Enemy);
 
         if (board.IsTerminal())
         {
             _nodesEvaluated++;
-            return SimBoardEvaluator.Evaluate(board);
+            { _nodeScore = SimBoardEvaluator.Evaluate(board); yield break; }
         }
 
         // トランスポジションテーブルルックアップ
@@ -162,20 +172,22 @@ public partial class AIMinimaxEngine
         TTEntry ttEntry;
         if (_transTable.TryGetValue(hash, out ttEntry) && ttEntry.Depth >= remainingDepth)
         {
-            if (ttEntry.Flag == TTFlag.Exact) return ttEntry.Score;
-            if (ttEntry.Flag == TTFlag.LowerBound && ttEntry.Score >= beta) { _pruned++; return ttEntry.Score; }
-            if (ttEntry.Flag == TTFlag.UpperBound && ttEntry.Score <= alpha) return ttEntry.Score;
+            if (ttEntry.Flag == TTFlag.Exact) { _nodeScore = ttEntry.Score; yield break; }
+            if (ttEntry.Flag == TTFlag.LowerBound && ttEntry.Score >= beta) { _pruned++; { _nodeScore = ttEntry.Score; yield break; } }
+            if (ttEntry.Flag == TTFlag.UpperBound && ttEntry.Score <= alpha) { _nodeScore = ttEntry.Score; yield break; }
         }
 
-        var actions = SimActionGenerator.GenerateAllActionsInto(board, Team.Enemy, ActionsAt(depth));
+        var buffer = ActionsAt(depth);
+        yield return SimActionGenerator.GenerateAllActionsSteps(board, Team.Enemy, buffer);
+        var actions = buffer.Actions;
         if (actions.Count == 0)
         {
             _nodesEvaluated++;
-            return SimBoardEvaluator.Evaluate(board);
+            { _nodeScore = SimBoardEvaluator.Evaluate(board); yield break; }
         }
 
         // 手順序: QuickScoreを事前計算してソート（比較時の再計算を排除）
-        PrecomputeAndSort(actions, board);
+        yield return PrecomputeAndSortSteps(actions, board);
 
         // キラームーブ
         if (depth < _killerMoves.Length && _killerMoves[depth] != null)
@@ -200,17 +212,21 @@ public partial class AIMinimaxEngine
 
         for (int i = 0; i < limit; i++)
         {
-            if (_stopwatch.ElapsedMilliseconds > _timeBudgetMs) break;
+            if (SearchElapsedMs >= _timeBudgetMs) break;
 
+            yield return null;
             var boardCopy = board.Clone();
+            float score;
+            try
+            {
             boardCopy.ApplyAction(actions[i]);
 
-            SimulateGreedyTurn(boardCopy, Team.Enemy);
+            yield return SimulateGreedyTurnSteps(boardCopy, Team.Enemy);
 
-            float score;
             if (depth < maxDepth)
             {
-                score = MinSearch(boardCopy, depth + 1, maxDepth, alpha, beta);
+                yield return MinSearchSteps(boardCopy, depth + 1, maxDepth, alpha, beta);
+                score = _nodeScore;
             }
             else
             {
@@ -218,7 +234,8 @@ public partial class AIMinimaxEngine
                 _nodesEvaluated++;
             }
 
-            SimBoardPool.ReturnBoard(boardCopy);
+            }
+            finally { SimBoardPool.ReturnBoard(boardCopy); }
 
             if (score > maxScore)
             {
@@ -249,6 +266,6 @@ public partial class AIMinimaxEngine
             _transTable[hash] = new TTEntry { Score = result, Depth = remainingDepth, Flag = flag };
         }
 
-        return result;
+        { _nodeScore = result; yield break; }
     }
 }

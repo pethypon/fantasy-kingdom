@@ -15,6 +15,27 @@ using UnityEngine;
 // =====================================================================
 public static class SimActionGenerator
 {
+    // Each unit is an independent checkpoint; no shared scratch list survives a yield.
+    public static System.Collections.IEnumerator GenerateAllActionsSteps(SimBoardState board, Team team, SimActionBuffer actions)
+    {
+        actions.Clear();
+        int ap = board.GetAP(team);
+        if (ap <= 0) yield break;
+        Team enemyTeam = team == Team.Enemy ? Team.Player : Team.Enemy;
+        for (int i = 0; i < board.Units.Count; i++)
+        {
+            var unit = board.Units[i];
+            if (!unit.IsAlive || unit.Team != team || unit.Type != Type.Unit || unit.IsStunned) continue;
+            yield return null;
+            if (!unit.IsMovementBlocked) GenerateMoveActions(board, unit, team, ap, actions);
+            GenerateAttackActions(board, unit, team, enemyTeam, ap, actions);
+            GenerateSkillActions(board, unit, team, enemyTeam, ap, actions);
+        }
+        yield return null;
+        GenerateBuildActions(board, team, ap, actions);
+        yield return null;
+        GenerateSummonActions(board, team, ap, actions);
+    }
     static readonly FacilityKind[] priorities = {
             FacilityKind.Well, FacilityKind.LoggingCamp, FacilityKind.Quarry,
             FacilityKind.Field, FacilityKind.House, FacilityKind.Bakery,
@@ -294,6 +315,9 @@ public static class SimActionGenerator
 
 
         var crystalPos = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
+        // Every candidate is evaluated against the same board; do not rescan 25 cells per kind.
+        Vector3Int spawnPos = FindSpawnPosition(board, crystalPos);
+        if (spawnPos.x == int.MinValue) return;
 
         foreach (var kind in summonableKinds)
         {
@@ -301,8 +325,6 @@ public static class SimActionGenerator
             if (data.CostAP > ap) continue;
 
             // クリスタル周囲に空きマスを探す
-            Vector3Int spawnPos = FindSpawnPosition(board, crystalPos);
-            if (spawnPos.x == int.MinValue) continue;
 
             var candidate = results.Next();
             candidate.Type = SimActionType.Summon;

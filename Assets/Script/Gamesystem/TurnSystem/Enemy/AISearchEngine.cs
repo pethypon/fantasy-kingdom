@@ -83,45 +83,66 @@ public class AISearchEngine
     Dictionary<AIAction, float> EvaluateWithFullSimulation(
         List<AIAction> topCandidates, AIBoardState board)
     {
-        float startTime = Time.realtimeSinceStartup * 1000f;
-
-        // SimBoardStateを生成
-        SimBoardState simBoard;
-        try
-        {
-            simBoard = SimBoardState.CreateFromGame(board, _moveGen, _unitSet, _crystalSystem, _apSystem);
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"[AISearchEngine] SimBoardState生成失敗: {e.Message}");
-            return EvaluateWithHeuristic(topCandidates, board);
-        }
-
-        // AIMinimaxEngineで探索
-        // 反復深化 + キラームーブ + 正確なターン遷移付き
-        var minimax = new AIMinimaxEngine(
-            maxDepth: _maxDepth,
-            candidateLimit: Mathf.Max(_candidateLimit, 14),
-            greedyActionsPerTurn: 10,
-            timeBudgetMs: (float)AITurnBudget.RemainingMs
-        );
-
-        Dictionary<AIAction, float> result;
-        try
-        {
-            result = minimax.Search(topCandidates, simBoard, board);
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"[AISearchEngine] Minimax探索中に例外: {e.Message}\n{e.StackTrace}");
-            result = EvaluateWithHeuristic(topCandidates, board);
-        }
-
-        _elapsedMs = (Time.realtimeSinceStartup * 1000f) - startTime;
-        DevelopmentLog.Log($"[AISearchEngine] 完全シミュレーション先読み完了: " +
-            $"深さ{_maxDepth} 候補{topCandidates.Count} {_elapsedMs:F0}ms");
-
+        var result = new Dictionary<AIAction, float>();
+        var steps = EvaluateWithLookaheadSteps(topCandidates, board, result);
+        try { while (steps.MoveNext()) { } }
+        finally { (steps as System.IDisposable)?.Dispose(); }
         return result;
+    }
+
+    AIMinimaxEngine minimax;
+    public double LastMaxSliceMs { get; private set; }
+    public int LastSliceCount { get; private set; }
+    public System.Collections.IEnumerator EvaluateWithLookaheadSteps(
+        List<AIAction> candidates, AIBoardState board, Dictionary<AIAction, float> result,
+        double sliceMilliseconds = 3)
+    {
+        result.Clear();
+        LastMaxSliceMs = 0;
+        LastSliceCount = 0;
+        SimBoardState snapshot = null;
+        if (_moveGen != null && _unitSet != null && _crystalSystem != null && _apSystem != null)
+        {
+            try { snapshot = SimBoardState.CreateFromGame(board, _moveGen, _unitSet, _crystalSystem, _apSystem); }
+            catch (System.Exception e) { Debug.LogException(e); }
+        }
+        if (snapshot == null)
+        {
+            float baseValue = AIBoardEvaluator.Evaluate(board);
+            foreach (var candidate in candidates)
+            {
+                if (AITurnBudget.Expired) yield break;
+                result[candidate] = EvaluateActionHeuristic(candidate, board, baseValue, 1);
+                yield return null;
+            }
+            yield break;
+        }
+
+        try
+        {
+            // Snapshot and search never share a long frame. This wait is outside the CPU budget.
+            yield return null;
+            if (minimax == null) minimax = new AIMinimaxEngine(_maxDepth, Mathf.Max(_candidateLimit, 14), 10);
+            using (var work = minimax.BeginSearch(candidates, snapshot, board, result, (float)AITurnBudget.RemainingMs))
+            {
+                while (true)
+                {
+                    bool more;
+                    try { more = work.Step(sliceMilliseconds); }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogException(e);
+                        result.Clear(); // Retain the already scored, legal heuristic candidates.
+                        break;
+                    }
+                    LastMaxSliceMs = work.MaxSliceMs;
+                    LastSliceCount = work.SliceCount;
+                    if (!more) break;
+                    yield return null;
+                }
+            }
+        }
+        finally { SimBoardPool.ReturnBoard(snapshot); }
     }
 
     // ================================================================
