@@ -230,6 +230,8 @@ public sealed class AIReconnaissance
         }
         if (scout)
         {
+            if (board.Outposts.TryGetDungeonObjective(unit.transform.position, out var dungeon))
+                score += Mathf.Clamp(GridHelper.ChebyshevDistance(unit.transform.position, dungeon) - GridHelper.ChebyshevDistance(destination, dungeon), -3, 3) * 6;
             float risk = board.EstimateCounterDamageAt(destination, unit);
             score -= Mathf.Min(70, risk / Mathf.Max(1, unit.HP) * 65);
             if (board.GetNearestAllyDist(destination, unit) > 6 && (risk > 0 || unit.HP < unit.MaxHP / 2)) score -= 15;

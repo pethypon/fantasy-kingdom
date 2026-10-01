@@ -1,0 +1,20 @@
+Outpost planning: SceneSmoke 619 checks passed; 15 new outpost checks.
+Earlier run: existing minimax slice timing test failed at 438ms; subsequent full runs passed.
+[AISlicing] budget250 maxSliceMs=3.123 slices=83 depth=4
+[Outposts] PASS full legal site enumeration exceeds old five-site cap
+[Outposts] PASS fixture has forward site
+[Outposts] PASS undiscovered dungeon cannot become objective
+[Outposts] PASS discovered dungeon becomes exploration objective
+[Outposts] PASS best deployment controls discovered dungeon
+[Outposts] PASS ranked shortlist bounded and legal
+[Outposts] PASS cached 10000 queries do not allocate or re-evaluate
+[Outposts] cachedQueries=10000 ms=0.748 bytes=0 sites=693
+[Outposts] PASS ranking independent of map enumeration order
+[Outposts] PASS observed nearby threat rejects deployment
+[Outposts] PASS isolated outpost is postponed
+[Outposts] PASS AI actually deploys one outpost
+[Outposts] PASS dungeon controlled after deployment
+[Outposts] PASS stale proposal cannot deploy second outpost
+[Outposts] PASS one deployment per turn survives board refresh
+[Outposts] PASS secured dungeon no longer attracts scout
+[SceneSmoke] ALL PASSED

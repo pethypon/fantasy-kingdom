@@ -375,6 +375,7 @@ public class AIActionExecutor
     // ================================================================
     bool ExecuteSubCrystal(AIAction action, AIBoardState board)
     {
+        if (board.ExpansionCommitted) return false;
         if (_subCrystalSystem == null || _buildSystem == null) return false;
 
         var pos = AIBoardState.ToCell(action.TargetPos);
@@ -384,7 +385,9 @@ public class AIActionExecutor
         bool success = _buildSystem.AIPlaceBuilding(pos, FacilityKind.SubCrystal, Team.Enemy);
         if (success)
         {
+            board.ExpansionCommitted = true;
             board.RefreshAP();
+            DevelopmentLog.Log($"[AIOutpost] {board.Outposts.Describe(action.TargetPos)} score={board.Outposts.Score(action.TargetPos):F1}");
             DevelopmentLog.Log($"[AIActionExecutor] サブクリ展開: @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
         }
         return success;

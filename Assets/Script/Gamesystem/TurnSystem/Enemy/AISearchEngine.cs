@@ -95,7 +95,7 @@ public class AISearchEngine
     public int LastSliceCount { get; private set; }
     public System.Collections.IEnumerator EvaluateWithLookaheadSteps(
         List<AIAction> candidates, AIBoardState board, Dictionary<AIAction, float> result,
-        double sliceMilliseconds = 3)
+        double sliceMilliseconds = 3, double decisionMilliseconds = 350)
     {
         result.Clear();
         LastMaxSliceMs = 0;
@@ -123,7 +123,9 @@ public class AISearchEngine
             // Snapshot and search never share a long frame. This wait is outside the CPU budget.
             yield return null;
             if (minimax == null) minimax = new AIMinimaxEngine(_maxDepth, Mathf.Max(_candidateLimit, 14), 10);
-            using (var work = minimax.BeginSearch(candidates, snapshot, board, result, (float)AITurnBudget.RemainingMs))
+            // A single decision must not consume the entire turn and leave no time to act.
+            double decisionBudget = System.Math.Min(AITurnBudget.RemainingMs, System.Math.Max(1, decisionMilliseconds));
+            using (var work = minimax.BeginSearch(candidates, snapshot, board, result, (float)decisionBudget))
             {
                 while (true)
                 {

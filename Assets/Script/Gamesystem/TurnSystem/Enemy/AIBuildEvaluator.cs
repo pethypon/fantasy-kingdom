@@ -17,18 +17,7 @@ static class AIBuildEvaluator
 
     internal static float CalcSubCrystalBaseScore(AIAction action, AIBoardState board)
     {
-        float score = 22f;
-
-        float distFromHome = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
-        if (distFromHome < 8f) score += 10f;
-
-        if (board.CanUsePlayerCrystalAsTarget())
-        {
-            float distToEnemy = Vector3.Distance(action.TargetPos, board.PlayerCrystalPos);
-            score += Mathf.Max(0, 15f - distToEnemy);
-        }
-
-        return score;
+        return board.Outposts.Score(action.TargetPos);
     }
 
     internal static float CalcBuildBaseScore(AIAction action, AIBoardState board)

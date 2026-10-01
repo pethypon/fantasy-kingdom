@@ -563,16 +563,15 @@ public static class AIActionGenerator
     {
         if (board.SubCrystalPlaceable.Count == 0) return;
         if (board.EnemySubCrystals <= 0) return;
+        if (board.ExpansionCommitted || !board.AffordableBuildings.Contains(FacilityKind.SubCrystal)) return;
 
         int apCost = 2;
         if (FacilityData.Table.TryGetValue(FacilityKind.SubCrystal, out var info) && info.APCost > 0)
             apCost = info.APCost;
         if (apCost > board.EnemyAP) return;
 
-        int count = 0;
-        foreach (var pos in board.SubCrystalPlaceable)
+        foreach (var pos in board.Outposts.Candidates)
         {
-            if (count >= 2) break;
             results.Add(new AIAction
             {
                 ActionType = AIActionType.SubCrystal,
@@ -580,7 +579,6 @@ public static class AIActionGenerator
                 APCost = apCost,
                 Facility = FacilityKind.SubCrystal
             });
-            count++;
         }
     }
 }

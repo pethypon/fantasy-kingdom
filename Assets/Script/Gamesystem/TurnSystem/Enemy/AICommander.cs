@@ -197,7 +197,7 @@ public partial class AICommander
     // ================================================================
     //  ExecuteTurn — 1ターン分の全行動を実行
     // ================================================================
-    public float TurnThinkingBudgetMs { get; set; } = 8000f;
+    public float TurnThinkingBudgetMs { get; set; } = 3000f;
     public double SearchSliceBudgetMs { get; set; } = 3;
     public double LastSearchMaxSliceMs { get; private set; }
     static bool IsCriticalPosition(List<AIAction> candidates, AIBoardState board)
@@ -314,6 +314,21 @@ public partial class AICommander
         finally { (reconnaissance as System.IDisposable)?.Dispose(); }
         if (_turnGen.IsGameOver) yield break;
 
+        if (!AITurnBudget.Expired && !_board.ExpansionCommitted && !AITacticalPriorities.HasLocalThreat(_board))
+        {
+            var outpostActions = new List<AIAction>(4);
+            AIActionGenerator.GenerateSubCrystalCandidates(_board, outpostActions);
+            if (outpostActions.Count > 0 && outpostActions[0].APCost <= _board.EnemyAP - AITacticalPriorities.FinishingAttackReserve(_board))
+            {
+                if (_actionExecutor.Execute(outpostActions[0], _board))
+                {
+                    turnStats.Record(AIActionType.SubCrystal);
+                    _board.Refresh();
+                }
+            }
+        }
+        yield return null;
+        if (_turnGen.IsGameOver) yield break;
         var reinforcement = ExecuteReinforcementPhase(turnStats);
         try { while (reinforcement.MoveNext()) yield return null; }
         finally { (reinforcement as System.IDisposable)?.Dispose(); }
@@ -440,7 +455,8 @@ public partial class AICommander
             if (_hierarchicalMode && _kingCommanderSystem.HasDivisions)
             {
                 var kingUnits = _kingCommanderSystem.GetKingDirectUnitSet();
-                actions.RemoveAll(a => a.Unit != null && !kingUnits.Contains(a.Unit));
+                actions.RemoveAll(a => a.Unit != null && !kingUnits.Contains(a.Unit)
+                    && a.ActionType != AIActionType.Attack && a.ActionType != AIActionType.SkillUse);
             }
 
             // ---- ロールボーナス適用（脅威度が通常知能以上で有効） ----

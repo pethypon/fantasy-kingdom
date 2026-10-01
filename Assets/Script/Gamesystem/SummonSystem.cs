@@ -359,20 +359,26 @@ public class SummonSystem : MonoBehaviour
     public List<Vector3Int> AIGetSummonablePositions(Team team)
     {
         var result = new List<Vector3Int>();
-        var territory = territorysystem.GetTerritory(team);
-        if (territory == null) return result;
+        CollectAISummonablePositions(team, result);
+        return result;
+    }
 
-        var heightLookup = mapcreate.BuildHeightLookup();
+    /// <summary>Reuses caller-owned storage without rebuilding a whole-map height dictionary.</summary>
+    public void CollectAISummonablePositions(Team team, List<Vector3Int> result)
+    {
+        if (result == null) throw new System.ArgumentNullException(nameof(result));
+        result.Clear();
+        var territory = territorysystem.GetTerritory(team);
+        if (territory == null) return;
 
         foreach (var p in territory)
         {
             var pGrid = GridHelper.ToGridXZ(p);
-            if (!heightLookup.TryGetValue((pGrid.x, pGrid.z), out int py)) continue;
-            var pos = new Vector3Int(pGrid.x, py, pGrid.z);
+            if (!mapcreate.TryGetHeight(pGrid.x, pGrid.z, out float height)) continue;
+            var pos = new Vector3Int(pGrid.x, Mathf.RoundToInt(height), pGrid.z);
             if (CheckCanPlaceForTeam(pos, team))
                 result.Add(pos);
         }
-        return result;
     }
 
     // ==================================================================

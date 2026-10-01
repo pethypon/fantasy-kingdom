@@ -54,6 +54,9 @@ public static class TurnCycleRunner
     Check("player timer running "+round,systems.TimerSystem.CurrentTeam==Team.Player&&systems.TimerSystem.IsRunning);
     var group=(CanvasGroup)typeof(EnemyTurnBannerUI).GetField("_group",F).GetValue(EnemyTurnBannerUI.Instance);
     Check("enemy banner hidden "+round,group.alpha==0);
+    EnemyTurnBannerUI.Show(turn);
+    typeof(EnemyTurnBannerUI).GetMethod("Update",F).Invoke(EnemyTurnBannerUI.Instance,null);
+    Check("stale banner self-corrects against player state "+round,!EnemyTurnBannerUI.IsShowing&&group.alpha==0);
     if(injected!=null){Check("fault cleanup exactly once "+round,injected.Disposals==1);injected=null;}
     Debug.Log($"[TurnCycle] elapsedMs={(EditorApplication.timeSinceStartup-started)*1000:F1} frames={frames}");
     waiting=false;round++;

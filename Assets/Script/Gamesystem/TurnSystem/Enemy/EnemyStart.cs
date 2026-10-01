@@ -22,7 +22,7 @@ public class EnemyStart : TurnState
             Systems.InputHintUI.SetHints(InputHintUI.Hints.EnemyTurn);
 
         // 敵ターンバナー表示
-        EnemyTurnBannerUI.Show();
+        EnemyTurnBannerUI.Show(Turn);
 
         // 共通ターン開始処理
         TurnStartHelper.ProcessTurnStart(Systems, Team.Enemy, Context.Turn);

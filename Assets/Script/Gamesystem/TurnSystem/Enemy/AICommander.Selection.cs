@@ -6,6 +6,7 @@ using UnityEngine;
 // =====================================================================
 public partial class AICommander
 {
+    readonly List<(AIAction action, float score)> selectionBuffer = new List<(AIAction action, float score)>(64);
     // ================================================================
     //  死亡ユニットの位置履歴を掃除
     // ================================================================
@@ -28,24 +29,25 @@ public partial class AICommander
         HashSet<string> failedActionTypes = null)
     {
         // 有効な候補をスコア順に収集
-        var validActions = new List<(AIAction action, float score)>();
+        var validActions = selectionBuffer;
+        validActions.Clear();
 
         foreach (var action in actions)
         {
             if (action.ActionType == AIActionType.Wait) continue;
             if (action.APCost > _board.EnemyAP) continue;
 
-            string failKey = action.FailureKey;
-            if (failedActions.Contains(failKey)) continue;
+            if (failedActions.Count > 0 && failedActions.Contains(action.FailureKey)) continue;
 
-            if (failedActionTypes != null)
+            if (failedActionTypes != null && failedActionTypes.Count > 0)
             {
                 string typeKey = action.FailureGroupKey;
                 if (failedActionTypes.Contains(typeKey)) continue;
             }
 
             float score = action.Score;
-            if (action.Unit != null && _actedUnits.Contains(action.Unit))
+            if (action.Unit != null && _actedUnits.Contains(action.Unit)
+                && action.ActionType != AIActionType.Attack && action.ActionType != AIActionType.SkillUse)
                 score *= 0.5f;
 
             validActions.Add((action, score));

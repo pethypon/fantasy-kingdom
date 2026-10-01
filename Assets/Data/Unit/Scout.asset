@@ -16,14 +16,16 @@ MonoBehaviour:
   baseHP: 20
   baseATK: 6
   baseDEF: 9
-  hpGrowth: 20
-  atkGrowth: 15
-  defGrowth: 10
-  upkeepIron: 1
-  upkeepMagic: 0
-  upkeepBread: 1
+  hpGrowth: 0.2
+  atkGrowth: 0.15
+  defGrowth: 0.1
   upkeepWood: 1
   upkeepStone: 1
+  upkeepIron: 1
+  upkeepMagic: 0
+  upkeepWater: 0
+  upkeepBread: 1
+  upkeepMagicScales: 1
   costWood: 20
   costStone: 0
   costIron: 0

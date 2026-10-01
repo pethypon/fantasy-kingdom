@@ -4,6 +4,15 @@ using UnityEngine;
 public partial class AIBoardState
 {
     AIReconnaissance reconnaissance;
+    AIOutpostPlanner outposts;
+    public AIOutpostPlanner Outposts => outposts ?? (outposts = new AIOutpostPlanner(this));
+    public bool ExpansionCommitted { get; set; }
+    public void CollectOwnBuildings(List<Status> result)
+    {
+        result.Clear();
+        var parent = _buildSystem != null ? _buildSystem.GetBuildingParent(Team.Enemy) : null;
+        if (parent != null) parent.GetComponentsInChildren(false, result);
+    }
     public int ReconThreatLevel { get; set; } = 1;
     public AIReconnaissance Recon => reconnaissance ?? (reconnaissance = new AIReconnaissance(this));
     public IEnumerable<KeyValuePair<int, LastKnownInfo>> ObservedHistory => _lastKnownPlayerPositions;

@@ -50,6 +50,27 @@ public static class AIExplorationTests
    board.Refresh();Check("refreshed board observes discovered unit",board.AlivePlayerUnits.Contains(target));
    var actions=new List<AIAction>();AIActionGenerator.GenerateAttackCandidates(scout,board,actions);
    Check("remaining AP permits an attack candidate this turn",board.EnemyAP>0&&actions.Any(a=>a.TargetUnit==target));
+   int oldAttack=scout.ATK;target.HP=1;scout.ATK=100;board.AliveEnemyUnits.Clear();board.AliveEnemyUnits.Add(scout);
+   Check("finishing attack AP reserved before optional phases",AITacticalPriorities.FinishingAttackReserve(board)==board.CalcAttackCost(scout));
+   target.ShieldTurns=1;Check("shielded target does not create false finishing reserve",AITacticalPriorities.FinishingAttackReserve(board)==0);target.ShieldTurns=0;
+   int attackAP=board.CalcAttackCost(scout);s.FactionState.SetAP(Team.Enemy,attackAP);board.RefreshAP();
+   var commander=s.AICommander;var f=BindingFlags.Instance|BindingFlags.NonPublic;
+   var commanderBoard=typeof(AICommander).GetField("_board",f);var previousBoard=commanderBoard.GetValue(commander);commanderBoard.SetValue(commander,board);
+   try {
+    var statsType=typeof(AICommander).GetNestedType("TurnStats",BindingFlags.NonPublic);var stats=Activator.CreateInstance(statsType,true);AITurnBudget.Begin(3000);
+    var phase=(System.Collections.IEnumerator)typeof(AICommander).GetMethod("ExecuteReinforcementPhase",f).Invoke(commander,new object[]{stats});
+    try{while(phase.MoveNext()){}}finally{(phase as IDisposable)?.Dispose();}
+    Check("reinforcement cannot consume last finishing attack AP",s.APSystem.GetAP(Team.Enemy)==attackAP&&(int)statsType.GetField("Summons").GetValue(stats)==0);
+   }finally{commanderBoard.SetValue(commander,previousBoard);}
+   Check("nearby observed opponent counts as local threat",AITacticalPriorities.HasLocalThreat(board));
+   var observed=board.AlivePlayerUnits.ToArray();board.AlivePlayerUnits.Clear();Check("memory alone does not freeze construction",!AITacticalPriorities.HasLocalThreat(board));board.AlivePlayerUnits.AddRange(observed);
+   target.HP=100;scout.ATK=oldAttack;s.FactionState.SetAP(Team.Enemy,35);board.Refresh();
+   var search=new AISearchEngine(20,14);search.SetSimulationReferences(s.MoveGenerator,s.UnitSetting,s.CrystalSystem,s.APSystem);
+   var evaluated=new Dictionary<AIAction,float>();AITurnBudget.Begin(8000);
+   var searchClock=System.Diagnostics.Stopwatch.StartNew();var searchWork=search.EvaluateWithLookaheadSteps(actions,board,evaluated);
+   try{while(searchWork.MoveNext()){}}finally{(searchWork as IDisposable)?.Dispose();}
+   Check("one decision leaves turn budget available for execution",searchClock.Elapsed.TotalMilliseconds<1000&&AITurnBudget.RemainingMs>6500);
+   Debug.Log($"[AIExploration] decisionMs={searchClock.Elapsed.TotalMilliseconds:F2} remainingTurnMs={AITurnBudget.RemainingMs:F2}");
    var firstMove=new AIAction{ActionType=AIActionType.Move,Unit=scout,TargetPos=dest,Score=10};
    var otherMove=new AIAction{ActionType=AIActionType.Move,Unit=target,TargetPos=dest,Score=10};
    var boardField=typeof(AICommander).GetField("_board",BindingFlags.Instance|BindingFlags.NonPublic);var savedBoard=boardField.GetValue(s.AICommander);boardField.SetValue(s.AICommander,board);

@@ -1,0 +1,74 @@
+AI decision priorities - 2026-10-01
+SceneSmoke: 604 checks passed
+TurnCycleRunner: 39 checks passed (6 cycles)
+UnityEditor.Search startup exception occurred in validation clone; no game stack in that exception.
+Injected MoveNext/Dispose exceptions are expected recovery inputs.
+[AIExploration] PASS fixture has legal unexplored destination outside territory
+[AIExploration] PASS destination is not known
+[AIExploration] PASS unknown destination becomes a move candidate
+[AIExploration] PASS hidden player is not an attack target
+[AIExploration] PASS hidden occupied destination rejected without AP cost
+[AIExploration] PASS scout moves outside territory
+[AIExploration] PASS movement reveals target immediately in same frame
+[AIExploration] PASS refreshed board observes discovered unit
+[AIExploration] PASS remaining AP permits an attack candidate this turn
+[AIExploration] PASS finishing attack AP reserved before optional phases
+[AIExploration] PASS shielded target does not create false finishing reserve
+[AIExploration] PASS reinforcement cannot consume last finishing attack AP
+[AIExploration] PASS nearby observed opponent counts as local threat
+[AIExploration] PASS memory alone does not freeze construction
+[AIExploration] PASS one decision leaves turn budget available for execution
+[AIExploration] decisionMs=350.92 remainingTurnMs=7649.08
+[AIExploration] PASS one actor failure does not block another actor
+[AIExploration] PASS missing actor is rejected
+[AIExploration] PASS illegal movement pattern is rejected
+[AIExploration] PASS stale out-of-range attack is rejected
+[AIExploration] PASS friendly target is rejected
+[AIExploration] PASS rejected actions consume no AP
+[AIExploration] PASS discounted skill candidate uses actual AP cost
+[AIExploration] PASS discounted skill executes with exact remaining AP
+[AIExploration] PASS skill restores inspection context
+[AIExploration] PASS cooldown blocks a repeated skill without spending AP
+[AIExploration] PASS building rules unchanged
+[AIExploration] PASS summoning remains inside territory
+[SceneSmoke] ALL PASSED
+[TurnCycle] PASS player state before end 0
+[TurnCycle] PASS enemy entered 0
+[TurnCycle] PASS exactly one round advance 0
+[TurnCycle] PASS player timer running 0
+[TurnCycle] PASS enemy banner hidden 0
+[TurnCycle] PASS stale banner self-corrects against player state 0
+[TurnCycle] PASS player state before end 1
+[TurnCycle] PASS enemy entered 1
+[TurnCycle] PASS exactly one round advance 1
+[TurnCycle] PASS player timer running 1
+[TurnCycle] PASS enemy banner hidden 1
+[TurnCycle] PASS stale banner self-corrects against player state 1
+[TurnCycle] PASS player state before end 2
+[TurnCycle] PASS enemy entered 2
+[TurnCycle] PASS exactly one round advance 2
+[TurnCycle] PASS player timer running 2
+[TurnCycle] PASS enemy banner hidden 2
+[TurnCycle] PASS stale banner self-corrects against player state 2
+[TurnCycle] PASS player state before end 3
+[TurnCycle] PASS enemy entered 3
+[TurnCycle] PASS exactly one round advance 3
+[TurnCycle] PASS player timer running 3
+[TurnCycle] PASS enemy banner hidden 3
+[TurnCycle] PASS stale banner self-corrects against player state 3
+[TurnCycle] PASS fault cleanup exactly once 3
+[TurnCycle] PASS player state before end 4
+[TurnCycle] PASS enemy entered 4
+[TurnCycle] PASS exactly one round advance 4
+[TurnCycle] PASS player timer running 4
+[TurnCycle] PASS enemy banner hidden 4
+[TurnCycle] PASS stale banner self-corrects against player state 4
+[TurnCycle] PASS fault cleanup exactly once 4
+[TurnCycle] PASS player state before end 5
+[TurnCycle] PASS enemy entered 5
+[TurnCycle] PASS exactly one round advance 5
+[TurnCycle] PASS player timer running 5
+[TurnCycle] PASS enemy banner hidden 5
+[TurnCycle] PASS stale banner self-corrects against player state 5
+[TurnCycle] PASS fault cleanup exactly once 5
+[TurnCycle] ALL PASSED

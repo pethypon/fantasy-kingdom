@@ -20,6 +20,9 @@ public class EnemyTurnBannerUI : MonoBehaviour
     private enum Phase { Hidden, FadeIn, Hold, SlideUp }
     private Phase _phase = Phase.Hidden;
     private float _timer;
+    private TurnGenerator _turn;
+    private float _shownAt;
+    private int _lastSecond = -1;
 
     private const float FadeInDuration = 0.3f;
     private const float HoldDuration = 1.0f;
@@ -86,9 +89,13 @@ public class EnemyTurnBannerUI : MonoBehaviour
     }
 
     /// <summary>敵ターンバナーを表示する</summary>
-    public static void Show()
+    public static void Show(TurnGenerator turn = null)
     {
         if (Instance == null) return;
+        Instance._turn = turn;
+        Instance._shownAt = Time.unscaledTime;
+        Instance._lastSecond = -1;
+        Instance._panelRect.sizeDelta = new Vector2(0, BannerHeight);
         Instance._phase = Phase.FadeIn;
         Instance._timer = 0f;
         Instance._panelRect.anchoredPosition = Vector2.zero;
@@ -101,11 +108,22 @@ public class EnemyTurnBannerUI : MonoBehaviour
         if (Instance == null) return;
         Instance._phase = Phase.Hidden;
         Instance._group.alpha = 0f;
+        Instance._turn = null;
     }
 
     private void Update()
     {
         if (_group == null) return;
+        if (_phase != Phase.Hidden && _turn != null)
+        {
+            if (!(_turn.CurrentState is EnemyStart) && !(_turn.CurrentState is EnemyMove)) { Hide(); return; }
+            int second = Mathf.FloorToInt(Time.unscaledTime - _shownAt);
+            if (second != _lastSecond)
+            {
+                _lastSecond = second;
+                _text.text = $"敵のターン・思考／行動中 {second}秒";
+            }
+        }
 
         switch (_phase)
         {

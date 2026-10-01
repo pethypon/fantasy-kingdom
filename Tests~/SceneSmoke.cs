@@ -145,6 +145,7 @@ public static class SceneSmoke
             HeadLifecycleTests.Run();
             AISlicingTests.Run();
             InformationGrowthTests.Run(systems);
+            OutpostPlanningTests.Run(systems, turn);
             PlayUsabilityTests.Run();
             LongevityTests.Run(systems, turn);
             Debug.Log("[SceneSmoke] ALL PASSED");
