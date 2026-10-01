@@ -407,7 +407,7 @@ public class UnitPanelUI : MonoBehaviour
         if (levelText != null)
         {
             int remaining = Mathf.Max(0, Status.XPRequiredForLevel(currentUnit.Level + 1) - currentUnit.Experience);
-            levelText.text = currentUnit.Level >= 10 ? "Lv 10  <size=75%>MAX</size>"
+            levelText.text = currentUnit.Level >= GameConstants.MaxUnitLevel ? $"Lv {GameConstants.MaxUnitLevel}  <size=75%>MAX</size>"
                 : $"Lv {currentUnit.Level}\n<size=75%>次のレベルまで {remaining} XP</size>";
         }
         // 中央: ステータス

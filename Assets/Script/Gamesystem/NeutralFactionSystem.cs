@@ -209,7 +209,11 @@ public class IndependentFactionState : TurnState
     public IndependentFactionState(TurnGenerator turn) : base(turn) { }
     public override void Entry()
     {
-        Systems.NeutralFactionSystem?.ProcessRound(Context.Turn);
-        if (!Turn.IsGameOver) Turn.ChangeState(new WildBossState(Turn));
+        try { Systems.NeutralFactionSystem?.ProcessRound(Context.Turn); }
+        finally
+        {
+            if (!Turn.IsGameOver && Turn.CurrentState == this)
+                Turn.ChangeState(new WildBossState(Turn));
+        }
     }
 }

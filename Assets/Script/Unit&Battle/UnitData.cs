@@ -11,7 +11,7 @@ public class UnitData : ScriptableObject
     public int baseATK;
     public int baseDEF;
 
-    [Header("成長率（0.0〜1.0 / Lv）例：0.10f = 10%/Lv")]
+    [Header("成長率（Lv1基礎値から固定加算・最低+2/Lv）")]
     public float hpGrowth;
     public float atkGrowth;
     public float defGrowth;
@@ -80,14 +80,19 @@ public class UnitData : ScriptableObject
     //  staticにする理由：UnitDataインスタンスなしでUI等から呼べるようにするため
     // ─────────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// 指定レベルのステータス値を返す（GameReference準拠の線形式）。
-    /// 式：baseStat + (baseStat × growth × (level - 1))
-    /// 例：CalcStat(10, 0.10f, 10) = 10 + 10×0.10×9 = 19
-    /// </summary>
+    /// <summary>Round once at Lv1; every subsequent level receives this same gain.</summary>
+    public static int CalcGrowthPerLevel(int baseStat, float growth)
+    {
+        if (float.IsNaN(growth) || float.IsInfinity(growth) || growth < 0) growth = 0;
+        float rawGain = baseStat * growth;
+        if (rawGain >= int.MaxValue) return int.MaxValue;
+        return Mathf.Max(2, Mathf.FloorToInt(rawGain + 0.5f));
+    }
+
     public static int CalcStat(int baseStat, float growth, int level)
     {
-        return Mathf.RoundToInt(baseStat + baseStat * growth * (level - 1));
+        level = Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel);
+        return (int)System.Math.Min(int.MaxValue, (long)baseStat + (long)CalcGrowthPerLevel(baseStat, growth) * (level - 1));
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -102,6 +107,7 @@ public class UnitData : ScriptableObject
     /// </summary>
     public void ApplyToStatus(Status status, int level)
     {
+        level = Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel);
         status.GrowthData = this;
         status.Level = level;
         status.ATK = CalcStat(baseATK, atkGrowth, level);

@@ -495,6 +495,7 @@ public static class AIActionGenerator
             Vector3 summonTarget = board.CanUsePlayerCrystalAsTarget()
                 ? board.PlayerCrystalPos
                 : board.EnemyCrystalPos + board.GetUnexploredDirection() * 8f;
+            if (board.Recon.TryGetContactTarget(out var contact)) summonTarget = contact;
             var positions = TakeNClosest(board.SummonablePositions, summonTarget, 2);
 
             foreach (var pos in positions)

@@ -1,0 +1,31 @@
+[AISlicing] depth2 maxSliceMs=0.353 slices=6
+[AISlicing] PASS search yields before completion
+[AISlicing] PASS completed same depth
+[AISlicing] PASS scores match original synchronous search
+[AISlicing] PASS input snapshot unchanged
+[AISlicing] PASS cancel returns boards 0
+[AISlicing] PASS cancel returns boards 1
+[AISlicing] PASS cancel returns boards 2
+[AISlicing] PASS cancel returns boards 3
+[AISlicing] PASS cancel returns boards 4
+[AISlicing] PASS cancel returns boards 5
+[AISlicing] PASS cancel returns boards 6
+[AISlicing] PASS cancel returns boards 7
+[AISlicing] PASS cancel returns boards 8
+[AISlicing] PASS cancel returns boards 9
+[AISlicing] PASS cancel returns boards 10
+[AISlicing] PASS cancel returns boards 11
+[AISlicing] PASS cancel returns boards 12
+[AISlicing] PASS cancel returns boards 13
+[AISlicing] PASS cancel returns boards 14
+[AISlicing] PASS cancel returns boards 15
+[AISlicing] PASS cancel returns boards 16
+[AISlicing] PASS cancel returns boards 17
+[AISlicing] PASS cancel returns boards 18
+[AISlicing] PASS cancel returns boards 19
+[AISlicing] PASS engine reusable after unstarted cancellation
+[AISlicing] PASS zero budget returns neutral corrections
+[AISlicing] PASS long search is split
+[AISlicing] budget250 maxSliceMs=6.155 slices=82 depth=4
+[AISlicing] PASS bounded warmed slices under 30ms
+[AIFrame] PASS frames=210 wallMs=1012.58 cpuMs=770.96 maxCommanderStepMs=35.06 maxSearchSliceMs=8.84 heartbeat=0.0

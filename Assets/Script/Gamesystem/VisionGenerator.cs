@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -177,6 +177,9 @@ public class VisionGenerator : MonoBehaviour
         // BOSS: 広めの視界（指揮官として周囲を広く把握）
         { Kind.Boss,        RangeVisionBox(-3, 3, -1, 0, -3, 3, true) },
     };
+
+    public static System.Collections.Generic.IReadOnlyList<Vector3Int> BaseVisionOffsets(Kind kind)
+        => VisionDataMap.TryGetValue(kind, out var offsets) ? offsets : System.Array.Empty<Vector3Int>();
 
     static Vector3Int[] VisionBox
         (

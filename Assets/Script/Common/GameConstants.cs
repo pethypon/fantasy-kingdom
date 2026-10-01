@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public static class GameConstants
 {
+    public const int MaxUnitLevel = 100;
     // =====================================================================
     //  Y座標オフセット
     // =====================================================================

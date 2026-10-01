@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +8,7 @@ using UnityEngine;
 //  AICommanderが毎ターン生成し、各評価関数に渡す
 //  ★ AIは敵駒の視界内の情報のみ取得可能（視界外のプレイヤー駒は見えない）
 // =====================================================================
-public class AIBoardState
+public partial class AIBoardState
 {
     internal readonly Dictionary<(Vector3,Status),float> NearestAllyCache = new Dictionary<(Vector3,Status),float>();
     internal readonly Dictionary<(Vector3,Status,float),int> AllyDensityCache = new Dictionary<(Vector3,Status,float),int>();
@@ -84,6 +84,9 @@ public class AIBoardState
     // ---- 索敵・Last Known Position データ（インスタンスフィールド化: 複数AI対応） ----
     // 最後にPlayerユニットを視認した位置とターン (key=ユニットinstanceID)
     readonly Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions;
+    readonly List<int> expiredObservations = new List<int>();
+    readonly List<(Vector3Int pos, float reliability)> rememberedPositions = new List<(Vector3Int, float)>();
+    int rememberedGeneration = -1;
     // 最後にPlayerクリスタルを視認した位置とターン
     LastKnownInfo _lastKnownPlayerCrystal;
     // 前ターンでPlayerが見えていたか（初接敵検知用）
@@ -99,6 +102,12 @@ public class AIBoardState
         public Vector3Int Position;
         public int Turn;
         public bool Valid;
+        public Kind Kind;
+        public Type Type;
+        public Direction Direction;
+        public Vector3Int PreviousPosition;
+        public int PreviousTurn;
+        public bool HasPrevious;
     }
 
     public AIBoardState(
@@ -259,6 +268,10 @@ public class AIBoardState
     // ---- 索敵データ更新 ----
     void RefreshLastKnownData()
     {
+        expiredObservations.Clear();
+        foreach (var entry in _lastKnownPlayerPositions)
+            if (entry.Key != int.MinValue && TurnCount - entry.Value.Turn >= 7) expiredObservations.Add(entry.Key);
+        foreach (int id in expiredObservations) _lastKnownPlayerPositions.Remove(id);
         // 初接敵検知: 前ターンでは見えていなかったのに今ターンで見えた
         bool hasVisiblePlayers = AlivePlayerUnits.Count > 0;
         IsFirstContact = hasVisiblePlayers && !_hadVisiblePlayersLastTurn;
@@ -269,9 +282,16 @@ public class AIBoardState
         {
             if (pu == null || !pu.gameObject.activeInHierarchy) continue;
             int id = pu.GetInstanceID();
+            _lastKnownPlayerPositions.TryGetValue(id, out var previous);
+            var position = ToCell(pu.transform.position);
+            bool moved = previous.Valid && previous.Position != position;
             _lastKnownPlayerPositions[id] = new LastKnownInfo
             {
-                Position = ToCell(pu.transform.position),
+                Position = position,
+                Kind = pu.kind, Type = pu.type, Direction = pu.direction,
+                PreviousPosition = moved ? previous.Position : previous.PreviousPosition,
+                PreviousTurn = moved ? previous.Turn : previous.PreviousTurn,
+                HasPrevious = moved || previous.HasPrevious,
                 Turn = TurnCount,
                 Valid = true
             };
@@ -283,6 +303,7 @@ public class AIBoardState
             _lastKnownPlayerCrystal = new LastKnownInfo
             {
                 Position = ToCell(PlayerCrystalPos),
+                Kind = Kind.Crystal, Type = Type.Building,
                 Turn = TurnCount,
                 Valid = true
             };
@@ -293,7 +314,10 @@ public class AIBoardState
     /// <summary>最後に見たPlayerユニットの位置リスト（信頼度付き: 0=古い 1=新鮮）</summary>
     public List<(Vector3Int pos, float reliability)> GetLastKnownPlayerPositions()
     {
-        var result = new List<(Vector3Int, float)>();
+        if (rememberedGeneration == Generation) return rememberedPositions;
+        rememberedGeneration = Generation;
+        var result = rememberedPositions;
+        result.Clear();
         foreach (var kvp in _lastKnownPlayerPositions)
         {
             if (kvp.Key == int.MinValue || !kvp.Value.Valid) continue;

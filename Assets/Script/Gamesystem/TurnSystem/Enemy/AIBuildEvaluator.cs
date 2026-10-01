@@ -252,9 +252,13 @@ static class AIBuildEvaluator
         int rawCount = AIActionEvaluator.CalcRawFacilityCount(board);
         int procCount = AIActionEvaluator.CalcProcessingFacilityCount(board);
         float infraScore = rawCount + procCount * 2f;
+        bool contact = board.Recon.TryGetContactTarget(out _);
+        bool combatRecruit = action.SummonKind != Kind.Scout && action.SummonKind != Kind.Priest;
 
         bool hasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
-        if (infraScore < 3f)
+        if (contact && combatRecruit)
+            score += 45f; // Contact must not leave recruitment locked behind a mature economy.
+        else if (infraScore < 3f)
             score -= 120f;
         else if (infraScore < 5f)
             score -= 60f;

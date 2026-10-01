@@ -19,7 +19,7 @@ public static class SceneSmoke
         if (!Application.dataPath.Contains("UnityValidation")) throw new Exception("Smoke test requires isolated project");
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdomR1Validation";
-        TerrainPrefabEditor.Create();
+        TerrainPrefabEditor.Create(); CrystalPrefabEditor.Configure();
         CoreLogicTests.RunAll();
         if (!AssetDatabase.IsValidFolder("Assets/Resources")) AssetDatabase.CreateFolder("Assets", "Resources");
         var catalog = AssetDatabase.LoadAssetAtPath<R1ContentCatalog>("Assets/Resources/R1ContentCatalog.asset");
@@ -75,7 +75,7 @@ public static class SceneSmoke
             Check("territory exact boundary hidden", systems.WildBossSystem.TerritoryParent.childCount == 0);
             var viewport = Camera.main.WorldToViewportPoint(systems.CrystalSystem.PCP);
             Check("player base centered on screen", viewport.z > 0 && Mathf.Abs(viewport.x - 0.5f) < 0.01f && Mathf.Abs(viewport.y - 0.5f) < 0.01f);
-            VisualRegressionTests.Run(systems); StatusUIRegressionTests.Run(systems, turn);
+            VisualRegressionTests.Run(systems); StatusUIRegressionTests.Run(systems, turn); InteractionRegressionTests.Run(systems,turn); SelectionUXTests.Run(systems,turn);
             TerrainOptimizationTests.Run(systems.MapCreate);
             BenchmarkHeightLookup(systems.MapCreate);
             TestMoveUndo(systems, turn);
@@ -103,6 +103,7 @@ public static class SceneSmoke
             Check("boss state survives save", systems.WildBossSystem.SpawnedBoss.HP == roundTrip.WildBoss.Unit.HP
                 && systems.WildBossSystem.SpawnedBoss.wildBossArchetype == roundTrip.WildBoss.Archetype);
             turn.ChangeState(new EnemyStart(turn));
+            for (int frame=0; frame<2000 && turn.CurrentState is EnemyMove; frame++) turn.CurrentState.Update();
             Check("enemy and independent turns return to player", turn.CurrentState is PlayerMove && turn.Context.Turn == 2);
             var neutrals = systems.NeutralFactionSystem.UnitParent.GetComponentsInChildren<Status>();
             Check("configured monsters spawn independently", neutrals.Count(s => s.team == Team.Monster) == 2);
@@ -130,6 +131,7 @@ public static class SceneSmoke
             var aiWatch=new System.Diagnostics.Stopwatch();
             var aiGC=ProfilerRecorder.StartNew(ProfilerCategory.Internal,"GC.Alloc",1000000,ProfilerRecorderOptions.CollectOnlyOnCurrentThread);
             aiWatch.Start();
+            systems.AICommander.TurnThinkingBudgetMs = 3000;
             systems.AICommander.ExecuteTurn();aiWatch.Stop();
             aiGC.Stop();long aiAllocated=0;int aiAllocationCount=aiGC.Count;
             for(int sample=0;sample<Math.Min(aiGC.Count,aiGC.Capacity);sample++) aiAllocated+=aiGC.GetSample(sample).Value;aiGC.Dispose();
@@ -139,6 +141,12 @@ public static class SceneSmoke
             MaterialLifetimeRegressionTests.Run();
             InteractionMaintenanceTests.Run(systems, turn);
             TacticalUIRegressionTests.Run(systems, turn);
+            AIExplorationTests.Run(systems, turn);
+            HeadLifecycleTests.Run();
+            AISlicingTests.Run();
+            InformationGrowthTests.Run(systems);
+            PlayUsabilityTests.Run();
+            LongevityTests.Run(systems, turn);
             Debug.Log("[SceneSmoke] ALL PASSED");
             SessionState.SetBool(Running, false);
             EditorApplication.Exit(0);

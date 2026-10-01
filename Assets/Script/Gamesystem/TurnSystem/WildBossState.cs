@@ -12,12 +12,15 @@ public class WildBossState : TurnState
 
     public override void Entry()
     {
-        if (Systems.WildBossSystem != null)
-            Systems.WildBossSystem.ProcessTurn();
-
-        RefreshVision();
-
-        Turn.ChangeState(new PlayerStart(Turn));
-        Debug.Log("[WildBossState] 強敵ターン終了 → プレイヤーターンへ");
+        try
+        {
+            Systems.WildBossSystem?.ProcessTurn();
+            RefreshVision();
+        }
+        finally
+        {
+            if (!Turn.IsGameOver && Turn.CurrentState == this)
+                Turn.ChangeState(new PlayerStart(Turn));
+        }
     }
 }

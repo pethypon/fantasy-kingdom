@@ -465,56 +465,51 @@ public class Status : MonoBehaviour
     //  経験値・レベルアップ
     // =====================================================================
     /// <summary>指定レベルに必要な累計XP（Lv1=0、Lv2=10、以後×1.15切り上げ）</summary>
-    public static int XPRequiredForLevel(int level)
+    static readonly int[] LevelXP = CreateLevelXP();
+    static int[] CreateLevelXP()
     {
-        if (level <= 1) return 0;
+        var thresholds = new int[GameConstants.MaxUnitLevel + 1];
         int required = GameConstants.XPRequiredLv2;
-        int total = required;
-        for (int lv = 3; lv <= level; lv++)
+        for (int level = 2; level <= GameConstants.MaxUnitLevel; level++)
         {
-            required = UnityEngine.Mathf.CeilToInt(required * GameConstants.XPLevelMultiplier);
-            total += required;
+            if (level > 2) required = Mathf.CeilToInt(required * GameConstants.XPLevelMultiplier);
+            thresholds[level] = (int)System.Math.Min(int.MaxValue, (long)thresholds[level - 1] + required);
         }
-        return total;
+        return thresholds;
     }
 
-    /// <summary>XPを加算し、必要XPに達していればレベルアップする。</summary>
+    public static int XPRequiredForLevel(int level)
+        => LevelXP[Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel)];
+
+    /// <summary>XP is cumulative. Growth preserves damage taken and independently awarded bonuses.</summary>
     public void GainExperience(int amount)
     {
         if (amount <= 0) return;
+        Experience = (int)System.Math.Min(int.MaxValue, (long)Mathf.Max(0, Experience) + amount);
+        Level = Mathf.Clamp(Level, 1, GameConstants.MaxUnitLevel);
+        if (Level >= GameConstants.MaxUnitLevel) return;
         bool wasAlive = HP > 0;
-        Experience += amount;
-        while (Level < 10 && Experience >= XPRequiredForLevel(Level + 1))
+        UnitStaticData.Table.TryGetValue(kind, out var growth);
+        int hpGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseHP, GrowthData.hpGrowth)
+            : UnitData.CalcGrowthPerLevel(growth.BaseHP, growth.HpGrowth);
+        int atkGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseATK, GrowthData.atkGrowth)
+            : UnitData.CalcGrowthPerLevel(growth.BaseATK, growth.AtkGrowth);
+        int defGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseDEF, GrowthData.defGrowth)
+            : UnitData.CalcGrowthPerLevel(growth.BaseDEF, growth.DefGrowth);
+        while (Level < GameConstants.MaxUnitLevel && Experience >= XPRequiredForLevel(Level + 1))
         {
             Level++;
-            // 生成時と同じ兵種別線形成長。獲得済みの追加ステータスは維持する。
-            if (!UnitStaticData.Table.TryGetValue(kind, out var growth)) continue;
-            if (GrowthData != null)
-            {
-                int hpGain = UnitData.CalcStat(GrowthData.baseHP, GrowthData.hpGrowth, Level)
-                    - UnitData.CalcStat(GrowthData.baseHP, GrowthData.hpGrowth, Level - 1);
-                ATK += UnitData.CalcStat(GrowthData.baseATK, GrowthData.atkGrowth, Level)
-                    - UnitData.CalcStat(GrowthData.baseATK, GrowthData.atkGrowth, Level - 1);
-                DEF += UnitData.CalcStat(GrowthData.baseDEF, GrowthData.defGrowth, Level)
-                    - UnitData.CalcStat(GrowthData.baseDEF, GrowthData.defGrowth, Level - 1);
-                MaxHP += hpGain; if (wasAlive) HP += hpGain;
-                if (team == Team.Player && AchievementSystem.Instance != null) AchievementSystem.Instance.OnLevelUp(Level);
-                continue;
-            }
-            ATK += UnitData.CalcStat(growth.BaseATK, growth.AtkGrowth, Level)
-                 - UnitData.CalcStat(growth.BaseATK, growth.AtkGrowth, Level - 1);
-            DEF += UnitData.CalcStat(growth.BaseDEF, growth.DefGrowth, Level)
-                 - UnitData.CalcStat(growth.BaseDEF, growth.DefGrowth, Level - 1);
-            int newMax = MaxHP + UnitData.CalcStat(growth.BaseHP, growth.HpGrowth, Level)
-                              - UnitData.CalcStat(growth.BaseHP, growth.HpGrowth, Level - 1);
-            int gained = newMax - MaxHP;
+            ATK = AddGrowth(ATK, atkGain);
+            DEF = AddGrowth(DEF, defGain);
+            int newMax = AddGrowth(MaxHP, hpGain);
+            if (wasAlive) HP = AddGrowth(HP, newMax - MaxHP);
             MaxHP = newMax;
-            if (wasAlive) HP += gained;
-            UnityEngine.Debug.Log($"[Level] {kind} → Lv{Level} (XP:{Experience})");
             if (team == Team.Player && AchievementSystem.Instance != null)
                 AchievementSystem.Instance.OnLevelUp(Level);
         }
     }
+
+    static int AddGrowth(int value, int gain) => (int)System.Math.Min(int.MaxValue, (long)value + gain);
 
     /// <summary>
     /// 与ダメージから獲得XPを計算して加算する（兵舎XPボーナス込み）。
@@ -562,12 +557,13 @@ public class Status : MonoBehaviour
     public void ResetToLv1()
     {
         if (isWildBoss) return; // WildBoss は専用 Profile を持つためリセット対象外
-        if (!UnitStaticData.Table.TryGetValue(kind, out var info)) return;
+        bool hasDefaults = UnitStaticData.Table.TryGetValue(kind, out var info);
+        if (GrowthData == null && !hasDefaults) return;
         Level = 1;
         Experience = 0;
-        ATK = info.BaseATK;
-        DEF = info.BaseDEF;
-        MaxHP = info.BaseHP;
+        ATK = GrowthData != null ? GrowthData.baseATK : info.BaseATK;
+        DEF = GrowthData != null ? GrowthData.baseDEF : info.BaseDEF;
+        MaxHP = GrowthData != null ? GrowthData.baseHP : info.BaseHP;
         // HP は 0 のまま（撃破直後）。状態異常・シールド・CT も撃破時点で消滅させる
         ActiveEffects.Clear();
         ShieldTurns = 0;

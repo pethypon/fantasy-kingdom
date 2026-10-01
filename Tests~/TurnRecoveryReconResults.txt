@@ -1,0 +1,120 @@
+Turn recovery and reconnaissance validation - 2026-10-01
+SceneSmoke: 598 checks PASS
+TurnCycleRunner: 33 checks PASS, 6 real-frame cycles
+Injected MoveNext and Dispose exceptions are expected test inputs.
+[Optimization] AI threat=100 wholeTurnMs=3006.348 sampledManagedBytes=6405800 (sample-cap=1000000) allocations=197192 budgetMs=3000 (Editor including development logs)
+[InformationGrowth] PASS fixed increments King
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved King
+[InformationGrowth] PASS Lv100 cap and XP overflow King
+[InformationGrowth] PASS fixed increments Knight
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Knight
+[InformationGrowth] PASS Lv100 cap and XP overflow Knight
+[InformationGrowth] PASS fixed increments Archer
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Archer
+[InformationGrowth] PASS Lv100 cap and XP overflow Archer
+[InformationGrowth] PASS fixed increments Magic
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Magic
+[InformationGrowth] PASS Lv100 cap and XP overflow Magic
+[InformationGrowth] PASS fixed increments Assassin
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Assassin
+[InformationGrowth] PASS Lv100 cap and XP overflow Assassin
+[InformationGrowth] PASS fixed increments Scout
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Scout
+[InformationGrowth] PASS Lv100 cap and XP overflow Scout
+[InformationGrowth] PASS fixed increments Priest
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Priest
+[InformationGrowth] PASS Lv100 cap and XP overflow Priest
+[InformationGrowth] PASS fixed increments Guardian
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Guardian
+[InformationGrowth] PASS Lv100 cap and XP overflow Guardian
+[InformationGrowth] PASS fixed increments Crossbow
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Crossbow
+[InformationGrowth] PASS Lv100 cap and XP overflow Crossbow
+[InformationGrowth] PASS fixed increments Magicsniper
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Magicsniper
+[InformationGrowth] PASS Lv100 cap and XP overflow Magicsniper
+[InformationGrowth] PASS fixed increments Bomber
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Bomber
+[InformationGrowth] PASS Lv100 cap and XP overflow Bomber
+[InformationGrowth] PASS fixed increments Boss
+[InformationGrowth] PASS Lv1-100 creation and growth agree, damage/bonuses preserved Boss
+[InformationGrowth] PASS Lv100 cap and XP overflow Boss
+[InformationGrowth] PASS Lv100 save/load roundtrip
+[InformationGrowth] PASS half rounds upward, minimum 2
+[InformationGrowth] PASS custom unit grows without static table entry
+[InformationGrowth] PASS custom respawn baseline preserved
+[InformationGrowth] PASS level up does not revive
+[InformationGrowth] PASS hidden actual position/kind/HP cannot change reconnaissance score
+[InformationGrowth] PASS unseen targets absent from observation history
+[InformationGrowth] PASS hidden enemy cannot create deployment target
+[InformationGrowth] PASS scout sectors differ
+[InformationGrowth] PASS unexplored scouting still valuable
+[InformationGrowth] PASS ranged firing lanes increase scouting utility
+[InformationGrowth] PASS scout movement candidates retained in Assault
+[InformationGrowth] PASS scout movement candidates retained in CrystalDefense
+[InformationGrowth] PASS scout movement candidates retained in RetreatRegroup
+[InformationGrowth] PASS scout movement candidates retained in EconomyBuild
+[InformationGrowth] PASS scout movement candidates retained in Balanced
+[InformationGrowth] PASS scout movement candidates retained in ScoutSearch
+[InformationGrowth] PASS scout movement candidates retained in ContactEngage
+[InformationGrowth] PASS visible enemy kind and position recorded
+[InformationGrowth] PASS deployment targets visible contact
+[InformationGrowth] PASS movement direction history recorded
+[InformationGrowth] PASS hidden movement leaves last known position intact
+[InformationGrowth] PASS hidden movement cannot steer deployment
+[InformationGrowth] PASS known Knight pattern predicts orthogonal not diagonal one-step
+[InformationGrowth] PASS high threat expands uncertainty envelope
+[InformationGrowth] PASS deployment anticipates observed heading
+[InformationGrowth] PASS searched empty prediction is discarded
+[InformationGrowth] PASS recent contact increases combat recruitment priority
+[InformationGrowth] PASS expired contact cannot drive recruitment or deployment
+[InformationGrowth] PASS visible empty cells excluded from hypothesis
+[InformationGrowth] PASS low threat does not use position prediction
+[InformationGrowth] PASS reserved safe scouting executes within action/AP cap in Assault
+[InformationGrowth] PASS reserved safe scouting executes within action/AP cap in CrystalDefense
+[InformationGrowth] PASS reserved safe scouting executes within action/AP cap in RetreatRegroup
+[InformationGrowth] PASS reserved safe scouting executes within action/AP cap in EconomyBuild
+[InformationGrowth] PASS reserved safe scouting executes within action/AP cap in Balanced
+[InformationGrowth] PASS reserved safe scouting executes within action/AP cap in ScoutSearch
+[InformationGrowth] PASS reserved safe scouting executes within action/AP cap in ContactEngage
+[InformationGrowth] PASS reinforcement fixture has legal positions
+[InformationGrowth] PASS contact reserves and executes one combat recruitment
+[InformationGrowth] PASS reinforcement pays AP and respects territory
+[SceneSmoke] ALL PASSED
+[TurnCycle] PASS player state before end 0
+[TurnCycle] PASS enemy entered 0
+[TurnCycle] PASS exactly one round advance 0
+[TurnCycle] PASS player timer running 0
+[TurnCycle] PASS enemy banner hidden 0
+[TurnCycle] PASS player state before end 1
+[TurnCycle] PASS enemy entered 1
+[TurnCycle] PASS exactly one round advance 1
+[TurnCycle] PASS player timer running 1
+[TurnCycle] PASS enemy banner hidden 1
+[TurnCycle] PASS player state before end 2
+[TurnCycle] PASS enemy entered 2
+[TurnCycle] PASS exactly one round advance 2
+[TurnCycle] PASS player timer running 2
+[TurnCycle] PASS enemy banner hidden 2
+[TurnCycle] PASS player state before end 3
+[TurnCycle] PASS enemy entered 3
+[TurnCycle] PASS exactly one round advance 3
+[TurnCycle] PASS player timer running 3
+[TurnCycle] PASS enemy banner hidden 3
+[TurnCycle] PASS fault cleanup exactly once 3
+[TurnCycle] PASS player state before end 4
+[TurnCycle] PASS enemy entered 4
+Exception: [TurnCycle] injected MoveNext failure
+[TurnCycle] PASS exactly one round advance 4
+[TurnCycle] PASS player timer running 4
+[TurnCycle] PASS enemy banner hidden 4
+[TurnCycle] PASS fault cleanup exactly once 4
+[TurnCycle] PASS player state before end 5
+[TurnCycle] PASS enemy entered 5
+Exception: [TurnCycle] injected Dispose failure
+[TurnCycle] PASS exactly one round advance 5
+[TurnCycle] PASS player timer running 5
+[TurnCycle] PASS enemy banner hidden 5
+[TurnCycle] PASS fault cleanup exactly once 5
+[TurnCycle] ALL PASSED
+CleanWindowsBuild: Succeeded - Windows-20261001-TurnRecon/FantasyKingdom.exe

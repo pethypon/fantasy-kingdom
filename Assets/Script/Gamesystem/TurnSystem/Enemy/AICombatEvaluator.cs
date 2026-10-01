@@ -27,6 +27,8 @@ static class AICombatEvaluator
             score += 50f;
         if (action.TargetUnit.kind == Kind.King)
             score += 35f;
+        if (board.ReconThreatLevel >= 31 && action.TargetUnit.kind == Kind.Scout)
+            score += board.ReconThreatLevel >= 51 ? 20f : 12f;
 
         if (action.TargetUnit.ShieldTurns > 0)
             score -= 30f;
@@ -111,32 +113,8 @@ static class AICombatEvaluator
         if (dest.y > unitPos.y)
             score += 2f;
 
-        // 偵察ボーナス: 未探索エリアへの移動を高評価
-        int newVisionCells = board.EstimateNewVisionCells(dest);
-
-        if (action.Unit.kind == Kind.Scout)
-        {
-            if (newVisionCells > 0)
-                score += Mathf.Min(newVisionCells * 3f, 30f);
-            float explorationRatio = board.GetExplorationRatio();
-            if (explorationRatio < 0.5f)
-                score += (1f - explorationRatio) * 15f;
-        }
-        else if (board.AlivePlayerUnits.Count == 0)
-        {
-            if (newVisionCells > 0)
-                score += Mathf.Min(newVisionCells * 2f, 20f);
-
-            float explorationRatio = board.GetExplorationRatio();
-            if (explorationRatio < 0.6f)
-                score += (1f - explorationRatio) * 10f;
-
-            float allyDist = board.GetNearestAllyDist(dest, action.Unit);
-            if (allyDist > 6f)
-                score -= 8f;
-            else if (allyDist >= 2f && allyDist <= 4f)
-                score += 5f;
-        }
+        // Reconnaissance has value in every strategy, even while other enemies are visible.
+        score += board.Recon.ScoreMove(action.Unit, dest);
 
         return score;
     }

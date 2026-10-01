@@ -259,6 +259,7 @@ public partial class AICommander
             _subCrystalSystem, _turnCount, _sharedMemory);
         _board.DungeonSystem = _turnGen?.Systems?.DungeonSystem;
         _board.MapCreate = _mapCreate;
+        _board.ReconThreatLevel = _threatLevel.Level;
 
         // スキルクールダウンを全敵駒で減少
         TickSkillCooldowns();
@@ -302,6 +303,30 @@ public partial class AICommander
         //  ★ 師団長制AI: 師団長を選出→兵を割当→提案収集→採択→実行
         //  ML機能は師団長制モードでは無効化される。
         // ================================================================
+        // Establish the economy before divisions can spend the opening AP on movement.
+        int earlyBuilds = _buildPlanner.TryEarlyBuildPhase(_board, _currentStrategy, _turnCount);
+        for (int eb = 0; eb < earlyBuilds; eb++) turnStats.Record(AIActionType.Build);
+        yield return null;
+        if (_turnGen.IsGameOver) yield break;
+        // Discoveries are published before recruitment and combat proposals.
+        var reconnaissance = ExecuteReconnaissancePhase(turnStats);
+        try { while (reconnaissance.MoveNext()) yield return null; }
+        finally { (reconnaissance as System.IDisposable)?.Dispose(); }
+        if (_turnGen.IsGameOver) yield break;
+
+        var reinforcement = ExecuteReinforcementPhase(turnStats);
+        try { while (reinforcement.MoveNext()) yield return null; }
+        finally { (reinforcement as System.IDisposable)?.Dispose(); }
+        if (_turnGen.IsGameOver) yield break;
+
+        // Exploration/recruitment can change both contact and army composition this turn.
+        strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
+        _currentStrategy = strategyDecision.Strategy;
+        _apBudget = strategyDecision.Budget;
+        _triedStrategies.Add(_currentStrategy);
+        if (_threatLevel.UseRoleAssignment)
+            _roleAssigner.AssignRoles(_board, _currentStrategy, _personality);
+
         if (_hierarchicalMode)
         {
             var phase = ExecuteHierarchicalPhase(turnStats);
@@ -372,9 +397,6 @@ public partial class AICommander
         //  ★ 建築先行フェーズ: 経済未成熟時は移動の前に建築を試みる
         //  これにより移動でAPを使い切って建築不能になる問題を防止する
         // ================================================================
-        int earlyBuilds = _buildPlanner.TryEarlyBuildPhase(_board, _currentStrategy, _turnCount);
-        for (int eb = 0; eb < earlyBuilds; eb++) turnStats.Record(AIActionType.Build);
-
         // AP予算: 建築/召喚が可能なら最低限のAPを予約する
         int reservedAP = CalcReservedAP();
 

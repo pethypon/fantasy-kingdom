@@ -62,6 +62,8 @@ public sealed class TurnInspectionController : MonoBehaviour
 
     bool Visible(Status unit) => UnitSelectionPicker.IsVisibleActor(unit,turn.Systems.VisionGenerator);
 
+    internal void EndInspection() { if (ownsSelection) Clear(); }
+
     void Clear()
     {
         if (ownsSelection && selected != null && UnitPanelUI.SelectedStatus == selected) turn.Systems.UnitPanelUI?.Hide();

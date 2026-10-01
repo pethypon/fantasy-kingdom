@@ -3,64 +3,89 @@ using UnityEngine;
 public class EnemyMove : TurnState
 {
     public EnemyMove(TurnGenerator turn) : base(turn) { }
-
     private System.Collections.IEnumerator actions;
     private bool finished;
     private bool timeExpired;
+    private readonly System.Diagnostics.Stopwatch elapsed = new System.Diagnostics.Stopwatch();
+    private double deadlineMs;
+
     public override void Entry()
     {
-        if (Systems.TimerSystem != null) { Systems.TimerSystem.OnTurnTimeExpired += Expire; Systems.TimerSystem.OnTotalTimeExpired += EndGame; }
+        finished = false;
+        timeExpired = false;
+        double budget = Systems.AICommander?.TurnThinkingBudgetMs ?? 0;
+        if (double.IsNaN(budget) || double.IsInfinity(budget)) budget = 8000;
+        deadlineMs = System.Math.Max(0, budget) + 500; // Allow the final evaluated action to finish.
+        elapsed.Restart();
+        if (Systems.TimerSystem != null)
+        {
+            Systems.TimerSystem.OnTurnTimeExpired += Expire;
+            Systems.TimerSystem.OnTotalTimeExpired += EndGame;
+        }
         RefreshVision();
         actions = Systems.AICommander?.ExecuteTurnSteps();
     }
+
     public override void Update()
     {
-        if (finished || Turn.IsGameOver) return;
-        if (timeExpired) { finished = true; FinishTurn(); return; }
+        if (finished || Turn.IsGameOver || Turn.CurrentState != this) return;
+        if (timeExpired || elapsed.Elapsed.TotalMilliseconds >= deadlineMs)
+        {
+            if (!timeExpired) Debug.LogWarning("[EnemyMove] AI completion deadline reached; ending the enemy turn.");
+            FinishTurn();
+            return;
+        }
         bool more = false;
         try { AITurnBudget.Resume(); more = actions != null && actions.MoveNext(); }
         catch (System.Exception e) { Debug.LogException(e); }
         finally { AITurnBudget.Pause(); }
-        if (more || Turn.IsGameOver) return;
-        finished = true;
-        FinishTurn();
+        if (!more && !Turn.IsGameOver && Turn.CurrentState == this) FinishTurn();
     }
+
     private void Expire() => timeExpired = true;
     private void EndGame(GameResult result) => Turn.ChangeState(new GameEndState(Turn, result));
-    private void FinishTurn()
+
+    private void DisposeActions()
     {
-        Systems.TimerSystem?.StopTurn();
-        // 視界再計算（AI行動後）
-        RefreshVision();
-
-        // Special Ability: ターン終了時処理（応急処置、聖域反応）
-        if (Systems.UnitSetting != null)
-            SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.EnemyUnit);
-
-        // Enemy の資源獲得（ターン終了時）
-        if (Systems.EconomySystem != null)
-            Systems.EconomySystem.ProcessTurn(Team.Enemy);
-
-        // Enemy の攻撃建築物による自動攻撃
-        if (Systems.BuildingAttackSystem != null)
-            Systems.BuildingAttackSystem.ProcessAttacks(Team.Enemy);
-
-        // タイマー停止
-        if (Systems.TimerSystem != null)
-            Systems.TimerSystem.StopTurn();
-
-        // 強敵ターンへ（スポーン済みでなければ即 PlayerStart へ）
-        Turn.ChangeState(new IndependentFactionState(Turn));
-
-        DevelopmentLog.Log("[EnemyMove] 敵ターン終了");
+        var pending = actions;
+        actions = null; // Reentrant state changes must not dispose the same iterator twice.
+        (pending as System.IDisposable)?.Dispose();
     }
 
+    private void FinishTurn()
+    {
+        if (finished || Turn.CurrentState != this) return;
+        finished = true;
+        elapsed.Stop();
+        Systems.TimerSystem?.StopTurn();
+        try
+        {
+            try { DisposeActions(); }
+            catch (System.Exception e) { Debug.LogException(e); }
+            RefreshVision();
+            if (Systems.UnitSetting != null)
+                SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.EnemyUnit);
+            if (!Turn.IsGameOver) Systems.EconomySystem?.ProcessTurn(Team.Enemy);
+            if (!Turn.IsGameOver) Systems.BuildingAttackSystem?.ProcessAttacks(Team.Enemy);
+        }
+        catch (System.Exception e) { Debug.LogException(e); }
+        finally
+        {
+            // Never leave an inert, finished EnemyMove installed after an end-of-turn error.
+            if (!Turn.IsGameOver && Turn.CurrentState == this)
+                Turn.ChangeState(new IndependentFactionState(Turn));
+        }
+    }
 
     public override void Exit()
     {
-        if (Systems.TimerSystem != null) { Systems.TimerSystem.OnTurnTimeExpired -= Expire; Systems.TimerSystem.OnTotalTimeExpired -= EndGame; }
-        (actions as System.IDisposable)?.Dispose();
-        actions = null;
-        RefreshVision();
+        elapsed.Stop();
+        if (Systems.TimerSystem != null)
+        {
+            Systems.TimerSystem.OnTurnTimeExpired -= Expire;
+            Systems.TimerSystem.OnTotalTimeExpired -= EndGame;
+        }
+        try { DisposeActions(); }
+        finally { RefreshVision(); }
     }
 }

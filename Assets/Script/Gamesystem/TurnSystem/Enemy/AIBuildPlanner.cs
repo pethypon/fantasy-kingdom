@@ -34,6 +34,8 @@ public class AIBuildPlanner
 
         bool forceByTurn = turnCount >= 30;
 
+        if (AITacticalPriorities.HasLocalThreat(board) || AITacticalPriorities.FinishingAttackReserve(board) > 0) return 0;
+
         if (EconomyHelper.IsEconomySufficient(board) && !forceByTurn)
         {
             DevelopmentLog.Log("[AIBuildPlanner] 経済充足 → 先行建築スキップ");
@@ -72,6 +74,19 @@ public class AIBuildPlanner
     // ================================================================
     int TryScoreBuildPhase(AIBoardState board, TurnStrategy strategy, int turnCount)
     {
+        int built = 0;
+        // Re-evaluate demand after every purchase; stale scores could build two identical missing facilities.
+        for (int i = 0; i < 2 && !AITurnBudget.Expired; i++)
+        {
+            int result = TryScoreSingleBuild(board, strategy, turnCount);
+            if (result == 0) break;
+            built += result;
+        }
+        return built;
+    }
+
+    int TryScoreSingleBuild(AIBoardState board, TurnStrategy strategy, int turnCount)
+    {
         if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0)
             return 0;
 
@@ -98,7 +113,7 @@ public class AIBuildPlanner
         }
 
         int earlyBuilds = 0;
-        const int maxEarlyBuilds = 2;
+        const int maxEarlyBuilds = 1;
 
         foreach (var action in buildActions)
         {

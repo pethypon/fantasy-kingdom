@@ -256,6 +256,10 @@ public class UnitHeadUI : MonoBehaviour
             );
 
 
+        lvText.enableAutoSizing = true;
+        lvText.fontSizeMin = 7f;
+        lvText.fontSizeMax = 12f;
+
         lvText.fontStyle =
             FontStyles.Bold;
 

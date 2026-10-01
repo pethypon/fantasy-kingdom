@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -175,7 +175,7 @@ public class GameManualUI : MonoBehaviour
             var k = kvp.Key; var info = kvp.Value;
             sb.AppendLine($"<b>{info.DisplayName}</b>  (Kind: {k})");
             sb.AppendLine($"  Lv1 ATK {info.BaseATK} / HP {info.BaseHP} / DEF {info.BaseDEF}");
-            sb.AppendLine($"  成長率 ATK+{info.AtkGrowth*100:F0}% / HP+{info.HpGrowth*100:F0}% / DEF+{info.DefGrowth*100:F0}% / Lv");
+            sb.AppendLine($"  固定成長 ATK+{UnitData.CalcGrowthPerLevel(info.BaseATK, info.AtkGrowth)} / HP+{UnitData.CalcGrowthPerLevel(info.BaseHP, info.HpGrowth)} / DEF+{UnitData.CalcGrowthPerLevel(info.BaseDEF, info.DefGrowth)} / Lv（最大Lv{GameConstants.MaxUnitLevel}）");
             sb.AppendLine();
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -168,7 +168,7 @@ public static class SaveGameApplier
         s.MaxHP = ud.MaxHP > 0 ? ud.MaxHP : ud.HP;
         s.ATK = ud.ATK;
         s.DEF = ud.DEF;
-        s.Level = ud.Level;
+        s.Level = s.type == Type.Unit ? Mathf.Clamp(ud.Level, 1, GameConstants.MaxUnitLevel) : ud.Level;
         s.Experience = ud.Experience;
         s.ShieldTurns = ud.ShieldTurns;
         s.ShieldActivated = ud.ShieldActivated;

@@ -54,6 +54,16 @@ public class TurnGenerator : MonoBehaviour
 
         try { _stateManager?.Entry(); }
         catch (System.Exception e) { Debug.LogException(e); }
+        finally
+        {
+            // Entry may perform nested transitions: use the final current state, not 'next'.
+            bool enemy = _stateManager is EnemyStart || _stateManager is EnemyMove;
+            if (!enemy)
+            {
+                EnemyTurnBannerUI.Hide();
+                _inspection?.EndInspection();
+            }
+        }
     }
 
     // ================================================================
