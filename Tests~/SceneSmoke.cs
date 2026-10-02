@@ -146,7 +146,9 @@ public static class SceneSmoke
             AISlicingTests.Run();
             InformationGrowthTests.Run(systems);
             OutpostPlanningTests.Run(systems, turn);
+            BoardRefreshPerformanceTests.Run(systems);
             PlayUsabilityTests.Run();
+            AIEvolutionTests.Run(systems, turn);
             LongevityTests.Run(systems, turn);
             Debug.Log("[SceneSmoke] ALL PASSED");
             SessionState.SetBool(Running, false);
@@ -215,6 +217,7 @@ public static class SceneSmoke
         sight.Clear(); sight.Add(players[0].GridPosition);
         var board = new AIBoardState(s.MoveGenerator, s.AttackGenerator, s.APSystem, s.UnitSetting,
             s.CrystalSystem, s.VisionGenerator, s.BuildSystem, s.SummonSystem, s.FactionState, s.SubCrystalSystem);
+        board.ReconThreatLevel = 10; // This fixture tests an AI capable of remembering contacts.
         Check("undiscovered crystal data withheld", !board.PlayerCrystalVisible && board.PlayerCrystalHP == -1 && board.PlayerCrystalPos == Vector3.zero);
         Check("observed player appears", board.AlivePlayerUnits.Contains(players[0]));
         sight.Clear(); sight.Add(players[1].GridPosition); board.Refresh();

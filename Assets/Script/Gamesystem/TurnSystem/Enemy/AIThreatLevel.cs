@@ -4,32 +4,17 @@ using UnityEngine;
 // =====================================================================
 //  AIThreatLevel — 脅威度システム (1〜100)
 //
-//  4帯構成:
-//  ・脅威度 1〜10:  チュートリアル帯
-//    目先の利益を優先しやすく、ミスも多め。
-//    前線の穴、援護不足、危険判断の甘さが残る。3手先シミュレーション。
-//  ・脅威度 11〜20: ノーマル帯
-//    基本的な判断ができるようになり、露骨なミスが減る。
-//    5手先シミュレーション。20で「普通の知能」完成ライン。
-//  ・脅威度 21〜30: ハード帯
-//    釣りに乗りにくい、孤立駒をカバー、撤退と再編が上手い、
-//    防衛と攻撃の切り替えが上手い。8手先シミュレーション。
-//  ・脅威度 31〜100: やりこみ帯
-//    プレイヤーの勝ち筋を潰してくる領域。
-//    成長型なら学習反映もより濃くなり、長く戦うほど嫌らしくなる。
-//    31-40: 10手先、41-50: 15手先、51-100: 20手先シミュレーション。
-//
-//  進行:
-//  ・Player勝利時のみ脅威度が進行
-//  ・Player敗北時は進行しない
-//  ・学習はPlayer勝利試合の立ち回りのみを対象とする
+//  1〜10: 攻撃本能から索敵・連携・戦争判断へ段階的に発達。
+//  11〜20: 過去の傾向、21〜30: 今回の観測をより強く反映。
+//  31以上: 既知情報による予測と位置取り。強さは対戦評価が必要。
+//  脅威度はPlayer勝利時のみ進行。対戦傾向はAIPlayerModelが全結果で保存。
 // =====================================================================
 public class AIThreatLevel
 {
     // ---- 定数: 帯の境界 ----
-    public const int MinLevel = 30;
+    public const int MinLevel = 1;
     public const int MaxLevel = 100;
-    public const int TutorialEnd = 10;   // 1〜10:  チュートリアル帯
+    public const int TutorialEnd = 10;   // 1〜10:  知能進化帯
     public const int NormalEnd   = 20;   // 11〜20: ノーマル帯
     public const int HardEnd     = 30;   // 21〜30: ハード帯
     // 31〜100: やりこみ帯
@@ -63,7 +48,7 @@ public class AIThreatLevel
 
     public string GetTierName()
     {
-        if (IsTutorial) return "チュートリアル帯";
+        if (IsTutorial) return "知能進化帯";
         if (IsNormal)   return "ノーマル帯";
         if (IsHard)     return "ハード帯";
         return "やりこみ帯";
@@ -73,8 +58,8 @@ public class AIThreatLevel
     //  探索パラメータ
     // ================================================================
 
-    /// <summary>探索エンジンを使うか（ノーマル帯以上で有効）</summary>
-    public bool UseSearchEngine => Level > TutorialEnd;
+    /// <summary>探索エンジンを使うか（危険判断を得るレベル6以上）</summary>
+    public bool UseSearchEngine => Level >= 6;
 
     /// <summary>
     /// 探索の深さ（手先シミュレーション数）
@@ -108,7 +93,7 @@ public class AIThreatLevel
     }
 
     /// <summary>ロール再割当を使うか（ノーマル帯以上）</summary>
-    public bool UseRoleAssignment => Level > TutorialEnd;
+    public bool UseRoleAssignment => Level >= 5;
 
     // ================================================================
     //  行動品質パラメータ
@@ -148,27 +133,27 @@ public class AIThreatLevel
     }
 
     /// <summary>
-    /// チュートリアル帯の行動制限: 攻撃を控える強さ (1.0=最大, 0.0=制限なし)
+    /// 知能進化帯の行動制限: 攻撃を控える強さ (1.0=最大, 0.0=制限なし)
     /// </summary>
     public float TutorialPassivity
     {
         get
         {
             if (!IsTutorial) return 0f;
-            return 1f - (Level / (float)TutorialEnd);
+            return 0f; // Evolution levels are aggressive from level one.
         }
     }
 
     /// <summary>
     /// ミス率: ランダムに最善手を外す確率 (0.0〜1.0)
-    /// チュートリアル: 0.5〜0.15, ノーマル: 0.1〜0.0, ハード以上: 0.0
+    /// 進化帯: 0.35〜0, ノーマル: 0.1〜0.0, ハード以上: 0.0
     /// </summary>
     public float MistakeRate
     {
         get
         {
             if (Level <= TutorialEnd)
-                return Mathf.Lerp(0.5f, 0.15f, (Level - 1f) / (TutorialEnd - 1f));
+                return Mathf.Lerp(0.35f, 0f, (Level - 1f) / (TutorialEnd - 1f));
             if (Level <= NormalEnd)
                 return Mathf.Lerp(0.1f, 0f, (Level - TutorialEnd - 1f) / (NormalEnd - TutorialEnd - 1f));
             return 0f;
@@ -374,19 +359,9 @@ public class AIThreatLevel
     {
         float bonus = 0f;
 
-        // ---- チュートリアル帯: 攻撃を控え、建築・撤退を優先 ----
-        if (IsTutorial)
-        {
-            float passivity = TutorialPassivity;
-            if (action.ActionType == AIActionType.Attack)
-                bonus -= passivity * 15f;
-            if (action.ActionType == AIActionType.SkillUse)
-                bonus -= passivity * 10f;
-            if (action.ActionType == AIActionType.Build)
-                bonus += passivity * 5f;
-            if (action.ActionType == AIActionType.Retreat)
-                bonus += passivity * 5f;
-        }
+        // Low levels are impulsive predators, not passive opponents.
+        if (action.ActionType == AIActionType.Attack) bonus += Level <= 3 ? 24 : 12;
+        if (action.ActionType == AIActionType.SkillUse) bonus += 8;
 
         // ---- 援護・カバーボーナス（能力に応じてスケーリング） ----
         if (action.ActionType == AIActionType.Support || action.ActionType == AIActionType.DefenseRepos)

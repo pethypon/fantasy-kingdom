@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -48,17 +48,15 @@ public class GameEndState : TurnState
             int newLevel = SaveSystem.IncrementThreatLevel();
             Debug.Log($"[GameEnd] 勝利！ 脅威度+1 → {newLevel}");
 
-            if (Systems.AICommander != null)
-            {
-                var analysis = new MatchAnalysis { TurnsPlayed = Context.Turn, PrimaryFailure = FailureReason.Unknown };
-                Systems.AICommander.RecordMatchResult(true, analysis);
-            }
+
         }
         else if (isLose)
         {
             SaveSystem.RecordLoss();
             Debug.Log("[GameEnd] 敗北 → 脅威度据え置き");
         }
+        Systems.AICommander?.RecordMatchResult(isWin,
+            new MatchAnalysis { TurnsPlayed = Context.Turn, PrimaryFailure = FailureReason.Unknown });
     }
 
     public override void Update() { }

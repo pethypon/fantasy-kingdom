@@ -88,6 +88,16 @@ public class TurnStrategyPlanner
             decision.Strategy = TurnStrategy.RetreatRegroup;
             decision.Reason = $"瀕死駒{criticalUnitCount}体 → 再編";
         }
+        else if (board.AlivePlayerUnits.Count > 0)
+        {
+            decision.Strategy = TurnStrategy.ContactEngage;
+            decision.Reason = "接敵中: 経済の完成を待たず交戦";
+        }
+        else if (hasMinimalRaw && board.GetExplorationRatio() < 0.6f)
+        {
+            decision.Strategy = TurnStrategy.ScoutSearch;
+            decision.Reason = "最低限の生産を維持して索敵";
+        }
         // 3. 経済基盤不足: 建築優先
         else if (!hasMinimalRaw)
         {
@@ -157,24 +167,6 @@ public class TurnStrategyPlanner
         {
             decision.Strategy = TurnStrategy.Balanced;
             decision.Reason = "標準バランス";
-        }
-
-        // ---- 戦略品質による劣化（チュートリアル〜ノーマル帯） ----
-        float quality = threatLevel.StrategyQuality;
-        if (quality < 0.9f)
-        {
-            // 低品質では攻勢をバランスに緩和
-            if (quality < 0.5f && decision.Strategy == TurnStrategy.Assault)
-            {
-                decision.Strategy = TurnStrategy.Balanced;
-                decision.Reason += " (低脅威度で攻勢を緩和)";
-            }
-            // やりこみ帯未満では防衛→バランスに劣化することもある
-            if (quality < 0.7f && decision.Strategy == TurnStrategy.CrystalDefense)
-            {
-                decision.Strategy = TurnStrategy.Balanced;
-                decision.Reason += " (低脅威度で防衛判断が甘い)";
-            }
         }
 
         // ---- AP予算配分 ----

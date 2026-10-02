@@ -322,6 +322,7 @@ public partial class AIBoardState
     /// <summary>最後に見たPlayerユニットの位置リスト（信頼度付き: 0=古い 1=新鮮）</summary>
     public List<(Vector3Int pos, float reliability)> GetLastKnownPlayerPositions()
     {
+        if (ReconThreatLevel < 4) { rememberedPositions.Clear(); return rememberedPositions; }
         if (rememberedGeneration == Generation) return rememberedPositions;
         rememberedGeneration = Generation;
         var result = rememberedPositions;
@@ -330,6 +331,7 @@ public partial class AIBoardState
         {
             if (kvp.Key == int.MinValue || !kvp.Value.Valid) continue;
             int age = TurnCount - kvp.Value.Turn;
+            if (ReconThreatLevel < 10 && age >= 3) continue;
             float reliability = Mathf.Clamp01(1f - age * 0.15f); // 7ターンで信頼度0
             if (reliability > 0f)
                 result.Add((kvp.Value.Position, reliability));

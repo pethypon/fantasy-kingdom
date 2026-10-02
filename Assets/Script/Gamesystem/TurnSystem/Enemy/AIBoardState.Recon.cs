@@ -3,6 +3,7 @@ using UnityEngine;
 
 public partial class AIBoardState
 {
+    public readonly HashSet<int> RotatedUnits = new HashSet<int>();
     AIReconnaissance reconnaissance;
     AIOutpostPlanner outposts;
     public AIOutpostPlanner Outposts => outposts ?? (outposts = new AIOutpostPlanner(this));

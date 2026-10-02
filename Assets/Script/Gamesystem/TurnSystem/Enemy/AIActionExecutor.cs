@@ -69,6 +69,8 @@ public class AIActionExecutor
                 return ExecuteSummon(action, board);
             case AIActionType.SubCrystal:
                 return ExecuteSubCrystal(action, board);
+            case AIActionType.Rotate:
+                return ExecuteRotate(action, board);
             case AIActionType.Wait:
                 return true;
             default:
@@ -80,6 +82,23 @@ public class AIActionExecutor
     // ================================================================
     //  移動実行
     // ================================================================
+    bool ExecuteRotate(AIAction action, AIBoardState board)
+    {
+        var unit = action.Unit;
+        if (!CanAct(unit) || unit.type != Type.Unit || unit.direction == action.TargetDirection
+            || (action.TargetDirection != Direction.N && action.TargetDirection != Direction.S)
+            || !board.RotatedUnits.Add(unit.GetInstanceID())) return false;
+        unit.direction = action.TargetDirection;
+        var vision = _turnGen.Systems.VisionGenerator;
+        if (vision != null && _turnGen.Systems.CrystalSystem != null)
+        {
+            vision.MarkVisionDirty();
+            vision.VisionPoint(_moveGen.mapcreate, _moveGen, _turnGen.Systems.CrystalSystem);
+        }
+        board.Refresh();
+        return true;
+    }
+
     bool ExecuteMove(AIAction action, AIBoardState board)
     {
         var unit = action.Unit;

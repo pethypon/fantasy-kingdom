@@ -46,12 +46,12 @@ public sealed class AIReconnaissance
             }
 
         // Recent observations guide deployment, never hidden transforms or attack permission.
-        if (!hasContact)
+        if (!hasContact && threat >= 4)
         foreach (var entry in board.ObservedHistory)
         {
             var memory = entry.Value;
             int age = Mathf.Max(0, board.TurnCount - memory.Turn);
-            if (!memory.Valid || age >= 7) continue;
+            if (!memory.Valid || age >= (threat < 10 ? 3 : 7)) continue;
             Vector3 predicted = memory.Position;
             if (threat >= 31 && memory.Type == Type.Unit && memory.HasPrevious)
                 predicted += Vector3.ClampMagnitude(memory.Position - memory.PreviousPosition, 2) * Mathf.Min(age, 2);
@@ -94,7 +94,7 @@ public sealed class AIReconnaissance
         }
 
         for (int i = 0; i < 8; i++) sectorDistances[i] = float.PositiveInfinity;
-        if (threat < 21 || scouts.Count == 0 || board.ReconMap == null) return;
+        if (threat < 7 || scouts.Count == 0 || board.ReconMap == null) return;
         // Map extents are public; do not inspect undiscovered terrain/occupants to choose a frontier.
         for (int x = 0; x < board.ReconMap.maxX; x++)
         for (int z = 0; z < board.ReconMap.maxZ; z++)
@@ -220,7 +220,7 @@ public sealed class AIReconnaissance
             float risk = board.EstimateCounterDamageAt(destination, unit);
             if (risk < unit.HP / 2f) score += Mathf.Clamp(progress, -3, 3) * 7;
         }
-        if (scout && threat >= 21 && fresh > 0)
+        if (scout && threat >= 7 && fresh > 0)
         {
             if (TryGetAssignedTarget(unit, out var goal))
                 score += Mathf.Clamp(Vector3.Distance(unit.transform.position, goal) - Vector3.Distance(destination, goal), -2, 2) * 5;

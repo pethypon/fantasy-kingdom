@@ -11,6 +11,7 @@ public class AIAction
     public Status Unit;              // 行動する駒（移動/攻撃時）
     public Vector3 TargetPos;        // 移動先 or 配置位置
     public Status TargetUnit;        // 攻撃対象（あれば）
+    public Direction TargetDirection; // Rotate only; free under current player rules.
     public int APCost;               // 消費AP
     public float Score;              // 最終評価点
     public FacilityKind Facility;    // 建築の種類

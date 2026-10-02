@@ -13,6 +13,8 @@ public partial class AICommander
     int CalcReservedAP()
     {
         if (_board == null) return 0;
+        // Never reserve optional construction AP away from an active offensive objective.
+        if (_evolution.HasObjective || AITacticalPriorities.HasLocalThreat(_board)) return 0;
 
         // TurnStrategyPlannerが計画したAP予約があればそれを基準にする
         int reserved = _apBudget.ReservedAP;

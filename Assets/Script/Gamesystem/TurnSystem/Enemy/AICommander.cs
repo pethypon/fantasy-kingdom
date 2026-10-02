@@ -17,6 +17,9 @@ using UnityEngine;
 // =====================================================================
 public partial class AICommander
 {
+    readonly AIEvolutionPolicy _evolution = new AIEvolutionPolicy();
+    readonly AIPlayerModel _playerModel = new AIPlayerModel();
+    bool _matchRecorded;
     readonly AIPersonality _personality;
     readonly AILearning _learning;
     readonly TurnGenerator _turnGen;
@@ -67,7 +70,7 @@ public partial class AICommander
 
     // ---- 師団長制AI（階層指揮システム） ----
     readonly KingCommanderSystem _kingCommanderSystem;
-    bool _hierarchicalMode = true; // 師団長制を有効にするフラグ
+    bool _hierarchicalMode = false; // 師団長制を有効にするフラグ
 
     // ---- 機械学習AI (脅威度20以降で有効、師団長制では無効) ----
     readonly MLIntegration _mlIntegration;
@@ -180,7 +183,8 @@ public partial class AICommander
     public TurnStrategyPlanner StrategyPlanner => _strategyPlanner;
     public MLIntegration MLIntegration => _mlIntegration;
     public KingCommanderSystem KingCommander => _kingCommanderSystem;
-    public bool HierarchicalMode { get => _hierarchicalMode; set => _hierarchicalMode = value; }
+    // Kept for caller compatibility. Division execution is retired by the evolution policy.
+    public bool HierarchicalMode { get => false; set { } }
 
     // ---- セーブ/ロード用アクセサ ----
     public int SaveTotalMoves    { get => _totalStats.Moves;    set => _totalStats.Moves = value; }
@@ -303,52 +307,9 @@ public partial class AICommander
         //  ★ 師団長制AI: 師団長を選出→兵を割当→提案収集→採択→実行
         //  ML機能は師団長制モードでは無効化される。
         // ================================================================
-        // Establish the economy before divisions can spend the opening AP on movement.
-        int earlyBuilds = _buildPlanner.TryEarlyBuildPhase(_board, _currentStrategy, _turnCount);
-        for (int eb = 0; eb < earlyBuilds; eb++) turnStats.Record(AIActionType.Build);
-        yield return null;
-        if (_turnGen.IsGameOver) yield break;
-        // Discoveries are published before recruitment and combat proposals.
-        var reconnaissance = ExecuteReconnaissancePhase(turnStats);
-        try { while (reconnaissance.MoveNext()) yield return null; }
-        finally { (reconnaissance as System.IDisposable)?.Dispose(); }
-        if (_turnGen.IsGameOver) yield break;
-
-        if (!AITurnBudget.Expired && !_board.ExpansionCommitted && !AITacticalPriorities.HasLocalThreat(_board))
-        {
-            var outpostActions = new List<AIAction>(4);
-            AIActionGenerator.GenerateSubCrystalCandidates(_board, outpostActions);
-            if (outpostActions.Count > 0 && outpostActions[0].APCost <= _board.EnemyAP - AITacticalPriorities.FinishingAttackReserve(_board))
-            {
-                if (_actionExecutor.Execute(outpostActions[0], _board))
-                {
-                    turnStats.Record(AIActionType.SubCrystal);
-                    _board.Refresh();
-                }
-            }
-        }
-        yield return null;
-        if (_turnGen.IsGameOver) yield break;
-        var reinforcement = ExecuteReinforcementPhase(turnStats);
-        try { while (reinforcement.MoveNext()) yield return null; }
-        finally { (reinforcement as System.IDisposable)?.Dispose(); }
-        if (_turnGen.IsGameOver) yield break;
-
-        // Exploration/recruitment can change both contact and army composition this turn.
-        strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
-        _currentStrategy = strategyDecision.Strategy;
-        _apBudget = strategyDecision.Budget;
-        _triedStrategies.Add(_currentStrategy);
-        if (_threatLevel.UseRoleAssignment)
-            _roleAssigner.AssignRoles(_board, _currentStrategy, _personality);
-
-        if (_hierarchicalMode)
-        {
-            var phase = ExecuteHierarchicalPhase(turnStats);
-            try { while (phase.MoveNext()) yield return null; }
-            finally { (phase as System.IDisposable)?.Dispose(); }
-        }
-
+        // All troops and economy actions compete in one observed-board decision loop.
+        _evolution.BeginTurn(_board);
+        _playerModel.Observe(_board);
         yield return null;
         if (_turnGen.IsGameOver) yield break;
         // 探索エンジンとtopCandidatesリストをループ外で事前確保（GC削減）
@@ -424,10 +385,17 @@ public partial class AICommander
             _board.Refresh();
             if (_board.EnemyAP <= 0) break;
 
+            strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
+            _currentStrategy = strategyDecision.Strategy;
+            _apBudget = strategyDecision.Budget;
+            _evolution.UpdateObjective(_board);
+            if (_threatLevel.UseRoleAssignment) _roleAssigner.AssignRoles(_board, _currentStrategy, _personality);
             // AP予約を再計算（建築/召喚した後は予約を解除）
             reservedAP = CalcReservedAP();
 
             AIActionEvaluator.EvaluateAllInto(actionsBuffer, _personality, _board, _learning, _currentStrategy);
+            AIOrientation.AppendCandidates(_board, actionsBuffer);
+            _evolution.Score(actionsBuffer, _board, _playerModel);
             var actions = actionsBuffer;
             if (actions.Count == 0)
             {
@@ -477,11 +445,11 @@ public partial class AICommander
                 topCandidates.Clear();
                 for (int i = 0; i < Mathf.Min(candidateLimit, actions.Count); i++)
                 {
-                    if (actions[i].ActionType != AIActionType.Wait)
+                    if (actions[i].ActionType != AIActionType.Wait && actions[i].ActionType != AIActionType.Rotate)
                         topCandidates.Add(actions[i]);
                 }
 
-                if (topCandidates.Count > 0 && AITurnBudget.RemainingMs > 10 && IsCriticalPosition(topCandidates, _board))
+                if (_threatLevel.UseSearchEngine && topCandidates.Count > 0 && AITurnBudget.RemainingMs > 10 && IsCriticalPosition(topCandidates, _board))
                 {
                     var searchSteps = searchEngine.EvaluateWithLookaheadSteps(
                         topCandidates, _board, lookaheadScores, System.Math.Clamp(SearchSliceBudgetMs, 1, 5));
@@ -589,6 +557,7 @@ public partial class AICommander
             strategyFailures = 0;
 
             turnStats.Record(bestAction.ActionType);
+            _evolution.Record(bestAction);
 
             // 機械学習AI: 成功した行動を記録（師団長制では無効）
             if (!_hierarchicalMode && AIConfig.IsMLEnabled)
@@ -615,14 +584,6 @@ public partial class AICommander
             }
         }
 
-        // ================================================================
-        //  ★ 建築後手フェーズ: メインループ後にAPが残っていて
-        //  まだ1棟も建てていない場合は再度建築を試みる
-        //  30ターン以降は経済充足でも実行（上位施設を建てるため）
-        // ================================================================
-        int lateBuilds = _buildPlanner.TryLateBuildPhase(_board, turnStats.Builds, _turnCount);
-        for (int lb = 0; lb < lateBuilds; lb++) turnStats.Record(AIActionType.Build);
-
         // 撃破数を executor から同期
         _totalKills = _actionExecutor.TotalKills;
 
@@ -636,6 +597,8 @@ public partial class AICommander
                   $"残AP={_board.EnemyAP}  累計({_totalStats}/撃破{_totalKills})  " +
                   $"脅威度={_threatLevel.Level}({_threatLevel.GetTierName()}) ---");
 
+        DevelopmentLog.Log($"[AIEvolution] 攻撃={_evolution.Attacks} 施設攻撃={_evolution.FacilityAttacks} 向き変更={_evolution.Rotations} 攻勢継続={_evolution.HasObjective}");
+
         // 師団長制ログ出力
         if (_hierarchicalMode && _kingCommanderSystem.HasDivisions)
         {
@@ -645,10 +608,13 @@ public partial class AICommander
 
     /// <summary>
     /// 試合終了時に結果を記録（脅威度の進行と学習）。
-    /// Player勝利時のみ脅威度が上がり、学習データが蓄積される。
+    /// 脅威度はPlayer勝利時のみ進行し、傾向学習は全結果で保存する。
     /// </summary>
     public void RecordMatchResult(bool playerWon, MatchAnalysis analysis)
     {
+        if (_matchRecorded) return;
+        _matchRecorded = true;
+        _playerModel.CompleteMatch();
         _threatLevel.RecordMatchResult(playerWon, analysis);
 
         // 機械学習AIの試合終了学習（師団長制では無効）

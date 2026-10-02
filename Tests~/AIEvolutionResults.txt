@@ -1,0 +1,72 @@
+AI evolution verification / Unity 6000.3.8f1 / 2026-10-02
+Runtime scripts verified against isolated validation project.
+
+evolution-verified.log
+PASS assertions: 681
+[Evolution] PASS level retained 1
+[Evolution] PASS level retained 2
+[Evolution] PASS level retained 3
+[Evolution] PASS level retained 4
+[Evolution] PASS level retained 5
+[Evolution] PASS level retained 6
+[Evolution] PASS level retained 7
+[Evolution] PASS level retained 8
+[Evolution] PASS level retained 9
+[Evolution] PASS level retained 10
+[Evolution] PASS role coordination begins at five
+[Evolution] PASS serialized Wait unchanged
+[Evolution] PASS save match 1
+[Evolution] PASS EWMA match 1
+[Evolution] PASS finish idempotent 1
+[Evolution] PASS save match 2
+[Evolution] PASS EWMA match 2
+[Evolution] PASS finish idempotent 2
+[Evolution] PASS save match 3
+[Evolution] PASS EWMA match 3
+[Evolution] PASS finish idempotent 3
+[Evolution] PASS save match 4
+[Evolution] PASS EWMA match 4
+[Evolution] PASS finish idempotent 4
+[Evolution] PASS save match 5
+[Evolution] PASS EWMA match 5
+[Evolution] PASS finish idempotent 5
+[Evolution] PASS save match 6
+[Evolution] PASS EWMA match 6
+[Evolution] PASS finish idempotent 6
+[Evolution] PASS save match 7
+[Evolution] PASS EWMA match 7
+[Evolution] PASS finish idempotent 7
+[Evolution] PASS save match 8
+[Evolution] PASS EWMA match 8
+[Evolution] PASS finish idempotent 8
+[Evolution] PASS save match 9
+[Evolution] PASS EWMA match 9
+[Evolution] PASS finish idempotent 9
+[Evolution] PASS save match 10
+[Evolution] PASS EWMA match 10
+[Evolution] PASS finish idempotent 10
+[Evolution] PASS low level collects without using prior
+[Evolution] PASS profile excludes positions and live stats
+[Evolution] PASS corruption falls back to backup
+[Evolution] PASS both corrupt reset safely
+[Evolution] PASS invalid observations rejected
+[Evolution] PASS directional fixture
+[Evolution] PASS rotation enables attack
+[Evolution] PASS evaluation never mutates facing
+[Evolution] PASS hidden target cannot justify rotation
+[Evolution] PASS execute facing change
+[Evolution] PASS rotation preserves AP
+[Evolution] PASS rotation cannot oscillate
+[Evolution] PASS vision marked and board refreshed
+[Evolution] PASS observed offensive objective acquired
+[Evolution] PASS hidden transform cannot update objective
+[Evolution] PASS searched empty objective invalidated
+[Evolution] PASS offense expires after five turns
+[Evolution] PASS safe level-up attack preference
+[Evolution] PASS subcrystal disruption preference
+[Evolution] PASS shield does not earn finishing bonus
+[SceneSmoke] ALL PASSED
+
+evolution-turncycle.log
+PASS assertions: 39
+[TurnCycle] ALL PASSED

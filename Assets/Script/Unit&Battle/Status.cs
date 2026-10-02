@@ -694,7 +694,8 @@ public enum AIActionType
     Summon,         // 駒生成
     DefenseRepos,   // 防衛再配置
     SubCrystal,     // サブクリ展開
-    Wait            // 待機
+    Wait,           // 待機
+    Rotate          // Appended to preserve serialized action values.
 }
 
 // =====================================================================
