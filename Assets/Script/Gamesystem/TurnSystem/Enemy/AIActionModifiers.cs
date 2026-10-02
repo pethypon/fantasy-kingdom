@@ -278,7 +278,7 @@ public static class AIActionModifiers
                 if (action.Facility == FacilityKind.SubCrystal && distance <= SubCrystalSystem.SubCrystalTerritoryRadius)
                     action.Score += 18f + dungeon.ClaimProgress * 1.5f;
                 else if (action.Unit != null && action.ActionType == AIActionType.Move && distance <= 3
-                    && dungeon.ClaimingTeam != Team.Enemy)
+                    && dungeon.ClaimingTeam != board.ActorTeam)
                     action.Score += (4 - distance) * 3f;
             }
         }

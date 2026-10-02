@@ -7,6 +7,7 @@ using UnityEngine;
 // =====================================================================
 public class AIActionExecutor
 {
+    public Team ActorTeam { get; }
     readonly TurnGenerator _turnGen;
     readonly MoveGenerator _moveGen;
     readonly AttackGenerator _attackPoint;
@@ -30,8 +31,11 @@ public class AIActionExecutor
         BattleSystem battleSystem, APSystem apSystem,
         SkillSystem skillSystem, SubCrystalSystem subCrystalSystem,
         BuildSystem buildSystem, SummonSystem summonSystem,
-        AILearning learning)
+        AILearning learning, Team actorTeam = Team.Enemy)
     {
+        if (actorTeam != Team.Player && actorTeam != Team.Enemy)
+            throw new System.ArgumentOutOfRangeException(nameof(actorTeam), "AI supports player or enemy factions.");
+        ActorTeam = actorTeam;
         _turnGen = turnGen;
         _moveGen = moveGen;
         _attackPoint = attackPoint;
@@ -49,7 +53,7 @@ public class AIActionExecutor
     // ================================================================
     public bool Execute(AIAction action, AIBoardState board)
     {
-        if (action == null || board == null || _turnGen.IsGameOver) return false;
+        if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
         switch (action.ActionType)
         {
             case AIActionType.Move:
@@ -107,7 +111,7 @@ public class AIActionExecutor
         if (!MovePatterns.CanMove(unit.kind, unit.direction,
             dest.x-unit.transform.position.x, dest.z-unit.transform.position.z)) return false;
 
-        if (!_apSystem.CanAct(Team.Enemy, APSystem.ActionType.Move, unit,
+        if (!_apSystem.CanAct(ActorTeam, APSystem.ActionType.Move, unit,
                 unit.transform.position, dest))
             return false;
 
@@ -173,11 +177,11 @@ public class AIActionExecutor
         if (!CanAct(unit) || target == null || !target.IsAlive || !target.gameObject.activeInHierarchy
             || !NeutralFactionSystem.AreHostile(unit, target)) return false;
         var vision = _turnGen.Systems.VisionGenerator;
-        if (vision == null || !vision.IsInVisionXZ(Team.Enemy, target.transform.position)) return false;
+        if (vision == null || !vision.IsInVisionXZ(ActorTeam, target.transform.position)) return false;
         if (!AttackPatterns.CanAttack(unit.kind, unit.direction,
             target.transform.position.x-unit.transform.position.x, target.transform.position.z-unit.transform.position.z)
             || !_moveGen.mapcreate.CanAttackAcrossTerrain(unit, target.transform.position)) return false;
-        if (!_apSystem.CanAct(Team.Enemy, APSystem.ActionType.Attack, unit)) return false;
+        if (!_apSystem.CanAct(ActorTeam, APSystem.ActionType.Attack, unit)) return false;
 
         var prevSelect = _turnGen.Context.SelectUnit;
         var prevTarget = _battleSystem.Target;
@@ -238,8 +242,9 @@ public class AIActionExecutor
         if (!CanAct(unit) || skill == null || _skillSystem == null || unit.SkillCooldown > 0
             || StatusEffectSystem.HasDebuff(unit, StatusEffectType.Seal)) return false;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var assigned) || assigned != skill) return false;
-        if (!_apSystem.CanUseSkill(Team.Enemy, board.CalcSkillCost(unit, skill))) return false;
+        if (!_apSystem.CanUseSkill(ActorTeam, board.CalcSkillCost(unit, skill))) return false;
         if (action.TargetUnit != null && (!action.TargetUnit.IsAlive || !action.TargetUnit.gameObject.activeInHierarchy)) return false;
+        if (!CanUseSkillTarget(action, unit, skill)) return false;
 
         var prevSelect = _turnGen.Context.SelectUnit;
         var prevTarget = _battleSystem.Target;
@@ -259,6 +264,19 @@ public class AIActionExecutor
         return success;
         }
         finally { _turnGen.Context.SelectUnit = prevSelect; _battleSystem.SetTarget(prevTarget); }
+    }
+
+    bool CanUseSkillTarget(AIAction action, Status unit, SkillData skill)
+    {
+        if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea) return true;
+        var target = action.TargetUnit;
+        if (target == null) return false;
+        if (skill.Target == SkillTarget.AllySingle)
+            return target.team == ActorTeam && target != unit
+                && Vector3.Distance(unit.transform.position, target.transform.position) <= 4f;
+        var vision = _turnGen.Systems.VisionGenerator;
+        return NeutralFactionSystem.AreHostile(unit, target)
+            && vision != null && vision.IsInVisionXZ(ActorTeam, target.transform.position);
     }
 
     bool ExecuteSkillByTarget(AIAction action, AIBoardState board, Status unit, SkillData skill)
@@ -350,6 +368,7 @@ public class AIActionExecutor
     // ================================================================
     public bool ExecuteBuild(AIAction action, AIBoardState board)
     {
+        if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
         if (_buildSystem == null)
         {
             Debug.LogWarning("[AIActionExecutor] ExecuteBuild: _buildSystem==null!");
@@ -357,9 +376,9 @@ public class AIActionExecutor
         }
 
         var pos = AIBoardState.ToCell(action.TargetPos);
-        DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(Team.Enemy)}");
+        DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(ActorTeam)}");
 
-        bool success = _buildSystem.AIPlaceBuilding(pos, action.Facility, Team.Enemy);
+        bool success = _buildSystem.AIPlaceBuilding(pos, action.Facility, ActorTeam);
         if (success)
         {
             board.RefreshAP();
@@ -377,10 +396,11 @@ public class AIActionExecutor
     // ================================================================
     public bool ExecuteSummon(AIAction action, AIBoardState board)
     {
+        if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
         if (_summonSystem == null) return false;
 
         var pos = AIBoardState.ToCell(action.TargetPos);
-        bool success = _summonSystem.AISummonUnit(pos, action.SummonKind, Team.Enemy);
+        bool success = _summonSystem.AISummonUnit(pos, action.SummonKind, ActorTeam);
         if (success)
         {
             board.RefreshAP();
@@ -398,10 +418,10 @@ public class AIActionExecutor
         if (_subCrystalSystem == null || _buildSystem == null) return false;
 
         var pos = AIBoardState.ToCell(action.TargetPos);
-        if (!_subCrystalSystem.CanPlaceSubCrystal(pos, Team.Enemy))
+        if (!_subCrystalSystem.CanPlaceSubCrystal(pos, ActorTeam))
             return false;
 
-        bool success = _buildSystem.AIPlaceBuilding(pos, FacilityKind.SubCrystal, Team.Enemy);
+        bool success = _buildSystem.AIPlaceBuilding(pos, FacilityKind.SubCrystal, ActorTeam);
         if (success)
         {
             board.ExpansionCommitted = true;
@@ -415,8 +435,8 @@ public class AIActionExecutor
     // ================================================================
     //  ヘルパー
     // ================================================================
-    static bool CanAct(Status unit) => unit != null && unit.IsAlive && unit.gameObject.activeInHierarchy
-        && unit.team == Team.Enemy && !StatusEffectSystem.IsStunned(unit);
+    bool CanAct(Status unit) => unit != null && unit.IsAlive && unit.gameObject.activeInHierarchy
+        && unit.team == ActorTeam && !StatusEffectSystem.IsStunned(unit);
 
     static int GetSkillCooldown(SkillData skill)
     {

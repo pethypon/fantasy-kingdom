@@ -31,6 +31,20 @@ public partial class AIBoardState
     readonly FactionState _factionState;
     readonly SubCrystalSystem _subCrystalSystem;
 
+    /// <summary>The real faction controlled by this board. Legacy Enemy* names mean own side; Player* mean opponents.</summary>
+    public Team ActorTeam { get; }
+    public Team OpponentTeam => ActorTeam == Team.Player ? Team.Enemy : Team.Player;
+    public Transform OwnUnitParent => _unitSet == null ? null : ActorTeam == Team.Player ? _unitSet.PlayerUnit : _unitSet.EnemyUnit;
+    public Transform OpponentUnitParent => _unitSet == null ? null : ActorTeam == Team.Player ? _unitSet.EnemyUnit : _unitSet.PlayerUnit;
+    public Transform OwnCrystalParent => _crystalSystem == null ? null : ActorTeam == Team.Player ? _crystalSystem.Playercrystal : _crystalSystem.Enemycrystal;
+    public Transform OpponentCrystalParent => _crystalSystem == null ? null : ActorTeam == Team.Player ? _crystalSystem.Enemycrystal : _crystalSystem.Playercrystal;
+    public IReadOnlyCollection<Vector3Int> OwnVisionCells => _visionGen == null ? Array.Empty<Vector3Int>()
+        : ActorTeam == Team.Player ? _visionGen.PlayerVisionBox : _visionGen.EnemyVisionBox;
+    public IReadOnlyCollection<Vector3Int> OwnExploredCells => _visionGen == null ? Array.Empty<Vector3Int>()
+        : ActorTeam == Team.Player ? _visionGen.PlayerExplored : _visionGen.EnemyExplored;
+    Vector3 OwnCrystalPosition => ActorTeam == Team.Player ? _crystalSystem.PCP : _crystalSystem.ECP;
+    Vector3 OpponentCrystalPosition => ActorTeam == Team.Player ? _crystalSystem.ECP : _crystalSystem.PCP;
+
     // ---- 盤面データ ----
     // Live board-owned views, updated in place by Refresh. Copy explicitly when a snapshot is needed.
     public List<Status> AliveEnemyUnits { get; private set; } = new List<Status>(32);
@@ -125,8 +139,12 @@ public partial class AIBoardState
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
         FactionState factionState = null, SubCrystalSystem subCrystalSystem = null,
         int turnCount = 1,
-        Dictionary<int, LastKnownInfo> sharedMemory = null)
+        Dictionary<int, LastKnownInfo> sharedMemory = null,
+        Team actorTeam = Team.Enemy)
     {
+        if (actorTeam != Team.Player && actorTeam != Team.Enemy)
+            throw new ArgumentOutOfRangeException(nameof(actorTeam), "AI supports player or enemy factions.");
+        ActorTeam = actorTeam;
         TurnCount = turnCount;
         _lastKnownPlayerPositions = sharedMemory ?? new Dictionary<int, LastKnownInfo>();
         _lastKnownPlayerCrystal = _lastKnownPlayerPositions.TryGetValue(int.MinValue, out var rememberedCrystal)
@@ -151,32 +169,32 @@ public partial class AIBoardState
         Generation++;
         NearestAllyCache.Clear(); AllyDensityCache.Clear(); HealerCache.Clear(); CounterCache.Clear();
         knownCells.Clear();
-        if (_visionGen?.EnemyExplored != null) foreach (var cell in _visionGen.EnemyExplored) knownCells.Add(GridHelper.ToGridXZ(cell));
-        if (_visionGen?.EnemyVisionBox != null) foreach (var cell in _visionGen.EnemyVisionBox) knownCells.Add(GridHelper.ToGridXZ(cell));
+        if (_visionGen != null) foreach (var cell in OwnExploredCells) knownCells.Add(GridHelper.ToGridXZ(cell));
+        if (_visionGen != null) foreach (var cell in OwnVisionCells) knownCells.Add(GridHelper.ToGridXZ(cell));
         _visionCacheVersion = -1; // Visibility can move without changing its cell count.
         _moveGen.UnitPointCore();
 
-        CollectUnits(_unitSet.EnemyUnit, Team.Enemy, AliveEnemyUnits);
-        CollectUnits(_unitSet.PlayerUnit, Team.Player, allPlayerUnits);
+        CollectUnits(OwnUnitParent, ActorTeam, AliveEnemyUnits);
+        CollectUnits(OpponentUnitParent, OpponentTeam, allPlayerUnits);
         FilterByEnemyVision(allPlayerUnits, AlivePlayerUnits);
         AppendVisibleHostiles(_moveGen.NeutralParent);
         AppendVisibleHostiles(_moveGen.ObstacleParent);
-        AppendVisibleHostiles(_buildSystem != null ? _buildSystem.PlayerBuildingParent : null);
+        AppendVisibleHostiles(_buildSystem != null ? _buildSystem.GetBuildingParent(OpponentTeam) : null);
 
         PlayerCrystalPos = _lastKnownPlayerCrystal.Valid ? (Vector3)_lastKnownPlayerCrystal.Position : Vector3.zero;
-        EnemyCrystalPos = _crystalSystem.ECP;
-        EnemyAP = _apSystem.GetAP(Team.Enemy);
+        EnemyCrystalPos = OwnCrystalPosition;
+        EnemyAP = _apSystem.GetAP(ActorTeam);
 
         // クリスタルは CrystalSystem の親オブジェクト配下にある
-        var eCrystal = FindCrystal(_crystalSystem.Enemycrystal);
+        var eCrystal = FindCrystal(OwnCrystalParent);
         EnemyCrystalHP = eCrystal != null ? eCrystal.HP : 0;
         EnemyCrystalMaxHP = eCrystal != null ? eCrystal.MaxHP : 1;
 
-        PlayerCrystalVisible = IsCellInEnemyVision(_crystalSystem.PCP);
+        PlayerCrystalVisible = IsCellInEnemyVision(OpponentCrystalPosition);
         if (PlayerCrystalVisible)
         {
-            PlayerCrystalPos = _crystalSystem.PCP;
-            var pCrystal = FindCrystal(_crystalSystem.Playercrystal);
+            PlayerCrystalPos = OpponentCrystalPosition;
+            var pCrystal = FindCrystal(OpponentCrystalParent);
             PlayerCrystalHP = pCrystal != null ? pCrystal.HP : 0;
         }
         else
@@ -205,7 +223,7 @@ public partial class AIBoardState
         if (_buildSystem != null)
         {
             if (BuildablePositions == null) BuildablePositions = new List<Vector3Int>();
-            _buildSystem.CollectAIBuildablePositions(Team.Enemy, BuildablePositions);
+            _buildSystem.CollectAIBuildablePositions(ActorTeam, BuildablePositions);
         }
         else
         {
@@ -217,7 +235,7 @@ public partial class AIBoardState
         if (_summonSystem != null)
         {
             if (SummonablePositions == null) SummonablePositions = new List<Vector3Int>();
-            _summonSystem.CollectAISummonablePositions(Team.Enemy, SummonablePositions);
+            _summonSystem.CollectAISummonablePositions(ActorTeam, SummonablePositions);
         }
         else
         {
@@ -232,7 +250,7 @@ public partial class AIBoardState
         {
             foreach (var fk in _allFacilityKinds)
             {
-                if (_apSystem.CanBuild(Team.Enemy, fk, _factionState))
+                if (_apSystem.CanBuild(ActorTeam, fk, _factionState))
                     AffordableBuildings.Add(fk);
             }
         }
@@ -244,17 +262,17 @@ public partial class AIBoardState
         {
             foreach (var k in _summonKinds)
             {
-                if (_summonSystem.CanSummon(Team.Enemy, k))
+                if (_summonSystem.CanSummon(ActorTeam, k))
                     AffordableUnits.Add(k);
             }
         }
 
         // 経済分析データ
-        EnemyResources = _factionState != null ? _factionState.EnemyResources : null;
+        EnemyResources = _factionState != null ? _factionState.GetResources(ActorTeam) : null;
         EnemyBuildingCounts = CountBuildings();
 
         // サブクリスタル残り
-        EnemySubCrystals = _factionState != null ? _factionState.GetSubCrystals(Team.Enemy) : 0;
+        EnemySubCrystals = _factionState != null ? _factionState.GetSubCrystals(ActorTeam) : 0;
 
         // サブクリスタル設置可能位置（リスト再利用）
         if (SubCrystalPlaceable == null) SubCrystalPlaceable = new List<Vector3Int>();
@@ -262,11 +280,11 @@ public partial class AIBoardState
         if (_subCrystalSystem != null && EnemySubCrystals > 0 && _moveGen != null && _visionGen != null && !ExpansionCommitted)
         {
             // Iterate only current vision, using the indexed height lookup instead of scanning the whole map.
-            foreach (var cell in _visionGen.EnemyVisionBox)
+            foreach (var cell in OwnVisionCells)
             {
                 if (!_moveGen.mapcreate.TryGetHeight(cell.x, cell.z, out float height)) continue;
                 var pos = ToCell(new Vector3(cell.x, height, cell.z));
-                if (_subCrystalSystem.CanPlaceSubCrystal(pos, Team.Enemy))
+                if (_subCrystalSystem.CanPlaceSubCrystal(pos, ActorTeam))
                 {
                     SubCrystalPlaceable.Add(pos);
                 }
@@ -403,7 +421,7 @@ public partial class AIBoardState
                 var pcpCell = _moveGen.Cell(PlayerCrystalPos);
                 if (pcpCell == cell)
                 {
-                    var crystal = FindCrystal(_crystalSystem.Playercrystal);
+                    var crystal = FindCrystal(OpponentCrystalParent);
                     if (crystal != null && crystal.HP > 0)
                         targets.Add(crystal);
                 }
@@ -506,8 +524,8 @@ public partial class AIBoardState
     // ---- スキルAP消費 ----
     public void ConsumeSkill(Status unit, int apCost)
     {
-        _apSystem.ConsumeSkill(Team.Enemy, apCost, unit);
-        EnemyAP = _apSystem.GetAP(Team.Enemy);
+        _apSystem.ConsumeSkill(ActorTeam, apCost, unit);
+        EnemyAP = _apSystem.GetAP(ActorTeam);
     }
 
     // ---- コスト ----
@@ -523,19 +541,19 @@ public partial class AIBoardState
     // ---- AP消費 ----
     public void ConsumeMove(Status unit, Vector3 dest)
     {
-        _apSystem.Consume(Team.Enemy, APSystem.ActionType.Move, unit, unit.transform.position, dest);
-        EnemyAP = _apSystem.GetAP(Team.Enemy);
+        _apSystem.Consume(ActorTeam, APSystem.ActionType.Move, unit, unit.transform.position, dest);
+        EnemyAP = _apSystem.GetAP(ActorTeam);
     }
 
     public void ConsumeAttack(Status unit)
     {
-        _apSystem.Consume(Team.Enemy, APSystem.ActionType.Attack, unit);
-        EnemyAP = _apSystem.GetAP(Team.Enemy);
+        _apSystem.Consume(ActorTeam, APSystem.ActionType.Attack, unit);
+        EnemyAP = _apSystem.GetAP(ActorTeam);
     }
 
     public void RefreshAP()
     {
-        EnemyAP = _apSystem.GetAP(Team.Enemy);
+        EnemyAP = _apSystem.GetAP(ActorTeam);
     }
 
     // ================================================================
@@ -545,7 +563,7 @@ public partial class AIBoardState
     {
         visible.Clear();
         // 視界システムが未初期化の場合は「何も見えない」とする（全公開バグ防止）
-        if (_visionGen == null || _visionGen.EnemyVisionBox == null)
+        if (_visionGen == null || OwnVisionCells == null)
             return;
         foreach (var unit in allPlayerUnits)
         {
@@ -563,17 +581,17 @@ public partial class AIBoardState
 
     bool IsCellInEnemyVision(Vector3 worldPos)
     {
-        if (_visionGen == null || _visionGen.EnemyVisionBox == null) return false;
+        if (_visionGen == null || OwnVisionCells == null) return false;
 
         // キャッシュ再構築（VisionBoxが変更された場合のみ）
-        int curCount = _visionGen.EnemyVisionBox.Count;
+        int curCount = OwnVisionCells.Count;
         if (_visionXZCache == null || _visionCacheVersion != curCount)
         {
             if (_visionXZCache == null)
                 _visionXZCache = new HashSet<long>(curCount);
             else
                 _visionXZCache.Clear();
-            foreach (var v in _visionGen.EnemyVisionBox)
+            foreach (var v in OwnVisionCells)
                 _visionXZCache.Add(PackXZ(v.x, v.z));
             _visionCacheVersion = curCount;
         }
@@ -620,7 +638,7 @@ public partial class AIBoardState
         if (parent == null) return;
         parent.GetComponentsInChildren(false, _getCompBuffer);
         foreach (var hostile in _getCompBuffer)
-            if (hostile.IsAlive && hostile.team != Team.Enemy && IsCellInEnemyVision(hostile.transform.position))
+            if (hostile.IsAlive && hostile.team != ActorTeam && IsCellInEnemyVision(hostile.transform.position))
                 AlivePlayerUnits.Add(hostile);
     }
 
@@ -651,7 +669,7 @@ public partial class AIBoardState
             _buildingCountsCache.Clear();
 
         if (_buildSystem == null) return _buildingCountsCache;
-        Transform parent = _buildSystem.GetBuildingParent(Team.Enemy);
+        Transform parent = _buildSystem.GetBuildingParent(ActorTeam);
         if (parent == null) return _buildingCountsCache;
 
         foreach (Transform child in parent)
@@ -693,7 +711,7 @@ public partial class AIBoardState
 
     /// <summary>指定位置の近くに壁/防衛建築があるか → AIBoardQuery に委譲</summary>
     public bool HasDefensiveStructureNear(Vector3 pos, float range)
-        => AIBoardQuery.HasDefensiveStructureNear(_buildSystem, pos, range);
+        => AIBoardQuery.HasDefensiveStructureNear(_buildSystem, pos, range, ActorTeam);
 
     // ================================================================
     //  索敵・偵察用
@@ -701,11 +719,11 @@ public partial class AIBoardState
 
     /// <summary>新規探索マス数の概算 → AIBoardQuery に委譲</summary>
     public int EstimateNewVisionCells(Vector3 pos)
-        => AIBoardQuery.EstimateNewVisionCells(_visionGen, pos);
+        => AIBoardQuery.EstimateNewVisionCells(_visionGen, pos, ActorTeam);
 
     /// <summary>探索済み面積の割合 → AIBoardQuery に委譲</summary>
     public float GetExplorationRatio()
-        => AIBoardQuery.GetExplorationRatio(_visionGen, _moveGen?.mapcreate);
+        => AIBoardQuery.GetExplorationRatio(_visionGen, _moveGen?.mapcreate, ActorTeam);
 
     /// <summary>経済余剰スコア → AIBoardQuery に委譲</summary>
     public float GetEconomicSurplus()

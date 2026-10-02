@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -155,7 +155,7 @@ public static class AIBoardQuery
     /// <summary>未探索方向の概算ベクトル（自陣クリスタルから見て未探索が多い方向）</summary>
     public static Vector3 GetUnexploredDirection(AIBoardState board, VisionGenerator visionGen)
     {
-        if (visionGen == null || visionGen.EnemyExplored == null)
+        if (visionGen == null)
             return Vector3.forward;
 
         Vector3 center = board.EnemyCrystalPos;
@@ -176,7 +176,7 @@ public static class AIBoardQuery
             {
                 var checkPos = center + dir * step;
                 var cell = GridHelper.ToGridXZ(checkPos);
-                if (!visionGen.IsExplored(Team.Enemy, cell))
+                if (!visionGen.IsExplored(board.ActorTeam, cell))
                     unexplored++;
             }
             if (unexplored > bestScore)
@@ -193,9 +193,9 @@ public static class AIBoardQuery
     /// ある位置に駒を置いた場合、新たに探索されるマス数を概算する。
     /// Scout等の偵察ユニットが未探索エリアへ向かうべきかの判断に使用。
     /// </summary>
-    public static int EstimateNewVisionCells(VisionGenerator visionGen, Vector3 pos)
+    public static int EstimateNewVisionCells(VisionGenerator visionGen, Vector3 pos, Team actorTeam = Team.Enemy)
     {
-        if (visionGen == null || visionGen.EnemyExplored == null) return 0;
+        if (visionGen == null) return 0;
 
         int newCells = 0;
         var c = GridHelper.ToGridXZ(pos);
@@ -207,7 +207,7 @@ public static class AIBoardQuery
             for (int dz = -2; dz <= 2; dz++)
             {
                 var cell = new Vector3Int(cx + dx, 0, cz + dz);
-                if (!visionGen.IsExplored(Team.Enemy, cell))
+                if (!visionGen.IsExplored(actorTeam, cell))
                     newCells++;
             }
         }
@@ -215,12 +215,13 @@ public static class AIBoardQuery
     }
 
     /// <summary>探索済み面積の割合（0～1）</summary>
-    public static float GetExplorationRatio(VisionGenerator visionGen, MapCreate mapCreate)
+    public static float GetExplorationRatio(VisionGenerator visionGen, MapCreate mapCreate, Team actorTeam = Team.Enemy)
     {
-        if (visionGen == null || visionGen.EnemyExplored == null || mapCreate == null) return 1f;
+        if (visionGen == null || mapCreate == null) return 1f;
         int totalTiles = mapCreate.SetPos.Count;
         if (totalTiles == 0) return 1f;
-        return (float)visionGen.EnemyExplored.Count / totalTiles;
+        var explored = actorTeam == Team.Player ? visionGen.PlayerExplored : visionGen.EnemyExplored;
+        return (float)explored.Count / totalTiles;
     }
 
     /// <summary>Playerクリスタル座標を「確定目標」として使ってよいか</summary>
@@ -394,10 +395,10 @@ public static class AIBoardQuery
     }
 
     /// <summary>指定位置の近くに壁/防衛建築があるか</summary>
-    public static bool HasDefensiveStructureNear(BuildSystem buildSystem, Vector3 pos, float range)
+    public static bool HasDefensiveStructureNear(BuildSystem buildSystem, Vector3 pos, float range, Team actorTeam = Team.Enemy)
     {
         if (buildSystem == null) return false;
-        Transform parent = buildSystem.GetBuildingParent(Team.Enemy);
+        Transform parent = buildSystem.GetBuildingParent(actorTeam);
         if (parent == null) return false;
         float sqrRange = range * range;
         foreach (Transform child in parent)

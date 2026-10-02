@@ -70,7 +70,7 @@ public sealed class AITacticalPatterns
     public float Bonus(AIAction a,AIBoardState b)
     {
         if(b.ReconThreatLevel<10)return 0;
-        if(a.TargetUnit!=null && a.TargetUnit.team==Team.Player && !situations.ContainsKey(a.TargetUnit.GetInstanceID()))return 0;
+        if(a.TargetUnit!=null && a.TargetUnit.team==b.OpponentTeam && !situations.ContainsKey(a.TargetUnit.GetInstanceID()))return 0;
         situations.TryGetValue(a.TargetUnit!=null?a.TargetUnit.GetInstanceID():0,out var s);
         bool attacking=a.ActionType==AIActionType.Attack || a.ActionType==AIActionType.SkillUse && a.Skill!=null && a.Skill.Multiplier>0;
         float result=0;
@@ -85,7 +85,7 @@ public sealed class AITacticalPatterns
                 case AITacticalMotif.ClusteredEnemies:match=a.ActionType==AIActionType.SkillUse && VisibleAreaTargets(a,b)>=3;break;
                 case AITacticalMotif.WoundedKing:match=attacking && a.TargetUnit!=null && a.TargetUnit.kind==Kind.King && s.KingReachable;break;
                 case AITacticalMotif.WeakCrystal:
-                    match=attacking && a.TargetUnit!=null && a.TargetUnit.team==Team.Player && a.TargetUnit.kind==Kind.Crystal && a.TargetUnit.HP<a.TargetUnit.MaxHP*.4f && s.EnemiesNearby==0;break;
+                    match=attacking && a.TargetUnit!=null && a.TargetUnit.team==b.OpponentTeam && a.TargetUnit.kind==Kind.Crystal && a.TargetUnit.HP<a.TargetUnit.MaxHP*.4f && s.EnemiesNearby==0;break;
                 case AITacticalMotif.SupportedRetreat:match=a.ActionType==AIActionType.Retreat && a.Unit!=null && b.CountAlliesNear(a.TargetPos,a.Unit,3)>=2;break;
             }
             if(match)result+=Mathf.Clamp(r.Weight,0,60);
@@ -97,7 +97,7 @@ public sealed class AITacticalPatterns
         int count=0;
         if(action.AreaTargets!=null)
             foreach(var target in action.AreaTargets)
-                if(target!=null && target.IsAlive && target.team==Team.Player && board.IsVisibleToEnemy(target.transform.position)
+                if(target!=null && target.IsAlive && target.team==board.OpponentTeam && board.IsVisibleToEnemy(target.transform.position)
                     && ++count>=3)break;
         return count;
     }

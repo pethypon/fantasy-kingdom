@@ -17,6 +17,20 @@ public partial class SimBoardState
     // ---- ユニットデータ ----
     public List<SimUnit> Units;
 
+    // The search always maximizes simulated Enemy. Only snapshot ownership is
+    // normalized; live Status teams and world-space facing stay unchanged.
+    public Team RealActorTeam = Team.Enemy;
+    public Direction EnemySummonDirection = Direction.S;
+    public Direction PlayerSummonDirection = Direction.N;
+
+    public Team ToSimulationTeam(Team actualTeam)
+    {
+        if (RealActorTeam != Team.Player) return actualTeam;
+        if (actualTeam == Team.Player) return Team.Enemy;
+        if (actualTeam == Team.Enemy) return Team.Player;
+        return actualTeam;
+    }
+
     // ---- AP ----
     public int EnemyAP;
     public int PlayerAP;
@@ -79,6 +93,12 @@ public partial class SimBoardState
         var state = new SimBoardState();
         state.Units = new List<SimUnit>();
         state.TurnCount = realBoard.TurnCount;
+        state.RealActorTeam = realBoard.ActorTeam;
+        if (state.RealActorTeam == Team.Player)
+        {
+            state.EnemySummonDirection = Direction.N;
+            state.PlayerSummonDirection = Direction.S;
+        }
 
         // マップタイル
         state.MapTiles = new HashSet<Vector3Int>();
@@ -100,38 +120,38 @@ public partial class SimBoardState
                 if(map.IsRiver(x,z)) state.Water.Add(cell);
             }
         }
-        // 敵ユニット
+        // Own units become the maximizing side, regardless of their live team.
         int idCounter = 0;
         foreach (var u in realBoard.AliveEnemyUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            state.Units.Add(CaptureUnit(u, idCounter++));
+            state.Units.Add(CaptureUnit(u, idCounter++, state.ToSimulationTeam(u.team)));
         }
 
-        // プレイヤーユニット (視界内のみ)
+        // Only observed opponents enter the snapshot. Neutral ownership is kept.
         foreach (var u in realBoard.AlivePlayerUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            state.Units.Add(CaptureUnit(u, idCounter++));
+            state.Units.Add(CaptureUnit(u, idCounter++, state.ToSimulationTeam(u.team)));
         }
 
         // クリスタル
-        state.EnemyCrystalPos = ToCell(crystalSystem.ECP);
+        state.EnemyCrystalPos = ToCell(realBoard.EnemyCrystalPos);
         state.PlayerCrystalPos = ToCell(realBoard.PlayerCrystalPos);
 
         // クリスタルをユニットとして追加 (まだ追加されていなければ)
-        var eCrystal = FindCrystalStatus(crystalSystem.Enemycrystal);
+        var eCrystal = FindCrystalStatus(realBoard.OwnCrystalParent);
         if (eCrystal != null && !HasCrystal(state, Team.Enemy))
-            state.Units.Add(CaptureUnit(eCrystal, idCounter++));
+            state.Units.Add(CaptureUnit(eCrystal, idCounter++, state.ToSimulationTeam(eCrystal.team)));
 
-        var pCrystal = FindCrystalStatus(crystalSystem.Playercrystal);
+        var pCrystal = FindCrystalStatus(realBoard.OpponentCrystalParent);
         if (pCrystal != null && realBoard.PlayerCrystalVisible && !HasCrystal(state, Team.Player))
-            state.Units.Add(CaptureUnit(pCrystal, idCounter++));
+            state.Units.Add(CaptureUnit(pCrystal, idCounter++, state.ToSimulationTeam(pCrystal.team)));
 
         // AP
         state.EnemyAP = realBoard.EnemyAP;
         state.PlayerAP = 30; // プレイヤーAPは概算
-        state.EnemyAPReset = apSystem.GetMaxAP(Team.Enemy);
+        state.EnemyAPReset = apSystem.GetMaxAP(realBoard.ActorTeam);
         state.PlayerAPReset = 30;
 
         // 建築カウント
@@ -150,12 +170,12 @@ public partial class SimBoardState
         return false;
     }
 
-    static SimUnit CaptureUnit(Status s, int id)
+    static SimUnit CaptureUnit(Status s, int id, Team simulationTeam)
     {
         var su = new SimUnit
         {
             Id = id,
-            Team = s.team,
+            Team = simulationTeam,
             Kind = s.kind,
             Facility = s.facilityKind,
             Type = s.type,
@@ -206,6 +226,9 @@ public partial class SimBoardState
     public SimBoardState Clone()
     {
         var copy = SimBoardPool.RentBoard();
+        copy.RealActorTeam = RealActorTeam;
+        copy.EnemySummonDirection = EnemySummonDirection;
+        copy.PlayerSummonDirection = PlayerSummonDirection;
         copy.Units = SimBoardPool.RentUnitList(Units.Count);
         for (int i = 0; i < Units.Count; i++)
             copy.Units.Add(Units[i].Clone());
@@ -315,7 +338,7 @@ public partial class SimBoardState
     // ================================================================
     //  SimUnit作成ヘルパー (召喚用)
     // ================================================================
-    static SimUnit CreateSimUnitFromKind(Kind kind, Team team, Vector3Int pos, int id)
+    SimUnit CreateSimUnitFromKind(Kind kind, Team team, Vector3Int pos, int id)
     {
         int hp = 10, atk = 5, def = 3;
         if (UnitStaticData.Table.TryGetValue(kind, out var data))
@@ -336,7 +359,7 @@ public partial class SimBoardState
             ATK = atk,
             DEF = def,
             Position = pos,
-            Direction = team == Team.Enemy ? Direction.S : Direction.N,
+            Direction = team == Team.Enemy ? EnemySummonDirection : PlayerSummonDirection,
             IsBoss = false,
             AssignedSkillId = -1,
             SkillCooldown = 0,
