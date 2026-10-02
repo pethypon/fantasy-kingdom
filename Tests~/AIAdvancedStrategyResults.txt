@@ -1,0 +1,127 @@
+Fantasy Kingdom advanced AI validation — 2026-10-02
+Unity: 6000.3.8f1
+Validation project: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+
+Script compilation: PASS
+SceneSmoke: ALL PASSED (746 checks; 65 advanced AI checks)
+TurnCycleRunner: ALL PASSED (39 checks)
+Main/validation runtime .cs files: byte-identical after final sync
+Tactical settings: persistent MonoScript reference verified after editor restart
+
+Measurement limits:
+The following are single Editor samples, not an FPS/GPU benchmark or a hard frame-time guarantee.
+Belief storage is capped at 24 contacts, 256 cells/contact, 4 expansion passes.
+Cached risk avoids rebuilding distributions during repeated candidate queries.
+Fault-injection MoveNext/Dispose exceptions in TurnCycleRunner are intentional and recovered.
+No new Windows executable was produced in this task.
+
+[AdvancedAI] cached risk 10000 queries 1.351ms checksum=75284.87
+[AdvancedAI] maximum-contact belief rebuild 10.082ms cells=3792
+
+Advanced AI assertions:
+[AdvancedAI] PASS Inspector settings have matching MonoScript
+[AdvancedAI] PASS settings serialize a persistent script reference
+[AdvancedAI] PASS missing Knight expands along legal movement
+[AdvancedAI] PASS probability plus unknown mass is normalized
+[AdvancedAI] PASS probability stays bounded
+[AdvancedAI] PASS visible empty cell removes belief
+[AdvancedAI] PASS unchanged evidence reuses distribution across refresh
+[AdvancedAI] PASS Scout spreads wider than Knight
+[AdvancedAI] PASS Assassin uncertainty exceeds Knight
+[AdvancedAI] PASS hidden object changes cannot alter beliefs
+[AdvancedAI] PASS belief disabled before ten
+[AdvancedAI] PASS bounded probability storage
+[AdvancedAI] PASS cached risk query finishes within generous 100ms
+[AdvancedAI] PASS large missing army remains capped
+[AdvancedAI] PASS greater caution cannot lower overlapping contact risk
+[AdvancedAI] PASS observed outpost and available wing choose feint
+[AdvancedAI] PASS required troops advance assemble
+[AdvancedAI] PASS demonstration enters response observation
+[AdvancedAI] PASS hidden arrivals cannot trigger feint
+[AdvancedAI] PASS revealed stationary facility is not a responding troop
+[AdvancedAI] PASS two observed arrivals trigger opposite flank
+[AdvancedAI] PASS flanking wing reaches strike
+[AdvancedAI] PASS confirmed outpost kill orders withdrawal
+[AdvancedAI] PASS returning troops complete operation
+[AdvancedAI] PASS save reload discards process-specific target ID
+[AdvancedAI] PASS reload relinks observed target safely
+[AdvancedAI] PASS own crystal emergency aborts operation
+[AdvancedAI] PASS operation deadline aborts
+[AdvancedAI] PASS operations disabled before ten
+[AdvancedAI] PASS economic raid enters supply delay
+[AdvancedAI] PASS supply delay persists next turn
+[AdvancedAI] PASS estimated supply delay releases main assault
+[AdvancedAI] PASS optional operation survives game-save serialization
+[AdvancedAI] PASS old game saves safely omit operation
+[AdvancedAI] PASS supported ranged force chooses ambush
+[AdvancedAI] PASS unprepared support blocks bait phase
+[AdvancedAI] PASS ready support arms observed bait
+[AdvancedAI] PASS visible pursuer triggers ambush strike
+[AdvancedAI] PASS trap targets the observed pursuer
+[AdvancedAI] PASS ambush cannot complete without a strike
+[AdvancedAI] PASS verified trap strike orders withdrawal
+[AdvancedAI] PASS learned low-HP retreat is more probable
+[AdvancedAI] PASS uncertain model retains worst-case weight
+[AdvancedAI] PASS zero evidence keeps the worst-case fallback
+[AdvancedAI] PASS higher threat has higher worst-case caution
+[AdvancedAI] PASS profile used inside sliced response search
+[AdvancedAI] PASS profile search leaves live snapshot untouched
+[AdvancedAI] PASS empty history preserves standard minimax
+[AdvancedAI] PASS visible retreat influences response model
+[AdvancedAI] PASS unseen movement does not train retreat tendency
+[AdvancedAI] PASS response model disabled below ten
+[AdvancedAI] PASS retreat tendency survives next match
+[AdvancedAI] PASS existing profiler directly supplies response tendencies
+[AdvancedAI] PASS future army creates forecast resource requirements
+[AdvancedAI] PASS payback estimate is positive or infinite
+[AdvancedAI] PASS emergency shortens investment horizon
+[AdvancedAI] PASS late-payback project loses appeal in short horizon
+[AdvancedAI] PASS six configurable motifs supplied
+[AdvancedAI] PASS isolated Priest triggers pincer and assassination motifs
+[AdvancedAI] PASS unseen target cannot trigger a tactical motif
+[AdvancedAI] PASS hidden area targets cannot trigger cluster bonus
+[AdvancedAI] PASS three-target area attack receives cluster bonus
+[AdvancedAI] PASS motifs disabled before ten
+[AdvancedAI] PASS missing required troop aborts after assembly window
+[AdvancedAI] PASS no visible response aborts after observation window
+
+Turn recovery assertions:
+[TurnCycle] PASS player state before end 0
+[TurnCycle] PASS enemy entered 0
+[TurnCycle] PASS exactly one round advance 0
+[TurnCycle] PASS player timer running 0
+[TurnCycle] PASS enemy banner hidden 0
+[TurnCycle] PASS stale banner self-corrects against player state 0
+[TurnCycle] PASS player state before end 1
+[TurnCycle] PASS enemy entered 1
+[TurnCycle] PASS exactly one round advance 1
+[TurnCycle] PASS player timer running 1
+[TurnCycle] PASS enemy banner hidden 1
+[TurnCycle] PASS stale banner self-corrects against player state 1
+[TurnCycle] PASS player state before end 2
+[TurnCycle] PASS enemy entered 2
+[TurnCycle] PASS exactly one round advance 2
+[TurnCycle] PASS player timer running 2
+[TurnCycle] PASS enemy banner hidden 2
+[TurnCycle] PASS stale banner self-corrects against player state 2
+[TurnCycle] PASS player state before end 3
+[TurnCycle] PASS enemy entered 3
+[TurnCycle] PASS exactly one round advance 3
+[TurnCycle] PASS player timer running 3
+[TurnCycle] PASS enemy banner hidden 3
+[TurnCycle] PASS stale banner self-corrects against player state 3
+[TurnCycle] PASS fault cleanup exactly once 3
+[TurnCycle] PASS player state before end 4
+[TurnCycle] PASS enemy entered 4
+[TurnCycle] PASS exactly one round advance 4
+[TurnCycle] PASS player timer running 4
+[TurnCycle] PASS enemy banner hidden 4
+[TurnCycle] PASS stale banner self-corrects against player state 4
+[TurnCycle] PASS fault cleanup exactly once 4
+[TurnCycle] PASS player state before end 5
+[TurnCycle] PASS enemy entered 5
+[TurnCycle] PASS exactly one round advance 5
+[TurnCycle] PASS player timer running 5
+[TurnCycle] PASS enemy banner hidden 5
+[TurnCycle] PASS stale banner self-corrects against player state 5
+[TurnCycle] PASS fault cleanup exactly once 5

@@ -4,6 +4,26 @@ using UnityEngine;
 public partial class AIBoardState
 {
     public readonly HashSet<int> RotatedUnits = new HashSet<int>();
+    int beliefStampGeneration=-1,beliefStamp;
+    public int BeliefEvidenceStamp
+    {
+        get
+        {
+            if(beliefStampGeneration==Generation)return beliefStamp;
+            beliefStampGeneration=Generation;
+            unchecked
+            {
+                int hash=ReconThreatLevel*397;
+                foreach(var pair in ObservedHistory)hash^=pair.Key*31+pair.Value.Position.GetHashCode()*17+pair.Value.Turn*7+(int)pair.Value.Kind+pair.Value.ObservedAttackPower*13;
+                if(_visionGen!=null)foreach(var cell in _visionGen.EnemyVisionBox)hash^=cell.GetHashCode()*53;
+                foreach(var unit in AlivePlayerUnits)if(unit!=null)hash^=unit.GetInstanceID()*71;
+                beliefStamp=hash;
+            }
+            return beliefStamp;
+        }
+    }
+    AIBeliefMap belief;
+    public AIBeliefMap Belief => belief ?? (belief = new AIBeliefMap(this));
     AIReconnaissance reconnaissance;
     AIOutpostPlanner outposts;
     public AIOutpostPlanner Outposts => outposts ?? (outposts = new AIOutpostPlanner(this));

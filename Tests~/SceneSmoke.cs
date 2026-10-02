@@ -149,6 +149,7 @@ public static class SceneSmoke
             BoardRefreshPerformanceTests.Run(systems);
             PlayUsabilityTests.Run();
             AIEvolutionTests.Run(systems, turn);
+            AIAdvancedStrategyTests.Run(systems);
             LongevityTests.Run(systems, turn);
             Debug.Log("[SceneSmoke] ALL PASSED");
             SessionState.SetBool(Running, false);

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b869ef2ba488d3e4aa95410f6f581856, type: 3}
+  m_Name: AITacticalPatternSettings
+  m_EditorClassIdentifier: Assembly-CSharp::AITacticalPatternSettings
+  Rules:
+  - Motif: 0
+    MinimumThreat: 10
+    Weight: 20
+  - Motif: 1
+    MinimumThreat: 10
+    Weight: 28
+  - Motif: 2
+    MinimumThreat: 10
+    Weight: 30
+  - Motif: 3
+    MinimumThreat: 10
+    Weight: 35
+  - Motif: 4
+    MinimumThreat: 10
+    Weight: 25
+  - Motif: 5
+    MinimumThreat: 10
+    Weight: 12

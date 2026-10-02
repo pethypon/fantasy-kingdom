@@ -112,6 +112,7 @@ public partial class AIBoardState
         public Kind Kind;
         public Type Type;
         public Direction Direction;
+        public int ObservedAttackPower;
         public Vector3Int PreviousPosition;
         public int PreviousTurn;
         public bool HasPrevious;
@@ -296,7 +297,7 @@ public partial class AIBoardState
             _lastKnownPlayerPositions[id] = new LastKnownInfo
             {
                 Position = position,
-                Kind = pu.kind, Type = pu.type, Direction = pu.direction,
+                Kind = pu.kind, Type = pu.type, Direction = pu.direction, ObservedAttackPower = Mathf.Max(0, pu.ATK),
                 PreviousPosition = moved ? previous.Position : previous.PreviousPosition,
                 PreviousTurn = moved ? previous.Turn : previous.PreviousTurn,
                 HasPrevious = moved || previous.HasPrevious,

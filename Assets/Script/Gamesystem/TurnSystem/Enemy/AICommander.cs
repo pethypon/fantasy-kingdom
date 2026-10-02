@@ -17,6 +17,10 @@ using UnityEngine;
 // =====================================================================
 public partial class AICommander
 {
+    readonly AIAdvancedStrategy _advanced = new AIAdvancedStrategy(Resources.Load<AITacticalPatternSettings>("AI/AITacticalPatternSettings"));
+    public AIPlan CurrentPlan => _advanced.Plans.Current;
+    public AIPlan SavePlan => _advanced.Plans.Snapshot();
+    public void RestorePlan(AIPlan plan) => _advanced.Plans.Restore(plan);
     readonly AIEvolutionPolicy _evolution = new AIEvolutionPolicy();
     readonly AIPlayerModel _playerModel = new AIPlayerModel();
     bool _matchRecorded;
@@ -315,6 +319,8 @@ public partial class AICommander
         // 探索エンジンとtopCandidatesリストをループ外で事前確保（GC削減）
         var searchEngine = new AISearchEngine(_threatLevel.SearchDepth, _threatLevel.SearchCandidateLimit, _rng);
         searchEngine.SetSimulationReferences(_moveGen, _unitSet, _crystalSystem, _apSystem);
+        searchEngine.ResponseModel = _playerModel.CreateResponseModel(_threatLevel.Level,
+            AIConfig.IsMLEnabled ? _mlIntegration.Profiler.Profile : null);
         var topCandidates = new List<AIAction>();
         var lookaheadScores = new Dictionary<AIAction, float>();
         // EvaluateAll の毎ループ new List を避けるための再利用バッファ
@@ -396,6 +402,9 @@ public partial class AICommander
             AIActionEvaluator.EvaluateAllInto(actionsBuffer, _personality, _board, _learning, _currentStrategy);
             AIOrientation.AppendCandidates(_board, actionsBuffer);
             _evolution.Score(actionsBuffer, _board, _playerModel);
+            var advancedSteps = _advanced.ScoreSteps(actionsBuffer, _board);
+            try { while (advancedSteps.MoveNext()) { yield return null; if (_turnGen.IsGameOver) yield break; } }
+            finally { (advancedSteps as System.IDisposable)?.Dispose(); }
             var actions = actionsBuffer;
             if (actions.Count == 0)
             {
@@ -558,6 +567,7 @@ public partial class AICommander
 
             turnStats.Record(bestAction.ActionType);
             _evolution.Record(bestAction);
+            _advanced.Plans.RecordSuccess(bestAction);
 
             // 機械学習AI: 成功した行動を記録（師団長制では無効）
             if (!_hierarchicalMode && AIConfig.IsMLEnabled)

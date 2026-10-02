@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -236,6 +236,7 @@ public static partial class SaveSystem
         dst.TotalSummons = commander.SaveTotalSummons;
         dst.TotalKills = commander.SaveTotalKills;
         dst.AITurnCount = commander.SaveTurnCount;
+        dst.Operation = commander.SavePlan;
         dst.RngSeed = commander.ThreatLevel.Level; // シードは脅威度から復元可
 
         // Learning

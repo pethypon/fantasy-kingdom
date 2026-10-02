@@ -91,6 +91,8 @@ public partial class AIMinimaxEngine
     //  入力: AIの候補行動リスト (AIAction) と現在の盤面状態
     //  出力: 各AIActionに対する先読みスコア補正値
     // ================================================================
+    public PlayerResponseModel ResponseModel { get; set; }
+    public int ResponseNodesEvaluated { get; private set; }
     float _nodeScore;
     bool _searchActive;
     public AISlicedWork BeginSearch(List<AIAction> candidates, SimBoardState initialBoard,
@@ -131,6 +133,7 @@ public partial class AIMinimaxEngine
         AIBoardState realBoard, Dictionary<AIAction, float> result)
     {
         _nodesEvaluated = 0;
+        ResponseNodesEvaluated = 0;
         CompletedDepth = 0;
         _pruned = 0;
         _transTable.Clear();

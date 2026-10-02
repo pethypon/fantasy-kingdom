@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -191,6 +191,8 @@ public static partial class SaveSystem
         public string MajorPersonality;
         public int TraitCaution, TraitCommand, TraitObsession;
         public int TraitDefense, TraitTactics, TraitDevelopment;
+
+        public AIPlan Operation;
 
         // AICommander 統計
         public string CurrentStrategy;

@@ -102,6 +102,7 @@ public static partial class SaveSystem
         commander.SaveTotalSummons = src.TotalSummons;
         commander.SaveTotalKills = src.TotalKills;
         commander.SaveTurnCount = src.AITurnCount;
+        commander.RestorePlan(src.Operation);
 
         if (Enum.TryParse<TurnStrategy>(src.CurrentStrategy, out var strategy))
             commander.RestoreStrategy(strategy);

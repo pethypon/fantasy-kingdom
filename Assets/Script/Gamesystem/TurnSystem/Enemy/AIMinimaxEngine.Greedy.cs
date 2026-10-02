@@ -41,6 +41,7 @@ public partial class AIMinimaxEngine
                 if (a.APCost > ap) continue;
 
                 float score = SimActionGenerator.QuickScore(a, board);
+                if (ResponseModel != null) score += ResponseModel.Preference(a, board) * 12;
 
                 // 既に行動した駒は割引（ただし確殺可能な攻撃は例外）
                 if (a.UnitId >= 0 && _greedyActedUnits.Contains(a.UnitId))
@@ -86,7 +87,8 @@ public partial class AIMinimaxEngine
         for (int i = 0; i < count; i++)
         {
             if ((i & 15) == 0) yield return null;
-            _sortScoreBuffer[i] = SimActionGenerator.QuickScore(actions[i], board);
+            _sortScoreBuffer[i] = SimActionGenerator.QuickScore(actions[i], board)
+                + (ResponseModel != null ? ResponseModel.Preference(actions[i], board) * 12 : 0);
         }
 
         // Stable bottom-up merge sort: O(n log n), buffers are retained between searches.

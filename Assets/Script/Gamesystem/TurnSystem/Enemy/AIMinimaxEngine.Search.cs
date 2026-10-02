@@ -78,6 +78,7 @@ public partial class AIMinimaxEngine
 
         int limit = Mathf.Min(_candidateLimit, actions.Count);
         float minScore = float.MaxValue;
+        float weightedScore = 0, responseWeight = 0;
         SimAction bestAction = null;
 
         for (int i = 0; i < limit; i++)
@@ -86,6 +87,7 @@ public partial class AIMinimaxEngine
 
             yield return null;
             var boardCopy = board.Clone();
+            float likelihood = ResponseModel != null ? ResponseModel.Likelihood(actions[i], board) : 1;
             float score;
             try
             {
@@ -114,13 +116,17 @@ public partial class AIMinimaxEngine
                 bestAction = actions[i];
             }
 
+            if (ResponseModel != null) ResponseNodesEvaluated++;
+            weightedScore += score * likelihood;
+            responseWeight += likelihood;
+
             // Beta枝刈り
-            if (score <= alpha)
+            if (ResponseModel == null && score <= alpha)
             {
                 _pruned++;
                 break;
             }
-            if (score < beta) beta = score;
+            if (ResponseModel == null && score < beta) beta = score;
         }
 
         // キラームーブ記録
@@ -128,13 +134,14 @@ public partial class AIMinimaxEngine
             StoreKiller(depth, bestAction);
 
         float result = minScore == float.MaxValue ? SimBoardEvaluator.Evaluate(board) : minScore;
+        if (ResponseModel != null && responseWeight > 0) result = ResponseModel.Combine(weightedScore / responseWeight, result);
 
         // トランスポジションテーブルストア
         if (_transTable.Count < MaxTTSize)
         {
             TTFlag flag = TTFlag.Exact;
-            if (result <= alpha) flag = TTFlag.UpperBound;
-            else if (result >= beta) flag = TTFlag.LowerBound;
+            if (ResponseModel == null && result <= alpha) flag = TTFlag.UpperBound;
+            else if (ResponseModel == null && result >= beta) flag = TTFlag.LowerBound;
             _transTable[hash] = new TTEntry { Score = result, Depth = remainingDepth, Flag = flag };
         }
 
@@ -244,12 +251,12 @@ public partial class AIMinimaxEngine
             }
 
             // Alpha枝刈り
-            if (score >= beta)
+            if (ResponseModel == null && score >= beta)
             {
                 _pruned++;
                 break;
             }
-            if (score > alpha) alpha = score;
+            if (ResponseModel == null && score > alpha) alpha = score;
         }
 
         if (bestAction != null && depth < _killerMoves.Length)
@@ -261,8 +268,8 @@ public partial class AIMinimaxEngine
         if (_transTable.Count < MaxTTSize)
         {
             TTFlag flag = TTFlag.Exact;
-            if (result >= beta) flag = TTFlag.LowerBound;
-            else if (result <= alpha) flag = TTFlag.UpperBound;
+            if (ResponseModel == null && result >= beta) flag = TTFlag.LowerBound;
+            else if (ResponseModel == null && result <= alpha) flag = TTFlag.UpperBound;
             _transTable[hash] = new TTEntry { Score = result, Depth = remainingDepth, Flag = flag };
         }
 

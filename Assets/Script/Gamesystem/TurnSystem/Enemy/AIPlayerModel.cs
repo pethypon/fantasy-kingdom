@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>Small versioned tendency profile. Never serializes units, coordinates, HP or unseen information.</summary>
@@ -10,15 +11,21 @@ public sealed class AIPlayerModel
     {
         public int Version = 1;
         public int Matches;
-        public float Aggression, Economy, Scout, Ranged;
+        public float Aggression, Economy, Scout, Ranged, Retreat, Skill, Flank, Turtle;
     }
     readonly string path;
     Profile history;
     int lastTurn = -1, observations;
     float aggression, economy, scout, ranged;
+    float retreat, skill, flank, turtle;
+    int responseSamples, retreatSamples;
+    struct Seen { public Vector3 Position; public float HP, Distance; public int Turn, Cooldown; }
+    readonly Dictionary<int, Seen> seen = new Dictionary<int, Seen>();
+    readonly List<int> expiredSamples=new List<int>();
     bool completed;
     public Profile Snapshot => new Profile { Matches = history.Matches, Aggression = history.Aggression,
-        Economy = history.Economy, Scout = history.Scout, Ranged = history.Ranged };
+        Economy = history.Economy, Scout = history.Scout, Ranged = history.Ranged,
+        Retreat = history.Retreat, Skill = history.Skill, Flank = history.Flank, Turtle = history.Turtle };
 
     public AIPlayerModel(string storagePath = null)
     {
@@ -33,7 +40,8 @@ public sealed class AIPlayerModel
             if (!File.Exists(file) || new FileInfo(file).Length > 4096) return null;
             var p = JsonUtility.FromJson<Profile>(File.ReadAllText(file));
             return p != null && p.Version == 1 && p.Matches >= 0 && p.Matches <= 1000000
-                && Valid(p.Aggression) && Valid(p.Economy) && Valid(p.Scout) && Valid(p.Ranged) ? p : null;
+                && Valid(p.Aggression) && Valid(p.Economy) && Valid(p.Scout) && Valid(p.Ranged)
+                && Valid(p.Retreat) && Valid(p.Skill) && Valid(p.Flank) && Valid(p.Turtle) ? p : null;
         }
         catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException)
         { return null; }
@@ -48,11 +56,28 @@ public sealed class AIPlayerModel
         {
             if (unit == null || unit.team != Team.Player || !unit.IsAlive || !board.IsVisibleToEnemy(unit.transform.position)) continue;
             count++;
+            int id = unit.GetInstanceID();
+            float distance = GridHelper.ChebyshevDistance(unit.transform.position, board.EnemyCrystalPos);
+            if (seen.TryGetValue(id, out var previous) && previous.Turn == board.TurnCount - 1)
+            {
+                responseSamples++;
+                if (previous.HP <= .3f) { retreatSamples++; if (distance > previous.Distance + .5f) retreat++; }
+                if (previous.Cooldown == 0 && unit.SkillCooldown > 0) skill++;
+                Vector3 delta = unit.transform.position - previous.Position;
+                if (Mathf.Abs(delta.x) > Mathf.Abs(delta.z) && delta.sqrMagnitude > .5f) flank++;
+                if (distance > previous.Distance + .5f) turtle++;
+            }
+            // This match-local position sample is never serialized into the cross-match profile.
+            seen[id] = new Seen { Position=unit.transform.position, HP=(float)unit.HP/Mathf.Max(1,unit.MaxHP),
+                Distance=distance, Turn=board.TurnCount, Cooldown=unit.SkillCooldown };
             if (unit.type != Type.Unit) buildings++;
             if (unit.kind == Kind.Scout) scouts++;
             if (IsRanged(unit.kind)) archers++;
             if (GridHelper.ChebyshevDistance(unit.transform.position, board.EnemyCrystalPos) <= 6) aggressive++;
         }
+        expiredSamples.Clear();
+        foreach(var sample in seen)if(sample.Value.Turn<board.TurnCount-1)expiredSamples.Add(sample.Key);
+        foreach(int key in expiredSamples)seen.Remove(key);
         if (count > 0) RecordObservation((float)aggressive/count, (float)buildings/count, (float)scouts/count, (float)archers/count);
     }
 
@@ -70,6 +95,37 @@ public sealed class AIPlayerModel
         return Mathf.Lerp(prior, current / observations, weight);
     }
     public static bool IsRanged(Kind kind) => kind == Kind.Archer || kind == Kind.Crossbow || kind == Kind.Magic || kind == Kind.Magicsniper;
+    public PlayerResponseModel CreateResponseModel(int level, PlayerProfiler.PlayerProfile observedProfile = null)
+    {
+        if (level < 10) return null;
+        float currentWeight = level < 21 ? .2f : .6f;
+        float RetreatRatio = retreatSamples > 0 ? Mathf.Lerp(history.Retreat, retreat / retreatSamples, currentWeight) : history.Retreat;
+        var profile = new PlayerProfiler.PlayerProfile {
+            AggressionScore = Blend(history.Aggression, aggression, level),
+            EconomyFocus = Blend(history.Economy, economy, level),
+            PreferredAttackRange = Blend(history.Ranged, ranged, level) * 5,
+            SkillReliance = responseSamples > 0 ? Mathf.Lerp(history.Skill, skill / responseSamples, currentWeight) : history.Skill,
+            FlankPreference = responseSamples > 0 ? Mathf.Lerp(history.Flank, flank / responseSamples, currentWeight) : history.Flank,
+            TurtleTendency = responseSamples > 0 ? Mathf.Lerp(history.Turtle, turtle / responseSamples, currentWeight) : history.Turtle,
+            TotalObservations = Mathf.Min(1000000, observations + history.Matches * 8), MatchesObserved = history.Matches
+        };
+        // The existing profiler receives visibility-filtered action events. Its aggregate data
+        // supplements the inexpensive turn observations, without transferring positions or units.
+        if (observedProfile != null && observedProfile.Confidence > 0)
+        {
+            float weight = observedProfile.Confidence;
+            profile.AggressionScore = Mathf.Lerp(profile.AggressionScore, observedProfile.AggressionScore, weight);
+            profile.EconomyFocus = Mathf.Lerp(profile.EconomyFocus, observedProfile.EconomyFocus, weight);
+            profile.PreferredAttackRange = Mathf.Lerp(profile.PreferredAttackRange, observedProfile.PreferredAttackRange, weight);
+            profile.SkillReliance = Mathf.Lerp(profile.SkillReliance, observedProfile.SkillReliance, weight);
+            profile.FlankPreference = Mathf.Lerp(profile.FlankPreference, observedProfile.FlankPreference, weight);
+            profile.TurtleTendency = Mathf.Lerp(profile.TurtleTendency, observedProfile.TurtleTendency, weight);
+            profile.RushTendency = observedProfile.RushTendency;
+            profile.TotalObservations = Mathf.Max(profile.TotalObservations, observedProfile.TotalObservations);
+        }
+        return profile.TotalObservations > 0 ? PlayerResponseModel.FromProfiler(profile, level, RetreatRatio) : null;
+    }
+
     public float Bonus(AIAction action, int level)
     {
         if (level < 10) return 0;
@@ -93,6 +149,13 @@ public sealed class AIPlayerModel
         next.Economy = Mathf.Lerp(history.Economy, economy/observations, .2f);
         next.Scout = Mathf.Lerp(history.Scout, scout/observations, .2f);
         next.Ranged = Mathf.Lerp(history.Ranged, ranged/observations, .2f);
+        if (retreatSamples > 0) next.Retreat = Mathf.Lerp(history.Retreat, retreat / retreatSamples, .2f);
+        if (responseSamples > 0)
+        {
+            next.Skill = Mathf.Lerp(history.Skill, skill / responseSamples, .2f);
+            next.Flank = Mathf.Lerp(history.Flank, flank / responseSamples, .2f);
+            next.Turtle = Mathf.Lerp(history.Turtle, turtle / responseSamples, .2f);
+        }
         try
         {
             var directory = Path.GetDirectoryName(path);
