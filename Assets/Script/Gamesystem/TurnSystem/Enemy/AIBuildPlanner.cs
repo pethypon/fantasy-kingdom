@@ -30,24 +30,24 @@ public class AIBuildPlanner
     public int TryEarlyBuildPhase(
         AIBoardState board, TurnStrategy strategy, int turnCount)
     {
+        if (AITurnBudget.Expired || board == null) return 0;
         DevelopmentLog.Log($"[AIBuildPlanner] === 先行建築フェーズ開始 === AP={board.EnemyAP} ターン={turnCount}");
-
-        bool forceByTurn = turnCount >= 30;
+        var governor = PrepareGovernor(board);
 
         if (AITacticalPriorities.HasLocalThreat(board) || AITacticalPriorities.FinishingAttackReserve(board) > 0) return 0;
 
-        if (EconomyHelper.IsEconomySufficient(board) && !forceByTurn)
+        if (EconomyHelper.IsEconomySufficient(board))
         {
             DevelopmentLog.Log("[AIBuildPlanner] 経済充足 → 先行建築スキップ");
             return 0;
         }
 
-        if (strategy == TurnStrategy.CrystalDefense && !forceByTurn)
+        if (strategy == TurnStrategy.CrystalDefense && governor.Mode != StrategicMode.EconomicRecovery)
         {
             DevelopmentLog.Log("[AIBuildPlanner] クリスタル防衛中 → 先行建築スキップ");
             return 0;
         }
-        if (strategy == TurnStrategy.ContactEngage && !forceByTurn)
+        if (strategy == TurnStrategy.ContactEngage && governor.Mode != StrategicMode.EconomicRecovery)
         {
             DevelopmentLog.Log("[AIBuildPlanner] 交戦開始中 → 先行建築スキップ");
             return 0;
@@ -59,7 +59,7 @@ public class AIBuildPlanner
 
         int earlyBuilds = TryScoreBuildPhase(board, strategy, turnCount);
 
-        if (earlyBuilds == 0 && _executor.BuildSystem != null && board.EnemyAP >= 3)
+        if (earlyBuilds == 0 && !AITurnBudget.Expired && _executor.BuildSystem != null && board.EnemyAP >= 3)
         {
             DevelopmentLog.Log("[AIBuildPlanner] スコアパスで建築0棟 → 直接建築フォールバック開始");
             earlyBuilds += ForceDirectBuild(board, turnCount);
@@ -87,8 +87,9 @@ public class AIBuildPlanner
 
     int TryScoreSingleBuild(AIBoardState board, TurnStrategy strategy, int turnCount)
     {
-        if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0)
+        if (AITurnBudget.Expired || board.BuildablePositions.Count == 0)
             return 0;
+        var governor = PrepareGovernor(board);
 
         var buildActions = new List<AIAction>();
         AIActionEvaluator.GenerateBuildCandidatesPublic(board, buildActions);
@@ -99,58 +100,58 @@ public class AIBuildPlanner
 
         foreach (var action in buildActions)
         {
+            if (AITurnBudget.Expired) return 0;
             action.Score = AIActionEvaluator.CalcBuildScorePublic(action, _personality, board, _learning);
         }
 
         ApplyEarlyBuildStrategyBonus(buildActions, board, strategy);
-
-        buildActions.Sort((a, b) => b.Score.CompareTo(a.Score));
+        governor.Filter(buildActions, board);
+        LogRejectedBuilds(governor);
+        buildActions.Sort(AIAction.ComparePriorityThenScore);
 
         for (int i = 0; i < Mathf.Min(3, buildActions.Count); i++)
         {
             var ba = buildActions[i];
-            DevelopmentLog.Log($"[AIBuildPlanner] 候補{i + 1}: {ba.Facility} score={ba.Score:F1} AP={ba.APCost} pos={ba.TargetPos}");
+            DevelopmentLog.Log($"[AIBuildPlanner] 候補{i + 1}: {ba.Facility} P{ba.StrategicPriority} score={ba.Score:F1} AP={ba.APCost} pos={ba.TargetPos}");
         }
-
-        int earlyBuilds = 0;
-        const int maxEarlyBuilds = 1;
 
         foreach (var action in buildActions)
         {
-            if (earlyBuilds >= maxEarlyBuilds) break;
+            if (AITurnBudget.Expired) break;
             if (action.APCost > board.EnemyAP)
             {
                 DevelopmentLog.Log($"[AIBuildPlanner] AP不足でスキップ: {action.Facility} APコスト={action.APCost} 残AP={board.EnemyAP}");
                 continue;
             }
 
-            DevelopmentLog.Log($"[AIBuildPlanner] 建築試行: {action.Facility} @{action.TargetPos} score={action.Score:F1}");
+            if (!governor.AllowExecution(action, board)) continue;
+            DevelopmentLog.Log($"[AIBuildPlanner] 建築試行: {action.Facility} @{action.TargetPos} P{action.StrategicPriority} score={action.Score:F1}");
             bool success = _executor.Execute(action, board);
             if (success)
             {
-                earlyBuilds++;
-                board.Refresh();
-                DevelopmentLog.Log($"[AIBuildPlanner] ★先行建築{earlyBuilds}成功: {action.Facility} 残AP={board.EnemyAP}");
+                governor.Evaluate(board);
+                governor.Telemetry(action, true);
+                DevelopmentLog.Log($"[AIBuildPlanner] ★先行建築成功: {action.Facility} 残AP={board.EnemyAP} 経済={governor.Economy.State}");
+                return 1;
             }
             else
             {
                 DevelopmentLog.Log($"[AIBuildPlanner] ✗先行建築失敗: {action.Facility} @{action.TargetPos}");
             }
         }
-        return earlyBuilds;
+        return 0;
     }
 
     static void ApplyEarlyBuildStrategyBonus(List<AIAction> actions, AIBoardState board, TurnStrategy strategy)
     {
         foreach (var action in actions)
         {
+            var assessment = EconomyHelper.AssessProductionBuild(action, board);
             if (strategy == TurnStrategy.EconomyBuild)
             {
-                action.Score += 30f;
-                if (EconomyHelper.IsMissingCoreFacility(action.Facility, board))
-                    action.Score += 40f;
+                if (assessment.ImprovesDeficit) action.Score += 30f;
             }
-            else if (strategy == TurnStrategy.Balanced)
+            else if (strategy == TurnStrategy.Balanced && assessment.ImprovesDeficit)
             {
                 action.Score += 15f;
             }
@@ -162,13 +163,15 @@ public class AIBuildPlanner
     // ================================================================
     public int TryLateBuildPhase(AIBoardState board, int buildsDone, int turnCount)
     {
+        if (AITurnBudget.Expired || board == null) return 0;
         bool shouldPostBuild = buildsDone == 0 && board.EnemyAP >= 3
-            && (!EconomyHelper.IsEconomySufficient(board) || turnCount >= 30);
+            && !EconomyHelper.IsEconomySufficient(board);
 
         if (!shouldPostBuild) return 0;
 
         DevelopmentLog.Log($"[AIBuildPlanner] メインループで建築0棟 → 後手建築フェーズ (ターン{turnCount})");
         board.Refresh();
+        PrepareGovernor(board);
         int lateBuilds = ForceDirectBuild(board, turnCount);
         DevelopmentLog.Log($"[AIBuildPlanner] 後手建築フェーズ: {lateBuilds}棟建築");
         return lateBuilds;
@@ -179,6 +182,7 @@ public class AIBuildPlanner
     // ================================================================
     int ForceDirectBuild(AIBoardState board, int turnCount)
     {
+        if (AITurnBudget.Expired || board == null || board.ActorTeam != _executor.ActorTeam) return 0;
         var buildSystem = _executor.BuildSystem;
         if (buildSystem == null)
         {
@@ -205,6 +209,8 @@ public class AIBuildPlanner
     int ForceDirectBuildInternal(AIBoardState board, BuildSystem buildSystem, int turnCount)
     {
         int built = 0;
+        if (board == null || _apSystem == null || _factionState == null || AITurnBudget.Expired) return built;
+        var governor = PrepareGovernor(board);
 
         FacilityKind[] buildOrder = {
             FacilityKind.Well, FacilityKind.LoggingCamp, FacilityKind.Quarry,
@@ -213,110 +219,75 @@ public class AIBuildPlanner
             FacilityKind.Warehouse, FacilityKind.Barracks,
         };
 
-        var positions = buildSystem.AIGetBuildablePositions(Team.Enemy);
-        DevelopmentLog.Log($"[AIBuildPlanner] 建築可能位置数={positions.Count}  AP={_apSystem.GetAP(Team.Enemy)}");
-
-        if (positions.Count == 0)
+        // Rebuild the candidate set after every purchase. Both demand and available cells have changed.
+        while (built < 3 && !AITurnBudget.Expired)
         {
-            Debug.LogWarning("[AIBuildPlanner] 建築可能位置がゼロ");
-            return 0;
-        }
-
-        foreach (var facility in buildOrder)
-        {
-            if (built >= 3) break;
-            int currentAP = _apSystem.GetAP(Team.Enemy);
+            int currentAP = _apSystem.GetAP(board.ActorTeam);
             if (currentAP < 3) break;
+            governor.Evaluate(board);
+            var positions = buildSystem.AIGetBuildablePositions(board.ActorTeam);
+            if (positions.Count == 0) break;
+            var actions = new List<AIAction>(buildOrder.Length);
 
-            if (!FacilityData.Table.TryGetValue(facility, out var info)) continue;
-            if (currentAP < info.APCost) continue;
-            if (!_apSystem.CanBuild(Team.Enemy, facility, _factionState)) continue;
-            if (board != null && !board.HasUpstreamProducer(facility)) continue;
-
-            int existing = board != null ? board.GetBuildingCount(facility) : 0;
-            int maxForForce = turnCount >= 30 ? 3 : 1;
-            if (facility == FacilityKind.House) maxForForce = 3;
-            if (existing >= maxForForce) continue;
-
-            for (int i = 0; i < positions.Count; i++)
+            foreach (var facility in buildOrder)
             {
-                var pos = positions[i];
-                bool success = buildSystem.AIPlaceBuilding(pos, facility, Team.Enemy);
-                if (success)
+                if (AITurnBudget.Expired) return built;
+                if (!FacilityData.Table.TryGetValue(facility, out var info) || currentAP < info.APCost) continue;
+                if (!_apSystem.CanBuild(board.ActorTeam, facility, _factionState) || !board.HasUpstreamProducer(facility)) continue;
+                var action = new AIAction { ActionType = AIActionType.Build, Facility = facility,
+                    TargetPos = positions[0], APCost = info.APCost };
+                var assessment = governor.BuildAssessment(action, board);
+                // A fallback fills diagnosed supply/capacity gaps; it is never a reason to buy surplus production.
+                if (!assessment.IsProduction || !assessment.ImprovesDeficit) continue;
+                action.Score = AIActionEvaluator.CalcBuildScorePublic(action, _personality, board, _learning);
+                actions.Add(action);
+            }
+            governor.Filter(actions, board);
+            LogRejectedBuilds(governor);
+            actions.Sort(AIAction.ComparePriorityThenScore);
+
+            bool purchased = false;
+            foreach (var action in actions)
+            {
+                if (AITurnBudget.Expired) break;
+                for (int i = 0; i < positions.Count && !AITurnBudget.Expired; i++)
                 {
+                    var pos = positions[i];
+                    action.TargetPos = pos;
+                    if (!governor.AllowExecution(action, board)) continue;
+                    if (!buildSystem.AIPlaceBuilding(pos, action.Facility, board.ActorTeam)) continue;
                     built++;
-                    if (board != null) board.Refresh();
-                    DevelopmentLog.Log($"[AIBuildPlanner] ★★ {facility} @({pos.x},{pos.y},{pos.z}) 建築成功! " +
-                              $"残AP={_apSystem.GetAP(Team.Enemy)} (今ターン{built}棟目)");
-                    positions = buildSystem.AIGetBuildablePositions(Team.Enemy);
+                    purchased = true;
+                    board.Refresh();
+                    governor.Evaluate(board);
+                    governor.Telemetry(action, true);
+                    DevelopmentLog.Log($"[AIBuildPlanner] ★★ {action.Facility} @({pos.x},{pos.y},{pos.z}) 建築成功! " +
+                              $"残AP={board.EnemyAP} (今ターン{built}棟目) 経済={governor.Economy.State}");
                     break;
                 }
+                if (purchased) break;
             }
+            if (!purchased) break;
         }
 
         if (built == 0)
-            Debug.LogWarning("[AIBuildPlanner] 全施設の建築に失敗");
+            DevelopmentLog.Log("[AIBuildPlanner] 直接建築なし: 必要な供給改善・安全条件・配置条件を満たす候補なし");
 
         return built;
     }
-}
 
-// =====================================================================
-//  EconomyHelper — 経済判定ユーティリティ（複数クラスで共用）
-// =====================================================================
-public static class EconomyHelper
-{
-    public static int CountEconBuildings(AIBoardState board)
+    static AIStrategicGovernor PrepareGovernor(AIBoardState board)
     {
-        return board.GetBuildingCount(FacilityKind.Well)
-             + board.GetBuildingCount(FacilityKind.LoggingCamp)
-             + board.GetBuildingCount(FacilityKind.Quarry)
-             + board.GetBuildingCount(FacilityKind.Field)
-             + board.GetBuildingCount(FacilityKind.Mine);
+        if (board.Governor == null)
+            board.Governor = new AIStrategicGovernor { BreadReserveTurns = AIEconomySettings.Active.BreadReserveTurns };
+        board.Governor.Evaluate(board);
+        return board.Governor;
     }
 
-    public static int CountProcessingBuildings(AIBoardState board)
+    static void LogRejectedBuilds(AIStrategicGovernor governor)
     {
-        return board.GetBuildingCount(FacilityKind.Bakery);
-    }
-
-    public static bool IsEconomySufficient(AIBoardState board)
-    {
-        int raw = CountEconBuildings(board);
-        int proc = CountProcessingBuildings(board);
-        int house = board.GetBuildingCount(FacilityKind.House);
-        return raw >= 4 && proc >= 2 && house >= 1;
-    }
-
-    public static bool IsMissingCoreFacility(FacilityKind facility, AIBoardState board)
-    {
-        switch (facility)
-        {
-            case FacilityKind.Well:
-            case FacilityKind.LoggingCamp:
-            case FacilityKind.Quarry:
-            case FacilityKind.Field:
-            case FacilityKind.Bakery:
-            case FacilityKind.Mine:
-            case FacilityKind.House:
-                return board.GetBuildingCount(facility) == 0;
-            default:
-                return false;
-        }
-    }
-
-    /// <summary>基礎経済施設5種(Well,LoggingCamp,Quarry,Field,House)の設置済み種類数</summary>
-    public static int CalcCoreEconomyCount(AIBoardState board)
-    {
-        return (board.GetBuildingCount(FacilityKind.Well) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.LoggingCamp) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.Quarry) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.Field) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.House) > 0 ? 1 : 0);
-    }
-
-    public static bool IsProcessingFacility(FacilityKind facility)
-    {
-        return facility == FacilityKind.Bakery;
+        if (!AIEconomySettings.Active.enableDecisionLogs) return;
+        foreach (var rejected in governor.Rejections)
+            DevelopmentLog.Log($"[AIBuildPlanner] 建築禁止: {rejected.Key.Facility} reason={rejected.Value}");
     }
 }

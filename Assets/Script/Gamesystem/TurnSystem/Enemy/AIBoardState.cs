@@ -34,8 +34,23 @@ public partial class AIBoardState
     /// <summary>The real faction controlled by this board. Legacy Enemy* names mean own side; Player* mean opponents.</summary>
     public Team ActorTeam { get; }
     public AIStrategicGovernor Governor { get; set; }
+    StrategicEconomyForecast productionForecast;
+    public StrategicProductionDemand ProductionDemand
+    {
+        get
+        {
+            if (Governor == null)
+            {
+                if (productionForecast == null) productionForecast = new StrategicEconomyForecast();
+                return productionForecast.Diagnose(this);
+            }
+            Governor.Evaluate(this);
+            return Governor.ProductionDemand;
+        }
+    }
     public UnitData ResolveUnitDefinition(Kind kind) => _unitSet != null && _unitSet.UnitDataMap.TryGetValue(kind,out var data) ? data : null;
     public bool CanSummonDefinition(UnitData data) => _summonSystem != null && _summonSystem.CanSummon(ActorTeam,data);
+    public int NationStarvationCounter => _factionState?.GetNation(ActorTeam)?.StarvationCounter ?? 0;
     public int NationTurnsAlive => _factionState?.GetNation(ActorTeam)?.TurnsAlive ?? TurnCount;
     public int CitizenCapacity => _factionState?.GetCitizenCap(ActorTeam) ?? 5;
     public Team OpponentTeam => ActorTeam == Team.Player ? Team.Enemy : Team.Player;

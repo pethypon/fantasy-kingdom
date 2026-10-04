@@ -19,6 +19,7 @@ public sealed partial class GameDevelopmentStudioWindow
         Heading("時間とAP"); Fields(so,"turnSeconds","totalSeconds","timeBonusSeconds","maximumAP","moveAP","attackAP","heightAP","citizenAP");
         EditorGUILayout.LabelField("毎ターンのAP", "初期AP ＋ 市民による増加 − ペナルティ（AP上限まで）", EditorStyles.wordWrappedMiniLabel);
         Heading("維持・経済");Fields(so,"breadPerCitizen","starvationGraceTurns","aiBreadReserveTurns");
+        DrawAIEconomyPolicy(so.FindProperty("aiEconomy"));
         Heading("新規マップ");Fields(so,"mapWidth","mapDepth","noiseScale","riverHalfWidth");
         Heading("陣営の名前・色・初期状態");
         var factions=so.FindProperty("factions");
@@ -44,6 +45,25 @@ public sealed partial class GameDevelopmentStudioWindow
         }
         so.ApplyModifiedProperties();
     }
+    static void DrawAIEconomyPolicy(SerializedProperty policy)
+    {
+        if (policy == null) return;
+        policy.isExpanded = EditorGUILayout.Foldout(policy.isExpanded, "AIの経済・生産判断（R2）", true);
+        if (!policy.isExpanded) return;
+        EditorGUILayout.HelpBox("AIは資源ごとの生産量・維持費・将来の需要から増設を判断します。経済危機では通常の軍事建築を控え、視認した重大な脅威への緊急防衛を優先します。判断ログは必要な時だけ有効にすると軽く動作します。", MessageType.Info);
+        EditorGUI.indentLevel++;
+        foreach (var name in new[] {
+            "enableDecisionLogs", "forecastTurns", "reserveTurns", "recoveryWindowTurns",
+            "plannedDemandWeight", "plannedUnitLevel", "plannedBuildActions", "plannedSummonActions", "explorationSummonWeight",
+            "needWeight", "coverageWeight", "chainRecoveryWeight", "reserveRecoveryWeight", "overstockPenalty",
+            "warningMilitaryPenalty", "localMilitarySaturationPenalty", "uncoveredWallThreatPenalty",
+            "emergencyKingDamageFraction", "emergencyCrystalDamageFraction", "criticalReserveFraction",
+            "sustainedDeficitUrgency", "deficitEpsilon" }) Field(policy.FindPropertyRelative(name));
+        DrawBundle(policy.FindPropertyRelative("minimumOperationalBuffer"), "資源ごとの最低予備量");
+        DrawBundle(policy.FindPropertyRelative("plannedBuildCost"), "次の建築で消費すると見込む資源");
+        EditorGUI.indentLevel--;
+    }
+
     public static GameAuthoringRules CreateRules()
     {
         var existing=AssetDatabase.LoadAssetAtPath<GameAuthoringRules>(RulesPath);if(existing!=null)return existing;

@@ -36,8 +36,8 @@ public partial class BuildSummonUIBuilder
     private readonly List<(Button btn, Image bg, FacilityKind kind)> buildButtons
         = new List<(Button, Image, FacilityKind)>();
     // 召喚ボタン管理用
-    private readonly List<(Button btn, Image bg, Kind kind)> summonButtons
-        = new List<(Button, Image, Kind)>();
+    private readonly List<(Button btn, Image bg, Kind kind, TextMeshProUGUI title, TextMeshProUGUI cost)> summonButtons
+        = new List<(Button, Image, Kind, TextMeshProUGUI, TextMeshProUGUI)>();
 
     private APSystem cachedAPSystem;
     private FactionState cachedFactionState;
@@ -127,6 +127,7 @@ public partial class BuildSummonUIBuilder
     {
         buildButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
         buildCostLabels.Clear();
+        authoredBuildButtons.Clear();
         var (go, content) = CreateBaseScrollView(name, parent);
 
         // 建築物ボタン + コスト表示を生成
@@ -183,6 +184,7 @@ public partial class BuildSummonUIBuilder
             costRT.offsetMin = new Vector2(8, 0);
         }
 
+        CreateAuthoredBuildRows(content);
         return go;
     }
 
@@ -218,21 +220,16 @@ public partial class BuildSummonUIBuilder
         foreach (var kind in SummonableKinds)
         {
             string displayName = KindDisplayNames.TryGetValue(kind, out string dn) ? dn : kind.ToString();
-            var btn = UIFactory.CreateButton("Summon_" + kind, content.transform,
-                displayName, BrandGuide.FontHud, BrandGuide.BtnSummonEnabled, defaultFont);
-
-            var le = btn.gameObject.AddComponent<LayoutElement>();
-            le.preferredHeight = 64;
-
-            var bg = btn.GetComponent<Image>();
-            summonButtons.Add((btn, bg, kind));
+            var row = CreateSummonRow("Row_" + kind, content.transform, "Summon_" + kind,
+                "Cost_" + kind, displayName, ResolveSummonDefinition(kind));
+            var btn = row.button;
+            summonButtons.Add((btn, btn.GetComponent<Image>(), kind, row.title, row.cost));
 
             Kind captured = kind;
             btn.onClick.AddListener(() => OnSummonButtonClicked(captured));
         }
 
         CreateAuthoredSummonButtons(content.transform);
-        CreateAuthoredBuildRows(content);
         return go;
     }
 
@@ -264,6 +261,7 @@ public partial class BuildSummonUIBuilder
             slidePanel.OnBuildPanelOpened -= RefreshBuildButtons;
             slidePanel.OnBuildPanelOpened += RefreshBuildButtons;
         }
+        RefreshBuildButtons();
     }
 
     /// <summary>
@@ -275,6 +273,7 @@ public partial class BuildSummonUIBuilder
 
         foreach (var (btn, bg, kind) in buildButtons)
         {
+            if (btn == null) continue;
             bool canBuild;
             if (FacilityData.IsSubCrystal(kind))
             {
@@ -304,6 +303,7 @@ public partial class BuildSummonUIBuilder
                     : BrandGuide.BtnDisabled;
             }
         }
+        RefreshAuthoredBuildButtons();
     }
 
     /// <summary>
@@ -322,6 +322,7 @@ public partial class BuildSummonUIBuilder
             slidePanel.OnUnitPanelOpened -= RefreshSummonButtons;
             slidePanel.OnUnitPanelOpened += RefreshSummonButtons;
         }
+        RefreshSummonButtons();
     }
 
     /// <summary>
@@ -331,15 +332,14 @@ public partial class BuildSummonUIBuilder
     {
         if (summonSystem == null || cachedUnitSetting == null) return;
 
-        foreach (var (btn, bg, kind) in summonButtons)
+        foreach (var (btn, bg, kind, title, cost) in summonButtons)
         {
-            bool canSummon = summonSystem.CanSummon(Team.Player, kind);
-            btn.interactable = canSummon;
-            bg.color = canSummon
-                ? BrandGuide.BtnSummonEnabled
-                : BrandGuide.BtnDisabled;
+            if (btn == null) continue;
+            var data = ResolveSummonDefinition(kind);
+            string displayName = data != null && !string.IsNullOrWhiteSpace(data.displayName) ? data.DisplayName
+                : KindDisplayNames.TryGetValue(kind, out var name) ? name : kind.ToString();
+            RefreshSummonRow(btn, bg, title, cost, data, displayName);
         }
-        RefreshAuthoredBuildButtons();
         RefreshAuthoredSummonButtons();
     }
 }

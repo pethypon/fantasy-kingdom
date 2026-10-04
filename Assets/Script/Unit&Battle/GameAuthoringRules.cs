@@ -22,6 +22,7 @@ public sealed class GameAuthoringRules : ScriptableObject
     public const string ResourcesPath = "GameContent/Rules";
     public bool applyRules;
     [Range(1,8)] public int aiBreadReserveTurns=3;
+    public AIEconomySettings aiEconomy = new AIEconomySettings();
     [Min(1)] public float turnSeconds = 180;
     [Min(1)] public float totalSeconds = 36000;
     [Min(0)] public float timeBonusSeconds = 60;

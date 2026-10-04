@@ -396,7 +396,8 @@ public static partial class AIActionGenerator
 
             int existing = board.GetBuildingCount(facility);
             int maxAllowed = GetMaxBuildingCount(facility);
-            if (existing >= maxAllowed)
+            var demand = board.ProductionDemand.EvaluateBuild(new AIAction { ActionType = AIActionType.Build, Facility = facility });
+            if (existing >= maxAllowed && !demand.ImprovesDeficit)
             {
                 DevelopmentLog.Log($"[AI Build] {facility}: 上限到達({existing}/{maxAllowed}) → スキップ");
                 continue;
@@ -442,8 +443,10 @@ public static partial class AIActionGenerator
             if (definition == null || !definition.IsAvailable(board.ActorTeam)
                 || catalog.Find(definition.definitionId) != definition || !board.CanBuildDefinition(definition)) continue;
             var facility = definition.behaviourKind;
-            if (FacilityData.IsSubCrystal(facility) || board.GetBuildingCount(facility) >= GetMaxBuildingCount(facility)
-                || !board.HasUpstreamProducer(facility)) continue;
+            if (FacilityData.IsSubCrystal(facility) || !AIBoardQuery.HasProductionInputs(board, definition.GetLevel(1))) continue;
+            var demand = board.ProductionDemand.EvaluateBuild(new AIAction
+                { ActionType = AIActionType.Build, Facility = facility, FacilityDefinition = definition });
+            if (board.GetBuildingCount(facility) >= GetMaxBuildingCount(facility) && !demand.ImprovesDeficit) continue;
             int count = 0;
             foreach (var position in SelectBuildPositions(facility, board))
             {

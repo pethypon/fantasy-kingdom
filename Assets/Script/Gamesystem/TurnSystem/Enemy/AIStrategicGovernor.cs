@@ -31,6 +31,8 @@ public sealed class AIStrategicGovernor
     readonly Dictionary<Status,float> safest=new Dictionary<Status,float>();
     readonly Dictionary<(Status,Vector3Int,Status),float> damageCache=new Dictionary<(Status,Vector3Int,Status),float>();
     readonly Dictionary<AIAction,string> rejected=new Dictionary<AIAction,string>();
+    readonly Dictionary<(FacilityKind, FacilityDefinitionData), EconomyForecastResult> buildForecasts
+        = new Dictionary<(FacilityKind, FacilityDefinitionData), EconomyForecastResult>();
     readonly Dictionary<(Status,Vector3Int),float> threatCache=new Dictionary<(Status,Vector3Int),float>();
     readonly Dictionary<(int,Kind,Direction),HashSet<Vector2Int>> skillReach=new Dictionary<(int,Kind,Direction),HashSet<Vector2Int>>();
     AIBoardState current;int generation=-1;
@@ -38,6 +40,7 @@ public sealed class AIStrategicGovernor
     Status explorer;
     public StrategicMode Mode {get;private set;}
     public EconomyForecastResult Economy {get;private set;}
+    public StrategicProductionDemand ProductionDemand { get; private set; }
     public PersistentStrategicObjective Objective {get;private set;}=new PersistentStrategicObjective();
     public IReadOnlyDictionary<AIAction,string> Rejections=>rejected;
     public int BreadReserveTurns {get=>forecast.ReserveTurns;set=>forecast.ReserveTurns=Mathf.Clamp(value,1,8);}
@@ -45,7 +48,7 @@ public sealed class AIStrategicGovernor
     public void Evaluate(AIBoardState board)
     {
         if(current==board&&generation==board.Generation)return;
-        current=board;generation=board.Generation;reachable.Clear();damageCache.Clear();threatCache.Clear();safest.Clear();safeAlternativesPrepared=false;
+        current=board;generation=board.Generation;reachable.Clear();damageCache.Clear();threatCache.Clear();safest.Clear();buildForecasts.Clear();safeAlternativesPrepared=false;
         losses.Collect(board,critical);defenders.Clear();army.Clear();
         // A persistent scout objective does not commandeer every combat unit or consume all economic AP.
         explorer=null;
@@ -61,11 +64,20 @@ public sealed class AIStrategicGovernor
         {
             float incoming=IncomingDamage(board,target,target.transform.position,null);
             float risk=incoming/Mathf.Max(1,target.HP);
-            if(incoming>0){emergency=true;if(risk>severity){severity=risk;defensePoint=target.transform.position;}}
+            if (IsSevereThreat(target, incoming))
+            {
+                emergency = true;
+                if (risk > severity) { severity = risk; defensePoint = target.transform.position; }
+            }
         }
         // A remembered threat can guide scouting, but only observed legal attacks trigger emergency orders.
-        Mode=emergency?StrategicMode.EmergencyDefense:Economy.State>=EconomicState.Crisis?StrategicMode.EconomicRecovery
-            :board.AlivePlayerUnits.Count==0?StrategicMode.Exploration:StrategicMode.StrategicAttack;
+        ProductionDemand = forecast.Diagnose(board, !emergency && Economy.State < EconomicState.Crisis);
+        Economy = ProductionDemand.Forecast;
+        Mode = emergency ? StrategicMode.EmergencyDefense
+            : ProductionDemand.HasCriticalDeficit || ProductionDemand.HasWarningDeficit
+                || Economy.State >= EconomicState.Warning ? StrategicMode.EconomicRecovery
+            : board.AlivePlayerUnits.Count == 0 ? StrategicMode.Exploration : StrategicMode.StrategicAttack;
+        LogProductionDemand(board);
         UpdateObjective(board,emergency||Mode==StrategicMode.EconomicRecovery);
         if(emergency)SelectDefenders(board);
     }
@@ -126,7 +138,12 @@ public sealed class AIStrategicGovernor
             var action=actions[i];action.StrategicPriority=Priority(action,board);
             string reason=RejectReason(action,board);
             action.StrategicRejectReason=reason;
-            if(reason!=null){rejected[action]=reason;continue;}
+            if(reason!=null)
+            {
+                rejected[action]=reason;
+                if (action.ActionType == AIActionType.Build && AIEconomySettings.Active.enableDecisionLogs) DevelopmentLog.Log($"[AI経済] Rejected={action.Facility} reason={reason}");
+                continue;
+            }
             actions[output++]=action;
         }
         if(output<actions.Count)actions.RemoveRange(output,actions.Count-output);
@@ -154,6 +171,23 @@ public sealed class AIStrategicGovernor
             if(projected.UpkeepPaymentFailed)return "upkeep_forecast_fail";
             if(projected.BreadCoverageTurns<BreadReserveTurns&&Mode!=StrategicMode.EmergencyDefense)return "bread_reserve_fail";
         }
+        if (action.ActionType == AIActionType.Build)
+        {
+            var assessment = ProductionDemand.EvaluateBuild(action);
+            bool emergencyDefense = IsEmergencyDefenseRequired(action, board);
+            if (IsMilitaryConstruction(action) && ProductionDemand.State >= EconomicState.Crisis && !emergencyDefense)
+                return "economic_recovery_blocks_military_build";
+            var key = (action.Facility, action.FacilityDefinition);
+            if (!buildForecasts.TryGetValue(key, out var projected))
+                buildForecasts[key] = projected = forecast.Simulate(board, action);
+            // A baseline crisis must not hide a new failure in a different resource.
+            bool introducesFailure = (projected.MandatoryFailureMask & ~Economy.MandatoryFailureMask) != 0
+                || (projected.FirstTurnMandatoryFailureMask & ~Economy.FirstTurnMandatoryFailureMask) != 0
+                || (projected.FirstTurnInputFailureMask & ~Economy.FirstTurnInputFailureMask) != 0;
+            if (!emergencyDefense && introducesFailure) return "build_causes_forecast_failure";
+            if (assessment.IsProduction && !assessment.ImprovesDeficit && !emergencyDefense)
+                return "production_not_needed";
+        }
         if(Mode==StrategicMode.EmergencyDefense)
         {
             if(action.ActionType==AIActionType.SubCrystal)return "emergency_expansion_suspended";
@@ -174,12 +208,85 @@ public sealed class AIStrategicGovernor
             if(IsMovement(a)&&defenders.Contains(a.Unit)&&Distance(a.TargetPos,defensePoint)<Distance(a.Unit.transform.position,defensePoint))return 1;
             if(a.ActionType==AIActionType.Summon&&Distance(a.TargetPos,defensePoint)<=4)return 1;
         }
-        if(Mode==StrategicMode.EconomicRecovery&&forecast.ImprovesFoodSupply(a,board))return 2;
+        if (a.ActionType == AIActionType.Build)
+        {
+            if (IsEmergencyDefenseRequired(a, board)) return 0;
+            var production = ProductionDemand.EvaluateBuild(a);
+            if (production.ImprovesCritical) return 1;
+            if (production.ImprovesDeficit && Mode == StrategicMode.EconomicRecovery) return 2;
+            if (production.ImprovesDeficit) return 3;
+        }
         if(Objective.Active&&!Objective.Suspended&&a.Unit==explorer&&IsMovement(a)
             &&Distance(a.TargetPos,Objective.Target)<Distance(a.Unit.transform.position,Objective.Target)
             &&IncomingDamage(board,a.Unit,a.TargetPos,null)<a.Unit.HP)return 3;
         return 4;
     }
+    public ProductionBuildAssessment BuildAssessment(AIAction action, AIBoardState board)
+    {
+        Evaluate(board);
+        return ProductionDemand.EvaluateBuild(action);
+    }
+
+    public static bool IsMilitaryConstruction(AIAction action)
+    {
+        if (action == null || action.ActionType != AIActionType.Build) return false;
+        var kind = action.FacilityDefinition != null ? action.FacilityDefinition.behaviourKind : action.Facility;
+        return FacilityData.IsWall(kind) || FacilityData.IsOffensive(kind);
+    }
+
+    bool IsSevereThreat(Status target, float incoming)
+    {
+        if (target == null || !target.IsAlive || incoming <= 0) return false;
+        var settings = AIEconomySettings.Active;
+        float threshold = target.kind == Kind.King ? settings.emergencyKingDamageFraction : settings.emergencyCrystalDamageFraction;
+        if (float.IsNaN(threshold) || float.IsInfinity(threshold)) threshold = target.kind == Kind.King ? .4f : .75f;
+        return incoming >= Mathf.Max(1, target.HP) * Mathf.Clamp(threshold, .05f, 1f);
+    }
+
+    // An emergency grants an exception only to a facility that covers an observed approach.
+    public bool IsEmergencyDefenseRequired(AIAction action, AIBoardState board)
+    {
+        Evaluate(board);
+        if (Mode != StrategicMode.EmergencyDefense || !IsMilitaryConstruction(action)) return false;
+        var kind = action.FacilityDefinition != null ? action.FacilityDefinition.behaviourKind : action.Facility;
+        foreach (var target in critical)
+        {
+            if (!IsSevereThreat(target, IncomingDamage(board, target, target.transform.position, null))) continue;
+            if (Distance(action.TargetPos, target.transform.position) > 4) continue;
+            foreach (var opponent in board.AlivePlayerUnits)
+            {
+                if (opponent == null || !opponent.IsAlive || !CanThreaten(board, opponent, target.transform.position)) continue;
+                float approach = Distance(opponent.transform.position, target.transform.position);
+                if (FacilityData.IsWall(kind))
+                {
+                    if (Distance(action.TargetPos, target.transform.position) <= 2
+                        && Distance(opponent.transform.position, action.TargetPos) < approach
+                        && Distance(opponent.transform.position, action.TargetPos) + Distance(action.TargetPos, target.transform.position) <= approach + 1)
+                        return true;
+                }
+                else if (kind == FacilityKind.Cannon && Distance(action.TargetPos, opponent.transform.position) <= 1) return true;
+                else if (kind == FacilityKind.Mortar)
+                {
+                    float dx = Mathf.Abs(action.TargetPos.x - opponent.transform.position.x);
+                    float dz = Mathf.Abs(action.TargetPos.z - opponent.transform.position.z);
+                    if ((dx == 0 || dz == 0) && Mathf.Max(dx, dz) <= 2) return true;
+                }
+                else if ((kind == FacilityKind.RestraintTrap || kind == FacilityKind.SpikeTrap)
+                    && Distance(action.TargetPos, opponent.transform.position) <= 1) return true;
+            }
+        }
+        return false;
+    }
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+    void LogProductionDemand(AIBoardState board)
+    {
+        if (!AIEconomySettings.Active.enableDecisionLogs) return;
+        DevelopmentLog.Log($"[AI経済] State={ProductionDemand.State} Mode={Mode} Turn={board.TurnCount} Team={board.ActorTeam}");
+        foreach (var resource in ProductionDemand.Resources)
+            DevelopmentLog.Log($"[AI経済] {resource.Resource} stock={resource.Stock:F1} prod={resource.ProductionPerTurn:F1} demand={resource.MandatoryDemandPerTurn:F1} plan={resource.PlannedDemandPerTurn:F1} net={resource.NetPerTurn:F1} reserve={resource.SafetyReserve:F1} projected={resource.ProjectedStock:F1} deficit={resource.ProductionDeficit:F1} urgency={resource.Urgency01:F2}");
+    }
+
     bool ThreatensCritical(Status opponent,AIBoardState board)
     {foreach(var target in critical)if(CanThreaten(board,opponent,target.transform.position))return true;return false;}
     float Risk(AIAction action,AIBoardState board)

@@ -39,7 +39,29 @@ public sealed partial class GameDevelopmentStudioWindow
         {"ObjectiveTurns","襲撃の継続ターン数"},{"EstimatedPowerSwing","想定する戦力変化の比率"},{"EstimatedDisruption","想定する戦況への影響度"},
         {"MinimumStagnation","発生に必要な膠着度"},{"Prefab","襲撃する駒のPrefab"},{"Stats","襲撃する駒の能力データ"},
         {"SpawnCount","出現する駒の数"},{"CanActImmediately","出現したターンから行動する"},{"LocalExpansionRadius","一度に拡大する範囲（マス）"},
-        {"EncounterId","遭遇データID（既存コンテンツ用）"}
+        {"EncounterId","遭遇データID（既存コンテンツ用）"},
+        {"enableDecisionLogs","AI経済の判断ログを出力"},
+        {"forecastTurns","経済を予測するターン数"},
+        {"reserveTurns","資源を確保する予備ターン数"},
+        {"recoveryWindowTurns","不足在庫を回復する目標ターン数"},
+        {"plannedDemandWeight","将来の建築・召喚を見込む割合"},
+        {"needWeight","不足の緊急度による建築加点"},
+        {"coverageWeight","不足を解消する割合による建築加点"},
+        {"chainRecoveryWeight","停止した生産を復旧する加点"},
+        {"reserveRecoveryWeight","予備資源を回復する加点"},
+        {"overstockPenalty","不要な増産への減点"},
+        {"warningMilitaryPenalty","経済警戒時の軍事建築への減点"},
+        {"localMilitarySaturationPenalty","近くに防衛施設が多い場合の減点"},
+        {"uncoveredWallThreatPenalty","敵の侵入経路と無関係な壁への減点"},
+        {"emergencyKingDamageFraction","Kingの緊急防衛を始める被害割合"},
+        {"emergencyCrystalDamageFraction","クリスタルの緊急防衛を始める被害割合"},
+        {"criticalReserveFraction","経済危機と判断する予備資源の割合"},
+        {"sustainedDeficitUrgency","継続する赤字の最低緊急度"},
+        {"deficitEpsilon","生産不足を判定する最小量"},
+        {"plannedUnitLevel","軍拡張の維持費を見込む駒レベル"},
+        {"plannedBuildActions","予測する建築回数"},
+        {"plannedSummonActions","予測する召喚回数"},
+        {"explorationSummonWeight","探索中の追加召喚を見込む割合"}
     };
     static void Fields(SerializedObject so, params string[] names) { foreach (var name in names) Field(so.FindProperty(name)); }
     static void Field(SerializedProperty p)

@@ -7,13 +7,19 @@ using UnityEngine;
 // =====================================================================
 static class AIBuildEvaluator
 {
-    const int TurnEarlyEnd = AIConstants.TurnEarlyEnd;
     const int TurnMidEnd   = AIConstants.TurnMidEnd;
-    const int TurnProductionBoost = AIConstants.TurnProductionBoost;
-    const float ProductionBoostScore = 55f;
-    const int TurnLateBuildBoost = AIConstants.TurnLateBuildBoost;
-    const float LateBuildBoostScore = 120f;
     const float DuplicatePenaltyFactor = 15f;
+    static readonly List<Status> ownBuildings = new List<Status>(32);
+    static AIBoardState buildingsBoard;
+    static int buildingsGeneration = -1;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetBuildingCache()
+    {
+        ownBuildings.Clear();
+        buildingsBoard = null;
+        buildingsGeneration = -1;
+    }
 
     internal static float CalcSubCrystalBaseScore(AIAction action, AIBoardState board)
     {
@@ -23,91 +29,35 @@ static class AIBuildEvaluator
     internal static float CalcBuildBaseScore(AIAction action, AIBoardState board)
     {
         float score = 15f;
-        var facility = action.Facility;
+        var facility = action.FacilityDefinition != null ? action.FacilityDefinition.behaviourKind : action.Facility;
         int turn = board.TurnCount;
+        var assessment = EconomyHelper.AssessProductionBuild(action, board);
+        float militaryPenalty = 0f;
+        if (AIStrategicGovernor.IsMilitaryConstruction(action))
+        {
+            board.Governor?.Evaluate(board);
+            bool emergency = board.Governor != null && board.Governor.IsEmergencyDefenseRequired(action, board);
+            if (board.ProductionDemand.State == EconomicState.Warning && !emergency)
+                militaryPenalty = AIEconomySettings.Active.WarningMilitaryBuildPenalty;
+        }
+        score -= militaryPenalty;
 
-        float scarcityBonus = CalcScarcityBonus(facility, board);
-        score += scarcityBonus;
+        // A second producer has the same marginal value as the first when it closes the same deficit.
+        // Capacity facilities use the same assessment and are useful only at an actual bottleneck.
+        if (assessment.IsProduction)
+        {
+            float phase = assessment.ImprovesDeficit ? ProductionPhaseScore(facility, turn) : 0f;
+            score += assessment.FinalScore + phase;
+            if (AIEconomySettings.Active.enableDecisionLogs)
+                DevelopmentLog.Log($"[AI経済建築] {facility} need={assessment.NeedScore:F1} " +
+                    $"chain={assessment.ChainRecoveryScore:F1} reserve={assessment.ReserveRecoveryScore:F1} " +
+                    $"overstock={assessment.OverstockPenalty:F1} inputPressure={assessment.InputPressurePenalty:F1} " +
+                    $"phase={phase:F1} militaryPenalty={militaryPenalty:F1} base={score:F1}");
+            return score;
+        }
 
         switch (facility)
         {
-            case FacilityKind.Well:
-                score += AIActionEvaluator.PhaseScore(turn, 40f, 12f, 5f);
-                if (board.GetBuildingCount(FacilityKind.Well) == 0)
-                {
-                    score += 40f;
-                    if (board.EnemyResources != null)
-                        score += AIActionEvaluator.ResourceEmergencyBonus(board.EnemyResources.Water, 50f, 30f, 15f);
-                }
-                break;
-
-            case FacilityKind.LoggingCamp:
-                score += AIActionEvaluator.PhaseScore(turn, 35f, 12f, 5f);
-                if (board.GetBuildingCount(FacilityKind.LoggingCamp) == 0)
-                {
-                    score += 40f;
-                    if (board.EnemyResources != null)
-                        score += AIActionEvaluator.ResourceEmergencyBonus(board.EnemyResources.Wood, 50f, 30f, 15f);
-                }
-                break;
-
-            case FacilityKind.Quarry:
-                score += AIActionEvaluator.PhaseScore(turn, 30f, 12f, 5f);
-                if (board.GetBuildingCount(FacilityKind.Quarry) == 0)
-                {
-                    score += 30f;
-                    if (board.EnemyResources != null)
-                        score += AIActionEvaluator.ResourceEmergencyBonus(board.EnemyResources.Stone, 40f, 20f, 10f);
-                }
-                break;
-
-            case FacilityKind.Field:
-                score += AIActionEvaluator.PhaseScore(turn, 32f, 14f, 5f);
-                if (board.GetBuildingCount(FacilityKind.Field) == 0) score += 25f;
-                if (board.EnemyResources != null && board.EnemyResources.Bread <= 10)
-                    score += 20f;
-                break;
-
-            case FacilityKind.Mine:
-                score += AIActionEvaluator.PhaseScore(turn, 20f, 22f, 12f);
-                if (turn >= TurnProductionBoost) score += ProductionBoostScore;
-                if (board.GetBuildingCount(FacilityKind.Mine) == 0) score += 25f;
-                if (board.EnemyResources != null)
-                {
-                    if (board.EnemyResources.Iron <= 5) score += 18f;
-                    if (board.EnemyResources.MagicOre <= 5) score += 12f;
-                }
-                break;
-
-            case FacilityKind.Bakery:
-                score += AIActionEvaluator.PhaseScore(turn, 35f, 25f, 12f);
-                if (board.GetBuildingCount(FacilityKind.Bakery) == 0 &&
-                    board.GetBuildingCount(FacilityKind.Field) > 0) score += 40f;
-                if (board.EnemyResources != null && board.EnemyResources.Bread < 20)
-                    score += 25f;
-                break;
-
-            case FacilityKind.House:
-                score += AIActionEvaluator.PhaseScore(turn, 35f, 25f, 15f);
-                if (board.GetBuildingCount(FacilityKind.House) == 0)
-                {
-                    score += 40f;
-                    if (board.EnemyResources != null && board.EnemyResources.Citizen <= 0)
-                        score += 50f;
-                }
-                if (board.EnemyResources != null)
-                {
-                    if (board.EnemyResources.Citizen <= 0) score += 35f;
-                    else if (board.EnemyResources.Citizen <= 2) score += 20f;
-                }
-                break;
-
-            case FacilityKind.Warehouse:
-                score += AIActionEvaluator.PhaseScore(turn, 2f, 15f, 12f);
-                if (board.GetBuildingCount(FacilityKind.Warehouse) == 0 && turn >= 10)
-                    score += 18f;
-                break;
-
             case FacilityKind.Barracks:
                 score += AIActionEvaluator.PhaseScore(turn, 3f, 15f, 20f);
                 if (board.GetBuildingCount(FacilityKind.Barracks) == 0 && turn >= 12)
@@ -117,10 +67,7 @@ static class AIBuildEvaluator
             case FacilityKind.WoodWall:
             case FacilityKind.StoneWall:
                 score += AIActionEvaluator.PhaseScore(turn, 3f, 8f, 15f);
-                if (board.EnemyCrystalHP < board.EnemyCrystalMaxHP * 0.5f)
-                    score += 20f;
-                if (AIActionEvaluator.CalcCoreEconomyCount(board) < 4)
-                    score -= 30f;
+                score -= CalcWallSaturationPenalty(action.TargetPos, board);
                 break;
 
             case FacilityKind.Mortar:
@@ -145,93 +92,74 @@ static class AIBuildEvaluator
         if (existingCount > 0)
             score -= existingCount * existingCount * DuplicatePenaltyFactor;
 
-        score += CalcProcessingOverstockBonus(facility, board);
-
-        var chainDeficits = board.DiagnoseProductionChainDeficit();
-        for (int i = 0; i < chainDeficits.Count; i++)
-        {
-            if (chainDeficits[i] == facility)
-            {
-                score += Mathf.Max(5f, 30f - i * 6f);
-                break;
-            }
-        }
-
-        if (turn >= TurnLateBuildBoost)
-        {
-            bool isMilitary = FacilityData.IsWall(facility) || FacilityData.IsOffensive(facility);
-
-            if (existingCount == 0 && !isMilitary)
-                score += LateBuildBoostScore + 80f;
-            else if (existingCount == 0)
-                score += LateBuildBoostScore;
-            else
-                score += LateBuildBoostScore * 0.5f;
-
-            switch (facility)
-            {
-                case FacilityKind.Mine:
-                    if (existingCount == 0) score += 50f;
-                    break;
-                case FacilityKind.House:
-                    if (board.EnemyResources != null && board.EnemyResources.Citizen <= 2)
-                        score += 80f;
-                    break;
-                case FacilityKind.Warehouse:
-                    if (existingCount == 0 && turn >= 35) score += 40f;
-                    break;
-                case FacilityKind.Barracks:
-                    if (existingCount == 0 && turn >= 35) score += 50f;
-                    break;
-            }
-        }
-
         return score;
     }
 
-    static float CalcProcessingOverstockBonus(FacilityKind facility, AIBoardState board)
+    static float ProductionPhaseScore(FacilityKind facility, int turn)
     {
-        if (board.EnemyResources == null) return 0f;
-        var res = board.EnemyResources;
-
         switch (facility)
         {
+            case FacilityKind.Well:
+            case FacilityKind.LoggingCamp:
+            case FacilityKind.Quarry:
+            case FacilityKind.Field:
+                return AIActionEvaluator.PhaseScore(turn, 12f, 5f, 2f);
             case FacilityKind.Bakery:
-                return (res.Wheat > 30 && res.Bread < 20) ? 40f : 0f;
+                return AIActionEvaluator.PhaseScore(turn, 12f, 8f, 4f);
+            case FacilityKind.Mine:
+            case FacilityKind.House:
+            case FacilityKind.LuxuryHouse:
+                return AIActionEvaluator.PhaseScore(turn, 5f, 8f, 5f);
             default:
                 return 0f;
         }
     }
 
-    static float CalcScarcityBonus(FacilityKind facility, AIBoardState board)
+    static float CalcWallSaturationPenalty(Vector3 position, AIBoardState board)
     {
-        float bonus = 0f;
-        switch (facility)
+        if (buildingsBoard != board || buildingsGeneration != board.Generation)
         {
-            case FacilityKind.Well:
-                bonus += board.GetResourceScarcity("Water") * 30f;
-                if (board.GetBuildingCount(FacilityKind.Well) == 0) bonus += 20f;
-                break;
-            case FacilityKind.LoggingCamp:
-                bonus += board.GetResourceScarcity("Wood") * 30f;
-                if (board.GetBuildingCount(FacilityKind.LoggingCamp) == 0) bonus += 20f;
-                break;
-            case FacilityKind.Quarry:
-                bonus += board.GetResourceScarcity("Stone") * 28f;
-                if (board.GetBuildingCount(FacilityKind.Quarry) == 0) bonus += 15f;
-                break;
-            case FacilityKind.Field:
-                bonus += board.GetResourceScarcity("Wheat") * 15f;
-                break;
-            case FacilityKind.Mine:
-                bonus += board.GetResourceScarcity("Iron") * 20f;
-                bonus += board.GetResourceScarcity("MagicOre") * 12f;
-                break;
-            case FacilityKind.Bakery:
-                bonus += board.GetResourceScarcity("Bread") * 22f;
-                break;
+            buildingsBoard = board;
+            buildingsGeneration = board.Generation;
+            board.CollectOwnBuildings(ownBuildings);
         }
-        return bonus;
+
+        int adjacentWalls = 0;
+        for (int i = 0; i < ownBuildings.Count; i++)
+        {
+            var building = ownBuildings[i];
+            if (building == null || !building.IsAlive || !FacilityData.IsWall(building.facilityKind)) continue;
+            if (GridHelper.ChebyshevDistance(position, building.transform.position) <= 2) adjacentWalls++;
+        }
+
+        float penalty = adjacentWalls * AIEconomySettings.Active.LocalWallSaturationPenalty;
+        bool aligned = WallFacesObservedThreat(position, board.EnemyCrystalPos, board);
+        if (!aligned)
+        {
+            foreach (var actor in board.AliveEnemyUnits)
+            {
+                if (actor == null || !actor.IsAlive || actor.kind != Kind.King) continue;
+                if (WallFacesObservedThreat(position, actor.transform.position, board)) { aligned = true; break; }
+            }
+        }
+        if (!aligned) penalty += AIEconomySettings.Active.UncoveredWallThreatPenalty;
+        return penalty;
+    }
+
+    static bool WallFacesObservedThreat(Vector3 position, Vector3 protectedPosition, AIBoardState board)
+    {
+        if (GridHelper.ChebyshevDistance(position, protectedPosition) > 5) return false;
+        Vector3 direction = position - protectedPosition;
+        direction.y = 0;
+        foreach (var opponent in board.AlivePlayerUnits)
+        {
+            if (opponent == null || !opponent.IsAlive || BoardActionProfile.For(opponent)?.CanAttack == false) continue;
+            if (GridHelper.ChebyshevDistance(opponent.transform.position, protectedPosition) > 8) continue;
+            Vector3 incoming = opponent.transform.position - protectedPosition;
+            incoming.y = 0;
+            if (Vector3.Dot(direction.normalized, incoming.normalized) >= 0.5f) return true;
+        }
+        return false;
     }
 
     internal static float CalcSummonBaseScore(AIAction action, AIBoardState board)

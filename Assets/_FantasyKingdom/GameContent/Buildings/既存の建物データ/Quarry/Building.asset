@@ -20,11 +20,11 @@ MonoBehaviour:
   actionProfile: {fileID: 11400000, guid: ce8618ac3caf51e4c81834d0e746804b, type: 2}
   defaultTeam: 0
   buildCost:
-    Wood: 25
-    Stone: 45
+    Wood: 20
+    Stone: 20
     Iron: 0
     MagicOre: 0
-    Water: 0
+    Water: 50
     Citizen: 1
   buildAP: 4
   levels:

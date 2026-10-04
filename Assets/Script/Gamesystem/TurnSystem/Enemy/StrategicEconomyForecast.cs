@@ -3,119 +3,406 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum EconomicState { Healthy, Warning, Crisis, Collapse }
+
 public readonly struct EconomyForecastResult
 {
     public readonly EconomicState State;
     public readonly float NetBreadPerTurn, BreadCoverageTurns, MinimumBread;
     public readonly bool BreadPaymentFailed, UpkeepPaymentFailed, ImportantProductionStopped;
-    public EconomyForecastResult(EconomicState state,float net,float coverage,float minimum,bool bread,bool upkeep,bool stopped)
-    {State=state;NetBreadPerTurn=net;BreadCoverageTurns=coverage;MinimumBread=minimum;BreadPaymentFailed=bread;UpkeepPaymentFailed=upkeep;ImportantProductionStopped=stopped;}
+    public readonly int MandatoryFailureMask, InputFailureMask, FirstTurnMandatoryFailureMask, FirstTurnInputFailureMask;
+
+    public EconomyForecastResult(EconomicState state, float net, float coverage, float minimum, bool bread, bool upkeep,
+        bool stopped, int mandatoryMask = 0, int inputMask = 0, int firstMandatoryMask = 0, int firstInputMask = 0)
+    {
+        State = state; NetBreadPerTurn = net; BreadCoverageTurns = coverage; MinimumBread = minimum;
+        BreadPaymentFailed = bread; UpkeepPaymentFailed = upkeep; ImportantProductionStopped = stopped;
+        MandatoryFailureMask = mandatoryMask; InputFailureMask = inputMask;
+        FirstTurnMandatoryFailureMask = firstMandatoryMask; FirstTurnInputFailureMask = firstInputMask;
+    }
+
+    internal EconomyForecastResult WithState(EconomicState state) => new EconomyForecastResult(state, NetBreadPerTurn,
+        BreadCoverageTurns, MinimumBread, BreadPaymentFailed, UpkeepPaymentFailed, ImportantProductionStopped,
+        MandatoryFailureMask, InputFailureMask, FirstTurnMandatoryFailureMask, FirstTurnInputFailureMask);
 }
 
-/// <summary>Own-side, conservative, bounded forecast. Failed payments are explicit even though stocks never go negative.</summary>
+/// <summary>Own-side, conservative bounded forecast. Private copies never change live resources or actor state.</summary>
 public sealed class StrategicEconomyForecast
 {
-    readonly List<Status> buildings=new List<Status>(32);
-    readonly double[] stock=new double[8];
-    readonly List<FacilityData.FacilityLevelData> recipes=new List<FacilityData.FacilityLevelData>(32);
-    readonly List<FacilityData.ProductionBundle> upkeeps=new List<FacilityData.ProductionBundle>(32);
-    AIBoardState preparedBoard;int generation=-1;
-    public int ReserveTurns=3, ForecastTurns=3;
+    internal const int ResourceCount = 8;
+    const int BreadIndex = (int)ResourceKind.Bread;
+    const int CitizenIndex = (int)ResourceKind.Citizen;
+    readonly List<Status> buildings = new List<Status>(32);
+    readonly List<FacilityData.FacilityLevelData> recipes = new List<FacilityData.FacilityLevelData>(32);
+    readonly List<FacilityData.ProductionBundle> upkeeps = new List<FacilityData.ProductionBundle>(32);
+    readonly double[] stock = new double[ResourceCount], produced = new double[ResourceCount], demanded = new double[ResourceCount];
+    readonly double[] nominalDemand = new double[ResourceCount];
+    readonly float[,] chainEdges = new float[ResourceCount, ResourceCount];
+    AIBoardState preparedBoard;
+    int generation = -1, reserveOverride, forecastOverride, citizenCapacity, warehouseBonus;
+    Snapshot baseline;
+    StrategicProductionDemand growthDemand, recoveryDemand;
+
+    sealed class Snapshot
+    {
+        public readonly float[] Initial = new float[ResourceCount], Production = new float[ResourceCount];
+        public readonly float[] Mandatory = new float[ResourceCount], Projected = new float[ResourceCount];
+        public EconomyForecastResult Result;
+    }
+
+    // Preserve the existing assignable API; defaults now come from authorable policy.
+    public int ReserveTurns
+    {
+        get => reserveOverride > 0 ? reserveOverride : AIEconomySettings.Active.BreadReserveTurns;
+        set { reserveOverride = Mathf.Clamp(value, 1, 8); InvalidateDiagnosis(); }
+    }
+    public int ForecastTurns
+    {
+        get => forecastOverride > 0 ? forecastOverride : Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8);
+        set { forecastOverride = Mathf.Clamp(value, 1, 8); InvalidateDiagnosis(); }
+    }
+    void InvalidateDiagnosis() { baseline = null; growthDemand = null; recoveryDemand = null; }
+
     public void Prepare(AIBoardState board)
     {
-        if(preparedBoard==board&&generation==board.Generation)return;
-        preparedBoard=board;generation=board.Generation;recipes.Clear();upkeeps.Clear();board.CollectOwnBuildings(buildings);
-        foreach(var actor in buildings)if(actor!=null&&actor.IsAlive)recipes.Add(FacilityData.GetLevel(actor,actor.Level));
-        foreach(var actor in board.AliveEnemyUnits)
+        if (board == null)
         {
-            if(actor==null||!actor.IsAlive||actor.type!=Type.Unit)continue;
-            var definition=actor.GrowthData??board.ResolveUnitDefinition(actor.kind);
-            if(definition!=null)upkeeps.Add(definition.GetUpkeep(actor.Level));
+            preparedBoard = null; generation = -1; InvalidateDiagnosis(); recipes.Clear(); upkeeps.Clear();
+            citizenCapacity = FactionState.BaseCitizenCap; warehouseBonus = 0;
+            Array.Clear(nominalDemand, 0, ResourceCount);
+            return;
         }
+        if (preparedBoard == board && generation == board.Generation) return;
+        preparedBoard = board; generation = board.Generation;
+        InvalidateDiagnosis(); recipes.Clear(); upkeeps.Clear(); Array.Clear(nominalDemand, 0, ResourceCount);
+        citizenCapacity = FactionState.BaseCitizenCap; warehouseBonus = 0;
+        board.CollectOwnBuildings(buildings);
+        foreach (var actor in buildings)
+        {
+            if (actor == null || !actor.IsAlive || actor.team != board.ActorTeam) continue;
+            var recipe = FacilityData.GetLevel(actor, actor.Level);
+            var kind = actor.facilityKind;
+            bool special = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse || kind == FacilityKind.Warehouse || kind == FacilityKind.Barracks;
+            if (kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse) citizenCapacity += recipe.SpecialValue;
+            if (kind == FacilityKind.Warehouse) warehouseBonus += recipe.SpecialValue;
+            // Legacy special buildings bypass recipes; authored versions may produce or pay upkeep.
+            if (special && actor.AuthoredFacility == null) continue;
+            recipes.Add(recipe); AddTo(nominalDemand, recipe.Maintenance);
+            if (recipe.HasProduction) AddTo(nominalDemand, recipe.Input);
+        }
+        foreach (var actor in board.AliveEnemyUnits)
+        {
+            if (actor == null || !actor.IsAlive || actor.type != Type.Unit || actor.Level <= 5) continue;
+            var definition = actor.GrowthData ?? board.ResolveUnitDefinition(actor.kind);
+            if (definition == null) continue;
+            var upkeep = definition.GetUpkeep(actor.Level);
+            upkeeps.Add(upkeep); AddTo(nominalDemand, upkeep);
+        }
+        nominalDemand[BreadIndex] += Mathf.Max(0, board.EnemyResources?.Citizen ?? 0) * EconomySystem.CitizenBreadCost;
     }
-    public EconomyForecastResult Simulate(AIBoardState board,AIAction candidate=null)
+
+    public EconomyForecastResult Simulate(AIBoardState board, AIAction candidate = null)
     {
-        Prepare(board);var resources=board.EnemyResources;
-        if(resources==null)return new EconomyForecastResult(EconomicState.Healthy,0,float.PositiveInfinity,0,false,false,false);
-        Read(resources,stock);int citizens=Mathf.Max(0,resources.Citizen);
-        UnitData additionalUnit=null;FacilityData.FacilityLevelData additionalRecipe=default;bool hasRecipe=false;
-        if(candidate?.ActionType==AIActionType.Summon)
+        Prepare(board);
+        if (board == null || board.EnemyResources == null)
+            return new EconomyForecastResult(EconomicState.Healthy, 0, float.PositiveInfinity, 0, false, false, false);
+        if (candidate == null && baseline != null) return baseline.Result;
+        return Run(board, candidate, candidate == null);
+    }
+
+    EconomyForecastResult Run(AIBoardState board, AIAction candidate, bool capture)
+    {
+        Read(board.EnemyResources, stock);
+        Array.Clear(produced, 0, ResourceCount); Array.Clear(demanded, 0, ResourceCount);
+        var snapshot = capture ? new Snapshot() : null;
+        if (capture) for (int i = 0; i < ResourceCount; i++) snapshot.Initial[i] = (float)stock[i];
+        UnitData additionalUnit = null;
+        FacilityData.FacilityLevelData additionalRecipe = default;
+        bool hasRecipe = false;
+        int capacity = citizenCapacity, resourceBonus = warehouseBonus;
+        if (candidate?.ActionType == AIActionType.Summon)
         {
-            additionalUnit=candidate.SummonDefinition??board.ResolveUnitDefinition(candidate.SummonKind);
-            if(additionalUnit!=null)
-            { stock[0]-=additionalUnit.costWood;stock[1]-=additionalUnit.costStone;stock[2]-=additionalUnit.costIron;stock[3]-=additionalUnit.costMagic;
-              stock[5]-=additionalUnit.costBread;stock[6]-=additionalUnit.costWater;citizens=Mathf.Max(0,citizens-additionalUnit.costCitizen); }
+            additionalUnit = candidate.SummonDefinition ?? board.ResolveUnitDefinition(candidate.SummonKind);
+            if (additionalUnit != null) AddTo(stock, UnitCost(additionalUnit), -1);
         }
-        if(candidate?.ActionType==AIActionType.Build)
+        if (candidate?.ActionType == AIActionType.Build)
         {
-            var info=candidate.FacilityDefinition!=null?candidate.FacilityDefinition.GetInfo():FacilityData.Table[candidate.Facility];
-            var cost=info.BuildCost;stock[0]-=cost.Wood;stock[1]-=cost.Stone;stock[2]-=cost.Iron;stock[3]-=cost.MagicOre;stock[6]-=cost.Water;citizens=Mathf.Max(0,citizens-cost.Citizen);
-            additionalRecipe=candidate.FacilityDefinition!=null?candidate.FacilityDefinition.GetLevel(1):FacilityData.GetLevel(candidate.Facility,1);hasRecipe=true;
+            var info = candidate.FacilityDefinition != null ? candidate.FacilityDefinition.GetInfo()
+                : FacilityData.Table.TryGetValue(candidate.Facility, out var value) ? value : default;
+            AddTo(stock, BuildCost(info.BuildCost), -1);
+            additionalRecipe = candidate.FacilityDefinition != null ? candidate.FacilityDefinition.GetLevel(1) : FacilityData.GetLevel(candidate.Facility, 1);
+            var kind = candidate.FacilityDefinition != null ? candidate.FacilityDefinition.behaviourKind : candidate.Facility;
+            if (kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse) capacity += additionalRecipe.SpecialValue;
+            if (kind == FacilityKind.Warehouse) resourceBonus += additionalRecipe.SpecialValue;
+            bool special = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse || kind == FacilityKind.Warehouse || kind == FacilityKind.Barracks;
+            hasRecipe = !special || candidate.FacilityDefinition != null;
         }
-        stock[7]=citizens;
-        bool breadFail=stock[5]<0,upkeepFail=false,stopped=false,failedFirstTurn=false;
-        double initialBread=Math.Max(0,stock[5]),minimum=initialBread;
-        int turns=Mathf.Clamp(ForecastTurns,1,8),capacity=board.CitizenCapacity;
-        if(hasRecipe&&candidate!=null&&(candidate.Facility==FacilityKind.House||candidate.Facility==FacilityKind.LuxuryHouse))capacity+=additionalRecipe.SpecialValue;
-        for(int t=0;t<turns;t++)
+        int mandatoryMask = 0, inputMask = 0, firstMandatory = 0, firstInput = 0;
+        for (int i = 0; i < ResourceCount; i++)
         {
-            if(board.EnemyCrystalHP>0)
+            if (stock[i] < 0) mandatoryMask |= 1 << i;
+            stock[i] = Math.Max(0, stock[i]);
+        }
+        bool upkeepFail = mandatoryMask != 0, breadFail = (mandatoryMask & (1 << BreadIndex)) != 0;
+        bool stopped = false, firstStopped = false;
+        double initialBread = stock[BreadIndex], minimumBread = initialBread;
+        int turns = ForecastTurns, starvationCounter = board.NationStarvationCounter;
+        int starvationGrace = Mathf.Clamp(GameAuthoringRules.Active?.starvationGraceTurns ?? 10, 1, 100);
+        for (int t = 0; t < turns; t++)
+        {
+            // Mirror EconomySystem's declining income, including its integer rounding.
+            if (board.EnemyCrystalHP > 0) AddCrystalIncome(board.NationTurnsAlive + t);
+            foreach (var recipe in recipes) Process(recipe, ref breadFail, ref upkeepFail, ref stopped, ref mandatoryMask, ref inputMask);
+            if (hasRecipe) Process(additionalRecipe, ref breadFail, ref upkeepFail, ref stopped, ref mandatoryMask, ref inputMask);
+            if (stock[BreadIndex] > 0 && stock[CitizenIndex] < capacity)
             {
-                float income=Mathf.Clamp01(1-(board.NationTurnsAlive+t)*.1f);
-                stock[0]+=Mathf.RoundToInt(20*income);stock[1]+=Mathf.RoundToInt(20*income);stock[2]+=Mathf.RoundToInt(5*income);
-                stock[5]+=Mathf.RoundToInt(10*income);stock[6]+=Mathf.RoundToInt(10*income);
+                stock[BreadIndex]--; demanded[BreadIndex]++;
+                stock[CitizenIndex]++; produced[CitizenIndex]++;
             }
-            foreach(var recipe in recipes)Process(recipe,ref breadFail,ref upkeepFail,ref stopped);
-            if(hasRecipe)Process(additionalRecipe,ref breadFail,ref upkeepFail,ref stopped);
-            citizens=(int)Math.Min(int.MaxValue,Math.Max(0,stock[7]));
-            if(stock[5]>0&&citizens<capacity){stock[5]-=1;citizens++;stock[7]=citizens;}
-            foreach(var upkeep in upkeeps)Pay(upkeep,ref breadFail,ref upkeepFail);
-            if(additionalUnit!=null)Pay(additionalUnit.GetUpkeep(1),ref breadFail,ref upkeepFail);
-            double food=stock[7]*EconomySystem.CitizenBreadCost;
-            if(stock[5]<food){breadFail=true;stock[5]=0;}else stock[5]-=food;
-            minimum=Math.Min(minimum,stock[5]);if(t==0)failedFirstTurn=breadFail||upkeepFail||stopped;
+            foreach (var upkeep in upkeeps) Pay(upkeep, ref breadFail, ref upkeepFail, ref mandatoryMask);
+            if (additionalUnit != null) Pay(additionalUnit.GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
+            double food = stock[CitizenIndex] * EconomySystem.CitizenBreadCost;
+            demanded[BreadIndex] += food;
+            if (stock[BreadIndex] < food)
+            {
+                int fedCitizens = EconomySystem.CitizenBreadCost > 0 ? (int)(stock[BreadIndex] / EconomySystem.CitizenBreadCost) : (int)stock[CitizenIndex];
+                stock[BreadIndex] = 0; breadFail = true; mandatoryMask |= 1 << BreadIndex; starvationCounter++;
+                if (starvationCounter >= starvationGrace) stock[CitizenIndex] = fedCitizens;
+            }
+            else { stock[BreadIndex] -= food; starvationCounter = 0; }
+            if (resourceBonus > 0)
+                for (int i = 0; i < CitizenIndex; i++) stock[i] = Math.Min(stock[i], FactionState.BaseResourceCap + resourceBonus);
+            minimumBread = Math.Min(minimumBread, stock[BreadIndex]);
+            if (t == 0) { firstMandatory = mandatoryMask; firstInput = inputMask; firstStopped = stopped; }
         }
-        float net=(float)((stock[5]-initialBread)/turns);
-        // Exhausted bread does not conceal the unfulfilled mandatory consumption.
-        float coverage=net<0?(float)(initialBread/Math.Max(.001,-net)):float.PositiveInfinity;
-        if(breadFail)coverage=Mathf.Min(coverage,turns-1);
-        EconomicState state=failedFirstTurn?EconomicState.Collapse:breadFail||upkeepFail||stopped?EconomicState.Crisis
-            :coverage<Mathf.Clamp(ReserveTurns,1,8)+1?EconomicState.Warning:EconomicState.Healthy;
-        return new EconomyForecastResult(state,net,coverage,(float)minimum,breadFail,upkeepFail,stopped);
-    }
-    void Process(FacilityData.FacilityLevelData recipe,ref bool breadFail,ref bool upkeepFail,ref bool stopped)
-    {
-        if(!CanPay(recipe.Maintenance))
-        {if(recipe.Maintenance.Bread>stock[5])breadFail=true;upkeepFail=true;if(recipe.Output.Bread>0)stopped=true;return;}
-        Add(recipe.Maintenance,-1);
-        if(!recipe.HasProduction)return;
-        if(!CanPay(recipe.Input))
-        {if(recipe.Input.Bread>stock[5])breadFail=true;if(recipe.Output.Bread>0||recipe.Input.Bread>0)stopped=true;return;}
-        Add(recipe.Input,-1);Add(recipe.Output,1);
-        // Chance-only income is deliberately not relied on to pay mandatory upkeep.
-        if(recipe.BonusChance1>=1)Add(recipe.BonusOutput1,1);
-        if(recipe.BonusChance2>=1)Add(recipe.BonusOutput2,1);
-    }
-    void Pay(FacilityData.ProductionBundle cost,ref bool breadFail,ref bool upkeepFail)
-    {if(!CanPay(cost)){upkeepFail=true;if(cost.Bread>stock[5])breadFail=true;}else Add(cost,-1);}
-    bool CanPay(FacilityData.ProductionBundle b)=>stock[0]>=b.Wood&&stock[1]>=b.Stone&&stock[2]>=b.Iron&&stock[3]>=b.MagicOre
-        &&stock[4]>=b.Wheat&&stock[5]>=b.Bread&&stock[6]>=b.Water&&stock[7]>=b.Citizen;
-    void Add(FacilityData.ProductionBundle b,int sign)
-    {stock[0]+=b.Wood*sign;stock[1]+=b.Stone*sign;stock[2]+=b.Iron*sign;stock[3]+=b.MagicOre*sign;stock[4]+=b.Wheat*sign;stock[5]+=b.Bread*sign;stock[6]+=b.Water*sign;stock[7]+=b.Citizen*sign;}
-    static void Read(FactionState.ResourceData r,double[] s)
-    {s[0]=Math.Max(0,r.Wood);s[1]=Math.Max(0,r.Stone);s[2]=Math.Max(0,r.Iron);s[3]=Math.Max(0,r.MagicOre);s[4]=Math.Max(0,r.Wheat);s[5]=Math.Max(0,r.Bread);s[6]=Math.Max(0,r.Water);s[7]=Math.Max(0,r.Citizen);}
-    public bool ImprovesFoodSupply(AIAction action,AIBoardState board)
-    {
-        if(action.ActionType!=AIActionType.Build)return false;
-        var recipe=action.FacilityDefinition!=null?action.FacilityDefinition.GetLevel(1):FacilityData.GetLevel(action.Facility,1);
-        if(recipe.Output.Bread>recipe.Input.Bread)return true;
-        // Find an actual bread recipe waiting for inputs; do not hard-code Bakery, Field or Well.
-        foreach(var current in recipes)
+        // Requested consumption survives failed payments; a zero stock cannot hide a continuing deficit.
+        float netBread = (float)((produced[BreadIndex] - demanded[BreadIndex]) / turns);
+        float coverage = netBread < 0 ? (float)(initialBread / Math.Max(AIEconomySettings.Active.Epsilon, -netBread)) : float.PositiveInfinity;
+        if (breadFail) coverage = Mathf.Min(coverage, turns - 1);
+        bool warning = coverage < ReserveTurns + Mathf.Clamp(AIEconomySettings.Active.breadCoverageMarginTurns, 0, 8);
+        for (int i = 0; i < ResourceCount; i++) warning |= demanded[i] - produced[i] > AIEconomySettings.Active.Epsilon;
+        EconomicState state = firstMandatory != 0 || firstStopped ? EconomicState.Collapse
+            : mandatoryMask != 0 || stopped ? EconomicState.Crisis : warning ? EconomicState.Warning : EconomicState.Healthy;
+        var result = new EconomyForecastResult(state, netBread, coverage, (float)minimumBread, breadFail, upkeepFail, stopped,
+            mandatoryMask, inputMask, firstMandatory, firstInput);
+        if (capture)
         {
-            if(current.Output.Bread<=current.Input.Bread)continue;
-            if(recipe.Output.Wheat>recipe.Input.Wheat&&current.Input.Wheat>board.EnemyResources.Wheat)return true;
-            if(recipe.Output.Water>recipe.Input.Water&&current.Input.Water>board.EnemyResources.Water)return true;
+            for (int i = 0; i < ResourceCount; i++)
+            {
+                snapshot.Production[i] = (float)(produced[i] / turns);
+                snapshot.Mandatory[i] = (float)(demanded[i] / turns);
+                snapshot.Projected[i] = (float)stock[i];
+            }
+            snapshot.Result = result; baseline = snapshot;
         }
-        return false;
+        return result;
+    }
+
+    void Process(FacilityData.FacilityLevelData recipe, ref bool breadFail, ref bool upkeepFail, ref bool stopped,
+        ref int mandatoryMask, ref int inputMask)
+    {
+        AddTo(demanded, recipe.Maintenance);
+        // Stopped recipes retain their requested inputs so upstream shortages remain visible.
+        if (recipe.HasProduction) AddTo(demanded, recipe.Input);
+        int maintenanceMissing = Missing(recipe.Maintenance);
+        if (maintenanceMissing != 0)
+        {
+            mandatoryMask |= maintenanceMissing; upkeepFail = true;
+            breadFail |= (maintenanceMissing & (1 << BreadIndex)) != 0;
+            stopped |= IsImportant(recipe); return;
+        }
+        AddTo(stock, recipe.Maintenance, -1);
+        if (!recipe.HasProduction) return;
+        int inputMissing = Missing(recipe.Input);
+        if (inputMissing != 0)
+        {
+            inputMask |= inputMissing;
+            breadFail |= (inputMissing & (1 << BreadIndex)) != 0;
+            stopped |= IsImportant(recipe); return;
+        }
+        AddTo(stock, recipe.Input, -1); AddOutput(recipe.Output);
+        // Only guaranteed bonuses may finance mandatory obligations.
+        if (recipe.BonusChance1 >= 1) AddOutput(recipe.BonusOutput1);
+        if (recipe.BonusChance2 >= 1) AddOutput(recipe.BonusOutput2);
+    }
+
+    bool IsImportant(FacilityData.FacilityLevelData recipe)
+    {
+        for (int i = 0; i < ResourceCount; i++)
+            if (GuaranteedOutput(recipe, i) > 0 && (i == BreadIndex || nominalDemand[i] > 0)) return true;
+        return recipe.Input.Bread > 0;
+    }
+    void Pay(FacilityData.ProductionBundle cost, ref bool breadFail, ref bool upkeepFail, ref int mandatoryMask)
+    {
+        AddTo(demanded, cost);
+        int missing = Missing(cost);
+        if (missing == 0) AddTo(stock, cost, -1);
+        else { mandatoryMask |= missing; upkeepFail = true; breadFail |= (missing & (1 << BreadIndex)) != 0; }
+    }
+    int Missing(FacilityData.ProductionBundle cost)
+    {
+        int mask = 0;
+        for (int i = 0; i < ResourceCount; i++) if (stock[i] < Amount(cost, i)) mask |= 1 << i;
+        return mask;
+    }
+    void AddOutput(FacilityData.ProductionBundle output) { AddTo(stock, output); AddTo(produced, output); }
+    void AddCrystalIncome(int turn)
+    {
+        float decay = Mathf.Clamp01(1 - turn * .1f);
+        AddOutput(new FacilityData.ProductionBundle
+        {
+            Wood = Mathf.RoundToInt(20 * decay), Stone = Mathf.RoundToInt(20 * decay), Iron = Mathf.RoundToInt(5 * decay),
+            Bread = Mathf.RoundToInt(10 * decay), Water = Mathf.RoundToInt(10 * decay)
+        });
+    }
+
+    public StrategicProductionDemand Diagnose(AIBoardState board, bool includeGrowthPlans = true)
+    {
+        Prepare(board);
+        var cached = includeGrowthPlans ? growthDemand : recoveryDemand;
+        if (cached != null) return cached;
+        var result = Simulate(board);
+        bool hasResources = board?.EnemyResources != null;
+        var data = hasResources && baseline != null ? baseline : new Snapshot();
+        var settings = AIEconomySettings.Active;
+        int turns = ForecastTurns, criticalMask = result.MandatoryFailureMask;
+        if (result.ImportantProductionStopped) criticalMask |= result.InputFailureMask;
+        var planned = new double[ResourceCount];
+        if (includeGrowthPlans && board?.EnemyResources != null) AddGrowthPlans(board, planned, settings, turns);
+        var resources = new ResourceDemandState[ResourceCount];
+        bool warning = result.State >= EconomicState.Warning;
+        float bottleneck = 0;
+        for (int i = 0; i < ResourceCount; i++)
+        {
+            float production = data.Production[i], mandatory = data.Mandatory[i], net = production - mandatory;
+            int reserveTurns = i == BreadIndex ? ReserveTurns : Mathf.Clamp(settings.reserveTurns, 1, 8);
+            float reserve = hasResources ? mandatory * reserveTurns + Mathf.Max(0, Amount(settings.minimumOperationalBuffer, i)) : 0;
+            float recovery = Mathf.Max(0, reserve - data.Initial[i]) / Mathf.Clamp(settings.recoveryWindowTurns, 1, 8);
+            float plan = (float)planned[i], target = mandatory + plan + recovery;
+            float projected = Mathf.Max(0, data.Projected[i] - plan * turns);
+            float deficit = Mathf.Max(0, target - production);
+            bool sustainedDeficit = net < -settings.Epsilon;
+            bool critical = mandatory > settings.Epsilon && sustainedDeficit
+                && data.Projected[i] <= reserve * Mathf.Clamp01(settings.criticalReserveFraction);
+            if (critical) criticalMask |= 1 << i;
+            warning |= sustainedDeficit || deficit > settings.Epsilon && projected < reserve - settings.Epsilon;
+            float urgency = 0;
+            if (deficit > settings.Epsilon)
+            {
+                urgency = Mathf.Clamp01(settings.sustainedDeficitUrgency);
+                if (sustainedDeficit)
+                {
+                    float resourceCoverage = data.Initial[i] / Mathf.Max(settings.Epsilon, -net);
+                    urgency = Mathf.Max(urgency, Mathf.Clamp01((turns + reserveTurns) / Mathf.Max(settings.Epsilon, resourceCoverage)));
+                }
+                urgency = Mathf.Max(urgency, Mathf.Clamp01((reserve - projected) / Mathf.Max(settings.Epsilon, reserve)));
+            }
+            if ((criticalMask & (1 << i)) != 0) urgency = 1;
+            resources[i] = new ResourceDemandState((ResourceKind)i, data.Initial[i], production, mandatory, plan, reserve, projected, target, urgency);
+            if (i != CitizenIndex && warehouseBonus > 0)
+                bottleneck = Mathf.Max(bottleneck, reserve - FactionState.BaseResourceCap - warehouseBonus);
+        }
+        bool hasCritical = criticalMask != 0 || result.ImportantProductionStopped || result.UpkeepPaymentFailed || result.BreadPaymentFailed;
+        var state = result.State;
+        if (hasCritical && state < EconomicState.Crisis) state = EconomicState.Crisis;
+        else if (warning && state < EconomicState.Warning) state = EconomicState.Warning;
+        var chainCoverage = new float[ResourceCount];
+        var chainUrgency = new float[ResourceCount];
+        int criticalChainMask = BuildChainRecovery(resources, criticalMask, chainCoverage, chainUrgency, out int foodChainMask);
+        var diagnosis = new StrategicProductionDemand(resources, result.WithState(state), hasCritical, warning, criticalMask,
+            chainCoverage, chainUrgency, criticalChainMask, foodChainMask, turns, citizenCapacity, bottleneck, settings);
+        if (includeGrowthPlans) growthDemand = diagnosis; else recoveryDemand = diagnosis;
+        return diagnosis;
+    }
+
+    void AddGrowthPlans(AIBoardState board, double[] planned, AIEconomySettings settings, int turns)
+    {
+        float weight = Mathf.Clamp01(settings.plannedDemandWeight);
+        AddTo(planned, settings.plannedBuildCost, weight * AIEconomySettings.NonNegative(settings.plannedBuildActions) / turns);
+        bool exploration = board.AlivePlayerUnits.Count == 0;
+        var definition = board.ResolveUnitDefinition(exploration ? Kind.Scout : Kind.Knight);
+        if (definition == null) return;
+        float summonWeight = weight * AIEconomySettings.NonNegative(settings.plannedSummonActions)
+            * (exploration ? Mathf.Clamp01(settings.explorationSummonWeight) : 1);
+        AddTo(planned, UnitCost(definition), summonWeight / turns);
+        AddTo(planned, definition.GetUpkeep(Mathf.Clamp(settings.plannedUnitLevel, 1, 8)), summonWeight);
+    }
+
+    int BuildChainRecovery(ResourceDemandState[] resources, int criticalMask, float[] coverage, float[] urgency, out int foodChainMask)
+    {
+        Array.Clear(chainEdges, 0, chainEdges.Length);
+        foreach (var recipe in recipes)
+        {
+            for (int input = 0; input < ResourceCount; input++)
+            {
+                float cost = Amount(recipe.Input, input) + Amount(recipe.Maintenance, input);
+                if (cost <= 0 || resources[input].ProductionDeficit <= AIEconomySettings.Active.Epsilon) continue;
+                for (int output = 0; output < ResourceCount; output++)
+                {
+                    if (input == output) continue;
+                    float gain = GuaranteedOutput(recipe, output) - Amount(recipe.Input, output) - Amount(recipe.Maintenance, output);
+                    if (gain > 0) chainEdges[input, output] = Mathf.Max(chainEdges[input, output], gain / cost);
+                }
+            }
+        }
+        // Each resource is visited once as an intermediate; authored cycles cannot repeatedly
+        // manufacture hypothetical recovery value. This work runs only when a diagnosis is rebuilt.
+        for (int via = 0; via < ResourceCount; via++)
+            for (int input = 0; input < ResourceCount; input++)
+                for (int output = 0; output < ResourceCount; output++)
+                    if (input != output && input != via && output != via)
+                        chainEdges[input, output] = Mathf.Max(chainEdges[input, output], chainEdges[input, via] * chainEdges[via, output]);
+        int criticalChainMask = 0;
+        foodChainMask = 0;
+        for (int input = 0; input < ResourceCount; input++)
+        {
+            for (int output = 0; output < ResourceCount; output++)
+            {
+                float deficit = resources[output].ProductionDeficit;
+                if (input == output || deficit <= AIEconomySettings.Active.Epsilon || chainEdges[input, output] <= 0) continue;
+                coverage[input] = Mathf.Max(coverage[input], chainEdges[input, output] / deficit);
+                urgency[input] = Mathf.Max(urgency[input], resources[output].Urgency01);
+                if ((criticalMask & (1 << output)) != 0) criticalChainMask |= 1 << input;
+                if (output == BreadIndex) foodChainMask |= 1 << input;
+            }
+        }
+        return criticalChainMask;
+    }
+
+    public bool ImprovesFoodSupply(AIAction action, AIBoardState board)
+    {
+        if (action == null || action.ActionType != AIActionType.Build || board?.EnemyResources == null) return false;
+        return Diagnose(board, false).ImprovesFoodSupply(action);
+    }
+
+    internal static int Amount(FacilityData.ProductionBundle bundle, int resource)
+    {
+        switch ((ResourceKind)resource)
+        {
+            case ResourceKind.Wood: return bundle.Wood;
+            case ResourceKind.Stone: return bundle.Stone;
+            case ResourceKind.Iron: return bundle.Iron;
+            case ResourceKind.MagicOre: return bundle.MagicOre;
+            case ResourceKind.Wheat: return bundle.Wheat;
+            case ResourceKind.Bread: return bundle.Bread;
+            case ResourceKind.Water: return bundle.Water;
+            case ResourceKind.Citizen: return bundle.Citizen;
+            default: return 0;
+        }
+    }
+    internal static float GuaranteedOutput(FacilityData.FacilityLevelData recipe, int resource) => Amount(recipe.Output, resource)
+        + (recipe.BonusChance1 >= 1 ? Amount(recipe.BonusOutput1, resource) : 0)
+        + (recipe.BonusChance2 >= 1 ? Amount(recipe.BonusOutput2, resource) : 0);
+    static void AddTo(double[] values, FacilityData.ProductionBundle bundle, double multiplier = 1)
+    { for (int i = 0; i < ResourceCount; i++) values[i] += Amount(bundle, i) * multiplier; }
+    static FacilityData.ProductionBundle BuildCost(FacilityData.ResourceCost cost) => new FacilityData.ProductionBundle
+    { Wood = cost.Wood, Stone = cost.Stone, Iron = cost.Iron, MagicOre = cost.MagicOre, Water = cost.Water, Citizen = cost.Citizen };
+    static FacilityData.ProductionBundle UnitCost(UnitData unit) => new FacilityData.ProductionBundle
+    { Wood = unit.costWood, Stone = unit.costStone, Iron = unit.costIron, MagicOre = unit.costMagic, Bread = unit.costBread, Water = unit.costWater, Citizen = unit.costCitizen };
+    static void Read(FactionState.ResourceData resources, double[] values)
+    {
+        values[0] = Math.Max(0, resources.Wood); values[1] = Math.Max(0, resources.Stone);
+        values[2] = Math.Max(0, resources.Iron); values[3] = Math.Max(0, resources.MagicOre);
+        values[4] = Math.Max(0, resources.Wheat); values[5] = Math.Max(0, resources.Bread);
+        values[6] = Math.Max(0, resources.Water); values[7] = Math.Max(0, resources.Citizen);
     }
 }

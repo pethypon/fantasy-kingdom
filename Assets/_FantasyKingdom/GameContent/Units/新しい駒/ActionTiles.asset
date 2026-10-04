@@ -16,7 +16,7 @@ MonoBehaviour:
   actionType: 0
   movement:
     useCustom: 1
-    cells: 0
+    cells: 1143492092887040
     originX: 3
     originZ: 3
     directionIndependent: 1
@@ -28,7 +28,7 @@ MonoBehaviour:
     directionIndependent: 0
   vision:
     useCustom: 1
-    cells: 30906718879744
+    cells: 7912206066778112
     originX: 3
     originZ: 3
     directionIndependent: 0

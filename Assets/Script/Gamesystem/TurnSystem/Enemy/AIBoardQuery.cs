@@ -282,19 +282,19 @@ public static class AIBoardQuery
     /// 上流の建物が存在するかチェックする。
     /// </summary>
     public static bool HasUpstreamProducer(AIBoardState board, FacilityKind facility)
+        => HasProductionInputs(board, FacilityData.GetLevel(facility, 1));
+
+    public static bool HasProductionInputs(AIBoardState board, FacilityData.FacilityLevelData recipe)
     {
-        switch (facility)
+        if (board == null || board.EnemyResources == null) return false;
+        var demand = board.ProductionDemand;
+        for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
         {
-            // Bakery は Field(小麦)と Well(水)が必要
-            case FacilityKind.Bakery:
-                return GetBuildingCount(board, FacilityKind.Field) > 0 &&
-                       GetBuildingCount(board, FacilityKind.Well) > 0;
-            // Field は Well(水)が必要
-            case FacilityKind.Field:
-                return GetBuildingCount(board, FacilityKind.Well) > 0;
-            default:
-                return true; // 上流不要
+            if (StrategicEconomyForecast.Amount(recipe.Input, i) <= 0) continue;
+            var resource = demand.Get((ResourceKind)i);
+            if (resource.ProductionPerTurn <= 0 && resource.Stock <= 0) return false;
         }
+        return true;
     }
 
     /// <summary>
@@ -304,63 +304,8 @@ public static class AIBoardQuery
     /// </summary>
     public static List<FacilityKind> DiagnoseProductionChainDeficit(AIBoardState board)
     {
-        var needed = new List<FacilityKind>();
-        if (board.EnemyResources == null) return needed;
-
-        var res = board.EnemyResources;
-
-        // パン不足 → 最優先
-        if (res.Bread <= 15)
-        {
-            if (GetBuildingCount(board, FacilityKind.Bakery) == 0)
-            {
-                // Bakery建設に必要な上流を先にチェック
-                if (GetBuildingCount(board, FacilityKind.Field) == 0)
-                    needed.Add(FacilityKind.Field);
-                if (GetBuildingCount(board, FacilityKind.Well) == 0)
-                    needed.Add(FacilityKind.Well);
-                needed.Add(FacilityKind.Bakery);
-            }
-            else
-            {
-                // Bakeryはあるが小麦/水が足りない
-                if (res.Wheat <= 10 && GetBuildingCount(board, FacilityKind.Field) < 2)
-                    needed.Add(FacilityKind.Field);
-                if (res.Water <= 10 && GetBuildingCount(board, FacilityKind.Well) < 2)
-                    needed.Add(FacilityKind.Well);
-                // Bakery追加も検討
-                if (res.Wheat > 20 && res.Water > 10 && GetBuildingCount(board, FacilityKind.Bakery) < 2)
-                    needed.Add(FacilityKind.Bakery);
-            }
-        }
-
-        // 木材不足
-        if (res.Wood <= 10 && GetBuildingCount(board, FacilityKind.LoggingCamp) == 0)
-            needed.Add(FacilityKind.LoggingCamp);
-
-        // 石材不足
-        if (res.Stone <= 10 && GetBuildingCount(board, FacilityKind.Quarry) == 0)
-            needed.Add(FacilityKind.Quarry);
-
-        // Iron不足（Mineが直接生産）
-        if (res.Iron <= 5 && GetBuildingCount(board, FacilityKind.Mine) == 0)
-            needed.Add(FacilityKind.Mine);
-
-        // 市民不足
-        if (res.Citizen <= 1)
-            needed.Add(FacilityKind.House);
-
-        // 基礎資源の基本確保（まだ1棟もない場合）
-        if (GetBuildingCount(board, FacilityKind.Well) == 0 && !needed.Contains(FacilityKind.Well))
-            needed.Add(FacilityKind.Well);
-        if (GetBuildingCount(board, FacilityKind.LoggingCamp) == 0 && !needed.Contains(FacilityKind.LoggingCamp))
-            needed.Add(FacilityKind.LoggingCamp);
-        if (GetBuildingCount(board, FacilityKind.Quarry) == 0 && !needed.Contains(FacilityKind.Quarry))
-            needed.Add(FacilityKind.Quarry);
-        if (GetBuildingCount(board, FacilityKind.Field) == 0 && !needed.Contains(FacilityKind.Field))
-            needed.Add(FacilityKind.Field);
-
-        return needed;
+        return board == null || board.EnemyResources == null ? new List<FacilityKind>()
+            : new List<FacilityKind>(board.ProductionDemand.RecommendedFacilities);
     }
 
     /// <summary>経済余剰スコア: 維持費に余裕があるかの指標 (0=ギリギリ 1=余裕)</summary>

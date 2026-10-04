@@ -5,13 +5,7 @@ public static partial class AIActionEvaluator
 {
     /// <summary>基礎経済施設5種(Well,LoggingCamp,Quarry,Field,House)の設置済み種類数</summary>
     internal static int CalcCoreEconomyCount(AIBoardState board)
-    {
-        return (board.GetBuildingCount(FacilityKind.Well) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.LoggingCamp) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.Quarry) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.Field) > 0 ? 1 : 0)
-             + (board.GetBuildingCount(FacilityKind.House) > 0 ? 1 : 0);
-    }
+        => EconomyHelper.CalcCoreEconomyCount(board);
 
     /// <summary>原料生産施設5種(Well,LoggingCamp,Quarry,Field,Mine)の設置済み種類数</summary>
     internal static int CalcRawFacilityCount(AIBoardState board)
@@ -39,23 +33,77 @@ public static partial class AIActionEvaluator
         return 0f;
     }
 
-    /// <summary>指定施設が基礎経済5種の中でまだ建っていないものかどうか</summary>
+    /// <summary>初期施設の有無の確認用。必要供給量は ProductionDemand で評価する。</summary>
     internal static bool IsMissingCoreFacility(FacilityKind facility, AIBoardState board)
+        => EconomyHelper.IsMissingCoreFacility(facility, board);
+
+    internal static bool IsProcessingFacility(FacilityKind facility)
+        => EconomyHelper.IsProcessingFacility(facility);
+}
+
+// =====================================================================
+//  EconomyHelper — 経済判定ユーティリティ（複数クラスで共用）
+// =====================================================================
+public static class EconomyHelper
+{
+    public static int CountEconBuildings(AIBoardState board)
+    {
+        return board.GetBuildingCount(FacilityKind.Well)
+             + board.GetBuildingCount(FacilityKind.LoggingCamp)
+             + board.GetBuildingCount(FacilityKind.Quarry)
+             + board.GetBuildingCount(FacilityKind.Field)
+             + board.GetBuildingCount(FacilityKind.Mine);
+    }
+
+    public static int CountProcessingBuildings(AIBoardState board)
+    {
+        return board.GetBuildingCount(FacilityKind.Bakery);
+    }
+
+    /// <summary>施設数ではなく、継続供給・支払い予測・安全在庫の不足がないことを確認する。</summary>
+    public static bool IsEconomySufficient(AIBoardState board)
+    {
+        if (board == null || board.EnemyResources == null) return false;
+        board.Governor?.Evaluate(board);
+        var demand = board.ProductionDemand;
+        var forecast = board.Governor != null ? board.Governor.Economy : demand.Forecast;
+        int reserveTurns = board.Governor != null ? board.Governor.BreadReserveTurns : AIEconomySettings.Active.BreadReserveTurns;
+        return !demand.HasMandatoryPaymentFailure && !demand.HasCriticalDeficit && !demand.HasWarningDeficit
+            && !forecast.BreadPaymentFailed && !forecast.UpkeepPaymentFailed && !forecast.ImportantProductionStopped
+            && forecast.BreadCoverageTurns >= reserveTurns;
+    }
+
+    public static ProductionBuildAssessment AssessProductionBuild(AIAction action, AIBoardState board)
+        => board.Governor != null ? board.Governor.BuildAssessment(action, board) : board.ProductionDemand.EvaluateBuild(action);
+
+    public static bool IsMissingCoreFacility(FacilityKind facility, AIBoardState board)
     {
         switch (facility)
         {
-            case FacilityKind.Well:        return board.GetBuildingCount(FacilityKind.Well) == 0;
-            case FacilityKind.LoggingCamp: return board.GetBuildingCount(FacilityKind.LoggingCamp) == 0;
-            case FacilityKind.Quarry:      return board.GetBuildingCount(FacilityKind.Quarry) == 0;
-            case FacilityKind.Field:       return board.GetBuildingCount(FacilityKind.Field) == 0;
-            case FacilityKind.House:       return board.GetBuildingCount(FacilityKind.House) == 0;
-            case FacilityKind.Bakery:      return board.GetBuildingCount(FacilityKind.Bakery) == 0;
-            case FacilityKind.Mine:        return board.GetBuildingCount(FacilityKind.Mine) == 0;
-            default: return false;
+            case FacilityKind.Well:
+            case FacilityKind.LoggingCamp:
+            case FacilityKind.Quarry:
+            case FacilityKind.Field:
+            case FacilityKind.Bakery:
+            case FacilityKind.Mine:
+            case FacilityKind.House:
+                return board.GetBuildingCount(facility) == 0;
+            default:
+                return false;
         }
     }
 
-    internal static bool IsProcessingFacility(FacilityKind facility)
+    /// <summary>基礎経済施設5種(Well,LoggingCamp,Quarry,Field,House)の設置済み種類数</summary>
+    public static int CalcCoreEconomyCount(AIBoardState board)
+    {
+        return (board.GetBuildingCount(FacilityKind.Well) > 0 ? 1 : 0)
+             + (board.GetBuildingCount(FacilityKind.LoggingCamp) > 0 ? 1 : 0)
+             + (board.GetBuildingCount(FacilityKind.Quarry) > 0 ? 1 : 0)
+             + (board.GetBuildingCount(FacilityKind.Field) > 0 ? 1 : 0)
+             + (board.GetBuildingCount(FacilityKind.House) > 0 ? 1 : 0);
+    }
+
+    public static bool IsProcessingFacility(FacilityKind facility)
     {
         return facility == FacilityKind.Bakery;
     }

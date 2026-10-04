@@ -376,6 +376,7 @@ public class AIActionExecutor
             return false;
         }
 
+        if (board.Governor != null && !board.Governor.AllowExecution(action, board)) return false;
         var pos = AIBoardState.ToCell(action.TargetPos);
         DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(ActorTeam)}");
 
@@ -384,7 +385,8 @@ public class AIActionExecutor
             : _buildSystem.AIPlaceBuilding(pos, action.Facility, ActorTeam);
         if (success)
         {
-            board.RefreshAP();
+            board.Refresh();
+            board.Governor?.Evaluate(board);
             DevelopmentLog.Log($"[AIActionExecutor] ★建築成功: {action.Facility} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
         }
         else
