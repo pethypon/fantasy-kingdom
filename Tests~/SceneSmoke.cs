@@ -20,7 +20,7 @@ public static class SceneSmoke
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdomR1Validation";
         TerrainPrefabEditor.Create(); CrystalPrefabEditor.Configure();
-        CoreLogicTests.RunAll(); ThirdFactionTests.EditMode();
+        CoreLogicTests.RunAll(); ThirdFactionTests.EditMode(); AuthoringEditorTests.EditMode(); AuthoringPatternsTests.EditMode(); AuthoringUnitsTests.EditMode(); AuthoringRulesFacilityTests.EditMode();
         if (!AssetDatabase.IsValidFolder("Assets/Resources")) AssetDatabase.CreateFolder("Assets", "Resources");
         var catalog = AssetDatabase.LoadAssetAtPath<R1ContentCatalog>("Assets/Resources/R1ContentCatalog.asset");
         if (catalog == null)
@@ -137,7 +137,7 @@ public static class SceneSmoke
             for(int sample=0;sample<Math.Min(aiGC.Count,aiGC.Capacity);sample++) aiAllocated+=aiGC.GetSample(sample).Value;aiGC.Dispose();
             Check("threat 100 whole thinking within 3s budget plus 0.75s tolerance",aiWatch.Elapsed.TotalMilliseconds<3750);
             Debug.Log($"[Optimization] AI threat=100 wholeTurnMs={aiWatch.Elapsed.TotalMilliseconds:F3} sampledManagedBytes={aiAllocated} (sample-cap=1000000) allocations={aiAllocationCount} budgetMs=3000 (Editor including development logs)");
-            ThirdFactionTests.PlayMode(systems);
+            ThirdFactionTests.PlayMode(systems); AuthoringUnitsTests.PlayMode(systems); AuthoringRulesFacilityTests.PlayMode(systems); StrategicGovernorTests.PlayMode(systems);
             MaintenanceRegressionTests.Run();
             MaterialLifetimeRegressionTests.Run();
             InteractionMaintenanceTests.Run(systems, turn);

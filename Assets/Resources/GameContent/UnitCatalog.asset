@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fbbbd1f1842bf342bdcf61a3b667ff7, type: 3}
   m_Name: UnitCatalog
   m_EditorClassIdentifier: Assembly-CSharp::UnitAuthoringCatalog
-  units: []
+  units:
+  - kind: 2
+    prefab: {fileID: 8561302351369880905, guid: a617b6e4c9419a9409214eb65b89a13c, type: 3}
+    data: {fileID: 11400000, guid: 7d99555eed0b6f244b9a1c9a9d617c95, type: 2}
+    standaloneDefinition: 1

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Fantasy Kingdom/Third Faction/Director Config")]
+[CreateAssetMenu(menuName = "Fantasy Kingdom/ゲーム制作/第三陣営の全体設定")]
 public sealed class ThirdFactionDirectorConfig : ScriptableObject
 {
     // R1 rules are constants; tuning cannot accidentally change the AP/IP contract.

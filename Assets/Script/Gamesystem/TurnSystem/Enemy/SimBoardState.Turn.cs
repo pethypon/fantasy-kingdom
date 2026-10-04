@@ -33,9 +33,9 @@ public partial class SimBoardState
     private void ResetAP(Team team)
     {
         if (team == Team.Enemy)
-            EnemyAP = Mathf.Clamp(EnemyAPReset, 0, GameConstants.MaxAP);
+            EnemyAP = Mathf.Clamp(EnemyAPReset, 0, APSystem.MaximumAP);
         else
-            PlayerAP = Mathf.Clamp(PlayerAPReset, 0, GameConstants.MaxAP);
+            PlayerAP = Mathf.Clamp(PlayerAPReset, 0, APSystem.MaximumAP);
     }
 
     private static void ApplyDoT(SimUnit u)

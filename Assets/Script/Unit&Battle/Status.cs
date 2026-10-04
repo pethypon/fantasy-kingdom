@@ -315,7 +315,7 @@ public class Status : MonoBehaviour
     public int DEF;
     [Header("レベル")]
     public int Level = 1;
-    [System.NonSerialized] public UnitData GrowthData;
+    public UnitData GrowthData;
     [HideInInspector] public string unitDefinitionId;
     [Header("駒の視界")]
     public HashSet<Vector3Int> VisionCell = new HashSet<Vector3Int>();

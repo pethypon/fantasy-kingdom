@@ -55,6 +55,8 @@ public class AIRoleAssigner
         foreach (var u in units)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
+            // The loss-condition actor must never receive an exploration/frontline role.
+            if (u.kind == Kind.King) { _assignments[u] = UnitRole.Guardian; continue; }
             if (u.IsBoss) { boss.Add(u); continue; }
 
             switch (u.kind)

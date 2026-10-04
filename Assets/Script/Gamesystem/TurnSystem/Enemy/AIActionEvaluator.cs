@@ -57,6 +57,7 @@ public static partial class AIActionEvaluator
 
         // 候補生成は AIActionGenerator に委譲
         AIActionGenerator.GenerateAllCandidates(board, actions);
+        board.Governor?.Filter(actions,board);
 
         // 各候補にスコア付け
         for (int i = 0; i < actions.Count; i++)
@@ -68,8 +69,8 @@ public static partial class AIActionEvaluator
         // 事後補正は AIActionModifiers に委譲（Positioning パーシャルに集約）
         ApplyPositioningModifiers(actions, personality, board);
 
-        // スコア降順
-        actions.Sort((a, b) => b.Score.CompareTo(a.Score));
+        // 安全性の優先段階を維持し、同じ段階では既存の評価点を比較する。
+        actions.Sort(AIAction.ComparePriorityThenScore);
     }
 
     // ================================================================

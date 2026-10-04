@@ -17,11 +17,20 @@ public class AIAction
     public FacilityKind Facility;    // 建築の種類
     public FacilityDefinitionData FacilityDefinition;
     public Kind SummonKind;          // 召喚するユニット種
+    public UnitData SummonDefinition;
+    public int StrategicPriority = 4;
+    public string StrategicRejectReason;
     public SkillData Skill;          // 使用スキル
     public List<Status> AreaTargets; // 範囲スキルの対象リスト
 
+    public static int ComparePriorityThenScore(AIAction a, AIAction b)
+    {
+        int priority = a.StrategicPriority.CompareTo(b.StrategicPriority);
+        return priority != 0 ? priority : b.Score.CompareTo(a.Score);
+    }
+
     // One actor's blocked route must not suppress another actor's valid move.
-    public string FailureGroupKey => $"{ActionType}_{Facility}_{FacilityDefinition?.definitionId}_{SummonKind}_{(Unit != null ? Unit.GetInstanceID() : 0)}";
+    public string FailureGroupKey => $"{ActionType}_{Facility}_{FacilityDefinition?.definitionId}_{SummonKind}_{SummonDefinition?.definitionId}_{(Unit != null ? Unit.GetInstanceID() : 0)}";
     public string FailureKey => $"{FailureGroupKey}|{TargetPos}|{(TargetUnit != null ? TargetUnit.GetInstanceID() : 0)}|{(Skill != null ? Skill.Id : -1)}";
 
     public override string ToString()

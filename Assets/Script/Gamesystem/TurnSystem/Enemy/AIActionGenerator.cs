@@ -6,7 +6,7 @@ using UnityEngine;
 /// 移動・攻撃・スキル・撤退・援護・包囲・建築・召喚の各候補を生成する。
 /// AIActionEvaluator から分離。
 /// </summary>
-public static class AIActionGenerator
+public static partial class AIActionGenerator
 {
     // --- 建築上限 ---
     const int DefaultMaxBuildingCount = 5;
@@ -59,6 +59,7 @@ public static class AIActionGenerator
 
         GenerateBuildCandidates(board, actions);
         GenerateSummonCandidates(board, actions);
+        GenerateAuthoredSummonCandidates(board, actions);
         GenerateSubCrystalCandidates(board, actions);
     }
 

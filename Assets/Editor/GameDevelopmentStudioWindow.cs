@@ -84,6 +84,8 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             TryAction(() => { if (tab == 0) selectedUnit = CreateUnitDefinition("新しい駒"); else selectedBuilding = CreateBuildingDefinition("新しい建物"); visualModel = null; RefreshLists(); });
         if (GUILayout.Button("選択した設定を複製"))
             TryAction(() => { DuplicateSelected(); RefreshLists(); });
+        if (tab == 1 && GUILayout.Button("既存の建物データを取り込む"))
+            TryAction(() => { ImportLegacyBuildings(); RefreshLists(); });
         listScroll = EditorGUILayout.BeginScrollView(listScroll);
         if (tab == 0) foreach (var item in units)
         {
@@ -111,7 +113,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         var so = new SerializedObject(selectedUnit); so.Update();
         Heading("駒の基本設定");
         Fields(so, "displayName", "category", "defaultTeam", "kind", "availableToPlayer", "availableToEnemy", "prefab");
-        EditorGUILayout.HelpBox("基礎役割はAIの判断と既存の固有処理に使います。移動・攻撃・視界は下のタイルで個別に設定できます。駒の名前と種類の分類は自由に付けられます。",MessageType.None);
+        EditorGUILayout.HelpBox("基礎役割はAIの判断と既存の固有処理に使います。移動・通常攻撃・視界は下のタイルで個別に設定できます。駒と行動タイプの名前、種類の分類は自由です。スキルの範囲・効果は選んだスキルに従います。",MessageType.None);
         Heading("能力値"); Fields(so,"baseHP","baseATK","baseDEF");
         growthFold = EditorGUILayout.Foldout(growthFold,"レベルごとの成長",true); if (growthFold) Fields(so,"hpGrowth","atkGrowth","defGrowth");
         costFold = EditorGUILayout.Foldout(costFold,"作成に必要な資材・AP",true);
@@ -137,7 +139,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
     }
     void DrawBuilding()
     {
-        if (selectedBuilding == null) { EditorGUILayout.HelpBox("左の「＋ 新しい建物」で作成してください。能力・建築費・生産・強化・攻撃/視界マスを設定できます。",MessageType.Info); return; }
+        if (selectedBuilding == null) { EditorGUILayout.HelpBox("左の「＋ 新しい建物」で作成するか、既存の建物データを選択してください。能力・建築費・生産・維持費・強化を設定できます。",MessageType.Info); return; }
         var so = new SerializedObject(selectedBuilding); so.Update();
         Heading("建物の基本設定");
         Fields(so,"displayName","category","defaultTeam","behaviourKind","availableToPlayer","availableToEnemy","prefab","buildAP");
@@ -167,8 +169,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         }
         so.ApplyModifiedProperties();
         DrawVisual(null,selectedBuilding);
-        DrawProfile(selectedBuilding.actionProfile, BuildingRole(selectedBuilding.behaviourKind), p => selectedBuilding.actionProfile=p, selectedBuilding);
-        EditorGUILayout.HelpBox("通常の建物はその場に固定されます。移動する拠点を作る場合は、駒として登録して役割や見た目を建物にしてください。建物の特殊な働きは「施設の基本動作」で選べます。",MessageType.None);
+        EditorGUILayout.HelpBox("既存データを取り込んだ建物は編集用の複製です。登録すると新しい建物として追加されます。元の建物はそのまま残ります。８×８のマス設定は「駒づくり」で設定します。",MessageType.None);
         if (GUILayout.Button("この建物をゲームに登録",GUILayout.Height(30))) TryAction(() => RegisterBuilding(selectedBuilding));
         DrawId(selectedBuilding.definitionId);
     }

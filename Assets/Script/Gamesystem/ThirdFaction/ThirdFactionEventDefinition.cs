@@ -8,7 +8,7 @@ public enum ThirdFactionDirectorMode { Observe, Reserve, AntiStalemate, GrowthOp
     TerritoryPressure, EventOpportunity, Scenario }
 public enum ThirdFactionObjectiveKind { RaidDungeon, RaidTerritory, HoldArea, HuntTarget, Withdraw, GuardEventObject }
 
-[CreateAssetMenu(menuName = "Fantasy Kingdom/Third Faction/Event Definition")]
+[CreateAssetMenu(menuName = "Fantasy Kingdom/ゲーム制作/第三陣営のイベント")]
 public sealed class ThirdFactionEventDefinition : ScriptableObject
 {
     public string EventId, DisplayName;

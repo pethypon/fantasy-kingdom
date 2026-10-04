@@ -1,0 +1,209 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb93ce5a865f416bb12c4ba9b545f5fb, type: 3}
+  m_Name: Building
+  m_EditorClassIdentifier: Assembly-CSharp::FacilityDefinitionData
+  definitionId: building-be24966003e44ba88079a1c6d34aaabf
+  displayName: "\u63A1\u77F3\u5834"
+  category: "\u65E2\u5B58\u306E\u5EFA\u7269\uFF08\u7DE8\u96C6\u7528\u306E\u8907\u88FD\uFF09"
+  behaviourKind: 3
+  prefab: {fileID: 5051869694442203389, guid: 6e43b405a0148914f9f0de145edeb9b1, type: 3}
+  actionProfile: {fileID: 11400000, guid: ce8618ac3caf51e4c81834d0e746804b, type: 2}
+  defaultTeam: 0
+  buildCost:
+    Wood: 25
+    Stone: 45
+    Iron: 0
+    MagicOre: 0
+    Water: 0
+    Citizen: 1
+  buildAP: 4
+  levels:
+  - HP: 100
+    DEF: 0
+    ATK: 0
+    Input:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    Output:
+      Wood: 0
+      Stone: 10
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusOutput1:
+      Wood: 0
+      Stone: 2
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance1: 0.2
+    BonusOutput2:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance2: 0
+    Maintenance:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    UpgradeCost:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Water: 0
+      Citizen: 0
+    UpgradeAP: 0
+    SpecialValue: 0
+  - HP: 100
+    DEF: 0
+    ATK: 0
+    Input:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    Output:
+      Wood: 0
+      Stone: 14
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusOutput1:
+      Wood: 0
+      Stone: 3
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance1: 0.3
+    BonusOutput2:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance2: 0
+    Maintenance:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    UpgradeCost:
+      Wood: 20
+      Stone: 20
+      Iron: 0
+      MagicOre: 0
+      Water: 0
+      Citizen: 0
+    UpgradeAP: 6
+    SpecialValue: 0
+  - HP: 100
+    DEF: 0
+    ATK: 0
+    Input:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    Output:
+      Wood: 0
+      Stone: 18
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusOutput1:
+      Wood: 0
+      Stone: 4
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance1: 0.3
+    BonusOutput2:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance2: 0
+    Maintenance:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    UpgradeCost:
+      Wood: 60
+      Stone: 60
+      Iron: 5
+      MagicOre: 0
+      Water: 0
+      Citizen: 0
+    UpgradeAP: 7
+    SpecialValue: 0
+  availableToPlayer: 1
+  availableToEnemy: 1

@@ -220,10 +220,14 @@ public class AISearchEngine
         var affordable = new List<AIAction>();
         foreach (var a in candidates)
         {
-            if (a.ActionType != AIActionType.Wait && a.APCost <= board.EnemyAP)
+            if (a.ActionType != AIActionType.Wait && a.APCost <= board.EnemyAP
+                && board.Governor?.AllowExecution(a, board) != false)
                 affordable.Add(a);
         }
         if (affordable.Count == 0) return null;
+        affordable.Sort(AIAction.ComparePriorityThenScore);
+        int priority = affordable[0].StrategicPriority;
+        affordable.RemoveAll(a => a.StrategicPriority != priority);
 
         // 1. クリスタル防衛
         AIAction crystalDefense = FindCrystalDefenseAction(affordable, board);

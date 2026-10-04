@@ -161,8 +161,16 @@ public sealed class AIPlayerModel
             var directory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
             File.WriteAllText(path + ".tmp", JsonUtility.ToJson(next, true));
-            if (File.Exists(path)) File.Replace(path + ".tmp", path, path + ".bak");
-            else File.Move(path + ".tmp", path);
+            for(int attempt=0;;attempt++)
+            {
+                try
+                {
+                    if (File.Exists(path)) File.Replace(path + ".tmp", path, path + ".bak");
+                    else File.Move(path + ".tmp", path);
+                    break;
+                }
+                catch(IOException) when(attempt<2&&File.Exists(path+".tmp")) { }
+            }
             history = next; completed = true; return true;
         }
         catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)

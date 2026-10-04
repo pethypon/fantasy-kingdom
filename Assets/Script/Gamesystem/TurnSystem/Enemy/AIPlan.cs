@@ -21,6 +21,8 @@ public sealed class AIPlan
     public Kind TargetKind;
     public FacilityKind TargetFacility;
     public bool TargetDestroyedConfirmed;
+    public bool Suspended;
+    public int SuspensionTurn;
     public int InitialArmy, VisibleResponders, SuccessfulStrikes;
     public bool Active => Step != AIPlanStep.Complete && Step != AIPlanStep.Aborted;
 }

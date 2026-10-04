@@ -20,6 +20,10 @@ public partial class AICommander
     readonly AIAdvancedStrategy _advanced = new AIAdvancedStrategy(Resources.Load<AITacticalPatternSettings>("AI/AITacticalPatternSettings"));
     public AIPlan CurrentPlan => _advanced.Plans.Current;
     public AIPlan SavePlan => _advanced.Plans.Snapshot();
+    readonly AIStrategicGovernor _governor=new AIStrategicGovernor();
+    public AIStrategicGovernor StrategicGovernor=>_governor;
+    public PersistentStrategicObjective SaveStrategicObjective=>_governor.Snapshot();
+    public void RestoreStrategicObjective(PersistentStrategicObjective data)=>_governor.Restore(data);
     public void RestorePlan(AIPlan plan) => _advanced.Plans.Restore(plan);
     readonly AIEvolutionPolicy _evolution = new AIEvolutionPolicy();
     readonly AIPlayerModel _playerModel;
@@ -274,6 +278,9 @@ public partial class AICommander
         _board.DungeonSystem = _turnGen?.Systems?.DungeonSystem;
         _board.MapCreate = _mapCreate;
         _board.ReconThreatLevel = _threatLevel.Level;
+        _board.Governor=_governor;
+        _governor.BreadReserveTurns=GameAuthoringRules.Active?.aiBreadReserveTurns??_threatLevel.BreadReserveTurns;
+        _governor.Evaluate(_board);
 
         // スキルクールダウンを全敵駒で減少
         // Common turn-start processing already ticks cooldowns for both principal factions.
@@ -396,6 +403,7 @@ public partial class AICommander
 
             _board.Refresh();
             if (_board.EnemyAP <= 0) break;
+            _governor.Evaluate(_board);
 
             strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
             _currentStrategy = strategyDecision.Strategy;
@@ -407,6 +415,7 @@ public partial class AICommander
 
             AIActionEvaluator.EvaluateAllInto(actionsBuffer, _personality, _board, _learning, _currentStrategy);
             AIOrientation.AppendCandidates(_board, actionsBuffer);
+            _governor.Filter(actionsBuffer,_board);
             _evolution.Score(actionsBuffer, _board, _playerModel);
             var advancedSteps = _advanced.ScoreSteps(actionsBuffer, _board);
             try { while (advancedSteps.MoveNext()) { yield return null; if (_turnGen.IsGameOver) yield break; } }
@@ -454,8 +463,8 @@ public partial class AICommander
 
             // ---- 3手先完全シミュレーション探索（常時有効） ----
             {
-                // スコア降順ソートして上位候補を抽出
-                actions.Sort((a, b) => b.Score.CompareTo(a.Score));
+                // Spend the search budget on the same strategic tier that can actually be selected.
+                actions.Sort(AIAction.ComparePriorityThenScore);
                 int candidateLimit = _threatLevel.SearchCandidateLimit;
                 topCandidates.Clear();
                 for (int i = 0; i < Mathf.Min(candidateLimit, actions.Count); i++)
@@ -489,7 +498,7 @@ public partial class AICommander
             }
 
             // 再ソート（ボーナス適用後）
-            actions.Sort((a, b) => b.Score.CompareTo(a.Score));
+            actions.Sort(AIAction.ComparePriorityThenScore);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             int logCount = Mathf.Min(3, actions.Count);
@@ -530,6 +539,7 @@ public partial class AICommander
             }
 
             bool success = _actionExecutor.Execute(bestAction, _board);
+            _governor.Telemetry(bestAction,success);
             if (!success)
             {
                 consecutiveFailures++;

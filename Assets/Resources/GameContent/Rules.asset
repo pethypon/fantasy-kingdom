@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46d82a6da6f84b2fbf97f12bb2e8c440, type: 3}
+  m_Name: Rules
+  m_EditorClassIdentifier: Assembly-CSharp::GameAuthoringRules
+  applyRules: 0
+  aiBreadReserveTurns: 3
+  turnSeconds: 180
+  totalSeconds: 36000
+  timeBonusSeconds: 60
+  maximumAP: 50
+  moveAP: 3
+  attackAP: 2
+  heightAP: 2
+  citizenAP: 1
+  breadPerCitizen: 1
+  starvationGraceTurns: 10
+  mapWidth: 35
+  mapDepth: 35
+  noiseScale: 0.1
+  riverHalfWidth: 0.7
+  factions:
+  - team: 0
+    displayName: "\u30D7\u30EC\u30A4\u30E4\u30FC"
+    color: {r: 0.18, g: 0.72, b: 1, a: 1}
+    initialAP: 30
+    initialResources:
+      Wood: 200
+      Stone: 200
+      Water: 50
+      MagicOre: 15
+      Iron: 30
+      Wheat: 0
+      Bread: 100
+      Citizen: 5
+    controllerDescription: "\u624B\u52D5\u64CD\u4F5C\uFF08\u958B\u767A\u7528 F8 AI
+      \u5207\u66FF\uFF09"
+  - team: 1
+    displayName: "\u6575\u8ECD"
+    color: {r: 1, g: 0.25, b: 0.23, a: 1}
+    initialAP: 30
+    initialResources:
+      Wood: 200
+      Stone: 200
+      Water: 50
+      MagicOre: 15
+      Iron: 30
+      Wheat: 0
+      Bread: 100
+      Citizen: 5
+    controllerDescription: "\u6575 AI"
+  - team: 4
+    displayName: "\u9B54\u7269"
+    color: {r: 0.7, g: 0.42, b: 0.9, a: 1}
+    initialAP: 30
+    initialResources:
+      Wood: 200
+      Stone: 200
+      Water: 50
+      MagicOre: 15
+      Iron: 30
+      Wheat: 0
+      Bread: 100
+      Citizen: 5
+    controllerDescription: "\u7B2C\u4E09\u9663\u55B6 AI\uFF08\u6575\u306E\u884C\u52D5\u5F8C\uFF09"
+  - team: 5
+    displayName: "\u4E71\u5165\u8005"
+    color: {r: 1, g: 0.64, b: 0.22, a: 1}
+    initialAP: 30
+    initialResources:
+      Wood: 200
+      Stone: 200
+      Water: 50
+      MagicOre: 15
+      Iron: 30
+      Wheat: 0
+      Bread: 100
+      Citizen: 5
+    controllerDescription: "\u7B2C\u4E09\u9663\u55B6 AI\uFF08\u6575\u306E\u884C\u52D5\u5F8C\uFF09"
+  - team: 2
+    displayName: "\u5F37\u6575"
+    color: {r: 0.9, g: 0.75, b: 0.35, a: 1}
+    initialAP: 30
+    initialResources:
+      Wood: 200
+      Stone: 200
+      Water: 50
+      MagicOre: 15
+      Iron: 30
+      Wheat: 0
+      Bread: 100
+      Citizen: 5
+    controllerDescription: "\u5F37\u6575 AI\uFF08\u7B2C\u4E09\u9663\u55B6\u306E\u884C\u52D5\u5F8C\uFF09"

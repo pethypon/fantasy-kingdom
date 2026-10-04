@@ -20,7 +20,7 @@ public static partial class SaveSystem
 
     public static void RestoreAP(APSaveData src, FactionState.APData dst)
     {
-        dst.Current = Mathf.Clamp(src.Current, 0, GameConstants.MaxAP); dst.Reset = src.Reset;
+        dst.Current = Mathf.Clamp(src.Current, 0, APSystem.MaximumAP); dst.Reset = src.Reset;
         dst.Plus = src.Plus; dst.Minus = src.Minus;
     }
 
@@ -103,6 +103,7 @@ public static partial class SaveSystem
         commander.SaveTotalKills = src.TotalKills;
         commander.SaveTurnCount = src.AITurnCount;
         commander.RestorePlan(src.Operation);
+        commander.RestoreStrategicObjective(src.StrategicObjective);
 
         if (Enum.TryParse<TurnStrategy>(src.CurrentStrategy, out var strategy))
             commander.RestoreStrategy(strategy);

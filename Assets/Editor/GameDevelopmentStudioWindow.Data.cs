@@ -33,18 +33,38 @@ public sealed partial class GameDevelopmentStudioWindow
     public static FacilityDefinitionData CreateBuildingDefinition(string title)
     {
         string folder = NewFolder("Buildings", title);
+        return CreateBuildingFromRole(folder,title,FacilityKind.LoggingCamp,true);
+    }
+    static FacilityDefinitionData CreateBuildingFromRole(string folder,string title,FacilityKind kind,bool register)
+    {
         var data = CreateInstance<FacilityDefinitionData>();
         data.definitionId = "building-" + Guid.NewGuid().ToString("N");
-        data.displayName = title; data.behaviourKind = FacilityKind.LoggingCamp;
+        data.displayName = title; data.behaviourKind = kind;
         var info = FacilityData.Table[data.behaviourKind];
         data.buildCost = info.BuildCost; data.buildAP = info.APCost;
         data.levels = new FacilityData.FacilityLevelData[info.MaxLevel];
         for (int i = 0; i < data.levels.Length; i++) data.levels[i] = FacilityData.GetLevel(data.behaviourKind, i + 1);
         AssetDatabase.CreateAsset(data, folder + "/Building.asset");
         data.actionProfile = CreateProfile(folder + "/Building.asset", BuildingRole(data.behaviourKind), true);
+        // Buildings retain the original automatic attack/vision rules until explicitly customized.
+        data.actionProfile.attack.useCustom = false; data.actionProfile.vision.useCustom = false;
         data.prefab = CreateVisualPrefab(null, data, null);
-        EditorUtility.SetDirty(data); RegisterBuilding(data); AssetDatabase.SaveAssets();
+        EditorUtility.SetDirty(data); if(register)RegisterBuilding(data); AssetDatabase.SaveAssets();
         return data;
+    }
+    public static void ImportLegacyBuildings()
+    {
+        string folder = ContentFolder + "/Buildings/既存の建物データ";
+        UnitWorkshopWindow.EnsureFolder(folder);
+        foreach(var pair in FacilityData.Table)
+        {
+            string entryFolder=folder+"/"+pair.Key; string assetPath=entryFolder+"/Building.asset";
+            if(AssetDatabase.LoadAssetAtPath<FacilityDefinitionData>(assetPath)!=null)continue;
+            UnitWorkshopWindow.EnsureFolder(entryFolder);
+            var data=CreateBuildingFromRole(entryFolder,pair.Value.DisplayName,pair.Key,false);
+            data.category="既存の建物（編集用の複製）";EditorUtility.SetDirty(data);
+        }
+        AssetDatabase.SaveAssets();
     }
     public static BoardActionProfile CreateProfile(string ownerPath, Kind role, bool building)
     {
@@ -138,6 +158,11 @@ public sealed partial class GameDevelopmentStudioWindow
             var statuses = root.GetComponentsInChildren<Status>(true);
             if (statuses.Length > 1) throw new ArgumentException("元モデルのStatusが複数あります。１体分のモデルを選択してください。");
             var actor = statuses.Length == 1 ? statuses[0] : root.AddComponent<Status>();
+            if(actor.gameObject!=root)
+            {
+                // Economy and selection traverse actor roots. Normalize only the generated copy.
+                DestroyImmediate(actor);actor=root.AddComponent<Status>();
+            }
             actor.direction = Direction.N;
             if (unit != null)
             { actor.kind = unit.kind; actor.type = Type.Unit; actor.team = unit.defaultTeam; actor.AuthoredFacility = null; unit.ApplyToStatus(actor,1); unit.InitializeAbilities(actor); }

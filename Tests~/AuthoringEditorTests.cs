@@ -23,6 +23,15 @@ public static class AuthoringEditorTests
             var unit=GameDevelopmentStudioWindow.CreateUnitDefinition("検証用 駒");folders.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(unit)).Replace('\\','/'));
             Check("unit factory registers independent stable ID",unitCatalog.GetById(unit.definitionId)==unit&&unitCatalog.units.Find(e=>e.data==unit).standaloneDefinition);
             Check("generated prefab contains exact data and collider",unit.prefab.GetComponentInChildren<Status>().GrowthData==unit&&unit.prefab.GetComponentInChildren<Collider>()!=null);
+            var model=new GameObject("Nested actor model");
+            try
+            {
+                var child=new GameObject("Actor child");child.transform.SetParent(model.transform,false);child.AddComponent<Status>();
+                unit.prefab=GameDevelopmentStudioWindow.CreateVisualPrefab(unit,null,model);GameDevelopmentStudioWindow.RegisterUnit(unit);
+                Check("generated nested model normalizes actor root",unit.prefab.GetComponent<Status>()?.GrowthData==unit);
+                Check("prefab generation preserves original model",model.GetComponent<Status>()==null&&model.GetComponentsInChildren<Status>().Length==1);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(model); }
             unit.actionProfile.movement.SetCell(7,7,true);EditorUtility.SetDirty(unit.actionProfile);AssetDatabase.SaveAssets();
             string profilePath=AssetDatabase.GetAssetPath(unit.actionProfile);AssetDatabase.ImportAsset(profilePath,ImportAssetOptions.ForceUpdate);
             Check("mask bit 63 persists in Unity asset",AssetDatabase.LoadAssetAtPath<BoardActionProfile>(profilePath).movement.IsCellSet(7,7));
@@ -47,6 +56,12 @@ public static class AuthoringEditorTests
                 Check("required Japanese event "+category,item!=null&&item.DisplayName!=category.ToString()&&item.DisplayName.Length>0);
             }
             Check("default rules preserve legacy unless enabled",!GameDevelopmentStudioWindow.CreateRules().applyRules);
+            GameDevelopmentStudioWindow.ImportLegacyBuildings();
+            foreach(var entry in FacilityData.Table)
+            {
+                var definition=AssetDatabase.LoadAssetAtPath<FacilityDefinitionData>(GameDevelopmentStudioWindow.ContentFolder+"/Buildings/既存の建物データ/"+entry.Key+"/Building.asset");
+                Check("existing building data imported "+entry.Key,definition!=null&&definition.buildAP==entry.Value.APCost&&definition.levels.Length==entry.Value.MaxLevel);
+            }
         }
         finally
         {

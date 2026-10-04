@@ -18,8 +18,8 @@ public sealed partial class GameDevelopmentStudioWindow
         {"behaviourKind","施設の基本動作"},{"buildAP","建築費：AP"},{"HP","最大HP"},{"ATK","攻撃力"},{"DEF","防御力"},
         {"UpgradeAP","強化費：AP"},{"SpecialValue","特殊効果の値"},{"BonusChance1","確率生産１の発生率"},{"BonusChance2","確率生産２の発生率"},
         {"Wood","木材"},{"Stone","石材"},{"Iron","鉄"},{"MagicOre","魔石"},{"Wheat","小麦"},{"Bread","パン"},{"Water","水"},{"Citizen","市民"},
-        {"applyRules","このルールで新規ゲームを始める"},{"turnSeconds","１ターンの制限時間（秒）"},{"totalSeconds","各軍の持ち時間（秒）"},
-        {"timeBonusSeconds","手動でターン終了した時の加算秒数"},{"moveAP","基本移動AP"},{"attackAP","基本攻撃AP"},{"heightAP","高さ差１段の追加AP"},
+        {"applyRules","このルールで新規ゲームを始める"},{"aiBreadReserveTurns","AIが確保するパンの予備ターン数"},{"turnSeconds","１ターンの制限時間（秒）"},{"totalSeconds","各軍の持ち時間（秒）"},
+        {"timeBonusSeconds","手動でターン終了した時の加算秒数"},{"maximumAP","行動ポイントの上限（AP）"},{"moveAP","基本移動AP"},{"attackAP","基本攻撃AP"},{"heightAP","高さ差１段の追加AP"},
         {"citizenAP","市民１人によるAP増加"},{"breadPerCitizen","市民１人が消費するパン"},{"starvationGraceTurns","飢餓の猶予ターン数"},
         {"mapWidth","マップの横幅（マス）"},{"mapDepth","マップの奥行き（マス）"},{"noiseScale","地形の細かさ"},{"riverHalfWidth","川の半幅"},
         {"color","陣営の表示色"},{"initialAP","初期AP"},
@@ -48,12 +48,12 @@ public sealed partial class GameDevelopmentStudioWindow
         string label = Labels.TryGetValue(p.name,out var translated) ? translated : p.displayName;
         if (p.propertyType == SerializedPropertyType.Enum)
         {
-            if (p.type == nameof(Kind)) { p.intValue = EnumPopup(p.intValue,label,typeof(Kind),v => KindNameJP.Get((Kind)v)); return; }
-            if (p.type == nameof(Team)) { p.intValue = EnumPopup(p.intValue,label,typeof(Team),v => TeamLabel((Team)v)); return; }
-            if (p.type == nameof(FacilityKind)) { p.intValue = EnumPopup(p.intValue,label,typeof(FacilityKind),v => FacilityData.Table.TryGetValue((FacilityKind)v,out var info) ? info.DisplayName : "未設定"); return; }
-            if (p.type == nameof(PassiveSkill))
+            if (p.name == "kind") { p.intValue = EnumPopup(p.intValue,label,typeof(Kind),v => KindNameJP.Get((Kind)v)); return; }
+            if (p.name == "defaultTeam") { p.intValue = EnumPopup(p.intValue,label,typeof(Team),v => TeamLabel((Team)v)); return; }
+            if (p.name == "behaviourKind") { p.intValue = EnumPopup(p.intValue,label,typeof(FacilityKind),v => FacilityData.Table.TryGetValue((FacilityKind)v,out var info) ? info.DisplayName : "未設定"); return; }
+            if (p.name == "authoredPassive")
             { p.intValue = EnumPopup(p.intValue,label,typeof(PassiveSkill),v => new[]{"なし","鉄壁","狩人の目","破壊者","暗殺","狙撃","異形の王のオーラ"}[Convert.ToInt32(v)]); return; }
-            if (p.type == nameof(SpecialAbility))
+            if (p.name == "authoredSpecialAbility")
             { p.intValue = EnumPopup(p.intValue,label,typeof(SpecialAbility),v => SpecialAbilityData.Table.TryGetValue((SpecialAbility)v,out var info) ? info.NameJP : "なし"); return; }
         }
         EditorGUILayout.PropertyField(p,new GUIContent(label),true);

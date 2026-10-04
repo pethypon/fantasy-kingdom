@@ -54,6 +54,10 @@ public partial class AICommander
         }
 
         if (validActions.Count == 0) return null;
+        // Strategic priorities are lexicographic. Tactical scores and deliberate mistakes cannot override survival.
+        int highestPriority=4;
+        foreach(var entry in validActions)highestPriority=Mathf.Min(highestPriority,entry.action.StrategicPriority);
+        for(int i=validActions.Count-1;i>=0;i--)if(validActions[i].action.StrategicPriority!=highestPriority)validActions.RemoveAt(i);
 
         // ミス率: 一定確率で最善手以外を選択する（チュートリアル〜ノーマル帯）
         float mistakeRate = _threatLevel.MistakeRate;

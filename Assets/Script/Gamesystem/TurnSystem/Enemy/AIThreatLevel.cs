@@ -21,6 +21,7 @@ public class AIThreatLevel
 
     // ---- 状態 ----
     public int Level { get; private set; }
+    public int BreadReserveTurns { get; set; } = 3;
 
     // ---- 学習データ ----
     List<MatchAnalysis> _matchHistory = new List<MatchAnalysis>();

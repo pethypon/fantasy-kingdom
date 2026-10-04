@@ -199,6 +199,7 @@ public static partial class SaveSystem
         public int TraitDefense, TraitTactics, TraitDevelopment;
 
         public AIPlan Operation;
+        public PersistentStrategicObjective StrategicObjective;
 
         // AICommander 統計
         public string CurrentStrategy;

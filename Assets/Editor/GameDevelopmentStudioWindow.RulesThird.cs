@@ -15,9 +15,10 @@ public sealed partial class GameDevelopmentStudioWindow
             return;
         }
         var so = new SerializedObject(rules);so.Update();Field(so.FindProperty("applyRules"));
-        EditorGUILayout.HelpBox("有効化すると次の新規ゲームに適用します。保存ゲームの資材・AP・残り時間・地形は保存済みの状態を優先します。陣営の操作方式とターン順は既存のゲームシステムに従います。",MessageType.Info);
-        Heading("時間とAP"); Fields(so,"turnSeconds","totalSeconds","timeBonusSeconds","moveAP","attackAP","heightAP","citizenAP");
-        Heading("維持・経済");Fields(so,"breadPerCitizen","starvationGraceTurns");
+        EditorGUILayout.HelpBox("初期資材・初期AP・時間・地形は、新規ゲームで適用します。消費APやAP上限などの共通ルールは読み込んだゲームにも適用します。陣営の操作方式とターン順は既存のゲームシステムに従います。",MessageType.Info);
+        Heading("時間とAP"); Fields(so,"turnSeconds","totalSeconds","timeBonusSeconds","maximumAP","moveAP","attackAP","heightAP","citizenAP");
+        EditorGUILayout.LabelField("毎ターンのAP", "初期AP ＋ 市民による増加 − ペナルティ（AP上限まで）", EditorStyles.wordWrappedMiniLabel);
+        Heading("維持・経済");Fields(so,"breadPerCitizen","starvationGraceTurns","aiBreadReserveTurns");
         Heading("新規マップ");Fields(so,"mapWidth","mapDepth","noiseScale","riverHalfWidth");
         Heading("陣営の名前・色・初期状態");
         var factions=so.FindProperty("factions");
@@ -27,7 +28,12 @@ public sealed partial class GameDevelopmentStudioWindow
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.LabelField(TeamLabel(team),EditorStyles.boldLabel);
             Field(faction.FindPropertyRelative("displayName"));Field(faction.FindPropertyRelative("color"));
-            if(team!=Team.Obstacle)Field(faction.FindPropertyRelative("initialAP"));
+            if(team!=Team.Obstacle)
+            {
+                Field(faction.FindPropertyRelative("initialAP"));
+                if(faction.FindPropertyRelative("initialAP").intValue>so.FindProperty("maximumAP").intValue)
+                    EditorGUILayout.LabelField("実際の初期APは、設定したAP上限までになります。",EditorStyles.wordWrappedMiniLabel);
+            }
             else EditorGUILayout.LabelField("行動ポイント","強敵ごとの専用APを使用");
             if(team==Team.Player||team==Team.Enemy)DrawBundle(faction.FindPropertyRelative("initialResources"),"新規ゲームの初期資材");
             else EditorGUILayout.LabelField("資材・生産","第三陣営は通常の経済資材を使用しません。",EditorStyles.wordWrappedMiniLabel);

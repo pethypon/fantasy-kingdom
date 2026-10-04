@@ -4,6 +4,7 @@ using UnityEngine;
 public class APSystem : MonoBehaviour
 {
     public enum ActionType { Move, Attack, Build }
+    public static int MaximumAP => Mathf.Clamp(GameAuthoringRules.Active?.maximumAP ?? GameConstants.MaxAP, 3, GameConstants.MaxAP);
     public static int BaseMoveCost => Mathf.Clamp(GameAuthoringRules.Active?.moveAP ?? GameConstants.BaseMoveAPCost, 1, GameConstants.MaxAP);
     public static int BaseAttackCost => Mathf.Clamp(GameAuthoringRules.Active?.attackAP ?? GameConstants.BaseAttackAPCost, 1, GameConstants.MaxAP);
 

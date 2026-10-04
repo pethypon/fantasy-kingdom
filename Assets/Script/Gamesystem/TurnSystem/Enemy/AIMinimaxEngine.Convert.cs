@@ -10,6 +10,9 @@ public partial class AIMinimaxEngine
     // ================================================================
     SimAction ConvertToSimAction(AIAction aiAction, SimBoardState board)
     {
+        // Authored production/cost recipes are evaluated from their real definitions by the governor.
+        // A legacy-only simulated recipe must not overwrite that decision.
+        if(aiAction.FacilityDefinition != null || aiAction.SummonDefinition != null)return null;
         var sim = new SimAction();
         sim.APCost = aiAction.APCost;
         sim.ActorTeam = Team.Enemy; // AICommanderから呼ばれるので常にEnemy

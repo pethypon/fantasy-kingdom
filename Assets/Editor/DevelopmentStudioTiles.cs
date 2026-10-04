@@ -2,18 +2,21 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-/// <summary>Japanese tile editor shared by unit and building authoring.</summary>
+/// <summary>Japanese movement, attack and vision tile editor for authored units.</summary>
 public static class DevelopmentStudioTiles
 {
     static BoardTilePattern painting;
     static bool paintValue;
     static int narrowTab;
+    static GUIStyle tileLabelStyle;
     static readonly string[] TabNames = { "移動マス", "攻撃マス", "視界マス" };
     static readonly Color[] Colors = { new Color(.24f, .65f, .9f), new Color(.95f, .42f, .28f), new Color(.2f, .74f, .52f) };
 
     public static void Draw(BoardActionProfile profile, Kind role, float availableWidth)
     {
         if (profile == null) { EditorGUILayout.HelpBox("「マス設定を作成」を押して個別の行動を設定してください。", MessageType.Info); return; }
+        string nextName=EditorGUILayout.TextField("行動タイプの名前",profile.displayName);
+        if(nextName!=profile.displayName){Undo.RecordObject(profile,"行動タイプ名変更");profile.displayName=nextName;EditorUtility.SetDirty(profile);}
         EditorGUILayout.LabelField("行動タイプ", EditorStyles.boldLabel);
         int nextType = EditorGUILayout.Popup("行動の組み合わせ", (int)profile.actionType,
             new[] { "汎用（移動・攻撃・スキル）", "戦闘（移動・攻撃・スキル）", "支援（移動・スキル）", "固定（攻撃・スキル）", "行動しない" });
@@ -51,6 +54,8 @@ public static class DevelopmentStudioTiles
         }
         EditorGUILayout.LabelField("← 西      ↑ 前（北）      東 →", EditorStyles.centeredGreyMiniLabel, GUILayout.Width(270));
         var grid = GUILayoutUtility.GetRect(270, 270, GUILayout.Width(270), GUILayout.Height(270));
+        if (tileLabelStyle == null)
+            tileLabelStyle = new GUIStyle(EditorStyles.boldLabel) { alignment = TextAnchor.MiddleCenter, normal = { textColor = Color.white } };
         const float tile = 32;
         var preview = pattern;
         if (!pattern.useCustom)
@@ -66,7 +71,7 @@ public static class DevelopmentStudioTiles
             EditorGUI.DrawRect(rect, color);
             var label = origin ? "駒" : set ? mode == 0 ? "移" : mode == 1 ? "攻" : "視" : "·";
             GUI.Label(rect, new GUIContent(label, $"横 {x - pattern.originX:+0;-0;0} / 前後 {z - pattern.originZ:+0;-0;0}"),
-                new GUIStyle(EditorStyles.boldLabel) { alignment = TextAnchor.MiddleCenter, normal = { textColor = Color.white } });
+                tileLabelStyle);
             var e = Event.current;
             if (!pattern.useCustom || origin && mode != 2 || !rect.Contains(e.mousePosition) || e.button != 0) continue;
             if (e.type == EventType.MouseDown)

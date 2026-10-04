@@ -244,6 +244,7 @@ public static partial class SaveSystem
         dst.TotalKills = commander.SaveTotalKills;
         dst.AITurnCount = commander.SaveTurnCount;
         dst.Operation = commander.SavePlan;
+        dst.StrategicObjective=commander.SaveStrategicObjective;
         dst.RngSeed = commander.ThreatLevel.Level; // シードは脅威度から復元可
 
         // Learning

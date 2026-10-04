@@ -21,9 +21,11 @@ public sealed class GameAuthoringRules : ScriptableObject
 {
     public const string ResourcesPath = "GameContent/Rules";
     public bool applyRules;
+    [Range(1,8)] public int aiBreadReserveTurns=3;
     [Min(1)] public float turnSeconds = 180;
     [Min(1)] public float totalSeconds = 36000;
     [Min(0)] public float timeBonusSeconds = 60;
+    [Range(3, 50)] public int maximumAP = GameConstants.MaxAP;
     [Range(1, 50)] public int moveAP = 3, attackAP = 2;
     [Range(0, 50)] public int heightAP = 2;
     [Range(0, 10)] public int citizenAP = 1, breadPerCitizen = 1;
@@ -75,7 +77,7 @@ public sealed class GameAuthoringRules : ScriptableObject
             var faction = FindFaction(team);
             if (faction == null) continue;
             var ap = state.GetAPData(team);
-            ap.Reset = Mathf.Clamp(faction.initialAP, 3, GameConstants.MaxAP);
+            ap.Reset = Mathf.Clamp(faction.initialAP, 3, Mathf.Clamp(maximumAP, 3, GameConstants.MaxAP));
             ap.Current = ap.Reset;
             if (team != Team.Player && team != Team.Enemy) continue;
             CopyResources(faction.initialResources, state.GetResources(team));
@@ -84,7 +86,7 @@ public sealed class GameAuthoringRules : ScriptableObject
     public void ApplyTimer(TimerSystem timer)
     {
         if (!applyRules || timer == null) return;
-        timer.TurnTimeLimit = SafePositive(turnSeconds, 180);
+        timer.TurnTimeLimit = Mathf.Clamp(SafePositive(turnSeconds, 180), 1, timer.MaxTotalTime);
         timer.PlayerTotalTime = timer.EnemyTotalTime = Mathf.Clamp(SafePositive(totalSeconds, 36000), 1, timer.MaxTotalTime);
         timer.TurnTimeBonus = Mathf.Clamp(SafePositive(timeBonusSeconds, 0), 0, timer.MaxTotalTime);
     }

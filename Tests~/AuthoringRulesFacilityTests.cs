@@ -52,6 +52,16 @@ public static class AuthoringRulesFacilityTests
                 Check(APSystem.BaseMoveCost == 7 && APSystem.BaseAttackCost == 4 && EconomySystem.CitizenAPBonus == 2, "enabled rules reach action and economy calculations");
                 rules.moveAP = -4; rules.attackAP = 100;
                 Check(APSystem.BaseMoveCost == 1 && APSystem.BaseAttackCost == 50, "AP rule values have runtime limits");
+                rules.maximumAP = 20;
+                var turnAP = new FactionState.APData { Reset = 18, Plus = 9 };
+                turnAP.ResetForTurn();
+                Check(APSystem.MaximumAP == 20 && turnAP.Maximum == 20 && turnAP.Current == 20, "authored AP cap bounds turn recovery and UI maximum");
+                rules.maximumAP = -1;
+                Check(APSystem.MaximumAP == 3, "invalid authored AP cap retains a playable minimum");
+                rules.maximumAP = 500;
+                Check(APSystem.MaximumAP == 50, "authored AP cap retains the engine safety ceiling");
+                rules.applyRules = false;
+                Check(APSystem.MaximumAP == 50, "disabled AP cap preserves legacy rules");
             }
             finally { loadedField.SetValue(null, oldLoaded); didLoadField.SetValue(null, oldDidLoad); }
 
@@ -103,7 +113,21 @@ public static class AuthoringRulesFacilityTests
             var savedTimer = new SaveSystem.TimerSaveData { TurnTimeLimit = 91, PlayerTotalTime = 72, EnemyTotalTime = 83, TurnTimeRemaining = 19 };
             SaveSystem.RestoreTimer(savedTimer, timer);
             Check(timer.TurnTimeLimit == 91 && timer.TurnTimeRemaining == 19 && timer.PlayerTotalTime == 72, "saved timer overrides new-game rules");
+            rules.turnSeconds = 0; rules.ApplyTimer(timer);
+            Check(timer.TurnTimeLimit == 1, "zero-duration authored turn cannot break the timer");
+            rules.turnSeconds = float.NaN; rules.ApplyTimer(timer);
+            Check(timer.TurnTimeLimit == 180, "invalid authored duration falls back safely");
+            rules.maximumAP = 20; rules.ApplyNewGame(state);
+            Check(state.PlayerAP.Reset == 20 && state.PlayerAP.Current == 20, "new-game AP obeys configured ceiling");
+            state.ModifyAP(Team.Player, 99);
+            Check(state.GetAP(Team.Player) == 20, "AP grants and refunds cannot exceed authored ceiling");
+            SaveSystem.RestoreAP(new SaveSystem.APSaveData { Current = 30, Reset = 18, Plus = 5 }, state.PlayerAP);
+            Check(state.PlayerAP.Current == 20 && state.PlayerAP.Maximum == 20, "load obeys current AP ceiling without replacing saved base AP");
+            var simulation = new SimBoardState { EnemyAPReset = 40, PlayerAPReset = 40, Units = new List<SimUnit>() };
+            simulation.SimulateTurnTransition(Team.Enemy); simulation.SimulateTurnTransition(Team.Player);
+            Check(simulation.EnemyAP == 20 && simulation.PlayerAP == 20, "AI simulation uses the same AP ceiling as gameplay");
             rules.applyRules = false;
+            state.PlayerAP.Current = 30;
 
             var ap = CreateObject("Authoring test AP").AddComponent<APSystem>(); ap.Init(state);
             builder = CreateObject("Authoring test builder").AddComponent<BuildSystem>();

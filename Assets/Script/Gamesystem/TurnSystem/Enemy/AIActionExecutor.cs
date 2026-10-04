@@ -54,6 +54,7 @@ public class AIActionExecutor
     public bool Execute(AIAction action, AIBoardState board)
     {
         if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
+        if (board.Governor != null && !board.Governor.AllowExecution(action,board)) return false;
         switch (action.ActionType)
         {
             case AIActionType.Move:
@@ -400,9 +401,11 @@ public class AIActionExecutor
     {
         if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
         if (_summonSystem == null) return false;
+        if(board.Governor != null && !board.Governor.AllowExecution(action,board))return false;
 
         var pos = AIBoardState.ToCell(action.TargetPos);
-        bool success = _summonSystem.AISummonUnit(pos, action.SummonKind, ActorTeam);
+        bool success = action.SummonDefinition != null ? _summonSystem.AISummonUnit(pos,action.SummonDefinition,ActorTeam)
+            : _summonSystem.AISummonUnit(pos, action.SummonKind, ActorTeam);
         if (success)
         {
             board.RefreshAP();

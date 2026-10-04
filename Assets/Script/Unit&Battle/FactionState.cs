@@ -16,7 +16,7 @@ public class FactionState : MonoBehaviour
         [Header("ボーナス")] public int Plus = 0;
         [Header("ペナルティ")] public int Minus = 0;
 
-        public int Maximum => Mathf.Clamp(Reset + Plus - Minus, 3, GameConstants.MaxAP);
+        public int Maximum => Mathf.Clamp(Reset + Plus - Minus, 3, APSystem.MaximumAP);
 
         public void ResetForTurn()
         {
@@ -121,7 +121,7 @@ public class FactionState : MonoBehaviour
         }
     }
     public int GetAP(Team team) => GetAPData(team).Current;
-    public void SetAP(Team team, int value) => GetAPData(team).Current = Mathf.Clamp(value, 0, GameConstants.MaxAP);
+    public void SetAP(Team team, int value) => GetAPData(team).Current = Mathf.Clamp(value, 0, APSystem.MaximumAP);
     public void ModifyAP(Team team, int delta) => SetAP(team, GetAP(team) + delta);
     public void ResetAPForTurn(Team team) => GetAPData(team).ResetForTurn();
 

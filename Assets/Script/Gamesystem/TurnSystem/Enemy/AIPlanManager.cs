@@ -41,13 +41,20 @@ public sealed class AIPlanManager
         if (board.ReconThreatLevel < 10) { Current = null; assigned.Clear(); return; }
         if (generation == board.Generation && turn == board.TurnCount) return;
         generation = board.Generation; turn = board.TurnCount;
+        bool suspend=board.Governor?.Mode==StrategicMode.EmergencyDefense||board.Governor?.Mode==StrategicMode.EconomicRecovery;
+        if(Current!=null&&Current.Active)
+        {
+            if(suspend){if(!Current.Suspended){Current.Suspended=true;Current.SuspensionTurn=board.TurnCount;}return;}
+            if(Current.Suspended){int paused=Mathf.Max(0,board.TurnCount-Current.SuspensionTurn);Current.StartedTurn+=paused;Current.StepStartedTurn+=paused;Current.Suspended=false;}
+        }
+        if(suspend)return;
         army.Clear();
         foreach (var unit in board.AliveEnemyUnits)
             if (unit != null && unit.IsAlive && unit.type == Type.Unit && unit.kind != Kind.King) army.Add(unit);
         if (Current != null && Current.Active)
         {
             Assign();
-            if (Emergency(board) || army.Count * 2 < Current.InitialArmy
+            if ((board.Governor==null&&Emergency(board)) || army.Count * 2 < Current.InitialArmy
                 || board.TurnCount - Current.StartedTurn >= Current.ExpectedTurns)
             { Finish(board, AIPlanStep.Aborted); return; }
             bool targetObserved = false;
@@ -267,7 +274,7 @@ public sealed class AIPlanManager
 
     public float Bonus(AIAction action, AIBoardState board)
     {
-        if (Current == null || !Current.Active || board.ReconThreatLevel < 10) return 0;
+        if (Current == null || !Current.Active || Current.Suspended || board.ReconThreatLevel < 10) return 0;
         if (action.ActionType == AIActionType.Summon && Current.Step == AIPlanStep.Assemble)
         {
             int needed=0, present=0;
