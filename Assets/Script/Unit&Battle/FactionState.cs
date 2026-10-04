@@ -107,10 +107,23 @@ public class FactionState : MonoBehaviour
     }
 
     // ==== AP 取得 / 設定 ====
-    public int GetAP(Team team) => GetNation(team).AP.Current;
-    public void SetAP(Team team, int value) => GetNation(team).AP.Current = Mathf.Clamp(value, 0, GameConstants.MaxAP);
+    public APData MonsterAP = new APData();
+    public APData IntruderAP = new APData();
+    public APData GetAPData(Team team)
+    {
+        switch (team)
+        {
+            case Team.Player: return PlayerAP;
+            case Team.Enemy: return EnemyAP;
+            case Team.Monster: return MonsterAP;
+            case Team.Intruder: return IntruderAP;
+            default: throw new System.ArgumentOutOfRangeException(nameof(team));
+        }
+    }
+    public int GetAP(Team team) => GetAPData(team).Current;
+    public void SetAP(Team team, int value) => GetAPData(team).Current = Mathf.Clamp(value, 0, GameConstants.MaxAP);
     public void ModifyAP(Team team, int delta) => SetAP(team, GetAP(team) + delta);
-    public void ResetAPForTurn(Team team) => GetNation(team).AP.ResetForTurn();
+    public void ResetAPForTurn(Team team) => GetAPData(team).ResetForTurn();
 
     // ==== 資源取得 ====
     public ResourceData GetResources(Team team) => GetNation(team).Resources;

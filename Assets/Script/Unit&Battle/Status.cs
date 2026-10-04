@@ -316,6 +316,7 @@ public class Status : MonoBehaviour
     [Header("レベル")]
     public int Level = 1;
     [System.NonSerialized] public UnitData GrowthData;
+    [HideInInspector] public string unitDefinitionId;
     [Header("駒の視界")]
     public HashSet<Vector3Int> VisionCell = new HashSet<Vector3Int>();
     [Header("疲労")]
@@ -337,6 +338,9 @@ public class Status : MonoBehaviour
 
     [Header("建築物の種類")]
     public FacilityKind facilityKind;
+    public FacilityDefinitionData AuthoredFacility;
+    [HideInInspector] public string authoredFacilityId;
+    [System.NonSerialized] public bool BuildingOperationAvailable = true;
 
     // =====================================================================
     //  状態異常・バフ・スキル
@@ -396,6 +400,7 @@ public class Status : MonoBehaviour
         }
         int actual = UnityEngine.Mathf.Min(UnityEngine.Mathf.Max(0, HP), damage);
         HP -= actual;
+        if (actual > 0) GetTurnGenerator()?.Systems.ThirdFactionSystem?.RecordDamage(this, actual);
         return actual;
     }
 

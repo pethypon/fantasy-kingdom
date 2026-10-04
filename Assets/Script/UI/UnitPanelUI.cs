@@ -379,14 +379,15 @@ public class UnitPanelUI : MonoBehaviour
             Team.Player => "味方", Team.Enemy => "敵軍", Team.Monster => "魔物",
             Team.Intruder => "乱入者", Team.Obstacle => "強敵", _ => "中立"
         };
+        team = GameAuthoringRules.FactionName(currentUnit.team, team);
         string mode = previewOnly ? "プレビュー" : "選択中";
         if (!previewOnly && turnGenerator != null && turnGenerator.Context.SelectUnit == currentUnit
             && turnGenerator.CurrentState is PlayerAttack attack)
             mode = attack.attackmode == PlayerMove.AttackMode.Skill ? "スキル対象を選択" : "攻撃対象を選択";
         headingText.text = $"{team}  /  {(isBuilding ? "施設" : "ユニット")}    ・    {mode}";
-        headingText.color = currentUnit.team == Team.Player ? BrandGuide.TeamPlayer : BrandGuide.TextPrimary;
-        if (headingAccent != null) headingAccent.color = currentUnit.team == Team.Player
-            ? BrandGuide.TeamPlayer : BrandGuide.TeamEnemy;
+        headingText.color = GameAuthoringRules.FactionColor(currentUnit.team, currentUnit.team == Team.Player ? BrandGuide.TeamPlayer : BrandGuide.TextPrimary);
+        if (headingAccent != null) headingAccent.color = GameAuthoringRules.FactionColor(currentUnit.team, currentUnit.team == Team.Player
+            ? BrandGuide.TeamPlayer : BrandGuide.TeamEnemy);
     }
 
     private void RefreshUnit()
@@ -395,7 +396,7 @@ public class UnitPanelUI : MonoBehaviour
         string nCol = ColorUtility.ToHtmlStringRGB(BrandGuide.TeamPlayer);
         string sCol = ColorUtility.ToHtmlStringRGB(BrandGuide.TeamEnemy);
         string dirMark = currentUnit.direction == Direction.N ? $" <color=#{nCol}>▲N</color>" : $" <color=#{sCol}>▼S</color>";
-        if (nameText != null) nameText.text = KindNameJP.Get(currentUnit.kind) + dirMark;
+        if (nameText != null) nameText.text = KindNameJP.Get(currentUnit) + dirMark;
         if (hpText != null)
         {
             float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 0f;
@@ -423,7 +424,8 @@ public class UnitPanelUI : MonoBehaviour
             }
             else
             {
-                kindText.text = KindNameJP.Get(currentUnit.kind);
+                kindText.text = currentUnit.GrowthData != null && !string.IsNullOrWhiteSpace(currentUnit.GrowthData.category)
+                    ? currentUnit.GrowthData.category : KindNameJP.Get(currentUnit.kind);
             }
         }
         if (passiveText != null)
@@ -472,9 +474,7 @@ public class UnitPanelUI : MonoBehaviour
     private void RefreshBuilding()
     {
         var facility = currentUnit.facilityKind;
-        string displayName = facility.ToString();
-        if (FacilityData.Table.TryGetValue(facility, out var info))
-            displayName = info.DisplayName;
+        string displayName = FacilityData.DisplayName(currentUnit);
 
         // 左: 基本情報
         if (nameText != null) nameText.text = displayName;
@@ -493,13 +493,13 @@ public class UnitPanelUI : MonoBehaviour
 
         // 効果説明
         if (kindText != null)
-            kindText.text = GetBuildingEffectText(facility, currentUnit.Level);
+            kindText.text = currentUnit.AuthoredFacility != null ? AuthoredBuildingEffectText(currentUnit) : GetBuildingEffectText(facility, currentUnit.Level);
         if (passiveText != null)
             passiveText.text = "";
 
         if (previewOnly) return;
         // 建築物用ボタン表示
-        bool isOffensive = FacilityData.IsOffensive(facility);
+        bool isOffensive = currentUnit.AuthoredFacility != null ? currentUnit.ATK > 0 && (BoardActionProfile.For(currentUnit)?.CanAttack ?? true) : FacilityData.IsOffensive(facility);
         SetButtonVisible(attackButton, isOffensive && currentUnit.team == Team.Player);
         SetButtonVisible(cancelButton, true);
         UIFactory.SetAnchors(attackButton.GetComponent<RectTransform>(), 0, 0.76f, 0.5f, 1);
@@ -532,7 +532,7 @@ public class UnitPanelUI : MonoBehaviour
         if (attackButton != null)
         {
             attackButton.interactable = canAttack;
-            UpdateButtonLabel(attackButton, turnGenerator != null && turnGenerator.CurrentState is PlayerAttack attack && attack.attackmode == PlayerMove.AttackMode.Normal ? "攻撃モード" : "攻撃 <size=70%>[1]</size>", GameConstants.BaseAttackAPCost, canAttack);
+            UpdateButtonLabel(attackButton, turnGenerator != null && turnGenerator.CurrentState is PlayerAttack attack && attack.attackmode == PlayerMove.AttackMode.Normal ? "攻撃モード" : "攻撃 <size=70%>[1]</size>", apSystem != null ? apSystem.CalcCost(APSystem.ActionType.Attack,currentUnit) : APSystem.BaseAttackCost, canAttack);
         }
         if (skillButton != null)
         {
@@ -576,7 +576,7 @@ public class UnitPanelUI : MonoBehaviour
 
         var facility = currentUnit.facilityKind;
         int currentLevel = Mathf.Max(1, currentUnit.Level);
-        int maxLevel = FacilityData.GetMaxLevel(facility);
+        int maxLevel = FacilityData.GetMaxLevel(currentUnit);
 
         if (currentLevel >= maxLevel)
         {
@@ -585,7 +585,7 @@ public class UnitPanelUI : MonoBehaviour
         }
 
         upgradeArea.SetActive(true);
-        var nextData = FacilityData.GetLevel(facility, currentLevel + 1);
+        var nextData = FacilityData.GetLevel(currentUnit, currentLevel + 1);
 
         // コスト文字列を構築
         string costStr = FormatUpgradeCost(nextData.UpgradeCost, nextData.UpgradeAP);
@@ -600,7 +600,7 @@ public class UnitPanelUI : MonoBehaviour
                 FacilityData.CanUpgrade(
                     factionState.PlayerResources,
                     factionState.GetAP(Team.Player),
-                    facility, currentLevel);
+                    currentUnit, currentLevel);
             upgradeButton.interactable = canUpgrade;
 
             var img = upgradeButton.GetComponent<Image>();
@@ -744,5 +744,28 @@ public class UnitPanelUI : MonoBehaviour
             default:
                 return "";
         }
+    }
+
+    private static string AuthoredBuildingEffectText(Status building)
+    {
+        var data = FacilityData.GetLevel(building, building.Level);
+        var parts = new System.Collections.Generic.List<string>();
+        if (!data.Input.IsEmpty) parts.Add("毎ターン消費: " + FormatProduction(data.Input));
+        if (!data.Output.IsEmpty) parts.Add("毎ターン生産: " + FormatProduction(data.Output));
+        if (!data.Maintenance.IsEmpty) parts.Add("維持費: " + FormatProduction(data.Maintenance));
+        if (building.facilityKind == FacilityKind.House || building.facilityKind == FacilityKind.LuxuryHouse) parts.Add("人口上限 +" + data.SpecialValue);
+        else if (building.facilityKind == FacilityKind.Warehouse) parts.Add("資源容量 +" + data.SpecialValue);
+        else if (building.facilityKind == FacilityKind.Barracks) parts.Add("経験値 +" + data.SpecialValue + "%");
+        return string.Join("\n", parts);
+    }
+
+    private static string FormatProduction(FacilityData.ProductionBundle value)
+    {
+        var parts = new System.Collections.Generic.List<string>();
+        if (value.Wood > 0) parts.Add("木" + value.Wood); if (value.Stone > 0) parts.Add("石" + value.Stone);
+        if (value.Iron > 0) parts.Add("鉄" + value.Iron); if (value.MagicOre > 0) parts.Add("魔石" + value.MagicOre);
+        if (value.Wheat > 0) parts.Add("小麦" + value.Wheat); if (value.Bread > 0) parts.Add("パン" + value.Bread);
+        if (value.Water > 0) parts.Add("水" + value.Water); if (value.Citizen > 0) parts.Add("市民" + value.Citizen);
+        return string.Join(" ", parts);
     }
 }

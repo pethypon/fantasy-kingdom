@@ -133,9 +133,9 @@ public sealed class AIReconnaissance
         {
             int end = frontier.Count;
             for (int i = first; i < end && forecast.Count < 256; i++)
-            foreach (var offset in MovePatterns.Offsets(memory.Kind))
+            foreach (var offset in MovePatterns.Offsets(memory.Kind, memory.ActionProfile))
             {
-                int direction = MovePatterns.DirectionIndependent.Contains(memory.Kind) ? 1 : MovePatterns.DirZ(memory.Direction);
+                int direction = MovePatterns.IsDirectionIndependent(memory.Kind, memory.ActionProfile) ? 1 : MovePatterns.DirZ(memory.Direction);
                 var next = frontier[i] + new Vector3Int(offset.x, 0, offset.y * direction);
                 if (!Inside(next) || !KnownLineClear(frontier[i], next, true)) continue;
                 if (forecast.Add(next)) frontier.Add(next);
@@ -183,7 +183,7 @@ public sealed class AIReconnaissance
         footprint.Clear();
         bool blind = StatusEffectSystem.HasDebuff(unit, StatusEffectType.Blind) || StatusEffectSystem.HasDebuff(unit, StatusEffectType.NarrowVision);
         if (blind) footprint.Add(target + new Vector3Int(0, 0, MovePatterns.DirZ(unit.direction)));
-        else foreach (var offset in VisionGenerator.BaseVisionOffsets(unit.kind)) footprint.Add(target + GridHelper.ToGridXZ(offset));
+        else foreach (var offset in VisionGenerator.BaseVisionOffsets(unit)) footprint.Add(target + GridHelper.ToGridXZ(offset));
         float information = 0, ranged = 0, warning = 0;
         int fresh = 0, overlap = 0;
         foreach (var cell in footprint)
@@ -200,7 +200,7 @@ public sealed class AIReconnaissance
                 {
                     if (ally == null || ally == unit || !IsRanged(ally.kind)) continue;
                     var from = GridHelper.ToGridXZ(ally.transform.position);
-                    if (!AttackPatterns.CanAttack(ally.kind, ally.direction, cell.x - from.x, cell.z - from.z)) continue;
+                    if (!AttackPatterns.CanAttack(ally, ally.direction, cell.x - from.x, cell.z - from.z)) continue;
                     if (!MapCreate.IsArcingAttack(ally.kind, ally.facilityKind) && !KnownLineClear(from, cell, false)) continue;
                     ranged += unknown ? 1.5f : expected * .3f;
                     break;

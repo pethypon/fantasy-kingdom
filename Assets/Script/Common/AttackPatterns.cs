@@ -103,6 +103,35 @@ public static class AttackPatterns
                       new Vector2Int(0,5), new Vector2Int(0,6), new Vector2Int(0,7) } },
     };
 
+    public static bool IsDirectionIndependent(Status actor)
+    {
+        if (actor == null) return false;
+        var profile = BoardActionProfile.For(actor);
+        return profile != null && profile.attack != null && profile.attack.useCustom
+            ? profile.attack.directionIndependent : DirectionIndependent.Contains(actor.kind);
+    }
+    public static bool CanUseSkills(Status actor)
+    {
+        if (actor == null) return false;
+        var profile = BoardActionProfile.For(actor);
+        return profile == null || profile.CanUseSkills;
+    }
+    public static bool CanUseSkills(SimUnit actor)
+        => actor != null && (actor.ActionProfile == null || actor.ActionProfile.CanUseSkills);
+    public static bool CanAttack(Status actor, Direction facing, float dx, float dz)
+        => actor != null && CanAttack(actor.kind, facing, dx, dz, BoardActionProfile.For(actor));
+    public static bool CanAttack(SimUnit actor, Direction facing, float dx, float dz)
+        => actor != null && CanAttack(actor.Kind, facing, dx, dz, actor.ActionProfile);
+    public static bool CanAttack(Kind kind, Direction facing, float dx, float dz, BoardActionProfile profile)
+    {
+        if (profile == null) return CanAttack(kind, facing, dx, dz);
+        if (!profile.CanAttack) return false;
+        if (profile.attack == null || !profile.attack.useCustom) return CanAttack(kind, facing, dx, dz);
+        int x = Mathf.RoundToInt(dx), z = Mathf.RoundToInt(dz);
+        return (x != 0 || z != 0) && Mathf.Abs(dx - x) < .001f && Mathf.Abs(dz - z) < .001f
+            && profile.attack.Contains(x, z, facing);
+    }
+
     /// <summary>
     /// 通常攻撃の判定（方向を考慮）。
     /// </summary>

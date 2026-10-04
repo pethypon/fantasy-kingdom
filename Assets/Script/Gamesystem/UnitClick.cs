@@ -167,7 +167,7 @@ public class UnitClick : MonoBehaviour
         int hpBefore = AttackTarget.HP;
         battlesystem.ProcessDamage(turnGenerator);
         int dmgDealt = hpBefore - AttackTarget.HP;
-        ActionLogUI.LogAttack(KindNameJP.Get(playermove.SelectedUnit.kind), KindNameJP.Get(AttackTarget.kind), dmgDealt, AttackTarget.HP <= 0);
+        ActionLogUI.LogAttack(KindNameJP.Get(playermove.SelectedUnit), KindNameJP.Get(AttackTarget), dmgDealt, AttackTarget.HP <= 0);
         turnGenerator.Systems.APSystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.SelectedUnit);
         playerattack.AttackSuccess = true;
     }
@@ -337,7 +337,7 @@ public class UnitClick : MonoBehaviour
         movedUnit.HasMovedThisTurn = true;
 
         // ---- アクションログ ----
-        ActionLogUI.LogMove(KindNameJP.Get(movedUnit.kind), from, to);
+        ActionLogUI.LogMove(KindNameJP.Get(movedUnit), from, to);
 
         // ---- ML観測: プレイヤーの移動をMLシステムに記録 ----
         if (turnGenerator.Systems.AICommander != null)

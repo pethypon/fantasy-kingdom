@@ -20,7 +20,7 @@ public static class SceneSmoke
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdomR1Validation";
         TerrainPrefabEditor.Create(); CrystalPrefabEditor.Configure();
-        CoreLogicTests.RunAll();
+        CoreLogicTests.RunAll(); ThirdFactionTests.EditMode();
         if (!AssetDatabase.IsValidFolder("Assets/Resources")) AssetDatabase.CreateFolder("Assets", "Resources");
         var catalog = AssetDatabase.LoadAssetAtPath<R1ContentCatalog>("Assets/Resources/R1ContentCatalog.asset");
         if (catalog == null)
@@ -103,11 +103,11 @@ public static class SceneSmoke
             Check("boss state survives save", systems.WildBossSystem.SpawnedBoss.HP == roundTrip.WildBoss.Unit.HP
                 && systems.WildBossSystem.SpawnedBoss.wildBossArchetype == roundTrip.WildBoss.Archetype);
             turn.ChangeState(new EnemyStart(turn));
-            for (int frame=0; frame<2000 && turn.CurrentState is EnemyMove; frame++) turn.CurrentState.Update();
+            for (int frame=0; frame<6000 && !(turn.CurrentState is PlayerMove) && !turn.IsGameOver; frame++) turn.CurrentState.Update();
             Check("enemy and independent turns return to player", turn.CurrentState is PlayerMove && turn.Context.Turn == 2);
             var neutrals = systems.NeutralFactionSystem.UnitParent.GetComponentsInChildren<Status>();
             Check("configured monsters spawn independently", neutrals.Count(s => s.team == Team.Monster) == 2);
-            var intruder = neutrals.First(s => s.team == Team.Intruder);
+            var intruder = ThirdFactionTests.SpawnFixture(systems);
             Check("intruder excludes strong enemy", !NeutralFactionSystem.AreHostile(intruder, systems.WildBossSystem.SpawnedBoss));
             var player = systems.UnitSetting.PlayerUnit.GetComponentInChildren<Status>();
             Check("intruder attacks both principal factions", NeutralFactionSystem.AreHostile(intruder, player)
@@ -120,7 +120,7 @@ public static class SceneSmoke
             intruder.HandleDeathIfDead();
             var neutralSave = systems.NeutralFactionSystem.Capture();
             systems.NeutralFactionSystem.Restore(neutralSave, 2, 1, systems.NeutralFactionSystem.SpawnedIntruders.ToList());
-            Check("neutral restore does not duplicate units", systems.NeutralFactionSystem.UnitParent.GetComponentsInChildren<Status>().Length == 2);
+            Check("neutral restore does not duplicate units", systems.NeutralFactionSystem.UnitParent.GetComponentsInChildren<Status>().Length == neutralSave.Count);
             var threat=(AIThreatLevel)typeof(AICommander).GetField("_threatLevel",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(systems.AICommander);
             typeof(AIThreatLevel).GetProperty("Level").SetValue(threat,100);
             systems.FactionState.SetAP(Team.Enemy,50);
@@ -137,6 +137,7 @@ public static class SceneSmoke
             for(int sample=0;sample<Math.Min(aiGC.Count,aiGC.Capacity);sample++) aiAllocated+=aiGC.GetSample(sample).Value;aiGC.Dispose();
             Check("threat 100 whole thinking within 3s budget plus 0.75s tolerance",aiWatch.Elapsed.TotalMilliseconds<3750);
             Debug.Log($"[Optimization] AI threat=100 wholeTurnMs={aiWatch.Elapsed.TotalMilliseconds:F3} sampledManagedBytes={aiAllocated} (sample-cap=1000000) allocations={aiAllocationCount} budgetMs=3000 (Editor including development logs)");
+            ThirdFactionTests.PlayMode(systems);
             MaintenanceRegressionTests.Run();
             MaterialLifetimeRegressionTests.Run();
             InteractionMaintenanceTests.Run(systems, turn);

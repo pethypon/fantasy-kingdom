@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// 建築・召喚スクロールビューの生成とボタン管理を担当するクラス。
 /// UIBuilder から生成され、保持される。
 /// </summary>
-public class BuildSummonUIBuilder
+public partial class BuildSummonUIBuilder
 {
     readonly Dictionary<FacilityKind,TextMeshProUGUI> buildCostLabels = new Dictionary<FacilityKind,TextMeshProUGUI>();
     // 召喚可能なユニット種別（Crystal/King/壁は除外）
@@ -126,6 +126,7 @@ public class BuildSummonUIBuilder
     public GameObject CreateBuildScrollView(string name, RectTransform parent)
     {
         buildButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
+        buildCostLabels.Clear();
         var (go, content) = CreateBaseScrollView(name, parent);
 
         // 建築物ボタン + コスト表示を生成
@@ -211,6 +212,7 @@ public class BuildSummonUIBuilder
     public GameObject CreateScrollView(string name, RectTransform parent)
     {
         summonButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
+        authoredSummonButtons.Clear();
         var (go, content) = CreateBaseScrollView(name, parent);
 
         foreach (var kind in SummonableKinds)
@@ -229,6 +231,8 @@ public class BuildSummonUIBuilder
             btn.onClick.AddListener(() => OnSummonButtonClicked(captured));
         }
 
+        CreateAuthoredSummonButtons(content.transform);
+        CreateAuthoredBuildRows(content);
         return go;
     }
 
@@ -335,5 +339,7 @@ public class BuildSummonUIBuilder
                 ? BrandGuide.BtnSummonEnabled
                 : BrandGuide.BtnDisabled;
         }
+        RefreshAuthoredBuildButtons();
+        RefreshAuthoredSummonButtons();
     }
 }

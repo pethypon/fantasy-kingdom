@@ -30,4 +30,8 @@ public static class KindNameJP
     {
         return Names.TryGetValue(kind, out string name) ? name : kind.ToString();
     }
+
+    public static string Get(Status unit) => unit == null ? "---"
+        : unit.type == Type.Unit && unit.GrowthData != null && !string.IsNullOrWhiteSpace(unit.GrowthData.displayName)
+            ? unit.GrowthData.displayName : Get(unit.kind);
 }

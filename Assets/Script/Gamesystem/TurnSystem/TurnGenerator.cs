@@ -29,6 +29,20 @@ public class TurnGenerator : MonoBehaviour
 
     /// <summary>ゲームが決着済み（GameEndState）かどうか。死亡処理の二重発火防止に使う。</summary>
     public bool IsGameOver => _stateManager is GameEndState;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    [Header("開発者用 自動操作")]
+    [SerializeField] private Key playerAIToggleKey = Key.F8;
+    DeveloperPlayerAIController _playerAI;
+    public DeveloperPlayerAIController PlayerAI => _playerAI;
+    public bool DeveloperPlayerAIEnabled => _playerAI != null && _playerAI.Enabled;
+
+#else
+    public bool DeveloperPlayerAIEnabled => false;
+
+#endif
+    bool developerMatchUsed;
+    public bool DeveloperPlayerAIWasUsed => developerMatchUsed;
+    public void MarkDeveloperMatch(bool used = true) { developerMatchUsed |= used; }
 
     public void ChangeState(StateCore next)
     {
@@ -50,6 +64,9 @@ public class TurnGenerator : MonoBehaviour
         // Exit may synchronously trigger a terminal transition (e.g. a death event).
         if (_stateManager is GameEndState) return;
 
+        #if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _playerAI?.OnStateChanging();
+#endif
         _stateManager = next;
 
         try { _stateManager?.Entry(); }
@@ -79,6 +96,9 @@ public class TurnGenerator : MonoBehaviour
     public void Awake()
     {
         gameaction = new GameAction();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _playerAI = new DeveloperPlayerAIController(this);
+#endif
 
         // ML モードを AIConfig へ反映（コンパイル/実行双方で1回だけ）
         AIConfig.Mode = useMLAssistedAI ? AIMode.MLAssisted : AIMode.PureRule;
@@ -107,13 +127,38 @@ public class TurnGenerator : MonoBehaviour
     void Update()
     {
         _inputHandler?.Tick();
-        if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen) return;
+        if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            _playerAI?.PauseForMenu();
+#endif
+            return;
+        }
+        #if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (Keyboard.current != null && Keyboard.current[playerAIToggleKey].wasPressedThisFrame)
+            _playerAI?.SetEnabled(!DeveloperPlayerAIEnabled);
+#endif
         _cameraController?.Tick();
         _inspection?.Tick();
+        #if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_playerAI != null && _playerAI.Tick(Time.unscaledDeltaTime)) return;
+#endif
         _stateManager?.Update();
     }
 
     public void OnEnable() => gameaction?.Enable();
-    public void OnDisable() => gameaction?.Disable();
-    public void OnDestroy() => gameaction?.Dispose();
+    public void OnDisable()
+    {
+        gameaction?.Disable();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _playerAI?.SetEnabled(false, false);
+#endif
+    }
+    public void OnDestroy()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _playerAI?.Dispose();
+#endif
+        gameaction?.Dispose();
+    }
 }

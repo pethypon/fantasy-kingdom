@@ -193,7 +193,7 @@ public class GameManualUI : MonoBehaviour
 "<b>■ 基本ルール</b>\n" +
 "  ターン制のチェス風戦略ゲーム。プレイヤーと敵が交互にターンを消費して駒を動かし、相手のクリスタルを破壊した側が勝利。\n\n" +
 "<b>■ AP（行動力）</b>\n" +
-$"  市民{EconomySystem.APPerCitizen}ごとに追加APを得る。移動{GameConstants.BaseMoveAPCost}・攻撃{GameConstants.BaseAttackAPCost}・建築/召喚でAPを消費する。\n\n" +
+$"  市民1人ごとに追加AP{EconomySystem.CitizenAPBonus}を得る。移動{APSystem.BaseMoveCost}・攻撃{APSystem.BaseAttackCost}・建築/召喚でAPを消費する。\n\n" +
 "<b>■ 経験値</b>\n" +
 $"  Lv2に必要なXP: {GameConstants.XPRequiredLv2}、各レベルで ×{GameConstants.XPLevelMultiplier} 倍ずつ増加。\n" +
 "  与ダメージがそのままXPとして獲得できる（倒さなくても蓄積）。兵舎ボーナスで+%が乗る。\n" +

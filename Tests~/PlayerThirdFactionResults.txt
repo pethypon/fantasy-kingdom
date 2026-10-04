@@ -1,0 +1,50 @@
+Fantasy Kingdom — Developer Player AI / Third Faction R1
+Date: 2026-10-04
+Unity: 6000.3.8f1
+Validation project: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+Main project: E:/fantasykingdom/Unity/fantasy kingdom
+
+PASS: SceneSmoke.Run
+  Log: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/player-third-final8.log
+  ALL PASSED; 908 PASS assertions, including 162 ThirdFactionTests assertions.
+  Counts include 100 RNG continuation samples, not 908 independent scenarios.
+  IP/AP separation, reservation/refund, spawn commit, response turn, cooldowns,
+  advantage/decisive/balanced-war guards, NoEvent/reserve, failed forecasts,
+  save/load, legal route detours and time budget, actual single-target skill,
+  cooldown tick, event boss restore and nested prefab spawn position covered.
+  Existing regression suites also passed.
+
+PASS: PlayerAutoplayRunner.Run
+  Log: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/player-autoplay-final3.log
+  ALL PASSED; 22 PASS assertions.
+  OFF by default / F8 binding / Threat 15 / Player actor / no ML allocation.
+  Menu pauses wait budget; disabling preserves player AP and timer.
+  Manual build/summon blocked while enabled; selection and attack state cleared.
+  Simulated player unit lookup and fog/resource/AP perspective checked.
+  Injected iterator failure returns manual control and disposes once.
+  Injected timeout ends normal player turn; three subsequent real frame turn cycles completed.
+
+PASS: TurnCycleRunner.Run
+  Log: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/player-third-turns2.log
+  ALL PASSED; 45 PASS assertions.
+  Six consecutive manual/timeout/recovery turn cycles.
+  Each completed enemy turn enters IndependentFactionState before PlayerMove.
+  Player timer and enemy banner restored on return.
+
+PASS: ReleaseValidation.Run
+  Log: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/player-third-release2.log
+  Windows Standalone non-Development build: Succeeded, errors=0, warnings=0.
+  Output: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ReleaseValidationBuild/FantasyKingdom.exe
+  Generated Assembly-CSharp.dll excludes DeveloperPlayerAIController and playerAIToggleKey.
+  ThirdFactionSystem and ThirdFactionPathPlanner remain in the release assembly.
+
+Verification scope / diagnostics:
+  Unity EditMode + PlayMode batch harnesses in an isolated project, with fixture catalog.
+  Not NUnit Test Runner suites; not a visual QA pass on the main editor.
+  Intentional commit/rollback/disposal/iterator failures produce expected diagnostics.
+  Autoplay log also contains a UnityEditor.Search.SearchDatabase index exception
+  during editor indexation. It is separate from game logic and did not fail the harness.
+  Unity shutdown also reports internal JobTempAlloc diagnostics after release build;
+  BuildReport reports zero build errors/warnings. No in-game profiler claim is made.
+  Final main/clone Assets/Script and third-faction resource contents are byte-identical.
+  git diff --check passed.

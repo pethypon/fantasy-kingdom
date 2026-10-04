@@ -26,6 +26,9 @@ public partial class SimBoardState
         var unit = GetUnit(action.UnitId);
         if (unit == null || !unit.IsAlive) return false;
         if (unit.IsStunned || unit.IsMovementBlocked) return false;
+        if (unit.ActionProfile != null && (!MovePatterns.CanMove(unit, unit.Direction,
+            action.TargetPos.x - unit.Position.x, action.TargetPos.z - unit.Position.z)
+            || !MapTiles.Contains(action.TargetPos) || !CanTraverse(unit.Position, action.TargetPos))) return false;
         if (IsOccupied(action.TargetPos)) return false;
 
         _occupiedCells.Remove(unit.Position);
@@ -44,6 +47,9 @@ public partial class SimBoardState
         if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive)
             return false;
         if (attacker.IsStunned) return false;
+        if (attacker.ActionProfile != null && (!AttackPatterns.CanAttack(attacker, attacker.Direction,
+            target.Position.x - attacker.Position.x, target.Position.z - attacker.Position.z)
+            || !CanAttack(attacker, target.Position))) return false;
 
         // シールドチェック
         if (target.ShieldTurns > 0)
@@ -95,7 +101,7 @@ public partial class SimBoardState
     {
         var unit = GetUnit(action.UnitId);
         if (unit == null || !unit.IsAlive) return false;
-        if (unit.IsStunned) return false;
+        if (unit.IsStunned || !AttackPatterns.CanUseSkills(unit)) return false;
 
         if (!SkillData.Table.TryGetValue(action.SkillId, out var skill))
             return false;

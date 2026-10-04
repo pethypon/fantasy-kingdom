@@ -74,15 +74,20 @@ public class WildBossSystem : MonoBehaviour
     {
         var boss = SpawnedBoss;
         if (boss == null) return null;
-        var result = new Snapshot { Unit = SaveSystem.CaptureUnit(boss), Archetype = boss.wildBossArchetype,
-            Center = boss.wildBossTerritoryCenter, Radius = boss.wildBossTerritoryRadius,
-            AP = boss.wildBossAP, MaxAP = boss.wildBossMaxAP, Turn = boss.wildBossTurnCounter,
-            CounterTurns = boss.wildBossCounterTurns, AttackBuffTurns = boss.wildBossAtkBuffTurns,
-            Threat = boss.wildBossCurrentThreat, Phase2 = boss.wildBossPhase2Active };
+        var result = CaptureBossStatus(boss);
         foreach (var unit in _ghostDecoys) if (unit != null && unit.IsAlive) result.Decoys.Add(SaveSystem.CaptureUnit(unit));
         foreach (var unit in _guardKnights) if (unit != null && unit.IsAlive) result.Guards.Add(SaveSystem.CaptureUnit(unit));
         foreach (var crystal in _thunderCrystals) if (crystal != null) result.Thunder.Add(crystal.transform.position);
         return result;
+    }
+    public static Snapshot CaptureBossStatus(Status boss)
+    {
+        if (boss == null || !boss.isWildBoss) return null;
+        return new Snapshot { Unit = SaveSystem.CaptureUnit(boss), Archetype = boss.wildBossArchetype,
+            Center = boss.wildBossTerritoryCenter, Radius = boss.wildBossTerritoryRadius,
+            AP = boss.wildBossAP, MaxAP = boss.wildBossMaxAP, Turn = boss.wildBossTurnCounter,
+            CounterTurns = boss.wildBossCounterTurns, AttackBuffTurns = boss.wildBossAtkBuffTurns,
+            Threat = boss.wildBossCurrentThreat, Phase2 = boss.wildBossPhase2Active };
     }
 
     public void Restore(Snapshot saved)
@@ -92,16 +97,7 @@ public class WildBossSystem : MonoBehaviour
         foreach (var unit in _guardKnights) if (unit != null) { unit.gameObject.SetActive(false); Destroy(unit.gameObject); }
         foreach (var crystal in _thunderCrystals) if (crystal != null) Destroy(crystal);
         _ghostDecoys.Clear(); _guardKnights.Clear(); _thunderCrystals.Clear();
-        var boss = SpawnedBoss;
-        SaveGameApplier.ApplyStatusFields(boss, saved.Unit);
-        boss.isWildBoss = true;
-        boss.wildBossArchetype = saved.Archetype;
-        boss.wildBossTerritoryCenter = saved.Center;
-        boss.wildBossTerritoryRadius = Mathf.Clamp(saved.Radius, 2, 6);
-        boss.wildBossAP = saved.AP; boss.wildBossMaxAP = saved.MaxAP;
-        boss.wildBossTurnCounter = saved.Turn;
-        boss.wildBossCounterTurns = saved.CounterTurns; boss.wildBossAtkBuffTurns = saved.AttackBuffTurns;
-        boss.wildBossCurrentThreat = saved.Threat; boss.wildBossPhase2Active = saved.Phase2;
+        RestoreBossStatus(SpawnedBoss, saved);
         foreach (var unit in saved.Decoys) _ghostDecoys.Add(RestoreFollower(unit, "GhostDecoy"));
         foreach (var unit in saved.Guards) _guardKnights.Add(RestoreFollower(unit, "GuardKnight"));
         foreach (var position in saved.Thunder)
@@ -112,6 +108,19 @@ public class WildBossSystem : MonoBehaviour
             crystal.GetComponent<Collider>().enabled = false;
             _thunderCrystals.Add(crystal);
         }
+    }
+    public static void RestoreBossStatus(Status boss, Snapshot saved)
+    {
+        if (boss == null || saved?.Unit == null) return;
+        SaveGameApplier.ApplyStatusFields(boss, saved.Unit);
+        boss.isWildBoss = true;
+        boss.wildBossArchetype = saved.Archetype;
+        boss.wildBossTerritoryCenter = saved.Center;
+        boss.wildBossTerritoryRadius = Mathf.Clamp(saved.Radius, 2, 6);
+        boss.wildBossAP = saved.AP; boss.wildBossMaxAP = saved.MaxAP;
+        boss.wildBossTurnCounter = saved.Turn;
+        boss.wildBossCounterTurns = saved.CounterTurns; boss.wildBossAtkBuffTurns = saved.AttackBuffTurns;
+        boss.wildBossCurrentThreat = saved.Threat; boss.wildBossPhase2Active = saved.Phase2;
     }
 
     Status RestoreFollower(SaveSystem.UnitSaveData saved, string label)

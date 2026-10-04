@@ -115,16 +115,4 @@ public partial class AICommander
         }
     }
 
-    // ================================================================
-    //  スキルクールダウン管理
-    // ================================================================
-    void TickSkillCooldowns()
-    {
-        foreach (var unit in _board.AliveEnemyUnits)
-        {
-            if (unit == null || !unit.gameObject.activeInHierarchy) continue;
-            if (unit.SkillCooldown > 0)
-                unit.SkillCooldown--;
-        }
-    }
 }

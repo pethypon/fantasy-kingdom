@@ -16,7 +16,7 @@ public static class TurnCycleRunner
   public void Reset(){throw new NotSupportedException();}
   public void Dispose(){Disposals++;if(mode==5)throw new Exception("[TurnCycle] injected Dispose failure");}
  }
- static FaultActions injected;
+ static FaultActions injected; static bool sawThird;
  static TurnCycleRunner(){EditorApplication.update+=Tick;}
  public static void Run(){SessionState.SetBool("TurnCycleRunner",true);EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");EditorApplication.EnterPlaymode();}
  static void Check(string label,bool ok){if(!ok)throw new Exception("[TurnCycle] "+label);Debug.Log("[TurnCycle] PASS "+label);}
@@ -35,7 +35,7 @@ public static class TurnCycleRunner
    if(oldState!=turn.CurrentState){Debug.Log($"[TurnCycle] state={turn.CurrentState.GetType().Name} turn={turn.Context.Turn} timerTeam={systems.TimerSystem.CurrentTeam} running={systems.TimerSystem.IsRunning}");oldState=turn.CurrentState;}
    if(!waiting){
     Check("player state before end "+round,turn.CurrentState is PlayerMove);
-    startTurn=turn.Context.Turn;frames=0;started=EditorApplication.timeSinceStartup;waiting=true;
+    startTurn=turn.Context.Turn;frames=0;sawThird=false;started=EditorApplication.timeSinceStartup;waiting=true;
     if(round%2==0)((PlayerMove)turn.CurrentState).ExecuteTurnEnd();
     else {systems.TimerSystem.RestoreTurnTimeRemaining(0);typeof(TimerSystem).GetMethod("Advance",F).Invoke(systems.TimerSystem,new object[]{.01f});}
     Check("enemy entered "+round,turn.CurrentState is EnemyMove&&systems.TimerSystem.CurrentTeam==Team.Enemy);
@@ -48,8 +48,10 @@ public static class TurnCycleRunner
     return;
    }
    frames++;
+   if(turn.CurrentState is IndependentFactionState)sawThird=true;
    if(round==2&&frames==5){systems.TimerSystem.RestoreTurnTimeRemaining(0);typeof(TimerSystem).GetMethod("Advance",F).Invoke(systems.TimerSystem,new object[]{.01f});}
    if(turn.CurrentState is PlayerMove){
+    Check("third faction follows completed enemy actions "+round,sawThird);
     Check("exactly one round advance "+round,turn.Context.Turn==startTurn+1);
     Check("player timer running "+round,systems.TimerSystem.CurrentTeam==Team.Player&&systems.TimerSystem.IsRunning);
     var group=(CanvasGroup)typeof(EnemyTurnBannerUI).GetField("_group",F).GetValue(EnemyTurnBannerUI.Instance);

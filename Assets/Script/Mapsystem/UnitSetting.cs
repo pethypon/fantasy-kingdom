@@ -36,6 +36,10 @@ public class UnitSetting : MonoBehaviour
 
     // 外部からの読み取り用（GameGenerator・BattleSystem・PlayerSummon が参照）
     public Dictionary<Kind, UnitData> UnitDataMap { get; private set; }
+    public IReadOnlyList<UnitData> AuthoredDefinitions => authoredDefinitions;
+    readonly List<UnitData> authoredDefinitions = new List<UnitData>();
+    UnitAuthoringCatalog authoringCatalog;
+    public UnitData GetDefinitionById(string id) => authoringCatalog?.GetById(id);
 
     private readonly Dictionary<Kind, GameObject> authoredPrefabs = new Dictionary<Kind, GameObject>();
     private readonly List<UnitData> ownedDefaults = new List<UnitData>();
@@ -61,7 +65,9 @@ public class UnitSetting : MonoBehaviour
             }
         }
 
-        UnitAuthoringCatalog.Load()?.Apply(UnitDataMap, authoredPrefabs);
+        authoringCatalog = UnitAuthoringCatalog.Load();
+        authoringCatalog?.Apply(UnitDataMap, authoredPrefabs);
+        if (authoringCatalog != null) authoredDefinitions.AddRange(authoringCatalog.EnumerateStandaloneDefinitions());
 
         // UnitStaticData に定義があるが UnitDataMap に未登録の Kind を自動補完
         foreach (var kvp in UnitStaticData.Table)
@@ -81,9 +87,10 @@ public class UnitSetting : MonoBehaviour
     /// ゲーム中の新規生成はすべてこのメソッド経由で行う（駒の生成と適用を担保）。
     /// </summary>
     public GameObject SpawnUnit(GameObject prefab, Vector3 pos,
-                                Transform parent, int level = 1, Kind? initialKind = null, Team? initialTeam = null)
+                                Transform parent, int level = 1, Kind? initialKind = null, Team? initialTeam = null,
+                                UnitData authoredData = null)
     {
-        if (initialKind.HasValue && authoredPrefabs.TryGetValue(initialKind.Value, out var authored)) prefab = authored;
+        if (authoredData == null && initialKind.HasValue && authoredPrefabs.TryGetValue(initialKind.Value, out var authored)) prefab = authored;
         if (prefab == null) { Debug.LogError("[UnitSetting] Missing unit prefab"); return null; }
         var obj = Instantiate(prefab, pos, Quaternion.identity, parent);
 
@@ -95,6 +102,9 @@ public class UnitSetting : MonoBehaviour
             Debug.LogWarning($"[UnitSetting] {prefab.name} にStatusがありません");
             return obj;
         }
+
+        // Authored models may keep their actor component on an offset child.
+        if (authoredData != null) obj.transform.position += pos - status.transform.position;
 
         if (initialKind.HasValue) { status.kind = initialKind.Value; status.type = Type.Unit; }
         if (initialTeam.HasValue)
@@ -108,24 +118,41 @@ public class UnitSetting : MonoBehaviour
             collider.center = Vector3.up * .35f; collider.size = new Vector3(.8f,1f,.8f);
         }
 
-        if (UnitDataMap.TryGetValue(status.kind, out UnitData data))
+        UnitData data = authoredData;
+        if (data != null || UnitDataMap.TryGetValue(status.kind, out data))
             data.ApplyToStatus(status, level);
         else
             Debug.LogWarning($"[UnitSetting] Kind:{status.kind} のUnitDataが未登録です");
 
-        // 異形の王は固有パッシブを強制付与（クリスタル級の脅威）
-        if (status.kind == Kind.Boss)
-            status.passiveskill = PassiveSkill.StrangeKingAura;
-
-        // スキルをランダム配布
-        SkillData.AssignFixedSkill(status);
-
-        // Special Ability をランダム配布
-        SpecialAbilityData.AssignRandom(status);
+        if (data != null) data.InitializeAbilities(status);
+        else { SkillData.AssignFixedSkill(status); SpecialAbilityData.AssignRandom(status); }
 
         // 頭上UI（Lv + HP）をアタッチ
         UnitHeadUI.Attach(obj);
 
+        return obj;
+    }
+
+    /// <summary>Spawns a specific definition without replacing another unit's role defaults.</summary>
+    public GameObject SpawnUnit(UnitData data, Vector3 pos, Transform parent, int level = 1, Team? initialTeam = null)
+    {
+        if (data == null || !data.IsValidForAuthoring) return null;
+        GameObject prefab = data.prefab;
+        if (prefab == null) authoringCatalog?.TryGetPrefab(data, out prefab);
+        if (prefab != null)
+            return SpawnUnit(prefab, pos, parent, level, data.kind, initialTeam ?? data.defaultTeam, data);
+
+        // Data-only definitions still have a visible, selectable fallback model.
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        obj.name = data.DisplayName;
+        obj.transform.SetParent(parent, false);
+        obj.transform.position = pos;
+        var status = obj.AddComponent<Status>();
+        status.kind = data.kind; status.type = Type.Unit; status.team = initialTeam ?? data.defaultTeam;
+        status.direction = status.team == Team.Player ? Direction.N : Direction.S;
+        data.ApplyToStatus(status, level); data.InitializeAbilities(status);
+        PrimitiveMaterialBinding.Apply(obj.GetComponent<Renderer>(), BrandGuide.GetUnitFallbackColor(status.team));
+        UnitHeadUI.Attach(obj);
         return obj;
     }
 

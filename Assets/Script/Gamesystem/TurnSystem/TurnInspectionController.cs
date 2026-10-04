@@ -99,10 +99,10 @@ public sealed class TurnInspectionController : MonoBehaviour
             if (dx == 0 && dz == 0) continue;
             var surface = cell - Vector3.up * GameConstants.MovePointYOffset;
             if (showMovement && selected.type == Type.Unit && !StatusEffectSystem.IsMovementBlocked(selected)
-                && MovePatterns.CanMove(selected.kind, selected.direction, dx, dz)
+                && MovePatterns.CanMove(selected, selected.direction, dx, dz)
                 && map.CanTraverse(from, cell) && !moves.IsOccupied(moves.Cell(cell)))
                 Quad(surface, -.38f, -.38f, .38f, .38f, new Color(.15f,.7f,1f,.32f));
-            if (AttackPatterns.CanAttack(selected.kind, selected.direction, dx, dz) && map.CanAttackAcrossTerrain(selected, cell))
+            if (AttackPatterns.CanAttack(selected, selected.direction, dx, dz) && map.CanAttackAcrossTerrain(selected, cell))
             {
                 var color = new Color(1f,.35f,.18f,.85f);
                 Quad(surface, -.44f,-.44f,.44f,-.39f,color);

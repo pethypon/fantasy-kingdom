@@ -86,12 +86,17 @@ public class BuildingAttackSystem : MonoBehaviour
             var status = child.GetComponent<Status>();
             if (status == null) continue;
             if (status.HP <= 0) continue;
+            if (!status.BuildingOperationAvailable || !(BoardActionProfile.For(status)?.CanAttack ?? true)) continue;
 
             if (status.facilityKind == FacilityKind.Mortar)
             {
                 ProcessMortarAttack(status, _currentEnemyTeam);
             }
             else if (status.facilityKind == FacilityKind.Cannon)
+            {
+                ProcessCannonAttack(status, _currentEnemyTeam);
+            }
+            else if (status.AuthoredFacility != null && status.ATK > 0 && BoardActionProfile.For(status)?.attack?.useCustom == true)
             {
                 ProcessCannonAttack(status, _currentEnemyTeam);
             }
@@ -110,9 +115,9 @@ public class BuildingAttackSystem : MonoBehaviour
 
         // 範囲内の敵ユニットを探す
         _targetsBuffer.Clear();
-        foreach (var offset in MortarOffsets)
+        foreach (var offset in AttackOffsets(mortar, MortarOffsets))
         {
-            Vector3 checkPos = new Vector3(bx + offset.x, 0f, bz + offset.y);
+            Vector3 checkPos = new Vector3(bx + offset.x, 0f, bz + OffsetZ(mortar, offset.y));
             Status enemy = FindEnemyAtCell(checkPos, enemyTeam);
             if (enemy != null)
                 _targetsBuffer.Add(enemy);
@@ -150,9 +155,9 @@ public class BuildingAttackSystem : MonoBehaviour
         int bz = baseGrid.z;
 
         _targetsBuffer.Clear();
-        foreach (var offset in CannonOffsets)
+        foreach (var offset in AttackOffsets(cannon, CannonOffsets))
         {
-            Vector3 checkPos = new Vector3(bx + offset.x, 0f, bz + offset.y);
+            Vector3 checkPos = new Vector3(bx + offset.x, 0f, bz + OffsetZ(cannon, offset.y));
             Status enemy = FindEnemyAtCell(checkPos, enemyTeam);
             if (enemy != null)
                 _targetsBuffer.Add(enemy);
@@ -255,8 +260,7 @@ public class BuildingAttackSystem : MonoBehaviour
         int damage = target.ApplyDamage(raw);
         Status.AwardDamageExperience(attacker, target, damage, null);
 
-        string attackerName = FacilityData.Table.TryGetValue(attacker.facilityKind, out var info)
-            ? info.DisplayName : attacker.facilityKind.ToString();
+        string attackerName = FacilityData.DisplayName(attacker);
         Debug.Log($"[BuildingAttack] {attackerName} → {target.kind} ({target.team})  DMG:{damage}  残HP:{target.HP}");
 
         if (!target.IsAlive)
@@ -294,5 +298,16 @@ public class BuildingAttackSystem : MonoBehaviour
             visionGenerator.MarkVisionDirty();
             visionGenerator.VisionPoint(mapCreate, moveGenerator, crystalSystem);
         }
+    }
+
+    private static IReadOnlyList<Vector2Int> AttackOffsets(Status building, Vector2Int[] fallback)
+    {
+        var pattern = BoardActionProfile.For(building)?.attack;
+        return pattern != null && pattern.useCustom ? pattern.Offsets : fallback;
+    }
+    private static int OffsetZ(Status building, int value)
+    {
+        var pattern = BoardActionProfile.For(building)?.attack;
+        return pattern != null && pattern.useCustom && !pattern.directionIndependent && building.direction == Direction.S ? -value : value;
     }
 }

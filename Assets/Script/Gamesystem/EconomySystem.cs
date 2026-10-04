@@ -17,6 +17,8 @@ public class EconomySystem : MonoBehaviour
 
     /// <summary> 市民1人あたりの AP ボーナス </summary>
     public const int APPerCitizen = 1;
+    public static int CitizenAPBonus => Mathf.Clamp(GameAuthoringRules.Active?.citizenAP ?? APPerCitizen, 0, 10);
+    public static int CitizenBreadCost => Mathf.Clamp(GameAuthoringRules.Active?.breadPerCitizen ?? BreadPerCitizen, 0, 10);
 
     public void Init(BuildSystem buildSystem, FactionState factionState,
                      UnitSetting unitSetting = null, CrystalSystem crystalSystem = null)
@@ -131,25 +133,27 @@ public class EconomySystem : MonoBehaviour
             if (status == null) continue;
             if (status.HP <= 0) continue;
 
+            status.BuildingOperationAvailable = true;
+
             var facility = status.facilityKind;
             int level = Mathf.Max(1, status.Level);
-            var levelData = FacilityData.GetLevel(facility, level);
+            var levelData = FacilityData.GetLevel(status, level);
 
             // ---- 特殊効果の集計 ----
             if (facility == FacilityKind.Barracks)
             {
                 totalBarracksXP += levelData.SpecialValue;
-                continue;
+                if (status.AuthoredFacility == null) continue;
             }
             if (facility == FacilityKind.House || facility == FacilityKind.LuxuryHouse)
             {
                 totalCitizenCap += levelData.SpecialValue;
-                continue;
+                if (status.AuthoredFacility == null) continue;
             }
             if (facility == FacilityKind.Warehouse)
             {
                 totalResourceCap += levelData.SpecialValue;
-                continue;
+                if (status.AuthoredFacility == null) continue;
             }
 
             // ---- 維持費処理（攻撃型建築物など） ----
@@ -164,6 +168,7 @@ public class EconomySystem : MonoBehaviour
                 {
                     Debug.Log($"[EconomySystem] {FacilityData.Table[facility].DisplayName} Lv{level}: 維持費不足");
                     skippedCount++;
+                    status.BuildingOperationAvailable = false;
                     continue;
                 }
             }
@@ -250,7 +255,9 @@ public class EconomySystem : MonoBehaviour
                 continue;
             }
 
-            if (!unitSetting.UnitDataMap.TryGetValue(status.kind, out UnitData data))
+            UnitData data = status.GrowthData;
+            if (data == null) unitSetting.UnitDataMap.TryGetValue(status.kind, out data);
+            if (data == null)
             {
                 status.UpkeepUnpaidTurns = 0;
                 continue;
@@ -303,7 +310,8 @@ public class EconomySystem : MonoBehaviour
         if (res.Citizen <= 0) return;
 
         var nation = factionState.GetNation(team);
-        int totalBreadNeeded = res.Citizen * BreadPerCitizen;
+        int breadCost = CitizenBreadCost;
+        int totalBreadNeeded = res.Citizen * breadCost;
 
         if (res.Bread >= totalBreadNeeded)
         {
@@ -315,11 +323,12 @@ public class EconomySystem : MonoBehaviour
         else
         {
             // パン不足：持っているパンは全消費するが、市民減少は猶予期間後
-            int fedCitizens = BreadPerCitizen > 0 ? res.Bread / BreadPerCitizen : 0;
+            int fedCitizens = breadCost > 0 ? res.Bread / breadCost : res.Citizen;
             res.Bread = 0;
             nation.StarvationCounter++;
 
-            if (nation.StarvationCounter >= StarvationGraceTurns)
+            int graceTurns = Mathf.Clamp(GameAuthoringRules.Active?.starvationGraceTurns ?? StarvationGraceTurns, 1, 100);
+            if (nation.StarvationCounter >= graceTurns)
             {
                 // 猶予期間を超えた → 市民が離脱
                 int starved = res.Citizen - fedCitizens;
@@ -328,7 +337,7 @@ public class EconomySystem : MonoBehaviour
             }
             else
             {
-                int turnsLeft = StarvationGraceTurns - nation.StarvationCounter;
+                int turnsLeft = graceTurns - nation.StarvationCounter;
                 Debug.Log($"[EconomySystem] {team} パン不足{nation.StarvationCounter}ターン目 (あと{turnsLeft}ターンで市民減少)  市民{res.Citizen}人維持中");
             }
         }
@@ -339,7 +348,7 @@ public class EconomySystem : MonoBehaviour
     // ==================================================================
     private void UpdateCitizenAPBonus(Team team, FactionState.ResourceData res)
     {
-        int citizenBonus = res.Citizen * APPerCitizen;
+        int citizenBonus = res.Citizen * CitizenAPBonus;
         var apData = team == Team.Player ? factionState.PlayerAP : factionState.EnemyAP;
         apData.Plus = citizenBonus;
     }

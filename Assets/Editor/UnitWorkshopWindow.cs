@@ -17,7 +17,7 @@ public sealed class UnitWorkshopWindow : EditorWindow
     bool register = true;
 
     [MenuItem("Fantasy Kingdom/ユニット工房")]
-    public static void Open() => GetWindow<UnitWorkshopWindow>("ユニット工房");
+    public static void Open() => GameDevelopmentStudioWindow.Open();
     void OnEnable() => ResetDraft();
     void OnDisable() { if (dataEditor != null) DestroyImmediate(dataEditor); if (draft != null) DestroyImmediate(draft); }
     void ResetDraft()
@@ -30,6 +30,7 @@ public sealed class UnitWorkshopWindow : EditorWindow
     }
     void OnGUI()
     {
+        if (GUILayout.Button("新しい開発スタジオを開く（行動マス・複数種類・建物）",GUILayout.Height(30))) GameDevelopmentStudioWindow.Open();
         EditorGUILayout.HelpBox("モデル・能力値・成長率・コストからPrefabとUnitDataを作成します。行動タイプは既存の移動・攻撃ルールです。登録すると、そのタイプの初期配置・召喚・ロードに適用されます。", MessageType.Info);
         using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
@@ -38,7 +39,7 @@ public sealed class UnitWorkshopWindow : EditorWindow
             var next = (Kind)EditorGUILayout.EnumPopup("行動タイプ", kind);
             if (next != kind) { kind = next; ResetDraft(); }
             register = EditorGUILayout.Toggle("ゲームに登録", register);
-            EditorGUILayout.HelpBox("同じ行動タイプの有効な登録は1つです。旧Prefab・データは残ります。未登録で作成したバリエーションはカタログで差し替えられます。新しい行動ルールの追加はコード対応が必要です。", MessageType.None);
+            EditorGUILayout.HelpBox("この旧工房は既存兵種の差し替え用です。複数の駒を追加したり行動マスを設定する場合は、新しい開発スタジオを使ってください。", MessageType.None);
             scroll = EditorGUILayout.BeginScrollView(scroll);
             if (draft != null)
             {

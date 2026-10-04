@@ -147,26 +147,13 @@ public class MoveGenerator : MonoBehaviour
         _obj = Obj;
         _objp = ObjP;
 
-        if (!MovePatterns.Map.TryGetValue(_obj.kind, out Func<float, float, bool> predicate))
-        {
-            Debug.LogWarning($"[MoveGenerator] Kind '{_obj.kind}' の移動パターンが未定義です");
-            return;
-        }
-
-        // LINQ排除: for ループで直接フィルタリング
-        bool dirIndependent = MovePatterns.DirectionIndependent.Contains(_obj.kind);
-        int dirZ = MovePatterns.DirZ(_obj.direction);
-
         for (int i = 0, count = _setpos.Count; i < count; i++)
         {
             Vector3 p = _setpos[i];
             float dx = p.x - _objp.x;
             float dz = p.z - _objp.z;
 
-            // 方向依存の駒は dz を反転して判定
-            float checkDz = dirIndependent ? dz : dz * dirZ;
-
-            if (!predicate(dx, checkDz)) continue;
+            if (!MovePatterns.CanMove(_obj, _obj.direction, dx, dz)) continue;
             if (!mapcreate.CanTraverse(_objp, p)) continue;
             if (_unitPoints.Contains(Cell(p))) continue;
 

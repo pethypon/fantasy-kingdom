@@ -374,6 +374,12 @@ public class SkillData
     public static void AssignFixedSkill(Status unit)
     {
         if (unit == null || unit.type != Type.Unit) return;
+        if (unit.GrowthData != null && unit.GrowthData.useAuthoredAbilities)
+        {
+            int authoredId = unit.GrowthData.authoredSkillId;
+            unit.AssignedSkillId = Table.ContainsKey(authoredId) ? authoredId : -1;
+            return;
+        }
         unit.AssignedSkillId = FixedSkillIds.TryGetValue(unit.kind, out int id) && Table.ContainsKey(id) ? id : -1;
     }
 

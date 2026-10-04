@@ -92,6 +92,36 @@ public static class MovePatterns
     }
     public static IReadOnlyList<Vector2Int> Offsets(Kind kind) => offsets.TryGetValue(kind,out var value) ? value : Array.Empty<Vector2Int>();
 
+    /// <summary>Authored rules override a role only when its custom mask is enabled.</summary>
+    public static bool IsDirectionIndependent(Status actor) => actor != null && IsDirectionIndependent(actor.kind, BoardActionProfile.For(actor));
+    public static bool IsDirectionIndependent(SimUnit actor) => actor != null && IsDirectionIndependent(actor.Kind, actor.ActionProfile);
+    public static bool IsDirectionIndependent(Kind kind, BoardActionProfile profile)
+        => profile != null && profile.movement != null && profile.movement.useCustom
+            ? profile.movement.directionIndependent : DirectionIndependent.Contains(kind);
+
+    public static IReadOnlyList<Vector2Int> Offsets(Status actor) => actor == null ? Array.Empty<Vector2Int>() : Offsets(actor.kind, BoardActionProfile.For(actor));
+    public static IReadOnlyList<Vector2Int> Offsets(SimUnit actor) => actor == null ? Array.Empty<Vector2Int>() : Offsets(actor.Kind, actor.ActionProfile);
+    public static IReadOnlyList<Vector2Int> Offsets(Kind kind, BoardActionProfile profile)
+    {
+        if (profile != null && !profile.CanMove) return Array.Empty<Vector2Int>();
+        return profile != null && profile.movement != null && profile.movement.useCustom
+            ? profile.movement.Offsets : Offsets(kind);
+    }
+
+    public static bool CanMove(Status actor, Direction facing, float dx, float dz)
+        => actor != null && CanMove(actor.kind, facing, dx, dz, BoardActionProfile.For(actor));
+    public static bool CanMove(SimUnit actor, Direction facing, float dx, float dz)
+        => actor != null && CanMove(actor.Kind, facing, dx, dz, actor.ActionProfile);
+    public static bool CanMove(Kind kind, Direction facing, float dx, float dz, BoardActionProfile profile)
+    {
+        if (profile == null) return CanMove(kind, facing, dx, dz);
+        if (!profile.CanMove) return false;
+        if (profile.movement == null || !profile.movement.useCustom) return CanMove(kind, facing, dx, dz);
+        int x = Mathf.RoundToInt(dx), z = Mathf.RoundToInt(dz);
+        return (x != 0 || z != 0) && Mathf.Abs(dx - x) < .001f && Mathf.Abs(dz - z) < .001f
+            && profile.movement.Contains(x, z, facing);
+    }
+
     public static int DirZ(Direction d) => d == Direction.S ? -1 : 1;
 
     /// <summary>

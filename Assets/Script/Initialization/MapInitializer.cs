@@ -27,6 +27,12 @@ public static class MapInitializer
         }
 
         mapCreate.UseR1Terrain = loadData == null || loadData.R1Terrain;
+        if (loadData == null) GameAuthoringRules.Active?.ApplyNewMap(mapCreate);
+        else if (loadData.HasMapGenerationSettings)
+        {
+            mapCreate.noiseScale = Mathf.Clamp(loadData.MapNoiseScale, .01f, 1);
+            mapCreate.riverHalfWidth = Mathf.Clamp(loadData.MapRiverHalfWidth, 0, 3);
+        }
         if (loadData != null && loadData.MapWidth > 0 && loadData.MapDepth > 0)
         {
             mapCreate.maxX = loadData.MapWidth;
@@ -83,7 +89,9 @@ public static class MapInitializer
         {
             if (status.type != Type.Unit) continue;
 
-            if (unitSetting.UnitDataMap.TryGetValue(status.kind, out UnitData data))
+            UnitData data = status.GrowthData ?? unitSetting.GetDefinitionById(status.unitDefinitionId);
+            if (data == null) unitSetting.UnitDataMap.TryGetValue(status.kind, out data);
+            if (data != null)
                 data.ApplyToStatus(status, status.Level);
             else
                 Debug.LogWarning($"[MapInitializer] Kind:{status.kind} のUnitDataが未登録です");

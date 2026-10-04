@@ -11,6 +11,7 @@ public sealed class AIBeliefMap
         public Kind Kind;
         public Direction Direction;
         public int ObservedAttackPower;
+        public BoardActionProfile ActionProfile;
         public float UnknownProbability;
         public readonly Dictionary<Vector3Int, float> Cells = new Dictionary<Vector3Int, float>();
     }
@@ -18,6 +19,7 @@ public sealed class AIBeliefMap
     readonly Contact[] pool = new Contact[MaxContacts];
     readonly Dictionary<Vector3Int,float> expectedRisk = new Dictionary<Vector3Int,float>(), worstRisk = new Dictionary<Vector3Int,float>();
     readonly Dictionary<Vector3Int,float> contactRisk = new Dictionary<Vector3Int,float>();
+    readonly HashSet<Vector2Int> customAttackOffsets = new HashSet<Vector2Int>();
     static readonly Dictionary<Kind,Vector2Int[]> attackOffsets = AttackOffsets();
     float unknownRisk;
     int evidenceTurn=-1, evidenceHash;
@@ -59,7 +61,7 @@ public sealed class AIBeliefMap
 
     void Build(Contact contact, int id, AIBoardState.LastKnownInfo memory)
     {
-        contact.Id = id; contact.Kind = memory.Kind; contact.Direction = memory.Direction; contact.ObservedAttackPower=memory.ObservedAttackPower;
+        contact.Id = id; contact.Kind = memory.Kind; contact.Direction = memory.Direction; contact.ObservedAttackPower=memory.ObservedAttackPower; contact.ActionProfile = memory.ActionProfile;
         contact.Cells.Clear(); contact.Cells[GridHelper.ToGridXZ(memory.Position)] = 1;
         int age = Mathf.Clamp(board.TurnCount - memory.Turn, 0, 6);
         int passes = Mathf.Min(4, age * (memory.Kind == Kind.Scout || memory.Kind == Kind.Assassin ? 2 : 1));
@@ -68,8 +70,8 @@ public sealed class AIBeliefMap
             next.Clear();
             foreach (var cell in contact.Cells)
             {
-                var offsets = MovePatterns.Offsets(memory.Kind);
-                int possibilities = 1 + offsets.Count * (MovePatterns.DirectionIndependent.Contains(memory.Kind) ? 1 : 2);
+                var offsets = MovePatterns.Offsets(memory.Kind, memory.ActionProfile);
+                int possibilities = 1 + offsets.Count * (MovePatterns.IsDirectionIndependent(memory.Kind, memory.ActionProfile) ? 1 : 2);
                 float share = cell.Value / possibilities;
                 Add(next, cell.Key, share);
                 for(int oi=0;oi<offsets.Count;oi++)
@@ -77,7 +79,7 @@ public sealed class AIBeliefMap
                     var offset=offsets[oi];
                     var destination = cell.Key + new Vector3Int(offset.x, 0, offset.y * MovePatterns.DirZ(memory.Direction));
                     if (Possible(cell.Key, destination)) Add(next, destination, share);
-                    if (!MovePatterns.DirectionIndependent.Contains(memory.Kind))
+                    if (!MovePatterns.IsDirectionIndependent(memory.Kind, memory.ActionProfile))
                     {
                         destination = cell.Key + new Vector3Int(offset.x, 0, -offset.y * MovePatterns.DirZ(memory.Direction));
                         if (Possible(cell.Key, destination)) Add(next, destination, share);
@@ -123,7 +125,7 @@ public sealed class AIBeliefMap
     public float InformationGain(Status unit, Vector3 destination)
     {
         Prepare(); float value = 0;
-        foreach (var offset in VisionGenerator.BaseVisionOffsets(unit.kind)) value += ProbabilityAt(destination + offset);
+        foreach (var offset in VisionGenerator.BaseVisionOffsets(unit)) value += ProbabilityAt(destination + offset);
         return Mathf.Min(60, value * 60);
     }
 
@@ -143,7 +145,21 @@ public sealed class AIBeliefMap
     {
         float damage=contact.ObservedAttackPower>0 ? contact.ObservedAttackPower : UnitStaticData.Table.TryGetValue(contact.Kind,out var u)?Mathf.Max(1,u.BaseATK):8;
         contactRisk.Clear();
-        if(attackOffsets.TryGetValue(contact.Kind,out var offsets))
+        if (contact.ActionProfile != null && !contact.ActionProfile.CanAttack) return;
+        if (contact.ActionProfile?.attack?.useCustom == true)
+        {
+            var mask = contact.ActionProfile.attack;
+            customAttackOffsets.Clear();
+            foreach (var offset in mask.Offsets)
+            {
+                if (offset == Vector2Int.zero) continue;
+                customAttackOffsets.Add(offset);
+                if (!mask.directionIndependent) customAttackOffsets.Add(new Vector2Int(offset.x, -offset.y));
+            }
+            foreach (var cell in contact.Cells) foreach (var offset in customAttackOffsets)
+                Add(contactRisk, cell.Key + new Vector3Int(offset.x, 0, offset.y), cell.Value);
+        }
+        else if(attackOffsets.TryGetValue(contact.Kind,out var offsets))
             foreach(var cell in contact.Cells)
                 for(int i=0;i<offsets.Length;i++)Add(contactRisk,cell.Key+new Vector3Int(offsets[i].x,0,offsets[i].y),cell.Value);
         foreach(var pair in contactRisk)

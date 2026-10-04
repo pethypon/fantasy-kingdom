@@ -58,6 +58,9 @@ public class PlayerAttack : TurnState
 
         if (Context.SelectNormalDown || Context.SelectSkillDown)
         {
+            var profile = BoardActionProfile.For(move.SelectedUnit);
+            if (profile != null && (Context.SelectSkillDown ? !profile.CanUseSkills : !profile.CanAttack))
+            { ToastMessageUI.Show("この駒の行動設定では使用できません", ToastMessageUI.MessageType.Warning); return; }
             Reset();
             move.CurrentAttackMode = Context.SelectSkillDown ? PlayerMove.AttackMode.Skill : PlayerMove.AttackMode.Normal;
             Turn.ChangeState(new PlayerAttack(Turn, move, move.CurrentAttackMode));
@@ -129,6 +132,8 @@ public class PlayerAttack : TurnState
     private void HandleAttackClick()
     {
         if (!Context.LeftClickDown) return;
+        var profile = BoardActionProfile.For(move.SelectedUnit);
+        if (profile != null && (attackmode == PlayerMove.AttackMode.Skill ? !profile.CanUseSkills : !profile.CanAttack)) return;
 
         // スキルモードで自身対象スキルの場合は即実行
         if (attackmode == PlayerMove.AttackMode.Skill

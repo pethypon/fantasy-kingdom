@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921d8fb6dabd4130914c92ad587170bd, type: 3}
+  m_Name: DirectorConfig
+  m_EditorClassIdentifier:
+  InitialIP: 15
+  HistoryTurns: 5
+  PredictionTurns: 2
+  ReserveProbability: 0.7
+  ActiveWarThreshold: 0.45
+  BalancedPowerRatio: 0.65
+  StagnationThreshold: 0.6
+  DecisiveHPRatio: 0.25
+  MaximumAdvantageEraseRatio: 0.25
+  MaximumPowerSwingRatio: 0.2
+  PreventLeaderFlip: 1
+  MinimumTurnsBetweenMajorEvents: 8
+  GlobalEventCooldown: 2
+  MinimumObjectiveSpawnDistance: 6
+  ResponseTurns: 2
+  MaxCandidates: 32
+  MaxSpawnCells: 512
+  DirectorBudgetMs: 5
+  TacticalSliceMs: 3
+  TacticalMaxActions: 64
+  Events:
+  - {fileID: 11400000, guid: 3604b54e70a14191bdc747485747497c, type: 2}
+  - {fileID: 11400000, guid: f4112226e74447b3b90a9fe1263b9d95, type: 2}
+  - {fileID: 11400000, guid: e17e4ef885ec4777a9f383f870494aff, type: 2}
+  - {fileID: 11400000, guid: 7267fd61f0f44676b813b2cdbcbc196c, type: 2}
+  - {fileID: 11400000, guid: d542c3e30b4e4657b13657198158a7e3, type: 2}

@@ -65,6 +65,8 @@ public static partial class SaveSystem
         public List<string> SpawnedIntruders;
         public List<RewardRecord> Rewards;
         public WildBossSystem.Snapshot WildBoss;
+        public ThirdFactionDirectorState ThirdFaction;
+        public bool DeveloperAutoplayUsed;
         public List<DungeonSystem.DungeonInfo> Dungeons;
         public int DungeonLastRound = -1;
         public int PlayerSubCrystals;
@@ -74,6 +76,8 @@ public static partial class SaveSystem
         public bool R1Terrain;
         public List<Vector3Int> LandOverrides;
         public int MapWidth, MapDepth;
+        public bool HasMapGenerationSettings;
+        public float MapNoiseScale, MapRiverHalfWidth;
         public float MapSeedX;
         public float MapSeedZ;
 
@@ -99,6 +103,7 @@ public static partial class SaveSystem
     public class UnitSaveData
     {
         public string Kind;
+        public string DefinitionId;
         public string Team;
         public string Type;
         public int HP;
@@ -115,6 +120,7 @@ public static partial class SaveSystem
         public int AssignedSkillId;
         public int SkillCooldown;
         public string FacilityKind;
+        public string AuthoredFacilityId;
         public bool IsActive;
         public int Fatigue;
         public int Experience;

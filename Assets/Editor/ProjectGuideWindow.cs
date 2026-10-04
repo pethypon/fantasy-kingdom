@@ -8,8 +8,9 @@ public sealed class ProjectGuideWindow : EditorWindow
     void OnGUI()
     {
         GUILayout.Label("Fantasy Kingdom",EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("編集する内容からフォルダを開けます。外部アセットと実行時Resourcesの位置を維持し、参照切れを防ぎます。新しいユニットは _FantasyKingdom/Units にまとまります。",MessageType.Info);
-        if(GUILayout.Button("ユニットを作成・設定",GUILayout.Height(32))) UnitWorkshopWindow.Open();
+        EditorGUILayout.HelpBox("開発スタジオで駒・建物・行動マス・陣営・ルール・第三陣営を日本語で設定できます。新しい制作データは _FantasyKingdom/GameContent にまとまります。",MessageType.Info);
+        if(GUILayout.Button("開発スタジオを開く",GUILayout.Height(32))) GameDevelopmentStudioWindow.Open();
+        Link("開発スタジオで作成した駒・建物",GameDevelopmentStudioWindow.ContentFolder);
         Link("作成したユニット",UnitWorkshopWindow.UnitsFolder);
         if(GUILayout.Button("有効なユニット登録")) {Selection.activeObject=UnitWorkshopWindow.GetCatalog();EditorGUIUtility.PingObject(Selection.activeObject);}
         Link("シーン","Assets/Scenes");

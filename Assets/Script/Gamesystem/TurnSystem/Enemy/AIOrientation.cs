@@ -17,7 +17,7 @@ public static class AIOrientation
             bool attackAffordable = board.CalcAttackCost(unit) <= board.EnemyAP;
             float gain = attackAffordable ? alternate - current : 0;
             if (gain <= 1 && attackAffordable && current > 0) continue;
-            if (gain <= 1 && !MovePatterns.DirectionIndependent.Contains(unit.kind))
+            if (gain <= 1 && !MovePatterns.IsDirectionIndependent(unit))
             {
                 gain = MoveUtility(board, unit, other) - MoveUtility(board, unit, unit.direction);
                 if (gain <= 1) continue;
@@ -35,9 +35,9 @@ public static class AIOrientation
         Vector3 origin = unit.transform.position;
         bool contact = board.Recon.TryGetContactTarget(out var objective);
         float best = 0;
-        foreach (var offset in MovePatterns.Offsets(unit.kind))
+        foreach (var offset in MovePatterns.Offsets(unit))
         {
-            var destination = origin + new Vector3(offset.x, 0, offset.y * MovePatterns.DirZ(facing));
+            var destination = origin + new Vector3(offset.x, 0, offset.y * (MovePatterns.IsDirectionIndependent(unit) ? 1 : MovePatterns.DirZ(facing)));
             if (!board.ReconMap.TryGetHeight(Mathf.RoundToInt(destination.x), Mathf.RoundToInt(destination.z), out float y)) continue;
             destination.y = y;
             if (!board.ReconMap.CanTraverse(origin, destination) || board.CalcMoveCost(unit, destination) > board.EnemyAP) continue;
@@ -61,7 +61,7 @@ public static class AIOrientation
         {
             if (target == null || !target.IsAlive || !board.IsVisibleToEnemy(target.transform.position)) continue;
             Vector3 offset = target.transform.position - unit.transform.position;
-            if (!AttackPatterns.CanAttack(unit.kind, facing, offset.x, offset.z)
+            if (!AttackPatterns.CanAttack(unit, facing, offset.x, offset.z)
                 || !board.ReconMap.CanAttackAcrossTerrain(unit, target.transform.position)) continue;
             int damage = target.ShieldTurns > 0 ? 0 : AIEvalHelpers.EstimateDamage(unit, target);
             best = Mathf.Max(best, Mathf.Min(damage, target.HP) + (damage >= target.HP ? 60 : 0));

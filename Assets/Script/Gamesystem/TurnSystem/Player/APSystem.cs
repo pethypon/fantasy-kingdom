@@ -4,6 +4,8 @@ using UnityEngine;
 public class APSystem : MonoBehaviour
 {
     public enum ActionType { Move, Attack, Build }
+    public static int BaseMoveCost => Mathf.Clamp(GameAuthoringRules.Active?.moveAP ?? GameConstants.BaseMoveAPCost, 1, GameConstants.MaxAP);
+    public static int BaseAttackCost => Mathf.Clamp(GameAuthoringRules.Active?.attackAP ?? GameConstants.BaseAttackAPCost, 1, GameConstants.MaxAP);
 
     // ==== コスト定義 ====
     static readonly Dictionary<ActionType, int> BaseCost =
@@ -32,7 +34,7 @@ public class APSystem : MonoBehaviour
     public int CalcCost(ActionType action, Status obj,
                         Vector3 from = default, Vector3 to = default)
     {
-        int cost = BaseCost[action];
+        int cost = action == ActionType.Move ? BaseMoveCost : action == ActionType.Attack ? BaseAttackCost : BaseCost[action];
         cost += obj.Fatigue;
         if (action == ActionType.Move)
         {
@@ -64,7 +66,7 @@ public class APSystem : MonoBehaviour
     // ==== ターン開始時 AP リセット ====
     public void ResetAP(Team team)
     {
-        var apData = team == Team.Player ? _factionState.PlayerAP : _factionState.EnemyAP;
+        var apData = _factionState.GetAPData(team);
         int prevCurrent = apData.Current;
         _factionState.ResetAPForTurn(team);
         Debug.Log($"[APSystem] {team} AP リセット: Reset={apData.Reset} Plus={apData.Plus} Minus={apData.Minus} → {apData.Current} (前ターン残={prevCurrent})");
@@ -116,7 +118,7 @@ public class APSystem : MonoBehaviour
     public int GetMaxAP(Team team)
     {
         if (_factionState == null) return 0;
-        var ap = team == Team.Player ? _factionState.PlayerAP : _factionState.EnemyAP;
+        var ap = _factionState.GetAPData(team);
         if (ap == null) return 0;
         return ap.Maximum;
     }
@@ -130,6 +132,22 @@ public class APSystem : MonoBehaviour
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
         return FacilityData.CanAfford(res, info.BuildCost);
+    }
+
+    public bool CanBuild(Team team, FacilityDefinitionData definition, FactionState factionState)
+    {
+        if (definition == null || !definition.IsAvailable(team) || factionState == null) return false;
+        var info = definition.GetInfo();
+        return factionState.GetAP(team) >= info.APCost && FacilityData.CanAfford(factionState.GetResources(team), info.BuildCost);
+    }
+
+    public void ConsumeBuild(Team team, FacilityDefinitionData definition, FactionState factionState)
+    {
+        if (definition == null || factionState == null) return;
+        var info = definition.GetInfo();
+        OnNonMoveAction?.Invoke(team);
+        factionState.ModifyAP(team, -info.APCost);
+        FacilityData.Consume(factionState.GetResources(team), info.BuildCost);
     }
 
     // ---- 建築の AP + リソース消費 ----
@@ -151,6 +169,6 @@ public class APSystem : MonoBehaviour
     {
         if (HeightCostExempt.Contains(kind)) return 0;
         int dy = GridHelper.ToGrid(to).y - GridHelper.ToGrid(from).y;
-        return dy == 1 ? HeightCost : 0;
+        return dy == 1 ? Mathf.Clamp(GameAuthoringRules.Active?.heightAP ?? HeightCost, 0, GameConstants.MaxAP) : 0;
     }
 }

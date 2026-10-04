@@ -33,13 +33,14 @@ public class GameEndState : TurnState
 
         // 実績（試合全体判定）
         bool isWinFinal = _result == GameResult.Win || _result == GameResult.TimeUpWin;
-        AchievementSystem.GetOrCreate().OnMatchEnd(isWinFinal);
+        if (!Turn.DeveloperPlayerAIWasUsed) AchievementSystem.GetOrCreate().OnMatchEnd(isWinFinal);
 
         BuildGameEndUI();
     }
 
     private void UpdateThreatLevel()
     {
+        if (Turn.DeveloperPlayerAIWasUsed) return;
         bool isWin = _result == GameResult.Win || _result == GameResult.TimeUpWin;
         bool isLose = _result == GameResult.Lose || _result == GameResult.TimeUpLose;
 
@@ -137,7 +138,7 @@ public class GameEndState : TurnState
         threatRT.offsetMax = new Vector2(-20, 0);
         var threatTMP = threatGo.AddComponent<TextMeshProUGUI>();
         bool isWin = _result == GameResult.Win || _result == GameResult.TimeUpWin;
-        threatTMP.text = isWin
+        threatTMP.text = Turn.DeveloperPlayerAIWasUsed ? $"開発者テスト: 脅威度 {profile.ThreatLevel}（進行記録なし）" : isWin
             ? $"脅威度: {profile.ThreatLevel} (↑)"
             : $"脅威度: {profile.ThreatLevel}";
         threatTMP.fontSize = 20;

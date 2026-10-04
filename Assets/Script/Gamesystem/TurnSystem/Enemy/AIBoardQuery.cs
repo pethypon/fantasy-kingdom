@@ -102,7 +102,7 @@ public static class AIBoardQuery
         foreach (var u in board.Allies.Near(pos, range))
         {
             if (!IsActiveUnit(u)) continue;
-            if (u.AssignedSkillId < 0) continue;
+            if (!AttackPatterns.CanUseSkills(u) || u.AssignedSkillId < 0) continue;
             if (!SkillData.Table.TryGetValue(u.AssignedSkillId, out var skill)) continue;
             if (skill.FixedHeal > 0 && (pos - u.transform.position).sqrMagnitude <= sqrRange)
                 return board.HealerCache[(pos,range)] = true;
@@ -122,9 +122,9 @@ public static class AIBoardQuery
     {
         if(board.CounterCache.TryGetValue((pos,self,self.DEF),out var cached)) return cached;
         int totalDmg = 0;
-        foreach (var pu in board.Enemies.Near(pos, 5.5f))
+        foreach (var pu in board.Enemies.Near(pos, 12f))
         {
-            if (!IsActiveUnit(pu)) continue;
+            if (!IsActiveUnit(pu) || BoardActionProfile.For(pu)?.CanAttack == false) continue;
             float maxRange = EstimateAttackRange(pu) + 1.5f; // 移動+攻撃マージン
             float sqrThreshold = maxRange * maxRange;
             if ((pos - pu.transform.position).sqrMagnitude > sqrThreshold) continue;
@@ -137,6 +137,14 @@ public static class AIBoardQuery
     /// <summary>駒種から大まかな攻撃射程を返す</summary>
     public static float EstimateAttackRange(Status unit)
     {
+        var profile = BoardActionProfile.For(unit);
+        if (profile != null && !profile.CanAttack) return 0;
+        if (profile?.attack?.useCustom == true)
+        {
+            float squared = 0;
+            foreach (var offset in profile.attack.Offsets) squared = Mathf.Max(squared, offset.sqrMagnitude);
+            return Mathf.Sqrt(squared);
+        }
         switch (unit.kind)
         {
             case Kind.Archer:      return 3f;

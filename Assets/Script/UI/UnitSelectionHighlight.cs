@@ -62,7 +62,7 @@ public class UnitSelectionHighlight : MonoBehaviour
             if (_currentTarget != null && _currentTarget.type == Type.Unit)
             {
                 _ringObj.SetActive(true);
-                Color c = _currentTarget.team == Team.Player ? PlayerColor : EnemyColor;
+                Color c = GameAuthoringRules.FactionColor(_currentTarget.team, _currentTarget.team == Team.Player ? PlayerColor : EnemyColor);
                 _ringMaterial.color = c;
             }
             else

@@ -127,6 +127,7 @@ public partial class AIBoardState
         public Type Type;
         public Direction Direction;
         public int ObservedAttackPower;
+        public BoardActionProfile ActionProfile;
         public Vector3Int PreviousPosition;
         public int PreviousTurn;
         public bool HasPrevious;
@@ -315,7 +316,7 @@ public partial class AIBoardState
             _lastKnownPlayerPositions[id] = new LastKnownInfo
             {
                 Position = position,
-                Kind = pu.kind, Type = pu.type, Direction = pu.direction, ObservedAttackPower = Mathf.Max(0, pu.ATK),
+                Kind = pu.kind, Type = pu.type, Direction = pu.direction, ObservedAttackPower = Mathf.Max(0, pu.ATK), ActionProfile = BoardActionProfile.For(pu),
                 PreviousPosition = moved ? previous.Position : previous.PreviousPosition,
                 PreviousTurn = moved ? previous.Turn : previous.PreviousTurn,
                 HasPrevious = moved || previous.HasPrevious,
@@ -379,14 +380,11 @@ public partial class AIBoardState
     {
         var unitPos = unit.transform.position;
         var result = new List<Vector3>();
-        if (!MovePatterns.Map.TryGetValue(unit.kind, out var pattern)) return result;
-        bool independent = MovePatterns.DirectionIndependent.Contains(unit.kind);
-        int direction = MovePatterns.DirZ(unit.direction);
         // Terrain discovery is information, not a movement restriction. Use the
         // same legal terrain as player movement; hidden units remain unobserved.
         foreach (var p in _moveGen.mapcreate.SetPos)
         {
-            if (!pattern(p.x - unitPos.x, (p.z - unitPos.z) * (independent ? 1 : direction))) continue;
+            if (!MovePatterns.CanMove(unit, unit.direction, p.x - unitPos.x, p.z - unitPos.z)) continue;
             if (!_moveGen.mapcreate.CanTraverse(unitPos, p)) continue;
             bool occupied = GridHelper.MatchXZ(p, GridHelper.ToGrid(EnemyCrystalPos))
                 || (CanUsePlayerCrystalAsTarget() && GridHelper.MatchXZ(p, GridHelper.ToGrid(PlayerCrystalPos)));
@@ -436,7 +434,7 @@ public partial class AIBoardState
     public List<Status> GetSkillTargets(Status unit, SkillData skill)
     {
         var targets = new List<Status>();
-        if (skill == null || unit.AssignedSkillId < 0) return targets;
+        if (skill == null || !AttackPatterns.CanUseSkills(unit) || unit.AssignedSkillId < 0) return targets;
 
         var unitPos = unit.transform.position;
         int dirZ = unit.direction == Direction.S ? -1 : 1;
@@ -537,6 +535,9 @@ public partial class AIBoardState
 
     public int CalcSkillCost(Status unit, SkillData skill)
         => _apSystem.CalcSkillCost(skill.APCost, unit);
+
+    public bool CanBuildDefinition(FacilityDefinitionData definition)
+        => definition != null && _buildSystem != null && _buildSystem.GetCostFailure(definition, ActorTeam) == null;
 
     // ---- AP消費 ----
     public void ConsumeMove(Status unit, Vector3 dest)

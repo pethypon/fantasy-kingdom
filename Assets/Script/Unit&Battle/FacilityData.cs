@@ -16,6 +16,7 @@ public static partial class FacilityData
     // ==================================================================
     //  リソースコスト（建築・強化時消費用、6種）
     // ==================================================================
+    [System.Serializable]
     public struct ResourceCost
     {
         public int Wood;
@@ -36,6 +37,7 @@ public static partial class FacilityData
     // ==================================================================
     //  生産バンドル（毎ターン生産用、8資源対応）
     // ==================================================================
+    [System.Serializable]
     public struct ProductionBundle
     {
         public int Wood;
@@ -56,6 +58,7 @@ public static partial class FacilityData
     // ==================================================================
     //  レベル別データ
     // ==================================================================
+    [System.Serializable]
     public struct FacilityLevelData
     {
         // ステータス

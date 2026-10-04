@@ -257,7 +257,7 @@ public sealed class AIPlanManager
         int ready=0;
         foreach(var unit in army)
             if(assigned.TryGetValue(unit.GetInstanceID(),out var role) && role!=Kind.Scout
-                && (AttackPatterns.CanAttack(unit.kind,unit.direction,Current.DemonstrationPoint.x-unit.transform.position.x,Current.DemonstrationPoint.z-unit.transform.position.z)
+                && (AttackPatterns.CanAttack(unit,unit.direction,Current.DemonstrationPoint.x-unit.transform.position.x,Current.DemonstrationPoint.z-unit.transform.position.z)
                     || GridHelper.ChebyshevDistance(unit.transform.position,Current.DemonstrationPoint)<=2))ready++;
         return ready>=2;
     }

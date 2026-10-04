@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -177,6 +177,7 @@ public partial class SimBoardState
             Id = id,
             Team = simulationTeam,
             Kind = s.kind,
+            ActionProfile = BoardActionProfile.For(s),
             Facility = s.facilityKind,
             Type = s.type,
             HP = s.HP,

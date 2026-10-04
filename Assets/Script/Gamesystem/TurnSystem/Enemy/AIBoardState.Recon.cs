@@ -14,7 +14,7 @@ public partial class AIBoardState
             unchecked
             {
                 int hash=ReconThreatLevel*397;
-                foreach(var pair in ObservedHistory)hash^=pair.Key*31+pair.Value.Position.GetHashCode()*17+pair.Value.Turn*7+(int)pair.Value.Kind+pair.Value.ObservedAttackPower*13;
+                foreach(var pair in ObservedHistory)hash^=pair.Key*31+pair.Value.Position.GetHashCode()*17+pair.Value.Turn*7+(int)pair.Value.Kind+pair.Value.ObservedAttackPower*13+(pair.Value.ActionProfile != null ? pair.Value.ActionProfile.GetInstanceID()*19 : 0);
                 if(_visionGen!=null)foreach(var cell in OwnVisionCells)hash^=cell.GetHashCode()*53;
                 foreach(var unit in AlivePlayerUnits)if(unit!=null)hash^=unit.GetInstanceID()*71;
                 beliefStamp=hash;

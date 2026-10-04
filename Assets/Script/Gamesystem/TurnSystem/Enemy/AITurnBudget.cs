@@ -17,5 +17,7 @@ public static class AITurnBudget
     // Waiting does not count as CPU work, but still counts toward the user's wait limit.
     public static void Pause() => clock?.Stop();
     public static void Resume() => clock?.Start();
+    public static void SuspendWaitLimit() { clock?.Stop(); wallClock?.Stop(); }
+    public static void ResumeWaitLimit() => wallClock?.Start();
     public static bool Expired => RemainingMs <= 0;
 }

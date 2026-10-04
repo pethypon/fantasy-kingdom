@@ -33,6 +33,7 @@ public class SummonSystem : MonoBehaviour
     // ---- 召喚モード状態 ----
     public bool IsActive { get; private set; }
     public Kind SelectedKind { get; private set; }
+    public UnitData SelectedDefinition { get; private set; }
 
     // ---- カーソル（BuildCursorController に委譲） ----
     private BuildCursorController _cursor;
@@ -80,20 +81,30 @@ public class SummonSystem : MonoBehaviour
     // ==================================================================
     public void StartSummonMode(Kind kind)
     {
+        if (unitset == null || unitset.UnitDataMap == null || !unitset.UnitDataMap.TryGetValue(kind, out UnitData data)) return;
+        StartSummonMode(data);
+    }
+
+    public void StartSummonMode(UnitData data)
+    {
+        if (turnGenerator != null && turnGenerator.DeveloperPlayerAIEnabled) return;
+        if (data == null || !data.IsValidForAuthoring || !data.availableToPlayer) return;
         if (IsActive) CancelSummonMode();
 
-        SelectedKind = kind;
+        SelectedDefinition = data;
+        SelectedKind = data.kind;
         IsActive = true;
         canPlace = false;
 
         _cursor.Create();
-        Debug.Log($"[SummonSystem] 召喚モード開始: {kind}");
+        Debug.Log($"[SummonSystem] 召喚モード開始: {data.DisplayName}");
     }
 
     public void CancelSummonMode()
     {
         IsActive = false;
-        _cursor.Destroy();
+        SelectedDefinition = null;
+        _cursor?.Destroy();
         Debug.Log("[SummonSystem] 召喚モード解除");
     }
 
@@ -134,15 +145,15 @@ public class SummonSystem : MonoBehaviour
     {
         if (!IsActive || !canPlace || !_cursor.IsVisible) return false;
 
-        if (!CanSummon(Team.Player, SelectedKind))
+        if (!CanSummon(Team.Player, SelectedDefinition))
         {
             Debug.Log("[SummonSystem] AP/リソース不足: 召喚不可");
             return false;
         }
 
         Vector3Int pos = _cursor.LastPosition;
-        InstantiateUnit(pos, SelectedKind, Team.Player);
-        ConsumeSummonResources(Team.Player, SelectedKind);
+        if (InstantiateUnit(pos, SelectedKind, Team.Player, SelectedDefinition) == null) return false;
+        ConsumeSummonResources(Team.Player, SelectedDefinition);
 
         // ML観測: プレイヤーの召喚をMLシステムに記録
         NotifyMLObservation(pos);
@@ -156,7 +167,14 @@ public class SummonSystem : MonoBehaviour
     // ==================================================================
     public bool CanSummon(Team team, Kind kind)
     {
-        if (!unitset.UnitDataMap.TryGetValue(kind, out UnitData data)) return false;
+        if (unitset == null || unitset.UnitDataMap == null || !unitset.UnitDataMap.TryGetValue(kind, out UnitData data)) return false;
+        return CanSummon(team, data);
+    }
+
+    public bool CanSummon(Team team, UnitData data)
+    {
+        if ((team != Team.Player && team != Team.Enemy) || data == null || !data.IsValidForAuthoring
+            || !data.AvailableFor(team) || factionState == null) return false;
         if (factionState.GetAP(team) < data.costAP) return false;
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
@@ -175,6 +193,12 @@ public class SummonSystem : MonoBehaviour
     private void ConsumeSummonResources(Team team, Kind kind)
     {
         if (!unitset.UnitDataMap.TryGetValue(kind, out UnitData data)) return;
+        ConsumeSummonResources(team, data);
+    }
+
+    private void ConsumeSummonResources(Team team, UnitData data)
+    {
+        if (data == null) return;
 
         factionState.ModifyAP(team, -data.costAP);
 
@@ -187,7 +211,7 @@ public class SummonSystem : MonoBehaviour
         res.Bread    -= data.costBread;
         res.Citizen  -= data.costCitizen;
 
-        Debug.Log($"[SummonSystem] {team} / Summon({kind})  AP:{data.costAP}  残AP:{factionState.GetAP(team)}");
+        Debug.Log($"[SummonSystem] {team} / Summon({data.DisplayName})  AP:{data.costAP}  残AP:{factionState.GetAP(team)}");
     }
 
     // ==================================================================
@@ -217,7 +241,7 @@ public class SummonSystem : MonoBehaviour
     // ==================================================================
 
     /// <summary>ユニットを指定位置に生成する。プレイヤー・AI共通のコアロジック。</summary>
-    private void InstantiateUnit(Vector3Int pos, Kind kind, Team team)
+    private Status InstantiateUnit(Vector3Int pos, Kind kind, Team team, UnitData definition = null)
     {
         Transform parent = team == Team.Player ? unitset.PlayerUnit : unitset.EnemyUnit;
         Direction dir = team == Team.Player ? Direction.N : Direction.S;
@@ -234,10 +258,15 @@ public class SummonSystem : MonoBehaviour
             prefab = mapped;
 
         Status spawnedStatus;
-        if (prefab != null)
+        if (definition != null && !string.IsNullOrWhiteSpace(definition.definitionId))
         {
-            var obj = unitset.SpawnUnit(prefab, spawnPos, parent);
-            spawnedStatus = obj.GetComponentInChildren<Status>();
+            var obj = unitset.SpawnUnit(definition, spawnPos, parent, initialTeam: team);
+            spawnedStatus = obj != null ? obj.GetComponentInChildren<Status>() : null;
+        }
+        else if (prefab != null)
+        {
+            var obj = unitset.SpawnUnit(prefab, spawnPos, parent, initialKind: kind, initialTeam: team, authoredData: definition);
+            spawnedStatus = obj != null ? obj.GetComponentInChildren<Status>() : null;
             if (spawnedStatus != null)
             {
                 spawnedStatus.team = team;
@@ -246,11 +275,13 @@ public class SummonSystem : MonoBehaviour
         }
         else
         {
-            spawnedStatus = CreateFallbackUnit(spawnPos, kind, team, dir, parent);
+            spawnedStatus = CreateFallbackUnit(spawnPos, kind, team, dir, parent, definition);
         }
 
+        if (spawnedStatus == null) return null;
+
         // プレイヤー召喚時はスキル3択UIで上書き
-        if (team == Team.Player && spawnedStatus != null)
+        if (team == Team.Player && (spawnedStatus.GrowthData == null || !spawnedStatus.GrowthData.useAuthoredAbilities))
             SkillData.AssignFixedSkill(spawnedStatus);
 
         // UnitRegistry へ登録（壁遮蔽判定・ボスAI等が参照する）
@@ -266,11 +297,12 @@ public class SummonSystem : MonoBehaviour
 
         Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {Mathf.RoundToInt(spawnY)}, {pos.z}) に召喚 ({team})");
         MatchStats.Instance?.RecordSummon(team);
+        return spawnedStatus;
     }
 
     /// <summary>プレハブ未割当時のフォールバックユニットを生成する</summary>
     private Status CreateFallbackUnit(Vector3 spawnPos, Kind kind, Team team,
-                                       Direction dir, Transform parent)
+                                       Direction dir, Transform parent, UnitData definition = null)
     {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         obj.transform.position = spawnPos;
@@ -289,8 +321,9 @@ public class SummonSystem : MonoBehaviour
         status.type = Type.Unit;
         status.direction = dir;
 
-        if (unitset.UnitDataMap.TryGetValue(kind, out UnitData data))
-            data.ApplyToStatus(status, 1);
+        UnitData data = definition;
+        if (data != null || unitset.UnitDataMap.TryGetValue(kind, out data))
+        { data.ApplyToStatus(status, 1); data.InitializeAbilities(status); }
 
         UnitHeadUI.Attach(obj);
         return status;
@@ -304,10 +337,28 @@ public class SummonSystem : MonoBehaviour
     /// セーブデータ復元用にユニットを生成する。
     /// AP/資源を消費せず、スキル選択UIも表示しない（ステータスは呼び出し元が上書きする）。
     /// </summary>
-    public Status SpawnUnitForLoad(Kind kind, Team team, Vector3 worldPos)
+    public Status SpawnUnitForLoad(Kind kind, Team team, Vector3 worldPos, string definitionId = null)
     {
         Transform parent = team == Team.Player ? unitset.PlayerUnit : unitset.EnemyUnit;
         Direction dir = team == Team.Player ? Direction.N : Direction.S;
+
+        if (!string.IsNullOrWhiteSpace(definitionId))
+        {
+            var data = unitset.GetDefinitionById(definitionId);
+            if (data == null)
+            {
+                Debug.LogWarning($"[SummonSystem] 保存された駒の設定が見つかりません: {definitionId}");
+                return null;
+            }
+            var obj = unitset.SpawnUnit(data, worldPos, parent, initialTeam: team);
+            var authored = obj != null ? obj.GetComponentInChildren<Status>() : null;
+            if (authored != null)
+            {
+                UnitRegistry.Instance?.Register(authored);
+                moveGenerator.AddOccupied(GridHelper.ToUnitPoint(GridHelper.ToGrid(worldPos)));
+            }
+            return authored;
+        }
 
         GameObject prefab = null;
         if (prefabMap != null && prefabMap.TryGetValue(kind, out GameObject mapped) && mapped != null)
@@ -348,10 +399,19 @@ public class SummonSystem : MonoBehaviour
         if (!CanSummon(team, kind)) return false;
         if (!CheckCanPlaceForTeam(pos, team)) return false;
 
+        if (InstantiateUnit(pos, kind, team) == null) return false;
         ConsumeSummonResources(team, kind);
-        InstantiateUnit(pos, kind, team);
 
         Debug.Log($"[SummonSystem] AI({team}) {kind} を ({pos.x},{pos.y},{pos.z}) に召喚");
+        return true;
+    }
+
+    /// <summary>Authoring tools and AI may summon a specific ID without changing role defaults.</summary>
+    public bool AISummonUnit(Vector3Int pos, UnitData data, Team team)
+    {
+        if (!CanSummon(team, data) || !CheckCanPlaceForTeam(pos, team)) return false;
+        if (InstantiateUnit(pos, data.kind, team, data) == null) return false;
+        ConsumeSummonResources(team, data);
         return true;
     }
 
@@ -396,10 +456,10 @@ public class SummonSystem : MonoBehaviour
     /// <summary>ML観測: プレイヤーの召喚をMLシステムに記録</summary>
     private void NotifyMLObservation(Vector3Int pos)
     {
-        if (turnGenerator != null && turnGenerator.Systems.AICommander != null)
+        if (turnGenerator != null && !turnGenerator.DeveloperPlayerAIWasUsed && turnGenerator.Systems.AICommander != null)
         {
             Vector3 summonPos = new Vector3(pos.x, 0, pos.z);
-            turnGenerator.Systems.AICommander.MLIntegration.ObservePlayerBuild(summonPos, turnGenerator.Context.Turn);
+            turnGenerator.Systems.AICommander.MLIntegration?.ObservePlayerBuild(summonPos, turnGenerator.Context.Turn);
         }
     }
 

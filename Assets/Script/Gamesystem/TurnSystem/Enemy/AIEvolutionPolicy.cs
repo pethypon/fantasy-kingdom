@@ -105,7 +105,7 @@ public sealed class AIEvolutionPolicy
                     { a.Score += Mathf.Min(2, progress) * 6; break; }
                 }
             }
-            a.Score += model.Bonus(a, level);
+            a.Score += model?.Bonus(a, level) ?? 0;
         }
     }
 

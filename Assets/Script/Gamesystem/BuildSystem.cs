@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 建築システム: カーソル追従・設置可否判定・建築物の設置を管理する。
 /// </summary>
-public class BuildSystem : MonoBehaviour
+public partial class BuildSystem : MonoBehaviour
 {
     private void OnDestroy() => cursor?.Destroy();
     // ---- 外部参照（Init で注入） ----
@@ -121,9 +121,11 @@ public class BuildSystem : MonoBehaviour
     // ==================================================================
     public void StartBuildMode(FacilityKind facility)
     {
+        if (turnGenerator != null && turnGenerator.DeveloperPlayerAIEnabled) return;
         if (IsActive) CancelBuildMode();
 
         SelectedFacility = facility;
+        SelectedDefinition = null;
         hasPlacementFeedback = false;
         IsActive = true;
         canPlace = false;
@@ -165,7 +167,7 @@ public class BuildSystem : MonoBehaviour
 
     public string PlacementFailureReason { get; private set; }
     bool hasPlacementFeedback;
-    public string GetPlacementFailure(Vector3Int position) => BuildValidator.CostFailure(SelectedFacility,factionState)
+    public string GetPlacementFailure(Vector3Int position) => (SelectedDefinition != null ? GetCostFailure(SelectedDefinition, Team.Player) : BuildValidator.CostFailure(SelectedFacility,factionState))
         ?? validator.PlacementFailure(position,SelectedFacility,subCrystalSystem,turnGenerator.Systems.CrystalSystem);
 
     void SetPlacementFeedback(string reason)
@@ -185,6 +187,14 @@ public class BuildSystem : MonoBehaviour
         if (!IsActive) return false;
         string reason=cursor.IsVisible ? GetPlacementFailure(cursor.LastPosition) : "配置不可：マップ上のマスを選択してください";
         if (reason!=null) {SetPlacementFeedback(reason);ToastMessageUI.Show(reason,ToastMessageUI.MessageType.Warning);return false;}
+
+        if (SelectedDefinition != null)
+        {
+            if (!TryPlaceDefinition(cursor.LastPosition, SelectedDefinition, Team.Player)) return false;
+            NotifyMLObservation(cursor.LastPosition);
+            CancelBuildMode();
+            return true;
+        }
 
         bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
 
@@ -243,9 +253,10 @@ public class BuildSystem : MonoBehaviour
     /// 建築物を指定位置に生成する。プレイヤー・AI共通のコアロジック。
     /// SetPos から正しい Y 座標を取得して配置する。
     /// </summary>
-    private GameObject InstantiateBuilding(Vector3Int pos, FacilityKind facility, Team team)
+    private GameObject InstantiateBuilding(Vector3Int pos, FacilityKind facility, Team team, FacilityDefinitionData definition = null)
     {
         if (!FacilityData.Table.TryGetValue(facility, out var info)) return null;
+        if (definition != null) info = definition.GetInfo();
 
         // SetPos から正しい Y 座標を取得
         float placeY = pos.y;
@@ -257,7 +268,11 @@ public class BuildSystem : MonoBehaviour
 
         // プレハブ or フォールバック生成
         GameObject building;
-        if (prefabMap != null && prefabMap.TryGetValue(facility, out GameObject prefab) && prefab != null)
+        if (definition != null && definition.prefab != null)
+        {
+            building = Instantiate(definition.prefab, worldPos, Quaternion.identity, parent);
+        }
+        else if (prefabMap != null && prefabMap.TryGetValue(facility, out GameObject prefab) && prefab != null)
         {
             building = Instantiate(prefab, worldPos, Quaternion.identity, parent);
         }
@@ -268,6 +283,12 @@ public class BuildSystem : MonoBehaviour
 
         // Status コンポーネントを設定
         var status = ConfigureBuildingStatus(building, facility, team, info);
+        if (status != null)
+        {
+            status.AuthoredFacility = definition;
+            status.authoredFacilityId = definition != null ? definition.definitionId : null;
+        }
+        if (definition != null) building.name = definition.displayName;
 
         // UnitRegistry へ登録（壁遮蔽判定・ボスAI等が参照する）
         if (status != null)
@@ -338,12 +359,12 @@ public class BuildSystem : MonoBehaviour
 
         var facility = target.facilityKind;
         int currentLevel = Mathf.Max(1, target.Level);
-        int maxLevel = FacilityData.GetMaxLevel(facility);
+        int maxLevel = FacilityData.GetMaxLevel(target);
         if (currentLevel >= maxLevel) return false;
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
         int currentAP = factionState.GetAP(team);
-        if (!FacilityData.CanUpgrade(res, currentAP, facility, currentLevel))
+        if (!FacilityData.CanUpgrade(res, currentAP, target, currentLevel))
         {
             Debug.Log($"[BuildSystem] 強化不可: {facility} Lv{currentLevel} → Lv{currentLevel + 1}");
             return false;
@@ -351,11 +372,13 @@ public class BuildSystem : MonoBehaviour
 
         // コスト消費
         var apData = team == Team.Player ? factionState.PlayerAP : factionState.EnemyAP;
-        FacilityData.ConsumeUpgrade(res, apData, facility, currentLevel + 1);
+        var upgradeData = FacilityData.GetLevel(target, currentLevel + 1);
+        FacilityData.Consume(res, upgradeData.UpgradeCost);
+        apData.Current = Mathf.Max(0, apData.Current - upgradeData.UpgradeAP);
 
         // レベルアップ & ステータス更新
         target.Level = currentLevel + 1;
-        var newData = FacilityData.GetLevel(facility, target.Level);
+        var newData = FacilityData.GetLevel(target, target.Level);
         target.HP = newData.HP;
         target.MaxHP = newData.HP;
         target.DEF = newData.DEF;
@@ -385,15 +408,23 @@ public class BuildSystem : MonoBehaviour
     /// AP/資源/サブクリスタル数を消費しない（資源状態はセーブデータから別途復元される）。
     /// サブクリスタルの場合は領地拡張も再実行する。
     /// </summary>
-    public Status PlaceBuildingForLoad(Vector3Int pos, FacilityKind facility, Team team)
+    public Status PlaceBuildingForLoad(Vector3Int pos, FacilityKind facility, Team team, string definitionId = null)
     {
-        var building = InstantiateBuilding(pos, facility, team);
+        var definition = FacilityAuthoringCatalog.Loaded?.Find(definitionId);
+        if (!string.IsNullOrEmpty(definitionId) && definition == null)
+        {
+            Debug.LogWarning("[建物設定] 保存した建物 ID が見つかりません。互換建物で復元します: " + definitionId);
+        }
+        if (definition != null) facility = definition.behaviourKind;
+        var building = InstantiateBuilding(pos, facility, team, definition);
         if (building == null) return null;
 
         if (FacilityData.IsSubCrystal(facility) && subCrystalSystem != null)
             subCrystalSystem.ExpandTerritory(building, team);
 
-        return building.GetComponent<Status>();
+        var status = building.GetComponent<Status>();
+        if (status != null && !string.IsNullOrEmpty(definitionId)) status.authoredFacilityId = definitionId;
+        return status;
     }
 
     // ==================================================================

@@ -22,7 +22,10 @@ public partial class AICommander
     public AIPlan SavePlan => _advanced.Plans.Snapshot();
     public void RestorePlan(AIPlan plan) => _advanced.Plans.Restore(plan);
     readonly AIEvolutionPolicy _evolution = new AIEvolutionPolicy();
-    readonly AIPlayerModel _playerModel = new AIPlayerModel();
+    readonly AIPlayerModel _playerModel;
+    readonly Team _actorTeam;
+    public Team ActorTeam => _actorTeam;
+    bool CanLearn => _actorTeam == Team.Enemy && (_turnGen == null || !_turnGen.DeveloperPlayerAIWasUsed);
     bool _matchRecorded;
     readonly AIPersonality _personality;
     readonly AILearning _learning;
@@ -118,8 +121,10 @@ public partial class AICommander
         BuildSystem buildSystem = null, SummonSystem summonSystem = null,
         FactionState factionState = null, SkillSystem skillSystem = null,
         SubCrystalSystem subCrystalSystem = null,
-        int initialThreatLevel = 1, int randomSeed = -1)
+        int initialThreatLevel = 1, int randomSeed = -1, Team actorTeam = Team.Enemy)
     {
+        _actorTeam = actorTeam;
+        _playerModel = actorTeam == Team.Enemy ? new AIPlayerModel() : null;
         _turnGen = turnGen;
         _moveGen = moveGen;
         _attackPoint = attackPoint;
@@ -136,9 +141,9 @@ public partial class AICommander
         _subCrystalSystem = subCrystalSystem;
 
         _personality = new AIPersonality(major);
-        _learning = new AILearning(major == MajorPersonality.Growth);
-        _mlIntegration = new MLIntegration(initialThreatLevel, major, randomSeed);
-        _mlIntegration.CanObservePosition = position => visionGen != null && visionGen.IsInVisionXZ(Team.Enemy, position);
+        _learning = new AILearning(actorTeam == Team.Enemy && major == MajorPersonality.Growth);
+        _mlIntegration = actorTeam == Team.Enemy ? new MLIntegration(initialThreatLevel, major, randomSeed) : null;
+        if (_mlIntegration != null) _mlIntegration.CanObservePosition = position => visionGen != null && visionGen.IsInVisionXZ(_actorTeam, position);
 
         // 新システム初期化
         _roleAssigner = new AIRoleAssigner();
@@ -149,7 +154,7 @@ public partial class AICommander
         // 分離クラス初期化
         _actionExecutor = new AIActionExecutor(
             turnGen, moveGen, attackPoint, battleSystem, apSystem,
-            skillSystem, subCrystalSystem, buildSystem, summonSystem, _learning);
+            skillSystem, subCrystalSystem, buildSystem, summonSystem, _learning, actorTeam);
         _buildPlanner = new AIBuildPlanner(apSystem, factionState, _actionExecutor, _personality, _learning);
 
         // 師団長制AI初期化
@@ -171,7 +176,7 @@ public partial class AICommander
         DevelopmentLog.Log($"[AICommander] 探索={(_threatLevel.UseSearchEngine ? $"有効(深さ{_threatLevel.SearchDepth})" : "無効")}  " +
                   $"ロール={(_threatLevel.UseRoleAssignment ? "有効" : "無効")}  " +
                   $"学習率={_threatLevel.LearningRate:F1}  シード={_rng.Seed}");
-        DevelopmentLog.Log($"[AICommander] {_mlIntegration.GetDebugInfo()}");
+        DevelopmentLog.Log($"[AICommander] {_mlIntegration?.GetDebugInfo() ?? "開発者AI: MLなし"}");
         DevelopmentLog.Log($"[AICommander] 師団長制={(_hierarchicalMode ? "有効" : "無効")}  " +
                   $"最大師団数={KingCommanderSystem.MaxDivisions}  " +
                   $"師団兵上限={KingCommanderSystem.MaxDivisionUnits}  " +
@@ -232,7 +237,8 @@ public partial class AICommander
         AITurnBudget.Begin(TurnThinkingBudgetMs);
         _actedUnits.Clear();
         _triedStrategies.Clear();
-        _turnCount++;
+        if (_actorTeam == Team.Player) _turnCount = _turnGen.Context.Turn;
+        else _turnCount++;
 
         // BuildSystem の遅延取得（SerializeField未設定対策）
         if (_buildSystem == null)
@@ -264,13 +270,13 @@ public partial class AICommander
 
         _board = new AIBoardState(_moveGen, _attackPoint, _apSystem, _unitSet,
             _crystalSystem, _visionGen, _buildSystem, _summonSystem, _factionState,
-            _subCrystalSystem, _turnCount, _sharedMemory);
+            _subCrystalSystem, _turnCount, _sharedMemory, _actorTeam);
         _board.DungeonSystem = _turnGen?.Systems?.DungeonSystem;
         _board.MapCreate = _mapCreate;
         _board.ReconThreatLevel = _threatLevel.Level;
 
         // スキルクールダウンを全敵駒で減少
-        TickSkillCooldowns();
+        // Common turn-start processing already ticks cooldowns for both principal factions.
 
         // 死亡ユニットの位置履歴を掃除（メモリリーク防止）
         CleanupDeadUnitHistory();
@@ -288,7 +294,7 @@ public partial class AICommander
         _rng.SetTurnSeed(_turnCount);
 
         // 機械学習AIのターン開始通知（師団長制では無効）
-        if (!_hierarchicalMode && AIConfig.IsMLEnabled)
+        if (CanLearn && !_hierarchicalMode && AIConfig.IsMLEnabled)
         {
             _mlIntegration.ObservePlayerFormation(_board.AlivePlayerUnits, _board.EnemyCrystalPos, _turnCount);
             _mlIntegration.OnTurnStart(_currentStrategy, _threatLevel.Level, _board, _turnCount);
@@ -313,14 +319,14 @@ public partial class AICommander
         // ================================================================
         // All troops and economy actions compete in one observed-board decision loop.
         _evolution.BeginTurn(_board);
-        _playerModel.Observe(_board);
+        if (CanLearn) _playerModel?.Observe(_board);
         yield return null;
         if (_turnGen.IsGameOver) yield break;
         // 探索エンジンとtopCandidatesリストをループ外で事前確保（GC削減）
         var searchEngine = new AISearchEngine(_threatLevel.SearchDepth, _threatLevel.SearchCandidateLimit, _rng);
         searchEngine.SetSimulationReferences(_moveGen, _unitSet, _crystalSystem, _apSystem);
-        searchEngine.ResponseModel = _playerModel.CreateResponseModel(_threatLevel.Level,
-            AIConfig.IsMLEnabled ? _mlIntegration.Profiler.Profile : null);
+        searchEngine.ResponseModel = _playerModel?.CreateResponseModel(_threatLevel.Level,
+            CanLearn && AIConfig.IsMLEnabled ? _mlIntegration.Profiler.Profile : null);
         var topCandidates = new List<AIAction>();
         var lookaheadScores = new Dictionary<AIAction, float>();
         // EvaluateAll の毎ループ new List を避けるための再利用バッファ
@@ -425,7 +431,7 @@ public partial class AICommander
             }
 
             // ---- 機械学習AIスコア適用（脅威度20以上で有効、師団長制では無効） ----
-            if (!_hierarchicalMode && AIConfig.IsMLEnabled)
+            if (CanLearn && !_hierarchicalMode && AIConfig.IsMLEnabled)
                 _mlIntegration.EvaluateActions(actions, _board);
 
             // ---- 師団長制: 王直轄ユニットのアクションのみに絞る ----
@@ -570,7 +576,7 @@ public partial class AICommander
             _advanced.Plans.RecordSuccess(bestAction);
 
             // 機械学習AI: 成功した行動を記録（師団長制では無効）
-            if (!_hierarchicalMode && AIConfig.IsMLEnabled)
+            if (CanLearn && !_hierarchicalMode && AIConfig.IsMLEnabled)
                 _mlIntegration.RecordAction(bestAction, _board, true, _turnCount);
 
             if (bestAction.Unit != null)
@@ -622,13 +628,13 @@ public partial class AICommander
     /// </summary>
     public void RecordMatchResult(bool playerWon, MatchAnalysis analysis)
     {
-        if (_matchRecorded) return;
+        if (!CanLearn || _matchRecorded) return;
         _matchRecorded = true;
         _playerModel.CompleteMatch();
         _threatLevel.RecordMatchResult(playerWon, analysis);
 
         // 機械学習AIの試合終了学習（師団長制では無効）
-        if (!_hierarchicalMode && AIConfig.IsMLEnabled)
+        if (CanLearn && !_hierarchicalMode && AIConfig.IsMLEnabled)
         {
             _mlIntegration.OnMatchEnd(playerWon, analysis);
             _mlIntegration.UpdateThreatLevel(_threatLevel.Level);

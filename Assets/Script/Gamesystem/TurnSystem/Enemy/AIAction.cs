@@ -15,12 +15,13 @@ public class AIAction
     public int APCost;               // 消費AP
     public float Score;              // 最終評価点
     public FacilityKind Facility;    // 建築の種類
+    public FacilityDefinitionData FacilityDefinition;
     public Kind SummonKind;          // 召喚するユニット種
     public SkillData Skill;          // 使用スキル
     public List<Status> AreaTargets; // 範囲スキルの対象リスト
 
     // One actor's blocked route must not suppress another actor's valid move.
-    public string FailureGroupKey => $"{ActionType}_{Facility}_{SummonKind}_{(Unit != null ? Unit.GetInstanceID() : 0)}";
+    public string FailureGroupKey => $"{ActionType}_{Facility}_{FacilityDefinition?.definitionId}_{SummonKind}_{(Unit != null ? Unit.GetInstanceID() : 0)}";
     public string FailureKey => $"{FailureGroupKey}|{TargetPos}|{(TargetUnit != null ? TargetUnit.GetInstanceID() : 0)}|{(Skill != null ? Skill.Id : -1)}";
 
     public override string ToString()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -98,13 +98,16 @@ public class AttackGenerator : MonoBehaviour
     public void SkillAttackPData(Status Obj, Vector3 ObjP)
     {
         if (Obj == null) return;
-        AttackP?.Clear();
+        if (AttackP == null) AttackP = new List<Vector3>();
+        else AttackP.Clear();
         TargetUnit = Obj;
         CombatRegistry.Collect(combatTargets);
         objp = ObjP;
         attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
         attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
         setpos = attackTiles;
+
+        if (!AttackPatterns.CanUseSkills(TargetUnit)) return;
 
         if (TargetUnit.AssignedSkillId < 0 || !SkillData.Table.ContainsKey(TargetUnit.AssignedSkillId))
         {
@@ -199,7 +202,8 @@ public class AttackGenerator : MonoBehaviour
     public void NormalAttackPData(Status Obj, Vector3 ObjP)
     {
         if (Obj == null) return;
-        AttackP?.Clear();
+        if (AttackP == null) AttackP = new List<Vector3>();
+        else AttackP.Clear();
         TargetUnit = Obj;
         CombatRegistry.Collect(combatTargets);
         objp = ObjP;
@@ -208,16 +212,8 @@ public class AttackGenerator : MonoBehaviour
         setpos = attackTiles;
         moveGenerator.UnitPointCore();
 
-        if (!AttackPatterns.NormalMap.TryGetValue(TargetUnit.kind, out Func<float, float, bool> predicate))
-        {
-            Debug.Log($"[AttackGenerator] Kind '{TargetUnit.kind}' の攻撃パターンは未定義です");
-            return;
-        }
-
         Vector3 ownCell = moveGenerator.Cell(objp);
         Vector3 pcpCell = moveGenerator.Cell(Obj.team == Team.Player ? moveGenerator.PlayerCrystalPos : moveGenerator.EnemyCrystalPos);
-        bool dirIndependent = AttackPatterns.DirectionIndependent.Contains(TargetUnit.kind);
-        int dirZ = MovePatterns.DirZ(TargetUnit.direction);
 
         AttackP = new List<Vector3>();
         var objPosGrid = GridHelper.ToGridXZ(objp);
@@ -228,12 +224,10 @@ public class AttackGenerator : MonoBehaviour
             float dx = pGrid.x - objPosGrid.x;
             float dz = pGrid.z - objPosGrid.z;
 
-            float checkDz = dirIndependent ? dz : dz * dirZ;
-
             Vector3 cell = moveGenerator.Cell(p);
             if (!CanTarget(cell)) continue;
             if (cell == ownCell || cell == pcpCell) continue;
-            if (!predicate(dx, checkDz)) continue;
+            if (!AttackPatterns.CanAttack(TargetUnit, TargetUnit.direction, dx, dz)) continue;
             if (!mapcreate.CanAttackAcrossTerrain(TargetUnit, p)) continue;
 
             AttackP.Add(p);

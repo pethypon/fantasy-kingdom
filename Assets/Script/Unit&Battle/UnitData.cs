@@ -1,8 +1,28 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "GameData/UnitData")]
+[CreateAssetMenu(menuName = "Fantasy Kingdom/駒と建物/駒の設定")]
 public class UnitData : ScriptableObject
 {
+    [Header("駒の登録情報")]
+    [Tooltip("保存・ロードに使う識別子。登録後は変更しないでください。")]
+    public string definitionId;
+    public string displayName;
+    public string category;
+    public GameObject prefab;
+    public BoardActionProfile actionProfile;
+    public Team defaultTeam = Team.Player;
+    public bool availableToPlayer = true;
+    public bool availableToEnemy = true;
+    [Header("固有の能力（有効にすると既存の兵種設定より優先）")]
+    public bool useAuthoredAbilities;
+    public PassiveSkill authoredPassive;
+    public int authoredSkillId = -1;
+    public SpecialAbility authoredSpecialAbility;
+
+    public string DisplayName => !string.IsNullOrWhiteSpace(displayName) ? displayName : KindNameJP.Get(kind);
+    public bool AvailableFor(Team team) => team == Team.Player ? availableToPlayer
+        : team == Team.Enemy ? availableToEnemy : team == defaultTeam;
+
     [Header("種類")]
     public Kind kind;
 
@@ -109,10 +129,27 @@ public class UnitData : ScriptableObject
     {
         level = Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel);
         status.GrowthData = this;
+        status.unitDefinitionId = definitionId ?? string.Empty;
         status.Level = level;
         status.ATK = CalcStat(baseATK, atkGrowth, level);
         status.HP = CalcStat(baseHP, hpGrowth, level);
         status.MaxHP = status.HP;
         status.DEF = CalcStat(baseDEF, defGrowth, level);
+    }
+
+    /// <summary>Called when spawning, never during growth or damage updates.</summary>
+    public void InitializeAbilities(Status status)
+    {
+        if (status == null) return;
+        if (useAuthoredAbilities)
+        {
+            status.passiveskill = authoredPassive;
+            status.AssignedSkillId = SkillData.Table.ContainsKey(authoredSkillId) ? authoredSkillId : -1;
+            status.specialAbility = authoredSpecialAbility;
+            return;
+        }
+        if (status.kind == Kind.Boss) status.passiveskill = PassiveSkill.StrangeKingAura;
+        SkillData.AssignFixedSkill(status);
+        SpecialAbilityData.AssignRandom(status);
     }
 }

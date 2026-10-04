@@ -84,11 +84,11 @@ public partial class SimBoardState
     // ================================================================
     public int CalcMoveCost(SimUnit unit)
     {
-        return GameConstants.BaseMoveAPCost + unit.Fatigue + unit.GetMoveAPBonus();
+        return Mathf.Max(1, APSystem.BaseMoveCost + unit.Fatigue + unit.GetMoveAPBonus());
     }
 
     public int CalcAttackCost(SimUnit unit)
     {
-        return GameConstants.BaseAttackAPCost + unit.Fatigue;
+        return Mathf.Max(1, APSystem.BaseAttackCost + unit.Fatigue);
     }
 }

@@ -181,6 +181,54 @@ public class VisionGenerator : MonoBehaviour
     public static System.Collections.Generic.IReadOnlyList<Vector3Int> BaseVisionOffsets(Kind kind)
         => VisionDataMap.TryGetValue(kind, out var offsets) ? offsets : System.Array.Empty<Vector3Int>();
 
+    // Custom masks are weakly cached by definition, never by Kind: several authored pieces can share one AI role.
+    sealed class MaskVisionCache
+    {
+        public MaskVisionCache() { }
+        public long Cells;
+        public int X, Z;
+        public bool Independent;
+        public Vector3Int[] North, South;
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<BoardTilePattern, MaskVisionCache> customVision
+        = new System.Runtime.CompilerServices.ConditionalWeakTable<BoardTilePattern, MaskVisionCache>();
+    static readonly Dictionary<Kind, Vector3Int[]> southVision = CreateSouthVision();
+    static Dictionary<Kind, Vector3Int[]> CreateSouthVision()
+    {
+        var result = new Dictionary<Kind, Vector3Int[]>();
+        foreach (var pair in VisionDataMap)
+        {
+            var copy = new Vector3Int[pair.Value.Length];
+            for (int i = 0; i < copy.Length; i++) copy[i] = ApplyDirection(pair.Value[i], Direction.S);
+            result.Add(pair.Key, copy);
+        }
+        return result;
+    }
+    /// <summary>World-facing offsets for this exact authored actor. Legacy vision keeps its historical N/S rotation.</summary>
+    public static IReadOnlyList<Vector3Int> BaseVisionOffsets(Status actor)
+        => actor == null ? System.Array.Empty<Vector3Int>() : BaseVisionOffsets(actor.kind, actor.direction, BoardActionProfile.For(actor));
+    public static IReadOnlyList<Vector3Int> BaseVisionOffsets(Kind kind, Direction direction, BoardActionProfile profile)
+    {
+        var mask = profile != null ? profile.vision : null;
+        if (mask == null || !mask.useCustom)
+            return direction == Direction.S && southVision.TryGetValue(kind, out var south) ? south : BaseVisionOffsets(kind);
+        var cache = customVision.GetOrCreateValue(mask);
+        if (cache.North == null || cache.Cells != mask.cells || cache.X != mask.originX || cache.Z != mask.originZ
+            || cache.Independent != mask.directionIndependent)
+        {
+            var offsets = mask.Offsets;
+            cache.North = new Vector3Int[offsets.Count]; cache.South = new Vector3Int[offsets.Count];
+            for (int i = 0; i < offsets.Count; i++)
+            {
+                var o = offsets[i];
+                cache.North[i] = new Vector3Int(o.x, 0, o.y);
+                cache.South[i] = new Vector3Int(o.x, 0, mask.directionIndependent ? o.y : -o.y);
+            }
+            cache.Cells = mask.cells; cache.X = mask.originX; cache.Z = mask.originZ; cache.Independent = mask.directionIndependent;
+        }
+        return direction == Direction.S ? cache.South : cache.North;
+    }
+
     static Vector3Int[] VisionBox
         (
             int minx, int maxx,
@@ -448,7 +496,8 @@ public class VisionGenerator : MonoBehaviour
             {
                 if (child == null || !child.gameObject.activeInHierarchy) continue;
                 Status bStatus = child.GetComponent<Status>();
-                if (bStatus != null && bStatus.kind == Kind.SubCrystal)
+                if (bStatus != null && bStatus.IsAlive && (bStatus.kind == Kind.SubCrystal
+                    || BoardActionProfile.For(bStatus)?.vision?.useCustom == true))
                 {
                     CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, _playerVisionBox);
                 }
@@ -476,7 +525,8 @@ public class VisionGenerator : MonoBehaviour
             {
                 if (child == null || !child.gameObject.activeInHierarchy) continue;
                 Status bStatus = child.GetComponent<Status>();
-                if (bStatus != null && bStatus.kind == Kind.SubCrystal)
+                if (bStatus != null && bStatus.IsAlive && (bStatus.kind == Kind.SubCrystal
+                    || BoardActionProfile.For(bStatus)?.vision?.useCustom == true))
                 {
                     CalculateAndMergeVision(bStatus, mapcreate, crystalsystem, _enemyVisionBox);
                 }
@@ -491,10 +541,11 @@ public class VisionGenerator : MonoBehaviour
 
     public void VisionCreate(Status status, MapCreate mapcreate, CrystalSystem crystalsystem)
     {
-        if (!VisionDataMap.TryGetValue(status.kind, out Vector3Int[] visionData))
-        {
-            return;
-        }
+        var visionData = BaseVisionOffsets(status);
+        var customMask = BoardActionProfile.For(status)?.vision;
+        bool custom = customMask != null && customMask.useCustom;
+        if (!custom && visionData.Count == 0) return;
+        if (status.VisionCell == null) status.VisionCell = new HashSet<Vector3Int>();
 
         Vector3Int statusGrid = GridHelper.ToGrid(status.transform.position);
         status.VisionCell.Add(statusGrid);
@@ -523,11 +574,12 @@ public class VisionGenerator : MonoBehaviour
 
         foreach (Vector3Int p in visionData)
         {
-            Vector3Int directionP = ApplyDirection(p, status.direction);
+            Vector3Int directionP = p;
 
             int px = statusX + directionP.x;
             int py = statusY + directionP.y;
             int pz = statusZ + directionP.z;
+            if (custom && mapcreate.TryGetHeight(px, pz, out float terrainY)) py = Mathf.RoundToInt(terrainY);
 
             if (px < 0 || px >= mapcreate.maxX) continue;
             if (pz < 0 || pz >= mapcreate.maxZ) continue;

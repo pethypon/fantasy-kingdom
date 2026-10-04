@@ -54,6 +54,7 @@ public static class SimBoardPool
     {
         if (unit == null) return;
         unit.Effects.Clear();
+        unit.ActionProfile = null;
         if (_unitPool.Count < 4096) _unitPool.Push(unit);
     }
 

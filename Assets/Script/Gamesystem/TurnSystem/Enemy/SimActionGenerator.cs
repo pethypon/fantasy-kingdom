@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -95,16 +95,15 @@ public static class SimActionGenerator
     static void GenerateMoveActions(SimBoardState board, SimUnit unit, Team team,
         int ap, SimActionBuffer results)
     {
-        if (!MovePatterns.Map.TryGetValue(unit.Kind, out var predicate)) return;
 
         int cost = board.CalcMoveCost(unit);
         if (cost > ap) return;
 
         var pos = unit.Position;
         int dirZ = MovePatterns.DirZ(unit.Direction);
-        bool dirIndep = MovePatterns.DirectionIndependent.Contains(unit.Kind);
+        bool dirIndep = MovePatterns.IsDirectionIndependent(unit);
 
-        var offsets = MovePatterns.Offsets(unit.Kind);
+        var offsets = MovePatterns.Offsets(unit);
         for(int offsetIndex=0;offsetIndex<offsets.Count;offsetIndex++)
         {
             var offset=offsets[offsetIndex];
@@ -128,15 +127,11 @@ public static class SimActionGenerator
     static void GenerateAttackActions(SimBoardState board, SimUnit unit, Team team,
         Team enemyTeam, int ap, SimActionBuffer results)
     {
-        if (!AttackPatterns.NormalMap.TryGetValue(unit.Kind, out var predicate)) return;
 
         int cost = board.CalcAttackCost(unit);
         if (cost > ap) return;
 
         var pos = unit.Position;
-        int dirZ = MovePatterns.DirZ(unit.Direction);
-        bool dirIndep = AttackPatterns.DirectionIndependent.Contains(unit.Kind);
-
         // 全敵ユニット + 敵クリスタルを攻撃対象（Listアロケーション排除）
         for (int i = 0; i < board.Units.Count; i++)
         {
@@ -144,9 +139,7 @@ public static class SimActionGenerator
             if (!target.IsAlive || target.Team != enemyTeam || !board.CanAttack(unit, target.Position)) continue;
             float dx = target.Position.x - pos.x;
             float dz = target.Position.z - pos.z;
-            float dzAdj = dirIndep ? dz : dz * dirZ;
-
-            if (predicate(dx, dzAdj))
+            if (AttackPatterns.CanAttack(unit, unit.Direction, dx, dz))
             {
                 var candidate = results.Next();
                 candidate.Type = SimActionType.Attack;
@@ -165,7 +158,7 @@ public static class SimActionGenerator
     static void GenerateSkillActions(SimBoardState board, SimUnit unit, Team team,
         Team enemyTeam, int ap, SimActionBuffer results)
     {
-        if (unit.AssignedSkillId < 0) return;
+        if (!AttackPatterns.CanUseSkills(unit) || unit.AssignedSkillId < 0) return;
         if (unit.SkillCooldown > 0) return;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
         if (skill.APCost > ap) return;
@@ -519,21 +512,16 @@ public static class SimActionGenerator
     // ================================================================
     public static int CountMoves(SimBoardState board, SimUnit unit)
     {
-        if (!MovePatterns.Map.TryGetValue(unit.Kind, out var predicate)) return 0;
         if (unit.IsStunned || unit.IsMovementBlocked) return 0;
 
         int count = 0;
         var pos = unit.Position;
-        int dirZ = MovePatterns.DirZ(unit.Direction);
-        bool dirIndep = MovePatterns.DirectionIndependent.Contains(unit.Kind);
 
         foreach (var tile in board.MapTiles)
         {
             float dx = tile.x - pos.x;
             float dz = tile.z - pos.z;
-            float dzAdj = dirIndep ? dz : dz * dirZ;
-
-            if (predicate(dx, dzAdj) && !board.IsOccupied(tile))
+            if (MovePatterns.CanMove(unit, unit.Direction, dx, dz) && !board.IsOccupied(tile) && board.CanTraverse(pos, tile))
                 count++;
         }
         return count;
@@ -544,13 +532,10 @@ public static class SimActionGenerator
     // ================================================================
     public static int CountAttackTargets(SimBoardState board, SimUnit unit, Team enemyTeam)
     {
-        if (!AttackPatterns.NormalMap.TryGetValue(unit.Kind, out var predicate)) return 0;
         if (unit.IsStunned) return 0;
 
         int count = 0;
         var pos = unit.Position;
-        int dirZ = MovePatterns.DirZ(unit.Direction);
-        bool dirIndep = AttackPatterns.DirectionIndependent.Contains(unit.Kind);
 
         for (int i = 0; i < board.Units.Count; i++)
         {
@@ -558,8 +543,7 @@ public static class SimActionGenerator
             if (!t.IsAlive || t.Team != enemyTeam || !board.CanAttack(unit, t.Position)) continue;
             float dx = t.Position.x - pos.x;
             float dz = t.Position.z - pos.z;
-            float dzAdj = dirIndep ? dz : dz * dirZ;
-            if (predicate(dx, dzAdj)) count++;
+            if (AttackPatterns.CanAttack(unit, unit.Direction, dx, dz)) count++;
         }
         return count;
     }

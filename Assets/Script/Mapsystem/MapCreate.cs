@@ -53,6 +53,7 @@ public class MapCreate : MonoBehaviour
 
     [Header("ノイズ設定")]
     public float noiseScale = 0.1f;
+    [Range(0, 3)] public float riverHalfWidth = .7f;
 
     [Header("マップの平均的な高さ")]
     public int AverageFoundation = 2;
@@ -130,7 +131,7 @@ public class MapCreate : MonoBehaviour
                 if (UseR1Terrain)
                 {
                     float riverLine = Mathf.PerlinNoise(z * noiseScale + seedz, seedx) * (maxX - 1);
-                    rivers[x, z] = Mathf.Abs(x - riverLine) < 0.7f;
+                    rivers[x, z] = Mathf.Abs(x - riverLine) < riverHalfWidth;
                     if (rivers[x, z]) topY[x, z] = 0;
                 }
             }

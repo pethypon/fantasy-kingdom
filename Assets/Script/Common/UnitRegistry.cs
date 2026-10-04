@@ -119,6 +119,13 @@ public class UnitRegistry : MonoBehaviour
         if (result == null) return;
         result.Clear();
 
+        if (team != Team.Player && team != Team.Enemy)
+        {
+            CombatRegistry.Collect(result);
+            for (int i = result.Count - 1; i >= 0; i--)
+                if (result[i].team != team || result[i].type != Type.Unit) result.RemoveAt(i);
+            return;
+        }
         var source = team == Team.Player ? _playerUnits : _enemyUnits;
         for (int i = 0; i < source.Count; i++)
         {

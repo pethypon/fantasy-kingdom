@@ -26,6 +26,9 @@ public class SkillSystem : MonoBehaviour
         return actual;
     }
 
+    Transform SupportParent(Team team) => team == Team.Player ? turnGenerator.Systems.UnitSetting?.PlayerUnit
+        : team == Team.Enemy ? turnGenerator.Systems.UnitSetting?.EnemyUnit : turnGenerator.Systems.NeutralFactionSystem?.UnitParent;
+
     public void Init(FactionState factionState)
     {
         _factionState = factionState;
@@ -51,7 +54,7 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteSkill(Status attacker, Status target, SkillData skill)
     {
-        if (attacker == null || skill == null) return;
+        if (attacker == null || skill == null || !AttackPatterns.CanUseSkills(attacker)) return;
         var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
         if (target != null && target != attacker && terrain != null
             && !terrain.CanAttackAcrossTerrain(attacker, target.transform.position)) return;
@@ -93,9 +96,7 @@ public class SkillSystem : MonoBehaviour
             // Special Ability: 支援波及（バフを周囲味方に波及）
             if (!skill.BuffToSelf && buffTarget != attacker)
             {
-                Transform unitParent = attacker.team == Team.Player
-                    ? turnGenerator.Systems.UnitSetting?.PlayerUnit
-                    : turnGenerator.Systems.UnitSetting?.EnemyUnit;
+                Transform unitParent = SupportParent(attacker.team);
                 SpecialAbilitySystem.ProcessSupportSpread(attacker, buffTarget, skill.GrantBuff, 0, unitParent);
             }
         }
@@ -210,9 +211,7 @@ public class SkillSystem : MonoBehaviour
         FloatingDamageUI.ShowHeal(t.transform.position, heal);
 
         // Special Ability: 支援波及（回復を周囲味方に50%波及）
-        Transform unitParent = attacker.team == Team.Player
-            ? turnGenerator.Systems.UnitSetting?.PlayerUnit
-            : turnGenerator.Systems.UnitSetting?.EnemyUnit;
+        Transform unitParent = SupportParent(attacker.team);
         SpecialAbilitySystem.ProcessSupportSpread(attacker, t, BuffType.None, heal, unitParent);
     }
 
@@ -364,7 +363,7 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteAreaSkill(Status attacker, SkillData skill, List<Status> targets)
     {
-        if (skill == null || targets == null) return;
+        if (skill == null || targets == null || !AttackPatterns.CanUseSkills(attacker)) return;
 
         // Special Ability: 迫撃適応の対象数カウント
         int enemyHitCount = 0;
@@ -432,7 +431,7 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteAreaSupportSkill(Status caster, SkillData skill, List<Status> allies)
     {
-        if (skill == null || allies == null) return;
+        if (skill == null || allies == null || !AttackPatterns.CanUseSkills(caster)) return;
 
         foreach (Status ally in allies)
         {

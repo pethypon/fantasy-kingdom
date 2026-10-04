@@ -53,6 +53,7 @@ public class TimerSystem : MonoBehaviour
     {
         this.turnGenerator = turnGenerator;
         this.crystalsystem = crystalsystem;
+        GameAuthoringRules.Active?.ApplyTimer(this);
     }
 
     /// <summary>ターン開始時に呼ぶ</summary>
@@ -76,6 +77,12 @@ public class TimerSystem : MonoBehaviour
     /// <summary>ターン終了時に呼ぶ（手動終了時）</summary>
     public void StopTurn()
     {
+        if (isRunning && GameAuthoringRules.Active != null)
+        {
+            float bonus = SafeSeconds(TurnTimeBonus);
+            if (currentTeam == Team.Player) PlayerTotalTime = Mathf.Min(MaxTotalTime, SafeSeconds(PlayerTotalTime) + bonus);
+            else if (currentTeam == Team.Enemy) EnemyTotalTime = Mathf.Min(MaxTotalTime, SafeSeconds(EnemyTotalTime) + bonus);
+        }
         isRunning = false;
     }
 

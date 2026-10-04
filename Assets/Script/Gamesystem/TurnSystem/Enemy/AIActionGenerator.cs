@@ -112,7 +112,7 @@ public static class AIActionGenerator
     // ================================================================
     public static void GenerateSkillCandidates(Status unit, AIBoardState board, List<AIAction> results)
     {
-        if (unit.AssignedSkillId < 0) return;
+        if (!AttackPatterns.CanUseSkills(unit) || unit.AssignedSkillId < 0) return;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
         int skillCost = board.CalcSkillCost(unit, skill);
         if (skillCost > board.EnemyAP) return;
@@ -378,6 +378,7 @@ public static class AIActionGenerator
                 DevelopmentLog.Log("[AI Build] 建築可能位置=0 → 建築候補なし（領地不足?）");
             else
                 DevelopmentLog.Log($"[AI Build] 購入可能建物=0 → 建築候補なし（AP={board.EnemyAP} 資源不足?）");
+            GenerateAuthoredBuildCandidates(board, results);
             return;
         }
 
@@ -424,7 +425,32 @@ public static class AIActionGenerator
         }
 
         int totalNew = results.Count - candidatesBefore;
+        GenerateAuthoredBuildCandidates(board, results);
         DevelopmentLog.Log($"[AI Build] 建築候補合計: {totalNew}件 (建築可能位置={board.BuildablePositions.Count} 購入可能={board.AffordableBuildings.Count})");
+    }
+
+    static void GenerateAuthoredBuildCandidates(AIBoardState board, List<AIAction> results)
+    {
+        if (board.BuildablePositions.Count == 0) return;
+        var catalog = FacilityAuthoringCatalog.Loaded;
+        if (catalog == null || catalog.buildings == null) return;
+        int generated = 0;
+        foreach (var definition in catalog.buildings)
+        {
+            if (generated >= 32) break;
+            if (definition == null || !definition.IsAvailable(board.ActorTeam)
+                || catalog.Find(definition.definitionId) != definition || !board.CanBuildDefinition(definition)) continue;
+            var facility = definition.behaviourKind;
+            if (FacilityData.IsSubCrystal(facility) || board.GetBuildingCount(facility) >= GetMaxBuildingCount(facility)
+                || !board.HasUpstreamProducer(facility)) continue;
+            int count = 0;
+            foreach (var position in SelectBuildPositions(facility, board))
+            {
+                results.Add(new AIAction { ActionType = AIActionType.Build, Facility = facility, FacilityDefinition = definition,
+                    TargetPos = new Vector3(position.x, position.y, position.z), APCost = definition.GetInfo().APCost });
+                generated++; if (++count == 2 || generated >= 32) break;
+            }
+        }
     }
 
     static List<Vector3Int> SelectBuildPositions(FacilityKind facility, AIBoardState board)

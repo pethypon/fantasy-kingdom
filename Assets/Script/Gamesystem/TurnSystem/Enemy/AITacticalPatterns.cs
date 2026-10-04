@@ -52,8 +52,8 @@ public sealed class AITacticalPatterns
     public static bool WithinTwoMoves(AIBoardState board,Status unit,Vector3 target)
     {
         if(GridHelper.ChebyshevDistance(unit.transform.position,target)<=1)return true;
-        var offsets=MovePatterns.Offsets(unit.kind);
-        int sign=MovePatterns.DirectionIndependent.Contains(unit.kind)?1:MovePatterns.DirZ(unit.direction);
+        var offsets=MovePatterns.Offsets(unit);
+        int sign=MovePatterns.IsDirectionIndependent(unit)?1:MovePatterns.DirZ(unit.direction);
         foreach(var first in offsets)
         {
             Vector3 p=unit.transform.position+new Vector3(first.x,0,first.y*sign);

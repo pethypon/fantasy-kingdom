@@ -30,7 +30,7 @@ public sealed class AIInvestmentPlanner
         foreach (var building in buildings)
         {
             if (building == null || !building.IsAlive) continue;
-            Add(production, FacilityData.GetLevel(building.facilityKind, building.Level), 1);
+            Add(production, FacilityData.GetLevel(building, building.Level), 1);
         }
         // The operation specifies the future army. Without one, maintain a two-unit combat reserve.
         if (objective != null && objective.Active && objective.RequiredUnits != null)
@@ -74,7 +74,11 @@ public sealed class AIInvestmentPlanner
     public float PaybackTurns(FacilityKind facility)
     {
         if (!FacilityData.Table.TryGetValue(facility, out var info)) return float.PositiveInfinity;
-        System.Array.Clear(delta, 0, 8); Add(delta, FacilityData.GetLevel(facility, 1), 1);
+        return PaybackTurns(info, FacilityData.GetLevel(facility, 1));
+    }
+    float PaybackTurns(FacilityData.FacilityInfo info, FacilityData.FacilityLevelData level)
+    {
+        System.Array.Clear(delta, 0, 8); Add(delta, level, 1);
         float income = 0; for (int i=0;i<8;i++) income += delta[i] * price[i];
         var c=info.BuildCost;
         float cost=c.Wood*price[0]+c.Stone*price[1]+c.Iron*price[2]+c.MagicOre*price[3]+c.Water*price[6]+c.Citizen*price[7]+info.APCost*2;
@@ -83,9 +87,9 @@ public sealed class AIInvestmentPlanner
     public float Bonus(AIAction action, AIBoardState board)
     {
         if (board.ReconThreatLevel < 10 || action.ActionType != AIActionType.Build) return 0;
-        var level=FacilityData.GetLevel(action.Facility,1);
+        var level=action.FacilityDefinition != null ? action.FacilityDefinition.GetLevel(1) : FacilityData.GetLevel(action.Facility,1);
         if (!level.HasProduction) return 0;
-        float payback=PaybackTurns(action.Facility);
+        float payback=action.FacilityDefinition != null ? PaybackTurns(action.FacilityDefinition.GetInfo(), level) : PaybackTurns(action.Facility);
         float score=float.IsInfinity(payback) ? -15 : Mathf.Clamp(EstimatedRemainingTurns-payback,-20,12);
         // Invest to cover the projected five-turn recruitment deficit.
         System.Array.Clear(delta,0,8); Add(delta,level.Output,1);

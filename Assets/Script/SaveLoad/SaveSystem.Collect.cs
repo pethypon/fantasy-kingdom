@@ -22,6 +22,9 @@ public static partial class SaveSystem
             R1Terrain = turnGen.Systems.MapCreate.UseR1Terrain,
             MapWidth = turnGen.Systems.MapCreate.maxX,
             MapDepth = turnGen.Systems.MapCreate.maxZ,
+            HasMapGenerationSettings = true,
+            MapNoiseScale = turnGen.Systems.MapCreate.noiseScale,
+            MapRiverHalfWidth = turnGen.Systems.MapCreate.riverHalfWidth,
             MapSeedX = turnGen.Systems.MapCreate.SeedX,
             MapSeedZ = turnGen.Systems.MapCreate.SeedZ,
             PCPx = turnGen.Systems.CrystalSystem.PCP.x,
@@ -47,6 +50,8 @@ public static partial class SaveSystem
             data.SpawnedIntruders = new List<string>(neutral.SpawnedIntruders);
         }
         data.Rewards = new List<RewardRecord>(UniqueRewardSystem.Records);
+        data.ThirdFaction = turnGen.Systems.ThirdFactionSystem?.Capture();
+        data.DeveloperAutoplayUsed = turnGen.DeveloperPlayerAIWasUsed;
         data.WildBoss = turnGen.Systems.WildBossSystem?.Capture();
         // ユニット収集
         CollectUnits(data, turnGen.Systems.UnitSetting.PlayerUnit, turnGen.Systems.UnitSetting.EnemyUnit);
@@ -140,6 +145,7 @@ public static partial class SaveSystem
         var d = new UnitSaveData
         {
             Kind = s.kind.ToString(),
+            DefinitionId = s.type == Type.Unit ? s.unitDefinitionId : null,
             Team = s.team.ToString(),
             Type = s.type.ToString(),
             HP = s.HP,
@@ -158,6 +164,7 @@ public static partial class SaveSystem
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
             FacilityKind = s.facilityKind.ToString(),
+            AuthoredFacilityId = s.AuthoredFacility != null ? s.AuthoredFacility.definitionId : s.authoredFacilityId,
             IsActive = s.gameObject.activeSelf,
             Fatigue = s.Fatigue,
             Experience = s.Experience,

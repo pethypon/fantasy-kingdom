@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -10,6 +10,7 @@ public class SimUnit
     public int Id;
     public Team Team;
     public Kind Kind;
+    public BoardActionProfile ActionProfile;
     public FacilityKind Facility;
     public Type Type;
     public int HP;
@@ -38,6 +39,7 @@ public class SimUnit
     {
         var c = SimBoardPool.RentUnit();
         c.Facility = Facility;
+        c.ActionProfile = ActionProfile;
         c.Id = Id; c.Team = Team; c.Kind = Kind; c.Type = Type;
         c.HP = HP; c.MaxHP = MaxHP; c.ATK = ATK; c.DEF = DEF;
         c.Position = Position; c.Direction = Direction;

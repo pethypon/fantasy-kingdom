@@ -108,7 +108,7 @@ public class AIActionExecutor
         var unit = action.Unit;
         var dest = action.TargetPos;
         if (!CanAct(unit) || StatusEffectSystem.IsMovementBlocked(unit)) return false;
-        if (!MovePatterns.CanMove(unit.kind, unit.direction,
+        if (!MovePatterns.CanMove(unit, unit.direction,
             dest.x-unit.transform.position.x, dest.z-unit.transform.position.z)) return false;
 
         if (!_apSystem.CanAct(ActorTeam, APSystem.ActionType.Move, unit,
@@ -178,7 +178,7 @@ public class AIActionExecutor
             || !NeutralFactionSystem.AreHostile(unit, target)) return false;
         var vision = _turnGen.Systems.VisionGenerator;
         if (vision == null || !vision.IsInVisionXZ(ActorTeam, target.transform.position)) return false;
-        if (!AttackPatterns.CanAttack(unit.kind, unit.direction,
+        if (!AttackPatterns.CanAttack(unit, unit.direction,
             target.transform.position.x-unit.transform.position.x, target.transform.position.z-unit.transform.position.z)
             || !_moveGen.mapcreate.CanAttackAcrossTerrain(unit, target.transform.position)) return false;
         if (!_apSystem.CanAct(ActorTeam, APSystem.ActionType.Attack, unit)) return false;
@@ -239,7 +239,7 @@ public class AIActionExecutor
     {
         var unit = action.Unit;
         var skill = action.Skill;
-        if (!CanAct(unit) || skill == null || _skillSystem == null || unit.SkillCooldown > 0
+        if (!CanAct(unit) || !AttackPatterns.CanUseSkills(unit) || skill == null || _skillSystem == null || unit.SkillCooldown > 0
             || StatusEffectSystem.HasDebuff(unit, StatusEffectType.Seal)) return false;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var assigned) || assigned != skill) return false;
         if (!_apSystem.CanUseSkill(ActorTeam, board.CalcSkillCost(unit, skill))) return false;
@@ -378,7 +378,9 @@ public class AIActionExecutor
         var pos = AIBoardState.ToCell(action.TargetPos);
         DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(ActorTeam)}");
 
-        bool success = _buildSystem.AIPlaceBuilding(pos, action.Facility, ActorTeam);
+        bool success = action.FacilityDefinition != null
+            ? _buildSystem.TryPlaceDefinition(pos, action.FacilityDefinition, ActorTeam)
+            : _buildSystem.AIPlaceBuilding(pos, action.Facility, ActorTeam);
         if (success)
         {
             board.RefreshAP();

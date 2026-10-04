@@ -55,8 +55,8 @@ public class TerritorySystem : MonoBehaviour
     {
         var crystals=GetComponent<CrystalSystem>();
         if(!crystals) return;
-        GetOverlay(ref playerOverlay,Playerterritory,"Player territory region").SetCells(PTSetPos,crystals.PCP,new Color(.18f,.72f,1f),false);
-        GetOverlay(ref enemyOverlay,Enemyterritory,"Enemy territory region").SetCells(ETSetPos,crystals.ECP,new Color(1f,.25f,.23f),true);
+        GetOverlay(ref playerOverlay,Playerterritory,"Player territory region").SetCells(PTSetPos,crystals.PCP,GameAuthoringRules.FactionColor(Team.Player,new Color(.18f,.72f,1f)),false);
+        GetOverlay(ref enemyOverlay,Enemyterritory,"Enemy territory region").SetCells(ETSetPos,crystals.ECP,GameAuthoringRules.FactionColor(Team.Enemy,new Color(1f,.25f,.23f)),true);
     }
     public void RefreshEnemyVisibility(HashSet<Vector3Int> visible)
     {

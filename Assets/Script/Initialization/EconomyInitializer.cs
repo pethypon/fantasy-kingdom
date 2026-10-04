@@ -26,8 +26,10 @@ public static class EconomyInitializer
         InitResources(factionState.PlayerResources);
         InitResources(factionState.EnemyResources);
 
-        factionState.PlayerAP.Plus = factionState.PlayerResources.Citizen * EconomySystem.APPerCitizen;
-        factionState.EnemyAP.Plus = factionState.EnemyResources.Citizen * EconomySystem.APPerCitizen;
+        GameAuthoringRules.Active?.ApplyNewGame(factionState);
+
+        factionState.PlayerAP.Plus = factionState.PlayerResources.Citizen * EconomySystem.CitizenAPBonus;
+        factionState.EnemyAP.Plus = factionState.EnemyResources.Citizen * EconomySystem.CitizenAPBonus;
 
         factionState.PlayerSubCrystals = GameConstants.InitialSubCrystals;
         factionState.EnemySubCrystals = GameConstants.InitialSubCrystals;

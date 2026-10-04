@@ -100,6 +100,11 @@ public static class SaveGameApplier
         turnGen.Systems.NeutralFactionSystem?.Restore(data.IndependentUnits, data.PreviousMonsterCount,
             data.IndependentLastRound, data.SpawnedIntruders);
         turnGen.Systems.WildBossSystem?.Restore(data.WildBoss);
+        turnGen.Systems.ThirdFactionSystem?.Restore(data.ThirdFaction);
+        turnGen.MarkDeveloperMatch(data.DeveloperAutoplayUsed);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        turnGen.PlayerAI?.RestoreUsedFlag(data.DeveloperAutoplayUsed);
+#endif
         RelocateBlockedUnits(mapCreate);
         UniqueRewardSystem.Records.Clear();
         if (data.Rewards != null) UniqueRewardSystem.Records.AddRange(data.Rewards);
@@ -148,7 +153,14 @@ public static class SaveGameApplier
                 if (usedIndices.Contains(i)) continue;
                 var ud = data.Units[i];
 
-                if (ud.Kind == s.kind.ToString() && ud.Team == s.team.ToString())
+                bool sameDefinition = string.IsNullOrEmpty(ud.DefinitionId)
+                    ? true
+                    : string.Equals(ud.DefinitionId, s.unitDefinitionId, System.StringComparison.Ordinal);
+                if (!string.IsNullOrEmpty(ud.AuthoredFacilityId))
+                    sameDefinition &= string.Equals(ud.AuthoredFacilityId,
+                        s.AuthoredFacility != null ? s.AuthoredFacility.definitionId : s.authoredFacilityId,
+                        System.StringComparison.Ordinal);
+                if (sameDefinition && ud.Kind == s.kind.ToString() && ud.Team == s.team.ToString())
                 {
                     ApplyStatusFields(s, ud);
                     usedIndices.Add(i);
@@ -161,6 +173,18 @@ public static class SaveGameApplier
     /// <summary>セーブエントリの全フィールドをStatusに書き戻す</summary>
     public static void ApplyStatusFields(Status s, SaveSystem.UnitSaveData ud)
     {
+        if (s.type == Type.Building || s.type == Type.Wall)
+        {
+            s.authoredFacilityId = ud.AuthoredFacilityId;
+            s.AuthoredFacility = FacilityAuthoringCatalog.Loaded?.Find(ud.AuthoredFacilityId);
+            if (s.AuthoredFacility != null) s.facilityKind = s.AuthoredFacility.behaviourKind;
+        }
+        if (s.type == Type.Unit && !string.IsNullOrEmpty(ud.DefinitionId))
+        {
+            var definition = UnitAuthoringCatalog.Load()?.GetById(ud.DefinitionId);
+            if (definition != null) s.GrowthData = definition;
+            s.unitDefinitionId = ud.DefinitionId;
+        }
         s.transform.position = new Vector3(ud.PosX, ud.PosY, ud.PosZ);
 
         s.HP = ud.HP;
@@ -174,7 +198,9 @@ public static class SaveGameApplier
         s.ShieldActivated = ud.ShieldActivated;
         s.ShieldEverActivated = ud.ShieldEverActivated;
         s.SkillCooldown = ud.SkillCooldown;
-        SkillData.AssignFixedSkill(s);
+        if (s.GrowthData != null && s.GrowthData.useAuthoredAbilities)
+            s.AssignedSkillId = SkillData.Table.ContainsKey(ud.AssignedSkillId) ? ud.AssignedSkillId : -1;
+        else SkillData.AssignFixedSkill(s);
         s.Fatigue = ud.Fatigue;
         s.SurvivalInstinctUsed = ud.SurvivalInstinctUsed;
 
@@ -233,12 +259,12 @@ public static class SaveGameApplier
             if (System.Enum.TryParse<Type>(ud.Type, out var type) && type == Type.Unit)
             {
                 if (summonSystem != null)
-                    spawned = summonSystem.SpawnUnitForLoad(kind, team, worldPos);
+                    spawned = summonSystem.SpawnUnitForLoad(kind, team, worldPos, ud.DefinitionId);
             }
             else if (buildSystem != null
                      && System.Enum.TryParse<FacilityKind>(ud.FacilityKind, out var facility))
             {
-                spawned = buildSystem.PlaceBuildingForLoad(GridHelper.ToGrid(worldPos), facility, team);
+                spawned = buildSystem.PlaceBuildingForLoad(GridHelper.ToGrid(worldPos), facility, team, ud.AuthoredFacilityId);
             }
 
             if (spawned != null)

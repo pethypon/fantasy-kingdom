@@ -80,7 +80,7 @@ public partial class AIMinimaxEngine
         for (int i = 0; i < board.Units.Count; i++)
         {
             var su = board.Units[i];
-            if (su.Team == realUnit.team && su.Position == pos && su.Kind == realUnit.kind)
+            if (su.Team == board.ToSimulationTeam(realUnit.team) && su.Position == pos && su.Kind == realUnit.kind)
                 return su.Id;
         }
 
@@ -88,7 +88,7 @@ public partial class AIMinimaxEngine
         for (int i = 0; i < board.Units.Count; i++)
         {
             var su = board.Units[i];
-            if (su.Team == realUnit.team && su.Kind == realUnit.kind && su.IsAlive)
+            if (su.Team == board.ToSimulationTeam(realUnit.team) && su.Kind == realUnit.kind && su.IsAlive)
                 return su.Id;
         }
 
