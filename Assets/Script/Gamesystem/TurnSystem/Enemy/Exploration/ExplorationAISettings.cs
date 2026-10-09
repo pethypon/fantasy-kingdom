@@ -44,6 +44,7 @@ public sealed class ExplorationAISettings : ScriptableObject
     public float TargetDistanceWeight = 14f;
     public float RouteDangerWeight = 2f;
     public float RouteDeviationPenalty = 30f;
+    public float RouteTieDirectionWeight = 2f;
     public float LocalRevealWeight = 2.5f;
     public float MaximumLocalRevealBonus = 40f;
     public float MoveDangerWeight = 90f;

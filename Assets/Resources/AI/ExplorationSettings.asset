@@ -67,3 +67,4 @@ MonoBehaviour:
   MaxCachedRoutes: 64
   RouteDangerWeight: 2
   RouteDeviationPenalty: 30
+  RouteTieDirectionWeight: 2

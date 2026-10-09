@@ -59,6 +59,9 @@ public sealed partial class AIExplorationPlanner
             copy.FrontierRegionId = RegionId(copy.TargetCell); copy.FailedMoves = Mathf.Clamp(copy.FailedMoves, 0, Mathf.Max(1, settings.FailedMoveLimit));
             copy.NewlyRevealedSinceStart = Mathf.Max(0, copy.NewlyRevealedSinceStart);
             if (state.Version == 2) copy.RebaseProgressOnNextObservation = true;
+            // Route revisions belong to the discarded runtime cache. A fresh cache may reuse
+            // the saved number with different costs; rebind the distance basis without awarding progress.
+            if (copy.UsesKnownRouteDistance) copy.RouteMetricRevision = -1;
             objectives[copy.ActorLifeId] = copy;
         }
         if (state.Histories != null)

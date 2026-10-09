@@ -45,6 +45,7 @@ public sealed class ExplorationAISettingsEditor : Editor
             "LocalRevealWeight|今回の移動で未知を開く評価", "MaximumLocalRevealBonus|新規視界の評価上限",
             "MoveDangerWeight|移動先の危険度の減点", "SuicideMovePenalty|致命的な移動先の減点",
             "RouteDangerWeight|迂回経路の危険コスト", "RouteDeviationPenalty|確認済み経路から外れる減点",
+            "RouteTieDirectionWeight|経路評価が同点のとき目標に近づく補助（最大4点）",
             "MaximumFrontierDangerFraction|地域選択を控える被害率", "LowIntelValue|古い情報の低い評価倍率",
             "MediumIntelValue|古い情報の中程度の評価倍率", "HighIntelValue|古い情報の高い評価倍率" });
         Group("計算量の上限", new[] {

@@ -406,6 +406,13 @@ public sealed partial class AIExplorationPlanner
             float progress = GoalProgress(actor, target, destination, out bool hasRoute, out bool followsRoute);
             score += Mathf.Clamp(progress, -settings.MaximumDistanceProgressBonus, settings.MaximumDistanceProgressBonus) * settings.TargetDistanceWeight;
             if (hasRoute && !followsRoute) score -= Mathf.Max(0, settings.RouteDeviationPenalty);
+            // A safe one-edge merge may preserve route cost in either direction. Prefer the goal
+            // only while that route metric is tied; this is not actual exploration progress.
+            if (hasRoute && followsRoute && Mathf.Abs(progress) < settings.ProgressDistanceThreshold)
+            {
+                float direction = ProgressDistance(actor.Cell, target) - ProgressDistance(destination, target);
+                score += Mathf.Clamp(direction * Mathf.Max(0, settings.RouteTieDirectionWeight), -4f, 4f);
+            }
         }
         return score;
     }

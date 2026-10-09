@@ -11,6 +11,7 @@ public sealed class AIActionKnowledgeEntry
     public long LastUseSequence;
     public string LastBattleId;
     public List<FailureReasonCount> FailureReasons = new List<FailureReasonCount>();
+    public List<SuccessReasonCount> SuccessReasons = new List<SuccessReasonCount>();
 }
 
 [Serializable]
@@ -25,7 +26,7 @@ public sealed class AIReflectionStrategyOutcome
 [Serializable]
 public sealed class AIActionLearningProfile
 {
-    public int SchemaVersion = 1;
+    public int SchemaVersion = 2;
     public string ProfileId;
     public int BattlesPlayed, Wins, Losses;
     public long Sequence;
@@ -39,6 +40,23 @@ public sealed class AIActionLearningProfile
         EnsureIndex();
         index.TryGetValue((contextKey, actionKey), out var entry);
         return entry;
+    }
+    public float GetModifier(string contextKey, string actionKey, AIReflectionConfig config, float similarity = 1f)
+    {
+        if (config == null || !config.EnableReflection || !config.ApplyLearningToSelection) return 0;
+        var entry = Find(contextKey, actionKey);
+        // Version-one keys describe the same factual bands without the newly optional match phase.
+        if (entry == null && contextKey != null)
+        {
+            int phase = contextKey.LastIndexOf("|phase", StringComparison.Ordinal);
+            if (phase >= 0) entry = Find(contextKey.Substring(0, phase), actionKey);
+        }
+        if (entry == null || entry.Samples < Mathf.Clamp(config.MinimumSamplesForSelection, 1, 1000000)) return 0;
+        float confidence = Mathf.Clamp01(entry.Samples / (float)Mathf.Clamp(config.FullConfidenceSamples, 1, 1000000));
+        float modifier = Mathf.Clamp(AIReflectionConfig.Finite(entry.LearnedValue), config.Lower, config.Upper)
+            * confidence * Mathf.Clamp01(AIReflectionConfig.Finite(similarity))
+            * Mathf.Clamp(AIReflectionConfig.Finite(config.LearningInfluenceMultiplier, 1), 0, 2);
+        return Mathf.Clamp(modifier, config.Lower, config.Upper);
     }
     public float Learn(AIActionRecord record, AIReflectionConfig config)
     {
@@ -65,10 +83,13 @@ public sealed class AIActionLearningProfile
         entry.LastTurn = record.Turn; entry.LastBattleId = record.BattleId;
         entry.LastUseSequence = ++Sequence;
         CountFailure(entry.FailureReasons, record.FailureReason);
+        if (record.SuccessReasons != null)
+            foreach (var reason in record.SuccessReasons) CountSuccess(entry.SuccessReasons, reason);
         return entry.LearnedValue - old;
     }
     public float CorrectReward(AIActionRecord record, float delta, AIReflectionConfig config)
     {
+        delta = AIReflectionConfig.Finite(delta);
         var entry = Find(record.ContextKey, record.ActionKey);
         if (entry == null || entry.Samples <= 0) return 0;
         float old = entry.LearnedValue;
@@ -77,6 +98,7 @@ public sealed class AIActionLearningProfile
         entry.CumulativeReward = Mathf.Clamp(entry.CumulativeReward + delta, -1000000, 1000000);
         entry.AverageReward = entry.CumulativeReward / entry.Samples;
         entry.MaxReward = Mathf.Max(entry.MaxReward, record.Reward);
+        entry.MinReward = Mathf.Min(entry.MinReward, record.Reward);
         return entry.LearnedValue - old;
     }
     public void RebuildIndex() { index = null; EnsureIndex(); }
@@ -140,44 +162,157 @@ public sealed class AIActionLearningProfile
         foreach (var item in reasons) if (item.Reason == reason) { item.Count = Math.Min(1000000, item.Count + 1); return; }
         reasons.Add(new FailureReasonCount { Reason = reason, Count = 1 });
     }
+    internal static void CountSuccess(List<SuccessReasonCount> reasons, AISuccessReason reason)
+    {
+        if (reason == AISuccessReason.None || reasons == null) return;
+        foreach (var item in reasons) if (item.Reason == reason) { item.Count = Math.Min(1000000, item.Count + 1); return; }
+        reasons.Add(new SuccessReasonCount { Reason = reason, Count = 1 });
+    }
 }
 
 public static class AIActionRewardEvaluator
 {
     public static float Evaluate(AIActionRecord record, AIReflectionConfig config)
     {
-        var outcome = record.Outcome;
-        float reward = outcome != null
-            ? (outcome.EnemyKills - outcome.FormationKills) * AIReflectionConfig.NormalKillReward
-                + outcome.FormationKills * AIReflectionConfig.FormationKillReward
-                + outcome.ArtifactsAcquired * AIReflectionConfig.ArtifactReward : 0;
-        if (record.IsRepeatedAction) reward -= Mathf.Max(0, AIReflectionConfig.Finite(
-            record.IsOscillation ? config.OscillationPenalty : config.RepeatedNoProgressPenalty));
+        if (record == null) return 0;
+        if (config == null) config = AIReflectionConfig.Active;
+        var breakdown = new AIRewardBreakdown(); record.RewardBreakdown = breakdown;
+        var outcome = record.Outcome; var before = record.Before; var after = record.After;
+        if (outcome != null)
+        {
+            int kills = Math.Max(0, outcome.EnemyKills), formation = Mathf.Clamp(outcome.FormationKills, 0, kills);
+            breakdown.Combat = (kills - formation) * AIReflectionConfig.NonNegative(config.NormalKillRewardValue)
+                + formation * AIReflectionConfig.NonNegative(config.FormationKillRewardValue);
+            breakdown.Artifact = Math.Max(0, outcome.ArtifactsAcquired) * AIReflectionConfig.NonNegative(config.ArtifactRewardValue);
+            if (formation > 0) Success(record, AISuccessReason.FormationKill);
+            else if (kills > 0) Success(record, AISuccessReason.EnemyKill);
+            if (outcome.ArtifactsAcquired > 0) Success(record, AISuccessReason.ArtifactObtained);
+            if (record.ExecutionSucceeded && before != null && after != null) EvaluateFacts(record, config, breakdown);
+        }
+        if (record.IsRepeatedAction) breakdown.RepeatPenalty = -AIReflectionConfig.NonNegative(
+            record.IsOscillation ? config.OscillationPenalty : config.RepeatedNoProgressPenalty);
         if (record.FailureReason != AIFailureReason.None && record.FailureReason != AIFailureReason.RepeatedNoProgress)
-            reward -= Mathf.Max(0, AIReflectionConfig.Finite(config.FailedActionPenalty));
-        return AIReflectionConfig.Finite(reward);
+            breakdown.FailurePenalty = -AIReflectionConfig.NonNegative(config.FailedActionPenalty);
+        breakdown.Clamp(config);
+        record.ImmediateReward = breakdown.Total;
+        return breakdown.Total;
+    }
+    static void EvaluateFacts(AIActionRecord record, AIReflectionConfig config, AIRewardBreakdown reward)
+    {
+        var before = record.Before; var after = record.After; var outcome = record.Outcome;
+        bool movement = AIFailureAnalyzer.IsMovement(record.ActionType);
+        bool riskImproved = AIFailureAnalyzer.RiskImproved(before, after, config);
+        bool safe = AIFailureAnalyzer.SafeAfter(after, config);
+        bool rangeAdvantage = after.IsRangedActor && after.CanAttackObservedEnemy && after.OutsideObservedEnemyRange;
+        bool gainedRange = rangeAdvantage && !(before.CanAttackObservedEnemy && before.OutsideObservedEnemyRange);
+        if (outcome.OwnLosses > 0 && outcome.EnemyKills == 0)
+            reward.Survival -= AIReflectionConfig.NonNegative(config.OwnLossSurvivalPenalty);
+        else if (outcome.EnemyKills > outcome.OwnLosses)
+        {
+            Success(record, AISuccessReason.GoodTrade);
+            float lightDamage = Math.Max(1, before.ActorHP) * Mathf.Clamp01(config.GoodTradeLightDamageRatio);
+            if (outcome.OwnLosses == 0 && outcome.DamageTaken <= lightDamage && before.IncomingDamage > 0)
+                reward.Survival += AIReflectionConfig.NonNegative(config.GoodTradeSurvivalReward);
+        }
+        if (record.ActionType == AIActionType.Retreat && AIFailureAnalyzer.GoodRetreat(before, after, config))
+        {
+            reward.Survival += AIReflectionConfig.NonNegative(config.RetreatSurvivalReward);
+            reward.Position += AIReflectionConfig.NonNegative(config.RetreatPositionReward);
+            Success(record, AISuccessReason.SuccessfulRetreat);
+        }
+        if (movement && safe && after.ActorHeight > before.ActorHeight
+            && (after.CanAttackObservedEnemy || riskImproved || gainedRange))
+        {
+            reward.Position += AIReflectionConfig.NonNegative(config.HighGroundPositionReward);
+            Success(record, AISuccessReason.HighGroundAdvantage);
+        }
+        if (movement && safe && gainedRange)
+        {
+            reward.Position += AIReflectionConfig.NonNegative(config.RangePositionReward);
+            reward.Survival += AIReflectionConfig.NonNegative(config.RangeSurvivalReward);
+            Success(record, AISuccessReason.GoodRangeManagement);
+        }
+        else if (movement && before.IsRangedActor && before.OutsideObservedEnemyRange && !after.OutsideObservedEnemyRange
+            && after.LocalEnemyPower > 0 && after.IncomingDamage > before.IncomingDamage + AIReflectionConfig.NonNegative(config.MinimumRiskImprovement))
+            reward.Position -= AIReflectionConfig.NonNegative(config.BadRangePositionPenalty);
+        if (record.ActorRole != "Scout" && before.LocalEnemyPower > 0 && after.LocalEnemyPower > 0)
+        {
+            float threshold = AIReflectionConfig.NonNegative(config.LocalPowerDeltaThreshold);
+            if (outcome.LocalPowerRatioDelta > threshold && safe)
+            {
+                reward.LocalPower += AIReflectionConfig.NonNegative(config.LocalPowerReward);
+                Success(record, AISuccessReason.GoodPositioning);
+            }
+            else if (movement && outcome.LocalPowerRatioDelta < -threshold)
+                reward.LocalPower -= AIReflectionConfig.NonNegative(config.LocalPowerPenalty);
+        }
+        if (movement && before.HasObjective && after.HasObjective && outcome.DistanceToObjectiveDelta > 0 && safe
+            && !before.EmergencyDefense && !after.EmergencyDefense && !before.OwnCrystalThreatened && !after.OwnCrystalThreatened)
+        {
+            reward.Objective += AIReflectionConfig.NonNegative(config.ObjectiveProgressReward);
+            Success(record, AISuccessReason.ObjectiveProgress);
+        }
+        if (before.OwnCrystalThreatened && (!after.OwnCrystalThreatened
+            || movement && safe && after.OwnCrystalDistance < before.OwnCrystalDistance && riskImproved))
+        {
+            reward.Defense += AIReflectionConfig.NonNegative(config.DefenseReward);
+            Success(record, AISuccessReason.CrystalDefense);
+        }
+        int discoveries = outcome.NewEnemyLifeIds != null ? outcome.NewEnemyLifeIds.Count : 0;
+        if (record.ActorRole == "Scout" && (outcome.NewTilesRevealed > 0 || discoveries > 0))
+        {
+            reward.Information += outcome.NewTilesRevealed * AIReflectionConfig.NonNegative(config.ScoutTileReward)
+                + discoveries * AIReflectionConfig.NonNegative(config.ScoutEnemyDiscoveryReward);
+            if (outcome.BeliefUncertaintyReduction > 0)
+                reward.Information += AIReflectionConfig.NonNegative(config.ScoutUncertaintyReward);
+            Success(record, AISuccessReason.SuccessfulScout);
+        }
+        if (record.ActionType == AIActionType.SkillUse && (outcome.EffectChanged || outcome.ShieldGranted || outcome.HealingDone > 0))
+        {
+            reward.Preparation += AIReflectionConfig.NonNegative(config.PreparationReward);
+            Success(record, AISuccessReason.SuccessfulPreparation);
+        }
+        record.PreparationCandidate |= safe && (reward.Information > 0 || reward.Preparation > 0
+            || movement && (gainedRange || riskImproved || reward.Position > 0 || reward.Objective > 0
+                || record.ActionType == AIActionType.Support && outcome.LocalPowerRatioDelta > 0
+                || record.ActionType == AIActionType.Surround && outcome.LocalPowerRatioDelta > 0));
+        if (record.PreparationCandidate && record.ActionType == AIActionType.Surround) Success(record, AISuccessReason.SuccessfulSurround);
+        if (record.PreparationCandidate && record.ActionType == AIActionType.Support) Success(record, AISuccessReason.SuccessfulPreparation);
+    }
+    public static void Success(AIActionRecord record, AISuccessReason reason)
+    {
+        if (record.SuccessReasons == null) record.SuccessReasons = new List<AISuccessReason>();
+        if (reason != AISuccessReason.None && !record.SuccessReasons.Contains(reason)) record.SuccessReasons.Add(reason);
     }
 }
 
 public static class AIFailureAnalyzer
 {
-    public static bool HasMeaningfulProgress(AIActionRecord record)
+    public static bool HasMeaningfulProgress(AIActionRecord record, AIReflectionConfig config = null)
     {
+        if (record == null) return false;
+        if (config == null) config = AIReflectionConfig.Active;
         var outcome = record.Outcome;
-        if (!record.ExecutionSucceeded || outcome == null) return false;
+        if (!record.ExecutionSucceeded || outcome == null || record.Before == null || record.After == null) return false;
         if (outcome.EnemyKills > 0 || outcome.ArtifactsAcquired > 0 || outcome.DamageDealt > 0
-            || outcome.HealingDone > 0 || outcome.ShieldReduced || outcome.EffectChanged
+            || outcome.HealingDone > 0 || outcome.ShieldReduced || outcome.ShieldGranted
+            || record.ActionType == AIActionType.SkillUse && outcome.EffectChanged
             || outcome.OwnBuildingDelta > 0 || outcome.OwnUnitDelta > 0 || outcome.TerritoryDelta > 0
-            || outcome.NewTilesRevealed > 0) return true;
+            || outcome.NewTilesRevealed > 0 || outcome.NewEnemyLifeIds != null && outcome.NewEnemyLifeIds.Count > 0) return true;
         if (record.ActionType == AIActionType.Upgrade) return true; // Successful executor confirms paid level progression.
         if (record.ActionType == AIActionType.Rotate) return outcome.DirectionChanged;
         if (outcome.EconomyAfter < outcome.EconomyBefore) return true;
         var before = record.Before; var after = record.After;
-        return outcome.DistanceToObjectiveDelta > 0 || after.ActorHeight > before.ActorHeight
-            || after.IncomingDamage < before.IncomingDamage || outcome.LocalPowerRatioDelta > .25f;
+        bool safe = SafeAfter(after, config), riskImproved = RiskImproved(before, after, config);
+        bool rangedAdvantage = after.IsRangedActor && after.CanAttackObservedEnemy && after.OutsideObservedEnemyRange
+            && !(before.CanAttackObservedEnemy && before.OutsideObservedEnemyRange);
+        return riskImproved || IsMovement(record.ActionType) && safe && (outcome.DistanceToObjectiveDelta > 0
+            || after.ActorHeight > before.ActorHeight && (after.CanAttackObservedEnemy || rangedAdvantage)
+            || rangedAdvantage || outcome.LocalPowerRatioDelta > AIReflectionConfig.NonNegative(config.LocalPowerDeltaThreshold));
     }
-    public static AIFailureReason Analyze(AIActionRecord record, string executionFailure = null)
+    public static AIFailureReason Analyze(AIActionRecord record, string executionFailure = null, AIReflectionConfig config = null)
     {
+        if (config == null) config = AIReflectionConfig.Active;
         if (!record.ExecutionSucceeded)
         {
             if (!string.IsNullOrEmpty(executionFailure))
@@ -188,7 +323,8 @@ public static class AIFailureAnalyzer
             return AIFailureReason.ExecutionFailed;
         }
         var before = record.Before; var after = record.After; var outcome = record.Outcome;
-        if (outcome.OwnLosses > 0) return AIFailureReason.UnitLost;
+        if (outcome.OwnLosses > 0 && outcome.EnemyKills == 0) return AIFailureReason.UnitLost;
+        if (outcome.OwnLosses > outcome.EnemyKills) return AIFailureReason.BadTrade;
         if (!before.OwnCrystalThreatened && after.OwnCrystalThreatened) return AIFailureReason.CrystalExposed;
         if (outcome.EconomyAfter >= EconomicState.Crisis && outcome.EconomyAfter > outcome.EconomyBefore) return AIFailureReason.EconomyWorsened;
         if (record.ActionType == AIActionType.Attack || record.ActionType == AIActionType.SkillUse)
@@ -197,12 +333,35 @@ public static class AIFailureAnalyzer
             if (!record.MeaningfulProgress) return before.TargetObserved && !after.TargetObserved
                 ? AIFailureReason.TargetLost : AIFailureReason.NoDamage;
         }
-        if (IsMovement(record.ActionType) && after.LocalEnemyPower > 0
-            && before.LocalPowerRatio >= .85f && after.LocalPowerRatio < .6f) return AIFailureReason.Overextended;
+        if (IsMovement(record.ActionType) && after.LocalEnemyPower > 0)
+        {
+            if (before.IsRangedActor && before.OutsideObservedEnemyRange && !after.OutsideObservedEnemyRange
+                && after.IncomingDamage > before.IncomingDamage + AIReflectionConfig.NonNegative(config.MinimumRiskImprovement))
+                return AIFailureReason.BadRangeManagement;
+            if (before.LocalPowerRatio >= AIReflectionConfig.NonNegative(config.OverextensionBeforePowerRatio)
+                && after.LocalPowerRatio < AIReflectionConfig.NonNegative(config.OverextensionAfterPowerRatio)) return AIFailureReason.Overextended;
+            if (record.ActionType == AIActionType.Retreat && !SafeAfter(after, config)
+                && after.IncomingDamage > before.IncomingDamage && outcome.DamageTaken > 0) return AIFailureReason.FailedRetreat;
+            if (record.ActorRole != "Scout" && before.LocalEnemyPower > 0
+                && outcome.LocalPowerRatioDelta < -AIReflectionConfig.NonNegative(config.LocalPowerDeltaThreshold)
+                && !RiskImproved(before, after, config)) return AIFailureReason.PositionWorsened;
+        }
         if (record.IsRepeatedAction) return AIFailureReason.RepeatedNoProgress;
         // Waiting can preserve defense and AP. A quiet wait is neutral, never an automatic failure.
         return AIFailureReason.None;
     }
+    public static bool SafeAfter(AIActionContextSnapshot after, AIReflectionConfig config)
+        => after != null && after.ActorHP > 0 && after.IncomingDamage < Math.Max(1, after.ActorHP)
+            * Mathf.Clamp01(AIReflectionConfig.Finite(config.RewardMaximumIncomingFraction, .8f));
+    public static bool RiskImproved(AIActionContextSnapshot before, AIActionContextSnapshot after, AIReflectionConfig config)
+        => before != null && after != null && after.ActorHP > 0
+            && after.IncomingDamage < before.IncomingDamage - AIReflectionConfig.NonNegative(config.MinimumRiskImprovement);
+    public static bool GoodRetreat(AIActionContextSnapshot before, AIActionContextSnapshot after, AIReflectionConfig config)
+        => before != null && after != null && before.ActorHpRatio <= Mathf.Clamp01(config.RetreatLowHpThreshold)
+            && before.LocalEnemyPower > 0 && before.LocalPowerRatio <= AIReflectionConfig.NonNegative(config.RetreatMaximumPowerRatio)
+            && RiskImproved(before, after, config) && SafeAfter(after, config)
+            && after.OwnCrystalDistance <= before.OwnCrystalDistance
+                + (before.OwnCrystalThreatened ? 0 : AIReflectionConfig.NonNegative(config.CrystalRetreatAllowance));
     public static bool IsMovement(AIActionType type) => type == AIActionType.Move || type == AIActionType.Retreat
         || type == AIActionType.Support || type == AIActionType.Surround || type == AIActionType.DefenseRepos;
 }

@@ -59,7 +59,7 @@ public partial class AICommander
         {
             reflection.SetPersistenceAllowed(CanLearn);
             _board?.Refresh();
-            reflection.EndTurn(_turnCount, _board);
+            reflection.EndTurn(_turnCount, _board, _turnGen != null && _turnGen.IsGameOver);
         }
         catch (Exception error) { ReflectionFailed(error); }
     }

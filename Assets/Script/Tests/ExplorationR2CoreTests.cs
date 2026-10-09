@@ -57,6 +57,7 @@ public static class ExplorationR2CoreTests
             LargeMapWorkBound(settings);
             KnownRoutesAndChangingMetrics(settings);
             AlternateKnownRouteProgress(settings);
+            BoundedRouteDirectionTie(settings);
         }
         finally { UnityEngine.Object.DestroyImmediate(settings); }
         Debug.Log("[ExplorationR2] " + passed + " core checks passed; mandatory 13 policies covered");
@@ -379,6 +380,70 @@ public static class ExplorationR2CoreTests
                 && objective.LastDistance < previous && objective.LastProgressTurn == turn);
             previous = objective.LastDistance;
         }
+    }
+
+    static ExplorationObservation SmallRouteTieObservation()
+    {
+        var observation = new ExplorationObservation { Width = 12, Depth = 11, OwnBase = Cell(2, 4),
+            Turn = 1, CellVersion = 1, ViewVersion = 1 };
+        for (int x = 0; x <= 10; x++) for (int z = 0; z <= 10; z++)
+            observation.KnownCells.Add(new ExplorationObservedCell(Cell(x, z), true, 0));
+        observation.CanReach = (_, cell) => cell == Cell(10, 0);
+        observation.Actors.Add(new ExplorationActor(7, Cell(2, 4), actorLifeId: "route-direction-tie"));
+        return observation;
+    }
+
+    static void BoundedRouteDirectionTie(ExplorationAISettings settings)
+    {
+        float oldWeight = settings.RouteTieDirectionWeight;
+        int oldLoopMinimum = settings.LoopMinimumSamples;
+        try
+        {
+            settings.RouteTieDirectionWeight = 2; settings.LoopMinimumSamples = 9;
+            var observation = SmallRouteTieObservation(); var planner = Seed(settings, observation);
+            var objective = planner.GetObjective(7); var forward = Cell(3, 3); var backward = Cell(1, 3);
+            Check("small route fixture has safe zero-progress merges beside a proved north2 waypoint", objective != null
+                && objective.TargetCell == Cell(10, 0) && objective.UsesKnownRouteDistance && objective.RouteWaypoint == Cell(2, 2)
+                && MovePatterns.CanMove(Kind.Scout, Direction.N, 1, -1) && MovePatterns.CanMove(Kind.Scout, Direction.N, -1, -1)
+                && Mathf.Abs(planner.GetGoalProgress(7, forward)) < .001f && Mathf.Abs(planner.GetGoalProgress(7, backward)) < .001f);
+            int lastProgressTurn = objective.LastProgressTurn;
+            float initialDistance = objective.LastDistance, forwardScore = planner.GetMoveBonus(7, forward), backwardScore = planner.GetMoveBonus(7, backward);
+            Check("direction resolves a safe route merge tie without changing the verified progress clock", forwardScore > backwardScore
+                && forwardScore - backwardScore <= 4.001f && objective.LastProgressTurn == lastProgressTurn
+                && Mathf.Abs(objective.LastDistance - initialDistance) < .001f);
+            var primary = objective.RouteWaypoint;
+            float primaryProgress = planner.GetGoalProgress(7, primary), primaryScore = planner.GetMoveBonus(7, primary);
+            settings.RouteTieDirectionWeight = 0;
+            float neutralForward = planner.GetMoveBonus(7, forward), neutralBackward = planner.GetMoveBonus(7, backward);
+            Check("zero direction weight restores the tied score and preserves primary route scoring", Mathf.Abs(neutralForward - neutralBackward) < .001f
+                && primaryProgress > 0 && Mathf.Abs(planner.GetMoveBonus(7, primary) - primaryScore) < .001f);
+            settings.RouteTieDirectionWeight = 1000;
+            Check("even a large authored direction weight remains bounded below a proved route advance", planner.GetMoveBonus(7, forward) - neutralForward <= 4.001f
+                && planner.GetMoveBonus(7, forward) > neutralForward && planner.GetMoveBonus(7, primary) > planner.GetMoveBonus(7, forward)
+                && Mathf.Abs(planner.GetMoveBonus(7, primary) - primaryScore) < .001f);
+            Check("bounded direction cannot outweigh a lethal destination", planner.GetMoveBonus(7, forward, 100) < planner.GetMoveBonus(7, backward)
+                && planner.GetMoveBonus(7, forward, 100) < -1000);
+
+            var dangerObservation = SmallRouteTieObservation();
+            dangerObservation.EstimateDanger = (_, cell) => GridHelper.ToGridXZ(cell) == forward ? 100 : 0;
+            var dangerPlanner = Seed(settings, dangerObservation);
+            settings.RouteTieDirectionWeight = 0; float dangerousNeutral = dangerPlanner.GetMoveBonus(7, forward, 100);
+            settings.RouteTieDirectionWeight = 1000;
+            Check("an unsafe merge never receives the route direction tie bonus", dangerPlanner.GetObjective(7)?.UsesKnownRouteDistance == true
+                && Mathf.Abs(dangerPlanner.GetGoalProgress(7, forward)) < .001f
+                && Mathf.Abs(dangerPlanner.GetMoveBonus(7, forward, 100) - dangerousNeutral) < .001f
+                && dangerPlanner.GetMoveBonus(7, forward, 100) < dangerPlanner.GetMoveBonus(7, backward));
+
+            settings.RouteTieDirectionWeight = 2;
+            for (int turn = 2; turn <= 4; turn++)
+            {
+                for (int preview = 0; preview < 20; preview++) planner.GetMoveBonus(7, forward);
+                observation.Turn = turn; planner.Update(observation, false);
+            }
+            Check("direction-only previews cannot postpone the stationary objective's three-turn stall", objective.LastProgressTurn == lastProgressTurn
+                && Reason(planner, "objective_stalled") && observation.Actors[0].Cell == Cell(2, 4));
+        }
+        finally { settings.RouteTieDirectionWeight = oldWeight; settings.LoopMinimumSamples = oldLoopMinimum; }
     }
 }
 #endif

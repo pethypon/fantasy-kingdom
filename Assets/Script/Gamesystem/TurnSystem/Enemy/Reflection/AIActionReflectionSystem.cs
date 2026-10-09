@@ -7,7 +7,7 @@ using UnityEngine;
 /// Observes finalized actions without replacing the AI. Mutable event ledgers live only in a battle;
 /// cross-battle experience uses role/context buckets. Disk writes occur only at diary/battle boundaries.
 /// </summary>
-public sealed class AIActionReflectionSystem
+public sealed partial class AIActionReflectionSystem
 {
     sealed class PendingAction
     {
@@ -19,7 +19,7 @@ public sealed class AIActionReflectionSystem
     readonly AIReflectionConfig config;
     readonly AIReflectionSaveRepository repository;
     readonly AIDiaryWriter diary;
-    readonly AIActionFeatureExtractor extractor = new AIActionFeatureExtractor();
+    readonly AIActionFeatureExtractor extractor;
     readonly AIRepeatActionDetector repeat = new AIRepeatActionDetector();
     readonly Dictionary<long, PendingAction> pending = new Dictionary<long, PendingAction>();
     readonly Dictionary<long, AIActionRecord> completed = new Dictionary<long, AIActionRecord>();
@@ -51,6 +51,10 @@ public sealed class AIActionReflectionSystem
     {
         Faction = team;
         this.config = config != null ? config : AIReflectionConfig.Active;
+        extractor = new AIActionFeatureExtractor(this.config);
+        economyRewards = new AIEconomyRewardTracker(this.config);
+        delayedCredits = new AIDelayedCreditAssigner(this.config);
+        armyUtilization = new AIArmyUtilizationAnalyzer(this.config);
         // Developer player control always starts in an isolated memory scope.
         persistenceAllowed = persistent && team == Team.Enemy;
         StorageDirectory = storageRoot ?? Path.Combine(Application.persistentDataPath, "FantasyKingdom", "AI");
@@ -70,9 +74,10 @@ public sealed class AIActionReflectionSystem
     {
         pending.Clear(); completed.Clear(); kills.Clear(); artifacts.Clear(); stableTurns.Clear();
         repeat.Clear(); LastRecord = null; latestToken = 0; endRequested = false; requestedEndSnapshot = null;
-        if (resume != null && ValidResume(resume))
+        var restored = resume == null ? null : Clone(resume);
+        if (restored != null && AIReflectionMigration.UpgradeBattle(restored, config) && ValidResume(restored))
         {
-            state = Clone(resume);
+            state = restored;
             SetPersistenceAllowed(state.PersistentLearningAllowed);
             if (state.BattleSummary == null) state.BattleSummary = new AIReflectionInterval();
             if (state.LearningProfile != null && repository.IsValid(state.LearningProfile)
@@ -90,6 +95,7 @@ public sealed class AIActionReflectionSystem
             ? "FK_" + DateTime.UtcNow.ToString("yyyyMMddHHmmssfff") + "_" + Faction + "_" + Guid.NewGuid().ToString("N").Substring(0, 8)
             : battleId, Faction = Faction, ThreatLevel = Mathf.Clamp(threatLevel, 1, 100), Personality = personality ?? "",
             PersistentLearningAllowed = persistenceAllowed };
+        RestoreEvaluationState();
     }
     public void BeginTurn(int turnNumber, AIBoardState board = null, TurnStrategy strategy = TurnStrategy.Balanced, int threatLevel = 1)
     {
@@ -109,6 +115,10 @@ public sealed class AIActionReflectionSystem
         }
         if (usage != null) usage.OwnTurns = Math.Min(1000000, usage.OwnTurns + 1);
         state.LastSnapshot = Capture(null, board);
+        SeedObservedContacts(state.LastSnapshot);
+        economyRewards.Observe(state.LastSnapshot, state.OwnTurns + 1);
+        if (state.Interval.FirstOwnTurn < 0) state.Interval.FirstOwnTurn = state.OwnTurns + 1;
+        if (state.BattleSummary.FirstOwnTurn < 0) state.BattleSummary.FirstOwnTurn = state.OwnTurns + 1;
         if (state.Interval.Before == null) state.Interval.Before = state.LastSnapshot;
         if (state.BattleSummary.Before == null) state.BattleSummary.Before = state.LastSnapshot;
     }
@@ -121,6 +131,8 @@ public sealed class AIActionReflectionSystem
         if (state.Ended || pending.Count >= 16) return default;
         long id = ++state.NextActionId;
         before = before.Copy(); before.ActionType = action.ActionType;
+        SeedObservedContacts(before);
+        economyRewards.Observe(before, state.OwnTurns + 1);
         string context = AIActionFeatureExtractor.ContextKey(before);
         string actionKey = AIActionFeatureExtractor.ActionKey(action, before);
         float modifier = GetLearnedModifier(action, before);
@@ -129,7 +141,9 @@ public sealed class AIActionReflectionSystem
             Before = before, ContextKey = context, ActionKey = actionKey,
             BaseScore = action.Score, LearnedModifier = modifier, FinalScore = action.Score + modifier,
             ActorRuntimeId = action.Unit != null ? action.Unit.GetInstanceID() : 0,
-            ActorLifeId = action.Unit != null ? action.Unit.ReflectionLifeId : null };
+            ActorLifeId = action.Unit != null ? action.Unit.ReflectionLifeId : null,
+            TargetLifeId = before.KnownTargetLifeId };
+        record.DecisionTrace = AIReflectionDecisionTrace.Build(action, record);
         pending[id] = new PendingAction { Action = action, Record = record };
         latestToken = id;
         return new AIActionToken(id);
@@ -140,6 +154,12 @@ public sealed class AIActionReflectionSystem
         action.Record.BaseScore = AIReflectionConfig.Finite(baseScore);
         action.Record.LearnedModifier = AIReflectionConfig.Finite(learnedModifier);
         action.Record.FinalScore = AIReflectionConfig.Finite(finalScore);
+        if (action.Record.DecisionTrace != null)
+        {
+            action.Record.DecisionTrace.BaseScore = action.Record.BaseScore;
+            action.Record.DecisionTrace.LearnedModifier = action.Record.LearnedModifier;
+            action.Record.DecisionTrace.FinalScore = action.Record.FinalScore;
+        }
     }
     public void CompleteAction(AIActionToken token, bool success, AIBoardState board, string executionFailure = null)
     {
@@ -157,26 +177,25 @@ public sealed class AIActionReflectionSystem
         record.Outcome.ArtifactsAcquired = action.Artifacts;
         record.Outcome.DamageDealt = Math.Max(record.Outcome.DamageDealt, action.DamageDealt);
         record.Outcome.DamageTaken = Math.Max(record.Outcome.DamageTaken, action.DamageTaken);
-        record.MeaningfulProgress = AIFailureAnalyzer.HasMeaningfulProgress(record);
+        FilterNewlyObservedEnemies(record);
+        record.MeaningfulProgress = AIFailureAnalyzer.HasMeaningfulProgress(record, config);
         repeat.Evaluate(record);
-        record.FailureReason = AIFailureAnalyzer.Analyze(record, executionFailure);
+        record.FailureReason = AIFailureAnalyzer.Analyze(record, executionFailure, config);
         record.StrategicOutcome = record.FailureReason != AIFailureReason.None ? AIStrategicOutcome.Failure
             : record.MeaningfulProgress ? AIStrategicOutcome.Progress : AIStrategicOutcome.Neutral;
         record.Reward = AIActionRewardEvaluator.Evaluate(record, config);
-        // Only an economic action that causally restores health may own this turn's one stability reward.
-        if ((record.ActionType == AIActionType.Build || record.ActionType == AIActionType.Upgrade)
-            && record.Before.EconomyState != EconomicState.Healthy && record.After.EconomyState == EconomicState.Healthy
-            && success && MarkStableTurn(record.Turn))
-        {
-            record.EconomyStableReward = AIReflectionConfig.EconomyStableReward;
-            record.Reward += record.EconomyStableReward;
-        }
+        economyRewards.ObserveAction(record, state.OwnTurns + 1);
         float change = Profile.Learn(record, config);
+        record.LearningValueChange = change;
+        AIReflectionDecisionTrace.UpdateOutcome(record);
         state.BattleReward += record.Reward; state.TotalOwnLosses += record.Outcome.OwnLosses;
         state.Interval.Observe(record, change, config.EntryLimit);
         state.BattleSummary.Observe(record, change, config.EntryLimit);
         state.LastSnapshot = record.After;
         Remember(record);
+        ApplyOutcomeCredits(record);
+        delayedCredits.Remember(record);
+        LogReward(record);
         if (pending.Count == 0) latestToken = 0;
         if (endRequested && pending.Count == 0) FinalizeBattle(pendingResult, record.After);
     }
@@ -195,13 +214,12 @@ public sealed class AIActionReflectionSystem
     float LearnedModifier(AIAction action, string context, string key)
     {
         var entry = Profile.Find(context, key);
-        float modifier = entry == null ? 0 : Mathf.Clamp(AIReflectionConfig.Finite(entry.LearnedValue), config.Lower, config.Upper)
-            * Mathf.Clamp(AIReflectionConfig.Finite(config.LearningInfluenceMultiplier, 1), 0, 2);
+        float modifier = Profile.GetModifier(context, key, config);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (config.EnableCandidateDebug)
             Debug.Log("[AI自己評価候補] priority=" + action.StrategicPriority + " base=" + action.Score.ToString("F2")
                 + " learned=" + modifier.ToString("F2") + " final=" + (action.Score + modifier).ToString("F2")
-                + " samples=" + (entry?.Samples ?? 0) + " context=" + context);
+                + " samples=" + (entry != null ? entry.Samples.ToString() : "旧形式を含めて参照") + " context=" + context);
 #endif
         return modifier;
     }
@@ -229,12 +247,7 @@ public sealed class AIActionReflectionSystem
             if (pending.TryGetValue(existing.ActionId, out var open)) open.FormationKills++;
             else if (completed.TryGetValue(existing.ActionId, out var record))
             {
-                record.Outcome.FormationKills++; record.Reward++;
-                float change = Profile.CorrectReward(record, 1, config);
-                state.BattleReward++;
-                if (state.Interval.FirstTurn >= 0 && record.Turn >= state.Interval.FirstTurn) state.Interval.Correct(record, 1, change);
-                else { state.Interval.Reward++; state.Interval.FormationKills++; }
-                state.BattleSummary.Correct(record, 1, change);
+                UpgradeFormationReward(record);
             }
             else
             {
@@ -261,24 +274,17 @@ public sealed class AIActionReflectionSystem
         else AddUnattributedReward(1, 0, 0, 1);
     }
     public void EndTurn(int turnNumber, AIBoardState board)
-        => EndTurn(turnNumber, Capture(null, board));
-    public void EndTurn(int turnNumber, AIActionContextSnapshot snapshot)
+        => EndTurn(turnNumber, board, false);
+    public void EndTurn(int turnNumber, AIBoardState board, bool terminalTurn)
     {
-        if (!Enabled) return;
         EnsureBattle();
-        if (state.Ended || state.LastEndedTurn == turnNumber || pending.Count > 0) return;
-        state.LastEndedTurn = turnNumber; state.OwnTurns++;
-        state.LastSnapshot = snapshot?.Copy() ?? state.LastSnapshot;
-        state.Interval.After = state.LastSnapshot; state.Interval.LastTurn = turnNumber;
-        state.BattleSummary.After = state.LastSnapshot; state.BattleSummary.LastTurn = turnNumber;
-        if (state.Interval.FirstTurn < 0) state.Interval.FirstTurn = turnNumber;
-        if (snapshot?.EconomyState == EconomicState.Healthy && MarkStableTurn(turnNumber))
-        {
-            state.TurnReward++; state.BattleReward++; state.Interval.Reward++;
-            state.BattleSummary.Reward++;
-        }
-        if (state.OwnTurns % Mathf.Clamp(config.DiaryIntervalOwnTurns, 1, 1000) == 0) OutputDiary("INTERVAL");
+        var evidence = board == null ? null : armyUtilization.Capture(board, state.RecentRecords, strategy, state.OwnTurns + 1);
+        EndEvaluationTurn(turnNumber, Capture(null, board), terminalTurn, evidence);
     }
+    public void EndTurn(int turnNumber, AIActionContextSnapshot snapshot)
+        => EndEvaluationTurn(turnNumber, snapshot, false, null);
+    public void EndTurn(int turnNumber, AIActionContextSnapshot snapshot, bool terminalTurn)
+        => EndEvaluationTurn(turnNumber, snapshot, terminalTurn, null);
     public void EndBattle(bool victory, AIBoardState board) => RequestBattleEnd(victory ? "VICTORY" : "DEFEAT", Capture(null, board));
     public void EndBattle(bool victory, AIActionContextSnapshot snapshot) => RequestBattleEnd(victory ? "VICTORY" : "DEFEAT", snapshot);
     public void EndDrawBattle(AIBoardState board) => RequestBattleEnd("DRAW", Capture(null, board));
@@ -293,6 +299,7 @@ public sealed class AIActionReflectionSystem
     void FinalizeBattle(string result, AIActionContextSnapshot snapshot)
     {
         if (state.Ended) return;
+        CountTerminalOwnTurn();
         state.Ended = true; state.Result = result; state.Victory = result == "VICTORY";
         state.LastSnapshot = snapshot ?? state.LastSnapshot; state.Interval.After = state.LastSnapshot;
         state.BattleSummary.After = state.LastSnapshot;
@@ -314,9 +321,20 @@ public sealed class AIActionReflectionSystem
     }
     void OutputDiary(string result)
     {
-        diary.Write(state, result); state.DiaryCount++;
+        bool sameTurn = state.LastDiaryOwnTurn == state.OwnTurns;
+        if (sameTurn && (result == "INTERVAL" || state.LastDiaryResult != "INTERVAL")) return;
+        if (sameTurn && state.LastDiaryInterval != null)
+        {
+            var combined = JsonUtility.FromJson<AIReflectionInterval>(JsonUtility.ToJson(state.LastDiaryInterval));
+            combined.MergeFrom(state.Interval, config.EntryLimit);
+            state.Interval = combined;
+        }
+        diary.Write(state, result);
+        if (!sameTurn) state.DiaryCount++;
+        state.LastDiaryOwnTurn = state.OwnTurns; state.LastDiaryResult = result;
+        state.LastDiaryInterval = JsonUtility.FromJson<AIReflectionInterval>(JsonUtility.ToJson(state.Interval));
         if (persistenceAllowed) repository.Save(Profile);
-        state.Interval = new AIReflectionInterval { Before = state.LastSnapshot };
+        state.Interval = new AIReflectionInterval { Before = state.LastSnapshot, FirstOwnTurn = state.OwnTurns + 1 };
     }
     bool MarkStableTurn(int turn)
     {
@@ -347,6 +365,7 @@ public sealed class AIActionReflectionSystem
     public AIReflectionBattleState CaptureBattleState()
     {
         if (!Enabled || state == null) return null;
+        CaptureEvaluationState();
         // This copy occurs only at the existing game-save boundary, never per action.
         state.LearningProfile = Profile;
         try { return Clone(state); }
@@ -354,7 +373,7 @@ public sealed class AIActionReflectionSystem
     }
     bool ValidResume(AIReflectionBattleState resume)
     {
-        if (resume.SchemaVersion != 1 || resume.Faction != Faction || string.IsNullOrEmpty(resume.BattleId)
+        if (resume.SchemaVersion != 2 || resume.Faction != Faction || string.IsNullOrEmpty(resume.BattleId)
             || resume.BattleId.Length > 256 || resume.OwnTurns < 0 || resume.OwnTurns > 1000000
             || resume.NextActionId < 0 || resume.NextActionId > 1000000000000L
             || !Finite(resume.BattleReward) || !Finite(resume.TurnReward)

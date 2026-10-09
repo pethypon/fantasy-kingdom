@@ -212,6 +212,7 @@ public static class ExplorationR2IntegrationTests
                 observation.Turn = 1; observation.Actors.Add(new ExplorationActor(scout.GetInstanceID(), GridHelper.ToGrid(scout.transform.position), actorLifeId: scout.ReflectionLifeId));
                 openPlanner.Update(observation, false);
                 CheckCommanderDirectionAtPlateau(live, f, hub, moves, map, scout, openPlanner, openPlanner.GetObjective(scout.GetInstanceID()).TargetCell);
+                RealCommanderBlockedWaypoint(live, f, hub, moves, map, scout, openPlanner.CaptureState());
                 RealCommanderSelectedMovement(live, f, hub, moves, map, scout, openPlanner.CaptureState());
                 LocalMovementMasksAndCost(live, f, moves, map, scout);
             }
@@ -289,8 +290,9 @@ public static class ExplorationR2IntegrationTests
             for (int step = 0; step < 3; step++)
             {
                 var candidates = new List<AIAction>();
+                var legalMoves = board.GetValidMoves(scout);
                 // Use the complete real movement mask, including Scout's legal two-cell vertical steps.
-                foreach (var destination in board.GetValidMoves(scout))
+                foreach (var destination in legalMoves)
                 {
                     candidates.Add(new AIAction { ActionType = AIActionType.Move, Unit = scout, TargetPos = destination,
                         APCost = board.CalcMoveCost(scout, destination), Score = board.Recon.ScoreMove(scout, destination), StrategicPriority = 4 });
@@ -299,7 +301,8 @@ public static class ExplorationR2IntegrationTests
                 var selected = (AIAction)select.Invoke(commander, new object[] { candidates, new HashSet<string>(), null });
                 float progress = selected == null ? 0 : board.Exploration.GetGoalProgress(scout.GetInstanceID(), GridHelper.ToGrid(selected.TargetPos));
                 Debug.Log($"[ExplorationR2CommanderStep] turn={turn}.{step} from={scout.transform.position} target={commander.Exploration.GetObjective(scout.GetInstanceID())?.TargetCell} selected={selected?.TargetPos} score={selected?.Score:F2} priority={selected?.StrategicPriority} routeProgress={progress:F2} legalCandidates={candidates.Count}");
-                Check("commander selects a legal frontier-progress step T" + turn + "." + step, selected != null && progress > 0);
+                Check("commander selects a legal frontier-progress step T" + turn + "." + step,
+                    selected != null && legalMoves.Contains(selected.TargetPos) && progress > 0);
                 var previous = scout.transform.position; int ap = f.State.GetAP(f.Team), cost = board.CalcMoveCost(scout, selected.TargetPos);
                 bool success = executor.Execute(selected, board); board.Refresh(); record.Invoke(commander, new object[] { selected, success });
                 Check("commander-selected step executes and consumes exact AP T" + turn + "." + step,
@@ -312,11 +315,83 @@ public static class ExplorationR2IntegrationTests
                 && objective.State == ObjectiveState.Active);
         }
         clock.Stop();
-        Check("commander R2 route makes fifty-four real moves with proved progress", executions == 54 && totalProvedProgress > 0
-            && commander.Exploration.GetObjective(scout.GetInstanceID()).LastDistance < initialDistance);
+        var finalObjective = commander.Exploration.GetObjective(scout.GetInstanceID());
+        Check("commander R2 route makes fifty-four real moves with proved progress", executions == 54 && totalProvedProgress >= 54
+            && finalObjective != null && finalObjective.ObjectiveId == originalId && finalObjective.State == ObjectiveState.Active
+            && finalObjective.LastDistance <= initialDistance - 54);
         Check("open large-map commander selection stays bounded without terrain renderers", clock.Elapsed.TotalMilliseconds < 2000
             && map.GetComponentsInChildren<Renderer>(true).Length == 0);
         Debug.Log($"[ExplorationR2CommanderMovement] grid=512x512 turns=18 legalMoves={executions} diagonalMoves={diagonalSteps} provedProgress={totalProvedProgress:F1} initialDistance={initialDistance:F1} finalDistance={commander.Exploration.GetObjective(scout.GetInstanceID()).LastDistance:F1} ms={clock.Elapsed.TotalMilliseconds:F2}");
+    }
+
+    static void RealCommanderBlockedWaypoint(GameSystems live, EconomyR2Tests.Fixture f, TurnGenerator hub,
+        MoveGenerator moves, MapCreate map, Status scout, AIExplorationState initialState)
+    {
+        Vector3 originalPosition = scout.transform.position, originalCrystal = f.Crystals.ECP;
+        int originalTurn = hub.Context.Turn, originalFatigue = scout.Fatigue;
+        bool originalMoved = scout.HasMovedThisTurn;
+        try
+        {
+            scout.transform.position = new Vector3(20, 1, 32); scout.Fatigue = 0; scout.HasMovedThisTurn = false;
+            f.Crystals.ECP = new Vector3(20, 1, 30); f.Crystal.transform.position = f.Crystals.ECP;
+            hub.Context.Turn = 2; f.State.ResetAPForTurn(f.Team);
+            var commander = new AICommander(hub, moves, live.AttackGenerator, live.BattleSystem, null, f.AP,
+                f.Units, f.Crystals, map, MajorPersonality.Combat, null, null, f.State, live.SkillSystem,
+                null, 100, 19191, Team.Enemy);
+            commander.RestoreExplorationState(initialState);
+            var governor = (AIStrategicGovernor)typeof(AICommander).GetField("_governor", Private).GetValue(commander);
+            var board = new AIBoardState(moves, live.AttackGenerator, f.AP, f.Units, f.Crystals, null,
+                null, null, f.State, null, 2); board.MapCreate = map; board.ReconThreatLevel = 100; board.Governor = governor;
+            typeof(AICommander).GetField("_board", Private).SetValue(commander, board); governor.Evaluate(board);
+            var objective = commander.Exploration.GetObjective(scout.GetInstanceID());
+            var forward = scout.transform.position + Vector3.right + Vector3.back;
+            var backward = scout.transform.position + Vector3.left + Vector3.back;
+            var legalMoves = board.GetValidMoves(scout);
+            Check("own crystal occupies the proved north2 waypoint while both diagonal merges remain legal", objective != null
+                && objective.State == ObjectiveState.Active && objective.UsesKnownRouteDistance
+                && GridHelper.MatchXZ(objective.RouteWaypoint, GridHelper.ToGridXZ(f.Crystals.ECP))
+                && MovePatterns.CanMove(scout, scout.direction, 0, -2) && map.CanTraverse(scout.transform.position, f.Crystals.ECP)
+                && !legalMoves.Contains(f.Crystals.ECP) && legalMoves.Contains(forward) && legalMoves.Contains(backward));
+            int objectiveId = objective.ObjectiveId, lastProgressTurn = objective.LastProgressTurn;
+            float beforeDistance = objective.LastDistance;
+            var candidates = new List<AIAction>(); AIAction forwardAction = null, backwardAction = null;
+            foreach (var destination in legalMoves)
+            {
+                var action = new AIAction { ActionType = AIActionType.Move, Unit = scout, TargetPos = destination,
+                    APCost = board.CalcMoveCost(scout, destination), Score = board.Recon.ScoreMove(scout, destination), StrategicPriority = 4 };
+                candidates.Add(action);
+                if (destination == forward) forwardAction = action;
+                if (destination == backward) backwardAction = action;
+            }
+            governor.Filter(candidates, board);
+            Check("safe tied-route direction favors forward without claiming verified progress or P3", forwardAction != null && backwardAction != null
+                && candidates.Contains(forwardAction) && candidates.Contains(backwardAction)
+                && Mathf.Abs(commander.Exploration.GetGoalProgress(scout.GetInstanceID(), GridHelper.ToGrid(forward))) < .001f
+                && Mathf.Abs(commander.Exploration.GetGoalProgress(scout.GetInstanceID(), GridHelper.ToGrid(backward))) < .001f
+                && forwardAction.Score > backwardAction.Score && forwardAction.StrategicPriority == 4 && backwardAction.StrategicPriority == 4
+                && objective.LastProgressTurn == lastProgressTurn);
+            var selected = (AIAction)typeof(AICommander).GetMethod("SelectBestAction", Private)
+                .Invoke(commander, new object[] { candidates, new HashSet<string>(), null });
+            Check("commander chooses the forward diagonal from every real legal move around its crystal", selected == forwardAction
+                && legalMoves.Contains(selected.TargetPos));
+            int ap = f.State.GetAP(f.Team), cost = board.CalcMoveCost(scout, selected.TargetPos);
+            var executor = new AIActionExecutor(hub, moves, live.AttackGenerator, live.BattleSystem, f.AP,
+                live.SkillSystem, null, null, null, new AILearning(false), Team.Enemy);
+            bool success = executor.Execute(selected, board); board.Refresh();
+            typeof(AICommander).GetMethod("RecordExplorationAction", Private).Invoke(commander, new object[] { selected, success });
+            var after = commander.Exploration.GetObjective(scout.GetInstanceID());
+            Check("blocked-waypoint diagonal really executes with exact AP and reduces the same goal's proved distance", success
+                && scout.transform.position == forward && f.State.GetAP(f.Team) == ap - cost
+                && after != null && after.ObjectiveId == objectiveId && after.State == ObjectiveState.Active
+                && after.UsesKnownRouteDistance && after.LastDistance < beforeDistance && after.LastProgressTurn == 2);
+            Debug.Log($"[ExplorationR2BlockedWaypoint] crystal={f.Crystals.ECP} legalCandidates={legalMoves.Count} selected={selected.TargetPos} priority={selected.StrategicPriority} previewProgress=0 initialDistance={beforeDistance:F1} finalDistance={after.LastDistance:F1} apCost={cost}");
+        }
+        finally
+        {
+            f.Crystals.ECP = originalCrystal; f.Crystal.transform.position = originalCrystal;
+            scout.transform.position = originalPosition; scout.Fatigue = originalFatigue; scout.HasMovedThisTurn = originalMoved;
+            hub.Context.Turn = originalTurn;
+        }
     }
 
     static List<Vector3> LegacyMoveScan(AIBoardState board, MoveGenerator moves, Status unit)

@@ -22,6 +22,7 @@ public static class ExplorationR2BoundaryTests
         try
         {
             OldSchemaKeepsProgressAndSuspensionClocks(settings);
+            SavedRouteRevisionCannotReuseAcrossSessions(settings);
             UnprovedRouteKeepsMinorAxisProgress(settings);
             DiagonalRequiresKnownOpenCorners(settings);
             AsymmetricOffsetsRespectDirection(settings);
@@ -110,6 +111,64 @@ public static class ExplorationR2BoundaryTests
                 && migrated.State == ObjectiveState.Active && migrated.LastProgressTurn == 3);
         }
         finally { settings.LoopMinimumSamples = oldLoopMinimum; }
+    }
+
+    static void SavedRouteRevisionCannotReuseAcrossSessions(ExplorationAISettings settings)
+    {
+        int oldLoopMinimum = settings.LoopMinimumSamples;
+        float oldDangerWeight = settings.RouteDangerWeight;
+        settings.LoopMinimumSamples = 9;
+        settings.RouteDangerWeight = 2;
+        try
+        {
+            var observation = ClockObservation(); observation.EstimateDanger = (_, _) => 10;
+            var source = Seed(settings, observation); var initial = source.GetObjective(7);
+            Check("saved-route fixture begins with the first proved cache revision", initial != null
+                && initial.UsesKnownRouteDistance && initial.RouteMetricRevision == 1);
+            observation.Turn = 2; source.Update(observation, false);
+            var saved = JsonUtility.FromJson<AIExplorationState>(JsonUtility.ToJson(source.CaptureState()));
+            Check("v3 saved-route fixture retains a stationary clock and two position samples", saved.Version == 3
+                && saved.Objectives.Count == 1 && saved.Objectives[0].RouteMetricRevision == 1
+                && saved.Objectives[0].LastProgressTurn == 1 && saved.Histories.Count == 1 && saved.Histories[0].Samples.Count == 2);
+            // Lower costs change the distance basis, although the actor and knowledge have not progressed.
+            settings.RouteDangerWeight = 0;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                string context = pass == 0 ? "direct load" : "save before first observation";
+                var restored = new AIExplorationPlanner(settings); restored.RestoreState(saved);
+                var pending = JsonUtility.FromJson<AIExplorationState>(JsonUtility.ToJson(restored.CaptureState()));
+                Check("saved cache revision remains invalid until a route is observed: " + context,
+                    pending.Version == 3 && pending.Objectives.Count == 1 && pending.Objectives[0].UsesKnownRouteDistance
+                    && pending.Objectives[0].RouteMetricRevision == -1 && pending.Objectives[0].LastProgressTurn == 1
+                    && pending.Histories.Count == 1 && pending.Histories[0].Samples.Count == 2);
+                if (pass == 1) { restored = new AIExplorationPlanner(settings); restored.RestoreState(pending); }
+                observation.Turn = 3; restored.Update(observation, false);
+                var resumed = restored.GetObjective(7);
+                var actorCell = observation.Actors[0].Cell;
+                float newDistance = Mathf.Abs(actorCell.x - initial.TargetCell.x) + Mathf.Abs(actorCell.z - initial.TargetCell.z);
+                Check("a reused revision with cheaper costs only rebases the distance: " + context, resumed != null
+                    && resumed.ObjectiveId == initial.ObjectiveId && resumed.State == ObjectiveState.Active
+                    && resumed.UsesKnownRouteDistance && resumed.RouteMetricRevision == 1 && resumed.LastProgressTurn == 1
+                    && saved.Objectives[0].BestDistance - newDistance > settings.ProgressDistanceThreshold
+                    && Mathf.Abs(resumed.BestDistance - newDistance) < .001f && Mathf.Abs(resumed.LastDistance - newDistance) < .001f
+                    && resumed.NewlyRevealedSinceStart == saved.Objectives[0].NewlyRevealedSinceStart);
+                var history = restored.GetHistory(7); var samples = history.Capture();
+                bool evidencePreserved = samples.Count == saved.Histories[0].Samples.Count + 1;
+                for (int i = 0; i < saved.Histories[0].Samples.Count && i < samples.Count; i++)
+                {
+                    var original = saved.Histories[0].Samples[i]; var current = samples[i];
+                    evidencePreserved &= current.Cell == original.Cell && current.Turn == original.Turn
+                        && current.NewlyRevealed == original.NewlyRevealed && Mathf.Abs(current.Distance - newDistance) < .001f;
+                }
+                Check("distance rebasing retains historical position and reveal evidence: " + context,
+                    evidencePreserved && Mathf.Abs(history.DistanceProgressInWindow) < .001f);
+                observation.Turn = 4; restored.Update(observation, false);
+                Check("restoring cheaper route costs does not postpone the original stall: " + context,
+                    resumed.LastProgressTurn == 1 && resumed.State == ObjectiveState.Failed
+                    && resumed.LastReason == "objective_stalled" && HasReason(restored, "objective_stalled"));
+            }
+        }
+        finally { settings.LoopMinimumSamples = oldLoopMinimum; settings.RouteDangerWeight = oldDangerWeight; }
     }
 
     static void UnprovedRouteKeepsMinorAxisProgress(ExplorationAISettings settings)
