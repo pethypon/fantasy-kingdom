@@ -5,8 +5,8 @@ public class APSystem : MonoBehaviour
 {
     public enum ActionType { Move, Attack, Build }
     public static int MaximumAP => Mathf.Clamp(GameAuthoringRules.Active?.maximumAP ?? GameConstants.MaxAP, 3, GameConstants.MaxAP);
-    public static int BaseMoveCost => Mathf.Clamp(GameAuthoringRules.Active?.moveAP ?? GameConstants.BaseMoveAPCost, 1, GameConstants.MaxAP);
-    public static int BaseAttackCost => Mathf.Clamp(GameAuthoringRules.Active?.attackAP ?? GameConstants.BaseAttackAPCost, 1, GameConstants.MaxAP);
+    public static int BaseMoveCost => Mathf.Clamp(GameAuthoringRules.Active?.moveAP ?? GameConstants.BaseMoveAPCost, 1, GameConstants.MaxAuthoredActionAPCost);
+    public static int BaseAttackCost => Mathf.Clamp(GameAuthoringRules.Active?.attackAP ?? GameConstants.BaseAttackAPCost, 1, GameConstants.MaxAuthoredActionAPCost);
 
     // ==== コスト定義 ====
     static readonly Dictionary<ActionType, int> BaseCost =
@@ -67,6 +67,8 @@ public class APSystem : MonoBehaviour
     // ==== ターン開始時 AP リセット ====
     public void ResetAP(Team team)
     {
+        if (_factionState == null) return;
+        _factionState.UpdateCitizenAPBonus(team);
         var apData = _factionState.GetAPData(team);
         int prevCurrent = apData.Current;
         _factionState.ResetAPForTurn(team);
@@ -170,6 +172,6 @@ public class APSystem : MonoBehaviour
     {
         if (HeightCostExempt.Contains(kind)) return 0;
         int dy = GridHelper.ToGrid(to).y - GridHelper.ToGrid(from).y;
-        return dy == 1 ? Mathf.Clamp(GameAuthoringRules.Active?.heightAP ?? HeightCost, 0, GameConstants.MaxAP) : 0;
+        return dy == 1 ? Mathf.Clamp(GameAuthoringRules.Active?.heightAP ?? HeightCost, 0, GameConstants.MaxAuthoredActionAPCost) : 0;
     }
 }

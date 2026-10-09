@@ -54,7 +54,6 @@ public partial class AICommander
 
     // ---- 分離クラス ----
     readonly AIActionExecutor _actionExecutor;
-    readonly AIBuildPlanner _buildPlanner;
 
     // AP予算配分（TurnStrategyPlannerが毎ターン計画）
     TurnStrategyPlanner.APBudget _apBudget;
@@ -103,6 +102,7 @@ public partial class AICommander
                 case AIActionType.Retreat:
                 case AIActionType.DefenseRepos: Retreats++; break;
                 case AIActionType.Build:
+                case AIActionType.Upgrade:
                 case AIActionType.SubCrystal:   Builds++; break;
                 case AIActionType.Summon:        Summons++; break;
             }
@@ -159,7 +159,6 @@ public partial class AICommander
         _actionExecutor = new AIActionExecutor(
             turnGen, moveGen, attackPoint, battleSystem, apSystem,
             skillSystem, subCrystalSystem, buildSystem, summonSystem, _learning, actorTeam);
-        _buildPlanner = new AIBuildPlanner(apSystem, factionState, _actionExecutor, _personality, _learning);
 
         // 師団長制AI初期化
         _kingCommanderSystem = new KingCommanderSystem(_personality, _rng);
@@ -277,6 +276,7 @@ public partial class AICommander
             _subCrystalSystem, _turnCount, _sharedMemory, _actorTeam);
         _board.DungeonSystem = _turnGen?.Systems?.DungeonSystem;
         _board.MapCreate = _mapCreate;
+        _board.TerritorySystem = _turnGen?.Systems?.TerritorySystem;
         _board.ReconThreatLevel = _threatLevel.Level;
         _board.Governor=_governor;
         _governor.BreadReserveTurns=GameAuthoringRules.Active?.aiBreadReserveTurns??_threatLevel.BreadReserveTurns;
@@ -314,6 +314,7 @@ public partial class AICommander
         }
 
         int maxIterations = 50;
+        BeginReflectionTurn();
         int iteration = 0;
         int consecutiveFailures = 0;
         const int maxConsecutiveFailures = 8;
@@ -389,8 +390,7 @@ public partial class AICommander
         var failedActionTypes = new HashSet<string>();
 
         // ================================================================
-        //  ★ 建築先行フェーズ: 経済未成熟時は移動の前に建築を試みる
-        //  これにより移動でAPを使い切って建築不能になる問題を防止する
+        //  実行可能な供給回復のAPを予約し、全行動を共通Governorで比較する
         // ================================================================
         // AP予算: 建築/召喚が可能なら最低限のAPを予約する
         int reservedAP = CalcReservedAP();
@@ -401,7 +401,8 @@ public partial class AICommander
             if (_turnGen.IsGameOver) yield break;
             iteration++;
 
-            _board.Refresh();
+            if (!boardReadyAfterAction) _board.Refresh();
+            boardReadyAfterAction = false;
             if (_board.EnemyAP <= 0) break;
             _governor.Evaluate(_board);
 
@@ -538,7 +539,7 @@ public partial class AICommander
                 break;
             }
 
-            bool success = _actionExecutor.Execute(bestAction, _board);
+            bool success = ExecuteReflectedAction(bestAction);
             _governor.Telemetry(bestAction,success);
             if (!success)
             {

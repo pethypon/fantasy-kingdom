@@ -14,10 +14,52 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameAuthoringRules
   applyRules: 0
   aiBreadReserveTurns: 3
+  aiEconomy:
+    forecastTurns: 4
+    reserveTurns: 4
+    recoveryWindowTurns: 4
+    breadCoverageMarginTurns: 1
+    plannedDemandWeight: 0.35
+    needWeight: 90
+    coverageWeight: 60
+    chainRecoveryWeight: 65
+    reserveRecoveryWeight: 25
+    overstockPenalty: 100
+    warningMilitaryPenalty: 40
+    localMilitarySaturationPenalty: 15
+    uncoveredWallThreatPenalty: 20
+    emergencyKingDamageFraction: 0.4
+    emergencyCrystalDamageFraction: 0.75
+    criticalReserveFraction: 0.25
+    enableDecisionLogs: 0
+    sustainedDeficitUrgency: 0.35
+    deficitEpsilon: 0.01
+    plannedUnitLevel: 6
+    plannedBuildActions: 1
+    plannedSummonActions: 1
+    explorationSummonWeight: 0.5
+    minimumOperationalBuffer:
+      Wood: 40
+      Stone: 40
+      Iron: 3
+      MagicOre: 0
+      Wheat: 3
+      Bread: 5
+      Water: 8
+      Citizen: 3
+    plannedBuildCost:
+      Wood: 40
+      Stone: 30
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 10
+      Citizen: 1
   turnSeconds: 180
   totalSeconds: 36000
   timeBonusSeconds: 60
-  maximumAP: 50
+  maximumAP: 60
   moveAP: 3
   attackAP: 2
   heightAP: 2

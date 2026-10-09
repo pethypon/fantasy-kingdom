@@ -3,11 +3,35 @@ using UnityEngine;
 
 /// <summary>
 /// AI候補行動の生成を担当する。
-/// 移動・攻撃・スキル・撤退・援護・包囲・建築・召喚の各候補を生成する。
+/// 移動・攻撃・スキル・撤退・援護・包囲・建築・施設強化・召喚の各候補を生成する。
 /// AIActionEvaluator から分離。
 /// </summary>
 public static partial class AIActionGenerator
 {
+    static readonly List<Status> upgradeBuildings = new List<Status>(32);
+    static AIBoardState upgradeBoard;
+    static int upgradeGeneration = -1;
+    const int MaxAuthoredBuildDefinitions = 16;
+    static readonly List<(FacilityDefinitionData definition, int priority, float score)> authoredBuildDefinitions
+        = new List<(FacilityDefinitionData, int, float)>(MaxAuthoredBuildDefinitions);
+    static readonly Dictionary<string, int> authoredDefinitionIds = new Dictionary<string, int>(System.StringComparer.Ordinal);
+    static AIBoardState authoredBuildBoard;
+    static FacilityAuthoringCatalog authoredBuildCatalog;
+    static int authoredBuildGeneration = -1;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetEconomyCandidateCaches()
+    {
+        upgradeBuildings.Clear();
+        upgradeBoard = null;
+        upgradeGeneration = -1;
+        authoredBuildDefinitions.Clear();
+        authoredDefinitionIds.Clear();
+        authoredBuildBoard = null;
+        authoredBuildCatalog = null;
+        authoredBuildGeneration = -1;
+    }
+
     // --- 建築上限 ---
     const int DefaultMaxBuildingCount = 5;
     static readonly Dictionary<FacilityKind, int> MaxBuildingCounts = new Dictionary<FacilityKind, int>
@@ -58,6 +82,7 @@ public static partial class AIActionGenerator
         }
 
         GenerateBuildCandidates(board, actions);
+        GenerateUpgradeCandidates(board, actions);
         GenerateSummonCandidates(board, actions);
         GenerateAuthoredSummonCandidates(board, actions);
         GenerateSubCrystalCandidates(board, actions);
@@ -396,8 +421,10 @@ public static partial class AIActionGenerator
 
             int existing = board.GetBuildingCount(facility);
             int maxAllowed = GetMaxBuildingCount(facility);
-            var demand = board.ProductionDemand.EvaluateBuild(new AIAction { ActionType = AIActionType.Build, Facility = facility });
-            if (existing >= maxAllowed && !demand.ImprovesDeficit)
+            var candidate = new AIAction { ActionType = AIActionType.Build, Facility = facility, APCost = info.APCost };
+            var demand = board.ProductionDemand.EvaluateBuild(facility);
+            if (existing >= maxAllowed && !demand.ImprovesDeficit
+                && board.Governor?.BasicResources.IsFoundationAction(candidate) != true)
             {
                 DevelopmentLog.Log($"[AI Build] {facility}: 上限到達({existing}/{maxAllowed}) → スキップ");
                 continue;
@@ -436,24 +463,108 @@ public static partial class AIActionGenerator
         if (board.BuildablePositions.Count == 0) return;
         var catalog = FacilityAuthoringCatalog.Loaded;
         if (catalog == null || catalog.buildings == null) return;
-        int generated = 0;
-        foreach (var definition in catalog.buildings)
+        if (authoredBuildBoard != board || authoredBuildGeneration != board.Generation || authoredBuildCatalog != catalog)
         {
-            if (generated >= 32) break;
-            if (definition == null || !definition.IsAvailable(board.ActorTeam)
-                || catalog.Find(definition.definitionId) != definition || !board.CanBuildDefinition(definition)) continue;
+            authoredBuildDefinitions.Clear();
+            authoredDefinitionIds.Clear();
+            // Catalog.Find checks duplicate IDs with a linear scan. Count once to avoid quadratic work here.
+            foreach (var definition in catalog.buildings)
+            {
+                if (definition == null || string.IsNullOrWhiteSpace(definition.definitionId)) continue;
+                authoredDefinitionIds.TryGetValue(definition.definitionId, out int count);
+                authoredDefinitionIds[definition.definitionId] = count + 1;
+            }
+            var candidate = new AIAction { ActionType = AIActionType.Build };
+            var production = board.ProductionDemand;
+            foreach (var definition in catalog.buildings)
+            {
+                if (AITurnBudget.Expired) break;
+                if (definition == null || !definition.IsValid || !definition.IsAvailable(board.ActorTeam)
+                    || !authoredDefinitionIds.TryGetValue(definition.definitionId, out int identities) || identities != 1
+                    || !board.CanBuildDefinition(definition)) continue;
+                var facility = definition.behaviourKind;
+                if (FacilityData.IsSubCrystal(facility) || !AIBoardQuery.HasProductionInputs(board, definition.GetLevel(1))) continue;
+                candidate.Facility = facility;
+                candidate.FacilityDefinition = definition;
+                candidate.APCost = definition.GetInfo().APCost;
+                candidate.TargetPos = Vector3.zero;
+                var demand = production.EvaluateBuild(facility, definition);
+                var foundation = board.Governor?.BasicResources;
+                bool usefulFoundation = foundation?.IsFoundationAction(candidate) == true;
+                if (board.GetBuildingCount(facility) >= GetMaxBuildingCount(facility) && !demand.ImprovesDeficit && !usefulFoundation) continue;
+                int priority = foundation?.ActionPriority(candidate) ?? 4;
+                if (demand.ImprovesCritical) priority = Mathf.Min(priority, 1);
+                else if (demand.ImprovesDeficit) priority = Mathf.Min(priority, 2);
+                if (board.Governor?.Mode == StrategicMode.EmergencyDefense && AIStrategicGovernor.IsMilitaryConstruction(candidate))
+                {
+                    foreach (var position in SelectBuildPositions(facility, board))
+                    {
+                        candidate.TargetPos = position;
+                        if (board.Governor.IsEmergencyDefenseRequired(candidate, board)) { priority = 0; break; }
+                    }
+                }
+                float score = demand.FinalScore + (foundation?.ScoreAction(candidate) ?? 0);
+                if (!demand.ImprovesDeficit && usefulFoundation) score += demand.OverstockPenalty;
+                int insertAt = authoredBuildDefinitions.Count;
+                for (int i = 0; i < authoredBuildDefinitions.Count; i++)
+                {
+                    var existing = authoredBuildDefinitions[i];
+                    if (priority < existing.priority || priority == existing.priority && score > existing.score)
+                    { insertAt = i; break; }
+                }
+                if (insertAt >= MaxAuthoredBuildDefinitions) continue;
+                authoredBuildDefinitions.Insert(insertAt, (definition, priority, score));
+                if (authoredBuildDefinitions.Count > MaxAuthoredBuildDefinitions)
+                    authoredBuildDefinitions.RemoveAt(MaxAuthoredBuildDefinitions);
+            }
+            authoredBuildBoard = board;
+            authoredBuildCatalog = catalog;
+            authoredBuildGeneration = board.Generation;
+        }
+        // Bound placement candidates, while allowing a necessary producer anywhere in the catalog to compete.
+        foreach (var entry in authoredBuildDefinitions)
+        {
+            var definition = entry.definition;
             var facility = definition.behaviourKind;
-            if (FacilityData.IsSubCrystal(facility) || !AIBoardQuery.HasProductionInputs(board, definition.GetLevel(1))) continue;
-            var demand = board.ProductionDemand.EvaluateBuild(new AIAction
-                { ActionType = AIActionType.Build, Facility = facility, FacilityDefinition = definition });
-            if (board.GetBuildingCount(facility) >= GetMaxBuildingCount(facility) && !demand.ImprovesDeficit) continue;
             int count = 0;
             foreach (var position in SelectBuildPositions(facility, board))
             {
                 results.Add(new AIAction { ActionType = AIActionType.Build, Facility = facility, FacilityDefinition = definition,
                     TargetPos = new Vector3(position.x, position.y, position.z), APCost = definition.GetInfo().APCost });
-                generated++; if (++count == 2 || generated >= 32) break;
+                if (++count == 2) break;
             }
+        }
+    }
+
+    /// <summary>空き領地や新築資源がなくても、合法な既存生産施設の強化を検討する。</summary>
+    public static void GenerateUpgradeCandidates(AIBoardState board, List<AIAction> results)
+    {
+        if (board == null || results == null || board.EnemyResources == null) return;
+        board.Governor?.Evaluate(board);
+        if (upgradeBoard != board || upgradeGeneration != board.Generation)
+        {
+            upgradeBoard = board;
+            upgradeGeneration = board.Generation;
+            board.CollectOwnBuildings(upgradeBuildings);
+        }
+        foreach (var building in upgradeBuildings)
+        {
+            if (AITurnBudget.Expired) break;
+            if (building == null || !building.IsAlive || building.team != board.ActorTeam
+                || (building.type != Type.Building && building.type != Type.Wall)) continue;
+            int level = Mathf.Max(1, building.Level);
+            if (!FacilityData.CanUpgrade(board.EnemyResources, board.EnemyAP, building, level)) continue;
+            var next = FacilityData.GetLevel(building, level + 1);
+            var action = new AIAction
+            {
+                ActionType = AIActionType.Upgrade, Unit = building, TargetUnit = building,
+                Facility = building.facilityKind, FacilityDefinition = building.AuthoredFacility,
+                TargetPos = building.transform.position, APCost = next.UpgradeAP
+            };
+            // Decorative/stat-only upgrades are not supply paths. Tactical construction remains separate.
+            if (EconomyHelper.ImprovesProductionDemand(action, board)
+                || board.Governor?.BasicResources.IsFoundationAction(action) == true)
+                results.Add(action);
         }
     }
 

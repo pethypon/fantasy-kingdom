@@ -33,9 +33,13 @@ public sealed class StrategicEconomyForecast
     const int CitizenIndex = (int)ResourceKind.Citizen;
     readonly List<Status> buildings = new List<Status>(32);
     readonly List<FacilityData.FacilityLevelData> recipes = new List<FacilityData.FacilityLevelData>(32);
+    readonly List<Status> recipeActors = new List<Status>(32);
     readonly List<FacilityData.ProductionBundle> upkeeps = new List<FacilityData.ProductionBundle>(32);
     readonly double[] stock = new double[ResourceCount], produced = new double[ResourceCount], demanded = new double[ResourceCount];
     readonly double[] nominalDemand = new double[ResourceCount];
+    readonly double[] temporaryIncome = new double[ResourceCount];
+    readonly double[] probableProduction = new double[ResourceCount];
+    bool[] operatingRecipes = Array.Empty<bool>();
     readonly float[,] chainEdges = new float[ResourceCount, ResourceCount];
     AIBoardState preparedBoard;
     int generation = -1, reserveOverride, forecastOverride, citizenCapacity, warehouseBonus;
@@ -46,6 +50,11 @@ public sealed class StrategicEconomyForecast
     {
         public readonly float[] Initial = new float[ResourceCount], Production = new float[ResourceCount];
         public readonly float[] Mandatory = new float[ResourceCount], Projected = new float[ResourceCount];
+        public readonly float[] PermanentProduction = new float[ResourceCount], TemporaryIncome = new float[ResourceCount];
+        public readonly int[] ProducerCounts = new int[ResourceCount];
+        public readonly float[] PotentialProduction = new float[ResourceCount];
+        public readonly int[] PotentialSourceCounts = new int[ResourceCount];
+        public float NaturalCitizenGrowthPerTurn;
         public EconomyForecastResult Result;
     }
 
@@ -66,14 +75,14 @@ public sealed class StrategicEconomyForecast
     {
         if (board == null)
         {
-            preparedBoard = null; generation = -1; InvalidateDiagnosis(); recipes.Clear(); upkeeps.Clear();
+            preparedBoard = null; generation = -1; InvalidateDiagnosis(); recipes.Clear(); recipeActors.Clear(); upkeeps.Clear();
             citizenCapacity = FactionState.BaseCitizenCap; warehouseBonus = 0;
             Array.Clear(nominalDemand, 0, ResourceCount);
             return;
         }
         if (preparedBoard == board && generation == board.Generation) return;
         preparedBoard = board; generation = board.Generation;
-        InvalidateDiagnosis(); recipes.Clear(); upkeeps.Clear(); Array.Clear(nominalDemand, 0, ResourceCount);
+        InvalidateDiagnosis(); recipes.Clear(); recipeActors.Clear(); upkeeps.Clear(); Array.Clear(nominalDemand, 0, ResourceCount);
         citizenCapacity = FactionState.BaseCitizenCap; warehouseBonus = 0;
         board.CollectOwnBuildings(buildings);
         foreach (var actor in buildings)
@@ -86,12 +95,12 @@ public sealed class StrategicEconomyForecast
             if (kind == FacilityKind.Warehouse) warehouseBonus += recipe.SpecialValue;
             // Legacy special buildings bypass recipes; authored versions may produce or pay upkeep.
             if (special && actor.AuthoredFacility == null) continue;
-            recipes.Add(recipe); AddTo(nominalDemand, recipe.Maintenance);
-            if (recipe.HasProduction) AddTo(nominalDemand, recipe.Input);
+            recipes.Add(recipe); recipeActors.Add(actor); AddTo(nominalDemand, recipe.Maintenance);
+            if (recipe.HasProduction) AddTo(nominalDemand, recipe.Input, 1d / FacilityData.ProductionInterval(recipe));
         }
         foreach (var actor in board.AliveEnemyUnits)
         {
-            if (actor == null || !actor.IsAlive || actor.type != Type.Unit || actor.Level <= 5) continue;
+            if (actor == null || !actor.IsAlive || actor.type != Type.Unit) continue;
             var definition = actor.GrowthData ?? board.ResolveUnitDefinition(actor.kind);
             if (definition == null) continue;
             var upkeep = definition.GetUpkeep(actor.Level);
@@ -112,12 +121,13 @@ public sealed class StrategicEconomyForecast
     EconomyForecastResult Run(AIBoardState board, AIAction candidate, bool capture)
     {
         Read(board.EnemyResources, stock);
-        Array.Clear(produced, 0, ResourceCount); Array.Clear(demanded, 0, ResourceCount);
+        Array.Clear(produced, 0, ResourceCount); Array.Clear(demanded, 0, ResourceCount); Array.Clear(temporaryIncome, 0, ResourceCount); Array.Clear(probableProduction, 0, ResourceCount);
         var snapshot = capture ? new Snapshot() : null;
         if (capture) for (int i = 0; i < ResourceCount; i++) snapshot.Initial[i] = (float)stock[i];
         UnitData additionalUnit = null;
         FacilityData.FacilityLevelData additionalRecipe = default;
         bool hasRecipe = false;
+        int replacedRecipe = -1;
         int capacity = citizenCapacity, resourceBonus = warehouseBonus;
         if (candidate?.ActionType == AIActionType.Summon)
         {
@@ -136,6 +146,23 @@ public sealed class StrategicEconomyForecast
             bool special = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse || kind == FacilityKind.Warehouse || kind == FacilityKind.Barracks;
             hasRecipe = !special || candidate.FacilityDefinition != null;
         }
+        if (candidate?.ActionType == AIActionType.Upgrade)
+        {
+            var actor = candidate.Unit ?? candidate.TargetUnit;
+            if (actor != null && actor.IsAlive && actor.team == board.ActorTeam)
+            {
+                int currentLevel = Mathf.Max(1, actor.Level);
+                var previous = FacilityData.GetLevel(actor, currentLevel);
+                additionalRecipe = FacilityData.GetLevel(actor, currentLevel + 1);
+                AddTo(stock, BuildCost(additionalRecipe.UpgradeCost), -1);
+                replacedRecipe = recipeActors.IndexOf(actor);
+                var kind = actor.facilityKind;
+                if (kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse) capacity += additionalRecipe.SpecialValue - previous.SpecialValue;
+                if (kind == FacilityKind.Warehouse) resourceBonus += additionalRecipe.SpecialValue - previous.SpecialValue;
+                bool special = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse || kind == FacilityKind.Warehouse || kind == FacilityKind.Barracks;
+                hasRecipe = !special || actor.AuthoredFacility != null;
+            }
+        }
         int mandatoryMask = 0, inputMask = 0, firstMandatory = 0, firstInput = 0;
         for (int i = 0; i < ResourceCount; i++)
         {
@@ -146,29 +173,43 @@ public sealed class StrategicEconomyForecast
         bool stopped = false, firstStopped = false;
         double initialBread = stock[BreadIndex], minimumBread = initialBread;
         int turns = ForecastTurns, starvationCounter = board.NationStarvationCounter;
+        float naturalCitizenGrowth = 0;
         int starvationGrace = Mathf.Clamp(GameAuthoringRules.Active?.starvationGraceTurns ?? 10, 1, 100);
+        if (operatingRecipes.Length < recipes.Count) Array.Resize(ref operatingRecipes, Mathf.Max(32, recipes.Count));
         for (int t = 0; t < turns; t++)
         {
-            // Mirror EconomySystem's declining income, including its integer rounding.
-            if (board.EnemyCrystalHP > 0) AddCrystalIncome(board.NationTurnsAlive + t);
-            foreach (var recipe in recipes) Process(recipe, ref breadFail, ref upkeepFail, ref stopped, ref mandatoryMask, ref inputMask);
-            if (hasRecipe) Process(additionalRecipe, ref breadFail, ref upkeepFail, ref stopped, ref mandatoryMask, ref inputMask);
+            // Mandatory payments are resolved before any current-turn income, as in EconomySystem.
+            foreach (var upkeep in upkeeps) Pay(upkeep, ref breadFail, ref upkeepFail, ref mandatoryMask);
+            if (additionalUnit != null) Pay(additionalUnit.GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
+            for (int r = 0; r < recipes.Count; r++)
+                operatingRecipes[r] = PayMaintenance(r == replacedRecipe ? additionalRecipe : recipes[r],
+                    ref breadFail, ref upkeepFail, ref stopped, ref mandatoryMask);
+            bool additionalOperating = hasRecipe && replacedRecipe < 0 && PayMaintenance(additionalRecipe,
+                ref breadFail, ref upkeepFail, ref stopped, ref mandatoryMask);
+            int productionTurn = board.NationTurnsAlive + t;
+            // Crystal remains a separate unchanged income source.
+            if (board.EnemyCrystalHP > 0) AddCrystalIncome(productionTurn);
+            for (int r = 0; r < recipes.Count; r++)
+                if (operatingRecipes[r]) ProcessProduction(r == replacedRecipe ? additionalRecipe : recipes[r], productionTurn,
+                    ref breadFail, ref stopped, ref inputMask);
+            if (additionalOperating) ProcessProduction(additionalRecipe, productionTurn, ref breadFail, ref stopped, ref inputMask);
             if (stock[BreadIndex] > 0 && stock[CitizenIndex] < capacity)
             {
                 stock[BreadIndex]--; demanded[BreadIndex]++;
-                stock[CitizenIndex]++; produced[CitizenIndex]++;
+                stock[CitizenIndex]++; produced[CitizenIndex]++; naturalCitizenGrowth++;
             }
-            foreach (var upkeep in upkeeps) Pay(upkeep, ref breadFail, ref upkeepFail, ref mandatoryMask);
-            if (additionalUnit != null) Pay(additionalUnit.GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
-            double food = stock[CitizenIndex] * EconomySystem.CitizenBreadCost;
-            demanded[BreadIndex] += food;
-            if (stock[BreadIndex] < food)
+            if (stock[CitizenIndex] > 0)
             {
-                int fedCitizens = EconomySystem.CitizenBreadCost > 0 ? (int)(stock[BreadIndex] / EconomySystem.CitizenBreadCost) : (int)stock[CitizenIndex];
-                stock[BreadIndex] = 0; breadFail = true; mandatoryMask |= 1 << BreadIndex; starvationCounter++;
-                if (starvationCounter >= starvationGrace) stock[CitizenIndex] = fedCitizens;
+                double food = stock[CitizenIndex] * EconomySystem.CitizenBreadCost;
+                demanded[BreadIndex] += food;
+                if (stock[BreadIndex] < food)
+                {
+                    int fedCitizens = EconomySystem.CitizenBreadCost > 0 ? (int)(stock[BreadIndex] / EconomySystem.CitizenBreadCost) : (int)stock[CitizenIndex];
+                    stock[BreadIndex] = 0; breadFail = true; mandatoryMask |= 1 << BreadIndex; starvationCounter++;
+                    if (starvationCounter >= starvationGrace) stock[CitizenIndex] = fedCitizens;
+                }
+                else { stock[BreadIndex] -= food; starvationCounter = 0; }
             }
-            else { stock[BreadIndex] -= food; starvationCounter = 0; }
             if (resourceBonus > 0)
                 for (int i = 0; i < CitizenIndex; i++) stock[i] = Math.Min(stock[i], FactionState.BaseResourceCap + resourceBonus);
             minimumBread = Math.Min(minimumBread, stock[BreadIndex]);
@@ -189,29 +230,46 @@ public sealed class StrategicEconomyForecast
             for (int i = 0; i < ResourceCount; i++)
             {
                 snapshot.Production[i] = (float)(produced[i] / turns);
+                snapshot.PermanentProduction[i] = (float)((produced[i] - temporaryIncome[i]) / turns);
+                snapshot.PotentialProduction[i] = snapshot.PermanentProduction[i] + (float)(probableProduction[i] / turns);
+                snapshot.TemporaryIncome[i] = (float)temporaryIncome[i];
                 snapshot.Mandatory[i] = (float)(demanded[i] / turns);
                 snapshot.Projected[i] = (float)stock[i];
+                foreach (var recipe in recipes)
+                {
+                    if (AIBasicResourceEconomy.NetOutput(recipe, i) > AIEconomySettings.Active.Epsilon) snapshot.ProducerCounts[i]++;
+                    if (AIBasicResourceEconomy.ExpectedNetOutput(recipe, i) > AIEconomySettings.Active.Epsilon) snapshot.PotentialSourceCounts[i]++;
+                }
+                if (i == CitizenIndex && produced[i] > 0) { snapshot.ProducerCounts[i]++; snapshot.PotentialSourceCounts[i]++; }
             }
+            snapshot.NaturalCitizenGrowthPerTurn = naturalCitizenGrowth / turns;
             snapshot.Result = result; baseline = snapshot;
         }
         return result;
     }
 
-    void Process(FacilityData.FacilityLevelData recipe, ref bool breadFail, ref bool upkeepFail, ref bool stopped,
-        ref int mandatoryMask, ref int inputMask)
+    bool PayMaintenance(FacilityData.FacilityLevelData recipe, ref bool breadFail, ref bool upkeepFail,
+        ref bool stopped, ref int mandatoryMask)
     {
         AddTo(demanded, recipe.Maintenance);
-        // Stopped recipes retain their requested inputs so upstream shortages remain visible.
-        if (recipe.HasProduction) AddTo(demanded, recipe.Input);
         int maintenanceMissing = Missing(recipe.Maintenance);
         if (maintenanceMissing != 0)
         {
             mandatoryMask |= maintenanceMissing; upkeepFail = true;
             breadFail |= (maintenanceMissing & (1 << BreadIndex)) != 0;
-            stopped |= IsImportant(recipe); return;
+            stopped |= IsImportant(recipe);
+            return false;
         }
         AddTo(stock, recipe.Maintenance, -1);
-        if (!recipe.HasProduction) return;
+        return true;
+    }
+
+    void ProcessProduction(FacilityData.FacilityLevelData recipe, int turn, ref bool breadFail,
+        ref bool stopped, ref int inputMask)
+    {
+        if (!recipe.HasProduction || !FacilityData.IsProductionTurn(turn, recipe)) return;
+        // A due recipe retains requested inputs even when it cannot operate.
+        AddTo(demanded, recipe.Input);
         int inputMissing = Missing(recipe.Input);
         if (inputMissing != 0)
         {
@@ -223,6 +281,9 @@ public sealed class StrategicEconomyForecast
         // Only guaranteed bonuses may finance mandatory obligations.
         if (recipe.BonusChance1 >= 1) AddOutput(recipe.BonusOutput1);
         if (recipe.BonusChance2 >= 1) AddOutput(recipe.BonusOutput2);
+        // Expected uncertain supply identifies acquisition paths, never guaranteed funding.
+        if (recipe.BonusChance1 > 0 && recipe.BonusChance1 < 1) AddTo(probableProduction, recipe.BonusOutput1, recipe.BonusChance1);
+        if (recipe.BonusChance2 > 0 && recipe.BonusChance2 < 1) AddTo(probableProduction, recipe.BonusOutput2, recipe.BonusChance2);
     }
 
     bool IsImportant(FacilityData.FacilityLevelData recipe)
@@ -248,11 +309,12 @@ public sealed class StrategicEconomyForecast
     void AddCrystalIncome(int turn)
     {
         float decay = Mathf.Clamp01(1 - turn * .1f);
-        AddOutput(new FacilityData.ProductionBundle
+        var income = new FacilityData.ProductionBundle
         {
             Wood = Mathf.RoundToInt(20 * decay), Stone = Mathf.RoundToInt(20 * decay), Iron = Mathf.RoundToInt(5 * decay),
             Bread = Mathf.RoundToInt(10 * decay), Water = Mathf.RoundToInt(10 * decay)
-        });
+        };
+        AddOutput(income); AddTo(temporaryIncome, income);
     }
 
     public StrategicProductionDemand Diagnose(AIBoardState board, bool includeGrowthPlans = true)
@@ -309,7 +371,9 @@ public sealed class StrategicEconomyForecast
         var chainUrgency = new float[ResourceCount];
         int criticalChainMask = BuildChainRecovery(resources, criticalMask, chainCoverage, chainUrgency, out int foodChainMask);
         var diagnosis = new StrategicProductionDemand(resources, result.WithState(state), hasCritical, warning, criticalMask,
-            chainCoverage, chainUrgency, criticalChainMask, foodChainMask, turns, citizenCapacity, bottleneck, settings);
+            chainCoverage, chainUrgency, criticalChainMask, foodChainMask, turns, citizenCapacity, bottleneck, settings,
+            data.PermanentProduction, data.ProducerCounts, data.TemporaryIncome, data.PotentialProduction, data.PotentialSourceCounts,
+            data.NaturalCitizenGrowthPerTurn);
         if (includeGrowthPlans) growthDemand = diagnosis; else recoveryDemand = diagnosis;
         return diagnosis;
     }
@@ -317,7 +381,17 @@ public sealed class StrategicEconomyForecast
     void AddGrowthPlans(AIBoardState board, double[] planned, AIEconomySettings settings, int turns)
     {
         float weight = Mathf.Clamp01(settings.plannedDemandWeight);
-        AddTo(planned, settings.plannedBuildCost, weight * AIEconomySettings.NonNegative(settings.plannedBuildActions) / turns);
+        // Reserve one plausible economic project from its actual definition, rather than a fixed
+        // imaginary Wood/Stone bundle that diverges when designers edit the building catalog.
+        float best = float.PositiveInfinity;
+        FacilityData.ResourceCost nextCost = default;
+        foreach (var entry in FacilityData.Table)
+            ConsiderGrowthProject(entry.Value.BuildCost, FacilityData.GetLevel(entry.Key, 1), ref best, ref nextCost);
+        var catalog = FacilityAuthoringCatalog.Loaded;
+        if (catalog?.buildings != null) foreach (var facility in catalog.buildings)
+            if (facility != null && facility.IsAvailable(board.ActorTeam) && catalog.Find(facility.definitionId) == facility)
+                ConsiderGrowthProject(facility.GetInfo().BuildCost, facility.GetLevel(1), ref best, ref nextCost);
+        if (!float.IsInfinity(best)) AddTo(planned, BuildCost(nextCost), weight * AIEconomySettings.NonNegative(settings.plannedBuildActions) / turns);
         bool exploration = board.AlivePlayerUnits.Count == 0;
         var definition = board.ResolveUnitDefinition(exploration ? Kind.Scout : Kind.Knight);
         if (definition == null) return;
@@ -327,6 +401,26 @@ public sealed class StrategicEconomyForecast
         AddTo(planned, definition.GetUpkeep(Mathf.Clamp(settings.plannedUnitLevel, 1, 8)), summonWeight);
     }
 
+    void ConsiderGrowthProject(FacilityData.ResourceCost cost, FacilityData.FacilityLevelData recipe,
+        ref float best, ref FacilityData.ResourceCost selected)
+    {
+        if (!recipe.HasProduction || baseline == null) return;
+        float useful = 0, investment = 0;
+        var bundle = BuildCost(cost);
+        for (int i = 0; i < ResourceCount; i++)
+        {
+            float desired = baseline.Mandatory[i];
+            if (i == (int)ResourceKind.Wood || i == (int)ResourceKind.Stone || i == (int)ResourceKind.Water)
+                desired += 1; // A small persistent supply supports the next real economic action.
+            float deficit = Mathf.Max(0, desired - baseline.PermanentProduction[i]);
+            useful += Mathf.Min(deficit, Mathf.Max(0, AIBasicResourceEconomy.NetOutput(recipe, i)));
+            investment += Amount(bundle, i);
+        }
+        if (useful <= .001f) return;
+        float value = investment / useful;
+        if (value < best) { best = value; selected = cost; }
+    }
+
     int BuildChainRecovery(ResourceDemandState[] resources, int criticalMask, float[] coverage, float[] urgency, out int foodChainMask)
     {
         Array.Clear(chainEdges, 0, chainEdges.Length);
@@ -334,12 +428,12 @@ public sealed class StrategicEconomyForecast
         {
             for (int input = 0; input < ResourceCount; input++)
             {
-                float cost = Amount(recipe.Input, input) + Amount(recipe.Maintenance, input);
+                float cost = Amount(recipe.Input, input) / (float)FacilityData.ProductionInterval(recipe) + Amount(recipe.Maintenance, input);
                 if (cost <= 0 || resources[input].ProductionDeficit <= AIEconomySettings.Active.Epsilon) continue;
                 for (int output = 0; output < ResourceCount; output++)
                 {
                     if (input == output) continue;
-                    float gain = GuaranteedOutput(recipe, output) - Amount(recipe.Input, output) - Amount(recipe.Maintenance, output);
+                    float gain = AIBasicResourceEconomy.NetOutput(recipe, output);
                     if (gain > 0) chainEdges[input, output] = Mathf.Max(chainEdges[input, output], gain / cost);
                 }
             }
@@ -392,6 +486,8 @@ public sealed class StrategicEconomyForecast
     internal static float GuaranteedOutput(FacilityData.FacilityLevelData recipe, int resource) => Amount(recipe.Output, resource)
         + (recipe.BonusChance1 >= 1 ? Amount(recipe.BonusOutput1, resource) : 0)
         + (recipe.BonusChance2 >= 1 ? Amount(recipe.BonusOutput2, resource) : 0);
+    internal static float GuaranteedOutputPerTurn(FacilityData.FacilityLevelData recipe, int resource)
+        => GuaranteedOutput(recipe, resource) / FacilityData.ProductionInterval(recipe);
     static void AddTo(double[] values, FacilityData.ProductionBundle bundle, double multiplier = 1)
     { for (int i = 0; i < ResourceCount; i++) values[i] += Amount(bundle, i) * multiplier; }
     static FacilityData.ProductionBundle BuildCost(FacilityData.ResourceCost cost) => new FacilityData.ProductionBundle

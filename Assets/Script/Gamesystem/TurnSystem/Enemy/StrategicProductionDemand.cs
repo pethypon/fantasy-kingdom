@@ -71,18 +71,28 @@ public sealed class StrategicProductionDemand
     readonly int criticalMask, chainCriticalMask, foodChainMask;
     readonly int turns, citizenCapacity;
     readonly float storageBottleneck;
+    readonly float[] permanentProduction, temporaryIncome;
+    readonly int[] producerCounts;
+    readonly float[] potentialProduction;
+    readonly int[] potentialSourceCounts;
+    public float NaturalCitizenGrowthPerTurn { get; }
     readonly Dictionary<(FacilityKind, FacilityDefinitionData), ProductionBuildAssessment> assessments
         = new Dictionary<(FacilityKind, FacilityDefinitionData), ProductionBuildAssessment>();
 
     internal StrategicProductionDemand(ResourceDemandState[] resources, EconomyForecastResult forecast, bool critical,
         bool warning, int criticalResources, float[] chainCoverageByResource, float[] chainUrgencyByResource,
-        int criticalChainResources, int foodChainResources, int forecastTurns, int capacity, float bottleneck, AIEconomySettings policy)
+        int criticalChainResources, int foodChainResources, int forecastTurns, int capacity, float bottleneck, AIEconomySettings policy,
+        float[] permanentProductionByResource = null, int[] productionSources = null, float[] temporaryIncomeByResource = null,
+        float[] potentialProductionByResource = null, int[] potentialSources = null, float naturalCitizenGrowthPerTurn = 0)
     {
         Resources = resources; Forecast = forecast; HasCriticalDeficit = critical; HasWarningDeficit = warning;
         criticalMask = criticalResources; chainCriticalMask = criticalChainResources;
         foodChainMask = foodChainResources;
         chainCoverage = chainCoverageByResource; chainUrgency = chainUrgencyByResource;
         turns = forecastTurns; citizenCapacity = capacity; storageBottleneck = bottleneck; settings = policy;
+        permanentProduction = permanentProductionByResource; producerCounts = productionSources; temporaryIncome = temporaryIncomeByResource;
+        potentialProduction = potentialProductionByResource; potentialSourceCounts = potentialSources;
+        NaturalCitizenGrowthPerTurn = Mathf.Max(0, naturalCitizenGrowthPerTurn);
 
         var recommendations = new List<(FacilityKind kind, float score)>();
         foreach (var entry in FacilityData.Table)
@@ -106,6 +116,34 @@ public sealed class StrategicProductionDemand
         return index >= 0 && index < Resources.Length ? Resources[index] : default;
     }
 
+    public float PermanentProduction(ResourceKind resource)
+    {
+        int index = (int)resource;
+        return index >= 0 && permanentProduction != null && index < permanentProduction.Length ? permanentProduction[index] : Get(resource).ProductionPerTurn;
+    }
+    public int ProducerCount(ResourceKind resource)
+    {
+        int index = (int)resource;
+        return index >= 0 && producerCounts != null && index < producerCounts.Length ? producerCounts[index] : PermanentProduction(resource) > .001f ? 1 : 0;
+    }
+    public float TemporaryIncome(ResourceKind resource)
+    {
+        int index = (int)resource;
+        return index >= 0 && temporaryIncome != null && index < temporaryIncome.Length ? temporaryIncome[index] : 0;
+    }
+
+    /// <summary>Expected uncertain output identifies real acquisition paths, never guaranteed upkeep funding.</summary>
+    public float PotentialProduction(ResourceKind resource)
+    {
+        int index = (int)resource;
+        return index >= 0 && potentialProduction != null && index < potentialProduction.Length ? potentialProduction[index] : PermanentProduction(resource);
+    }
+    public int PotentialSourceCount(ResourceKind resource)
+    {
+        int index = (int)resource;
+        return index >= 0 && potentialSourceCounts != null && index < potentialSourceCounts.Length ? potentialSourceCounts[index] : ProducerCount(resource);
+    }
+
     public ProductionBuildAssessment EvaluateBuild(AIAction action)
     {
         if (action == null || action.ActionType != AIActionType.Build) return default;
@@ -119,12 +157,11 @@ public sealed class StrategicProductionDemand
         var assessment = EvaluateBuild(action);
         if (!assessment.ImprovesDeficit) return false;
         var recipe = action.FacilityDefinition != null ? action.FacilityDefinition.GetLevel(1) : FacilityData.GetLevel(action.Facility, 1);
-        if (StrategicEconomyForecast.GuaranteedOutput(recipe, (int)ResourceKind.Bread) > recipe.Input.Bread + recipe.Maintenance.Bread)
+        if (AIBasicResourceEconomy.NetOutput(recipe, (int)ResourceKind.Bread) > settings.Epsilon)
             return true;
         if (assessment.ChainRecoveryScore <= settings.Epsilon) return false;
         for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
-            if ((foodChainMask & (1 << i)) != 0 && StrategicEconomyForecast.GuaranteedOutput(recipe, i)
-                > StrategicEconomyForecast.Amount(recipe.Input, i) + StrategicEconomyForecast.Amount(recipe.Maintenance, i)) return true;
+            if ((foodChainMask & (1 << i)) != 0 && AIBasicResourceEconomy.NetOutput(recipe, i) > settings.Epsilon) return true;
         return false;
     }
 
@@ -143,7 +180,7 @@ public sealed class StrategicProductionDemand
         float operation = 1f;
         for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
         {
-            float input = StrategicEconomyForecast.Amount(recipe.Input, i);
+            float input = StrategicEconomyForecast.Amount(recipe.Input, i) / (float)FacilityData.ProductionInterval(recipe);
             float maintenance = StrategicEconomyForecast.Amount(recipe.Maintenance, i);
             if (input + maintenance <= settings.Epsilon) continue;
             var resource = Resources[i];
@@ -160,8 +197,8 @@ public sealed class StrategicProductionDemand
         for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
         {
             var resource = Resources[i];
-            float output = StrategicEconomyForecast.GuaranteedOutput(recipe, i) * operation;
-            float extra = output - StrategicEconomyForecast.Amount(recipe.Input, i) * operation
+            float output = StrategicEconomyForecast.GuaranteedOutputPerTurn(recipe, i) * operation;
+            float extra = output - StrategicEconomyForecast.Amount(recipe.Input, i) * operation / FacilityData.ProductionInterval(recipe)
                 - StrategicEconomyForecast.Amount(recipe.Maintenance, i);
             if (house && i == (int)ResourceKind.Citizen && recipe.SpecialValue > 0)
             {

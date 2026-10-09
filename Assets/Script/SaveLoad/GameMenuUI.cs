@@ -52,7 +52,9 @@ public class GameMenuUI : MonoBehaviour
     // Close only the topmost menu layer, preserving the user's place underneath.
     public void Back()
     {
-        if (GameManualUI.Instance != null && GameManualUI.Instance.IsOpen)
+        if (AIDiaryUI.IsOpen)
+            AIDiaryUI.Close();
+        else if (GameManualUI.Instance != null && GameManualUI.Instance.IsOpen)
             GameManualUI.Instance.Close();
         else if (slotPanel != null)
         {
@@ -90,6 +92,7 @@ public class GameMenuUI : MonoBehaviour
 
     public void Close()
     {
+        AIDiaryUI.Close();
         if (overlay != null) overlay.SetActive(false);
         if (slotPanel != null) { Destroy(slotPanel); slotPanel = null; }
         if (overlay != null) { Destroy(overlay); overlay = null; }
@@ -167,6 +170,9 @@ public class GameMenuUI : MonoBehaviour
         // 駒・ルール説明書
         var manualBtn = CreateBtn("駒・ルール説明書", btnArea.transform, BrandGuide.BtnUnit);
         manualBtn.onClick.AddListener(() => GameManualUI.ShowOrToggle());
+
+        var diaryBtn = CreateBtn("AI日記を見る", btnArea.transform, BrandGuide.BtnUnit);
+        diaryBtn.onClick.AddListener(() => AIDiaryUI.Show(turnGen));
 
         // セーブ
         var saveBtn = CreateBtn("セーブ", btnArea.transform, BrandGuide.BtnBuild);
@@ -332,7 +338,7 @@ public class GameMenuUI : MonoBehaviour
         go.transform.SetParent(parent, false);
 
         var le = go.AddComponent<LayoutElement>();
-        le.preferredHeight = 64;
+        le.preferredHeight = 52;
 
         var img = go.AddComponent<Image>();
         img.color = bgColor;

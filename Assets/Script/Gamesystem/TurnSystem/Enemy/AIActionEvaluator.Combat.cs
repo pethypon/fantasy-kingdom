@@ -24,6 +24,8 @@ public static partial class AIActionEvaluator
                 return AICombatEvaluator.CalcDefenseReposBaseScore(action, board);
             case AIActionType.Build:
                 return AIBuildEvaluator.CalcBuildBaseScore(action, board);
+            case AIActionType.Upgrade:
+                return CalcUpgradeBaseScore(action, board);
             case AIActionType.Summon:
                 return AIBuildEvaluator.CalcSummonBaseScore(action, board);
             case AIActionType.SubCrystal:

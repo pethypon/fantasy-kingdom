@@ -19,7 +19,6 @@ public static class AIStrategyBonus
         foreach (var action in actions)
         {
             action.Score += CalcBonus(action, strategy, board);
-            ApplyLateTurnBuildBoost(action, board);
         }
     }
 
@@ -100,66 +99,31 @@ public static class AIStrategyBonus
         return b;
     }
 
+    static bool IsSupplyImprovement(AIAction action, AIBoardState board)
+        => EconomyHelper.ImprovesProductionDemand(action, board)
+            || board.Governor?.BasicResources.IsFoundationAction(action) == true;
+
     static float EconomyBuildBonus(AIAction a, AIBoardState board)
     {
-        float b = 0f;
-        int coreCount = EconomyHelper.CalcCoreEconomyCount(board);
-
-        if (a.ActionType == AIActionType.Build)
-        {
-            b += 30f;
-            if (coreCount < 5)
-                b += EconomyHelper.IsMissingCoreFacility(a.Facility, board) ? 40f : -15f;
-            b += CalcChainDeficitBonus(a.Facility, board, 50f, 10f);
-        }
-        if (a.ActionType == AIActionType.SubCrystal) b += 15f;
+        if (a.ActionType == AIActionType.Build || a.ActionType == AIActionType.Upgrade)
+            return IsSupplyImprovement(a, board) ? 30f : 0;
         if (a.ActionType == AIActionType.Summon)
-        {
-            bool hasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
-            b += (coreCount >= 5 && hasBakery) ? 10f : -40f;
-        }
-        if (a.ActionType == AIActionType.Attack)   b -= 10f;
-        if (a.ActionType == AIActionType.Move)     b -= 8f;
-        if (a.ActionType == AIActionType.Surround) b -= 8f;
-        if (a.ActionType == AIActionType.Retreat)  b -= 5f;
-        return b;
+            return EconomyHelper.IsEconomySufficient(board) ? 10f : -25f;
+        if (a.ActionType == AIActionType.Attack) return AITacticalPriorities.HasLocalThreat(board) ? 5f : -10f;
+        if (a.ActionType == AIActionType.Retreat) return -5f;
+        return 0;
     }
 
     static float BalancedBonus(AIAction a, AIBoardState board)
     {
-        float b = 0f;
-        int coreEconCount = EconomyHelper.CalcCoreEconomyCount(board);
-        bool econEstablished = coreEconCount >= 5;
-
-        if (a.ActionType == AIActionType.Summon)
-        {
-            bool hasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
-            b += (econEstablished && hasBakery) ? 20f : -30f;
-        }
-        if (a.ActionType == AIActionType.Build)
-        {
-            if (!econEstablished)
-            {
-                b += 35f;
-                if (EconomyHelper.IsMissingCoreFacility(a.Facility, board)) b += 25f;
-                if (EconomyHelper.IsProcessingFacility(a.Facility) &&
-                    board.GetBuildingCount(a.Facility) == 0) b += 20f;
-            }
-            else
-            {
-                b += 8f;
-            }
-            b += CalcChainDeficitBonus(a.Facility, board, 35f, 8f);
-        }
-        if (a.ActionType == AIActionType.Attack)   b += 8f;
-        if (a.ActionType == AIActionType.SkillUse) b += 5f;
-        if (a.ActionType == AIActionType.Move)
-        {
-            float moveBonus = AIEvalHelpers.GetApproachToEnemy(a, board) * 3f;
-            if (!econEstablished) moveBonus *= 0.5f;
-            b += moveBonus;
-        }
-        return b;
+        bool sufficient = EconomyHelper.IsEconomySufficient(board);
+        if (a.ActionType == AIActionType.Summon) return sufficient ? 20f : -30f;
+        if (a.ActionType == AIActionType.Build || a.ActionType == AIActionType.Upgrade)
+            return IsSupplyImprovement(a, board) ? sufficient ? 8f : 25f : 0;
+        if (a.ActionType == AIActionType.Attack) return 8f;
+        if (a.ActionType == AIActionType.SkillUse) return 5f;
+        if (a.ActionType == AIActionType.Move) return AIEvalHelpers.GetApproachToEnemy(a, board) * 3f;
+        return 0;
     }
 
     static float ScoutSearchBonus(AIAction a, AIBoardState board)
@@ -176,11 +140,8 @@ public static class AIStrategyBonus
         }
         if (a.ActionType == AIActionType.Attack) b += 12f;
         if (a.ActionType == AIActionType.SkillUse && a.Skill != null && a.Skill.Multiplier > 0) b += 10f;
-        if (a.ActionType == AIActionType.Build)
-        {
-            int econCount = EconomyHelper.CalcCoreEconomyCount(board);
-            b += econCount < 5 ? 10f : -5f;
-        }
+        if (a.ActionType == AIActionType.Build || a.ActionType == AIActionType.Upgrade)
+            b += IsSupplyImprovement(a, board) ? 10f : -5f;
         if (a.ActionType == AIActionType.Wait) b -= 15f;
         return b;
     }
@@ -210,52 +171,9 @@ public static class AIStrategyBonus
         return b;
     }
 
-    // ================================================================
-    //  共通ヘルパー
-    // ================================================================
-
-    /// <summary>生産チェーン逆算ボーナス</summary>
-    static float CalcChainDeficitBonus(FacilityKind facility, AIBoardState board, float maxBonus, float decayPerRank)
-    {
-        var deficits = board.DiagnoseProductionChainDeficit();
-        for (int i = 0; i < deficits.Count; i++)
-        {
-            if (deficits[i] == facility)
-                return Mathf.Max(5f, maxBonus - i * decayPerRank);
-        }
-        return 0f;
-    }
-
-    /// <summary>30ターン以降の建築超優先ブースト</summary>
-    static void ApplyLateTurnBuildBoost(AIAction action, AIBoardState board)
-    {
-        if (board.TurnCount < AIConstants.TurnLateBuildBoost) return;
-
-        int coreEcon = EconomyHelper.CalcCoreEconomyCount(board);
-        bool econWeak = coreEcon < 5;
-
-        if (econWeak)
-        {
-            if (action.ActionType == AIActionType.Build) action.Score += 100f;
-            if (action.ActionType == AIActionType.SubCrystal) action.Score += 60f;
-            if (action.ActionType == AIActionType.Move
-                || action.ActionType == AIActionType.Support
-                || action.ActionType == AIActionType.Surround) action.Score -= 50f;
-            if (action.ActionType == AIActionType.Wait) action.Score -= 100f;
-        }
-        else
-        {
-            int proc = EconomyHelper.CountProcessingBuildings(board);
-            if (proc < 3 && action.ActionType == AIActionType.Build)
-                action.Score += 50f;
-        }
-    }
 }
 
-// =====================================================================
-//  AIEvalHelpers — 評価用共通ヘルパー
-//  AIActionEvaluator と AIStrategyBonus の両方から使用
-// =====================================================================
+// Shared tactical helpers retained for all existing evaluators.
 public static class AIEvalHelpers
 {
     public static float GetApproachToEnemy(AIAction action, AIBoardState board)

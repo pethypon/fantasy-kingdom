@@ -52,6 +52,8 @@ public static partial class SaveSystem
                     if (unit.HP > 0) unit.HP = Mathf.Min(unit.MaxHP, unit.HP + 5000);
                 }
         }
+        if (from <= 3 && to >= 4) Migrate_V3_to_V4(data);
+        if (from <= 4 && to >= 5) Migrate_V4_to_V5(data);
         data.Version = to;
         Debug.Log($"[SaveSystem] マイグレーション完了 → v{to}");
         return data;
@@ -69,6 +71,23 @@ public static partial class SaveSystem
     //      null にならないようデフォルト値を注入
     //    - 敵パンデータ（v0 時代は無かった）を 0 として復元
     // ================================================================
+    static void Migrate_V3_to_V4(GameSaveData data)
+    {
+        // Old saves have no AI action history; do not invent experience or rewards.
+        if (data.AI == null) data.AI = new AISaveData();
+        if (data.PlayerNationExtra == null) data.PlayerNationExtra = new NationExtraSaveData();
+        if (data.EnemyNationExtra == null) data.EnemyNationExtra = new NationExtraSaveData();
+        int completedRounds = Mathf.Max(0, data.Turn - 1);
+        data.PlayerNationExtra.TurnsAlive = completedRounds;
+        data.EnemyNationExtra.TurnsAlive = completedRounds;
+    }
+
+    static void Migrate_V4_to_V5(GameSaveData data)
+    {
+        // Old saves start with no exploration history. Preserve explicit nation phases and reflection.
+        if (data.AI == null) data.AI = new AISaveData();
+    }
+
     static void Migrate_V0_to_V1(GameSaveData data)
     {
         if (data.Timer == null) data.Timer = new TimerSaveData();

@@ -6,10 +6,19 @@ using UnityEngine.UI;
 public class GameEndState : TurnState
 {
     private GameResult _result;
+    public string OutcomeReason { get; }
 
-    public GameEndState(TurnGenerator turn, GameResult result) : base(turn)
+    public GameEndState(TurnGenerator turn, GameResult result, Status decisiveTarget = null) : base(turn)
     {
         _result = result;
+        // Snapshot the reason before a dead actor is destroyed or its pooled instance is reused.
+        if (result == GameResult.Win || result == GameResult.Lose)
+            OutcomeReason = (result == GameResult.Win ? "勝利理由：" : "敗北理由：")
+                + MatchObjectiveRules.DefeatReason(result, decisiveTarget);
+        else
+        {
+            OutcomeReason = MatchObjectiveRules.TimeUpReason(result, turn != null ? turn.Systems : null);
+        }
     }
 
     public override void Entry()
@@ -28,6 +37,16 @@ public class GameEndState : TurnState
 
         Systems.MoveGenerator.MoveReset();
         Systems.AttackGenerator.AtkpDestroy();
+
+        bool playerWon = _result == GameResult.Win || _result == GameResult.TimeUpWin;
+        if (_result == GameResult.TimeUpDraw) Systems.AICommander?.NotifyDrawBattleEnd();
+        else Systems.AICommander?.NotifyBattleEnd(!playerWon);
+        Systems.AICommander?.EndExplorationTurn();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_result == GameResult.TimeUpDraw) Turn.PlayerAI?.Commander?.NotifyDrawBattleEnd();
+        else Turn.PlayerAI?.Commander?.NotifyBattleEnd(playerWon);
+        Turn.PlayerAI?.Commander?.EndExplorationTurn();
+#endif
 
         UpdateThreatLevel();
 
@@ -56,7 +75,7 @@ public class GameEndState : TurnState
             SaveSystem.RecordLoss();
             Debug.Log("[GameEnd] 敗北 → 脅威度据え置き");
         }
-        Systems.AICommander?.RecordMatchResult(isWin,
+        if (isWin || isLose) Systems.AICommander?.RecordMatchResult(isWin,
             new MatchAnalysis { TurnsPlayed = Context.Turn, PrimaryFailure = FailureReason.Unknown });
     }
 
@@ -102,7 +121,7 @@ public class GameEndState : TurnState
         var titleGo = new GameObject("ResultTitle", typeof(RectTransform));
         titleGo.transform.SetParent(panel.transform, false);
         var titleRT = titleGo.GetComponent<RectTransform>();
-        titleRT.anchorMin = new Vector2(0, 0.55f);
+        titleRT.anchorMin = new Vector2(0, 0.76f);
         titleRT.anchorMax = new Vector2(1, 0.95f);
         titleRT.offsetMin = new Vector2(20, 0);
         titleRT.offsetMax = new Vector2(-20, 0);
@@ -112,13 +131,27 @@ public class GameEndState : TurnState
         titleTMP.alignment = TextAlignmentOptions.Center;
         titleTMP.color = resultColor;
 
+        var reason = UIFactory.CreateTMP("OutcomeReasonText", panel.transform, OutcomeReason, 28, UIFactory.LoadDefaultFont());
+        reason.rectTransform.anchorMin = new Vector2(0, .59f);
+        reason.rectTransform.anchorMax = new Vector2(1, .75f);
+        reason.rectTransform.offsetMin = new Vector2(28, 0);
+        reason.rectTransform.offsetMax = new Vector2(-28, 0);
+        reason.fontStyle = FontStyles.Bold;
+        reason.color = new Color(1f, .87f, .63f);
+        reason.enableAutoSizing = true;
+        reason.fontSizeMin = 20;
+        reason.fontSizeMax = 28;
+        reason.textWrappingMode = TextWrappingModes.Normal;
+        reason.alignment = TextAlignmentOptions.Center;
+        reason.raycastTarget = false;
+
         // 詳細テキスト
         string detailText = GetDetailText();
         var detailGo = new GameObject("ResultDetail", typeof(RectTransform));
         detailGo.transform.SetParent(panel.transform, false);
         var detailRT = detailGo.GetComponent<RectTransform>();
-        detailRT.anchorMin = new Vector2(0, 0.30f);
-        detailRT.anchorMax = new Vector2(1, 0.55f);
+        detailRT.anchorMin = new Vector2(0, 0.36f);
+        detailRT.anchorMax = new Vector2(1, 0.58f);
         detailRT.offsetMin = new Vector2(20, 0);
         detailRT.offsetMax = new Vector2(-20, 0);
         var detailTMP = detailGo.AddComponent<TextMeshProUGUI>();
@@ -132,7 +165,7 @@ public class GameEndState : TurnState
         var threatGo = new GameObject("ThreatText", typeof(RectTransform));
         threatGo.transform.SetParent(panel.transform, false);
         var threatRT = threatGo.GetComponent<RectTransform>();
-        threatRT.anchorMin = new Vector2(0, 0.25f);
+        threatRT.anchorMin = new Vector2(0, 0.29f);
         threatRT.anchorMax = new Vector2(1, 0.35f);
         threatRT.offsetMin = new Vector2(20, 0);
         threatRT.offsetMax = new Vector2(-20, 0);
@@ -161,6 +194,11 @@ public class GameEndState : TurnState
             GameMenuUI.ReturnToTitle = true;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         });
+
+        // 終了ボタン
+        var diaryButton = CreateEndButton(panel.transform, "AI日記を見る",
+            new Vector2(.3f, .225f), new Vector2(.7f, .285f), BrandGuide.BtnUnit);
+        diaryButton.GetComponent<Button>().onClick.AddListener(() => AIDiaryUI.Show(Turn));
 
         // 終了ボタン
         var quitGo = new GameObject("QuitButton", typeof(RectTransform));
@@ -261,22 +299,10 @@ public class GameEndState : TurnState
 
     private string GetDetailText()
     {
-        string outcome;
-        switch (_result)
-        {
-            case GameResult.Win:        outcome = "敵のクリスタルまたは王を破壊しました"; break;
-            case GameResult.Lose:       outcome = "自軍のクリスタルまたは王が破壊されました"; break;
-            case GameResult.TimeUpWin:  outcome = "持ち時間終了 - クリスタルHP優勢で勝利"; break;
-            case GameResult.TimeUpLose: outcome = "持ち時間終了 - クリスタルHP劣勢で敗北"; break;
-            case GameResult.TimeUpDraw: outcome = "持ち時間終了 - 引き分け"; break;
-            default:                    outcome = ""; break;
-        }
-
         var m = MatchStats.Instance;
-        if (m == null) return outcome;
+        if (m == null) return "";
 
-        return outcome + "\n\n"
-            + $"<size=16>ターン数: {m.TurnsPlayed}  /  討伐: <color=#8FDFB0>{m.PlayerKills}</color>  敗北駒: <color=#E08080>{m.PlayerLosses}</color>\n"
+        return $"<size=16>ターン数: {m.TurnsPlayed}  /  討伐: <color=#8FDFB0>{m.PlayerKills}</color>  敗北駒: <color=#E08080>{m.PlayerLosses}</color>\n"
             + $"与ダメ: {m.PlayerDamageDealt}  被ダメ: {m.PlayerDamageTaken}  獲得XP: {m.PlayerXPGained}\n"
             + $"召喚: {m.PlayerSummons}  建築: {m.PlayerBuildings}  スキル使用: {m.PlayerSkillsUsed}\n"
             + $"ダンジョン制圧: {m.DungeonsClaimed}  強敵ダメージ: {m.WildBossDamage}</size>";

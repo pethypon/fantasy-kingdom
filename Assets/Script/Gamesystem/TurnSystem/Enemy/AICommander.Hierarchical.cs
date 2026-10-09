@@ -56,7 +56,8 @@ public partial class AICommander
                 continue;
             }
 
-            bool success = _actionExecutor.Execute(action, _board);
+            RememberSelectionScores(action, action.Score + LearnedModifier(action));
+            bool success = ExecuteReflectedAction(action);
             if (success)
             {
                 executed++;

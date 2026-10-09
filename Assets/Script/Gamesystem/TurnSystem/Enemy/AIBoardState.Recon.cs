@@ -25,6 +25,10 @@ public partial class AIBoardState
     AIBeliefMap belief;
     public AIBeliefMap Belief => belief ?? (belief = new AIBeliefMap(this));
     AIReconnaissance reconnaissance;
+    AIExplorationPlanner standaloneExploration;
+    /// <summary>Governor-owned objectives survive transient boards; isolated callers keep a local planner.</summary>
+    public AIExplorationPlanner Exploration => Governor != null ? Governor.Exploration
+        : standaloneExploration ?? (standaloneExploration = new AIExplorationPlanner());
     AIOutpostPlanner outposts;
     public AIOutpostPlanner Outposts => outposts ?? (outposts = new AIOutpostPlanner(this));
     public bool ExpansionCommitted { get; set; }

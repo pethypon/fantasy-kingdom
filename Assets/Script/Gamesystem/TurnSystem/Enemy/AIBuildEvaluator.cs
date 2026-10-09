@@ -48,6 +48,10 @@ static class AIBuildEvaluator
         {
             float phase = assessment.ImprovesDeficit ? ProductionPhaseScore(facility, turn) : 0f;
             score += assessment.FinalScore + phase;
+            // The reserve/plan policy also values real probabilistic and capacity supply paths.
+            // Guaranteed-upkeep forecasting cannot label those useful investments as surplus.
+            if (!assessment.ImprovesDeficit && board.Governor?.BasicResources.IsFoundationAction(action) == true)
+                score += assessment.OverstockPenalty;
             if (AIEconomySettings.Active.enableDecisionLogs)
                 DevelopmentLog.Log($"[AI経済建築] {facility} need={assessment.NeedScore:F1} " +
                     $"chain={assessment.ChainRecoveryScore:F1} reserve={assessment.ReserveRecoveryScore:F1} " +
@@ -166,23 +170,16 @@ static class AIBuildEvaluator
     {
         float score = 30f;
 
-        int rawCount = AIActionEvaluator.CalcRawFacilityCount(board);
-        int procCount = AIActionEvaluator.CalcProcessingFacilityCount(board);
-        float infraScore = rawCount + procCount * 2f;
         bool contact = board.Recon.TryGetContactTarget(out _);
         bool combatRecruit = action.SummonKind != Kind.Scout && action.SummonKind != Kind.Priest;
-
-        bool hasBakery = board.GetBuildingCount(FacilityKind.Bakery) > 0;
+        var demand = board.ProductionDemand;
+        bool foundationWeak = AIBasicResourceSettings.Active.enabled && board.Governor?.BasicResources.HasShortage == true;
         if (contact && combatRecruit)
             score += 45f; // Contact must not leave recruitment locked behind a mature economy.
-        else if (infraScore < 3f)
+        else if (demand.State >= EconomicState.Crisis)
             score -= 120f;
-        else if (infraScore < 5f)
+        else if (foundationWeak || !EconomyHelper.IsEconomySufficient(board))
             score -= 60f;
-        else if (!hasBakery)
-            score -= 40f;
-        else if (infraScore < 7f)
-            score += 0f;
         else
             score += 20f;
 

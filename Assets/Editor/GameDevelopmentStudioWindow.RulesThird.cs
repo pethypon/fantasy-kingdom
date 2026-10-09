@@ -20,6 +20,7 @@ public sealed partial class GameDevelopmentStudioWindow
         EditorGUILayout.LabelField("毎ターンのAP", "初期AP ＋ 市民による増加 − ペナルティ（AP上限まで）", EditorStyles.wordWrappedMiniLabel);
         Heading("維持・経済");Fields(so,"breadPerCitizen","starvationGraceTurns","aiBreadReserveTurns");
         DrawAIEconomyPolicy(so.FindProperty("aiEconomy"));
+        DrawBuildingProductionBalance(so.FindProperty("buildingProduction"));
         Heading("新規マップ");Fields(so,"mapWidth","mapDepth","noiseScale","riverHalfWidth");
         Heading("陣営の名前・色・初期状態");
         var factions=so.FindProperty("factions");
@@ -53,14 +54,31 @@ public sealed partial class GameDevelopmentStudioWindow
         EditorGUILayout.HelpBox("AIは資源ごとの生産量・維持費・将来の需要から増設を判断します。経済危機では通常の軍事建築を控え、視認した重大な脅威への緊急防衛を優先します。判断ログは必要な時だけ有効にすると軽く動作します。", MessageType.Info);
         EditorGUI.indentLevel++;
         foreach (var name in new[] {
-            "enableDecisionLogs", "forecastTurns", "reserveTurns", "recoveryWindowTurns",
+            "enableDecisionLogs", "forecastTurns", "reserveTurns", "recoveryWindowTurns", "breadCoverageMarginTurns",
             "plannedDemandWeight", "plannedUnitLevel", "plannedBuildActions", "plannedSummonActions", "explorationSummonWeight",
             "needWeight", "coverageWeight", "chainRecoveryWeight", "reserveRecoveryWeight", "overstockPenalty",
             "warningMilitaryPenalty", "localMilitarySaturationPenalty", "uncoveredWallThreatPenalty",
             "emergencyKingDamageFraction", "emergencyCrystalDamageFraction", "criticalReserveFraction",
             "sustainedDeficitUrgency", "deficitEpsilon" }) Field(policy.FindPropertyRelative(name));
         DrawBundle(policy.FindPropertyRelative("minimumOperationalBuffer"), "資源ごとの最低予備量");
-        DrawBundle(policy.FindPropertyRelative("plannedBuildCost"), "次の建築で消費すると見込む資源");
+        EditorGUILayout.LabelField("建築予定の費用", "Unityで設定した建物・強化の実際の費用を使用します。", EditorStyles.wordWrappedMiniLabel);
+        DrawBasicResourcePolicy(policy.FindPropertyRelative("basicResources"));
+        EditorGUI.indentLevel--;
+    }
+
+    static void DrawBasicResourcePolicy(SerializedProperty policy)
+    {
+        if (policy == null) return;
+        policy.isExpanded = EditorGUILayout.Foldout(policy.isExpanded, "資源基盤を整える経済AI（全資源）", true);
+        if (!policy.isExpanded) return;
+        EditorGUILayout.HelpBox("一時的なクリスタル収入と恒常生産を区別し、実際の計画費用から不足資源を判断します。建設・強化で供給を増やし、緊急防衛では備蓄を使えます。回復開始と解除の充足率を分けることで、判断の頻繁な切り替えを抑えます。", MessageType.Info);
+        EditorGUI.indentLevel++;
+        foreach (var name in new[] { "enabled", "criticalCoverage", "recoveryCoverage", "stableCoverage", "surplusCoverage",
+            "stableTurns", "minimumRecoveryTurns", "switchPressureRatio", "planWeight", "reserveCostFraction",
+            "foundationReserveFraction", "paybackWindowTurns", "deficitWeight", "blockedPlanWeight", "incomeGapWeight",
+            "zeroProducerWeight", "openingWeight", "surplusPenaltyWeight", "constructionPressureWeight", "recoverySpendPenalty" })
+            Field(policy.FindPropertyRelative(name));
+        DrawBundle(policy.FindPropertyRelative("minimumReserve"), "各資源の最低備蓄量");
         EditorGUI.indentLevel--;
     }
 

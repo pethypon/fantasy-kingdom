@@ -95,6 +95,7 @@ public class TurnGenerator : MonoBehaviour
 
     public void Awake()
     {
+        Systems.TurnGenerator = this;
         gameaction = new GameAction();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         _playerAI = new DeveloperPlayerAIController(this);

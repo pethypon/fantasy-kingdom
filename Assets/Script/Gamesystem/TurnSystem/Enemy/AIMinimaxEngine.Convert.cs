@@ -65,6 +65,11 @@ public partial class AIMinimaxEngine
                 sim.Type = SimActionType.Wait;
                 return sim;
 
+            case AIActionType.Upgrade:
+                // The governor forecasts the real level recipe and transaction. The tactical simulation
+                // does not contain facility levels, so retain that score without inventing an outcome.
+                return null;
+
             default:
                 return null;
         }

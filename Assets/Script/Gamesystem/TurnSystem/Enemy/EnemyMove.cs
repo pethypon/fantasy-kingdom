@@ -71,6 +71,8 @@ public class EnemyMove : TurnState
         catch (System.Exception e) { Debug.LogException(e); }
         finally
         {
+            Systems.AICommander?.EndReflectionTurn();
+            Systems.AICommander?.EndExplorationTurn();
             // Never leave an inert, finished EnemyMove installed after an end-of-turn error.
             if (!Turn.IsGameOver && Turn.CurrentState == this)
                 Turn.ChangeState(new IndependentFactionState(Turn));

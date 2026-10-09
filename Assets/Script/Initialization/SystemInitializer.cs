@@ -76,7 +76,7 @@ public static class SystemInitializer
         // ---- DungeonSystem ----
         dungeonSystem = EnsureComponent(owner, dungeonSystem);
         dungeonSystem.Init(mapCreate, crystalSystem, territorySystem,
-                           factionState, unitSetting, buildSystem);
+                           factionState, unitSetting, buildSystem, turnGen);
         dungeonSystem.GenerateDungeons();
         turnGen.Systems.DungeonSystem = dungeonSystem;
 

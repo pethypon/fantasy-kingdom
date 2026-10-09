@@ -31,7 +31,7 @@ public static class UnitStaticData
         public int CostCitizen;
         public int CostAP;
 
-        // 維持費（Lv5まで無料。Lv6〜発生。Lv15ごとに全項目+1）
+        // 追加維持費（Lv1から。標準の鉄・パンは UnitData.GetUpkeep で一元計算）
         public int UpkeepWood;
         public int UpkeepStone;
         public int UpkeepIron;
@@ -39,7 +39,7 @@ public static class UnitStaticData
         public int UpkeepWater;
         public int UpkeepBread;
 
-        // 維持費でLv15ごとに魔法鉱石が増えるか（false = 魔法鉱石は固定）
+        // 維持費でLv10ごとに魔法鉱石が増えるか（false = 魔法鉱石は固定）
         public bool UpkeepMagicScales;
 
         // 表示名
@@ -146,7 +146,7 @@ public static class UnitStaticData
             AtkGrowth = 0.05f, HpGrowth = 0.35f, DefGrowth = 0.10f,
             CostStone = 50, CostMagicOre = 30, CostWater = 50, CostAP = 10,
             UpkeepStone = 3, UpkeepMagicOre = 1,
-            UpkeepMagicScales = false, // Lv15ごとに石+1のみ（魔法鉱石は固定）
+            UpkeepMagicScales = false, // Lv10ごとに石維持費を増加（魔法鉱石は固定）
         };
 
         // ---- 28式クロスボウ（Crossbow） ----

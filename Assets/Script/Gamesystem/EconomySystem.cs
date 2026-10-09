@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -11,6 +12,8 @@ public class EconomySystem : MonoBehaviour
     private FactionState factionState;
     private UnitSetting unitSetting;
     private CrystalSystem crystalSystem;
+    readonly List<Status> buildingActors = new List<Status>(32);
+    readonly List<FacilityData.FacilityLevelData> buildingRecipes = new List<FacilityData.FacilityLevelData>(32);
 
     /// <summary> 市民1人あたりのパン消費量/ターン </summary>
     public const int BreadPerCitizen = 1;
@@ -30,8 +33,8 @@ public class EconomySystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 指定チームの全建築物を走査し、生産・維持費・特殊効果を処理する。
-    /// その後ユニット維持費・市民パン消費を行い、市民APボーナスを FactionState に反映する。
+    /// 前払い維持費 → クリスタル収入と建物生産 → 市民成長・食料の順。
+    /// 当ターンの生産物で、すでに失敗した維持費の支払いを帳消しにしない。
     /// </summary>
     public void ProcessTurn(Team team)
     {
@@ -41,16 +44,16 @@ public class EconomySystem : MonoBehaviour
 
         Debug.Log($"[EconomySystem] === {team} ターン経済処理開始 === パン={res.Bread} 市民={res.Citizen}");
 
-        // ---- 0. クリスタル基本収入（クリスタルが生存していれば毎ターン供給） ----
-        ProcessCrystalIncome(team, res);
-
-        // ---- 1. 建築物の生産・維持費・特殊効果 ----
-        ProcessBuildings(team, res);
-
-        // ---- 2. ユニット維持費（Lv6以上） ----
+        // ---- 1. 前払い維持費（当ターンの生産より先に確定） ----
         ProcessUnitMaintenance(team, res);
+        PrepareBuildings(team, res);
 
-        // ---- 3. 市民パン消費（全市民が毎ターンパンを食べる） ----
+        // ---- 2. クリスタル収入・建物の周期生産 ----
+        ProcessCrystalIncome(team, res);
+        ProcessBuildingProduction(team, res);
+
+        // ---- 3. 市民成長・パン消費 ----
+        ProcessCitizenGrowth(team, res);
         ProcessCitizenBread(team, res);
 
         // ---- 4. 市民APボーナスを FactionState に反映 ----
@@ -115,118 +118,62 @@ public class EconomySystem : MonoBehaviour
     // ==================================================================
     //  1. 建築物の生産・維持費・特殊効果
     // ==================================================================
-    private void ProcessBuildings(Team team, FactionState.ResourceData res)
+    private void PrepareBuildings(Team team, FactionState.ResourceData res)
     {
-        Transform buildingParent = buildSystem.GetBuildingParent(team);
-        if (buildingParent == null) return;
-
-        int producedCount = 0;
-        int skippedCount = 0;
-        int maintenanceCount = 0;
-        int totalCitizenCap = 0;
-        int totalResourceCap = 0;
-        int totalBarracksXP = 0;
-
-        foreach (Transform child in buildingParent)
+        buildingActors.Clear(); buildingRecipes.Clear();
+        int citizenCapacity = 0, resourceCapacity = 0, barracksXP = 0;
+        Transform parent = buildSystem.GetBuildingParent(team);
+        if (parent != null) foreach (Transform child in parent)
         {
-            var status = child.GetComponent<Status>();
-            if (status == null) continue;
-            if (status.HP <= 0) continue;
-
-            status.BuildingOperationAvailable = true;
-
-            var facility = status.facilityKind;
-            int level = Mathf.Max(1, status.Level);
-            var levelData = FacilityData.GetLevel(status, level);
-
-            // ---- 特殊効果の集計 ----
-            if (facility == FacilityKind.Barracks)
+            var actor = child.GetComponent<Status>();
+            if (actor == null || !actor.IsAlive) continue;
+            var recipe = FacilityData.GetLevel(actor, actor.Level);
+            var kind = actor.facilityKind;
+            if (kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse) citizenCapacity += recipe.SpecialValue;
+            if (kind == FacilityKind.Warehouse) resourceCapacity += recipe.SpecialValue;
+            if (kind == FacilityKind.Barracks) barracksXP += recipe.SpecialValue;
+            actor.BuildingOperationAvailable = true;
+            bool special = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse
+                || kind == FacilityKind.Warehouse || kind == FacilityKind.Barracks;
+            if (special && actor.AuthoredFacility == null) continue;
+            if (!FacilityData.CanAffordProduction(res, recipe.Maintenance))
             {
-                totalBarracksXP += levelData.SpecialValue;
-                if (status.AuthoredFacility == null) continue;
+                actor.BuildingOperationAvailable = false;
+                Debug.Log($"[EconomySystem] {FacilityData.DisplayName(actor)} Lv{actor.Level}: 維持費不足");
             }
-            if (facility == FacilityKind.House || facility == FacilityKind.LuxuryHouse)
-            {
-                totalCitizenCap += levelData.SpecialValue;
-                if (status.AuthoredFacility == null) continue;
-            }
-            if (facility == FacilityKind.Warehouse)
-            {
-                totalResourceCap += levelData.SpecialValue;
-                if (status.AuthoredFacility == null) continue;
-            }
-
-            // ---- 維持費処理（攻撃型建築物など） ----
-            if (!levelData.Maintenance.IsEmpty)
-            {
-                if (FacilityData.CanAffordProduction(res, levelData.Maintenance))
-                {
-                    FacilityData.ConsumeProduction(res, levelData.Maintenance);
-                    maintenanceCount++;
-                }
-                else
-                {
-                    Debug.Log($"[EconomySystem] {FacilityData.Table[facility].DisplayName} Lv{level}: 維持費不足");
-                    skippedCount++;
-                    status.BuildingOperationAvailable = false;
-                    continue;
-                }
-            }
-
-            // ---- 生産処理 ----
-            if (!levelData.HasProduction) continue;
-
-            if (!levelData.Input.IsEmpty &&
-                !FacilityData.CanAffordProduction(res, levelData.Input))
-            {
-                skippedCount++;
-                continue;
-            }
-
-            if (!levelData.Input.IsEmpty)
-                FacilityData.ConsumeProduction(res, levelData.Input);
-
-            if (!levelData.Output.IsEmpty)
-                FacilityData.AddProduction(res, levelData.Output);
-
-            if (levelData.BonusChance1 > 0 && Random.value < levelData.BonusChance1)
-                FacilityData.AddProduction(res, levelData.BonusOutput1);
-
-            if (levelData.BonusChance2 > 0 && Random.value < levelData.BonusChance2)
-                FacilityData.AddProduction(res, levelData.BonusOutput2);
-
-            producedCount++;
+            else FacilityData.ConsumeProduction(res, recipe.Maintenance);
+            buildingActors.Add(actor); buildingRecipes.Add(recipe);
         }
+        var nation = factionState.GetNation(team);
+        nation.CitizenCapacity = citizenCapacity; nation.ResourceCapacity = resourceCapacity; nation.BarracksXP = barracksXP;
+    }
 
-        // ---- 容量を FactionState に反映 ----
-        if (team == Team.Player)
+    private void ProcessBuildingProduction(Team team, FactionState.ResourceData res)
+    {
+        int turn = factionState.GetNation(team).TurnsAlive;
+        for (int i = 0; i < buildingActors.Count; i++)
         {
-            factionState.PlayerCitizenCapacity = totalCitizenCap;
-            factionState.PlayerResourceCapacity = totalResourceCap;
-            factionState.PlayerBarracksXP = totalBarracksXP;
+            var actor = buildingActors[i]; var recipe = buildingRecipes[i];
+            if (actor == null || !actor.IsAlive || !actor.BuildingOperationAvailable || !recipe.HasProduction
+                || !FacilityData.IsProductionTurn(turn, recipe)) continue;
+            if (!FacilityData.CanAffordProduction(res, recipe.Input)) continue;
+            FacilityData.ConsumeProduction(res, recipe.Input);
+            FacilityData.AddProduction(res, recipe.Output);
+            if (recipe.BonusChance1 > 0 && Random.value < recipe.BonusChance1)
+                FacilityData.AddProduction(res, recipe.BonusOutput1);
+            if (recipe.BonusChance2 > 0 && Random.value < recipe.BonusChance2)
+                FacilityData.AddProduction(res, recipe.BonusOutput2);
         }
-        else
-        {
-            factionState.EnemyCitizenCapacity = totalCitizenCap;
-            factionState.EnemyResourceCapacity = totalResourceCap;
-            factionState.EnemyBarracksXP = totalBarracksXP;
-        }
+    }
 
-        // ---- 市民成長（パンがあれば毎ターン+1、収容上限まで） ----
-        int citizenCap = factionState.GetCitizenCap(team);
-        if (res.Bread > 0 && res.Citizen < citizenCap)
-        {
-            res.Bread -= 1;
-            res.Citizen += 1;
-        }
-
-        Debug.Log($"[EconomySystem] {team} 建築処理完了: " +
-                  $"生産{producedCount}, スキップ{skippedCount}, 維持費{maintenanceCount}, " +
-                  $"市民収容{totalCitizenCap}, 資源容量+{totalResourceCap}, 兵舎XP+{totalBarracksXP}%");
+    private void ProcessCitizenGrowth(Team team, FactionState.ResourceData res)
+    {
+        if (res.Bread > 0 && res.Citizen < factionState.GetCitizenCap(team))
+        { res.Bread--; res.Citizen++; }
     }
 
     // ==================================================================
-    //  2. ユニット維持費（Lv6以上のユニットが毎ターン資源を消費）
+    //  2. ユニット維持費（通常駒はLv1から毎ターン資源を消費）
     //  未払いターン数を Status.UpkeepUnpaidTurns で管理。
     //    1-3: ATK/DEF -10%, 4-6: -25%, 7-9: -40%, 10+: 離脱
     // ==================================================================
@@ -247,13 +194,6 @@ public class EconomySystem : MonoBehaviour
             if (status == null) continue;
             if (status.type != Type.Unit) continue;
             if (status.HP <= 0) continue;
-
-            // Lv5以下は維持費なし
-            if (status.Level <= 5)
-            {
-                status.UpkeepUnpaidTurns = 0;
-                continue;
-            }
 
             UnitData data = status.GrowthData;
             if (data == null) unitSetting.UnitDataMap.TryGetValue(status.kind, out data);
@@ -278,7 +218,7 @@ public class EconomySystem : MonoBehaviour
             }
             else
             {
-                status.UpkeepUnpaidTurns++;
+                status.UpkeepUnpaidTurns = Mathf.Clamp(status.UpkeepUnpaidTurns, 0, GameConstants.UpkeepPenaltyDefectTurns) + 1;
                 unpaidCount++;
                 if (status.UpkeepUnpaidTurns >= GameConstants.UpkeepPenaltyDefectTurns)
                 {
@@ -348,9 +288,7 @@ public class EconomySystem : MonoBehaviour
     // ==================================================================
     private void UpdateCitizenAPBonus(Team team, FactionState.ResourceData res)
     {
-        int citizenBonus = res.Citizen * CitizenAPBonus;
-        var apData = team == Team.Player ? factionState.PlayerAP : factionState.EnemyAP;
-        apData.Plus = citizenBonus;
+        factionState.UpdateCitizenAPBonus(team);
     }
 
     // ==================================================================

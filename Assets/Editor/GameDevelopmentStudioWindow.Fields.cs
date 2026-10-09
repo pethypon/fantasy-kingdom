@@ -14,6 +14,11 @@ public sealed partial class GameDevelopmentStudioWindow
         {"costWater","作成費：水"},{"costBread","作成費：パン"},{"costCitizen","作成費：市民"},{"costAP","作成費：AP"},
         {"upkeepWood","維持費：木材"},{"upkeepStone","維持費：石材"},{"upkeepIron","維持費：鉄"},{"upkeepMagic","維持費：魔石"},
         {"upkeepWater","維持費：水"},{"upkeepBread","維持費：パン"},{"upkeepMagicScales","魔石の維持費も成長に合わせる"},
+        {"upkeepExempt","召喚体などの維持費を免除する"},
+        {"ProductionIntervalTurns","生産の間隔（ターン）"},
+        {"applyAdjustments","建物生産の調整を適用する"},
+        {"buildingType","調整する建物"},{"definitionId","建物の登録ID（標準建物は空欄）"},
+        {"intervalTurns","生産の間隔（ターン）"},{"level","適用するレベル"},
         {"useAuthoredAbilities","この駒専用の能力を使う"},{"authoredPassive","常時発動する能力"},{"authoredSpecialAbility","特殊能力"},
         {"behaviourKind","施設の基本動作"},{"buildAP","建築費：AP"},{"HP","最大HP"},{"ATK","攻撃力"},{"DEF","防御力"},
         {"UpgradeAP","強化費：AP"},{"SpecialValue","特殊効果の値"},{"BonusChance1","確率生産１の発生率"},{"BonusChance2","確率生産２の発生率"},
@@ -42,7 +47,8 @@ public sealed partial class GameDevelopmentStudioWindow
         {"EncounterId","遭遇データID（既存コンテンツ用）"},
         {"enableDecisionLogs","AI経済の判断ログを出力"},
         {"forecastTurns","経済を予測するターン数"},
-        {"reserveTurns","資源を確保する予備ターン数"},
+        {"reserveTurns","パン以外の資源を確保する予備ターン数"},
+        {"breadCoverageMarginTurns","パンの予備量に加える警戒期間"},
         {"recoveryWindowTurns","不足在庫を回復する目標ターン数"},
         {"plannedDemandWeight","将来の建築・召喚を見込む割合"},
         {"needWeight","不足の緊急度による建築加点"},
@@ -61,7 +67,27 @@ public sealed partial class GameDevelopmentStudioWindow
         {"plannedUnitLevel","軍拡張の維持費を見込む駒レベル"},
         {"plannedBuildActions","予測する建築回数"},
         {"plannedSummonActions","予測する召喚回数"},
-        {"explorationSummonWeight","探索中の追加召喚を見込む割合"}
+        {"explorationSummonWeight","探索中の追加召喚を見込む割合"},
+        {"enabled","有効にする"},
+        {"criticalCoverage","深刻な不足と判断する充足率"},
+        {"recoveryCoverage","深刻な不足を解除する充足率"},
+        {"stableCoverage","安定供給と判断する充足率"},
+        {"surplusCoverage","供給過剰と判断する充足率"},
+        {"stableTurns","安定成長へ移るまでの継続ターン数"},
+        {"minimumRecoveryTurns","回復計画を維持する最低ターン数"},
+        {"switchPressureRatio","回復対象を切り替える必要度の比率"},
+        {"deficitWeight","将来の資源不足を重視する度合い"},
+        {"blockedPlanWeight","不足で停止する計画を重視する度合い"},
+        {"incomeGapWeight","恒常収入の不足を重視する度合い"},
+        {"zeroProducerWeight","恒常供給源がない場合の加点"},
+        {"openingWeight","序盤の経済基盤を重視する度合い"},
+        {"surplusPenaltyWeight","供給過剰への減点"},
+        {"planWeight","計画の費用を見込む割合"},
+        {"reserveCostFraction","次の計画費用を予備量へ含める割合"},
+        {"foundationReserveFraction","基盤投資後にも残す予備量の割合"},
+        {"paybackWindowTurns","生産施設の費用回収を評価する期間"},
+        {"constructionPressureWeight","不足資源を消費する建築への減点"},
+        {"recoverySpendPenalty","回復中の不要不急の支出への減点"}
     };
     static void Fields(SerializedObject so, params string[] names) { foreach (var name in names) Field(so.FindProperty(name)); }
     static void Field(SerializedProperty p)
@@ -72,7 +98,7 @@ public sealed partial class GameDevelopmentStudioWindow
         {
             if (p.name == "kind") { p.intValue = EnumPopup(p.intValue,label,typeof(Kind),v => KindNameJP.Get((Kind)v)); return; }
             if (p.name == "defaultTeam") { p.intValue = EnumPopup(p.intValue,label,typeof(Team),v => TeamLabel((Team)v)); return; }
-            if (p.name == "behaviourKind") { p.intValue = EnumPopup(p.intValue,label,typeof(FacilityKind),v => FacilityData.Table.TryGetValue((FacilityKind)v,out var info) ? info.DisplayName : "未設定"); return; }
+            if (p.name == "behaviourKind" || p.name == "buildingType") { p.intValue = EnumPopup(p.intValue,label,typeof(FacilityKind),v => FacilityData.Table.TryGetValue((FacilityKind)v,out var info) ? info.DisplayName : "未設定"); return; }
             if (p.name == "authoredPassive")
             { p.intValue = EnumPopup(p.intValue,label,typeof(PassiveSkill),v => new[]{"なし","鉄壁","狩人の目","破壊者","暗殺","狙撃","異形の王のオーラ"}[Convert.ToInt32(v)]); return; }
             if (p.name == "authoredSpecialAbility")

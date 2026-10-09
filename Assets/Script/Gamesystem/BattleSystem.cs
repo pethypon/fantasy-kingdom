@@ -173,7 +173,7 @@ public class BattleSystem : MonoBehaviour
         if (damage > 0) WildBossSystem.TryReflectDamage(Target, Attacker, damage);
 
         // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）。兵舎XP%を乗算
-        if (damage > 0 && Attacker != null && Attacker.type == Type.Unit && Attacker.team != Target.team)
+        if (damage > 0 && Attacker != null && Attacker.team != Target.team)
         {
             Status.AwardDamageExperience(Attacker, Target, damage, turnGenerator?.Systems?.FactionState);
         }
@@ -322,8 +322,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (Target.HP > 0) return;
 
-        if ((Target.kind == Kind.Crystal || Target.kind == Kind.King)
-            && (Target.team == Team.Player || Target.team == Team.Enemy))
+        if (MatchObjectiveRules.IsDecisive(Target.kind, Target.team))
         {
             HandleGameEnd();
         }
@@ -393,6 +392,6 @@ public class BattleSystem : MonoBehaviour
             Debug.Log($"[Battle] 自軍 {Target.kind} 破壊 → 敗北…");
         }
 
-        turnGenerator.ChangeState(new GameEndState(turnGenerator, result));
+        turnGenerator.ChangeState(new GameEndState(turnGenerator, result, Target));
     }
 }

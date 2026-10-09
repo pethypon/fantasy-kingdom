@@ -157,7 +157,9 @@ public static class GameConstants
     // =====================================================================
     /// <summary>移動の基本APコスト</summary>
     public const int BaseMoveAPCost = 3;
-    public const int MaxAP = 50;
+    public const int MaxAP = 60;
+    /// <summary>Authoring validation ceiling for individual action costs; independent of turn AP.</summary>
+    public const int MaxAuthoredActionAPCost = 50;
     /// <summary>攻撃の基本APコスト</summary>
     public const int BaseAttackAPCost = 2;
 

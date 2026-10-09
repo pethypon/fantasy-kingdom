@@ -7,7 +7,7 @@ public sealed class FactionAuthoringSetting
     public Team team;
     public string displayName;
     public Color color = Color.white;
-    [Range(3, 50)] public int initialAP = 30;
+    [Range(3, GameConstants.MaxAP)] public int initialAP = 30;
     public FactionState.ResourceData initialResources = new FactionState.ResourceData
     {
         Wood = 200, Stone = 200, Iron = 30, MagicOre = 15, Water = 50, Bread = 100, Citizen = 5
@@ -26,7 +26,8 @@ public sealed class GameAuthoringRules : ScriptableObject
     [Min(1)] public float turnSeconds = 180;
     [Min(1)] public float totalSeconds = 36000;
     [Min(0)] public float timeBonusSeconds = 60;
-    [Range(3, 50)] public int maximumAP = GameConstants.MaxAP;
+    [Range(3, GameConstants.MaxAP)] public int maximumAP = GameConstants.MaxAP;
+    public BuildingProductionBalance buildingProduction = new BuildingProductionBalance();
     [Range(1, 50)] public int moveAP = 3, attackAP = 2;
     [Range(0, 50)] public int heightAP = 2;
     [Range(0, 10)] public int citizenAP = 1, breadPerCitizen = 1;

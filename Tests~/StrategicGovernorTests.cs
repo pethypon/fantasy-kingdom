@@ -24,7 +24,8 @@ public static class StrategicGovernorTests
             {var go=new GameObject(name);objects.Add(go);go.transform.position=at;var s=go.AddComponent<Status>();s.team=team;s.kind=role;s.type=Type.Unit;s.HP=s.MaxHP=10;s.ATK=50;return s;}
             var king=Actor("Governor king",start,Team.Enemy,Kind.King);
             var foe=Actor("Visible stationary threat",start+Vector3.right*2,Team.Player,Kind.Knight);
-            var data=ScriptableObject.CreateInstance<UnitData>();objects.Add(data);data.baseHP=10;data.upkeepBread=1000;king.GrowthData=data;
+            var data=ScriptableObject.CreateInstance<UnitData>();objects.Add(data);data.kind=Kind.King;data.baseHP=10;data.upkeepBread=1000;king.GrowthData=data;
+            Status upkeepConsumer = null;
             var foeData=ScriptableObject.CreateInstance<UnitData>();objects.Add(foeData);foe.GrowthData=foeData;
             var profile=ScriptableObject.CreateInstance<BoardActionProfile>();objects.Add(profile);foeData.actionProfile=profile;
             profile.actionType=ActorActionType.Stationary;profile.attack.useCustom=true;profile.attack.SetCell(2,3,true);
@@ -33,7 +34,9 @@ public static class StrategicGovernorTests
             {
                 var b=new AIBoardState(systems.MoveGenerator,systems.AttackGenerator,systems.APSystem,systems.UnitSetting,systems.CrystalSystem,systems.VisionGenerator,
                     systems.BuildSystem,systems.SummonSystem,state,systems.SubCrystalSystem,20);
-                b.MapCreate=systems.MapCreate;b.ReconThreatLevel=15;b.AliveEnemyUnits.Clear();b.AliveEnemyUnits.Add(king);b.AlivePlayerUnits.Clear();b.AlivePlayerUnits.Add(foe);return b;
+                b.MapCreate=systems.MapCreate;b.ReconThreatLevel=15;b.AliveEnemyUnits.Clear();b.AliveEnemyUnits.Add(king);
+                if (upkeepConsumer != null) b.AliveEnemyUnits.Add(upkeepConsumer);
+                b.AlivePlayerUnits.Clear();b.AlivePlayerUnits.Add(foe);return b;
             }
             var provider=new LossProvider{King=king};var board=Board();var governor=new AIStrategicGovernor(provider);board.Governor=governor;
             var suicidal=new AIAction{ActionType=AIActionType.Move,Unit=king,TargetPos=start+Vector3.right,Score=100000};
@@ -60,7 +63,11 @@ public static class StrategicGovernorTests
             var planner=new AIPlanManager();planner.Restore(new AIPlan{RequiredUnits=new[]{Kind.Scout},Steps=new[]{AIPlanStep.Assemble},StartedTurn=1,ExpectedTurns=8});
             board.Governor=governor;planner.Update(board);
             Check("emergency suspends an operation instead of deleting it",planner.Current!=null&&planner.Current.Active&&planner.Current.Suspended);
-            king.Level=21;res.Bread=1;res.Citizen=5;board=Board();var forecast=new StrategicEconomyForecast();string before=JsonUtility.ToJson(res);
+            // King remains exempt. A real normal Lv1 unit with no iron creates the unpaid-upkeep condition.
+            upkeepConsumer=Actor("Governor upkeep unit", start + Vector3.forward*8, Team.Enemy, Kind.Knight);
+            var upkeepData=ScriptableObject.CreateInstance<UnitData>();objects.Add(upkeepData);upkeepData.kind=Kind.Knight;
+            upkeepConsumer.GrowthData=upkeepData;upkeepConsumer.Level=1;
+            king.Level=21;res.Bread=1;res.Iron=0;res.Citizen=5;board=Board();var forecast=new StrategicEconomyForecast();string before=JsonUtility.ToJson(res);
             var result=forecast.Simulate(board);
             Check("nonnegative stocks do not conceal unpaid upkeep",result.UpkeepPaymentFailed&&result.State==EconomicState.Collapse);
             Check("forecast never mutates live resources",JsonUtility.ToJson(res)==before);

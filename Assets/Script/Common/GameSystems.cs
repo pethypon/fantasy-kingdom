@@ -5,6 +5,7 @@
 /// </summary>
 public class GameSystems
 {
+    public TurnGenerator TurnGenerator { get; internal set; }
     // ================================================================
     //  マップ・ユニット基盤
     // ================================================================

@@ -149,10 +149,11 @@ public partial class SimBoardState
             state.Units.Add(CaptureUnit(pCrystal, idCounter++, state.ToSimulationTeam(pCrystal.team)));
 
         // AP
-        state.EnemyAP = realBoard.EnemyAP;
-        state.PlayerAP = 30; // プレイヤーAPは概算
         state.EnemyAPReset = apSystem.GetMaxAP(realBoard.ActorTeam);
-        state.PlayerAPReset = 30;
+        state.EnemyAP = Mathf.Clamp(realBoard.EnemyAP, 0, state.EnemyAPReset);
+        // Opponent population is private. Keep the existing base estimate within authored limits.
+        state.PlayerAPReset = Mathf.Clamp(30, 0, APSystem.MaximumAP);
+        state.PlayerAP = state.PlayerAPReset;
 
         // 建築カウント
         state.EnemyBuildingCounts = new Dictionary<FacilityKind, int>(realBoard.EnemyBuildingCounts);

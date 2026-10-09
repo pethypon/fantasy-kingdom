@@ -45,6 +45,8 @@ public class TimerSystem : MonoBehaviour
     public float EnemyTimeRemaining => EnemyTotalTime;
     public Team CurrentTeam => currentTeam;
     public bool IsRunning => isRunning;
+    public GameResult? LastTimeUpResult { get; private set; }
+    public string TimeUpReasonText { get; private set; } = "";
 
     /// <summary>セーブデータからターン残り時間を復元</summary>
     public void RestoreTurnTimeRemaining(float value) { turnTimeRemaining = SafeSeconds(value); }
@@ -53,6 +55,8 @@ public class TimerSystem : MonoBehaviour
     {
         this.turnGenerator = turnGenerator;
         this.crystalsystem = crystalsystem;
+        LastTimeUpResult = null;
+        TimeUpReasonText = "";
         GameAuthoringRules.Active?.ApplyTimer(this);
     }
 
@@ -148,7 +152,7 @@ public class TimerSystem : MonoBehaviour
         if (playerCrystal == null || enemyCrystal == null)
         {
             Debug.LogError("[TimerSystem] クリスタルStatus取得失敗");
-            return GameResult.TimeUpDraw;
+            return RecordTimeUpResult(GameResult.TimeUpDraw, "判定に必要なクリスタル情報がなく、引き分けになりました");
         }
 
         float playerCrystalRatio = playerCrystal.MaxHP > 0
@@ -158,10 +162,11 @@ public class TimerSystem : MonoBehaviour
 
         Debug.Log($"[TimerSystem] 時間切れ判定: Pクリスタル={playerCrystalRatio:P1} Eクリスタル={enemyCrystalRatio:P1}");
 
-        if (playerCrystalRatio > enemyCrystalRatio)
-            return GameResult.TimeUpWin;
-        if (enemyCrystalRatio > playerCrystalRatio)
-            return GameResult.TimeUpLose;
+        int crystalComparison = MatchObjectiveRules.CompareHealthRatios(playerCrystal, enemyCrystal);
+        if (crystalComparison > 0)
+            return RecordTimeUpResult(GameResult.TimeUpWin, "総持ち時間切れ：メインクリスタルの残HP率が敵より高かったため勝利");
+        if (crystalComparison < 0)
+            return RecordTimeUpResult(GameResult.TimeUpLose, "総持ち時間切れ：メインクリスタルの残HP率が敵より低かったため敗北");
 
         // クリスタル同率 → 王のHP%で比較
         Status playerKing = FindKing(Team.Player);
@@ -174,12 +179,20 @@ public class TimerSystem : MonoBehaviour
 
         Debug.Log($"[TimerSystem] 王HP比較: P王={playerKingRatio:P1} E王={enemyKingRatio:P1}");
 
-        if (playerKingRatio > enemyKingRatio)
-            return GameResult.TimeUpWin;
-        if (enemyKingRatio > playerKingRatio)
-            return GameResult.TimeUpLose;
+        int kingComparison = MatchObjectiveRules.CompareHealthRatios(playerKing, enemyKing);
+        if (kingComparison > 0)
+            return RecordTimeUpResult(GameResult.TimeUpWin, "総持ち時間切れ：クリスタルは同率、王の残HP率が敵より高かったため勝利");
+        if (kingComparison < 0)
+            return RecordTimeUpResult(GameResult.TimeUpLose, "総持ち時間切れ：クリスタルは同率、王の残HP率が敵より低かったため敗北");
 
-        return GameResult.TimeUpDraw;
+        return RecordTimeUpResult(GameResult.TimeUpDraw, "総持ち時間切れ：メインクリスタルと王の残HP率がともに同率のため引き分け");
+    }
+
+    private GameResult RecordTimeUpResult(GameResult result, string reason)
+    {
+        LastTimeUpResult = result;
+        TimeUpReasonText = reason;
+        return result;
     }
 
     private Status GetCrystalStatus(Transform crystalParent)

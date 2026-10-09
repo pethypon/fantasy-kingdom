@@ -144,6 +144,7 @@ public static partial class SaveSystem
     {
         var d = new UnitSaveData
         {
+            ReflectionLifeId = s.ReflectionLifeId,
             Kind = s.kind.ToString(),
             DefinitionId = s.type == Type.Unit ? s.unitDefinitionId : null,
             Team = s.team.ToString(),
@@ -244,6 +245,8 @@ public static partial class SaveSystem
         dst.TotalKills = commander.SaveTotalKills;
         dst.AITurnCount = commander.SaveTurnCount;
         dst.Operation = commander.SavePlan;
+        dst.Reflection = commander.CaptureReflectionState();
+        dst.Exploration = commander.CaptureExplorationState();
         dst.StrategicObjective=commander.SaveStrategicObjective;
         dst.RngSeed = commander.ThreatLevel.Level; // シードは脅威度から復元可
 
@@ -265,9 +268,9 @@ public static partial class SaveSystem
 
         // 機械学習AI状態
         var ml = commander.MLIntegration;
-        dst.MLActive = ml.IsActive;
-        dst.MLTotalMatchesTrained = ml.TotalMatchesTrained;
-        dst.MLAverageLoss = ml.AverageLoss;
+        dst.MLActive = ml?.IsActive ?? false;
+        dst.MLTotalMatchesTrained = ml?.TotalMatchesTrained ?? 0;
+        dst.MLAverageLoss = ml?.AverageLoss ?? 0;
     }
 
     static void CollectCellCountDict(Dictionary<Vector3Int, int> src, List<CellCountData> dst)
@@ -286,6 +289,7 @@ public static partial class SaveSystem
         if (nation == null) return;
         dst.PendingReturns = new List<int>(nation.PendingReturns);
         dst.StarvationCounter = nation.StarvationCounter;
+        dst.TurnsAlive = nation.TurnsAlive;
         dst.CitizenCapacity = nation.CitizenCapacity;
         dst.ResourceCapacity = nation.ResourceCapacity;
         dst.BarracksXP = nation.BarracksXP;

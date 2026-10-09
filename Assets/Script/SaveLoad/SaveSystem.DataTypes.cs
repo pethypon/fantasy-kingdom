@@ -102,6 +102,7 @@ public static partial class SaveSystem
     [Serializable]
     public class UnitSaveData
     {
+        public string ReflectionLifeId;
         public string Kind;
         public string DefinitionId;
         public string Team;
@@ -193,6 +194,8 @@ public static partial class SaveSystem
     [Serializable]
     public class AISaveData
     {
+        public AIReflectionBattleState Reflection;
+        public AIExplorationState Exploration;
         // AIPersonality
         public string MajorPersonality;
         public int TraitCaution, TraitCommand, TraitObsession;
@@ -247,6 +250,7 @@ public static partial class SaveSystem
     [Serializable]
     public class NationExtraSaveData
     {
+        public int TurnsAlive;
         public List<int> PendingReturns = new List<int>();
         public int StarvationCounter;
         public int CitizenCapacity;

@@ -95,7 +95,8 @@ public static class AIExplorationTests
    Check("discounted skill executes with exact remaining AP",executor.Execute(actions.First(),board)&&s.APSystem.GetAP(Team.Enemy)==0);
    Check("skill restores inspection context",turn.Context.SelectUnit==oldSelected&&s.BattleSystem.Target==oldTarget);
    s.FactionState.SetAP(Team.Enemy,35);
-   Check("cooldown blocks a repeated skill without spending AP",!executor.Execute(actions.First(),board)&&s.APSystem.GetAP(Team.Enemy)==35);
+   int beforeCooldownAttempt=s.APSystem.GetAP(Team.Enemy);
+   Check("cooldown blocks a repeated skill without spending AP",beforeCooldownAttempt>0&&!executor.Execute(actions.First(),board)&&s.APSystem.GetAP(Team.Enemy)==beforeCooldownAttempt);
    Check("building rules unchanged",buildBefore.SetEquals(board.BuildablePositions)&&!board.BuildablePositions.Contains(GridHelper.ToGrid(dest)));
    Check("summoning remains inside territory",board.SummonablePositions.All(p=>s.TerritorySystem.IsInTerritory(p,Team.Enemy)));
   } finally {

@@ -51,6 +51,8 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Fantasy Kingdom  開発スタジオ", new GUIStyle(EditorStyles.boldLabel) { fontSize = 19 }, GUILayout.Height(26));
         if (GUILayout.Button("一覧を更新", GUILayout.Width(90))) RefreshLists();
+        if (GUILayout.Button("AI自己評価・日記", GUILayout.Width(130))) AIReflectionConfigEditor.OpenSettings();
+        if (GUILayout.Button("AI探索の設定", GUILayout.Width(100))) ExplorationAISettingsEditor.OpenSettings();
         using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
             if (GUILayout.Button("すべて保存", GUILayout.Width(110), GUILayout.Height(26))) SaveEverything();
         EditorGUILayout.EndHorizontal();
@@ -119,7 +121,15 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         costFold = EditorGUILayout.Foldout(costFold,"作成に必要な資材・AP",true);
         if (costFold) Fields(so,"costWood","costStone","costIron","costMagic","costWater","costBread","costCitizen","costAP");
         upkeepFold = EditorGUILayout.Foldout(upkeepFold,"毎ターンの維持費",true);
-        if (upkeepFold) Fields(so,"upkeepWood","upkeepStone","upkeepIron","upkeepMagic","upkeepWater","upkeepBread","upkeepMagicScales");
+        if (upkeepFold)
+        {
+            Field(so.FindProperty("upkeepExempt"));
+            bool exempt = so.FindProperty("upkeepExempt").boolValue || selectedUnit.kind == Kind.King || selectedUnit.kind == Kind.Boss;
+            EditorGUILayout.HelpBox(exempt ? "この駒の維持費はありません。王・異形の王は常に免除されます。"
+                : "通常駒はLv1からパン1・鉄1を毎ターン消費します。Lv10で各2、Lv20で各3となります。以下の資源は追加の維持費です。", MessageType.Info);
+            using (new EditorGUI.DisabledScope(exempt))
+                Fields(so,"upkeepWood","upkeepStone","upkeepMagic","upkeepWater","upkeepMagicScales");
+        }
         abilityFold = EditorGUILayout.Foldout(abilityFold,"スキル・常時能力",true);
         if (abilityFold)
         {
@@ -160,7 +170,9 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             EditorGUI.indentLevel++;
             foreach (var key in new[] { "HP","ATK","DEF","UpgradeAP","SpecialValue" }) Field(level.FindPropertyRelative(key));
             DrawBundle(level.FindPropertyRelative("Input"),"生産時に消費する資材");
-            DrawBundle(level.FindPropertyRelative("Output"),"毎ターンの生産量");
+            Field(level.FindPropertyRelative("ProductionIntervalTurns"));
+            EditorGUILayout.LabelField("生産周期", "1は毎ターン、2は2ターンごと。旧データの0は毎ターン。材料は生産時だけ消費します。", EditorStyles.wordWrappedMiniLabel);
+            DrawBundle(level.FindPropertyRelative("Output"),"１回の生産量");
             DrawBundle(level.FindPropertyRelative("Maintenance"),"毎ターンの維持費");
             DrawBundle(level.FindPropertyRelative("UpgradeCost"),"このレベルへの強化費用");
             DrawBundle(level.FindPropertyRelative("BonusOutput1"),"確率生産１"); Field(level.FindPropertyRelative("BonusChance1"));

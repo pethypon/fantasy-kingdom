@@ -66,6 +66,8 @@ public static class SaveGameApplier
         // AP復元
         SaveSystem.RestoreAP(data.PlayerAP, factionState.PlayerAP);
         SaveSystem.RestoreAP(data.EnemyAP, factionState.EnemyAP);
+        factionState.UpdateCitizenAPBonus(Team.Player);
+        factionState.UpdateCitizenAPBonus(Team.Enemy);
 
         // サブクリスタル復元
         factionState.PlayerSubCrystals = data.PlayerSubCrystals;
@@ -173,6 +175,7 @@ public static class SaveGameApplier
     /// <summary>セーブエントリの全フィールドをStatusに書き戻す</summary>
     public static void ApplyStatusFields(Status s, SaveSystem.UnitSaveData ud)
     {
+        s.RestoreReflectionLifeId(ud.ReflectionLifeId);
         if (s.type == Type.Building || s.type == Type.Wall)
         {
             s.authoredFacilityId = ud.AuthoredFacilityId;

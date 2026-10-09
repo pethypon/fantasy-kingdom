@@ -24,18 +24,18 @@ public sealed class FacilityDefinitionData : ScriptableObject
         if (levels == null || levels.Length == 0) return default;
         var data = levels[Mathf.Clamp(level - 1, 0, levels.Length - 1)];
         data.HP = Mathf.Max(1, data.HP); data.ATK = Mathf.Max(0, data.ATK); data.DEF = Mathf.Max(0, data.DEF);
-        data.UpgradeAP = Mathf.Clamp(data.UpgradeAP, 0, GameConstants.MaxAP);
+        data.UpgradeAP = Mathf.Clamp(data.UpgradeAP, 0, GameConstants.MaxAuthoredActionAPCost);
         data.UpgradeCost = Sanitize(data.UpgradeCost);
         data.Input = Sanitize(data.Input); data.Output = Sanitize(data.Output); data.Maintenance = Sanitize(data.Maintenance);
         data.BonusOutput1 = Sanitize(data.BonusOutput1); data.BonusOutput2 = Sanitize(data.BonusOutput2);
         data.BonusChance1 = Mathf.Clamp01(data.BonusChance1); data.BonusChance2 = Mathf.Clamp01(data.BonusChance2);
         data.SpecialValue = Mathf.Max(0, data.SpecialValue);
-        return data;
+        return BuildingProductionBalance.Resolve(behaviourKind, definitionId, Mathf.Clamp(level, 1, levels.Length), data);
     }
     public FacilityData.FacilityInfo GetInfo()
     {
         var first = GetLevel(1);
-        return new FacilityData.FacilityInfo { DisplayName = displayName, APCost = Mathf.Clamp(buildAP, 0, GameConstants.MaxAP),
+        return new FacilityData.FacilityInfo { DisplayName = displayName, APCost = Mathf.Clamp(buildAP, 0, GameConstants.MaxAuthoredActionAPCost),
             BuildCost = Sanitize(buildCost), HP = first.HP, DEF = first.DEF, ATK = first.ATK, MaxLevel = Mathf.Max(1, levels?.Length ?? 0) };
     }
     public static FacilityData.ResourceCost Sanitize(FacilityData.ResourceCost value)

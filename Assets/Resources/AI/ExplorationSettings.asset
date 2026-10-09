@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb1cdcda6ce44eca7937dc047995b0d, type: 3}
+  m_Name: ExplorationSettings
+  m_EditorClassIdentifier: 
+  Enabled: 1
+  RecentHistoryTurns: 8
+  StallTurns: 3
+  FreshIntelTurns: 5
+  LowIntelTurns: 15
+  MediumIntelTurns: 30
+  StaleIntelTurns: 30
+  RegionSize: 16
+  MaxCandidateRegions: 64
+  MaxSavedActors: 512
+  MaxSavedCells: 1048576
+  MaxMapDimension: 4096
+  FrontierRefreshTurns: 4
+  LoopUniqueCellLimit: 4
+  LoopMinimumSamples: 4
+  LoopCooldownTurns: 8
+  VisitCountCap: 12
+  RecentVisitTurns: 8
+  CompletionRevealCells: 1
+  CompletionDistance: 2
+  RevealCreditRadius: 8
+  FailedMoveLimit: 3
+  UnknownGainWeight: 5
+  StaleIntelWeight: 35
+  DirectionDiversityWeight: 12
+  StrategicRouteWeight: 10
+  DistanceFromRecentAreaWeight: 1.5
+  RecentVisitPenalty: 45
+  RepeatVisitPenalty: 3
+  OtherScoutPenalty: 1000
+  LoopAreaPenalty: 500
+  DangerWeight: 60
+  TravelCostWeight: 0.75
+  TargetDistanceWeight: 14
+  LocalRevealWeight: 2.5
+  MaximumLocalRevealBonus: 40
+  MoveDangerWeight: 90
+  SuicideMovePenalty: 1000
+  MaximumFrontierDangerFraction: 0.8
+  MinimumFrontierScore: 0
+  MaximumDistanceProgressBonus: 4
+  ProgressDistanceThreshold: 0.5
+  LowIntelValue: 0.1
+  MediumIntelValue: 0.45
+  HighIntelValue: 1
+  TelemetryBufferRecords: 32
+  TelemetryMaxRecords: 256
+  TelemetryMaxFileBytes: 4194304
+  EnableJsonlTelemetry: 0
+  MaxRouteNodes: 2048
+  MaxRouteLength: 4096
+  RouteCacheTurns: 8
+  MaxCachedRoutes: 64
+  RouteDangerWeight: 2
+  RouteDeviationPenalty: 30

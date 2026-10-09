@@ -78,5 +78,8 @@ public static class UniqueRewardSystem
         }
         if (owner == Team.Player)
             ToastMessageUI.Show($"{(category == RewardCategory.IntruderRelic ? "固有レリック" : "固有アーティファクト")}獲得: {reward.DisplayName}", ToastMessageUI.MessageType.Info);
+        if (category != RewardCategory.IntruderRelic)
+            AIReflectionEvents.RecordArtifact(systems.TurnGenerator, owner,
+                "artifact:" + reward.Id + ":" + System.Guid.NewGuid().ToString("N"));
     }
 }

@@ -21,10 +21,12 @@ public static partial class AIActionEvaluator
             learnBonus = learning.GetBonus(action, board);
         }
 
-        float finalScore = baseScore + majorBonus + traitBonus + situationBonus + learnBonus;
-        if (action.ActionType == AIActionType.Build && AIEconomySettings.Active.enableDecisionLogs)
+        board.Governor?.Evaluate(board);
+        float foundationScore = board.Governor?.BasicResources.ScoreAction(action) ?? 0;
+        float finalScore = baseScore + majorBonus + traitBonus + situationBonus + learnBonus + foundationScore;
+        if ((action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade) && AIEconomySettings.Active.enableDecisionLogs)
             DevelopmentLog.Log($"[AI経済建築] {action.Facility} base={baseScore:F1} "
-                + $"personality={majorBonus + traitBonus:F1} situation={situationBonus:F1} learning={learnBonus:F1} final={finalScore:F1}");
+                + $"personality={majorBonus + traitBonus:F1} situation={situationBonus:F1} learning={learnBonus:F1} foundation={foundationScore:F1} final={finalScore:F1}");
         return finalScore;
     }
 }

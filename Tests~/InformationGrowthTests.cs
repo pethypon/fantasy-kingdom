@@ -57,6 +57,9 @@ public static class InformationGrowthTests
         var seen=(HashSet<Vector3Int>)typeof(VisionGenerator).GetField("_enemyVisionBox",flags).GetValue(s.VisionGenerator);
         var explored=(HashSet<Vector3Int>)typeof(VisionGenerator).GetField("_enemyExplored",flags).GetValue(s.VisionGenerator);
         var oldSeen=seen.ToArray();var oldExplored=explored.ToArray();
+        string savedAP=JsonUtility.ToJson(s.FactionState.EnemyAP);
+        s.FactionState.EnemyAP.Reset=35;s.FactionState.EnemyAP.Plus=0;s.FactionState.EnemyAP.Minus=0;
+        s.FactionState.EnemyAP.ResetForTurn();
         var created=new List<GameObject>();
         Status Make(string name,Kind kind,Team team,Vector3 pos) {
             var g=new GameObject(name);g.SetActive(false);g.transform.SetParent(team==Team.Enemy?s.UnitSetting.EnemyUnit:s.UnitSetting.PlayerUnit);g.transform.position=pos;
@@ -117,6 +120,8 @@ public static class InformationGrowthTests
             var method=typeof(AICommander).GetMethod("ExecuteReconnaissancePhase",flags);
             var statsType=typeof(AICommander).GetNestedType("TurnStats",BindingFlags.NonPublic);
             int oldAP=s.APSystem.GetAP(Team.Enemy);
+            int oldReset=s.FactionState.EnemyAP.Reset, oldPlus=s.FactionState.EnemyAP.Plus, oldMinus=s.FactionState.EnemyAP.Minus;
+            s.FactionState.EnemyAP.Reset=35;s.FactionState.EnemyAP.Plus=0;s.FactionState.EnemyAP.Minus=0;
             try {
                 boardField.SetValue(commander,b);b.ReconThreatLevel=100;
                 seen.Clear();explored.Clear();memories.Clear();b.Refresh();
@@ -150,10 +155,11 @@ public static class InformationGrowthTests
                     foreach(var u in s.UnitSetting.EnemyUnit.GetComponentsInChildren<Status>())if(!beforeRecruit.Contains(u))UnityEngine.Object.DestroyImmediate(u.gameObject);
                     JsonUtility.FromJsonOverwrite(savedResources,resources);s.MoveGenerator.UnitPointCore();
                 }
-            } finally {boardField.SetValue(commander,previousBoard);strategyField.SetValue(commander,previousStrategy);s.FactionState.SetAP(Team.Enemy,oldAP);}
+            } finally {boardField.SetValue(commander,previousBoard);strategyField.SetValue(commander,previousStrategy);s.FactionState.EnemyAP.Reset=oldReset;s.FactionState.EnemyAP.Plus=oldPlus;s.FactionState.EnemyAP.Minus=oldMinus;s.FactionState.SetAP(Team.Enemy,oldAP);}
 
         } finally {
             foreach(var g in created)UnityEngine.Object.DestroyImmediate(g);
+            JsonUtility.FromJsonOverwrite(savedAP,s.FactionState.EnemyAP);
             seen.Clear();seen.UnionWith(oldSeen);explored.Clear();explored.UnionWith(oldExplored);s.MoveGenerator.UnitPointCore();
         }
     }

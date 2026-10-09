@@ -18,6 +18,7 @@ public static class EconomyR2LongRun
 {
     const string Running = "EconomyR2LongRun.Running", Index = "EconomyR2LongRun.Case", Next = "EconomyR2LongRun.Next";
     const string Started = "EconomyR2LongRun.Started", PassedBattles = "EconomyR2LongRun.Battles", PassedEndurance = "EconomyR2LongRun.Endurance";
+    const string IgnoredEditorIndexing = "EconomyR2LongRun.IgnoredEditorIndexing";
     const int TargetRounds = 50, EnduranceTurns = 60;
     const double CaseSeconds = 240, TotalSeconds = 780;
     const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -36,7 +37,7 @@ public static class EconomyR2LongRun
     static readonly int[,] stagnant = new int[2, 8];
     static readonly float[,] lastProduction = new float[2, 8];
     static readonly float[,] minimumStock = new float[2, 8];
-    static int maxStagnant, battleRounds;
+    static int maxStagnant, battleRounds, caseEditorIndexExceptions;
 
     static EconomyR2LongRun() { EditorApplication.update += Tick; }
 
@@ -47,6 +48,7 @@ public static class EconomyR2LongRun
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Start long-run validation from edit mode");
         SessionState.SetBool(Running, true); SessionState.SetInt(Index, 0); SessionState.SetBool(Next, false);
         SessionState.SetInt(PassedBattles, 0); SessionState.SetInt(PassedEndurance, 0);
+        SessionState.SetInt(IgnoredEditorIndexing, 0);
         SessionState.SetFloat(Started, (float)EditorApplication.timeSinceStartup);
         OpenCase();
     }
@@ -54,6 +56,7 @@ public static class EconomyR2LongRun
     static void OpenCase()
     {
         initialized = false; turn = null; systems = null; player = null; playerSteps = null; runtimeFailure = null; lastFrame = -1;
+        caseEditorIndexExceptions = 0;
         int i = SessionState.GetInt(Index, 0);
         Debug.Log($"[EconomyR2LongRun] BEGIN case={i + 1}/{Seeds.Length} seed={Seeds[i]} personality={Majors[i]} battleTargetRounds={TargetRounds} enduranceTurns={EnduranceTurns}");
         EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
@@ -73,7 +76,7 @@ public static class EconomyR2LongRun
                 SessionState.SetBool(Next, false); int next = SessionState.GetInt(Index, 0) + 1; SessionState.SetInt(Index, next);
                 if (next == Seeds.Length)
                 {
-                    Debug.Log($"[EconomyR2LongRun] ALL PASSED cases={Seeds.Length} actualBattleCases={SessionState.GetInt(PassedBattles, 0)} enduranceCases={SessionState.GetInt(PassedEndurance, 0)} enduranceTurnsPerCase={EnduranceTurns}");
+                    Debug.Log($"[EconomyR2LongRun] ALL PASSED cases={Seeds.Length} actualBattleCases={SessionState.GetInt(PassedBattles, 0)} enduranceCases={SessionState.GetInt(PassedEndurance, 0)} enduranceTurnsPerCase={EnduranceTurns} knownEditorStartupIndexExceptions={SessionState.GetInt(IgnoredEditorIndexing, 0)}");
                     SessionState.SetBool(Running, false); EditorApplication.Exit(0); return;
                 }
                 OpenCase(); return;
@@ -168,7 +171,10 @@ public static class EconomyR2LongRun
             f.Resources.Wood = f.Resources.Bread = 80;
             f.Food(5, 5); var camp = f.Definition(FacilityKind.LoggingCamp, wood: 5); f.Building(camp);
             f.Building(f.Definition(FacilityKind.Quarry, stone: 20)); f.Building(f.Definition(FacilityKind.Mine, iron: 20, magic: 20));
-            var upkeepUnits = new System.Collections.Generic.List<Status> { f.Unit(upkeepWood: 10, upkeepBread: 5) }; var planner = f.Planner();
+            // Five actual Lv1 units cost Bread/Iron 5. Extra authored wood costs preserve the existing Wood 10 demand.
+            var upkeepUnits = new System.Collections.Generic.List<Status>();
+            for (int i = 0; i < 5; i++) { var unit = f.Unit(upkeepWood: 2); unit.Level = 1; upkeepUnits.Add(unit); }
+            var planner = f.Planner();
             int initialCamps = f.Builder.GetBuildingCount(f.Team, FacilityKind.LoggingCamp), initialBakeries = f.Builder.GetBuildingCount(f.Team, FacilityKind.Bakery);
             int stagnantWood = 0, stagnantBread = 0, maxDeficit = 0, minBread = f.Resources.Bread, minWood = f.Resources.Wood;
             double maxBuildMs = 0; var watch = Stopwatch.StartNew();
@@ -176,7 +182,8 @@ public static class EconomyR2LongRun
             {
                 if (watch.Elapsed.TotalSeconds > 30) throw new TimeoutException("60-turn real-economy endurance exceeded 30 seconds");
                 // Army upkeep increases twice; four camps/bakeries are eventually necessary, exercising the old cap too.
-                if (t == 20 || t == 40) upkeepUnits.Add(f.Unit(upkeepWood: 5, upkeepBread: 5));
+                if (t == 20 || t == 40)
+                    for (int i = 0; i < 5; i++) { var unit = f.Unit(upkeepWood: 1); unit.Level = 1; upkeepUnits.Add(unit); }
                 f.State.GetNation(f.Team).TurnsAlive = 20 + t; f.State.ResetAPForTurn(f.Team);
                 var board = f.Board(20 + t); AITurnBudget.Begin(1000); var buildWatch = Stopwatch.StartNew();
                 int builds = planner.TryEarlyBuildPhase(board, TurnStrategy.EconomyBuild, 20 + t);
@@ -249,13 +256,33 @@ public static class EconomyR2LongRun
         int i = SessionState.GetInt(Index, 0); battleRounds = turn.Context.Turn - startRound;
         EconomyR2Tests.Check("ECON-R2-12 live commanders performed battle actions", systems.AICommander.SaveTurnCount > 0 && player.SaveTurnCount > 0);
         EconomyR2Tests.Check("ECON-R2-12 battle either completed fifty rounds or reached a real terminal state", battleRounds >= TargetRounds || turn.IsGameOver);
-        Debug.Log($"[EconomyR2LongRun] BATTLE PASSED seed={Seeds[i]} personality={Majors[i]} actualBattleRounds={battleRounds} earlyTerminal={turn.IsGameOver && battleRounds < TargetRounds} playerAttacks={player.SaveTotalAttacks} enemyAttacks={systems.AICommander.SaveTotalAttacks} playerBuilds={player.SaveTotalBuilds} enemyBuilds={systems.AICommander.SaveTotalBuilds} maxStagnantDeficitTurns={maxStagnant} elapsedSeconds={EditorApplication.timeSinceStartup - caseStarted:F1}");
+        Debug.Log($"[EconomyR2LongRun] BATTLE PASSED seed={Seeds[i]} personality={Majors[i]} actualBattleRounds={battleRounds} earlyTerminal={turn.IsGameOver && battleRounds < TargetRounds} playerAttacks={player.SaveTotalAttacks} enemyAttacks={systems.AICommander.SaveTotalAttacks} playerBuilds={player.SaveTotalBuilds} enemyBuilds={systems.AICommander.SaveTotalBuilds} maxStagnantDeficitTurns={maxStagnant} elapsedSeconds={EditorApplication.timeSinceStartup - caseStarted:F1} knownEditorStartupIndexExceptions={caseEditorIndexExceptions}");
         SessionState.SetInt(PassedBattles, SessionState.GetInt(PassedBattles, 0) + 1);
         Cleanup(); SessionState.SetBool(Next, true); EditorApplication.ExitPlaymode();
     }
 
     static void OnLog(string message, string stack, LogType type)
-    { if (type == LogType.Exception || type == LogType.Error) runtimeFailure = message; }
+    {
+        if (type != LogType.Exception && type != LogType.Error) return;
+        // Unity's editor search index can throw while enumerating databases at startup.
+        // This recorded editor-only stack cannot fail a gameplay run; all gameplay/other editor errors still do.
+        string normalizedStack = stack?.Replace('\\', '/') ?? string.Empty;
+        bool knownEditorStartupIndexFailure = type == LogType.Exception
+            && (message?.StartsWith("ArgumentOutOfRangeException:", StringComparison.Ordinal) == true
+                || message?.StartsWith("IndexOutOfRangeException:", StringComparison.Ordinal) == true)
+            && normalizedStack.IndexOf("UnityEditor.Search.SearchDatabase+<EnumerateAll>", StringComparison.Ordinal) >= 0
+            && normalizedStack.IndexOf("UnityEditor.Search.SearchInit.IndexationOnStartup", StringComparison.Ordinal) >= 0
+            && normalizedStack.IndexOf("Assets/Script", StringComparison.OrdinalIgnoreCase) < 0;
+        if (knownEditorStartupIndexFailure)
+        {
+            caseEditorIndexExceptions++;
+            int total = SessionState.GetInt(IgnoredEditorIndexing, 0) + 1;
+            SessionState.SetInt(IgnoredEditorIndexing, total);
+            Debug.LogWarning($"[EconomyR2LongRun] KNOWN EDITOR STARTUP INDEX EXCEPTION case={SessionState.GetInt(Index, 0) + 1} count={caseEditorIndexExceptions} total={total} gameplayRunContinues=True exception={message}");
+            return;
+        }
+        runtimeFailure = message;
+    }
     static void DisposePlayerSteps()
     { var iterator = playerSteps; playerSteps = null; playerOwner = null; (iterator as IDisposable)?.Dispose(); }
     static void Cleanup()

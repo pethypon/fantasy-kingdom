@@ -20,8 +20,11 @@ public static partial class SaveSystem
 
     public static void RestoreAP(APSaveData src, FactionState.APData dst)
     {
-        dst.Current = Mathf.Clamp(src.Current, 0, APSystem.MaximumAP); dst.Reset = src.Reset;
-        dst.Plus = src.Plus; dst.Minus = src.Minus;
+        if (src == null || dst == null) return;
+        dst.Reset = Mathf.Clamp(src.Reset <= 0 ? 30 : src.Reset, 3, APSystem.MaximumAP);
+        dst.Plus = Mathf.Clamp(src.Plus, 0, GameConstants.MaxAP);
+        dst.Minus = Mathf.Clamp(src.Minus, 0, GameConstants.MaxAP);
+        dst.Current = Mathf.Clamp(src.Current, 0, dst.Maximum);
     }
 
     // ================================================================
@@ -62,7 +65,8 @@ public static partial class SaveSystem
     {
         if (src == null || nation == null) return;
         nation.PendingReturns = new List<int>(src.PendingReturns);
-        nation.StarvationCounter = src.StarvationCounter;
+        nation.StarvationCounter = Mathf.Max(0, src.StarvationCounter);
+        nation.TurnsAlive = Mathf.Max(0, src.TurnsAlive);
         nation.CitizenCapacity = src.CitizenCapacity;
         nation.ResourceCapacity = src.ResourceCapacity;
         nation.BarracksXP = src.BarracksXP;
@@ -109,6 +113,8 @@ public static partial class SaveSystem
             commander.RestoreStrategy(strategy);
 
         RestoreAILearning(src, commander.Learning);
+        commander.RestoreReflectionState(src.Reflection);
+        commander.RestoreExplorationState(src.Exploration);
     }
 
     static void RestoreCellCountDict(List<CellCountData> src, Dictionary<Vector3Int, int> dst)

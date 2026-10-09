@@ -15,13 +15,14 @@ public sealed class AIEconomySettings
     [Min(0)] public float chainRecoveryWeight = 65f;
     [Min(0)] public float reserveRecoveryWeight = 25f;
     [Min(0)] public float overstockPenalty = 100f;
-    [Min(0)] public float warningMilitaryPenalty = 40f;
+    [Min(0)] public float warningMilitaryPenalty = 80f;
     [Min(0)] public float localMilitarySaturationPenalty = 15f;
     [Min(0)] public float uncoveredWallThreatPenalty = 20f;
     [Range(0, 1)] public float emergencyKingDamageFraction = .4f;
     [Range(0, 1)] public float emergencyCrystalDamageFraction = .75f;
     [Range(0, 1)] public float criticalReserveFraction = .25f;
     public bool enableDecisionLogs;
+    public AIBasicResourceSettings basicResources = new AIBasicResourceSettings();
     [Range(0, 1)] public float sustainedDeficitUrgency = .35f;
     [Min(.001f)] public float deficitEpsilon = .01f;
     [Range(1, 8)] public int plannedUnitLevel = 6;

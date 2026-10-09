@@ -70,6 +70,8 @@ public class AIActionExecutor
                 return ExecuteMove(action, board);
             case AIActionType.Build:
                 return ExecuteBuild(action, board);
+            case AIActionType.Upgrade:
+                return ExecuteUpgrade(action, board);
             case AIActionType.Summon:
                 return ExecuteSummon(action, board);
             case AIActionType.SubCrystal:
@@ -367,6 +369,24 @@ public class AIActionExecutor
     // ================================================================
     //  建築実行
     // ================================================================
+    public bool ExecuteUpgrade(AIAction action, AIBoardState board)
+    {
+        if (action == null || action.ActionType != AIActionType.Upgrade || board == null || board.ActorTeam != ActorTeam || _buildSystem == null
+            || _turnGen == null || _turnGen.IsGameOver) return false;
+        var building = action.Unit;
+        if (building == null || !building.IsAlive || building.team != ActorTeam
+            || (building.type != Type.Building && building.type != Type.Wall)) return false;
+        action.Facility = building.facilityKind;
+        action.FacilityDefinition = building.AuthoredFacility;
+        action.TargetPos = building.transform.position;
+        action.APCost = FacilityData.GetLevel(building, Mathf.Max(1, building.Level) + 1).UpgradeAP;
+        if (board.Governor != null && !board.Governor.AllowExecution(action, board)) return false;
+        if (!_buildSystem.TryUpgrade(building)) return false;
+        board.Refresh();
+        board.Governor?.Evaluate(board);
+        return true;
+    }
+
     public bool ExecuteBuild(AIAction action, AIBoardState board)
     {
         if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
@@ -410,7 +430,8 @@ public class AIActionExecutor
             : _summonSystem.AISummonUnit(pos, action.SummonKind, ActorTeam);
         if (success)
         {
-            board.RefreshAP();
+            board.Refresh();
+            board.Governor?.Evaluate(board);
             DevelopmentLog.Log($"[AIActionExecutor] 召喚: {action.SummonKind} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
         }
         return success;

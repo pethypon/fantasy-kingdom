@@ -286,7 +286,11 @@ public class PlayerMove : TurnState
         if (Systems.BuildingAttackSystem != null)
             Systems.BuildingAttackSystem.ProcessAttacks(Team.Player);
 
-        Turn.ChangeState(new EnemyStart(Turn));
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        Turn.PlayerAI?.Commander?.EndReflectionTurn();
+        Turn.PlayerAI?.Commander?.EndExplorationTurn();
+#endif
+        if (!Turn.IsGameOver) Turn.ChangeState(new EnemyStart(Turn));
     }
 
     // ---- カメラフォーカス（Cキー） ----

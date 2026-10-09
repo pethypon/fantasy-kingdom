@@ -34,6 +34,10 @@ public static class CoreLogicTests
         TestDamageBaseFormula();
         TestCrystalShieldActivationAndReset();
         TestTimerWinnerDeterminationOrder();
+        ReflectionBalanceCoreTests.RunAll();
+        AIReflectionCoreTests.RunAll();
+        ExplorationR2CoreTests.RunAll();
+        ExplorationR2BoundaryTests.RunAll();
 
         Debug.Log($"[CoreTest] Done: {_pass} passed, {_fail} failed");
         if (_fail > 0) throw new System.Exception($"{_fail} core regression tests failed");
@@ -44,16 +48,16 @@ public static class CoreLogicTests
     // -----------------------------------------------------------------
     static void TestR1Rules()
     {
-        foreach (int citizens in new[] { 0, 5, 10, 20, 30 })
+        foreach (int citizens in new[] { 0, 5, 10, 20, 30, 100 })
         {
             var ap = new FactionState.APData { Plus = citizens };
             ap.ResetForTurn();
-            Assert($"R1 AP citizens={citizens}", ap.Current == System.Math.Min(50, 30 + citizens));
+            Assert($"R1 AP citizens={citizens}", ap.Current == System.Math.Min(60, 30 + citizens));
             Assert("UI AP equals turn reset", ap.Maximum == ap.Current);
         }
         var restored = new FactionState.APData();
         SaveSystem.RestoreAP(new SaveSystem.APSaveData { Current = 99 }, restored);
-        Assert("Load clamps AP upper bound", restored.Current == 50);
+        Assert("Load clamps AP to current faction maximum", restored.Current == restored.Maximum && restored.Maximum == 30);
         SaveSystem.RestoreAP(new SaveSystem.APSaveData { Current = -5 }, restored);
         Assert("Load clamps AP lower bound", restored.Current == 0);
         Assert("R1 independent damage example", Mathf.Abs(DamageCalculator.CalcRawBase(100, 30) - 61f) < 0.001f);

@@ -58,6 +58,12 @@ public partial class AICommander
         int highestPriority=4;
         foreach(var entry in validActions)highestPriority=Mathf.Min(highestPriority,entry.action.StrategicPriority);
         for(int i=validActions.Count-1;i>=0;i--)if(validActions[i].action.StrategicPriority!=highestPriority)validActions.RemoveAt(i);
+        // Bounded experience ranks legal actions only inside this surviving priority tier.
+        for (int i = 0; i < validActions.Count; i++)
+        {
+            var entry = validActions[i];
+            validActions[i] = (entry.action, entry.score + LearnedModifier(entry.action));
+        }
 
         // ミス率: 一定確率で最善手以外を選択する（チュートリアル〜ノーマル帯）
         float mistakeRate = _threatLevel.MistakeRate;
@@ -68,6 +74,7 @@ public partial class AICommander
             int minIdx = Mathf.Max(1, validActions.Count / 4);
             int maxIdx = Mathf.Min(validActions.Count - 1, validActions.Count * 3 / 4);
             int idx = _rng.Range(minIdx, maxIdx + 1);
+            RememberSelectionScores(validActions[idx].action, validActions[idx].score);
             return validActions[idx].action;
         }
 
@@ -83,7 +90,15 @@ public partial class AICommander
             }
         }
 
+        RememberSelectionScores(best, bestScore);
         return best;
+    }
+
+    void RememberSelectionScores(AIAction action, float score)
+    {
+        selectedLearnedModifier = action != null ? LearnedModifier(action) : 0;
+        selectedFinalScore = score;
+        selectedBaseScore = score - selectedLearnedModifier;
     }
 
     // ================================================================

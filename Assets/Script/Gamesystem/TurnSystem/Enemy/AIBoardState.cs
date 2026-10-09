@@ -94,6 +94,9 @@ public partial class AIBoardState
     // ---- 地形・ダンジョン（後からAICommanderが注入） ----
     public DungeonSystem DungeonSystem { get; set; }
     public MapCreate MapCreate { get; set; }
+    public TerritorySystem TerritorySystem { get; set; }
+    public int OwnTerritoryCount => (TerritorySystem != null ? TerritorySystem
+        : MapCreate != null ? MapCreate.GetComponent<TerritorySystem>() : null)?.GetTerritory(ActorTeam)?.Count ?? 0;
 
     public bool IsTerrainKnown(Vector3 cell)
     {
@@ -398,12 +401,19 @@ public partial class AIBoardState
     // ---- 移動可能マス ----
     public List<Vector3> GetValidMoves(Status unit)
     {
+        if (unit == null || _moveGen == null || _moveGen.mapcreate == null) return new List<Vector3>();
         var unitPos = unit.transform.position;
-        var result = new List<Vector3>();
+        var offsets = MovePatterns.Offsets(unit);
+        var result = new List<Vector3>(offsets.Count);
+        int direction = MovePatterns.IsDirectionIndependent(unit) ? 1 : MovePatterns.DirZ(unit.direction);
         // Terrain discovery is information, not a movement restriction. Use the
-        // same legal terrain as player movement; hidden units remain unobserved.
-        foreach (var p in _moveGen.mapcreate.SetPos)
+        // same local movement mask as player/simulation, without scanning the entire map.
+        foreach (var offset in offsets)
         {
+            int x = Mathf.RoundToInt(unitPos.x) + offset.x;
+            int z = Mathf.RoundToInt(unitPos.z) + offset.y * direction;
+            if (!_moveGen.mapcreate.TryGetHeight(x, z, out float height)) continue;
+            var p = new Vector3(x, height, z);
             if (!MovePatterns.CanMove(unit, unit.direction, p.x - unitPos.x, p.z - unitPos.z)) continue;
             if (!_moveGen.mapcreate.CanTraverse(unitPos, p)) continue;
             bool occupied = GridHelper.MatchXZ(p, GridHelper.ToGrid(EnemyCrystalPos))
@@ -412,7 +422,14 @@ public partial class AIBoardState
             foreach (var enemy in AlivePlayerUnits) if (GridHelper.MatchXZ(p, enemy.GridPosition)) occupied = true;
             if (!occupied) result.Add(p);
         }
+        result.Sort(CompareMoveCells);
         return result;
+    }
+
+    static int CompareMoveCells(Vector3 left, Vector3 right)
+    {
+        int x = left.x.CompareTo(right.x);
+        return x != 0 ? x : left.z.CompareTo(right.z);
     }
 
     // ---- 攻撃対象（視界内のみ） ----

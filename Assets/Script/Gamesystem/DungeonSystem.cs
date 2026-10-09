@@ -57,10 +57,11 @@ public class DungeonSystem : MonoBehaviour
     private FactionState factionState;
     private UnitSetting unitSetting;
     private BuildSystem buildsystem;
+    private TurnGenerator turnGenerator;
 
     public void Init(MapCreate mapcreate, CrystalSystem crystalsystem,
                      TerritorySystem territorysystem, FactionState factionState,
-                     UnitSetting unitSetting, BuildSystem buildsystem)
+                     UnitSetting unitSetting, BuildSystem buildsystem, TurnGenerator turnGenerator = null)
     {
         this.mapcreate = mapcreate;
         this.crystalsystem = crystalsystem;
@@ -68,6 +69,7 @@ public class DungeonSystem : MonoBehaviour
         this.factionState = factionState;
         this.unitSetting = unitSetting;
         this.buildsystem = buildsystem;
+        this.turnGenerator = turnGenerator;
 
         // マーカー専用コンテナを生成（VisionGenerator が一括で表示制御するため）
         if (MarkerParent == null)
@@ -207,6 +209,9 @@ public class DungeonSystem : MonoBehaviour
             RefreshController(d);
             if (!AdvanceCycle(d)) continue;
             GrantArtifact(d.ClaimingTeam, d.Reward);
+            if (d.Reward != Artifact.None && factionState != null)
+                AIReflectionEvents.RecordArtifact(turnGenerator,
+                    d.ClaimingTeam, "dungeon:" + d.Position.x + ":" + d.Position.z + ":" + round + ":" + d.Reward);
             if (MatchStats.Instance != null && d.ClaimingTeam == Team.Player)
             {
                 MatchStats.Instance.DungeonsClaimed++;

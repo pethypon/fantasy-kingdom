@@ -12,6 +12,7 @@ public class AIBuildPlanner
     readonly AIActionExecutor _executor;
     readonly AIPersonality _personality;
     readonly AILearning _learning;
+    readonly List<AIAction> buildActions = new List<AIAction>(64);
 
     public AIBuildPlanner(
         APSystem apSystem, FactionState factionState,
@@ -59,7 +60,7 @@ public class AIBuildPlanner
 
         int earlyBuilds = TryScoreBuildPhase(board, strategy, turnCount);
 
-        if (earlyBuilds == 0 && !AITurnBudget.Expired && _executor.BuildSystem != null && board.EnemyAP >= 3)
+        if (earlyBuilds == 0 && !AITurnBudget.Expired && _executor.BuildSystem != null)
         {
             DevelopmentLog.Log("[AIBuildPlanner] スコアパスで建築0棟 → 直接建築フォールバック開始");
             earlyBuilds += ForceDirectBuild(board, turnCount);
@@ -87,12 +88,13 @@ public class AIBuildPlanner
 
     int TryScoreSingleBuild(AIBoardState board, TurnStrategy strategy, int turnCount)
     {
-        if (AITurnBudget.Expired || board.BuildablePositions.Count == 0)
+        if (AITurnBudget.Expired)
             return 0;
         var governor = PrepareGovernor(board);
 
-        var buildActions = new List<AIAction>();
+        buildActions.Clear();
         AIActionEvaluator.GenerateBuildCandidatesPublic(board, buildActions);
+        AIActionGenerator.GenerateUpgradeCandidates(board, buildActions);
         AIActionEvaluator.GenerateSubCrystalCandidatesPublic(board, buildActions);
 
         DevelopmentLog.Log($"[AIBuildPlanner] 生成された建築候補数={buildActions.Count}");
@@ -146,12 +148,13 @@ public class AIBuildPlanner
     {
         foreach (var action in actions)
         {
-            var assessment = EconomyHelper.AssessProductionBuild(action, board);
+            bool improves = EconomyHelper.ImprovesProductionDemand(action, board)
+                || board.Governor.BasicResources.IsFoundationAction(action);
             if (strategy == TurnStrategy.EconomyBuild)
             {
-                if (assessment.ImprovesDeficit) action.Score += 30f;
+                if (improves) action.Score += 30f;
             }
-            else if (strategy == TurnStrategy.Balanced && assessment.ImprovesDeficit)
+            else if (strategy == TurnStrategy.Balanced && improves)
             {
                 action.Score += 15f;
             }
@@ -164,8 +167,7 @@ public class AIBuildPlanner
     public int TryLateBuildPhase(AIBoardState board, int buildsDone, int turnCount)
     {
         if (AITurnBudget.Expired || board == null) return 0;
-        bool shouldPostBuild = buildsDone == 0 && board.EnemyAP >= 3
-            && !EconomyHelper.IsEconomySufficient(board);
+        bool shouldPostBuild = buildsDone == 0 && !EconomyHelper.IsEconomySufficient(board);
 
         if (!shouldPostBuild) return 0;
 
@@ -212,60 +214,43 @@ public class AIBuildPlanner
         if (board == null || _apSystem == null || _factionState == null || AITurnBudget.Expired) return built;
         var governor = PrepareGovernor(board);
 
-        FacilityKind[] buildOrder = {
-            FacilityKind.Well, FacilityKind.LoggingCamp, FacilityKind.Quarry,
-            FacilityKind.Field, FacilityKind.Mine, FacilityKind.House,
-            FacilityKind.Bakery,
-            FacilityKind.Warehouse, FacilityKind.Barracks,
-        };
-
         // Rebuild the candidate set after every purchase. Both demand and available cells have changed.
         while (built < 3 && !AITurnBudget.Expired)
         {
-            int currentAP = _apSystem.GetAP(board.ActorTeam);
-            if (currentAP < 3) break;
             governor.Evaluate(board);
-            var positions = buildSystem.AIGetBuildablePositions(board.ActorTeam);
-            if (positions.Count == 0) break;
-            var actions = new List<AIAction>(buildOrder.Length);
-
-            foreach (var facility in buildOrder)
+            buildActions.Clear();
+            AIActionGenerator.GenerateBuildCandidates(board, buildActions);
+            AIActionGenerator.GenerateUpgradeCandidates(board, buildActions);
+            int output = 0;
+            for (int i = 0; i < buildActions.Count; i++)
             {
                 if (AITurnBudget.Expired) return built;
-                if (!FacilityData.Table.TryGetValue(facility, out var info) || currentAP < info.APCost) continue;
-                if (!_apSystem.CanBuild(board.ActorTeam, facility, _factionState) || !board.HasUpstreamProducer(facility)) continue;
-                var action = new AIAction { ActionType = AIActionType.Build, Facility = facility,
-                    TargetPos = positions[0], APCost = info.APCost };
-                var assessment = governor.BuildAssessment(action, board);
+                var action = buildActions[i];
                 // A fallback fills diagnosed supply/capacity gaps; it is never a reason to buy surplus production.
-                if (!assessment.IsProduction || !assessment.ImprovesDeficit) continue;
+                if (!EconomyHelper.ImprovesProductionDemand(action, board)
+                    && !governor.BasicResources.IsFoundationAction(action)) continue;
                 action.Score = AIActionEvaluator.CalcBuildScorePublic(action, _personality, board, _learning);
-                actions.Add(action);
+                buildActions[output++] = action;
             }
-            governor.Filter(actions, board);
+            if (output < buildActions.Count) buildActions.RemoveRange(output, buildActions.Count - output);
+            governor.Filter(buildActions, board);
             LogRejectedBuilds(governor);
-            actions.Sort(AIAction.ComparePriorityThenScore);
+            buildActions.Sort(AIAction.ComparePriorityThenScore);
 
             bool purchased = false;
-            foreach (var action in actions)
+            foreach (var action in buildActions)
             {
                 if (AITurnBudget.Expired) break;
-                for (int i = 0; i < positions.Count && !AITurnBudget.Expired; i++)
-                {
-                    var pos = positions[i];
-                    action.TargetPos = pos;
-                    if (!governor.AllowExecution(action, board)) continue;
-                    if (!buildSystem.AIPlaceBuilding(pos, action.Facility, board.ActorTeam)) continue;
-                    built++;
-                    purchased = true;
-                    board.Refresh();
-                    governor.Evaluate(board);
-                    governor.Telemetry(action, true);
-                    DevelopmentLog.Log($"[AIBuildPlanner] ★★ {action.Facility} @({pos.x},{pos.y},{pos.z}) 建築成功! " +
-                              $"残AP={board.EnemyAP} (今ターン{built}棟目) 経済={governor.Economy.State}");
-                    break;
-                }
-                if (purchased) break;
+                if (!governor.AllowExecution(action, board)) continue;
+                // Use the same paid execution path for authored construction and existing-building upgrades.
+                if (!_executor.Execute(action, board)) continue;
+                built++;
+                purchased = true;
+                governor.Evaluate(board);
+                governor.Telemetry(action, true);
+                DevelopmentLog.Log($"[AIBuildPlanner] ★★ {action.ActionType}/{action.Facility} @{action.TargetPos} 経済行動成功! " +
+                    $"残AP={board.EnemyAP} (今ターン{built}件目) 経済={governor.Economy.State}");
+                break;
             }
             if (!purchased) break;
         }

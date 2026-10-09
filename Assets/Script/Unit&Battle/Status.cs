@@ -269,7 +269,21 @@ public enum SkillRarity
 
 public class Status : MonoBehaviour
 {
-    void OnEnable() => CombatRegistry.Register(this);
+    string reflectionLifeId;
+    bool reflectionLifeEnded;
+    public string ReflectionLifeId => string.IsNullOrEmpty(reflectionLifeId)
+        ? reflectionLifeId = System.Guid.NewGuid().ToString("N") : reflectionLifeId;
+    public void RestoreReflectionLifeId(string id)
+    {
+        reflectionLifeId = id != null && id.Length <= 64 ? id : null;
+        reflectionLifeEnded = false;
+    }
+    void OnEnable()
+    {
+        // A pooled actor's next life must not collide with its earlier death ledger.
+        if (reflectionLifeEnded) { reflectionLifeId = null; reflectionLifeEnded = false; }
+        CombatRegistry.Register(this);
+    }
     void OnDisable() => CombatRegistry.Unregister(this);
     void OnDestroy() => CombatRegistry.Unregister(this);
     [Header("種類")]
@@ -526,6 +540,9 @@ public class Status : MonoBehaviour
     {
         if (attacker == null || target == null || attacker.team == target.team || damage <= 0) return;
         target.LastDamageTeam = attacker.team;
+        var turn = GetTurnGenerator();
+        AIReflectionEvents.RecordDamage(turn, attacker, target, damage);
+        if (target.HP <= 0) target.reflectionLifeEnded = true;
         int bonus = factions != null && (attacker.team == Team.Player || attacker.team == Team.Enemy)
             ? factions.GetBarracksXP(attacker.team) : 0;
         if (attacker.type == Type.Unit) attacker.GainExperienceFromDamage(damage, bonus);
@@ -604,8 +621,7 @@ public class Status : MonoBehaviour
     public bool TryTriggerGameEndIfDecisive()
     {
         if (HP > 0) return false;
-        if (kind != Kind.King && kind != Kind.Crystal) return false;
-        if (team != Team.Player && team != Team.Enemy) return false;
+        if (!MatchObjectiveRules.IsDecisive(kind, team)) return false;
 
         var turnGen = GetTurnGenerator();
         if (turnGen == null) return false;
@@ -616,7 +632,7 @@ public class Status : MonoBehaviour
 
         GameResult result = team == Team.Enemy ? GameResult.Win : GameResult.Lose;
         UnityEngine.Debug.Log($"[Status] {team} の {kind} 撃破 → ゲーム終了 ({result})");
-        turnGen.ChangeState(new GameEndState(turnGen, result));
+        turnGen.ChangeState(new GameEndState(turnGen, result, this));
         return true;
     }
 
@@ -700,7 +716,8 @@ public enum AIActionType
     DefenseRepos,   // 防衛再配置
     SubCrystal,     // サブクリ展開
     Wait,           // 待機
-    Rotate          // Appended to preserve serialized action values.
+    Rotate,         // Appended to preserve serialized action values.
+    Upgrade         // Existing building upgrade rules; earlier action values remain unchanged.
 }
 
 // =====================================================================

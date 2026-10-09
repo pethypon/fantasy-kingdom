@@ -4,22 +4,17 @@ using UnityEngine;
 /// <summary>
 /// Information utility from observations only. Unknown occupants are never queried.
 /// Forecasts are estimates, not permission to attack hidden targets.
-/// Rebuilt once per board generation; candidate queries reuse cached scores.
+/// Observed contact information is refreshed per board generation; persistent frontier plans live in the governor.
 /// </summary>
 public sealed class AIReconnaissance
 {
     readonly AIBoardState board;
-    readonly List<Status> scouts = new List<Status>();
     readonly HashSet<int> visibleIds = new HashSet<int>();
     readonly Dictionary<Vector3Int, float> interest = new Dictionary<Vector3Int, float>();
     readonly Dictionary<(int, Vector3Int), float> scores = new Dictionary<(int, Vector3Int), float>();
     readonly HashSet<Vector3Int> forecast = new HashSet<Vector3Int>();
     readonly List<Vector3Int> frontier = new List<Vector3Int>(256);
     readonly HashSet<Vector3Int> footprint = new HashSet<Vector3Int>();
-    readonly Vector3[] sectorTargets = new Vector3[8];
-    readonly float[] sectorDistances = new float[8];
-    readonly bool[] claimedSectors = new bool[8];
-    readonly Dictionary<int, Vector3> assignments = new Dictionary<int, Vector3>();
     int generation = -1, threat = -1;
     Vector3 contactTarget;
     bool hasContact;
@@ -30,13 +25,9 @@ public sealed class AIReconnaissance
     {
         if (generation == board.Generation && threat == board.ReconThreatLevel) return;
         generation = board.Generation; threat = board.ReconThreatLevel;
-        scores.Clear(); interest.Clear(); scouts.Clear(); visibleIds.Clear(); assignments.Clear();
+        scores.Clear(); interest.Clear(); visibleIds.Clear();
         hasContact = false;
         float contactPriority = float.NegativeInfinity;
-        System.Array.Clear(claimedSectors, 0, claimedSectors.Length);
-        foreach (var unit in board.AliveEnemyUnits)
-            if (unit != null && unit.IsAlive && unit.kind == Kind.Scout) scouts.Add(unit);
-        scouts.Sort((a, b) => a.GetInstanceID().CompareTo(b.GetInstanceID()));
         foreach (var unit in board.AlivePlayerUnits)
             if (unit != null)
             {
@@ -93,31 +84,9 @@ public sealed class AIReconnaissance
             }
         }
 
-        for (int i = 0; i < 8; i++) sectorDistances[i] = float.PositiveInfinity;
-        if (threat < 7 || scouts.Count == 0 || board.ReconMap == null) return;
-        // Map extents are public; do not inspect undiscovered terrain/occupants to choose a frontier.
-        for (int x = 0; x < board.ReconMap.maxX; x++)
-        for (int z = 0; z < board.ReconMap.maxZ; z++)
-        {
-            var cell = new Vector3(x, 0, z);
-            if (board.IsExploredByEnemy(cell)) continue;
-            int sector = Sector(cell - board.EnemyCrystalPos);
-            float distance = (cell - board.EnemyCrystalPos).sqrMagnitude;
-            if (distance >= sectorDistances[sector]) continue;
-            sectorDistances[sector] = distance; sectorTargets[sector] = cell;
-        }
-        for (int index = 0; index < scouts.Count; index++)
-        {
-            int wanted = index * 8 / scouts.Count;
-            for (int offset = 0; offset < 8; offset++)
-            {
-                int sector = (wanted + offset) % 8;
-                if (claimedSectors[sector] || float.IsPositiveInfinity(sectorDistances[sector])) continue;
-                claimedSectors[sector] = true;
-                assignments[scouts[index].GetInstanceID()] = sectorTargets[sector];
-                break;
-            }
-        }
+        // Frontier extraction and reservations are incremental and survive subsequent board generations.
+        // Never rebuild eight nearest-unknown sectors by scanning the entire map here.
+        board.Exploration.Update(board, board.Governor?.Mode == StrategicMode.EmergencyDefense);
     }
 
     void Predict(AIBoardState.LastKnownInfo memory, int age)
@@ -185,11 +154,11 @@ public sealed class AIReconnaissance
         if (blind) footprint.Add(target + new Vector3Int(0, 0, MovePatterns.DirZ(unit.direction)));
         else foreach (var offset in VisionGenerator.BaseVisionOffsets(unit)) footprint.Add(target + GridHelper.ToGridXZ(offset));
         float information = 0, ranged = 0, warning = 0;
-        int fresh = 0, overlap = 0;
+        int fresh = 0;
         foreach (var cell in footprint)
         {
             if (!Inside(cell) || !KnownLineClear(target, cell, false)) continue;
-            if (board.IsVisibleToEnemy(cell)) { overlap++; continue; }
+            if (board.IsVisibleToEnemy(cell)) continue;
             bool unknown = !board.IsExploredByEnemy(cell);
             if (unknown) fresh++;
             interest.TryGetValue(cell, out float expected);
@@ -212,7 +181,14 @@ public sealed class AIReconnaissance
                 if (distance >= 3 && distance <= 6) warning += .4f;
             }
         }
-        float score = Mathf.Min(fresh * (scout ? 2.5f : .7f), scout ? 40 : 12);
+        // R2 owns scout reveal utility and long-range progress. Other units keep their previous information utility.
+        float score = Mathf.Min(fresh * .7f, 12);
+        if (scout)
+        {
+            var exploration = board.Exploration;
+            score = exploration.Settings.Enabled ? exploration.GetMoveBonus(unit, destination, board)
+                : Mathf.Min(fresh * 2.5f, 40);
+        }
         score += Mathf.Min(information, 55) + Mathf.Min(ranged, 18) + Mathf.Min(warning, 8);
         if (!scout && hasContact && unit.kind != Kind.King && unit.HP >= unit.MaxHP / 2)
         {
@@ -220,20 +196,12 @@ public sealed class AIReconnaissance
             float risk = board.EstimateCounterDamageAt(destination, unit);
             if (risk < unit.HP / 2f) score += Mathf.Clamp(progress, -3, 3) * 7;
         }
-        if (scout && threat >= 7 && fresh > 0)
-        {
-            if (TryGetAssignedTarget(unit, out var goal))
-                score += Mathf.Clamp(Vector3.Distance(unit.transform.position, goal) - Vector3.Distance(destination, goal), -2, 2) * 5;
-            foreach (var other in scouts)
-                if (other != unit && GridHelper.ChebyshevDistance(destination, other.transform.position) <= 2) score -= 10;
-            score -= overlap * .2f;
-        }
         if (scout)
         {
             if (board.Outposts.TryGetDungeonObjective(unit.transform.position, out var dungeon))
                 score += Mathf.Clamp(GridHelper.ChebyshevDistance(unit.transform.position, dungeon) - GridHelper.ChebyshevDistance(destination, dungeon), -3, 3) * 6;
             float risk = board.EstimateCounterDamageAt(destination, unit);
-            score -= Mathf.Min(70, risk / Mathf.Max(1, unit.HP) * 65);
+            if (!board.Exploration.Settings.Enabled) score -= Mathf.Min(70, risk / Mathf.Max(1, unit.HP) * 65);
             if (board.GetNearestAllyDist(destination, unit) > 6 && (risk > 0 || unit.HP < unit.MaxHP / 2)) score -= 15;
         }
         scores[key] = score;
@@ -243,11 +211,10 @@ public sealed class AIReconnaissance
     public bool TryGetAssignedTarget(Status scout, out Vector3 target)
     {
         Prepare();
-        return assignments.TryGetValue(scout.GetInstanceID(), out target);
+        return board.Exploration.TryGetAssignedTarget(scout, out target);
     }
 
     public float InformationAt(Vector3Int cell) { Prepare(); return interest.TryGetValue(GridHelper.ToGridXZ(cell), out float value) ? value : 0; }
     public bool TryGetContactTarget(out Vector3 target) { Prepare(); target = contactTarget; return hasContact; }
-    static int Sector(Vector3 direction) => ((Mathf.RoundToInt(Mathf.Atan2(direction.z, direction.x) * 4 / Mathf.PI) % 8) + 8) % 8;
     static bool IsRanged(Kind kind) => kind == Kind.Archer || kind == Kind.Crossbow || kind == Kind.Magicsniper || kind == Kind.Magic || kind == Kind.Bomber;
 }

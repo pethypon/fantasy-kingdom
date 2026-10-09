@@ -16,7 +16,7 @@ public class FactionState : MonoBehaviour
         [Header("ボーナス")] public int Plus = 0;
         [Header("ペナルティ")] public int Minus = 0;
 
-        public int Maximum => Mathf.Clamp(Reset + Plus - Minus, 3, APSystem.MaximumAP);
+        public int Maximum => (int)System.Math.Max(3, System.Math.Min(APSystem.MaximumAP, (long)Reset + Plus - Minus));
 
         public void ResetForTurn()
         {
@@ -121,9 +121,27 @@ public class FactionState : MonoBehaviour
         }
     }
     public int GetAP(Team team) => GetAPData(team).Current;
-    public void SetAP(Team team, int value) => GetAPData(team).Current = Mathf.Clamp(value, 0, APSystem.MaximumAP);
-    public void ModifyAP(Team team, int delta) => SetAP(team, GetAP(team) + delta);
+    public void SetAP(Team team, int value)
+    {
+        var data = GetAPData(team);
+        data.Current = Mathf.Clamp(value, 0, data.Maximum);
+    }
+    public void ModifyAP(Team team, int delta)
+    {
+        var data = GetAPData(team);
+        data.Current = (int)System.Math.Max(0, System.Math.Min(data.Maximum, (long)data.Current + delta));
+    }
     public void ResetAPForTurn(Team team) => GetAPData(team).ResetForTurn();
+
+    /// <summary>Recalculate the actual population bonus after a turn, load or population change.</summary>
+    public void UpdateCitizenAPBonus(Team team)
+    {
+        if (team != Team.Player && team != Team.Enemy) return;
+        var nation = GetNation(team);
+        if (nation == null || nation.Resources == null || nation.AP == null) return;
+        nation.AP.Plus = (int)System.Math.Min(GameConstants.MaxAP, (long)System.Math.Max(0, nation.Resources.Citizen) * EconomySystem.CitizenAPBonus);
+        nation.AP.Current = Mathf.Clamp(nation.AP.Current, 0, nation.AP.Maximum);
+    }
 
     // ==== 資源取得 ====
     public ResourceData GetResources(Team team) => GetNation(team).Resources;

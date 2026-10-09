@@ -197,13 +197,27 @@ public static class EconomyR2Tests
             f.Catalog.buildings.Clear(); f.Catalog.buildings.Add(bakery);
             var board = f.Board(); board.AffordableBuildings.Clear(); int generation = board.Generation;
             AITurnBudget.Begin(2000);
-            int count = (int)typeof(AIBuildPlanner).GetMethod("TryScoreBuildPhase", Fixture.Private).Invoke(f.Planner(), new object[] { board, TurnStrategy.EconomyBuild, 20 });
-            Check("ECON-R2-08 bakery is actually purchased through score planner", count >= 1 && f.Builder.GetBuildingCount(f.Team, FacilityKind.Bakery) == 1);
+            // Test one purchase at a time: a second legal foundation project can change population and food demand.
+            var purchase = typeof(AIBuildPlanner).GetMethod("TryScoreSingleBuild", Fixture.Private);
+            var planner = f.Planner();
+            int count = (int)purchase.Invoke(planner, new object[] { board, TurnStrategy.EconomyBuild, 20 });
+            Check("ECON-R2-08 bakery is actually purchased through score planner", count == 1 && f.Builder.GetBuildingCount(f.Team, FacilityKind.Bakery) == 1);
             Check("ECON-R2-08 purchase refreshes board generation and demand", board.Generation > generation
                 && !board.Governor.BuildAssessment(f.BuildAction(bakery, board), board).ImprovesDeficit);
-            Check("ECON-R2-08 same-turn stale deficit cannot buy a second bakery", f.Builder.GetBuildingCount(f.Team, FacilityKind.Bakery) == 1);
-            int bread = f.Resources.Bread; f.Economy.ProcessTurn(f.Team);
-            Check("actual economy applies the purchased recipe", f.Resources.Bread == bread + 5);
+            // Restrict this assertion to the bakery; baseline buildings are tested separately in foundation regressions.
+            board.AffordableBuildings.Clear(); int ap = f.State.GetAP(f.Team); string resources = JsonUtility.ToJson(f.Resources);
+            int second = (int)purchase.Invoke(planner, new object[] { board, TurnStrategy.EconomyBuild, 20 });
+            Check("ECON-R2-08 same-turn stale deficit cannot buy a second bakery", second == 0
+                && f.Builder.GetBuildingCount(f.Team, FacilityKind.Bakery) == 1 && f.State.GetAP(f.Team) == ap
+                && resources == JsonUtility.ToJson(f.Resources));
+            // Building costs can consume citizens, so use the purchased recipe and the actual population.
+            // The real turn also spends one bread when a vacant citizen slot is refilled.
+            int bread = f.Resources.Bread, citizens = f.Resources.Citizen;
+            int producedBread = bakery.GetLevel(1).Output.Bread;
+            f.Economy.ProcessTurn(f.Team);
+            int growthBread = Mathf.Max(0, f.Resources.Citizen - citizens);
+            Check("actual economy applies purchased bread output and current citizen costs", f.Resources.Bread ==
+                bread + producedBread - growthBread - f.Resources.Citizen * EconomySystem.CitizenBreadCost);
         }
     }
 
@@ -211,7 +225,9 @@ public static class EconomyR2Tests
     {
         using (var f = new Fixture(systems))
         {
-            f.Resources.Bread = 25; f.Food(5); f.Unit(upkeepBread: 10);
+            f.Resources.Bread = 25; f.Food(5);
+            // Normal upkeep is now fixed to Bread/Iron 1 at Lv1; ten real units preserve this army-demand regression.
+            for (int i = 0; i < 10; i++) { var unit = f.Unit(); unit.Level = 1; }
             var board = f.Board(); var bread = board.Governor.ProductionDemand.Get(ResourceKind.Bread);
             Check("ECON-R2-09 expanded army is diagnosed before a third-turn food failure", bread.NetPerTurn <= -10
                 && bread.ProductionDeficit > 0 && board.Governor.ProductionDemand.HasCriticalDeficit);
@@ -337,7 +353,8 @@ public static class EconomyR2Tests
                 foreach (var team in new[] { global::Team.Player, global::Team.Enemy })
                 {
                     var res = State.GetResources(team); res.Wood = res.Stone = res.Water = res.Iron = res.MagicOre = res.Wheat = res.Bread = 400; res.Citizen = 5;
-                    State.GetNation(team).TurnsAlive = 20; State.GetNation(team).SubCrystals = 0; State.SetAP(team, 40);
+                    State.GetNation(team).TurnsAlive = 20; State.GetNation(team).SubCrystals = 0;
+                    State.GetAPData(team).Reset = 40; State.SetAP(team, 40);
                 }
                 AP = Child("AP").AddComponent<APSystem>(); AP.Init(State);
                 Units = Child("Units").AddComponent<UnitSetting>(); Units.PlayerUnit = Child("Player units").transform; Units.EnemyUnit = Child("Enemy units").transform;

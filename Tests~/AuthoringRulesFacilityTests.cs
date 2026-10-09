@@ -59,9 +59,9 @@ public static class AuthoringRulesFacilityTests
                 rules.maximumAP = -1;
                 Check(APSystem.MaximumAP == 3, "invalid authored AP cap retains a playable minimum");
                 rules.maximumAP = 500;
-                Check(APSystem.MaximumAP == 50, "authored AP cap retains the engine safety ceiling");
+                Check(APSystem.MaximumAP == 60, "authored AP cap retains the engine safety ceiling");
                 rules.applyRules = false;
-                Check(APSystem.MaximumAP == 50, "disabled AP cap preserves legacy rules");
+                Check(APSystem.MaximumAP == 60, "disabled AP cap preserves default turn rules");
             }
             finally { loadedField.SetValue(null, oldLoaded); didLoadField.SetValue(null, oldDidLoad); }
 
@@ -127,7 +127,9 @@ public static class AuthoringRulesFacilityTests
             simulation.SimulateTurnTransition(Team.Enemy); simulation.SimulateTurnTransition(Team.Player);
             Check(simulation.EnemyAP == 20 && simulation.PlayerAP == 20, "AI simulation uses the same AP ceiling as gameplay");
             rules.applyRules = false;
-            state.PlayerAP.Current = 30;
+            // The preceding load left base 18 + bonus 5. Reset this independent build fixture to a legal 30 AP maximum.
+            state.PlayerAP.Reset = 30; state.PlayerAP.Plus = state.PlayerAP.Minus = 0;
+            state.PlayerAP.ResetForTurn();
 
             var ap = CreateObject("Authoring test AP").AddComponent<APSystem>(); ap.Init(state);
             builder = CreateObject("Authoring test builder").AddComponent<BuildSystem>();

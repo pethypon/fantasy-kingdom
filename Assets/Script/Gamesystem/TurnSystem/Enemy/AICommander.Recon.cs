@@ -38,7 +38,8 @@ public partial class AICommander
             }
             if (best == null || AITurnBudget.Expired || _turnGen.IsGameOver) yield break;
             if (best.APCost > _board.EnemyAP - AITacticalPriorities.FinishingAttackReserve(_board)) yield break;
-            if (_actionExecutor.Execute(best, _board))
+            RememberSelectionScores(best, best.Score + LearnedModifier(best));
+            if (ExecuteReflectedAction(best))
             {
                 stats.Record(best.ActionType);
                 remainingAP -= best.APCost;
@@ -68,7 +69,8 @@ public partial class AICommander
             float score = AIBuildEvaluator.CalcSummonBaseScore(action, _board);
             if (score > bestScore) { bestScore = score; best = action; }
         }
-        if (best != null && _actionExecutor.Execute(best, _board))
+        if (best != null) RememberSelectionScores(best, best.Score + LearnedModifier(best));
+        if (best != null && ExecuteReflectedAction(best))
         {
             stats.Record(best.ActionType);
             _board.Refresh();

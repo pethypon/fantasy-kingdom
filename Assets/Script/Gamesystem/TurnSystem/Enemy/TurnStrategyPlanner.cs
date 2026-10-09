@@ -59,20 +59,17 @@ public class TurnStrategyPlanner
 
         bool crystalThreatened = IsCrystalThreatened(board);
         int criticalUnitCount = CountCriticalUnits(board);
-        int econBuildingCount = CountEconBuildings(board);
-        int processingCount = CountProcessingBuildings(board);
-        int houseCount = board.GetBuildingCount(FacilityKind.House);
-        bool hasMinimalRaw = econBuildingCount >= 2;
-        bool hasBasicEconomy = econBuildingCount >= 4;
-        bool hasProcessing = processingCount >= 1;
-        bool hasMatureEconomy = hasBasicEconomy && processingCount >= 2 && houseCount >= 1;
-        bool econSufficient = hasBasicEconomy && processingCount >= 2 && houseCount >= 1;
+        board.Governor?.Evaluate(board);
+        bool econSufficient = EconomyHelper.IsEconomySufficient(board);
+        bool hasMatureEconomy = econSufficient;
+        bool hasBasicEconomy = econSufficient;
+        int supplyReserve = board.Governor?.GetRecoveryReserveAP(board) ?? 0;
         float advantage = board.GetAdvantageRatio();
 
         // ---- 優先度ベース判定（上位条件が優先） ----
 
         // 1. クリスタル危機: HP低いまたは敵接近
-        if (crystalHpRatio < 0.4f)
+        if (board.Governor?.Mode == StrategicMode.EmergencyDefense || crystalHpRatio < 0.4f)
         {
             decision.Strategy = TurnStrategy.CrystalDefense;
             decision.Reason = $"クリスタルHP危機({crystalHpRatio:P0})";
@@ -88,38 +85,20 @@ public class TurnStrategyPlanner
             decision.Strategy = TurnStrategy.RetreatRegroup;
             decision.Reason = $"瀕死駒{criticalUnitCount}体 → 再編";
         }
+        else if (!econSufficient && supplyReserve > 0)
+        {
+            decision.Strategy = TurnStrategy.EconomyBuild;
+            decision.Reason = "不足する供給を回復する実行可能な計画あり";
+        }
         else if (board.AlivePlayerUnits.Count > 0)
         {
             decision.Strategy = TurnStrategy.ContactEngage;
             decision.Reason = "接敵中: 経済の完成を待たず交戦";
         }
-        else if (hasMinimalRaw && board.GetExplorationRatio() < 0.6f)
+        else if (board.GetExplorationRatio() < 0.6f)
         {
             decision.Strategy = TurnStrategy.ScoutSearch;
-            decision.Reason = "最低限の生産を維持して索敵";
-        }
-        // 3. 経済基盤不足: 建築優先
-        else if (!hasMinimalRaw)
-        {
-            decision.Strategy = TurnStrategy.EconomyBuild;
-            decision.Reason = "原料施設不足(最低限もない)";
-        }
-        else if (!hasBasicEconomy && board.BuildablePositions.Count > 0)
-        {
-            decision.Strategy = TurnStrategy.EconomyBuild;
-            decision.Reason = $"基礎原料不足(原料{econBuildingCount}/4)";
-        }
-        else if (!hasProcessing && board.BuildablePositions.Count > 0)
-        {
-            decision.Strategy = TurnStrategy.EconomyBuild;
-            decision.Reason = "加工施設なし";
-        }
-        else if (houseCount == 0 && board.EnemyResources != null
-            && board.EnemyResources.Citizen <= 1
-            && board.BuildablePositions.Count > 0)
-        {
-            decision.Strategy = TurnStrategy.EconomyBuild;
-            decision.Reason = "住宅なし・市民不足";
+            decision.Reason = "生産を待つ間も探索・領域の確認を継続";
         }
         // 4. 経済未成熟期: バランス（建築も並行）
         else if (!econSufficient && turnCount <= 20)
@@ -241,57 +220,7 @@ public class TurnStrategyPlanner
     //  AP予約計算
     // ================================================================
     int CalcReservedAP(AIBoardState board, TurnStrategy strategy)
-    {
-        int reserved = 0;
-
-        // 経済建築用AP予約
-        if (board.BuildablePositions.Count > 0)
-        {
-            int econCount = CountEconBuildings(board);
-            if (econCount < 4)
-                reserved = Mathf.Max(reserved, 3); // 最安の原料施設
-
-            int procCount = CountProcessingBuildings(board);
-            if (procCount == 0 && econCount >= 2)
-                reserved = Mathf.Max(reserved, 5); // 加工施設
-
-            if (board.GetBuildingCount(FacilityKind.House) == 0
-                && board.EnemyResources != null && board.EnemyResources.Citizen <= 1)
-                reserved = Mathf.Max(reserved, 7); // 住宅
-
-            // AffordableBuildings の最安APコスト
-            if (board.AffordableBuildings.Count > 0)
-            {
-                int cheapest = int.MaxValue;
-                foreach (var fk in board.AffordableBuildings)
-                {
-                    if (FacilityData.Table.TryGetValue(fk, out var info))
-                        cheapest = Mathf.Min(cheapest, info.APCost);
-                }
-                if (cheapest < int.MaxValue)
-                    reserved = Mathf.Max(reserved, cheapest);
-            }
-        }
-
-        // 召喚用AP予約
-        if (board.SummonablePositions.Count > 0 && board.AffordableUnits.Count > 0)
-        {
-            int cheapest = int.MaxValue;
-            foreach (var k in board.AffordableUnits)
-            {
-                if (UnitStaticData.Table.TryGetValue(k, out var info))
-                    cheapest = Mathf.Min(cheapest, info.CostAP);
-            }
-            if (cheapest < int.MaxValue)
-                reserved = Mathf.Max(reserved, cheapest);
-        }
-
-        // 経済建築戦略では予約を強化
-        if (strategy == TurnStrategy.EconomyBuild)
-            reserved = Mathf.Max(reserved, 5);
-
-        return reserved;
-    }
+        => board.Governor?.GetRecoveryReserveAP(board) ?? 0;
 
     // ================================================================
     //  BOSS性格による方針微調整

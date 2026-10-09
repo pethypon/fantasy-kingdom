@@ -66,7 +66,8 @@ public static partial class FacilityData
         public int DEF;
         public int ATK;
 
-        // 生産（毎ターン）
+        // 生産（周期ごと。旧データの0は1ターン周期として扱う）
+        [Min(1)] public int ProductionIntervalTurns;
         public ProductionBundle Input;           // 確定消費
         public ProductionBundle Output;          // 確定産出
         public ProductionBundle BonusOutput1;    // 確率産出1
@@ -118,7 +119,7 @@ public static partial class FacilityData
     {
         if (!_levels.TryGetValue(kind, out var arr)) return default;
         int idx = Mathf.Clamp(level - 1, 0, arr.Length - 1);
-        return arr[idx];
+        return BuildingProductionBalance.Resolve(kind, null, idx + 1, arr[idx]);
     }
 
     /// <summary>

@@ -36,16 +36,18 @@ public class UnitData : ScriptableObject
     public float atkGrowth;
     public float defGrowth;
 
-    [Header("維持費（Lv5まで無料。Lv6〜発生。Lv15ごとに全項目+1）")]
+    [Header("維持費（Lv1から発生・Lv10ごとに増加）")]
+    [Tooltip("召喚体など維持費を免除する駒。王・異形の王は常に免除。通常の生産駒は有効にしません。")]
+    public bool upkeepExempt;
     public int upkeepWood;
     public int upkeepStone;
-    public int upkeepIron;
+    [HideInInspector] public int upkeepIron; // Legacy serialized data; standard Iron upkeep now uses GetUpkeep.
     public int upkeepMagic;
     public int upkeepWater;
-    public int upkeepBread;
+    [HideInInspector] public int upkeepBread; // Legacy serialized data; standard Bread upkeep now uses GetUpkeep.
 
     [Header("維持費スケーリング")]
-    [Tooltip("falseの場合、魔法鉱石の維持費はLv15ごとに増えない")]
+    [Tooltip("falseの場合、魔法鉱石の維持費はLv10ごとに増えない")]
     public bool upkeepMagicScales = true;
 
     [Header("制作コスト（木/石/鉄/魔/水/パン/市民/AP）")]
@@ -65,16 +67,15 @@ public class UnitData : ScriptableObject
     static bool ValidGrowth(float value) => !float.IsNaN(value) && !float.IsInfinity(value) && value >= 0;
 
     // ─────────────────────────────────────────────────────────────────
-    //  維持費計算（Lv5まで無料、Lv6から発生、Lv15ごとに全項目+1）
+    //  維持費計算（Lv1から、Lv10ごと。ゲーム本体とAI予測の共有API）
     // ─────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// 指定レベルでの維持費倍率を返す。Lv5以下=0, Lv6〜=1, Lv21〜=2, Lv36〜=3 ...
+    /// Lv1〜9=1、Lv10〜19=2、Lv20〜29=3。無効なレベルはゲームの有効範囲へ補正する。
     /// </summary>
     public static int UpkeepMultiplier(int level)
     {
-        if (level <= 5) return 0;
-        return 1 + (level - 6) / 15;
+        return 1 + Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel) / 10;
     }
 
     /// <summary>
@@ -82,18 +83,21 @@ public class UnitData : ScriptableObject
     /// </summary>
     public FacilityData.ProductionBundle GetUpkeep(int level)
     {
+        if (upkeepExempt || kind == Kind.King || kind == Kind.Boss) return default;
         int mult = UpkeepMultiplier(level);
-        if (mult <= 0) return default;
         return new FacilityData.ProductionBundle
         {
-            Wood     = upkeepWood * mult,
-            Stone    = upkeepStone * mult,
-            Iron     = upkeepIron * mult,
-            MagicOre = upkeepMagicScales ? upkeepMagic * mult : upkeepMagic, // 魔法鉱石はスケールしない駒は固定
-            Water    = upkeepWater * mult,
-            Bread    = upkeepBread * mult,
+            Wood     = ScaledUpkeep(upkeepWood, mult),
+            Stone    = ScaledUpkeep(upkeepStone, mult),
+            Iron     = mult, // Standard army maintenance: one Iron, plus one per ten levels.
+            MagicOre = ScaledUpkeep(upkeepMagic, upkeepMagicScales ? mult : 1),
+            Water    = ScaledUpkeep(upkeepWater, mult),
+            Bread    = mult,
         };
     }
+
+    static int ScaledUpkeep(int value, int multiplier)
+        => (int)System.Math.Min(int.MaxValue, (long)Mathf.Max(0, value) * multiplier);
 
     // ─────────────────────────────────────────────────────────────────
     //  成長計算（GameReference準拠の線形式）
