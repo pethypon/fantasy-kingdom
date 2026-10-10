@@ -243,7 +243,7 @@ public sealed class AIArmyUtilizationAnalyzer
             var position = new Vector3(cell.x, height, cell.z);
             if (Distance(position, goal.Target) >= Distance(unit.transform.position, goal.Target)
                 || board.CalcMoveCost(unit, position) > board.EnemyAP) continue;
-            bool occupied = GridHelper.MatchXZ(position, board.EnemyCrystalPos);
+            bool occupied = GridHelper.MatchXZ(position, GridHelper.ToGrid(board.EnemyCrystalPos));
             foreach (var ally in board.AliveEnemyUnits) if (ally != null && GridHelper.MatchXZ(position, ally.GridPosition)) occupied = true;
             foreach (var enemy in board.AlivePlayerUnits) if (enemy != null && GridHelper.MatchXZ(position, enemy.GridPosition)) occupied = true;
             if (!occupied && board.EstimateCounterDamageAt(position, unit) < unit.HP) return true;

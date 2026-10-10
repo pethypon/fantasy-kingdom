@@ -81,7 +81,7 @@ public sealed class AIActionLearningProfile
         entry.MaxReward = entry.Samples == 1 ? reward : Mathf.Max(entry.MaxReward, reward);
         entry.MinReward = entry.Samples == 1 ? reward : Mathf.Min(entry.MinReward, reward);
         entry.LastTurn = record.Turn; entry.LastBattleId = record.BattleId;
-        entry.LastUseSequence = ++Sequence;
+        entry.LastUseSequence = AdvanceSequence();
         CountFailure(entry.FailureReasons, record.FailureReason);
         if (record.SuccessReasons != null)
             foreach (var reason in record.SuccessReasons) CountSuccess(entry.SuccessReasons, reason);
@@ -99,7 +99,15 @@ public sealed class AIActionLearningProfile
         entry.AverageReward = entry.CumulativeReward / entry.Samples;
         entry.MaxReward = Mathf.Max(entry.MaxReward, record.Reward);
         entry.MinReward = Mathf.Min(entry.MinReward, record.Reward);
+        entry.LastUseSequence = AdvanceSequence();
         return entry.LearnedValue - old;
+    }
+    long AdvanceSequence()
+    {
+        // Keep persisted revision non-negative even when an imported counter reaches Int64.MaxValue.
+        if (Sequence < 0) Sequence = 0;
+        if (Sequence < long.MaxValue) Sequence++;
+        return Sequence;
     }
     public void RebuildIndex() { index = null; EnsureIndex(); }
     public void RecordStrategyResult(AIReflectionBattleState battle, string result, float reward)

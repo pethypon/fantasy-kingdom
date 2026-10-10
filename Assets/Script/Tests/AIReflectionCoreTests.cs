@@ -142,9 +142,9 @@ public static class AIReflectionCoreTests
             Check("122 unrelated stable-economy move receives no stable reward " + i, Near(system.LastRecord.Reward, 0));
         }
         system.EndTurn(1, State(economy: EconomicState.Healthy)); system.EndTurn(1, State(economy: EconomicState.Healthy));
-        Check("122 five actions and duplicate EndTurn receive only one stable reward", Near(system.TurnReward, 1) && Near(system.BattleReward, 1));
+        Check("122 healthy maintenance and duplicate EndTurn never farm reward", Near(system.TurnReward, 0) && Near(system.BattleReward, 0));
         system.BeginTurn(2); system.EndTurn(2, State(2, economy: EconomicState.Healthy));
-        Check("122 another own turn may receive one stable reward", Near(system.BattleReward, 2));
+        Check("122 another healthy own turn remains neutral", Near(system.BattleReward, 0));
         system = SystemFor(config, "EconomicRecovery");
         var prior = State(); prior.OwnBuildingCount = 0;
         var recovered = State(economy: EconomicState.Healthy); recovered.OwnBuildingCount = 1;
@@ -163,9 +163,13 @@ public static class AIReflectionCoreTests
         system.Profile.Learn(new AIActionRecord { ContextKey = context, ActionKey = key, Reward = 10,
             StrategicOutcome = AIStrategicOutcome.Progress, BattleId = "PreviousBattle", Turn = 1 }, config);
         float modifier = system.GetLearnedModifier(action, before);
-        Check("125 first successful sample supplies bounded learned +2", Near(modifier, 2));
+        Check("125 one sample is recorded but not used for selection", Near(modifier, 0));
+        system.Profile.Learn(new AIActionRecord { ContextKey = context, ActionKey = key, Reward = 10,
+            StrategicOutcome = AIStrategicOutcome.Progress, BattleId = "PreviousBattle", Turn = 2 }, config);
+        modifier = system.GetLearnedModifier(action, before);
+        Check("125 two samples begin confidence-weighted learning", modifier > 0 && modifier < 1);
         action.Score += modifier;
-        var rival = new AIAction { Score = 11, StrategicPriority = 4 };
+        var rival = new AIAction { Score = 10.01f, StrategicPriority = 4 };
         var actions = new List<AIAction> { rival, action }; actions.Sort(AIAction.ComparePriorityThenScore);
         Check("125 modifier affects the same tier comparison", ReferenceEquals(actions[0], action));
         var defense = new AIAction { Score = -100, StrategicPriority = 0 };
@@ -258,10 +262,10 @@ public static class AIReflectionCoreTests
         Check("50 diary text files use sanitized filenames", Directory.GetFiles(Path.Combine(directory, "Diary"), "*.txt").Length == 2);
         system = SystemFor(config, "EarlyVictory", directory, true); system.BeginTurn(7); system.EndBattle(true, State(7));
         Check("131 early victory writes immediately before turn 15", system.DiaryCount == 1
-            && File.Exists(Path.Combine(directory, "Diary", "AI_Diary_Enemy_EarlyVictory_VICTORY.txt")));
+            && File.Exists(system.LastDiaryPath) && system.LatestDiaryText.Contains("VICTORY"));
         system = SystemFor(config, "EarlyDefeat", directory, true); system.BeginTurn(7); system.EndBattle(false, State(7));
         Check("131 early defeat writes immediately before turn 15", system.DiaryCount == 1
-            && File.Exists(Path.Combine(directory, "Diary", "AI_Diary_Enemy_EarlyDefeat_DEFEAT.txt")));
+            && File.Exists(system.LastDiaryPath) && system.LatestDiaryText.Contains("DEFEAT"));
         config.EnableFileDiary = false;
         system = SystemFor(config, "PersistedBattleOnce", directory, true); system.EndBattle(true, State(7));
         int battles = system.Profile.BattlesPlayed, wins = system.Profile.Wins;
@@ -290,7 +294,7 @@ public static class AIReflectionCoreTests
     {
         var repository = new AIReflectionSaveRepository(directory, "Regression", config);
         var first = repository.Load();
-        Check("109 absent JSON starts at zero samples", first.SchemaVersion == 1 && first.Entries.Count == 0);
+        Check("109 absent JSON starts at v2 with zero samples", first.SchemaVersion == 2 && first.Entries.Count == 0);
         var record = Record(AIActionType.Move, 0, 1); record.Reward = 1; record.StrategicOutcome = AIStrategicOutcome.Progress;
         first.Learn(record, config); Check("54 initial atomic save succeeds", repository.Save(first));
         string saved = File.ReadAllText(repository.ProfilePath);

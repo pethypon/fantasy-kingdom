@@ -15,6 +15,8 @@ public sealed partial class AIActionReflectionSystem
         public AIActionRecord Record;
         public int Kills, FormationKills, Artifacts;
         public int DamageDealt, DamageTaken;
+        public readonly List<string> KillEventIds = new List<string>();
+        public readonly List<string> ArtifactEventIds = new List<string>();
     }
     readonly AIReflectionConfig config;
     readonly AIReflectionSaveRepository repository;
@@ -42,6 +44,9 @@ public sealed partial class AIActionReflectionSystem
     public string BattleId => state?.BattleId;
     public bool HasPendingActions => pending.Count > 0;
     public bool Enabled => config.EnableReflection;
+    public int OwnTurns => state?.OwnTurns ?? 0;
+    public event Action<AIActionRecord> ActionCompleted;
+    public event Action<string> BeforeDiary;
     public string LatestDiaryText => diary.LastText;
     public string LastDiaryPath => diary.LastPath;
     public string ProfilePath => repository.ProfilePath;
@@ -81,7 +86,9 @@ public sealed partial class AIActionReflectionSystem
             SetPersistenceAllowed(state.PersistentLearningAllowed);
             if (state.BattleSummary == null) state.BattleSummary = new AIReflectionInterval();
             if (state.LearningProfile != null && repository.IsValid(state.LearningProfile)
-                && state.LearningProfile.Sequence > Profile.Sequence) Profile = state.LearningProfile;
+                && (state.LearningProfile.Sequence > Profile.Sequence
+                    || state.LearningProfile.Sequence == long.MaxValue && Profile.Sequence == long.MaxValue))
+                Profile = state.LearningProfile;
             state.LearningProfile = null;
             if (Enum.TryParse(state.LastSnapshot?.Strategy, out TurnStrategy restoredStrategy)) strategy = restoredStrategy;
             foreach (var item in state.Kills) if (item != null && !string.IsNullOrEmpty(item.Id)) kills[item.Id] = item;
@@ -114,9 +121,12 @@ public sealed partial class AIActionReflectionSystem
             state.StrategyUse.Add(usage);
         }
         if (usage != null) usage.OwnTurns = Math.Min(1000000, usage.OwnTurns + 1);
-        state.LastSnapshot = Capture(null, board);
+        // Without a board, callers supply the authoritative snapshot at action/turn completion.
+        // A default empty capture must not manufacture a Healthy transition between those snapshots.
+        if (board != null) state.LastSnapshot = Capture(null, board);
+        else if (state.LastSnapshot == null) state.LastSnapshot = Capture(null, null);
         SeedObservedContacts(state.LastSnapshot);
-        economyRewards.Observe(state.LastSnapshot, state.OwnTurns + 1);
+        if (board != null) economyRewards.Observe(state.LastSnapshot, state.OwnTurns + 1);
         if (state.Interval.FirstOwnTurn < 0) state.Interval.FirstOwnTurn = state.OwnTurns + 1;
         if (state.BattleSummary.FirstOwnTurn < 0) state.BattleSummary.FirstOwnTurn = state.OwnTurns + 1;
         if (state.Interval.Before == null) state.Interval.Before = state.LastSnapshot;
@@ -161,6 +171,12 @@ public sealed partial class AIActionReflectionSystem
             action.Record.DecisionTrace.FinalScore = action.Record.FinalScore;
         }
     }
+    public AIActionRecord GetPendingRecord(AIActionToken token)
+        => pending.TryGetValue(token.Id, out var action) ? action.Record : null;
+    public void SetOperationDiary(AIOperationBattleState operations)
+    {
+        if (state != null) state.OperationDiary = operations;
+    }
     public void CompleteAction(AIActionToken token, bool success, AIBoardState board, string executionFailure = null)
     {
         if (!Enabled || !pending.TryGetValue(token.Id, out var action)) return;
@@ -175,6 +191,8 @@ public sealed partial class AIActionReflectionSystem
         record.Outcome = AIActionOutcome.Difference(record.Before, record.After);
         record.Outcome.EnemyKills = action.Kills; record.Outcome.FormationKills = action.FormationKills;
         record.Outcome.ArtifactsAcquired = action.Artifacts;
+        record.Outcome.KilledLifeIds.AddRange(action.KillEventIds);
+        record.Outcome.ArtifactEventIds.AddRange(action.ArtifactEventIds);
         record.Outcome.DamageDealt = Math.Max(record.Outcome.DamageDealt, action.DamageDealt);
         record.Outcome.DamageTaken = Math.Max(record.Outcome.DamageTaken, action.DamageTaken);
         FilterNewlyObservedEnemies(record);
@@ -193,9 +211,10 @@ public sealed partial class AIActionReflectionSystem
         state.BattleSummary.Observe(record, change, config.EntryLimit);
         state.LastSnapshot = record.After;
         Remember(record);
-        ApplyOutcomeCredits(record);
+        ApplyOutcomeCredits(record, action);
         delayedCredits.Remember(record);
         LogReward(record);
+        ActionCompleted?.Invoke(record);
         if (pending.Count == 0) latestToken = 0;
         if (endRequested && pending.Count == 0) FinalizeBattle(pendingResult, record.After);
     }
@@ -251,8 +270,18 @@ public sealed partial class AIActionReflectionSystem
             }
             else
             {
-                state.BattleReward++; state.Interval.Reward++; state.Interval.NormalKills = Math.Max(0, state.Interval.NormalKills - 1); state.Interval.FormationKills++;
-                state.BattleSummary.Reward++; state.BattleSummary.NormalKills = Math.Max(0, state.BattleSummary.NormalKills - 1); state.BattleSummary.FormationKills++;
+                // A pruned action no longer has its full capped breakdown; do not guess an extra reward.
+                // Unattributed individual events have a known hard reward and can be corrected exactly.
+                float delta = existing.ActionId == 0
+                    ? Mathf.Min(AIReflectionConfig.NonNegative(config.FormationKillRewardValue), AIReflectionConfig.NonNegative(config.CombatRewardCap), config.ActionUpper)
+                        - Mathf.Min(AIReflectionConfig.NonNegative(config.NormalKillRewardValue), AIReflectionConfig.NonNegative(config.CombatRewardCap), config.ActionUpper)
+                    : 0;
+                state.BattleReward += delta; state.TurnReward += delta;
+                var correction = new AIRewardBreakdown { Combat = delta };
+                state.Interval.AddReward(correction, state.LastStartedTurn);
+                state.BattleSummary.AddReward(correction, state.LastStartedTurn);
+                state.Interval.NormalKills = Math.Max(0, state.Interval.NormalKills - 1); state.Interval.FormationKills++;
+                state.BattleSummary.NormalKills = Math.Max(0, state.BattleSummary.NormalKills - 1); state.BattleSummary.FormationKills++;
             }
             return;
         }
@@ -261,8 +290,10 @@ public sealed partial class AIActionReflectionSystem
         var item = new AIReflectionRewardEvent { Id = id, ActionId = actionId, Formation = formation };
         kills.Add(id, item); state.Kills.Add(item); state.TotalKills++;
         if (formation) state.TotalFormationKills++;
-        if (pending.TryGetValue(actionId, out var current)) { current.Kills++; if (formation) current.FormationKills++; }
-        else AddUnattributedReward(formation ? 2 : 1, formation ? 0 : 1, formation ? 1 : 0, 0);
+        if (pending.TryGetValue(actionId, out var current))
+        { current.Kills++; current.KillEventIds.Add(id); if (formation) current.FormationKills++; }
+        else AddUnattributedReward(formation ? config.FormationKillRewardValue : config.NormalKillRewardValue,
+            formation ? 0 : 1, formation ? 1 : 0, 0);
     }
     public void OnArtifactAcquired(string artifactId, AIActionToken token = default)
     {
@@ -270,14 +301,16 @@ public sealed partial class AIActionReflectionSystem
         EnsureBattle(); if (state.Ended || artifacts.Count >= config.EventLimit || !artifacts.Add(artifactId)) return;
         long actionId = token.IsValid ? token.Id : latestToken;
         state.Artifacts.Add(new AIReflectionRewardEvent { Id = artifactId, ActionId = actionId }); state.TotalArtifacts++;
-        if (pending.TryGetValue(actionId, out var current)) current.Artifacts++;
-        else AddUnattributedReward(1, 0, 0, 1);
+        if (pending.TryGetValue(actionId, out var current)) { current.Artifacts++; current.ArtifactEventIds.Add(artifactId); }
+        else AddUnattributedReward(config.ArtifactRewardValue, 0, 0, 1);
     }
     public void EndTurn(int turnNumber, AIBoardState board)
         => EndTurn(turnNumber, board, false);
     public void EndTurn(int turnNumber, AIBoardState board, bool terminalTurn)
     {
+        if (!Enabled) return;
         EnsureBattle();
+        if (state.Ended || state.LastEndedTurn == turnNumber || pending.Count != 0) return;
         var evidence = board == null ? null : armyUtilization.Capture(board, state.RecentRecords, strategy, state.OwnTurns + 1);
         EndEvaluationTurn(turnNumber, Capture(null, board), terminalTurn, evidence);
     }
@@ -299,6 +332,7 @@ public sealed partial class AIActionReflectionSystem
     void FinalizeBattle(string result, AIActionContextSnapshot snapshot)
     {
         if (state.Ended) return;
+        state.LastSnapshot = snapshot ?? state.LastSnapshot;
         CountTerminalOwnTurn();
         state.Ended = true; state.Result = result; state.Victory = result == "VICTORY";
         state.LastSnapshot = snapshot ?? state.LastSnapshot; state.Interval.After = state.LastSnapshot;
@@ -321,6 +355,8 @@ public sealed partial class AIActionReflectionSystem
     }
     void OutputDiary(string result)
     {
+        BeforeDiary?.Invoke(result);
+        CaptureEvaluationState();
         bool sameTurn = state.LastDiaryOwnTurn == state.OwnTurns;
         if (sameTurn && (result == "INTERVAL" || state.LastDiaryResult != "INTERVAL")) return;
         if (sameTurn && state.LastDiaryInterval != null)
@@ -345,9 +381,11 @@ public sealed partial class AIActionReflectionSystem
     }
     void AddUnattributedReward(float reward, int normal, int formation, int artifact)
     {
-        state.BattleReward += reward; state.Interval.Reward += reward;
+        var breakdown = new AIRewardBreakdown { Combat = artifact == 0 ? AIReflectionConfig.NonNegative(reward) : 0,
+            Artifact = artifact > 0 ? AIReflectionConfig.NonNegative(reward) : 0 };
+        AddTurnReward(breakdown, state.LastStartedTurn);
         state.Interval.NormalKills += normal; state.Interval.FormationKills += formation; state.Interval.Artifacts += artifact;
-        state.BattleSummary.Reward += reward; state.BattleSummary.NormalKills += normal;
+        state.BattleSummary.NormalKills += normal;
         state.BattleSummary.FormationKills += formation; state.BattleSummary.Artifacts += artifact;
     }
     AIActionContextSnapshot Capture(AIAction action, AIBoardState board)

@@ -174,17 +174,20 @@ public sealed class AIActionFeatureExtractor
         if (includeDetailedFacts && action.ActionType == AIActionType.SkillUse && action.AreaTargets != null)
             unchecked
             {
+                var capturedLifeIds = new HashSet<string>();
                 foreach (var affected in action.AreaTargets)
                     if (affected != null && (affected.team == board.ActorTeam || observedEnemies.Contains(affected)))
                     {
                         if (snapshot.AreaEffects.Count >= Mathf.Clamp(config.MaxActionEffectTargets, 1, 1024)) break;
+                        string lifeId = affected.ReflectionLifeId;
+                        if (!capturedLifeIds.Add(lifeId)) continue;
                         bool ally = affected.team == board.ActorTeam;
                         int signature = EffectSignature(affected) * 31 + affected.ShieldTurns;
                         snapshot.AreaEffectSignature += signature;
-                        snapshot.AreaEffects.Add(new AIReflectionEffectObservation { LifeId = affected.ReflectionLifeId,
+                        snapshot.AreaEffects.Add(new AIReflectionEffectObservation { LifeId = lifeId,
                             Signature = signature, IsAlly = ally, HP = ally ? Mathf.Max(0, affected.HP) : 0 });
-                        if (ally && !snapshot.SupportTargetLifeIds.Contains(affected.ReflectionLifeId))
-                            snapshot.SupportTargetLifeIds.Add(affected.ReflectionLifeId);
+                        if (ally && !snapshot.SupportTargetLifeIds.Contains(lifeId))
+                            snapshot.SupportTargetLifeIds.Add(lifeId);
                     }
             }
         return snapshot;

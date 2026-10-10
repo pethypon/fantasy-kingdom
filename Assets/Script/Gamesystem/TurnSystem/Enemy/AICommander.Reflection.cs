@@ -10,8 +10,10 @@ public partial class AICommander
     bool boardReadyAfterAction;
     float selectedBaseScore, selectedLearnedModifier, selectedFinalScore;
     public AIActionReflectionSystem Reflection => EnsureReflection();
-    public string LatestDiaryText => reflection?.LatestDiaryText;
-    public string LatestDiaryPath => reflection?.LastDiaryPath;
+    public string LatestDiaryText => reflection != null && !reflectionUnavailable && reflection.Enabled
+        ? reflection.LatestDiaryText : operationDiaryText;
+    public string LatestDiaryPath => reflection != null && !reflectionUnavailable && reflection.Enabled
+        ? reflection.LastDiaryPath : operationDiaryPath;
     public string ReflectionProfilePath => reflection?.ProfilePath;
     public string ReflectionStorageDirectory => reflection?.StorageDirectory;
 
@@ -53,6 +55,11 @@ public partial class AICommander
     }
     public void EndReflectionTurn()
     {
+        if (operationTurnStarted && !operationUnavailable)
+        {
+            try { _board?.Refresh(); EndOperationTurn(); }
+            catch (Exception error) { OperationFailed(error); }
+        }
         if (!reflectionTurnStarted || reflectionUnavailable || reflection == null) return;
         reflectionTurnStarted = false;
         try
@@ -73,6 +80,7 @@ public partial class AICommander
             system.SetSelectedScores(token, selectedBaseScore, selectedLearnedModifier, selectedFinalScore);
         }
         catch (Exception error) { ReflectionFailed(error); }
+        BeginOperationAction(action, system, token);
         int generation = _board.Generation;
         bool success = false;
         try { success = _actionExecutor.Execute(action, _board); return success; }
@@ -80,7 +88,7 @@ public partial class AICommander
         {
             bool reflectionPending = token.IsValid && !reflectionUnavailable;
             bool explorationActive = ExplorationAISettings.Active.Enabled;
-            if (reflectionPending || explorationActive)
+            if (reflectionPending || explorationActive || operationActionOpen)
             {
                 try
                 {
@@ -95,6 +103,7 @@ public partial class AICommander
                 try { system.CompleteAction(token, success, _board); }
                 catch (Exception error) { ReflectionFailed(error); }
             }
+            CompleteOperationAction(success);
             if (explorationActive) RecordExplorationAction(action, success);
             if (_turnGen != null && _turnGen.IsGameOver) EndExplorationTurn();
         }
@@ -123,6 +132,7 @@ public partial class AICommander
     }
     public void NotifyBattleEnd(bool victory)
     {
+        RequestOperationBattleEnd(victory ? "VICTORY" : "DEFEAT");
         try
         {
             var system = EnsureReflection();
@@ -134,6 +144,7 @@ public partial class AICommander
     }
     public void NotifyDrawBattleEnd()
     {
+        RequestOperationBattleEnd("DRAW");
         try
         {
             var system = EnsureReflection();
@@ -145,6 +156,7 @@ public partial class AICommander
     }
     public void NotifyActualDamage(int damage, bool dealt, string killedLifeId = null, bool formation = false)
     {
+        ObserveOperationDamage(damage, dealt, killedLifeId, formation);
         try
         {
             var system = EnsureReflection();
@@ -156,6 +168,7 @@ public partial class AICommander
     }
     public void NotifyArtifactAcquired(string eventId)
     {
+        ObserveOperationArtifact(eventId);
         try { EnsureReflection()?.OnArtifactAcquired(eventId); }
         catch (Exception error) { ReflectionFailed(error); }
     }

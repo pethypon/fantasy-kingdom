@@ -102,6 +102,14 @@ public sealed class AIDelayedCreditAssigner
         if (!string.IsNullOrEmpty(outcome.ActorLifeId) && preparation.SupportedLifeIds.Contains(outcome.ActorLifeId)) return true;
         return preparation.MeaningfulPosition && Same(preparation.ActorLifeId, outcome.ActorLifeId);
     }
+    /// <summary>Keep the saved per-action cap equal to credit that actually fit the owner's action budget.</summary>
+    public void ReleaseUnappliedReward(long actionId, float amount)
+    {
+        amount = Mathf.Max(0, AIReflectionConfig.Finite(amount));
+        foreach (var preparation in recent)
+            if (preparation.ActionId == actionId)
+            { preparation.GrantedReward = Mathf.Clamp(preparation.GrantedReward - amount, 0, RewardLimit); return; }
+    }
     static bool MeaningfulPosition(AIActionRecord record)
     {
         if (!record.MeaningfulProgress || record.Before == null || record.After == null

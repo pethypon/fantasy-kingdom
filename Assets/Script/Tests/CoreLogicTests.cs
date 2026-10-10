@@ -36,6 +36,7 @@ public static class CoreLogicTests
         TestTimerWinnerDeterminationOrder();
         ReflectionBalanceCoreTests.RunAll();
         AIReflectionCoreTests.RunAll();
+        AIReflectionIntegratedTests.RunAll();
         ExplorationR2CoreTests.RunAll();
         ExplorationR2BoundaryTests.RunAll();
 

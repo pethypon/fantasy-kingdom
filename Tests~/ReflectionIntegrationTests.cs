@@ -91,12 +91,17 @@ public static class ReflectionIntegrationTests
                 var a = new AIAction { ActionType = AIActionType.Build, Facility = FacilityKind.LoggingCamp,
                     Score = 10, StrategicPriority = 4, APCost = 2 };
                 var b = new AIAction { ActionType = AIActionType.Build, Facility = FacilityKind.Quarry,
-                    Score = 11, StrategicPriority = 4, APCost = 2 };
+                    Score = 10.01f, StrategicPriority = 4, APCost = 2 };
                 var snapshot = new AIActionFeatureExtractor().Capture(a, board, 10, commander.CurrentStrategy, 100, 0);
                 reflection.Profile.Learn(new AIActionRecord
                 {
                     ContextKey = AIActionFeatureExtractor.ContextKey(snapshot), ActionKey = AIActionFeatureExtractor.ActionKey(a, snapshot),
                     Reward = 10, StrategicOutcome = AIStrategicOutcome.Progress, Turn = 1, BattleId = "Previous"
+                }, config);
+                reflection.Profile.Learn(new AIActionRecord
+                {
+                    ContextKey = AIActionFeatureExtractor.ContextKey(snapshot), ActionKey = AIActionFeatureExtractor.ActionKey(a, snapshot),
+                    Reward = 10, StrategicOutcome = AIStrategicOutcome.Progress, Turn = 2, BattleId = "Previous"
                 }, config);
                 var method = typeof(AICommander).GetMethod("SelectBestAction", flags);
                 var candidates = new List<AIAction> { b, a }; var failed = new HashSet<string>();

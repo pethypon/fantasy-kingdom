@@ -47,6 +47,7 @@ public sealed class AIReflectionConfigEditor : Editor
         Field("MaxKnowledgeEntries", "保持する学習パターンの最大数");
         Field("MaxRecentRecords", "保持する最近の行動記録数");
         Field("MaxRewardEvents", "１戦で保持する報酬の重複防止記録数");
+        Field("MaxActionEffectTargets", "１行動で記録する範囲効果の対象数上限");
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("失敗の評価（調整対象）", EditorStyles.boldLabel);
         Field("RepeatedNoProgressPenalty", "進展のない同一行動の減点");

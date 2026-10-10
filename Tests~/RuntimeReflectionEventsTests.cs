@@ -23,8 +23,65 @@ public static class RuntimeReflectionEventsTests
         passed = 0;
         MigrationAndPhase(systems);
         StrategyStatistics();
+        RealSupportOutcomes(systems);
         RealDamageResultAndViewer(systems);
         Debug.Log("[RuntimeReflection] " + passed + " runtime continuation/event/UI checks passed");
+    }
+
+    static void RealSupportOutcomes(GameSystems systems)
+    {
+        foreach (var team in new[] { Team.Enemy, Team.Player })
+        using (var f = new EconomyR2Tests.Fixture(systems, team))
+        {
+            var config = ScriptableObject.CreateInstance<AIReflectionConfig>();
+            config.EnableConsoleDiary = config.EnableFileDiary = false;
+            var skillObject = new GameObject("Reflection isolated skill outcomes");
+            var skills = skillObject.AddComponent<SkillSystem>(); skills.Init(f.State);
+            try
+            {
+                var actor = f.Unit(); actor.ActiveEffects.Clear();
+                var ally = f.Unit(); ally.ActiveEffects.Clear(); ally.HP = 40; ally.MaxHP = 100;
+                f.State.GetNation(team).AP.Current = 10;
+                var extractor = new AIActionFeatureExtractor(config);
+                var haste = new SkillData { Name = "実加速テスト", Target = SkillTarget.Self,
+                    GrantBuff = BuffType.Haste, BuffToSelf = true };
+                var action = new AIAction { ActionType = AIActionType.SkillUse, Unit = actor, TargetUnit = actor, Skill = haste };
+                var board = f.Board(); var reflection = new AIActionReflectionSystem(team, config, persistent: false);
+                reflection.BeginBattle("Support_" + team, 15); reflection.BeginTurn(20, board);
+                var token = reflection.BeginAction(action, board);
+                skills.ExecuteSkill(actor, actor, haste); board.Refresh(); reflection.CompleteAction(token, true, board);
+                Check("actual Haste AP recovery is meaningful with unchanged effect count " + team,
+                    Near(reflection.LastRecord.Outcome.ApRecovered, 2) && reflection.LastRecord.Outcome.EffectChanged
+                    && reflection.LastRecord.FailureReason == AIFailureReason.None
+                    && reflection.LastRecord.RewardBreakdown.Preparation > 0 && actor.ActiveEffects.Count == 0);
+
+                StatusEffectSystem.ApplyBuff(actor, BuffType.Barrier, 1);
+                var buff = new SkillData { Name = "実更新テスト", Target = SkillTarget.Self,
+                    GrantBuff = BuffType.Barrier, BuffToSelf = true };
+                action = new AIAction { ActionType = AIActionType.SkillUse, Unit = actor, TargetUnit = actor, Skill = buff };
+                board.Refresh(); var before = extractor.Capture(action, board, 20, TurnStrategy.Balanced, 15, 0);
+                StatusEffectSystem.ApplyBuff(actor, BuffType.Barrier, 3); board.Refresh();
+                var after = extractor.Capture(action, board, 20, TurnStrategy.Balanced, 15, 0);
+                var outcome = AIActionOutcome.Difference(before, after);
+                Check("same-count actual buff refresh is detected through signatures " + team,
+                    before.ActorEffectCount == after.ActorEffectCount && outcome.EffectChanged
+                    && before.ActorEffectSignature != after.ActorEffectSignature);
+
+                var area = new SkillData { Name = "実範囲支援テスト", Target = SkillTarget.SelfArea,
+                    GrantBuff = BuffType.Defensive, FixedHeal = 10 };
+                action = new AIAction { ActionType = AIActionType.SkillUse, Unit = actor, Skill = area,
+                    AreaTargets = new List<Status> { actor, ally, ally } };
+                board.Refresh(); before = extractor.Capture(action, board, 20, TurnStrategy.Balanced, 15, 0);
+                skills.ExecuteAreaSupportSkill(actor, area, new List<Status> { actor, ally }); board.Refresh();
+                after = extractor.Capture(action, board, 20, TurnStrategy.Balanced, 15, 0);
+                outcome = AIActionOutcome.Difference(before, after);
+                Check("actual area support snapshots deduplicate allies and retain causal identity " + team,
+                    before.AreaEffects.Count == 2 && after.AreaEffects.Count == 2
+                    && outcome.EffectChanged && outcome.HealingDone >= 10
+                    && after.SupportTargetLifeIds.Contains(ally.ReflectionLifeId));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(skillObject); UnityEngine.Object.DestroyImmediate(config); }
+        }
     }
 
     static void MigrationAndPhase(GameSystems systems)

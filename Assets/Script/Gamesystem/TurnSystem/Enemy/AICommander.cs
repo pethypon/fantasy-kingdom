@@ -328,6 +328,7 @@ public partial class AICommander
         // All troops and economy actions compete in one observed-board decision loop.
         _evolution.BeginTurn(_board);
         if (CanLearn) _playerModel?.Observe(_board);
+        BeginOperationTurn();
         yield return null;
         if (_turnGen.IsGameOver) yield break;
         // 探索エンジンとtopCandidatesリストをループ外で事前確保（GC削減）
@@ -421,6 +422,7 @@ public partial class AICommander
             var advancedSteps = _advanced.ScoreSteps(actionsBuffer, _board);
             try { while (advancedSteps.MoveNext()) { yield return null; if (_turnGen.IsGameOver) yield break; } }
             finally { (advancedSteps as System.IDisposable)?.Dispose(); }
+            RefreshOperationPlanning();
             var actions = actionsBuffer;
             if (actions.Count == 0)
             {

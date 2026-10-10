@@ -114,6 +114,7 @@ public static partial class SaveSystem
 
         RestoreAILearning(src, commander.Learning);
         commander.RestoreReflectionState(src.Reflection);
+        commander.RestoreOperationState(src.Operations);
         commander.RestoreExplorationState(src.Exploration);
     }
 

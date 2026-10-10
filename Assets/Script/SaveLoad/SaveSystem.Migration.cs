@@ -54,6 +54,7 @@ public static partial class SaveSystem
         }
         if (from <= 3 && to >= 4) Migrate_V3_to_V4(data);
         if (from <= 4 && to >= 5) Migrate_V4_to_V5(data);
+        if (from <= 5 && to >= 6) Migrate_V5_to_V6(data);
         data.Version = to;
         Debug.Log($"[SaveSystem] マイグレーション完了 → v{to}");
         return data;
@@ -85,6 +86,11 @@ public static partial class SaveSystem
     static void Migrate_V4_to_V5(GameSaveData data)
     {
         // Old saves start with no exploration history. Preserve explicit nation phases and reflection.
+        if (data.AI == null) data.AI = new AISaveData();
+    }
+    static void Migrate_V5_to_V6(GameSaveData data)
+    {
+        // Missing operation history starts empty. Existing exploration, reflection and rule phases are preserved.
         if (data.AI == null) data.AI = new AISaveData();
     }
 

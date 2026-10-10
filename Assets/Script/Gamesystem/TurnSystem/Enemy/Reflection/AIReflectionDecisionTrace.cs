@@ -40,15 +40,19 @@ public sealed class AIReflectionDecisionTrace
         else record.DecisionTrace.Refresh(record);
     }
 
-    public static AIReflectionDecisionTrace BuildCorrection(AIActionRecord record, float rewardDelta, float learnedChange, int occurrenceTurn)
+    public static AIReflectionDecisionTrace BuildCorrection(AIActionRecord record, float rewardDelta, float learnedChange,
+        int occurrenceTurn, AIRewardBreakdown breakdownDelta = null)
     {
         if (record == null) return null;
         var trace = (record.DecisionTrace ?? Build(null, record)).Copy();
         trace.Turn = occurrenceTurn; trace.OriginalActionTurn = record.Turn; trace.IsRewardCorrection = true;
-        trace.ImmediateReward = 0; trace.DelayedReward = Safe(rewardDelta); trace.FinalReward = Safe(rewardDelta);
+        trace.ImmediateReward = 0; trace.DelayedReward = Safe(breakdownDelta?.DelayedReward ?? 0); trace.FinalReward = Safe(rewardDelta);
         trace.LearningValueChange = Safe(learnedChange);
-        trace.ActualOutcome = "Turn " + occurrenceTurn + " に確定した後続成果: Turn " + record.Turn
+        trace.ActualOutcome = "Turn " + occurrenceTurn + " に確定した評価補正: Turn " + record.Turn
             + " の行動への報酬補正 " + Signed(rewardDelta) + "。新しい行動としては数えない。";
+        if (breakdownDelta != null)
+            trace.ActualOutcome += " 内訳: 戦闘 " + Signed(breakdownDelta.Combat) + "、経済 " + Signed(breakdownDelta.Economy)
+                + "、後続成果 " + Signed(breakdownDelta.DelayedReward) + "。";
         trace.Lesson = LessonText(trace.ActionType, learnedChange, rewardDelta);
         return trace;
     }

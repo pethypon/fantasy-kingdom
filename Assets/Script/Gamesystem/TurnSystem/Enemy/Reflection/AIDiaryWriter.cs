@@ -90,7 +90,7 @@ public sealed class AIReflectionInterval
         {
             AIReflectionDecisionTrace.UpdateOutcome(record); AddTrace(record.DecisionTrace);
         }
-        else AddTrace(AIReflectionDecisionTrace.BuildCorrection(record, rewardDelta, learnedChange, occurred));
+        else AddTrace(AIReflectionDecisionTrace.BuildCorrection(record, rewardDelta, learnedChange, occurred, delta));
         if (Mathf.Abs(rewardDelta) > Mathf.Abs(TurningPointReward))
         { TurningPointTurn = occurred; TurningPointReward = rewardDelta; TurningPointPattern = key; }
     }
@@ -105,7 +105,7 @@ public sealed class AIReflectionInterval
     public void MergeFrom(AIReflectionInterval source, int patternLimit)
     {
         if (source == null || ReferenceEquals(source, this)) return;
-        PatternLimit = Mathf.Clamp(patternLimit, 1, 10000); EnsureIndex();
+        PatternLimit = Mathf.Clamp(patternLimit, 1, 10000); RebuildPatternIndex();
         if (source.FirstTurn >= 0) FirstTurn = FirstTurn < 0 ? source.FirstTurn : Math.Min(FirstTurn, source.FirstTurn);
         LastTurn = Math.Max(LastTurn, source.LastTurn);
         if (source.FirstOwnTurn >= 0) FirstOwnTurn = FirstOwnTurn < 0 ? source.FirstOwnTurn : Math.Min(FirstOwnTurn, source.FirstOwnTurn);
@@ -209,8 +209,27 @@ public sealed class AIReflectionInterval
         if (Patterns == null) Patterns = new List<AIReflectionPatternSummary>();
         if (index != null) return;
         index = new Dictionary<string, AIReflectionPatternSummary>(Patterns.Count);
-        foreach (var item in Patterns) if (item != null && item.Key != null) index[item.Key] = item;
+        var unique = new List<AIReflectionPatternSummary>(Patterns.Count);
+        foreach (var item in Patterns)
+        {
+            if (item == null || item.Key == null) continue;
+            if (index.TryGetValue(item.Key, out var existing))
+            {
+                existing.Samples = AddCount(existing.Samples, item.Samples);
+                existing.Reward = AddValue(existing.Reward, item.Reward);
+                existing.LearnedChange = AddValue(existing.LearnedChange, item.LearnedChange);
+            }
+            else if (unique.Count < Mathf.Clamp(PatternLimit, 1, 10000))
+            {
+                // Copy the first row so aliasing duplicated objects cannot multiply the source values.
+                var pattern = new AIReflectionPatternSummary { Key = item.Key, Samples = item.Samples,
+                    Reward = item.Reward, LearnedChange = item.LearnedChange };
+                unique.Add(pattern); index[item.Key] = pattern;
+            }
+        }
+        Patterns = unique;
     }
+    internal void RebuildPatternIndex() { index = null; EnsureIndex(); }
 }
 
 public sealed class AIDiaryWriter
@@ -248,7 +267,7 @@ public sealed class AIDiaryWriter
         builder.Append("期間報酬: ").Append(interval.Reward.ToString("F2"))
             .Append("　戦闘累計報酬: ").AppendLine(state.BattleReward.ToString("F2"));
         builder.Append("内訳: 通常撃破 ").Append(interval.NormalKills).Append("　陣形撃破 ")
-            .Append(interval.FormationKills).Append(" ×2　Artifact ").Append(interval.Artifacts)
+            .Append(interval.FormationKills).Append("　Artifact ").Append(interval.Artifacts)
             .Append("　経済安定・回復 ").Append(interval.StableTurns).Append("　反復・失敗減点 ")
             .Append(interval.PenaltyReward.ToString("F2")).Append("　勝敗報酬 ").AppendLine(interval.VictoryReward.ToString("F2"));
         builder.Append("行動数: ").Append(interval.Actions).Append("　戦略的進展: ").Append(interval.Successful)
@@ -276,6 +295,7 @@ public sealed class AIDiaryWriter
             builder.Append("敗北時の状態: クリスタルHP ").Append(state.LastSnapshot?.OwnCrystalHP ?? 0)
                 .Append("　経済 ").AppendLine((state.LastSnapshot?.EconomyState ?? EconomicState.Healthy).ToString());
         if (result != "INTERVAL") AppendBattleSummary(builder, state.BattleSummary);
+        if (state.OperationDiary != null) AIOperationDiary.Append(builder, state.OperationDiary, AIOperationConfig.Active);
         LastText = builder.ToString(); LastPath = null;
         if (persistent && config.EnableFileDiary)
         {

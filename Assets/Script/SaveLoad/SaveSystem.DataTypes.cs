@@ -195,6 +195,7 @@ public static partial class SaveSystem
     public class AISaveData
     {
         public AIReflectionBattleState Reflection;
+        public AIOperationBattleState Operations;
         public AIExplorationState Exploration;
         // AIPersonality
         public string MajorPersonality;

@@ -59,6 +59,7 @@ public static class AIReflectionMigration
         if (state.ObservedEnemyLifeIds == null) state.ObservedEnemyLifeIds = new List<string>();
         if (state.ObservedEnemyLifeIds.Count > config.EventLimit) return false;
         state.ObservedEnemyLifeIds.RemoveAll(id => string.IsNullOrEmpty(id) || id.Length > 128);
+        if (state.LastSnapshot != null && !UpgradeSnapshot(state.LastSnapshot, config)) return false;
         if (state.EconomyRewardState == null)
             state.EconomyRewardState = new AIEconomyRewardState { HasGrantedRecovery = legacy && state.TotalStableTurns > 0 };
         if (state.DelayedCreditState == null) state.DelayedCreditState = new AIDelayedCreditState();
@@ -128,14 +129,13 @@ public static class AIReflectionMigration
         if (legacy || missingBreakdown) record.RewardBreakdown = AIReflectionInterval.LegacyBreakdown(record);
         if (legacy || missingBreakdown) record.ImmediateReward = record.Reward;
         if (!Finite(record.RewardBreakdown.Total) || !Finite(record.ImmediateReward) || !Finite(record.LearningValueChange)) return false;
-        if (record.Before.VisibleEnemyLifeIds == null) record.Before.VisibleEnemyLifeIds = new List<string>();
-        if (record.After.VisibleEnemyLifeIds == null) record.After.VisibleEnemyLifeIds = new List<string>();
-        if (record.Before.VisibleEnemyLifeIds.Count > config.EventLimit || record.After.VisibleEnemyLifeIds.Count > config.EventLimit) return false;
+        if (!UpgradeSnapshot(record.Before, config) || !UpgradeSnapshot(record.After, config)) return false;
         if (record.DecisionTrace == null) record.DecisionTrace = AIReflectionDecisionTrace.Build(null, record);
         return record.DecisionTrace.DecisionFacts == null || record.DecisionTrace.DecisionFacts.Count <= 32;
     }
     static bool UpgradeInterval(AIReflectionInterval interval, AIReflectionConfig config, bool legacy)
     {
+        bool missingBreakdown = interval.Breakdown == null;
         if (!Finite(interval.Reward) || !Finite(interval.PenaltyReward) || !Finite(interval.VictoryReward)
             || interval.Patterns != null && interval.Patterns.Count > config.EntryLimit
             || interval.Failures != null && interval.Failures.Count > 32
@@ -145,20 +145,56 @@ public static class AIReflectionMigration
         if (interval.Patterns == null) interval.Patterns = new List<AIReflectionPatternSummary>();
         interval.Patterns.RemoveAll(pattern => pattern == null || pattern.Key == null || pattern.Key.Length > 800 || pattern.Samples < 0
             || !Finite(pattern.Reward) || !Finite(pattern.LearnedChange));
+        interval.RebuildPatternIndex();
         if (interval.Failures == null) interval.Failures = new List<FailureReasonCount>();
         interval.Failures.RemoveAll(reason => reason == null || reason.Count < 0 || !Enum.IsDefined(typeof(AIFailureReason), reason.Reason));
         if (interval.Successes == null) interval.Successes = new List<SuccessReasonCount>();
         interval.Successes.RemoveAll(reason => reason == null || reason.Count < 0 || !Enum.IsDefined(typeof(AISuccessReason), reason.Reason));
         if (interval.TraceExamples == null) interval.TraceExamples = new List<AIReflectionDecisionTrace>();
         interval.TraceExamples.RemoveAll(trace => trace == null || trace.DecisionFacts != null && trace.DecisionFacts.Count > 32);
-        if (legacy || interval.Breakdown == null)
+        if (legacy || missingBreakdown)
         {
             interval.Breakdown = new AIRewardBreakdown { Combat = interval.NormalKills + interval.FormationKills * 2,
                 Artifact = interval.Artifacts, Economy = interval.StableTurns };
             interval.Breakdown.Efficiency = interval.Reward - interval.VictoryReward - interval.Breakdown.Total;
         }
-        return Finite(interval.Breakdown.Total);
+        return Finite(interval.Breakdown.Total)
+            && (interval.Before == null || UpgradeSnapshot(interval.Before, config))
+            && (interval.After == null || UpgradeSnapshot(interval.After, config));
     }
+    static bool UpgradeSnapshot(AIActionContextSnapshot snapshot, AIReflectionConfig config)
+    {
+        if (snapshot.VisibleEnemyLifeIds == null) snapshot.VisibleEnemyLifeIds = new List<string>();
+        if (snapshot.SupportTargetLifeIds == null) snapshot.SupportTargetLifeIds = new List<string>();
+        if (snapshot.AreaEffects == null) snapshot.AreaEffects = new List<AIReflectionEffectObservation>();
+        if (snapshot.VisibleEnemyLifeIds.Count > config.EventLimit || snapshot.SupportTargetLifeIds.Count > 1024
+            || snapshot.AreaEffects.Count > 1024) return false;
+        int limit = Mathf.Clamp(config.MaxActionEffectTargets, 1, 1024);
+        SanitizeIdentities(snapshot.VisibleEnemyLifeIds, config.EventLimit);
+        SanitizeIdentities(snapshot.SupportTargetLifeIds, limit);
+        var effects = new List<AIReflectionEffectObservation>(Math.Min(snapshot.AreaEffects.Count, limit));
+        var ids = new HashSet<string>();
+        foreach (var effect in snapshot.AreaEffects)
+        {
+            if (effects.Count >= limit) break;
+            if (effect == null || !ValidIdentity(effect.LifeId) || effect.HP < 0 || !ids.Add(effect.LifeId)) continue;
+            effects.Add(effect);
+        }
+        snapshot.AreaEffects = effects;
+        return true;
+    }
+    static void SanitizeIdentities(List<string> values, int limit)
+    {
+        var ids = new HashSet<string>(); int output = 0;
+        for (int i = 0; i < values.Count && output < limit; i++)
+        {
+            string id = values[i];
+            if (!ValidIdentity(id) || !ids.Add(id)) continue;
+            values[output++] = id;
+        }
+        if (output < values.Count) values.RemoveRange(output, values.Count - output);
+    }
+    static bool ValidIdentity(string value) => !string.IsNullOrEmpty(value) && value.Length <= 128;
     static bool ValidEvent(AIReflectionRewardEvent item, long lastActionId) => item != null && !string.IsNullOrEmpty(item.Id)
         && item.Id.Length <= 128 && item.ActionId >= 0 && item.ActionId <= lastActionId;
     static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);

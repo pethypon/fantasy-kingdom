@@ -87,6 +87,9 @@ public sealed class AIActionOutcome
     public bool ShieldReduced, ShieldGranted, EffectChanged, DirectionChanged;
     public float BeliefUncertaintyReduction, ApRecovered;
     public List<string> NewEnemyLifeIds = new List<string>();
+    // Actual executor/death/acquisition events only; never inferred from a hidden target's HP.
+    public List<string> KilledLifeIds = new List<string>();
+    public List<string> ArtifactEventIds = new List<string>();
 
     public static AIActionOutcome Difference(AIActionContextSnapshot before, AIActionContextSnapshot after)
     {
@@ -97,9 +100,13 @@ public sealed class AIActionOutcome
                 || before.KnownTargetLifeId == after.KnownTargetLifeId);
         if (sameObservedTarget && before.TargetHP >= 0 && after.TargetHP >= 0)
         {
-            result.DamageDealt = Math.Max(0, before.TargetHP - after.TargetHP);
-            if (!before.TargetIsSelf) result.HealingDone = Math.Max(0, after.TargetHP - before.TargetHP);
-            result.ShieldReduced = after.TargetShieldTurns < before.TargetShieldTurns;
+            if (!before.TargetIsAlly && !before.TargetIsSelf)
+            {
+                result.DamageDealt = Math.Max(0, before.TargetHP - after.TargetHP);
+                result.ShieldReduced = after.TargetShieldTurns < before.TargetShieldTurns;
+            }
+            if (!before.TargetIsSelf && (before.TargetIsAlly || string.IsNullOrEmpty(before.KnownTargetLifeId)))
+                result.HealingDone = Math.Max(0, after.TargetHP - before.TargetHP);
             result.ShieldGranted = after.TargetIsAlly && after.TargetShieldTurns > before.TargetShieldTurns;
         }
         result.DamageTaken = Math.Max(0, before.ActorHP - after.ActorHP);
@@ -135,6 +142,7 @@ public sealed class AIActionOutcome
                 {
                     result.EffectChanged |= previous.Signature != effect.Signature;
                     if (effect.IsAlly && previous.IsAlly) healing += Math.Max(0, effect.HP - previous.HP);
+                    previousEffects.Remove(effect.LifeId);
                 }
             result.HealingDone = Math.Max(result.HealingDone, healing);
         }
@@ -164,6 +172,10 @@ public sealed class AIActionRecord
     public float Reward, BaseScore, LearnedModifier, FinalScore;
     public float EconomyStableReward;
     public float ImmediateReward, LearningValueChange;
+    public long OperationId;
+    public int OperationStepId;
+    public float OperationContribution, OperationCreditReward;
+    public List<long> OperationCreditsApplied = new List<long>();
     public AIRewardBreakdown RewardBreakdown;
     public AIReflectionDecisionTrace DecisionTrace;
     public bool PreparationCandidate;
@@ -236,5 +248,6 @@ public sealed class AIReflectionBattleState
     public int TotalStableTurns;
     public AIActionContextSnapshot LastSnapshot;
     public AIActionLearningProfile LearningProfile;
+    public AIOperationBattleState OperationDiary;
     public List<AIReflectionStrategyUse> StrategyUse = new List<AIReflectionStrategyUse>();
 }
