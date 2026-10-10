@@ -37,6 +37,7 @@ public static class CoreLogicTests
         ReflectionBalanceCoreTests.RunAll();
         AIReflectionCoreTests.RunAll();
         AIReflectionIntegratedTests.RunAll();
+        AIOperationCoreTests.RunAll();
         ExplorationR2CoreTests.RunAll();
         ExplorationR2BoundaryTests.RunAll();
 

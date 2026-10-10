@@ -65,6 +65,8 @@ public sealed class AIOperationConfigEditor : Editor
         { "DiversionMinimumEnemies", "陽動成功に必要な観測敵の移動数" },
         { "DiversionMinimumDistanceGain", "陽動成功に必要な敵の距離増加" },
         { "ObjectiveDefenseRadius", "目標周辺の敵守備を調べる距離" },
+        { "UnknownOperationRisk", "敵戦力が未確認のときの予想損失率" },
+        { "ObservedPowerRiskScale", "観測戦力比から予想損失率を求める倍率" },
         { "PerfectRankThreshold", "最高評価に必要な点数" },
         { "ExcellentRankThreshold", "優秀評価に必要な点数" },
         { "SuccessRankThreshold", "成功評価に必要な点数" },

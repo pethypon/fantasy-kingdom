@@ -33,7 +33,7 @@ public sealed class AIOperationManager
         this.config = config != null ? config : AIOperationConfig.Active;
         features = new AIOperationFeatureExtractor(this.config);
         scorer = new AIOperationScorer(this.config);
-        Profile = profile ?? new AIOperationLearningProfile();
+        Profile = profile ?? new AIOperationLearningProfile { ProfileId = "Operation_Default" };
         state = new AIOperationBattleState { LearningProfile = Profile };
     }
     public AIOperationLearningProfile Profile { get; private set; }
@@ -361,7 +361,14 @@ public sealed class AIOperationManager
         foreach (var plan in copy.ActiveOperations) copy.NextOperationId = Math.Max(copy.NextOperationId, plan.OperationId);
         foreach (var plan in copy.CompletedOperations) copy.NextOperationId = Math.Max(copy.NextOperationId, plan.OperationId);
         foreach (long id in copy.CompletedOperationIds) copy.NextOperationId = Math.Max(copy.NextOperationId, id);
-        if (copy.LearningProfile != null) { Profile = copy.LearningProfile; Profile.RebuildIndex(); }
+        if (copy.LearningProfile != null)
+        {
+            var validator = new AIOperationPersistence(null, Profile.ProfileId, config);
+            if (validator.TrySanitize(copy.LearningProfile) && (copy.LearningProfile.Sequence > Profile.Sequence
+                || copy.LearningProfile.Sequence == long.MaxValue && Profile.Sequence == long.MaxValue))
+                Profile = copy.LearningProfile;
+        }
+        Profile.RebuildIndex();
         copy.LearningProfile = Profile; state = copy;
         EnsureOnePrimary(); features.Invalidate();
     }
@@ -785,7 +792,9 @@ public sealed class AIOperationManager
     Vector3 MovementAim(AIOperationPlan plan, Status actor)
     {
         // Reuse the existing plan's observed waypoints instead of creating competing target locks.
-        if (legacyPlan != null && legacyPlan.Active && !legacyPlan.Suspended)
+        bool sharedTarget = plan.HasTargetPosition && legacyPlan != null
+            && AIOperationFeatureExtractor.Distance(legacyPlan.Target, new Vector3(plan.TargetX, 0, plan.TargetZ)) <= 1;
+        if (sharedTarget && legacyPlan.Active && !legacyPlan.Suspended)
         {
             var step = CurrentStep(plan)?.Type;
             if (step == AIOperationStepType.Diversion && actor.kind == Kind.Scout) return legacyPlan.DemonstrationPoint;

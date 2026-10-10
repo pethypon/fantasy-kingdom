@@ -12,6 +12,8 @@ public sealed class AIOperationFeatureExtractor
     readonly List<Status> ownBuildings = new List<Status>();
     readonly Dictionary<string, Status> own = new Dictionary<string, Status>();
     readonly Dictionary<string, Status> observed = new Dictionary<string, Status>();
+    readonly Dictionary<string, AIOperationObservedUnit> responseIndex = new Dictionary<string, AIOperationObservedUnit>();
+    readonly HashSet<string> initialDefenders = new HashSet<string>();
     AIBoardState cachedBoard;
     int generation = -1;
     AIOperationContext boardFacts;
@@ -78,6 +80,10 @@ public sealed class AIOperationFeatureExtractor
             else boardFacts.KnownImportantFacilities++;
         }
         boardFacts.EnemyStrengthKnown = boardFacts.VisibleEnemyUnits > 0;
+        boardFacts.ForecastRisk = boardFacts.EnemyStrengthKnown
+            ? Mathf.Clamp01(boardFacts.EnemyObservedPower / Mathf.Max(1, boardFacts.OwnMilitaryPower)
+                * AIOperationConfig.Unit(config.ObservedPowerRiskScale))
+            : AIOperationConfig.Unit(config.UnknownOperationRisk);
         foreach (var contact in board.Belief.Contacts)
         {
             boardFacts.BeliefUncertainty += contact.UnknownProbability;
@@ -127,7 +133,7 @@ public sealed class AIOperationFeatureExtractor
         facts.AssignedUnitCount = plan.OriginalAssignedUnitLifeIds.Count;
         facts.UtilizedAssignedUnitCount = plan.UtilizedUnitLifeIds.Count;
         facts.ArmyUtilization = (float)facts.UtilizedAssignedUnitCount / Mathf.Max(1, facts.AssignedUnitCount);
-        facts.ForecastRisk = plan.StartContext?.ForecastRisk ?? 0;
+        facts.ForecastRisk = plan.StartContext?.ForecastRisk ?? boardFacts.ForecastRisk;
         if (plan.HasTargetPosition)
         {
             Vector3 target = new Vector3(plan.TargetX, 0, plan.TargetZ);
@@ -181,26 +187,31 @@ public sealed class AIOperationFeatureExtractor
     void ObserveEnemyResponse(AIOperationPlan plan, AIOperationContext facts)
     {
         if (!plan.HasTargetPosition || plan.StartContext.ObservedEnemies == null) return;
+        responseIndex.Clear(); initialDefenders.Clear();
+        foreach (var current in facts.ObservedEnemies) responseIndex[current.LifeId] = current;
         int diverted = 0; float defenseBefore = 0, defenseNow = 0;
         var target = new Vector3(plan.TargetX, 0, plan.TargetZ);
+        int defenseRadius = Mathf.Max(1, config.ObjectiveDefenseRadius);
         foreach (var previous in plan.StartContext.ObservedEnemies)
         {
             int beforeDistance = Distance(new Vector3(previous.X, 0, previous.Z), target);
-            int defenseRadius = Mathf.Max(1, config.ObjectiveDefenseRadius);
             if (previous.Power <= 0 || beforeDistance > defenseRadius) continue;
+            initialDefenders.Add(previous.LifeId);
             defenseBefore += previous.Power;
             // An unobserved defender remains a possible defender. Its disappearance alone must
             // not imply that a road opened or that the defender died.
-            defenseNow += previous.Power;
-            foreach (var current in facts.ObservedEnemies)
+            if (responseIndex.TryGetValue(previous.LifeId, out var current))
             {
-                if (current.LifeId != previous.LifeId) continue;
                 int nowDistance = Distance(new Vector3(current.X, 0, current.Z), target);
                 if (nowDistance >= beforeDistance + Mathf.Max(1, config.DiversionMinimumDistanceGain)) diverted++;
-                if (nowDistance > defenseRadius) defenseNow -= previous.Power;
-                break;
+                if (nowDistance <= defenseRadius) defenseNow += current.Power;
             }
+            else defenseNow += previous.Power;
         }
+        // A new observed reinforcement closes an opening even when the original defenders moved away.
+        foreach (var current in facts.ObservedEnemies)
+            if (!initialDefenders.Contains(current.LifeId) && current.Power > 0
+                && Distance(new Vector3(current.X, 0, current.Z), target) <= defenseRadius) defenseNow += current.Power;
         if (diverted >= Mathf.Max(1, config.DiversionMinimumEnemies))
         {
             facts.DiversionConfirmed = true;

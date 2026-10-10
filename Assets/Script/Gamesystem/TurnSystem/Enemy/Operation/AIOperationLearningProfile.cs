@@ -28,11 +28,11 @@ public sealed class AIOperationLearningProfile
     {
         if (config == null || !config.Enabled || !config.ApplyLearningToSelection) return 0;
         var entry = Find(contextKey, goal, pattern);
-        if (entry == null || entry.Samples < Mathf.Clamp(config.MinimumSamplesForSelection, 1, MaximumCounter)) return 0;
+        if (entry == null || entry.Samples < Mathf.Clamp(config.MinimumSamplesForSelection, 2, MaximumCounter)) return 0;
         float confidence = Mathf.Clamp01(entry.Samples / (float)Mathf.Clamp(config.FullConfidenceSamples, 1, MaximumCounter));
         float value = Mathf.Clamp(Finite(entry.LearnedValue), Lower(config), Upper(config))
             * confidence * Mathf.Clamp01(Finite(similarity));
-        float limit = Mathf.Max(0, Finite(config.MaxOperationExperienceModifier));
+        float limit = Mathf.Clamp(Finite(config.MaxOperationExperienceModifier), 0, 3);
         return Mathf.Clamp(value, -limit, limit);
     }
 
@@ -44,9 +44,10 @@ public sealed class AIOperationLearningProfile
             || !ValidKey(plan.ContextKey) || !ValidPattern(plan.PatternKey)
             || !Enum.IsDefined(typeof(AIOperationGoal), plan.PrimaryGoal) || plan.PrimaryGoal == AIOperationGoal.None
             || !IsFinite(result.FinalScore) || !IsFinite(result.LearningReward)) return 0;
-        EnsureIndex();
         string receipt = Receipt(plan.BattleId, plan.OperationId);
-        if (receipt != null && !completed.Add(receipt)) return 0;
+        if (receipt == null) return 0;
+        EnsureIndex();
+        if (!completed.Add(receipt)) return 0;
         if (receipt != null)
         {
             CompletedOperationIds.Add(receipt);
@@ -68,7 +69,7 @@ public sealed class AIOperationLearningProfile
         entry.Samples = Mathf.Clamp(entry.Samples, 0, MaximumCounter);
         entry.AverageScore = Mathf.Clamp(Finite(entry.AverageScore), 0, Mathf.Max(0, Finite(config.PerfectScore)));
         float reward = Mathf.Clamp(result.LearningReward, Lower(config), Upper(config));
-        if (!result.PrimaryGoalAchieved) reward = Mathf.Min(reward, Mathf.Max(0, Finite(config.MaxLearningRewardWithoutPrimaryGoal)));
+        if (!result.PrimaryGoalAchieved) reward = Mathf.Min(reward, Mathf.Clamp(Finite(config.MaxLearningRewardWithoutPrimaryGoal), 0, .5f));
         int samples = Math.Min(MaximumCounter, entry.Samples + 1);
         float alpha = Mathf.Clamp01(Finite(config.LearningRate)) / Mathf.Sqrt(Math.Max(1, samples));
         entry.LearnedValue = Mathf.Clamp(before + alpha * (reward - before), Lower(config), Upper(config));
@@ -127,8 +128,8 @@ public sealed class AIOperationLearningProfile
     internal const int MaximumCounter = 1000000;
     internal static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
     internal static float Finite(float value) => IsFinite(value) ? value : 0;
-    internal static float Lower(AIOperationConfig config) => Mathf.Min(Finite(config.OperationLearningMin), Finite(config.OperationLearningMax));
-    internal static float Upper(AIOperationConfig config) => Mathf.Max(Finite(config.OperationLearningMin), Finite(config.OperationLearningMax));
+    internal static float Lower(AIOperationConfig config) => Mathf.Clamp(Finite(config.OperationLearningMin), -3, 0);
+    internal static float Upper(AIOperationConfig config) => Mathf.Clamp(Finite(config.OperationLearningMax), 0, 3);
     internal static string Receipt(string battleId, long operationId)
     {
         if (string.IsNullOrEmpty(battleId) || battleId.Length > 128 || operationId <= 0) return null;

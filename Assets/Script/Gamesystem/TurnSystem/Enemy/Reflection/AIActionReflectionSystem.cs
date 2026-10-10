@@ -406,8 +406,10 @@ public sealed partial class AIActionReflectionSystem
         CaptureEvaluationState();
         // This copy occurs only at the existing game-save boundary, never per action.
         state.LearningProfile = Profile;
+        var operationDiary = state.OperationDiary;
+        state.OperationDiary = null; // Active operations have their own save payload; diary copies are presentation only.
         try { return Clone(state); }
-        finally { state.LearningProfile = null; }
+        finally { state.LearningProfile = null; state.OperationDiary = operationDiary; }
     }
     bool ValidResume(AIReflectionBattleState resume)
     {

@@ -55,9 +55,10 @@ public partial class AICommander
     }
     public void EndReflectionTurn()
     {
+        bool operationRefreshedBoard = false;
         if (operationTurnStarted && !operationUnavailable)
         {
-            try { _board?.Refresh(); EndOperationTurn(); }
+            try { _board?.Refresh(); operationRefreshedBoard = _board != null; EndOperationTurn(); }
             catch (Exception error) { OperationFailed(error); }
         }
         if (!reflectionTurnStarted || reflectionUnavailable || reflection == null) return;
@@ -65,7 +66,7 @@ public partial class AICommander
         try
         {
             reflection.SetPersistenceAllowed(CanLearn);
-            _board?.Refresh();
+            if (!operationRefreshedBoard) _board?.Refresh();
             reflection.EndTurn(_turnCount, _board, _turnGen != null && _turnGen.IsGameOver);
         }
         catch (Exception error) { ReflectionFailed(error); }

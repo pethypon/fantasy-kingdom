@@ -124,6 +124,19 @@ public static class AIReflectionMigration
             || !Enum.IsDefined(typeof(AIActionType), record.ActionType) || !Enum.IsDefined(typeof(AIFailureReason), record.FailureReason)
             || record.SuccessReasons != null && record.SuccessReasons.Count > 32) return false;
         if (record.SuccessReasons == null) record.SuccessReasons = new List<AISuccessReason>();
+        if (!Finite(record.OperationContribution) || !Finite(record.OperationCreditReward)
+            || record.OperationId < 0 || record.OperationStepId < 0) return false;
+        record.OperationContribution = Mathf.Clamp01(record.OperationContribution);
+        record.OperationCreditReward = Mathf.Clamp(record.OperationCreditReward, 0, 1);
+        if (record.OperationCreditsApplied == null) record.OperationCreditsApplied = new List<long>();
+        if (record.OperationCreditsApplied.Count > 8) return false;
+        var operations = new HashSet<long>();
+        record.OperationCreditsApplied.RemoveAll(id => id <= 0 || !operations.Add(id));
+        if (record.Outcome.KilledLifeIds == null) record.Outcome.KilledLifeIds = new List<string>();
+        if (record.Outcome.ArtifactEventIds == null) record.Outcome.ArtifactEventIds = new List<string>();
+        if (record.Outcome.KilledLifeIds.Count > config.EventLimit || record.Outcome.ArtifactEventIds.Count > config.EventLimit) return false;
+        record.Outcome.KilledLifeIds.RemoveAll(id => string.IsNullOrEmpty(id) || id.Length > 128);
+        record.Outcome.ArtifactEventIds.RemoveAll(id => string.IsNullOrEmpty(id) || id.Length > 128);
         record.SuccessReasons.RemoveAll(reason => !Enum.IsDefined(typeof(AISuccessReason), reason));
         bool missingBreakdown = record.RewardBreakdown == null;
         if (legacy || missingBreakdown) record.RewardBreakdown = AIReflectionInterval.LegacyBreakdown(record);

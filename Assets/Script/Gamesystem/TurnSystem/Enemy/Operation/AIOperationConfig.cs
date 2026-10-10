@@ -12,7 +12,7 @@ public sealed class AIOperationConfig : ScriptableObject
     public bool EnablePersistentLearning = true;
     public bool EnableDebug;
     [Min(1)] public int MinimumThreatLevel = 10;
-    [Min(1)] public int MinimumSamplesForSelection = 2;
+    [Min(2)] public int MinimumSamplesForSelection = 2;
     [Min(1)] public int FullConfidenceSamples = 10;
     [Range(.001f, 1f)] public float LearningRate = .15f;
     [Range(0f, 3f)] public float MaxOperationExperienceModifier = 3f;
@@ -65,6 +65,8 @@ public sealed class AIOperationConfig : ScriptableObject
     [Min(1)] public int DiversionMinimumEnemies = 2;
     [Min(1)] public int DiversionMinimumDistanceGain = 2;
     [Min(1)] public int ObjectiveDefenseRadius = 3;
+    [Range(0f, 1f)] public float UnknownOperationRisk = .35f;
+    [Range(0f, 1f)] public float ObservedPowerRiskScale = .35f;
 
     [Header("評価ランクと学習報酬")]
     [Range(0f, 100f)] public float PerfectRankThreshold = 95f;
