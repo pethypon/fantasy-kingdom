@@ -10,6 +10,8 @@ using UnityEngine.UI;
 public partial class BuildSummonUIBuilder
 {
     readonly Dictionary<FacilityKind,TextMeshProUGUI> buildCostLabels = new Dictionary<FacilityKind,TextMeshProUGUI>();
+    readonly Dictionary<FacilityKind,TextMeshProUGUI> buildTitles = new Dictionary<FacilityKind,TextMeshProUGUI>();
+    GameObject buildContent, summonContent;
     // 召喚可能なユニット種別（Crystal/King/壁は除外）
     public static readonly Kind[] SummonableKinds = {
         Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
@@ -127,8 +129,10 @@ public partial class BuildSummonUIBuilder
     {
         buildButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
         buildCostLabels.Clear();
+        buildTitles.Clear();
         authoredBuildButtons.Clear();
         var (go, content) = CreateBaseScrollView(name, parent);
+        buildContent = content;
 
         // 建築物ボタン + コスト表示を生成
         foreach (var kvp in FacilityData.Table)
@@ -140,7 +144,7 @@ public partial class BuildSummonUIBuilder
             var row = new GameObject("Row_" + facility, typeof(RectTransform));
             row.transform.SetParent(content.transform, false);
             var rowLE = row.AddComponent<LayoutElement>();
-            rowLE.preferredHeight = 104;
+            rowLE.minHeight = 104;
 
             var rowVLG = row.AddComponent<VerticalLayoutGroup>();
             rowVLG.spacing = 2;
@@ -163,6 +167,7 @@ public partial class BuildSummonUIBuilder
 
             var bg = btn.GetComponent<Image>();
             buildButtons.Add((btn, bg, facility));
+            buildTitles[facility] = btn.GetComponentInChildren<TextMeshProUGUI>();
 
             FacilityKind captured = facility;
             btn.onClick.AddListener(() => OnBuildButtonClicked(captured));
@@ -179,7 +184,7 @@ public partial class BuildSummonUIBuilder
             costTMP.fontSizeMin = 20;
             costTMP.fontSizeMax = BrandGuide.FontHudCaption;
             var costLE = costTMP.gameObject.AddComponent<LayoutElement>();
-            costLE.preferredHeight = 42;
+            costLE.minHeight = 42;
             var costRT = costTMP.GetComponent<RectTransform>();
             costRT.offsetMin = new Vector2(8, 0);
         }
@@ -216,6 +221,7 @@ public partial class BuildSummonUIBuilder
         summonButtons.Clear(); // 再生成時に破棄済みボタン参照が残らないようにする
         authoredSummonButtons.Clear();
         var (go, content) = CreateBaseScrollView(name, parent);
+        summonContent = content;
 
         foreach (var kind in SummonableKinds)
         {
@@ -287,6 +293,9 @@ public partial class BuildSummonUIBuilder
             if (buildCostLabels.TryGetValue(kind,out var costLabel) && FacilityData.Table.TryGetValue(kind,out var info))
             {
                 string cost=FacilityData.IsSubCrystal(kind) ? "サブクリスタル1消費" : FormatBuildCost(info.BuildCost);
+                cost += FormatBuildingDetails(kind, FacilityData.GetLevel(kind, 1));
+                if (buildTitles.TryGetValue(kind, out var title) && title != null)
+                    title.text = FacilityData.IsSubCrystal(kind) ? info.DisplayName + "  副晶x1" : info.DisplayName + "  AP:" + info.APCost;
                 string reason=BuildValidator.CostFailure(kind,cachedFactionState);
                 costLabel.text=reason==null ? cost : cost+"\n<color=#FFB7A3>"+reason+"</color>";
             }
@@ -341,5 +350,42 @@ public partial class BuildSummonUIBuilder
             RefreshSummonRow(btn, bg, title, cost, data, displayName);
         }
         RefreshAuthoredSummonButtons();
+    }
+    public void RefreshContentRows()
+    {
+        if (buildContent != null)
+        { RemoveAuthoredRows(buildContent.transform, "AuthoredBuilding_"); CreateAuthoredBuildRows(buildContent); }
+        if (summonContent != null)
+        { RemoveAuthoredRows(summonContent.transform, "AuthoredUnit_"); authoredSummonButtons.Clear(); CreateAuthoredSummonButtons(summonContent.transform); }
+        RefreshBuildButtons(); RefreshSummonButtons();
+    }
+    static void RemoveAuthoredRows(Transform content, string prefix)
+    {
+        for (int i = content.childCount - 1; i >= 0; i--)
+        {
+            var child = content.GetChild(i);
+            if (!child.name.StartsWith(prefix, System.StringComparison.Ordinal)) continue;
+            child.gameObject.SetActive(false); Object.Destroy(child.gameObject);
+        }
+    }
+    public static string FormatBuildingDetails(FacilityKind kind, FacilityData.FacilityLevelData recipe)
+    {
+        var parts = new List<string>();
+        if (kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse) parts.Add("市民上限 +" + recipe.SpecialValue);
+        if (kind == FacilityKind.Warehouse) parts.Add("資源容量 +" + recipe.SpecialValue);
+        if (kind == FacilityKind.Barracks) parts.Add("経験値 +" + recipe.SpecialValue + "%");
+        if (!recipe.Output.IsEmpty) parts.Add("生産 " + FormatProductionBundle(recipe.Output) + " / " + FacilityData.ProductionInterval(recipe) + "ターン");
+        if (!recipe.Input.IsEmpty) parts.Add("生産時消費 " + FormatProductionBundle(recipe.Input));
+        if (!recipe.Maintenance.IsEmpty) parts.Add("維持 " + FormatProductionBundle(recipe.Maintenance));
+        return parts.Count == 0 ? string.Empty : "\n" + string.Join("\n", parts);
+    }
+    public static string FormatProductionBundle(FacilityData.ProductionBundle value)
+    {
+        var parts = new List<string>();
+        if (value.Wood > 0) parts.Add("木" + value.Wood); if (value.Stone > 0) parts.Add("石" + value.Stone);
+        if (value.Iron > 0) parts.Add("鉄" + value.Iron); if (value.MagicOre > 0) parts.Add("魔石" + value.MagicOre);
+        if (value.Wheat > 0) parts.Add("小麦" + value.Wheat); if (value.Bread > 0) parts.Add("パン" + value.Bread);
+        if (value.Water > 0) parts.Add("水" + value.Water); if (value.Citizen > 0) parts.Add("市民" + value.Citizen);
+        return string.Join(" ", parts);
     }
 }

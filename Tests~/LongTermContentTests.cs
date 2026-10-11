@@ -92,10 +92,10 @@ public static class LongTermContentTests
             Check("ID whitespace rejected without rewriting", !LongTermContentValidation.Validate(null, null, null, director).IsValid && raid.EventId == " event.one");
             Check("missing optional catalogs preserve legacy", LongTermContentValidation.Validate(null, null, null, null).IsValid);
 
-            var info = FKBuildInfo.Create("1.2.3", new string('a', 40), "6000.3.8f1", "2026-10-11T00:00:00.0000000Z", true, 7, new string('b', 64));
+            var info = FKBuildInfo.Create("1.2.3", new string('a', 40), "6000.3.8f1", "2026-10-11T00:00:00.0000000Z", true, SaveSystem.CurrentSaveVersion, new string('b', 64));
             string json = info.ToJson();
             Check("build identity JSON round trip", FKBuildInfo.TryParse(json, out var parsed) && parsed.GameVersion == info.GameVersion && parsed.Commit == info.Commit
-                && parsed.UnityVersion == info.UnityVersion && parsed.Dirty && parsed.SaveSchema == 7 && parsed.PackageLockHash == info.PackageLockHash);
+                && parsed.UnityVersion == info.UnityVersion && parsed.Dirty && parsed.SaveSchema == SaveSystem.CurrentSaveVersion && parsed.PackageLockHash == info.PackageLockHash);
             Check("missing build metadata rejected", !FKBuildInfo.TryParse("{}", out _));
             Check("oversized build metadata rejected", !FKBuildInfo.TryParse(new string('x', FKBuildInfo.MaximumJsonCharacters + 1), out _));
             Check("runtime fallback identity available", !string.IsNullOrEmpty(FKBuildInfo.Current.GameVersion) && FKBuildInfo.Current.SaveSchema == SaveSystem.CurrentSaveVersion);
@@ -156,7 +156,8 @@ public static class LongTermContentTests
             var bounded = new LongTermContentValidation.Result();
             for (int i = 0; i < 1000; i++) bounded.Error("fixture", "error");
             Check("diagnostic buffer bounded without losing failure count", bounded.ErrorCount == 1000 && bounded.Errors.Count == 256 && !bounded.IsValid);
-            Check("production registrations and legacy data valid", LongTermContentValidation.ValidateProject().IsValid);
+            var production = LongTermContentValidation.ValidateProject();
+            Check("production registrations and legacy data valid: " + production.Summary(), production.IsValid);
             Debug.Log("[LongTermContent] " + checks + " checks passed");
         }
         finally

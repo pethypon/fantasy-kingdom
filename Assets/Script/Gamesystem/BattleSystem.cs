@@ -42,14 +42,14 @@ public class BattleSystem : MonoBehaviour
         // スタン中は行動不可
         if (StatusEffectSystem.IsStunned(Attacker))
         {
-            Debug.Log($"[Battle] {Attacker.kind} はスタン中で行動不可");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} はスタン中で行動不可"); }
             return;
         }
 
         // シールド中はダメージ無効
         if (Target.ShieldTurns > 0)
         {
-            Debug.Log($"[Battle] {Target.kind} はシールド中！ ダメージ無効（残り{Target.ShieldTurns}ターン）");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.kind} はシールド中！ ダメージ無効（残り{Target.ShieldTurns}ターン）"); }
             FloatingDamageUI.ShowShield(Target.transform.position);
             return;
         }
@@ -63,7 +63,7 @@ public class BattleSystem : MonoBehaviour
             if (Random.value < GameConstants.CrossbowStunChance)
             {
                 StatusEffectSystem.ApplyDebuff(Target, StatusEffectType.Stun, 1);
-                Debug.Log($"[Battle] {Attacker.kind} のスタン発動！ {Target.kind} は1ターン行動不可");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} のスタン発動！ {Target.kind} は1ターン行動不可"); }
             }
         }
 
@@ -72,11 +72,11 @@ public class BattleSystem : MonoBehaviour
         {
             int selfDmg = Mathf.RoundToInt(Attacker.MaxHP * GameConstants.MagicSniperSelfDamageRatio);
             Attacker.ApplyDamage(selfDmg);
-            Debug.Log($"[Battle] {Attacker.kind} 自傷ダメージ {selfDmg}（残HP:{Attacker.HP}）");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} 自傷ダメージ {selfDmg}（残HP:{Attacker.HP}）"); }
             FloatingDamageUI.ShowDamage(Attacker.transform.position, selfDmg, !Attacker.IsAlive);
 
             StatusEffectSystem.ApplyDebuff(Target, StatusEffectType.Mark, 1);
-            Debug.Log($"[Battle] {Target.kind} にマーキング付与（被ダメ+10%、1ターン）");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.kind} にマーキング付与（被ダメ+10%、1ターン）"); }
         }
 
         // Special Ability: 致死ダメージ耐え（生還本能）
@@ -133,7 +133,7 @@ public class BattleSystem : MonoBehaviour
             Target.ShieldTurns = GameConstants.CrystalShieldDuration;
             Target.ShieldActivated = true;
             Target.ShieldEverActivated = true;
-            Debug.Log($"[Battle] {Target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！"); }
             string teamLabel = Target.team == Team.Player ? "味方" : "敵";
             ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{GameConstants.CrystalShieldDuration}ターン）",
                 ToastMessageUI.MessageType.Info, 4f);
@@ -151,11 +151,11 @@ public class BattleSystem : MonoBehaviour
             if (s.kind == Kind.Crystal && s.ShieldTurns > 0)
             {
                 s.ShieldTurns--;
-                Debug.Log($"[Battle] {s.team} クリスタルシールド残り {s.ShieldTurns} ターン");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {s.team} クリスタルシールド残り {s.ShieldTurns} ターン"); }
                 if (s.ShieldTurns <= 0)
                 {
                     s.ShieldActivated = false;
-                    Debug.Log($"[Battle] {s.team} クリスタルシールド終了 → 再発動可能");
+                    { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {s.team} クリスタルシールド終了 → 再発動可能"); }
                 }
             }
         }
@@ -167,7 +167,7 @@ public class BattleSystem : MonoBehaviour
     private int ApplyDamage(int damage)
     {
         damage = Target.ApplyDamage(damage);
-        Debug.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}"); }
 
         // 反逆の騎士王: 反撃バフ有効時は受けたダメージの1.5倍を反射
         if (damage > 0) WildBossSystem.TryReflectDamage(Target, Attacker, damage);
@@ -274,13 +274,13 @@ public class BattleSystem : MonoBehaviour
             if (SpecialAbilitySystem.TrySurviveLethal(t, dmg))
             {
                 FloatingDamageUI.ShowDamage(t.transform.position, dmg, false);
-                Debug.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} は生還本能で耐えた  targets={count}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} は生還本能で耐えた  targets={count}"); }
                 continue;
             }
 
             int actual = t.ApplyDamage(dmg);
             FloatingDamageUI.ShowDamage(t.transform.position, actual, !t.IsAlive);
-            Debug.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} に {actual} ダメージ（残HP:{t.HP}）  targets={count}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} に {actual} ダメージ（残HP:{t.HP}）  targets={count}"); }
 
             // 死亡時は HandleDeathIfDead に一元委譲する。
             // 旧コードは Unit のみインライン処理しており、King がクリスタル反撃で
@@ -340,7 +340,7 @@ public class BattleSystem : MonoBehaviour
     private void HandleUnitDeath()
     {
         if (Target == null) return;
-        Debug.Log($"[Battle] {Target.team} の {Target.kind} が撃破された");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.team} の {Target.kind} が撃破された"); }
 
         if (turnGenerator.Systems.MoveGenerator != null)
         {
@@ -363,7 +363,7 @@ public class BattleSystem : MonoBehaviour
         // レベル・経験値・ステータスを Lv1 にリセット（次回スポーン時のために）
         Target.ResetToLv1();
 
-        Target.gameObject.SetActive(false);
+        Target.DeactivateAfterDeath();
 
         // 駒の死亡で盤面が変化したため同フレームキャッシュを無効化してから再計算する
         turnGenerator.Systems.VisionGenerator.MarkVisionDirty();
@@ -384,12 +384,12 @@ public class BattleSystem : MonoBehaviour
         if (Target.team == Team.Enemy)
         {
             result = GameResult.Win;
-            Debug.Log($"[Battle] 敵 {Target.kind} 破壊 → 勝利！");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] 敵 {Target.kind} 破壊 → 勝利！"); }
         }
         else
         {
             result = GameResult.Lose;
-            Debug.Log($"[Battle] 自軍 {Target.kind} 破壊 → 敗北…");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] 自軍 {Target.kind} 破壊 → 敗北…"); }
         }
 
         turnGenerator.ChangeState(new GameEndState(turnGenerator, result, Target));

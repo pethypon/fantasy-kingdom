@@ -116,6 +116,30 @@ public sealed partial class GameDevelopmentStudioWindow
             if (item != null && item != data && item.definitionId == data.definitionId)
                 throw new ArgumentException("建物の保存用IDが重複しています。開発スタジオの複製機能を使ってください。");
         if (!catalog.buildings.Contains(data)) { Undo.RecordObject(catalog,"建物を追加登録"); catalog.buildings.Add(data); EditorUtility.SetDirty(catalog); }
+        catalog.standardOverrides?.Remove(data); catalog.retiredDefinitions?.Remove(data);
+        FacilityAuthoringCatalog.ResetCache(); GameContentRevision.NotifyChanged();
+    }
+    public static void RegisterStandardBuilding(FacilityDefinitionData data)
+    {
+        if (data == null || !data.IsValid || data.prefab == null || data.prefab.GetComponentsInChildren<Status>(true).Length != 1)
+            throw new ArgumentException("標準建物へ反映する能力・レベル・Prefabを確認してください。");
+        var catalog = GetBuildingCatalog();
+        if (catalog.standardOverrides == null) catalog.standardOverrides = new System.Collections.Generic.List<FacilityDefinitionData>();
+        if (catalog.retiredDefinitions == null) catalog.retiredDefinitions = new System.Collections.Generic.List<FacilityDefinitionData>();
+        foreach (var item in catalog.buildings)
+            if (item != null && item != data && item.definitionId == data.definitionId) throw new ArgumentException("建物の保存用IDが重複しています。");
+        foreach (var item in catalog.standardOverrides)
+            if (item != null && item != data && item.definitionId == data.definitionId) throw new ArgumentException("建物の保存用IDが重複しています。");
+        Undo.RecordObject(catalog, "標準建物の正式データを設定");
+        for (int i = catalog.standardOverrides.Count - 1; i >= 0; i--)
+        {
+            var previous = catalog.standardOverrides[i];
+            if (previous == null || previous.behaviourKind != data.behaviourKind) continue;
+            if (previous != data && !catalog.retiredDefinitions.Contains(previous)) catalog.retiredDefinitions.Add(previous);
+            catalog.standardOverrides.RemoveAt(i);
+        }
+        catalog.retiredDefinitions.Remove(data); catalog.buildings.Remove(data); catalog.standardOverrides.Add(data);
+        EditorUtility.SetDirty(catalog); FacilityAuthoringCatalog.ResetCache(); GameContentRevision.NotifyChanged();
     }
     void DuplicateSelected()
     {

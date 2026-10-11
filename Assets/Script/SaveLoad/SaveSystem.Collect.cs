@@ -111,18 +111,18 @@ public static partial class SaveSystem
     {
         if (playerParent != null)
             foreach (Status s in playerParent.GetComponentsInChildren<Status>(true))
-                if (s.type == Type.Unit) data.Units.Add(StatusToSaveData(s));
+                if (s.type == Type.Unit && (!s.IsRuntimeSpawned || s.gameObject.activeSelf)) data.Units.Add(StatusToSaveData(s));
 
         if (enemyParent != null)
             foreach (Status s in enemyParent.GetComponentsInChildren<Status>(true))
-                if (s.type == Type.Unit) data.Units.Add(StatusToSaveData(s));
+                if (s.type == Type.Unit && (!s.IsRuntimeSpawned || s.gameObject.activeSelf)) data.Units.Add(StatusToSaveData(s));
     }
 
     static void CollectBuildings(GameSaveData data, Transform parent)
     {
         if (parent == null) return;
         foreach (Status s in parent.GetComponentsInChildren<Status>(true))
-            data.Units.Add(StatusToSaveData(s));
+            if (s.gameObject.activeSelf) data.Units.Add(StatusToSaveData(s));
     }
 
     static void CollectCrystals(GameSaveData data, CrystalSystem cs)
@@ -135,12 +135,12 @@ public static partial class SaveSystem
 
         if (playerCrystalParent != null)
             foreach (Status s in playerCrystalParent.GetComponentsInChildren<Status>(true))
-                if (s.kind == Kind.Crystal || s.kind == Kind.SubCrystal)
+                if (s.kind == Kind.Crystal || s.kind == Kind.SubCrystal && s.gameObject.activeSelf)
                     data.Units.Add(StatusToSaveData(s));
 
         if (enemyCrystalParent != null)
             foreach (Status s in enemyCrystalParent.GetComponentsInChildren<Status>(true))
-                if (s.kind == Kind.Crystal || s.kind == Kind.SubCrystal)
+                if (s.kind == Kind.Crystal || s.kind == Kind.SubCrystal && s.gameObject.activeSelf)
                     data.Units.Add(StatusToSaveData(s));
     }
 
@@ -178,10 +178,20 @@ public static partial class SaveSystem
             DebuffNullifiedThisTurn = s.DebuffNullifiedThisTurn,
             InterceptUsedThisTurn = s.InterceptUsedThisTurn,
             Fatigue = s.Fatigue,
+            UpkeepUnpaidTurns = s.UpkeepUnpaidTurns,
+            BuildingOperationAvailable = s.BuildingOperationAvailable,
             Experience = s.Experience,
             SpecialAbility = StableSaveKeys.Key(s.specialAbility),
             SurvivalInstinctUsed = s.SurvivalInstinctUsed
         };
+
+        if (StatusBalanceRefresh.TryGetDefinitionStats(s, out int definitionHP, out int definitionATK, out int definitionDEF))
+        {
+            d.HasDefinitionStatSnapshot = true;
+            d.DefinitionMaxHP = definitionHP;
+            d.DefinitionATK = definitionATK;
+            d.DefinitionDEF = definitionDEF;
+        }
 
         if (s.ActiveEffects != null)
         {

@@ -124,11 +124,16 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         if (upkeepFold)
         {
             Field(so.FindProperty("upkeepExempt"));
+            Field(so.FindProperty("useAuthoredUpkeep"));
             bool exempt = so.FindProperty("upkeepExempt").boolValue || selectedUnit.kind == Kind.King || selectedUnit.kind == Kind.Boss;
             EditorGUILayout.HelpBox(exempt ? "この駒の維持費はありません。王・異形の王は常に免除されます。"
-                : "通常駒はLv1からパン1・鉄1を毎ターン消費します。Lv10で各2、Lv20で各3となります。以下の資源は追加の維持費です。", MessageType.Info);
+                : so.FindProperty("useAuthoredUpkeep").boolValue ? "鉄・パンを含め、以下の設定値をLv1の維持費として使います。Lv10ごとに増加します。"
+                : "従来の共通維持費を使います。鉄・パンも変更する場合は「この駒専用の鉄・パン維持費を使う」を有効にしてください。", MessageType.Info);
             using (new EditorGUI.DisabledScope(exempt))
+            {
                 Fields(so,"upkeepWood","upkeepStone","upkeepMagic","upkeepWater","upkeepMagicScales");
+                if (so.FindProperty("useAuthoredUpkeep").boolValue) Fields(so,"upkeepIron","upkeepBread");
+            }
         }
         abilityFold = EditorGUILayout.Foldout(abilityFold,"スキル・常時能力",true);
         if (abilityFold)
@@ -181,7 +186,13 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         }
         so.ApplyModifiedProperties();
         DrawVisual(null,selectedBuilding);
-        EditorGUILayout.HelpBox("既存データを取り込んだ建物は編集用の複製です。登録すると新しい建物として追加されます。元の建物はそのまま残ります。８×８のマス設定は「駒づくり」で設定します。",MessageType.None);
+        var catalog = AssetDatabase.LoadAssetAtPath<FacilityAuthoringCatalog>(FacilityCatalogPath);
+        bool standard = catalog != null && catalog.FindStandard(selectedBuilding.behaviourKind) == selectedBuilding;
+        bool independent = catalog != null && catalog.buildings != null && catalog.buildings.Contains(selectedBuilding);
+        EditorGUILayout.HelpBox(standard ? "標準建物の正式データです。保存した能力・費用・生産を、標準の建築メニューとゲーム・AIが共通で参照します。"
+            : independent ? "追加の建物として登録済みです。標準建物の値は変更しません。"
+            : "編集用データ：標準建物への反映は未設定です。既存の建物の数値を変える場合は下の「標準建物へ反映」を選んでください。保存だけではゲームの標準建物へ反映されません。", MessageType.Info);
+        if (GUILayout.Button("この設定を標準建物へ反映（重複追加しない）",GUILayout.Height(30))) TryAction(() => RegisterStandardBuilding(selectedBuilding));
         if (GUILayout.Button("この建物をゲームに登録",GUILayout.Height(30))) TryAction(() => RegisterBuilding(selectedBuilding));
         DrawId(selectedBuilding.definitionId);
     }
@@ -223,7 +234,10 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
                 { entry.kind=entry.data.kind; if(entry.data.prefab!=null)entry.prefab=entry.data.prefab; }
                 EditorUtility.SetDirty(catalog);
             }
-            AssetDatabase.SaveAssets(); notice="すべての設定を保存しました。次の新規ゲームに反映されます。";
+            var validation = LongTermContentValidation.ValidateProject();
+            if (!validation.IsValid) throw new ArgumentException(validation.Summary());
+            AssetDatabase.SaveAssets(); FacilityAuthoringCatalog.ResetCache(); GameAuthoringRules.ResetCache(); GameContentRevision.NotifyChanged();
+            notice="正式に登録した設定を保存しました。新規ゲーム・ロードで反映されます。再生中のInspector変更は能力・費用・生産を再計算します。地形・初期資源・Prefab変更は再戦闘開始が必要です。";
         }
         catch(Exception ex) { Debug.LogException(ex); notice="設定を保存できませんでした："+ex.Message; }
     }

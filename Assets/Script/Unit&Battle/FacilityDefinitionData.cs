@@ -17,9 +17,11 @@ public sealed class FacilityDefinitionData : ScriptableObject
     public bool availableToPlayer = true, availableToEnemy = true;
 
     public bool IsValid => !string.IsNullOrWhiteSpace(definitionId) && levels != null && levels.Length > 0
-        && FacilityData.Table.ContainsKey(behaviourKind);
+        && FacilityData.IsKnownKind(behaviourKind);
     public bool IsAvailable(Team team) => IsValid && (team == Team.Player ? availableToPlayer : team == Team.Enemy && availableToEnemy);
     public FacilityData.FacilityLevelData GetLevel(int level)
+        => GetLevel(level, definitionId);
+    public FacilityData.FacilityLevelData GetLevel(int level, string productionIdentity)
     {
         if (levels == null || levels.Length == 0) return default;
         var data = levels[Mathf.Clamp(level - 1, 0, levels.Length - 1)];
@@ -30,11 +32,13 @@ public sealed class FacilityDefinitionData : ScriptableObject
         data.BonusOutput1 = Sanitize(data.BonusOutput1); data.BonusOutput2 = Sanitize(data.BonusOutput2);
         data.BonusChance1 = Mathf.Clamp01(data.BonusChance1); data.BonusChance2 = Mathf.Clamp01(data.BonusChance2);
         data.SpecialValue = Mathf.Max(0, data.SpecialValue);
-        return BuildingProductionBalance.Resolve(behaviourKind, definitionId, Mathf.Clamp(level, 1, levels.Length), data);
+        return BuildingProductionBalance.Resolve(behaviourKind, productionIdentity, Mathf.Clamp(level, 1, levels.Length), data);
     }
     public FacilityData.FacilityInfo GetInfo()
+        => GetInfo(definitionId);
+    public FacilityData.FacilityInfo GetInfo(string productionIdentity)
     {
-        var first = GetLevel(1);
+        var first = GetLevel(1, productionIdentity);
         return new FacilityData.FacilityInfo { DisplayName = displayName, APCost = Mathf.Clamp(buildAP, 0, GameConstants.MaxAuthoredActionAPCost),
             BuildCost = Sanitize(buildCost), HP = first.HP, DEF = first.DEF, ATK = first.ATK, MaxLevel = Mathf.Max(1, levels?.Length ?? 0) };
     }
@@ -45,4 +49,5 @@ public sealed class FacilityDefinitionData : ScriptableObject
         => new FacilityData.ProductionBundle { Wood = Mathf.Max(0,value.Wood), Stone = Mathf.Max(0,value.Stone),
             Iron = Mathf.Max(0,value.Iron), MagicOre = Mathf.Max(0,value.MagicOre), Wheat = Mathf.Max(0,value.Wheat),
             Bread = Mathf.Max(0,value.Bread), Water = Mathf.Max(0,value.Water), Citizen = Mathf.Max(0,value.Citizen) };
+    void OnValidate() => GameContentRevision.NotifyChanged();
 }

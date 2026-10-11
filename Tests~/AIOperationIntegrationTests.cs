@@ -105,7 +105,7 @@ public static class AIOperationIntegrationTests
                     .Invoke(null, new object[] { game.AI, commander });
                 game = JsonUtility.FromJson<SaveSystem.GameSaveData>(JsonUtility.ToJson(game));
                 Check("T18 actual save contains independent action and operation payloads " + team,
-                    game.Version == 6 && game.AI.Reflection != null && game.AI.Operations != null
+                    game.Version == SaveSystem.CurrentSaveVersion && game.AI.Reflection != null && game.AI.Operations != null
                     && game.AI.Operations.BattleId == manager.State.BattleId && game.AI.Operations.ActiveOperations.Count > 0);
                 var loaded = Commander(live, f, hub, vision); SaveSystem.RestoreAICommander(game.AI, loaded);
                 Check("T18 actual commander restore keeps the operation counter and active goal " + team,

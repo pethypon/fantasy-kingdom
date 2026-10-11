@@ -50,13 +50,13 @@ public static class SaveCompatibilityTests
         Check("complete migration chain", SaveSystem.ValidateMigrationChain(out _));
         string fixtures = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Tests~", "Data", "Saves"));
         string path = Path.Combine(root, "saves", "save_0.json"); Directory.CreateDirectory(Path.GetDirectoryName(path));
-        string[] names = { "legacy", "base", "growth", "crystal", "reflection", "exploration", "operations" };
-        for (int version = 0; version <= 6; version++)
+        string[] names = { "legacy", "base", "growth", "crystal", "reflection", "exploration", "operations", "checkpoint" };
+        for (int version = 0; version <= 7; version++)
         {
             string original = File.ReadAllText(Path.Combine(fixtures, "v" + version + "_" + names[version] + ".json"));
             File.WriteAllText(path, original);
             Check("frozen v" + version + " migrates", SaveSystem.TryLoadGame(0, out var data, out string reason));
-            Check("v" + version + " current schema and checkpoint", data.Version == 7 && data.SchemaVersion == 7 && data.Checkpoint == "player_turn");
+            Check("v" + version + " current schema and checkpoint", data.Version == SaveSystem.CurrentSaveVersion && data.SchemaVersion == SaveSystem.CurrentSaveVersion && data.Checkpoint == "player_turn");
             Check("v" + version + " crystal upgrade exactly once", data.Units[0].HP == 5700 && data.Units[0].MaxHP == 6000);
             Check("v" + version + " killed crystal stays killed", data.Units[1].HP == 0 && data.Units[1].MaxHP == 6000);
             Check("v" + version + " legacy missing maxHP repaired", data.Units[2].MaxHP == 20);

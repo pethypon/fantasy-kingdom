@@ -6,7 +6,7 @@ using UnityEngine;
 /// Bounded, observation-driven operation ownership above the unchanged tactical AI. An operation
 /// supplies a small score hint, never legal-action restrictions or a strategic priority override.
 /// </summary>
-public sealed class AIOperationManager
+public sealed partial class AIOperationManager
 {
     readonly AIOperationConfig config;
     readonly AIOperationFeatureExtractor features;
@@ -71,7 +71,7 @@ public sealed class AIOperationManager
         if (state.LastStartedOwnTurn == ownTurn) return;
         if (ownTurn <= state.OwnTurns) return;
         state.LastStartedOwnTurn = ownTurn; state.LastStartedGlobalTurn = board.TurnCount;
-        features.Prepare(board, ownTurn); SeedObservations(board, ownTurn);
+        features.Prepare(board, ownTurn); SeedObservations(board, ownTurn); UpdateKnownBases(board, ownTurn);
         ownArmy.Clear();
         foreach (var actor in features.OwnUnits(board, ownTurn))
             if (actor != null && actor.IsAlive && actor.type == Type.Unit && actor.kind != Kind.King)
@@ -120,6 +120,7 @@ public sealed class AIOperationManager
         if (refreshedBoard == board && refreshedGeneration == board.Generation) return;
         int turn = state.LastStartedOwnTurn;
         features.Prepare(board, turn);
+        UpdateKnownBases(board, turn);
         ownArmy.Clear();
         foreach (var actor in features.OwnUnits(board, turn))
             if (actor != null && actor.IsAlive && actor.type == Type.Unit && actor.kind != Kind.King) ownArmy.Add(actor);
@@ -166,7 +167,10 @@ public sealed class AIOperationManager
             features.Prepare(board, state.LastStartedOwnTurn);
             if (action.TargetUnit != null && board.AlivePlayerUnits.Contains(action.TargetUnit)
                 && (string.IsNullOrEmpty(plan.TargetLifeId) || action.TargetUnit.ReflectionLifeId == plan.TargetLifeId)) bonus = 1;
-            if (step?.Type == AIOperationStepType.Attack || step?.Type == AIOperationStepType.DestroyObjective) bonus += .5f;
+            if (plan.IsBaseAssault && features.TryObserved(plan.TargetLifeId, out var baseTarget) && baseTarget == action.TargetUnit)
+                bonus = plan.Status == AIOperationStatus.Preparing ? 0 : 1;
+            if ((!plan.IsBaseAssault || plan.Status != AIOperationStatus.Preparing)
+                && (step?.Type == AIOperationStepType.Attack || step?.Type == AIOperationStepType.DestroyObjective)) bonus += .5f;
         }
         else if (IsMovement(action.ActionType) && action.Unit != null)
         {
@@ -214,6 +218,7 @@ public sealed class AIOperationManager
             {
                 if (string.IsNullOrEmpty(life)) continue;
                 if (destroyedLives.Count < config.EventLimit) destroyedLives.Add(life);
+                var knownBase = FindKnownBase(life); if (knownBase != null) knownBase.ConfirmedDestroyed = true;
                 foreach (var active in state.ActiveOperations)
                     if (life == active.TargetLifeId)
                     {
@@ -348,6 +353,7 @@ public sealed class AIOperationManager
             || value.ActiveOperations == null || value.ActiveOperations.Count > config.ConcurrentLimit
             || value.CompletedOperations == null || value.CompletedOperations.Count > config.CompletedLimit) return;
         var copy = JsonUtility.FromJson<AIOperationBattleState>(JsonUtility.ToJson(value));
+        SanitizeKnownBases(copy);
         assignments.Clear(); observedLives.Clear(); destroyedLives.Clear(); artifactEvents.Clear(); completedIds.Clear(); credits.Clear();
         copy.ActiveOperations.RemoveAll(p => !ValidPlan(p));
         copy.CompletedOperations.RemoveAll(p => !ValidPlan(p));
@@ -396,7 +402,7 @@ public sealed class AIOperationManager
 
     void GenerateCandidates(AIBoardState board, int turn, AIPersonality personality, AIPlayerModel.Profile player)
     {
-        candidates.Clear(); var facts = features.Capture(board, null, turn);
+        candidates.Clear(); OperationRequiredCitizenDemand = 0; var facts = features.Capture(board, null, turn);
         bool emergency = facts.OwnCrystalThreatened || strategy == TurnStrategy.CrystalDefense;
         if (emergency)
         {
@@ -408,11 +414,13 @@ public sealed class AIOperationManager
         }
         if (facts.EconomyState != EconomicState.Healthy || board.Governor?.Mode == StrategicMode.EconomicRecovery)
             AddCandidate(board, turn, AIOperationGoal.EconomicRecovery, 2, 80, null, personality, player);
+        GenerateKnownBaseCandidates(board, turn, facts, personality, player);
         if (strategy != TurnStrategy.ScoutSearch && strategy != TurnStrategy.EconomyBuild && strategy != TurnStrategy.RetreatRegroup)
         {
             Status bestTarget = null; float bestValue = float.NegativeInfinity;
             foreach (var target in features.ObservedUnits(board, turn))
             {
+                if (config.EnableBaseAssault && target.type != Type.Unit) continue;
                 float value = target.kind == Kind.SubCrystal ? 75 : target.kind == Kind.Crystal ? 70
                     : target.type != Type.Unit ? 40 : target.kind == Kind.King ? 60 : 30;
                 value -= AIOperationFeatureExtractor.Distance(board.EnemyCrystalPos, target.transform.position);
@@ -564,6 +572,13 @@ public sealed class AIOperationManager
             if (!features.TryOwn(plan.AssignedUnitLifeIds[i], out var current) || current == null || !current.IsAlive
                 || assignments.TryGetValue(plan.AssignedUnitLifeIds[i], out var owner) && owner != plan)
                 plan.AssignedUnitLifeIds.RemoveAt(i);
+        if (plan.IsBaseAssault && CurrentStep(plan)?.Type == AIOperationStepType.Scout && plan.AssignedUnitLifeIds.Count < quota)
+            foreach (var actor in ownArmy)
+            {
+                if (actor.kind != Kind.Scout || assignments.ContainsKey(actor.ReflectionLifeId)) continue;
+                plan.AssignedUnitLifeIds.Add(actor.ReflectionLifeId); plan.OriginalAssignedUnitLifeIds.Add(actor.ReflectionLifeId);
+                plan.AssignedUnitRoles.Add("Scout"); assignments[actor.ReflectionLifeId] = plan; break;
+            }
         foreach (var actor in ownArmy)
         {
             if (plan.AssignedUnitLifeIds.Count >= quota) break;
@@ -576,17 +591,20 @@ public sealed class AIOperationManager
             assignments[life] = plan;
         }
         foreach (string life in plan.AssignedUnitLifeIds) if (!assignments.ContainsKey(life)) assignments[life] = plan;
-        if (plan.Status == AIOperationStatus.Preparing && (quota == 0 || plan.AssignedUnitLifeIds.Count > 0)) plan.Status = AIOperationStatus.Active;
+        if (plan.Status == AIOperationStatus.Preparing && (quota == 0 || plan.AssignedUnitLifeIds.Count > 0)
+            && (!plan.IsBaseAssault || AssignedAssaultForce(plan) >= plan.RequiredAssaultForce)) plan.Status = AIOperationStatus.Active;
     }
 
     void Reevaluate(AIOperationPlan plan, AIBoardState board, int turn)
     {
         var facts = plan.CurrentContext;
+        ReevaluateBaseAssault(plan, board, turn);
+        if (!Running(plan)) return;
         ConfirmTargetForce(plan);
         ConfirmDefenseResolved(plan);
         var evaluation = scorer.Evaluate(plan, plan.StartContext, facts, plan.ActionEvidence, true);
         plan.ProvisionalScore = evaluation.Breakdown;
-        if (evaluation.PrimaryGoalAchieved) { Complete(plan, board, turn, AIOperationAbortReason.None); return; }
+        if (evaluation.PrimaryGoalAchieved && !BaseWithdrawalPending(plan, turn)) { Complete(plan, board, turn, AIOperationAbortReason.None); return; }
         bool emergency = facts.OwnCrystalThreatened || strategy == TurnStrategy.CrystalDefense;
         if (emergency && plan.StrategicPriority > 1)
         {
@@ -765,7 +783,8 @@ public sealed class AIOperationManager
     {
         if (step == null || step.Completed || record.Outcome == null) return;
         var result = record.Outcome;
-        bool done = step.Type == AIOperationStepType.Scout && (result.NewTilesRevealed > 0 || result.NewEnemyLifeIds?.Count > 0)
+        bool done = step.Type == AIOperationStepType.Scout && (!plan.IsBaseAssault || FindKnownBase(plan.TargetLifeId)?.DefenseIntelKnown == true)
+                && (result.NewTilesRevealed > 0 || result.NewEnemyLifeIds?.Count > 0)
             || step.Type == AIOperationStepType.Approach && result.DistanceToObjectiveDelta > 0
             || step.Type == AIOperationStepType.Support && (result.EffectChanged || result.HealingDone > 0 || result.ShieldGranted)
             || step.Type == AIOperationStepType.Attack && (result.DamageDealt > 0 || result.EnemyKills > 0)
@@ -796,6 +815,7 @@ public sealed class AIOperationManager
 
     Vector3 MovementAim(AIOperationPlan plan, Status actor)
     {
+        if (plan.IsBaseAssault) return BaseMovementAim(plan, actor);
         // Reuse the existing plan's observed waypoints instead of creating competing target locks.
         bool sharedTarget = plan.HasTargetPosition && legacyPlan != null
             && AIOperationFeatureExtractor.Distance(legacyPlan.Target, new Vector3(plan.TargetX, 0, plan.TargetZ)) <= 1;

@@ -1,0 +1,7 @@
+# 保存 subsystem
+
+入口はSaveSystem。DataTypesは永続DTO、Collect/RestoreはUnity実行状態とのアダプター、Migrationは旧形式の累積変換、Validationは適用前の不変条件。AtomicSaveStorageはUnity非依存のファイル境界。StableSaveKeysの文字列は公開済みIDとして扱う。
+
+所有者/形式/復旧方法は `Docs/Save_Format.md`。変更時はSaveCompatibilityTests、LegacyEnumCompatibilityTests、LongTermRuntimeTests、SceneSmokeを実行する。ユーザーの保存ディレクトリをテストで変更しない。UseTestStorageRootはEditor/Development限定のOS一時ディレクトリscope。
+
+現在の再開位置はplayer_turn。UIの成功表示はTrySaveの結果に従う。ロード失敗を新規ゲーム開始へ置き換えない。未対応スキーマ、参照切れ、生成失敗の原本を保護する。

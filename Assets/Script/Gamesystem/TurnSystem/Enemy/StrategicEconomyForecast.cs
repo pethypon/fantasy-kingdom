@@ -43,8 +43,10 @@ public sealed class StrategicEconomyForecast
     readonly float[,] chainEdges = new float[ResourceCount, ResourceCount];
     AIBoardState preparedBoard;
     int generation = -1, reserveOverride, forecastOverride, citizenCapacity, warehouseBonus;
+    int contentRevision = -1;
     Snapshot baseline;
     StrategicProductionDemand growthDemand, recoveryDemand;
+    public int PreparedCitizenCapacity => citizenCapacity;
 
     sealed class Snapshot
     {
@@ -80,7 +82,8 @@ public sealed class StrategicEconomyForecast
             Array.Clear(nominalDemand, 0, ResourceCount);
             return;
         }
-        if (preparedBoard == board && generation == board.Generation) return;
+        if (preparedBoard == board && generation == board.Generation && contentRevision == GameContentRevision.Revision) return;
+        contentRevision = GameContentRevision.Revision;
         preparedBoard = board; generation = board.Generation;
         InvalidateDiagnosis(); recipes.Clear(); recipeActors.Clear(); upkeeps.Clear(); Array.Clear(nominalDemand, 0, ResourceCount);
         citizenCapacity = FactionState.BaseCitizenCap; warehouseBonus = 0;
@@ -94,7 +97,7 @@ public sealed class StrategicEconomyForecast
             if (kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse) citizenCapacity += recipe.SpecialValue;
             if (kind == FacilityKind.Warehouse) warehouseBonus += recipe.SpecialValue;
             // Legacy special buildings bypass recipes; authored versions may produce or pay upkeep.
-            if (special && actor.AuthoredFacility == null) continue;
+            if (special && !FacilityData.HasAuthoredRecipe(actor)) continue;
             recipes.Add(recipe); recipeActors.Add(actor); AddTo(nominalDemand, recipe.Maintenance);
             if (recipe.HasProduction) AddTo(nominalDemand, recipe.Input, 1d / FacilityData.ProductionInterval(recipe));
         }
@@ -118,7 +121,14 @@ public sealed class StrategicEconomyForecast
         return Run(board, candidate, candidate == null);
     }
 
-    EconomyForecastResult Run(AIBoardState board, AIAction candidate, bool capture)
+    /// <summary>Reuse the same payment/recipe forecast for an investment horizon without altering cached baseline policy.</summary>
+    public EconomyForecastResult SimulateInvestment(AIBoardState board, AIAction candidate, int turns)
+    {
+        Prepare(board);
+        return board == null || board.EnemyResources == null ? default : Run(board, candidate, false, Mathf.Clamp(turns, 1, 8));
+    }
+
+    EconomyForecastResult Run(AIBoardState board, AIAction candidate, bool capture, int investmentTurns = 0)
     {
         Read(board.EnemyResources, stock);
         Array.Clear(produced, 0, ResourceCount); Array.Clear(demanded, 0, ResourceCount); Array.Clear(temporaryIncome, 0, ResourceCount); Array.Clear(probableProduction, 0, ResourceCount);
@@ -172,7 +182,7 @@ public sealed class StrategicEconomyForecast
         bool upkeepFail = mandatoryMask != 0, breadFail = (mandatoryMask & (1 << BreadIndex)) != 0;
         bool stopped = false, firstStopped = false;
         double initialBread = stock[BreadIndex], minimumBread = initialBread;
-        int turns = ForecastTurns, starvationCounter = board.NationStarvationCounter;
+        int turns = investmentTurns > 0 ? investmentTurns : ForecastTurns, starvationCounter = board.NationStarvationCounter;
         float naturalCitizenGrowth = 0;
         int starvationGrace = Mathf.Clamp(GameAuthoringRules.Active?.starvationGraceTurns ?? 10, 1, 100);
         if (operatingRecipes.Length < recipes.Count) Array.Resize(ref operatingRecipes, Mathf.Max(32, recipes.Count));

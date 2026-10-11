@@ -60,6 +60,7 @@ public partial class BuildSummonUIBuilder
         title.text = SummonTitle(displayName, data);
         string reason = allowed ? null : AuthoredUnitCostFailure(data);
         cost.text = FormatAuthoredUnitCost(data)
+            + (data != null && !data.GetUpkeep(1).IsEmpty ? "\n維持（Lv1） " + FormatProductionBundle(data.GetUpkeep(1)) : string.Empty)
             + (reason == null ? string.Empty : "\n<color=#FFB7A3>" + reason + "</color>");
     }
 

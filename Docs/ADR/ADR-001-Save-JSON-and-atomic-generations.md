@@ -1,0 +1,9 @@
+# ADR-001: JSONと3世代の原子的保存
+
+2026-10-11 / 採用。
+
+既存のJSON/JsonUtilityとVersionを維持する。保存DTOは値と固定IDだけを持ち、旧Migrationを累積チェーンで残す。新形式はSchemaVersion7、原子的ファイル境界はSystem.IOのみのAtomicSaveStorageへまとめる。
+
+理由は、旧セーブを読めること、手元で検査できること、新たな外部依存を必要としないこと。Current/Previous/Backupからの復旧、future schemaの拒否、bounded readを共通化する。未対応File.Replaceでは保存を失敗させ、非原子的なdelete/copyへ落とさない。
+
+JsonUtilityが欠落のSerializable子objectを構築するケースはParse境界で扱う。未知の未来スキーマのフィールド保持を保証できないため古い版で開いて再保存しない。将来Serializerを交換するときもこのJSONと全旧fixtureを入口の互換層へ残す。

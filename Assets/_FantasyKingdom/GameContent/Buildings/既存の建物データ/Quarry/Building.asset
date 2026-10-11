@@ -31,6 +31,7 @@ MonoBehaviour:
   - HP: 100
     DEF: 0
     ATK: 0
+    ProductionIntervalTurns: 0
     Input:
       Wood: 0
       Stone: 0
@@ -42,7 +43,7 @@ MonoBehaviour:
       Citizen: 0
     Output:
       Wood: 0
-      Stone: 10
+      Stone: 7
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -90,6 +91,7 @@ MonoBehaviour:
   - HP: 100
     DEF: 0
     ATK: 0
+    ProductionIntervalTurns: 0
     Input:
       Wood: 0
       Stone: 0
@@ -101,7 +103,7 @@ MonoBehaviour:
       Citizen: 0
     Output:
       Wood: 0
-      Stone: 14
+      Stone: 9
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -149,6 +151,7 @@ MonoBehaviour:
   - HP: 100
     DEF: 0
     ATK: 0
+    ProductionIntervalTurns: 0
     Input:
       Wood: 0
       Stone: 0
@@ -160,7 +163,7 @@ MonoBehaviour:
       Citizen: 0
     Output:
       Wood: 0
-      Stone: 18
+      Stone: 12
       Iron: 0
       MagicOre: 0
       Wheat: 0

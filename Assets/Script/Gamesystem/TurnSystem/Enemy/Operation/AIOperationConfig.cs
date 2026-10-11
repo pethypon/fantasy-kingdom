@@ -11,6 +11,19 @@ public sealed class AIOperationConfig : ScriptableObject
     public bool ApplyLearningToSelection = true;
     public bool EnablePersistentLearning = true;
     public bool EnableDebug;
+    [Header("発見した敵拠点の作戦")]
+    public bool EnableBaseAssault = true;
+    [Range(8, 256)] public int MaximumKnownBases = 128;
+    [Range(1, 12)] public int BaseIntelFreshTurns = 2;
+    [Range(0f, 1f)] public float StaleBaseIntelConfidence = .5f, OldBaseIntelConfidence = .2f;
+    [Min(0)] public float MainCrystalStrategicValue = 100, SubCrystalStrategicValue = 75;
+    [Min(0)] public float MilitaryFacilityStrategicValue = 60, EconomyFacilityStrategicValue = 55;
+    [Min(0)] public float ResourceFacilityStrategicValue = 50, SupportFacilityStrategicValue = 40;
+    [Min(0)] public float FirstBaseDiscoveryBonus = 10, BaseDistancePenalty = 1, BaseDefenseRiskWeight = 10;
+    [Min(0)] public float UnknownBaseIntelPenalty = 20, MinimumBaseAssaultScore = 30;
+    [Min(1)] public float BaseSafeForceRatio = 1.2f, BaseAggressiveForceRatio = 2;
+    [Min(1)] public float MinimumBaseAssaultForce = 20, MinimumMainCrystalAssaultForce = 50;
+    [Range(1, 10)] public int BaseRallyRadius = 3;
     [Min(1)] public int MinimumThreatLevel = 10;
     [Min(2)] public int MinimumSamplesForSelection = 2;
     [Min(1)] public int FullConfidenceSamples = 10;

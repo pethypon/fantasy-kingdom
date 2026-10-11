@@ -32,6 +32,36 @@ MonoBehaviour:
     emergencyCrystalDamageFraction: 0.75
     criticalReserveFraction: 0.25
     enableDecisionLogs: 0
+    basicResources:
+      enabled: 1
+      criticalCoverage: 0.65
+      recoveryCoverage: 0.9
+      stableCoverage: 1
+      surplusCoverage: 1.6
+      stableTurns: 2
+      minimumRecoveryTurns: 2
+      switchPressureRatio: 1.3
+      deficitWeight: 70
+      blockedPlanWeight: 55
+      incomeGapWeight: 45
+      zeroProducerWeight: 65
+      openingWeight: 30
+      surplusPenaltyWeight: 75
+      planWeight: 0.75
+      reserveCostFraction: 0.5
+      foundationReserveFraction: 0.25
+      paybackWindowTurns: 8
+      constructionPressureWeight: 30
+      recoverySpendPenalty: 60
+      minimumReserve:
+        Wood: 30
+        Stone: 30
+        Iron: 3
+        MagicOre: 2
+        Wheat: 3
+        Bread: 5
+        Water: 20
+        Citizen: 3
     sustainedDeficitUrgency: 0.35
     deficitEpsilon: 0.01
     plannedUnitLevel: 6
@@ -60,6 +90,9 @@ MonoBehaviour:
   totalSeconds: 36000
   timeBonusSeconds: 60
   maximumAP: 60
+  buildingProduction:
+    applyAdjustments: 1
+    adjustments: []
   moveAP: 3
   attackAP: 2
   heightAP: 2

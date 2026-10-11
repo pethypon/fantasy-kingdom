@@ -20,6 +20,8 @@ public static class SceneSmoke
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdomR1Validation";
         SaveCompatibilityTests.RunAll(); LongTermContentTests.EditMode(); LegacyEnumCompatibilityTests.RunAll();
+        BalanceSaveTests.Run();
+        PlayerProfilerPerformanceTests.Run();
         TerrainPrefabEditor.Create(); CrystalPrefabEditor.Configure();
         CoreLogicTests.RunAll(); ThirdFactionTests.EditMode(); AuthoringEditorTests.EditMode(); AuthoringPatternsTests.EditMode(); AuthoringUnitsTests.EditMode(); AuthoringRulesFacilityTests.EditMode();
         if (!AssetDatabase.IsValidFolder("Assets/Resources")) AssetDatabase.CreateFolder("Assets", "Resources");
@@ -137,9 +139,10 @@ public static class SceneSmoke
             aiGC.Stop();long aiAllocated=0;int aiAllocationCount=aiGC.Count;
             for(int sample=0;sample<Math.Min(aiGC.Count,aiGC.Capacity);sample++) aiAllocated+=aiGC.GetSample(sample).Value;aiGC.Dispose();
             Check("threat 100 whole thinking within 3s budget plus 0.75s tolerance",aiWatch.Elapsed.TotalMilliseconds<3750);
-            Debug.Log($"[Optimization] AI threat=100 wholeTurnMs={aiWatch.Elapsed.TotalMilliseconds:F3} sampledManagedBytes={aiAllocated} (sample-cap=1000000) allocations={aiAllocationCount} budgetMs=3000 (Editor including development logs)");
+            Debug.Log($"[Optimization] AI threat=100 wholeTurnMs={aiWatch.Elapsed.TotalMilliseconds:F3} gcMarkerNanoseconds={aiAllocated} (not bytes; sample-cap=1000000) allocations={aiAllocationCount} budgetMs=3000 (Editor including development logs)");
             ThirdFactionTests.PlayMode(systems); AuthoringUnitsTests.PlayMode(systems); AuthoringRulesFacilityTests.PlayMode(systems); StrategicGovernorTests.PlayMode(systems); BuildSummonUIRegressionTests.Run(systems); EconomyR2Tests.PlayMode(systems); BasicResourceEconomyTests.PlayMode(systems); ObjectiveClarityTests.PlayMode(systems); ReflectionIntegrationTests.PlayMode(systems); RuntimeReflectionEventsTests.PlayMode(systems); TimeUpOutcomeTests.PlayMode(systems); ExplorationR2IntegrationTests.PlayMode(systems); AIOperationIntegrationTests.PlayMode(systems); AILongSessionCoreTests.RunAll(); AIRuntimeMaintenanceTests.PlayMode(systems); HiddenDiaryTests.PlayMode(systems, turn); TopDownCameraTests.Run(systems, turn);
             LongTermRuntimeTests.Run(systems, turn);
+            AttackCandidatePerformanceTests.Run(systems);
             MaintenanceRegressionTests.Run();
             MaterialLifetimeRegressionTests.Run();
             InteractionMaintenanceTests.Run(systems, turn);

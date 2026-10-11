@@ -13,6 +13,7 @@ public class AIBuildPlanner
     readonly AIPersonality _personality;
     readonly AILearning _learning;
     readonly List<AIAction> buildActions = new List<AIAction>(64);
+    readonly List<Status> housingBuildings = new List<Status>(32);
 
     public AIBuildPlanner(
         APSystem apSystem, FactionState factionState,
@@ -37,7 +38,7 @@ public class AIBuildPlanner
 
         if (AITacticalPriorities.HasLocalThreat(board) || AITacticalPriorities.FinishingAttackReserve(board) > 0) return 0;
 
-        if (EconomyHelper.IsEconomySufficient(board))
+        if (EconomyHelper.IsEconomySufficient(board) && !HasHousingInvestment(board))
         {
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AIBuildPlanner] 経済充足 → 先行建築スキップ"); }
             return 0;
@@ -167,7 +168,7 @@ public class AIBuildPlanner
     public int TryLateBuildPhase(AIBoardState board, int buildsDone, int turnCount)
     {
         if (AITurnBudget.Expired || board == null) return 0;
-        bool shouldPostBuild = buildsDone == 0 && !EconomyHelper.IsEconomySufficient(board);
+        bool shouldPostBuild = buildsDone == 0 && (!EconomyHelper.IsEconomySufficient(board) || HasHousingInvestment(board));
 
         if (!shouldPostBuild) return 0;
 
@@ -267,6 +268,40 @@ public class AIBuildPlanner
             board.Governor = new AIStrategicGovernor { BreadReserveTurns = AIEconomySettings.Active.BreadReserveTurns };
         board.Governor.Evaluate(board);
         return board.Governor;
+    }
+
+    bool HasHousingInvestment(AIBoardState board)
+    {
+        if (!AIHousingConfig.Active.Enabled) return false;
+        var governor = PrepareGovernor(board);
+        if (board.BuildablePositions.Count > 0)
+        {
+            foreach (var kind in board.AffordableBuildings)
+            {
+                if (kind != FacilityKind.House && kind != FacilityKind.LuxuryHouse || !FacilityData.Table.TryGetValue(kind, out var info)) continue;
+                var action = new AIAction { ActionType = AIActionType.Build, Facility = kind, APCost = info.APCost, TargetPos = board.BuildablePositions[0] };
+                if (governor.HousingAssessment(action, board).Needed && governor.AllowExecution(action, board)) return true;
+            }
+            var catalog = FacilityAuthoringCatalog.Loaded;
+            if (catalog?.buildings != null) foreach (var definition in catalog.buildings)
+            {
+                if (definition == null || definition.behaviourKind != FacilityKind.House && definition.behaviourKind != FacilityKind.LuxuryHouse
+                    || !definition.IsAvailable(board.ActorTeam) || !board.CanBuildDefinition(definition)) continue;
+                var action = new AIAction { ActionType = AIActionType.Build, Facility = definition.behaviourKind,
+                    FacilityDefinition = definition, APCost = definition.GetInfo().APCost, TargetPos = board.BuildablePositions[0] };
+                if (governor.HousingAssessment(action, board).Needed && governor.AllowExecution(action, board)) return true;
+            }
+        }
+        board.CollectOwnBuildings(housingBuildings);
+        foreach (var actor in housingBuildings)
+        {
+            if (actor == null || !actor.IsAlive || actor.Level >= FacilityData.GetMaxLevel(actor)
+                || actor.facilityKind != FacilityKind.House && actor.facilityKind != FacilityKind.LuxuryHouse) continue;
+            var action = new AIAction { ActionType = AIActionType.Upgrade, Facility = actor.facilityKind, FacilityDefinition = actor.AuthoredFacility,
+                Unit = actor, TargetUnit = actor, APCost = FacilityData.GetLevel(actor, actor.Level + 1).UpgradeAP };
+            if (governor.HousingAssessment(action, board).Needed && governor.AllowExecution(action, board)) return true;
+        }
+        return false;
     }
 
     static void LogRejectedBuilds(AIStrategicGovernor governor)

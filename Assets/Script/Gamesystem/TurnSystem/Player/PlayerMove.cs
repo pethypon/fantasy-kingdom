@@ -47,7 +47,7 @@ public class PlayerMove : TurnState
             Systems.TimerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
         }
 
-        Debug.Log("プレイヤーターン開始");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("プレイヤーターン開始"); }
 
         if (Systems.InputHintUI != null)
             Systems.InputHintUI.SetHints(InputHintUI.Hints.PlayerMove);

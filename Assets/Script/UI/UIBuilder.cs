@@ -28,8 +28,11 @@ public class UIBuilder : MonoBehaviour
     // 建築・召喚UIの生成とボタン管理を委譲
     private BuildSummonUIBuilder buildSummonUI;
     float nextBuildAvailabilityRefresh;
+    int contentRevision;
     void Update()
     {
+        if (contentRevision != GameContentRevision.Revision)
+        { contentRevision = GameContentRevision.Revision; buildSummonUI?.RefreshContentRows(); }
         if (SlidePanel == null || !SlidePanel.IsBuildPanelOpen || Time.unscaledTime < nextBuildAvailabilityRefresh) return;
         nextBuildAvailabilityRefresh=Time.unscaledTime+.25f;
         buildSummonUI?.RefreshBuildButtons();

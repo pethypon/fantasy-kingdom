@@ -39,6 +39,8 @@ public class UnitData : ScriptableObject
     [Header("維持費（Lv1から発生・Lv10ごとに増加）")]
     [Tooltip("召喚体など維持費を免除する駒。王・異形の王は常に免除。通常の生産駒は有効にしません。")]
     public bool upkeepExempt;
+    [Tooltip("有効時は鉄・パンもこの駒の設定値を使います。無効時は従来の共通維持費を使用。")]
+    public bool useAuthoredUpkeep;
     public int upkeepWood;
     public int upkeepStone;
     [HideInInspector] public int upkeepIron; // Legacy serialized data; standard Iron upkeep now uses GetUpkeep.
@@ -89,10 +91,10 @@ public class UnitData : ScriptableObject
         {
             Wood     = ScaledUpkeep(upkeepWood, mult),
             Stone    = ScaledUpkeep(upkeepStone, mult),
-            Iron     = mult, // Standard army maintenance: one Iron, plus one per ten levels.
+            Iron     = useAuthoredUpkeep ? ScaledUpkeep(upkeepIron, mult) : mult,
             MagicOre = ScaledUpkeep(upkeepMagic, upkeepMagicScales ? mult : 1),
             Water    = ScaledUpkeep(upkeepWater, mult),
-            Bread    = mult,
+            Bread    = useAuthoredUpkeep ? ScaledUpkeep(upkeepBread, mult) : mult,
         };
     }
 
@@ -139,6 +141,7 @@ public class UnitData : ScriptableObject
         status.HP = CalcStat(baseHP, hpGrowth, level);
         status.MaxHP = status.HP;
         status.DEF = CalcStat(baseDEF, defGrowth, level);
+        StatusBalanceRefresh.RecordDefinitionBaseline(status);
     }
 
     /// <summary>Called when spawning, never during growth or damage updates.</summary>
@@ -156,4 +159,5 @@ public class UnitData : ScriptableObject
         SkillData.AssignFixedSkill(status);
         SpecialAbilityData.AssignRandom(status);
     }
+    void OnValidate() => GameContentRevision.NotifyChanged();
 }

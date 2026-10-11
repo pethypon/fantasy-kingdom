@@ -79,6 +79,18 @@ public sealed class AIOperationFeatureExtractor
             { boardFacts.VisibleEnemyUnits++; boardFacts.EnemyObservedPower += MilitaryPower(unit); }
             else boardFacts.KnownImportantFacilities++;
         }
+        // The main crystal is a separate board objective, never part of the troop list.
+        // Resolve its live component only after the board has legally observed its cell.
+        if (board.PlayerCrystalVisible && board.OpponentCrystalParent != null)
+            foreach (var crystalTarget in board.OpponentCrystalParent.GetComponentsInChildren<Status>())
+            {
+                if (crystalTarget.kind != Kind.Crystal || !crystalTarget.IsAlive || observed.ContainsKey(crystalTarget.ReflectionLifeId)) continue;
+                observed[crystalTarget.ReflectionLifeId] = crystalTarget;
+                boardFacts.VisibleEnemyLifeIds.Add(crystalTarget.ReflectionLifeId);
+                boardFacts.ObservedEnemies.Add(new AIOperationObservedUnit { LifeId = crystalTarget.ReflectionLifeId,
+                    X = Mathf.RoundToInt(crystalTarget.transform.position.x), Z = Mathf.RoundToInt(crystalTarget.transform.position.z), Category = "Crystal" });
+                boardFacts.KnownImportantFacilities++;
+            }
         boardFacts.EnemyStrengthKnown = boardFacts.VisibleEnemyUnits > 0;
         boardFacts.ForecastRisk = boardFacts.EnemyStrengthKnown
             ? Mathf.Clamp01(boardFacts.EnemyObservedPower / Mathf.Max(1, boardFacts.OwnMilitaryPower)

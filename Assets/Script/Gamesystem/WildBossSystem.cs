@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -131,6 +131,7 @@ public class WildBossSystem : MonoBehaviour
         unit.team = Team.Obstacle; unit.type = Type.Unit;
         if (System.Enum.TryParse<Kind>(saved.Kind, out var kind)) unit.kind = kind;
         SaveGameApplier.ApplyStatusFields(unit, saved);
+        unit.MarkRuntimeSpawn(obj);
         return unit;
     }
 
@@ -199,7 +200,7 @@ public class WildBossSystem : MonoBehaviour
             var tilePos = new Vector3(p.x, p.y - 0.475f, p.z);
             _territoryTiles.Add(Instantiate(wildBossTerritoryPrefab, tilePos, Quaternion.identity, tParent));
         }
-        Debug.Log($"[WildBoss] 縄張りタイル設置 ({_territoryTiles.Count}マス、中心除外）");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] 縄張りタイル設置 ({_territoryTiles.Count}マス、中心除外）"); }
     }
 
     public void GenerateWildBoss()
@@ -295,7 +296,7 @@ public class WildBossSystem : MonoBehaviour
         if (pool.Count == 0) return;
         var archetype = pool[Random.Range(0, pool.Count)];
 
-        Debug.Log($"[WildBoss] 出現: archetype={archetype}  pos={picked}  prefab={prefabSource}  fallback={fallbackReason}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] 出現: archetype={archetype}  pos={picked}  prefab={prefabSource}  fallback={fallbackReason}"); }
         SpawnAt(picked, archetype, prefabToUse);
     }
 
@@ -359,7 +360,7 @@ public class WildBossSystem : MonoBehaviour
 
         SpawnedBoss = status;
         SpawnTerritoryTiles(pos);
-        Debug.Log($"[WildBoss] 配置: {prof.DisplayName} at {pos} HP{prof.HP} ATK{prof.ATK} DEF{prof.DEF} AP{prof.MaxAP}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] 配置: {prof.DisplayName} at {pos} HP{prof.HP} ATK{prof.ATK} DEF{prof.DEF} AP{prof.MaxAP}"); }
     }
 
     // ================================================================
@@ -385,7 +386,7 @@ public class WildBossSystem : MonoBehaviour
         if (SpawnedBoss.wildBossCurrentThreat < 75 && SpawnedBoss.HPRatio <= 0.5f)
         {
             SpawnedBoss.wildBossCurrentThreat = 75;
-            Debug.Log($"[WildBoss] 脅威度上昇: 25 → 75 (HP={SpawnedBoss.HP}/{SpawnedBoss.MaxHP}) archetype={SpawnedBoss.wildBossArchetype}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] 脅威度上昇: 25 → 75 (HP={SpawnedBoss.HP}/{SpawnedBoss.MaxHP}) archetype={SpawnedBoss.wildBossArchetype}"); }
         }
 
         // 縄張り内にプレイヤー/敵/魔物がいなければスキップ
@@ -469,7 +470,7 @@ public class WildBossSystem : MonoBehaviour
         if (Random.value < 0.5f && TrySpendAP(5))
         {
             SpawnedBoss.wildBossAtkBuffTurns = 2; // 2ターン有効
-            Debug.Log("[WildBoss/Dragon] 咆哮: ATK×1.25（2ターン）");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[WildBoss/Dragon] 咆哮: ATK×1.25（2ターン）"); }
         }
         else if (TrySpendAP(4))
         {
@@ -495,7 +496,7 @@ public class WildBossSystem : MonoBehaviour
             {
                 SpawnedBoss.wildBossCounterTurns = 2;
                 string mult = SpawnedBoss.wildBossPhase2Active ? "3.0" : "1.5";
-                Debug.Log($"[WildBoss/RebelKnight] 反撃の誓い（2ターン, 返しダメ×{mult}, 高脅威）");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/RebelKnight] 反撃の誓い（2ターン, 返しダメ×{mult}, 高脅威）"); }
             }
             int curHigh = CountGuardKnights();
             if (curHigh < maxGuards && TrySpendAP(10))
@@ -507,7 +508,7 @@ public class WildBossSystem : MonoBehaviour
         {
             SpawnedBoss.wildBossCounterTurns = 2;
             string mult = SpawnedBoss.wildBossPhase2Active ? "3.0" : "1.5";
-            Debug.Log($"[WildBoss/RebelKnight] 反撃の誓い（2ターン, 返しダメ×{mult}）");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/RebelKnight] 反撃の誓い（2ターン, 返しダメ×{mult}）"); }
         }
 
         int current = CountGuardKnights();
@@ -523,7 +524,7 @@ public class WildBossSystem : MonoBehaviour
         if (SpawnedBoss.HPRatio >= 0.5f) return;
 
         SpawnedBoss.wildBossPhase2Active = true;
-        Debug.Log("[WildBoss/RebelKnight] ★Phase2突入★ HP50%以下: 反撃3倍・親衛4体・脅威度50");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[WildBoss/RebelKnight] ★Phase2突入★ HP50%以下: 反撃3倍・親衛4体・脅威度50"); }
     }
 
     /// <summary>
@@ -627,7 +628,7 @@ public class WildBossSystem : MonoBehaviour
         if (SpecialAbilitySystem.TrySurviveLethal(target, dmg)) return;
 
         target.ApplyDamage(dmg);
-        Debug.Log($"[WildBoss] 通常攻撃: {target.kind} に {dmg} dmg");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] 通常攻撃: {target.kind} に {dmg} dmg"); }
         target.HandleDeathIfDead();
     }
 
@@ -638,7 +639,7 @@ public class WildBossSystem : MonoBehaviour
         if (target.IsAlive)
         {
             StatusEffectSystem.ApplyDebuff(target, debuff, duration);
-            Debug.Log($"[WildBoss] デバフ付与: {debuff} ({duration}ターン)");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] デバフ付与: {debuff} ({duration}ターン)"); }
         }
     }
 
@@ -654,7 +655,7 @@ public class WildBossSystem : MonoBehaviour
         if (candidates.Count == 0) return;
         var picked = candidates[Random.Range(0, candidates.Count)];
         SpawnedBoss.transform.position = picked;
-        Debug.Log($"[WildBoss/GhostKing] テレポート → {picked}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/GhostKing] テレポート → {picked}"); }
     }
 
     bool IsOccupied(Vector3Int pos)
@@ -680,7 +681,7 @@ public class WildBossSystem : MonoBehaviour
     void FireBreathAll()
     {
         var targets = GetIntruders();
-        Debug.Log($"[WildBoss/Dragon] 炎ブレス: {targets.Count}体に命中");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/Dragon] 炎ブレス: {targets.Count}体に命中"); }
         foreach (var t in targets) AttackTarget(t);
     }
 
@@ -745,7 +746,7 @@ public class WildBossSystem : MonoBehaviour
         if (chosen.IsAlive)
         {
             bool applied = StatusEffectSystem.ApplyDebuff(chosen, StatusEffectType.NarrowVision, 1);
-            if (applied) Debug.Log($"[WildBoss/GhostKing] 視界縮小付与: {chosen.kind}（1T）");
+            if (applied) { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/GhostKing] 視界縮小付与: {chosen.kind}（1T）"); }
         }
     }
 
@@ -775,8 +776,9 @@ public class WildBossSystem : MonoBehaviour
         s.ATK = SpawnedBoss.ATK; // ゴーストキングと同じ攻撃力
         s.DEF = 0;
         s.Level = SpawnedBoss.Level;
+        s.MarkRuntimeSpawn(go);
         _ghostDecoys.Add(s);
-        Debug.Log($"[WildBoss/GhostKing] デコイ召喚 at {g} ATK={s.ATK}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/GhostKing] デコイ召喚 at {g} ATK={s.ATK}"); }
     }
 
     // ---- 反逆の騎士王 ----
@@ -806,8 +808,9 @@ public class WildBossSystem : MonoBehaviour
             s.team = Team.Obstacle;
             s.type = Type.Unit;
             s.MaxHP = 400; s.HP = 400; s.ATK = 18; s.DEF = 18; s.Level = 10;
+            s.MarkRuntimeSpawn(go);
             _guardKnights.Add(s);
-            Debug.Log($"[WildBoss/RebelKnight] 親衛騎士召喚 at {g}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/RebelKnight] 親衛騎士召喚 at {g}"); }
         }
     }
 
@@ -842,7 +845,7 @@ public class WildBossSystem : MonoBehaviour
         var r = go.GetComponent<Renderer>();
         PrimitiveMaterialBinding.Apply(r, new Color(0.4f, 0.7f, 1f));
         _thunderCrystals.Add(go);
-        Debug.Log($"[WildBoss/ThunderMagus] 雷クリスタル設置 at {g}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/ThunderMagus] 雷クリスタル設置 at {g}"); }
     }
 
     void DetonateThunderCrystals()
@@ -875,7 +878,7 @@ public class WildBossSystem : MonoBehaviour
             Destroy(c);
         }
         _thunderCrystals.Clear();
-        Debug.Log("[WildBoss/ThunderMagus] 雷一斉起爆");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[WildBoss/ThunderMagus] 雷一斉起爆"); }
     }
 
     void ThunderStrikeRandom(int count)
@@ -889,7 +892,7 @@ public class WildBossSystem : MonoBehaviour
             if (mapcreate != null && !mapcreate.CanAttackAcrossTerrain(SpawnedBoss, t.transform.position)) continue;
             int dmg = Mathf.RoundToInt(DamageCalculator.CalcNormal(SpawnedBoss, t) * 1.25f);
             t.ApplyDamage(dmg);
-            Debug.Log($"[WildBoss/ThunderMagus] 雷直撃: {t.kind} に {dmg}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/ThunderMagus] 雷直撃: {t.kind} に {dmg}"); }
             t.HandleDeathIfDead();
         }
     }
@@ -908,7 +911,7 @@ public class WildBossSystem : MonoBehaviour
         float mult = target.wildBossPhase2Active ? 3.0f : 1.5f;
         int reflect = Mathf.RoundToInt(receivedDamage * mult);
         attacker.ApplyDamage(reflect);
-        Debug.Log($"[WildBoss/RebelKnight] 反撃×{mult}: {attacker.kind} に {reflect} dmg");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/RebelKnight] 反撃×{mult}: {attacker.kind} に {reflect} dmg"); }
         attacker.HandleDeathIfDead();
     }
 }

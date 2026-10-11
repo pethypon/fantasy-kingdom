@@ -12,6 +12,11 @@ public sealed class AIOperationPlan
     public string TargetCategory, TargetLifeId, StrategicReason, ContextKey, PatternKey;
     public bool HasTargetPosition;
     public int TargetX, TargetZ;
+    public bool IsBaseAssault;
+    public AIBaseAssaultPattern BaseAssaultPattern;
+    public AIEnemyBaseType BaseTargetType;
+    public float RequiredAssaultForce, BaseIntelConfidence;
+    public int RequiredAdditionalCitizens, RallyX, RallyZ;
     public int StartTurn, ExpectedEndTurn, ActualEndTurn, MaximumEndTurn, LastProgressTurn;
     public int SuspendedOwnTurn = -1;
     public AIOperationStatus Status;

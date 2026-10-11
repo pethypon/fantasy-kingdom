@@ -18,6 +18,7 @@ public sealed partial class GameDevelopmentStudioWindow
         {"ProductionIntervalTurns","生産の間隔（ターン）"},
         {"applyAdjustments","建物生産の調整を適用する"},
         {"buildingType","調整する建物"},{"definitionId","建物の登録ID（標準建物は空欄）"},
+        {"useAuthoredUpkeep","この駒専用の鉄・パン維持費を使う"},
         {"intervalTurns","生産の間隔（ターン）"},{"level","適用するレベル"},
         {"useAuthoredAbilities","この駒専用の能力を使う"},{"authoredPassive","常時発動する能力"},{"authoredSpecialAbility","特殊能力"},
         {"behaviourKind","施設の基本動作"},{"buildAP","建築費：AP"},{"HP","最大HP"},{"ATK","攻撃力"},{"DEF","防御力"},

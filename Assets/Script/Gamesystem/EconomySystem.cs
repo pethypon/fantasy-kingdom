@@ -31,6 +31,25 @@ public class EconomySystem : MonoBehaviour
         this.unitSetting = unitSetting;
         this.crystalSystem = crystalSystem;
     }
+    /// <summary>Refresh capacities only. Never consumes materials, pays maintenance, or advances a production turn.</summary>
+    public void RecalculateCapacity(Team team)
+    {
+        if (buildSystem == null || factionState == null || (team != Team.Player && team != Team.Enemy)) return;
+        long citizens = 0, storage = 0, training = 0;
+        var parent = buildSystem.GetBuildingParent(team);
+        if (parent != null) foreach (Transform child in parent)
+        {
+            var actor = child.GetComponent<Status>(); if (actor == null || !actor.IsAlive) continue;
+            var recipe = FacilityData.GetLevel(actor, actor.Level);
+            if (actor.facilityKind == FacilityKind.House || actor.facilityKind == FacilityKind.LuxuryHouse) citizens += recipe.SpecialValue;
+            if (actor.facilityKind == FacilityKind.Warehouse) storage += recipe.SpecialValue;
+            if (actor.facilityKind == FacilityKind.Barracks) training += recipe.SpecialValue;
+        }
+        var nation = factionState.GetNation(team);
+        nation.CitizenCapacity = (int)System.Math.Min(int.MaxValue - FactionState.BaseCitizenCap, citizens);
+        nation.ResourceCapacity = (int)System.Math.Min(int.MaxValue - FactionState.BaseResourceCap, storage);
+        nation.BarracksXP = (int)System.Math.Min(int.MaxValue, training);
+    }
 
     /// <summary>
     /// 前払い維持費 → クリスタル収入と建物生産 → 市民成長・食料の順。
@@ -42,7 +61,7 @@ public class EconomySystem : MonoBehaviour
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
 
-        Debug.Log($"[EconomySystem] === {team} ターン経済処理開始 === パン={res.Bread} 市民={res.Citizen}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] === {team} ターン経済処理開始 === パン={res.Bread} 市民={res.Citizen}"); }
 
         // ---- 1. 前払い維持費（当ターンの生産より先に確定） ----
         ProcessUnitMaintenance(team, res);
@@ -112,7 +131,7 @@ public class EconomySystem : MonoBehaviour
         res.Bread += bread;
         res.Iron  += iron;
 
-        Debug.Log($"[EconomySystem] {team} クリスタル序盤収入(T{turn}): 木+{wood} 石+{stone} 水+{water} パン+{bread} 鉄+{iron}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} クリスタル序盤収入(T{turn}): 木+{wood} 石+{stone} 水+{water} パン+{bread} 鉄+{iron}"); }
     }
 
     // ==================================================================
@@ -135,11 +154,11 @@ public class EconomySystem : MonoBehaviour
             actor.BuildingOperationAvailable = true;
             bool special = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse
                 || kind == FacilityKind.Warehouse || kind == FacilityKind.Barracks;
-            if (special && actor.AuthoredFacility == null) continue;
+            if (special && !FacilityData.HasAuthoredRecipe(actor)) continue;
             if (!FacilityData.CanAffordProduction(res, recipe.Maintenance))
             {
                 actor.BuildingOperationAvailable = false;
-                Debug.Log($"[EconomySystem] {FacilityData.DisplayName(actor)} Lv{actor.Level}: 維持費不足");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {FacilityData.DisplayName(actor)} Lv{actor.Level}: 維持費不足"); }
             }
             else FacilityData.ConsumeProduction(res, recipe.Maintenance);
             buildingActors.Add(actor); buildingRecipes.Add(recipe);
@@ -223,20 +242,20 @@ public class EconomySystem : MonoBehaviour
                 if (status.UpkeepUnpaidTurns >= GameConstants.UpkeepPenaltyDefectTurns)
                 {
                     // 10ターン不足 → 離脱（占有セル解除・Lv1リセット込みの共通死亡処理を使う）
-                    Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level} が維持費不足で離脱");
+                    { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {status.kind} Lv{status.Level} が維持費不足で離脱"); }
                     status.ApplyDamage(status.HP);
                     status.HandleDeathIfDead();
                     defectCount++;
                 }
                 else
                 {
-                    Debug.Log($"[EconomySystem] {status.kind} Lv{status.Level} 維持費不足 ({status.UpkeepUnpaidTurns}T)");
+                    { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {status.kind} Lv{status.Level} 維持費不足 ({status.UpkeepUnpaidTurns}T)"); }
                 }
             }
         }
 
         if (paidCount > 0 || unpaidCount > 0 || defectCount > 0)
-            Debug.Log($"[EconomySystem] {team} ユニット維持費: 支払{paidCount}, 不足{unpaidCount}, 離脱{defectCount}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} ユニット維持費: 支払{paidCount}, 不足{unpaidCount}, 離脱{defectCount}"); }
     }
 
     // ==================================================================
@@ -258,7 +277,7 @@ public class EconomySystem : MonoBehaviour
             // 全市民を養える → 飢餓カウンターをリセット
             res.Bread -= totalBreadNeeded;
             nation.StarvationCounter = 0;
-            Debug.Log($"[EconomySystem] {team} 市民パン消費: {res.Citizen}人×{BreadPerCitizen}パン = {totalBreadNeeded}パン消費  残パン={res.Bread}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} 市民パン消費: {res.Citizen}人×{BreadPerCitizen}パン = {totalBreadNeeded}パン消費  残パン={res.Bread}"); }
         }
         else
         {
@@ -273,12 +292,12 @@ public class EconomySystem : MonoBehaviour
                 // 猶予期間を超えた → 市民が離脱
                 int starved = res.Citizen - fedCitizens;
                 res.Citizen = fedCitizens;
-                Debug.Log($"[EconomySystem] {team} パン不足{nation.StarvationCounter}ターン目: 市民{starved}人離脱 (残{res.Citizen}人)");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} パン不足{nation.StarvationCounter}ターン目: 市民{starved}人離脱 (残{res.Citizen}人)"); }
             }
             else
             {
                 int turnsLeft = graceTurns - nation.StarvationCounter;
-                Debug.Log($"[EconomySystem] {team} パン不足{nation.StarvationCounter}ターン目 (あと{turnsLeft}ターンで市民減少)  市民{res.Citizen}人維持中");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} パン不足{nation.StarvationCounter}ターン目 (あと{turnsLeft}ターンで市民減少)  市民{res.Citizen}人維持中"); }
             }
         }
     }

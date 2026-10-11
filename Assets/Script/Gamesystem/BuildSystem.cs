@@ -131,7 +131,7 @@ public partial class BuildSystem : MonoBehaviour
         canPlace = false;
 
         cursor.Create();
-        Debug.Log($"[BuildSystem] 建築モード開始: {facility}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] 建築モード開始: {facility}"); }
     }
 
     public void CancelBuildMode()
@@ -140,7 +140,7 @@ public partial class BuildSystem : MonoBehaviour
         PlacementFailureReason = null;
         turnGenerator?.Systems.InputHintUI?.SetHints(InputHintUI.Hints.PlayerMove);
         cursor.Destroy();
-        Debug.Log("[BuildSystem] 建築モード解除");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[BuildSystem] 建築モード解除"); }
     }
 
     // ==================================================================
@@ -202,7 +202,7 @@ public partial class BuildSystem : MonoBehaviour
         {
             if (factionState.GetSubCrystals(Team.Player) <= 0)
             {
-                Debug.Log("[BuildSystem] サブクリスタル不足: 設置不可");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[BuildSystem] サブクリスタル不足: 設置不可"); }
                 return false;
             }
 
@@ -221,7 +221,7 @@ public partial class BuildSystem : MonoBehaviour
         {
             if (!apsystem.CanBuild(Team.Player, SelectedFacility, factionState))
             {
-                Debug.Log("[BuildSystem] AP/リソース不足: 設置不可");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[BuildSystem] AP/リソース不足: 設置不可"); }
                 return false;
             }
 
@@ -287,6 +287,7 @@ public partial class BuildSystem : MonoBehaviour
         {
             status.AuthoredFacility = definition;
             status.authoredFacilityId = definition != null ? definition.definitionId : null;
+            StatusBalanceRefresh.RecordDefinitionBaseline(status);
         }
         if (definition != null) building.name = definition.displayName;
 
@@ -306,7 +307,8 @@ public partial class BuildSystem : MonoBehaviour
             moveGenerator.AddOccupied(GridHelper.ToUnitPoint(pos));
         }
 
-        Debug.Log($"[BuildSystem] {info.DisplayName} を ({pos.x}, {Mathf.RoundToInt(placeY)}, {pos.z}) に設置 ({team})");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] {info.DisplayName} を ({pos.x}, {Mathf.RoundToInt(placeY)}, {pos.z}) に設置 ({team})"); }
+        turnGenerator?.Systems.EconomySystem?.RecalculateCapacity(team);
         return building;
     }
 
@@ -366,7 +368,7 @@ public partial class BuildSystem : MonoBehaviour
         int currentAP = factionState.GetAP(team);
         if (!FacilityData.CanUpgrade(res, currentAP, target, currentLevel))
         {
-            Debug.Log($"[BuildSystem] 強化不可: {facility} Lv{currentLevel} → Lv{currentLevel + 1}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] 強化不可: {facility} Lv{currentLevel} → Lv{currentLevel + 1}"); }
             return false;
         }
 
@@ -383,8 +385,10 @@ public partial class BuildSystem : MonoBehaviour
         target.MaxHP = newData.HP;
         target.DEF = newData.DEF;
         target.ATK = newData.ATK;
+        StatusBalanceRefresh.RecordDefinitionBaseline(target);
+        turnGenerator?.Systems.EconomySystem?.RecalculateCapacity(team);
 
-        Debug.Log($"[BuildSystem] 強化完了: {facility} Lv{currentLevel} → Lv{target.Level}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] 強化完了: {facility} Lv{currentLevel} → Lv{target.Level}"); }
         return true;
     }
 
@@ -442,7 +446,7 @@ public partial class BuildSystem : MonoBehaviour
 
         if (!apsystem.CanBuild(team, facility, factionState))
         {
-            Debug.Log($"[BuildSystem] AIPlaceBuilding失敗: {facility} CanBuild=false (AP={apsystem.GetAP(team)} 必要={info.APCost})");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] AIPlaceBuilding失敗: {facility} CanBuild=false (AP={apsystem.GetAP(team)} 必要={info.APCost})"); }
             return false;
         }
 
@@ -476,7 +480,7 @@ public partial class BuildSystem : MonoBehaviour
             }
         }
 
-        Debug.Log($"[BuildSystem] AI({team}) {info.DisplayName} を ({pos.x},{pos.y},{pos.z}) に設置");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] AI({team}) {info.DisplayName} を ({pos.x},{pos.y},{pos.z}) に設置"); }
 
         // 建物配置後に視界を即時更新して配置オブジェクトの表示状態を正しくする
         turnGenerator.Systems.VisionGenerator?.MarkVisionDirty();
@@ -491,21 +495,21 @@ public partial class BuildSystem : MonoBehaviour
         // 領地チェック
         if (!territorysystem.IsInTerritory(pos, team))
         {
-            Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) は領地外");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) は領地外"); }
             return false;
         }
 
         // クリスタル位置チェック
         if (IsCrystalPosition(pos))
         {
-            Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) はクリスタル位置");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) はクリスタル位置"); }
             return false;
         }
 
         // 建物位置チェック
         if (HasBuildingAtXZ(pos))
         {
-            Debug.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) に既存建物あり");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) に既存建物あり"); }
             return false;
         }
 

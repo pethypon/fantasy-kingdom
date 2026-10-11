@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -38,7 +38,7 @@ public class SubCrystalSystem : MonoBehaviour
         }
         var list = team == Team.Player ? factionState.PlayerPendingReturns : factionState.EnemyPendingReturns;
         if (list.Count > 0)
-            Debug.Log($"[SubCrystalSystem] TickPendingReturns({team}): 返却待ち{list.Count}件, 値=[{string.Join(",", list)}]");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SubCrystalSystem] TickPendingReturns({team}): 返却待ち{list.Count}件, 値=[{string.Join(",", list)}]"); }
         factionState.TickPendingReturns(team);
     }
 
@@ -99,7 +99,7 @@ public class SubCrystalSystem : MonoBehaviour
         subCrystalTerritories[subCrystal] = addedPositions;
         territorysystem.RefreshVisuals();
 
-        Debug.Log($"[SubCrystalSystem] 領地拡張: {addedPositions.Count}マス追加 (計{ptSetPos.Count}マス)");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SubCrystalSystem] 領地拡張: {addedPositions.Count}マス追加 (計{ptSetPos.Count}マス)"); }
     }
 
     // ==================================================================
@@ -137,7 +137,7 @@ public class SubCrystalSystem : MonoBehaviour
         if (factionState != null)
         {
             factionState.AddPendingReturn(ownerTeam, SubCrystalCooldownTurns);
-            Debug.Log($"[SubCrystalSystem] サブクリスタル破壊: {ownerTeam} 領地縮小、{SubCrystalCooldownTurns}ターン後に返却 (PendingReturns={factionState.GetPendingReturnCount(ownerTeam)}, 現在の副晶={factionState.GetSubCrystals(ownerTeam)})");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SubCrystalSystem] サブクリスタル破壊: {ownerTeam} 領地縮小、{SubCrystalCooldownTurns}ターン後に返却 (PendingReturns={factionState.GetPendingReturnCount(ownerTeam)}, 現在の副晶={factionState.GetSubCrystals(ownerTeam)})"); }
         }
         else
         {
@@ -166,19 +166,19 @@ public class SubCrystalSystem : MonoBehaviour
         {
             case RewardType.Bread:
                 res.Bread += RewardAmount;
-                Debug.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: パン +{RewardAmount}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: パン +{RewardAmount}"); }
                 break;
             case RewardType.Wood:
                 res.Wood += RewardAmount;
-                Debug.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 木材 +{RewardAmount}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 木材 +{RewardAmount}"); }
                 break;
             case RewardType.Stone:
                 res.Stone += RewardAmount;
-                Debug.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 石 +{RewardAmount}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 石 +{RewardAmount}"); }
                 break;
             case RewardType.Iron:
                 res.Iron += RewardAmount;
-                Debug.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 鉄 +{RewardAmount}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SubCrystalSystem] {rewardTeam} 破壊報酬: 鉄 +{RewardAmount}"); }
                 break;
         }
     }
@@ -207,9 +207,11 @@ public class SubCrystalSystem : MonoBehaviour
         // BuildSystem の設置済み位置から除去
         buildsystem.RemoveBuildingPosition(posInt);
 
-        // GameObjectを非表示にして遠くに移動（再利用のため完全破壊はしない）
+        // Each placement instantiates a building; demolished objects have no reuse path.
+        // Deactivate immediately, then release scene-owned renderers and UI to prevent retention.
+        UnitRegistry.Instance?.Unregister(target);
         target.gameObject.SetActive(false);
-        target.transform.position = new Vector3(-1000, -1000, -1000);
+        Destroy(target.gameObject);
 
         // SubCrystal は視界を提供するため、破壊後は確実に視界を再計算する。
         // BuildingAttackSystem からの呼び出しは後段で再計算するが、
@@ -221,7 +223,7 @@ public class SubCrystalSystem : MonoBehaviour
             visionGenerator.VisionPoint(mapcreate, moveGenerator, crystalsystem);
         }
 
-        Debug.Log($"[SubCrystalSystem] 建築物破壊: {target.facilityKind} at ({posInt.x}, {posInt.y}, {posInt.z})");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SubCrystalSystem] 建築物破壊: {target.facilityKind} at ({posInt.x}, {posInt.y}, {posInt.z})"); }
     }
 
     // ==================================================================

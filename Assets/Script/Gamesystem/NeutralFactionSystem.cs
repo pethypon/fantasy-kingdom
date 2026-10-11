@@ -103,6 +103,7 @@ public class NeutralFactionSystem : MonoBehaviour
         var obj = Instantiate(prefab, position, Quaternion.identity, staging);
         var status = obj.GetComponentInChildren<Status>(true);
         if (status == null) { obj.SetActive(false); Destroy(obj); return null; }
+        status.MarkRuntimeSpawn(obj);
         // Prefabs may put Status on an offset child. The actual actor must occupy the validated cell.
         obj.transform.position += position - status.transform.position;
         status.team = team; status.type = Type.Unit; status.isWildBoss = false;

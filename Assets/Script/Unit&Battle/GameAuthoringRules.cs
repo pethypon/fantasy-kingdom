@@ -56,7 +56,7 @@ public sealed class GameAuthoringRules : ScriptableObject
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     public static void ResetCache() { loaded = null; didLoad = false; }
-    void OnValidate() => ResetCache();
+    void OnValidate() { ResetCache(); GameContentRevision.NotifyChanged(); }
 
     public FactionAuthoringSetting FindFaction(Team team)
     {

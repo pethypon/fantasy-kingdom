@@ -27,8 +27,9 @@ public static class AIEvolutionTests
             var model=new AIPlayerModel(path);var a=new AIAction{ActionType=AIActionType.Summon,SummonKind=Kind.Knight};
             Check("low level collects without using prior",model.Bonus(a,9)==0 && model.Bonus(a,20)>0);
             string json=File.ReadAllText(path);Check("profile excludes positions and live stats",!json.Contains("Position")&&!json.Contains("HP")&&!json.Contains("Kind"));
-            File.WriteAllText(path,"broken");Check("corruption falls back to backup",new AIPlayerModel(path).Snapshot.Matches==9);
-            File.WriteAllText(path+".bak","broken");Check("both corrupt reset safely",new AIPlayerModel(path).Snapshot.Matches==0);
+            File.WriteAllText(path,"broken");Check("corruption falls back to previous",new AIPlayerModel(path).Snapshot.Matches==9);
+            File.WriteAllText(path+".previous","broken");Check("two corrupt generations recover backup",new AIPlayerModel(path).Snapshot.Matches==8);
+            File.WriteAllText(path+".bak","broken");Check("all three corrupt reset safely",new AIPlayerModel(path).Snapshot.Matches==0);
             var invalid=new AIPlayerModel(path);invalid.RecordObservation(float.NaN,0,0,0);invalid.CompleteMatch();Check("invalid observations rejected",invalid.Snapshot.Matches==0);
         } finally { foreach(var f in Directory.GetFiles(dir))File.Delete(f);Directory.Delete(dir); }
 

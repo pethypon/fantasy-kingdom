@@ -47,6 +47,7 @@ public sealed class BoardTilePattern
 [CreateAssetMenu(menuName = "Fantasy Kingdom/駒と建物/マス行動設定")]
 public sealed class BoardActionProfile : ScriptableObject
 {
+    void OnValidate() => GameContentRevision.NotifyChanged();
     public string displayName = "新しい行動タイプ";
     public ActorActionType actionType;
     public BoardTilePattern movement = new BoardTilePattern();

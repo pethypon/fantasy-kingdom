@@ -97,7 +97,7 @@ public class SummonSystem : MonoBehaviour
         canPlace = false;
 
         _cursor.Create();
-        Debug.Log($"[SummonSystem] 召喚モード開始: {data.DisplayName}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SummonSystem] 召喚モード開始: {data.DisplayName}"); }
     }
 
     public void CancelSummonMode()
@@ -105,7 +105,7 @@ public class SummonSystem : MonoBehaviour
         IsActive = false;
         SelectedDefinition = null;
         _cursor?.Destroy();
-        Debug.Log("[SummonSystem] 召喚モード解除");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[SummonSystem] 召喚モード解除"); }
     }
 
     // ==================================================================
@@ -147,7 +147,7 @@ public class SummonSystem : MonoBehaviour
 
         if (!CanSummon(Team.Player, SelectedDefinition))
         {
-            Debug.Log("[SummonSystem] AP/リソース不足: 召喚不可");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[SummonSystem] AP/リソース不足: 召喚不可"); }
             return false;
         }
 
@@ -211,7 +211,7 @@ public class SummonSystem : MonoBehaviour
         res.Bread    -= data.costBread;
         res.Citizen  -= data.costCitizen;
 
-        Debug.Log($"[SummonSystem] {team} / Summon({data.DisplayName})  AP:{data.costAP}  残AP:{factionState.GetAP(team)}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SummonSystem] {team} / Summon({data.DisplayName})  AP:{data.costAP}  残AP:{factionState.GetAP(team)}"); }
     }
 
     // ==================================================================
@@ -260,12 +260,12 @@ public class SummonSystem : MonoBehaviour
         Status spawnedStatus;
         if (definition != null && !string.IsNullOrWhiteSpace(definition.definitionId))
         {
-            var obj = unitset.SpawnUnit(definition, spawnPos, parent, initialTeam: team);
+            var obj = unitset.SpawnUnit(definition, spawnPos, parent, initialTeam: team, runtimeSpawn: true);
             spawnedStatus = obj != null ? obj.GetComponentInChildren<Status>() : null;
         }
         else if (prefab != null)
         {
-            var obj = unitset.SpawnUnit(prefab, spawnPos, parent, initialKind: kind, initialTeam: team, authoredData: definition);
+            var obj = unitset.SpawnUnit(prefab, spawnPos, parent, initialKind: kind, initialTeam: team, authoredData: definition, runtimeSpawn: true);
             spawnedStatus = obj != null ? obj.GetComponentInChildren<Status>() : null;
             if (spawnedStatus != null)
             {
@@ -295,7 +295,7 @@ public class SummonSystem : MonoBehaviour
         visionGenerator.MarkVisionDirty();
         visionGenerator.VisionPoint(mapcreate, moveGenerator, turnGenerator.Systems.CrystalSystem);
 
-        Debug.Log($"[SummonSystem] {kind} を ({pos.x}, {Mathf.RoundToInt(spawnY)}, {pos.z}) に召喚 ({team})");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SummonSystem] {kind} を ({pos.x}, {Mathf.RoundToInt(spawnY)}, {pos.z}) に召喚 ({team})"); }
         MatchStats.Instance?.RecordSummon(team);
         return spawnedStatus;
     }
@@ -326,6 +326,7 @@ public class SummonSystem : MonoBehaviour
         { data.ApplyToStatus(status, 1); data.InitializeAbilities(status); }
 
         UnitHeadUI.Attach(obj);
+        status.MarkRuntimeSpawn(obj);
         return status;
     }
 
@@ -350,7 +351,7 @@ public class SummonSystem : MonoBehaviour
                 Debug.LogWarning($"[SummonSystem] 保存された駒の設定が見つかりません: {definitionId}");
                 return null;
             }
-            var obj = unitset.SpawnUnit(data, worldPos, parent, initialTeam: team);
+            var obj = unitset.SpawnUnit(data, worldPos, parent, initialTeam: team, runtimeSpawn: true);
             var authored = obj != null ? obj.GetComponentInChildren<Status>() : null;
             if (authored != null)
             {
@@ -367,7 +368,7 @@ public class SummonSystem : MonoBehaviour
         Status status;
         if (prefab != null)
         {
-            var obj = unitset.SpawnUnit(prefab, worldPos, parent);
+            var obj = unitset.SpawnUnit(prefab, worldPos, parent, runtimeSpawn: true);
             status = obj.GetComponentInChildren<Status>();
             if (status != null)
             {
@@ -402,7 +403,7 @@ public class SummonSystem : MonoBehaviour
         if (InstantiateUnit(pos, kind, team) == null) return false;
         ConsumeSummonResources(team, kind);
 
-        Debug.Log($"[SummonSystem] AI({team}) {kind} を ({pos.x},{pos.y},{pos.z}) に召喚");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SummonSystem] AI({team}) {kind} を ({pos.x},{pos.y},{pos.z}) に召喚"); }
         return true;
     }
 

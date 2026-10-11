@@ -1,0 +1,240 @@
+#if UNITY_EDITOR
+// Frozen oracle before target-cell indexing, baseline long-term work on 2026-10-11.
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class LegacyAttackGenerator
+{
+    readonly List<Status> combatTargets = new List<Status>();
+    bool CanTarget(Vector3 cell, bool ally = false)
+    {
+        foreach(var target in combatTargets) {
+            if(target == TargetUnit || !GridHelper.MatchXZ(target.transform.position,GridHelper.ToGridXZ(cell))) continue;
+            if(ally ? target.team == TargetUnit.team : NeutralFactionSystem.AreHostile(TargetUnit,target)) return true;
+        }
+        return false;
+    }
+    readonly List<Vector3> attackTiles = new List<Vector3>();
+    public PlayerMove.AttackMode attackmode;
+    public List<Vector3> AttackP;
+    public List<Vector3> setpos;
+
+    public Status TargetUnit;
+    public Vector3 objp;
+    public Vector3 attackpos;
+    public RaycastHit targethit;
+
+    [Header("マップクリエイト")]
+    public MapCreate mapcreate;
+
+    [Header("プレイヤームーブ")]
+    public PlayerMove move;
+
+    [Header("ムーブジェネレーター")]
+    public MoveGenerator moveGenerator;
+
+    [Header("アタックポイント")]
+    public GameObject AttackPoint;
+
+    [Header("アタックポイント親")]
+    public Transform APparent;
+
+    // ---- 攻撃モードに応じたポイント生成 ----
+    public void AttackPointCall(Status Obj, Vector3 ObjP, PlayerMove move)
+    {
+        this.move = move;
+        attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
+        attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
+        setpos = attackTiles;
+        attackmode = move.CurrentAttackMode;
+
+        switch (attackmode)
+        {
+            case PlayerMove.AttackMode.Normal:
+                NormalAttackPData(Obj, ObjP);
+                PointCreate();
+                break;
+            case PlayerMove.AttackMode.Skill:
+                SkillAttackPData(Obj, ObjP);
+                PointCreate();
+                break;
+        }
+    }
+
+    // ---- 攻撃ポイントオブジェクトの生成（ObjectPool使用） ----
+    public void PointCreate()
+    {
+        var pool = ObjectPool.Instance;
+        for (int i = 0; i < AttackP.Count; i++)
+        {
+            Vector3 pos = AttackP[i];
+            pos.y -= GameConstants.AttackPointYOffset;
+
+            if (pool != null)
+                pool.Get(AttackPoint, pos, Quaternion.identity, APparent);
+            else
+                UnityEngine.Object.Instantiate(AttackPoint, pos, Quaternion.identity, APparent);
+        }
+    }
+
+    // ---- 攻撃ポイントオブジェクトの削除（ObjectPool使用） ----
+    public void AtkpDestroy()
+    {
+        var pool = ObjectPool.Instance;
+        if (pool != null)
+        {
+            pool.ReturnAllChildren(APparent);
+        }
+        else
+        {
+            foreach (Transform child in APparent)
+            {
+                UnityEngine.Object.Destroy(child.gameObject);
+            }
+        }
+        AttackP?.Clear();
+    }
+
+    // ---- スキル攻撃の攻撃範囲計算 ----
+    public void SkillAttackPData(Status Obj, Vector3 ObjP)
+    {
+        if (Obj == null) return;
+        if (AttackP == null) AttackP = new List<Vector3>();
+        else AttackP.Clear();
+        TargetUnit = Obj;
+        CombatRegistry.Collect(combatTargets);
+        objp = ObjP;
+        attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
+        attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
+        setpos = attackTiles;
+
+        if (!AttackPatterns.CanUseSkills(TargetUnit)) return;
+
+        if (TargetUnit.AssignedSkillId < 0 || !SkillData.Table.ContainsKey(TargetUnit.AssignedSkillId))
+        {
+            Debug.Log("[AttackGenerator] スキル未割り当て");
+            return;
+        }
+
+        SkillData skill = SkillData.Table[TargetUnit.AssignedSkillId];
+        moveGenerator.UnitPointCore();
+
+        // Self / SelfArea → 自分の位置のみ
+        if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
+        {
+            AttackP = new List<Vector3> { objp };
+            return;
+        }
+
+        // 方向係数（南向きなら Z 反転）
+        int dirZ = MovePatterns.DirZ(TargetUnit.direction);
+
+        // 攻撃位置座標の決定（共有パターンを使用）
+        Vector2Int[] offsets = null;
+
+        if (AttackPatterns.SkillFixedPositions.ContainsKey(skill.Id))
+        {
+            offsets = AttackPatterns.SkillFixedPositions[skill.Id];
+        }
+        else if (AttackPatterns.SkillAttackPositions.ContainsKey(TargetUnit.kind))
+        {
+            offsets = AttackPatterns.SkillAttackPositions[TargetUnit.kind];
+        }
+
+        if (offsets == null)
+        {
+            Debug.Log($"[AttackGenerator] Kind '{TargetUnit.kind}' / Skill '{skill.Name}' の攻撃位置は未定義です");
+            return;
+        }
+
+        AttackP = new List<Vector3>();
+        Vector3 ownCell = moveGenerator.Cell(objp);
+        Vector3 pcpCell = moveGenerator.Cell(Obj.team == Team.Player ? moveGenerator.PlayerCrystalPos : moveGenerator.EnemyCrystalPos);
+        var objGrid = GridHelper.ToGridXZ(objp);
+
+        foreach (Vector2Int off in offsets)
+        {
+            int wx = objGrid.x + off.x;
+            int wz = objGrid.z + off.y * dirZ;
+
+            // setpos からマッチするタイルを探す
+            for (int i = 0, count = setpos.Count; i < count; i++)
+            {
+                Vector3 p = setpos[i];
+                if (!GridHelper.MatchXZ(p, wx, wz))
+                    continue;
+
+                if (!mapcreate.CanAttackAcrossTerrain(TargetUnit, p)) continue;
+                Vector3 cell = moveGenerator.Cell(p);
+
+                switch (skill.Target)
+                {
+                    case SkillTarget.EnemySingle:
+                    case SkillTarget.EnemyOrBuilding:
+                    case SkillTarget.LowHPEnemy:
+                    case SkillTarget.FlyingEnemy:
+                        if (CanTarget(cell))
+                            AttackP.Add(p);
+                        break;
+
+                    case SkillTarget.AllySingle:
+                        if (CanTarget(cell, true))
+                            AttackP.Add(p);
+                        break;
+
+                    case SkillTarget.DesignatedTile:
+                    case SkillTarget.AdjacentCenter:
+                    case SkillTarget.DirectionLine:
+                    case SkillTarget.DesignatedRow:
+                        AttackP.Add(p);
+                        break;
+
+                    default:
+                        if (CanTarget(cell))
+                            AttackP.Add(p);
+                        break;
+                }
+                break;
+            }
+        }
+    }
+
+    // ---- 通常攻撃の攻撃範囲計算（LINQ排除） ----
+    public void NormalAttackPData(Status Obj, Vector3 ObjP)
+    {
+        if (Obj == null) return;
+        if (AttackP == null) AttackP = new List<Vector3>();
+        else AttackP.Clear();
+        TargetUnit = Obj;
+        CombatRegistry.Collect(combatTargets);
+        objp = ObjP;
+        attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
+        attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
+        setpos = attackTiles;
+        moveGenerator.UnitPointCore();
+
+        Vector3 ownCell = moveGenerator.Cell(objp);
+        Vector3 pcpCell = moveGenerator.Cell(Obj.team == Team.Player ? moveGenerator.PlayerCrystalPos : moveGenerator.EnemyCrystalPos);
+
+        AttackP = new List<Vector3>();
+        var objPosGrid = GridHelper.ToGridXZ(objp);
+        for (int i = 0, count = setpos.Count; i < count; i++)
+        {
+            Vector3 p = setpos[i];
+            var pGrid = GridHelper.ToGridXZ(p);
+            float dx = pGrid.x - objPosGrid.x;
+            float dz = pGrid.z - objPosGrid.z;
+
+            Vector3 cell = moveGenerator.Cell(p);
+            if (!CanTarget(cell)) continue;
+            if (cell == ownCell || cell == pcpCell) continue;
+            if (!AttackPatterns.CanAttack(TargetUnit, TargetUnit.direction, dx, dz)) continue;
+            if (!mapcreate.CanAttackAcrossTerrain(TargetUnit, p)) continue;
+
+            AttackP.Add(p);
+        }
+    }
+}
+
+#endif

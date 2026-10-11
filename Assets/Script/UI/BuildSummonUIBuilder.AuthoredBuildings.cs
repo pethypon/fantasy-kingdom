@@ -18,7 +18,7 @@ public partial class BuildSummonUIBuilder
             if (definition == null || !definition.IsAvailable(Team.Player) || catalog.Find(definition.definitionId) != definition) continue;
             var row = new GameObject("AuthoredBuilding_" + definition.definitionId, typeof(RectTransform));
             row.transform.SetParent(content.transform, false);
-            row.AddComponent<LayoutElement>().preferredHeight = 110;
+            row.AddComponent<LayoutElement>().minHeight = 110;
             var layout = row.AddComponent<VerticalLayoutGroup>(); layout.spacing = 3;
             layout.childControlWidth = layout.childControlHeight = true;
             layout.childForceExpandWidth = true; layout.childForceExpandHeight = false;
@@ -30,7 +30,7 @@ public partial class BuildSummonUIBuilder
             label.color = BrandGuide.TextSecondary; label.alignment = TextAlignmentOptions.MidlineLeft;
             label.textWrappingMode = TextWrappingModes.Normal; label.enableAutoSizing = true;
             label.fontSizeMin = 20; label.fontSizeMax = BrandGuide.FontHudCaption;
-            label.gameObject.AddComponent<LayoutElement>().preferredHeight = 48;
+            label.gameObject.AddComponent<LayoutElement>().minHeight = 48;
             var captured = definition;
             button.onClick.AddListener(() => { slidePanel?.ClosePanel(); buildSystem?.StartBuildMode(captured); });
             authoredBuildButtons.Add((button, button.GetComponent<Image>(), label, definition));
@@ -46,6 +46,9 @@ public partial class BuildSummonUIBuilder
             row.button.interactable = reason == null;
             row.image.color = reason == null ? BrandGuide.BtnBuildEnabled : BrandGuide.BtnDisabled;
             string cost = FormatBuildCost(row.definition.GetInfo().BuildCost);
+            cost += FormatBuildingDetails(row.definition.behaviourKind, row.definition.GetLevel(1));
+            var title = row.button.GetComponentInChildren<TextMeshProUGUI>();
+            if (title != null) title.text = row.definition.displayName + "  AP:" + row.definition.GetInfo().APCost;
             if (FacilityData.IsSubCrystal(row.definition.behaviourKind)) cost += " 副晶1消費";
             row.label.text = reason == null ? cost : cost + "\n<color=#FFB7A3>" + reason + "</color>";
         }

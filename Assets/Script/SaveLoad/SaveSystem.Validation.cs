@@ -89,9 +89,12 @@ public static partial class SaveSystem
             return Invalid("表示専用のマスは駒として保存できません。", out reason);
         if (!Position(unit.PosX, unit.PosY, unit.PosZ, data) || unit.HP < 0 || unit.MaxHP < 0 || unit.HP > unit.MaxHP
             || unit.ATK < 0 || unit.DEF < 0 || unit.Level < 0 || unit.ShieldTurns < 0 || unit.SkillCooldown < 0
-            || unit.Fatigue < 0 || unit.Experience < 0) return Invalid("駒の座標または能力値が不正です。", out reason);
-        if (!string.IsNullOrEmpty(unit.ReflectionLifeId) && (unit.ReflectionLifeId.Length > 128 || !lifeIds.Add(unit.ReflectionLifeId)))
+            || unit.Fatigue < 0 || unit.Experience < 0 || unit.UpkeepUnpaidTurns < 0) return Invalid("駒の座標または能力値が不正です: " + unit.Kind
+                + " (位置 " + unit.PosX + "," + unit.PosY + "," + unit.PosZ + "; HP " + unit.HP + "/" + unit.MaxHP + ")", out reason);
+        if (!string.IsNullOrEmpty(unit.ReflectionLifeId) && (unit.ReflectionLifeId.Length > 64 || !lifeIds.Add(unit.ReflectionLifeId)))
             return Invalid("駒の永続識別子が重複、または不正です。", out reason);
+        if (unit.HasDefinitionStatSnapshot && (unit.DefinitionMaxHP < 1 || unit.DefinitionATK < 0 || unit.DefinitionDEF < 0))
+            return Invalid("駒の設定値スナップショットが不正です。", out reason);
         if (!string.IsNullOrEmpty(unit.DefinitionId) && UnitAuthoringCatalog.Load()?.GetById(unit.DefinitionId) == null)
             return Invalid("駒の定義が見つかりません: " + unit.DefinitionId, out reason);
         if (!string.IsNullOrEmpty(unit.AuthoredFacilityId) && FacilityAuthoringCatalog.Loaded?.Find(unit.AuthoredFacilityId) == null)

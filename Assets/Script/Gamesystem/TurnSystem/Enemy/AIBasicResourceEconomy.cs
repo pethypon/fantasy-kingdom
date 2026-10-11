@@ -75,6 +75,7 @@ public sealed class AIBasicResourceEconomy
     AIBoardState board;
     StrategicProductionDemand demand;
     int generation = -1, lastTurn = -1, stableTurnCount, recoveryStarted = -1;
+    int contentRevision = -1;
     bool emergency;
     public EconomyFoundationState FoundationState { get; private set; } = EconomyFoundationState.OpeningFoundation;
     public ResourceKind PrimaryBottleneck { get; private set; } = ResourceKind.None;
@@ -101,7 +102,8 @@ public sealed class AIBasicResourceEconomy
         IReadOnlyList<BasicResourcePlan> plannedActions = null)
     {
         if (current == null || productionDemand == null) return;
-        if (board == current && generation == current.Generation && demand == productionDemand && emergency == essentialDefense && plannedActions == null) return;
+        if (board == current && generation == current.Generation && demand == productionDemand && emergency == essentialDefense && plannedActions == null && contentRevision == GameContentRevision.Revision) return;
+        contentRevision = GameContentRevision.Revision;
         board = current; generation = current.Generation; demand = productionDemand; emergency = essentialDefense; scores.Clear();
         if (plannedActions == null) CollectPlans();
         var selected = plannedActions ?? plans;

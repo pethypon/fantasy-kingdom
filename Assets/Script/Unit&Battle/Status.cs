@@ -269,6 +269,24 @@ public enum SkillRarity
 
 public class Status : MonoBehaviour
 {
+    // Initial scene slots retain their inactive state for save matching; runtime spawns own disposable visuals.
+    GameObject runtimeSpawnRoot;
+    public bool IsRuntimeSpawned => runtimeSpawnRoot != null;
+    public void MarkRuntimeSpawn(GameObject root)
+    {
+        if (root == null || (root.transform != transform && !transform.IsChildOf(root.transform)))
+            throw new System.ArgumentException("Runtime actor root must contain this actor", nameof(root));
+        runtimeSpawnRoot = root;
+    }
+    public void DeactivateAfterDeath()
+    {
+        UnitRegistry.Instance?.Unregister(this);
+        gameObject.SetActive(false);
+        if (runtimeSpawnRoot == null) return;
+        GetTurnGenerator()?.Systems.NeutralFactionSystem?.UnregisterSpawn(this);
+        runtimeSpawnRoot.SetActive(false);
+        Destroy(runtimeSpawnRoot);
+    }
     string reflectionLifeId;
     bool reflectionLifeEnded;
     public string ReflectionLifeId => string.IsNullOrEmpty(reflectionLifeId)
@@ -367,6 +385,8 @@ public class Status : MonoBehaviour
 
     [Header("スキルクールダウン")]
     public int SkillCooldown = 0; // 0 = 使用可能、1以上 = 使用不可（ターン毎に-1）
+    [System.NonSerialized] public bool HasDefinitionBalanceBaseline;
+    [System.NonSerialized] public int DefinitionBalanceMaxHP, DefinitionBalanceATK, DefinitionBalanceDEF;
 
     // =====================================================================
     //  Special Ability（ランダム配布パッシブ）
@@ -409,7 +429,7 @@ public class Status : MonoBehaviour
         damage = UnityEngine.Mathf.Max(0, damage);
         if (isWildBoss && IsWildBossInvulnerable())
         {
-            UnityEngine.Debug.Log($"[WildBoss] 縄張り外のため無敵: ダメージ{damage}を無効化");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] 縄張り外のため無敵: ダメージ{damage}を無効化"); }
             return 0;
         }
         int actual = UnityEngine.Mathf.Min(UnityEngine.Mathf.Max(0, HP), damage);
@@ -526,6 +546,7 @@ public class Status : MonoBehaviour
             if (team == Team.Player && AchievementSystem.Instance != null)
                 AchievementSystem.Instance.OnLevelUp(Level);
         }
+        StatusBalanceRefresh.RecordDefinitionBaseline(this);
     }
 
     static int AddGrowth(int value, int gain) => (int)System.Math.Min(int.MaxValue, (long)value + gain);
@@ -590,7 +611,7 @@ public class Status : MonoBehaviour
         ActiveEffects.Clear();
         ShieldTurns = 0;
         SkillCooldown = 0;
-        UnityEngine.Debug.Log($"[Status] {kind} を Lv1 にリセット (ATK={ATK} DEF={DEF} MaxHP={MaxHP})");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Status] {kind} を Lv1 にリセット (ATK={ATK} DEF={DEF} MaxHP={MaxHP})"); }
     }
 
     /// <summary>
@@ -631,7 +652,7 @@ public class Status : MonoBehaviour
         if (turnGen.IsGameOver) return false;
 
         GameResult result = team == Team.Enemy ? GameResult.Win : GameResult.Lose;
-        UnityEngine.Debug.Log($"[Status] {team} の {kind} 撃破 → ゲーム終了 ({result})");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Status] {team} の {kind} 撃破 → ゲーム終了 ({result})"); }
         turnGen.ChangeState(new GameEndState(turnGen, result, this));
         return true;
     }
@@ -640,6 +661,9 @@ public class Status : MonoBehaviour
     {
         if (HP > 0) return;
         if (!gameObject.activeInHierarchy) return;
+        // Authoritative cleanup event; each AI checks its own current visibility before accepting it.
+        // A prior damage event already attributed own destruction, so this fallback cannot overwrite its credit.
+        if (type != Type.Unit) AIReflectionEvents.RecordBaseDestruction(GetTurnGenerator(), this);
 
         // King / Crystal の撃破は勝敗確定（駒のクリーンアップより優先）
         if (TryTriggerGameEndIfDecisive()) return;
@@ -668,8 +692,8 @@ public class Status : MonoBehaviour
         }
 
         ResetToLv1();
-        gameObject.SetActive(false);
-        UnityEngine.Debug.Log($"[Status] {team} {kind} が HP=0 で非表示化（HandleDeathIfDead）");
+        DeactivateAfterDeath();
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Status] {team} {kind} が HP=0 で非表示化（HandleDeathIfDead）"); }
     }
 }
 

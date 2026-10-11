@@ -8,6 +8,8 @@ public static partial class AIActionEvaluator
         var building = action?.Unit != null ? action.Unit : action?.TargetUnit;
         if (building == null || board == null || !building.IsAlive || building.team != board.ActorTeam)
             return -100f;
+        var housing = board.Governor?.HousingAssessment(action, board) ?? default;
+        if (housing.IsHousing) return housing.Score;
         int level = UnityEngine.Mathf.Max(1, building.Level);
         if (level >= FacilityData.GetMaxLevel(building)) return -100f;
         var current = FacilityData.GetLevel(building, level);
@@ -112,6 +114,7 @@ public static class EconomyHelper
     public static bool ImprovesProductionDemand(AIAction action, AIBoardState board)
     {
         if (action == null || board == null) return false;
+        if (board.Governor?.HousingAssessment(action, board).Needed == true) return true;
         if (action.ActionType == AIActionType.Build) return AssessProductionBuild(action, board).ImprovesDeficit;
         if (action.ActionType != AIActionType.Upgrade) return false;
         var building = action.Unit != null ? action.Unit : action.TargetUnit;

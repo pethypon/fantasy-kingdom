@@ -5,13 +5,23 @@ using UnityEngine;
 public class AttackGenerator : MonoBehaviour
 {
     readonly List<Status> combatTargets = new List<Status>();
+    readonly HashSet<Vector3Int> hostileCells = new HashSet<Vector3Int>();
+    readonly HashSet<Vector3Int> alliedCells = new HashSet<Vector3Int>();
+    void RefreshTargetCells()
+    {
+        CombatRegistry.Collect(combatTargets);
+        hostileCells.Clear(); alliedCells.Clear();
+        foreach (var target in combatTargets)
+        {
+            if (target == TargetUnit) continue;
+            var cell = GridHelper.ToGridXZ(target.transform.position);
+            if (target.team == TargetUnit.team) alliedCells.Add(cell);
+            if (NeutralFactionSystem.AreHostile(TargetUnit, target)) hostileCells.Add(cell);
+        }
+    }
     bool CanTarget(Vector3 cell, bool ally = false)
     {
-        foreach(var target in combatTargets) {
-            if(target == TargetUnit || !GridHelper.MatchXZ(target.transform.position,GridHelper.ToGridXZ(cell))) continue;
-            if(ally ? target.team == TargetUnit.team : NeutralFactionSystem.AreHostile(TargetUnit,target)) return true;
-        }
-        return false;
+        return (ally ? alliedCells : hostileCells).Contains(GridHelper.ToGridXZ(cell));
     }
     readonly List<Vector3> attackTiles = new List<Vector3>();
     public PlayerMove.AttackMode attackmode;
@@ -101,7 +111,7 @@ public class AttackGenerator : MonoBehaviour
         if (AttackP == null) AttackP = new List<Vector3>();
         else AttackP.Clear();
         TargetUnit = Obj;
-        CombatRegistry.Collect(combatTargets);
+        RefreshTargetCells();
         objp = ObjP;
         attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
         attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
@@ -121,7 +131,7 @@ public class AttackGenerator : MonoBehaviour
         // Self / SelfArea → 自分の位置のみ
         if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
         {
-            AttackP = new List<Vector3> { objp };
+            AttackP.Add(objp);
             return;
         }
 
@@ -146,7 +156,6 @@ public class AttackGenerator : MonoBehaviour
             return;
         }
 
-        AttackP = new List<Vector3>();
         Vector3 ownCell = moveGenerator.Cell(objp);
         Vector3 pcpCell = moveGenerator.Cell(Obj.team == Team.Player ? moveGenerator.PlayerCrystalPos : moveGenerator.EnemyCrystalPos);
         var objGrid = GridHelper.ToGridXZ(objp);
@@ -205,7 +214,7 @@ public class AttackGenerator : MonoBehaviour
         if (AttackP == null) AttackP = new List<Vector3>();
         else AttackP.Clear();
         TargetUnit = Obj;
-        CombatRegistry.Collect(combatTargets);
+        RefreshTargetCells();
         objp = ObjP;
         attackTiles.Clear(); attackTiles.AddRange(mapcreate.SetPos);
         attackTiles.Add(moveGenerator.PlayerCrystalPos); attackTiles.Add(moveGenerator.EnemyCrystalPos);
@@ -215,7 +224,6 @@ public class AttackGenerator : MonoBehaviour
         Vector3 ownCell = moveGenerator.Cell(objp);
         Vector3 pcpCell = moveGenerator.Cell(Obj.team == Team.Player ? moveGenerator.PlayerCrystalPos : moveGenerator.EnemyCrystalPos);
 
-        AttackP = new List<Vector3>();
         var objPosGrid = GridHelper.ToGridXZ(objp);
         for (int i = 0, count = setpos.Count; i < count; i++)
         {

@@ -16,6 +16,14 @@ public static class AIOperationDiary
         config = config != null ? config : AIOperationConfig.Active;
         if (config == null || !config.Enabled) return;
         builder.AppendLine().AppendLine("＝＝＝＝ 複数ターン作戦 ＝＝＝＝");
+        if (state.KnownEnemyBases != null)
+            for (int i = Math.Max(0, state.KnownEnemyBases.Count - 5); i < state.KnownEnemyBases.Count; i++)
+            {
+                var entry = state.KnownEnemyBases[i]; if (entry == null) continue;
+                builder.Append("【敵拠点発見】").Append(entry.Type).Append(" / 最終視認 ").Append(entry.LastSeenTurn)
+                    .Append(" / ").Append(entry.ConfirmedDestroyed ? "破壊確認済み" : entry.CurrentlyVisible ? "視認中" : "再偵察が必要")
+                    .Append(" / 情報確度 ").Append(Number(entry.IntelConfidence)).Append(" / 推定防衛 ").Append(Number(entry.EstimatedDefense)).AppendLine();
+            }
         if ((state.CompletedOperations == null || state.CompletedOperations.Count == 0)
             && (state.ActiveOperations == null || state.ActiveOperations.Count == 0))
         { builder.AppendLine("まだ作戦の記録はありません。"); return; }

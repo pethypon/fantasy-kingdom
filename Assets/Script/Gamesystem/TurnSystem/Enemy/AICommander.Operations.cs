@@ -25,6 +25,19 @@ public partial class AICommander
 
     public AIOperationManager Operations => operations;
     public string OperationProfilePath => operationRepository?.ProfilePath;
+    public int OperationRequiredCitizenDemand => operations?.OperationRequiredCitizenDemand ?? 0;
+    public void NotifyObservedBaseDestroyed(Status target, Team source)
+    {
+        if (operations == null || operationUnavailable || target == null || target.team == _actorTeam
+            || _visionGen == null || !_visionGen.IsInVisionXZ(_actorTeam, target.transform.position)) return;
+        try
+        {
+            foreach (var known in operations.KnownEnemyBases)
+                if (known.StableTargetId == target.ReflectionLifeId && known.ConfirmedDestroyed) return;
+            operations.ConfirmKnownBaseDestroyed(target.ReflectionLifeId, true, source == _actorTeam && operationActionOpen, _board);
+        }
+        catch (Exception error) { OperationFailed(error); }
+    }
 
     AIOperationManager EnsureOperations()
     {
@@ -83,6 +96,7 @@ public partial class AICommander
             _advanced.Plans.Update(_board);
             manager.BeginTurn(_board, _currentStrategy, currentOperationOwnTurn, _advanced.Plans.Current,
                 _personality, _playerModel?.Snapshot);
+            _board.OperationRequiredCitizenDemand = manager.OperationRequiredCitizenDemand;
             operationTurnStarted = true;
         }
         catch (Exception error) { OperationFailed(error); }
@@ -90,7 +104,7 @@ public partial class AICommander
     void RefreshOperationPlanning()
     {
         if (operations == null || operationUnavailable || !operationTurnStarted) return;
-        try { operations.Refresh(_board, _currentStrategy, _advanced.Plans.Current); }
+        try { operations.Refresh(_board, _currentStrategy, _advanced.Plans.Current); _board.OperationRequiredCitizenDemand = operations.OperationRequiredCitizenDemand; }
         catch (Exception error) { OperationFailed(error); }
     }
     float OperationActionBonus(AIAction action)

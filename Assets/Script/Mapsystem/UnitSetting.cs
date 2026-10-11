@@ -39,6 +39,9 @@ public class UnitSetting : MonoBehaviour
     public IReadOnlyList<UnitData> AuthoredDefinitions => authoredDefinitions;
     readonly List<UnitData> authoredDefinitions = new List<UnitData>();
     UnitAuthoringCatalog authoringCatalog;
+    readonly Dictionary<Kind, UnitData> baselineDefinitions = new Dictionary<Kind, UnitData>();
+    readonly List<Status> refreshActors = new List<Status>(64);
+    int contentRevision;
     public UnitData GetDefinitionById(string id) => authoringCatalog?.GetById(id);
 
     private readonly Dictionary<Kind, GameObject> authoredPrefabs = new Dictionary<Kind, GameObject>();
@@ -65,10 +68,6 @@ public class UnitSetting : MonoBehaviour
             }
         }
 
-        authoringCatalog = UnitAuthoringCatalog.Load();
-        authoringCatalog?.Apply(UnitDataMap, authoredPrefabs);
-        if (authoringCatalog != null) authoredDefinitions.AddRange(authoringCatalog.EnumerateStandaloneDefinitions());
-
         // UnitStaticData に定義があるが UnitDataMap に未登録の Kind を自動補完
         foreach (var kvp in UnitStaticData.Table)
         {
@@ -78,6 +77,55 @@ public class UnitSetting : MonoBehaviour
                 ownedDefaults.Add(UnitDataMap[kvp.Key]);
             }
         }
+        foreach (var pair in UnitDataMap) baselineDefinitions[pair.Key] = pair.Value;
+        ReloadAuthoringDefinitions();
+    }
+
+    public void ReloadAuthoringDefinitions()
+    {
+        if (UnitDataMap == null) return;
+        UnitDataMap.Clear(); foreach (var pair in baselineDefinitions) UnitDataMap[pair.Key] = pair.Value;
+        authoredPrefabs.Clear(); authoredDefinitions.Clear(); authoringCatalog = UnitAuthoringCatalog.Load();
+        authoringCatalog?.Apply(UnitDataMap, authoredPrefabs);
+        if (authoringCatalog != null) authoredDefinitions.AddRange(authoringCatalog.EnumerateStandaloneDefinitions());
+        contentRevision = GameContentRevision.Revision;
+    }
+
+    void Update()
+    {
+        if (contentRevision != GameContentRevision.Revision) RefreshRuntimeBalance();
+    }
+    public void RefreshRuntimeBalance()
+    {
+        ReloadAuthoringDefinitions();
+        CombatRegistry.Collect(refreshActors);
+        foreach (var actor in refreshActors)
+        {
+            if (actor == null || actor.isWildBoss || actor.team == Team.Obstacle) continue;
+            if (actor.type == Type.Unit)
+            {
+                UnitData latest = null;
+                if (!string.IsNullOrEmpty(actor.unitDefinitionId)) latest = GetDefinitionById(actor.unitDefinitionId);
+                else UnitDataMap.TryGetValue(actor.kind, out latest);
+                if (latest != null) actor.GrowthData = latest;
+                if (actor.GrowthData != null && actor.GrowthData.useAuthoredAbilities)
+                {
+                    actor.passiveskill = actor.GrowthData.authoredPassive;
+                    actor.AssignedSkillId = SkillData.Table.ContainsKey(actor.GrowthData.authoredSkillId) ? actor.GrowthData.authoredSkillId : -1;
+                    actor.specialAbility = actor.GrowthData.authoredSpecialAbility;
+                }
+            }
+            else if (!string.IsNullOrEmpty(actor.authoredFacilityId)) actor.AuthoredFacility = FacilityAuthoringCatalog.Loaded?.Find(actor.authoredFacilityId);
+            StatusBalanceRefresh.ApplyLatestDefinition(actor);
+        }
+        refreshActors.Clear();
+        var turn = GetComponent<TurnGenerator>();
+        if (turn == null) turn = Object.FindFirstObjectByType<TurnGenerator>();
+        if (turn == null) return;
+        turn.Systems.EconomySystem?.RecalculateCapacity(Team.Player);
+        turn.Systems.EconomySystem?.RecalculateCapacity(Team.Enemy);
+        turn.Systems.VisionGenerator?.MarkVisionDirty();
+        turn.Systems.RefreshVision();
     }
 
     // ==== 共通生成メソッド ====
@@ -88,7 +136,7 @@ public class UnitSetting : MonoBehaviour
     /// </summary>
     public GameObject SpawnUnit(GameObject prefab, Vector3 pos,
                                 Transform parent, int level = 1, Kind? initialKind = null, Team? initialTeam = null,
-                                UnitData authoredData = null)
+                                UnitData authoredData = null, bool runtimeSpawn = false)
     {
         if (authoredData == null && initialKind.HasValue && authoredPrefabs.TryGetValue(initialKind.Value, out var authored)) prefab = authored;
         if (prefab == null) { Debug.LogError("[UnitSetting] Missing unit prefab"); return null; }
@@ -128,19 +176,20 @@ public class UnitSetting : MonoBehaviour
         else { SkillData.AssignFixedSkill(status); SpecialAbilityData.AssignRandom(status); }
 
         // 頭上UI（Lv + HP）をアタッチ
+        if (runtimeSpawn) status.MarkRuntimeSpawn(obj);
         UnitHeadUI.Attach(obj);
 
         return obj;
     }
 
     /// <summary>Spawns a specific definition without replacing another unit's role defaults.</summary>
-    public GameObject SpawnUnit(UnitData data, Vector3 pos, Transform parent, int level = 1, Team? initialTeam = null)
+    public GameObject SpawnUnit(UnitData data, Vector3 pos, Transform parent, int level = 1, Team? initialTeam = null, bool runtimeSpawn = false)
     {
         if (data == null || !data.IsValidForAuthoring) return null;
         GameObject prefab = data.prefab;
         if (prefab == null) authoringCatalog?.TryGetPrefab(data, out prefab);
         if (prefab != null)
-            return SpawnUnit(prefab, pos, parent, level, data.kind, initialTeam ?? data.defaultTeam, data);
+            return SpawnUnit(prefab, pos, parent, level, data.kind, initialTeam ?? data.defaultTeam, data, runtimeSpawn);
 
         // Data-only definitions still have a visible, selectable fallback model.
         var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -152,6 +201,7 @@ public class UnitSetting : MonoBehaviour
         status.direction = status.team == Team.Player ? Direction.N : Direction.S;
         data.ApplyToStatus(status, level); data.InitializeAbilities(status);
         PrimitiveMaterialBinding.Apply(obj.GetComponent<Renderer>(), BrandGuide.GetUnitFallbackColor(status.team));
+        if (runtimeSpawn) status.MarkRuntimeSpawn(obj);
         UnitHeadUI.Attach(obj);
         return obj;
     }

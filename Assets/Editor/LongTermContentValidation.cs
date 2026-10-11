@@ -132,9 +132,17 @@ public static class LongTermContentValidation
         if (catalog == null) return;
         if (catalog.buildings == null) { result.Error(Location(catalog), "建物の登録一覧がありません。"); return; }
         var ids = new HashSet<string>(StringComparer.Ordinal);
-        for (int i = 0; i < catalog.buildings.Count; i++)
+        var definitions = new List<FacilityDefinitionData>(catalog.buildings);
+        var standardKinds = new HashSet<FacilityKind>();
+        if (catalog.standardOverrides != null) foreach (var definition in catalog.standardOverrides)
         {
-            var data = catalog.buildings[i]; string at = Location(catalog) + " / 建物 " + (i + 1);
+            definitions.Add(definition);
+            if (definition != null && !standardKinds.Add(definition.behaviourKind)) result.Error(Location(catalog), "標準建物の上書き役割が重複しています。");
+        }
+        if (catalog.retiredDefinitions != null) definitions.AddRange(catalog.retiredDefinitions);
+        for (int i = 0; i < definitions.Count; i++)
+        {
+            var data = definitions[i]; string at = Location(catalog) + " / 建物 " + (i + 1);
             if (data == null) { result.Error(at, "建物データがありません。"); continue; }
             AddId(data.definitionId, at, ids, result);
             if (!data.IsValid || !Enum.IsDefined(typeof(FacilityKind), data.behaviourKind)) result.Error(at, "基本動作またはレベル設定が不正です。");

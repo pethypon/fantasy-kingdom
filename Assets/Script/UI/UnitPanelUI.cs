@@ -493,7 +493,7 @@ public class UnitPanelUI : MonoBehaviour
 
         // 効果説明
         if (kindText != null)
-            kindText.text = currentUnit.AuthoredFacility != null ? AuthoredBuildingEffectText(currentUnit) : GetBuildingEffectText(facility, currentUnit.Level);
+            kindText.text = FacilityData.HasAuthoredRecipe(currentUnit) ? AuthoredBuildingEffectText(currentUnit) : GetBuildingEffectText(facility, currentUnit.Level);
         if (passiveText != null)
             passiveText.text = "";
 
@@ -721,7 +721,7 @@ public class UnitPanelUI : MonoBehaviour
         switch (facility)
         {
             case FacilityKind.Field:
-                return $"水2→小麦+{data.Output.Wheat}";
+                return $"水{data.Input.Water}→小麦+{data.Output.Wheat}";
             case FacilityKind.Bakery:
                 return $"小麦{data.Input.Wheat}+水{data.Input.Water}→パン{data.Output.Bread}";
             case FacilityKind.LoggingCamp:
@@ -750,8 +750,8 @@ public class UnitPanelUI : MonoBehaviour
     {
         var data = FacilityData.GetLevel(building, building.Level);
         var parts = new System.Collections.Generic.List<string>();
-        if (!data.Input.IsEmpty) parts.Add("毎ターン消費: " + FormatProduction(data.Input));
-        if (!data.Output.IsEmpty) parts.Add("毎ターン生産: " + FormatProduction(data.Output));
+        if (!data.Input.IsEmpty) parts.Add("生産時消費: " + FormatProduction(data.Input));
+        if (!data.Output.IsEmpty) parts.Add(FacilityData.ProductionInterval(data) + "ターンごと生産: " + FormatProduction(data.Output));
         if (!data.Maintenance.IsEmpty) parts.Add("維持費: " + FormatProduction(data.Maintenance));
         if (building.facilityKind == FacilityKind.House || building.facilityKind == FacilityKind.LuxuryHouse) parts.Add("人口上限 +" + data.SpecialValue);
         else if (building.facilityKind == FacilityKind.Warehouse) parts.Add("資源容量 +" + data.SpecialValue);

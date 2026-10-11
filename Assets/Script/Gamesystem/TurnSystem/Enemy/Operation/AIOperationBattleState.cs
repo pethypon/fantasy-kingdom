@@ -11,6 +11,7 @@ public sealed class AIOperationBattleState
     public long NextOperationId;
     public int OwnTurns, LastStartedOwnTurn = -1, LastEndedOwnTurn = -1, LastStartedGlobalTurn = -1;
     public bool Ended;
+    public List<AIKnownEnemyBase> KnownEnemyBases = new List<AIKnownEnemyBase>();
     public List<AIOperationPlan> ActiveOperations = new List<AIOperationPlan>();
     public List<AIOperationPlan> CompletedOperations = new List<AIOperationPlan>();
     public List<long> CompletedOperationIds = new List<long>();

@@ -22,7 +22,7 @@ public sealed class PersistentStrategicObjective
 }
 
 /// <summary>Priority gates above unchanged tactical/economic scoring. Facts come only from the observed board.</summary>
-public sealed class AIStrategicGovernor
+public sealed partial class AIStrategicGovernor
 {
     readonly ILossConditionProvider losses;
     readonly StrategicEconomyForecast forecast=new StrategicEconomyForecast();
@@ -37,7 +37,7 @@ public sealed class AIStrategicGovernor
     readonly List<AIAction> reserveCandidates = new List<AIAction>(64);
     int recoveryReserveAP = -1;
     readonly Dictionary<(int,Kind,Direction),HashSet<Vector2Int>> skillReach=new Dictionary<(int,Kind,Direction),HashSet<Vector2Int>>();
-    AIBoardState current;int generation=-1;
+    AIBoardState current;int generation=-1,contentRevision=-1;
     Vector3 defensePoint;bool safeAlternativesPrepared;
     Status explorer;
     public StrategicMode Mode {get;private set;}
@@ -53,7 +53,8 @@ public sealed class AIStrategicGovernor
     public AIStrategicGovernor(ILossConditionProvider provider=null){losses=provider??new DefaultLossConditionProvider();}
     public void Evaluate(AIBoardState board)
     {
-        if(current==board&&generation==board.Generation)return;
+        if(current==board&&generation==board.Generation&&contentRevision==GameContentRevision.Revision)return;
+        contentRevision=GameContentRevision.Revision;
         current=board;generation=board.Generation;reachable.Clear();damageCache.Clear();threatCache.Clear();safest.Clear();buildForecasts.Clear();safeAlternativesPrepared=false;
         recoveryReserveAP = -1;
         losses.Collect(board,critical);defenders.Clear();army.Clear();
@@ -202,6 +203,8 @@ public sealed class AIStrategicGovernor
         }
         if (action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade)
         {
+            var housing = HousingAssessment(action, board);
+            if (housing.IsHousing && !housing.Needed) return housing.Reason;
             var assessment = ProductionDemand.EvaluateBuild(action);
             bool emergencyDefense = IsEmergencyDefenseRequired(action, board);
             if (IsMilitaryConstruction(action) && ProductionDemand.State >= EconomicState.Crisis && !emergencyDefense)
@@ -217,10 +220,10 @@ public sealed class AIStrategicGovernor
                 || (projected.FirstTurnInputFailureMask & ~Economy.FirstTurnInputFailureMask) != 0;
             if (!emergencyDefense && introducesFailure) return "build_causes_forecast_failure";
             if (action.ActionType == AIActionType.Build && assessment.IsProduction && !assessment.ImprovesDeficit
-                && !BasicResources.IsFoundationAction(action) && !emergencyDefense)
+                && !housing.Needed && !BasicResources.IsFoundationAction(action) && !emergencyDefense)
                 return "production_not_needed";
             if (action.ActionType == AIActionType.Upgrade && !EconomyHelper.ImprovesProductionDemand(action, board)
-                && !BasicResources.IsFoundationAction(action) && !emergencyDefense) return "upgrade_not_needed";
+                && !housing.Needed && !BasicResources.IsFoundationAction(action) && !emergencyDefense) return "upgrade_not_needed";
         }
         if (!BasicResources.AllowSpend(action, IsEssentialDefenseSpend(action, board), out string spendReason))
             return spendReason;
@@ -247,6 +250,8 @@ public sealed class AIStrategicGovernor
         if (a.ActionType == AIActionType.Build || a.ActionType == AIActionType.Upgrade)
         {
             if (IsEmergencyDefenseRequired(a, board)) return 0;
+            var housing = HousingAssessment(a, board);
+            if (housing.IsHousing && housing.Needed) return housing.EmergencySupply ? 1 : 3;
             var production = ProductionDemand.EvaluateBuild(a);
             if (production.ImprovesCritical) return 1;
             if (production.ImprovesDeficit && Mode == StrategicMode.EconomicRecovery) return Mathf.Min(2, BasicResources.ActionPriority(a));
@@ -266,6 +271,9 @@ public sealed class AIStrategicGovernor
     public ProductionBuildAssessment BuildAssessment(AIAction action, AIBoardState board)
     {
         Evaluate(board);
+        var housing = HousingAssessment(action, board);
+        if (housing.IsHousing) return new ProductionBuildAssessment(true, housing.Needed, false,
+            housing.Needed ? housing.Score : 0, 0, 0, housing.Needed ? 0 : -housing.Score, housing.Needed ? 1 : 0);
         return ProductionDemand.EvaluateBuild(action);
     }
 
@@ -283,7 +291,7 @@ public sealed class AIStrategicGovernor
         foreach (var action in reserveCandidates)
         {
             if (action.APCost <= 0 || action.APCost > board.EnemyAP || action.APCost >= cheapest) continue;
-            bool improves = ProductionDemand.EvaluateBuild(action).ImprovesDeficit
+            bool improves = BuildAssessment(action, board).ImprovesDeficit
                 || EconomyHelper.ImprovesProductionDemand(action, board) || BasicResources.IsFoundationAction(action);
             if (improves && AllowExecution(action, board)) cheapest = action.APCost;
         }
@@ -309,6 +317,7 @@ public sealed class AIStrategicGovernor
     {
         if (Mode != StrategicMode.EmergencyDefense) return false;
         if (IsEmergencyDefenseRequired(action, board)) return true;
+        if (HousingAssessment(action, board).EmergencySupply) return true;
         if (action.ActionType != AIActionType.Summon) return false;
         var definition = action.SummonDefinition ?? board.ResolveUnitDefinition(action.SummonKind);
         if (definition?.actionProfile?.CanAttack == false) return false;
@@ -447,6 +456,11 @@ public sealed class AIStrategicGovernor
     }
     public void Telemetry(AIAction action,bool success)
     {
+        if (AIHousingConfig.Active.EnableDecisionLogs && current != null && DevelopmentLog.IsEnabled(AILogLevel.Verbose))
+        {
+            var housing = HousingAssessment(action, current);
+            if (housing.IsHousing) DevelopmentLog.Log("[AI住宅投資] " + (success ? "建築実行 " : "建築中止 ") + housing.Describe());
+        }
         if (success && Mode == StrategicMode.EmergencyDefense) BasicResources.NotifyEssentialSpend(action, true);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI戦略統括] 方針={Mode} 経済={Economy.State} パン収支={Economy.NetBreadPerTurn:F1} 優先=P{action.StrategicPriority} 結果={(success?"実行":"禁止")} 理由={action.StrategicRejectReason??"安全条件を満たす"}"); }
     }

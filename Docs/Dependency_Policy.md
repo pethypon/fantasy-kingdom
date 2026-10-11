@@ -30,3 +30,15 @@ GentlelandのSteampunkUI、HonetiのGUI、TextMesh Pro／日本語フォント�
 既存コードは主にAssembly-CSharpで動作し、ルールにもUnityの座標・Status参照が残っています。今回、表示アセットや全ルールを別Assemblyへ移す変更は行っていません。移植では入力・表示・ファイル保存を境界として扱い、検証済みの小さな単位から分離します。
 
 更新は `Docs/Upgrade_Checklist.md` に沿ってコピーで試します。Editor、解決済みパッケージ、アセット、ライセンス記録、製品、ビルド情報、セーブfixture、テスト結果を同じリリース記録へ保管してください。
+
+## 維持・置換の分類
+
+| 分類 | 対象 | 判断 |
+| --- | --- | --- |
+| Essential / HIGH | Unity、JsonUtility、物理・描画 | 現在の実行/アセット形式に必要。旧Reader、製品、Editor/SDKを保管する |
+| Essential / Replaceable | InputSystem、UGUI、TMP | アダプターの境界で交換する。ルールから参照を増やさない |
+| Replaceable | Gentleland/Honetiの表示素材 | ルールや保存IDに依存させない。素材を交換してもセーブを変更しない |
+| 制作時のみ / 使用状況の確認が必要 | Timeline、VisualScripting、MultiplayerCenter、CollabProxy | 今回未使用と断定して削除しない。参照・ビルド差分を調べてから整理する |
+| 制作時のみ | TestFramework、Profiler、IDE連携 | 製品の本編通信条件にしない |
+
+新規のBinary-only/Native pluginは今回なし。今後追加する場合はHIGH扱いで、ソース/置換可能性、入手記録、OS対応、廃止時のfallbackを確認する。

@@ -199,6 +199,8 @@ public static class SaveGameApplier
         s.DEF = ud.DEF;
         s.Level = s.type == Type.Unit ? Mathf.Clamp(ud.Level, 1, GameConstants.MaxUnitLevel) : ud.Level;
         s.Experience = ud.Experience;
+        ApplyLatestDefinitionStats(s, ud);
+        StatusBalanceRefresh.RecordDefinitionBaseline(s);
         s.ShieldTurns = ud.ShieldTurns;
         s.ShieldActivated = ud.ShieldActivated;
         s.ShieldEverActivated = ud.ShieldEverActivated;
@@ -211,6 +213,8 @@ public static class SaveGameApplier
             s.AssignedSkillId = SkillData.Table.ContainsKey(ud.AssignedSkillId) ? ud.AssignedSkillId : -1;
         else SkillData.AssignFixedSkill(s);
         s.Fatigue = ud.Fatigue;
+        s.UpkeepUnpaidTurns = ud.UpkeepUnpaidTurns;
+        s.BuildingOperationAvailable = ud.BuildingOperationAvailable;
         s.SurvivalInstinctUsed = ud.SurvivalInstinctUsed;
 
         if (StableSaveKeys.TryParse<Direction>(ud.Direction, out var dir))
@@ -234,6 +238,22 @@ public static class SaveGameApplier
 
         s.gameObject.SetActive(ud.IsActive);
     }
+
+    // Use current formal settings, retaining runtime rewards as a delta from the saved baseline.
+    // v0-v7 lack that baseline: preserve their exact stats rather than guessing away earned bonuses.
+    static void ApplyLatestDefinitionStats(Status actor, SaveSystem.UnitSaveData saved)
+    {
+        if (!saved.HasDefinitionStatSnapshot || !StatusBalanceRefresh.TryGetDefinitionStats(actor,
+            out int definitionHP, out int definitionATK, out int definitionDEF)) return;
+        int oldMaxHP = saved.MaxHP > 0 ? saved.MaxHP : saved.HP;
+        actor.MaxHP = AddDefinitionDelta(definitionHP, oldMaxHP, saved.DefinitionMaxHP, 1);
+        actor.ATK = AddDefinitionDelta(definitionATK, saved.ATK, saved.DefinitionATK, 0);
+        actor.DEF = AddDefinitionDelta(definitionDEF, saved.DEF, saved.DefinitionDEF, 0);
+        actor.HP = saved.HP <= 0 ? 0 : Mathf.Clamp((int)System.Math.Min(int.MaxValue,
+            System.Math.Round((double)saved.HP / System.Math.Max(1, oldMaxHP) * actor.MaxHP)), 1, actor.MaxHP);
+    }
+    static int AddDefinitionDelta(int current, int saved, int baseline, int minimum)
+        => (int)System.Math.Max(minimum, System.Math.Min(int.MaxValue, (long)current + saved - baseline));
 
     /// <summary>
     /// シーン上の既存駒にマッチしなかったセーブエントリ（召喚ユニット・建築物）を再生成する。

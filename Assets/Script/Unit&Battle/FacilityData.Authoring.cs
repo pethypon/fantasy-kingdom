@@ -1,5 +1,7 @@
 public static partial class FacilityData
 {
+    public static bool HasAuthoredRecipe(Status building) => building != null
+        && (building.AuthoredFacility != null || FacilityAuthoringCatalog.Loaded?.FindStandard(building.facilityKind) != null);
     public static FacilityLevelData GetLevel(Status building, int level)
         => building != null && building.AuthoredFacility != null ? building.AuthoredFacility.GetLevel(level)
             : GetLevel(building != null ? building.facilityKind : default, level);

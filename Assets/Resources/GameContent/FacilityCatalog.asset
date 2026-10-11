@@ -12,5 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ff258ce05b7471a9a0d11a3563c004e, type: 3}
   m_Name: FacilityCatalog
   m_EditorClassIdentifier: Assembly-CSharp::FacilityAuthoringCatalog
-  buildings:
-  - {fileID: 11400000, guid: 35d81428acdbc494f8903dd174842030, type: 2}
+  buildings: []

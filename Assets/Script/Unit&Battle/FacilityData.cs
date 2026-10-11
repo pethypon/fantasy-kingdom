@@ -105,7 +105,29 @@ public static partial class FacilityData
     // ==================================================================
     //  基本情報テーブル（後方互換: Lv1 ステータス + ビルドコスト）
     // ==================================================================
-    public static readonly Dictionary<FacilityKind, FacilityInfo> Table;
+    static readonly Dictionary<FacilityKind, FacilityInfo> legacyTable;
+    static Dictionary<FacilityKind, FacilityInfo> resolvedTable;
+    static int resolvedRevision = -1;
+    static bool initializing;
+    public static Dictionary<FacilityKind, FacilityInfo> Table
+    {
+        get
+        {
+            if (initializing) return legacyTable;
+            int revision = GameContentRevision.Revision;
+            if (resolvedTable != null && resolvedRevision == revision) return resolvedTable;
+            var next = new Dictionary<FacilityKind, FacilityInfo>(legacyTable);
+            var catalog = FacilityAuthoringCatalog.Loaded;
+            if (catalog != null) foreach (var pair in legacyTable)
+            {
+                var definition = catalog.FindStandard(pair.Key);
+                if (definition != null) next[pair.Key] = definition.GetInfo(null);
+            }
+            // Replace the view rather than mutating a dictionary that a caller is enumerating.
+            resolvedTable = next; resolvedRevision = GameContentRevision.Revision; return next;
+        }
+    }
+    public static bool IsKnownKind(FacilityKind kind) => legacyTable.ContainsKey(kind);
 
     // ==================================================================
     //  レベルデータテーブル
@@ -117,6 +139,8 @@ public static partial class FacilityData
     /// </summary>
     public static FacilityLevelData GetLevel(FacilityKind kind, int level)
     {
+        var definition = FacilityAuthoringCatalog.Loaded?.FindStandard(kind);
+        if (definition != null) return definition.GetLevel(level, null);
         if (!_levels.TryGetValue(kind, out var arr)) return default;
         int idx = Mathf.Clamp(level - 1, 0, arr.Length - 1);
         return BuildingProductionBalance.Resolve(kind, null, idx + 1, arr[idx]);
@@ -136,8 +160,9 @@ public static partial class FacilityData
     // ==================================================================
     static FacilityData()
     {
+        initializing = true;
         _levels = new Dictionary<FacilityKind, FacilityLevelData[]>();
-        Table = new Dictionary<FacilityKind, FacilityInfo>();
+        legacyTable = new Dictionary<FacilityKind, FacilityInfo>();
 
         // ---- 生産建物 ----
         BuildField();
@@ -157,6 +182,7 @@ public static partial class FacilityData
 
         // ---- サブクリスタル ----
         BuildSubCrystal();
+        initializing = false;
 
         // ---- 攻撃型建築物 ----
         BuildMortar();

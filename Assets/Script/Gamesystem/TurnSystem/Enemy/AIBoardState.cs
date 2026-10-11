@@ -53,6 +53,17 @@ public partial class AIBoardState
     public int NationStarvationCounter => _factionState?.GetNation(ActorTeam)?.StarvationCounter ?? 0;
     public int NationTurnsAlive => _factionState?.GetNation(ActorTeam)?.TurnsAlive ?? TurnCount;
     public int CitizenCapacity => _factionState?.GetCitizenCap(ActorTeam) ?? 5;
+    /// <summary>Read-only strategic input supplied by the existing operation layer; never hidden hostile state.</summary>
+    public int OperationRequiredCitizenDemand { get; set; }
+    public void CollectRecruitDefinitions(List<UnitData> result)
+    {
+        result.Clear();
+        if (_unitSet == null) return;
+        if (_unitSet.UnitDataMap != null) foreach (var pair in _unitSet.UnitDataMap)
+            if (pair.Value != null && pair.Value.AvailableFor(ActorTeam) && !result.Contains(pair.Value)) result.Add(pair.Value);
+        foreach (var definition in _unitSet.AuthoredDefinitions)
+            if (definition != null && definition.AvailableFor(ActorTeam) && !result.Contains(definition)) result.Add(definition);
+    }
     public Team OpponentTeam => ActorTeam == Team.Player ? Team.Enemy : Team.Player;
     public Transform OwnUnitParent => _unitSet == null ? null : ActorTeam == Team.Player ? _unitSet.PlayerUnit : _unitSet.EnemyUnit;
     public Transform OpponentUnitParent => _unitSet == null ? null : ActorTeam == Team.Player ? _unitSet.EnemyUnit : _unitSet.PlayerUnit;

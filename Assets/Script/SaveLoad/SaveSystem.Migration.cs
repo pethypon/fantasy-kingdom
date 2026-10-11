@@ -24,7 +24,7 @@ public static partial class SaveSystem
     static readonly Action<GameSaveData>[] MigrationSteps =
     {
         Migrate_V0_to_V1, Migrate_V1_to_V2, Migrate_V2_to_V3, Migrate_V3_to_V4,
-        Migrate_V4_to_V5, Migrate_V5_to_V6, Migrate_V6_to_V7
+        Migrate_V4_to_V5, Migrate_V5_to_V6, Migrate_V6_to_V7, Migrate_V7_to_V8
     };
     public static bool ValidateMigrationChain(out string reason)
     {
@@ -58,6 +58,13 @@ public static partial class SaveSystem
                 if (unit.HP > 0) unit.HP = (int)Math.Min(unit.MaxHP, (long)unit.HP + 5000);
             }
     }
+    static void Migrate_V7_to_V8(GameSaveData data)
+    {
+        // An old save never recorded the pre-reward definition. Do not invent that history.
+        if (data.Units == null) return;
+        foreach (var unit in data.Units)
+            if (unit != null) unit.HasDefinitionStatSnapshot = false;
+    }
     static void Migrate_V6_to_V7(GameSaveData data)
     {
         Migrate_V0_to_V1(data);
@@ -71,6 +78,8 @@ public static partial class SaveSystem
             if (unit != null)
             {
                 unit.HasMovedThisTurn = unit.FirstSkillUsedThisTurn = unit.DebuffNullifiedThisTurn = unit.InterceptUsedThisTurn = false;
+                unit.UpkeepUnpaidTurns = 0;
+                unit.BuildingOperationAvailable = true;
                 if (unit.MaxHP == 0 && unit.HP >= 0) unit.MaxHP = unit.HP;
                 if (unit.AssignedSkillId == 0) unit.AssignedSkillId = -1; // No shipped skill uses zero; old missing field meant none.
                 if (unit.ActiveEffects == null) unit.ActiveEffects = new List<EffectSaveData>();
@@ -91,6 +100,11 @@ public static partial class SaveSystem
         if (data.EnemyNationExtra.PendingReturns == null) data.EnemyNationExtra.PendingReturns = new List<int>();
         // Missing legacy generation settings explicitly keep the historical scene defaults.
         if (data.MapWidth == 0 && data.MapDepth == 0) data.MapWidth = data.MapDepth = 35;
+        // Old demolition retained hidden building objects at (-1000,-1000,-1000).
+        // These are discarded runtime shells, never placed actors. Keep dead units/crystals and all rule state.
+        data.Units.RemoveAll(unit => unit != null && !unit.IsActive && unit.Kind != "Crystal"
+            && (unit.Type == "Building" || unit.Type == "Wall")
+            && (unit.PosX < 0 || unit.PosZ < 0 || unit.PosX >= data.MapWidth || unit.PosZ >= data.MapDepth));
         if (data.ThreatLevel == 0) data.ThreatLevel = 1;
         if (data.Timer.TurnTimeLimit == 0) data.Timer.TurnTimeLimit = 180;
         if (data.PlayerAP.Reset == 0) data.PlayerAP.Reset = 30;

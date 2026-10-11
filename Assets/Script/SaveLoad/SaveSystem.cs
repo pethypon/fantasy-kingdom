@@ -7,7 +7,7 @@ public static partial class SaveSystem
 {
     const string SaveDir = "saves", ProfileFile = "profile.json";
     const int MaxSlots = 3;
-    public const int CurrentSaveVersion = 7, CurrentProfileVersion = 1;
+    public const int CurrentSaveVersion = 8, CurrentProfileVersion = 1;
     public const string PlayerTurnCheckpoint = "player_turn";
     public const int MaximumSaveBytes = 64 * 1024 * 1024, MaximumProfileBytes = 16 * 1024 * 1024;
     static string testStorageRoot = null;

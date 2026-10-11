@@ -66,11 +66,6 @@ public class PlayerProfiler
     // 攻撃記録
     struct AttackRecord
     {
-        public int Turn;
-        public Kind AttackerKind;
-        public Kind TargetKind;
-        public Vector3Int AttackerPos;
-        public Vector3Int TargetPos;
         public float Distance;
         public bool WasFlank;       // 側面/背後からの攻撃か
         public bool TargetWasWeak;  // 弱った駒を狙ったか
@@ -80,31 +75,25 @@ public class PlayerProfiler
     // 移動記録
     struct MoveRecord
     {
-        public int Turn;
-        public Kind UnitKind;
-        public Vector3Int From;
-        public Vector3Int To;
-        public float DistanceToCrystal; // AI(敵)クリスタルへの距離変化
         public bool IsAdvance;          // 前進したか
     }
 
     // ターン終了時のスナップショット
     struct TurnSnapshot
     {
-        public int Turn;
-        public int PlayerUnitCount;
-        public int PlayerBuildingCount;
-        public float AverageDistToEnemyCrystal;
         public float FormationSpread;
         public bool DidAttack;
         public bool DidBuild;
-        public int DamageDealtThisTurn;
     }
 
     // ---- 蓄積データ ----
     List<AttackRecord> _attackHistory = new List<AttackRecord>();
     List<MoveRecord> _moveHistory = new List<MoveRecord>();
     List<TurnSnapshot> _turnSnapshots = new List<TurnSnapshot>();
+
+    // Sufficient statistics preserve the full existing history; profile updates no longer scan it.
+    int flankAttacks, weakAttacks, advancingMoves, attackingTurns, buildingTurns, earlyAttackingTurns;
+    float attackDistanceSum, targetValueSum, formationSpreadSum;
 
     // ---- 試合中カウンター ----
     int _currentTurnAttacks;
@@ -160,16 +149,15 @@ public class PlayerProfiler
 
         _attackHistory.Add(new AttackRecord
         {
-            Turn = turn,
-            AttackerKind = attacker.kind,
-            TargetKind = target.kind,
-            AttackerPos = aPos,
-            TargetPos = tPos,
             Distance = dist,
             WasFlank = flank,
             TargetWasWeak = targetWeak,
             TargetValueRatio = targetValue / 100f
         });
+
+        if (flank) flankAttacks++;
+        if (targetWeak) weakAttacks++;
+        attackDistanceSum += dist; targetValueSum += targetValue / 100f;
 
         // 攻撃方向の頻度記録
         var direction = new Vector3Int(
@@ -199,14 +187,10 @@ public class PlayerProfiler
 
         _moveHistory.Add(new MoveRecord
         {
-            Turn = turn,
-            UnitKind = unit.kind,
-            From = ToCell(from),
-            To = ToCell(to),
-            DistanceToCrystal = distAfter - distBefore,
             IsAdvance = distAfter < distBefore
         });
 
+        if (distAfter < distBefore) advancingMoves++;
         _totalMoveRecords++;
         IncrementDict(_unitUsageCount, unit.kind);
     }
@@ -254,15 +238,15 @@ public class PlayerProfiler
 
         _turnSnapshots.Add(new TurnSnapshot
         {
-            Turn = turn,
-            PlayerUnitCount = count,
-            PlayerBuildingCount = 0, // 別途追加可能
-            AverageDistToEnemyCrystal = avgDist,
             FormationSpread = spread,
             DidAttack = _currentTurnAttacks > 0,
             DidBuild = false,
-            DamageDealtThisTurn = _currentTurnDamage
         });
+
+        if (_currentTurnAttacks > 0) attackingTurns++;
+        formationSpreadSum += spread;
+        int newMidpoint = _turnSnapshots.Count / 2;
+        if (_turnSnapshots.Count % 2 == 0 && _turnSnapshots[newMidpoint - 1].DidAttack) earlyAttackingTurns++;
 
         // ターンカウンターリセット
         _currentTurnAttacks = 0;
@@ -284,10 +268,7 @@ public class PlayerProfiler
         // ---- 攻撃性スコア ----
         if (_turnSnapshots.Count > 0)
         {
-            int attackTurns = 0;
-            foreach (var s in _turnSnapshots)
-                if (s.DidAttack) attackTurns++;
-            _profile.AggressionScore = (float)attackTurns / _turnSnapshots.Count;
+            _profile.AggressionScore = (float)attackingTurns / _turnSnapshots.Count;
         }
 
         // ---- ラッシュ傾向 ----
@@ -300,9 +281,7 @@ public class PlayerProfiler
         // ---- 亀傾向 ----
         if (_turnSnapshots.Count > 0)
         {
-            float avgSpread = 0f;
-            foreach (var s in _turnSnapshots) avgSpread += s.FormationSpread;
-            avgSpread /= _turnSnapshots.Count;
+            float avgSpread = formationSpreadSum / _turnSnapshots.Count;
             // 密集 + 攻撃少 = 亀
             _profile.TurtleTendency = Mathf.Clamp01((1f - _profile.AggressionScore) *
                 Mathf.Clamp01(1f - avgSpread / 8f));
@@ -311,41 +290,31 @@ public class PlayerProfiler
         // ---- 側面攻撃の好み ----
         if (_attackHistory.Count > 0)
         {
-            int flanks = 0;
-            foreach (var a in _attackHistory) if (a.WasFlank) flanks++;
-            _profile.FlankPreference = (float)flanks / _attackHistory.Count;
+            _profile.FlankPreference = (float)flankAttacks / _attackHistory.Count;
         }
 
         // ---- 好む攻撃距離 ----
         if (_attackHistory.Count > 0)
         {
-            float avgDist = 0f;
-            foreach (var a in _attackHistory) avgDist += a.Distance;
-            _profile.PreferredAttackRange = avgDist / _attackHistory.Count;
+            _profile.PreferredAttackRange = attackDistanceSum / _attackHistory.Count;
         }
 
         // ---- 弱い駒を狙う傾向 ----
         if (_attackHistory.Count > 0)
         {
-            int weakTargets = 0;
-            foreach (var a in _attackHistory) if (a.TargetWasWeak) weakTargets++;
-            _profile.TargetWeakestTendency = (float)weakTargets / _attackHistory.Count;
+            _profile.TargetWeakestTendency = (float)weakAttacks / _attackHistory.Count;
         }
 
         // ---- 高価値ターゲット傾向 ----
         if (_attackHistory.Count > 0)
         {
-            float avgTargetValue = 0f;
-            foreach (var a in _attackHistory) avgTargetValue += a.TargetValueRatio;
-            _profile.TargetHighValueTendency = avgTargetValue / _attackHistory.Count;
+            _profile.TargetHighValueTendency = targetValueSum / _attackHistory.Count;
         }
 
         // ---- クリスタル直行傾向 ----
         if (_moveHistory.Count > 0)
         {
-            int advances = 0;
-            foreach (var m in _moveHistory) if (m.IsAdvance) advances++;
-            _profile.CrystalFocusTendency = (float)advances / _moveHistory.Count;
+            _profile.CrystalFocusTendency = (float)advancingMoves / _moveHistory.Count;
         }
 
         // ---- 平均攻撃開始ターン ----
@@ -354,9 +323,7 @@ public class PlayerProfiler
         // ---- 陣形の広がり ----
         if (_turnSnapshots.Count > 0)
         {
-            float avgSpread = 0f;
-            foreach (var s in _turnSnapshots) avgSpread += s.FormationSpread;
-            _profile.FormationSpread = avgSpread / _turnSnapshots.Count;
+            _profile.FormationSpread = formationSpreadSum / _turnSnapshots.Count;
         }
 
         // ---- 好む攻撃方向 ----
@@ -392,36 +359,16 @@ public class PlayerProfiler
         // ---- 経済重視度 ----
         if (_turnSnapshots.Count > 0)
         {
-            int buildTurns = 0;
-            foreach (var s in _turnSnapshots) if (s.DidBuild) buildTurns++;
-            _profile.EconomyFocus = (float)buildTurns / _turnSnapshots.Count;
+            _profile.EconomyFocus = (float)buildingTurns / _turnSnapshots.Count;
         }
 
         // ---- ターン圧力パターン ----
         if (_turnSnapshots.Count >= 5)
         {
-            float earlyAggression = 0f, lateAggression = 0f;
-            int earlyCount = 0, lateCount = 0;
             int midpoint = _turnSnapshots.Count / 2;
-            for (int i = 0; i < _turnSnapshots.Count; i++)
-            {
-                if (i < midpoint)
-                {
-                    earlyAggression += _turnSnapshots[i].DidAttack ? 1f : 0f;
-                    earlyCount++;
-                }
-                else
-                {
-                    lateAggression += _turnSnapshots[i].DidAttack ? 1f : 0f;
-                    lateCount++;
-                }
-            }
-            if (earlyCount > 0 && lateCount > 0)
-            {
-                float earlyRate = earlyAggression / earlyCount;
-                float lateRate = lateAggression / lateCount;
-                _profile.TurnPressurePattern = lateRate - earlyRate; // 正=後半型, 負=序盤型
-            }
+            float earlyRate = (float)earlyAttackingTurns / midpoint;
+            float lateRate = (float)(attackingTurns - earlyAttackingTurns) / (_turnSnapshots.Count - midpoint);
+            _profile.TurnPressurePattern = lateRate - earlyRate;
         }
 
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[PlayerProfiler] プロファイル更新: " +
@@ -456,6 +403,28 @@ public class PlayerProfiler
             _moveHistory.RemoveRange(0, _moveHistory.Count / 2);
         if (_turnSnapshots.Count > 30)
             _turnSnapshots.RemoveRange(0, _turnSnapshots.Count / 2);
+        RebuildHistoryStatistics();
+    }
+
+    void RebuildHistoryStatistics()
+    {
+        flankAttacks = weakAttacks = advancingMoves = attackingTurns = buildingTurns = earlyAttackingTurns = 0;
+        attackDistanceSum = targetValueSum = formationSpreadSum = 0;
+        foreach (var attack in _attackHistory)
+        {
+            if (attack.WasFlank) flankAttacks++;
+            if (attack.TargetWasWeak) weakAttacks++;
+            attackDistanceSum += attack.Distance; targetValueSum += attack.TargetValueRatio;
+        }
+        foreach (var move in _moveHistory) if (move.IsAdvance) advancingMoves++;
+        int midpoint = _turnSnapshots.Count / 2;
+        for (int i = 0; i < _turnSnapshots.Count; i++)
+        {
+            var snapshot = _turnSnapshots[i];
+            if (snapshot.DidAttack) { attackingTurns++; if (i < midpoint) earlyAttackingTurns++; }
+            if (snapshot.DidBuild) buildingTurns++;
+            formationSpreadSum += snapshot.FormationSpread;
+        }
     }
 
     // ================================================================
@@ -517,7 +486,6 @@ public class PlayerProfiler
 
     static void IncrementDict<TKey>(Dictionary<TKey, int> dict, TKey key)
     {
-        if (dict.ContainsKey(key)) dict[key]++;
-        else dict[key] = 1;
+        dict[key] = dict.TryGetValue(key, out int count) ? count + 1 : 1;
     }
 }

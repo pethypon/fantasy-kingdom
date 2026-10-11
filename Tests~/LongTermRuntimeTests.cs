@@ -139,14 +139,18 @@ public static class LongTermRuntimeTests
         {
             var actor = fixture.Unit();
             actor.HasMovedThisTurn = true; actor.Fatigue = 3; actor.SkillCooldown = 2;
+            actor.UpkeepUnpaidTurns = 3; actor.BuildingOperationAvailable = false;
             actor.direction = Direction.S; actor.specialAbility = SpecialAbility.SwiftPosture;
             string life = actor.ReflectionLifeId;
             var data = JsonUtility.FromJson<SaveSystem.UnitSaveData>(JsonUtility.ToJson(SaveSystem.CaptureUnit(actor)));
             actor.HasMovedThisTurn = false; actor.Fatigue = 0; actor.SkillCooldown = 0; actor.direction = Direction.N;
+            actor.UpkeepUnpaidTurns = 0; actor.BuildingOperationAvailable = true;
             SaveGameApplier.ApplyStatusFields(actor, data);
             Check("moved flag/fatigue/cooldown/direction survive save roundtrip", actor.HasMovedThisTurn && actor.Fatigue == 3
                 && actor.SkillCooldown == 2 && actor.direction == Direction.S);
             Check("restored unit keeps its stable life ID", actor.ReflectionLifeId == life);
+            Check("upkeep debt and paid-building operation state survive the checkpoint", actor.UpkeepUnpaidTurns == 3
+                && !actor.BuildingOperationAvailable);
             Check("loaded moved unit cannot regain first-move AP discount", SpecialAbilitySystem.GetMoveAPReduction(actor) == 0);
             actor.HasMovedThisTurn = false;
             var unmoved = JsonUtility.FromJson<SaveSystem.UnitSaveData>(JsonUtility.ToJson(SaveSystem.CaptureUnit(actor)));
@@ -444,6 +448,8 @@ public static class LongTermRuntimeTests
             systems.CrystalSystem = Factions.Crystals; systems.BuildSystem = Factions.Builder;
             systems.APSystem = Factions.AP; systems.TerritorySystem = live.TerritorySystem;
             systems.SummonSystem = go.AddComponent<SummonSystem>();
+            systems.SummonSystem.Init(Hub, live.TerritorySystem, Factions.AP, Factions.State,
+                live.MoveGenerator, live.MapCreate, Factions.Units, null);
         }
         public void DestroyHub() { if (go != null) UnityEngine.Object.DestroyImmediate(go); }
         public void Dispose()

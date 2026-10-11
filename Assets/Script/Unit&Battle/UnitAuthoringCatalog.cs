@@ -17,6 +17,7 @@ public sealed class UnitAuthoringCatalog : ScriptableObject
     }
     public List<Entry> units = new List<Entry>();
     public static UnitAuthoringCatalog Load() => Resources.Load<UnitAuthoringCatalog>(ResourcePath);
+    void OnValidate() => GameContentRevision.NotifyChanged();
 
     public void Apply(Dictionary<Kind, UnitData> data, Dictionary<Kind, GameObject> prefabs)
     {
