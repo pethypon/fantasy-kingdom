@@ -5,7 +5,7 @@ using UnityEngine;
 /// プレイヤーの移動を記録し、Zキーで1手ずつ巻き戻す機能を提供する。
 /// ターン開始時にリセットされる。攻撃は巻き戻せない（不可逆）。
 /// </summary>
-public class MoveUndoSystem
+public class MoveUndoSystem : System.IDisposable
 {
     public struct MoveRecord
     {
@@ -25,7 +25,13 @@ public class MoveUndoSystem
     {
         _apSystem = apSystem;
         _moveGen = moveGen;
-        _apSystem.OnNonMoveAction += team => { if (team == Team.Player) Clear(); };
+        _apSystem.OnNonMoveAction += OnNonMoveAction;
+    }
+    void OnNonMoveAction(Team team) { if (team == Team.Player) Clear(); }
+    public void Dispose()
+    {
+        _apSystem.OnNonMoveAction -= OnNonMoveAction;
+        Clear();
     }
 
     /// <summary>移動を記録する</summary>

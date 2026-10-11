@@ -27,7 +27,7 @@ public static class AIOperationIntegrationTests
         var oldReflection = new AIReflectionBattleState { BattleId = "Operation_Migration" };
         var old = new SaveSystem.GameSaveData { Version = 5, AI = new SaveSystem.AISaveData { Reflection = oldReflection } };
         typeof(SaveSystem).GetMethod("RunMigrations", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { old });
-        Check("v5 migration introduces no invented operation and retains action memory", old.Version == 6 && old.AI.Operations == null
+        Check("v5 migration introduces no invented operation and retains action memory", old.Version == SaveSystem.CurrentSaveVersion && old.AI.Operations == null
             && ReferenceEquals(old.AI.Reflection, oldReflection));
         Debug.Log("[OperationRuntime] " + passed + " real FoW/Commander/save/fallback checks passed");
     }

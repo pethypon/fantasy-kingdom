@@ -18,6 +18,7 @@ public sealed class AIOperationScorer
     public AIOperationEvaluationResult Evaluate(AIOperationPlan operation, AIOperationContext start,
         AIOperationContext end, IReadOnlyList<AIActionRecord> actions, bool provisional = false)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.OperationScoring);
         if (operation == null) throw new ArgumentNullException(nameof(operation));
         start = start ?? operation.StartContext ?? new AIOperationContext();
         end = end ?? operation.CurrentContext ?? start;

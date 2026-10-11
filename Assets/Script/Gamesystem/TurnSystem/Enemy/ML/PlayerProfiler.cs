@@ -424,14 +424,14 @@ public class PlayerProfiler
             }
         }
 
-        DevelopmentLog.Log($"[PlayerProfiler] プロファイル更新: " +
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[PlayerProfiler] プロファイル更新: " +
                   $"攻撃性={_profile.AggressionScore:F2} " +
                   $"ラッシュ={_profile.RushTendency:F2} " +
                   $"亀={_profile.TurtleTendency:F2} " +
                   $"側面={_profile.FlankPreference:F2} " +
                   $"クリスタル直行={_profile.CrystalFocusTendency:F2} " +
                   $"信頼度={_profile.Confidence:F2} " +
-                  $"観測数={totalObs}");
+                  $"観測数={totalObs}"); }
     }
 
     // ================================================================

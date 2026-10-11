@@ -141,16 +141,29 @@ public static class SystemInitializer
         SummonSystem summonSystem,
         FactionState factionState,
         SkillSystem skillSystem,
-        SubCrystalSystem subCrystalSystem)
+        SubCrystalSystem subCrystalSystem, SaveSystem.GameSaveData savedGame = null)
     {
-        var aiMajor = AIPersonality.RandomMajor();
-        int threatLevel = SaveSystem.LoadProfile().ThreatLevel;
+        int seed = savedGame?.AI != null && savedGame.AI.HasDeterministicSeed
+            ? savedGame.AI.RngSeed : System.Environment.TickCount & int.MaxValue;
+        var aiMajor = AIPersonality.RandomMajor(seed);
+        int threatLevel = savedGame != null ? savedGame.ThreatLevel : SaveSystem.LoadProfile().ThreatLevel;
+        PersonalityTraits traits = null;
+        if (savedGame?.AI != null)
+        {
+            var savedAI = savedGame.AI;
+            if (StableSaveKeys.TryParse<MajorPersonality>(savedAI.MajorPersonality, out var savedMajor)) aiMajor = savedMajor;
+            int total = savedAI.TraitCaution + savedAI.TraitCommand + savedAI.TraitObsession
+                + savedAI.TraitDefense + savedAI.TraitTactics + savedAI.TraitDevelopment;
+            if (total == 300) traits = new PersonalityTraits {
+                Caution = savedAI.TraitCaution, Command = savedAI.TraitCommand, Obsession = savedAI.TraitObsession,
+                Defense = savedAI.TraitDefense, Tactics = savedAI.TraitTactics, Development = savedAI.TraitDevelopment };
+        }
         turnGen.Systems.AICommander = new AICommander(
             turnGen, moveGenerator, turnGen.Systems.AttackGenerator,
             turnGen.Systems.BattleSystem, visionGenerator,
             apSystem, unitSetting, crystalSystem, mapCreate, aiMajor,
             buildSystem, summonSystem, factionState, skillSystem,
-            subCrystalSystem, threatLevel);
+            subCrystalSystem, threatLevel, seed, Team.Enemy, traits);
     }
 
     // ================================================================

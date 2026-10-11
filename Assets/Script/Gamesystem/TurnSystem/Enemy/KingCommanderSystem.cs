@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -64,7 +64,7 @@ public class KingCommanderSystem
     {
         _kingPersonality = kingPersonality;
         _rng = rng;
-        DevelopmentLog.Log("[KingCommanderSystem] 階層指揮システム初期化完了");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Summary)) DevelopmentLog.Summary("[KingCommanderSystem] 階層指揮システム初期化完了"); }
     }
 
     // ================================================================
@@ -81,7 +81,7 @@ public class KingCommanderSystem
         int availableUnits = CountAvailableUnits(allEnemyUnits);
         if (availableUnits < 5)
         {
-            DevelopmentLog.Log($"[KingCommanderSystem] ユニット{availableUnits}体 → 師団なし（全て王直轄）");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommanderSystem] ユニット{availableUnits}体 → 師団なし（全て王直轄）"); }
             return;
         }
 
@@ -101,7 +101,7 @@ public class KingCommanderSystem
             _divisions.Add(division);
         }
 
-        DevelopmentLog.Log($"[KingCommanderSystem] 師団長{_divisions.Count}体を選出");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommanderSystem] 師団長{_divisions.Count}体を選出"); }
     }
 
     // ================================================================
@@ -181,8 +181,8 @@ public class KingCommanderSystem
         for (int i = 0; i < kingCount; i++)
             _kingDirectUnits.Add(forKing[i]);
 
-        DevelopmentLog.Log($"[KingCommanderSystem] 兵割当: 王直轄={_kingDirectUnits.Count}  " +
-                  $"師団={string.Join(", ", GetDivisionUnitCounts())}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommanderSystem] 兵割当: 王直轄={_kingDirectUnits.Count}  " +
+                  $"師団={string.Join(", ", GetDivisionUnitCounts())}"); }
     }
 
     // ================================================================
@@ -205,7 +205,7 @@ public class KingCommanderSystem
             _turnProposals.Add(proposal);
         }
 
-        DevelopmentLog.Log($"[KingCommanderSystem] {_turnProposals.Count}件の提案を受領");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommanderSystem] {_turnProposals.Count}件の提案を受領"); }
         return _turnProposals;
     }
 
@@ -245,8 +245,8 @@ public class KingCommanderSystem
             return b.TotalScore.CompareTo(a.TotalScore);
         });
 
-        DevelopmentLog.Log($"[KingCommander] === 採択処理開始 === 利用可能AP={totalAvailableAP}  " +
-                  $"戦略={kingStrategy}  提案数={sortedProposals.Count}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] === 採択処理開始 === 利用可能AP={totalAvailableAP}  " +
+                  $"戦略={kingStrategy}  提案数={sortedProposals.Count}"); }
 
         foreach (var proposal in sortedProposals)
         {
@@ -297,11 +297,11 @@ public class KingCommanderSystem
             // ---- 採択 ----
             AcceptProposal(proposal, acceptedActions);
 
-            DevelopmentLog.Log($"[KingCommander] 採択: {proposal}  整合度={alignmentScore:F1}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 採択: {proposal}  整合度={alignmentScore:F1}"); }
         }
 
-        DevelopmentLog.Log($"[KingCommander] === 採択処理完了 === " +
-                  $"採択行動数={acceptedActions.Count}  予約AP={_reservedAP}/{totalAvailableAP}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] === 採択処理完了 === " +
+                  $"採択行動数={acceptedActions.Count}  予約AP={_reservedAP}/{totalAvailableAP}"); }
 
         return acceptedActions;
     }
@@ -319,7 +319,7 @@ public class KingCommanderSystem
             // ユニット競合チェック
             if (action.Unit != null && _reservedUnits.Contains(action.Unit))
             {
-                DevelopmentLog.Log($"[KingCommander] 部分不採用(ConflictUnit): {action}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 部分不採用(ConflictUnit): {action}"); }
                 continue;
             }
 
@@ -332,15 +332,15 @@ public class KingCommanderSystem
                 || action.ActionType == AIActionType.DefenseRepos;
             if (isMoveAction && _reservedTiles.Contains(targetCell))
             {
-                DevelopmentLog.Log($"[KingCommander] 部分不採用(ConflictTile): {action}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 部分不採用(ConflictTile): {action}"); }
                 continue;
             }
 
             // AP予算チェック
             if (_reservedAP + action.APCost > totalAvailableAP)
             {
-                DevelopmentLog.Log($"[KingCommander] 部分不採用(BudgetAP): {action} " +
-                          $"(予約AP={_reservedAP}+{action.APCost}>{totalAvailableAP})");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 部分不採用(BudgetAP): {action} " +
+                          $"(予約AP={_reservedAP}+{action.APCost}>{totalAvailableAP})"); }
                 continue;
             }
 
@@ -364,8 +364,8 @@ public class KingCommanderSystem
         else
         {
             proposal.Accepted = true;
-            DevelopmentLog.Log($"[KingCommander] 部分採択: {proposal.DivisionName} " +
-                      $"{acceptedCount}/{proposal.Actions.Count}件");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 部分採択: {proposal.DivisionName} " +
+                      $"{acceptedCount}/{proposal.Actions.Count}件"); }
         }
     }
 
@@ -405,9 +405,9 @@ public class KingCommanderSystem
         proposal.Rejection = reason;
         proposal.RejectionDetail = detail;
 
-        DevelopmentLog.Log($"[KingCommander] 不採用: {proposal.DivisionName}  " +
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 不採用: {proposal.DivisionName}  " +
                   $"理由={reason}  詳細=\"{detail}\"  " +
-                  $"提案内容=[{proposal}]");
+                  $"提案内容=[{proposal}]"); }
     }
 
     // ================================================================
@@ -524,8 +524,8 @@ public class KingCommanderSystem
     // ================================================================
     public void LogTurnSummary(int turnCount)
     {
-        DevelopmentLog.Log($"=== [KingCommander] ターン{turnCount} 師団長制ログ ===");
-        DevelopmentLog.Log($"[KingCommander] 師団数={_divisions.Count}  王直轄={_kingDirectUnits.Count}体");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"=== [KingCommander] ターン{turnCount} 師団長制ログ ==="); }
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 師団数={_divisions.Count}  王直轄={_kingDirectUnits.Count}体"); }
 
         int accepted = 0, rejected = 0;
         foreach (var proposal in _turnProposals)
@@ -533,19 +533,19 @@ public class KingCommanderSystem
             if (proposal.Accepted)
             {
                 accepted++;
-                DevelopmentLog.Log($"[KingCommander] 採択: {proposal}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 採択: {proposal}"); }
             }
             else
             {
                 rejected++;
-                DevelopmentLog.Log($"[KingCommander] 不採用: {proposal.DivisionName}  " +
-                          $"reason={proposal.Rejection}  detail=\"{proposal.RejectionDetail}\"");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 不採用: {proposal.DivisionName}  " +
+                          $"reason={proposal.Rejection}  detail=\"{proposal.RejectionDetail}\""); }
             }
         }
 
-        DevelopmentLog.Log($"[KingCommander] 採択率: {accepted}/{accepted + rejected}  " +
-                  $"予約AP={_reservedAP}");
-        DevelopmentLog.Log($"=== [KingCommander] ターン{turnCount} ログ終了 ===");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[KingCommander] 採択率: {accepted}/{accepted + rejected}  " +
+                  $"予約AP={_reservedAP}"); }
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"=== [KingCommander] ターン{turnCount} ログ終了 ==="); }
     }
 
     // ================================================================

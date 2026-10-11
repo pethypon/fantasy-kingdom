@@ -232,6 +232,11 @@ public sealed class AIReflectionInterval
     internal void RebuildPatternIndex() { index = null; EnsureIndex(); }
 }
 
+/// <summary>
+/// Responsibility: existing interval file report, separate from the on-demand overlay.
+/// Lifetime/Owner: battle / reflection. Maximum retained items: one report and one path, no history list.
+/// Cleanup: BeginBattle resets presentation references. Failure: recoverable I/O errors leave AI running.
+/// </summary>
 public sealed class AIDiaryWriter
 {
     readonly AIReflectionConfig config;
@@ -239,6 +244,7 @@ public sealed class AIDiaryWriter
     readonly string directory;
     public string LastText { get; private set; }
     public string LastPath { get; private set; }
+    public void Reset() { LastText = null; LastPath = null; }
     public void SetPersistenceAllowed(bool allowed) { persistent &= allowed; }
     public AIDiaryWriter(string storageRoot, AIReflectionConfig config, bool persistent = true)
     {
@@ -247,6 +253,7 @@ public sealed class AIDiaryWriter
     }
     public void Write(AIReflectionBattleState state, string result)
     {
+        using var measured = AIPerformanceCounters.Measure(AIPerformanceStage.Diary);
         var interval = state.Interval;
         if (interval.FirstOwnTurn < 0) interval.FirstOwnTurn = Math.Max(1, state.LastDiaryOwnTurn < state.OwnTurns
             ? state.LastDiaryOwnTurn + 1 : state.OwnTurns - Math.Max(1, config.DiaryIntervalOwnTurns) + 1);
@@ -299,6 +306,7 @@ public sealed class AIDiaryWriter
         LastText = builder.ToString(); LastPath = null;
         if (persistent && config.EnableFileDiary)
         {
+            using var persisted = AIPerformanceCounters.Measure(AIPerformanceStage.Persistence);
             try
             {
                 Directory.CreateDirectory(directory);
@@ -306,12 +314,13 @@ public sealed class AIDiaryWriter
                     + "_Turn" + state.OwnTurns + ".txt";
                 LastPath = Path.Combine(directory, name);
                 File.WriteAllText(LastPath, LastText, new UTF8Encoding(false));
+                AIPerformanceCounters.MarkFileWrite();
             }
             catch (Exception exception) when (AIReflectionSaveRepository.IsRecoverable(exception))
             { Debug.LogWarning("[AI自己評価] 日記を保存できませんでした。AIは続行します: " + exception.Message); }
         }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (config.EnableConsoleDiary)
+        if (config.EnableConsoleDiary && DevelopmentLog.IsEnabled(AILogLevel.Summary))
             Debug.Log("[AI日記] " + state.Faction + " 自軍ターン" + state.OwnTurns + " " + result
                 + " 行動=" + interval.Actions + " 成功=" + interval.Successful + " 失敗=" + interval.Failed
                 + " 反復=" + interval.Repeated + " 期間報酬=" + interval.Reward.ToString("F2")

@@ -40,6 +40,7 @@ public sealed class AIDelayedCreditAssigner
 {
     readonly AIReflectionConfig config;
     readonly List<AIDelayedActionEvidence> recent = new List<AIDelayedActionEvidence>();
+    public int Count => recent.Count;
     int Window => Mathf.Clamp(config.DelayedCreditWindow, 1, 64);
     float RewardLimit => Mathf.Clamp(AIReflectionConfig.Finite(config.MaxDelayedRewardPerAction, 1), 0, 3);
     public AIDelayedCreditAssigner(AIReflectionConfig config = null)
@@ -47,6 +48,7 @@ public sealed class AIDelayedCreditAssigner
 
     public void Remember(AIActionRecord record)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.DelayedCredit);
         if (record == null || record.ActionId <= 0) return;
         for (int i = 0; i < recent.Count; i++) if (recent[i].ActionId == record.ActionId) return;
         bool supportSkill = record.ActionType == AIActionType.SkillUse && record.Outcome != null
@@ -72,6 +74,7 @@ public sealed class AIDelayedCreditAssigner
 
     public List<AIDelayedCreditCorrection> ApplyOutcome(AIDelayedOutcomeEvent outcome)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.DelayedCredit);
         var corrections = new List<AIDelayedCreditCorrection>();
         if (outcome == null || !ValidEvent(outcome.EventId) || AIReflectionConfig.Finite(outcome.Reward) <= 0) return corrections;
         float basis = Mathf.Clamp(AIReflectionConfig.Finite(config.DelayedCreditBaseReward, .5f), 0, RewardLimit)

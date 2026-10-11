@@ -36,10 +36,10 @@ public class DivisionCommander
     {
         Index = index;
         Personality = new AIPersonality(major, seed);
-        DevelopmentLog.Log($"[DivisionCommander] {Name} 生成完了  性格={major}  " +
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[DivisionCommander] {Name} 生成完了  性格={major}  " +
                   $"慎重={Personality.Traits.Caution} 指揮={Personality.Traits.Command} " +
                   $"執着={Personality.Traits.Obsession} 防衛={Personality.Traits.Defense} " +
-                  $"戦術={Personality.Traits.Tactics} 発展={Personality.Traits.Development}");
+                  $"戦術={Personality.Traits.Tactics} 発展={Personality.Traits.Development}"); }
     }
 
     /// <summary>セーブデータからの復元用</summary>
@@ -57,7 +57,7 @@ public class DivisionCommander
         for (int i = 0; i < count; i++)
             AssignedUnits.Add(units[i]);
 
-        DevelopmentLog.Log($"[DivisionCommander] {Name} に{AssignedUnits.Count}体を割当");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[DivisionCommander] {Name} に{AssignedUnits.Count}体を割当"); }
     }
 
     /// <summary>
@@ -175,7 +175,7 @@ public class DivisionCommander
         // 提案理由を生成
         proposal.Reason = GenerateProposalReason(proposal, kingStrategy);
 
-        DevelopmentLog.Log($"[DivisionCommander] {Name} 提案: {proposal}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[DivisionCommander] {Name} 提案: {proposal}"); }
         return proposal;
     }
 

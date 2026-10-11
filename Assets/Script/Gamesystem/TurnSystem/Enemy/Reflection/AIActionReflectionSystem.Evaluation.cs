@@ -168,6 +168,7 @@ public sealed partial class AIActionReflectionSystem
 
     void ApplyRecordCorrection(AIActionRecord record, AIRewardBreakdown before, int occurrenceTurn)
     {
+        MarkDiaryChanged();
         float previousReward = record.Reward;
         record.RewardBreakdown.Clamp(config); record.Reward = record.RewardBreakdown.Total;
         record.ImmediateReward = record.Reward - record.RewardBreakdown.Economy - record.RewardBreakdown.DelayedReward;
@@ -207,7 +208,7 @@ public sealed partial class AIActionReflectionSystem
     void LogReward(AIActionRecord record)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (config.EnableCandidateDebug)
+        if (config.EnableCandidateDebug && DevelopmentLog.IsEnabled(AILogLevel.Trace))
             Debug.Log("[AI自己評価結果] turn=" + record.Turn + " action=" + record.ActionType + " id=" + record.ActionId
                 + " role=" + record.ActorRole + " context=" + record.ContextKey
                 + " base=" + record.BaseScore.ToString("F2") + " learned=" + record.LearnedModifier.ToString("F2")

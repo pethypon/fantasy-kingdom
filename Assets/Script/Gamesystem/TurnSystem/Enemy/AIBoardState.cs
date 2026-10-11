@@ -190,6 +190,7 @@ public partial class AIBoardState
     // ---- 盤面情報を最新に更新 ----
     public void Refresh()
     {
+        using var measurement = AIPerformanceCounters.Measure(AIPerformanceStage.BoardSnapshot);
         Generation++;
         NearestAllyCache.Clear(); AllyDensityCache.Clear(); HealerCache.Clear(); CounterCache.Clear();
         knownCells.Clear();
@@ -406,20 +407,30 @@ public partial class AIBoardState
         var offsets = MovePatterns.Offsets(unit);
         var result = new List<Vector3>(offsets.Count);
         int direction = MovePatterns.IsDirectionIndependent(unit) ? 1 : MovePatterns.DirZ(unit.direction);
+        int originX = Mathf.RoundToInt(unitPos.x), originZ = Mathf.RoundToInt(unitPos.z);
+        var ownCrystal = GridHelper.ToGrid(EnemyCrystalPos);
+        bool opponentCrystalKnown = CanUsePlayerCrystalAsTarget();
+        var opponentCrystal = opponentCrystalKnown ? GridHelper.ToGrid(PlayerCrystalPos) : default;
         // Terrain discovery is information, not a movement restriction. Use the
         // same local movement mask as player/simulation, without scanning the entire map.
-        foreach (var offset in offsets)
+        // Indexing the read-only mask avoids boxing its array/interface enumerator.
+        for (int i = 0; i < offsets.Count; i++)
         {
-            int x = Mathf.RoundToInt(unitPos.x) + offset.x;
-            int z = Mathf.RoundToInt(unitPos.z) + offset.y * direction;
+            var offset = offsets[i];
+            int x = originX + offset.x;
+            int z = originZ + offset.y * direction;
             if (!_moveGen.mapcreate.TryGetHeight(x, z, out float height)) continue;
             var p = new Vector3(x, height, z);
             if (!MovePatterns.CanMove(unit, unit.direction, p.x - unitPos.x, p.z - unitPos.z)) continue;
             if (!_moveGen.mapcreate.CanTraverse(unitPos, p)) continue;
-            bool occupied = GridHelper.MatchXZ(p, GridHelper.ToGrid(EnemyCrystalPos))
-                || (CanUsePlayerCrystalAsTarget() && GridHelper.MatchXZ(p, GridHelper.ToGrid(PlayerCrystalPos)));
-            foreach (var ally in AliveEnemyUnits) if (GridHelper.MatchXZ(p, ally.GridPosition)) occupied = true;
-            foreach (var enemy in AlivePlayerUnits) if (GridHelper.MatchXZ(p, enemy.GridPosition)) occupied = true;
+            bool occupied = GridHelper.MatchXZ(p, ownCrystal)
+                || (opponentCrystalKnown && GridHelper.MatchXZ(p, opponentCrystal));
+            if (occupied) continue;
+            foreach (var ally in AliveEnemyUnits)
+                if (GridHelper.MatchXZ(p, ally.GridPosition)) { occupied = true; break; }
+            if (occupied) continue;
+            foreach (var enemy in AlivePlayerUnits)
+                if (GridHelper.MatchXZ(p, enemy.GridPosition)) { occupied = true; break; }
             if (!occupied) result.Add(p);
         }
         result.Sort(CompareMoveCells);
@@ -437,6 +448,11 @@ public partial class AIBoardState
     {
         var unitPos = unit.transform.position;
         var targets = new List<Status>();
+
+        // These are the only sources consumed below. With neither an observed hostile (including
+        // buildings/third factions) nor a living visible crystal, a full-map attack query cannot
+        // produce a candidate. Return caller-owned storage and leave presentation data untouched.
+        if (AlivePlayerUnits.Count == 0 && (!PlayerCrystalVisible || PlayerCrystalHP <= 0)) return targets;
 
         _attackPoint.NormalAttackPData(unit, unitPos);
         if (_attackPoint.AttackP == null) return targets;
@@ -497,6 +513,9 @@ public partial class AIBoardState
             case SkillTarget.EnemyOrBuilding:
             case SkillTarget.LowHPEnemy:
             case SkillTarget.FlyingEnemy:
+                // These four branches consume observed hostile actors only; self/ally/ground-area
+                // branches retain their existing queries even when no hostile has been observed.
+                if (AlivePlayerUnits.Count == 0) return targets;
                 // スキル攻撃範囲を計算して敵を検索
                 _attackPoint.SkillAttackPData(unit, unitPos);
                 if (_attackPoint.AttackP != null)

@@ -31,10 +31,10 @@ public class AIPersonality
     {
         Major = major;
         Traits = GenerateTraits(seed >= 0 ? seed : System.Environment.TickCount);
-        DevelopmentLog.Log($"[AIPersonality] 大きい性格={Major}  " +
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIPersonality] 大きい性格={Major}  " +
                   $"慎重={Traits.Caution} 指揮={Traits.Command} 執着={Traits.Obsession} " +
                   $"防衛={Traits.Defense} 戦術={Traits.Tactics} 発展={Traits.Development} " +
-                  $"合計={Traits.Total}");
+                  $"合計={Traits.Total}"); }
     }
 
     /// <summary>セーブデータから性格を復元する</summary>
@@ -42,7 +42,7 @@ public class AIPersonality
     {
         Major = major;
         Traits = traits;
-        DevelopmentLog.Log($"[AIPersonality] セーブから復元: 大きい性格={Major}  合計={Traits.Total}pt");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIPersonality] セーブから復元: 大きい性格={Major}  合計={Traits.Total}pt"); }
     }
 
     // ---- BOSSが生存しているかチェック ----

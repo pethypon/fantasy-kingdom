@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerMove : TurnState
 {
@@ -296,8 +295,7 @@ public class PlayerMove : TurnState
     // ---- カメラフォーカス（Cキー） ----
     private void HandleCameraFocus()
     {
-        if (Keyboard.current == null) return;
-        if (!Keyboard.current.cKey.wasPressedThisFrame) return;
+        if (!Context.FocusSelectedDown) return;
 
         Status target = Context.SelectUnit;
         if (target == null || Context.CameraObject == null) return;
@@ -309,8 +307,7 @@ public class PlayerMove : TurnState
     // ---- ユニット巡回（Tabキー） ----
     private void HandleUnitCycle()
     {
-        if (Keyboard.current == null) return;
-        if (!Keyboard.current.tabKey.wasPressedThisFrame) return;
+        if (!Context.CycleUnitDown) return;
         if (Systems.UnitSetting == null) return;
 
         var playerParent = Systems.UnitSetting.PlayerUnit;
@@ -320,7 +317,7 @@ public class PlayerMove : TurnState
         var reg = UnitRegistry.Instance;
         if (reg == null) playerParent.GetComponentsInChildren<Status>(false, cycleFallback);
         var source = reg != null ? reg.PlayerUnits : cycleFallback;
-        bool backwards = Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed;
+        bool backwards = Context.CycleUnitBackwards;
         Status next = FindCycleTarget(source, Context.SelectUnit, backwards);
         if (next == null || next == Context.SelectUnit) return;
 
@@ -365,8 +362,7 @@ public class PlayerMove : TurnState
     // ---- 移動取り消し（Zキー） ----
     private void HandleUndo()
     {
-        if (Keyboard.current == null) return;
-        if (!Keyboard.current.zKey.wasPressedThisFrame) return;
+        if (!Context.UndoMoveDown) return;
         if (Systems.MoveUndoSystem == null) return;
         if (!Systems.MoveUndoSystem.CanUndo) return;
 

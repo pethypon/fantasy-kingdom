@@ -2,7 +2,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 
 // =====================================================================
 //  GameMenuUI — インゲームメニュー（ポーズメニュー）
@@ -19,7 +18,6 @@ public class GameMenuUI : MonoBehaviour
     private GameObject overlay;
     private GameObject slotPanel;
     private bool isSaveMode; // true=セーブ, false=ロード
-    private InputAction backAction;
 
     // ゲームシステム参照（セーブ用）
     private TurnGenerator turnGen;
@@ -32,22 +30,8 @@ public class GameMenuUI : MonoBehaviour
 
     void OnDestroy()
     {
-        backAction?.Dispose();
         if (Instance == this) Instance = null;
     }
-
-    void OnEnable()
-    {
-        if (backAction == null)
-        {
-            backAction = new InputAction("MenuBack", InputActionType.Button, "<Keyboard>/escape");
-            backAction.performed += OnBack;
-        }
-        backAction.Enable();
-    }
-
-    void OnDisable() => backAction?.Disable();
-    void OnBack(InputAction.CallbackContext context) { if (IsOpen) Back(); }
 
     // Close only the topmost menu layer, preserving the user's place underneath.
     public void Back()
@@ -150,6 +134,14 @@ public class GameMenuUI : MonoBehaviour
         threatRT.offsetMin = Vector2.zero;
         threatRT.offsetMax = Vector2.zero;
 
+        var identity = FKBuildInfo.Current;
+        string commit = identity.Commit.Length > 12 ? identity.Commit.Substring(0, 12) : identity.Commit;
+        var buildText = CreateTMP("BuildIdentity", panel.transform,
+            $"v{identity.GameVersion} / Unity {identity.UnityVersion}\n保存形式 {identity.SaveSchema} / {commit}", 14, BrandGuide.TextLabel);
+        var buildRT = buildText.GetComponent<RectTransform>();
+        buildRT.anchorMin = new Vector2(.05f, .015f); buildRT.anchorMax = new Vector2(.95f, .085f);
+        buildRT.offsetMin = buildRT.offsetMax = Vector2.zero;
+
         // ボタンエリア
         var btnArea = new GameObject("BtnArea", typeof(RectTransform));
         btnArea.transform.SetParent(panel.transform, false);
@@ -197,6 +189,8 @@ public class GameMenuUI : MonoBehaviour
 
     private void ShowSlotPanel(bool saveMode)
     {
+        if (saveMode && !SaveCheckpoint.CanCapture(turnGen, out string unavailable))
+        { ToastMessageUI.Show(unavailable, ToastMessageUI.MessageType.Warning, 4f); return; }
         isSaveMode = saveMode;
         if (slotPanel != null) Destroy(slotPanel);
 
@@ -264,6 +258,8 @@ public class GameMenuUI : MonoBehaviour
     {
         if (isSaveMode)
         {
+            if (!SaveCheckpoint.CanCapture(turnGen, out string unavailable))
+            { ToastMessageUI.Show(unavailable, ToastMessageUI.MessageType.Warning, 4f); return; }
             // セーブ実行
             if (turnGen != null && factionState != null)
             {
@@ -272,7 +268,8 @@ public class GameMenuUI : MonoBehaviour
                     turnGen.Systems.TimerSystem,
                     turnGen.Systems.VisionGenerator,
                     turnGen.Systems.AICommander);
-                SaveSystem.SaveGame(slot, data);
+                if (!SaveSystem.TrySaveGame(slot, data, out string failure))
+                { ToastMessageUI.Show(failure, ToastMessageUI.MessageType.Error, 5f); return; }
                 ToastMessageUI.Show($"スロット{slot + 1}にセーブしました", ToastMessageUI.MessageType.Info, 3f);
             }
             Destroy(slotPanel);
@@ -281,13 +278,13 @@ public class GameMenuUI : MonoBehaviour
         else
         {
             // ロード実行 → シーン再読み込み
-            var data = SaveSystem.LoadGame(slot);
-            if (data != null)
+            if (SaveSystem.TryLoadGame(slot, out var data, out string failure))
             {
                 // ロードフラグをstaticに保存（シーン遷移後に参照）
                 PendingLoadSlot = slot;
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
+            else ToastMessageUI.Show(failure, ToastMessageUI.MessageType.Error, 5f);
         }
     }
 

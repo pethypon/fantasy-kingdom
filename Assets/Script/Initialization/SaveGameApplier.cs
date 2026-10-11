@@ -52,6 +52,8 @@ public static class SaveGameApplier
             Debug.LogError("[SaveGameApplier] FactionState が null です");
             return;
         }
+        if (!SaveSystem.ValidateGameData(data, out string validationFailure))
+            throw new System.ArgumentException("セーブを適用できません: " + validationFailure, nameof(data));
 
         Debug.Log($"[SaveGameApplier] ロード適用: Turn{data.Turn} 脅威度{data.ThreatLevel}");
 
@@ -162,7 +164,7 @@ public static class SaveGameApplier
                     sameDefinition &= string.Equals(ud.AuthoredFacilityId,
                         s.AuthoredFacility != null ? s.AuthoredFacility.definitionId : s.authoredFacilityId,
                         System.StringComparison.Ordinal);
-                if (sameDefinition && ud.Kind == s.kind.ToString() && ud.Team == s.team.ToString())
+                if (sameDefinition && ud.Kind == StableSaveKeys.Key(s.kind) && ud.Team == StableSaveKeys.Key(s.team))
                 {
                     ApplyStatusFields(s, ud);
                     usedIndices.Add(i);
@@ -201,27 +203,31 @@ public static class SaveGameApplier
         s.ShieldActivated = ud.ShieldActivated;
         s.ShieldEverActivated = ud.ShieldEverActivated;
         s.SkillCooldown = ud.SkillCooldown;
+        s.HasMovedThisTurn = ud.HasMovedThisTurn;
+        s.FirstSkillUsedThisTurn = ud.FirstSkillUsedThisTurn;
+        s.DebuffNullifiedThisTurn = ud.DebuffNullifiedThisTurn;
+        s.InterceptUsedThisTurn = ud.InterceptUsedThisTurn;
         if (s.GrowthData != null && s.GrowthData.useAuthoredAbilities)
             s.AssignedSkillId = SkillData.Table.ContainsKey(ud.AssignedSkillId) ? ud.AssignedSkillId : -1;
         else SkillData.AssignFixedSkill(s);
         s.Fatigue = ud.Fatigue;
         s.SurvivalInstinctUsed = ud.SurvivalInstinctUsed;
 
-        if (System.Enum.TryParse<Direction>(ud.Direction, out var dir))
+        if (StableSaveKeys.TryParse<Direction>(ud.Direction, out var dir))
             s.direction = dir;
-        if (System.Enum.TryParse<PassiveSkill>(ud.PassiveSkill, out var passive))
+        if (StableSaveKeys.TryParse<PassiveSkill>(ud.PassiveSkill, out var passive))
             s.passiveskill = passive;
         if (!string.IsNullOrEmpty(ud.SpecialAbility)
-            && System.Enum.TryParse<SpecialAbility>(ud.SpecialAbility, out var ability))
+            && StableSaveKeys.TryParse<SpecialAbility>(ud.SpecialAbility, out var ability))
             s.specialAbility = ability;
 
         s.ActiveEffects.Clear();
         foreach (var ef in ud.ActiveEffects)
         {
-            if (System.Enum.TryParse<StatusEffectType>(ef.DebuffType, out var debuff)
+            if (StableSaveKeys.TryParse<StatusEffectType>(ef.DebuffType, out var debuff)
                 && debuff != StatusEffectType.None)
                 s.ActiveEffects.Add(new ActiveEffect(debuff, ef.RemainingTurns));
-            else if (System.Enum.TryParse<BuffType>(ef.BuffType, out var buff)
+            else if (StableSaveKeys.TryParse<BuffType>(ef.BuffType, out var buff)
                      && buff != BuffType.None)
                 s.ActiveEffects.Add(new ActiveEffect(buff, ef.RemainingTurns));
         }
@@ -245,9 +251,9 @@ public static class SaveGameApplier
             // 撃破済み（非アクティブ）の駒は再生成不要
             if (!ud.IsActive) continue;
 
-            if (!System.Enum.TryParse<Team>(ud.Team, out var team)) continue;
+            if (!StableSaveKeys.TryParse<Team>(ud.Team, out var team)) continue;
             if (team != Team.Player && team != Team.Enemy) continue;
-            if (!System.Enum.TryParse<Kind>(ud.Kind, out var kind)) continue;
+            if (!StableSaveKeys.TryParse<Kind>(ud.Kind, out var kind)) continue;
 
             // クリスタルは CrystalSystem.CrystalCore で復元済みのはず
             if (kind == Kind.Crystal)
@@ -259,13 +265,13 @@ public static class SaveGameApplier
             var worldPos = new Vector3(ud.PosX, ud.PosY, ud.PosZ);
             Status spawned = null;
 
-            if (System.Enum.TryParse<Type>(ud.Type, out var type) && type == Type.Unit)
+            if (StableSaveKeys.TryParse<Type>(ud.Type, out var type) && type == Type.Unit)
             {
                 if (summonSystem != null)
                     spawned = summonSystem.SpawnUnitForLoad(kind, team, worldPos, ud.DefinitionId);
             }
             else if (buildSystem != null
-                     && System.Enum.TryParse<FacilityKind>(ud.FacilityKind, out var facility))
+                     && StableSaveKeys.TryParse<FacilityKind>(ud.FacilityKind, out var facility))
             {
                 spawned = buildSystem.PlaceBuildingForLoad(GridHelper.ToGrid(worldPos), facility, team, ud.AuthoredFacilityId);
             }

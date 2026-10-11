@@ -19,6 +19,7 @@ public class FloatingDamageUI : MonoBehaviour
         public GameObject Go;
         public TextMeshPro Text;
         public float ExpireTime;
+        public float Lifetime;
         public Vector3 StartPos;
     }
 
@@ -133,6 +134,17 @@ public class FloatingDamageUI : MonoBehaviour
         // 視界外の位置で発生した演出は抑制（フォグオブウォーの整合性）
         if (!IsPositionVisibleToPlayer(worldPos)) return;
 
+        ActionLogUI.Present(new AIPresentationEvent { Kind = color == KillColor ? AIPresentationKind.Kill : AIPresentationKind.Damage,
+            Popup = true, Position = worldPos, Text = text, Color = color });
+    }
+
+    /// <summary>Presentation sink only. Damage and learning have already completed before this is called.</summary>
+    public static void Deliver(Vector3 worldPos, string text, Color color, float durationMultiplier)
+    { if (Instance != null) Instance.SpawnDirect(worldPos, text, color, durationMultiplier); }
+
+    private void SpawnDirect(Vector3 worldPos, string text, Color color, float durationMultiplier)
+    {
+
         enabled = true;
         if (_pool == null || _pool[_nextIndex].Go == null || _pool[_nextIndex].Text == null) InitPool();
         ref var popup = ref _pool[_nextIndex];
@@ -144,7 +156,8 @@ public class FloatingDamageUI : MonoBehaviour
         popup.Text.alpha = 1f;
         popup.StartPos = worldPos + Vector3.up * YOffset;
         popup.Go.transform.position = popup.StartPos;
-        popup.ExpireTime = Time.time + Duration;
+        popup.Lifetime = Duration * Mathf.Clamp(durationMultiplier, .01f, 1f);
+        popup.ExpireTime = Time.time + popup.Lifetime;
 
         // ビルボード：カメラの方を向く
         if (Camera.main != null)
@@ -173,8 +186,8 @@ public class FloatingDamageUI : MonoBehaviour
 
             // 上昇 + フェードアウト
             anyActive = true;
-            float elapsed = Duration - (popup.ExpireTime - now);
-            float t = elapsed / Duration;
+            float elapsed = popup.Lifetime - (popup.ExpireTime - now);
+            float t = elapsed / popup.Lifetime;
 
             Vector3 pos = popup.StartPos + Vector3.up * (RiseSpeed * elapsed);
             popup.Go.transform.position = pos;

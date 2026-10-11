@@ -114,8 +114,8 @@ public class MLReplayBuffer
             TotalExperiences++;
         }
 
-        DevelopmentLog.Log($"[MLReplayBuffer] 試合記録追加: {n}ステップ  " +
-                  $"終端報酬={terminalReward:F2}  バッファ={_count}/{_capacity}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLReplayBuffer] 試合記録追加: {n}ステップ  " +
+                  $"終端報酬={terminalReward:F2}  バッファ={_count}/{_capacity}"); }
 
         _currentMatchRecords.Clear();
     }

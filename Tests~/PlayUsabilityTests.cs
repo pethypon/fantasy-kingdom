@@ -25,22 +25,36 @@ public static class PlayUsabilityTests
         menu.Back();
         Check("back closes main menu immediately", !menu.IsOpen);
         var keyboard = InputSystem.AddDevice<Keyboard>();
+        var input = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>().GetComponent<TurnInputHandler>();
         var oldBackground = InputSystem.settings.backgroundBehavior;
         var oldEditorInput = InputSystem.settings.editorInputBehaviorInPlayMode;
+        string oldBackOverride = input.MenuBackAction.bindings[0].overridePath;
         InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
         InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
         InputSystem.EnableDevice(keyboard);
         try
         {
             menu.Open();
-            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Escape));
-            // SceneSmoke runs from EditorApplication.update; explicitly process the
-            // player loop, rather than updating only the editor's input state.
-            typeof(InputSystem).GetMethod("Update", BindingFlags.NonPublic | BindingFlags.Static,
-                null, new[] { typeof(InputUpdateType) }, null).Invoke(null, new object[] { InputUpdateType.Dynamic });
+            ReadInput(input, keyboard, Key.Escape);
             Check("Escape input closes menu", !menu.IsOpen);
+            ReadInput(input, keyboard);
+            input.MenuBackAction.ApplyBindingOverride(0, new InputBinding { overridePath = "<Keyboard>/backspace" });
+            menu.Open();
+            ReadInput(input, keyboard, Key.Escape);
+            Check("central menu routing respects a remapped Back action", menu.IsOpen);
+            ReadInput(input, keyboard, Key.Backspace);
+            Check("remapped Back key closes the existing menu", !menu.IsOpen);
         }
-        finally { InputSystem.RemoveDevice(keyboard); InputSystem.settings.backgroundBehavior = oldBackground; InputSystem.settings.editorInputBehaviorInPlayMode = oldEditorInput; menu.Close(); }
+        finally
+        {
+            ReadInput(input, keyboard);
+            if (oldBackOverride == null) input.MenuBackAction.RemoveBindingOverride(0);
+            else input.MenuBackAction.ApplyBindingOverride(0, new InputBinding { overridePath = oldBackOverride });
+            InputSystem.RemoveDevice(keyboard);
+            InputSystem.settings.backgroundBehavior = oldBackground;
+            InputSystem.settings.editorInputBehaviorInPlayMode = oldEditorInput;
+            menu.Close();
+        }
         var log = ActionLogUI.Instance;
         if (log != null)
         {
@@ -51,12 +65,23 @@ public static class PlayUsabilityTests
             bool passive = true;
             foreach (var g in log.GetComponentsInChildren<Graphic>()) passive &= !g.raycastTarget;
             Check("logs cannot block board input", passive);
+            typeof(ActionLogUI).GetMethod("Update", Flags).Invoke(log, null); // Deliver the preceding critical display before the next fixture.
             ((System.Collections.IList)typeof(ActionLogUI).GetField("_entries", Flags).GetValue(log)).Clear();
             ActionLogUI.Log("短いログ");
+            typeof(ActionLogUI).GetMethod("Update", Flags).Invoke(log, null); // Display events are intentionally drained on a render frame.
             typeof(ActionLogUI).GetMethod("RefreshText", Flags).Invoke(log, null);
             var panel = (RectTransform)typeof(ActionLogUI).GetField("_panelRect", Flags).GetValue(log);
             Check("short log shrinks background", panel.rect.height >= 36f && panel.rect.height < 100f);
         }
+    }
+
+    static void ReadInput(TurnInputHandler input, Keyboard keyboard, params Key[] keys)
+    {
+        InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys));
+        // Synthetic events need the same gameplay update followed by the central router as a real frame.
+        typeof(InputSystem).GetMethod("Update", BindingFlags.NonPublic | BindingFlags.Static,
+            null, new[] { typeof(InputUpdateType) }, null).Invoke(null, new object[] { InputUpdateType.Dynamic });
+        input.Tick();
     }
 }
 #endif

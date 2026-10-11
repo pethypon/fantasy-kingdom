@@ -167,8 +167,8 @@ public class CounterStrategyEngine
         // 危険ゾーン予測
         PredictDangerZones(profile, board);
 
-        DevelopmentLog.Log($"[CounterStrategy] 方針={bestPlan}({bestScore:F2})+{secondPlan}({secondScore:F2})  " +
-                  $"ブレンド={_blendRatio:F2}  信頼度={_planConfidence:F2}  修正={_modifiers}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[CounterStrategy] 方針={bestPlan}({bestScore:F2})+{secondPlan}({secondScore:F2})  " +
+                  $"ブレンド={_blendRatio:F2}  信頼度={_planConfidence:F2}  修正={_modifiers}"); }
     }
 
     /// <summary>プラン有効性を記録（試合終了時にMLIntegrationから呼ぶ）</summary>

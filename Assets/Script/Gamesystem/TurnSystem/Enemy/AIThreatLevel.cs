@@ -35,7 +35,7 @@ public class AIThreatLevel
     public AIThreatLevel(int initialLevel = 1)
     {
         Level = Mathf.Clamp(initialLevel, MinLevel, MaxLevel);
-        DevelopmentLog.Log($"[AIThreatLevel] 初期脅威度={Level}  帯={GetTierName()}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIThreatLevel] 初期脅威度={Level}  帯={GetTierName()}"); }
     }
 
     // ================================================================
@@ -296,12 +296,12 @@ public class AIThreatLevel
 
             UpdateLearnedBiases();
 
-            DevelopmentLog.Log($"[AIThreatLevel] Player勝利 → 脅威度{oldLevel}→{Level} (+{increment})  " +
-                      $"帯={GetTierName()}  崩壊原因={analysis.PrimaryFailure}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIThreatLevel] Player勝利 → 脅威度{oldLevel}→{Level} (+{increment})  " +
+                      $"帯={GetTierName()}  崩壊原因={analysis.PrimaryFailure}"); }
         }
         else
         {
-            DevelopmentLog.Log($"[AIThreatLevel] Player敗北 → 脅威度据え置き ({Level})");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIThreatLevel] Player敗北 → 脅威度据え置き ({Level})"); }
         }
     }
 
@@ -348,8 +348,8 @@ public class AIThreatLevel
         LearnedEconomyBias = (economyCount / total) * LearningRate;
         LearnedAggressionBias = (aggressCount / total) * LearningRate;
 
-        DevelopmentLog.Log($"[AIThreatLevel] 学習バイアス更新: 防衛={LearnedDefenseBias:F2} " +
-                  $"経済={LearnedEconomyBias:F2} 攻撃={LearnedAggressionBias:F2}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIThreatLevel] 学習バイアス更新: 防衛={LearnedDefenseBias:F2} " +
+                  $"経済={LearnedEconomyBias:F2} 攻撃={LearnedAggressionBias:F2}"); }
     }
 
     // ================================================================

@@ -27,15 +27,18 @@ public class ActionLogUI : MonoBehaviour
     CanvasGroup _group;
     RectTransform _panelRect;
     bool _dirty = true;
+    AIPresentationQueue presentation;
+    readonly System.Text.StringBuilder textBuffer = new System.Text.StringBuilder(512);
 
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         BuildUI();
+        presentation = new AIPresentationQueue(DeliverPresentation);
     }
 
-    void OnDestroy() { if (Instance == this) Instance = null; }
+    void OnDestroy() { presentation?.Clear(); if (Instance == this) Instance = null; }
 
     void BuildUI()
     {
@@ -101,6 +104,7 @@ public class ActionLogUI : MonoBehaviour
 
     void Update()
     {
+        presentation?.Drain(presentation.CatchUp ? 32 : 8);
         // 古いエントリを削除
         float now = Time.time;
         bool removed = false;
@@ -125,7 +129,7 @@ public class ActionLogUI : MonoBehaviour
             _dirty = false;
             RefreshText();
         }
-        if (_entries.Count == 0 && _group.alpha == 0f) enabled = false;
+        if (_entries.Count == 0 && _group.alpha == 0f && (presentation?.Count ?? 0) == 0) enabled = false;
     }
 
     void RefreshText()
@@ -133,7 +137,7 @@ public class ActionLogUI : MonoBehaviour
         if (_logText == null) return;
         if (_entries.Count == 0) { _logText.text = ""; return; }
 
-        var sb = new System.Text.StringBuilder();
+        var sb = textBuffer; sb.Clear();
         int start = Mathf.Max(0, _entries.Count - MaxEntries);
         for (int i = start; i < _entries.Count; i++)
         {
@@ -151,10 +155,24 @@ public class ActionLogUI : MonoBehaviour
     {
         if (Instance == null) return;
         Instance.enabled = true;
-        Instance._entries.Add(new LogEntry { Text = message, TimeAdded = Time.time });
-        if (Instance._entries.Count > MaxEntries * 2)
-            Instance._entries.RemoveRange(0, Instance._entries.Count - MaxEntries);
-        Instance._dirty = true;
+        Instance.presentation.Enqueue(new AIPresentationEvent { Kind = AIPresentationKind.Log, Text = message });
+    }
+
+    void DeliverPresentation(AIPresentationEvent value)
+    {
+        if (value.Popup) { FloatingDamageUI.Deliver(value.Position, value.Text, value.Color, presentation.AnimationMultiplier); return; }
+        _entries.Add(new LogEntry { Text = value.Text, TimeAdded = Time.time });
+        if (_entries.Count > MaxEntries * 2) _entries.RemoveRange(0, _entries.Count - MaxEntries);
+        _dirty = true;
+    }
+    public static void Present(AIPresentationEvent value)
+    {
+        if (Instance == null)
+        {
+            if (value.Popup) FloatingDamageUI.Deliver(value.Position, value.Text, value.Color, 1f);
+            return;
+        }
+        Instance.enabled = true; Instance.presentation.Enqueue(value);
     }
 
     /// <summary>Playerの移動ログ</summary>
@@ -167,7 +185,8 @@ public class ActionLogUI : MonoBehaviour
     public static void LogAttack(string attackerName, string targetName, int damage, bool killed)
     {
         string killMark = killed ? " <color=#FF8888>撃破</color>" : "";
-        Log($"<color=#FFAA77>攻撃</color> {attackerName}→{targetName} {damage}ダメージ{killMark}");
+        Present(new AIPresentationEvent { Kind = killed ? AIPresentationKind.Kill : AIPresentationKind.Damage,
+            Text = $"<color=#FFAA77>攻撃</color> {attackerName}→{targetName} {damage}ダメージ{killMark}" });
     }
 
     /// <summary>建築ログ</summary>

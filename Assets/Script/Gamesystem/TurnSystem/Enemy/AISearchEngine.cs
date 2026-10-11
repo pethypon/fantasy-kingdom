@@ -164,7 +164,7 @@ public class AISearchEngine
             _elapsedMs = (Time.realtimeSinceStartup * 1000f) - startTime;
             if (_elapsedMs > 2000f || AITurnBudget.Expired) // フォールバック時は2秒制限
             {
-                DevelopmentLog.Log($"[AISearchEngine] フォールバック時間切れ ({_elapsedMs:F0}ms)");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AISearchEngine] フォールバック時間切れ ({_elapsedMs:F0}ms)"); }
                 break;
             }
 
@@ -174,8 +174,8 @@ public class AISearchEngine
         }
 
         _elapsedMs = (Time.realtimeSinceStartup * 1000f) - startTime;
-        DevelopmentLog.Log($"[AISearchEngine] フォールバック先読み完了: " +
-            $"深さ{_maxDepth} 評価{_nodesEvaluated}ノード {_elapsedMs:F0}ms");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AISearchEngine] フォールバック先読み完了: " +
+            $"深さ{_maxDepth} 評価{_nodesEvaluated}ノード {_elapsedMs:F0}ms"); }
 
         return result;
     }

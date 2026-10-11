@@ -19,72 +19,68 @@ public sealed class AIReflectionSaveRepository
             "Learning", this.profileId + ".v2.json");
         LegacyProfilePath = Path.Combine(Path.GetDirectoryName(ProfilePath), this.profileId + ".v1.json");
     }
+    bool futureSchema;
     public AIActionLearningProfile Load()
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Persistence);
+        futureSchema = false;
         var profile = ReadValid(ProfilePath);
         if (profile != null) return profile;
-        profile = ReadValid(ProfilePath + ".bak");
-        if (profile != null) return profile;
-        profile = ReadValid(LegacyProfilePath);
-        if (profile != null) return profile;
-        profile = ReadValid(LegacyProfilePath + ".bak");
+        if (!futureSchema) profile = ReadValid(LegacyProfilePath);
         return profile ?? new AIActionLearningProfile { ProfileId = profileId };
     }
     AIActionLearningProfile ReadValid(string path)
     {
-        if (!File.Exists(path)) return null;
-        try
+        if (!AtomicSaveStorage.HasAny(path)) return null;
+        if (!AtomicSaveStorage.TryRead(path, 16 * 1024 * 1024, ValidateJson, out string json, out string reason, out var source))
         {
-            if (new FileInfo(path).Length > 16 * 1024 * 1024) throw new InvalidDataException("Profile exceeds size limit.");
-            var profile = JsonUtility.FromJson<AIActionLearningProfile>(File.ReadAllText(path, Encoding.UTF8));
-            int entries = profile?.Entries?.Count ?? 0;
-            if (profile == null || profile.ProfileId != profileId || !AIReflectionMigration.TryUpgradeProfile(profile, config)
-                || !IsValid(profile)) throw new InvalidDataException("Invalid reflection profile schema or values.");
-            if (profile.Entries.Count != entries)
-                Debug.LogWarning("[AI自己評価] 不正な学習パターンを " + (entries - profile.Entries.Count) + " 件除外し、有効な経験を復元しました。");
-            profile.RebuildIndex();
-            return profile;
-        }
-        catch (Exception exception) when (IsRecoverable(exception))
-        {
-            Debug.LogWarning("[AI自己評価] 学習データを読み込めないため、安全な初期値またはバックアップを使用します: " + exception.Message);
-            try
-            {
-                string archive = path + ".corrupt." + DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-                File.Move(path, archive);
-            }
-            catch (Exception archiveException) when (IsRecoverable(archiveException)) { /* Original remains recoverable. */ }
+            Debug.LogWarning("[AI自己評価] 学習データを使用できないため、この試合では安全な初期値を使用します: " + reason);
+            if (!futureSchema) AtomicSaveStorage.PreserveInvalid(path, 16 * 1024 * 1024, ValidateJson);
             return null;
         }
+        if (source != AtomicSaveStorage.RecoverySource.Current)
+            AtomicSaveStorage.PreserveInvalid(path, 16 * 1024 * 1024, ValidateJson);
+        AIPerformanceCounters.MarkFileRead();
+        var profile = JsonUtility.FromJson<AIActionLearningProfile>(json);
+        int entries = profile.Entries?.Count ?? 0;
+        AIReflectionMigration.TryUpgradeProfile(profile, config);
+        if (string.IsNullOrEmpty(profile.CreatedVersion)) profile.CreatedVersion = "legacy";
+        if (profile.Entries.Count != entries)
+            Debug.LogWarning("[AI自己評価] 不正な学習パターンを " + (entries - profile.Entries.Count) + " 件除外し、有効な経験を復元しました。");
+        profile.RebuildIndex(); return profile;
+    }
+    AtomicSaveStorage.Validation ValidateJson(string json, out string reason)
+    {
+        var profile = JsonUtility.FromJson<AIActionLearningProfile>(json);
+        if (profile != null && profile.SchemaVersion > 2)
+        { futureSchema = true; reason = "新しい形式の学習データは読み込み・上書きしません。"; return AtomicSaveStorage.Validation.FutureSchema; }
+        if (profile == null || profile.ProfileId != profileId || !AIReflectionMigration.TryUpgradeProfile(profile, config) || !IsValid(profile))
+        { reason = "学習データの形式または値が不正です。"; return AtomicSaveStorage.Validation.Invalid; }
+        reason = ""; return AtomicSaveStorage.Validation.Valid;
     }
     public bool Save(AIActionLearningProfile profile)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Persistence);
         if (profile?.SchemaVersion == 1 && !AIReflectionMigration.TryUpgradeProfile(profile, config)) return false;
         if (!IsValid(profile)) return false;
-        string temp = ProfilePath + ".tmp";
-        try
+        // Legacy files also belong to this profile. Never hide a newer schema by creating a new filename.
+        if (AtomicSaveStorage.HasAny(LegacyProfilePath))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(ProfilePath));
-            byte[] bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(profile));
-            using (var stream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
-            { stream.Write(bytes, 0, bytes.Length); stream.Flush(true); }
-            if (File.Exists(ProfilePath))
+            foreach (string legacy in new[] { LegacyProfilePath, LegacyProfilePath + ".previous", LegacyProfilePath + ".bak" })
             {
-                try { File.Replace(temp, ProfilePath, ProfilePath + ".bak"); }
-                catch (PlatformNotSupportedException) { BackupAndCopy(temp); }
-                catch (IOException) { BackupAndCopy(temp); }
+                if (!File.Exists(legacy)) continue;
+                if (!AtomicSaveStorage.ReadBounded(legacy, 16 * 1024 * 1024, out string old, out _)) return false;
+                try { if (ValidateJson(old, out _) == AtomicSaveStorage.Validation.FutureSchema) return false; }
+                catch (Exception exception) when (IsRecoverable(exception)) { }
             }
-            else File.Move(temp, ProfilePath);
-            return true;
         }
-        catch (Exception exception) when (IsRecoverable(exception))
-        { Debug.LogWarning("[AI自己評価] 学習データを保存できませんでした。AIは続行します: " + exception.Message); return false; }
-    }
-    void BackupAndCopy(string temp)
-    {
-        File.Copy(ProfilePath, ProfilePath + ".bak", true);
-        File.Delete(ProfilePath);
-        File.Move(temp, ProfilePath);
+        var copy = JsonUtility.FromJson<AIActionLearningProfile>(JsonUtility.ToJson(profile));
+        copy.GameVersion = copy.LastSavedVersion = FKBuildInfo.Current.GameVersion;
+        if (string.IsNullOrEmpty(copy.CreatedVersion)) copy.CreatedVersion = copy.GameVersion;
+        bool saved = AtomicSaveStorage.TryWrite(ProfilePath, JsonUtility.ToJson(copy), 16 * 1024 * 1024, ValidateJson, out string reason);
+        if (saved) AIPerformanceCounters.MarkFileWrite();
+        else Debug.LogWarning("[AI自己評価] 学習データを保存できませんでした。AIは続行します: " + reason);
+        return saved;
     }
     public bool IsValid(AIActionLearningProfile profile)
     {

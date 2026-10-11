@@ -81,7 +81,7 @@ public class AIActionExecutor
             case AIActionType.Wait:
                 return true;
             default:
-                DevelopmentLog.Log($"[AIActionExecutor] 未知のアクション: {action.ActionType}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] 未知のアクション: {action.ActionType}"); }
                 return false;
         }
     }
@@ -144,7 +144,7 @@ public class AIActionExecutor
         }
 
         string moveType = GetMoveTypeName(action.ActionType);
-        DevelopmentLog.Log($"[AIActionExecutor] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={board.EnemyAP}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] {moveType}: {unit.kind} {oldCell}→{_moveGen.Cell(actualDest)}  残AP={board.EnemyAP}"); }
 
         // 学習記録
         if (_learning.IsActive && board.CanUsePlayerCrystalAsTarget())
@@ -203,11 +203,11 @@ public class AIActionExecutor
         if (killed)
         {
             _totalKills++;
-            DevelopmentLog.Log($"[AIActionExecutor] ★撃破! {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] ★撃破! {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}"); }
         }
         else
         {
-            DevelopmentLog.Log($"[AIActionExecutor] 攻撃: {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}  残HP={hpAfter}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] 攻撃: {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}  残HP={hpAfter}"); }
         }
 
         RecordAttackLearning(unit, target, hpBefore, hpAfter, killed);
@@ -261,7 +261,7 @@ public class AIActionExecutor
         {
             int cooldown = GetSkillCooldown(skill);
             unit.SkillCooldown = cooldown;
-            DevelopmentLog.Log($"[AIActionExecutor] スキルクールダウン設定: {unit.kind} '{skill.Name}' → {cooldown}ターン");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] スキルクールダウン設定: {unit.kind} '{skill.Name}' → {cooldown}ターン"); }
         }
 
         return success;
@@ -289,7 +289,7 @@ public class AIActionExecutor
             case SkillTarget.Self:
                 board.ConsumeSkill(unit, skill.APCost);
                 _skillSystem.ExecuteSkill(unit, unit, skill);
-                DevelopmentLog.Log($"[AIActionExecutor] スキル(自己): {unit.kind} '{skill.Name}'  残AP={board.EnemyAP}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] スキル(自己): {unit.kind} '{skill.Name}'  残AP={board.EnemyAP}"); }
                 return true;
 
             case SkillTarget.SelfArea:
@@ -298,13 +298,13 @@ public class AIActionExecutor
                 {
                     var enemies = board.GetEnemiesInSkillArea(unit, skill, unit.transform.position);
                     _skillSystem.ExecuteAreaSkill(unit, skill, enemies);
-                    DevelopmentLog.Log($"[AIActionExecutor] スキル(自己範囲攻撃): {unit.kind} '{skill.Name}' 対象{enemies.Count}体  残AP={board.EnemyAP}");
+                    { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] スキル(自己範囲攻撃): {unit.kind} '{skill.Name}' 対象{enemies.Count}体  残AP={board.EnemyAP}"); }
                 }
                 else
                 {
                     var allies = board.GetAlliesInSkillArea(unit, skill, unit.transform.position);
                     _skillSystem.ExecuteAreaSupportSkill(unit, skill, allies);
-                    DevelopmentLog.Log($"[AIActionExecutor] スキル(自己範囲支援): {unit.kind} '{skill.Name}' 対象{allies.Count}体  残AP={board.EnemyAP}");
+                    { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] スキル(自己範囲支援): {unit.kind} '{skill.Name}' 対象{allies.Count}体  残AP={board.EnemyAP}"); }
                 }
                 return true;
 
@@ -312,7 +312,7 @@ public class AIActionExecutor
                 if (action.TargetUnit == null) return false;
                 board.ConsumeSkill(unit, skill.APCost);
                 _skillSystem.ExecuteSkill(unit, action.TargetUnit, skill);
-                DevelopmentLog.Log($"[AIActionExecutor] スキル(味方): {unit.kind}→{action.TargetUnit.kind} '{skill.Name}'  残AP={board.EnemyAP}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] スキル(味方): {unit.kind}→{action.TargetUnit.kind} '{skill.Name}'  残AP={board.EnemyAP}"); }
                 return true;
 
             case SkillTarget.EnemySingle:
@@ -346,11 +346,11 @@ public class AIActionExecutor
         if (killed)
         {
             _totalKills++;
-            DevelopmentLog.Log($"[AIActionExecutor] ★スキル撃破! {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] ★スキル撃破! {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter}"); }
         }
         else
         {
-            DevelopmentLog.Log($"[AIActionExecutor] スキル攻撃: {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter} 残HP={hpAfter}  残AP={board.EnemyAP}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] スキル攻撃: {unit.kind}→{action.TargetUnit.kind} '{skill.Name}' DMG={hpBefore - hpAfter} 残HP={hpAfter}  残AP={board.EnemyAP}"); }
         }
         return true;
     }
@@ -362,7 +362,7 @@ public class AIActionExecutor
 
         board.ConsumeSkill(unit, skill.APCost);
         _skillSystem.ExecuteAreaSkill(unit, skill, enemies);
-        DevelopmentLog.Log($"[AIActionExecutor] スキル(範囲): {unit.kind} '{skill.Name}' @{action.TargetPos} 対象{enemies.Count}体  残AP={board.EnemyAP}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] スキル(範囲): {unit.kind} '{skill.Name}' @{action.TargetPos} 対象{enemies.Count}体  残AP={board.EnemyAP}"); }
         return true;
     }
 
@@ -398,7 +398,7 @@ public class AIActionExecutor
 
         if (board.Governor != null && !board.Governor.AllowExecution(action, board)) return false;
         var pos = AIBoardState.ToCell(action.TargetPos);
-        DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(ActorTeam)}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(ActorTeam)}"); }
 
         bool success = action.FacilityDefinition != null
             ? _buildSystem.TryPlaceDefinition(pos, action.FacilityDefinition, ActorTeam)
@@ -407,7 +407,7 @@ public class AIActionExecutor
         {
             board.Refresh();
             board.Governor?.Evaluate(board);
-            DevelopmentLog.Log($"[AIActionExecutor] ★建築成功: {action.Facility} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] ★建築成功: {action.Facility} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}"); }
         }
         else
         {
@@ -432,7 +432,7 @@ public class AIActionExecutor
         {
             board.Refresh();
             board.Governor?.Evaluate(board);
-            DevelopmentLog.Log($"[AIActionExecutor] 召喚: {action.SummonKind} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] 召喚: {action.SummonKind} @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}"); }
         }
         return success;
     }
@@ -454,8 +454,8 @@ public class AIActionExecutor
         {
             board.ExpansionCommitted = true;
             board.RefreshAP();
-            DevelopmentLog.Log($"[AIOutpost] {board.Outposts.Describe(action.TargetPos)} score={board.Outposts.Score(action.TargetPos):F1}");
-            DevelopmentLog.Log($"[AIActionExecutor] サブクリ展開: @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIOutpost] {board.Outposts.Describe(action.TargetPos)} score={board.Outposts.Score(action.TargetPos):F1}"); }
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] サブクリ展開: @({pos.x},{pos.y},{pos.z})  残AP={board.EnemyAP}"); }
         }
         return success;
     }

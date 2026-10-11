@@ -35,6 +35,10 @@ public class GameContext
     public bool SelectNormalDown { get; set; }
     public bool SelectSkillDown { get; set; }
     public bool ToggleNSDown { get; set; }
+    public bool FocusSelectedDown { get; set; }
+    public bool CycleUnitDown { get; set; }
+    public bool CycleUnitBackwards { get; set; }
+    public bool UndoMoveDown { get; set; }
 
     public enum UICommand { None, Attack, Skill, Cancel, EndTurn }
     private UICommand pendingUICommand;

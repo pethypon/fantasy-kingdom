@@ -6,7 +6,7 @@ public class EnemyStart : TurnState
 
     public override void Entry()
     {
-        DevelopmentLog.Log("[EnemyStart] 敵ターン開始");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[EnemyStart] 敵ターン開始"); }
 
         // プレイヤーの残留MovePoint/AttackPointをクリア
         Systems.MoveGenerator.MoveReset();

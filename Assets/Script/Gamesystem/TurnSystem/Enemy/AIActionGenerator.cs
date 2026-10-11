@@ -401,9 +401,9 @@ public static partial class AIActionGenerator
         if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0)
         {
             if (board.BuildablePositions.Count == 0)
-                DevelopmentLog.Log("[AI Build] 建築可能位置=0 → 建築候補なし（領地不足?）");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AI Build] 建築可能位置=0 → 建築候補なし（領地不足?）"); }
             else
-                DevelopmentLog.Log($"[AI Build] 購入可能建物=0 → 建築候補なし（AP={board.EnemyAP} 資源不足?）");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Build] 購入可能建物=0 → 建築候補なし（AP={board.EnemyAP} 資源不足?）"); }
             GenerateAuthoredBuildCandidates(board, results);
             return;
         }
@@ -415,7 +415,7 @@ public static partial class AIActionGenerator
             if (FacilityData.IsSubCrystal(facility)) continue;
             if (!FacilityData.Table.TryGetValue(facility, out var info))
             {
-                DevelopmentLog.Log($"[AI Build] {facility}: FacilityData未登録 → スキップ");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Build] {facility}: FacilityData未登録 → スキップ"); }
                 continue;
             }
 
@@ -426,13 +426,13 @@ public static partial class AIActionGenerator
             if (existing >= maxAllowed && !demand.ImprovesDeficit
                 && board.Governor?.BasicResources.IsFoundationAction(candidate) != true)
             {
-                DevelopmentLog.Log($"[AI Build] {facility}: 上限到達({existing}/{maxAllowed}) → スキップ");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Build] {facility}: 上限到達({existing}/{maxAllowed}) → スキップ"); }
                 continue;
             }
 
             if (!board.HasUpstreamProducer(facility))
             {
-                DevelopmentLog.Log($"[AI Build] {facility}: 上流施設なし → スキップ");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Build] {facility}: 上流施設なし → スキップ"); }
                 continue;
             }
 
@@ -450,12 +450,12 @@ public static partial class AIActionGenerator
                 });
                 posCount++;
             }
-            DevelopmentLog.Log($"[AI Build] {facility}: AP={info.APCost} 候補{posCount}位置 既存={existing}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Build] {facility}: AP={info.APCost} 候補{posCount}位置 既存={existing}"); }
         }
 
         int totalNew = results.Count - candidatesBefore;
         GenerateAuthoredBuildCandidates(board, results);
-        DevelopmentLog.Log($"[AI Build] 建築候補合計: {totalNew}件 (建築可能位置={board.BuildablePositions.Count} 購入可能={board.AffordableBuildings.Count})");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Build] 建築候補合計: {totalNew}件 (建築可能位置={board.BuildablePositions.Count} 購入可能={board.AffordableBuildings.Count})"); }
     }
 
     static void GenerateAuthoredBuildCandidates(AIBoardState board, List<AIAction> results)
@@ -614,13 +614,13 @@ public static partial class AIActionGenerator
     {
         if (board.SummonablePositions.Count == 0)
         {
-            DevelopmentLog.Log("[AI Summon] 召喚可能位置なし — サブクリスタルを配置してください");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AI Summon] 召喚可能位置なし — サブクリスタルを配置してください"); }
             return;
         }
         if (board.AffordableUnits.Count == 0)
         {
             var res = board.EnemyResources;
-            DevelopmentLog.Log($"[AI Summon] 資源不足で召喚不可 — Bread:{res.Bread} Iron:{res.Iron} Wood:{res.Wood} Stone:{res.Stone} Water:{res.Water} Citizen:{res.Citizen}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Summon] 資源不足で召喚不可 — Bread:{res.Bread} Iron:{res.Iron} Wood:{res.Wood} Stone:{res.Stone} Water:{res.Water} Citizen:{res.Citizen}"); }
             return;
         }
 

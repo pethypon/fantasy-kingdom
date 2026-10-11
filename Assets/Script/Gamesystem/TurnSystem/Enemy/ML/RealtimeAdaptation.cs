@@ -253,11 +253,11 @@ public class RealtimeAdaptation
 
         if (_urgencyLevel > 0.1f || _counterAttackWindow > 0.1f)
         {
-            DevelopmentLog.Log($"[RealtimeAdapt] 緊急度={_urgencyLevel:F2}  " +
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[RealtimeAdapt] 緊急度={_urgencyLevel:F2}  " +
                       $"防衛={_defenseUrgency:F2}  反撃窓={_counterAttackWindow:F2}  " +
                       $"直近脅威={recentAttackCount}  " +
                       $"パターン: 側面={repeatedFlanking} クリ攻={repeatedCrystalAttack} " +
-                      $"損失={unitLossStreak}");
+                      $"損失={unitLossStreak}"); }
         }
     }
 

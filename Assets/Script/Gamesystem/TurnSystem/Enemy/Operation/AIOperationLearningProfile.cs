@@ -7,6 +7,7 @@ using UnityEngine;
 public sealed class AIOperationLearningProfile
 {
     public int SchemaVersion = 1;
+    public string GameVersion, CreatedVersion, LastSavedVersion;
     public string ProfileId;
     public long Sequence;
     public List<AIOperationKnowledgeEntry> Entries = new List<AIOperationKnowledgeEntry>();
@@ -39,6 +40,7 @@ public sealed class AIOperationLearningProfile
     /// <returns>The actual change to generalized experience. Provisional or already learned results return zero.</returns>
     public float Learn(AIOperationPlan plan, AIOperationEvaluationResult result, AIOperationConfig config)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.OperationLearning);
         if (plan == null || result == null || config == null || !config.Enabled || result.IsProvisional
             || !Terminal(plan.Status)
             || !ValidKey(plan.ContextKey) || !ValidPattern(plan.PatternKey)

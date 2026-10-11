@@ -27,6 +27,7 @@ public sealed class AIReflectionStrategyOutcome
 public sealed class AIActionLearningProfile
 {
     public int SchemaVersion = 2;
+    public string GameVersion, CreatedVersion, LastSavedVersion;
     public string ProfileId;
     public int BattlesPlayed, Wins, Losses;
     public long Sequence;

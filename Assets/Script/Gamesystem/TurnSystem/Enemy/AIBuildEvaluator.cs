@@ -53,10 +53,10 @@ static class AIBuildEvaluator
             if (!assessment.ImprovesDeficit && board.Governor?.BasicResources.IsFoundationAction(action) == true)
                 score += assessment.OverstockPenalty;
             if (AIEconomySettings.Active.enableDecisionLogs)
-                DevelopmentLog.Log($"[AI経済建築] {facility} need={assessment.NeedScore:F1} " +
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI経済建築] {facility} need={assessment.NeedScore:F1} " +
                     $"chain={assessment.ChainRecoveryScore:F1} reserve={assessment.ReserveRecoveryScore:F1} " +
                     $"overstock={assessment.OverstockPenalty:F1} inputPressure={assessment.InputPressurePenalty:F1} " +
-                    $"phase={phase:F1} militaryPenalty={militaryPenalty:F1} base={score:F1}");
+                    $"phase={phase:F1} militaryPenalty={militaryPenalty:F1} base={score:F1}"); }
             return score;
         }
 

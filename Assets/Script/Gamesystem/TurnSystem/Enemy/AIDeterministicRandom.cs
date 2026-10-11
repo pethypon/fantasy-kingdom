@@ -1,11 +1,10 @@
-using UnityEngine;
 
 // =====================================================================
 //  AIDeterministicRandom — シード管理された乱数ラッパー
 //  同条件で同傾向を再現可能にする（デバッグ容易性のため）
 //  仕様: 同一シードで同一初期盤面なら同一傾向の行動列を再現できる
 // =====================================================================
-public class AIDeterministicRandom
+public class AIDeterministicRandom : IRandomSource
 {
     System.Random _rng;
     int _seed;
@@ -16,7 +15,7 @@ public class AIDeterministicRandom
     {
         _seed = seed;
         _rng = new System.Random(seed);
-        DevelopmentLog.Log($"[AIDeterministicRandom] シード={seed}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIDeterministicRandom] シード={seed}"); }
     }
 
     /// <summary>試合開始時にシードを設定（再現性のため外部から指定可能）</summary>

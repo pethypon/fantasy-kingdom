@@ -1,0 +1,2086 @@
+{
+  "BaselineCommit": "d03dc55205830e1336ca4297d43fd36f7795a565",
+  "Enums": [
+    {
+      "TypeName": "ThirdFactionEventCategory",
+      "Members": [
+        {
+          "Name": "GrowthOpportunity",
+          "Value": 0
+        },
+        {
+          "Name": "GrowthPressure",
+          "Value": 1
+        },
+        {
+          "Name": "DungeonRaid",
+          "Value": 2
+        },
+        {
+          "Name": "TerritoryRaid",
+          "Value": 3
+        },
+        {
+          "Name": "ArtifactOpportunity",
+          "Value": 4
+        },
+        {
+          "Name": "BattleIntervention",
+          "Value": 5
+        },
+        {
+          "Name": "AntiStalemate",
+          "Value": 6
+        },
+        {
+          "Name": "StrongEnemyExpansion",
+          "Value": 7
+        },
+        {
+          "Name": "SummonStrongEnemy",
+          "Value": 8
+        },
+        {
+          "Name": "Chaos",
+          "Value": 9
+        },
+        {
+          "Name": "ScenarioSpecial",
+          "Value": 10
+        }
+      ]
+    },
+    {
+      "TypeName": "ThirdFactionEventScale",
+      "Members": [
+        {
+          "Name": "Minor",
+          "Value": 0
+        },
+        {
+          "Name": "Medium",
+          "Value": 1
+        },
+        {
+          "Name": "Major",
+          "Value": 2
+        },
+        {
+          "Name": "Scenario",
+          "Value": 3
+        }
+      ]
+    },
+    {
+      "TypeName": "ThirdFactionSpawnPolicy",
+      "Members": [
+        {
+          "Name": "Frontier",
+          "Value": 0
+        },
+        {
+          "Name": "NearDungeon",
+          "Value": 1
+        },
+        {
+          "Name": "NearTerritory",
+          "Value": 2
+        },
+        {
+          "Name": "NearBattle",
+          "Value": 3
+        },
+        {
+          "Name": "NearStrongEnemy",
+          "Value": 4
+        }
+      ]
+    },
+    {
+      "TypeName": "ThirdFactionDirectorMode",
+      "Members": [
+        {
+          "Name": "Observe",
+          "Value": 0
+        },
+        {
+          "Name": "Reserve",
+          "Value": 1
+        },
+        {
+          "Name": "AntiStalemate",
+          "Value": 2
+        },
+        {
+          "Name": "GrowthOpportunity",
+          "Value": 3
+        },
+        {
+          "Name": "DungeonPressure",
+          "Value": 4
+        },
+        {
+          "Name": "TerritoryPressure",
+          "Value": 5
+        },
+        {
+          "Name": "EventOpportunity",
+          "Value": 6
+        },
+        {
+          "Name": "Scenario",
+          "Value": 7
+        }
+      ]
+    },
+    {
+      "TypeName": "ThirdFactionObjectiveKind",
+      "Members": [
+        {
+          "Name": "RaidDungeon",
+          "Value": 0
+        },
+        {
+          "Name": "RaidTerritory",
+          "Value": 1
+        },
+        {
+          "Name": "HoldArea",
+          "Value": 2
+        },
+        {
+          "Name": "HuntTarget",
+          "Value": 3
+        },
+        {
+          "Name": "Withdraw",
+          "Value": 4
+        },
+        {
+          "Name": "GuardEventObject",
+          "Value": 5
+        }
+      ]
+    },
+    {
+      "TypeName": "AIPlanGoal",
+      "Members": [
+        {
+          "Name": "Reconnaissance",
+          "Value": 0
+        },
+        {
+          "Name": "EconomicRaid",
+          "Value": 1
+        },
+        {
+          "Name": "EasternFeint",
+          "Value": 2
+        },
+        {
+          "Name": "Ambush",
+          "Value": 3
+        },
+        {
+          "Name": "KingStrike",
+          "Value": 4
+        },
+        {
+          "Name": "CrystalStrike",
+          "Value": 5
+        }
+      ]
+    },
+    {
+      "TypeName": "AIPlanStep",
+      "Members": [
+        {
+          "Name": "Assemble",
+          "Value": 0
+        },
+        {
+          "Name": "Demonstrate",
+          "Value": 1
+        },
+        {
+          "Name": "ObserveResponse",
+          "Value": 2
+        },
+        {
+          "Name": "Flank",
+          "Value": 3
+        },
+        {
+          "Name": "Strike",
+          "Value": 4
+        },
+        {
+          "Name": "SupplyDelay",
+          "Value": 5
+        },
+        {
+          "Name": "MainAssault",
+          "Value": 6
+        },
+        {
+          "Name": "Withdraw",
+          "Value": 7
+        },
+        {
+          "Name": "Complete",
+          "Value": 8
+        },
+        {
+          "Name": "Aborted",
+          "Value": 9
+        }
+      ]
+    },
+    {
+      "TypeName": "StrategicMode",
+      "Members": [
+        {
+          "Name": "Normal",
+          "Value": 0
+        },
+        {
+          "Name": "EmergencyDefense",
+          "Value": 1
+        },
+        {
+          "Name": "EconomicRecovery",
+          "Value": 2
+        },
+        {
+          "Name": "Exploration",
+          "Value": 3
+        },
+        {
+          "Name": "StrategicAttack",
+          "Value": 4
+        },
+        {
+          "Name": "Hold",
+          "Value": 5
+        }
+      ]
+    },
+    {
+      "TypeName": "ExplorationKnowledgeState",
+      "Members": [
+        {
+          "Name": "Unknown",
+          "Value": 0
+        },
+        {
+          "Name": "SeenBefore",
+          "Value": 1
+        },
+        {
+          "Name": "VisibleNow",
+          "Value": 2
+        }
+      ]
+    },
+    {
+      "TypeName": "ObjectiveState",
+      "Members": [
+        {
+          "Name": "Active",
+          "Value": 0
+        },
+        {
+          "Name": "Suspended",
+          "Value": 1
+        },
+        {
+          "Name": "Completed",
+          "Value": 2
+        },
+        {
+          "Name": "Failed",
+          "Value": 3
+        }
+      ]
+    },
+    {
+      "TypeName": "AIOperationGoal",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "DestroyEnemyCrystal",
+          "Value": 1
+        },
+        {
+          "Name": "DestroySubCrystal",
+          "Value": 2
+        },
+        {
+          "Name": "DefendOwnCrystal",
+          "Value": 3
+        },
+        {
+          "Name": "DefendSubCrystal",
+          "Value": 4
+        },
+        {
+          "Name": "EliminateEnemyForce",
+          "Value": 5
+        },
+        {
+          "Name": "WeakenEnemyForce",
+          "Value": 6
+        },
+        {
+          "Name": "CaptureTerritory",
+          "Value": 7
+        },
+        {
+          "Name": "HoldTerritory",
+          "Value": 8
+        },
+        {
+          "Name": "ObtainArtifact",
+          "Value": 9
+        },
+        {
+          "Name": "ClearDungeon",
+          "Value": 10
+        },
+        {
+          "Name": "BreakEnemyDefense",
+          "Value": 11
+        },
+        {
+          "Name": "FlankEnemyForce",
+          "Value": 12
+        },
+        {
+          "Name": "SurroundEnemyForce",
+          "Value": 13
+        },
+        {
+          "Name": "ScoutRegion",
+          "Value": 14
+        },
+        {
+          "Name": "LocateEnemyMainForce",
+          "Value": 15
+        },
+        {
+          "Name": "EconomicRecovery",
+          "Value": 16
+        },
+        {
+          "Name": "SecureResourceArea",
+          "Value": 17
+        },
+        {
+          "Name": "DelayEnemy",
+          "Value": 18
+        },
+        {
+          "Name": "ForceEnemyRetreat",
+          "Value": 19
+        },
+        {
+          "Name": "CreateDiversion",
+          "Value": 20
+        },
+        {
+          "Name": "ExploitWeakFront",
+          "Value": 21
+        }
+      ]
+    },
+    {
+      "TypeName": "AIOperationStatus",
+      "Members": [
+        {
+          "Name": "Proposed",
+          "Value": 0
+        },
+        {
+          "Name": "Preparing",
+          "Value": 1
+        },
+        {
+          "Name": "Active",
+          "Value": 2
+        },
+        {
+          "Name": "Suspended",
+          "Value": 3
+        },
+        {
+          "Name": "Replanning",
+          "Value": 4
+        },
+        {
+          "Name": "Aborted",
+          "Value": 5
+        },
+        {
+          "Name": "Success",
+          "Value": 6
+        },
+        {
+          "Name": "PartialSuccess",
+          "Value": 7
+        },
+        {
+          "Name": "Failure",
+          "Value": 8
+        }
+      ]
+    },
+    {
+      "TypeName": "AIOperationStepType",
+      "Members": [
+        {
+          "Name": "Scout",
+          "Value": 0
+        },
+        {
+          "Name": "Approach",
+          "Value": 1
+        },
+        {
+          "Name": "Diversion",
+          "Value": 2
+        },
+        {
+          "Name": "Attack",
+          "Value": 3
+        },
+        {
+          "Name": "Defense",
+          "Value": 4
+        },
+        {
+          "Name": "Flank",
+          "Value": 5
+        },
+        {
+          "Name": "Surround",
+          "Value": 6
+        },
+        {
+          "Name": "Support",
+          "Value": 7
+        },
+        {
+          "Name": "Retreat",
+          "Value": 8
+        },
+        {
+          "Name": "Regroup",
+          "Value": 9
+        },
+        {
+          "Name": "Hold",
+          "Value": 10
+        },
+        {
+          "Name": "DestroyObjective",
+          "Value": 11
+        },
+        {
+          "Name": "AcquireArtifact",
+          "Value": 12
+        },
+        {
+          "Name": "Exploit",
+          "Value": 13
+        }
+      ]
+    },
+    {
+      "TypeName": "AIOperationDecision",
+      "Members": [
+        {
+          "Name": "Continue",
+          "Value": 0
+        },
+        {
+          "Name": "Replan",
+          "Value": 1
+        },
+        {
+          "Name": "Suspend",
+          "Value": 2
+        },
+        {
+          "Name": "Abort",
+          "Value": 3
+        },
+        {
+          "Name": "Complete",
+          "Value": 4
+        }
+      ]
+    },
+    {
+      "TypeName": "AIOperationAbortReason",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "StrategicPriorityChanged",
+          "Value": 1
+        },
+        {
+          "Name": "ObjectiveDestroyedByOther",
+          "Value": 2
+        },
+        {
+          "Name": "ObjectiveUnavailable",
+          "Value": 3
+        },
+        {
+          "Name": "InsufficientForce",
+          "Value": 4
+        },
+        {
+          "Name": "EconomicEmergency",
+          "Value": 5
+        },
+        {
+          "Name": "CrystalEmergency",
+          "Value": 6
+        },
+        {
+          "Name": "IntelligenceInvalidated",
+          "Value": 7
+        },
+        {
+          "Name": "ExcessiveLoss",
+          "Value": 8
+        },
+        {
+          "Name": "Timeout",
+          "Value": 9
+        }
+      ]
+    },
+    {
+      "TypeName": "AIOperationFailureReason",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "PrimaryGoalFailed",
+          "Value": 1
+        },
+        {
+          "Name": "PoorPreparation",
+          "Value": 2
+        },
+        {
+          "Name": "BadIntel",
+          "Value": 3
+        },
+        {
+          "Name": "InsufficientForce",
+          "Value": 4
+        },
+        {
+          "Name": "ExcessiveLoss",
+          "Value": 5
+        },
+        {
+          "Name": "SlowExecution",
+          "Value": 6
+        },
+        {
+          "Name": "FailedDiversion",
+          "Value": 7
+        },
+        {
+          "Name": "FailedFlank",
+          "Value": 8
+        },
+        {
+          "Name": "FailedSurround",
+          "Value": 9
+        },
+        {
+          "Name": "EconomicOverstretch",
+          "Value": 10
+        },
+        {
+          "Name": "ResourceWaste",
+          "Value": 11
+        },
+        {
+          "Name": "ArmyUnderutilization",
+          "Value": 12
+        },
+        {
+          "Name": "ObjectiveAbandoned",
+          "Value": 13
+        },
+        {
+          "Name": "MissedExploitation",
+          "Value": 14
+        },
+        {
+          "Name": "CrystalExposed",
+          "Value": 15
+        },
+        {
+          "Name": "Overcommitment",
+          "Value": 16
+        },
+        {
+          "Name": "RepeatedFailedPattern",
+          "Value": 17
+        }
+      ]
+    },
+    {
+      "TypeName": "AIOperationSuccessReason",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "PrimaryGoalCompleted",
+          "Value": 1
+        },
+        {
+          "Name": "FastCompletion",
+          "Value": 2
+        },
+        {
+          "Name": "LowLosses",
+          "Value": 3
+        },
+        {
+          "Name": "GoodTrade",
+          "Value": 4
+        },
+        {
+          "Name": "SuccessfulScout",
+          "Value": 5
+        },
+        {
+          "Name": "SuccessfulDiversion",
+          "Value": 6
+        },
+        {
+          "Name": "SuccessfulFlank",
+          "Value": 7
+        },
+        {
+          "Name": "SuccessfulSurround",
+          "Value": 8
+        },
+        {
+          "Name": "GoodArmyUtilization",
+          "Value": 9
+        },
+        {
+          "Name": "GoodRiskControl",
+          "Value": 10
+        },
+        {
+          "Name": "EconomicEfficiency",
+          "Value": 11
+        },
+        {
+          "Name": "StrongPreparation",
+          "Value": 12
+        },
+        {
+          "Name": "SuccessfulExploitation",
+          "Value": 13
+        }
+      ]
+    },
+    {
+      "TypeName": "AIOperationRank",
+      "Members": [
+        {
+          "Name": "CriticalFailure",
+          "Value": 0
+        },
+        {
+          "Name": "Failure",
+          "Value": 1
+        },
+        {
+          "Name": "Neutral",
+          "Value": 2
+        },
+        {
+          "Name": "PartialSuccess",
+          "Value": 3
+        },
+        {
+          "Name": "Success",
+          "Value": 4
+        },
+        {
+          "Name": "Excellent",
+          "Value": 5
+        },
+        {
+          "Name": "Perfect",
+          "Value": 6
+        }
+      ]
+    },
+    {
+      "TypeName": "AIFailureReason",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "ExecutionFailed",
+          "Value": 1
+        },
+        {
+          "Name": "InvalidTarget",
+          "Value": 2
+        },
+        {
+          "Name": "TargetLost",
+          "Value": 3
+        },
+        {
+          "Name": "NoDamage",
+          "Value": 4
+        },
+        {
+          "Name": "NoProgress",
+          "Value": 5
+        },
+        {
+          "Name": "RepeatedNoProgress",
+          "Value": 6
+        },
+        {
+          "Name": "PositionWorsened",
+          "Value": 7
+        },
+        {
+          "Name": "ResourceShortage",
+          "Value": 8
+        },
+        {
+          "Name": "EconomyWorsened",
+          "Value": 9
+        },
+        {
+          "Name": "UnitLost",
+          "Value": 10
+        },
+        {
+          "Name": "CrystalExposed",
+          "Value": 11
+        },
+        {
+          "Name": "Overextended",
+          "Value": 12
+        },
+        {
+          "Name": "FailedRetreat",
+          "Value": 13
+        },
+        {
+          "Name": "PoorTargetSelection",
+          "Value": 14
+        },
+        {
+          "Name": "ArtifactLost",
+          "Value": 15
+        },
+        {
+          "Name": "Other",
+          "Value": 16
+        },
+        {
+          "Name": "IdleArmy",
+          "Value": 17
+        },
+        {
+          "Name": "ExcessiveProduction",
+          "Value": 18
+        },
+        {
+          "Name": "UnnecessaryTurtle",
+          "Value": 19
+        },
+        {
+          "Name": "MissedOpportunity",
+          "Value": 20
+        },
+        {
+          "Name": "BadTrade",
+          "Value": 21
+        },
+        {
+          "Name": "Isolation",
+          "Value": 22
+        },
+        {
+          "Name": "BadRangeManagement",
+          "Value": 23
+        },
+        {
+          "Name": "ObjectiveNeglect",
+          "Value": 24
+        },
+        {
+          "Name": "CrystalNeglect",
+          "Value": 25
+        },
+        {
+          "Name": "ResourceWaste",
+          "Value": 26
+        },
+        {
+          "Name": "InvalidSkillUse",
+          "Value": 27
+        },
+        {
+          "Name": "UnsupportedAdvance",
+          "Value": 28
+        }
+      ]
+    },
+    {
+      "TypeName": "AIStrategicOutcome",
+      "Members": [
+        {
+          "Name": "Neutral",
+          "Value": 0
+        },
+        {
+          "Name": "Progress",
+          "Value": 1
+        },
+        {
+          "Name": "Failure",
+          "Value": 2
+        }
+      ]
+    },
+    {
+      "TypeName": "AISuccessReason",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "EnemyKill",
+          "Value": 1
+        },
+        {
+          "Name": "FormationKill",
+          "Value": 2
+        },
+        {
+          "Name": "GoodTrade",
+          "Value": 3
+        },
+        {
+          "Name": "SuccessfulRetreat",
+          "Value": 4
+        },
+        {
+          "Name": "GoodPositioning",
+          "Value": 5
+        },
+        {
+          "Name": "HighGroundAdvantage",
+          "Value": 6
+        },
+        {
+          "Name": "GoodRangeManagement",
+          "Value": 7
+        },
+        {
+          "Name": "SuccessfulFlank",
+          "Value": 8
+        },
+        {
+          "Name": "SuccessfulSurround",
+          "Value": 9
+        },
+        {
+          "Name": "EconomyRecovered",
+          "Value": 10
+        },
+        {
+          "Name": "SuccessfulScout",
+          "Value": 11
+        },
+        {
+          "Name": "CrystalDefense",
+          "Value": 12
+        },
+        {
+          "Name": "ObjectiveProgress",
+          "Value": 13
+        },
+        {
+          "Name": "ArtifactObtained",
+          "Value": 14
+        },
+        {
+          "Name": "GoodArmyUtilization",
+          "Value": 15
+        },
+        {
+          "Name": "SuccessfulPreparation",
+          "Value": 16
+        }
+      ]
+    },
+    {
+      "TypeName": "AIReflectionArmyRole",
+      "Members": [
+        {
+          "Name": "Attack",
+          "Value": 0
+        },
+        {
+          "Name": "Defense",
+          "Value": 1
+        },
+        {
+          "Name": "Reserve",
+          "Value": 2
+        },
+        {
+          "Name": "Scout",
+          "Value": 3
+        },
+        {
+          "Name": "Flank",
+          "Value": 4
+        },
+        {
+          "Name": "Dungeon",
+          "Value": 5
+        },
+        {
+          "Name": "Escort",
+          "Value": 6
+        },
+        {
+          "Name": "Support",
+          "Value": 7
+        }
+      ]
+    },
+    {
+      "TypeName": "EconomicState",
+      "Members": [
+        {
+          "Name": "Healthy",
+          "Value": 0
+        },
+        {
+          "Name": "Warning",
+          "Value": 1
+        },
+        {
+          "Name": "Crisis",
+          "Value": 2
+        },
+        {
+          "Name": "Collapse",
+          "Value": 3
+        }
+      ]
+    },
+    {
+      "TypeName": "ActorActionType",
+      "Members": [
+        {
+          "Name": "All",
+          "Value": 0
+        },
+        {
+          "Name": "Combat",
+          "Value": 1
+        },
+        {
+          "Name": "Support",
+          "Value": 2
+        },
+        {
+          "Name": "Stationary",
+          "Value": 3
+        },
+        {
+          "Name": "Passive",
+          "Value": 4
+        }
+      ]
+    },
+    {
+      "TypeName": "RewardCategory",
+      "Members": [
+        {
+          "Name": "DungeonRandomArtifact",
+          "Value": 0
+        },
+        {
+          "Name": "StrongEnemyArtifact",
+          "Value": 1
+        },
+        {
+          "Name": "IntruderRelic",
+          "Value": 2
+        }
+      ]
+    },
+    {
+      "TypeName": "SkillTarget",
+      "Members": [
+        {
+          "Name": "Self",
+          "Value": 0
+        },
+        {
+          "Name": "EnemySingle",
+          "Value": 1
+        },
+        {
+          "Name": "AllySingle",
+          "Value": 2
+        },
+        {
+          "Name": "EnemyOrBuilding",
+          "Value": 3
+        },
+        {
+          "Name": "DirectionLine",
+          "Value": 4
+        },
+        {
+          "Name": "DesignatedTile",
+          "Value": 5
+        },
+        {
+          "Name": "SelfArea",
+          "Value": 6
+        },
+        {
+          "Name": "AdjacentCenter",
+          "Value": 7
+        },
+        {
+          "Name": "LowHPEnemy",
+          "Value": 8
+        },
+        {
+          "Name": "FlyingEnemy",
+          "Value": 9
+        },
+        {
+          "Name": "DesignatedRow",
+          "Value": 10
+        }
+      ]
+    },
+    {
+      "TypeName": "SkillAreaShape",
+      "Members": [
+        {
+          "Name": "Single",
+          "Value": 0
+        },
+        {
+          "Name": "Cross1",
+          "Value": 1
+        },
+        {
+          "Name": "Cross2",
+          "Value": 2
+        },
+        {
+          "Name": "Line3",
+          "Value": 3
+        },
+        {
+          "Name": "Line4",
+          "Value": 4
+        },
+        {
+          "Name": "Line5",
+          "Value": 5
+        },
+        {
+          "Name": "Line7",
+          "Value": 6
+        },
+        {
+          "Name": "Area2x2",
+          "Value": 7
+        },
+        {
+          "Name": "Area3x3",
+          "Value": 8
+        },
+        {
+          "Name": "Area5x5",
+          "Value": 9
+        },
+        {
+          "Name": "Surround1",
+          "Value": 10
+        },
+        {
+          "Name": "Surround2",
+          "Value": 11
+        },
+        {
+          "Name": "SingleChain",
+          "Value": 12
+        },
+        {
+          "Name": "SingleDouble",
+          "Value": 13
+        },
+        {
+          "Name": "Landing1",
+          "Value": 14
+        }
+      ]
+    },
+    {
+      "TypeName": "Team",
+      "Members": [
+        {
+          "Name": "Player",
+          "Value": 0
+        },
+        {
+          "Name": "Enemy",
+          "Value": 1
+        },
+        {
+          "Name": "Obstacle",
+          "Value": 2
+        },
+        {
+          "Name": "None",
+          "Value": 3
+        },
+        {
+          "Name": "Monster",
+          "Value": 4
+        },
+        {
+          "Name": "Intruder",
+          "Value": 5
+        }
+      ]
+    },
+    {
+      "TypeName": "Kind",
+      "Members": [
+        {
+          "Name": "Crystal",
+          "Value": 0
+        },
+        {
+          "Name": "King",
+          "Value": 1
+        },
+        {
+          "Name": "Knight",
+          "Value": 2
+        },
+        {
+          "Name": "Archer",
+          "Value": 3
+        },
+        {
+          "Name": "Magic",
+          "Value": 4
+        },
+        {
+          "Name": "Assassin",
+          "Value": 5
+        },
+        {
+          "Name": "Scout",
+          "Value": 6
+        },
+        {
+          "Name": "Priest",
+          "Value": 7
+        },
+        {
+          "Name": "Guardian",
+          "Value": 8
+        },
+        {
+          "Name": "Crossbow",
+          "Value": 9
+        },
+        {
+          "Name": "Magicsniper",
+          "Value": 10
+        },
+        {
+          "Name": "Bomber",
+          "Value": 11
+        },
+        {
+          "Name": "Boss",
+          "Value": 12
+        },
+        {
+          "Name": "SubCrystal",
+          "Value": 13
+        },
+        {
+          "Name": "WoodWall",
+          "Value": 14
+        },
+        {
+          "Name": "StoneWall",
+          "Value": 15
+        },
+        {
+          "Name": "None",
+          "Value": 16
+        }
+      ]
+    },
+    {
+      "TypeName": "Type",
+      "Members": [
+        {
+          "Name": "Unit",
+          "Value": 0
+        },
+        {
+          "Name": "Building",
+          "Value": 1
+        },
+        {
+          "Name": "Wall",
+          "Value": 2
+        },
+        {
+          "Name": "MovePoint",
+          "Value": 3
+        },
+        {
+          "Name": "AttackPoint",
+          "Value": 4
+        }
+      ]
+    },
+    {
+      "TypeName": "State",
+      "Members": [
+        {
+          "Name": "Normal",
+          "Value": 0
+        }
+      ]
+    },
+    {
+      "TypeName": "Direction",
+      "Members": [
+        {
+          "Name": "N",
+          "Value": 0
+        },
+        {
+          "Name": "S",
+          "Value": 1
+        }
+      ]
+    },
+    {
+      "TypeName": "Skill",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "PowerStrike",
+          "Value": 1
+        },
+        {
+          "Name": "ShieldBreak",
+          "Value": 2
+        },
+        {
+          "Name": "GuardStance",
+          "Value": 3
+        },
+        {
+          "Name": "Focus",
+          "Value": 4
+        },
+        {
+          "Name": "QuickStep",
+          "Value": 5
+        },
+        {
+          "Name": "Hamstring",
+          "Value": 6
+        },
+        {
+          "Name": "WideSwing",
+          "Value": 7
+        },
+        {
+          "Name": "PiercingShot",
+          "Value": 8
+        },
+        {
+          "Name": "ArcShot",
+          "Value": 9
+        },
+        {
+          "Name": "HealLight",
+          "Value": 10
+        },
+        {
+          "Name": "BlessUp",
+          "Value": 11
+        },
+        {
+          "Name": "Protect",
+          "Value": 12
+        },
+        {
+          "Name": "MarkShot",
+          "Value": 13
+        },
+        {
+          "Name": "Suppression",
+          "Value": 14
+        },
+        {
+          "Name": "Tracking",
+          "Value": 15
+        },
+        {
+          "Name": "Recover",
+          "Value": 16
+        },
+        {
+          "Name": "Smash",
+          "Value": 17
+        },
+        {
+          "Name": "BlastSeed",
+          "Value": 18
+        },
+        {
+          "Name": "ReflectGuard",
+          "Value": 19
+        },
+        {
+          "Name": "StunBlow",
+          "Value": 20
+        },
+        {
+          "Name": "HeavySlash",
+          "Value": 21
+        },
+        {
+          "Name": "BreakLance",
+          "Value": 22
+        },
+        {
+          "Name": "SmokeEdge",
+          "Value": 23
+        },
+        {
+          "Name": "RapidFire",
+          "Value": 24
+        },
+        {
+          "Name": "FlameBurst",
+          "Value": 25
+        },
+        {
+          "Name": "SacredHeal",
+          "Value": 26
+        },
+        {
+          "Name": "FieldAid",
+          "Value": 27
+        },
+        {
+          "Name": "WarCry",
+          "Value": 28
+        },
+        {
+          "Name": "IronWall",
+          "Value": 29
+        },
+        {
+          "Name": "ChainShot",
+          "Value": 30
+        },
+        {
+          "Name": "SilenceMark",
+          "Value": 31
+        },
+        {
+          "Name": "ShadowRush",
+          "Value": 32
+        },
+        {
+          "Name": "SkyHunt",
+          "Value": 33
+        },
+        {
+          "Name": "GroundBreak",
+          "Value": 34
+        },
+        {
+          "Name": "ManaShield",
+          "Value": 35
+        },
+        {
+          "Name": "GrandSlam",
+          "Value": 36
+        },
+        {
+          "Name": "PenetrateRain",
+          "Value": 37
+        },
+        {
+          "Name": "MeteorShard",
+          "Value": 38
+        },
+        {
+          "Name": "DivineCircle",
+          "Value": 39
+        },
+        {
+          "Name": "BloodSacrifice",
+          "Value": 40
+        },
+        {
+          "Name": "PhantomDrive",
+          "Value": 41
+        },
+        {
+          "Name": "FreezeBind",
+          "Value": 42
+        },
+        {
+          "Name": "BastionCall",
+          "Value": 43
+        },
+        {
+          "Name": "DeathSight",
+          "Value": 44
+        },
+        {
+          "Name": "SiegeBreaker",
+          "Value": 45
+        },
+        {
+          "Name": "Judgement",
+          "Value": 46
+        },
+        {
+          "Name": "PhoenixHeal",
+          "Value": 47
+        },
+        {
+          "Name": "WorldEdge",
+          "Value": 48
+        },
+        {
+          "Name": "LastSignal",
+          "Value": 49
+        },
+        {
+          "Name": "Catastrophe",
+          "Value": 50
+        }
+      ]
+    },
+    {
+      "TypeName": "PassiveSkill",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "Impregnable",
+          "Value": 1
+        },
+        {
+          "Name": "HunterEyes",
+          "Value": 2
+        },
+        {
+          "Name": "Destroyer",
+          "Value": 3
+        },
+        {
+          "Name": "Assassination",
+          "Value": 4
+        },
+        {
+          "Name": "Sniper",
+          "Value": 5
+        },
+        {
+          "Name": "StrangeKingAura",
+          "Value": 6
+        }
+      ]
+    },
+    {
+      "TypeName": "WildBossArchetype",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "GhostKing",
+          "Value": 1
+        },
+        {
+          "Name": "Dragon",
+          "Value": 2
+        },
+        {
+          "Name": "RebelKnight",
+          "Value": 3
+        },
+        {
+          "Name": "ThunderMagus",
+          "Value": 4
+        }
+      ]
+    },
+    {
+      "TypeName": "StatusEffectType",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "Stun",
+          "Value": 1
+        },
+        {
+          "Name": "Mark",
+          "Value": 2
+        },
+        {
+          "Name": "ArmorBreak",
+          "Value": 3
+        },
+        {
+          "Name": "Weaken",
+          "Value": 4
+        },
+        {
+          "Name": "Poison",
+          "Value": 5
+        },
+        {
+          "Name": "Chill",
+          "Value": 6
+        },
+        {
+          "Name": "Freeze",
+          "Value": 7
+        },
+        {
+          "Name": "Seal",
+          "Value": 8
+        },
+        {
+          "Name": "Blind",
+          "Value": 9
+        },
+        {
+          "Name": "NarrowVision",
+          "Value": 10
+        }
+      ]
+    },
+    {
+      "TypeName": "BuffType",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "Offensive",
+          "Value": 1
+        },
+        {
+          "Name": "Defensive",
+          "Value": 2
+        },
+        {
+          "Name": "Haste",
+          "Value": 3
+        },
+        {
+          "Name": "Insight",
+          "Value": 4
+        },
+        {
+          "Name": "Barrier",
+          "Value": 5
+        },
+        {
+          "Name": "Reflect",
+          "Value": 6
+        }
+      ]
+    },
+    {
+      "TypeName": "SpecialAbility",
+      "Members": [
+        {
+          "Name": "None",
+          "Value": 0
+        },
+        {
+          "Name": "SwiftPosture",
+          "Value": 1
+        },
+        {
+          "Name": "InterceptPosture",
+          "Value": 2
+        },
+        {
+          "Name": "PierceEnhance",
+          "Value": 3
+        },
+        {
+          "Name": "SiegeAdapt",
+          "Value": 4
+        },
+        {
+          "Name": "WatchEye",
+          "Value": 5
+        },
+        {
+          "Name": "Tenacity",
+          "Value": 6
+        },
+        {
+          "Name": "PursuitInstinct",
+          "Value": 7
+        },
+        {
+          "Name": "WallFamiliar",
+          "Value": 8
+        },
+        {
+          "Name": "FocusMaintain",
+          "Value": 9
+        },
+        {
+          "Name": "FirstAid",
+          "Value": 10
+        },
+        {
+          "Name": "PoisonCoat",
+          "Value": 11
+        },
+        {
+          "Name": "FrostBlade",
+          "Value": 12
+        },
+        {
+          "Name": "Foresight",
+          "Value": 13
+        },
+        {
+          "Name": "PressureShot",
+          "Value": 14
+        },
+        {
+          "Name": "Efficiency",
+          "Value": 15
+        },
+        {
+          "Name": "Desperation",
+          "Value": 16
+        },
+        {
+          "Name": "IronWalkDefense",
+          "Value": 17
+        },
+        {
+          "Name": "HeightAdapt",
+          "Value": 18
+        },
+        {
+          "Name": "LowHunt",
+          "Value": 19
+        },
+        {
+          "Name": "MagicResist",
+          "Value": 20
+        },
+        {
+          "Name": "Breach",
+          "Value": 21
+        },
+        {
+          "Name": "VenomBlade",
+          "Value": 22
+        },
+        {
+          "Name": "FrostPressure",
+          "Value": 23
+        },
+        {
+          "Name": "SupportSpread",
+          "Value": 24
+        },
+        {
+          "Name": "SurvivalInstinct",
+          "Value": 25
+        },
+        {
+          "Name": "ShadowCross",
+          "Value": 26
+        },
+        {
+          "Name": "ArtilleryControl",
+          "Value": 27
+        },
+        {
+          "Name": "GuardianZone",
+          "Value": 28
+        },
+        {
+          "Name": "SniperCorrection",
+          "Value": 29
+        },
+        {
+          "Name": "HolyReaction",
+          "Value": 30
+        },
+        {
+          "Name": "BattlefieldDomination",
+          "Value": 31
+        },
+        {
+          "Name": "IndomitableWill",
+          "Value": 32
+        },
+        {
+          "Name": "ThunderChain",
+          "Value": 33
+        },
+        {
+          "Name": "IcePrison",
+          "Value": 34
+        },
+        {
+          "Name": "PurifyHalo",
+          "Value": 35
+        }
+      ]
+    },
+    {
+      "TypeName": "SpecialAbilityRarity",
+      "Members": [
+        {
+          "Name": "Normal",
+          "Value": 0
+        },
+        {
+          "Name": "Rare",
+          "Value": 1
+        },
+        {
+          "Name": "SuperRare",
+          "Value": 2
+        },
+        {
+          "Name": "Legendary",
+          "Value": 3
+        }
+      ]
+    },
+    {
+      "TypeName": "SkillRarity",
+      "Members": [
+        {
+          "Name": "Normal",
+          "Value": 0
+        },
+        {
+          "Name": "Rare",
+          "Value": 1
+        },
+        {
+          "Name": "SuperRare",
+          "Value": 2
+        },
+        {
+          "Name": "Legendary",
+          "Value": 3
+        }
+      ]
+    },
+    {
+      "TypeName": "MajorPersonality",
+      "Members": [
+        {
+          "Name": "Combat",
+          "Value": 0
+        },
+        {
+          "Name": "Intellect",
+          "Value": 1
+        },
+        {
+          "Name": "Adaptive",
+          "Value": 2
+        },
+        {
+          "Name": "Growth",
+          "Value": 3
+        }
+      ]
+    },
+    {
+      "TypeName": "AIActionType",
+      "Members": [
+        {
+          "Name": "Move",
+          "Value": 0
+        },
+        {
+          "Name": "Attack",
+          "Value": 1
+        },
+        {
+          "Name": "SkillUse",
+          "Value": 2
+        },
+        {
+          "Name": "Retreat",
+          "Value": 3
+        },
+        {
+          "Name": "Support",
+          "Value": 4
+        },
+        {
+          "Name": "Surround",
+          "Value": 5
+        },
+        {
+          "Name": "Build",
+          "Value": 6
+        },
+        {
+          "Name": "Summon",
+          "Value": 7
+        },
+        {
+          "Name": "DefenseRepos",
+          "Value": 8
+        },
+        {
+          "Name": "SubCrystal",
+          "Value": 9
+        },
+        {
+          "Name": "Wait",
+          "Value": 10
+        },
+        {
+          "Name": "Rotate",
+          "Value": 11
+        },
+        {
+          "Name": "Upgrade",
+          "Value": 12
+        }
+      ]
+    },
+    {
+      "TypeName": "TurnStrategy",
+      "Members": [
+        {
+          "Name": "Assault",
+          "Value": 0
+        },
+        {
+          "Name": "CrystalDefense",
+          "Value": 1
+        },
+        {
+          "Name": "RetreatRegroup",
+          "Value": 2
+        },
+        {
+          "Name": "EconomyBuild",
+          "Value": 3
+        },
+        {
+          "Name": "Balanced",
+          "Value": 4
+        },
+        {
+          "Name": "ScoutSearch",
+          "Value": 5
+        },
+        {
+          "Name": "ContactEngage",
+          "Value": 6
+        }
+      ]
+    },
+    {
+      "TypeName": "FacilityKind",
+      "Members": [
+        {
+          "Name": "Field",
+          "Value": 0
+        },
+        {
+          "Name": "Bakery",
+          "Value": 1
+        },
+        {
+          "Name": "LoggingCamp",
+          "Value": 2
+        },
+        {
+          "Name": "Quarry",
+          "Value": 3
+        },
+        {
+          "Name": "Mine",
+          "Value": 4
+        },
+        {
+          "Name": "Barracks",
+          "Value": 5
+        },
+        {
+          "Name": "House",
+          "Value": 6
+        },
+        {
+          "Name": "LuxuryHouse",
+          "Value": 7
+        },
+        {
+          "Name": "Well",
+          "Value": 8
+        },
+        {
+          "Name": "Warehouse",
+          "Value": 9
+        },
+        {
+          "Name": "WoodWall",
+          "Value": 10
+        },
+        {
+          "Name": "StoneWall",
+          "Value": 11
+        },
+        {
+          "Name": "Mortar",
+          "Value": 12
+        },
+        {
+          "Name": "Cannon",
+          "Value": 13
+        },
+        {
+          "Name": "RestraintTrap",
+          "Value": 14
+        },
+        {
+          "Name": "SpikeTrap",
+          "Value": 15
+        },
+        {
+          "Name": "HeroSword",
+          "Value": 16
+        },
+        {
+          "Name": "SubCrystal",
+          "Value": 17
+        }
+      ]
+    },
+    {
+      "TypeName": "ResourceKind",
+      "Members": [
+        {
+          "Name": "Wood",
+          "Value": 0
+        },
+        {
+          "Name": "Stone",
+          "Value": 1
+        },
+        {
+          "Name": "Iron",
+          "Value": 2
+        },
+        {
+          "Name": "MagicOre",
+          "Value": 3
+        },
+        {
+          "Name": "Wheat",
+          "Value": 4
+        },
+        {
+          "Name": "Bread",
+          "Value": 5
+        },
+        {
+          "Name": "Water",
+          "Value": 6
+        },
+        {
+          "Name": "Citizen",
+          "Value": 7
+        },
+        {
+          "Name": "None",
+          "Value": 8
+        }
+      ]
+    }
+  ]
+}

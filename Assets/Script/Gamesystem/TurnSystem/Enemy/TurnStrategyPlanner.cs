@@ -151,8 +151,8 @@ public class TurnStrategyPlanner
         // ---- AP予算配分 ----
         decision.Budget = PlanAPBudget(decision.Strategy, board, econSufficient);
 
-        DevelopmentLog.Log($"[TurnStrategyPlanner] 方針={decision.Strategy}  " +
-                  $"理由=\"{decision.Reason}\"  {decision.Budget}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[TurnStrategyPlanner] 方針={decision.Strategy}  " +
+                  $"理由=\"{decision.Reason}\"  {decision.Budget}"); }
 
         return decision;
     }

@@ -10,6 +10,7 @@ public sealed class AIPlayerModel
     public sealed class Profile
     {
         public int Version = 1;
+        public string GameVersion, CreatedVersion, LastSavedVersion;
         public int Matches;
         public float Aggression, Economy, Scout, Ranged, Retreat, Skill, Flank, Turtle;
     }
@@ -24,27 +25,28 @@ public sealed class AIPlayerModel
     readonly List<int> expiredSamples=new List<int>();
     bool completed;
     public Profile Snapshot => new Profile { Matches = history.Matches, Aggression = history.Aggression,
+        GameVersion = history.GameVersion, CreatedVersion = history.CreatedVersion, LastSavedVersion = history.LastSavedVersion,
         Economy = history.Economy, Scout = history.Scout, Ranged = history.Ranged,
         Retreat = history.Retreat, Skill = history.Skill, Flank = history.Flank, Turtle = history.Turtle };
 
     public AIPlayerModel(string storagePath = null)
     {
         path = storagePath ?? Path.Combine(Application.persistentDataPath, "AIPlayerModel.v1.json");
-        history = Load(path) ?? Load(path + ".bak") ?? new Profile();
+        history = AtomicSaveStorage.TryRead(path, 4096, ValidateProfile, out string json, out _, out _)
+            ? JsonUtility.FromJson<Profile>(json) : new Profile();
     }
     static bool Valid(float f) => !float.IsNaN(f) && !float.IsInfinity(f) && f >= 0 && f <= 1;
-    static Profile Load(string file)
+    static AtomicSaveStorage.Validation ValidateProfile(string json, out string reason)
     {
-        try
-        {
-            if (!File.Exists(file) || new FileInfo(file).Length > 4096) return null;
-            var p = JsonUtility.FromJson<Profile>(File.ReadAllText(file));
-            return p != null && p.Version == 1 && p.Matches >= 0 && p.Matches <= 1000000
-                && Valid(p.Aggression) && Valid(p.Economy) && Valid(p.Scout) && Valid(p.Ranged)
-                && Valid(p.Retreat) && Valid(p.Skill) && Valid(p.Flank) && Valid(p.Turtle) ? p : null;
-        }
-        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException)
-        { return null; }
+        var p = JsonUtility.FromJson<Profile>(json);
+        reason = "プレイヤー傾向の保存形式が不正です";
+        if (p != null && p.Version > 1)
+        { reason = "新しい形式のプレイヤー傾向を以前の版では上書きしません"; return AtomicSaveStorage.Validation.FutureSchema; }
+        bool valid = p != null && p.Version == 1 && p.Matches >= 0 && p.Matches <= 1000000
+            && Valid(p.Aggression) && Valid(p.Economy) && Valid(p.Scout) && Valid(p.Ranged)
+            && Valid(p.Retreat) && Valid(p.Skill) && Valid(p.Flank) && Valid(p.Turtle);
+        if (valid) reason = "";
+        return valid ? AtomicSaveStorage.Validation.Valid : AtomicSaveStorage.Validation.Invalid;
     }
 
     public void Observe(AIBoardState board)
@@ -144,6 +146,8 @@ public sealed class AIPlayerModel
         if (completed) return true;
         if (observations == 0) { completed = true; return true; }
         var next = Snapshot;
+        next.GameVersion = next.LastSavedVersion = FKBuildInfo.Current.GameVersion;
+        if (string.IsNullOrEmpty(next.CreatedVersion)) next.CreatedVersion = string.IsNullOrEmpty(history.GameVersion) ? "legacy" : history.GameVersion;
         next.Matches = Mathf.Min(1000000, next.Matches + 1);
         next.Aggression = Mathf.Lerp(history.Aggression, aggression/observations, .2f);
         next.Economy = Mathf.Lerp(history.Economy, economy/observations, .2f);
@@ -158,19 +162,8 @@ public sealed class AIPlayerModel
         }
         try
         {
-            var directory = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
-            File.WriteAllText(path + ".tmp", JsonUtility.ToJson(next, true));
-            for(int attempt=0;;attempt++)
-            {
-                try
-                {
-                    if (File.Exists(path)) File.Replace(path + ".tmp", path, path + ".bak");
-                    else File.Move(path + ".tmp", path);
-                    break;
-                }
-                catch(IOException) when(attempt<2&&File.Exists(path+".tmp")) { }
-            }
+            if (!AtomicSaveStorage.TryWrite(path, JsonUtility.ToJson(next, true), 4096, ValidateProfile, out string reason))
+            { Debug.LogWarning("[AIPlayerModel] " + reason); return false; }
             history = next; completed = true; return true;
         }
         catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)

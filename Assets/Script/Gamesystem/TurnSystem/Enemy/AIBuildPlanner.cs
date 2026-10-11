@@ -32,41 +32,41 @@ public class AIBuildPlanner
         AIBoardState board, TurnStrategy strategy, int turnCount)
     {
         if (AITurnBudget.Expired || board == null) return 0;
-        DevelopmentLog.Log($"[AIBuildPlanner] === 先行建築フェーズ開始 === AP={board.EnemyAP} ターン={turnCount}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] === 先行建築フェーズ開始 === AP={board.EnemyAP} ターン={turnCount}"); }
         var governor = PrepareGovernor(board);
 
         if (AITacticalPriorities.HasLocalThreat(board) || AITacticalPriorities.FinishingAttackReserve(board) > 0) return 0;
 
         if (EconomyHelper.IsEconomySufficient(board))
         {
-            DevelopmentLog.Log("[AIBuildPlanner] 経済充足 → 先行建築スキップ");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AIBuildPlanner] 経済充足 → 先行建築スキップ"); }
             return 0;
         }
 
         if (strategy == TurnStrategy.CrystalDefense && governor.Mode != StrategicMode.EconomicRecovery)
         {
-            DevelopmentLog.Log("[AIBuildPlanner] クリスタル防衛中 → 先行建築スキップ");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AIBuildPlanner] クリスタル防衛中 → 先行建築スキップ"); }
             return 0;
         }
         if (strategy == TurnStrategy.ContactEngage && governor.Mode != StrategicMode.EconomicRecovery)
         {
-            DevelopmentLog.Log("[AIBuildPlanner] 交戦開始中 → 先行建築スキップ");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AIBuildPlanner] 交戦開始中 → 先行建築スキップ"); }
             return 0;
         }
 
-        DevelopmentLog.Log($"[AIBuildPlanner] BuildablePositions={board.BuildablePositions.Count}  " +
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] BuildablePositions={board.BuildablePositions.Count}  " +
                   $"AffordableBuildings={board.AffordableBuildings.Count}  " +
-                  $"({string.Join(",", board.AffordableBuildings)})");
+                  $"({string.Join(",", board.AffordableBuildings)})"); }
 
         int earlyBuilds = TryScoreBuildPhase(board, strategy, turnCount);
 
         if (earlyBuilds == 0 && !AITurnBudget.Expired && _executor.BuildSystem != null)
         {
-            DevelopmentLog.Log("[AIBuildPlanner] スコアパスで建築0棟 → 直接建築フォールバック開始");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AIBuildPlanner] スコアパスで建築0棟 → 直接建築フォールバック開始"); }
             earlyBuilds += ForceDirectBuild(board, turnCount);
         }
 
-        DevelopmentLog.Log($"[AIBuildPlanner] === 先行建築フェーズ終了: {earlyBuilds}棟建築  残AP={board.EnemyAP} ===");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] === 先行建築フェーズ終了: {earlyBuilds}棟建築  残AP={board.EnemyAP} ==="); }
         return earlyBuilds;
     }
 
@@ -97,7 +97,7 @@ public class AIBuildPlanner
         AIActionGenerator.GenerateUpgradeCandidates(board, buildActions);
         AIActionEvaluator.GenerateSubCrystalCandidatesPublic(board, buildActions);
 
-        DevelopmentLog.Log($"[AIBuildPlanner] 生成された建築候補数={buildActions.Count}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] 生成された建築候補数={buildActions.Count}"); }
         if (buildActions.Count == 0) return 0;
 
         foreach (var action in buildActions)
@@ -114,7 +114,7 @@ public class AIBuildPlanner
         for (int i = 0; i < Mathf.Min(3, buildActions.Count); i++)
         {
             var ba = buildActions[i];
-            DevelopmentLog.Log($"[AIBuildPlanner] 候補{i + 1}: {ba.Facility} P{ba.StrategicPriority} score={ba.Score:F1} AP={ba.APCost} pos={ba.TargetPos}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] 候補{i + 1}: {ba.Facility} P{ba.StrategicPriority} score={ba.Score:F1} AP={ba.APCost} pos={ba.TargetPos}"); }
         }
 
         foreach (var action in buildActions)
@@ -122,23 +122,23 @@ public class AIBuildPlanner
             if (AITurnBudget.Expired) break;
             if (action.APCost > board.EnemyAP)
             {
-                DevelopmentLog.Log($"[AIBuildPlanner] AP不足でスキップ: {action.Facility} APコスト={action.APCost} 残AP={board.EnemyAP}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] AP不足でスキップ: {action.Facility} APコスト={action.APCost} 残AP={board.EnemyAP}"); }
                 continue;
             }
 
             if (!governor.AllowExecution(action, board)) continue;
-            DevelopmentLog.Log($"[AIBuildPlanner] 建築試行: {action.Facility} @{action.TargetPos} P{action.StrategicPriority} score={action.Score:F1}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] 建築試行: {action.Facility} @{action.TargetPos} P{action.StrategicPriority} score={action.Score:F1}"); }
             bool success = _executor.Execute(action, board);
             if (success)
             {
                 governor.Evaluate(board);
                 governor.Telemetry(action, true);
-                DevelopmentLog.Log($"[AIBuildPlanner] ★先行建築成功: {action.Facility} 残AP={board.EnemyAP} 経済={governor.Economy.State}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] ★先行建築成功: {action.Facility} 残AP={board.EnemyAP} 経済={governor.Economy.State}"); }
                 return 1;
             }
             else
             {
-                DevelopmentLog.Log($"[AIBuildPlanner] ✗先行建築失敗: {action.Facility} @{action.TargetPos}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] ✗先行建築失敗: {action.Facility} @{action.TargetPos}"); }
             }
         }
         return 0;
@@ -171,11 +171,11 @@ public class AIBuildPlanner
 
         if (!shouldPostBuild) return 0;
 
-        DevelopmentLog.Log($"[AIBuildPlanner] メインループで建築0棟 → 後手建築フェーズ (ターン{turnCount})");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] メインループで建築0棟 → 後手建築フェーズ (ターン{turnCount})"); }
         board.Refresh();
         PrepareGovernor(board);
         int lateBuilds = ForceDirectBuild(board, turnCount);
-        DevelopmentLog.Log($"[AIBuildPlanner] 後手建築フェーズ: {lateBuilds}棟建築");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] 後手建築フェーズ: {lateBuilds}棟建築"); }
         return lateBuilds;
     }
 
@@ -248,15 +248,15 @@ public class AIBuildPlanner
                 purchased = true;
                 governor.Evaluate(board);
                 governor.Telemetry(action, true);
-                DevelopmentLog.Log($"[AIBuildPlanner] ★★ {action.ActionType}/{action.Facility} @{action.TargetPos} 経済行動成功! " +
-                    $"残AP={board.EnemyAP} (今ターン{built}件目) 経済={governor.Economy.State}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] ★★ {action.ActionType}/{action.Facility} @{action.TargetPos} 経済行動成功! " +
+                    $"残AP={board.EnemyAP} (今ターン{built}件目) 経済={governor.Economy.State}"); }
                 break;
             }
             if (!purchased) break;
         }
 
         if (built == 0)
-            DevelopmentLog.Log("[AIBuildPlanner] 直接建築なし: 必要な供給改善・安全条件・配置条件を満たす候補なし");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AIBuildPlanner] 直接建築なし: 必要な供給改善・安全条件・配置条件を満たす候補なし"); }
 
         return built;
     }
@@ -273,6 +273,6 @@ public class AIBuildPlanner
     {
         if (!AIEconomySettings.Active.enableDecisionLogs) return;
         foreach (var rejected in governor.Rejections)
-            DevelopmentLog.Log($"[AIBuildPlanner] 建築禁止: {rejected.Key.Facility} reason={rejected.Value}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIBuildPlanner] 建築禁止: {rejected.Key.Facility} reason={rejected.Value}"); }
     }
 }

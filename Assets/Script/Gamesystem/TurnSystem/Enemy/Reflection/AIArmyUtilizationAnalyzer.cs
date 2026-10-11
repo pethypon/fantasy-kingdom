@@ -69,6 +69,7 @@ public sealed class AIArmyUtilizationAnalyzer
 
     public AIArmyTurnEvidence Capture(AIBoardState board, IEnumerable<AIActionRecord> records, TurnStrategy strategy, int ownTurn)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.ArmyUtilization);
         var evidence = new AIArmyTurnEvidence { OwnTurn = ownTurn };
         if (board == null) return evidence;
         utilized.Clear(); utilizedRuntime.Clear(); roles.Clear(); visibleEnemyIds.Clear();
@@ -290,6 +291,7 @@ public sealed class AIArmyUtilizationAnalyzer
     }
     public AIArmyUtilizationState Capture()
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.ArmyUtilization);
         var result = new AIArmyUtilizationState { LastOwnTurn = state.LastOwnTurn, IdleOwnTurns = state.IdleOwnTurns,
             MissedOwnTurns = state.MissedOwnTurns, TurtleOwnTurns = state.TurtleOwnTurns };
         foreach (var sample in state.History) result.History.Add(Copy(sample));

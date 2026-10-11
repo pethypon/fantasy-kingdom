@@ -34,6 +34,7 @@ public sealed partial class AIActionReflectionSystem
     AIActionContextSnapshot requestedEndSnapshot;
     TurnStrategy strategy;
     long latestToken;
+    long diaryRevision;
 
     public Team Faction { get; }
     public AIActionLearningProfile Profile { get; private set; }
@@ -41,6 +42,11 @@ public sealed partial class AIActionReflectionSystem
     public float BattleReward => state?.BattleReward ?? 0;
     public float TurnReward => state?.TurnReward ?? 0;
     public int DiaryCount => state?.DiaryCount ?? 0;
+    public int ActionRecordCount => completed.Count + pending.Count;
+    public int KnowledgeCount => Profile?.Entries.Count ?? 0;
+    public int DelayedCreditCount => delayedCredits.Count;
+    public int DiaryEntryCount => state?.RecentRecords.Count ?? 0;
+    public long DiaryRevision => diaryRevision;
     public string BattleId => state?.BattleId;
     public bool HasPendingActions => pending.Count > 0;
     public bool Enabled => config.EnableReflection;
@@ -51,6 +57,12 @@ public sealed partial class AIActionReflectionSystem
     public string LastDiaryPath => diary.LastPath;
     public string ProfilePath => repository.ProfilePath;
     public string StorageDirectory { get; }
+
+    /// <summary>Read bounded, immutable values from memory. Does not initialize AI, load files or learn.</summary>
+    public AIDiarySnapshot CaptureDiarySnapshot(int pageIndex = 0, int maximumEvents = 100)
+        => new AIDiarySnapshot(diaryRevision, Faction, diary.LastText, state?.RecentRecords, pageIndex, maximumEvents);
+
+    void MarkDiaryChanged() { if (diaryRevision < long.MaxValue) diaryRevision++; }
 
     public AIActionReflectionSystem(Team team, AIReflectionConfig config = null, string storageRoot = null, bool persistent = true)
     {
@@ -78,6 +90,7 @@ public sealed partial class AIActionReflectionSystem
     public void BeginBattle(string battleId = null, int threatLevel = 1, string personality = "", AIReflectionBattleState resume = null)
     {
         pending.Clear(); completed.Clear(); kills.Clear(); artifacts.Clear(); stableTurns.Clear();
+        diary.Reset(); MarkDiaryChanged();
         repeat.Clear(); LastRecord = null; latestToken = 0; endRequested = false; requestedEndSnapshot = null;
         var restored = resume == null ? null : Clone(resume);
         if (restored != null && AIReflectionMigration.UpgradeBattle(restored, config) && ValidResume(restored))
@@ -106,6 +119,7 @@ public sealed partial class AIActionReflectionSystem
     }
     public void BeginTurn(int turnNumber, AIBoardState board = null, TurnStrategy strategy = TurnStrategy.Balanced, int threatLevel = 1)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Reflection);
         if (!Enabled) return;
         EnsureBattle();
         if (state.Ended || state.LastStartedTurn == turnNumber) return;
@@ -179,11 +193,13 @@ public sealed partial class AIActionReflectionSystem
     }
     public void CompleteAction(AIActionToken token, bool success, AIBoardState board, string executionFailure = null)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Reflection);
         if (!Enabled || !pending.TryGetValue(token.Id, out var action)) return;
         CompleteAction(token, success, Capture(action.Action, board), executionFailure);
     }
     public void CompleteAction(AIActionToken token, bool success, AIActionContextSnapshot after, string executionFailure = null)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Reflection);
         if (!Enabled || after == null || !pending.TryGetValue(token.Id, out var action)) return;
         pending.Remove(token.Id);
         var record = action.Record;
@@ -220,6 +236,7 @@ public sealed partial class AIActionReflectionSystem
     }
     public float GetLearnedModifier(AIAction action, AIBoardState board)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Reflection);
         if (!Enabled || !config.ApplyLearningToSelection || action == null || Profile.Entries.Count == 0) return 0;
         extractor.GetSelectionKeys(action, board, state?.LastStartedTurn ?? board?.TurnCount ?? 0, strategy,
             state?.ThreatLevel ?? board?.ReconThreatLevel ?? 1, state?.TotalArtifacts ?? 0, out var context, out var key);
@@ -227,6 +244,7 @@ public sealed partial class AIActionReflectionSystem
     }
     public float GetLearnedModifier(AIAction action, AIActionContextSnapshot context)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Reflection);
         if (!Enabled || !config.ApplyLearningToSelection || action == null || context == null) return 0;
         return LearnedModifier(action, AIActionFeatureExtractor.ContextKey(context), AIActionFeatureExtractor.ActionKey(action, context));
     }
@@ -235,7 +253,7 @@ public sealed partial class AIActionReflectionSystem
         var entry = Profile.Find(context, key);
         float modifier = Profile.GetModifier(context, key, config);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (config.EnableCandidateDebug)
+        if (config.EnableCandidateDebug && DevelopmentLog.IsEnabled(AILogLevel.Trace))
             Debug.Log("[AI自己評価候補] priority=" + action.StrategicPriority + " base=" + action.Score.ToString("F2")
                 + " learned=" + modifier.ToString("F2") + " final=" + (action.Score + modifier).ToString("F2")
                 + " samples=" + (entry != null ? entry.Samples.ToString() : "旧形式を含めて参照") + " context=" + context);
@@ -308,6 +326,7 @@ public sealed partial class AIActionReflectionSystem
         => EndTurn(turnNumber, board, false);
     public void EndTurn(int turnNumber, AIBoardState board, bool terminalTurn)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Reflection);
         if (!Enabled) return;
         EnsureBattle();
         if (state.Ended || state.LastEndedTurn == turnNumber || pending.Count != 0) return;
@@ -366,6 +385,7 @@ public sealed partial class AIActionReflectionSystem
             state.Interval = combined;
         }
         diary.Write(state, result);
+        MarkDiaryChanged();
         if (!sameTurn) state.DiaryCount++;
         state.LastDiaryOwnTurn = state.OwnTurns; state.LastDiaryResult = result;
         state.LastDiaryInterval = JsonUtility.FromJson<AIReflectionInterval>(JsonUtility.ToJson(state.Interval));
@@ -395,6 +415,7 @@ public sealed partial class AIActionReflectionSystem
     void Remember(AIActionRecord record)
     {
         completed[record.ActionId] = record; state.RecentRecords.Add(record); LastRecord = record;
+        MarkDiaryChanged();
         if (state.RecentRecords.Count > config.RecordLimit)
         {
             completed.Remove(state.RecentRecords[0].ActionId); state.RecentRecords.RemoveAt(0);

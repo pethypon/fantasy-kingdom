@@ -15,6 +15,8 @@ public static partial class SaveSystem
     [Serializable]
     public class ProfileData
     {
+        public int SchemaVersion = CurrentProfileVersion;
+        public string GameVersion, CreatedVersion, LastSavedVersion;
         public int ThreatLevel = 1;
         public int TotalWins = 0;
         public int TotalLosses = 0;
@@ -42,6 +44,10 @@ public static partial class SaveSystem
     {
         /// <summary>セーブデータバージョン（互換性管理用）</summary>
         public int Version = CurrentSaveVersion;
+        // Version is retained for v0-v6 readers. Both fields must agree in v7 and later.
+        public int SchemaVersion = CurrentSaveVersion;
+        public string GameVersion, CreatedVersion, LastSavedVersion;
+        public string Checkpoint = PlayerTurnCheckpoint;
 
         public string SaveDate;
         public int Turn;
@@ -76,7 +82,9 @@ public static partial class SaveSystem
         public bool R1Terrain;
         public List<Vector3Int> LandOverrides;
         public int MapWidth, MapDepth;
+        public int MapMinY = 0, MapMaxY = 2, MapAverageFoundation = 2, MapAmplitude = 6;
         public bool HasMapGenerationSettings;
+        public bool HasExplicitMapSnapshot;
         public float MapNoiseScale, MapRiverHalfWidth;
         public float MapSeedX;
         public float MapSeedZ;
@@ -127,6 +135,8 @@ public static partial class SaveSystem
         public int Experience;
         public string SpecialAbility;
         public bool SurvivalInstinctUsed;
+        public bool HasMovedThisTurn;
+        public bool FirstSkillUsedThisTurn, DebuffNullifiedThisTurn, InterceptUsedThisTurn;
 
         // 状態異常
         public List<EffectSaveData> ActiveEffects = new List<EffectSaveData>();
@@ -212,6 +222,8 @@ public static partial class SaveSystem
         public int TotalKills;
         public int AITurnCount;
         public int RngSeed;
+        public bool HasDeterministicSeed;
+        public string RandomAlgorithm = "system-random-v1";
 
         // AILearning
         public bool LearningActive;

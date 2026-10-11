@@ -112,6 +112,13 @@ public class TurnGenerator : MonoBehaviour
         _cameraController = GetComponent<TurnCameraController>();
         if (_cameraController == null) _cameraController = gameObject.AddComponent<TurnCameraController>();
         _cameraController.Bind(this);
+        _inputHandler.ToggleAIDiaryRequested += ToggleDiary;
+        _inputHandler.DiaryCloseRequested += AIDiaryUI.Close;
+        _inputHandler.ToggleTopDownRequested += _cameraController.ToggleTopDown;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _inputHandler.DeveloperAIToggleKey = playerAIToggleKey;
+        _inputHandler.DeveloperAIToggleRequested += ToggleDeveloperAI;
+#endif
         _inspection = gameObject.AddComponent<TurnInspectionController>();
         _inspection.Bind(this);
         var movePreview = GetComponent<MovementPreviewUI>();
@@ -128,6 +135,7 @@ public class TurnGenerator : MonoBehaviour
     void Update()
     {
         _inputHandler?.Tick();
+        AIDiaryUI.Tick();
         if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -135,10 +143,6 @@ public class TurnGenerator : MonoBehaviour
 #endif
             return;
         }
-        #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (Keyboard.current != null && Keyboard.current[playerAIToggleKey].wasPressedThisFrame)
-            _playerAI?.SetEnabled(!DeveloperPlayerAIEnabled);
-#endif
         _cameraController?.Tick();
         _inspection?.Tick();
         #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -146,6 +150,11 @@ public class TurnGenerator : MonoBehaviour
 #endif
         _stateManager?.Update();
     }
+
+    private void ToggleDiary() => AIDiaryUI.Toggle(this);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private void ToggleDeveloperAI() => _playerAI?.SetEnabled(!DeveloperPlayerAIEnabled);
+#endif
 
     public void OnEnable() => gameaction?.Enable();
     public void OnDisable()
@@ -157,9 +166,21 @@ public class TurnGenerator : MonoBehaviour
     }
     public void OnDestroy()
     {
+        if (_inputHandler != null)
+        {
+            _inputHandler.ToggleAIDiaryRequested -= ToggleDiary;
+            _inputHandler.DiaryCloseRequested -= AIDiaryUI.Close;
+            if (_cameraController != null) _inputHandler.ToggleTopDownRequested -= _cameraController.ToggleTopDown;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            _inputHandler.DeveloperAIToggleRequested -= ToggleDeveloperAI;
+#endif
+        }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         _playerAI?.Dispose();
+        _playerAI?.Commander?.ReleaseRuntimeReferences();
 #endif
+        Systems?.AICommander?.ReleaseRuntimeReferences();
+        Systems?.MoveUndoSystem?.Dispose();
         gameaction?.Dispose();
     }
 }

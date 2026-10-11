@@ -65,7 +65,7 @@ public class MLIntegration
         set
         {
             _forceRuleOnly = value;
-            DevelopmentLog.Log($"[MLIntegration] ルールAI専用モード: {(value ? "有効（ML無効化）" : "無効（ML許可）")}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] ルールAI専用モード: {(value ? "有効（ML無効化）" : "無効（ML許可）")}"); }
         }
     }
 
@@ -106,7 +106,8 @@ public class MLIntegration
 
         if (_isActive)
         {
-            bool loaded = MLPersistence.LoadWeights(_brain);
+            bool loaded = MLPersistence.LoadWeights(_brain, out var savedTraining);
+            if (loaded) _trainer.RestoreStatistics(savedTraining.Matches, savedTraining.AverageLoss, savedTraining.LossCount, savedTraining.LossSum);
             MLPersistence.LoadBuffer(_buffer);
             MLPersistence.LoadBehaviorPredictor(_behaviorPredictor);
             MLPersistence.LoadPlayerProfile(_profiler);
@@ -117,24 +118,24 @@ public class MLIntegration
 
             // 学習が進むほど探索を減らす
             int matchesTrained = _trainer.TotalMatchesTrained;
-            for (int i = 0; i < matchesTrained; i++)
+            for (int i = 0; i < matchesTrained && _explorationRate > _minExplorationRate; i++)
                 _explorationRate = Mathf.Max(_minExplorationRate,
                     _explorationRate * _explorationDecay);
 
-            DevelopmentLog.Log("=== [MLIntegration] ARC Raiders式 ML AI v3 ========================");
-            DevelopmentLog.Log($"[MLIntegration] 脅威度={threatLevel}  重み読込={loaded}");
-            DevelopmentLog.Log($"[MLIntegration] パラメータ={_brain.ParameterCount}  " +
-                      $"バッファ={_buffer.CurrentSize}/{_buffer.Capacity}");
-            DevelopmentLog.Log($"[MLIntegration] ヘッド重み: 戦略={_brain.HeadWeights[0]:F2} " +
-                      $"戦術={_brain.HeadWeights[1]:F2} 経済={_brain.HeadWeights[2]:F2}");
-            DevelopmentLog.Log($"[MLIntegration] 探索率={_explorationRate:F3}  " +
-                      $"カリキュラム={_trainer.CurrentPhase}");
-            DevelopmentLog.Log($"[MLIntegration] プロファイル: 攻撃性={_profiler.Profile.AggressionScore:F2} " +
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("=== [MLIntegration] ARC Raiders式 ML AI v3 ========================"); }
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] 脅威度={threatLevel}  重み読込={loaded}"); }
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] パラメータ={_brain.ParameterCount}  " +
+                      $"バッファ={_buffer.CurrentSize}/{_buffer.Capacity}"); }
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] ヘッド重み: 戦略={_brain.HeadWeights[0]:F2} " +
+                      $"戦術={_brain.HeadWeights[1]:F2} 経済={_brain.HeadWeights[2]:F2}"); }
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] 探索率={_explorationRate:F3}  " +
+                      $"カリキュラム={_trainer.CurrentPhase}"); }
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] プロファイル: 攻撃性={_profiler.Profile.AggressionScore:F2} " +
                       $"信頼度={_profiler.Profile.Confidence:F2} " +
-                      $"観測試合={_profiler.Profile.MatchesObserved}");
-            DevelopmentLog.Log($"[MLIntegration] 予測器: 精度={_behaviorPredictor.Accuracy:F2} " +
-                      $"予測数={_behaviorPredictor.TotalPredictions}");
-            DevelopmentLog.Log("=== [MLIntegration] ==============================================");
+                      $"観測試合={_profiler.Profile.MatchesObserved}"); }
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] 予測器: 精度={_behaviorPredictor.Accuracy:F2} " +
+                      $"予測数={_behaviorPredictor.TotalPredictions}"); }
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("=== [MLIntegration] =============================================="); }
         }
     }
 
@@ -261,12 +262,12 @@ public class MLIntegration
 
         if (prediction.Confidence > 0.3f || freqSeq.Length > 0)
         {
-            DevelopmentLog.Log($"[MLIntegration] 行動予測: " +
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] 行動予測: " +
                       $"攻撃={prediction.AttackProbability:F2} " +
                       $"移動={prediction.MoveProbability:F2} " +
                       $"建築={prediction.BuildProbability:F2} " +
                       $"信頼度={prediction.Confidence:F2}" +
-                      (freqSeq.Length > 0 ? $"  頻出パターン={freqSeq}" : ""));
+                      (freqSeq.Length > 0 ? $"  頻出パターン={freqSeq}" : "")); }
         }
     }
 
@@ -412,16 +413,16 @@ public class MLIntegration
 
         // 保存
         MLPersistence.SaveWeights(_brain, _threatLevel,
-            _trainer.TotalMatchesTrained, _trainer.AverageLoss);
+            _trainer.TotalMatchesTrained, _trainer.AverageLoss, _trainer);
         MLPersistence.SaveBuffer(_buffer);
         MLPersistence.SaveBehaviorPredictor(_behaviorPredictor);
         MLPersistence.SavePlayerProfile(_profiler);
 
-        DevelopmentLog.Log($"[MLIntegration] 試合終了学習完了: {(playerWon ? "AI敗北" : "AI勝利")}  " +
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] 試合終了学習完了: {(playerWon ? "AI敗北" : "AI勝利")}  " +
                   $"カウンター={_counterStrategy.CurrentPlan}+{_counterStrategy.SecondaryPlan}  " +
                   $"予測精度={_behaviorPredictor.Accuracy:F2}  " +
                   $"探索率={_explorationRate:F3}  フェーズ={_trainer.CurrentPhase}  " +
-                  $"バッファ={_buffer.CurrentSize}  損失={_trainer.LastEpochLoss:F4}");
+                  $"バッファ={_buffer.CurrentSize}  損失={_trainer.LastEpochLoss:F4}"); }
     }
 
     // ================================================================
@@ -472,7 +473,7 @@ public class MLIntegration
 
         float elapsed = (Time.realtimeSinceStartup - startTime) * 1000f;
         if (steps > 0)
-            DevelopmentLog.Log($"[MLIntegration] 自己対戦シミュレーション: {steps}ステップ  所要={elapsed:F1}ms");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[MLIntegration] 自己対戦シミュレーション: {steps}ステップ  所要={elapsed:F1}ms"); }
     }
 
     // ================================================================

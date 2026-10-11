@@ -1,63 +1,113 @@
+using System;
 using System.IO;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-/// <summary>On-demand, scene-owned viewer for the latest in-memory diary. It never scans or reads saved files.</summary>
+/// <summary>
+/// Responsibility: read-only diary overlay; keyboard input belongs to TurnInputHandler.
+/// Lifetime/Owner: scene / ScreenCanvas. Maximum: one root, one bounded event page and report.
+/// Cleanup: release snapshot/string when closed, root destroyed with canvas. Failure: close UI only.
+/// </summary>
 public sealed class AIDiaryUI : MonoBehaviour
 {
-    public const int MaximumDisplayedCharacters = 24000;
+    public const int MaximumDisplayedCharacters = 30000;
     static AIDiaryUI instance;
     public static bool IsOpen => instance != null && instance.gameObject.activeInHierarchy;
+    public static int RebuildCount => instance != null ? instance.rebuildCount : 0;
+    public static int LayoutRebuildCount => instance != null ? instance.layoutRebuildCount : 0;
+    public static int DisplayedEventCount => IsOpen ? instance.snapshot?.Events.Count ?? 0 : 0;
+    public static int DisplayedCharacterCount => IsOpen && instance.body != null ? instance.body.text.Length : 0;
+    public static int PageCount => instance != null ? instance.characterPages : 0;
     TurnGenerator turn;
-    bool showPlayer;
-    TextMeshProUGUI body, locations, sourceLabel;
+    bool showPlayer, showReport = true, built, forceRefresh, warningLogged;
+    int eventPage, characterPage, characterPages = 1, rebuildCount, layoutRebuildCount;
+    long renderedRevision = -1;
+    float nextRefreshTime;
+    AIDiarySnapshot snapshot;
+    AICommander renderedCommander;
+    string contentText, renderedReport;
+    TextMeshProUGUI body, locations, sourceLabel, pageLabel;
     ScrollRect scroll;
     Scrollbar scrollbar;
     TMP_FontAsset font;
+    CanvasGroup raycasts;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetStatics() => instance = null;
 
+    /// <summary>Central input router calls this once per key-down.</summary>
+    public static void Toggle(TurnGenerator generator)
+    { if (IsOpen) Close(); else Show(generator); }
+
+    /// <summary>Reuse the scene root and read existing memory. Does not initialize AI or read a file.</summary>
     public static void Show(TurnGenerator generator)
     {
         var canvas = UIBuilder.ScreenCanvas;
         if (canvas == null || generator == null) return;
-        if (instance != null)
+        try
         {
+            if (instance == null)
+            {
+                var overlay = new GameObject("AIDiaryOverlay", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(AIDiaryUI));
+                overlay.SetActive(false);
+                overlay.transform.SetParent(canvas.transform, false);
+                UIFactory.StretchFill((RectTransform)overlay.transform);
+                overlay.GetComponent<Image>().color = BrandGuide.OverlayBg;
+                instance = overlay.GetComponent<AIDiaryUI>();
+                instance.raycasts = overlay.GetComponent<CanvasGroup>();
+            }
+            if (instance.turn != generator) { instance.showPlayer = false; instance.showReport = true; }
             instance.turn = generator;
+            if (!instance.built) { instance.Build(); instance.built = true; }
+            instance.eventPage = instance.characterPage = 0;
+            instance.renderedRevision = -1; instance.forceRefresh = true;
             instance.transform.SetAsLastSibling();
+            instance.raycasts.interactable = instance.raycasts.blocksRaycasts = true;
+            instance.gameObject.SetActive(true);
             instance.Refresh();
-            return;
         }
-        var overlay = new GameObject("AIDiaryOverlay", typeof(RectTransform), typeof(Image), typeof(AIDiaryUI));
-        overlay.transform.SetParent(canvas.transform, false);
-        UIFactory.StretchFill((RectTransform)overlay.transform);
-        overlay.GetComponent<Image>().color = BrandGuide.OverlayBg;
-        instance = overlay.GetComponent<AIDiaryUI>();
-        instance.turn = generator;
-        instance.Build();
-        instance.Refresh();
+        catch (Exception error) { instance?.Fail(error); }
     }
 
+    /// <summary>Disable all presentation work and raycasts; structured AI recording continues.</summary>
     public static void Close()
     {
         var current = instance;
-        instance = null;
         if (current == null) return;
+        if (current.raycasts != null) current.raycasts.interactable = current.raycasts.blocksRaycasts = false;
         current.gameObject.SetActive(false);
-        Destroy(current.gameObject);
+        current.snapshot = null; current.contentText = current.renderedReport = null;
+        current.renderedCommander = null; current.renderedRevision = -1;
+        AIPerformanceCounters.SetDiaryVisibleLines(0);
     }
 
-    void OnDestroy() { if (instance == this) instance = null; }
+    void OnDestroy() { if (instance == this) { instance = null; AIPerformanceCounters.SetDiaryVisibleLines(0); } }
 
-    void Update()
+    /// <summary>Hidden ticks perform no formatting, layout work or collection reads.</summary>
+    public static void Tick()
     {
-        // The menu owns Escape while it is open, so one press cannot close two stacked panels.
-        if ((GameMenuUI.Instance == null || !GameMenuUI.Instance.IsOpen)
-            && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) Close();
-        if (turn == null) Close();
+        if (!IsOpen) return;
+        var current = instance;
+        if (current.turn == null) { Close(); return; }
+        if (Time.unscaledTime < current.nextRefreshTime) return;
+        try
+        {
+            current.nextRefreshTime = Time.unscaledTime + 1f / AIPerformanceConfig.Active.SafeDiaryRefreshHz;
+            var commander = current.Commander();
+            if (current.forceRefresh || current.renderedCommander != commander
+                || current.renderedRevision != (commander?.DiaryRevision ?? 0)
+                || !ReferenceEquals(current.renderedReport, commander?.LatestDiaryText)) current.Refresh();
+        }
+        catch (Exception error) { current.Fail(error); }
+    }
+
+    void Fail(Exception error)
+    {
+        Close();
+        if (warningLogged) return;
+        warningLogged = true;
+        Debug.LogWarning("[AI日記UI] 表示を閉じてAI処理を続行します: " + error.Message);
     }
 
     void Build()
@@ -76,17 +126,16 @@ public sealed class AIDiaryUI : MonoBehaviour
         layout.spacing = 12; layout.childControlWidth = true; layout.childControlHeight = true;
         layout.childForceExpandWidth = false; layout.childForceExpandHeight = true;
         var enemy = Button("EnemyDiary", controls, "敵軍AIの日記", 230);
-        enemy.onClick.AddListener(() => { showPlayer = false; Refresh(); });
+        enemy.onClick.AddListener(() => SelectSource(false));
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         var player = Button("PlayerDiary", controls, "プレイヤーAI（開発用）", 300);
-        player.interactable = turn.PlayerAI?.Commander != null;
-        player.onClick.AddListener(() => { showPlayer = true; Refresh(); });
+        player.onClick.AddListener(() => SelectSource(true));
 #endif
         sourceLabel = Text("DiarySourceLabel", controls, "", 19, BrandGuide.TextPrimary);
         sourceLabel.gameObject.AddComponent<LayoutElement>().flexibleWidth = 1;
 
         var scrollRect = Rect("DiaryScroll", panel, Vector2.zero, Vector2.one);
-        scrollRect.offsetMin = new Vector2(24, 194); scrollRect.offsetMax = new Vector2(-24, -142);
+        scrollRect.offsetMin = new Vector2(24, 240); scrollRect.offsetMax = new Vector2(-24, -142);
         scrollRect.gameObject.AddComponent<Image>().color = new Color(.02f, .025f, .035f, .9f);
         scroll = scrollRect.gameObject.AddComponent<ScrollRect>();
         scroll.horizontal = false; scroll.vertical = true; scroll.inertia = false;
@@ -108,7 +157,19 @@ public sealed class AIDiaryUI : MonoBehaviour
         scrollbar.GetComponent<RectTransform>().sizeDelta = new Vector2(34, 0);
         scroll.verticalScrollbar = scrollbar;
         scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
-        scroll.onValueChanged.AddListener(_ => scrollbar.size = Mathf.Max(.08f, scrollbar.size));
+        scroll.onValueChanged.AddListener(UpdateScrollbar);
+
+        var paging = Rect("DiaryPages", panel, Vector2.zero, new Vector2(1, 0));
+        paging.offsetMin = new Vector2(24, 190); paging.offsetMax = new Vector2(-24, 234);
+        var pagingLayout = paging.gameObject.AddComponent<HorizontalLayoutGroup>();
+        pagingLayout.spacing = 10; pagingLayout.childControlWidth = pagingLayout.childControlHeight = true;
+        pagingLayout.childForceExpandWidth = pagingLayout.childForceExpandHeight = true;
+        Button("DiaryReport", paging, "期間報告", 160).onClick.AddListener(() => SelectReport(true));
+        Button("DiaryActions", paging, "最近の行動", 160).onClick.AddListener(() => SelectReport(false));
+        Button("DiaryPreviousPage", paging, "前の記録", 170).onClick.AddListener(() => ChangePage(-1));
+        pageLabel = Text("DiaryPageNumber", paging, "", 17, BrandGuide.TextSecondary);
+        pageLabel.gameObject.AddComponent<LayoutElement>().preferredWidth = 170;
+        Button("DiaryNextPage", paging, "次の記録", 170).onClick.AddListener(() => ChangePage(1));
 
         locations = Text("DiaryStorageLocations", panel, "", 16, BrandGuide.TextSecondary);
         locations.alignment = TextAlignmentOptions.TopLeft;
@@ -120,10 +181,10 @@ public sealed class AIDiaryUI : MonoBehaviour
         var footerLayout = footer.gameObject.AddComponent<HorizontalLayoutGroup>();
         footerLayout.spacing = 12; footerLayout.childControlWidth = true; footerLayout.childControlHeight = true;
         footerLayout.childForceExpandWidth = true; footerLayout.childForceExpandHeight = true;
-        Button("RefreshDiary", footer, "最新の表示に更新", 220).onClick.AddListener(Refresh);
-        Button("DiaryTop", footer, "先頭へ", 180).onClick.AddListener(() => scroll.verticalNormalizedPosition = 1);
-        Button("DiaryBottom", footer, "末尾へ", 180).onClick.AddListener(() => scroll.verticalNormalizedPosition = 0);
-        Button("CopyDiaryLocations", footer, "保存先をコピー", 220).onClick.AddListener(() => GUIUtility.systemCopyBuffer = locations.text);
+        Button("RefreshDiary", footer, "最新の表示に更新", 220).onClick.AddListener(RequestRefresh);
+        Button("DiaryTop", footer, "先頭へ", 180).onClick.AddListener(() => ScrollTo(1));
+        Button("DiaryBottom", footer, "末尾へ", 180).onClick.AddListener(() => ScrollTo(0));
+        Button("CopyDiaryLocations", footer, "保存先をコピー", 220).onClick.AddListener(CopyLocations);
         Button("CloseDiary", footer, "閉じる [Esc]", 220).onClick.AddListener(Close);
     }
 
@@ -132,29 +193,95 @@ public sealed class AIDiaryUI : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (showPlayer) return turn != null ? turn.PlayerAI?.Commander : null;
 #endif
-        return turn != null ? turn.Systems.AICommander : null;
+        return turn != null ? turn.Systems?.AICommander : null;
     }
 
     void Refresh()
     {
-        if (body == null) return;
+        if (!IsOpen) return;
+        if (body == null || scroll == null || sourceLabel == null || locations == null || pageLabel == null)
+            throw new InvalidOperationException("日記の表示要素が破棄されています。");
+        using var measured = AIPerformanceCounters.Measure(AIPerformanceStage.UI);
         var commander = Commander();
-        sourceLabel.text = showPlayer ? "プレイヤーAIの最新記録" : "敵軍AIの最新記録";
-        string diary = commander?.LatestDiaryText;
-        if (string.IsNullOrEmpty(diary))
-            body.text = "AI日記はまだありません。\n\nAIが設定した間隔（初期設定は15ターン）まで行動すると、また勝利・敗北が確定した時に作成します。\n自己評価が無効になっている場合は記録されません。\n\n日記には実際の行動結果、報酬、失敗理由、学習の変化を表示します。";
-        else body.text = Bounded(diary, MaximumDisplayedCharacters,
-            "\n\n表示文字数の上限に達しました。全文は保存された日記を確認してください。");
+        var config = AIPerformanceConfig.Active;
+        if (forceRefresh || snapshot == null || renderedCommander != commander || renderedRevision != (commander?.DiaryRevision ?? 0)
+            || !ReferenceEquals(renderedReport, commander?.LatestDiaryText))
+        {
+            snapshot = commander?.CaptureDiarySnapshot(eventPage, config.DiaryEventLimit)
+                ?? new AIDiarySnapshot(0, showPlayer ? Team.Player : Team.Enemy, null, null, eventPage, config.DiaryEventLimit);
+            eventPage = snapshot.PageIndex;
+            // Until the first interval report, finalized observed actions are already available in memory.
+            contentText = showReport && !string.IsNullOrEmpty(snapshot.ReportText) ? snapshot.ReportText : snapshot.RenderEvents();
+            renderedCommander = commander; renderedRevision = snapshot.Revision; renderedReport = commander?.LatestDiaryText;
+            forceRefresh = false;
+        }
+        // One character of headroom keeps a surrogate pair together without exceeding the TMP budget.
+        int pageStride = config.DiaryCharacterLimit - 1;
+        characterPages = Math.Max(1, (contentText.Length + pageStride - 1) / pageStride);
+        characterPage = Mathf.Clamp(characterPage, 0, characterPages - 1);
+        string text = PageSlice(contentText, characterPage, config.DiaryCharacterLimit);
+        sourceLabel.text = showPlayer ? "プレイヤーAIの記録" : "敵軍AIの記録";
+        pageLabel.text = (HasReport ? "期間報告" : "行動 " + (snapshot.PageCount - eventPage) + "/" + snapshot.PageCount)
+            + "　" + (characterPage + 1) + "/" + characterPages;
         string directory = commander?.ReflectionStorageDirectory
             ?? Path.Combine(Application.persistentDataPath, "FantasyKingdom", "AI");
         string diaryPath = commander?.LatestDiaryPath;
         locations.text = "保存フォルダー：" + Bounded(Path.Combine(directory, "Diary"), 1200)
             + "\n最新の日記：" + (string.IsNullOrEmpty(diaryPath) ? "ファイル保存なし（画面の記録のみ）" : Bounded(diaryPath, 1200))
             + "\n学習データ：" + (string.IsNullOrEmpty(commander?.ReflectionProfilePath) ? "まだ作成されていません" : Bounded(commander.ReflectionProfilePath, 1200));
-        Canvas.ForceUpdateCanvases();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(scroll.content);
-        scroll.verticalNormalizedPosition = 1;
-        scrollbar.size = Mathf.Max(.08f, scrollbar.size);
+        if (body.text != text)
+        {
+            body.text = text; rebuildCount++; AIPerformanceCounters.MarkDiaryUIRebuild();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(scroll.content); layoutRebuildCount++;
+            scroll.verticalNormalizedPosition = 1; scrollbar.size = Mathf.Max(.08f, scrollbar.size);
+        }
+        int lines = text.Length == 0 ? 0 : 1;
+        for (int i = 0; i < text.Length; i++) if (text[i] == '\n') lines++;
+        AIPerformanceCounters.SetDiaryVisibleLines(lines);
+        nextRefreshTime = Time.unscaledTime + 1f / config.SafeDiaryRefreshHz;
+    }
+
+    void SelectSource(bool player) { showPlayer = player; eventPage = characterPage = 0; RequestRefresh(); }
+    bool HasReport => showReport && snapshot != null && !string.IsNullOrEmpty(snapshot.ReportText);
+    void SelectReport(bool report) { showReport = report; eventPage = characterPage = 0; RequestRefresh(); }
+    void RequestRefresh() { forceRefresh = true; SafeRefresh(); }
+    void SafeRefresh() { try { Refresh(); } catch (Exception error) { Fail(error); } }
+    void ScrollTo(float position)
+    { try { scroll.verticalNormalizedPosition = position; } catch (Exception error) { Fail(error); } }
+    void CopyLocations()
+    { try { GUIUtility.systemCopyBuffer = locations.text; } catch (Exception error) { Fail(error); } }
+    void UpdateScrollbar(Vector2 position)
+    {
+        if (!IsOpen) return;
+        try { scrollbar.size = Mathf.Max(.08f, scrollbar.size); } catch (Exception error) { Fail(error); }
+    }
+
+    void ChangePage(int delta)
+    {
+        if (delta < 0)
+        {
+            if (characterPage > 0) characterPage--;
+            else if (!HasReport && snapshot != null && eventPage < snapshot.PageCount - 1)
+            { eventPage++; characterPage = 0; forceRefresh = true; }
+            else return;
+        }
+        else
+        {
+            if (characterPage < characterPages - 1) characterPage++;
+            else if (!HasReport && eventPage > 0) { eventPage--; characterPage = 0; forceRefresh = true; }
+            else return;
+        }
+        SafeRefresh();
+    }
+
+    // Keep split surrogate pairs on the following page so pagination never drops a character.
+    static string PageSlice(string text, int page, int limit)
+    {
+        int stride = Math.Max(1, limit - 1);
+        int start = Math.Min(text.Length, page * stride), end = Math.Min(text.Length, (page + 1) * stride);
+        if (start > 0 && start < text.Length && char.IsLowSurrogate(text[start]) && char.IsHighSurrogate(text[start - 1])) start--;
+        if (end > 0 && end < text.Length && char.IsLowSurrogate(text[end]) && char.IsHighSurrogate(text[end - 1])) end--;
+        return start == 0 && end == text.Length ? text : text.Substring(start, end - start);
     }
 
     static string Bounded(string text, int limit, string suffix = "…")

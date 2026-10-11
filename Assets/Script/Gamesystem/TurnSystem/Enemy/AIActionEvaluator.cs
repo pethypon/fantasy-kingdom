@@ -56,21 +56,25 @@ public static partial class AIActionEvaluator
         actions.Clear();
 
         // 候補生成は AIActionGenerator に委譲
-        AIActionGenerator.GenerateAllCandidates(board, actions);
-        board.Governor?.Filter(actions,board);
+        using (AIPerformanceCounters.Measure(AIPerformanceStage.CandidateGeneration))
+            AIActionGenerator.GenerateAllCandidates(board, actions);
+        using (AIPerformanceCounters.Measure(AIPerformanceStage.ActionEvaluation))
+        {
+            board.Governor?.Filter(actions,board);
 
-        // 各候補にスコア付け
-        for (int i = 0; i < actions.Count; i++)
-            actions[i].Score = CalcScore(actions[i], personality, board, learning);
+            // 各候補にスコア付け
+            for (int i = 0; i < actions.Count; i++)
+                actions[i].Score = CalcScore(actions[i], personality, board, learning);
 
-        // ターン方針ボーナス（AIStrategyBonusに委譲）
-        AIStrategyBonus.Apply(actions, strategy, board);
+            // ターン方針ボーナス（AIStrategyBonusに委譲）
+            AIStrategyBonus.Apply(actions, strategy, board);
 
-        // 事後補正は AIActionModifiers に委譲（Positioning パーシャルに集約）
-        ApplyPositioningModifiers(actions, personality, board);
+            // 事後補正は AIActionModifiers に委譲（Positioning パーシャルに集約）
+            ApplyPositioningModifiers(actions, personality, board);
 
-        // 安全性の優先段階を維持し、同じ段階では既存の評価点を比較する。
-        actions.Sort(AIAction.ComparePriorityThenScore);
+            // 安全性の優先段階を維持し、同じ段階では既存の評価点を比較する。
+            actions.Sort(AIAction.ComparePriorityThenScore);
+        }
     }
 
     // ================================================================

@@ -17,11 +17,17 @@ public static partial class SaveSystem
         var data = new GameSaveData
         {
             Turn = turnGen.Context.Turn,
-            ThreatLevel = LoadProfile().ThreatLevel,
+            ThreatLevel = aiCommander?.ThreatLevel.Level ?? LoadProfile().ThreatLevel,
+            Checkpoint = "player_turn",
+            HasExplicitMapSnapshot = true,
             LandOverrides = new List<Vector3Int>(turnGen.Systems.MapCreate.SavedLandOverrides),
             R1Terrain = turnGen.Systems.MapCreate.UseR1Terrain,
             MapWidth = turnGen.Systems.MapCreate.maxX,
             MapDepth = turnGen.Systems.MapCreate.maxZ,
+            MapMinY = turnGen.Systems.MapCreate.minY,
+            MapMaxY = turnGen.Systems.MapCreate.maxY,
+            MapAverageFoundation = turnGen.Systems.MapCreate.AverageFoundation,
+            MapAmplitude = turnGen.Systems.MapCreate.Amplitude,
             HasMapGenerationSettings = true,
             MapNoiseScale = turnGen.Systems.MapCreate.noiseScale,
             MapRiverHalfWidth = turnGen.Systems.MapCreate.riverHalfWidth,
@@ -145,10 +151,10 @@ public static partial class SaveSystem
         var d = new UnitSaveData
         {
             ReflectionLifeId = s.ReflectionLifeId,
-            Kind = s.kind.ToString(),
+            Kind = StableSaveKeys.Key(s.kind),
             DefinitionId = s.type == Type.Unit ? s.unitDefinitionId : null,
-            Team = s.team.ToString(),
-            Type = s.type.ToString(),
+            Team = StableSaveKeys.Key(s.team),
+            Type = StableSaveKeys.Key(s.type),
             HP = s.HP,
             MaxHP = s.MaxHP,
             ATK = s.ATK,
@@ -160,16 +166,20 @@ public static partial class SaveSystem
             PosX = s.transform.position.x,
             PosY = s.transform.position.y,
             PosZ = s.transform.position.z,
-            Direction = s.direction.ToString(),
-            PassiveSkill = s.passiveskill.ToString(),
+            Direction = StableSaveKeys.Key(s.direction),
+            PassiveSkill = StableSaveKeys.Key(s.passiveskill),
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
-            FacilityKind = s.facilityKind.ToString(),
+            FacilityKind = StableSaveKeys.Key(s.facilityKind),
             AuthoredFacilityId = s.AuthoredFacility != null ? s.AuthoredFacility.definitionId : s.authoredFacilityId,
             IsActive = s.gameObject.activeSelf,
+            HasMovedThisTurn = s.HasMovedThisTurn,
+            FirstSkillUsedThisTurn = s.FirstSkillUsedThisTurn,
+            DebuffNullifiedThisTurn = s.DebuffNullifiedThisTurn,
+            InterceptUsedThisTurn = s.InterceptUsedThisTurn,
             Fatigue = s.Fatigue,
             Experience = s.Experience,
-            SpecialAbility = s.specialAbility.ToString(),
+            SpecialAbility = StableSaveKeys.Key(s.specialAbility),
             SurvivalInstinctUsed = s.SurvivalInstinctUsed
         };
 
@@ -179,8 +189,8 @@ public static partial class SaveSystem
             {
                 d.ActiveEffects.Add(new EffectSaveData
                 {
-                    DebuffType = e.debuffType.ToString(),
-                    BuffType = e.buffType.ToString(),
+                    DebuffType = StableSaveKeys.Key(e.debuffType),
+                    BuffType = StableSaveKeys.Key(e.buffType),
                     RemainingTurns = e.remainingTurns
                 });
             }
@@ -224,7 +234,7 @@ public static partial class SaveSystem
     {
         // Personality
         var p = commander.Personality;
-        dst.MajorPersonality = p.Major.ToString();
+        dst.MajorPersonality = StableSaveKeys.Key(p.Major);
         dst.TraitCaution = p.Traits.Caution;
         dst.TraitCommand = p.Traits.Command;
         dst.TraitObsession = p.Traits.Obsession;
@@ -233,7 +243,7 @@ public static partial class SaveSystem
         dst.TraitDevelopment = p.Traits.Development;
 
         // Strategy
-        dst.CurrentStrategy = commander.CurrentStrategy.ToString();
+        dst.CurrentStrategy = StableSaveKeys.Key(commander.CurrentStrategy);
 
         // Stats（公開プロパティ経由）
         dst.TotalMoves = commander.SaveTotalMoves;
@@ -249,7 +259,8 @@ public static partial class SaveSystem
         dst.Operations = commander.CaptureOperationState();
         dst.Exploration = commander.CaptureExplorationState();
         dst.StrategicObjective=commander.SaveStrategicObjective;
-        dst.RngSeed = commander.ThreatLevel.Level; // シードは脅威度から復元可
+        dst.RngSeed = commander.RandomSeed;
+        dst.HasDeterministicSeed = true;
 
         // Learning
         var learning = commander.Learning;

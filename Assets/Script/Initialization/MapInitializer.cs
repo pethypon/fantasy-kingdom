@@ -7,6 +7,10 @@ using UnityEngine;
 /// </summary>
 public static class MapInitializer
 {
+    public static bool HasSavedMapSeed(SaveSystem.GameSaveData data) => data != null
+        && (data.HasExplicitMapSnapshot || data.MapSeedX != 0f || data.MapSeedZ != 0f);
+    public static bool HasSavedCrystalPositions(SaveSystem.GameSaveData data) => data != null
+        && (data.HasExplicitMapSnapshot || data.PCPx != 0f || data.PCPz != 0f);
     /// <summary>
     /// マップ・ユニット・視界の初期化を実行する。
     /// ロードデータがある場合はシード・クリスタル位置を復元する。
@@ -30,8 +34,15 @@ public static class MapInitializer
         if (loadData == null) GameAuthoringRules.Active?.ApplyNewMap(mapCreate);
         else if (loadData.HasMapGenerationSettings)
         {
-            mapCreate.noiseScale = Mathf.Clamp(loadData.MapNoiseScale, .01f, 1);
-            mapCreate.riverHalfWidth = Mathf.Clamp(loadData.MapRiverHalfWidth, 0, 3);
+            mapCreate.noiseScale = loadData.MapNoiseScale;
+            mapCreate.riverHalfWidth = loadData.MapRiverHalfWidth;
+        }
+        if (loadData != null && loadData.HasExplicitMapSnapshot)
+        {
+            mapCreate.minY = loadData.MapMinY;
+            mapCreate.maxY = loadData.MapMaxY;
+            mapCreate.AverageFoundation = loadData.MapAverageFoundation;
+            mapCreate.Amplitude = loadData.MapAmplitude;
         }
         if (loadData != null && loadData.MapWidth > 0 && loadData.MapDepth > 0)
         {
@@ -39,7 +50,7 @@ public static class MapInitializer
             mapCreate.maxZ = loadData.MapDepth;
         }
         // マップ生成
-        if (loadData != null && (loadData.MapSeedX != 0f || loadData.MapSeedZ != 0f))
+        if (HasSavedMapSeed(loadData))
         {
             mapCreate.GenerateNoise(loadData.MapSeedX, loadData.MapSeedZ);
         }
@@ -53,7 +64,7 @@ public static class MapInitializer
         // クリスタル配置
         if (crystalSystem != null)
         {
-            if (loadData != null && (loadData.PCPx != 0f || loadData.PCPz != 0f))
+            if (HasSavedCrystalPositions(loadData))
             {
                 var pcp = new Vector3(loadData.PCPx, loadData.PCPy, loadData.PCPz);
                 var ecp = new Vector3(loadData.ECPx, loadData.ECPy, loadData.ECPz);

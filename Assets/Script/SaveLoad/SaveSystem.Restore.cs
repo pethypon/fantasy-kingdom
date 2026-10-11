@@ -109,7 +109,7 @@ public static partial class SaveSystem
         commander.RestorePlan(src.Operation);
         commander.RestoreStrategicObjective(src.StrategicObjective);
 
-        if (Enum.TryParse<TurnStrategy>(src.CurrentStrategy, out var strategy))
+        if (StableSaveKeys.TryParse<TurnStrategy>(src.CurrentStrategy, out var strategy))
             commander.RestoreStrategy(strategy);
 
         RestoreAILearning(src, commander.Learning);

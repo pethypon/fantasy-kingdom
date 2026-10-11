@@ -6,20 +6,16 @@ using UnityEngine;
 // =====================================================================
 public partial class AICommander
 {
+    // Owner: commander; lifetime: current selection; <= the complete legal candidate set; reused and
+    // cleared on each selection/battle disposal. Never caps candidates or changes their tie-breaking order.
     readonly List<(AIAction action, float score)> selectionBuffer = new List<(AIAction action, float score)>(64);
+    readonly AIRuntimeMaintenance runtimeMaintenance = new AIRuntimeMaintenance();
     // ================================================================
     //  死亡ユニットの位置履歴を掃除
     // ================================================================
     void CleanupDeadUnitHistory()
     {
-        var deadUnits = new List<Status>();
-        foreach (var kvp in _unitPositionHistory)
-        {
-            if (kvp.Key == null || !kvp.Key.gameObject.activeInHierarchy || kvp.Key.HP <= 0)
-                deadUnits.Add(kvp.Key);
-        }
-        foreach (var unit in deadUnits)
-            _unitPositionHistory.Remove(unit);
+        runtimeMaintenance.PrunePositionHistory(_unitPositionHistory, _actorTeam, _board?.OwnUnitParent);
     }
 
     // ================================================================
@@ -28,6 +24,7 @@ public partial class AICommander
     AIAction SelectBestAction(List<AIAction> actions, HashSet<string> failedActions,
         HashSet<string> failedActionTypes = null)
     {
+        using var measurement = AIPerformanceCounters.Measure(AIPerformanceStage.Selection);
         // 有効な候補をスコア順に収集
         var validActions = selectionBuffer;
         validActions.Clear();

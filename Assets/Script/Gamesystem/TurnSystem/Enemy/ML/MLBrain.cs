@@ -83,6 +83,11 @@ public class MLBrain
 
     // ---- 統計 ----
     public int TotalTrainingSteps { get; private set; }
+    public void RestoreTrainingSteps(int value)
+    {
+        if (value < 0) throw new ArgumentOutOfRangeException(nameof(value));
+        TotalTrainingSteps = value;
+    }
     public float LastLoss { get; private set; }
     public float[] LastHeadOutputs => _headOutputs;
 

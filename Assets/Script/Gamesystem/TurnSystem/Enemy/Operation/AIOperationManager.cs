@@ -63,6 +63,7 @@ public sealed class AIOperationManager
     public void BeginTurn(AIBoardState board, TurnStrategy strategy, int ownTurn, AIPlan legacyPlan = null,
         AIPersonality personality = null, AIPlayerModel.Profile playerModel = null)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Operation);
         if (board == null || !config.Enabled || state.Ended || board.ReconThreatLevel < Mathf.Max(1, config.MinimumThreatLevel)) return;
         ownTurn = Mathf.Max(1, ownTurn);
         this.strategy = strategy; this.legacyPlan = legacyPlan;
@@ -112,6 +113,7 @@ public sealed class AIOperationManager
     /// <summary>Refresh current-turn observations without counting a new own turn or replacing retained plans.</summary>
     public void Refresh(AIBoardState board, TurnStrategy strategy, AIPlan legacyPlan = null)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Operation);
         if (board == null || !config.Enabled || state.Ended || state.LastStartedOwnTurn < 1
             || board.ReconThreatLevel < Mathf.Max(1, config.MinimumThreatLevel)) return;
         this.strategy = strategy; this.legacyPlan = legacyPlan;
@@ -198,6 +200,7 @@ public sealed class AIOperationManager
     /// <summary>Called only after authoritative action execution and reflection outcome capture.</summary>
     public void ObserveAction(AIActionRecord record, AIBoardState board)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Operation);
         if (record == null || !config.Enabled || state.Ended || record.ActionId <= 0) return;
         int ownTurn = Mathf.Max(1, state.LastStartedOwnTurn);
         var plan = FindActive(record.OperationId);
@@ -270,6 +273,7 @@ public sealed class AIOperationManager
 
     public void EndTurn(AIBoardState board, int ownTurn)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Operation);
         if (!config.Enabled || state.Ended || ownTurn <= state.OwnTurns || state.LastEndedOwnTurn == ownTurn) return;
         state.OwnTurns = ownTurn; state.LastEndedOwnTurn = ownTurn;
         foreach (var plan in state.ActiveOperations)
@@ -284,6 +288,7 @@ public sealed class AIOperationManager
 
     public void EndBattle(AIBoardState board, string result)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Operation);
         if (state.Ended) return;
         int turn = Mathf.Max(state.OwnTurns, state.LastStartedOwnTurn);
         state.OwnTurns = Mathf.Max(0, turn);
@@ -452,7 +457,7 @@ public sealed class AIOperationManager
         candidates.Sort(AIOperationCandidate.Compare);
         if (config.EnableDebug)
             foreach (var candidate in candidates)
-                DevelopmentLog.Log($"[AI Operation] P{candidate.Priority} Goal={candidate.Plan.PrimaryGoal} Pattern={candidate.Plan.PatternKey} Base={candidate.BaseScore:F2} Experience={candidate.Experience:F2} PlayerModel={candidate.PlayerModel:F2} Personality={candidate.Personality:F2} Risk={candidate.Risk:F2} Final={candidate.FinalScore:F2}");
+                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Operation] P{candidate.Priority} Goal={candidate.Plan.PrimaryGoal} Pattern={candidate.Plan.PatternKey} Base={candidate.BaseScore:F2} Experience={candidate.Experience:F2} PlayerModel={candidate.PlayerModel:F2} Personality={candidate.Personality:F2} Risk={candidate.Risk:F2} Final={candidate.FinalScore:F2}"); }
     }
 
     AIOperationCandidate AddCandidate(AIBoardState board, int turn, AIOperationGoal goal, int priority,
@@ -534,7 +539,7 @@ public sealed class AIOperationManager
         plan.OriginalStartContext = plan.StartContext.Copy();
         plan.CurrentContext = plan.StartContext.Copy();
         plan.ContextKey = AIOperationFeatureExtractor.ContextKey(plan, plan.StartContext);
-        if (config.EnableDebug) DevelopmentLog.Log($"[AI Operation] 開始 #{plan.OperationId} Goal={plan.PrimaryGoal} P{plan.StrategicPriority}");
+        if (config.EnableDebug) { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Operation] 開始 #{plan.OperationId} Goal={plan.PrimaryGoal} P{plan.StrategicPriority}"); }
     }
 
     void AddAuxiliaryScout(AIBoardState board, int turn)
@@ -691,7 +696,7 @@ public sealed class AIOperationManager
         { completedIds.Remove(state.CompletedOperationIds[0]); state.CompletedOperationIds.RemoveAt(0); }
         if (state.CompletedOperations.Count >= config.CompletedLimit) state.CompletedOperations.RemoveAt(0);
         state.CompletedOperations.Add(plan);
-        if (config.EnableDebug) DevelopmentLog.Log($"[AI Operation] 完了 #{plan.OperationId} Goal={plan.PrimaryGoal} Primary={plan.PrimaryGoalAchieved} Final={result.FinalScore:F1}/100 Learning={result.LearningReward:F2} Status={plan.Status}");
+        if (config.EnableDebug) { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Operation] 完了 #{plan.OperationId} Goal={plan.PrimaryGoal} Primary={plan.PrimaryGoalAchieved} Final={result.FinalScore:F1}/100 Learning={result.LearningReward:F2} Status={plan.Status}"); }
     }
 
     void AllocateCredits(AIOperationPlan plan, AIOperationEvaluationResult result)

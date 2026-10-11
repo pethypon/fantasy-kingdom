@@ -170,7 +170,7 @@ public sealed class AIStrategicGovernor
             if(reason!=null)
             {
                 rejected[action]=reason;
-                if (action.ActionType == AIActionType.Build && AIEconomySettings.Active.enableDecisionLogs) DevelopmentLog.Log($"[AI経済] Rejected={action.Facility} reason={reason}");
+                if (action.ActionType == AIActionType.Build && AIEconomySettings.Active.enableDecisionLogs) { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI経済] Rejected={action.Facility} reason={reason}"); }
                 continue;
             }
             actions[output++]=action;
@@ -373,11 +373,11 @@ public sealed class AIStrategicGovernor
     void LogProductionDemand(AIBoardState board)
     {
         if (!AIEconomySettings.Active.enableDecisionLogs) return;
-        DevelopmentLog.Log($"[AI経済] State={ProductionDemand.State} Mode={Mode} Turn={board.TurnCount} Team={board.ActorTeam}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI経済] State={ProductionDemand.State} Mode={Mode} Turn={board.TurnCount} Team={board.ActorTeam}"); }
         foreach (var resource in ProductionDemand.Resources)
-            DevelopmentLog.Log($"[AI経済] {resource.Resource} stock={resource.Stock:F1} prod={resource.ProductionPerTurn:F1} demand={resource.MandatoryDemandPerTurn:F1} plan={resource.PlannedDemandPerTurn:F1} net={resource.NetPerTurn:F1} reserve={resource.SafetyReserve:F1} projected={resource.ProjectedStock:F1} deficit={resource.ProductionDeficit:F1} urgency={resource.Urgency01:F2}");
-        DevelopmentLog.Log($"[AI資源基盤] phase={BasicResources.FoundationState} bottleneck={BasicResources.PrimaryBottleneck}");
-        foreach (var resource in BasicResources.Resources) DevelopmentLog.Log($"[AI資源基盤] {resource}");
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI経済] {resource.Resource} stock={resource.Stock:F1} prod={resource.ProductionPerTurn:F1} demand={resource.MandatoryDemandPerTurn:F1} plan={resource.PlannedDemandPerTurn:F1} net={resource.NetPerTurn:F1} reserve={resource.SafetyReserve:F1} projected={resource.ProjectedStock:F1} deficit={resource.ProductionDeficit:F1} urgency={resource.Urgency01:F2}"); }
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI資源基盤] phase={BasicResources.FoundationState} bottleneck={BasicResources.PrimaryBottleneck}"); }
+        foreach (var resource in BasicResources.Resources) { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI資源基盤] {resource}"); }
     }
 
     bool ThreatensCritical(Status opponent,AIBoardState board)
@@ -448,7 +448,7 @@ public sealed class AIStrategicGovernor
     public void Telemetry(AIAction action,bool success)
     {
         if (success && Mode == StrategicMode.EmergencyDefense) BasicResources.NotifyEssentialSpend(action, true);
-        DevelopmentLog.Log($"[AI戦略統括] 方針={Mode} 経済={Economy.State} パン収支={Economy.NetBreadPerTurn:F1} 優先=P{action.StrategicPriority} 結果={(success?"実行":"禁止")} 理由={action.StrategicRejectReason??"安全条件を満たす"}");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI戦略統括] 方針={Mode} 経済={Economy.State} パン収支={Economy.NetBreadPerTurn:F1} 優先=P{action.StrategicPriority} 結果={(success?"実行":"禁止")} 理由={action.StrategicRejectReason??"安全条件を満たす"}"); }
     }
     public PersistentStrategicObjective Snapshot()=>JsonUtility.FromJson<PersistentStrategicObjective>(JsonUtility.ToJson(Objective));
     public void RestoreExploration(AIExplorationState data)

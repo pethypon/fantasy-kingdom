@@ -259,6 +259,7 @@ public partial class AICommander
                     operationDiaryPath = Path.Combine(directory, "AI_OperationDiary_" + _actorTeam + "_"
                         + AIReflectionSaveRepository.SafeFileName(snapshot.BattleId) + "_Turn" + snapshot.OwnTurns + ".txt");
                     File.WriteAllText(operationDiaryPath, operationDiaryText, new UTF8Encoding(false));
+                    AIPerformanceCounters.MarkFileWrite();
                 }
             }
             if (CanLearn && AIOperationConfig.Active.EnablePersistentLearning)

@@ -16,6 +16,24 @@ public partial class AICommander
         ? reflection.LastDiaryPath : operationDiaryPath;
     public string ReflectionProfilePath => reflection?.ProfilePath;
     public string ReflectionStorageDirectory => reflection?.StorageDirectory;
+    string observedOperationDiary;
+    long operationDiaryRevision;
+    public long DiaryRevision
+    {
+        get
+        {
+            if (reflection != null && !reflectionUnavailable && reflection.Enabled) return reflection.DiaryRevision;
+            if (!ReferenceEquals(observedOperationDiary, operationDiaryText))
+            { observedOperationDiary = operationDiaryText; if (operationDiaryRevision < long.MaxValue) operationDiaryRevision++; }
+            return operationDiaryRevision;
+        }
+    }
+
+    /// <summary>Presentation reads existing memory only; opening the diary never calls EnsureReflection.</summary>
+    public AIDiarySnapshot CaptureDiarySnapshot(int pageIndex = 0, int maximumEvents = 100)
+        => reflection != null && !reflectionUnavailable && reflection.Enabled
+            ? reflection.CaptureDiarySnapshot(pageIndex, maximumEvents)
+            : new AIDiarySnapshot(DiaryRevision, _actorTeam, operationDiaryText, null, pageIndex, maximumEvents);
 
     AIActionReflectionSystem EnsureReflection()
     {
@@ -54,6 +72,39 @@ public partial class AICommander
         catch (Exception error) { ReflectionFailed(error); }
     }
     public void EndReflectionTurn()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        bool measured = false;
+        long started = 0;
+        try
+        {
+            measured = !performanceUnavailable && AIPerformanceCounters.Enabled
+                && (reflectionTurnStarted || operationTurnStarted);
+            if (measured)
+            {
+                AIPerformanceCounters.BeginAllocationSlice(_actorTeam);
+                started = System.Diagnostics.Stopwatch.GetTimestamp();
+            }
+        }
+        catch (Exception) { performanceUnavailable = true; measured = false; }
+        try { EndReflectionTurnCore(); }
+        finally
+        {
+            if (measured)
+                try
+                {
+                    double elapsed = (System.Diagnostics.Stopwatch.GetTimestamp() - started)
+                        * 1000d / System.Diagnostics.Stopwatch.Frequency;
+                    long bytes = AIPerformanceCounters.EndAllocationSlice(_actorTeam);
+                    AIPerformanceCounters.RecordCompletedTurnTail(_actorTeam, elapsed, bytes, GetRuntimeCounts());
+                }
+                catch (Exception) { performanceUnavailable = true; }
+        }
+#else
+        EndReflectionTurnCore();
+#endif
+    }
+    void EndReflectionTurnCore()
     {
         bool operationRefreshedBoard = false;
         if (operationTurnStarted && !operationUnavailable)
@@ -142,6 +193,7 @@ public partial class AICommander
             system.EndBattle(victory, _board);
         }
         catch (Exception error) { ReflectionFailed(error); }
+        finally { ReleaseRuntimeReferences(); }
     }
     public void NotifyDrawBattleEnd()
     {
@@ -154,6 +206,7 @@ public partial class AICommander
             system.EndDrawBattle(_board);
         }
         catch (Exception error) { ReflectionFailed(error); }
+        finally { ReleaseRuntimeReferences(); }
     }
     public void NotifyActualDamage(int damage, bool dealt, string killedLifeId = null, bool formation = false)
     {

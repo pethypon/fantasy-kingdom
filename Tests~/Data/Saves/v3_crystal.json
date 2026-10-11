@@ -1,0 +1,114 @@
+{
+  "Turn": 8,
+  "ThreatLevel": 4,
+  "MapWidth": 35,
+  "MapDepth": 35,
+  "MapSeedX": 1701,
+  "MapSeedZ": 2718,
+  "PCPx": 2,
+  "PCPy": 1,
+  "PCPz": 2,
+  "ECPx": 30,
+  "ECPy": 1,
+  "ECPz": 30,
+  "Units": [
+    {
+      "Kind": "Crystal",
+      "Team": "Player",
+      "Type": "Building",
+      "HP": 5700,
+      "MaxHP": 6000,
+      "ATK": 0,
+      "DEF": 0,
+      "Level": 1,
+      "PosX": 2,
+      "PosY": 1,
+      "PosZ": 2,
+      "IsActive": true,
+      "Direction": "N",
+      "PassiveSkill": "None",
+      "FacilityKind": "Field",
+      "AssignedSkillId": -1,
+      "ActiveEffects": []
+    },
+    {
+      "Kind": "Crystal",
+      "Team": "Enemy",
+      "Type": "Building",
+      "HP": 0,
+      "MaxHP": 6000,
+      "ATK": 0,
+      "DEF": 0,
+      "Level": 1,
+      "PosX": 30,
+      "PosY": 1,
+      "PosZ": 30,
+      "IsActive": false,
+      "Direction": "N",
+      "PassiveSkill": "None",
+      "FacilityKind": "Field",
+      "AssignedSkillId": -1,
+      "ActiveEffects": []
+    },
+    {
+      "Kind": "Scout",
+      "Team": "Player",
+      "Type": "Unit",
+      "HP": 20,
+      "MaxHP": 20,
+      "ATK": 6,
+      "DEF": 9,
+      "Level": 1,
+      "PosX": 3,
+      "PosY": 1,
+      "PosZ": 3,
+      "IsActive": true,
+      "Direction": "N",
+      "PassiveSkill": "None",
+      "FacilityKind": "Field",
+      "AssignedSkillId": -1,
+      "ActiveEffects": []
+    }
+  ],
+  "Version": 3,
+  "PlayerResources": {
+    "Wood": 58,
+    "Stone": 67,
+    "Water": 33,
+    "Bread": 61,
+    "Citizen": 5
+  },
+  "EnemyResources": {
+    "Wood": 51,
+    "Stone": 70,
+    "Water": 29
+  },
+  "PlayerAP": {
+    "Current": 12,
+    "Reset": 30,
+    "Plus": 5,
+    "Minus": 0
+  },
+  "EnemyAP": {
+    "Current": 8,
+    "Reset": 30,
+    "Plus": 0,
+    "Minus": 0
+  },
+  "Timer": {
+    "TurnTimeRemaining": 43,
+    "PlayerTotalTime": 35999,
+    "EnemyTotalTime": 35000,
+    "TurnTimeLimit": 180
+  },
+  "Fog": {
+    "PlayerExplored": [
+      {
+        "X": 3,
+        "Y": 1,
+        "Z": 3
+      }
+    ],
+    "EnemyExplored": []
+  }
+}

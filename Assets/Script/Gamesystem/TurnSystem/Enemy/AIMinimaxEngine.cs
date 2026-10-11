@@ -236,9 +236,9 @@ public partial class AIMinimaxEngine
         _stopwatch.Stop();
         _elapsedMs = _stopwatch.ElapsedMilliseconds;
 
-        DevelopmentLog.Log($"[AIMinimaxEngine] 探索完了: 設定深さ{_maxDepth} 完了深さ{CompletedDepth} " +
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIMinimaxEngine] 探索完了: 設定深さ{_maxDepth} 完了深さ{CompletedDepth} " +
             $"評価{_nodesEvaluated}ノード 枝刈り{_pruned}回 TT{_transTable.Count}件 " +
-            $"{_elapsedMs:F0}ms 基準値={baseScore:F1}");
+            $"{_elapsedMs:F0}ms 基準値={baseScore:F1}"); }
 
         yield break;
     }

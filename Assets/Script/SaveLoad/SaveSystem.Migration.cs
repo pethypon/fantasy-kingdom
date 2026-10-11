@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -7,7 +9,7 @@ using UnityEngine;
 //    1. SaveSystem.CurrentSaveVersion をインクリメント
 //    2. 新しいフィールドのデフォルト値を GameSaveData に設定
 //    3. MigrateVN_to_VN1() を追加（旧データに対する埋め合わせ処理）
-//    4. RunMigrations() の switch ラダーに追加
+//    4. MigrationSteps の末尾に次の段階を追加（既存段階は削除しない）
 //
 //  これにより旧セーブデータをロードした瞬間に最新フォーマットへ変換され、
 //  呼び出し側は常に最新バージョンのデータだけを扱えばよい。
@@ -17,47 +19,82 @@ public static partial class SaveSystem
     /// <summary>
     /// ロード時のマイグレーションエントリポイント。
     /// バージョン0 (未設定) から順に現行バージョンまで migrate する。
-    /// 未知の未来バージョンが来た場合は警告のみ出し、そのまま返す。
+    /// 未知の未来バージョンは拒否し、ファイルの保護は保存境界で行う。
     /// </summary>
+    static readonly Action<GameSaveData>[] MigrationSteps =
+    {
+        Migrate_V0_to_V1, Migrate_V1_to_V2, Migrate_V2_to_V3, Migrate_V3_to_V4,
+        Migrate_V4_to_V5, Migrate_V5_to_V6, Migrate_V6_to_V7
+    };
+    public static bool ValidateMigrationChain(out string reason)
+    {
+        if (MigrationSteps.Length != CurrentSaveVersion)
+        { reason = "セーブ移行処理のバージョン数が一致しません。"; return false; }
+        foreach (var step in MigrationSteps) if (step == null)
+        { reason = "セーブ移行処理に欠番があります。"; return false; }
+        reason = ""; return true;
+    }
     static GameSaveData RunMigrations(GameSaveData data)
     {
-        if (data == null) return null;
-
-        // 未来バージョン: 非破壊的に読み込みを試みる
-        if (data.Version > CurrentSaveVersion)
+        if (data == null || data.Version < 0 || data.Version > CurrentSaveVersion
+            || data.SchemaVersion > CurrentSaveVersion || !ValidateMigrationChain(out _)) return null;
+        while (data.Version < CurrentSaveVersion)
         {
-            Debug.LogWarning($"[SaveSystem] セーブデータのバージョン({data.Version})が現在のバージョン({CurrentSaveVersion})より新しいです。互換性の問題が発生する可能性があります。");
-            return data;
+            MigrationSteps[data.Version](data);
+            data.Version++;
         }
-
-        // 旧バージョンをレガシー(0) として扱う
-        int from = data.Version;
-        int to = CurrentSaveVersion;
-
-        if (from == to) return data;
-
-        Debug.Log($"[SaveSystem] マイグレーション開始 v{from} → v{to}");
-
-        // バージョンごとの累積マイグレーション
-        // 将来的に v3, v4 が増えたらここに追加する
-        if (from <= 0 && to >= 1) Migrate_V0_to_V1(data);
-        if (from <= 1 && to >= 2) Migrate_V1_to_V2(data);
-
-        if (from <= 2 && to >= 3)
-        {
-            foreach (var unit in data.Units)
-                if (unit.Kind == Kind.Crystal.ToString())
-                {
-                    unit.MaxHP += 5000;
-                    if (unit.HP > 0) unit.HP = Mathf.Min(unit.MaxHP, unit.HP + 5000);
-                }
-        }
-        if (from <= 3 && to >= 4) Migrate_V3_to_V4(data);
-        if (from <= 4 && to >= 5) Migrate_V4_to_V5(data);
-        if (from <= 5 && to >= 6) Migrate_V5_to_V6(data);
-        data.Version = to;
-        Debug.Log($"[SaveSystem] マイグレーション完了 → v{to}");
+        data.SchemaVersion = CurrentSaveVersion;
         return data;
+    }
+
+    static void Migrate_V2_to_V3(GameSaveData data)
+    {
+        if (data.Units == null) return;
+        foreach (var unit in data.Units)
+            if (unit != null && unit.Kind == "Crystal")
+            {
+                // Preserve the shipped migration, including the dead-crystal guard and a single application.
+                unit.MaxHP = (int)Math.Min(int.MaxValue, (long)unit.MaxHP + 5000);
+                if (unit.HP > 0) unit.HP = (int)Math.Min(unit.MaxHP, (long)unit.HP + 5000);
+            }
+    }
+    static void Migrate_V6_to_V7(GameSaveData data)
+    {
+        Migrate_V0_to_V1(data);
+        data.Checkpoint = PlayerTurnCheckpoint;
+        data.HasExplicitMapSnapshot = false;
+        data.AI.HasDeterministicSeed = false; // v0-v6 stored threat level in RngSeed, not the real seed.
+        data.GameVersion = data.LastSavedVersion = "legacy";
+        if (string.IsNullOrEmpty(data.CreatedVersion)) data.CreatedVersion = "legacy";
+        if (data.Units == null) data.Units = new List<UnitSaveData>();
+        foreach (var unit in data.Units)
+            if (unit != null)
+            {
+                unit.HasMovedThisTurn = unit.FirstSkillUsedThisTurn = unit.DebuffNullifiedThisTurn = unit.InterceptUsedThisTurn = false;
+                if (unit.MaxHP == 0 && unit.HP >= 0) unit.MaxHP = unit.HP;
+                if (unit.AssignedSkillId == 0) unit.AssignedSkillId = -1; // No shipped skill uses zero; old missing field meant none.
+                if (unit.ActiveEffects == null) unit.ActiveEffects = new List<EffectSaveData>();
+                if (string.IsNullOrEmpty(unit.Direction)) unit.Direction = "N";
+                if (string.IsNullOrEmpty(unit.PassiveSkill)) unit.PassiveSkill = "None";
+                if (string.IsNullOrEmpty(unit.SpecialAbility)) unit.SpecialAbility = "None";
+                if (string.IsNullOrEmpty(unit.FacilityKind)) unit.FacilityKind = "Field";
+                foreach (var effect in unit.ActiveEffects)
+                    if (effect != null)
+                    {
+                        if (string.IsNullOrEmpty(effect.DebuffType)) effect.DebuffType = "None";
+                        if (string.IsNullOrEmpty(effect.BuffType)) effect.BuffType = "None";
+                    }
+            }
+        if (data.Fog.PlayerExplored == null) data.Fog.PlayerExplored = new List<Vec3IntData>();
+        if (data.Fog.EnemyExplored == null) data.Fog.EnemyExplored = new List<Vec3IntData>();
+        if (data.PlayerNationExtra.PendingReturns == null) data.PlayerNationExtra.PendingReturns = new List<int>();
+        if (data.EnemyNationExtra.PendingReturns == null) data.EnemyNationExtra.PendingReturns = new List<int>();
+        // Missing legacy generation settings explicitly keep the historical scene defaults.
+        if (data.MapWidth == 0 && data.MapDepth == 0) data.MapWidth = data.MapDepth = 35;
+        if (data.ThreatLevel == 0) data.ThreatLevel = 1;
+        if (data.Timer.TurnTimeLimit == 0) data.Timer.TurnTimeLimit = 180;
+        if (data.PlayerAP.Reset == 0) data.PlayerAP.Reset = 30;
+        if (data.EnemyAP.Reset == 0) data.EnemyAP.Reset = 30;
     }
 
     // ================================================================
@@ -96,7 +133,8 @@ public static partial class SaveSystem
 
     static void Migrate_V0_to_V1(GameSaveData data)
     {
-        if (data.Timer == null) data.Timer = new TimerSaveData();
+        if (data.Timer == null) data.Timer = new TimerSaveData
+        { TurnTimeLimit = 180, TurnTimeRemaining = 180, PlayerTotalTime = 36000, EnemyTotalTime = 36000 };
         if (data.Fog == null) data.Fog = new FogSaveData();
         if (data.AI == null) data.AI = new AISaveData();
         if (data.PlayerNationExtra == null) data.PlayerNationExtra = new NationExtraSaveData();

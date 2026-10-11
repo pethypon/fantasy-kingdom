@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 /// <summary>Read-only selection ranges for both turns. Never writes movement or attack buffers.</summary>
 [DisallowMultipleComponent]
 public sealed class TurnInspectionController : MonoBehaviour
 {
     TurnGenerator turn;
+    TurnInputHandler input;
     Status selected;
     Mesh mesh;
     Material material;
@@ -18,7 +18,7 @@ public sealed class TurnInspectionController : MonoBehaviour
     readonly List<Vector3> vertices = new List<Vector3>(512);
     readonly List<Color> colors = new List<Color>(512);
     readonly List<int> indices = new List<int>(768);
-    public void Bind(TurnGenerator value) => turn = value;
+    public void Bind(TurnGenerator value) { turn = value; input = value.GetComponent<TurnInputHandler>(); }
 
     public void Tick()
     {
@@ -35,10 +35,10 @@ public sealed class TurnInspectionController : MonoBehaviour
         }
         showMovement = inspecting;
         if (turn.Context.RightClickDown) { Clear(); return; }
-        if (inspecting && turn.Context.LeftClickDown && Mouse.current != null && Camera.main != null)
+        if (inspecting && turn.Context.LeftClickDown && input != null && input.HasPointer && Camera.main != null)
         {
-            var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (picker.Pick(ray,Mouse.current.position.ReadValue(),UnitPanelUI.SelectedStatus,Visible,out var candidate,out _))
+            var ray = Camera.main.ScreenPointToRay(input.PointerPosition);
+            if (picker.Pick(ray,input.PointerPosition,UnitPanelUI.SelectedStatus,Visible,out var candidate,out _))
             {
                 Inspect(candidate);
             }

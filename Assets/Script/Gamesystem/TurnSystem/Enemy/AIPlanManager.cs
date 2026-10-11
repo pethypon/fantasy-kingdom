@@ -148,7 +148,7 @@ public sealed class AIPlanManager
             AbortCondition = "自陣危機、戦力半減、目標情報の失効、反応なし、期限切れ"
         };
         respondents.Clear(); assigned.Clear();
-        DevelopmentLog.Log($"[AIPlan] 開始 {Current.Goal} 目標={Current.Target} 期限={Current.ExpectedTurns}ターン");
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIPlan] 開始 {Current.Goal} 目標={Current.Target} 期限={Current.ExpectedTurns}ターン"); }
     }
 
     static Vector3 Clamp(AIBoardState board, Vector3 p)
@@ -269,7 +269,7 @@ public sealed class AIPlanManager
         return ready>=2;
     }
     void Step(AIBoardState board, AIPlanStep step)
-    { Current.Step = step; Current.StepStartedTurn = board.TurnCount; DevelopmentLog.Log($"[AIPlan] {Current.Goal} → {step}"); }
+    { Current.Step = step; Current.StepStartedTurn = board.TurnCount; { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIPlan] {Current.Goal} → {step}"); } }
     void Finish(AIBoardState board, AIPlanStep step) { Step(board, step); cooldownUntil = board.TurnCount + 1; }
 
     public float Bonus(AIAction action, AIBoardState board)

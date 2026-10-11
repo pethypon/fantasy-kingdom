@@ -19,39 +19,46 @@ public sealed class AIOperationPersistence
             "Operations", this.profileId + ".AIOperationProfile.v1.json");
     }
 
+    bool futureSchema;
     public AIOperationLearningProfile Load()
     {
-        if (!CanPersist) return Fresh();
-        return ReadValid(ProfilePath) ?? ReadValid(ProfilePath + ".bak") ?? Fresh();
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Persistence);
+        if (!CanPersist || !AtomicSaveStorage.HasAny(ProfilePath)) return Fresh();
+        futureSchema = false;
+        if (!AtomicSaveStorage.TryRead(ProfilePath, FileLimit, ValidateJson, out string json, out string reason, out var source))
+        {
+            Debug.LogWarning("[AI作戦] 作戦経験を使用できないため、この試合では初期状態を使用します: " + reason);
+            if (!futureSchema) AtomicSaveStorage.PreserveInvalid(ProfilePath, FileLimit, ValidateJson);
+            return Fresh();
+        }
+        if (source != AtomicSaveStorage.RecoverySource.Current) AtomicSaveStorage.PreserveInvalid(ProfilePath, FileLimit, ValidateJson);
+        AIPerformanceCounters.MarkFileRead();
+        var profile = JsonUtility.FromJson<AIOperationLearningProfile>(json); int entries = profile.Entries?.Count ?? 0;
+        TrySanitize(profile);
+        if (string.IsNullOrEmpty(profile.CreatedVersion)) profile.CreatedVersion = "legacy";
+        if (entries != profile.Entries.Count) Debug.LogWarning("[AI作戦] 不正な作戦経験を " + (entries - profile.Entries.Count) + " 件除外し、有効な経験を復元しました。");
+        return profile;
     }
-
+    AtomicSaveStorage.Validation ValidateJson(string json, out string reason)
+    {
+        var profile = JsonUtility.FromJson<AIOperationLearningProfile>(json);
+        if (profile != null && profile.SchemaVersion > 1)
+        { futureSchema = true; reason = "新しい形式の作戦経験は読み込み・上書きしません。"; return AtomicSaveStorage.Validation.FutureSchema; }
+        if (!TrySanitize(profile)) { reason = "作戦経験の形式または値が不正です。"; return AtomicSaveStorage.Validation.Invalid; }
+        reason = ""; return AtomicSaveStorage.Validation.Valid;
+    }
     public bool Save(AIOperationLearningProfile profile)
     {
+        using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Persistence);
         if (!CanPersist || !IsValid(profile)) return false;
-        string temporary = ProfilePath + ".tmp";
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(ProfilePath));
-            byte[] bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(profile));
-            if (bytes.Length > FileLimit) return false;
-            using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
-            { stream.Write(bytes, 0, bytes.Length); stream.Flush(true); }
-            if (!File.Exists(ProfilePath)) File.Move(temporary, ProfilePath);
-            else
-            {
-                try { File.Replace(temporary, ProfilePath, ProfilePath + ".bak"); }
-                catch (PlatformNotSupportedException) { ReplaceWithBackup(temporary); }
-                catch (IOException) { ReplaceWithBackup(temporary); }
-            }
-            return true;
-        }
-        catch (Exception exception) when (Recoverable(exception))
-        {
-            Debug.LogWarning("[AI作戦] 作戦経験を保存できませんでした。通常AIは続行します: " + exception.Message);
-            return false;
-        }
+        var copy = JsonUtility.FromJson<AIOperationLearningProfile>(JsonUtility.ToJson(profile));
+        copy.GameVersion = copy.LastSavedVersion = FKBuildInfo.Current.GameVersion;
+        if (string.IsNullOrEmpty(copy.CreatedVersion)) copy.CreatedVersion = copy.GameVersion;
+        bool saved = AtomicSaveStorage.TryWrite(ProfilePath, JsonUtility.ToJson(copy), FileLimit, ValidateJson, out string reason);
+        if (saved) AIPerformanceCounters.MarkFileWrite();
+        else Debug.LogWarning("[AI作戦] 作戦経験を保存できませんでした。通常AIは続行します: " + reason);
+        return saved;
     }
-
     public bool IsValid(AIOperationLearningProfile profile)
     {
         if (!ValidHeader(profile)) return false;
@@ -98,30 +105,6 @@ public sealed class AIOperationPersistence
         return IsValid(profile);
     }
 
-    AIOperationLearningProfile ReadValid(string path)
-    {
-        if (!File.Exists(path)) return null;
-        try
-        {
-            if (new FileInfo(path).Length > FileLimit) throw new InvalidDataException("作戦経験ファイルがサイズ上限を超えています。");
-            var profile = JsonUtility.FromJson<AIOperationLearningProfile>(File.ReadAllText(path, Encoding.UTF8));
-            int previousCount = profile?.Entries?.Count ?? 0;
-            if (!TrySanitize(profile)) throw new InvalidDataException("作戦経験の形式またはヘッダーが無効です。");
-            if (previousCount != profile.Entries.Count)
-                Debug.LogWarning("[AI作戦] 不正な作戦経験を " + (previousCount - profile.Entries.Count)
-                    + " 件除外し、有効な経験を復元しました。");
-            return profile;
-        }
-        catch (Exception exception) when (Recoverable(exception))
-        {
-            Debug.LogWarning("[AI作戦] 作戦経験を読み込めないため、バックアップまたは初期状態を使用します: " + exception.Message);
-            // Preserve the broken input for inspection; recovery never silently erases it.
-            try { File.Move(path, path + ".corrupt." + DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")); }
-            catch (Exception archiveException) when (Recoverable(archiveException)) { }
-            return null;
-        }
-    }
-
     bool ValidHeader(AIOperationLearningProfile profile, bool allowReducedLimit = false) => profile != null && profile.SchemaVersion == 1
         && profile.ProfileId == profileId && profile.Sequence >= 0 && profile.Entries != null
         && profile.Entries.Count <= (allowReducedLimit ? 8192 : config.EntryLimit)
@@ -151,12 +134,6 @@ public sealed class AIOperationPersistence
         return true;
     }
 
-    void ReplaceWithBackup(string temporary)
-    {
-        File.Copy(ProfilePath, ProfilePath + ".bak", true);
-        File.Copy(temporary, ProfilePath, true);
-        File.Delete(temporary);
-    }
     bool CanPersist => config != null && config.Enabled && config.EnablePersistentLearning;
     int FileLimit => Mathf.Clamp(config.MaxProfileFileBytes, 1024, 64 * 1024 * 1024);
     AIOperationLearningProfile Fresh() => new AIOperationLearningProfile { ProfileId = profileId };

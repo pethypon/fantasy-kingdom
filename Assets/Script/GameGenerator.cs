@@ -122,8 +122,11 @@ public class GameGenerator : MonoBehaviour
             loadData = SaveSystem.LoadGame(loadSlot);
             if (loadData == null)
             {
-                Debug.LogWarning("[GameGenerator] ロードデータが見つかりません、新規ゲームを開始");
-                loadSlot = -1;
+                Debug.LogWarning("[GameGenerator] ロードできませんでした。セーブを確認してください。");
+                _waitingForTitle = true;
+                InitTitleScreen();
+                ToastMessageUI.Show("ロードできませんでした。セーブを確認してください", ToastMessageUI.MessageType.Error, 5f);
+                return;
             }
         }
 
@@ -195,7 +198,7 @@ public class GameGenerator : MonoBehaviour
             _TurnGenerator, _MoveGenerator, _VisionGenerator,
             _APSystem, _UnitSetting, _CrystalSystem, _MapCreate,
             _BuildSystem, _SummonSystem, _cachedFactionState,
-            _SkillSystem, _SubCrystalSystem);
+            _SkillSystem, _SubCrystalSystem, loadData);
 
         // Step 8: ゲームメニュー
         InitGameMenu(factionState);

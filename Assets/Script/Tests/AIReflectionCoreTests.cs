@@ -301,7 +301,7 @@ public static class AIReflectionCoreTests
         File.WriteAllText(repository.ProfilePath + ".tmp", "interrupted incomplete write");
         Check("54 interrupted temp write leaves valid profile unchanged", repository.Load().Entries.Count == 1 && File.ReadAllText(repository.ProfilePath) == saved);
         first.Learn(record, config); Check("54 replacement save retains backup", repository.Save(first)
-            && File.Exists(repository.ProfilePath + ".bak") && !File.Exists(repository.ProfilePath + ".tmp"));
+            && File.Exists(repository.ProfilePath + ".previous") && !File.Exists(repository.ProfilePath + ".tmp"));
         File.WriteAllText(repository.ProfilePath, "{ invalid learning json");
         var recovered = repository.Load();
         Check("132 corrupted primary uses an intact previous backup", recovered.Entries.Count == 1 && recovered.Entries[0].Samples == 1);

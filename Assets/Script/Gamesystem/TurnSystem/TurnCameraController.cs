@@ -1,28 +1,72 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
-/// TurnGenerator から分離されたカメラ操作コンポーネント。
-/// Move 入力でカメラを平行移動、Scroll 入力で FOV ズームする。
-/// ステートを問わず常時有効。
+/// Scene camera pan/zoom and reversible top-down view; consumes central input only.
 /// </summary>
+// Owner: TurnGenerator. Lifetime: scene. Maximum retained items: one camera cache and one value snapshot.
+// Cleanup timing: camera replacement, active scene change, owner destruction. Failure: missing camera warns once.
 [DisallowMultipleComponent]
 public class TurnCameraController : MonoBehaviour
 {
     private TurnGenerator _turn;
-    private bool dragging;
+    [Header("見下ろしカメラ")]
+    [SerializeField] private TopDownCameraSettings topDown = new TopDownCameraSettings();
+    private TurnInputHandler input;
+    private Transform cameraTransform;
+    private Camera cachedCamera;
+    private CameraStateSnapshot snapshot;
+    private bool dragging, missingCameraWarned, resetPointerOnResume, cameraResolved;
     private Vector2 previousPointer;
+    private float framedSize, framedAspect;
+    private int viewChangedFrame = -1;
+    public bool IsTopDown { get; private set; }
+    public TopDownCameraSettings Settings => topDown;
 
     public void Bind(TurnGenerator turn)
     {
+        InvalidateSnapshot();
         _turn = turn;
+        input = turn == null ? null : turn.GetComponent<TurnInputHandler>();
+    }
+
+    private void OnEnable() => SceneManager.activeSceneChanged += OnActiveSceneChanged;
+    private void OnDisable() => SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+    private void OnDestroy() => InvalidateSnapshot();
+    private void OnActiveSceneChanged(Scene before, Scene after) => InvalidateSnapshot();
+
+    /// <summary>Drop scene/camera-owned state without ever restoring it to another camera.</summary>
+    public void InvalidateSnapshot()
+    {
+        snapshot = default;
+        IsTopDown = false;
+        dragging = resetPointerOnResume = false;
+        cameraTransform = null;
+        cachedCamera = null;
+        cameraResolved = false;
+        framedAspect = framedSize = 0f;
+    }
+
+    private Camera ResolveCamera(bool retryMissing = false)
+    {
+        Transform current = _turn == null ? null : _turn.Context.CameraObject;
+        if (current != cameraTransform || !cameraResolved || (retryMissing && cachedCamera == null))
+        {
+            InvalidateSnapshot();
+            cameraTransform = current;
+            cachedCamera = current == null ? null : current.GetComponent<Camera>();
+            cameraResolved = true;
+        }
+        if (cachedCamera == null && IsTopDown) { snapshot = default; IsTopDown = false; }
+        return cachedCamera;
     }
 
     public void FocusPlayerBase()
     {
-        var camera = _turn?.Context.CameraObject;
+        var camera = ResolveCamera();
         var crystal = _turn?.Systems.CrystalSystem;
         if (camera == null || crystal == null) return;
-        camera.position = FocusPosition(camera.position, camera.forward, crystal.PCP);
+        camera.transform.position = FocusPosition(camera.transform.position, camera.transform.forward, crystal.PCP);
     }
 
     public static Vector3 FocusPosition(Vector3 position, Vector3 forward, Vector3 target)
@@ -41,48 +85,121 @@ public class TurnCameraController : MonoBehaviour
         return position + clamped - focus;
     }
 
-    /// <summary>TurnGenerator.Update から呼ばれる</summary>
+    /// <summary>MapCreate generates tiles centered on XZ integers, each spanning one world unit.</summary>
+    public static Bounds MapBounds(MapCreate map)
+    {
+        int width = Mathf.Max(1, map.maxX), depth = Mathf.Max(1, map.maxZ);
+        float bottom = Mathf.Min(-.5f, map.minY - .5f), top = Mathf.Max(bottom + 1f, map.maxY + .5f);
+        return new Bounds(new Vector3((width - 1) * .5f, (bottom + top) * .5f, (depth - 1) * .5f),
+            new Vector3(width, top - bottom, depth));
+    }
+
+    public static float OrthographicSizeForBounds(Bounds bounds, float aspect, float padding)
+    {
+        if (float.IsNaN(aspect) || float.IsInfinity(aspect) || aspect <= 0f) aspect = 1f;
+        if (float.IsNaN(padding) || float.IsInfinity(padding)) padding = 1.10f;
+        return Mathf.Max(.5f, Mathf.Max(bounds.size.z * .5f, bounds.size.x * .5f / aspect)
+            * Mathf.Clamp(padding, 1f, 4f));
+    }
+
+    /// <summary>Save the normal view once, then frame the current map or restore that exact saved state.</summary>
+    public void ToggleTopDown()
+    {
+        Camera camera = ResolveCamera(true);
+        if (camera == null)
+        {
+            if (!missingCameraWarned)
+            {
+                missingCameraWarned = true;
+                Debug.LogWarning("[Camera] 見下ろし切替に必要なカメラがありません。", this);
+            }
+            return;
+        }
+        if (IsTopDown)
+        {
+            if (snapshot.Restore(camera))
+            {
+                enabled = snapshot.ControllerEnabled;
+                dragging = snapshot.Dragging;
+                previousPointer = snapshot.PreviousPointer;
+                resetPointerOnResume = dragging;
+            }
+            snapshot = default;
+            IsTopDown = false;
+            framedAspect = framedSize = 0f;
+        }
+        else
+        {
+            var map = _turn.Systems.MapCreate;
+            if (map == null) return;
+            snapshot = CameraStateSnapshot.Capture(camera, enabled, dragging, previousPointer);
+            var bounds = MapBounds(map);
+            framedAspect = camera.aspect;
+            framedSize = OrthographicSizeForBounds(bounds, framedAspect, topDown.SafePadding);
+            // Height and clip distance come from map extent, not a fixed (0,100,0) viewpoint.
+            float distance = bounds.extents.y + Mathf.Max(bounds.size.x, bounds.size.z, 1f);
+            if (!topDown.UseOrthographic)
+                distance = Mathf.Max(distance, bounds.extents.y
+                    + framedSize / Mathf.Tan(camera.fieldOfView * .5f * Mathf.Deg2Rad));
+            camera.transform.SetPositionAndRotation(bounds.center + Vector3.up * distance, Quaternion.Euler(90, 0, 0));
+            camera.orthographic = topDown.UseOrthographic;
+            camera.orthographicSize = framedSize;
+            camera.nearClipPlane = .01f;
+            camera.farClipPlane = Mathf.Max(snapshot.FarClipPlane, distance + bounds.size.y + 1f);
+            dragging = false;
+            IsTopDown = true;
+        }
+        viewChangedFrame = Time.frameCount;
+    }
+
+    /// <summary>Pan and zoom remain available on any turn. No device/keyboard polling occurs here.</summary>
     public void Tick()
     {
-        if (_turn == null) return;
+        Camera camera = ResolveCamera();
+        if (_turn == null || camera == null || !enabled || viewChangedFrame == Time.frameCount) return;
+        if (IsTopDown && !snapshot.CanRestore(camera)) { InvalidateSnapshot(); return; }
         var ctx = _turn.Context;
-
-        Vector2 move = ctx.MoveInput;
-        Transform cam = ctx.CameraObject;
-        if (move != Vector2.zero && cam != null)
+        var map = _turn.Systems.MapCreate;
+        Transform cam = camera.transform;
+        bool allowPan = !IsTopDown || topDown.AllowPan;
+        bool allowZoom = !IsTopDown || topDown.AllowZoom;
+        if (IsTopDown && camera.orthographic && map != null && !Mathf.Approximately(camera.aspect, framedAspect))
         {
-            Vector3 moveDir = new Vector3(move.x, 0f, move.y).normalized;
-            cam.Translate(moveDir * GameConstants.CameraMoveSpeed * Time.deltaTime, Space.World);
-
-            var map = _turn.Systems.MapCreate;
-            if (map != null) cam.position = ClampPosition(cam.position, cam.forward, map.maxX, map.maxZ);
+            float newSize = OrthographicSizeForBounds(MapBounds(map), camera.aspect, topDown.SafePadding);
+            camera.orthographicSize *= newSize / Mathf.Max(.5f, framedSize);
+            framedSize = newSize; framedAspect = camera.aspect;
         }
-
-        var mouse = UnityEngine.InputSystem.Mouse.current;
-        var camera = Camera.main;
-        if (mouse != null && camera != null && cam != null)
+        if (allowPan && ctx.MoveInput != Vector2.zero)
+            cam.Translate(new Vector3(ctx.MoveInput.x, 0f, ctx.MoveInput.y).normalized
+                * GameConstants.CameraMoveSpeed * Time.deltaTime, Space.World);
+        if (input != null && input.HasPointer && allowPan)
         {
-            Vector2 pointer = mouse.position.ReadValue();
-            bool overUI = UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
-            if (mouse.middleButton.wasPressedThisFrame && !overUI) { dragging = true; previousPointer = pointer; }
-            if (!mouse.middleButton.isPressed) dragging = false;
+            Vector2 pointer = input.PointerPosition;
+            if (resetPointerOnResume) { previousPointer = pointer; resetPointerOnResume = false; }
+            if (input.MiddleButtonDown) { dragging = true; previousPointer = pointer; }
+            if (!input.MiddleButtonHeld) dragging = false;
             if (dragging)
             {
                 var plane = new Plane(Vector3.up, Vector3.zero);
                 var previousRay = camera.ScreenPointToRay(previousPointer);
                 var currentRay = camera.ScreenPointToRay(pointer);
-                if (plane.Raycast(previousRay,out float a) && plane.Raycast(currentRay,out float b))
+                if (plane.Raycast(previousRay, out float a) && plane.Raycast(currentRay, out float b))
                     cam.position += previousRay.GetPoint(a) - currentRay.GetPoint(b);
-                var map = _turn.Systems.MapCreate;
-                if (map != null) cam.position = ClampPosition(cam.position,cam.forward,map.maxX,map.maxZ);
                 previousPointer = pointer;
             }
         }
+        else dragging = false;
+        if (allowPan && map != null && (ctx.MoveInput != Vector2.zero || dragging))
+            cam.position = ClampPosition(cam.position, cam.forward, map.maxX, map.maxZ);
         float scroll = ctx.ScrollInput;
-        if (scroll != 0f && Camera.main != null)
+        if (allowZoom && scroll != 0f)
         {
-            float fov = Camera.main.fieldOfView - scroll * GameConstants.CameraScrollSpeed;
-            Camera.main.fieldOfView = Mathf.Clamp(fov, GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
+            if (camera.orthographic)
+                camera.orthographicSize = Mathf.Clamp(camera.orthographicSize
+                    * Mathf.Exp(Mathf.Clamp(-scroll * GameConstants.CameraScrollSpeed * .0002f, -1f, 1f)),
+                    .5f, Mathf.Max(100f, framedSize * 4f));
+            else camera.fieldOfView = Mathf.Clamp(camera.fieldOfView - scroll * GameConstants.CameraScrollSpeed,
+                GameConstants.CameraFOVMin, GameConstants.CameraFOVMax);
         }
     }
 }
