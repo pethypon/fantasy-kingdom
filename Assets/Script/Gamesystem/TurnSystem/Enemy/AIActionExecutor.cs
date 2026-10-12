@@ -53,6 +53,7 @@ public class AIActionExecutor
     // ================================================================
     public bool Execute(AIAction action, AIBoardState board)
     {
+        action?.ResetHousingExecutionAssessment();
         if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
         if (board.Governor != null && !board.Governor.AllowExecution(action,board)) return false;
         switch (action.ActionType)
@@ -371,6 +372,7 @@ public class AIActionExecutor
     // ================================================================
     public bool ExecuteUpgrade(AIAction action, AIBoardState board)
     {
+        action?.ResetHousingExecutionAssessment();
         if (action == null || action.ActionType != AIActionType.Upgrade || board == null || board.ActorTeam != ActorTeam || _buildSystem == null
             || _turnGen == null || _turnGen.IsGameOver) return false;
         var building = action.Unit;
@@ -381,6 +383,7 @@ public class AIActionExecutor
         action.TargetPos = building.transform.position;
         action.APCost = FacilityData.GetLevel(building, Mathf.Max(1, building.Level) + 1).UpgradeAP;
         if (board.Governor != null && !board.Governor.AllowExecution(action, board)) return false;
+        action.CaptureHousingExecutionAssessment(board);
         if (!_buildSystem.TryUpgrade(building)) return false;
         board.Refresh();
         board.Governor?.Evaluate(board);
@@ -389,6 +392,7 @@ public class AIActionExecutor
 
     public bool ExecuteBuild(AIAction action, AIBoardState board)
     {
+        action?.ResetHousingExecutionAssessment();
         if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
         if (_buildSystem == null)
         {
@@ -397,6 +401,7 @@ public class AIActionExecutor
         }
 
         if (board.Governor != null && !board.Governor.AllowExecution(action, board)) return false;
+        action.CaptureHousingExecutionAssessment(board);
         var pos = AIBoardState.ToCell(action.TargetPos);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(ActorTeam)}"); }
 

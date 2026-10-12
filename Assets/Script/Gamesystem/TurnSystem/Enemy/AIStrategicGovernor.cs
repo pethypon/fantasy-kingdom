@@ -458,7 +458,11 @@ public sealed partial class AIStrategicGovernor
     {
         if (AIHousingConfig.Active.EnableDecisionLogs && current != null && DevelopmentLog.IsEnabled(AILogLevel.Verbose))
         {
-            var housing = HousingAssessment(action, current);
+            // Successful purchases have already changed capacity and stock. Explain the decision made before payment.
+            // A missing/mismatched execution snapshot must never be replaced with a post-purchase rejection reason.
+            AIHousingAssessment housing = default;
+            if (success) action.TryGetHousingExecutionAssessment(this, current, out housing);
+            else housing = HousingAssessment(action, current);
             if (housing.IsHousing) DevelopmentLog.Log("[AI住宅投資] " + (success ? "建築実行 " : "建築中止 ") + housing.Describe());
         }
         if (success && Mode == StrategicMode.EmergencyDefense) BasicResources.NotifyEssentialSpend(action, true);

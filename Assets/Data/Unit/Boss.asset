@@ -25,12 +25,14 @@ MonoBehaviour:
   authoredSkillId: -1
   authoredSpecialAbility: 0
   kind: 12
-  baseHP: 800
+  baseHP: 500
   baseATK: 30
   baseDEF: 38
-  hpGrowth: 0.2
-  atkGrowth: 0.3
-  defGrowth: 0.2
+  hpGrowth: 0.05
+  atkGrowth: 0.03
+  defGrowth: 0.02
+  upkeepExempt: 0
+  useAuthoredUpkeep: 0
   upkeepWood: 0
   upkeepStone: 0
   upkeepIron: 0

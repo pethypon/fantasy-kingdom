@@ -12,13 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4e53bc09a8ccec4ab02b88d9e281df4, type: 3}
   m_Name: King
   m_EditorClassIdentifier: Assembly-CSharp::UnitData
+  definitionId: 
+  displayName: 
+  category: 
+  prefab: {fileID: 0}
+  actionProfile: {fileID: 0}
+  defaultTeam: 0
+  availableToPlayer: 1
+  availableToEnemy: 1
+  useAuthoredAbilities: 0
+  authoredPassive: 0
+  authoredSkillId: -1
+  authoredSpecialAbility: 0
   kind: 1
-  baseHP: 800
+  baseHP: 300
   baseATK: 20
   baseDEF: 16
-  hpGrowth: 0.5
-  atkGrowth: 0.25
-  defGrowth: 0.2
+  hpGrowth: 0.05
+  atkGrowth: 0.025
+  defGrowth: 0.02
+  upkeepExempt: 0
+  useAuthoredUpkeep: 0
   upkeepWood: 0
   upkeepStone: 0
   upkeepIron: 0

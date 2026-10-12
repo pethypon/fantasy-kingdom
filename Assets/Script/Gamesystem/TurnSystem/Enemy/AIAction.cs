@@ -23,6 +23,33 @@ public class AIAction
     public SkillData Skill;          // 使用スキル
     public List<Status> AreaTargets; // 範囲スキルの対象リスト
 
+    // Only an executed housing action with verbose diagnostics enabled allocates this immutable snapshot.
+    // It survives the paid transaction's board refresh, but is cleared at every execution attempt.
+    HousingExecutionSnapshot housingExecutionSnapshot;
+    sealed class HousingExecutionSnapshot
+    {
+        public readonly AIStrategicGovernor Governor;
+        public readonly AIBoardState Board;
+        public readonly AIHousingAssessment Assessment;
+        public HousingExecutionSnapshot(AIStrategicGovernor governor, AIBoardState board, AIHousingAssessment assessment)
+        { Governor = governor; Board = board; Assessment = assessment; }
+    }
+    internal void ResetHousingExecutionAssessment() => housingExecutionSnapshot = null;
+    internal void CaptureHousingExecutionAssessment(AIBoardState board)
+    {
+        if (board?.Governor == null || !AIHousingConfig.Active.EnableDecisionLogs
+            || !DevelopmentLog.IsEnabled(AILogLevel.Verbose)) return;
+        var assessment = board.Governor.HousingAssessment(this, board);
+        if (assessment.IsHousing) housingExecutionSnapshot = new HousingExecutionSnapshot(board.Governor, board, assessment);
+    }
+    public bool TryGetHousingExecutionAssessment(AIStrategicGovernor governor, AIBoardState board, out AIHousingAssessment assessment)
+    {
+        var snapshot = housingExecutionSnapshot;
+        if (snapshot != null && ReferenceEquals(snapshot.Governor, governor) && ReferenceEquals(snapshot.Board, board))
+        { assessment = snapshot.Assessment; return true; }
+        assessment = default; return false;
+    }
+
     public static int ComparePriorityThenScore(AIAction a, AIAction b)
     {
         int priority = a.StrategicPriority.CompareTo(b.StrategicPriority);
