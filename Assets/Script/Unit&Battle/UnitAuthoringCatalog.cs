@@ -16,6 +16,7 @@ public sealed class UnitAuthoringCatalog : ScriptableObject
         public bool standaloneDefinition;
     }
     public List<Entry> units = new List<Entry>();
+    [HideInInspector] public List<Entry> retiredUnits = new List<Entry>();
     public static UnitAuthoringCatalog Load() => Resources.Load<UnitAuthoringCatalog>(ResourcePath);
     void OnValidate() => GameContentRevision.NotifyChanged();
 
@@ -41,18 +42,31 @@ public sealed class UnitAuthoringCatalog : ScriptableObject
 
     public UnitData GetById(string id)
     {
-        if (string.IsNullOrWhiteSpace(id) || units == null) return null;
-        foreach (var entry in units)
-            if (ValidDefinition(entry) && string.Equals(entry.data.definitionId, id, StringComparison.Ordinal)) return entry.data;
-        return null;
+        if (string.IsNullOrWhiteSpace(id)) return null;
+        UnitData found = null;
+        if (!FindById(units, id, ref found) || !FindById(retiredUnits, id, ref found)) return null;
+        return found;
+    }
+    static bool FindById(List<Entry> entries, string id, ref UnitData found)
+    {
+        if (entries == null) return true;
+        foreach (var entry in entries)
+        {
+            if (!ValidDefinition(entry) || !string.Equals(entry.data.definitionId, id, StringComparison.Ordinal)) continue;
+            if (found != null && found != entry.data) return false;
+            found = entry.data;
+        }
+        return true;
     }
 
     public bool TryGetPrefab(UnitData data, out GameObject prefab)
     {
         prefab = data != null ? data.prefab : null;
         if (prefab != null) return true;
-        if (data == null || units == null) return false;
-        foreach (var entry in units)
+        if (data == null) return false;
+        if (units != null) foreach (var entry in units)
+            if (entry != null && entry.data == data && entry.prefab != null) { prefab = entry.prefab; return true; }
+        if (retiredUnits != null) foreach (var entry in retiredUnits)
             if (entry != null && entry.data == data && entry.prefab != null) { prefab = entry.prefab; return true; }
         return false;
     }

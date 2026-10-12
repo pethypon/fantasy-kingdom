@@ -100,6 +100,8 @@ public static class AILongSessionSoak
     }
     static void Initialize()
     {
+        // Entering play mode reloads static fields; keep a usable CSV header after that reload.
+        if (csv.Length == 0) csv.AppendLine("turn,cpuMs,allocBytes,managedBytes,nativeBytes,positionKeys,positionEntries,sharedMemory,reflectionRecords,operationCompleted,logs");
         label = SessionState.GetString("AILongSessionSoak.Label", "after");
         Turns = SessionState.GetInt("AILongSessionSoak.Turns", 500);
         originalProfiler = Profiler.enabled; Profiler.maxUsedMemory = 16 * 1024 * 1024;

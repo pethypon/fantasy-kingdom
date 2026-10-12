@@ -1,5 +1,7 @@
 public static partial class FacilityData
 {
+    public static bool IsAvailableFor(FacilityKind kind, Team team)
+        => IsKnownKind(kind) && (FacilityAuthoringCatalog.Loaded?.FindStandard(kind)?.IsAvailable(team) ?? true);
     public static bool HasAuthoredRecipe(Status building) => building != null
         && (building.AuthoredFacility != null || FacilityAuthoringCatalog.Loaded?.FindStandard(building.facilityKind) != null);
     public static FacilityLevelData GetLevel(Status building, int level)

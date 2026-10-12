@@ -12,6 +12,9 @@ public sealed class AIOperationBattleState
     public int OwnTurns, LastStartedOwnTurn = -1, LastEndedOwnTurn = -1, LastStartedGlobalTurn = -1;
     public bool Ended;
     public List<AIKnownEnemyBase> KnownEnemyBases = new List<AIKnownEnemyBase>();
+    // Fixed-size, battle-local discovery filter: eviction must never grant a repeated first-discovery reward.
+    // Hash collisions can suppress a reward, never create information about an undiscovered entity.
+    public int[] BaseDiscoveryBits = new int[64];
     public List<AIOperationPlan> ActiveOperations = new List<AIOperationPlan>();
     public List<AIOperationPlan> CompletedOperations = new List<AIOperationPlan>();
     public List<long> CompletedOperationIds = new List<long>();

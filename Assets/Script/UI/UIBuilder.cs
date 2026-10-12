@@ -31,11 +31,17 @@ public class UIBuilder : MonoBehaviour
     int contentRevision;
     void Update()
     {
-        if (contentRevision != GameContentRevision.Revision)
-        { contentRevision = GameContentRevision.Revision; buildSummonUI?.RefreshContentRows(); }
         if (SlidePanel == null || !SlidePanel.IsBuildPanelOpen || Time.unscaledTime < nextBuildAvailabilityRefresh) return;
         nextBuildAvailabilityRefresh=Time.unscaledTime+.25f;
         buildSummonUI?.RefreshBuildButtons();
+    }
+    void LateUpdate()
+    {
+        // UnitSetting refreshes definitions and existing actors during Update.
+        // Repaint afterwards so a newly registered definition cannot leave an open panel stale.
+        if (contentRevision == GameContentRevision.Revision) return;
+        contentRevision = GameContentRevision.Revision;
+        buildSummonUI?.RefreshContentRows();
     }
 
     private void Awake()

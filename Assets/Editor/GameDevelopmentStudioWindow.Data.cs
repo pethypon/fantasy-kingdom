@@ -88,15 +88,21 @@ public sealed partial class GameDevelopmentStudioWindow
         if (data.prefab == null || data.prefab.GetComponentsInChildren<Status>(true).Length != 1)
             throw new ArgumentException("駒１体分のStatusを持つPrefabが必要です。「基本形のPrefabを作成」から作れます。");
         if (string.IsNullOrWhiteSpace(data.definitionId)) { Undo.RecordObject(data,"保存用ID発行"); data.definitionId = "unit-" + Guid.NewGuid().ToString("N"); EditorUtility.SetDirty(data); }
+        StudioDeletion.RequireAvailableId(data.definitionId, data);
         var catalog = UnitWorkshopWindow.GetCatalog();
         foreach (var entry in catalog.units)
             if (entry?.data != null && entry.data != data && entry.data.definitionId == data.definitionId)
                 throw new ArgumentException("別の駒と保存用IDが重複しています。「選択した設定を複製」で新しく作成してください。");
+        if (catalog.retiredUnits != null) foreach (var entry in catalog.retiredUnits)
+            if (entry?.data != null && entry.data != data && entry.data.definitionId == data.definitionId)
+                throw new ArgumentException("廃止した駒の保存用IDは再利用できません。複製して新しく作成してください。");
         Undo.RecordObject(catalog,"駒を追加登録");
         var existing = catalog.units.Find(e => e != null && e.data == data);
         if (existing == null) { existing = new UnitAuthoringCatalog.Entry(); catalog.units.Add(existing); }
         existing.kind = data.kind; existing.data = data; existing.prefab = data.prefab; existing.standaloneDefinition = true;
+        catalog.retiredUnits?.RemoveAll(entry => entry?.data == data); StudioDeletion.MarkRegistered(data);
         EditorUtility.SetDirty(catalog);
+        GameContentRevision.NotifyChanged();
     }
     static FacilityAuthoringCatalog GetBuildingCatalog()
     {
@@ -109,14 +115,21 @@ public sealed partial class GameDevelopmentStudioWindow
     {
         if (data == null) throw new ArgumentException("建物が選択されていません。");
         if (string.IsNullOrWhiteSpace(data.definitionId)) { Undo.RecordObject(data,"保存用ID発行"); data.definitionId = "building-" + Guid.NewGuid().ToString("N"); EditorUtility.SetDirty(data); }
+        StudioDeletion.RequireAvailableId(data.definitionId, data);
         if (!data.IsValid || data.prefab == null || data.prefab.GetComponentsInChildren<Status>(true).Length != 1)
             throw new ArgumentException("レベル設定と、Statusを１つ持つPrefabを確認してください。");
         var catalog = GetBuildingCatalog();
         foreach (var item in catalog.buildings)
             if (item != null && item != data && item.definitionId == data.definitionId)
                 throw new ArgumentException("建物の保存用IDが重複しています。開発スタジオの複製機能を使ってください。");
+        if (catalog.retiredDefinitions != null) foreach (var item in catalog.retiredDefinitions)
+            if (item != null && item != data && item.definitionId == data.definitionId) throw new ArgumentException("廃止した建物の保存用IDは再利用できません。");
+        if (catalog.standardOverrides != null) foreach (var item in catalog.standardOverrides)
+            if (item != null && item != data && item.definitionId == data.definitionId) throw new ArgumentException("標準建物と保存用IDが重複しています。");
+        Undo.RecordObject(catalog, "建物の登録を更新");
         if (!catalog.buildings.Contains(data)) { Undo.RecordObject(catalog,"建物を追加登録"); catalog.buildings.Add(data); EditorUtility.SetDirty(catalog); }
         catalog.standardOverrides?.Remove(data); catalog.retiredDefinitions?.Remove(data);
+        StudioDeletion.MarkRegistered(data);
         FacilityAuthoringCatalog.ResetCache(); GameContentRevision.NotifyChanged();
     }
     public static void RegisterStandardBuilding(FacilityDefinitionData data)
@@ -124,12 +137,15 @@ public sealed partial class GameDevelopmentStudioWindow
         if (data == null || !data.IsValid || data.prefab == null || data.prefab.GetComponentsInChildren<Status>(true).Length != 1)
             throw new ArgumentException("標準建物へ反映する能力・レベル・Prefabを確認してください。");
         var catalog = GetBuildingCatalog();
+        StudioDeletion.RequireAvailableId(data.definitionId, data);
         if (catalog.standardOverrides == null) catalog.standardOverrides = new System.Collections.Generic.List<FacilityDefinitionData>();
         if (catalog.retiredDefinitions == null) catalog.retiredDefinitions = new System.Collections.Generic.List<FacilityDefinitionData>();
         foreach (var item in catalog.buildings)
             if (item != null && item != data && item.definitionId == data.definitionId) throw new ArgumentException("建物の保存用IDが重複しています。");
         foreach (var item in catalog.standardOverrides)
             if (item != null && item != data && item.definitionId == data.definitionId) throw new ArgumentException("建物の保存用IDが重複しています。");
+        foreach (var item in catalog.retiredDefinitions)
+            if (item != null && item != data && item.definitionId == data.definitionId) throw new ArgumentException("廃止した建物の保存用IDは再利用できません。");
         Undo.RecordObject(catalog, "標準建物の正式データを設定");
         for (int i = catalog.standardOverrides.Count - 1; i >= 0; i--)
         {
@@ -139,6 +155,7 @@ public sealed partial class GameDevelopmentStudioWindow
             catalog.standardOverrides.RemoveAt(i);
         }
         catalog.retiredDefinitions.Remove(data); catalog.buildings.Remove(data); catalog.standardOverrides.Add(data);
+        StudioDeletion.MarkRegistered(data);
         EditorUtility.SetDirty(catalog); FacilityAuthoringCatalog.ResetCache(); GameContentRevision.NotifyChanged();
     }
     void DuplicateSelected()

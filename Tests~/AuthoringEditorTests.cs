@@ -55,7 +55,13 @@ public static class AuthoringEditorTests
                 var item=Array.Find(config.Events,e=>e!=null&&e.Category==category);
                 Check("required Japanese event "+category,item!=null&&item.DisplayName!=category.ToString()&&item.DisplayName.Length>0);
             }
-            Check("default rules preserve legacy unless enabled",!GameDevelopmentStudioWindow.CreateRules().applyRules);
+            var existingRules = Resources.Load<GameAuthoringRules>(GameAuthoringRules.ResourcesPath);
+            bool previouslyEnabled = existingRules != null && existingRules.applyRules;
+            var configuredRules = GameDevelopmentStudioWindow.CreateRules();
+            Check("opening studio preserves the user's existing rule activation", configuredRules.applyRules == previouslyEnabled);
+            var freshDefaults = ScriptableObject.CreateInstance<GameAuthoringRules>();
+            try { Check("new default rules preserve legacy unless enabled", !freshDefaults.applyRules); }
+            finally { UnityEngine.Object.DestroyImmediate(freshDefaults); }
             GameDevelopmentStudioWindow.ImportLegacyBuildings();
             foreach(var entry in FacilityData.Table)
             {

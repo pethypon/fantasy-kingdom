@@ -10,6 +10,7 @@ public sealed class AIKnownEnemyBase
     public string StableTargetId;
     public AIEnemyBaseType Type;
     public int X, Z, FirstSeenTurn, LastSeenTurn, RediscoveryCount;
+    public int DiscoveryBonusTurn = -1;
     public bool CurrentlyVisible, ConfirmedDestroyed, DefenseIntelKnown;
     public float IntelConfidence, LastKnownHpRatio, EstimatedDefense, EstimatedStrategicValue;
     public AIKnownEnemyBase Copy() => (AIKnownEnemyBase)MemberwiseClone();

@@ -20,7 +20,8 @@ public static class AIOperationDiary
             for (int i = Math.Max(0, state.KnownEnemyBases.Count - 5); i < state.KnownEnemyBases.Count; i++)
             {
                 var entry = state.KnownEnemyBases[i]; if (entry == null) continue;
-                builder.Append("【敵拠点発見】").Append(entry.Type).Append(" / 最終視認 ").Append(entry.LastSeenTurn)
+                builder.Append(entry.DiscoveryBonusTurn == entry.LastSeenTurn && entry.RediscoveryCount == 0 ? "【敵拠点・初発見】" : "【既知の敵拠点】")
+                    .Append(BaseLabel(entry.Type)).Append(" / 最終視認 ").Append(entry.LastSeenTurn)
                     .Append(" / ").Append(entry.ConfirmedDestroyed ? "破壊確認済み" : entry.CurrentlyVisible ? "視認中" : "再偵察が必要")
                     .Append(" / 情報確度 ").Append(Number(entry.IntelConfidence)).Append(" / 推定防衛 ").Append(Number(entry.EstimatedDefense)).AppendLine();
             }
@@ -39,6 +40,9 @@ public static class AIOperationDiary
             for (int i = 0; i < count; i++) WritePlan(builder, state.ActiveOperations[i], config, true);
         }
     }
+    static string BaseLabel(AIEnemyBaseType type) => type == AIEnemyBaseType.MainCrystal ? "メインクリスタル"
+        : type == AIEnemyBaseType.SubCrystal ? "サブクリスタル" : type == AIEnemyBaseType.MilitaryFacility ? "軍事施設"
+        : type == AIEnemyBaseType.EconomyFacility ? "経済施設" : type == AIEnemyBaseType.ResourceFacility ? "資源施設" : "支援施設";
 
     static void WritePlan(StringBuilder builder, AIOperationPlan plan, AIOperationConfig config, bool active)
     {

@@ -27,6 +27,7 @@ public sealed partial class AIOperationManager
     AIBoardState refreshedBoard;
     AIPersonality personality;
     AIPlayerModel.Profile playerModel;
+    float CurrentScoutingBaseScore => strategy == TurnStrategy.ScoutSearch ? 70 : 45;
 
     public AIOperationManager(AIOperationConfig config = null, AIOperationLearningProfile profile = null)
     {
@@ -94,12 +95,13 @@ public sealed partial class AIOperationManager
         GenerateCandidates(board, ownTurn, personality, playerModel);
         var main = PrimaryOperation;
         AIOperationCandidate preferred = SelectCandidate();
-        if (preferred != null && (main == null || preferred.Priority < main.StrategicPriority))
+        if (preferred != null && (main == null || preferred.Priority < main.StrategicPriority || ShouldPromoteDiscoveredBase(preferred, main)))
         {
             if (main != null)
             {
-                Suspend(main, ownTurn, preferred.Priority <= 1 ? AIOperationAbortReason.CrystalEmergency
-                    : AIOperationAbortReason.EconomicEmergency);
+                if (preferred.Priority < main.StrategicPriority)
+                    Suspend(main, ownTurn, preferred.Priority <= 1 ? AIOperationAbortReason.CrystalEmergency : AIOperationAbortReason.EconomicEmergency);
+                else { Complete(main, board, ownTurn, AIOperationAbortReason.StrategicPriorityChanged); RemoveFinished(); }
             }
             Start(preferred.Plan, board, ownTurn, true);
         }
@@ -134,10 +136,14 @@ public sealed partial class AIOperationManager
         GenerateCandidates(board, turn, personality, playerModel);
         var primary = PrimaryOperation;
         var candidate = SelectCandidate();
-        if (candidate != null && (primary == null || candidate.Priority < primary.StrategicPriority))
+        if (candidate != null && (primary == null || candidate.Priority < primary.StrategicPriority || ShouldPromoteDiscoveredBase(candidate, primary)))
         {
-            if (primary != null) Suspend(primary, turn, candidate.Priority <= 1
-                ? AIOperationAbortReason.CrystalEmergency : AIOperationAbortReason.EconomicEmergency);
+            if (primary != null)
+            {
+                if (candidate.Priority < primary.StrategicPriority) Suspend(primary, turn, candidate.Priority <= 1
+                    ? AIOperationAbortReason.CrystalEmergency : AIOperationAbortReason.EconomicEmergency);
+                else { Complete(primary, board, turn, AIOperationAbortReason.StrategicPriorityChanged); RemoveFinished(); }
+            }
             Start(candidate.Plan, board, turn, true);
         }
         EnsureOnePrimary();
@@ -167,9 +173,8 @@ public sealed partial class AIOperationManager
             features.Prepare(board, state.LastStartedOwnTurn);
             if (action.TargetUnit != null && board.AlivePlayerUnits.Contains(action.TargetUnit)
                 && (string.IsNullOrEmpty(plan.TargetLifeId) || action.TargetUnit.ReflectionLifeId == plan.TargetLifeId)) bonus = 1;
-            if (plan.IsBaseAssault && features.TryObserved(plan.TargetLifeId, out var baseTarget) && baseTarget == action.TargetUnit)
-                bonus = plan.Status == AIOperationStatus.Preparing ? 0 : 1;
-            if ((!plan.IsBaseAssault || plan.Status != AIOperationStatus.Preparing)
+            if (plan.IsBaseAssault) bonus = BaseAttackBonus(plan, action, board);
+            if ((!plan.IsBaseAssault || plan.Status != AIOperationStatus.Preparing && bonus > 0)
                 && (step?.Type == AIOperationStepType.Attack || step?.Type == AIOperationStepType.DestroyObjective)) bonus += .5f;
         }
         else if (IsMovement(action.ActionType) && action.Unit != null)
@@ -180,6 +185,7 @@ public sealed partial class AIOperationManager
                 int before = AIOperationFeatureExtractor.Distance(action.Unit.transform.position, destination);
                 int after = AIOperationFeatureExtractor.Distance(action.TargetPos, destination);
                 if (after < before) bonus = 1;
+                if (plan.IsBaseAssault) bonus = BaseMovementBonus(plan, action, board, destination, before, after);
             }
             if ((plan.PrimaryGoal == AIOperationGoal.ScoutRegion || plan.PrimaryGoal == AIOperationGoal.LocateEnemyMainForce)
                 && action.Unit.kind == Kind.Scout && board.Exploration.IsObjectiveProgress(action.Unit, action.TargetPos, board)) bonus += .5f;
@@ -187,6 +193,7 @@ public sealed partial class AIOperationManager
         }
         else if (action.ActionType == AIActionType.SubCrystal
             && (plan.PrimaryGoal == AIOperationGoal.CaptureTerritory || plan.PrimaryGoal == AIOperationGoal.ObtainArtifact)) bonus = 1;
+        else if (action.ActionType == AIActionType.Summon) bonus = BaseProductionBonus(plan, action, board);
         return Mathf.Clamp(bonus, 0, Mathf.Clamp(AIOperationConfig.Finite(config.MaxActionBonus), 0, 3));
     }
 
@@ -271,7 +278,8 @@ public sealed partial class AIOperationManager
         }
         plan.CurrentContext = features.Capture(board, plan, ownTurn);
         ConfirmTargetForce(plan);
-        if (scorer.Evaluate(plan, plan.StartContext, plan.CurrentContext, plan.ActionEvidence, true).PrimaryGoalAchieved)
+        if (scorer.Evaluate(plan, plan.StartContext, plan.CurrentContext, plan.ActionEvidence, true).PrimaryGoalAchieved
+            && !BaseWithdrawalPending(plan, ownTurn))
             Complete(plan, board, ownTurn, AIOperationAbortReason.None);
         RemoveFinished();
     }
@@ -381,6 +389,7 @@ public sealed partial class AIOperationManager
         }
         Profile.RebuildIndex();
         copy.LearningProfile = Profile; state = copy;
+        refreshedBoard = null; refreshedGeneration = -1; OperationRequiredCitizenDemand = 0;
         EnsureOnePrimary(); features.Invalidate();
     }
 
@@ -390,7 +399,7 @@ public sealed partial class AIOperationManager
         && plan.AssignedUnitLifeIds != null && plan.AssignedUnitLifeIds.Count <= config.AssignmentLimit
         && plan.AssignedUnitRoles != null && plan.OriginalAssignedUnitLifeIds != null && plan.UtilizedUnitLifeIds != null
         && plan.ActionIds != null && plan.ActionEvidence != null && plan.CreditedActionIds != null
-        && plan.Revisions != null && plan.Revisions.Count <= config.RevisionLimit;
+        && plan.Revisions != null && plan.Revisions.Count <= config.RevisionLimit && ValidBasePlan(plan);
 
     List<string> SanitizeLives(List<string> source)
     {
@@ -460,7 +469,7 @@ public sealed partial class AIOperationManager
         {
             AddCandidate(board, turn, facts.VisibleEnemyUnits == 0 ? AIOperationGoal.ScoutRegion
                 : AIOperationGoal.LocateEnemyMainForce, facts.VisibleEnemyUnits == 0 ? 3 : 4,
-                strategy == TurnStrategy.ScoutSearch ? 70 : 45, null, personality, player);
+                CurrentScoutingBaseScore, null, personality, player);
         }
         candidates.Sort(AIOperationCandidate.Compare);
         if (config.EnableDebug)
@@ -567,7 +576,8 @@ public sealed partial class AIOperationManager
         // tactical, reserve, emergency and economic decisions in the existing commander.
         bool scout = plan.PrimaryGoal == AIOperationGoal.ScoutRegion || plan.PrimaryGoal == AIOperationGoal.LocateEnemyMainForce;
         int quota = plan.PrimaryGoal == AIOperationGoal.EconomicRecovery ? 0
-            : scout ? Mathf.Min(2, config.AssignmentLimit) : Mathf.Min(config.AssignmentLimit, Mathf.Max(1, (ownArmy.Count + 1) / 2));
+            : scout ? Mathf.Min(2, config.AssignmentLimit)
+            : Mathf.Min(config.AssignmentLimit, Mathf.Max(1, plan.IsBaseAssault ? Mathf.CeilToInt(ownArmy.Count * AvailableForceFraction) : (ownArmy.Count + 1) / 2));
         for (int i = plan.AssignedUnitLifeIds.Count - 1; i >= 0; i--)
             if (!features.TryOwn(plan.AssignedUnitLifeIds[i], out var current) || current == null || !current.IsAlive
                 || assignments.TryGetValue(plan.AssignedUnitLifeIds[i], out var owner) && owner != plan)
@@ -576,8 +586,10 @@ public sealed partial class AIOperationManager
             foreach (var actor in ownArmy)
             {
                 if (actor.kind != Kind.Scout || assignments.ContainsKey(actor.ReflectionLifeId)) continue;
-                plan.AssignedUnitLifeIds.Add(actor.ReflectionLifeId); plan.OriginalAssignedUnitLifeIds.Add(actor.ReflectionLifeId);
-                plan.AssignedUnitRoles.Add("Scout"); assignments[actor.ReflectionLifeId] = plan; break;
+                plan.AssignedUnitLifeIds.Add(actor.ReflectionLifeId);
+                if (!plan.OriginalAssignedUnitLifeIds.Contains(actor.ReflectionLifeId)) plan.OriginalAssignedUnitLifeIds.Add(actor.ReflectionLifeId);
+                if (!plan.AssignedUnitRoles.Contains("Scout")) plan.AssignedUnitRoles.Add("Scout");
+                assignments[actor.ReflectionLifeId] = plan; break;
             }
         foreach (var actor in ownArmy)
         {
@@ -648,7 +660,10 @@ public sealed partial class AIOperationManager
             plan.GoalStartedAfterActionId = Math.Max(plan.GoalStartedAfterActionId, record.ActionId);
         plan.StartContext = plan.CurrentContext.Copy();
         plan.StartContext.Turn = ownTurn;
-        plan.PrimaryGoal = goal; plan.Steps = CreateSteps(goal, ownTurn); plan.CurrentStep = 0;
+        plan.PrimaryGoal = goal;
+        if (plan.IsBaseAssault && goal != AIOperationGoal.DestroyEnemyCrystal && goal != AIOperationGoal.DestroySubCrystal && goal != AIOperationGoal.BreakEnemyDefense)
+        { plan.IsBaseAssault = false; plan.RequiredAdditionalCitizens = 0; }
+        plan.Steps = CreateSteps(goal, ownTurn); plan.CurrentStep = 0;
         plan.ExpectedEndTurn = Math.Max(plan.ExpectedEndTurn, ownTurn + Mathf.Max(1, config.DefaultExpectedDuration) - 1);
         plan.MaximumEndTurn = Math.Max(plan.MaximumEndTurn, ownTurn + Mathf.Max(1, config.DefaultMaximumDuration) - 1);
         plan.PatternKey = Pattern(plan.Steps); plan.ContextKey = AIOperationFeatureExtractor.ContextKey(plan, plan.StartContext);
@@ -783,7 +798,7 @@ public sealed partial class AIOperationManager
     {
         if (step == null || step.Completed || record.Outcome == null) return;
         var result = record.Outcome;
-        bool done = step.Type == AIOperationStepType.Scout && (!plan.IsBaseAssault || FindKnownBase(plan.TargetLifeId)?.DefenseIntelKnown == true)
+        bool done = step.Type == AIOperationStepType.Scout && (!plan.IsBaseAssault || plan.BaseRouteConfirmed && FindKnownBase(plan.TargetLifeId)?.DefenseIntelKnown == true)
                 && (result.NewTilesRevealed > 0 || result.NewEnemyLifeIds?.Count > 0)
             || step.Type == AIOperationStepType.Approach && result.DistanceToObjectiveDelta > 0
             || step.Type == AIOperationStepType.Support && (result.EffectChanged || result.HealingDone > 0 || result.ShieldGranted)

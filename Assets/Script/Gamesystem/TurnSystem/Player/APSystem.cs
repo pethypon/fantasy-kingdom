@@ -130,7 +130,7 @@ public class APSystem : MonoBehaviour
     // ---- 建築の実行可否（AP + リソース）----
     public bool CanBuild(Team team, FacilityKind facility, FactionState factionState)
     {
-        if (!FacilityData.Table.TryGetValue(facility, out var info)) return false;
+        if (factionState == null || !FacilityData.IsAvailableFor(facility, team) || !FacilityData.Table.TryGetValue(facility, out var info)) return false;
         if (_factionState.GetAP(team) < info.APCost) return false;
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
@@ -164,7 +164,7 @@ public class APSystem : MonoBehaviour
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
         FacilityData.Consume(res, info.BuildCost);
 
-        Debug.Log($"[APSystem] {team} / Build({facility})  AP:{info.APCost}  残AP:{_factionState.GetAP(team)}");
+        if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[APSystem] {team} / Build({facility})  AP:{info.APCost}  残AP:{_factionState.GetAP(team)}");
     }
 
     // ---- 内部ヘルパー ----

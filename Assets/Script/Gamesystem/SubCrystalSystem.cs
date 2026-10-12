@@ -211,6 +211,7 @@ public class SubCrystalSystem : MonoBehaviour
         // Deactivate immediately, then release scene-owned renderers and UI to prevent retention.
         UnitRegistry.Instance?.Unregister(target);
         target.gameObject.SetActive(false);
+        EconomySystem.RecalculateCapacity(buildsystem, factionState, target.team);
         Destroy(target.gameObject);
 
         // SubCrystal は視界を提供するため、破壊後は確実に視界を再計算する。

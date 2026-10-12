@@ -499,7 +499,7 @@ public class UnitPanelUI : MonoBehaviour
 
         if (previewOnly) return;
         // 建築物用ボタン表示
-        bool isOffensive = currentUnit.AuthoredFacility != null ? currentUnit.ATK > 0 && (BoardActionProfile.For(currentUnit)?.CanAttack ?? true) : FacilityData.IsOffensive(facility);
+        bool isOffensive = FacilityData.HasAuthoredRecipe(currentUnit) ? currentUnit.ATK > 0 && (BoardActionProfile.For(currentUnit)?.CanAttack ?? true) : FacilityData.IsOffensive(facility);
         SetButtonVisible(attackButton, isOffensive && currentUnit.team == Team.Player);
         SetButtonVisible(cancelButton, true);
         UIFactory.SetAnchors(attackButton.GetComponent<RectTransform>(), 0, 0.76f, 0.5f, 1);

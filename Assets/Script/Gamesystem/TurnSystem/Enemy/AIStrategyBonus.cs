@@ -247,8 +247,7 @@ public static class AIEvalHelpers
 
     public static int EstimateDamage(Status attacker, Status defender)
     {
-        int atk = attacker.ATK;
-        int def = defender.DEF;
-        return Mathf.Max(0, 1 + (atk / 6) + ((atk / 2) - (def / 4)));
+        if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive || defender.ShieldTurns > 0) return 0;
+        return DamageCalculator.EstimateBaseDamage(attacker.ATK, defender.DEF);
     }
 }

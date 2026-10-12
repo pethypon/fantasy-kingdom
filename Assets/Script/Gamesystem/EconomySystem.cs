@@ -33,6 +33,10 @@ public class EconomySystem : MonoBehaviour
     }
     /// <summary>Refresh capacities only. Never consumes materials, pays maintenance, or advances a production turn.</summary>
     public void RecalculateCapacity(Team team)
+        => RecalculateCapacity(buildSystem, factionState, team);
+
+    /// <summary>Use the builder's own faction, including isolated simulations and developer fixtures.</summary>
+    public static void RecalculateCapacity(BuildSystem buildSystem, FactionState factionState, Team team)
     {
         if (buildSystem == null || factionState == null || (team != Team.Player && team != Team.Enemy)) return;
         long citizens = 0, storage = 0, training = 0;
@@ -82,7 +86,7 @@ public class EconomySystem : MonoBehaviour
         int warehouseBonus = team == Team.Player
             ? factionState.PlayerResourceCapacity
             : factionState.EnemyResourceCapacity;
-        if (warehouseBonus > 0)
+        if (IsResourceCapacityEnforced(warehouseBonus))
             ClampResources(res, warehouseBonus);
     }
 
@@ -113,26 +117,47 @@ public class EconomySystem : MonoBehaviour
         }
 
         var nation = factionState.GetNation(team);
+        var income = GetCrystalIncome(nation.TurnsAlive);
         int turn = nation.TurnsAlive;
-        if (turn >= CrystalIncomeTurns) return;
+        int wood = income.Wood, stone = income.Stone, water = income.Water, bread = income.Bread, iron = income.Iron;
+        if (wood == 0 && stone == 0 && water == 0 && bread == 0 && iron == 0 && income.MagicOre == 0 && income.Wheat == 0 && income.Citizen == 0) return;
 
-        float decay = 1f - (0.10f * turn); // ターン0で1.0、ターン9で0.10
-        if (decay <= 0f) return;
-
-        int wood  = Mathf.RoundToInt(CrystalBaseWood  * decay);
-        int stone = Mathf.RoundToInt(CrystalBaseStone * decay);
-        int water = Mathf.RoundToInt(CrystalBaseWater * decay);
-        int bread = Mathf.RoundToInt(CrystalBaseBread * decay);
-        int iron  = Mathf.RoundToInt(CrystalBaseIron  * decay);
-
-        res.Wood  += wood;
-        res.Stone += stone;
-        res.Water += water;
-        res.Bread += bread;
-        res.Iron  += iron;
+        res.Wood = AddOpeningStock(res.Wood, wood);
+        res.Stone = AddOpeningStock(res.Stone, stone);
+        res.Water = AddOpeningStock(res.Water, water);
+        res.Bread = AddOpeningStock(res.Bread, bread);
+        res.Iron = AddOpeningStock(res.Iron, iron);
+        res.MagicOre = AddOpeningStock(res.MagicOre, income.MagicOre);
+        res.Wheat = AddOpeningStock(res.Wheat, income.Wheat); res.Citizen = AddOpeningStock(res.Citizen, income.Citizen);
 
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} クリスタル序盤収入(T{turn}): 木+{wood} 石+{stone} 水+{water} パン+{bread} 鉄+{iron}"); }
     }
+
+    /// <summary>The game and every forecast resolve the same decaying opening support.</summary>
+    public static FacilityData.ProductionBundle GetCrystalIncome(int ownTurn)
+    {
+        var rules = GameAuthoringRules.Active;
+        int turns = Mathf.Clamp(rules != null ? rules.crystalIncomeTurns : CrystalIncomeTurns, 1, 30);
+        float decay = Mathf.Clamp01(1f - Mathf.Max(0, ownTurn) / (float)turns);
+        var source = rules != null ? rules.crystalStartIncome : new FacilityData.ProductionBundle
+        { Wood = CrystalBaseWood, Stone = CrystalBaseStone, Water = CrystalBaseWater, Bread = CrystalBaseBread, Iron = CrystalBaseIron };
+        return new FacilityData.ProductionBundle
+        {
+            Wood = ScaledOpeningIncome(source.Wood, decay), Stone = ScaledOpeningIncome(source.Stone, decay),
+            Water = ScaledOpeningIncome(source.Water, decay), Bread = ScaledOpeningIncome(source.Bread, decay),
+            Iron = ScaledOpeningIncome(source.Iron, decay),
+            MagicOre = ScaledOpeningIncome(source.MagicOre, decay), Wheat = ScaledOpeningIncome(source.Wheat, decay),
+            Citizen = ScaledOpeningIncome(source.Citizen, decay)
+        };
+    }
+
+    static int AddOpeningStock(int stock, int income)
+        => (int)System.Math.Min(int.MaxValue, (long)stock + income);
+    static int ScaledOpeningIncome(int amount, float scale)
+        => (int)System.Math.Min(int.MaxValue, System.Math.Round((double)Mathf.Max(0, amount) * scale));
+
+    public static bool IsResourceCapacityEnforced(int warehouseBonus)
+        => warehouseBonus > 0 || GameAuthoringRules.Active?.enforceResourceCapacity == true;
 
     // ==================================================================
     //  1. 建築物の生産・維持費・特殊効果
@@ -140,7 +165,7 @@ public class EconomySystem : MonoBehaviour
     private void PrepareBuildings(Team team, FactionState.ResourceData res)
     {
         buildingActors.Clear(); buildingRecipes.Clear();
-        int citizenCapacity = 0, resourceCapacity = 0, barracksXP = 0;
+        long citizenCapacity = 0, resourceCapacity = 0, barracksXP = 0;
         Transform parent = buildSystem.GetBuildingParent(team);
         if (parent != null) foreach (Transform child in parent)
         {
@@ -164,7 +189,9 @@ public class EconomySystem : MonoBehaviour
             buildingActors.Add(actor); buildingRecipes.Add(recipe);
         }
         var nation = factionState.GetNation(team);
-        nation.CitizenCapacity = citizenCapacity; nation.ResourceCapacity = resourceCapacity; nation.BarracksXP = barracksXP;
+        nation.CitizenCapacity = (int)System.Math.Min(int.MaxValue - FactionState.BaseCitizenCap, citizenCapacity);
+        nation.ResourceCapacity = (int)System.Math.Min(int.MaxValue - FactionState.BaseResourceCap, resourceCapacity);
+        nation.BarracksXP = (int)System.Math.Min(int.MaxValue, barracksXP);
     }
 
     private void ProcessBuildingProduction(Team team, FactionState.ResourceData res)
@@ -209,7 +236,7 @@ public class EconomySystem : MonoBehaviour
 
         foreach (Transform child in unitParent)
         {
-            var status = child.GetComponent<Status>();
+            var status = child.GetComponentInChildren<Status>();
             if (status == null) continue;
             if (status.type != Type.Unit) continue;
             if (status.HP <= 0) continue;
@@ -270,12 +297,12 @@ public class EconomySystem : MonoBehaviour
 
         var nation = factionState.GetNation(team);
         int breadCost = CitizenBreadCost;
-        int totalBreadNeeded = res.Citizen * breadCost;
+        long totalBreadNeeded = (long)res.Citizen * breadCost;
 
         if (res.Bread >= totalBreadNeeded)
         {
             // 全市民を養える → 飢餓カウンターをリセット
-            res.Bread -= totalBreadNeeded;
+            res.Bread -= (int)totalBreadNeeded; // The affordability check guarantees this amount fits the resource integer.
             nation.StarvationCounter = 0;
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} 市民パン消費: {res.Citizen}人×{BreadPerCitizen}パン = {totalBreadNeeded}パン消費  残パン={res.Bread}"); }
         }

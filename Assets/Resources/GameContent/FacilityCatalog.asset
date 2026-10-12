@@ -13,3 +13,12 @@ MonoBehaviour:
   m_Name: FacilityCatalog
   m_EditorClassIdentifier: Assembly-CSharp::FacilityAuthoringCatalog
   buildings: []
+  standardOverrides:
+  - {fileID: 11400000, guid: 5a5d69b6fa246584c96573315d07d50b, type: 2}
+  - {fileID: 11400000, guid: baee3da74e7efbc4abbd8add29bef158, type: 2}
+  - {fileID: 11400000, guid: e005183af65fe5346ad6fb24061a5559, type: 2}
+  - {fileID: 11400000, guid: 08358e80f42f7e648aa44826eba42741, type: 2}
+  - {fileID: 11400000, guid: 7d6943cf2c6cfb84c902e6bc4d1ea984, type: 2}
+  - {fileID: 11400000, guid: 148897f5b17051b499d4f635d63340cb, type: 2}
+  - {fileID: 11400000, guid: 75492ed3a34a3f04480f151adaa0dd2d, type: 2}
+  - {fileID: 11400000, guid: e65fc27d81e073c49b3b4c79e2c56bbc, type: 2}

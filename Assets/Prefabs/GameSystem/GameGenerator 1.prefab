@@ -421,6 +421,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   useMLAssistedAI: 1
+  playerAIToggleKey: 101
 --- !u!114 &4274656196449366938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -517,39 +518,35 @@ MonoBehaviour:
   - kind: 2
     prefab: {fileID: 1403923814983102791, guid: b161ab568ef513449ade860703331bc0, type: 3}
   - kind: 3
-    prefab: {fileID: 1498982220529609077, guid: 5a36a351d033dbe43a9fba0eeba4e65c, type: 3}
+    prefab: {fileID: 3432367182886414730, guid: f97d8d6d83589b14d9101edd0c01c86d, type: 3}
   - kind: 4
-    prefab: {fileID: 2252520407376442661, guid: f97d8d6d83589b14d9101edd0c01c86d, type: 3}
+    prefab: {fileID: 2238354103806804568, guid: b159cf12459fdf94fb18230645f784ac, type: 3}
   - kind: 5
-    prefab: {fileID: 5558464263285800647, guid: b2b939bec14660b428e891c633f9d8c0, type: 3}
+    prefab: {fileID: 3242742097216358326, guid: 0511a012ae82ef245b8e1d7857134400, type: 3}
   - kind: 6
-    prefab: {fileID: 3104939058603182087, guid: b159cf12459fdf94fb18230645f784ac, type: 3}
+    prefab: {fileID: 7190086623477334716, guid: ebf4cc5c4978b7a49bd947cfcb2ce7af, type: 3}
   - kind: 7
-    prefab: {fileID: 5098929775664629130, guid: fdea42840c367694c984c4da28131a49, type: 3}
+    prefab: {fileID: 7866665579074280467, guid: 0edf453acfad2184cb36464bb4dc7765, type: 3}
   - kind: 8
-    prefab: {fileID: 1615010456488333217, guid: 0511a012ae82ef245b8e1d7857134400, type: 3}
+    prefab: {fileID: 8172528559194905708, guid: 41714f800cca5ee44af234c8d196f411, type: 3}
   - kind: 9
-    prefab: {fileID: 6386511116111547051, guid: ebf4cc5c4978b7a49bd947cfcb2ce7af, type: 3}
+    prefab: {fileID: 3253973096685375555, guid: 3bcdd34b72cf3544190610e8fccf7846, type: 3}
   - kind: 10
-    prefab: {fileID: 5333252451594278011, guid: 41714f800cca5ee44af234c8d196f411, type: 3}
+    prefab: {fileID: 2343872435021727778, guid: 711dd2c97d8989645adace5671e3ed1f, type: 3}
   - kind: 11
-    prefab: {fileID: 1603647601189722196, guid: 3bcdd34b72cf3544190610e8fccf7846, type: 3}
+    prefab: {fileID: 2438150911132103916, guid: ffe80212e54cf3c44b734e0a04898acb, type: 3}
   - kind: 12
-    prefab: {fileID: 2012607905592950837, guid: 711dd2c97d8989645adace5671e3ed1f, type: 3}
+    prefab: {fileID: 3958493402027539597, guid: c935fa6a5f7389e4c890b1668c94a47f, type: 3}
   - kind: 13
-    prefab: {fileID: 1927310706548210939, guid: ffe80212e54cf3c44b734e0a04898acb, type: 3}
+    prefab: {fileID: 28728413214499895, guid: f853c44f7f247a84086b41cc71c94182, type: 3}
   - kind: 14
-    prefab: {fileID: 974544928968946842, guid: c935fa6a5f7389e4c890b1668c94a47f, type: 3}
+    prefab: {fileID: 7406210528459976430, guid: dd550a680c4abaf44991123fd69477d0, type: 3}
   - kind: 15
-    prefab: {fileID: 4255677224378854432, guid: f853c44f7f247a84086b41cc71c94182, type: 3}
+    prefab: {fileID: 2282852111423728104, guid: 820b1de4c22256948b2a71feace9225f, type: 3}
   - kind: 16
-    prefab: {fileID: 6746680905576965881, guid: dd550a680c4abaf44991123fd69477d0, type: 3}
+    prefab: {fileID: 4689792814411599818, guid: fa0246e3872859143b3b5eb6911ba8f0, type: 3}
   - kind: 17
-    prefab: {fileID: 2650212610253218303, guid: 820b1de4c22256948b2a71feace9225f, type: 3}
-  - kind: 18
-    prefab: {fileID: 8826032733233924061, guid: fa0246e3872859143b3b5eb6911ba8f0, type: 3}
-  - kind: 19
-    prefab: {fileID: 1696090823744422469, guid: 063f582466978f14c93e7b4d7aa93d68, type: 3}
+    prefab: {fileID: 3233754044431862354, guid: 063f582466978f14c93e7b4d7aa93d68, type: 3}
   PlayerBuildingParent: {fileID: 3240945383411155157}
   EnemyBuildingParent: {fileID: 1652975501354371798}
 --- !u!1 &2363660968235959603
@@ -1639,6 +1636,7 @@ MonoBehaviour:
   seedx: 0
   seedz: 0
   noiseScale: 0.096
+  riverHalfWidth: 0.7
   AverageFoundation: 0
   Amplitude: 1
   SetPos: []

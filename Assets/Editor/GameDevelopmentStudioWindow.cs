@@ -30,16 +30,18 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         var window = GetWindow<GameDevelopmentStudioWindow>("開発スタジオ");
         window.minSize = new Vector2(930, 640); window.Show();
     }
-    void OnEnable() { RefreshLists(); Undo.undoRedoPerformed += Repaint; }
-    void OnDisable() => Undo.undoRedoPerformed -= Repaint;
+    void OnEnable() { RefreshLists(); Undo.undoRedoPerformed += OnStudioUndo; }
+    void OnDisable() => Undo.undoRedoPerformed -= OnStudioUndo;
+    void OnStudioUndo() { FacilityAuthoringCatalog.ResetCache(); GameContentRevision.NotifyChanged(); RefreshLists(); Repaint(); }
     void OnProjectChange() { RefreshLists(); Repaint(); }
     void RefreshLists()
     {
         units.Clear(); buildings.Clear();
+        var archive = StudioDeletion.LoadArchive();
         foreach (var id in AssetDatabase.FindAssets("t:UnitData"))
-        { var item = AssetDatabase.LoadAssetAtPath<UnitData>(AssetDatabase.GUIDToAssetPath(id)); if (item != null) units.Add(item); }
+        { var item = AssetDatabase.LoadAssetAtPath<UnitData>(AssetDatabase.GUIDToAssetPath(id)); if (item != null && (showDeleted || archive?.IsDeleted(item) != true)) units.Add(item); }
         foreach (var id in AssetDatabase.FindAssets("t:FacilityDefinitionData"))
-        { var item = AssetDatabase.LoadAssetAtPath<FacilityDefinitionData>(AssetDatabase.GUIDToAssetPath(id)); if (item != null) buildings.Add(item); }
+        { var item = AssetDatabase.LoadAssetAtPath<FacilityDefinitionData>(AssetDatabase.GUIDToAssetPath(id)); if (item != null && (showDeleted || archive?.IsDeleted(item) != true)) buildings.Add(item); }
         units.Sort((a,b) => string.Compare(a.DisplayName,b.DisplayName,StringComparison.Ordinal));
         buildings.Sort((a,b) => string.Compare(a.displayName,b.displayName,StringComparison.Ordinal));
         rules = AssetDatabase.LoadAssetAtPath<GameAuthoringRules>(RulesPath);
@@ -88,19 +90,22 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             TryAction(() => { DuplicateSelected(); RefreshLists(); });
         if (tab == 1 && GUILayout.Button("既存の建物データを取り込む"))
             TryAction(() => { ImportLegacyBuildings(); RefreshLists(); });
+        bool nextShowDeleted = EditorGUILayout.ToggleLeft("削除・保管した設定を表示", showDeleted);
+        if (nextShowDeleted != showDeleted) { showDeleted = nextShowDeleted; RefreshLists(); }
+        DrawDeletionButtons();
         listScroll = EditorGUILayout.BeginScrollView(listScroll);
         if (tab == 0) foreach (var item in units)
         {
             if (!Matches(item.DisplayName, item.category)) continue;
             var old = GUI.backgroundColor; if (item == selectedUnit) GUI.backgroundColor = new Color(.55f,.85f,1);
-            if (GUILayout.Button(item.DisplayName, GUILayout.Height(26))) { selectedUnit = item; visualModel = null; detailScroll = Vector2.zero; }
+            if (GUILayout.Button((StudioDeletion.IsDeleted(item) ? "［削除済］" : string.Empty) + item.DisplayName, GUILayout.Height(26))) { selectedUnit = item; visualModel = null; detailScroll = Vector2.zero; }
             GUI.backgroundColor = old;
         }
         else foreach (var item in buildings)
         {
             if (!Matches(item.displayName, item.category)) continue;
             var old = GUI.backgroundColor; if (item == selectedBuilding) GUI.backgroundColor = new Color(.55f,.85f,1);
-            if (GUILayout.Button(string.IsNullOrWhiteSpace(item.displayName) ? item.name : item.displayName, GUILayout.Height(26)))
+            if (GUILayout.Button((StudioDeletion.IsDeleted(item) ? "［削除済］" : string.Empty) + (string.IsNullOrWhiteSpace(item.displayName) ? item.name : item.displayName), GUILayout.Height(26)))
             { selectedBuilding = item; visualModel = null; detailScroll = Vector2.zero; }
             GUI.backgroundColor = old;
         }
@@ -186,6 +191,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         }
         so.ApplyModifiedProperties();
         DrawVisual(null,selectedBuilding);
+        EditorGUILayout.HelpBox("生産調整を有効にしている場合、この建物ID・レベルに一致する調整値を優先します。陣営・ゲームルールの「建物の生産量・生産周期」で確認できます。", MessageType.Info);
         var catalog = AssetDatabase.LoadAssetAtPath<FacilityAuthoringCatalog>(FacilityCatalogPath);
         bool standard = catalog != null && catalog.FindStandard(selectedBuilding.behaviourKind) == selectedBuilding;
         bool independent = catalog != null && catalog.buildings != null && catalog.buildings.Contains(selectedBuilding);
@@ -207,6 +213,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             Undo.RecordObject(owner,"マス設定作成"); assign(profile);EditorUtility.SetDirty(owner);
         }
         DevelopmentStudioTiles.Draw(profile,role,position.width-235);
+        DrawProfileDeletion(profile, owner, assign);
     }
     void DrawVisual(UnitData unit,FacilityDefinitionData building)
     {

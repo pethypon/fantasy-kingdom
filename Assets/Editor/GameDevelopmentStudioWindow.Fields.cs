@@ -26,6 +26,7 @@ public sealed partial class GameDevelopmentStudioWindow
         {"Wood","木材"},{"Stone","石材"},{"Iron","鉄"},{"MagicOre","魔石"},{"Wheat","小麦"},{"Bread","パン"},{"Water","水"},{"Citizen","市民"},
         {"applyRules","このルールで新規ゲームを始める"},{"aiBreadReserveTurns","AIが確保するパンの予備ターン数"},{"turnSeconds","１ターンの制限時間（秒）"},{"totalSeconds","各軍の持ち時間（秒）"},
         {"timeBonusSeconds","手動でターン終了した時の加算秒数"},{"maximumAP","行動ポイントの上限（AP）"},{"moveAP","基本移動AP"},{"attackAP","基本攻撃AP"},{"heightAP","高さ差１段の追加AP"},
+        {"minimumAttackDamage","命中した攻撃の最低ダメージ"},
         {"citizenAP","市民１人によるAP増加"},{"breadPerCitizen","市民１人が消費するパン"},{"starvationGraceTurns","飢餓の猶予ターン数"},
         {"mapWidth","マップの横幅（マス）"},{"mapDepth","マップの奥行き（マス）"},{"noiseScale","地形の細かさ"},{"riverHalfWidth","川の半幅"},
         {"color","陣営の表示色"},{"initialAP","初期AP"},

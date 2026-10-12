@@ -36,6 +36,7 @@ public static class SimBoardPool
         board.MapTiles = null;
         board.Mountains = null;
         board.Water = null;
+        board.RecruitmentDefinitions = null;
         if (_boardPool.Count < 64) _boardPool.Push(board);
     }
 

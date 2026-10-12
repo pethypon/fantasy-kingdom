@@ -16,6 +16,9 @@ public sealed class AIOperationPlan
     public AIBaseAssaultPattern BaseAssaultPattern;
     public AIEnemyBaseType BaseTargetType;
     public float RequiredAssaultForce, BaseIntelConfidence;
+    public float EstimatedBaseDefense;
+    public bool BaseDefenseKnown, BaseRouteConfirmed, HasBaseApproachPoint, BaseWithdrawalComplete;
+    public int BaseApproachX, BaseApproachZ;
     public int RequiredAdditionalCitizens, RallyX, RallyZ;
     public int StartTurn, ExpectedEndTurn, ActualEndTurn, MaximumEndTurn, LastProgressTurn;
     public int SuspendedOwnTurn = -1;

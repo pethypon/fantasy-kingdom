@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 // =====================================================================
@@ -97,7 +96,6 @@ public class PlayerProfiler
 
     // ---- 試合中カウンター ----
     int _currentTurnAttacks;
-    int _currentTurnDamage;
     int _firstAttackTurn = -1;
     Dictionary<Kind, int> _unitUsageCount = new Dictionary<Kind, int>();
 
@@ -157,7 +155,9 @@ public class PlayerProfiler
 
         if (flank) flankAttacks++;
         if (targetWeak) weakAttacks++;
-        attackDistanceSum += dist; targetValueSum += targetValue / 100f;
+        // Accumulate the stored float fields exactly as the prior full-history loop did.
+        var observation = _attackHistory[_attackHistory.Count - 1];
+        attackDistanceSum += observation.Distance; targetValueSum += observation.TargetValueRatio;
 
         // 攻撃方向の頻度記録
         var direction = new Vector3Int(
@@ -226,15 +226,12 @@ public class PlayerProfiler
         centroid /= count;
 
         float spread = 0f;
-        float avgDist = 0f;
         foreach (var u in playerUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
             spread += Vector3.Distance(u.transform.position, centroid);
-            avgDist += Vector3.Distance(u.transform.position, enemyCrystalPos);
         }
         spread /= count;
-        avgDist /= count;
 
         _turnSnapshots.Add(new TurnSnapshot
         {
@@ -244,13 +241,12 @@ public class PlayerProfiler
         });
 
         if (_currentTurnAttacks > 0) attackingTurns++;
-        formationSpreadSum += spread;
+        formationSpreadSum += _turnSnapshots[_turnSnapshots.Count - 1].FormationSpread;
         int newMidpoint = _turnSnapshots.Count / 2;
         if (_turnSnapshots.Count % 2 == 0 && _turnSnapshots[newMidpoint - 1].DidAttack) earlyAttackingTurns++;
 
         // ターンカウンターリセット
         _currentTurnAttacks = 0;
-        _currentTurnDamage = 0;
     }
 
     // ================================================================
@@ -393,7 +389,6 @@ public class PlayerProfiler
         // 古い試合のデータが新しい試合のプロファイリングを汚染するのを防止
         _firstAttackTurn = -1;
         _currentTurnAttacks = 0;
-        _currentTurnDamage = 0;
 
         // 生データを半分だけ保持（最新の半分のみ残す）
         // これにより長期傾向を維持しつつ、プレイヤーのスタイル変化に追従

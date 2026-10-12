@@ -52,7 +52,8 @@ public class BuildValidator
     public static string CostFailure(FacilityKind facility, FactionState faction)
     {
         if (faction == null || !FacilityData.Table.TryGetValue(facility,out var info)) return "配置不可：建築情報がありません";
-        if (FacilityData.IsSubCrystal(facility)) return faction.GetSubCrystals(Team.Player)>0 ? null : "副晶不足";
+        if (!FacilityData.IsAvailableFor(facility, Team.Player)) return "建築不可：この陣営では使えない建物です";
+        if (FacilityData.IsSubCrystal(facility) && faction.GetSubCrystals(Team.Player) <= 0) return "副晶不足";
         var r=faction.PlayerResources; var c=info.BuildCost;
         if (r.Wood<c.Wood) return "木材不足";
         if (r.Stone<c.Stone) return "石材不足";

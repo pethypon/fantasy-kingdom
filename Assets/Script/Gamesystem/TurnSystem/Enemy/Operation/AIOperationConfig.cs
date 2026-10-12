@@ -16,6 +16,7 @@ public sealed class AIOperationConfig : ScriptableObject
     [Range(8, 256)] public int MaximumKnownBases = 128;
     [Range(1, 12)] public int BaseIntelFreshTurns = 2;
     [Range(0f, 1f)] public float StaleBaseIntelConfidence = .5f, OldBaseIntelConfidence = .2f;
+    [Range(0f, 1f)] public float FreshBaseIntelConfidence = .8f;
     [Min(0)] public float MainCrystalStrategicValue = 100, SubCrystalStrategicValue = 75;
     [Min(0)] public float MilitaryFacilityStrategicValue = 60, EconomyFacilityStrategicValue = 55;
     [Min(0)] public float ResourceFacilityStrategicValue = 50, SupportFacilityStrategicValue = 40;
@@ -24,6 +25,14 @@ public sealed class AIOperationConfig : ScriptableObject
     [Min(1)] public float BaseSafeForceRatio = 1.2f, BaseAggressiveForceRatio = 2;
     [Min(1)] public float MinimumBaseAssaultForce = 20, MinimumMainCrystalAssaultForce = 50;
     [Range(1, 10)] public int BaseRallyRadius = 3;
+    [Range(.1f, .75f)] public float BaseAvailableForceFraction = .5f;
+    [Range(0f, 1f)] public float BaseTurtleThreshold = .6f;
+    [Min(0)] public float BaseUnknownDefenseEstimate = 20, BaseRouteRiskWeight = 1;
+    [Min(0)] public float BaseForceAdvantageWeight = 5, BaseSuccessfulOpportunityBonus = 4;
+    [Range(8, 64)] public int BaseRouteSampleLimit = 32;
+    [Min(1)] public float BaseFallbackReinforcementPower = 20;
+    [Range(1, 16)] public int MaximumBaseReinforcementUnits = 8;
+    [Min(0)] public float BaseDiscoverySwitchMargin = 15;
     [Min(1)] public int MinimumThreatLevel = 10;
     [Min(2)] public int MinimumSamplesForSelection = 2;
     [Min(1)] public int FullConfidenceSamples = 10;

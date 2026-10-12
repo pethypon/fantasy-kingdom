@@ -68,6 +68,8 @@ public sealed class AIOperationScorer
         float final = Mathf.Clamp(score.Total, 0f, Mathf.Clamp(Finite(config.PerfectScore, 100f), 1f, 100f));
         bool perfect = achieved && goal >= 1f && survival >= Unit(config.PerfectMinimumSurvival)
             && !exposed && end.EconomyState != EconomicState.Collapse && !catastrophic && !end.OwnCrystalDestroyed;
+        if (operation.IsBaseAssault && operation.BaseAssaultPattern == AIBaseAssaultPattern.RaidAndWithdraw)
+            perfect &= operation.BaseWithdrawalComplete;
         if (!achieved) final = Mathf.Min(final, Mathf.Clamp(Finite(config.MaxScoreWithoutPrimaryGoal, 69f), 0f, 69f));
         if (!perfect) final = Mathf.Min(final, Mathf.Clamp(Finite(config.MaxScoreWithoutPerfectGate, 94f), 0f, 94f));
         // A rational recall protects survival and is not learned as an attack failure. Actual catastrophic outcomes remain failures.
@@ -125,6 +127,16 @@ public sealed class AIOperationScorer
     {
         achieved = false;
         if (plan.AbortReason == AIOperationAbortReason.ObjectiveDestroyedByOther) return 0f;
+        // The existing BreakEnemyDefense goal describes a facility raid as well as a troop defense line.
+        // A base operation requires authoritative destruction of its primary target; troop kills or an
+        // opened route alone can never replace that objective, and an undefended bakery needs no diversion.
+        if (plan.IsBaseAssault)
+        {
+            achieved = after.ConfirmedTargetDestroyed && SameTarget(plan, before, after);
+            float damageProgress = before.ObjectiveHpKnown && after.ObjectiveHpKnown && SameTarget(plan, before, after)
+                && before.ObjectiveHpRatio > 0 ? Unit((before.ObjectiveHpRatio - after.ObjectiveHpRatio) / before.ObjectiveHpRatio) : 0;
+            return achieved ? 1 : Mathf.Min(damageProgress, Unit(config.PartialGoalProgressCap));
+        }
         float partial = 0f;
         switch (plan.PrimaryGoal)
         {

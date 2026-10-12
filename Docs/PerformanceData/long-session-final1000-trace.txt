@@ -1,0 +1,16 @@
+1|Move|SoakScout3|none|Cell|1,7|True
+1|Move|SoakScout1|none|Cell|1,4|True
+2|Move|SoakScout3|none|Cell|1,9|True
+3|Move|SoakScout1|none|Cell|2,4|True
+4|Move|SoakScout3|none|Cell|2,10|True
+5|Move|SoakScout3|none|Cell|2,12|True
+6|Move|SoakScout1|none|Cell|3,4|True
+7|Move|SoakScout1|none|Cell|4,3|True
+8|Move|SoakScout2|none|Cell|1,6|True
+8|Move|SoakScout0|none|Cell|0,6|True
+9|Move|SoakScout0|none|Cell|0,8|True
+10|Move|SoakScout0|none|Cell|0,10|True
+11|Move|SoakScout0|none|Cell|0,12|True
+12|Move|SoakScout2|none|Cell|2,5|True
+13|Move|SoakScout2|none|Cell|1,4|True
+14|Move|SoakScout2|none|Cell|2,4|True

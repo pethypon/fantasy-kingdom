@@ -387,6 +387,7 @@ public class Status : MonoBehaviour
     public int SkillCooldown = 0; // 0 = 使用可能、1以上 = 使用不可（ターン毎に-1）
     [System.NonSerialized] public bool HasDefinitionBalanceBaseline;
     [System.NonSerialized] public int DefinitionBalanceMaxHP, DefinitionBalanceATK, DefinitionBalanceDEF;
+    [System.NonSerialized] public int DefinitionBalanceRevision;
 
     // =====================================================================
     //  Special Ability（ランダム配布パッシブ）
@@ -524,6 +525,8 @@ public class Status : MonoBehaviour
     public void GainExperience(int amount)
     {
         if (amount <= 0) return;
+        if (HasDefinitionBalanceBaseline && DefinitionBalanceRevision != GameContentRevision.Revision)
+            StatusBalanceRefresh.ApplyLatestDefinition(this);
         Experience = (int)System.Math.Min(int.MaxValue, (long)Mathf.Max(0, Experience) + amount);
         Level = Mathf.Clamp(Level, 1, GameConstants.MaxUnitLevel);
         if (Level >= GameConstants.MaxUnitLevel) return;

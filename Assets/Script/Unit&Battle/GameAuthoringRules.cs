@@ -28,6 +28,16 @@ public sealed class GameAuthoringRules : ScriptableObject
     [Min(0)] public float timeBonusSeconds = 60;
     [Range(3, GameConstants.MaxAP)] public int maximumAP = GameConstants.MaxAP;
     public BuildingProductionBalance buildingProduction = new BuildingProductionBalance();
+    [Tooltip("倉庫がないときも基本保管上限を適用します。倉庫の増加量を加算し、余剰生産は保管されません。")]
+    public bool enforceResourceCapacity;
+    [Header("序盤支援と軍の維持費")]
+    [Range(1, 30)] public int crystalIncomeTurns = 10;
+    public FacilityData.ProductionBundle crystalStartIncome = new FacilityData.ProductionBundle
+    { Wood = 20, Stone = 20, Water = 10, Bread = 10, Iron = 5 };
+    [Tooltip("王・維持費免除の駒を除く軍に追加。Lv10ごとに増加します。")]
+    public FacilityData.ProductionBundle unitExtraUpkeep;
+    [Tooltip("有効な攻撃が命中した時の最低ダメージ。レベル差や防御力による0ダメージを防ぎます。シールドや完全無効は除きます。")]
+    [Range(1, 100)] public int minimumAttackDamage = 1;
     [Range(1, 50)] public int moveAP = 3, attackAP = 2;
     [Range(0, 50)] public int heightAP = 2;
     [Range(0, 10)] public int citizenAP = 1, breadPerCitizen = 1;

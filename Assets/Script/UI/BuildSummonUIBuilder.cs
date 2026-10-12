@@ -156,7 +156,7 @@ public partial class BuildSummonUIBuilder
             // ---- ボタン ----
             bool isSubCrystal = FacilityData.IsSubCrystal(facility);
             string label = isSubCrystal
-                ? $"{info.DisplayName}  副晶x1"
+                ? info.DisplayName + "  副晶x1" + (info.APCost > 0 ? "  AP:" + info.APCost : string.Empty)
                 : $"{info.DisplayName}  AP:{info.APCost}";
             var btn = UIFactory.CreateButton("Build_" + facility, row.transform,
                 label, BrandGuide.FontHud, isSubCrystal
@@ -173,7 +173,7 @@ public partial class BuildSummonUIBuilder
             btn.onClick.AddListener(() => OnBuildButtonClicked(captured));
 
             // ---- コスト表示 ----
-            string costStr = isSubCrystal ? "サブクリスタル1消費 (破壊後5T返却)" : FormatBuildCost(info.BuildCost);
+            string costStr = isSubCrystal ? "サブクリスタル1消費 (破壊後5T返却) " + FormatBuildCost(info.BuildCost) : FormatBuildCost(info.BuildCost);
             var costTMP = UIFactory.CreateTMP("Cost_" + facility, row.transform, costStr, BrandGuide.FontHudCaption, defaultFont);
             buildCostLabels[facility] = costTMP;
             costTMP.color = BrandGuide.TextSecondary;
@@ -283,7 +283,7 @@ public partial class BuildSummonUIBuilder
             bool canBuild;
             if (FacilityData.IsSubCrystal(kind))
             {
-                canBuild = cachedFactionState.GetSubCrystals(Team.Player) > 0;
+                canBuild = cachedFactionState.GetSubCrystals(Team.Player) > 0 && cachedAPSystem.CanBuild(Team.Player, kind, cachedFactionState);
             }
             else
             {
@@ -292,10 +292,11 @@ public partial class BuildSummonUIBuilder
             btn.interactable = canBuild;
             if (buildCostLabels.TryGetValue(kind,out var costLabel) && FacilityData.Table.TryGetValue(kind,out var info))
             {
-                string cost=FacilityData.IsSubCrystal(kind) ? "サブクリスタル1消費" : FormatBuildCost(info.BuildCost);
+                string cost=FacilityData.IsSubCrystal(kind) ? "サブクリスタル1消費 " + FormatBuildCost(info.BuildCost) : FormatBuildCost(info.BuildCost);
                 cost += FormatBuildingDetails(kind, FacilityData.GetLevel(kind, 1));
                 if (buildTitles.TryGetValue(kind, out var title) && title != null)
-                    title.text = FacilityData.IsSubCrystal(kind) ? info.DisplayName + "  副晶x1" : info.DisplayName + "  AP:" + info.APCost;
+                    title.text = FacilityData.IsSubCrystal(kind) ? info.DisplayName + "  副晶x1" + (info.APCost > 0 ? "  AP:" + info.APCost : string.Empty)
+                        : info.DisplayName + "  AP:" + info.APCost;
                 string reason=BuildValidator.CostFailure(kind,cachedFactionState);
                 costLabel.text=reason==null ? cost : cost+"\n<color=#FFB7A3>"+reason+"</color>";
             }
@@ -375,6 +376,10 @@ public partial class BuildSummonUIBuilder
         if (kind == FacilityKind.Warehouse) parts.Add("資源容量 +" + recipe.SpecialValue);
         if (kind == FacilityKind.Barracks) parts.Add("経験値 +" + recipe.SpecialValue + "%");
         if (!recipe.Output.IsEmpty) parts.Add("生産 " + FormatProductionBundle(recipe.Output) + " / " + FacilityData.ProductionInterval(recipe) + "ターン");
+        if (recipe.BonusChance1 > 0 && !recipe.BonusOutput1.IsEmpty)
+            parts.Add("確率生産 " + FormatProductionBundle(recipe.BonusOutput1) + "（" + (recipe.BonusChance1 * 100).ToString("0.#") + "%）");
+        if (recipe.BonusChance2 > 0 && !recipe.BonusOutput2.IsEmpty)
+            parts.Add("確率生産 " + FormatProductionBundle(recipe.BonusOutput2) + "（" + (recipe.BonusChance2 * 100).ToString("0.#") + "%）");
         if (!recipe.Input.IsEmpty) parts.Add("生産時消費 " + FormatProductionBundle(recipe.Input));
         if (!recipe.Maintenance.IsEmpty) parts.Add("維持 " + FormatProductionBundle(recipe.Maintenance));
         return parts.Count == 0 ? string.Empty : "\n" + string.Join("\n", parts);

@@ -84,7 +84,9 @@ public sealed class AIOperationFeatureExtractor
         if (board.PlayerCrystalVisible && board.OpponentCrystalParent != null)
             foreach (var crystalTarget in board.OpponentCrystalParent.GetComponentsInChildren<Status>())
             {
-                if (crystalTarget.kind != Kind.Crystal || !crystalTarget.IsAlive || observed.ContainsKey(crystalTarget.ReflectionLifeId)) continue;
+                if (crystalTarget.kind != Kind.Crystal || crystalTarget.team == board.ActorTeam
+                    || !board.IsVisibleToEnemy(crystalTarget.transform.position) || !crystalTarget.IsAlive
+                    || observed.ContainsKey(crystalTarget.ReflectionLifeId)) continue;
                 observed[crystalTarget.ReflectionLifeId] = crystalTarget;
                 boardFacts.VisibleEnemyLifeIds.Add(crystalTarget.ReflectionLifeId);
                 boardFacts.ObservedEnemies.Add(new AIOperationObservedUnit { LifeId = crystalTarget.ReflectionLifeId,
@@ -242,9 +244,14 @@ public sealed class AIOperationFeatureExtractor
         string intel = !facts.ObjectiveKnown ? "Unknown" : facts.TargetObserved ? "High" : "Low";
         string defense = !facts.EnemyStrengthKnown ? "Unknown" : facts.EnemyObservedPower <= 40 ? "Low"
             : facts.EnemyObservedPower <= 100 ? "Medium" : "High";
-        return "goal=" + plan.PrimaryGoal + "|phase=" + phase + "|power=" + power
+        string key = "goal=" + plan.PrimaryGoal + "|phase=" + phase + "|power=" + power
             + "|economy=" + facts.EconomyState + "|enemyDefense=" + defense + "|intel=" + intel
             + "|distance=" + distance + "|army=" + (facts.OwnUnits < 4 ? "Small" : "Mixed");
+        if (plan.IsBaseAssault)
+            key += "|base=" + plan.BaseTargetType + "|baseDefense=" + (!plan.BaseDefenseKnown ? "Unknown"
+                : plan.EstimatedBaseDefense <= 40 ? "Low" : plan.EstimatedBaseDefense <= 100 ? "Medium" : "High")
+                + "|baseIntel=" + (plan.BaseIntelConfidence >= .9f ? "High" : plan.BaseIntelConfidence >= .5f ? "Medium" : "Low");
+        return key;
     }
 
     public static string Category(Status unit) => unit == null ? "None" : unit.kind == Kind.Crystal ? "Crystal"

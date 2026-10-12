@@ -33,6 +33,7 @@ public static class StatusBalanceRefresh
         if (!TryGetDefinitionStats(actor, out var hp, out var atk, out var def)) return;
         actor.HasDefinitionBalanceBaseline = true;
         actor.DefinitionBalanceMaxHP = hp; actor.DefinitionBalanceATK = atk; actor.DefinitionBalanceDEF = def;
+        actor.DefinitionBalanceRevision = GameContentRevision.Revision;
     }
 
     public static bool ApplyLatestDefinition(Status actor, bool preserveHpRatio = true)

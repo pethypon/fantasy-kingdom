@@ -113,6 +113,7 @@ public partial class AIBoardState
     {
         return knownCells.Contains(GridHelper.ToGridXZ(cell));
     }
+    public IReadOnlyCollection<Vector3Int> ObservedTerrainCells => knownCells;
 
     public List<Vector3> KnownTerrain()
     {

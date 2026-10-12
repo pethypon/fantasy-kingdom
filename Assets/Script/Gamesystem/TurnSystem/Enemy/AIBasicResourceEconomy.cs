@@ -80,6 +80,10 @@ public sealed class AIBasicResourceEconomy
     public EconomyFoundationState FoundationState { get; private set; } = EconomyFoundationState.OpeningFoundation;
     public ResourceKind PrimaryBottleneck { get; private set; } = ResourceKind.None;
     public int FeasibleSupplyAP { get; private set; }
+    public float PlannedBuildingCitizens { get; private set; }
+    public float PlannedRecruitCitizens { get; private set; }
+    public float PlannedUnclassifiedCitizens { get; private set; }
+    public int PlanRevision { get; private set; }
     public IReadOnlyList<BasicResourceSnapshot> Resources => snapshots;
     public bool HasCriticalDeficit { get { foreach (bool value in critical) if (value) return true; return false; } }
     public bool HasShortage { get { foreach (var value in snapshots) if (value.State <= BasicResourceState.Shortage) return true; return false; } }
@@ -103,9 +107,16 @@ public sealed class AIBasicResourceEconomy
     {
         if (current == null || productionDemand == null) return;
         if (board == current && generation == current.Generation && demand == productionDemand && emergency == essentialDefense && plannedActions == null && contentRevision == GameContentRevision.Revision) return;
+        PlanRevision = PlanRevision < int.MaxValue ? PlanRevision + 1 : 0;
         contentRevision = GameContentRevision.Revision;
         board = current; generation = current.Generation; demand = productionDemand; emergency = essentialDefense; scores.Clear();
         if (plannedActions == null) CollectPlans();
+        else
+        {
+            PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
+            foreach (var plan in plannedActions)
+                PlannedUnclassifiedCitizens += Mathf.Max(0, plan.Cost.Citizen) * Mathf.Clamp01(Finite(AIBasicResourceSettings.Active.planWeight));
+        }
         var selected = plannedActions ?? plans;
         int horizon = Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8);
         var policy = AIBasicResourceSettings.Active;
@@ -141,6 +152,8 @@ public sealed class AIBasicResourceEconomy
     /// <summary>Pure diagnostic entry for tuning and regression checks; does not touch a faction or scene.</summary>
     public void EvaluateSnapshots(IReadOnlyList<BasicResourceSnapshot> source, int turn, bool essentialDefense = false)
     {
+        PlanRevision = PlanRevision < int.MaxValue ? PlanRevision + 1 : 0;
+        PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
         board = null; demand = null; generation = -1; emergency = essentialDefense; scores.Clear();
         FeasibleSupplyAP = 0;
         for (int i = 0; i < snapshots.Length; i++)
@@ -221,6 +234,7 @@ public sealed class AIBasicResourceEconomy
 
     void CollectPlans()
     {
+        PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
         plans.Clear(); plannedSources.Clear(); board.CollectOwnBuildings(buildings);
         // Consider only useful economic projects, using their real authored/legacy costs.
         foreach (var resource in resources)
@@ -251,12 +265,19 @@ public sealed class AIBasicResourceEconomy
                 ConsiderPlan(resource, actor.facilityKind, actor.AuthoredFacility, actor, next.UpgradeCost, next, FacilityData.GetLevel(actor, currentLevel),
                     ref best, ref chosenKind, ref chosenDefinition, ref chosenActor, ref chosenCost);
             }
-            if (!float.IsInfinity(best) && plannedSources.Add((chosenKind, chosenDefinition, chosenActor))) plans.Add(new BasicResourcePlan(chosenCost, 1.5f));
+            if (!float.IsInfinity(best) && plannedSources.Add((chosenKind, chosenDefinition, chosenActor)))
+            {
+                plans.Add(new BasicResourcePlan(chosenCost, 1.5f));
+                PlannedBuildingCitizens += Mathf.Max(0, chosenCost.Citizen) * Mathf.Clamp01(AIBasicResourceSettings.Active.planWeight);
+            }
         }
         // A single future unit is enough to represent development; never reserve an imagined army.
         var unit = board.ResolveUnitDefinition(board.AlivePlayerUnits.Count == 0 ? Kind.Scout : Kind.Knight);
         if (unit != null && !emergency && FoundationState != EconomyFoundationState.ResourceRecovery)
+        {
             plans.Add(new BasicResourcePlan(UnitCost(unit), .75f, .75f));
+            PlannedRecruitCitizens = Mathf.Max(0, unit.costCitizen) * Mathf.Clamp01(AIBasicResourceSettings.Active.planWeight);
+        }
     }
 
     void FindFeasibleSupplyAP()

@@ -112,16 +112,18 @@ public static class LongTermContentValidation
         if (catalog == null) return; // Optional catalogs preserve legacy scene settings.
         if (catalog.units == null) { result.Error(Location(catalog), "駒の登録一覧がありません。"); return; }
         var ids = new HashSet<string>(StringComparer.Ordinal); var legacyKinds = new HashSet<Kind>();
-        for (int i = 0; i < catalog.units.Count; i++)
+        var definitions = new List<UnitAuthoringCatalog.Entry>(catalog.units);
+        if (catalog.retiredUnits != null) definitions.AddRange(catalog.retiredUnits);
+        for (int i = 0; i < definitions.Count; i++)
         {
-            var entry = catalog.units[i]; string at = Location(catalog) + " / 駒 " + (i + 1);
+            var entry = definitions[i]; string at = Location(catalog) + (i < catalog.units.Count ? " / 駒 " : " / 保管済みの駒 ") + (i + 1);
             if (entry == null || entry.data == null) { result.Error(at, "能力データがありません。"); continue; }
             var data = entry.data;
             if (!Enum.IsDefined(typeof(Kind), entry.kind) || entry.kind == Kind.None || data.kind != entry.kind)
                 result.Error(at, "基礎役割が能力データと一致しないか、不正です。");
             if (!data.IsValidForAuthoring) result.Error(at, "HP・成長率・費用・維持費に不正な値があります。");
             if (entry.standaloneDefinition || !string.IsNullOrEmpty(data.definitionId)) AddId(data.definitionId, at, ids, result);
-            if (!entry.standaloneDefinition && !legacyKinds.Add(entry.kind)) result.Error(at, "既存兵種の上書きが重複しています。");
+            if (i < catalog.units.Count && !entry.standaloneDefinition && !legacyKinds.Add(entry.kind)) result.Error(at, "既存兵種の上書きが重複しています。");
             ValidatePrefab(data.prefab != null && entry.standaloneDefinition ? data.prefab : entry.prefab, at, result);
             ValidateAbilities(data, at, result); ValidateProfile(data.actionProfile, at, result);
         }

@@ -557,7 +557,7 @@ public class SkillSystem : MonoBehaviour
         float atk = attacker.ATK * StatusEffectSystem.GetATKModifier(attacker);
         float def = target.DEF * StatusEffectSystem.GetDEFModifier(target);
         float baseDmg = DamageCalculator.CalcRawBase(atk, def);
-        return Mathf.Max(0, Mathf.RoundToInt(baseDmg * bonusMultiplier));
+        return DamageCalculator.FinalizeHitDamage(baseDmg * bonusMultiplier, bonusMultiplier > 0);
     }
 
 }

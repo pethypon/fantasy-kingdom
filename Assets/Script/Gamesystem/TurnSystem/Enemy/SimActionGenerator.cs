@@ -314,8 +314,18 @@ public static class SimActionGenerator
 
         foreach (var kind in summonableKinds)
         {
-            if (!UnitStaticData.Table.TryGetValue(kind, out var data)) continue;
-            if (data.CostAP > ap) continue;
+            int costAP;
+            if (board.TryGetRecruitment(kind, out var definition))
+            {
+                if (!board.RecruitmentAvailable(definition, team)) continue;
+                costAP = definition.APCost;
+            }
+            else
+            {
+                if (!UnitStaticData.Table.TryGetValue(kind, out var data)) continue;
+                costAP = data.CostAP;
+            }
+            if (costAP > ap) continue;
 
             // クリスタル周囲に空きマスを探す
 
@@ -323,7 +333,7 @@ public static class SimActionGenerator
             candidate.Type = SimActionType.Summon;
             candidate.SummonKind = kind;
             candidate.TargetPos = spawnPos;
-            candidate.APCost = data.CostAP;
+            candidate.APCost = costAP;
             candidate.ActorTeam = team;
         }
     }

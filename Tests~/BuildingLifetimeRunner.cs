@@ -17,6 +17,8 @@ public static class BuildingLifetimeRunner
     static Status retiring;
     static int completed, frame = -1, initialChildren, initialRegistry, initialUnitChildren, initialUnitRegistry;
     static bool retiredUnit;
+    static int initialBossChildren;
+    static bool includeFollowers;
     static Vector3Int cell;
     static double started;
     static long initialMemory;
@@ -50,6 +52,8 @@ public static class BuildingLifetimeRunner
                 initialRegistry = UnitRegistry.Instance.PlayerBuildings.Count;
                 initialUnitChildren = s.UnitSetting.PlayerUnit.childCount;
                 initialUnitRegistry = UnitRegistry.Instance.PlayerUnits.Count;
+                includeFollowers = s.WildBossSystem != null && s.WildBossSystem.SpawnedBoss != null;
+                if (includeFollowers) initialBossChildren = s.WildBossSystem.BossParent.childCount;
                 initialMemory = Profiler.GetTotalAllocatedMemoryLong(); started = EditorApplication.timeSinceStartup;
             }
             if (EditorApplication.timeSinceStartup - started > 180) throw new TimeoutException("Building lifetime test stalled");
@@ -62,23 +66,33 @@ public static class BuildingLifetimeRunner
                 Require(UnitRegistry.Instance.PlayerBuildings.Count == initialRegistry, "registry retained a retired building");
                 Require(systems.UnitSetting.PlayerUnit.childCount == initialUnitChildren, "summoned unit root count grew");
                 Require(UnitRegistry.Instance.PlayerUnits.Count == initialUnitRegistry, "registry retained a retired summoned unit");
+                if (includeFollowers) Require(systems.WildBossSystem.BossParent.childCount == initialBossChildren, "boss follower roots grew after death");
                 Require(!systems.BuildSystem.HasBuildingAt(cell), "demolished cell stayed occupied");
             }
-            if (completed == Cycles * 2)
+            if (completed == Cycles * (includeFollowers ? 3 : 2))
             {
                 var data = SaveSystem.CollectGameState(turn, systems.FactionState, systems.TimerSystem, systems.VisionGenerator, systems.AICommander);
                 Require(SaveSystem.ValidateGameData(data, out var reason), "valid game snapshot rejected: " + reason);
                 Require(!data.Units.Any(u => u.PosX < 0 || u.PosZ < 0), "demolition shells escaped into persistent data");
-                Debug.Log("[BuildingLifetime] ALL PASSED buildingCycles=" + Cycles + " unitCycles=" + Cycles + " retiredReferences=0 beforeMemory=" + initialMemory
+                Debug.Log("[BuildingLifetime] ALL PASSED buildingCycles=" + Cycles + " unitCycles=" + Cycles + " bossFollowerCycles=" + (includeFollowers ? Cycles : 0) + " retiredReferences=0 beforeMemory=" + initialMemory
                     + " afterMemory=" + Profiler.GetTotalAllocatedMemoryLong() + " (Editor total, not a leak guarantee)");
                 SessionState.SetBool(Running, false); EditorApplication.Exit(0); return;
             }
             retiredUnit = completed >= Cycles;
-            retiring = retiredUnit ? systems.SummonSystem.SpawnUnitForLoad(Kind.Knight, Team.Player, cell)
+            bool follower = includeFollowers && completed >= Cycles * 2;
+            if (follower)
+            {
+                var bossSystem = systems.WildBossSystem;
+                typeof(WildBossSystem).GetMethod("SummonGuardKnights", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(bossSystem, new object[] { 1 });
+                Require(bossSystem.BossParent.childCount == initialBossChildren + 1, "real boss follower summon failed");
+                retiring = bossSystem.BossParent.GetChild(bossSystem.BossParent.childCount - 1).GetComponent<Status>();
+            }
+            else retiring = retiredUnit ? systems.SummonSystem.SpawnUnitForLoad(Kind.Knight, Team.Player, cell)
                 : systems.BuildSystem.PlaceBuildingForLoad(cell, FacilityKind.LoggingCamp, Team.Player);
             Require(retiring != null && retiring.gameObject.activeSelf, "real building placement failed");
             if (retiredUnit) { retiring.HP = 0; retiring.HandleDeathIfDead(); }
             else systems.SubCrystalSystem.DestroyBuilding(retiring);
+            if (follower) typeof(WildBossSystem).GetMethod("CountGuardKnights", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(systems.WildBossSystem, null);
             completed++;
             Require(!retiring.gameObject.activeSelf, "demolition did not disable interaction immediately");
             if (completed % 100 == 0) Debug.Log("[BuildingLifetime] PROGRESS cycles=" + completed);

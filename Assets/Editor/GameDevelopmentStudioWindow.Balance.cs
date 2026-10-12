@@ -11,14 +11,15 @@ public sealed partial class GameDevelopmentStudioWindow
         if (policy == null) return;
         policy.isExpanded = EditorGUILayout.Foldout(policy.isExpanded, "建物の生産量・生産周期", true);
         if (!policy.isExpanded) return;
-        EditorGUILayout.HelpBox("削減値はまだ未確定です。調整を有効にしない限り、現在の生産量を維持します。入力資材・維持費・クリスタル収入は変更しません。同じ設定を実際の生産とAI予測に使います。", MessageType.Info);
+        EditorGUILayout.HelpBox("有効な調整は、同じ建物ID・レベルの生産量と周期を優先します。IDが空欄の調整は、正式データで置き換えていない標準建物だけが対象です。入力資材・維持費・クリスタル収入は変更しません。実際の生産とAI予測は同じ適用値を使います。", MessageType.Info);
         Field(policy.FindPropertyRelative("applyAdjustments"));
         var rows = policy.FindPropertyRelative("adjustments");
         var sources = new List<(FacilityKind kind, FacilityDefinitionData definition, string name)>();
         foreach (var item in FacilityData.Table)
             if (FacilityData.GetLevel(item.Key, 1).HasProduction)
-                sources.Add((item.Key, null, "標準：" + item.Value.DisplayName));
-        foreach (var item in buildings)
+                sources.Add((item.Key, FacilityAuthoringCatalog.Loaded?.FindStandard(item.Key), "標準：" + item.Value.DisplayName));
+        var catalog = FacilityAuthoringCatalog.Loaded;
+        if (catalog?.buildings != null) foreach (var item in catalog.buildings)
             if (item != null && item.GetLevel(1).HasProduction && item.behaviourKind != FacilityKind.SubCrystal)
                 sources.Add((item.behaviourKind, item, "登録建物：" + item.displayName));
         if (sources.Count > 0)

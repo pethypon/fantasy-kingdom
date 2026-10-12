@@ -16,6 +16,18 @@ public partial class SimBoardState
 {
     // ---- ユニットデータ ----
     public List<SimUnit> Units;
+    // Definition values are captured once. Nested clones share this read-only snapshot.
+    internal Dictionary<Kind, SimRecruitmentDefinition> RecruitmentDefinitions;
+    public bool TryGetRecruitment(Kind kind, out SimRecruitmentDefinition definition)
+    {
+        definition = default;
+        return RecruitmentDefinitions != null && RecruitmentDefinitions.TryGetValue(kind, out definition);
+    }
+    public bool RecruitmentAvailable(SimRecruitmentDefinition definition, Team simulatedTeam)
+    {
+        Team actual = RealActorTeam == Team.Player ? (simulatedTeam == Team.Enemy ? Team.Player : Team.Enemy) : simulatedTeam;
+        return actual == Team.Player ? definition.AvailableToPlayer : definition.AvailableToEnemy;
+    }
 
     // The search always maximizes simulated Enemy. Only snapshot ownership is
     // normalized; live Status teams and world-space facing stay unchanged.
@@ -94,6 +106,13 @@ public partial class SimBoardState
         state.Units = new List<SimUnit>();
         state.TurnCount = realBoard.TurnCount;
         state.RealActorTeam = realBoard.ActorTeam;
+        if (unitSet?.UnitDataMap != null)
+        {
+            state.RecruitmentDefinitions = new Dictionary<Kind, SimRecruitmentDefinition>(unitSet.UnitDataMap.Count);
+            foreach (var pair in unitSet.UnitDataMap)
+                if (pair.Value != null && pair.Value.IsValidForAuthoring)
+                    state.RecruitmentDefinitions[pair.Key] = new SimRecruitmentDefinition(pair.Value);
+        }
         if (state.RealActorTeam == Team.Player)
         {
             state.EnemySummonDirection = Direction.N;
@@ -113,11 +132,10 @@ public partial class SimBoardState
         if (moveGen != null && moveGen.mapcreate != null)
         {
             var map = moveGen.mapcreate;
-            for(int x=0;x<map.maxX;x++) for(int z=0;z<map.maxZ;z++) {
-                var cell = new Vector3Int(x,0,z);
-                if (!realBoard.IsTerrainKnown(cell)) continue;
-                if(map.IsHighMountain(x,z)) state.Mountains.Add(cell);
-                if(map.IsRiver(x,z)) state.Water.Add(cell);
+            foreach (var cell in realBoard.ObservedTerrainCells) {
+                if (cell.x < 0 || cell.z < 0 || cell.x >= map.maxX || cell.z >= map.maxZ) continue;
+                if(map.IsHighMountain(cell.x,cell.z)) state.Mountains.Add(cell);
+                if(map.IsRiver(cell.x,cell.z)) state.Water.Add(cell);
             }
         }
         // Own units become the maximizing side, regardless of their live team.
@@ -231,6 +249,7 @@ public partial class SimBoardState
         copy.RealActorTeam = RealActorTeam;
         copy.EnemySummonDirection = EnemySummonDirection;
         copy.PlayerSummonDirection = PlayerSummonDirection;
+        copy.RecruitmentDefinitions = RecruitmentDefinitions;
         copy.Units = SimBoardPool.RentUnitList(Units.Count);
         for (int i = 0; i < Units.Count; i++)
             copy.Units.Add(Units[i].Clone());
@@ -343,7 +362,10 @@ public partial class SimBoardState
     SimUnit CreateSimUnitFromKind(Kind kind, Team team, Vector3Int pos, int id)
     {
         int hp = 10, atk = 5, def = 3;
-        if (UnitStaticData.Table.TryGetValue(kind, out var data))
+        bool authored = TryGetRecruitment(kind, out var definition);
+        if (authored)
+        { hp = definition.HP; atk = definition.ATK; def = definition.DEF; }
+        else if (UnitStaticData.Table.TryGetValue(kind, out var data))
         {
             hp = data.BaseHP;
             atk = data.BaseATK;
@@ -363,12 +385,13 @@ public partial class SimBoardState
             Position = pos,
             Direction = team == Team.Enemy ? EnemySummonDirection : PlayerSummonDirection,
             IsBoss = false,
-            AssignedSkillId = -1,
+            AssignedSkillId = authored ? definition.SkillId : -1,
             SkillCooldown = 0,
             Fatigue = 0,
             ShieldTurns = 0,
             ShieldActivated = false,
-            Passive = PassiveSkill.None,
+            Passive = authored ? definition.Passive : PassiveSkill.None,
+            ActionProfile = authored ? definition.ActionProfile : null,
         };
     }
 
@@ -377,15 +400,11 @@ public partial class SimBoardState
     // ================================================================
     public bool IsTerminal()
     {
-        var ec = GetCrystal(Team.Enemy);
-        var pc = GetCrystal(Team.Player);
-        if (ec != null && !ec.IsAlive) return true;
-        if (pc != null && !pc.IsAlive) return true;
-        // King死亡もゲーム終了
-        var ek = GetKing(Team.Enemy);
-        var pk = GetKing(Team.Player);
-        if (ek != null && !ek.IsAlive) return true;
-        if (pk != null && !pk.IsAlive) return true;
+        // GetCrystal/GetKing intentionally return living actors; those helpers cannot prove death.
+        // Only known simulated actors are checked. An unseen/missing opponent never implies victory.
+        foreach (var unit in Units)
+            if (unit != null && !unit.IsAlive && (unit.Team == Team.Enemy || unit.Team == Team.Player)
+                && (unit.Kind == Kind.Crystal || unit.Kind == Kind.King || unit.Kind == Kind.Boss && unit.IsBoss)) return true;
         return false;
     }
 

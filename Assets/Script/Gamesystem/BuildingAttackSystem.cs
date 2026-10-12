@@ -96,7 +96,7 @@ public class BuildingAttackSystem : MonoBehaviour
             {
                 ProcessCannonAttack(status, _currentEnemyTeam);
             }
-            else if (status.AuthoredFacility != null && status.ATK > 0 && BoardActionProfile.For(status)?.attack?.useCustom == true)
+            else if (FacilityData.HasAuthoredRecipe(status) && status.ATK > 0 && BoardActionProfile.For(status)?.attack?.useCustom == true)
             {
                 ProcessCannonAttack(status, _currentEnemyTeam);
             }
@@ -239,7 +239,7 @@ public class BuildingAttackSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 建築物によるダメージ適用。ATK - DEF（最低0）。HP0で撃破処理。
+    /// 建築物によるダメージ適用。正式な共通ダメージ式・最低命中ダメージを使う。
     /// </summary>
     private void ApplyBuildingDamage(Status attacker, Status target)
     {

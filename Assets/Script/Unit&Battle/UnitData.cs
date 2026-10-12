@@ -87,16 +87,21 @@ public class UnitData : ScriptableObject
     {
         if (upkeepExempt || kind == Kind.King || kind == Kind.Boss) return default;
         int mult = UpkeepMultiplier(level);
+        var extra = GameAuthoringRules.Active?.unitExtraUpkeep ?? default;
         return new FacilityData.ProductionBundle
         {
-            Wood     = ScaledUpkeep(upkeepWood, mult),
-            Stone    = ScaledUpkeep(upkeepStone, mult),
-            Iron     = useAuthoredUpkeep ? ScaledUpkeep(upkeepIron, mult) : mult,
-            MagicOre = ScaledUpkeep(upkeepMagic, upkeepMagicScales ? mult : 1),
-            Water    = ScaledUpkeep(upkeepWater, mult),
-            Bread    = useAuthoredUpkeep ? ScaledUpkeep(upkeepBread, mult) : mult,
+            Wood     = ScaledUpkeepWithExtra(upkeepWood, extra.Wood, mult),
+            Stone    = ScaledUpkeepWithExtra(upkeepStone, extra.Stone, mult),
+            Iron     = ScaledUpkeepWithExtra(useAuthoredUpkeep ? upkeepIron : 1, extra.Iron, mult),
+            MagicOre = (int)System.Math.Min(int.MaxValue, (long)ScaledUpkeep(upkeepMagic, upkeepMagicScales ? mult : 1) + ScaledUpkeep(extra.MagicOre, mult)),
+            Wheat    = ScaledUpkeep(extra.Wheat, mult),
+            Citizen  = ScaledUpkeep(extra.Citizen, mult),
+            Water    = ScaledUpkeepWithExtra(upkeepWater, extra.Water, mult),
+            Bread    = ScaledUpkeepWithExtra(useAuthoredUpkeep ? upkeepBread : 1, extra.Bread, mult),
         };
     }
+    static int ScaledUpkeepWithExtra(int value, int extra, int multiplier)
+        => (int)System.Math.Min(int.MaxValue, ((long)Mathf.Max(0, value) + Mathf.Max(0, extra)) * multiplier);
 
     static int ScaledUpkeep(int value, int multiplier)
         => (int)System.Math.Min(int.MaxValue, (long)Mathf.Max(0, value) * multiplier);

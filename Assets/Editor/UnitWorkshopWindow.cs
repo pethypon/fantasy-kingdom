@@ -85,6 +85,7 @@ public sealed class UnitWorkshopWindow : EditorWindow
         string folder = AssetDatabase.GenerateUniqueAssetPath(UnitsFolder+"/"+name);
         EnsureFolder(folder);
         var data = Instantiate(source); data.hideFlags=HideFlags.None; data.kind=kind;
+        data.definitionId = "unit-" + Guid.NewGuid().ToString("N");
         AssetDatabase.CreateAsset(data,folder+"/Stats.asset");
         GameObject root = null;
         try
@@ -104,7 +105,12 @@ public sealed class UnitWorkshopWindow : EditorWindow
             if (register)
             {
                 var catalog=GetCatalog();Undo.RecordObject(catalog,"Register unit");
-                catalog.units.RemoveAll(e=>e!=null&&e.kind==kind);
+                if (catalog.retiredUnits == null) catalog.retiredUnits = new System.Collections.Generic.List<UnitAuthoringCatalog.Entry>();
+                foreach (var previous in catalog.units)
+                    if (previous != null && !previous.standaloneDefinition && previous.kind == kind && previous.data != null
+                        && !string.IsNullOrEmpty(previous.data.definitionId) && !catalog.retiredUnits.Exists(item => item?.data == previous.data))
+                        catalog.retiredUnits.Add(previous);
+                catalog.units.RemoveAll(e=>e!=null&&!e.standaloneDefinition&&e.kind==kind);
                 catalog.units.Add(new UnitAuthoringCatalog.Entry {kind=kind,prefab=prefab,data=data});
                 EditorUtility.SetDirty(catalog);
             }

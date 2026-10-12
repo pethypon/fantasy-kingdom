@@ -22,6 +22,8 @@ public static class SceneSmoke
         SaveCompatibilityTests.RunAll(); LongTermContentTests.EditMode(); LegacyEnumCompatibilityTests.RunAll();
         BalanceSaveTests.Run();
         PlayerProfilerPerformanceTests.Run();
+        StudioSettingTests.EditMode();
+        StudioDeletionTests.EditMode();
         TerrainPrefabEditor.Create(); CrystalPrefabEditor.Configure();
         CoreLogicTests.RunAll(); ThirdFactionTests.EditMode(); AuthoringEditorTests.EditMode(); AuthoringPatternsTests.EditMode(); AuthoringUnitsTests.EditMode(); AuthoringRulesFacilityTests.EditMode();
         if (!AssetDatabase.IsValidFolder("Assets/Resources")) AssetDatabase.CreateFolder("Assets", "Resources");
@@ -48,6 +50,15 @@ public static class SceneSmoke
         EditorApplication.EnterPlaymode();
     }
 
+    // Focused real-scene checks speed up iteration on the current authoring/balance/operation changes.
+    public static void RunStudioFeatures()
+    {
+        if (!Application.dataPath.Contains("UnityValidation")) throw new Exception("Smoke test requires isolated project");
+        PlayerSettings.companyName = "CodexValidation"; PlayerSettings.productName = "FantasyKingdomR1Validation";
+        EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
+        SessionState.SetBool("FK.StudioFeatureSmoke", true); SessionState.SetBool(Running, true); EditorApplication.EnterPlaymode();
+    }
+
     static void Check(string name, bool value)
     {
         if (!value) throw new Exception("[SceneSmoke] FAIL " + name);
@@ -68,6 +79,12 @@ public static class SceneSmoke
             typeof(GameGenerator).GetMethod("StartGameInit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(game, new object[] { -1 });
             var turn = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
             var systems = turn.Systems;
+            if (SessionState.GetBool("FK.StudioFeatureSmoke", false))
+            {
+                RunStudioFeatureChecks(systems, turn);
+                Debug.Log("[StudioFeatureSmoke] ALL PASSED");
+                SessionState.SetBool("FK.StudioFeatureSmoke", false); SessionState.SetBool(Running, false); EditorApplication.Exit(0); return;
+            }
             Check("game starts on player turn", turn.CurrentState is PlayerMove && turn.Context.Turn == 1);
             Check("player starts with 35 AP", systems.APSystem.GetAP(Team.Player) == 35);
             Check("initial player squad", systems.UnitSetting.PlayerUnit.GetComponentsInChildren<Status>().Count(s => s.IsAlive) == 4);
@@ -142,6 +159,7 @@ public static class SceneSmoke
             Debug.Log($"[Optimization] AI threat=100 wholeTurnMs={aiWatch.Elapsed.TotalMilliseconds:F3} gcMarkerNanoseconds={aiAllocated} (not bytes; sample-cap=1000000) allocations={aiAllocationCount} budgetMs=3000 (Editor including development logs)");
             ThirdFactionTests.PlayMode(systems); AuthoringUnitsTests.PlayMode(systems); AuthoringRulesFacilityTests.PlayMode(systems); StrategicGovernorTests.PlayMode(systems); BuildSummonUIRegressionTests.Run(systems); EconomyR2Tests.PlayMode(systems); BasicResourceEconomyTests.PlayMode(systems); ObjectiveClarityTests.PlayMode(systems); ReflectionIntegrationTests.PlayMode(systems); RuntimeReflectionEventsTests.PlayMode(systems); TimeUpOutcomeTests.PlayMode(systems); ExplorationR2IntegrationTests.PlayMode(systems); AIOperationIntegrationTests.PlayMode(systems); AILongSessionCoreTests.RunAll(); AIRuntimeMaintenanceTests.PlayMode(systems); HiddenDiaryTests.PlayMode(systems, turn); TopDownCameraTests.Run(systems, turn);
             LongTermRuntimeTests.Run(systems, turn);
+            RunStudioFeatureChecks(systems, turn);
             AttackCandidatePerformanceTests.Run(systems);
             MaintenanceRegressionTests.Run();
             MaterialLifetimeRegressionTests.Run();
@@ -164,9 +182,17 @@ public static class SceneSmoke
         catch (Exception error)
         {
             Debug.LogException(error);
+            SessionState.SetBool("FK.StudioFeatureSmoke", false);
             SessionState.SetBool(Running, false);
             EditorApplication.Exit(1);
         }
+    }
+
+    static void RunStudioFeatureChecks(GameSystems systems, TurnGenerator turn)
+    {
+        AIHousingTests.Run(systems); AIKnownBaseTests.PlayMode(systems);
+        SimulationBalanceTests.Run(systems); StudioSettingTests.PlayMode(systems, turn);
+        EconomyBalanceTests.Run(systems); BuildingVisualTests.Run(systems); BuildingTransactionTests.Run(systems);
     }
 
     static void TestMoveUndo(GameSystems s, TurnGenerator turn)

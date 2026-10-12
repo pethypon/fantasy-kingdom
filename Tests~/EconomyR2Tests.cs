@@ -348,6 +348,7 @@ public static class EconomyR2Tests
                 Rules = ScriptableObject.CreateInstance<GameAuthoringRules>(); owned.Add(Rules); Rules.applyRules = true;
                 StaticField(typeof(FacilityAuthoringCatalog), "loaded").SetValue(null, Catalog); StaticField(typeof(FacilityAuthoringCatalog), "didLoad").SetValue(null, true);
                 StaticField(typeof(GameAuthoringRules), "loaded").SetValue(null, Rules); StaticField(typeof(GameAuthoringRules), "didLoad").SetValue(null, true);
+                GameContentRevision.NotifyChanged();
                 State = Child("Factions").AddComponent<FactionState>();
                 State.PlayerNation = Child("Player nation").AddComponent<NationState>(); State.EnemyNation = Child("Enemy nation").AddComponent<NationState>();
                 foreach (var team in new[] { global::Team.Player, global::Team.Enemy })
@@ -453,6 +454,7 @@ public static class EconomyR2Tests
                 live.MoveGenerator.BuildSystemRef = oldBuildRef;
                 StaticField(typeof(FacilityAuthoringCatalog), "loaded").SetValue(null, oldCatalog); StaticField(typeof(FacilityAuthoringCatalog), "didLoad").SetValue(null, oldCatalogLoaded);
                 StaticField(typeof(GameAuthoringRules), "loaded").SetValue(null, oldRules); StaticField(typeof(GameAuthoringRules), "didLoad").SetValue(null, oldRulesLoaded);
+                GameContentRevision.NotifyChanged();
                 JsonUtility.FromJsonOverwrite(oldPlayerNation, live.FactionState.PlayerNation); JsonUtility.FromJsonOverwrite(oldEnemyNation, live.FactionState.EnemyNation);
             }
             finally

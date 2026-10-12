@@ -76,6 +76,9 @@ public sealed class StrategicProductionDemand
     readonly float[] potentialProduction;
     readonly int[] potentialSourceCounts;
     public float NaturalCitizenGrowthPerTurn { get; }
+    /// <summary>Existing growth-plan costs separated so an operation army does not replace planned construction.</summary>
+    public float PlannedBuildingCitizens { get; }
+    public float PlannedRecruitCitizens { get; }
     readonly Dictionary<(FacilityKind, FacilityDefinitionData), ProductionBuildAssessment> assessments
         = new Dictionary<(FacilityKind, FacilityDefinitionData), ProductionBuildAssessment>();
 
@@ -83,7 +86,8 @@ public sealed class StrategicProductionDemand
         bool warning, int criticalResources, float[] chainCoverageByResource, float[] chainUrgencyByResource,
         int criticalChainResources, int foodChainResources, int forecastTurns, int capacity, float bottleneck, AIEconomySettings policy,
         float[] permanentProductionByResource = null, int[] productionSources = null, float[] temporaryIncomeByResource = null,
-        float[] potentialProductionByResource = null, int[] potentialSources = null, float naturalCitizenGrowthPerTurn = 0)
+        float[] potentialProductionByResource = null, int[] potentialSources = null, float naturalCitizenGrowthPerTurn = 0,
+        float plannedBuildingCitizens = 0, float plannedRecruitCitizens = 0)
     {
         Resources = resources; Forecast = forecast; HasCriticalDeficit = critical; HasWarningDeficit = warning;
         criticalMask = criticalResources; chainCriticalMask = criticalChainResources;
@@ -93,6 +97,8 @@ public sealed class StrategicProductionDemand
         permanentProduction = permanentProductionByResource; producerCounts = productionSources; temporaryIncome = temporaryIncomeByResource;
         potentialProduction = potentialProductionByResource; potentialSourceCounts = potentialSources;
         NaturalCitizenGrowthPerTurn = Mathf.Max(0, naturalCitizenGrowthPerTurn);
+        PlannedBuildingCitizens = AIEconomySettings.NonNegative(plannedBuildingCitizens);
+        PlannedRecruitCitizens = AIEconomySettings.NonNegative(plannedRecruitCitizens);
 
         var recommendations = new List<(FacilityKind kind, float score)>();
         foreach (var entry in FacilityData.Table)

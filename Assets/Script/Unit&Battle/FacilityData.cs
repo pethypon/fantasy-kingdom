@@ -121,7 +121,7 @@ public static partial class FacilityData
             if (catalog != null) foreach (var pair in legacyTable)
             {
                 var definition = catalog.FindStandard(pair.Key);
-                if (definition != null) next[pair.Key] = definition.GetInfo(null);
+                if (definition != null) next[pair.Key] = definition.GetInfo();
             }
             // Replace the view rather than mutating a dictionary that a caller is enumerating.
             resolvedTable = next; resolvedRevision = GameContentRevision.Revision; return next;
@@ -140,7 +140,7 @@ public static partial class FacilityData
     public static FacilityLevelData GetLevel(FacilityKind kind, int level)
     {
         var definition = FacilityAuthoringCatalog.Loaded?.FindStandard(kind);
-        if (definition != null) return definition.GetLevel(level, null);
+        if (definition != null) return definition.GetLevel(level);
         if (!_levels.TryGetValue(kind, out var arr)) return default;
         int idx = Mathf.Clamp(level - 1, 0, arr.Length - 1);
         return BuildingProductionBalance.Resolve(kind, null, idx + 1, arr[idx]);
@@ -182,7 +182,6 @@ public static partial class FacilityData
 
         // ---- サブクリスタル ----
         BuildSubCrystal();
-        initializing = false;
 
         // ---- 攻撃型建築物 ----
         BuildMortar();
@@ -190,6 +189,7 @@ public static partial class FacilityData
         BuildRestraintTrap();
         BuildSpikeTrap();
         BuildHeroSword();
+        initializing = false;
     }
 
     // ==================================================================

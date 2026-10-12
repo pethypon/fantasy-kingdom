@@ -18,7 +18,14 @@ public sealed partial class GameDevelopmentStudioWindow
         EditorGUILayout.HelpBox("初期資材・初期AP・時間・地形は、新規ゲームで適用します。消費APやAP上限などの共通ルールは読み込んだゲームにも適用します。陣営の操作方式とターン順は既存のゲームシステムに従います。",MessageType.Info);
         Heading("時間とAP"); Fields(so,"turnSeconds","totalSeconds","timeBonusSeconds","maximumAP","moveAP","attackAP","heightAP","citizenAP");
         EditorGUILayout.LabelField("毎ターンのAP", "初期AP ＋ 市民による増加 − ペナルティ（AP上限まで）", EditorStyles.wordWrappedMiniLabel);
+        Heading("戦闘"); Fields(so,"minimumAttackDamage");
+        EditorGUILayout.LabelField("最低ダメージ", "レベル差や防御力が大きくても命中時に適用します。シールド・完全無効・攻撃できない相手は除きます。", EditorStyles.wordWrappedMiniLabel);
         Heading("維持・経済");Fields(so,"breadPerCitizen","starvationGraceTurns","aiBreadReserveTurns");
+        EditorGUILayout.PropertyField(so.FindProperty("enforceResourceCapacity"), new GUIContent("倉庫がなくても資源の保管上限を適用"));
+        EditorGUILayout.LabelField("保管上限", "基本 " + FactionState.BaseResourceCap + " ＋ 倉庫による増加。上限を超える生産分は保管されません。", EditorStyles.wordWrappedMiniLabel);
+        EditorGUILayout.PropertyField(so.FindProperty("crystalIncomeTurns"), new GUIContent("序盤クリスタル支援のターン数"));
+        DrawBundle(so.FindProperty("crystalStartIncome"), "序盤クリスタル支援（毎ターン減衰）");
+        DrawBundle(so.FindProperty("unitExtraUpkeep"), "軍の追加維持費（王と免除駒は除外）");
         DrawAIEconomyPolicy(so.FindProperty("aiEconomy"));
         DrawBuildingProductionBalance(so.FindProperty("buildingProduction"));
         Heading("新規マップ");Fields(so,"mapWidth","mapDepth","noiseScale","riverHalfWidth");

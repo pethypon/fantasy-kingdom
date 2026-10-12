@@ -10,6 +10,20 @@ using UnityEngine;
 /// </summary>
 public static class DamageCalculator
 {
+    /// <summary>Missing/disabled legacy rule assets still guarantee one point per valid hit.</summary>
+    public static int MinimumAttackDamage => Mathf.Clamp(GameAuthoringRules.Active?.minimumAttackDamage ?? 1, 1, 100);
+
+    /// <summary>
+    /// Finalize after every reduction, so rounding/high DEF cannot erase a valid
+    /// hit. A zero damage multiplier is an explicit cancellation, not high DEF.
+    /// Shield, invalid-target and terrain checks remain in the attack entry points.
+    /// </summary>
+    public static int FinalizeHitDamage(float computedDamage, bool damageEnabled = true)
+    {
+        if (!damageEnabled || float.IsNaN(computedDamage) || float.IsNegativeInfinity(computedDamage)) return 0;
+        if (computedDamage >= int.MaxValue) return int.MaxValue;
+        return Mathf.Max(MinimumAttackDamage, Mathf.RoundToInt(computedDamage));
+    }
     /// <summary>
     /// ステータス修飾なしの基本ダメージを計算する。
     /// </summary>
@@ -235,6 +249,7 @@ public static class DamageCalculator
     /// </summary>
     public static int CalcNormal(Status attacker, Status target)
     {
+        if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive || target.ShieldTurns > 0) return 0;
         float atkMod = ApplyUpkeepATKPenalty(attacker, StatusEffectSystem.GetATKModifier(attacker));
         float defMod = ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target));
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
@@ -262,7 +277,7 @@ public static class DamageCalculator
 
         float finalDmg = baseDmg * passiveMod * backMod * terrainMod
                        * (1f + saAttack + saDefend) * incomingMod;
-        return Mathf.Max(0, Mathf.RoundToInt(finalDmg));
+        return FinalizeHitDamage(finalDmg, incomingMod > 0 && passiveMod > 0 && (1f + saAttack + saDefend) > 0);
     }
 
     /// <summary>維持費未払いペナルティをATK修飾に反映する</summary>
@@ -284,6 +299,7 @@ public static class DamageCalculator
     /// </summary>
     public static int CalcSkill(Status attacker, Status target, SkillData skill)
     {
+        if (attacker == null || target == null || skill == null || !attacker.IsAlive || !target.IsAlive || target.ShieldTurns > 0) return 0;
         float atkMod = ApplyUpkeepATKPenalty(attacker, StatusEffectSystem.GetATKModifier(attacker));
         float defMod = ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target));
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
@@ -319,7 +335,7 @@ public static class DamageCalculator
 
         float skillDmg = baseDmg * effectiveMultiplier * passiveMod * backMod * terrainMod * areaTerrainMod
                        * (1f + saAttack + saDefend) * incomingMod;
-        return Mathf.Max(0, Mathf.RoundToInt(skillDmg));
+        return FinalizeHitDamage(skillDmg, effectiveMultiplier > 0 && incomingMod > 0 && passiveMod > 0 && (1f + saAttack + saDefend) > 0);
     }
 
     /// <summary>
@@ -343,11 +359,11 @@ public static class DamageCalculator
 
     /// <summary>
     /// ステータス修飾なしの基礎ダメージ（int）を計算する。
-    /// AI の簡易見積り用。式: max(0, round(CalcRawBase(atk, def)))
+    /// AI の簡易見積り用。最終値は正式ルールの最低命中ダメージ以上。
     /// </summary>
     public static int EstimateBaseDamage(int atk, int def)
     {
-        return Mathf.Max(0, Mathf.RoundToInt(CalcRawBase(atk, def)));
+        return FinalizeHitDamage(CalcRawBase(atk, def));
     }
 
     /// <summary>
@@ -356,7 +372,7 @@ public static class DamageCalculator
     public static int CalcFromValues(float atk, float def, float incomingMod)
     {
         float baseDmg = CalcRawBase(atk, def) * incomingMod;
-        return Mathf.Max(0, Mathf.RoundToInt(baseDmg));
+        return FinalizeHitDamage(baseDmg, incomingMod > 0);
     }
 
     /// <summary>
@@ -367,7 +383,7 @@ public static class DamageCalculator
         float baseDmg = CalcRawBase(atk, def);
         float effectiveMultiplier = Mathf.Clamp(skillMultiplier + sealMod, 0f, 2f);
         float skillDmg = baseDmg * effectiveMultiplier * incomingMod;
-        return Mathf.Max(0, Mathf.RoundToInt(skillDmg));
+        return FinalizeHitDamage(skillDmg, effectiveMultiplier > 0 && incomingMod > 0);
     }
 
     // ─── ヘルパー ─────────────────────────────────────────────────────

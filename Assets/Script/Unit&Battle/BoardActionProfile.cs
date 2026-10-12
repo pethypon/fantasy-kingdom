@@ -57,5 +57,8 @@ public sealed class BoardActionProfile : ScriptableObject
     public bool CanAttack => actionType != ActorActionType.Support && actionType != ActorActionType.Passive;
     public bool CanUseSkills => actionType != ActorActionType.Passive;
     public static BoardActionProfile For(Status actor)
-        => actor == null ? null : actor.AuthoredFacility != null ? actor.AuthoredFacility.actionProfile : actor.GrowthData?.actionProfile;
+        => actor == null || actor.kind == Kind.Crystal ? null : actor.AuthoredFacility != null ? actor.AuthoredFacility.actionProfile
+            : actor.type == Type.Building || actor.type == Type.Wall
+                ? FacilityAuthoringCatalog.Loaded?.FindStandard(actor.facilityKind)?.actionProfile
+                : actor.GrowthData?.actionProfile;
 }

@@ -205,8 +205,9 @@ public partial class BuildSystem : MonoBehaviour
                 { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[BuildSystem] サブクリスタル不足: 設置不可"); }
                 return false;
             }
-
-            InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player);
+            if (!apsystem.CanBuild(Team.Player, SelectedFacility, factionState)) return false;
+            if (InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player) == null) return false;
+            apsystem.ConsumeBuild(Team.Player, SelectedFacility, factionState);
             factionState.ModifySubCrystals(Team.Player, -1);
 
             if (subCrystalSystem != null && PlayerBuildingParent.childCount > 0)
@@ -225,7 +226,7 @@ public partial class BuildSystem : MonoBehaviour
                 return false;
             }
 
-            InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player);
+            if (InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player) == null) return false;
             apsystem.ConsumeBuild(Team.Player, SelectedFacility, factionState);
         }
 
@@ -268,18 +269,32 @@ public partial class BuildSystem : MonoBehaviour
 
         // プレハブ or フォールバック生成
         GameObject building;
-        if (definition != null && definition.prefab != null)
+        try
         {
-            building = Instantiate(definition.prefab, worldPos, Quaternion.identity, parent);
+            var visualDefinition = definition ?? FacilityAuthoringCatalog.Loaded?.FindStandard(facility);
+            if (visualDefinition != null && visualDefinition.prefab != null)
+            {
+                building = Instantiate(visualDefinition.prefab, worldPos, Quaternion.identity, parent);
+            }
+            else if (prefabMap != null && prefabMap.TryGetValue(facility, out GameObject prefab) && prefab != null)
+            {
+                building = Instantiate(prefab, worldPos, Quaternion.identity, parent);
+            }
+            else
+            {
+                building = CreateFallbackBuilding(worldPos, facility, parent);
+            }
         }
-        else if (prefabMap != null && prefabMap.TryGetValue(facility, out GameObject prefab) && prefab != null)
+        catch (System.Exception error)
         {
-            building = Instantiate(prefab, worldPos, Quaternion.identity, parent);
+            // A damaged prefab or a component destroying its own clone in Awake
+            // can make Unity's Instantiate fail. All paid paths commit only after
+            // a valid instance exists, so this boundary leaves AP/materials intact.
+            Debug.LogWarning("[BuildSystem] 建物を生成できませんでした。Prefabを確認してください: " + error.Message);
+            return null;
         }
-        else
-        {
-            building = CreateFallbackBuilding(worldPos, facility, parent);
-        }
+        // Unity can also return a destroyed object wrapper without throwing.
+        if (building == null) return null;
 
         // Status コンポーネントを設定
         var status = ConfigureBuildingStatus(building, facility, team, info);
@@ -308,7 +323,7 @@ public partial class BuildSystem : MonoBehaviour
         }
 
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] {info.DisplayName} を ({pos.x}, {Mathf.RoundToInt(placeY)}, {pos.z}) に設置 ({team})"); }
-        turnGenerator?.Systems.EconomySystem?.RecalculateCapacity(team);
+        EconomySystem.RecalculateCapacity(this, factionState, team);
         return building;
     }
 
@@ -386,7 +401,7 @@ public partial class BuildSystem : MonoBehaviour
         target.DEF = newData.DEF;
         target.ATK = newData.ATK;
         StatusBalanceRefresh.RecordDefinitionBaseline(target);
-        turnGenerator?.Systems.EconomySystem?.RecalculateCapacity(team);
+        EconomySystem.RecalculateCapacity(this, factionState, team);
 
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] 強化完了: {facility} Lv{currentLevel} → Lv{target.Level}"); }
         return true;
@@ -461,11 +476,12 @@ public partial class BuildSystem : MonoBehaviour
             if (!AICheckCanPlace(pos, team)) return false;
         }
 
-        // AP・リソース消費
-        apsystem.ConsumeBuild(team, facility, factionState);
-
         // 建築物を配置（共通処理）
         var building = InstantiateBuilding(pos, facility, team);
+        if (building == null) return false;
+        // Match player/authored transactions: no payment, action event, or
+        // sub-crystal consumption occurs for a failed prefab instance.
+        apsystem.ConsumeBuild(team, facility, factionState);
         _lastPlacedBuilding = building;
 
         // サブクリスタルの場合は領地拡張
