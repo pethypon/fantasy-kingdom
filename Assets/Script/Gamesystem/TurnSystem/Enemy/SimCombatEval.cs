@@ -95,7 +95,7 @@ public static class SimCombatEval
                     {
                         score -= GetAdjustedValue(eu) * 0.5f;
                         // King確殺は壊滅的
-                        if (eu.Kind == Kind.King) score -= 100f;
+                        if (MatchObjectiveRules.IsCommander(eu.Kind, eu.Team, eu.IsPrimaryCommander)) score -= 100f;
                     }
                 }
             }
@@ -137,7 +137,7 @@ public static class SimCombatEval
                     if (potentialDmg >= pu.HP)
                     {
                         score += GetAdjustedValue(pu) * 0.3f;
-                        if (pu.Kind == Kind.King) score += 80f;
+                        if (MatchObjectiveRules.IsCommander(pu.Kind, pu.Team, pu.IsPrimaryCommander)) score += 80f;
                     }
                 }
             }

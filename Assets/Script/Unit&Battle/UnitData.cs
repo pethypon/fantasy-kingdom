@@ -18,6 +18,8 @@ public class UnitData : ScriptableObject
     public PassiveSkill authoredPassive;
     public int authoredSkillId = -1;
     public SpecialAbility authoredSpecialAbility;
+    [Header("駒固有能力（兵種に固定するスキル・アビリティ）")]
+    public SpecialSkillDefinition specialSkill;
 
     public string DisplayName => !string.IsNullOrWhiteSpace(displayName) ? displayName : KindNameJP.Get(kind);
     public bool AvailableFor(Team team) => team == Team.Player ? availableToPlayer
@@ -153,6 +155,20 @@ public class UnitData : ScriptableObject
     public void InitializeAbilities(Status status)
     {
         if (status == null) return;
+        status.Special = new SpecialState();
+        status.NaturalRecovery = new NaturalRecoveryState();
+        SpecialSkillRuntime.InvalidateRules();
+        ApplyAbilityIdentity(status);
+    }
+    /// <summary>Fixed definition wins over historical random assignments, without resetting durable state.</summary>
+    public void ApplyAbilityIdentity(Status status)
+    {
+        if (status == null) return;
+        if (specialSkill != null && specialSkill.ability != UnitSpecialSkill.None)
+        {
+            status.AssignedSkillId = -1; status.specialAbility = SpecialAbility.None;
+            status.passiveskill = PassiveSkill.None; return;
+        }
         if (useAuthoredAbilities)
         {
             status.passiveskill = authoredPassive;
@@ -162,7 +178,7 @@ public class UnitData : ScriptableObject
         }
         if (status.kind == Kind.Boss) status.passiveskill = PassiveSkill.StrangeKingAura;
         SkillData.AssignFixedSkill(status);
-        SpecialAbilityData.AssignRandom(status);
+        status.specialAbility = SpecialAbility.None;
     }
     void OnValidate() => GameContentRevision.NotifyChanged();
 }

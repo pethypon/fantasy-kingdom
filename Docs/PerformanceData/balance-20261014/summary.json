@@ -1,0 +1,507 @@
+[
+  {
+    "MapRandomInput": 10369,
+    "MaxTurns": 180,
+    "EnemyAISeed": 325700859,
+    "PlayerAISeed": 15015,
+    "ThreatLevel": 15,
+    "TerrainSeedX": 786814.9375,
+    "TerrainSeedZ": 21942.01953125,
+    "EnemyPersonality": "Intellect",
+    "PlayerPersonality": "Intellect",
+    "PersistentPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdomBalance20261014_10369_b3b3cc8a1e3f4d12b4467b1590d44e18",
+    "EndCondition": "turn_limit",
+    "Result": "unresolved",
+    "OutcomeReason": "",
+    "LastRound": 180,
+    "GameOver": false,
+    "Seconds": 555.6430806000001,
+    "ObservedRounds": 180,
+    "TerminalPhase": "player_start",
+    "Sides": {
+      "player": {
+        "Last": {
+          "Wood": 250,
+          "Stone": 250,
+          "Water": 250,
+          "Iron": 178,
+          "Magic": 150,
+          "Wheat": 250,
+          "Bread": 250,
+          "Citizen": 7,
+          "Storage": 250,
+          "Units": 13,
+          "Scouts": 1,
+          "Unpaid": 0,
+          "Levels": 37,
+          "Buildings": 62,
+          "BuildingLevels": 69,
+          "KingHP": 300,
+          "CrystalHP": 16000,
+          "Explored": 1019,
+          "VisibleOpponents": 0,
+          "Moves": 1092,
+          "Attacks": 304,
+          "Skills": 0,
+          "Builds": 70,
+          "Summons": 38,
+          "Damage": 687,
+          "Losses": 30,
+          "BossHP": -1,
+          "DamageTaken": 6196
+        },
+        "EconomicRecoveryRounds": 172,
+        "WarningOrCriticalRounds": 165,
+        "NoScoutRounds": 25,
+        "UpkeepUnpaidRounds": 10,
+        "VisibleOpponentsRounds": 0,
+        "FirstVisibleOpponentRound": null,
+        "MaxBossHP": -1,
+        "FirstBossAbsentRoundAfterObservation": null,
+        "LateRounds": 141,
+        "LateAllWoodStoneWaterAtCap": 99,
+        "LateAnyWoodStoneWaterAtCap": 138,
+        "ResourceRanges": {
+          "Wood": [
+            21,
+            250
+          ],
+          "Stone": [
+            25,
+            250
+          ],
+          "Water": [
+            11,
+            250
+          ],
+          "Iron": [
+            0,
+            178
+          ],
+          "Magic": [
+            12,
+            150
+          ],
+          "Wheat": [
+            0,
+            250
+          ],
+          "Bread": [
+            36,
+            250
+          ]
+        },
+        "AnyResourceNegative": false
+      },
+      "enemy": {
+        "Last": {
+          "Wood": 225,
+          "Stone": 225,
+          "Water": 225,
+          "Iron": 223,
+          "Magic": 47,
+          "Wheat": 225,
+          "Bread": 225,
+          "Citizen": 5,
+          "Storage": 225,
+          "Units": 12,
+          "Scouts": 0,
+          "Unpaid": 0,
+          "Levels": 17,
+          "Buildings": 61,
+          "BuildingLevels": 73,
+          "KingHP": -1,
+          "CrystalHP": 15000,
+          "Explored": 1073,
+          "VisibleOpponents": 0,
+          "Moves": 1461,
+          "Attacks": 5,
+          "Skills": 0,
+          "Builds": 73,
+          "Summons": 25,
+          "Damage": 100,
+          "Losses": 17,
+          "BossHP": 105000,
+          "DamageTaken": 325
+        },
+        "EconomicRecoveryRounds": 174,
+        "WarningOrCriticalRounds": 166,
+        "NoScoutRounds": 91,
+        "UpkeepUnpaidRounds": 5,
+        "VisibleOpponentsRounds": 0,
+        "FirstVisibleOpponentRound": null,
+        "MaxBossHP": 105000,
+        "FirstBossAbsentRoundAfterObservation": null,
+        "LateRounds": 141,
+        "LateAllWoodStoneWaterAtCap": 104,
+        "LateAnyWoodStoneWaterAtCap": 134,
+        "ResourceRanges": {
+          "Wood": [
+            21,
+            225
+          ],
+          "Stone": [
+            25,
+            225
+          ],
+          "Water": [
+            14,
+            225
+          ],
+          "Iron": [
+            0,
+            225
+          ],
+          "Magic": [
+            5,
+            47
+          ],
+          "Wheat": [
+            0,
+            225
+          ],
+          "Bread": [
+            29,
+            225
+          ]
+        },
+        "AnyResourceNegative": false
+      }
+    }
+  },
+  {
+    "MapRandomInput": 109477,
+    "MaxTurns": 180,
+    "EnemyAISeed": 326322906,
+    "PlayerAISeed": 15015,
+    "ThreatLevel": 15,
+    "TerrainSeedX": 456025.53125,
+    "TerrainSeedZ": 239678.859375,
+    "EnemyPersonality": "Intellect",
+    "PlayerPersonality": "Intellect",
+    "PersistentPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdomBalance20261014_109477_290e59a921184181bb4bd6b2b16bfcb6",
+    "EndCondition": "turn_limit",
+    "Result": "unresolved",
+    "OutcomeReason": "",
+    "FinalAttackerTeam": "",
+    "FinalAttackerKind": "",
+    "FinalAttackerName": "",
+    "LastRound": 180,
+    "GameOver": false,
+    "Seconds": 827.6743625999999,
+    "ObservedRounds": 180,
+    "TerminalPhase": "player_start",
+    "Sides": {
+      "player": {
+        "Last": {
+          "Wood": 250,
+          "Stone": 250,
+          "Water": 250,
+          "Iron": 250,
+          "Magic": 32,
+          "Wheat": 96,
+          "Bread": 250,
+          "Citizen": 5,
+          "Storage": 250,
+          "Units": 13,
+          "Scouts": 0,
+          "Unpaid": 0,
+          "Levels": 71,
+          "Buildings": 63,
+          "BuildingLevels": 89,
+          "KingHP": 432,
+          "CrystalHP": 14985,
+          "Explored": 572,
+          "VisibleOpponents": 0,
+          "Moves": 859,
+          "Attacks": 332,
+          "Skills": 0,
+          "Builds": 126,
+          "Summons": 38,
+          "Damage": 7872,
+          "Losses": 56,
+          "BossHP": -1,
+          "DamageTaken": 9718
+        },
+        "EconomicRecoveryRounds": 172,
+        "WarningOrCriticalRounds": 162,
+        "NoScoutRounds": 94,
+        "UpkeepUnpaidRounds": 8,
+        "VisibleOpponentsRounds": 79,
+        "FirstVisibleOpponentRound": 68,
+        "MaxBossHP": -1,
+        "FirstBossAbsentRoundAfterObservation": null,
+        "LateRounds": 141,
+        "LateAllWoodStoneWaterAtCap": 64,
+        "LateAnyWoodStoneWaterAtCap": 115,
+        "ResourceRanges": {
+          "Wood": [
+            20,
+            250
+          ],
+          "Stone": [
+            19,
+            250
+          ],
+          "Water": [
+            9,
+            250
+          ],
+          "Iron": [
+            0,
+            250
+          ],
+          "Magic": [
+            6,
+            34
+          ],
+          "Wheat": [
+            0,
+            96
+          ],
+          "Bread": [
+            34,
+            250
+          ]
+        },
+        "AnyResourceNegative": false
+      },
+      "enemy": {
+        "Last": {
+          "Wood": 200,
+          "Stone": 200,
+          "Water": 200,
+          "Iron": 150,
+          "Magic": 138,
+          "Wheat": 90,
+          "Bread": 128,
+          "Citizen": 7,
+          "Storage": 200,
+          "Units": 11,
+          "Scouts": 0,
+          "Unpaid": 0,
+          "Levels": 11,
+          "Buildings": 53,
+          "BuildingLevels": 60,
+          "KingHP": -1,
+          "CrystalHP": 16000,
+          "Explored": 1411,
+          "VisibleOpponents": 0,
+          "Moves": 973,
+          "Attacks": 316,
+          "Skills": 0,
+          "Builds": 62,
+          "Summons": 79,
+          "Damage": 7507,
+          "Losses": 68,
+          "BossHP": -1,
+          "DamageTaken": 15427
+        },
+        "EconomicRecoveryRounds": 152,
+        "WarningOrCriticalRounds": 146,
+        "NoScoutRounds": 111,
+        "UpkeepUnpaidRounds": 10,
+        "VisibleOpponentsRounds": 87,
+        "FirstVisibleOpponentRound": 49,
+        "MaxBossHP": 513000,
+        "FirstBossAbsentRoundAfterObservation": 80,
+        "LateRounds": 141,
+        "LateAllWoodStoneWaterAtCap": 92,
+        "LateAnyWoodStoneWaterAtCap": 135,
+        "ResourceRanges": {
+          "Wood": [
+            20,
+            200
+          ],
+          "Stone": [
+            12,
+            200
+          ],
+          "Water": [
+            14,
+            200
+          ],
+          "Iron": [
+            0,
+            167
+          ],
+          "Magic": [
+            12,
+            138
+          ],
+          "Wheat": [
+            0,
+            90
+          ],
+          "Bread": [
+            31,
+            135
+          ]
+        },
+        "AnyResourceNegative": false
+      }
+    }
+  },
+  {
+    "MapRandomInput": 56192,
+    "MaxTurns": 180,
+    "EnemyAISeed": 325265000,
+    "PlayerAISeed": 15015,
+    "ThreatLevel": 15,
+    "TerrainSeedX": 640848.875,
+    "TerrainSeedZ": 675882.4375,
+    "EnemyPersonality": "Adaptive",
+    "PlayerPersonality": "Intellect",
+    "PersistentPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdomBalance20261014_56192_9e2983838fd44c428bd258d05808fd1c",
+    "EndCondition": "game_over",
+    "Result": "Lose",
+    "OutcomeReason": "敗北理由：味方の王が撃破されました",
+    "LastRound": 58,
+    "GameOver": true,
+    "Seconds": 145.3434686,
+    "ObservedRounds": 58,
+    "TerminalPhase": "terminal",
+    "Sides": {
+      "player": {
+        "Last": {
+          "Wood": 200,
+          "Stone": 200,
+          "Water": 200,
+          "Iron": 44,
+          "Magic": 9,
+          "Wheat": 105,
+          "Bread": 62,
+          "Citizen": 4,
+          "Storage": 200,
+          "Units": 8,
+          "Scouts": 0,
+          "Unpaid": 0,
+          "Levels": 9,
+          "Buildings": 44,
+          "BuildingLevels": 49,
+          "KingHP": 0,
+          "CrystalHP": 15000,
+          "Explored": 1205,
+          "VisibleOpponents": 0,
+          "Moves": 360,
+          "Attacks": 22,
+          "Skills": 0,
+          "Builds": 50,
+          "Summons": 17,
+          "Damage": 38,
+          "Losses": 10
+        },
+        "EconomicRecoveryRounds": 54,
+        "WarningOrCriticalRounds": 50,
+        "NoScoutRounds": 54,
+        "UpkeepUnpaidRounds": 0,
+        "VisibleOpponentsRounds": 0,
+        "FirstVisibleOpponentRound": null,
+        "LateRounds": 19,
+        "LateAllWoodStoneWaterAtCap": 14,
+        "LateAnyWoodStoneWaterAtCap": 19,
+        "ResourceRanges": {
+          "Wood": [
+            21,
+            200
+          ],
+          "Stone": [
+            18,
+            200
+          ],
+          "Water": [
+            14,
+            200
+          ],
+          "Iron": [
+            11,
+            52
+          ],
+          "Magic": [
+            8,
+            26
+          ],
+          "Wheat": [
+            0,
+            102
+          ],
+          "Bread": [
+            28,
+            104
+          ]
+        },
+        "AnyResourceNegative": false
+      },
+      "enemy": {
+        "Last": {
+          "Wood": 200,
+          "Stone": 200,
+          "Water": 200,
+          "Iron": 77,
+          "Magic": 12,
+          "Wheat": 120,
+          "Bread": 92,
+          "Citizen": 7,
+          "Storage": 200,
+          "Units": 10,
+          "Scouts": 0,
+          "Unpaid": 0,
+          "Levels": 15,
+          "Buildings": 48,
+          "BuildingLevels": 59,
+          "KingHP": 0,
+          "CrystalHP": 15000,
+          "Explored": 807,
+          "VisibleOpponents": 0,
+          "Moves": 390,
+          "Attacks": 19,
+          "Skills": 0,
+          "Builds": 59,
+          "Summons": 12,
+          "Damage": 96,
+          "Losses": 0
+        },
+        "EconomicRecoveryRounds": 43,
+        "WarningOrCriticalRounds": 34,
+        "NoScoutRounds": 43,
+        "UpkeepUnpaidRounds": 4,
+        "VisibleOpponentsRounds": 0,
+        "FirstVisibleOpponentRound": null,
+        "LateRounds": 19,
+        "LateAllWoodStoneWaterAtCap": 4,
+        "LateAnyWoodStoneWaterAtCap": 12,
+        "ResourceRanges": {
+          "Wood": [
+            20,
+            200
+          ],
+          "Stone": [
+            16,
+            200
+          ],
+          "Water": [
+            11,
+            200
+          ],
+          "Iron": [
+            0,
+            73
+          ],
+          "Magic": [
+            11,
+            32
+          ],
+          "Wheat": [
+            0,
+            117
+          ],
+          "Bread": [
+            30,
+            103
+          ]
+        },
+        "AnyResourceNegative": false
+      }
+    }
+  }
+]

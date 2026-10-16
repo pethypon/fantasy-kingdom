@@ -12,7 +12,8 @@ public partial class AIMinimaxEngine
     {
         // Authored production/cost recipes are evaluated from their real definitions by the governor.
         // A legacy-only simulated recipe must not overwrite that decision.
-        if(aiAction.FacilityDefinition != null || aiAction.SummonDefinition != null)return null;
+        if(aiAction.FacilityDefinition != null || aiAction.SummonDefinition != null || aiAction.SpecialCommand != null
+            || AISpecialSkillKnowledge.NeedsSpecialStateModel(aiAction))return null;
         var sim = new SimAction();
         sim.APCost = aiAction.APCost;
         sim.ActorTeam = Team.Enemy; // AICommanderから呼ばれるので常にEnemy

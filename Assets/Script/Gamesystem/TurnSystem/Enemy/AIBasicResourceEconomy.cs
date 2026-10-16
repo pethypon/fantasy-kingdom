@@ -236,6 +236,7 @@ public sealed class AIBasicResourceEconomy
     {
         PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
         plans.Clear(); plannedSources.Clear(); board.CollectOwnBuildings(buildings);
+        int paymentFailures = demand.Forecast.MandatoryFailureMask | demand.Forecast.InputFailureMask;
         // Consider only useful economic projects, using their real authored/legacy costs.
         foreach (var resource in resources)
         {
@@ -244,7 +245,12 @@ public sealed class AIBasicResourceEconomy
             float reserve = Mathf.Max(current.SafetyReserve, StrategicEconomyForecast.Amount(AIBasicResourceSettings.Active.minimumReserve, (int)resource));
             if (!IsOpeningResource(resource) && desired <= .001f && current.Stock >= reserve) continue;
             if (resource == ResourceKind.Citizen && CanFeedCitizenGrowth() && current.Stock < board.CitizenCapacity) continue;
-            if (demand.PotentialSourceCount(resource) > 0 && demand.PotentialProduction(resource) >= desired + .001f && current.Stock >= reserve) continue;
+            // Existing income can restore the reserve before a new investment is needed.
+            // Planning another producer merely because today's stock is low would add its
+            // own cost to demand and recursively manufacture a shortage. A failed payment
+            // in this resource still needs attention even if later income refills the stock.
+            if (demand.PotentialSourceCount(resource) > 0 && demand.PotentialProduction(resource) >= desired + .001f
+                && current.ProjectedStock >= reserve && (paymentFailures & (1 << (int)resource)) == 0) continue;
             FacilityKind chosenKind = default; FacilityDefinitionData chosenDefinition = null; Status chosenActor = null;
             FacilityData.ResourceCost chosenCost = default; float best = float.PositiveInfinity;
             if (board.BuildablePositions.Count > 0) foreach (var entry in FacilityData.Table)
@@ -337,8 +343,17 @@ public sealed class AIBasicResourceEconomy
     {
         if (!AIBasicResourceSettings.Active.enabled || !TryRecipe(action, out var next, out var previous, out _)) return false;
         var kind = RecipeKind(action);
+        float epsilon = AIEconomySettings.Active.Epsilon;
         foreach (var s in snapshots)
-            if (s.PressureScore > .001f && ProductionGain(kind, next, previous, s.ResourceType) > .001f) return true;
+        {
+            // A purchase that is briefly unaffordable creates plan pressure, but an existing
+            // producer may already fund it within the horizon. Do not buy surplus capacity
+            // just to avoid waiting for that income. Probabilistic sources still count here.
+            bool needsSupply = s.Deficit > epsilon || s.IncomeGap > epsilon
+                || s.ProducerCount == 0 && (IsOpeningResource(s.ResourceType) || s.MandatoryDemandPerTurn > epsilon);
+            if (needsSupply && s.PressureScore > .001f
+                && ProductionGain(kind, next, previous, s.ResourceType) > .001f) return true;
+        }
         return false;
     }
 

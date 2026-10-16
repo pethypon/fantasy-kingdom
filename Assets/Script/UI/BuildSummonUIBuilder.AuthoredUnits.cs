@@ -32,6 +32,8 @@ public partial class BuildSummonUIBuilder
         var button = UIFactory.CreateButton(buttonName, row.transform,
             SummonTitle(displayName, data), BrandGuide.FontHud, BrandGuide.BtnSummonEnabled, defaultFont);
         button.gameObject.AddComponent<LayoutElement>().preferredHeight = 56;
+        var tooltip = row.AddComponent<SummonUnitTooltip>();
+        tooltip.Definition = data;
         var title = button.GetComponentInChildren<TextMeshProUGUI>();
         title.enableAutoSizing = true;
         title.fontSizeMin = BrandGuide.FontBody;
@@ -54,6 +56,8 @@ public partial class BuildSummonUIBuilder
     void RefreshSummonRow(Button button, Image background, TextMeshProUGUI title,
         TextMeshProUGUI cost, UnitData data, string displayName)
     {
+        var tooltip = button != null ? button.GetComponentInParent<SummonUnitTooltip>() : null;
+        if (tooltip != null) tooltip.Definition = data;
         bool allowed = data != null && summonSystem.CanSummon(Team.Player, data);
         button.interactable = allowed;
         background.color = allowed ? BrandGuide.BtnSummonEnabled : BrandGuide.BtnDisabled;
@@ -109,7 +113,7 @@ public partial class BuildSummonUIBuilder
         return "召喚不可";
     }
 
-    static string FormatAuthoredUnitCost(UnitData data)
+    public static string FormatAuthoredUnitCost(UnitData data)
     {
         if (data == null) return "準備中";
         var parts = new List<string>(7);

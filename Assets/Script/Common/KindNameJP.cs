@@ -24,6 +24,9 @@ public static class KindNameJP
         { Kind.WoodWall,     "木壁" },
         { Kind.StoneWall,    "石壁" },
         { Kind.None,         "---" },
+        { Kind.WhiteMage, "白魔導士" }, { Kind.HolyKnight, "聖騎士" },
+        { Kind.Samurai, "侍" }, { Kind.Ninja, "忍者" },
+        { Kind.Berserker, "狂戦士" }, { Kind.Navigator, "航海士" },
     };
 
     public static string Get(Kind kind)

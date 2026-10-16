@@ -365,8 +365,7 @@ public class SkillData
     }
 
     // =====================================================================
-    //  ユニットにスキルを配布（敵AIは3択からベストを自動選択）
-    //  プレイヤー向けには SkillChoiceUI.ShowOrCreate を使う OfferPlayerChoice を別途呼ぶ
+    //  駒定義の固有スキルを適用する。旧ランダム・3択入口も固定定義へ委譲する。
     // =====================================================================
     // R1: 最終割当表は未確定。設定されていない兵種にランダムな代替を与えない。
     public static readonly Dictionary<Kind, int> FixedSkillIds = new Dictionary<Kind, int>();
@@ -374,6 +373,8 @@ public class SkillData
     public static void AssignFixedSkill(Status unit)
     {
         if (unit == null || unit.type != Type.Unit) return;
+        if (unit.GrowthData?.specialSkill != null && unit.GrowthData.specialSkill.ability != UnitSpecialSkill.None)
+        { unit.AssignedSkillId = -1; return; }
         if (unit.GrowthData != null && unit.GrowthData.useAuthoredAbilities)
         {
             int authoredId = unit.GrowthData.authoredSkillId;
@@ -385,33 +386,15 @@ public class SkillData
 
     public static void AssignRandomSkill(Status unit)
     {
-        if (unit.type != Type.Unit) return;
-        if (unit.kind == Kind.Crystal || unit.kind == Kind.SubCrystal) return;
-
-        var candidates = DrawCandidateSkillIds(3);
-        int picked = (unit.team == Team.Enemy || unit.team == Team.Obstacle)
-            ? PickBestForAI(candidates)
-            : candidates[Random.Range(0, candidates.Count)]; // 初期配置プレイヤー駒は即ランダム
-        unit.AssignedSkillId = picked;
-        var skill = Table[picked];
-        Debug.Log($"[SkillData] {unit.team} {unit.kind} にスキル '{skill.Name}' ({skill.Rarity}) を配布");
+        AssignFixedSkill(unit); // Legacy entry point; random distribution is no longer a game rule.
     }
 
     /// <summary>
-    /// プレイヤー召喚時の3択UI。ユニットに既にデフォルト割り当てがあっても上書きする。
-    /// UI が出せない環境ではベストピックでフォールバック。
+    /// 旧3択APIとの互換入口。召喚時にも固定された駒定義を使う。
     /// </summary>
     public static void OfferPlayerChoice(Status unit)
     {
-        if (unit == null) return;
-        var candidates = DrawCandidateSkillIds(3);
-        SkillChoiceUI.ShowOrCreate(candidates, picked =>
-        {
-            if (picked < 0) picked = PickBestForAI(candidates);
-            unit.AssignedSkillId = picked;
-            if (Table.TryGetValue(picked, out var s))
-                Debug.Log($"[SkillData] プレイヤー選択: '{s.Name}' ({s.Rarity}) → {unit.kind}");
-        });
+        AssignFixedSkill(unit);
     }
 
     /// <summary>全ユニットにスキルをランダム配布</summary>

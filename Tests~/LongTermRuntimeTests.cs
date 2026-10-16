@@ -138,6 +138,10 @@ public static class LongTermRuntimeTests
         using (var fixture = new EconomyR2Tests.Fixture(live))
         {
             var actor = fixture.Unit();
+            // This is a fixed authored discount, not a historical random ability.
+            actor.GrowthData.specialSkill = null;
+            actor.GrowthData.useAuthoredAbilities = true;
+            actor.GrowthData.authoredSpecialAbility = SpecialAbility.SwiftPosture;
             actor.HasMovedThisTurn = true; actor.Fatigue = 3; actor.SkillCooldown = 2;
             actor.UpkeepUnpaidTurns = 3; actor.BuildingOperationAvailable = false;
             actor.direction = Direction.S; actor.specialAbility = SpecialAbility.SwiftPosture;
@@ -179,6 +183,9 @@ public static class LongTermRuntimeTests
 
     static SaveSystem.UnitSaveData RoundtripAbilityFlags(Status actor)
     {
+        actor.GrowthData.specialSkill = null;
+        actor.GrowthData.useAuthoredAbilities = true;
+        actor.GrowthData.authoredSpecialAbility = actor.specialAbility;
         var saved = JsonUtility.FromJson<SaveSystem.UnitSaveData>(JsonUtility.ToJson(SaveSystem.CaptureUnit(actor)));
         actor.FirstSkillUsedThisTurn = !actor.FirstSkillUsedThisTurn;
         actor.DebuffNullifiedThisTurn = !actor.DebuffNullifiedThisTurn;

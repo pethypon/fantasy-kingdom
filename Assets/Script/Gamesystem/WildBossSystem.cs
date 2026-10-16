@@ -682,7 +682,12 @@ public class WildBossSystem : MonoBehaviour
     {
         var targets = GetIntruders();
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/Dragon] 炎ブレス: {targets.Count}体に命中"); }
-        foreach (var t in targets) AttackTarget(t);
+        foreach (var t in targets)
+        {
+            if (t == null || !t.IsAlive || mapcreate != null && !mapcreate.CanAttackAcrossTerrain(SpawnedBoss, t.transform.position)) continue;
+            mapcreate?.Environment?.Ignite(t.transform.position, SpawnedBoss.RuntimeSystems);
+            AttackTarget(t);
+        }
     }
 
     void AttackFrontLine(int range)

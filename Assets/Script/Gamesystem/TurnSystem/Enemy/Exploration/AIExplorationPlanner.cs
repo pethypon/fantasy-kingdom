@@ -144,13 +144,15 @@ public sealed partial class AIExplorationPlanner
         }
     }
 
+    static bool CanExplore(ExplorationActor actor) => actor.Kind == Kind.Scout || actor.IsFallbackExplorer;
+
     void PrepareActors(ExplorationObservation next)
     {
         actors.Clear(); sortedActors.Clear(); liveLifeIds.Clear();
         for (int i = 0; i < next.Actors.Count; i++)
         {
             var actor = next.Actors[i];
-            if (actor.Kind != Kind.Scout || actor.HP <= 0 || !Inside(XZ(actor.Cell))) continue;
+            if (!CanExplore(actor) || actor.HP <= 0 || !Inside(XZ(actor.Cell))) continue;
             if (string.IsNullOrEmpty(actor.ActorLifeId)) actor.ActorLifeId = actor.UnitId.ToString();
             actors[actor.UnitId] = actor; sortedActors.Add(actor); liveLifeIds.Add(actor.ActorLifeId);
             if (!histories.ContainsKey(actor.ActorLifeId)) histories[actor.ActorLifeId] = new ExplorationMovementHistory(settings.RecentHistoryTurns);
@@ -397,7 +399,7 @@ public sealed partial class AIExplorationPlanner
     }
     public float GetMoveBonus(int unitId, Vector3Int destination, float estimatedDamage = 0)
     {
-        if (!settings.Enabled || !actors.TryGetValue(unitId, out var actor) || !actor.CanAct || actor.Kind != Kind.Scout || emergency) return 0;
+        if (!settings.Enabled || !actors.TryGetValue(unitId, out var actor) || !actor.CanAct || !CanExplore(actor) || emergency) return 0;
         float risk = Mathf.Max(0, estimatedDamage) / Mathf.Max(1, actor.HP);
         float score = -risk * settings.MoveDangerWeight;
         if (risk >= 1) score -= settings.SuicideMovePenalty;

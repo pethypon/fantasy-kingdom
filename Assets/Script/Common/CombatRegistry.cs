@@ -8,6 +8,9 @@ public static class CombatRegistry
     static void Reset() => actors.Clear();
     public static void Register(Status actor) { if (actor != null && actor.type <= Type.Wall) actors.Add(actor); }
     public static void Unregister(Status actor) => actors.Remove(actor);
+    public static HashSet<Status>.Enumerator Enumerate() => actors.GetEnumerator();
+    public static Status FindLife(string id)
+    { foreach (var actor in actors) if (actor != null && actor.IsAlive && actor.ReflectionLifeId == id) return actor; return null; }
     public static Status[] Snapshot() { var list = new List<Status>(); Collect(list); return list.ToArray(); }
     public static void Collect(List<Status> result)
     {

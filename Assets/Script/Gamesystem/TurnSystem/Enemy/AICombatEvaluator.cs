@@ -13,8 +13,8 @@ static class AICombatEvaluator
 
         float score = 30f;
 
-        int expectedDmg = AIEvalHelpers.EstimateDamage(action.Unit, action.TargetUnit);
-        if (expectedDmg >= action.TargetUnit.HP)
+        int expectedDmg = AIActionEvaluator.EstimateEffectiveSpecialDamage(action.Unit, action.TargetUnit, board, out var actualVictim);
+        if (actualVictim != null && expectedDmg >= actualVictim.HP)
             score += 40f;
 
         if (action.TargetUnit.MaxHP > 0)
@@ -25,13 +25,15 @@ static class AICombatEvaluator
 
         if (action.TargetUnit.kind == Kind.Crystal)
             score += 50f;
-        if (action.TargetUnit.kind == Kind.King)
+        if (MatchObjectiveRules.IsCommander(action.TargetUnit))
             score += 35f;
         if (board.ReconThreatLevel >= 31 && action.TargetUnit.kind == Kind.Scout)
             score += board.ReconThreatLevel >= 51 ? 20f : 12f;
 
         if (action.TargetUnit.ShieldTurns > 0)
             score -= 30f;
+        if (expectedDmg == 0 && action.TargetUnit.Special?.damageNullUnused == true)
+            score -= Mathf.Min(25, AIActionEvaluator.EstimateSpecialAwareAttack(action.Unit, action.TargetUnit, board));
 
         return score;
     }
@@ -135,7 +137,7 @@ static class AICombatEvaluator
 
             if (action.TargetUnit.kind == Kind.Crystal)
                 score += 40f;
-            if (action.TargetUnit.kind == Kind.King)
+            if (MatchObjectiveRules.IsCommander(action.TargetUnit))
                 score += 30f;
 
             if (action.TargetUnit.ShieldTurns > 0)
@@ -227,7 +229,7 @@ static class AICombatEvaluator
             ? (float)action.TargetUnit.HP / action.TargetUnit.MaxHP : 1f;
         score += (1f - targetHpRatio) * 20f;
 
-        if (action.TargetUnit.kind == Kind.King) score += 10f;
+        if (MatchObjectiveRules.IsCommander(action.TargetUnit)) score += 10f;
 
         return score;
     }
@@ -242,7 +244,7 @@ static class AICombatEvaluator
         score += (1f - hpRatio) * 15f;
 
         if (action.TargetUnit.kind == Kind.Crystal) score += 25f;
-        if (action.TargetUnit.kind == Kind.King) score += 15f;
+        if (MatchObjectiveRules.IsCommander(action.TargetUnit)) score += 15f;
 
         return score;
     }

@@ -15,7 +15,7 @@ public static class AITacticalPriorities
             foreach (var target in board.GetAttackTargets(unit))
             {
                 if (target == null || !target.IsAlive || target.ShieldTurns > 0) continue;
-                if (AIEvalHelpers.EstimateDamage(unit, target) < target.HP) continue;
+                if (!AIActionEvaluator.CanFinishSpecialTarget(unit,target,board)) continue;
                 reserve = cost;
                 break;
             }

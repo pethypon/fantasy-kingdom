@@ -51,8 +51,11 @@ public static class SimulationBalanceTests
             simulated.Units.Add(decisive);
             Check("defeated neutral boss is not a match end", !simulated.IsTerminal());
             decisive.Team = Team.Enemy;
+            Check("defeated ordinary faction Boss is not a match end", !simulated.IsTerminal());
+            decisive.IsPrimaryCommander = true;
             Check("defeated faction commander is terminal", simulated.IsTerminal());
-            decisive.IsBoss = false; decisive.Kind = Kind.Crystal; decisive.Team = Team.Player;
+            Check("known commander death scores a decisive loss", SimBoardEvaluator.Evaluate(simulated) == AIConstants.TERMINAL_Lose);
+            decisive.IsBoss = false; decisive.IsPrimaryCommander = false; decisive.Kind = Kind.Crystal; decisive.Team = Team.Player;
             Check("defeated known crystal is terminal", simulated.IsTerminal());
             decisive.HP = 1;
             Check("living known crystal is not terminal", !simulated.IsTerminal());

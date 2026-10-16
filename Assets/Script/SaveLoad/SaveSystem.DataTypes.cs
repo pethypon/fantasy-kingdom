@@ -88,6 +88,8 @@ public static partial class SaveSystem
         public float MapNoiseScale, MapRiverHalfWidth;
         public float MapSeedX;
         public float MapSeedZ;
+        // Optional sparse overlay: older saves have no environment objects.
+        public TerrainEnvironmentRuntime.Snapshot Environment;
 
         // クリスタル位置
         public float PCPx, PCPy, PCPz;
@@ -111,6 +113,9 @@ public static partial class SaveSystem
     public class UnitSaveData
     {
         public string ReflectionLifeId;
+        public SpecialState Special;
+        public NaturalRecoveryState NaturalRecovery;
+        public bool HasPrimaryCommanderRole, IsPrimaryCommander;
         public string Kind;
         public string DefinitionId;
         public string Team;

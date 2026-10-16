@@ -64,6 +64,8 @@ public sealed partial class GameDevelopmentStudioWindow
         {"emergencyKingDamageFraction","Kingの緊急防衛を始める被害割合"},
         {"emergencyCrystalDamageFraction","クリスタルの緊急防衛を始める被害割合"},
         {"criticalReserveFraction","経済危機と判断する予備資源の割合"},
+        {"minimumChanceReserveSources","確率生産を備蓄判断に含める最低施設数"},
+        {"chanceReserveCredit","確率生産を備蓄回復の判断に含める割合"},
         {"sustainedDeficitUrgency","継続する赤字の最低緊急度"},
         {"deficitEpsilon","生産不足を判定する最小量"},
         {"plannedUnitLevel","軍拡張の維持費を見込む駒レベル"},

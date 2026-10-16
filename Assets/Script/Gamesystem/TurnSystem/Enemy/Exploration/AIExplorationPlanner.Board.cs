@@ -9,6 +9,7 @@ public sealed partial class AIExplorationPlanner
     readonly HashSet<Vector3Int> moveFootprint = new HashSet<Vector3Int>();
     AIBoardState observedBoard;
     int boardGeneration = -1;
+    int fallbackExplorerId;
     bool initialExploredImported;
     readonly HashSet<Vector3Int> previousBoardView = new HashSet<Vector3Int>();
     readonly Dictionary<Vector3Int, ExplorationObservedCell> boardTerrainEvidence = new Dictionary<Vector3Int, ExplorationObservedCell>();
@@ -50,13 +51,15 @@ public sealed partial class AIExplorationPlanner
                 boardObservation.ViewVersion = boardViewVersion;
                 boardObservation.CellVersion = boardCellVersion;
             }
+            SelectFallbackExplorer(board);
             foreach (var unit in board.AliveEnemyUnits)
             {
-                if (unit == null || !unit.IsAlive || unit.team != board.ActorTeam || unit.type != Type.Unit || unit.kind != Kind.Scout) continue;
+                if (!ExplorerEligible(unit, board) || unit.kind != Kind.Scout && unit.GetInstanceID() != fallbackExplorerId) continue;
                 int id = unit.GetInstanceID(); boardActors[id] = unit;
                 boardObservation.Actors.Add(new ExplorationActor(id, GridHelper.ToGrid(unit.transform.position), unit.kind, unit.HP,
                     !StatusEffectSystem.IsStunned(unit) && !StatusEffectSystem.IsMovementBlocked(unit) && BoardActionProfile.For(unit)?.CanMove != false, unit.ReflectionLifeId)
                 {
+                    IsFallbackExplorer = unit.kind != Kind.Scout,
                     MovementOffsets = MovePatterns.Offsets(unit), MovementDirectionIndependent = MovePatterns.IsDirectionIndependent(unit), Direction = unit.direction
                 });
             }
@@ -76,6 +79,27 @@ public sealed partial class AIExplorationPlanner
         Update(boardObservation, isEmergency);
     }
 
+    static bool ExplorerEligible(Status unit, AIBoardState board)
+        => unit != null && unit.IsAlive && unit.type == Type.Unit && unit.team == board.ActorTeam
+            && !MatchObjectiveRules.IsCommander(unit) && unit.kind != Kind.Priest
+            && !StatusEffectSystem.IsStunned(unit) && !StatusEffectSystem.IsMovementBlocked(unit)
+            && BoardActionProfile.For(unit)?.CanMove != false;
+
+    void SelectFallbackExplorer(AIBoardState board)
+    {
+        foreach (var unit in board.AliveEnemyUnits)
+            if (ExplorerEligible(unit, board) && unit.kind == Kind.Scout) { fallbackExplorerId = 0; return; }
+        Status selected = null;
+        foreach (var unit in board.AliveEnemyUnits)
+        {
+            if (!ExplorerEligible(unit, board) || BoardActionProfile.For(unit)?.actionType == ActorActionType.Support || unit.HP < unit.MaxHP * .6f
+                || board.EstimateCounterDamageAt(unit.transform.position, unit) >= unit.HP * .25f) continue;
+            if (unit.GetInstanceID() == fallbackExplorerId) return;
+            if (selected == null || string.CompareOrdinal(unit.ReflectionLifeId, selected.ReflectionLifeId) < 0) selected = unit;
+        }
+        fallbackExplorerId = selected != null ? selected.GetInstanceID() : 0;
+    }
+
     void ImportObservedTerrain(MapCreate map, Vector3Int cell, bool refresh = false)
     {
         var xz = GridHelper.ToGridXZ(cell);
@@ -91,24 +115,25 @@ public sealed partial class AIExplorationPlanner
     }
     float EstimateObservedDanger(int unitId, Vector3Int destination)
         => observedBoard != null && boardActors.TryGetValue(unitId, out var unit) ? observedBoard.EstimateCounterDamageAt(destination, unit) : 0;
-    static int ObservedDangerVersion(AIBoardState board)
+    int ObservedDangerVersion(AIBoardState board)
     {
         unchecked
         {
             int version = board.AlivePlayerUnits.Count * 397;
             // These are the board's already filtered visible hostiles. No hidden transforms or global registries.
             foreach (var unit in board.AlivePlayerUnits) if (unit != null) version ^= DangerActorStamp(unit);
-            foreach (var unit in board.AliveEnemyUnits)
-                if (unit != null && unit.kind == Kind.Scout && unit.team == board.ActorTeam)
-                    version ^= unit.GetInstanceID() * 397 ^ unit.DEF * 31;
+            // Route safety also depends on the assigned scout or substitute's defense and effects.
+            // Own movement is the route's start, not a change to the observed threat field.
+            // Including it here would rebase the progress metric after a legal off-path merge.
+            foreach (var unit in boardActors.Values) version ^= DangerActorStamp(unit, false);
             return version;
         }
     }
-    static int DangerActorStamp(Status unit)
+    static int DangerActorStamp(Status unit, bool includePosition = true)
     {
         unchecked
         {
-            int value = unit.GetInstanceID() * 397 ^ GridHelper.ToGrid(unit.transform.position).GetHashCode();
+            int value = unit.GetInstanceID() * 397 ^ (includePosition ? GridHelper.ToGrid(unit.transform.position).GetHashCode() : 0);
             value = value * 31 + unit.HP; value = value * 31 + unit.ATK; value = value * 31 + unit.DEF;
             value = value * 31 + unit.AssignedSkillId; value = value * 31 + unit.SkillCooldown;
             value = value * 31 + unit.ShieldTurns; value = value * 31 + (int)unit.direction;
@@ -129,7 +154,7 @@ public sealed partial class AIExplorationPlanner
     }
     void ClearBoardCaches()
     {
-        importedTerrain.Clear(); initialExploredImported = false; observedBoard = null; boardGeneration = -1;
+        importedTerrain.Clear(); initialExploredImported = false; observedBoard = null; boardGeneration = -1; fallbackExplorerId = 0;
         boardTerrainEvidence.Clear(); previousBoardView.Clear(); boardViewVersion = boardCellVersion = 0;
     }
 
@@ -142,13 +167,14 @@ public sealed partial class AIExplorationPlanner
     }
     public bool TryGetAssignedTarget(Status unit, out Vector3 target)
     {
-        if (unit != null && unit.kind == Kind.Scout && TryGetAssignedTarget(unit.GetInstanceID(), out var cell)) { target = cell; return true; }
+        if (unit != null && boardActors.ContainsKey(unit.GetInstanceID()) && TryGetAssignedTarget(unit.GetInstanceID(), out var cell)) { target = cell; return true; }
         target = Vector3.zero; return false;
     }
     public float GetMoveBonus(Status unit, Vector3 destination, AIBoardState board)
     {
-        if (unit == null || unit.kind != Kind.Scout || unit.kind == Kind.King || board == null || unit.team != board.ActorTeam || !settings.Enabled) return 0;
+        if (unit == null || board == null || unit.team != board.ActorTeam || !settings.Enabled) return 0;
         Update(board, emergency);
+        if (!boardActors.ContainsKey(unit.GetInstanceID())) return 0;
         float score = GetMoveBonus(unit.GetInstanceID(), GridHelper.ToGrid(destination), board.EstimateCounterDamageAt(destination, unit));
         if (emergency) return score;
         moveFootprint.Clear(); var target = GridHelper.ToGridXZ(destination);
@@ -177,7 +203,7 @@ public sealed partial class AIExplorationPlanner
     }
     public void RecordAction(AIAction action, bool success, AIBoardState board)
     {
-        if (action == null || action.Unit == null || action.Unit.kind != Kind.Scout || board == null) return;
+        if (action == null || action.Unit == null || !boardActors.ContainsKey(action.Unit.GetInstanceID()) || board == null) return;
         if (action.ActionType != AIActionType.Move && action.ActionType != AIActionType.Retreat && action.ActionType != AIActionType.Support
             && action.ActionType != AIActionType.DefenseRepos && action.ActionType != AIActionType.Surround) return;
         RecordAction(action.Unit.GetInstanceID(), GridHelper.ToGrid(action.TargetPos), success);

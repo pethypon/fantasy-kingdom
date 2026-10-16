@@ -13,13 +13,24 @@ public class SimUnit
     public BoardActionProfile ActionProfile;
     public FacilityKind Facility;
     public Type Type;
-    public int HP;
+    int hp;
+    public int HP
+    {
+        get => hp;
+        set
+        {
+            if (value < hp && Type == Type.Unit)
+            { NaturalRecoverySafeTurns = 0; NaturalRecoveryHpLost = true; }
+            hp = value;
+        }
+    }
     public int MaxHP;
     public int ATK;
     public int DEF;
     public Vector3Int Position;
     public Direction Direction;
     public bool IsBoss;
+    public bool IsPrimaryCommander;
     public int AssignedSkillId;
     public int SkillCooldown;
     public int Fatigue;
@@ -27,6 +38,10 @@ public class SimUnit
     public bool ShieldActivated;
     public PassiveSkill Passive;
     public List<SimEffect> Effects;
+    // Scalars keep search clones independent without allocating a per-unit state object.
+    public int NaturalRecoverySafeTurns;
+    public int NaturalRecoveryLastRound = -1;
+    public bool NaturalRecoveryHpLost, NaturalRecoveryHasBaseline;
 
     public bool IsAlive => HP > 0;
 
@@ -43,13 +58,33 @@ public class SimUnit
         c.Id = Id; c.Team = Team; c.Kind = Kind; c.Type = Type;
         c.HP = HP; c.MaxHP = MaxHP; c.ATK = ATK; c.DEF = DEF;
         c.Position = Position; c.Direction = Direction;
-        c.IsBoss = IsBoss; c.AssignedSkillId = AssignedSkillId;
+        c.IsBoss = IsBoss; c.IsPrimaryCommander = IsPrimaryCommander; c.AssignedSkillId = AssignedSkillId;
         c.SkillCooldown = SkillCooldown; c.Fatigue = Fatigue;
         c.ShieldTurns = ShieldTurns; c.ShieldActivated = ShieldActivated;
         c.Passive = Passive;
+        c.NaturalRecoverySafeTurns = NaturalRecoverySafeTurns;
+        c.NaturalRecoveryLastRound = NaturalRecoveryLastRound;
+        c.NaturalRecoveryHpLost = NaturalRecoveryHpLost;
+        c.NaturalRecoveryHasBaseline = NaturalRecoveryHasBaseline;
         for (int i = 0; i < Effects.Count; i++)
             c.Effects.Add(Effects[i]);
         return c;
+    }
+
+    public int ApplyDamage(int amount)
+    {
+        if (amount <= 0 || !IsAlive) return 0;
+        int previous = HP;
+        HP = (int)System.Math.Max(0, (long)HP - amount);
+        return previous - HP;
+    }
+
+    public int ApplyHeal(int amount)
+    {
+        if (amount <= 0 || !IsAlive || HP >= MaxHP) return 0;
+        int previous = HP;
+        HP = (int)System.Math.Min(MaxHP, (long)HP + amount);
+        return HP - previous;
     }
 
     // ---- ステータス効果チェック ----

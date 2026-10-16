@@ -382,7 +382,7 @@ public static class SimActionGenerator
                     {
                         score += GetPieceValue(target) * 2f;
                         if (target.Kind == Kind.Crystal) score += AIConstants.QS_Kill_Crystal;
-                        if (target.Kind == Kind.King) score += AIConstants.QS_Kill_King;
+                        if (MatchObjectiveRules.IsCommander(target.Kind, target.Team, target.IsPrimaryCommander)) score += AIConstants.QS_Kill_King;
                     }
                     // シールド中のターゲットは低優先
                     if (target.ShieldTurns > 0)

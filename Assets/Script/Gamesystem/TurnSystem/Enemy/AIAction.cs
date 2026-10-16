@@ -21,6 +21,9 @@ public class AIAction
     public int StrategicPriority = 4;
     public string StrategicRejectReason;
     public SkillData Skill;          // 使用スキル
+    // Independent commands use the same AI pipeline, but never the SkillData transaction.
+    public SpecialSkillCommand SpecialCommand;
+    public bool PreserveSpecialEvaluation;
     public List<Status> AreaTargets; // 範囲スキルの対象リスト
 
     // Only an executed housing action with verbose diagnostics enabled allocates this immutable snapshot.
@@ -58,7 +61,7 @@ public class AIAction
 
     // One actor's blocked route must not suppress another actor's valid move.
     public string FailureGroupKey => $"{ActionType}_{Facility}_{FacilityDefinition?.definitionId}_{SummonKind}_{SummonDefinition?.definitionId}_{(Unit != null ? Unit.GetInstanceID() : 0)}";
-    public string FailureKey => $"{FailureGroupKey}|{TargetPos}|{(TargetUnit != null ? TargetUnit.GetInstanceID() : 0)}|{(Skill != null ? Skill.Id : -1)}";
+    public string FailureKey => $"{FailureGroupKey}|{TargetPos}|{(TargetUnit != null ? TargetUnit.GetInstanceID() : 0)}|{(Skill != null ? Skill.Id : -1)}|{AISpecialSkillKnowledge.CommandKey(SpecialCommand)}";
 
     public override string ToString()
         => $"{ActionType}({Unit?.kind}/{Facility}/{SummonKind}) → {TargetPos} score={Score:F1}";

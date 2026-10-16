@@ -286,6 +286,7 @@ public partial class AICommander
         _board.MapCreate = _mapCreate;
         _board.TerritorySystem = _turnGen?.Systems?.TerritorySystem;
         _board.ReconThreatLevel = _threatLevel.Level;
+        _board.SpecialSystems = _turnGen?.Systems;
         _board.Governor=_governor;
         _governor.BreadReserveTurns=GameAuthoringRules.Active?.aiBreadReserveTurns??_threatLevel.BreadReserveTurns;
         _governor.Evaluate(_board);

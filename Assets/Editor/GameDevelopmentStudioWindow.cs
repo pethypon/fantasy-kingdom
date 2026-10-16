@@ -147,6 +147,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             if (so.FindProperty("useAuthoredAbilities").boolValue)
             { Fields(so,"authoredPassive","authoredSpecialAbility"); DrawSkill(so.FindProperty("authoredSkillId")); }
         }
+        DrawUnitSpecialSkill(so);
         so.ApplyModifiedProperties();
         DrawVisual(selectedUnit, null);
         DrawProfile(selectedUnit.actionProfile, selectedUnit.kind, p => selectedUnit.actionProfile = p, selectedUnit);

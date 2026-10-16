@@ -29,6 +29,7 @@ public static class AIHousingTests
             EmergencyAndFog(live, config);
             PurchaseAndReevaluation(live);
             UpgradeAndReevaluation(live);
+            ExecutionTelemetry(live, config);
             CapacityBounds(live);
             BoundedCache(live);
             Check("NaN settings use finite thresholds", SetInvalidThresholds(config));
@@ -262,6 +263,45 @@ public static class AIHousingTests
             var cache = (System.Collections.IDictionary)typeof(AIStrategicGovernor)
                 .GetField("housingAssessments", EconomyR2Tests.Fixture.Private).GetValue(board.Governor);
             Check("500 changing operation plans neither retain stale decisions nor grow housing history", cache.Count == 1);
+        }
+    }
+    static void ExecutionTelemetry(GameSystems live, AIHousingConfig config)
+    {
+        bool oldEnabled = config.EnableDecisionLogs;
+        var performance = AIPerformanceConfig.Active; var oldLevel = performance.LogLevel;
+        Application.LogCallback listener = null;
+        try
+        {
+            config.EnableDecisionLogs = true; performance.LogLevel = AILogLevel.Verbose;
+            using (var f = new EconomyR2Tests.Fixture(live))
+            {
+                Stable(f); var house = House(f, gain: 12); var board = f.Board(); board.OperationRequiredCitizenDemand = 8;
+                var action = f.BuildAction(house, board);
+                var executor = (AIActionExecutor)typeof(AIBuildPlanner).GetField("_executor", EconomyR2Tests.Fixture.Private).GetValue(f.Planner());
+                Check("housing execution snapshot is not fixed while merely scoring candidates", !action.TryGetHousingExecutionAssessment(board.Governor, board, out _));
+                Check("telemetry fixture uses a real paid housing transaction", executor.ExecuteBuild(action, board));
+                Check("successful housing retains its pre-payment reason and capacity", action.TryGetHousingExecutionAssessment(board.Governor, board, out var saved)
+                    && saved.Needed && saved.Capacity == 5 && saved.Reason == "housing_planned_capacity_shortfall");
+                Check("post-payment state really differs from the captured decision", !board.Governor.HousingAssessment(action, board).Needed);
+                string successLog = null;
+                listener = (message, stack, type) => { if (message.StartsWith("[AI住宅投資] 建築実行 ", StringComparison.Ordinal)) successLog = message; };
+                Application.logMessageReceived += listener; board.Governor.Telemetry(action, true);
+                Application.logMessageReceived -= listener; listener = null;
+                Check("successful log explains the original investment", successLog != null && successLog.Contains("housing_planned_capacity_shortfall"));
+                var otherBoard = f.Board();
+                Check("execution snapshot cannot be reused by a different board", !action.TryGetHousingExecutionAssessment(otherBoard.Governor, otherBoard, out _));
+                Check("a failed reuse clears the prior execution snapshot", !executor.Execute(action, null)
+                    && !action.TryGetHousingExecutionAssessment(board.Governor, board, out _));
+                config.EnableDecisionLogs = false;
+                typeof(AIAction).GetMethod("CaptureHousingExecutionAssessment", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(action, new object[] { board });
+                Check("disabled diagnostics retain no housing execution snapshot", !action.TryGetHousingExecutionAssessment(board.Governor, board, out _));
+            }
+        }
+        finally
+        {
+            if (listener != null) Application.logMessageReceived -= listener;
+            config.EnableDecisionLogs = oldEnabled; performance.LogLevel = oldLevel;
         }
     }
     static void CapacityBounds(GameSystems live)

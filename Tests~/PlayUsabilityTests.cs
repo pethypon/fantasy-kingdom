@@ -66,6 +66,9 @@ public static class PlayUsabilityTests
             foreach (var g in log.GetComponentsInChildren<Graphic>()) passive &= !g.raycastTarget;
             Check("logs cannot block board input", passive);
             typeof(ActionLogUI).GetMethod("Update", Flags).Invoke(log, null); // Deliver the preceding critical display before the next fixture.
+            // Earlier fixtures can enqueue more than one frame's delivery budget.
+            // Isolate this sizing fixture from both displayed and still-pending events.
+            ((AIPresentationQueue)typeof(ActionLogUI).GetField("presentation", Flags).GetValue(log)).Clear();
             ((System.Collections.IList)typeof(ActionLogUI).GetField("_entries", Flags).GetValue(log)).Clear();
             ActionLogUI.Log("短いログ");
             typeof(ActionLogUI).GetMethod("Update", Flags).Invoke(log, null); // Display events are intentionally drained on a render frame.

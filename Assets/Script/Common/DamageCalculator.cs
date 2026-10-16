@@ -142,6 +142,8 @@ public static class DamageCalculator
             multiplier *= GameConstants.StrangeKingDamageReduction;
         }
 
+        if (target.kind == Kind.Knight && SpecialSkillRuntime.Definition(target)?.enabledForPlay == true
+            && SpecialSkillRuntime.Definition(target).ability == UnitSpecialSkill.KnightBreakthrough && !SpecialSkillRuntime.InVision(target, attacker)) multiplier *= SpecialSkillDefinition.KnightBlindSpotMultiplier;
         return multiplier;
     }
 
@@ -276,7 +278,7 @@ public static class DamageCalculator
         float saDefend = SpecialAbilitySystem.GetDefenderModifier(attacker, target);
 
         float finalDmg = baseDmg * passiveMod * backMod * terrainMod
-                       * (1f + saAttack + saDefend) * incomingMod;
+                       * (1f + saAttack + saDefend) * incomingMod * SpecialSkillRuntime.GetAttackMultiplier(attacker, target);
         return FinalizeHitDamage(finalDmg, incomingMod > 0 && passiveMod > 0 && (1f + saAttack + saDefend) > 0);
     }
 

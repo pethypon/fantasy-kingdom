@@ -63,8 +63,8 @@ public sealed class AIEvolutionPolicy
             if (a.ActionType == AIActionType.Attack && a.Unit != null && a.TargetUnit != null)
             {
                 var target = a.TargetUnit;
-                int damage = target.ShieldTurns > 0 ? 0 : AIEvalHelpers.EstimateDamage(a.Unit, target);
-                if (level >= 2 && damage >= target.HP) a.Score += 100;
+                int damage = AIActionEvaluator.EstimateEffectiveSpecialDamage(a.Unit,target,board,out var victim);
+                if (level >= 2 && victim!=null&&damage>=victim.HP) a.Score += 100;
                 if (level >= 3)
                 {
                     int defenders = 0;
@@ -81,7 +81,7 @@ public sealed class AIEvolutionPolicy
                     && board.EstimateCounterDamageAt(a.Unit.transform.position, a.Unit) < a.Unit.HP)
                     a.Score += 8;
             }
-            if (a.ActionType == AIActionType.Move && a.Unit != null && HasObjective && a.Unit.kind != Kind.King)
+            if (a.ActionType == AIActionType.Move && a.Unit != null && HasObjective && !MatchObjectiveRules.IsCommander(a.Unit))
             {
                 float progress = GridHelper.ChebyshevDistance(a.Unit.transform.position, Objective)
                     - GridHelper.ChebyshevDistance(a.TargetPos, Objective);
@@ -92,7 +92,7 @@ public sealed class AIEvolutionPolicy
             if (level >= 51 && a.Unit != null && a.ActionType == AIActionType.Retreat
                 && board.EstimateCounterDamageAt(a.TargetPos, a.Unit) < a.Unit.HP / 2)
                 a.Score += Mathf.Min(3, board.CountAlliesNear(a.TargetPos, a.Unit, 3)) * 4;
-            if (level >= 71 && a.ActionType == AIActionType.Move && a.Unit != null && a.Unit.kind != Kind.King)
+            if (level >= 71 && a.ActionType == AIActionType.Move && a.Unit != null && !MatchObjectiveRules.IsCommander(a.Unit))
             {
                 // A second wing may pressure an observed economic target while the main force holds its objective.
                 foreach (var target in board.AlivePlayerUnits)
@@ -105,7 +105,7 @@ public sealed class AIEvolutionPolicy
                     { a.Score += Mathf.Min(2, progress) * 6; break; }
                 }
             }
-            a.Score += model?.Bonus(a, level) ?? 0;
+            a.Score += model?.Bonus(a, level,board) ?? 0;
         }
     }
 

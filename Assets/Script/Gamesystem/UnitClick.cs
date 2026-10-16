@@ -311,6 +311,16 @@ public class UnitClick : MonoBehaviour
         }
 
         Vector3 from = turnGenerator.Context.OldCell;           // 移動元（選択時に記録済み）
+        var selected = playermove.SelectedUnit;
+        var map = turnGenerator.Systems.MapCreate;
+        var moves = turnGenerator.Systems.MoveGenerator;
+        moves.UnitPointCore();
+        if (selected == null || !selected.IsAlive || SpecialSkillRuntime.MovementBlocked(selected)
+            || !map.IsLegalMove(selected, from, to) || moves.IsOccupied(moves.Cell(to)))
+        {
+            ToastMessageUI.Show("移動できません：地形または駒の配置が変わりました", ToastMessageUI.MessageType.Warning);
+            return;
+        }
 
         // ---- APチェック ----
         if (!turnGenerator.Systems.APSystem.CanAct(Team.Player, APSystem.ActionType.Move, playermove.SelectedUnit, from, to))
@@ -335,6 +345,15 @@ public class UnitClick : MonoBehaviour
         // ---- AP消費（移動コスト） ----
         turnGenerator.Systems.APSystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.SelectedUnit, from, to);
         movedUnit.HasMovedThisTurn = true;
+        SpecialSkillRuntime.OnMoved(movedUnit, from, to, turnGenerator.Systems);
+        if (!movedUnit.IsAlive)
+        {
+            playermove.Reset();
+            turnGenerator.Systems.MoveGenerator.MoveReset();
+            turnGenerator.Systems.UnitPanelUI?.Hide();
+            turnGenerator.Systems.RefreshVision();
+            return;
+        }
 
         // ---- アクションログ ----
         ActionLogUI.LogMove(KindNameJP.Get(movedUnit), from, to);

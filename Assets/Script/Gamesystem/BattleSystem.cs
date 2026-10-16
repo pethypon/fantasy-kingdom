@@ -36,8 +36,10 @@ public class BattleSystem : MonoBehaviour
         }
         Attacker = turnGenerator.Context.SelectUnit;
         if (!Attacker.IsAlive || !Target.IsAlive || !NeutralFactionSystem.AreHostile(Attacker, Target)) return;
+        if (!SpecialSkillRuntime.CanNormalAttackTarget(Attacker, Target)) return;
         var terrain = turnGenerator.Systems.MapCreate;
-        if (terrain != null && !terrain.CanAttackAcrossTerrain(Attacker, Target.transform.position)) return;
+        bool lockedShot = SpecialSkillRuntime.TryGetSniperTarget(Attacker, out var lockedTarget) && lockedTarget == Target;
+        if (!lockedShot && terrain != null && !terrain.CanAttackAcrossTerrain(Attacker, Target.transform.position)) return;
 
         // スタン中は行動不可
         if (StatusEffectSystem.IsStunned(Attacker))
@@ -49,6 +51,7 @@ public class BattleSystem : MonoBehaviour
         // シールド中はダメージ無効
         if (Target.ShieldTurns > 0)
         {
+            SpecialSkillRuntime.OnAttackLanded(Attacker);
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.kind} はシールド中！ ダメージ無効（残り{Target.ShieldTurns}ターン）"); }
             FloatingDamageUI.ShowShield(Target.transform.position);
             return;
@@ -80,20 +83,11 @@ public class BattleSystem : MonoBehaviour
         }
 
         // Special Ability: 致死ダメージ耐え（生還本能）
-        int hpBeforeSurvival = Target.HP;
-        if (SpecialAbilitySystem.TrySurviveLethal(Target, damage))
-        {
-            damage = Mathf.Max(0, hpBeforeSurvival - Target.HP);
-            Status.AwardDamageExperience(Attacker, Target, damage, turnGenerator?.Systems?.FactionState);
-            FloatingDamageUI.ShowDamage(Target.transform.position, damage, false);
-        }
-        else
-        {
-            damage = ApplyDamage(damage);
-        }
+        damage = ApplyDamage(damage);
 
         // Special Ability: 攻撃命中時効果（単体攻撃 = true）
         SpecialAbilitySystem.OnAttackHit(Attacker, Target, damage, true);
+        SpecialSkillRuntime.OnAttackLanded(Attacker);
 
         // ---- ML観測: プレイヤーの攻撃をMLシステムに記録 ----
         if (Attacker.team == Team.Player && turnGenerator.Systems.AICommander != null && AIConfig.IsMLEnabled)
@@ -166,16 +160,17 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private int ApplyDamage(int damage)
     {
-        damage = Target.ApplyDamage(damage);
+        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(Target, damage, HpChangeKind.NormalDamage) ?? Target;
+        damage = SpecialSkillRuntime.ApplyHpChange(Attacker, Target, damage, HpChangeKind.NormalDamage);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}"); }
 
         // 反逆の騎士王: 反撃バフ有効時は受けたダメージの1.5倍を反射
-        if (damage > 0) WildBossSystem.TryReflectDamage(Target, Attacker, damage);
+        if (damage > 0) WildBossSystem.TryReflectDamage(recipient, Attacker, damage);
 
         // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）。兵舎XP%を乗算
         if (damage > 0 && Attacker != null && Attacker.team != Target.team)
         {
-            Status.AwardDamageExperience(Attacker, Target, damage, turnGenerator?.Systems?.FactionState);
+            Status.AwardDamageExperience(Attacker, recipient, damage, turnGenerator?.Systems?.FactionState);
         }
 
         // StrangeKingAura: 与ダメージの20%を吸収してHP回復
@@ -190,9 +185,9 @@ public class BattleSystem : MonoBehaviour
         if (Target.kind == Kind.Crystal && damage > 0 && Attacker != null && Attacker.team != Target.team)
             ProcessCrystalCounterAttack(Target, Attacker);
 
-        bool isKill = !Target.IsAlive;
+        bool isKill = !recipient.IsAlive;
         if (damage > 0)
-            FloatingDamageUI.ShowDamage(Target.transform.position, damage, isKill);
+            FloatingDamageUI.ShowDamage(recipient.transform.position, damage, isKill);
         else
             FloatingDamageUI.ShowMiss(Target.transform.position);
 
@@ -200,9 +195,9 @@ public class BattleSystem : MonoBehaviour
         if (isKill && Attacker != null && Attacker.team == Team.Player && Target.team != Team.Player)
         {
             AchievementSystem.GetOrCreate().OnKill();
-            if (Target.kind == Kind.Crystal)
-                AchievementSystem.Instance.OnCrystalKill((float)damage / System.Math.Max(1, Target.MaxHP));
-            if (Target.isWildBoss)
+            if (recipient.kind == Kind.Crystal)
+                AchievementSystem.Instance.OnCrystalKill((float)damage / System.Math.Max(1, recipient.MaxHP));
+            if (recipient.isWildBoss)
                 AchievementSystem.Instance.OnWildBossDefeated();
         }
 
@@ -210,7 +205,7 @@ public class BattleSystem : MonoBehaviour
         if (MatchStats.Instance != null)
         {
             MatchStats.Instance.RecordDamage(Attacker != null ? Attacker.team : Team.None,
-                Target.team, damage, isKill, Target.isWildBoss);
+                recipient.team, damage, isKill, recipient.isWildBoss);
             if (damage > 0 && Attacker != null && Attacker.type == Type.Unit
                 && Attacker.team != Target.team)
             {
@@ -322,7 +317,7 @@ public class BattleSystem : MonoBehaviour
     {
         if (Target.HP > 0) return;
 
-        if (MatchObjectiveRules.IsDecisive(Target.kind, Target.team))
+        if (MatchObjectiveRules.IsDecisive(Target))
         {
             HandleGameEnd();
         }

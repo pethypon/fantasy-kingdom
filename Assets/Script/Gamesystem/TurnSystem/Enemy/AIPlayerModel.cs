@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>Small versioned tendency profile. Never serializes units, coordinates, HP or unseen information.</summary>
-public sealed class AIPlayerModel
+public sealed partial class AIPlayerModel
 {
     [Serializable]
-    public sealed class Profile
+    public sealed partial class Profile
     {
         public int Version = 1;
         public string GameVersion, CreatedVersion, LastSavedVersion;
@@ -20,20 +20,22 @@ public sealed class AIPlayerModel
     float aggression, economy, scout, ranged;
     float retreat, skill, flank, turtle;
     int responseSamples, retreatSamples;
-    struct Seen { public Vector3 Position; public float HP, Distance; public int Turn, Cooldown; }
+    struct Seen { public Vector3 Position; public float HP, Distance; public int Turn, Cooldown; public bool AssassinExposed; }
     readonly Dictionary<int, Seen> seen = new Dictionary<int, Seen>();
     readonly List<int> expiredSamples=new List<int>();
     bool completed;
-    public Profile Snapshot => new Profile { Matches = history.Matches, Aggression = history.Aggression,
+    public Profile Snapshot { get { var copy = new Profile { Matches = history.Matches, Aggression = history.Aggression,
         GameVersion = history.GameVersion, CreatedVersion = history.CreatedVersion, LastSavedVersion = history.LastSavedVersion,
         Economy = history.Economy, Scout = history.Scout, Ranged = history.Ranged,
         Retreat = history.Retreat, Skill = history.Skill, Flank = history.Flank, Turtle = history.Turtle };
+        CopySpecialHistory(copy);return copy; } }
 
     public AIPlayerModel(string storagePath = null)
     {
         path = storagePath ?? Path.Combine(Application.persistentDataPath, "AIPlayerModel.v1.json");
         history = AtomicSaveStorage.TryRead(path, 4096, ValidateProfile, out string json, out _, out _)
             ? JsonUtility.FromJson<Profile>(json) : new Profile();
+        NormalizeSpecialHistory();
     }
     static bool Valid(float f) => !float.IsNaN(f) && !float.IsInfinity(f) && f >= 0 && f <= 1;
     static AtomicSaveStorage.Validation ValidateProfile(string json, out string reason)
@@ -42,9 +44,11 @@ public sealed class AIPlayerModel
         reason = "プレイヤー傾向の保存形式が不正です";
         if (p != null && p.Version > 1)
         { reason = "新しい形式のプレイヤー傾向を以前の版では上書きしません"; return AtomicSaveStorage.Validation.FutureSchema; }
+        if (HasFutureSpecialHistory(p))
+        { reason = "新しい固有能力の学習データを以前の版では上書きしません"; return AtomicSaveStorage.Validation.FutureSchema; }
         bool valid = p != null && p.Version == 1 && p.Matches >= 0 && p.Matches <= 1000000
             && Valid(p.Aggression) && Valid(p.Economy) && Valid(p.Scout) && Valid(p.Ranged)
-            && Valid(p.Retreat) && Valid(p.Skill) && Valid(p.Flank) && Valid(p.Turtle);
+            && Valid(p.Retreat) && Valid(p.Skill) && Valid(p.Flank) && Valid(p.Turtle) && ValidSpecialHistory(p);
         if (valid) reason = "";
         return valid ? AtomicSaveStorage.Validation.Valid : AtomicSaveStorage.Validation.Invalid;
     }
@@ -68,10 +72,14 @@ public sealed class AIPlayerModel
                 Vector3 delta = unit.transform.position - previous.Position;
                 if (Mathf.Abs(delta.x) > Mathf.Abs(delta.z) && delta.sqrMagnitude > .5f) flank++;
                 if (distance > previous.Distance + .5f) turtle++;
+                if (previous.AssassinExposed) RecordSpecialSample(UnitSpecialSkill.AssassinVisionSeal,true,
+                    distance > previous.Distance + .5f ? 1 : 0);
             }
             // This match-local position sample is never serialized into the cross-match profile.
             seen[id] = new Seen { Position=unit.transform.position, HP=(float)unit.HP/Mathf.Max(1,unit.MaxHP),
-                Distance=distance, Turn=board.TurnCount, Cooldown=unit.SkillCooldown };
+                Distance=distance, Turn=board.TurnCount, Cooldown=unit.SkillCooldown,
+                AssassinExposed=SpecialSkillRuntime.Definition(unit)?.ability==UnitSpecialSkill.AssassinVisionSeal&&unit.Special?.nextDamageDouble==true };
+            ObserveSpecialState(unit);
             if (unit.type != Type.Unit) buildings++;
             if (unit.kind == Kind.Scout) scouts++;
             if (IsRanged(unit.kind)) archers++;
@@ -128,31 +136,36 @@ public sealed class AIPlayerModel
         return profile.TotalObservations > 0 ? PlayerResponseModel.FromProfiler(profile, level, RetreatRatio) : null;
     }
 
-    public float Bonus(AIAction action, int level)
+    public float Bonus(AIAction action, int level,AIBoardState board=null)
     {
         if (level < 10) return 0;
+        float special=SpecialBonus(action,level,board);
         float scale = level == 10 ? .3f : level <= 20 ? .6f : 1f;
-        if (action.ActionType == AIActionType.DefenseRepos) return Blend(history.Aggression, aggression, level) * 12 * scale;
+        if (action.ActionType == AIActionType.DefenseRepos) return Blend(history.Aggression, aggression, level) * 12 * scale+special;
         if (action.ActionType == AIActionType.Attack && action.TargetUnit != null && action.TargetUnit.type != Type.Unit)
-            return Blend(history.Economy, economy, level) * 15 * scale;
+            return Blend(history.Economy, economy, level) * 15 * scale+special;
         if (action.ActionType == AIActionType.Summon && (action.SummonKind == Kind.Assassin || action.SummonKind == Kind.Knight))
-            return Blend(history.Ranged, ranged, level) * 12 * scale;
+            return Blend(history.Ranged, ranged, level) * 12 * scale+special;
         if (action.ActionType == AIActionType.Summon && action.SummonKind == Kind.Scout)
-            return Blend(history.Scout, scout, level) * 8 * scale;
-        return 0;
+            return Blend(history.Scout, scout, level) * 8 * scale+special;
+        return special;
     }
     public bool CompleteMatch()
     {
         if (completed) return true;
-        if (observations == 0) { completed = true; return true; }
+        if (observations == 0&&!HasSpecialObservations) { completed = true; return true; }
         var next = Snapshot;
         next.GameVersion = next.LastSavedVersion = FKBuildInfo.Current.GameVersion;
         if (string.IsNullOrEmpty(next.CreatedVersion)) next.CreatedVersion = string.IsNullOrEmpty(history.GameVersion) ? "legacy" : history.GameVersion;
         next.Matches = Mathf.Min(1000000, next.Matches + 1);
-        next.Aggression = Mathf.Lerp(history.Aggression, aggression/observations, .2f);
-        next.Economy = Mathf.Lerp(history.Economy, economy/observations, .2f);
-        next.Scout = Mathf.Lerp(history.Scout, scout/observations, .2f);
-        next.Ranged = Mathf.Lerp(history.Ranged, ranged/observations, .2f);
+        if(observations>0)
+        {
+            next.Aggression = Mathf.Lerp(history.Aggression, aggression/observations, .2f);
+            next.Economy = Mathf.Lerp(history.Economy, economy/observations, .2f);
+            next.Scout = Mathf.Lerp(history.Scout, scout/observations, .2f);
+            next.Ranged = Mathf.Lerp(history.Ranged, ranged/observations, .2f);
+        }
+        CompleteSpecialHistory(next);
         if (retreatSamples > 0) next.Retreat = Mathf.Lerp(history.Retreat, retreat / retreatSamples, .2f);
         if (responseSamples > 0)
         {

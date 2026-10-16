@@ -93,7 +93,7 @@ public static partial class AIActionGenerator
     // ================================================================
     public static void GenerateMoveCandidates(Status unit, AIBoardState board, List<AIAction> results)
     {
-        if (StatusEffectSystem.IsMovementBlocked(unit)) return;
+        if (StatusEffectSystem.IsMovementBlocked(unit) || SpecialSkillRuntime.MovementBlocked(unit)) return;
 
         var moves = board.GetValidMoves(unit);
         foreach (var dest in moves)
@@ -116,6 +116,7 @@ public static partial class AIActionGenerator
     // ================================================================
     public static void GenerateAttackCandidates(Status unit, AIBoardState board, List<AIAction> results)
     {
+        if (SpecialSkillRuntime.AttackBlocked(unit)) return;
         var targets = board.GetAttackTargets(unit);
         foreach (var target in targets)
         {
@@ -138,6 +139,7 @@ public static partial class AIActionGenerator
     // ================================================================
     public static void GenerateSkillCandidates(Status unit, AIBoardState board, List<AIAction> results)
     {
+        GenerateSpecialSkillCandidates(unit, board, results);
         if (!AttackPatterns.CanUseSkills(unit) || unit.AssignedSkillId < 0) return;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
         int skillCost = board.CalcSkillCost(unit, skill);

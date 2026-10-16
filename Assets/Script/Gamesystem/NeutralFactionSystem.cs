@@ -44,6 +44,13 @@ public class NeutralFactionSystem : MonoBehaviour
             || (b.team == Team.Intruder && (a.isWildBoss || a.team == Team.Obstacle))) return false;
         return true;
     }
+    public static bool AreHostile(Team sourceTeam, Status target)
+    {
+        if (target == null || sourceTeam == target.team || sourceTeam == Team.None || target.team == Team.None) return false;
+        if (sourceTeam == Team.Intruder && (target.isWildBoss || target.team == Team.Obstacle)) return false;
+        if (target.team == Team.Intruder && sourceTeam == Team.Obstacle) return false;
+        return true;
+    }
 
     public static bool ShouldReplenish(int round, int previous, int current)
         => round > 0 && round % 10 == 0 && current * 2 <= previous;

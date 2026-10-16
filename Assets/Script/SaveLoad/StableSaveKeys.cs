@@ -28,6 +28,9 @@ public static class StableSaveKeys
         Add(Kind.WoodWall, "WoodWall");
         Add(Kind.StoneWall, "StoneWall");
         Add(Kind.None, "None");
+        Add(Kind.WhiteMage, "WhiteMage"); Add(Kind.HolyKnight, "HolyKnight");
+        Add(Kind.Samurai, "Samurai"); Add(Kind.Ninja, "Ninja");
+        Add(Kind.Berserker, "Berserker"); Add(Kind.Navigator, "Navigator");
         Add(Team.Player, "Player");
         Add(Team.Enemy, "Enemy");
         Add(Team.Obstacle, "Obstacle");

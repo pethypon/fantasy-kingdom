@@ -1,0 +1,778 @@
+{
+    "ObservedRound": 20,
+    "Phase": "player_start",
+    "Player": {
+        "Team": "Player",
+        "Mode": "EconomicRecovery",
+        "Economy": "Warning",
+        "Foundation": "ResourceRecovery",
+        "Bottleneck": "Water",
+        "BreadCoverage": "Infinity",
+        "HasCriticalDeficit": false,
+        "HasWarningDeficit": true,
+        "BreadFailed": false,
+        "UpkeepFailed": false,
+        "ProductionStopped": false,
+        "MandatoryFailureMask": 0,
+        "InputFailureMask": 0,
+        "FirstMandatoryFailureMask": 0,
+        "FirstInputFailureMask": 0,
+        "Resources": [
+            {
+                "Resource": "Wood",
+                "StockAtDiagnosis": 47.0,
+                "Production": 28.0,
+                "MandatoryDemand": 3.0,
+                "PlannedDemand": 0.612500011920929,
+                "Net": 25.0,
+                "Reserve": 52.0,
+                "Projected": 144.5500030517578,
+                "Target": 4.862500190734863,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 28.0,
+                "PotentialProduction": 28.0,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 4,
+                "PotentialSourceCount": 4,
+                "FoundationResourceState": "Stable",
+                "FoundationPlanned": 48.75,
+                "FoundationReserve": 52.0,
+                "FoundationCoverage": 1.459057092666626,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            },
+            {
+                "Resource": "Stone",
+                "StockAtDiagnosis": 44.0,
+                "Production": 30.0,
+                "MandatoryDemand": 3.0,
+                "PlannedDemand": 0.3499999940395355,
+                "Net": 27.0,
+                "Reserve": 52.0,
+                "Projected": 150.60000610351563,
+                "Target": 5.349999904632568,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 30.0,
+                "PotentialProduction": 32.099998474121097,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 4,
+                "PotentialSourceCount": 4,
+                "FoundationResourceState": "Critical",
+                "FoundationPlanned": 56.25,
+                "FoundationReserve": 52.0,
+                "FoundationCoverage": 1.4817551374435425,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 2.383333444595337
+            },
+            {
+                "Resource": "Iron",
+                "StockAtDiagnosis": 4.0,
+                "Production": 3.0,
+                "MandatoryDemand": 2.0,
+                "PlannedDemand": 1.225000023841858,
+                "Net": 1.0,
+                "Reserve": 11.0,
+                "Projected": 3.0999999046325685,
+                "Target": 4.974999904632568,
+                "Deficit": 1.9749999046325684,
+                "Urgency": 0.718181848526001,
+                "PermanentProduction": 3.0,
+                "PotentialProduction": 3.0,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 1,
+                "PotentialSourceCount": 1,
+                "FoundationResourceState": "Critical",
+                "FoundationPlanned": 0.0,
+                "FoundationReserve": 11.0,
+                "FoundationCoverage": 0.7272727489471436,
+                "FoundationIncomeGap": 0.75,
+                "FoundationPressure": 38.376625061035159
+            },
+            {
+                "Resource": "MagicOre",
+                "StockAtDiagnosis": 12.0,
+                "Production": 0.0,
+                "MandatoryDemand": 0.0,
+                "PlannedDemand": 0.0,
+                "Net": 0.0,
+                "Reserve": 0.0,
+                "Projected": 12.0,
+                "Target": 0.0,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 0.0,
+                "PotentialProduction": 0.3499999940395355,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 0,
+                "PotentialSourceCount": 1,
+                "FoundationResourceState": "Surplus",
+                "FoundationPlanned": 0.0,
+                "FoundationReserve": 2.0,
+                "FoundationCoverage": 6.699999809265137,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            },
+            {
+                "Resource": "Wheat",
+                "StockAtDiagnosis": 39.0,
+                "Production": 12.0,
+                "MandatoryDemand": 9.0,
+                "PlannedDemand": 0.0,
+                "Net": 3.0,
+                "Reserve": 39.0,
+                "Projected": 51.0,
+                "Target": 9.0,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 12.0,
+                "PotentialProduction": 12.0,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 4,
+                "PotentialSourceCount": 4,
+                "FoundationResourceState": "Stable",
+                "FoundationPlanned": 0.0,
+                "FoundationReserve": 39.0,
+                "FoundationCoverage": 1.307692289352417,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            },
+            {
+                "Resource": "Bread",
+                "StockAtDiagnosis": 33.0,
+                "Production": 9.0,
+                "MandatoryDemand": 7.25,
+                "PlannedDemand": 0.7874999642372131,
+                "Net": 1.75,
+                "Reserve": 26.75,
+                "Projected": 36.849998474121097,
+                "Target": 8.037500381469727,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 9.0,
+                "PotentialProduction": 9.600000381469727,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 3,
+                "PotentialSourceCount": 3,
+                "FoundationResourceState": "Stable",
+                "FoundationPlanned": 0.0,
+                "FoundationReserve": 26.75,
+                "FoundationCoverage": 1.5850467681884766,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            },
+            {
+                "Resource": "Water",
+                "StockAtDiagnosis": 26.0,
+                "Production": 30.0,
+                "MandatoryDemand": 23.0,
+                "PlannedDemand": 0.3499999940395355,
+                "Net": 7.0,
+                "Reserve": 100.0,
+                "Projected": 52.599998474121097,
+                "Target": 41.849998474121097,
+                "Deficit": 11.849998474121094,
+                "Urgency": 0.4740000069141388,
+                "PermanentProduction": 30.0,
+                "PotentialProduction": 30.0,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 6,
+                "PotentialSourceCount": 6,
+                "FoundationResourceState": "Critical",
+                "FoundationPlanned": 15.0,
+                "FoundationReserve": 100.0,
+                "FoundationCoverage": 0.469565212726593,
+                "FoundationIncomeGap": 15.25,
+                "FoundationPressure": 67.97312927246094
+            },
+            {
+                "Resource": "Citizen",
+                "StockAtDiagnosis": 3.0,
+                "Production": 0.5,
+                "MandatoryDemand": 0.0,
+                "PlannedDemand": 0.08749999850988388,
+                "Net": 0.5,
+                "Reserve": 3.0,
+                "Projected": 4.650000095367432,
+                "Target": 0.08749999850988388,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 0.5,
+                "PotentialProduction": 0.5,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 1,
+                "PotentialSourceCount": 1,
+                "FoundationResourceState": "Stable",
+                "FoundationPlanned": 1.5,
+                "FoundationReserve": 3.0,
+                "FoundationCoverage": 1.1111111640930176,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            }
+        ],
+        "RecommendedFacilities": [
+            "Mine",
+            "Well"
+        ],
+        "Units": [
+            {
+                "Kind": "King",
+                "Level": 1,
+                "HP": 300,
+                "MaxHP": 300,
+                "ATK": 20,
+                "DEF": 16,
+                "Unpaid": 0
+            },
+            {
+                "Kind": "Knight",
+                "Level": 1,
+                "HP": 32,
+                "MaxHP": 32,
+                "ATK": 10,
+                "DEF": 13,
+                "Unpaid": 0
+            },
+            {
+                "Kind": "Scout",
+                "Level": 1,
+                "HP": 1,
+                "MaxHP": 20,
+                "ATK": 6,
+                "DEF": 9,
+                "Unpaid": 0
+            }
+        ],
+        "Buildings": [
+            {
+                "Facility": "Field",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "LoggingCamp",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Quarry",
+                "Definition": "",
+                "Level": 2,
+                "HP": 100
+            },
+            {
+                "Facility": "LoggingCamp",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "LoggingCamp",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "SubCrystal",
+                "Definition": "",
+                "Level": 1,
+                "HP": 5000
+            },
+            {
+                "Facility": "LoggingCamp",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "SubCrystal",
+                "Definition": "",
+                "Level": 1,
+                "HP": 5000
+            },
+            {
+                "Facility": "Quarry",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Quarry",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Quarry",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Bakery",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Bakery",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Field",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Mine",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Bakery",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Field",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Field",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            }
+        ]
+    },
+    "Enemy": {
+        "Team": "Enemy",
+        "Mode": "EconomicRecovery",
+        "Economy": "Warning",
+        "Foundation": "ResourceRecovery",
+        "Bottleneck": "Water",
+        "BreadCoverage": "Infinity",
+        "HasCriticalDeficit": false,
+        "HasWarningDeficit": true,
+        "BreadFailed": false,
+        "UpkeepFailed": false,
+        "ProductionStopped": false,
+        "MandatoryFailureMask": 0,
+        "InputFailureMask": 0,
+        "FirstMandatoryFailureMask": 0,
+        "FirstInputFailureMask": 0,
+        "Resources": [
+            {
+                "Resource": "Wood",
+                "StockAtDiagnosis": 82.0,
+                "Production": 28.0,
+                "MandatoryDemand": 2.0,
+                "PlannedDemand": 1.225000023841858,
+                "Net": 26.0,
+                "Reserve": 48.0,
+                "Projected": 181.10000610351563,
+                "Target": 3.2249999046325685,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 28.0,
+                "PotentialProduction": 28.0,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 4,
+                "PotentialSourceCount": 4,
+                "FoundationResourceState": "Surplus",
+                "FoundationPlanned": 48.75,
+                "FoundationReserve": 48.0,
+                "FoundationCoverage": 1.922480583190918,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            },
+            {
+                "Resource": "Stone",
+                "StockAtDiagnosis": 36.0,
+                "Production": 30.0,
+                "MandatoryDemand": 3.0,
+                "PlannedDemand": 0.3499999940395355,
+                "Net": 27.0,
+                "Reserve": 52.0,
+                "Projected": 142.60000610351563,
+                "Target": 7.349999904632568,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 30.0,
+                "PotentialProduction": 32.099998474121097,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 4,
+                "PotentialSourceCount": 4,
+                "FoundationResourceState": "Stable",
+                "FoundationPlanned": 56.25,
+                "FoundationReserve": 52.0,
+                "FoundationCoverage": 1.4078521728515626,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 16.5
+            },
+            {
+                "Resource": "Iron",
+                "StockAtDiagnosis": 3.0,
+                "Production": 3.0,
+                "MandatoryDemand": 2.0,
+                "PlannedDemand": 0.17499999701976777,
+                "Net": 1.0,
+                "Reserve": 11.0,
+                "Projected": 6.300000190734863,
+                "Target": 4.175000190734863,
+                "Deficit": 1.1750001907348633,
+                "Urgency": 0.4272727072238922,
+                "PermanentProduction": 3.0,
+                "PotentialProduction": 3.0,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 1,
+                "PotentialSourceCount": 1,
+                "FoundationResourceState": "Critical",
+                "FoundationPlanned": 0.0,
+                "FoundationReserve": 11.0,
+                "FoundationCoverage": 0.6363636255264282,
+                "FoundationIncomeGap": 1.0,
+                "FoundationPressure": 47.95454788208008
+            },
+            {
+                "Resource": "MagicOre",
+                "StockAtDiagnosis": 12.0,
+                "Production": 0.0,
+                "MandatoryDemand": 0.0,
+                "PlannedDemand": 0.0,
+                "Net": 0.0,
+                "Reserve": 0.0,
+                "Projected": 12.0,
+                "Target": 0.0,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 0.0,
+                "PotentialProduction": 0.3499999940395355,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 0,
+                "PotentialSourceCount": 1,
+                "FoundationResourceState": "Surplus",
+                "FoundationPlanned": 0.0,
+                "FoundationReserve": 2.0,
+                "FoundationCoverage": 6.699999809265137,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            },
+            {
+                "Resource": "Wheat",
+                "StockAtDiagnosis": 39.0,
+                "Production": 12.0,
+                "MandatoryDemand": 9.0,
+                "PlannedDemand": 0.0,
+                "Net": 3.0,
+                "Reserve": 39.0,
+                "Projected": 51.0,
+                "Target": 9.0,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 12.0,
+                "PotentialProduction": 12.0,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 4,
+                "PotentialSourceCount": 4,
+                "FoundationResourceState": "Stable",
+                "FoundationPlanned": 0.0,
+                "FoundationReserve": 39.0,
+                "FoundationCoverage": 1.307692289352417,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            },
+            {
+                "Resource": "Bread",
+                "StockAtDiagnosis": 50.0,
+                "Production": 9.0,
+                "MandatoryDemand": 7.0,
+                "PlannedDemand": 0.5249999761581421,
+                "Net": 2.0,
+                "Reserve": 26.0,
+                "Projected": 55.900001525878909,
+                "Target": 7.525000095367432,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 9.0,
+                "PotentialProduction": 9.600000381469727,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 3,
+                "PotentialSourceCount": 3,
+                "FoundationResourceState": "Surplus",
+                "FoundationPlanned": 0.0,
+                "FoundationReserve": 26.0,
+                "FoundationCoverage": 2.3230769634246828,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            },
+            {
+                "Resource": "Water",
+                "StockAtDiagnosis": 15.0,
+                "Production": 25.0,
+                "MandatoryDemand": 23.0,
+                "PlannedDemand": 1.4874999523162842,
+                "Net": 2.0,
+                "Reserve": 100.0,
+                "Projected": 17.049999237060548,
+                "Target": 45.73749923706055,
+                "Deficit": 20.737499237060548,
+                "Urgency": 0.8295000195503235,
+                "PermanentProduction": 25.0,
+                "PotentialProduction": 25.0,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 5,
+                "PotentialSourceCount": 5,
+                "FoundationResourceState": "Critical",
+                "FoundationPlanned": 15.0,
+                "FoundationReserve": 100.0,
+                "FoundationCoverage": 0.20000000298023225,
+                "FoundationIncomeGap": 23.0,
+                "FoundationPressure": 118.0250015258789
+            },
+            {
+                "Resource": "Citizen",
+                "StockAtDiagnosis": 2.0,
+                "Production": 0.75,
+                "MandatoryDemand": 0.0,
+                "PlannedDemand": 0.04374999925494194,
+                "Net": 0.75,
+                "Reserve": 3.0,
+                "Projected": 4.824999809265137,
+                "Target": 0.29374998807907107,
+                "Deficit": 0.0,
+                "Urgency": 0.0,
+                "PermanentProduction": 0.75,
+                "PotentialProduction": 0.75,
+                "TemporaryIncome": 0.0,
+                "ProducerCount": 1,
+                "PotentialSourceCount": 1,
+                "FoundationResourceState": "Stable",
+                "FoundationPlanned": 1.5,
+                "FoundationReserve": 3.0,
+                "FoundationCoverage": 1.1111111640930176,
+                "FoundationIncomeGap": 0.0,
+                "FoundationPressure": 0.0
+            }
+        ],
+        "RecommendedFacilities": [
+            "Mine",
+            "Well"
+        ],
+        "Units": [
+            {
+                "Kind": "Boss",
+                "Level": 1,
+                "HP": 500,
+                "MaxHP": 500,
+                "ATK": 30,
+                "DEF": 38,
+                "Unpaid": 0
+            },
+            {
+                "Kind": "Knight",
+                "Level": 1,
+                "HP": 32,
+                "MaxHP": 32,
+                "ATK": 10,
+                "DEF": 13,
+                "Unpaid": 7
+            },
+            {
+                "Kind": "Archer",
+                "Level": 1,
+                "HP": 24,
+                "MaxHP": 24,
+                "ATK": 15,
+                "DEF": 10,
+                "Unpaid": 7
+            }
+        ],
+        "Buildings": [
+            {
+                "Facility": "Field",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Quarry",
+                "Definition": "",
+                "Level": 2,
+                "HP": 100
+            },
+            {
+                "Facility": "LoggingCamp",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "LoggingCamp",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "LoggingCamp",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "SubCrystal",
+                "Definition": "",
+                "Level": 1,
+                "HP": 5000
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "LoggingCamp",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "SubCrystal",
+                "Definition": "",
+                "Level": 1,
+                "HP": 5000
+            },
+            {
+                "Facility": "Quarry",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Bakery",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Quarry",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Bakery",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Field",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Quarry",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Well",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Bakery",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Field",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Field",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            },
+            {
+                "Facility": "Mine",
+                "Definition": "",
+                "Level": 1,
+                "HP": 100
+            }
+        ]
+    }
+}

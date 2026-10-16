@@ -1694,6 +1694,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   KingPiece: {fileID: 7391742572600562189, guid: 27cbaddc0c6533b49895b7b4cfbc50bb, type: 3}
   StrangePiece: {fileID: 278015695529729436, guid: 8e43a77c1af032c4a8189a586db02656, type: 3}
+  initialEnemyCommanderData: {fileID: 11400000, guid: 6334c13b9286cae4091e2be56286470c, type: 2}
   KnightPiece: {fileID: 6126673137768451475, guid: 1c0e9fcc3458a01438c9c62fe0aef15b, type: 3}
   ArcherPiece: {fileID: 7391742572600562189, guid: 27cbaddc0c6533b49895b7b4cfbc50bb, type: 3}
   ScoutPiece: {fileID: 972230474144479163, guid: e8cf342b929096044a44ec7ade58ae5b, type: 3}

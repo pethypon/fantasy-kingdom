@@ -205,13 +205,17 @@ public partial class SimBoardState
             DEF = s.DEF,
             Position = GridHelper.ToGridXZ(s.transform.position),
             Direction = s.direction,
-            IsBoss = s.IsBoss,
+            IsBoss = s.IsBoss, IsPrimaryCommander = s.IsPrimaryCommander,
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
             Fatigue = s.Fatigue,
             ShieldTurns = s.ShieldTurns,
             ShieldActivated = s.ShieldActivated,
             Passive = s.passiveskill,
+            NaturalRecoverySafeTurns = Mathf.Clamp(s.NaturalRecovery?.ConsecutiveSafeTurns ?? 0, 0, NaturalRecoverySystem.SafeTurnThreshold),
+            NaturalRecoveryLastRound = s.NaturalRecovery?.LastProcessedRound ?? -1,
+            NaturalRecoveryHpLost = s.NaturalRecovery?.HpLostSinceLastOwnTurn ?? false,
+            NaturalRecoveryHasBaseline = s.NaturalRecovery?.HasTurnBaseline ?? false,
         };
 
         // ステータス効果をコピー
@@ -350,7 +354,7 @@ public partial class SimBoardState
     {
         for (int i = 0; i < Units.Count; i++)
         {
-            if (Units[i].Kind == Kind.King && Units[i].Team == team && Units[i].IsAlive)
+            if ((Units[i].Kind == Kind.King || Units[i].IsPrimaryCommander) && Units[i].Team == team && Units[i].IsAlive)
                 return Units[i];
         }
         return null;
@@ -404,7 +408,7 @@ public partial class SimBoardState
         // Only known simulated actors are checked. An unseen/missing opponent never implies victory.
         foreach (var unit in Units)
             if (unit != null && !unit.IsAlive && (unit.Team == Team.Enemy || unit.Team == Team.Player)
-                && (unit.Kind == Kind.Crystal || unit.Kind == Kind.King || unit.Kind == Kind.Boss && unit.IsBoss)) return true;
+                && MatchObjectiveRules.IsDecisive(unit.Kind, unit.Team, unit.IsPrimaryCommander)) return true;
         return false;
     }
 

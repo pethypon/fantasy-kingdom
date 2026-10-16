@@ -54,9 +54,15 @@ public sealed class ThirdFactionSystem : MonoBehaviour
         var ap = systems.APSystem;
         ap.ResetAP(Team.Monster); ap.ResetAP(Team.Intruder);
         ap.ResetFatigue(neutral.UnitParent);
+        SpecialSkillRuntime.OnOwnerTurnStart(systems, Team.Monster, round);
+        SpecialSkillRuntime.OnOwnerTurnStart(systems, Team.Intruder, round);
         StatusEffectSystem.TickAllUnits(Team.Monster, neutral.UnitParent);
         StatusEffectSystem.TickAllUnits(Team.Intruder, neutral.UnitParent);
         SpecialAbilitySystem.OnTurnStart(neutral.UnitParent);
+        systems.MapCreate?.Environment?.OnOwnerTurnStart(Team.Monster, round, systems);
+        systems.MapCreate?.Environment?.OnOwnerTurnStart(Team.Intruder, round, systems);
+        NaturalRecoverySystem.ProcessOwnerTurn(systems, Team.Monster, round);
+        NaturalRecoverySystem.ProcessOwnerTurn(systems, Team.Intruder, round);
         LastIPBefore = IP.Current;
         IP.BeginTurn();
         LastIPAfterRegen = IP.Current;

@@ -17,6 +17,7 @@ public static class SceneSmoke
     public static void Run()
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new Exception("Smoke test requires isolated project");
+        Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdomR1Validation";
         SaveCompatibilityTests.RunAll(); LongTermContentTests.EditMode(); LegacyEnumCompatibilityTests.RunAll();
@@ -54,6 +55,7 @@ public static class SceneSmoke
     public static void RunStudioFeatures()
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new Exception("Smoke test requires isolated project");
+        Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
         PlayerSettings.companyName = "CodexValidation"; PlayerSettings.productName = "FantasyKingdomR1Validation";
         EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
         SessionState.SetBool("FK.StudioFeatureSmoke", true); SessionState.SetBool(Running, true); EditorApplication.EnterPlaymode();
@@ -190,6 +192,18 @@ public static class SceneSmoke
 
     static void RunStudioFeatureChecks(GameSystems systems, TurnGenerator turn)
     {
+        PlaytestBalanceRegressionTests.PlayMode(systems);
+        CommanderPersistenceRegressionTests.PlayMode(systems);
+        ExplorationFallbackTests.PlayMode(systems);
+        SupplyReservationTests.PlayMode(systems);
+        ObservedDragonDangerTests.PlayMode(systems);
+        SpecialSkillRuntimeTests.PlayMode(systems);
+        SpecialSkillActionTests.PlayMode(systems);
+        SpecialSkillUITests.PlayMode(systems);
+        SpecialSkillAITests.PlayMode(systems);
+        NaturalRecoveryTests.PlayMode(systems);
+        TerrainEnvironmentTests.PlayMode(systems);
+        MinimumHitDamageTests.Run();
         AIHousingTests.Run(systems); AIKnownBaseTests.PlayMode(systems);
         SimulationBalanceTests.Run(systems); StudioSettingTests.PlayMode(systems, turn);
         EconomyBalanceTests.Run(systems); BuildingVisualTests.Run(systems); BuildingTransactionTests.Run(systems);

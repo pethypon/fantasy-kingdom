@@ -121,17 +121,28 @@ public static class AIBoardQuery
     public static int EstimateCounterDamageAt(AIBoardState board, Vector3 pos, Status self)
     {
         if(board.CounterCache.TryGetValue((pos,self,self.DEF),out var cached)) return cached;
-        int totalDmg = 0;
+        long totalDmg = 0;
+        // A dragon can breathe across its fixed territory even when its current position
+        // lies beyond the local index radius. Only the board's observed actors are eligible.
+        foreach (var opponent in board.AlivePlayerUnits)
+        {
+            if (!ObservedDragonThreat.IsDragon(opponent)) continue;
+            totalDmg = Math.Min(int.MaxValue, totalDmg + ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, pos));
+        }
         foreach (var pu in board.Enemies.Near(pos, 12f))
         {
-            if (!IsActiveUnit(pu) || BoardActionProfile.For(pu)?.CanAttack == false) continue;
+            if (!IsActiveUnit(pu) || ObservedDragonThreat.IsDragon(pu) || BoardActionProfile.For(pu)?.CanAttack == false
+                || SpecialSkillRuntime.AttackBlocked(pu)||pu.Special?.sniperActive==true) continue;
             float maxRange = EstimateAttackRange(pu) + 1.5f; // 移動+攻撃マージン
             float sqrThreshold = maxRange * maxRange;
             if ((pos - pu.transform.position).sqrMagnitude > sqrThreshold) continue;
-            int dmg = DamageCalculator.EstimateBaseDamage(pu.ATK, self.DEF);
-            totalDmg += dmg;
+            int raw = AIActionEvaluator.EstimateSpecialAwareAttack(pu,self,board);
+            int dmg = AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage);
+            totalDmg = Math.Min(int.MaxValue, totalDmg + dmg);
         }
-        return board.CounterCache[(pos,self,self.DEF)] = totalDmg;
+        totalDmg=Math.Min(int.MaxValue,totalDmg+AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,pos));
+        totalDmg=Math.Min(int.MaxValue,totalDmg+board.KnownEnvironmentRisk(self,pos));
+        return board.CounterCache[(pos,self,self.DEF)] = (int)totalDmg;
     }
 
     /// <summary>駒種から大まかな攻撃射程を返す</summary>

@@ -112,6 +112,7 @@ public class SlidePanelUI : MonoBehaviour
 
     public void OpenBuildPanel()
     {
+        SummonUnitTooltip.HideCurrent();
         SetTitle("建築 ・ 施設一覧");
         if (buildRoot != null) buildRoot.SetActive(true);
         if (unitRoot != null) unitRoot.SetActive(false);
@@ -146,6 +147,7 @@ public class SlidePanelUI : MonoBehaviour
     // --------------------------------------------------
     public void ClosePanel()
     {
+        SummonUnitTooltip.HideCurrent();
         isOpen = false;
         targetPos = new Vector2(closedX, panelRect.anchoredPosition.y);
     }

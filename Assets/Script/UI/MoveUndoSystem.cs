@@ -15,6 +15,7 @@ public class MoveUndoSystem : System.IDisposable
         public int APCost;
         public int FatigueBefore;
         public bool HadMovedBefore;
+        public SpecialState SpecialBefore;
     }
 
     readonly Stack<MoveRecord> _history = new Stack<MoveRecord>();
@@ -44,7 +45,8 @@ public class MoveUndoSystem : System.IDisposable
             ToPos = to,
             APCost = apCost,
             FatigueBefore = unit.Fatigue,
-            HadMovedBefore = unit.HasMovedThisTurn
+            HadMovedBefore = unit.HasMovedThisTurn,
+            SpecialBefore = SpecialSkillRuntime.CopyState(unit.Special)
         });
     }
 
@@ -77,6 +79,7 @@ public class MoveUndoSystem : System.IDisposable
         // 駒固有の追加疲労や初回移動割引も、記録時点へ正確に戻す。
         record.Unit.Fatigue = record.FatigueBefore;
         record.Unit.HasMovedThisTurn = record.HadMovedBefore;
+        record.Unit.Special = SpecialSkillRuntime.CopyState(record.SpecialBefore);
 
         // 移動範囲リセット
         _moveGen.MoveReset();

@@ -1,0 +1,128 @@
+[
+  {
+    "seed": 56192,
+    "rounds": 60,
+    "factions": {
+      "player": {
+        "final": {
+          "Wood": 200,
+          "Stone": 200,
+          "Water": 200,
+          "Iron": 113,
+          "Bread": 73,
+          "Magic": 15,
+          "Wheat": 150
+        },
+        "units": 6,
+        "buildings": 46,
+        "storage": 200,
+        "maximum_unpaid_units": 2,
+        "turns_with_unpaid_units": 2,
+        "storage_violations": 0,
+        "negative_resources": 0
+      },
+      "enemy": {
+        "final": {
+          "Wood": 200,
+          "Stone": 200,
+          "Water": 200,
+          "Iron": 47,
+          "Bread": 111,
+          "Magic": 19,
+          "Wheat": 99
+        },
+        "units": 9,
+        "buildings": 43,
+        "storage": 200,
+        "maximum_unpaid_units": 2,
+        "turns_with_unpaid_units": 5,
+        "storage_violations": 0,
+        "negative_resources": 0
+      }
+    }
+  },
+  {
+    "seed": 10369,
+    "rounds": 60,
+    "factions": {
+      "player": {
+        "final": {
+          "Wood": 200,
+          "Stone": 200,
+          "Water": 200,
+          "Iron": 47,
+          "Bread": 90,
+          "Magic": 10,
+          "Wheat": 84
+        },
+        "units": 9,
+        "buildings": 44,
+        "storage": 200,
+        "maximum_unpaid_units": 3,
+        "turns_with_unpaid_units": 10,
+        "storage_violations": 0,
+        "negative_resources": 0
+      },
+      "enemy": {
+        "final": {
+          "Wood": 84,
+          "Stone": 134,
+          "Water": 95,
+          "Iron": 61,
+          "Bread": 123,
+          "Magic": 8,
+          "Wheat": 164
+        },
+        "units": 11,
+        "buildings": 53,
+        "storage": 200,
+        "maximum_unpaid_units": 3,
+        "turns_with_unpaid_units": 9,
+        "storage_violations": 0,
+        "negative_resources": 0
+      }
+    }
+  },
+  {
+    "seed": 109477,
+    "rounds": 60,
+    "factions": {
+      "player": {
+        "final": {
+          "Wood": 38,
+          "Stone": 92,
+          "Water": 109,
+          "Iron": 30,
+          "Bread": 91,
+          "Magic": 6,
+          "Wheat": 102
+        },
+        "units": 8,
+        "buildings": 36,
+        "storage": 200,
+        "maximum_unpaid_units": 3,
+        "turns_with_unpaid_units": 8,
+        "storage_violations": 0,
+        "negative_resources": 0
+      },
+      "enemy": {
+        "final": {
+          "Wood": 200,
+          "Stone": 200,
+          "Water": 200,
+          "Iron": 50,
+          "Bread": 140,
+          "Magic": 5,
+          "Wheat": 108
+        },
+        "units": 10,
+        "buildings": 44,
+        "storage": 200,
+        "maximum_unpaid_units": 3,
+        "turns_with_unpaid_units": 10,
+        "storage_violations": 0,
+        "negative_resources": 0
+      }
+    }
+  }
+]

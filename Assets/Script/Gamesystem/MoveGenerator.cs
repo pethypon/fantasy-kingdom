@@ -150,11 +150,7 @@ public class MoveGenerator : MonoBehaviour
         for (int i = 0, count = _setpos.Count; i < count; i++)
         {
             Vector3 p = _setpos[i];
-            float dx = p.x - _objp.x;
-            float dz = p.z - _objp.z;
-
-            if (!MovePatterns.CanMove(_obj, _obj.direction, dx, dz)) continue;
-            if (!mapcreate.CanTraverse(_objp, p)) continue;
+            if (!mapcreate.IsLegalMove(_obj, _objp, p)) continue;
             if (_unitPoints.Contains(Cell(p))) continue;
 
             _movePositions.Add(p);

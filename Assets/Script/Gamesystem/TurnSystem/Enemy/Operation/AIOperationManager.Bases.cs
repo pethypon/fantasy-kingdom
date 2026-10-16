@@ -133,10 +133,15 @@ public sealed partial class AIOperationManager
         : type == AIEnemyBaseType.SubCrystal ? config.SubCrystalStrategicValue : type == AIEnemyBaseType.MilitaryFacility ? config.MilitaryFacilityStrategicValue
         : type == AIEnemyBaseType.EconomyFacility ? config.EconomyFacilityStrategicValue : type == AIEnemyBaseType.ResourceFacility ? config.ResourceFacilityStrategicValue : config.SupportFacilityStrategicValue);
 
+    static bool SupplyRecoveryRequired(AIBoardState board)
+        => board.Governor != null ? board.Governor.Mode == StrategicMode.EconomicRecovery
+            : AIStrategicGovernor.RequiresEconomicRecovery(board.ProductionDemand);
+
     void GenerateKnownBaseCandidates(AIBoardState board, int turn, AIOperationContext facts, AIPersonality personality, AIPlayerModel.Profile player)
     {
         OperationRequiredCitizenDemand = 0;
-        if (!config.EnableBaseAssault || facts.EconomyState != EconomicState.Healthy || facts.OwnCrystalThreatened || strategy == TurnStrategy.RetreatRegroup) return;
+        if (!config.EnableBaseAssault || SupplyRecoveryRequired(board)
+            || facts.OwnCrystalThreatened || strategy == TurnStrategy.RetreatRegroup) return;
         rankedBases.Clear();
         foreach (var entry in state.KnownEnemyBases) if (!entry.ConfirmedDestroyed) rankedBases.Add(entry);
         rankedBases.Sort((a, b) =>
@@ -401,7 +406,7 @@ public sealed partial class AIOperationManager
     float BaseProductionBonus(AIOperationPlan plan, AIAction action, AIBoardState board)
     {
         if (!plan.IsBaseAssault || plan.Status != AIOperationStatus.Preparing || plan.RequiredAssaultForce <= AssignedAssaultForce(plan)
-            || plan.CurrentContext.ConfirmedTargetDestroyed || plan.CurrentContext.EconomyState != EconomicState.Healthy
+            || plan.CurrentContext.ConfirmedTargetDestroyed || SupplyRecoveryRequired(board)
             || board.Governor?.Mode == StrategicMode.EmergencyDefense || action.SummonKind == Kind.King) return 0;
         return action.SummonKind == Kind.Scout ? CurrentStep(plan)?.Type == AIOperationStepType.Scout && !HasScout() ? 1 : 0 : 1;
     }

@@ -111,9 +111,8 @@ public class AIActionExecutor
     {
         var unit = action.Unit;
         var dest = action.TargetPos;
-        if (!CanAct(unit) || StatusEffectSystem.IsMovementBlocked(unit)) return false;
-        if (!MovePatterns.CanMove(unit, unit.direction,
-            dest.x-unit.transform.position.x, dest.z-unit.transform.position.z)) return false;
+        if (!CanAct(unit) || StatusEffectSystem.IsMovementBlocked(unit) || SpecialSkillRuntime.MovementBlocked(unit)) return false;
+        if (!_moveGen.mapcreate.IsLegalMove(unit, unit.transform.position, dest)) return false;
 
         if (!_apSystem.CanAct(ActorTeam, APSystem.ActionType.Move, unit,
                 unit.transform.position, dest))
@@ -126,13 +125,14 @@ public class AIActionExecutor
         _moveGen.UnitPointCore();
         if (_moveGen.IsOccupied(_moveGen.Cell(actualDest))
             || !_moveGen.mapcreate.HasTileAt(Mathf.RoundToInt(actualDest.x), Mathf.RoundToInt(actualDest.z))
-            || !_moveGen.mapcreate.CanTraverse(oldPos, actualDest)) return false;
+            || !_moveGen.mapcreate.IsLegalMove(unit, oldPos, actualDest)) return false;
 
         board.ConsumeMove(unit, actualDest);
         unit.transform.position = actualDest;
         _moveGen.MoveUpdate(oldCell, _moveGen.Cell(actualDest));
 
         unit.HasMovedThisTurn = true;
+        SpecialSkillRuntime.OnMoved(unit, oldPos, actualDest, _turnGen.Systems);
 
         // A following action in this turn must see discoveries from this move.
         // Mark dirty because multiple actions may run in the same frame.
@@ -178,13 +178,15 @@ public class AIActionExecutor
         var unit = action.Unit;
         var target = action.TargetUnit;
 
-        if (!CanAct(unit) || target == null || !target.IsAlive || !target.gameObject.activeInHierarchy
+        if (!CanAct(unit) || SpecialSkillRuntime.AttackBlocked(unit) || target == null || !target.IsAlive || !target.gameObject.activeInHierarchy
             || !NeutralFactionSystem.AreHostile(unit, target)) return false;
+        bool lockedAttack = SpecialSkillRuntime.TryGetSniperTarget(unit, out var lockedTarget);
+        if (AISpecialSkillKnowledge.SniperRestrictsTargets(unit) && (!lockedAttack || lockedTarget != target)) return false;
         var vision = _turnGen.Systems.VisionGenerator;
-        if (vision == null || !vision.IsInVisionXZ(ActorTeam, target.transform.position)) return false;
-        if (!AttackPatterns.CanAttack(unit, unit.direction,
+        if (!lockedAttack && (vision == null || !vision.IsInVisionXZ(ActorTeam, target.transform.position))) return false;
+        if (!lockedAttack && (!AttackPatterns.CanAttack(unit, unit.direction,
             target.transform.position.x-unit.transform.position.x, target.transform.position.z-unit.transform.position.z)
-            || !_moveGen.mapcreate.CanAttackAcrossTerrain(unit, target.transform.position)) return false;
+            || !_moveGen.mapcreate.CanAttackAcrossTerrain(unit, target.transform.position))) return false;
         if (!_apSystem.CanAct(ActorTeam, APSystem.ActionType.Attack, unit)) return false;
 
         var prevSelect = _turnGen.Context.SelectUnit;
@@ -241,6 +243,13 @@ public class AIActionExecutor
     // ================================================================
     bool ExecuteSkill(AIAction action, AIBoardState board)
     {
+        if (action.SpecialCommand != null)
+        {
+            if (!CanAct(action.Unit) || action.SpecialCommand.Caster != action.Unit) return false;
+            bool used = SpecialSkillRuntime.TryExecute(action.SpecialCommand, _turnGen.Systems, out _);
+            if (used) board.Refresh();
+            return used;
+        }
         var unit = action.Unit;
         var skill = action.Skill;
         if (!CanAct(unit) || !AttackPatterns.CanUseSkills(unit) || skill == null || _skillSystem == null || unit.SkillCooldown > 0

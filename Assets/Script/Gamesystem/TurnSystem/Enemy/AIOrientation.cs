@@ -32,6 +32,7 @@ public static class AIOrientation
 
     static float MoveUtility(AIBoardState board, Status unit, Direction facing)
     {
+        if(SpecialSkillRuntime.MovementBlocked(unit))return 0;
         Vector3 origin = unit.transform.position;
         bool contact = board.Recon.TryGetContactTarget(out var objective);
         float best = 0;
@@ -56,6 +57,7 @@ public static class AIOrientation
 
     public static float AttackUtility(AIBoardState board, Status unit, Direction facing)
     {
+        if(SpecialSkillRuntime.AttackBlocked(unit)||AISpecialSkillKnowledge.SniperRestrictsTargets(unit))return 0;
         float best = 0;
         foreach (var target in board.AlivePlayerUnits)
         {
@@ -63,8 +65,8 @@ public static class AIOrientation
             Vector3 offset = target.transform.position - unit.transform.position;
             if (!AttackPatterns.CanAttack(unit, facing, offset.x, offset.z)
                 || !board.ReconMap.CanAttackAcrossTerrain(unit, target.transform.position)) continue;
-            int damage = target.ShieldTurns > 0 ? 0 : AIEvalHelpers.EstimateDamage(unit, target);
-            best = Mathf.Max(best, Mathf.Min(damage, target.HP) + (damage >= target.HP ? 60 : 0));
+            int damage = AIActionEvaluator.EstimateEffectiveSpecialDamage(unit,target,board,out var victim);
+            best = Mathf.Max(best, Mathf.Min(damage, victim?.HP??0) + (victim!=null&&damage>=victim.HP ? 60 : 0));
         }
         return best;
     }

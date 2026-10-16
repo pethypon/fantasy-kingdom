@@ -43,7 +43,7 @@ public sealed class AITacticalPatterns
             {
                 if(ally==null || !ally.IsAlive || ally.type!=Type.Unit)continue;
                 if(GridHelper.ChebyshevDistance(ally.transform.position,target.transform.position)<=3)info.AlliesNearby++;
-                if(target.kind==Kind.King && target.HP<target.MaxHP*.4f && GridHelper.ChebyshevDistance(ally.transform.position,target.transform.position)<=8 && WithinTwoMoves(board,ally,target.transform.position))info.KingReachable=true;
+                if(MatchObjectiveRules.IsCommander(target) && target.HP<target.MaxHP*.4f && GridHelper.ChebyshevDistance(ally.transform.position,target.transform.position)<=8 && WithinTwoMoves(board,ally,target.transform.position))info.KingReachable=true;
             }
             info.PriestExposed=target.kind==Kind.Priest && info.EnemiesNearby==0;
             situations[target.GetInstanceID()]=info;
@@ -83,7 +83,7 @@ public sealed class AITacticalPatterns
                 case AITacticalMotif.IsolatedTarget:match=attacking && a.TargetUnit!=null && s.EnemiesNearby==0 && s.AlliesNearby>=2;break;
                 case AITacticalMotif.ExposedPriest:match=attacking && s.PriestExposed && a.Unit!=null && a.Unit.kind==Kind.Assassin;break;
                 case AITacticalMotif.ClusteredEnemies:match=a.ActionType==AIActionType.SkillUse && VisibleAreaTargets(a,b)>=3;break;
-                case AITacticalMotif.WoundedKing:match=attacking && a.TargetUnit!=null && a.TargetUnit.kind==Kind.King && s.KingReachable;break;
+                case AITacticalMotif.WoundedKing:match=attacking && a.TargetUnit!=null && MatchObjectiveRules.IsCommander(a.TargetUnit) && s.KingReachable;break;
                 case AITacticalMotif.WeakCrystal:
                     match=attacking && a.TargetUnit!=null && a.TargetUnit.team==b.OpponentTeam && a.TargetUnit.kind==Kind.Crystal && a.TargetUnit.HP<a.TargetUnit.MaxHP*.4f && s.EnemiesNearby==0;break;
                 case AITacticalMotif.SupportedRetreat:match=a.ActionType==AIActionType.Retreat && a.Unit!=null && b.CountAlliesNear(a.TargetPos,a.Unit,3)>=2;break;

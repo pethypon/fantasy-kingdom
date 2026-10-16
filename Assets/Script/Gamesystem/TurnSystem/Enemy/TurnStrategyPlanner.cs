@@ -61,9 +61,9 @@ public class TurnStrategyPlanner
         int criticalUnitCount = CountCriticalUnits(board);
         board.Governor?.Evaluate(board);
         bool econSufficient = EconomyHelper.IsEconomySufficient(board);
-        bool hasMatureEconomy = econSufficient;
         bool hasBasicEconomy = econSufficient;
         int supplyReserve = board.Governor?.GetRecoveryReserveAP(board) ?? 0;
+        bool recoveryInvestment = board.Governor?.Mode == StrategicMode.EconomicRecovery && supplyReserve > 0;
         float advantage = board.GetAdvantageRatio();
 
         // ---- 優先度ベース判定（上位条件が優先） ----
@@ -85,12 +85,12 @@ public class TurnStrategyPlanner
             decision.Strategy = TurnStrategy.RetreatRegroup;
             decision.Reason = $"瀕死駒{criticalUnitCount}体 → 再編";
         }
-        else if (!econSufficient && supplyReserve > 0)
+        else if (recoveryInvestment)
         {
             decision.Strategy = TurnStrategy.EconomyBuild;
             decision.Reason = "不足する供給を回復する実行可能な計画あり";
         }
-        else if (board.AlivePlayerUnits.Count > 0)
+        else if (board.HasPrincipalOpponentContact)
         {
             decision.Strategy = TurnStrategy.ContactEngage;
             decision.Reason = "接敵中: 経済の完成を待たず交戦";
@@ -112,26 +112,26 @@ public class TurnStrategyPlanner
             decision.Reason = "序盤の少数精鋭期";
         }
         // 5. 初接敵
-        else if (board.IsFirstContact && board.AlivePlayerUnits.Count > 0)
+        else if (board.IsFirstContact && board.HasPrincipalOpponentContact)
         {
             decision.Strategy = TurnStrategy.ContactEngage;
             decision.Reason = "初接敵 → 交戦開始";
         }
         // 6. 索敵
-        else if (board.AlivePlayerUnits.Count == 0 && board.GetExplorationRatio() < 0.6f
+        else if (!board.HasPrincipalOpponentContact && board.GetExplorationRatio() < 0.6f
             && hasBasicEconomy)
         {
             decision.Strategy = TurnStrategy.ScoutSearch;
             decision.Reason = $"敵未視認・探索率{board.GetExplorationRatio():P0}";
         }
         // 7. 中盤敵未視認
-        else if (turnCount > 10 && board.AlivePlayerUnits.Count == 0)
+        else if (turnCount > 10 && !board.HasPrincipalOpponentContact)
         {
             decision.Strategy = TurnStrategy.Balanced;
             decision.Reason = "中盤・敵未視認 → バランス";
         }
         // 8. 有利時攻勢
-        else if (advantage > 0.25f && board.AlivePlayerUnits.Count > 0)
+        else if (advantage > 0.25f && board.HasPrincipalOpponentContact)
         {
             decision.Strategy = TurnStrategy.Assault;
             decision.Reason = $"戦力有利({advantage:F2}) → 攻勢";
@@ -139,7 +139,7 @@ public class TurnStrategyPlanner
         // 9. BOSS性格の影響
         else if (personality.ShouldApplyMajorBonus)
         {
-            decision.Strategy = DecideByPersonality(personality, advantage, hasMatureEconomy);
+            decision.Strategy = DecideByPersonality(personality, advantage, recoveryInvestment);
             decision.Reason = $"{personality.Major}性格の方針判断";
         }
         else
@@ -225,7 +225,7 @@ public class TurnStrategyPlanner
     // ================================================================
     //  BOSS性格による方針微調整
     // ================================================================
-    static TurnStrategy DecideByPersonality(AIPersonality personality, float advantage, bool hasMatureEconomy)
+    static TurnStrategy DecideByPersonality(AIPersonality personality, float advantage, bool recoveryInvestment)
     {
         switch (personality.Major)
         {
@@ -236,7 +236,7 @@ public class TurnStrategyPlanner
                 if (advantage < -0.1f) return TurnStrategy.RetreatRegroup;
                 break;
             case MajorPersonality.Growth:
-                if (!hasMatureEconomy) return TurnStrategy.EconomyBuild;
+                if (recoveryInvestment) return TurnStrategy.EconomyBuild;
                 break;
         }
         return TurnStrategy.Balanced;

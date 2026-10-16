@@ -1,0 +1,18 @@
+{
+    "MapRandomInput": 56192,
+    "MaxTurns": 180,
+    "EnemyAISeed": 325265000,
+    "PlayerAISeed": 15015,
+    "ThreatLevel": 15,
+    "TerrainSeedX": 640848.875,
+    "TerrainSeedZ": 675882.4375,
+    "EnemyPersonality": "Adaptive",
+    "PlayerPersonality": "Intellect",
+    "PersistentPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdomBalance20261014_56192_9e2983838fd44c428bd258d05808fd1c",
+    "EndCondition": "game_over",
+    "Result": "Lose",
+    "OutcomeReason": "敗北理由：味方の王が撃破されました",
+    "LastRound": 58,
+    "GameOver": true,
+    "Seconds": 145.3434686
+}

@@ -97,12 +97,14 @@ public struct ExplorationActor
     public Kind Kind;
     public int HP;
     public bool CanAct;
+    public bool IsFallbackExplorer;
     public IReadOnlyList<Vector2Int> MovementOffsets;
     public bool MovementDirectionIndependent;
     public Direction Direction;
     public ExplorationActor(int unitId, Vector3Int cell, Kind kind = Kind.Scout, int hp = 100, bool canAct = true, string actorLifeId = null)
     {
         UnitId = unitId; Cell = cell; Kind = kind; HP = hp; CanAct = canAct; ActorLifeId = actorLifeId ?? unitId.ToString();
+        IsFallbackExplorer = false;
         MovementOffsets = null; MovementDirectionIndependent = MovePatterns.IsDirectionIndependent(kind, null); Direction = global::Direction.N;
     }
 }

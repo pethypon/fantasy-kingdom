@@ -21,6 +21,8 @@ public sealed class AIEconomySettings
     [Range(0, 1)] public float emergencyKingDamageFraction = .4f;
     [Range(0, 1)] public float emergencyCrystalDamageFraction = .75f;
     [Range(0, 1)] public float criticalReserveFraction = .25f;
+    [Range(3, 32)] public int minimumChanceReserveSources = 3;
+    [Range(0, 1)] public float chanceReserveCredit = .5f;
     public bool enableDecisionLogs;
     public AIBasicResourceSettings basicResources = new AIBasicResourceSettings();
     [Range(0, 1)] public float sustainedDeficitUrgency = .35f;

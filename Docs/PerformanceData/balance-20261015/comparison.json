@@ -1,0 +1,580 @@
+[
+  {
+    "Batch": "balance-study-20261014",
+    "Seed": 10369,
+    "End": "turn_limit",
+    "Result": "unresolved",
+    "Rounds": 180,
+    "Seconds": 555.6,
+    "AISeed": 325700859,
+    "Personality": "Intellect",
+    "Sides": {
+      "player": {
+        "Recovery": 172,
+        "Warning": 151,
+        "Unpaid": 10,
+        "FirstContact": null,
+        "LateRounds": 141,
+        "CapWoodStoneWater": 99,
+        "Final": {
+          "Units": 13,
+          "Scouts": 1,
+          "Buildings": 62,
+          "Explored": 1019,
+          "Moves": 1092,
+          "Attacks": 304,
+          "Summons": 38,
+          "Damage": 687,
+          "KingHP": 300,
+          "BossHP": -1,
+          "CrystalHP": 16000
+        },
+        "MaxUnits": 14,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 174,
+        "Warning": 156,
+        "Unpaid": 5,
+        "FirstContact": null,
+        "LateRounds": 141,
+        "CapWoodStoneWater": 104,
+        "Final": {
+          "Units": 12,
+          "Scouts": 0,
+          "Buildings": 61,
+          "Explored": 1073,
+          "Moves": 1461,
+          "Attacks": 5,
+          "Summons": 25,
+          "Damage": 100,
+          "KingHP": -1,
+          "BossHP": 105000,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 15,
+        "MaxBossHP": 105000
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261014",
+    "Seed": 109477,
+    "End": "turn_limit",
+    "Result": "unresolved",
+    "Rounds": 180,
+    "Seconds": 827.7,
+    "AISeed": 326322906,
+    "Personality": "Intellect",
+    "Sides": {
+      "player": {
+        "Recovery": 172,
+        "Warning": 98,
+        "Unpaid": 8,
+        "FirstContact": 68,
+        "LateRounds": 141,
+        "CapWoodStoneWater": 64,
+        "Final": {
+          "Units": 13,
+          "Scouts": 0,
+          "Buildings": 63,
+          "Explored": 572,
+          "Moves": 859,
+          "Attacks": 332,
+          "Summons": 38,
+          "Damage": 7872,
+          "KingHP": 432,
+          "BossHP": -1,
+          "CrystalHP": 14985
+        },
+        "MaxUnits": 13,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 152,
+        "Warning": 132,
+        "Unpaid": 10,
+        "FirstContact": 49,
+        "LateRounds": 141,
+        "CapWoodStoneWater": 92,
+        "Final": {
+          "Units": 11,
+          "Scouts": 0,
+          "Buildings": 53,
+          "Explored": 1411,
+          "Moves": 973,
+          "Attacks": 316,
+          "Summons": 79,
+          "Damage": 7507,
+          "KingHP": -1,
+          "BossHP": -1,
+          "CrystalHP": 16000
+        },
+        "MaxUnits": 12,
+        "MaxBossHP": 513000
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261014",
+    "Seed": 56192,
+    "End": "game_over",
+    "Result": "Lose",
+    "Rounds": 58,
+    "Seconds": 145.3,
+    "AISeed": 325265000,
+    "Personality": "Adaptive",
+    "Sides": {
+      "player": {
+        "Recovery": 54,
+        "Warning": 49,
+        "Unpaid": 0,
+        "FirstContact": null,
+        "LateRounds": 19,
+        "CapWoodStoneWater": 14,
+        "Final": {
+          "Units": 8,
+          "Scouts": 0,
+          "Buildings": 44,
+          "Explored": 1205,
+          "Moves": 360,
+          "Attacks": 22,
+          "Summons": 17,
+          "Damage": 38,
+          "KingHP": 0,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 9,
+        "MaxBossHP": null
+      },
+      "enemy": {
+        "Recovery": 43,
+        "Warning": 26,
+        "Unpaid": 4,
+        "FirstContact": null,
+        "LateRounds": 19,
+        "CapWoodStoneWater": 4,
+        "Final": {
+          "Units": 10,
+          "Scouts": 0,
+          "Buildings": 48,
+          "Explored": 807,
+          "Moves": 390,
+          "Attacks": 19,
+          "Summons": 12,
+          "Damage": 96,
+          "KingHP": 0,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 10,
+        "MaxBossHP": null
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261014-repeat",
+    "Seed": 161803,
+    "End": "turn_limit",
+    "Result": "unresolved",
+    "Rounds": 80,
+    "Seconds": 282.7,
+    "AISeed": 328925437,
+    "Personality": "Intellect",
+    "Sides": {
+      "player": {
+        "Recovery": 76,
+        "Warning": 56,
+        "Unpaid": 7,
+        "FirstContact": 59,
+        "LateRounds": 41,
+        "CapWoodStoneWater": 0,
+        "Final": {
+          "Units": 6,
+          "Scouts": 1,
+          "Buildings": 38,
+          "Explored": 582,
+          "Moves": 412,
+          "Attacks": 81,
+          "Summons": 11,
+          "Damage": 141,
+          "KingHP": 390,
+          "BossHP": -1,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 6,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 69,
+        "Warning": 42,
+        "Unpaid": 8,
+        "FirstContact": 50,
+        "LateRounds": 41,
+        "CapWoodStoneWater": 23,
+        "Final": {
+          "Units": 13,
+          "Scouts": 0,
+          "Buildings": 49,
+          "Explored": 1149,
+          "Moves": 517,
+          "Attacks": 38,
+          "Summons": 15,
+          "Damage": 851,
+          "KingHP": -1,
+          "BossHP": 20000,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 14,
+        "MaxBossHP": 20000
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261014-repeat",
+    "Seed": 271828,
+    "End": "game_over",
+    "Result": "Lose",
+    "Rounds": 112,
+    "Seconds": 339.0,
+    "AISeed": 327953468,
+    "Personality": "Intellect",
+    "Sides": {
+      "player": {
+        "Recovery": 107,
+        "Warning": 80,
+        "Unpaid": 10,
+        "FirstContact": null,
+        "LateRounds": 73,
+        "CapWoodStoneWater": 49,
+        "Final": {
+          "Units": 8,
+          "Scouts": 0,
+          "Buildings": 57,
+          "Explored": 820,
+          "Moves": 777,
+          "Attacks": 6,
+          "Summons": 21,
+          "Damage": 6,
+          "KingHP": 0,
+          "BossHP": -1,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 12,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 110,
+        "Warning": 90,
+        "Unpaid": 7,
+        "FirstContact": null,
+        "LateRounds": 73,
+        "CapWoodStoneWater": 54,
+        "Final": {
+          "Units": 5,
+          "Scouts": 0,
+          "Buildings": 49,
+          "Explored": 888,
+          "Moves": 506,
+          "Attacks": 77,
+          "Summons": 54,
+          "Damage": 114,
+          "KingHP": -1,
+          "BossHP": 37000,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 9,
+        "MaxBossHP": 37000
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261014-repeat",
+    "Seed": 314159,
+    "End": "turn_limit",
+    "Result": "unresolved",
+    "Rounds": 80,
+    "Seconds": 242.6,
+    "AISeed": 328546218,
+    "Personality": "Growth",
+    "Sides": {
+      "player": {
+        "Recovery": 66,
+        "Warning": 50,
+        "Unpaid": 9,
+        "FirstContact": 67,
+        "LateRounds": 41,
+        "CapWoodStoneWater": 29,
+        "Final": {
+          "Units": 10,
+          "Scouts": 0,
+          "Buildings": 49,
+          "Explored": 1295,
+          "Moves": 543,
+          "Attacks": 28,
+          "Summons": 12,
+          "Damage": 387,
+          "KingHP": 300,
+          "BossHP": -1,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 10,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 73,
+        "Warning": 55,
+        "Unpaid": 10,
+        "FirstContact": 60,
+        "LateRounds": 41,
+        "CapWoodStoneWater": 7,
+        "Final": {
+          "Units": 12,
+          "Scouts": 1,
+          "Buildings": 43,
+          "Explored": 839,
+          "Moves": 424,
+          "Attacks": 148,
+          "Summons": 24,
+          "Damage": 8915,
+          "KingHP": -1,
+          "BossHP": 571328,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 13,
+        "MaxBossHP": 571328
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261015-improved",
+    "Seed": 161803,
+    "End": "game_over",
+    "Result": "Lose",
+    "Rounds": 113,
+    "Seconds": 403.9,
+    "AISeed": 22279656,
+    "Personality": "Combat",
+    "Sides": {
+      "player": {
+        "Recovery": 24,
+        "Warning": 92,
+        "Unpaid": 0,
+        "FirstContact": 42,
+        "LateRounds": 74,
+        "CapWoodStoneWater": 21,
+        "Final": {
+          "Units": 10,
+          "Scouts": 1,
+          "Buildings": 45,
+          "Explored": 760,
+          "Moves": 521,
+          "Attacks": 43,
+          "Summons": 30,
+          "Damage": 319,
+          "KingHP": 0,
+          "BossHP": -1,
+          "CrystalHP": 16000
+        },
+        "MaxUnits": 13,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 68,
+        "Warning": 91,
+        "Unpaid": 0,
+        "FirstContact": 43,
+        "LateRounds": 74,
+        "CapWoodStoneWater": 44,
+        "Final": {
+          "Units": 13,
+          "Scouts": 0,
+          "Buildings": 59,
+          "Explored": 1143,
+          "Moves": 912,
+          "Attacks": 61,
+          "Summons": 20,
+          "Damage": 623,
+          "KingHP": -1,
+          "BossHP": 550,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 13,
+        "MaxBossHP": 550
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261015-improved",
+    "Seed": 271828,
+    "End": "turn_limit",
+    "Result": "unresolved",
+    "Rounds": 180,
+    "Seconds": 707.4,
+    "AISeed": 20818328,
+    "Personality": "Intellect",
+    "Sides": {
+      "player": {
+        "Recovery": 44,
+        "Warning": 161,
+        "Unpaid": 4,
+        "FirstContact": 25,
+        "LateRounds": 141,
+        "CapWoodStoneWater": 80,
+        "Final": {
+          "Units": 15,
+          "Scouts": 1,
+          "Buildings": 66,
+          "Explored": 732,
+          "Moves": 1201,
+          "Attacks": 60,
+          "Summons": 19,
+          "Damage": 973,
+          "KingHP": 300,
+          "BossHP": -1,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 15,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 123,
+        "Warning": 126,
+        "Unpaid": 8,
+        "FirstContact": 35,
+        "LateRounds": 141,
+        "CapWoodStoneWater": 51,
+        "Final": {
+          "Units": 13,
+          "Scouts": 0,
+          "Buildings": 69,
+          "Explored": 970,
+          "Moves": 1080,
+          "Attacks": 191,
+          "Summons": 43,
+          "Damage": 5129,
+          "KingHP": -1,
+          "BossHP": 500,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 13,
+        "MaxBossHP": 500
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261015-improved",
+    "Seed": 314159,
+    "End": "turn_limit",
+    "Result": "unresolved",
+    "Rounds": 180,
+    "Seconds": 727.5,
+    "AISeed": 21538468,
+    "Personality": "Adaptive",
+    "Sides": {
+      "player": {
+        "Recovery": 31,
+        "Warning": 130,
+        "Unpaid": 0,
+        "FirstContact": 29,
+        "LateRounds": 141,
+        "CapWoodStoneWater": 10,
+        "Final": {
+          "Units": 13,
+          "Scouts": 1,
+          "Buildings": 56,
+          "Explored": 1110,
+          "Moves": 1074,
+          "Attacks": 225,
+          "Summons": 47,
+          "Damage": 344,
+          "KingHP": 300,
+          "BossHP": -1,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 15,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 29,
+        "Warning": 174,
+        "Unpaid": 0,
+        "FirstContact": null,
+        "LateRounds": 141,
+        "CapWoodStoneWater": 94,
+        "Final": {
+          "Units": 13,
+          "Scouts": 0,
+          "Buildings": 50,
+          "Explored": 1133,
+          "Moves": 1296,
+          "Attacks": 189,
+          "Summons": 13,
+          "Damage": 413,
+          "KingHP": -1,
+          "BossHP": 278,
+          "CrystalHP": 16000
+        },
+        "MaxUnits": 13,
+        "MaxBossHP": 500
+      }
+    }
+  },
+  {
+    "Batch": "balance-study-20261015-confirmed",
+    "Seed": 271828,
+    "End": "turn_limit",
+    "Result": "unresolved",
+    "Rounds": 120,
+    "Seconds": 566.5,
+    "AISeed": 22840718,
+    "Personality": "Combat",
+    "Sides": {
+      "player": {
+        "Recovery": 40,
+        "Warning": 73,
+        "Unpaid": 9,
+        "FirstContact": 19,
+        "LateRounds": 81,
+        "CapWoodStoneWater": 43,
+        "Final": {
+          "Units": 10,
+          "Scouts": 1,
+          "Buildings": 42,
+          "Explored": 1029,
+          "Moves": 760,
+          "Attacks": 20,
+          "Summons": 57,
+          "Damage": 25,
+          "KingHP": 247,
+          "BossHP": -1,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 10,
+        "MaxBossHP": -1
+      },
+      "enemy": {
+        "Recovery": 29,
+        "Warning": 69,
+        "Unpaid": 0,
+        "FirstContact": 39,
+        "LateRounds": 81,
+        "CapWoodStoneWater": 24,
+        "Final": {
+          "Units": 12,
+          "Scouts": 2,
+          "Buildings": 38,
+          "Explored": 965,
+          "Moves": 657,
+          "Attacks": 185,
+          "Summons": 45,
+          "Damage": 204,
+          "KingHP": -1,
+          "BossHP": 476,
+          "CrystalHP": 15000
+        },
+        "MaxUnits": 12,
+        "MaxBossHP": 500
+      }
+    }
+  }
+]

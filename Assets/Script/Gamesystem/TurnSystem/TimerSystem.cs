@@ -210,7 +210,7 @@ public class TimerSystem : MonoBehaviour
         if (parent == null) return null;
         foreach (Status s in parent.GetComponentsInChildren<Status>())
         {
-            if (s.kind == Kind.King && s.gameObject.activeSelf)
+            if (MatchObjectiveRules.IsCommander(s) && s.gameObject.activeSelf)
                 return s;
         }
         return null;

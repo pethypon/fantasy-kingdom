@@ -39,6 +39,7 @@ public class BuildValidator
     public string PlacementFailure(Vector3Int pos, FacilityKind facility, SubCrystalSystem subCrystalSystem, CrystalSystem crystalsystem)
     {
         if (mapcreate == null || !mapcreate.HasTileAt(pos.x,pos.z)) return "配置不可：建築できる地面がありません";
+        if (mapcreate.Environment.BlocksMovement(pos.x, pos.z)) return "配置不可：岩場などの障害物があります";
         if (FacilityData.IsSubCrystal(facility))
             return subCrystalSystem != null && subCrystalSystem.CanPlaceSubCrystal(pos,Team.Player)
                 ? null : "配置不可：視界内・領地から離れた空き地が必要です";

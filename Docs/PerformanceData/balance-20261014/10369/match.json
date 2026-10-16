@@ -1,0 +1,18 @@
+{
+    "MapRandomInput": 10369,
+    "MaxTurns": 180,
+    "EnemyAISeed": 325700859,
+    "PlayerAISeed": 15015,
+    "ThreatLevel": 15,
+    "TerrainSeedX": 786814.9375,
+    "TerrainSeedZ": 21942.01953125,
+    "EnemyPersonality": "Intellect",
+    "PlayerPersonality": "Intellect",
+    "PersistentPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdomBalance20261014_10369_b3b3cc8a1e3f4d12b4467b1590d44e18",
+    "EndCondition": "turn_limit",
+    "Result": "unresolved",
+    "OutcomeReason": "",
+    "LastRound": 180,
+    "GameOver": false,
+    "Seconds": 555.6430806000001
+}

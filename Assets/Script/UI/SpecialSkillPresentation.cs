@@ -1,0 +1,226 @@
+using System.Text;
+using UnityEngine;
+
+/// <summary>Japanese text reads the same definition and durable state as gameplay.</summary>
+public static class SpecialSkillPresentation
+{
+    public static string Name(UnitSpecialSkill ability) => ability switch
+    {
+        UnitSpecialSkill.KnightBreakthrough => "前方突破",
+        UnitSpecialSkill.ArcherStationary => "未移動強化",
+        UnitSpecialSkill.MagicRitual => "生命変換必中魔法",
+        UnitSpecialSkill.AssassinVisionSeal => "完全視界封鎖",
+        UnitSpecialSkill.ScoutVisionGuard => "視界犠牲防御",
+        UnitSpecialSkill.PriestPurification => "完全浄化",
+        UnitSpecialSkill.GuardianLifeLink => "生命接続",
+        UnitSpecialSkill.CrossbowStakes => "雷杭",
+        UnitSpecialSkill.MagicSniperLock => "超遠距離ロック",
+        UnitSpecialSkill.LifeBomb => "生命爆弾",
+        UnitSpecialSkill.WhiteMageHeal => "白魔法の回復",
+        UnitSpecialSkill.HolyKnightSanctuary => "聖騎士の聖域",
+        UnitSpecialSkill.SamuraiCounter => "刀ゲージ・反撃",
+        UnitSpecialSkill.NinjaSwap => "味方との位置交換",
+        UnitSpecialSkill.BerserkerRage => "狂戦士の強化",
+        UnitSpecialSkill.NavigatorPull => "正面への引き寄せ",
+        _ => "なし"
+    };
+
+    public static string Name(SpecialSkillDefinition definition) => definition == null ? "駒固有能力なし"
+        : string.IsNullOrWhiteSpace(definition.displayName) ? Name(definition.ability) : definition.displayName;
+
+    public static string Description(SpecialSkillDefinition definition)
+    {
+        if (definition == null) return "この駒には駒固有能力が設定されていません。";
+        string text = definition.ability switch
+        {
+            UnitSpecialSkill.KnightBreakthrough => "正面へ最大3マス、敵を押して前進します。後方が塞がると停止します。",
+            UnitSpecialSkill.ArcherStationary => $"移動しないターンに応じて攻撃力が上昇（上限×{SpecialSkillDefinition.ArcherMaximum:0.##}）。強制移動を含む移動でリセットします。中間倍率は設定した曲線に従います。",
+            UnitSpecialSkill.MagicRitual => $"視界内の敵駒1体をロックし、選択した周囲の味方から最大HPの{SpecialSkillDefinition.RitualSacrifice:P0}を直接削減。次の自軍ターンに削減合計と同じ防御無視ダメージを与えます。供儀HPは返りません。使用ターンは移動できません。",
+            UnitSpecialSkill.AssassinVisionSeal => "視界内の敵1体の視界を2ターン0にします。自身に「次に実際に受けるダメージ×2」が付き、被弾するまで残ります。",
+            UnitSpecialSkill.ScoutVisionGuard => "発動時の視界内の味方に、2ターンの間「次のダメージ1回無効」を付与。自身の視界は2低下します。後から範囲へ入った味方には付きません。",
+            UnitSpecialSkill.PriestPurification => "自身が強制死亡し、死亡地点の周囲2マスにいる敵味方の通常バフ・デバフを解除します。爆弾・生命接続・杭・標的ロック等の特殊状態は消しません。",
+            UnitSpecialSkill.GuardianLifeLink => "味方の駒または建物1つと生命接続します。受けた攻撃ダメージを相手へ転送。転送先が致死になる場合は転送せず、攻撃された側が強制死亡して接続が切れます。",
+            UnitSpecialSkill.CrossbowStakes => $"敵へ杭を最大2本付与し、両者の現在位置を結ぶ雷線を作ります。杭は各付与から{SpecialSkillDefinition.StakeLifetime}ターン。3本目は古いAを除き、Bを経過時間を保ったままAへ更新します。",
+            UnitSpecialSkill.MagicSniperLock => $"視界内の敵1体をロック。次ターンはその敵だけを距離・視界に関係なく通常攻撃できます。距離{SpecialSkillDefinition.SniperMaximumDistance}マスで上限×{SpecialSkillDefinition.SniperMaximum:0.##}、自己反動は最大HPの上限{SpecialSkillDefinition.SniperMaximumRecoil:P0}/ターン。",
+            UnitSpecialSkill.LifeBomb => $"自分または味方へ追従する爆弾を付与。{SpecialSkillDefinition.BombDelay}ターン後、所持者の最大HPの{SpecialSkillDefinition.BombFraction:P0}を直接削減し、同じ基準量の防御無視ダメージに変えます。爆発範囲・陣営・死亡時処理は設定に従います。",
+            UnitSpecialSkill.WhiteMageHeal => $"視界内の味方駒1体を最大HPの{SpecialSkillDefinition.WhiteMageHealFraction:P0}回復します。通常攻撃も行えます。",
+            UnitSpecialSkill.HolyKnightSanctuary => $"自身中心の設定範囲で3ターン、毎ターン最大HPの{SpecialSkillDefinition.HolyKnightHealFraction:P0}回復。発動中は移動・攻撃不可で被ダメージ×2。範囲と中断条件は設定に従います。",
+            UnitSpecialSkill.SamuraiCounter => $"通常攻撃で刀ゲージが上昇。MAX中に攻撃を受けると、受けたダメージ×{SpecialSkillDefinition.SamuraiCounterFraction:0.##}＋自身の攻撃力で反撃し、与ダメージ分回復。元の攻撃は受けます。MAX保持は最大3ターン。",
+            UnitSpecialSkill.NinjaSwap => "マップ上の自分以外の味方駒1体と位置交換します。距離・自身の視界による制限はありません。敵は選べません。",
+            UnitSpecialSkill.BerserkerRage => $"使用するたびに強化が1段階進み、最大5段階になります。攻撃力上昇（上限×{SpecialSkillDefinition.BerserkerMaximum:0.##}）・防御低下・通常攻撃AP＋1。次の通常攻撃でこのスキルによる強化と弱体だけを解除します。各段階の倍率は設定に従います。",
+            UnitSpecialSkill.NavigatorPull => "視界内の敵1体を自分の正面1マスへ強制移動します。",
+            _ => "駒固有能力の種類を設定してください。"
+        };
+        if (!definition.IsPassive && definition.ability != UnitSpecialSkill.BerserkerRage)
+            text += $"\n使用AP：{Configured(definition.apCost)}　再使用待機：{Configured(definition.cooldown)}ターン";
+        if (definition.ability == UnitSpecialSkill.BerserkerRage && definition.stageAPCosts != null)
+            text += "\n1〜5段階の強化AP：" + string.Join(" / ", definition.stageAPCosts) + $"　再使用待機：{Configured(definition.cooldown)}ターン";
+        if (definition.ConfigurationError != null) text += "\n<color=#FFD0A0>" + definition.ConfigurationError + "</color>";
+        return text;
+    }
+
+    static string Configured(int value) => value < 0 ? "未設定" : value.ToString();
+    public static string PassiveDescription(SpecialSkillDefinition definition)
+    {
+        if (definition == null) return "なし";
+        switch (definition.ability)
+        {
+            case UnitSpecialSkill.KnightBreakthrough:
+                return "視界内の敵ATK低下：" + (definition.knightVisibleEnemyAtkPenalty < 0 ? "未設定" : definition.knightVisibleEnemyAtkPenalty.ToString("P0"))
+                    + $"。自身の視界外からの攻撃は通常倍率にさらに×{SpecialSkillDefinition.KnightBlindSpotMultiplier}。";
+            case UnitSpecialSkill.ArcherStationary: return $"未移動で攻撃倍率上昇（最大×{SpecialSkillDefinition.ArcherMaximum}）、強制移動でも蓄積リセット。";
+            case UnitSpecialSkill.SamuraiCounter: return Description(definition);
+            case UnitSpecialSkill.NinjaSwap: return "未攻撃ターンでクナイを最大5段階強化。視界外攻撃は通常の40%。";
+            case UnitSpecialSkill.BerserkerRage: return "HPが少ないほど通常攻撃APが低下します（設定した曲線に従います）。";
+            case UnitSpecialSkill.NavigatorPull: return $"正面1マスへ通常攻撃。残りAPに応じて最大×{SpecialSkillDefinition.NavigatorMaximum}。";
+            default: return "常時能力はありません。スキルの効果・代償は上記の固有スキルに従います。";
+        }
+    }
+
+    public static bool HasState(Status actor)
+    {
+        var state = actor?.Special;
+        return SpecialSkillRuntime.Definition(actor) != null || state != null &&
+            (state.ritualActive || state.sniperActive || !string.IsNullOrEmpty(state.guardianPartnerId)
+            || !string.IsNullOrEmpty(state.stakeAId) || !string.IsNullOrEmpty(state.bombCasterId)
+            || state.nextDamageDouble || state.visionZeroTurns > 0 || state.damageNullUnused
+            || state.holyKnightTurns > 0 || state.samuraiGauge > 0 || state.ninjaCharge > 0 || state.berserkerStage > 0);
+    }
+
+    public static string Summary(Status actor)
+    {
+        var state = actor?.Special;
+        if (state == null) return string.Empty;
+        if (state.damageNullUnused && state.damageNullTurns > 0) return "【無効】次のダメージ1回無効";
+        if (state.nextDamageDouble) return "【危険】次の被ダメージ×2";
+        if (state.visionZeroTurns > 0) return $"【視界0】残り{state.visionZeroTurns}ターン";
+        if (!string.IsNullOrEmpty(state.bombCasterId)) return $"【生命爆弾】爆発予約あり";
+        if (state.ritualActive) return $"【儀式】供儀合計{state.storedSacrificeDamage}";
+        if (!string.IsNullOrEmpty(state.guardianPartnerId)) return "【生命接続】状態を確認";
+        if (state.sniperActive) return "【狙撃ロック】状態を確認";
+        var definition = SpecialSkillRuntime.Definition(actor);
+        return definition?.ability == UnitSpecialSkill.ArcherStationary
+            ? $"未移動 {state.stationaryTurns}ターン　攻撃×{definition.ArcherMultiplier(state.stationaryTurns):0.##}"
+            : definition != null ? "固有：" + Name(definition) + (definition.ConfigurationError != null ? "（設定を確認）" : "") : string.Empty;
+    }
+
+    public static string Details(Status actor, int round)
+    {
+        if (actor == null) return string.Empty;
+        var definition = SpecialSkillRuntime.Definition(actor);
+        var state = actor.Special;
+        var text = definition != null && definition.ability != UnitSpecialSkill.None
+            ? new StringBuilder("<b>固有スキル</b>\n").Append(definition.IsPassive ? "使用スキルなし（常時発動）" : Description(definition))
+                .Append("\n\n<b>固有アビリティ</b>\n").Append(PassiveDescription(definition))
+            : new StringBuilder("<b>通常スキル</b>\n").Append(SkillDescription(actor.AssignedSkillId))
+                .Append("\n\n<b>常時能力</b>\n").Append(PassiveDescription(actor.passiveskill))
+                .Append("\n\n<b>設定されたアビリティ</b>\n").Append(AbilityDescription(actor.specialAbility));
+        if (actor.type == Type.Unit)
+        {
+            int safe = Mathf.Clamp(actor.NaturalRecovery?.ConsecutiveSafeTurns ?? 0, 0, NaturalRecoverySystem.SafeTurnThreshold);
+            text.Append("\n\n<b>共通・自然回復</b>\nHPを失わず5ターン経過後、毎ターン最大HP10%回復。")
+                .Append("\n無損失経過：").Append(safe).Append(" / 5ターン／回復量：").Append(NaturalRecoverySystem.HealAmount(actor.MaxHP));
+        }
+        if (state == null) return text.ToString();
+        text.Append("\n\n<b>現在の特殊状態</b>");
+        bool any = false;
+        void Line(string value) { text.Append('\n').Append(value); any = true; }
+        if (state.cooldown > 0) Line($"再使用待機：あと{state.cooldown}ターン");
+        if (definition?.ability == UnitSpecialSkill.ArcherStationary)
+            Line($"未移動：{state.stationaryTurns}ターン／現在の攻撃倍率×{definition.ArcherMultiplier(state.stationaryTurns):0.##}");
+        if (state.ritualActive) Line($"儀式対象：{TargetName(state.ritualTargetId)}／供儀合計：{state.storedSacrificeDamage}／発射まで自軍{Mathf.Max(0, state.ritualFireTurn - state.ownerTurn)}ターン");
+        if (state.nextDamageDouble) Line("次に実際に受けるダメージ×2（被弾まで持続）");
+        if (state.visionZeroTurns > 0) Line($"視界0：あと{state.visionZeroTurns}ターン");
+        if (state.scoutVisionPenaltyTurns > 0) Line($"斥候の視界−2：あと{state.scoutVisionPenaltyTurns}ターン");
+        if (state.damageNullUnused && state.damageNullTurns > 0) Line($"【無効】次のダメージ1回無効：あと{state.damageNullTurns}ターン");
+        if (!string.IsNullOrEmpty(state.guardianPartnerId)) Line("生命接続先：" + TargetName(state.guardianPartnerId));
+        if (!string.IsNullOrEmpty(state.stakeAId))
+        {
+            int age = Mathf.Max(1, state.ownerTurn - state.stakeAAppliedTurn + 1);
+            Line($"杭A：{TargetName(state.stakeAId)}／残り{Mathf.Max(0, SpecialSkillDefinition.StakeLifetime - age + 1)}ターン");
+            if (!string.IsNullOrEmpty(state.stakeBId)) Line($"杭B：{TargetName(state.stakeBId)}／残り{Mathf.Max(0, SpecialSkillDefinition.StakeLifetime - Mathf.Max(1, state.ownerTurn - state.stakeBAppliedTurn + 1) + 1)}ターン");
+            if (!string.IsNullOrEmpty(state.stakeBId)) Line($"雷線の現在倍率：×{SpecialSkillRuntime.LightningMultiplier(actor):0.##}");
+        }
+        if (state.sniperActive)
+        {
+            Line("狙撃対象：" + TargetName(state.sniperTargetId));
+            if (definition != null && TryFind(state.sniperTargetId, out var target))
+            {
+                float distance = Mathf.Max(Mathf.Abs(actor.GridPosition.x - target.GridPosition.x), Mathf.Abs(actor.GridPosition.z - target.GridPosition.z));
+                Line($"距離：{distance:0.#}マス／攻撃×{definition.SniperMultiplier(distance):0.##}／反動：最大HPの{definition.SniperRecoil(distance):P0}");
+            }
+            Line($"発射可能まで自軍{Mathf.Max(0, state.sniperFireTurn - state.ownerTurn)}ターン");
+        }
+        if (!string.IsNullOrEmpty(state.bombCasterId)) Line($"生命爆弾：あと{Mathf.Max(0, state.bombDueRound - round)}ターン／予定威力：{SpecialSkillRuntime.FractionOfMaximum(actor, SpecialSkillDefinition.BombFraction)}");
+        if (state.samuraiGauge > 0) Line($"刀ゲージ：{state.samuraiGauge}／MAX保持残り：{state.samuraiMaxTurns}ターン");
+        if (state.ninjaCharge > 0) Line($"クナイ強化：{state.ninjaCharge}段階");
+        if (state.berserkerStage > 0) Line($"狂戦士の強化：{state.berserkerStage}段階");
+        if (state.holyKnightTurns > 0 || state.holyKnightRecoveryLock) Line($"聖域：回復あと{state.holyKnightTurns}回（このターン移動・攻撃不可／被ダメージ×2）");
+        if (!any) Line("現在、付与された特殊状態はありません。");
+        return text.ToString();
+    }
+
+    public static bool TryFind(string id, out Status target)
+    {
+        target = SpecialSkillRuntime.FindActor(id);
+        return target != null && target.IsAlive;
+    }
+    static string TargetName(string id) => TryFind(id, out var target) ? KindNameJP.Get(target) : "対象不在（解除待ち）";
+
+    public static string SkillDescription(int id)
+    {
+        if (!SkillData.Table.TryGetValue(id, out var skill)) return "なし（割当が未設定です）";
+        var text = new StringBuilder(skill.Name).Append("　AP ").Append(skill.APCost)
+            .Append("\n対象：").Append(TargetDescription(skill.Target)).Append("／範囲：").Append(AreaDescription(skill.Area));
+        if (skill.Multiplier > 0) text.Append("\n攻撃倍率×").Append(skill.Multiplier.ToString("0.##"));
+        if (skill.SecondMultiplier > 0) text.Append("／2段目×").Append(skill.SecondMultiplier.ToString("0.##"));
+        if (skill.FixedHeal > 0) text.Append("\n回復量：").Append(skill.FixedHeal);
+        if (skill.FixedDamage > 0) text.Append("\n固定効果値：").Append(skill.FixedDamage);
+        if (skill.InflictDebuff != StatusEffectType.None) text.Append("\n").Append(DebuffName(skill.InflictDebuff)).Append("を付与 ").Append((skill.DebuffChance * 100).ToString("0.#")).Append('%');
+        if (skill.GrantBuff != BuffType.None) text.Append("\n").Append(skill.BuffToSelf ? "自身に" : "対象に").Append(BuffName(skill.GrantBuff)).Append("を付与");
+        if (!string.IsNullOrEmpty(skill.SpecialEffect)) text.Append("\n特殊効果：").Append(skill.SpecialEffect switch
+        {
+            "SmashBuilding" => "建物への追加効果", "FlamePoison" => "炎と毒", "ShadowRush" => "影の急襲",
+            "BloodSacrifice" => "HPを代償にした攻撃", "DeathSight" => "死を見据える狙撃", "SiegeBreaker" => "建物への破壊攻撃",
+            "JudgementMark" => "裁きと標的付与", "Catastrophe" => "自傷を伴う範囲攻撃", "LastSignal" => "味方への攻勢付与", _ => "選択したスキル固有の効果"
+        });
+        return text.ToString();
+    }
+
+    public static string PassiveDescription(PassiveSkill ability) => ability switch
+    {
+        PassiveSkill.Impregnable => $"鉄壁：被ダメージ×{GameConstants.ImpregnableDamageReduction:0.##}",
+        PassiveSkill.HunterEyes => $"狩人の目：自身の視界内の敵へのダメージ×{GameConstants.HunterEyesDamageBonus:0.##}",
+        PassiveSkill.Destroyer => $"破壊者：建物・クリスタルへのダメージ×{GameConstants.DestroyerBuildingBonus:0.##}",
+        PassiveSkill.Assassination => $"暗殺：背面攻撃の追加倍率×{GameConstants.AssassinationBackAttackBonus:0.##}",
+        PassiveSkill.Sniper => $"狙撃：距離{GameConstants.SniperMinRange}マス以上へのダメージ×{GameConstants.SniperLongRangeBonus:0.##}",
+        PassiveSkill.StrangeKingAura => $"異形の王のオーラ：被ダメージ×{GameConstants.StrangeKingDamageReduction:0.##}、被害の{GameConstants.StrangeKingLifesteal:P0}を回復。HP{GameConstants.StrangeKingRageThreshold:P0}以下で攻撃×{GameConstants.StrangeKingRageATKBonus:0.##}",
+        _ => "なし"
+    };
+    public static string AbilityDescription(SpecialAbility ability) => SpecialAbilityData.Table.TryGetValue(ability, out var entry)
+        ? entry.NameJP + "：" + entry.Description : "なし";
+    public static string DebuffName(StatusEffectType value) => value switch
+    {
+        StatusEffectType.Stun => "スタン", StatusEffectType.Mark => "標的", StatusEffectType.ArmorBreak => "破甲", StatusEffectType.Weaken => "弱体",
+        StatusEffectType.Poison => "毒", StatusEffectType.Chill => "冷気", StatusEffectType.Freeze => "凍結", StatusEffectType.Seal => "封技",
+        StatusEffectType.Blind => "視界封じ", StatusEffectType.NarrowVision => "視界縮小", _ => "なし"
+    };
+    public static string BuffName(BuffType value) => value switch
+    {
+        BuffType.Offensive => "攻勢", BuffType.Defensive => "守勢", BuffType.Haste => "加速", BuffType.Insight => "看破",
+        BuffType.Barrier => "障壁", BuffType.Reflect => "反射", _ => "なし"
+    };
+    static string TargetDescription(SkillTarget value) => value switch
+    {
+        SkillTarget.Self => "自身", SkillTarget.EnemySingle => "敵1体", SkillTarget.AllySingle => "味方1体", SkillTarget.EnemyOrBuilding => "敵の駒・建物",
+        SkillTarget.DirectionLine => "指定方向", SkillTarget.DesignatedTile => "指定マス", SkillTarget.SelfArea => "自身の周囲", SkillTarget.AdjacentCenter => "隣接中心",
+        SkillTarget.LowHPEnemy => "HPが低い敵", SkillTarget.FlyingEnemy => "飛行・高所の敵", SkillTarget.DesignatedRow => "指定列", _ => "設定に従う"
+    };
+    static string AreaDescription(SkillAreaShape value) => value switch
+    {
+        SkillAreaShape.Single => "単体", SkillAreaShape.Cross1 => "十字1マス", SkillAreaShape.Cross2 => "十字2マス",
+        SkillAreaShape.Line3 => "直線3マス", SkillAreaShape.Line4 => "直線4マス", SkillAreaShape.Line5 => "直線5マス", SkillAreaShape.Line7 => "直線7マス",
+        SkillAreaShape.Area2x2 => "2×2", SkillAreaShape.Area3x3 => "3×3", SkillAreaShape.Area5x5 => "5×5", SkillAreaShape.Surround1 => "周囲1マス",
+        SkillAreaShape.Surround2 => "周囲2マス", SkillAreaShape.SingleChain => "単体＋隣接1体", SkillAreaShape.SingleDouble => "単体2連撃", SkillAreaShape.Landing1 => "着弾1マス", _ => "設定に従う"
+    };
+}

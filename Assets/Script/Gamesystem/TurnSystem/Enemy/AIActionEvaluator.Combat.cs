@@ -13,6 +13,7 @@ public static partial class AIActionEvaluator
             case AIActionType.Move:
                 return AICombatEvaluator.CalcMoveBaseScore(action, board);
             case AIActionType.SkillUse:
+                if (action.SpecialCommand != null) return CalcSpecialSkillScore(action, board);
                 return AICombatEvaluator.CalcSkillBaseScore(action, board);
             case AIActionType.Retreat:
                 return AICombatEvaluator.CalcRetreatBaseScore(action, board);

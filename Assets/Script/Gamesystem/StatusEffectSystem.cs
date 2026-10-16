@@ -233,7 +233,7 @@ public static class StatusEffectSystem
         if (HasDebuff(unit, StatusEffectType.Weaken)) mod -= GameConstants.WeakenATKReduction;
         if (HasDebuff(unit, StatusEffectType.Chill))  mod -= GameConstants.ChillATKReduction;
         if (HasBuff(unit, BuffType.Offensive))         mod += GameConstants.OffensiveATKBonus;
-        return Mathf.Clamp(mod, 0f, 2f);
+        return Mathf.Clamp(mod, 0f, 2f) * SpecialSkillRuntime.GetATKModifier(unit);
     }
 
     /// <summary>DEF修飾: 破甲-15%, 守勢+20%</summary>
@@ -242,7 +242,7 @@ public static class StatusEffectSystem
         float mod = 1f;
         if (HasDebuff(unit, StatusEffectType.ArmorBreak)) mod -= GameConstants.ArmorBreakDEFReduction;
         if (HasBuff(unit, BuffType.Defensive))            mod += GameConstants.DefensiveDEFBonus;
-        return Mathf.Clamp(mod, 0f, 2f);
+        return Mathf.Clamp(mod, 0f, 2f) * SpecialSkillRuntime.GetDEFModifier(unit);
     }
 
     /// <summary>被ダメージ修飾: マーク+10%, 凍結+10%, 障壁-30%</summary>
@@ -281,7 +281,7 @@ public static class StatusEffectSystem
     /// <summary>移動不可チェック: 凍結</summary>
     public static bool IsMovementBlocked(Status unit)
     {
-        return HasDebuff(unit, StatusEffectType.Freeze);
+        return HasDebuff(unit, StatusEffectType.Freeze) || SpecialSkillRuntime.MovementBlocked(unit);
     }
 
     /// <summary>行動不可チェック: スタン</summary>

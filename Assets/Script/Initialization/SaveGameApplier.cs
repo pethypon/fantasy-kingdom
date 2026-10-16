@@ -56,6 +56,7 @@ public static class SaveGameApplier
             throw new System.ArgumentException("セーブを適用できません: " + validationFailure, nameof(data));
 
         Debug.Log($"[SaveGameApplier] ロード適用: Turn{data.Turn} 脅威度{data.ThreatLevel}");
+        mapCreate?.Environment.Restore(data.Environment);
 
         // ターン数復元（PlayerStart.Entry()でTurn++されるので1引く）
         turnGen.Context.Turn = data.Turn - 1;
@@ -110,6 +111,7 @@ public static class SaveGameApplier
         turnGen.PlayerAI?.RestoreUsedFlag(data.DeveloperAutoplayUsed);
 #endif
         RelocateBlockedUnits(mapCreate);
+        SpecialSkillRuntime.RestoreLinks();
         UniqueRewardSystem.Records.Clear();
         if (data.Rewards != null) UniqueRewardSystem.Records.AddRange(data.Rewards);
 
@@ -150,12 +152,26 @@ public static class SaveGameApplier
     {
         if (unitParent == null || data == null || usedIndices == null) return;
 
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>(true))
+        var actors = unitParent.GetComponentsInChildren<Status>(true);
+        // Reserve starting slots before ordinary actors can consume their records.
+        // The role survives a replacement/retirement of its old authored definition.
+        foreach (Status actor in actors)
         {
+            if (!actor.IsPrimaryCommander || actor.type != Type.Unit) continue;
+            int index = FindCommanderSave(data, actor, usedIndices);
+            if (index < 0) continue;
+            ApplyStatusFields(actor, data.Units[index]);
+            usedIndices.Add(index);
+        }
+
+        foreach (Status s in actors)
+        {
+            if (s.IsPrimaryCommander && s.type == Type.Unit) continue;
             for (int i = 0; i < data.Units.Count; i++)
             {
                 if (usedIndices.Contains(i)) continue;
                 var ud = data.Units[i];
+                if (ud.HasPrimaryCommanderRole && ud.IsPrimaryCommander) continue;
 
                 bool sameDefinition = string.IsNullOrEmpty(ud.DefinitionId)
                     ? true
@@ -164,7 +180,8 @@ public static class SaveGameApplier
                     sameDefinition &= string.Equals(ud.AuthoredFacilityId,
                         s.AuthoredFacility != null ? s.AuthoredFacility.definitionId : s.authoredFacilityId,
                         System.StringComparison.Ordinal);
-                if (sameDefinition && ud.Kind == StableSaveKeys.Key(s.kind) && ud.Team == StableSaveKeys.Key(s.team))
+                if (sameDefinition && (!ud.HasPrimaryCommanderRole || ud.IsPrimaryCommander == s.IsPrimaryCommander)
+                    && ud.Kind == StableSaveKeys.Key(s.kind) && ud.Team == StableSaveKeys.Key(s.team))
                 {
                     ApplyStatusFields(s, ud);
                     usedIndices.Add(i);
@@ -174,17 +191,59 @@ public static class SaveGameApplier
         }
     }
 
+    static int FindCommanderSave(SaveSystem.GameSaveData data, Status actor, HashSet<int> usedIndices)
+    {
+        string team = StableSaveKeys.Key(actor.team);
+        if (actor.team != Team.Player && actor.team != Team.Enemy) return -1;
+        for (int i = 0; i < data.Units.Count; i++)
+        {
+            var saved = data.Units[i];
+            if (!usedIndices.Contains(i) && saved.HasPrimaryCommanderRole && saved.IsPrimaryCommander
+                && saved.Type == StableSaveKeys.Key(Type.Unit) && saved.Team == team) return i;
+        }
+
+        // Historical CollectUnits always wrote the initial commander first for each
+        // side, including inactive initial slots. Never infer a role from a later Boss.
+        for (int i = 0; i < data.Units.Count; i++)
+        {
+            var saved = data.Units[i];
+            if (saved.Team != team || saved.Type != StableSaveKeys.Key(Type.Unit)) continue;
+            if (usedIndices.Contains(i) || saved.HasPrimaryCommanderRole
+                || saved.Kind != StableSaveKeys.Key(actor.kind)) return -1;
+            if (string.IsNullOrEmpty(saved.DefinitionId)) return i;
+            var catalog = UnitAuthoringCatalog.Load();
+            return IsLegacyCommanderDefinition(catalog?.units, saved.DefinitionId)
+                || IsLegacyCommanderDefinition(catalog?.retiredUnits, saved.DefinitionId) ? i : -1;
+        }
+        return -1;
+    }
+
+    static bool IsLegacyCommanderDefinition(List<UnitAuthoringCatalog.Entry> entries, string id)
+    {
+        if (entries == null) return false;
+        foreach (var entry in entries)
+            if (entry != null && !entry.standaloneDefinition && entry.data != null
+                && string.Equals(entry.data.definitionId, id, System.StringComparison.Ordinal)) return true;
+        return false;
+    }
+
     /// <summary>セーブエントリの全フィールドをStatusに書き戻す</summary>
     public static void ApplyStatusFields(Status s, SaveSystem.UnitSaveData ud)
     {
         s.RestoreReflectionLifeId(ud.ReflectionLifeId);
+        s.Special = SpecialSkillRuntime.CopyState(ud.Special);
+        // Missing role fields in legacy saves retain only the matched initial-slot role.
+        if (ud.HasPrimaryCommanderRole) s.IsPrimaryCommander = ud.IsPrimaryCommander;
         if (s.type == Type.Building || s.type == Type.Wall)
         {
             s.authoredFacilityId = ud.AuthoredFacilityId;
             s.AuthoredFacility = FacilityAuthoringCatalog.Loaded?.Find(ud.AuthoredFacilityId);
             if (s.AuthoredFacility != null) s.facilityKind = s.AuthoredFacility.behaviourKind;
         }
-        if (s.type == Type.Unit && !string.IsNullOrEmpty(ud.DefinitionId))
+        // A matched initial slot follows today's commander settings. Ordinary units
+        // retain their specific definition, including retired standalone definitions.
+        if (s.type == Type.Unit && !string.IsNullOrEmpty(ud.DefinitionId)
+            && !(s.IsPrimaryCommander && s.GrowthData != null && s.GrowthData.IsValidForAuthoring))
         {
             var definition = UnitAuthoringCatalog.Load()?.GetById(ud.DefinitionId);
             if (definition != null) s.GrowthData = definition;
@@ -237,6 +296,9 @@ public static class SaveGameApplier
         }
 
         s.gameObject.SetActive(ud.IsActive);
+        if (s.type == Type.Unit && s.GrowthData != null) s.GrowthData.ApplyAbilityIdentity(s);
+        // HP/balance restoration is not a new hit. Restore the saved clock only after all HP writes.
+        s.NaturalRecovery = NaturalRecoverySystem.CopyState(ud.NaturalRecovery);
     }
 
     // Use current formal settings, retaining runtime rewards as a delta from the saved baseline.

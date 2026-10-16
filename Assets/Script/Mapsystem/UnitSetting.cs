@@ -7,6 +7,9 @@ public class UnitSetting : MonoBehaviour
     [SerializeField] GameObject KingPiece;
     [Header("異形")]
     [SerializeField] GameObject StrangePiece;
+    [Header("敵の初期指揮官の能力")]
+    [Tooltip("初期指揮官専用の能力。通常のBossや第三陣営の設定は変更しません。")]
+    [SerializeField] UnitData initialEnemyCommanderData;
 
     /// <summary>異形の王プレハブへの読み取り公開（WildBoss フォールバック用）</summary>
     public GameObject StrangePiecePrefab => StrangePiece;
@@ -95,6 +98,30 @@ public class UnitSetting : MonoBehaviour
     {
         if (contentRevision != GameContentRevision.Revision) RefreshRuntimeBalance();
     }
+
+    UnitData ResolveInitialCommanderData(Team team)
+    {
+        Kind kind = team == Team.Player ? Kind.King : Kind.Boss;
+        // Catalog role replacements take precedence over the initial-slot default.
+        if (authoredPrefabs.ContainsKey(kind) && UnitDataMap.TryGetValue(kind, out var replacement)
+            && replacement != null && replacement.IsValidForAuthoring) return replacement;
+        if (team == Team.Enemy && initialEnemyCommanderData != null && initialEnemyCommanderData.IsValidForAuthoring)
+            return initialEnemyCommanderData;
+        return UnitDataMap.TryGetValue(kind, out var fallback) ? fallback : null;
+    }
+
+    GameObject SpawnInitialCommander(Team team, Vector3 position, Transform parent)
+    {
+        Kind kind = team == Team.Player ? Kind.King : Kind.Boss;
+        GameObject prefab = team == Team.Player ? KingPiece : StrangePiece;
+        if (authoredPrefabs.TryGetValue(kind, out var replacement)) prefab = replacement;
+        var obj = SpawnUnit(prefab, position, parent, initialKind: kind, initialTeam: team,
+            authoredData: ResolveInitialCommanderData(team));
+        var actor = obj != null ? obj.GetComponentInChildren<Status>() : null;
+        if (actor != null) actor.IsPrimaryCommander = true;
+        return obj;
+    }
+
     public void RefreshRuntimeBalance()
     {
         ReloadAuthoringDefinitions();
@@ -105,20 +132,22 @@ public class UnitSetting : MonoBehaviour
             if (actor.type == Type.Unit)
             {
                 UnitData latest = null;
-                if (!string.IsNullOrEmpty(actor.unitDefinitionId)) latest = GetDefinitionById(actor.unitDefinitionId);
+                if (actor.IsPrimaryCommander && (actor.team == Team.Player || actor.team == Team.Enemy))
+                    latest = ResolveInitialCommanderData(actor.team);
+                else if (!string.IsNullOrEmpty(actor.unitDefinitionId)) latest = GetDefinitionById(actor.unitDefinitionId);
                 else UnitDataMap.TryGetValue(actor.kind, out latest);
-                if (latest != null) actor.GrowthData = latest;
-                if (actor.GrowthData != null && actor.GrowthData.useAuthoredAbilities)
+                if (latest != null)
                 {
-                    actor.passiveskill = actor.GrowthData.authoredPassive;
-                    actor.AssignedSkillId = SkillData.Table.ContainsKey(actor.GrowthData.authoredSkillId) ? actor.GrowthData.authoredSkillId : -1;
-                    actor.specialAbility = actor.GrowthData.authoredSpecialAbility;
+                    actor.GrowthData = latest;
+                    if (actor.IsPrimaryCommander) actor.unitDefinitionId = latest.definitionId ?? string.Empty;
                 }
+                actor.GrowthData?.ApplyAbilityIdentity(actor);
             }
             else if (!string.IsNullOrEmpty(actor.authoredFacilityId)) actor.AuthoredFacility = FacilityAuthoringCatalog.Loaded?.Find(actor.authoredFacilityId);
             StatusBalanceRefresh.ApplyLatestDefinition(actor);
         }
         refreshActors.Clear();
+        SpecialSkillRuntime.InvalidateRules();
         var turn = GetComponent<TurnGenerator>();
         if (turn == null) turn = Object.FindFirstObjectByType<TurnGenerator>();
         if (turn == null) return;
@@ -151,6 +180,8 @@ public class UnitSetting : MonoBehaviour
             return obj;
         }
 
+        status.IsPrimaryCommander = false;
+
         // Authored models may keep their actor component on an offset child.
         if (authoredData != null) obj.transform.position += pos - status.transform.position;
 
@@ -173,7 +204,7 @@ public class UnitSetting : MonoBehaviour
             Debug.LogWarning($"[UnitSetting] Kind:{status.kind} のUnitDataが未登録です");
 
         if (data != null) data.InitializeAbilities(status);
-        else { SkillData.AssignFixedSkill(status); SpecialAbilityData.AssignRandom(status); }
+        else { SkillData.AssignFixedSkill(status); SpecialAbilityData.AssignFixed(status); }
 
         // 頭上UI（Lv + HP）をアタッチ
         if (runtimeSpawn) status.MarkRuntimeSpawn(obj);
@@ -235,13 +266,13 @@ public class UnitSetting : MonoBehaviour
 
         if (KingPoint.Count == 0) { Debug.LogError("[UnitSetting] 王の配置候補なし"); return; }
         Vector3 KP = KingPoint[Random.Range(0, KingPoint.Count)];
-        SpawnUnit(KingPiece, KP, PlayerUnit, initialKind: Kind.King, initialTeam: Team.Player);
+        SpawnInitialCommander(Team.Player, KP, PlayerUnit);
         usedPlayer.Add(KP);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>王設置");
 
         if (StrangePoint.Count == 0) { Debug.LogError("[UnitSetting] 異形の王の配置候補なし"); return; }
         Vector3 SP = StrangePoint[Random.Range(0, StrangePoint.Count)];
-        SpawnUnit(StrangePiece, SP, EnemyUnit, initialKind: Kind.Boss, initialTeam: Team.Enemy);
+        SpawnInitialCommander(Team.Enemy, SP, EnemyUnit);
         usedEnemy.Add(SP);
         Debug.Log("<color=#ffff00ff>[StartSetting]</color>異形の王設置");
 

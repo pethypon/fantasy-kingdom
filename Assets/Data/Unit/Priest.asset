@@ -24,6 +24,7 @@ MonoBehaviour:
   authoredPassive: 0
   authoredSkillId: -1
   authoredSpecialAbility: 0
+  specialSkill: {fileID: 11400000, guid: cf313b322a865704baa5efec33077bc2, type: 2}
   kind: 7
   baseHP: 28
   baseATK: 3

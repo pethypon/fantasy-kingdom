@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// ユニット: 攻撃・スキル・待機・キャンセル
 /// 建築物: 攻撃(攻撃型のみ)・強化ボタン + 強化コスト表示
 /// </summary>
-public class UnitPanelUI : MonoBehaviour
+public partial class UnitPanelUI : MonoBehaviour
 {
     private Sprite ownedHPBarSprite;
     private void OnDestroy() { if (ownedHPBarSprite != null) Destroy(ownedHPBarSprite); }
@@ -106,6 +106,7 @@ public class UnitPanelUI : MonoBehaviour
         BuildUpgradeUI();
         BuildDestroyUI();
         BuildHPBar();
+        BuildSpecialControls();
         previewHint = UIFactory.CreateTMP("PreviewHint", transform.Find("RightCommands"),
             "プレビュー\nクリックで選択", BrandGuide.FontHud, UIFactory.LoadDefaultFont());
         UIFactory.StretchFill(previewHint.rectTransform);
@@ -356,6 +357,7 @@ public class UnitPanelUI : MonoBehaviour
             RefreshBuilding();
         else
             RefreshUnit();
+        RefreshSpecialControls();
         if (previewHint != null) {
             previewHint.gameObject.SetActive(previewOnly || inspectionOnly);
             previewHint.text = inspectionOnly ? "敵ターン：確認のみ\n青：移動範囲　赤：攻撃範囲" : "プレビュー\nクリックで選択";
@@ -464,9 +466,9 @@ public class UnitPanelUI : MonoBehaviour
         foreach (var e in unit.ActiveEffects)
         {
             if (e.IsDebuff)
-                parts.Add($"{e.debuffType}({e.remainingTurns}T)");
+                parts.Add($"{SpecialSkillPresentation.DebuffName(e.debuffType)}({e.remainingTurns}ターン)");
             else if (e.IsBuff)
-                parts.Add($"{e.buffType}({e.remainingTurns}T)");
+                parts.Add($"{SpecialSkillPresentation.BuffName(e.buffType)}({e.remainingTurns}ターン)");
         }
         return string.Join(" ", parts);
     }

@@ -207,6 +207,13 @@ public static class SpecialAbilitySystem
     // =====================================================================
     public static bool TrySurviveLethal(Status target, int damage)
     {
+        var state = target != null ? target.Special : null;
+        if (state != null && (state.damageNullUnused || state.nextDamageDouble || state.holyKnightTurns > 0 || state.holyKnightRecoveryLock || !string.IsNullOrEmpty(state.guardianPartnerId))) return false;
+        return TrySurviveLethalCore(target, damage);
+    }
+    internal static bool TrySurviveLethalCore(Status target, int damage)
+    {
+        if (target == null || damage <= 0) return false;
         if (target.specialAbility != SpecialAbility.SurvivalInstinct) return false;
         if (target.SurvivalInstinctUsed) return false;
         if (target.HP - damage > 0) return false;

@@ -9,7 +9,7 @@ public sealed class DefaultLossConditionProvider : ILossConditionProvider
     public void Collect(AIBoardState board,List<Status> targets)
     {
         targets.Clear();
-        foreach(var actor in board.AliveEnemyUnits)if(actor!=null&&actor.IsAlive&&actor.kind==Kind.King)targets.Add(actor);
+        foreach(var actor in board.AliveEnemyUnits)if(actor!=null&&actor.IsAlive&&MatchObjectiveRules.IsCommander(actor))targets.Add(actor);
         var crystal=board.OwnCrystalParent?.GetComponentInChildren<Status>();if(crystal!=null&&crystal.IsAlive&&!targets.Contains(crystal))targets.Add(crystal);
     }
 }
@@ -75,21 +75,46 @@ public sealed partial class AIStrategicGovernor
         Economy = ProductionDemand.Forecast;
         BasicResources.Evaluate(board, ProductionDemand, emergency);
         Mode = emergency ? StrategicMode.EmergencyDefense
-            : ProductionDemand.HasCriticalDeficit || ProductionDemand.HasWarningDeficit
-                || Economy.State >= EconomicState.Warning || AIBasicResourceSettings.Active.enabled
-                    && BasicResources.FoundationState == EconomyFoundationState.ResourceRecovery
+            : RequiresEconomicRecovery(ProductionDemand)
+                || AIBasicResourceSettings.Active.enabled && BasicResources.HasCriticalDeficit
                 ? StrategicMode.EconomicRecovery
-            : board.AlivePlayerUnits.Count == 0 ? StrategicMode.Exploration : StrategicMode.StrategicAttack;
+            : !board.HasPrincipalOpponentContact ? StrategicMode.Exploration : StrategicMode.StrategicAttack;
         LogProductionDemand(board);
         // Emergency orders suspend persistent exploration. Supply recovery retains targets but outranks movement.
         Exploration.Update(board, emergency);
         UpdateObjective(board,emergency||Mode==StrategicMode.EconomicRecovery);
         if(emergency)SelectDefenders(board);
     }
+    /// <summary>A supply warning is not a reason to halt an army whose obligations are funded.</summary>
+    public static bool RequiresEconomicRecovery(StrategicProductionDemand demand)
+    {
+        if (demand == null) return false;
+        if (demand.HasCriticalDeficit || demand.State >= EconomicState.Crisis) return true;
+        float epsilon = AIEconomySettings.Active.Epsilon;
+        foreach (var r in demand.Resources)
+            if (r.MandatoryDemandPerTurn > epsilon && r.NetPerTurn < -epsilon
+                && r.ProjectedStock < r.SafetyReserve - epsilon
+                && !CanDeferReserveRecovery(demand, r, epsilon)) return true;
+        return false;
+    }
+    static bool CanDeferReserveRecovery(StrategicProductionDemand demand, ResourceDemandState resource, float epsilon)
+    {
+        // Only recovery priority may use discounted uncertain income. Cash on hand must
+        // already fund every mandatory payment in the horizon; purchase/maintenance
+        // forecasts continue to exclude all chance income.
+        if ((demand.Forecast.MandatoryFailureMask | demand.Forecast.InputFailureMask) != 0) return false;
+        int turns = Mathf.Clamp(demand.ForecastTurns, 1, 8);
+        var policy = AIEconomySettings.Active;
+        if (resource.Stock + epsilon < resource.MandatoryDemandPerTurn * turns
+            || demand.PotentialSourceCount(resource.Resource) < Mathf.Clamp(policy.minimumChanceReserveSources, 3, 32)) return false;
+        float extra = Mathf.Max(0, demand.PotentialProduction(resource.Resource) - demand.PermanentProduction(resource.Resource));
+        float credit = extra * turns * Mathf.Clamp01(AIEconomySettings.NonNegative(policy.chanceReserveCredit));
+        return resource.ProjectedStock + credit >= resource.SafetyReserve - epsilon;
+    }
     void SelectDefenders(AIBoardState board)
     {
         foreach(var actor in board.AliveEnemyUnits)
-            if(actor!=null&&actor.IsAlive&&actor.type==Type.Unit&&actor.kind!=Kind.King&&BoardActionProfile.For(actor)?.CanAttack!=false)army.Add(actor);
+            if(actor!=null&&actor.IsAlive&&actor.type==Type.Unit&&!MatchObjectiveRules.IsCommander(actor)&&BoardActionProfile.For(actor)?.CanAttack!=false)army.Add(actor);
         army.Sort((a,b)=>DefenseFitness(b).CompareTo(DefenseFitness(a)));
         float need=0;
         foreach(var opponent in board.AlivePlayerUnits)if(opponent!=null&&opponent.IsAlive&&Distance(opponent.transform.position,defensePoint)<=8)need+=Mathf.Max(1,opponent.ATK);
@@ -104,7 +129,7 @@ public sealed partial class AIStrategicGovernor
         ExploreObjective assigned = null;
         foreach (var actor in board.AliveEnemyUnits)
         {
-            if (actor == null || !actor.IsAlive || actor.kind == Kind.King) continue;
+            if (actor == null || !actor.IsAlive || MatchObjectiveRules.IsCommander(actor)) continue;
             var candidate = Exploration.GetObjective(actor.GetInstanceID());
             if (candidate == null || candidate.State == ObjectiveState.Completed || candidate.State == ObjectiveState.Failed) continue;
             if (explorer != null)
@@ -153,7 +178,7 @@ public sealed partial class AIStrategicGovernor
         Evaluate(board);rejected.Clear();safest.Clear();
         foreach(var target in critical)
         {
-            if(target.kind!=Kind.King)continue;
+            if(!MatchObjectiveRules.IsCommander(target))continue;
             float minimum=float.PositiveInfinity;
             foreach(var action in actions)if(action.Unit==target&&action.ActionType!=AIActionType.Wait)
                 minimum=Mathf.Min(minimum,Risk(action,board));
@@ -188,7 +213,7 @@ public sealed partial class AIStrategicGovernor
     }
     string RejectReason(AIAction action,AIBoardState board)
     {
-        if(action.Unit!=null&&action.Unit.kind==Kind.King)
+        if(action.Unit!=null&&MatchObjectiveRules.IsCommander(action.Unit))
         {
             float risk=Risk(action,board);
             float minimum=safest.TryGetValue(action.Unit,out var safe)?safe:IncomingDamage(board,action.Unit,action.Unit.transform.position,null);
@@ -237,8 +262,8 @@ public sealed partial class AIStrategicGovernor
     }
     int Priority(AIAction a,AIBoardState board)
     {
-        if(a.Unit!=null&&a.Unit.kind==Kind.King&&IsMovement(a)&&Risk(a,board)<IncomingDamage(board,a.Unit,a.Unit.transform.position,null))return 0;
-        if(a.Unit!=null&&a.Unit.kind==Kind.King&&a.ActionType==AIActionType.Attack
+        if(a.Unit!=null&&MatchObjectiveRules.IsCommander(a.Unit)&&IsMovement(a)&&Risk(a,board)<IncomingDamage(board,a.Unit,a.Unit.transform.position,null))return 0;
+        if(a.Unit!=null&&MatchObjectiveRules.IsCommander(a.Unit)&&a.ActionType==AIActionType.Attack
             &&IncomingDamage(board,a.Unit,a.Unit.transform.position,null)>=a.Unit.HP&&Risk(a,board)<a.Unit.HP)return 0;
         if(Mode==StrategicMode.EmergencyDefense)
         {
@@ -255,14 +280,14 @@ public sealed partial class AIStrategicGovernor
             var production = ProductionDemand.EvaluateBuild(a);
             if (production.ImprovesCritical) return 1;
             if (production.ImprovesDeficit && Mode == StrategicMode.EconomicRecovery) return Mathf.Min(2, BasicResources.ActionPriority(a));
-            if (production.ImprovesDeficit) return Mathf.Min(3, BasicResources.ActionPriority(a));
+            if (production.ImprovesDeficit) return 4;
             if (a.ActionType == AIActionType.Upgrade && EconomyHelper.ImprovesProductionDemand(a, board))
-                return Mathf.Min(Mode == StrategicMode.EconomicRecovery ? 2 : 3, BasicResources.ActionPriority(a));
+                return Mode == StrategicMode.EconomicRecovery ? Mathf.Min(2, BasicResources.ActionPriority(a)) : 4;
         }
         int foundationPriority = BasicResources.ActionPriority(a);
-        if (foundationPriority < 4) return foundationPriority;
+        if (foundationPriority < 4 && Mode == StrategicMode.EconomicRecovery) return foundationPriority;
         if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
-            &&a.Unit != null&&a.Unit.kind != Kind.King&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
+            &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
             &&Exploration.TryGetAssignedTarget(a.Unit,out var frontier)
             &&Exploration.IsObjectiveProgress(a.Unit,a.TargetPos,board)
             &&IncomingDamage(board,a.Unit,a.TargetPos,null)<a.Unit.HP)return 3;
@@ -277,13 +302,13 @@ public sealed partial class AIStrategicGovernor
         return ProductionDemand.EvaluateBuild(action);
     }
 
-    /// <summary>Reserve AP only for a currently legal supply improvement, including upgrades.</summary>
+    /// <summary>Reserve AP for urgent, executable supply recovery; ordinary investments compete with army actions.</summary>
     public int GetRecoveryReserveAP(AIBoardState board)
     {
         Evaluate(board);
         if (recoveryReserveAP >= 0) return recoveryReserveAP;
         recoveryReserveAP = 0;
-        if (Mode == StrategicMode.EmergencyDefense) return 0;
+        if (Mode != StrategicMode.EconomicRecovery) return 0;
         reserveCandidates.Clear();
         AIActionGenerator.GenerateBuildCandidates(board, reserveCandidates);
         AIActionGenerator.GenerateUpgradeCandidates(board, reserveCandidates);
@@ -336,8 +361,8 @@ public sealed partial class AIStrategicGovernor
     {
         if (target == null || !target.IsAlive || incoming <= 0) return false;
         var settings = AIEconomySettings.Active;
-        float threshold = target.kind == Kind.King ? settings.emergencyKingDamageFraction : settings.emergencyCrystalDamageFraction;
-        if (float.IsNaN(threshold) || float.IsInfinity(threshold)) threshold = target.kind == Kind.King ? .4f : .75f;
+        float threshold = MatchObjectiveRules.IsCommander(target) ? settings.emergencyKingDamageFraction : settings.emergencyCrystalDamageFraction;
+        if (float.IsNaN(threshold) || float.IsInfinity(threshold)) threshold = MatchObjectiveRules.IsCommander(target) ? .4f : .75f;
         return incoming >= Mathf.Max(1, target.HP) * Mathf.Clamp(threshold, .05f, 1f);
     }
 
@@ -394,8 +419,7 @@ public sealed partial class AIStrategicGovernor
     float Risk(AIAction action,AIBoardState board)
     {
         var unit=action.Unit;if(unit==null)return 0;Status eliminated=null;
-        if(action.ActionType==AIActionType.Attack&&action.TargetUnit!=null&&action.TargetUnit.ShieldTurns<=0
-            &&AIEvalHelpers.EstimateDamage(unit,action.TargetUnit)>=action.TargetUnit.HP)eliminated=action.TargetUnit;
+        if(action.ActionType==AIActionType.Attack&&AIActionEvaluator.CanFinishSpecialTarget(unit,action.TargetUnit,board))eliminated=action.TargetUnit;
         return IncomingDamage(board,unit,IsMovement(action)?action.TargetPos:unit.transform.position,eliminated);
     }
     public float IncomingDamage(AIBoardState board,Status self,Vector3 position,Status eliminated)
@@ -404,14 +428,35 @@ public sealed partial class AIStrategicGovernor
         double total=0;
         foreach(var opponent in board.AlivePlayerUnits)
         {
-            if(opponent==null||!opponent.IsAlive||opponent==eliminated||StatusEffectSystem.IsStunned(opponent))continue;
+            if(opponent==null||!opponent.IsAlive||opponent==eliminated)continue;
+            // WildBoss turns have their own schedule and ignore ordinary stun/action profiles.
+            // Only the observed dragon and its present territory may establish a breath threat.
+            if (ObservedDragonThreat.IsDragon(opponent))
+            {
+                total += ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, position);
+                continue;
+            }
+            if(StatusEffectSystem.IsStunned(opponent))continue;
+            if(SpecialSkillRuntime.AttackBlocked(opponent)||opponent.Special?.sniperActive==true)continue;
             float attack=ThreatPower(board,opponent,position);
-            if(attack>0)total+=DamageCalculator.EstimateBaseDamage(Mathf.CeilToInt(attack),self.DEF);
+            if(attack>0)
+            {
+                int raw=DamageCalculator.EstimateBaseDamage(Mathf.CeilToInt(attack),self.DEF);
+                if(board.HasObservedSpecialState)
+                {
+                    int baseline=DamageCalculator.EstimateBaseDamage(opponent.ATK,self.DEF);
+                    raw=(int)Math.Min(int.MaxValue,raw*(double)AIActionEvaluator.EstimateSpecialAwareAttack(opponent,self,board)/Mathf.Max(1,baseline));
+                }
+                total+=AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage);
+            }
         }
+        total+=AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,position);
+        total+=board.KnownEnvironmentRisk(self,position);
         return damageCache[key]=(float)Math.Min(int.MaxValue,total);
     }
     bool CanThreaten(AIBoardState board,Status opponent,Vector3 destination)
-        =>ThreatPower(board,opponent,destination)>0;
+        =>ObservedDragonThreat.IsDragon(opponent) ? ObservedDragonThreat.CanBreatheAt(board,opponent,destination)
+            : ThreatPower(board,opponent,destination)>0;
     float ThreatPower(AIBoardState board,Status opponent,Vector3 destination)
     {
         var key=(opponent,GridHelper.ToGridXZ(destination));if(threatCache.TryGetValue(key,out var cached))return cached;

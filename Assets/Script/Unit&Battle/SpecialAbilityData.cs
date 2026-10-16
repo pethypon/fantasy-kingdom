@@ -126,49 +126,20 @@ public static class SpecialAbilityData
     }
 
     // =====================================================================
-    //  ユニットに Special Ability をランダム配布（同名重複なしは呼び出し元で管理）
+    //  明示された駒定義だけを適用する。ランダムな代替は配布しない。
     // =====================================================================
-    public static void AssignRandom(Status unit)
+    // Compatibility names retain fixed data semantics; gameplay never draws a random ability.
+    public static void AssignRandom(Status unit) => AssignFixed(unit);
+    public static void AssignFixed(Status unit)
     {
-        if (unit.type != Type.Unit) return;
-        if (unit.kind == Kind.Crystal || unit.kind == Kind.SubCrystal) return;
-
-        unit.specialAbility = DrawRandom();
-
-        if (Table.TryGetValue(unit.specialAbility, out var info))
-        {
-            Debug.Log($"[SpecialAbility] {unit.team} {unit.kind} に '{info.NameJP}' ({info.Rarity}) を配布");
-        }
+        if (unit == null || unit.type != Type.Unit) return;
+        var data = unit.GrowthData;
+        unit.specialAbility = data != null && data.specialSkill == null && data.useAuthoredAbilities
+            ? data.authoredSpecialAbility : SpecialAbility.None;
     }
-
-    // =====================================================================
-    //  全ユニットに重複なしで配布
-    // =====================================================================
     public static void AssignToAll(Transform unitParent)
     {
         if (unitParent == null) return;
-
-        var assigned = new HashSet<SpecialAbility>();
-
-        foreach (Status s in unitParent.GetComponentsInChildren<Status>())
-        {
-            if (s.type != Type.Unit) continue;
-            if (s.kind == Kind.Crystal || s.kind == Kind.SubCrystal) continue;
-            if (s.specialAbility != SpecialAbility.None) continue;
-
-            // 重複なし: 最大100回試行
-            SpecialAbility sa = SpecialAbility.None;
-            for (int attempt = 0; attempt < 100; attempt++)
-            {
-                sa = DrawRandom();
-                if (!assigned.Contains(sa)) break;
-            }
-
-            assigned.Add(sa);
-            s.specialAbility = sa;
-
-            if (Table.TryGetValue(sa, out var info))
-                Debug.Log($"[SpecialAbility] {s.team} {s.kind} に '{info.NameJP}' ({info.Rarity}) を配布");
-        }
+        foreach (var unit in unitParent.GetComponentsInChildren<Status>()) AssignFixed(unit);
     }
 }

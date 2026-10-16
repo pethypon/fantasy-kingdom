@@ -140,7 +140,7 @@ public class KingCommanderSystem
         foreach (var u in available)
         {
             // BOSS、King、Crystal は王直轄
-            if (u.IsBoss || u.kind == Kind.King || u.kind == Kind.Crystal)
+            if (u.IsBoss || MatchObjectiveRules.IsCommander(u) || u.kind == Kind.Crystal)
             {
                 forKing.Add(u);
             }

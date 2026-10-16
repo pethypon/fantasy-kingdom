@@ -65,6 +65,7 @@ public sealed class StrategicProductionDemand
     public EconomicState State => Forecast.State;
     public bool HasMandatoryPaymentFailure => Forecast.BreadPaymentFailed || Forecast.UpkeepPaymentFailed;
     public bool ImportantProductionStopped => Forecast.ImportantProductionStopped;
+    public int ForecastTurns => turns;
 
     readonly AIEconomySettings settings;
     readonly float[] chainCoverage, chainUrgency;

@@ -66,6 +66,7 @@ public sealed partial class GameDevelopmentStudioWindow
             "needWeight", "coverageWeight", "chainRecoveryWeight", "reserveRecoveryWeight", "overstockPenalty",
             "warningMilitaryPenalty", "localMilitarySaturationPenalty", "uncoveredWallThreatPenalty",
             "emergencyKingDamageFraction", "emergencyCrystalDamageFraction", "criticalReserveFraction",
+            "minimumChanceReserveSources", "chanceReserveCredit",
             "sustainedDeficitUrgency", "deficitEpsilon" }) Field(policy.FindPropertyRelative(name));
         DrawBundle(policy.FindPropertyRelative("minimumOperationalBuffer"), "資源ごとの最低予備量");
         EditorGUILayout.LabelField("建築予定の費用", "Unityで設定した建物・強化の実際の費用を使用します。", EditorStyles.wordWrappedMiniLabel);

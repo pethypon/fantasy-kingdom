@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class APSystem : MonoBehaviour
 {
+    public const int MaximumSkillAP = 25;
     public enum ActionType { Move, Attack, Build }
     public static int MaximumAP => Mathf.Clamp(GameAuthoringRules.Active?.maximumAP ?? GameConstants.MaxAP, 3, GameConstants.MaxAP);
     public static int BaseMoveCost => Mathf.Clamp(GameAuthoringRules.Active?.moveAP ?? GameConstants.BaseMoveAPCost, 1, GameConstants.MaxAuthoredActionAPCost);
@@ -23,12 +24,14 @@ public class APSystem : MonoBehaviour
 
     // ==== GameGenerator.Awake() で初期化される ====
     private FactionState _factionState;
+    MapCreate mapCreate;
 
     public event System.Action<Team> OnNonMoveAction;
 
-    public void Init(FactionState factionState)
+    public void Init(FactionState factionState, MapCreate map = null)
     {
         _factionState = factionState;
+        mapCreate = map;
     }
 
     // ==== コスト計算 ====
@@ -36,14 +39,18 @@ public class APSystem : MonoBehaviour
                         Vector3 from = default, Vector3 to = default)
     {
         int cost = action == ActionType.Move ? BaseMoveCost : action == ActionType.Attack ? BaseAttackCost : BaseCost[action];
-        cost += obj.Fatigue;
+        cost = (int)System.Math.Min(int.MaxValue, (long)cost + Mathf.Max(0, obj.Fatigue));
+        if (action == ActionType.Attack) cost = SpecialSkillRuntime.AttackAPAdjustment(obj, cost);
         if (action == ActionType.Move)
         {
-            cost += HeightBonus(obj.kind, from, to);
+            long movementCost = (long)cost + HeightBonus(obj.kind, from, to);
             // 鈍足・冷気による移動AP追加コスト
-            cost += StatusEffectSystem.GetMoveAPCostBonus(obj);
+            movementCost += StatusEffectSystem.GetMoveAPCostBonus(obj);
             // Special Ability: 迅速体勢（未移動なら移動コスト-1）
-            cost -= SpecialAbilitySystem.GetMoveAPReduction(obj);
+            movementCost -= SpecialAbilitySystem.GetMoveAPReduction(obj);
+            var map = mapCreate != null ? mapCreate : obj?.RuntimeSystems?.MapCreate;
+            if (map != null) movementCost += map.Environment.MoveAPAdjustment(from, to);
+            cost = (int)System.Math.Max(1, System.Math.Min(int.MaxValue, movementCost));
         }
         return Mathf.Max(1, cost);
     }
@@ -61,7 +68,7 @@ public class APSystem : MonoBehaviour
         if (action != ActionType.Move) OnNonMoveAction?.Invoke(team);
         _factionState.ModifyAP(team, -cost);
         obj.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(obj.kind);
-        Debug.Log($"[APSystem] {team} / {action}  コスト:{cost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
+        if (DevelopmentLog.IsEnabled()) DevelopmentLog.Log($"[APSystem] {team} / {action}  コスト:{cost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
     }
 
     // ==== ターン開始時 AP リセット ====
@@ -72,7 +79,7 @@ public class APSystem : MonoBehaviour
         var apData = _factionState.GetAPData(team);
         int prevCurrent = apData.Current;
         _factionState.ResetAPForTurn(team);
-        Debug.Log($"[APSystem] {team} AP リセット: Reset={apData.Reset} Plus={apData.Plus} Minus={apData.Minus} → {apData.Current} (前ターン残={prevCurrent})");
+        if (DevelopmentLog.IsEnabled()) DevelopmentLog.Log($"[APSystem] {team} AP リセット: Reset={apData.Reset} Plus={apData.Plus} Minus={apData.Minus} → {apData.Current} (前ターン残={prevCurrent})");
     }
 
     // ==== 疲労リセット ====
@@ -86,13 +93,13 @@ public class APSystem : MonoBehaviour
 
     // ==== スキルAP判定 ====
     public bool CanUseSkill(Team team, int apCost)
-        => _factionState.GetAP(team) >= apCost;
+        => apCost >= 0 && _factionState.GetAP(team) >= Mathf.Min(MaximumSkillAP, apCost);
 
     // ==== スキルAPコスト計算（Special Ability: 省力化対応） ====
     public int CalcSkillCost(int baseCost, Status obj)
     {
         int reduction = SpecialAbilitySystem.GetSkillAPReduction(obj);
-        return Mathf.Max(1, baseCost - reduction);
+        return Mathf.Clamp(baseCost - reduction, 1, MaximumSkillAP);
     }
 
     // ==== スキルAP消費 + 疲労更新 ====
@@ -104,14 +111,14 @@ public class APSystem : MonoBehaviour
         _factionState.ModifyAP(team, -actualCost);
         obj.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(obj.kind);
         obj.FirstSkillUsedThisTurn = true;
-        Debug.Log($"[APSystem] {team} / Skill  コスト:{actualCost}(元:{apCost})  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
+        if (DevelopmentLog.IsEnabled()) DevelopmentLog.Log($"[APSystem] {team} / Skill  コスト:{actualCost}(元:{apCost})  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");
     }
 
     // ==== AP返還（undo用） ====
     public void RefundAP(Team team, int amount)
     {
         _factionState.ModifyAP(team, amount);
-        Debug.Log($"[APSystem] {team} AP返還: +{amount}  残AP:{_factionState.GetAP(team)}");
+        if (DevelopmentLog.IsEnabled()) DevelopmentLog.Log($"[APSystem] {team} AP返還: +{amount}  残AP:{_factionState.GetAP(team)}");
     }
 
     // ==== UI 表示などに使用 ====

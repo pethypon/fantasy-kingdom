@@ -27,6 +27,13 @@ public partial class SimBoardState
             TickCooldowns(u);
         }
 
+        // Damage/hazards finish before the owner's safe interval is evaluated.
+        for (int i = 0; i < Units.Count; i++)
+        {
+            var unit = Units[i];
+            if (unit.Team == nextTeam) ProcessNaturalRecovery(unit, TurnCount);
+        }
+
         RemoveDeadFromOccupied();
     }
 
@@ -44,8 +51,31 @@ public partial class SimBoardState
         {
             var eff = u.Effects[j];
             if (eff.Debuff == StatusEffectType.Poison)
-                u.HP = Mathf.Max(0, u.HP - GameConstants.PoisonDamagePerTurn);
+                u.ApplyDamage(GameConstants.PoisonDamagePerTurn);
         }
+    }
+
+    static void ProcessNaturalRecovery(SimUnit unit, int round)
+    {
+        if (!unit.IsAlive || unit.Type != Type.Unit || unit.MaxHP <= 0 || unit.NaturalRecoveryLastRound == round) return;
+        unit.NaturalRecoveryLastRound = round;
+        if (!unit.NaturalRecoveryHasBaseline)
+        {
+            unit.NaturalRecoveryHasBaseline = true;
+            unit.NaturalRecoverySafeTurns = 0;
+            unit.NaturalRecoveryHpLost = false;
+            return;
+        }
+        if (unit.NaturalRecoveryHpLost)
+        {
+            unit.NaturalRecoveryHpLost = false;
+            unit.NaturalRecoverySafeTurns = 0;
+            return;
+        }
+        unit.NaturalRecoverySafeTurns = Mathf.Min(NaturalRecoverySystem.SafeTurnThreshold,
+            Mathf.Clamp(unit.NaturalRecoverySafeTurns, 0, NaturalRecoverySystem.SafeTurnThreshold) + 1);
+        if (unit.NaturalRecoverySafeTurns >= NaturalRecoverySystem.SafeTurnThreshold)
+            unit.ApplyHeal(NaturalRecoverySystem.HealAmount(unit.MaxHP));
     }
 
     private static void TickEffects(SimUnit u)

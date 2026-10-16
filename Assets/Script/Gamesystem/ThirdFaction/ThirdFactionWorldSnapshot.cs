@@ -45,7 +45,7 @@ public sealed class ThirdFactionWorldSnapshot
         CombatRegistry.Collect(buffer); // Exactly one full actor collection for Director candidate evaluation.
         foreach (var u in buffer)
         {
-            bool objective = (u.team == Team.Player || u.team == Team.Enemy) && (u.kind == Kind.King || u.kind == Kind.Crystal);
+            bool objective = MatchObjectiveRules.IsDecisive(u);
             var a = new Actor { Team = u.team, Kind = u.kind, Type = u.type, Cell = u.GridPosition,
                 Power = UnitPower(u), HPRatio = Mathf.Clamp01((float)u.HP / Mathf.Max(1, u.MaxHP)), Objective = objective, Boss = u.isWildBoss };
             world.Actors.Add(a);

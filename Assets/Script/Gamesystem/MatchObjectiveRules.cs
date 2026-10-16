@@ -1,6 +1,18 @@
 /// <summary>Shared decisive-target classification and factual match-result explanations.</summary>
 public static class MatchObjectiveRules
 {
+    public static bool IsCommander(Status actor)
+        => actor != null && IsCommander(actor.kind, actor.team, actor.IsPrimaryCommander);
+
+    public static bool IsCommander(Kind kind, Team team, bool primaryCommander)
+        => (team == Team.Player || team == Team.Enemy) && (kind == Kind.King || primaryCommander);
+
+    public static bool IsDecisive(Status actor)
+        => actor != null && IsDecisive(actor.kind, actor.team, actor.IsPrimaryCommander);
+
+    public static bool IsDecisive(Kind kind, Team team, bool primaryCommander)
+        => (team == Team.Player || team == Team.Enemy) && (primaryCommander || kind == Kind.King || kind == Kind.Crystal);
+
     public static bool IsDecisive(Kind kind, Team team)
         => (team == Team.Player || team == Team.Enemy) && (kind == Kind.King || kind == Kind.Crystal);
 
@@ -8,9 +20,9 @@ public static class MatchObjectiveRules
     {
         bool victory = result == GameResult.Win;
         string fallback = victory ? "勝利条件が成立しました" : "敗北条件が成立しました";
-        if (target == null || !IsDecisive(target.kind, target.team)
+        if (target == null || !IsDecisive(target)
             || target.team != (victory ? Team.Enemy : Team.Player)) return fallback;
-        if (target.kind == Kind.King)
+        if (IsCommander(target))
             return victory ? "敵の王を撃破しました" : "味方の王が撃破されました";
         return victory ? "敵のメインクリスタルを破壊しました" : "味方のメインクリスタルが破壊されました";
     }

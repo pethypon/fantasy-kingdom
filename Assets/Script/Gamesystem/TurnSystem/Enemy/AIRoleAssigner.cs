@@ -56,7 +56,7 @@ public class AIRoleAssigner
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
             // The loss-condition actor must never receive an exploration/frontline role.
-            if (u.kind == Kind.King) { _assignments[u] = UnitRole.Guardian; continue; }
+            if (MatchObjectiveRules.IsCommander(u)) { _assignments[u] = UnitRole.Guardian; continue; }
             if (u.IsBoss) { boss.Add(u); continue; }
 
             switch (u.kind)
@@ -265,7 +265,7 @@ public class AIRoleAssigner
                 if (action.TargetUnit != null)
                 {
                     if (action.TargetUnit.kind == Kind.Crystal) bonus += 15f;
-                    if (action.TargetUnit.kind == Kind.King) bonus += 10f;
+                    if (MatchObjectiveRules.IsCommander(action.TargetUnit)) bonus += 10f;
                     if (action.TargetUnit.kind == Kind.Priest) bonus += 8f;
                 }
                 break;

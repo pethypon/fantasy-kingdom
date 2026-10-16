@@ -60,7 +60,7 @@ public partial class SimBoardState
         }
 
         int damage = CalcDamage(attacker, target);
-        target.HP = Mathf.Max(0, target.HP - damage);
+        target.ApplyDamage(damage);
         attacker.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(attacker.Kind);
 
         // クリスタルシールドチェック (HPが50%以下に初めて到達した場合)
@@ -115,7 +115,7 @@ public partial class SimBoardState
                 {
                     // 攻撃スキル
                     int dmg = CalcSkillDamage(unit, target, skill);
-                    target.HP = Mathf.Max(0, target.HP - dmg);
+                    target.ApplyDamage(dmg);
 
                     // デバフ付与シミュレーション（確率50%以上なら付与とみなす）
                     if (skill.InflictDebuff != StatusEffectType.None && skill.DebuffChance >= 0.5f)
@@ -139,7 +139,7 @@ public partial class SimBoardState
                     if (target.HasDebuff(StatusEffectType.Poison)) healMod -= (1f - GameConstants.PoisonHealReduction);
                     healMod = Mathf.Max(0f, healMod);
                     int heal = Mathf.RoundToInt(skill.FixedHeal * healMod);
-                    target.HP = Mathf.Min(target.HP + heal, target.MaxHP);
+                    target.ApplyHeal(heal);
                 }
 
                 // バフ付与

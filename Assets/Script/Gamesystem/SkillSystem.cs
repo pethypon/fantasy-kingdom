@@ -19,10 +19,9 @@ public class SkillSystem : MonoBehaviour
         if (target == null || !target.IsAlive || target.ShieldTurns > 0) return 0;
         var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
         if (terrain != null && !terrain.CanAttackAcrossTerrain(attacker, target.transform.position)) return 0;
-        int before = target.HP;
-        if (!SpecialAbilitySystem.TrySurviveLethal(target, requested)) target.ApplyDamage(requested);
-        int actual = Mathf.Max(0, before - target.HP);
-        Status.AwardDamageExperience(attacker, target, actual, _factionState);
+        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(target, requested, HpChangeKind.NormalDamage);
+        int actual = SpecialSkillRuntime.ApplyHpChange(attacker, target, requested, HpChangeKind.NormalDamage);
+        Status.AwardDamageExperience(attacker, recipient, actual, _factionState);
         return actual;
     }
 
@@ -54,7 +53,8 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteSkill(Status attacker, Status target, SkillData skill)
     {
-        if (attacker == null || skill == null || !AttackPatterns.CanUseSkills(attacker)) return;
+        if (attacker == null || skill == null || !AttackPatterns.CanUseSkills(attacker) || SpecialSkillRuntime.AttackBlocked(attacker)) return;
+        if (SpecialSkillRuntime.Definition(attacker)?.ability > UnitSpecialSkill.None) return;
         var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
         if (target != null && target != attacker && terrain != null
             && !terrain.CanAttackAcrossTerrain(attacker, target.transform.position)) return;
@@ -193,6 +193,7 @@ public class SkillSystem : MonoBehaviour
                      || skill.Area == SkillAreaShape.SingleDouble
                      || skill.Area == SkillAreaShape.SingleChain;
         SpecialAbilitySystem.OnAttackHit(attacker, target, damage, isSingle);
+        SpecialSkillRuntime.OnAttackLanded(attacker, false);
 
         // 反射処理
         StatusEffectSystem.ProcessReflect(target, attacker);
@@ -466,6 +467,7 @@ public class SkillSystem : MonoBehaviour
                 break;
 
             case "FlamePoison":
+                if (target != null) turnGenerator?.Systems?.MapCreate?.Environment?.Ignite(target.transform.position, turnGenerator.Systems);
                 if (target != null && !StatusEffectSystem.HasDebuff(target, StatusEffectType.Poison))
                 {
                     if (Random.Range(0f, 1f) <= GameConstants.FlamePoisonBleedChance)

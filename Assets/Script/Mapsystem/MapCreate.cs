@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public enum MapPresetSize { Small35, Normal40, Custom }
 
-public class MapCreate : MonoBehaviour
+public partial class MapCreate : MonoBehaviour
 {
     [Header("霧タイル")]
     [SerializeField] private GameObject Fog;
@@ -156,6 +156,7 @@ public class MapCreate : MonoBehaviour
 
             }
         }
+        InitializeEnvironment();
         FogChunks = new GameObject("FogChunks").AddComponent<FogChunkRenderer>();
         // Terrain cells are spawned in world coordinates, even when this generator is moved.
         FogChunks.transform.SetParent(transform, true);
@@ -245,7 +246,7 @@ public class MapCreate : MonoBehaviour
         return !IsHighMountain(a.x, a.z) && !(blockWater && IsRiver(a.x,a.z));
     }
 
-    public bool CanTraverse(Vector3 from, Vector3 to) => HasClearTerrainLine(from,to,false,true);
+    public bool CanTraverse(Vector3 from, Vector3 to) => HasClearTerrainLine(from,to,false,true) && Environment.HasClearMovement(from, to);
 
     public static bool IsArcingAttack(Kind kind, FacilityKind facility) => kind == Kind.Archer || kind == Kind.Bomber || facility == FacilityKind.Mortar;
 
@@ -253,8 +254,9 @@ public class MapCreate : MonoBehaviour
     {
         if (attacker == null) return false;
         bool highArc = IsArcingAttack(attacker.kind, attacker.facilityKind);
-        return (highArc && GridHelper.ChebyshevDistance(attacker.transform.position,target) >= 2f)
-            || HasClearTerrainLine(attacker.transform.position,target);
+        return Environment.HasClearShots(attacker.transform.position, target)
+            && ((highArc && GridHelper.ChebyshevDistance(attacker.transform.position,target) >= 2f)
+            || HasClearTerrainLine(attacker.transform.position,target));
     }
 
     /// <summary>指定 XZ 座標に通行可能なタイルが存在するかを判定する</summary>

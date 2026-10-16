@@ -149,6 +149,7 @@ public sealed class AIReconnaissance
         var key = (unit.GetInstanceID(), target);
         if (scores.TryGetValue(key, out float cached)) return cached;
         bool scout = unit.kind == Kind.Scout;
+        bool explorer = scout || board.Exploration.IsAssignedUnit(unit);
         footprint.Clear();
         bool blind = StatusEffectSystem.HasDebuff(unit, StatusEffectType.Blind) || StatusEffectSystem.HasDebuff(unit, StatusEffectType.NarrowVision);
         if (blind) footprint.Add(target + new Vector3Int(0, 0, MovePatterns.DirZ(unit.direction)));
@@ -183,20 +184,20 @@ public sealed class AIReconnaissance
         }
         // R2 owns scout reveal utility and long-range progress. Other units keep their previous information utility.
         float score = Mathf.Min(fresh * .7f, 12);
-        if (scout)
+        if (explorer)
         {
             var exploration = board.Exploration;
             score = exploration.Settings.Enabled ? exploration.GetMoveBonus(unit, destination, board)
                 : Mathf.Min(fresh * 2.5f, 40);
         }
         score += Mathf.Min(information, 55) + Mathf.Min(ranged, 18) + Mathf.Min(warning, 8);
-        if (!scout && hasContact && unit.kind != Kind.King && unit.HP >= unit.MaxHP / 2)
+        if (!explorer && hasContact && !MatchObjectiveRules.IsCommander(unit) && unit.HP >= unit.MaxHP / 2)
         {
             float progress = GridHelper.ChebyshevDistance(unit.transform.position, contactTarget) - GridHelper.ChebyshevDistance(destination, contactTarget);
             float risk = board.EstimateCounterDamageAt(destination, unit);
             if (risk < unit.HP / 2f) score += Mathf.Clamp(progress, -3, 3) * 7;
         }
-        if (scout)
+        if (explorer)
         {
             if (board.Outposts.TryGetDungeonObjective(unit.transform.position, out var dungeon))
                 score += Mathf.Clamp(GridHelper.ChebyshevDistance(unit.transform.position, dungeon) - GridHelper.ChebyshevDistance(destination, dungeon), -3, 3) * 6;

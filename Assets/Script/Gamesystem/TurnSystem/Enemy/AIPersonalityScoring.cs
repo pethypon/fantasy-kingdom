@@ -113,8 +113,8 @@ static class AIPersonalityScoring
                 bonus += p.ObsessionRate * 20f;
                 if (action.TargetUnit != null)
                 {
-                    int myDmg = AIEvalHelpers.EstimateDamage(action.Unit, action.TargetUnit);
-                    int counterDmg = AIEvalHelpers.EstimateDamage(action.TargetUnit, action.Unit);
+                    int myDmg = AIActionEvaluator.EstimateEffectiveSpecialDamage(action.Unit,action.TargetUnit,board,out _);
+                    int counterDmg = AIActionEvaluator.EstimateEffectiveSpecialDamage(action.TargetUnit,action.Unit,board,out _);
                     if (counterDmg > myDmg)
                         bonus -= p.CautionRate * 25f;
                 }

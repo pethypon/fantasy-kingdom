@@ -50,7 +50,7 @@ public sealed class AIPlanManager
         if(suspend)return;
         army.Clear();
         foreach (var unit in board.AliveEnemyUnits)
-            if (unit != null && unit.IsAlive && unit.type == Type.Unit && unit.kind != Kind.King) army.Add(unit);
+            if (unit != null && unit.IsAlive && unit.type == Type.Unit && !MatchObjectiveRules.IsCommander(unit)) army.Add(unit);
         if (Current != null && Current.Active)
         {
             Assign();
@@ -59,7 +59,7 @@ public sealed class AIPlanManager
             { Finish(board, AIPlanStep.Aborted); return; }
             bool targetObserved = false;
             foreach (var target in board.AlivePlayerUnits)
-                if (target != null && target.IsAlive && board.IsVisibleToEnemy(target.transform.position)
+                if (target != null && target.IsAlive && target.team == board.OpponentTeam && board.IsVisibleToEnemy(target.transform.position)
                     && (target.GetInstanceID() == Current.TargetId || (Current.TargetId==0 && Current.Goal!=AIPlanGoal.Reconnaissance
                         && target.kind==Current.TargetKind && target.facilityKind==Current.TargetFacility
                         && GridHelper.ChebyshevDistance(target.transform.position,Current.Target)<=1)))
@@ -97,12 +97,12 @@ public sealed class AIPlanManager
     {
         int visibleTroops = 0;
         foreach(var observed in board.AlivePlayerUnits)
-            if(observed!=null && observed.IsAlive && observed.type==Type.Unit && board.IsVisibleToEnemy(observed.transform.position))visibleTroops++;
+            if(observed!=null && observed.IsAlive && observed.team == board.OpponentTeam && observed.type==Type.Unit && board.IsVisibleToEnemy(observed.transform.position))visibleTroops++;
         Status target = null; float best = float.NegativeInfinity;
         foreach (var observed in board.AlivePlayerUnits)
         {
-            if (observed == null || !observed.IsAlive || !board.IsVisibleToEnemy(observed.transform.position)) continue;
-            float score = observed.kind == Kind.King && observed.HP < observed.MaxHP * .4f ? 100
+            if (observed == null || !observed.IsAlive || observed.team != board.OpponentTeam || !board.IsVisibleToEnemy(observed.transform.position)) continue;
+            float score = MatchObjectiveRules.IsCommander(observed) && observed.HP < observed.MaxHP * .4f ? 100
                 : observed.facilityKind == FacilityKind.Bakery && observed.type != Type.Unit ? 80
                 : observed.kind == Kind.SubCrystal ? 70 : observed.kind == Kind.Crystal ? 60 : -100;
             score -= GridHelper.ChebyshevDistance(observed.transform.position, board.EnemyCrystalPos);
@@ -111,7 +111,7 @@ public sealed class AIPlanManager
         var goal = AIPlanGoal.Reconnaissance;
         if (target != null && best > -50)
         {
-            goal = target.kind == Kind.King ? AIPlanGoal.KingStrike
+            goal = MatchObjectiveRules.IsCommander(target) ? AIPlanGoal.KingStrike
                 : target.facilityKind == FacilityKind.Bakery ? AIPlanGoal.EconomicRaid : AIPlanGoal.CrystalStrike;
             if (goal == AIPlanGoal.CrystalStrike && Has(Kind.Scout) && Has(Kind.Assassin) && Has(Kind.Knight)
                 && visibleTroops >= 2) goal = AIPlanGoal.EasternFeint;
@@ -208,7 +208,7 @@ public sealed class AIPlanManager
                 {
                     respondents.Clear();
                     foreach (var enemy in board.AlivePlayerUnits)
-                        if (enemy != null && enemy.IsAlive && enemy.type==Type.Unit && board.IsVisibleToEnemy(enemy.transform.position)
+                        if (enemy != null && enemy.IsAlive && enemy.team == board.OpponentTeam && enemy.type==Type.Unit && board.IsVisibleToEnemy(enemy.transform.position)
                             && GridHelper.ChebyshevDistance(enemy.transform.position, Current.DemonstrationPoint) <= 3) respondents.Add(enemy.GetInstanceID());
                     Step(board, AIPlanStep.ObserveResponse);
                 }
@@ -218,7 +218,7 @@ public sealed class AIPlanManager
                 int arrivals = 0;
                 Status pursuer = null;
                 foreach (var enemy in board.AlivePlayerUnits)
-                    if (enemy != null && enemy.IsAlive && enemy.type==Type.Unit && board.IsVisibleToEnemy(enemy.transform.position) && !respondents.Contains(enemy.GetInstanceID())
+                    if (enemy != null && enemy.IsAlive && enemy.team == board.OpponentTeam && enemy.type==Type.Unit && board.IsVisibleToEnemy(enemy.transform.position) && !respondents.Contains(enemy.GetInstanceID())
                         && GridHelper.ChebyshevDistance(enemy.transform.position, Current.DemonstrationPoint) <= 3)
                     { arrivals++; if(pursuer==null)pursuer=enemy; }
                 Current.VisibleResponders = arrivals;
@@ -289,7 +289,18 @@ public sealed class AIPlanManager
         if (Current.Step == AIPlanStep.Demonstrate || Current.Step == AIPlanStep.ObserveResponse)
             goal = roleKind == Kind.Scout ? Current.DemonstrationPoint : Current.RallyPoint;
         if (Current.Step == AIPlanStep.Flank) goal = Current.FlankPoint;
-        if (Current.Step == AIPlanStep.MainAssault && board.Recon.TryGetContactTarget(out var contact)) goal = contact;
+        // A local neutral fight never replaces the observed objective of this multi-turn operation.
+        if (Current.Step == AIPlanStep.MainAssault)
+        {
+            float closest = float.PositiveInfinity;
+            foreach (var opponent in board.AlivePlayerUnits)
+            {
+                if (opponent == null || !opponent.IsAlive || opponent.team != board.OpponentTeam
+                    || !board.IsVisibleToEnemy(opponent.transform.position)) continue;
+                float distance = GridHelper.ChebyshevDistance(opponent.transform.position, Current.Target);
+                if (distance < closest) { closest = distance; goal = opponent.transform.position; }
+            }
+        }
         if (moving)
         {
             if (action.Unit.HP < action.Unit.MaxHP * .35f || board.EstimateCounterDamageAt(action.TargetPos, action.Unit) + board.Belief.RiskAt(action.TargetPos, board.ReconThreatLevel) >= action.Unit.HP * .7f)
@@ -303,7 +314,7 @@ public sealed class AIPlanManager
             if (Current.Goal == AIPlanGoal.Ambush && Current.Step == AIPlanStep.Strike) return 30;
             if(Current.Step==AIPlanStep.Flank || Current.Step==AIPlanStep.Demonstrate || Current.Step==AIPlanStep.ObserveResponse)
             {
-                bool finishing=action.TargetUnit!=null && action.TargetUnit.ShieldTurns<=0 && AIEvalHelpers.EstimateDamage(action.Unit,action.TargetUnit)>=action.TargetUnit.HP;
+                bool finishing=action.ActionType==AIActionType.Attack&&AIActionEvaluator.CanFinishSpecialTarget(action.Unit,action.TargetUnit,board);
                 if(!finishing)return -20;
             }
         }

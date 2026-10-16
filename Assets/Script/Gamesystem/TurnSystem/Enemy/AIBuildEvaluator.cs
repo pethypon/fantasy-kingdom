@@ -142,7 +142,7 @@ static class AIBuildEvaluator
         {
             foreach (var actor in board.AliveEnemyUnits)
             {
-                if (actor == null || !actor.IsAlive || actor.kind != Kind.King) continue;
+                if (actor == null || !actor.IsAlive || !MatchObjectiveRules.IsCommander(actor)) continue;
                 if (WallFacesObservedThreat(position, actor.transform.position, board)) { aligned = true; break; }
             }
         }
@@ -173,12 +173,12 @@ static class AIBuildEvaluator
         bool contact = board.Recon.TryGetContactTarget(out _);
         bool combatRecruit = action.SummonKind != Kind.Scout && action.SummonKind != Kind.Priest;
         var demand = board.ProductionDemand;
-        bool foundationWeak = AIBasicResourceSettings.Active.enabled && board.Governor?.BasicResources.HasShortage == true;
+        bool needsRecovery = AIStrategicGovernor.RequiresEconomicRecovery(demand);
         if (contact && combatRecruit)
             score += 45f; // Contact must not leave recruitment locked behind a mature economy.
         else if (demand.State >= EconomicState.Crisis)
             score -= 120f;
-        else if (foundationWeak || !EconomyHelper.IsEconomySufficient(board))
+        else if (needsRecovery)
             score -= 60f;
         else
             score += 20f;
@@ -195,7 +195,7 @@ static class AIBuildEvaluator
             score += Mathf.Max(0, 15f - dist);
         }
 
-        if (action.SummonKind == Kind.Scout && board.AlivePlayerUnits.Count == 0)
+        if (action.SummonKind == Kind.Scout && !board.HasPrincipalOpponentContact)
         {
             float explorationRatio = board.GetExplorationRatio();
             if (explorationRatio < 0.5f)

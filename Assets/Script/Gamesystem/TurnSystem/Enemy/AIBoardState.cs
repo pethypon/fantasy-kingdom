@@ -64,6 +64,10 @@ public partial class AIBoardState
         foreach (var definition in _unitSet.AuthoredDefinitions)
             if (definition != null && definition.AvailableFor(ActorTeam) && !result.Contains(definition)) result.Add(definition);
     }
+    public bool HasPrincipalOpponentContact
+    {
+        get { foreach (var actor in AlivePlayerUnits) if (actor != null && actor.team == OpponentTeam) return true; return false; }
+    }
     public Team OpponentTeam => ActorTeam == Team.Player ? Team.Enemy : Team.Player;
     public Transform OwnUnitParent => _unitSet == null ? null : ActorTeam == Team.Player ? _unitSet.PlayerUnit : _unitSet.EnemyUnit;
     public Transform OpponentUnitParent => _unitSet == null ? null : ActorTeam == Team.Player ? _unitSet.EnemyUnit : _unitSet.PlayerUnit;
@@ -414,7 +418,8 @@ public partial class AIBoardState
     // ---- 移動可能マス ----
     public List<Vector3> GetValidMoves(Status unit)
     {
-        if (unit == null || _moveGen == null || _moveGen.mapcreate == null) return new List<Vector3>();
+        if (unit == null || _moveGen == null || _moveGen.mapcreate == null
+            || SpecialSkillRuntime.MovementBlocked(unit)) return new List<Vector3>();
         var unitPos = unit.transform.position;
         var offsets = MovePatterns.Offsets(unit);
         var result = new List<Vector3>(offsets.Count);
@@ -445,6 +450,7 @@ public partial class AIBoardState
                 if (GridHelper.MatchXZ(p, enemy.GridPosition)) { occupied = true; break; }
             if (!occupied) result.Add(p);
         }
+        AddKnownCaveMove(unit, result);
         result.Sort(CompareMoveCells);
         return result;
     }
@@ -458,6 +464,10 @@ public partial class AIBoardState
     // ---- 攻撃対象（視界内のみ） ----
     public List<Status> GetAttackTargets(Status unit)
     {
+        if (unit == null || SpecialSkillRuntime.AttackBlocked(unit)) return new List<Status>();
+        if (SpecialSkillRuntime.TryGetSniperTarget(unit, out var lockedTarget))
+            return lockedTarget != null ? new List<Status> { lockedTarget } : new List<Status>();
+        if (AISpecialSkillKnowledge.SniperRestrictsTargets(unit)) return new List<Status>();
         var unitPos = unit.transform.position;
         var targets = new List<Status>();
 

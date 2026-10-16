@@ -158,7 +158,7 @@ public class FactionState : MonoBehaviour
     {
         var nation = GetNation(team);
         nation.PendingReturns.Add(turns);
-        Debug.Log($"[FactionState] AddPendingReturn: {team} {turns}ターン後に返却予定 (リスト件数={nation.PendingReturns.Count})");
+        if (DevelopmentLog.IsEnabled()) DevelopmentLog.Log($"[FactionState] AddPendingReturn: {team} {turns}ターン後に返却予定 (リスト件数={nation.PendingReturns.Count})");
     }
 
     public int GetMinPendingReturn(Team team)
@@ -185,12 +185,12 @@ public class FactionState : MonoBehaviour
         for (int i = list.Count - 1; i >= 0; i--)
         {
             list[i]--;
-            Debug.Log($"[FactionState] {team} PendingReturn[{i}]: {list[i]+1}→{list[i]}");
+            if (DevelopmentLog.IsEnabled()) DevelopmentLog.Log($"[FactionState] {team} PendingReturn[{i}]: {list[i]+1}→{list[i]}");
             if (list[i] <= 0)
             {
                 ModifySubCrystals(team, 1);
                 list.RemoveAt(i);
-                Debug.Log($"[FactionState] {team} サブクリスタル返却！ 現在={GetSubCrystals(team)} (残り待ち: {list.Count})");
+                if (DevelopmentLog.IsEnabled()) DevelopmentLog.Log($"[FactionState] {team} サブクリスタル返却！ 現在={GetSubCrystals(team)} (残り待ち: {list.Count})");
             }
         }
     }

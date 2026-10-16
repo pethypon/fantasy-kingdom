@@ -32,6 +32,9 @@ public static class TurnStartHelper
             if (nation != null) nation.TurnsAlive++;
         }
 
+        SpecialSkillRuntime.OnOwnerTurnStart(systems, team, round);
+        if (systems.TurnGenerator?.IsGameOver == true) return;
+
         // 状態異常ティック（DoTダメージ + ターン経過）
         StatusEffectSystem.TickAllUnits(team, unitParent);
 
@@ -62,6 +65,10 @@ public static class TurnStartHelper
 
         // クリスタル反撃: 敵側クリスタル領土に侵入している自軍ユニットへ自動ダメージ
         BattleSystem.ProcessCrystalCounterAtTurnStart(systems, team);
+
+        // Damage reservations, poison, environment and crystal fire all precede natural recovery.
+        systems.MapCreate?.Environment?.OnOwnerTurnStart(team, round, systems);
+        NaturalRecoverySystem.ProcessOwnerTurn(systems, team, round);
 
         // 強敵ターン処理は WildBossState（専用ターン）で行うためここでは呼ばない
     }

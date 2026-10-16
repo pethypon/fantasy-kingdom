@@ -6,6 +6,7 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>Ordinary player/enemy/third-faction turn flow using the real developer player AI.</summary>
 [InitializeOnLoad]
@@ -16,14 +17,23 @@ public static class BalanceAutoplayRunner
     static int recordedTurn;
     static double started;
     static readonly StringBuilder rows = new StringBuilder();
+    static int seed;
+    static bool clickedNewGame;
     static BalanceAutoplayRunner() { EditorApplication.update += Tick; }
     public static void Run() => RunWithTurns(20);
     public static void Run60() => RunWithTurns(60);
+    public static void RunVisual20()
+    {
+        SessionState.SetBool("FK.BalanceAutoplay.Capture", true); RunWithTurns(20);
+    }
     static void RunWithTurns(int turns)
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new InvalidOperationException("Isolated validation only");
         PlayerSettings.companyName = "CodexValidation"; PlayerSettings.productName = "FantasyKingdomR1Validation";
         SessionState.SetInt("FK.BalanceAutoplay.Turns", turns);
+        int selectedSeed;
+        if (!int.TryParse(Environment.GetEnvironmentVariable("FK_BALANCE_SEED"), out selectedSeed)) selectedSeed = 56192;
+        SessionState.SetInt("FK.BalanceAutoplay.Seed", selectedSeed);
         SessionState.SetBool(Running, true); EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity"); EditorApplication.EnterPlaymode();
     }
     static void Tick()
@@ -34,16 +44,24 @@ public static class BalanceAutoplayRunner
             if (turn == null)
             {
                 var game = UnityEngine.Object.FindFirstObjectByType<GameGenerator>();
-                if (game == null || TitleScreenUI.Instance == null) return;
-                typeof(GameGenerator).GetField("_waitingForTitle", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(game, false);
-                UnityEngine.Object.DestroyImmediate(TitleScreenUI.Instance.gameObject);
-                UnityEngine.Random.InitState(56192);
-                typeof(GameGenerator).GetMethod("StartGameInit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(game, new object[] { -1 });
-                turn = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>(); turn.MarkDeveloperMatch();
+                if (game == null) return;
+                if (!clickedNewGame)
+                {
+                    if (TitleScreenUI.Instance == null || UIBuilder.ScreenCanvas == null) return;
+                    var button = UIBuilder.ScreenCanvas.transform.Find("TitleScreenOverlay/ButtonArea/はじめからBtn")?.GetComponent<Button>();
+                    if (button == null) throw new InvalidOperationException("Actual new-game button was not found");
+                    seed = SessionState.GetInt("FK.BalanceAutoplay.Seed", 56192); UnityEngine.Random.InitState(seed);
+                    button.onClick.Invoke(); clickedNewGame = true;
+                    Debug.Log("[BalanceAutoplay] CLICKED actual はじめから button"); return;
+                }
+                var candidate = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
+                if (candidate == null || candidate.Systems.AICommander == null || !(candidate.CurrentState is PlayerMove)) return;
+                turn = candidate; turn.MarkDeveloperMatch();
                 var threat = typeof(AICommander).GetField("_threatLevel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(turn.Systems.AICommander);
                 typeof(AIThreatLevel).GetProperty("Level").SetValue(threat, 15);
                 turn.PlayerAI.SetEnabled(true, false); started = EditorApplication.timeSinceStartup;
-                rows.AppendLine("turn,playerWood,playerStone,playerWater,playerIron,playerBread,playerBuildings,enemyWood,enemyStone,enemyWater,enemyIron,enemyBread,enemyBuildings,playerUnits,playerUnpaid,playerMines,enemyUnits,enemyUnpaid,enemyMines");
+                rows.AppendLine("turn,playerWood,playerStone,playerWater,playerIron,playerBread,playerBuildings,enemyWood,enemyStone,enemyWater,enemyIron,enemyBread,enemyBuildings,playerUnits,playerUnpaid,playerMines,enemyUnits,enemyUnpaid,enemyMines,playerMagic,playerWheat,playerCitizen,playerStorage,enemyMagic,enemyWheat,enemyCitizen,enemyStorage");
+                Debug.Log("[BalanceAutoplay] START seed=" + seed + " targetTurns=" + SessionState.GetInt("FK.BalanceAutoplay.Turns", 20));
             }
             if (EditorApplication.timeSinceStartup - started > 600) throw new TimeoutException("Ordinary autoplay exceeded ten minutes");
             if (turn.Context.Turn != recordedTurn && turn.CurrentState is PlayerMove)
@@ -56,18 +74,26 @@ public static class BalanceAutoplayRunner
                 AppendArmy(s.UnitSetting.PlayerUnit);
                 rows.Append(',').Append(s.BuildSystem.GetBuildingCount(Team.Player, FacilityKind.Mine));
                 AppendArmy(s.UnitSetting.EnemyUnit);
-                rows.Append(',').Append(s.BuildSystem.GetBuildingCount(Team.Enemy, FacilityKind.Mine)).AppendLine();
+                rows.Append(',').Append(s.BuildSystem.GetBuildingCount(Team.Enemy, FacilityKind.Mine));
+                rows.Append(',').Append(p.MagicOre).Append(',').Append(p.Wheat).Append(',').Append(p.Citizen).Append(',').Append(s.FactionState.GetResourceCap(Team.Player));
+                rows.Append(',').Append(e.MagicOre).Append(',').Append(e.Wheat).Append(',').Append(e.Citizen).Append(',').Append(s.FactionState.GetResourceCap(Team.Enemy)).AppendLine();
                 Debug.Log("[BalanceAutoplay] turn=" + recordedTurn + " playerBuildings=" + s.BuildSystem.PlayerBuildingParent.childCount + " enemyBuildings=" + s.BuildSystem.EnemyBuildingParent.childCount);
+                if (SessionState.GetBool("FK.BalanceAutoplay.Capture", false)
+                    && (recordedTurn == 1 || recordedTurn == 5 || recordedTurn == 10 || recordedTurn == 20))
+                {
+                    VisualRegressionTests.CaptureHUD("ai-play-" + seed + "-turn-" + recordedTurn + ".png");
+                    Debug.Log("[BalanceAutoplay] CAPTURED real scene at turn=" + recordedTurn);
+                }
                 if (p.Wood < 0 || p.Stone < 0 || p.Water < 0 || e.Wood < 0 || e.Stone < 0 || e.Water < 0) throw new InvalidOperationException("Negative material stock");
             }
             if (recordedTurn >= SessionState.GetInt("FK.BalanceAutoplay.Turns", 20) || turn.IsGameOver)
             {
-                File.WriteAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "../../balance-autoplay.csv")), rows.ToString());
-                Debug.Log("[BalanceAutoplay] COMPLETED turns=" + recordedTurn + " gameOver=" + turn.IsGameOver + " seconds=" + (EditorApplication.timeSinceStartup - started).ToString("F1"));
-                SessionState.SetBool(Running, false); EditorApplication.Exit(0);
+                File.WriteAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "../../balance-autoplay-" + seed + ".csv")), rows.ToString());
+                Debug.Log("[BalanceAutoplay] COMPLETED seed=" + seed + " turns=" + recordedTurn + " gameOver=" + turn.IsGameOver + " seconds=" + (EditorApplication.timeSinceStartup - started).ToString("F1"));
+                SessionState.SetBool("FK.BalanceAutoplay.Capture", false); SessionState.SetBool(Running, false); EditorApplication.Exit(0);
             }
         }
-        catch (Exception error) { Debug.LogException(error); SessionState.SetBool(Running, false); EditorApplication.Exit(1); }
+        catch (Exception error) { Debug.LogException(error); SessionState.SetBool("FK.BalanceAutoplay.Capture", false); SessionState.SetBool(Running, false); EditorApplication.Exit(1); }
     }
     static void AppendArmy(Transform parent)
     {

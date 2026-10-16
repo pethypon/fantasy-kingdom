@@ -166,6 +166,7 @@ public sealed partial class GameDevelopmentStudioWindow
             var copy = Instantiate(source); copy.definitionId = "unit-" + Guid.NewGuid().ToString("N"); copy.displayName = source.DisplayName + " 複製";
             AssetDatabase.CreateAsset(copy, folder + "/Stats.asset");
             copy.actionProfile = DuplicateProfile(source.actionProfile, folder, copy.kind, false);
+            copy.specialSkill = DuplicateSpecialSkill(source.specialSkill, folder);
             copy.prefab = CreateVisualPrefab(copy, null, source.prefab); EditorUtility.SetDirty(copy); RegisterUnit(copy); selectedUnit = copy;
         }
         else if (tab == 1 && selectedBuilding != null)

@@ -1,0 +1,21 @@
+{
+    "MapRandomInput": 271828,
+    "MaxTurns": 180,
+    "EnemyAISeed": 2407703,
+    "PlayerAISeed": 15015,
+    "ThreatLevel": 15,
+    "TerrainSeedX": 523673.46875,
+    "TerrainSeedZ": 397892.1875,
+    "EnemyPersonality": "Adaptive",
+    "PlayerPersonality": "Intellect",
+    "PersistentPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdom_balance-study-20261015-improved_271828_91d38270ea414629ae3025317453913c",
+    "EndCondition": "game_over",
+    "Result": "Lose",
+    "OutcomeReason": "敗北理由：味方の王が撃破されました",
+    "LastNormalAttackerTeam": "Monster",
+    "LastNormalAttackerKind": "Knight",
+    "LastNormalAttackerName": "Knight(Clone)",
+    "LastRound": 88,
+    "GameOver": true,
+    "Seconds": 250.5073474
+}

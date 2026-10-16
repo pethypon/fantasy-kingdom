@@ -100,12 +100,23 @@ public class TurnInputHandler : MonoBehaviour
         ctx.RightClickDown = !blocked && (command == GameContext.UICommand.Cancel || gameaction.GamePlay.RightClick.WasPressedThisFrame());
         ctx.TurnEndDown = !blocked && (command == GameContext.UICommand.EndTurn || gameaction.GamePlay.TurnEnd.WasPressedThisFrame());
         ctx.SelectNormalDown = !blocked && (command == GameContext.UICommand.Attack || gameaction.GamePlay.SelectNormal.WasPressedThisFrame());
-        ctx.SelectSkillDown = !blocked && (command == GameContext.UICommand.Skill || gameaction.GamePlay.SelectSkill.WasPressedThisFrame());
+        bool typing = IsTypingInField();
+        bool skillKeyDown = gameaction.GamePlay.SelectSkill.WasPressedThisFrame();
+        ctx.SelectSkillDown = !blocked && !typing && (command == GameContext.UICommand.Skill || skillKeyDown);
+        if (ctx.SelectSkillDown && command != GameContext.UICommand.Skill && skillKeyDown
+            && _turn.Systems.UnitPanelUI != null && _turn.Systems.UnitPanelUI.TryOpenSpecialShortcut())
+            ctx.SelectSkillDown = false; // The physical 2 key is handled once; explicit ordinary-skill buttons retain their command.
         ctx.ToggleNSDown = !blocked && gameaction.GamePlay.ToggleNS.WasPressedThisFrame();
         ctx.FocusSelectedDown = !blocked && Pressed(keyboard, FocusSelectedKey);
         ctx.CycleUnitDown = !blocked && Pressed(keyboard, CycleUnitKey);
         ctx.CycleUnitBackwards = keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
         ctx.UndoMoveDown = !blocked && Pressed(keyboard, UndoMoveKey);
+    }
+    static bool IsTypingInField()
+    {
+        var selected = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+        return selected != null && (selected.GetComponentInParent<TMPro.TMP_InputField>() != null
+            || selected.GetComponentInParent<UnityEngine.UI.InputField>() != null);
     }
     static bool Pressed(Keyboard keyboard, Key key) => keyboard != null && key != Key.None && keyboard[key].wasPressedThisFrame;
 }

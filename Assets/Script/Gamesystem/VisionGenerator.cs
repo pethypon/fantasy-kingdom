@@ -179,7 +179,8 @@ public class VisionGenerator : MonoBehaviour
     };
 
     public static System.Collections.Generic.IReadOnlyList<Vector3Int> BaseVisionOffsets(Kind kind)
-        => VisionDataMap.TryGetValue(kind, out var offsets) ? offsets : System.Array.Empty<Vector3Int>();
+        => VisionDataMap.TryGetValue(LegacyVisionRole(kind), out var offsets) ? offsets : System.Array.Empty<Vector3Int>();
+    static Kind LegacyVisionRole(Kind kind) => kind == Kind.HolyKnight ? Kind.Knight : kind == Kind.Ninja ? Kind.Assassin : kind;
 
     // Custom masks are weakly cached by definition, never by Kind: several authored pieces can share one AI role.
     sealed class MaskVisionCache
@@ -210,6 +211,7 @@ public class VisionGenerator : MonoBehaviour
     public static IReadOnlyList<Vector3Int> BaseVisionOffsets(Kind kind, Direction direction, BoardActionProfile profile)
     {
         var mask = profile != null ? profile.vision : null;
+        kind = LegacyVisionRole(kind);
         if (mask == null || !mask.useCustom)
             return direction == Direction.S && southVision.TryGetValue(kind, out var south) ? south : BaseVisionOffsets(kind);
         var cache = customVision.GetOrCreateValue(mask);
@@ -337,7 +339,8 @@ public class VisionGenerator : MonoBehaviour
     /// </summary>
     void RaycastCrystalVision(Status status, MapCreate mapcreate, int px, int py, int pz)
     {
-        if (!mapcreate.HasClearTerrainLine(status.transform.position, new Vector3(px, py, pz), true)) return;
+        if (!mapcreate.HasClearTerrainLine(status.transform.position, new Vector3(px, py, pz), true)
+            || !mapcreate.Environment.HasClearVision(status.transform.position, new Vector3(px, py, pz))) return;
         Vector3 goal = new Vector3(px, py, pz) + Vector3.up * GameConstants.VisionRayHeightOffset;
         float startHigh = mapcreate.maxY + 10f;
         Vector3 visionstart = goal + Vector3.up * startHigh;
@@ -362,7 +365,8 @@ public class VisionGenerator : MonoBehaviour
     /// </summary>
     void RaycastDirectVision(Status status, int statusX, int statusY, int statusZ, int px, int py, int pz)
     {
-        if (mapcreate != null && !mapcreate.HasClearTerrainLine(status.transform.position, new Vector3(px, py, pz), true)) return;
+        if (mapcreate != null && (!mapcreate.HasClearTerrainLine(status.transform.position, new Vector3(px, py, pz), true)
+            || !mapcreate.Environment.HasClearVision(status.transform.position, new Vector3(px, py, pz)))) return;
         Vector3 start = new Vector3(statusX, statusY, statusZ) + Vector3.up * GameConstants.VisionRayHeightOffset;
         Vector3 goal = new Vector3(px, py, pz) + Vector3.up * GameConstants.VisionRayHeightOffset;
         Vector3 direction = goal - start;
@@ -549,6 +553,7 @@ public class VisionGenerator : MonoBehaviour
 
         Vector3Int statusGrid = GridHelper.ToGrid(status.transform.position);
         status.VisionCell.Add(statusGrid);
+        if (SpecialSkillRuntime.State(status).visionZeroTurns > 0) return;
         int statusX = statusGrid.x;
         int statusY = statusGrid.y;
         int statusZ = statusGrid.z;
@@ -567,6 +572,7 @@ public class VisionGenerator : MonoBehaviour
         // Special Ability: 監視眼（視界+1）+ StatusEffect の視界修飾
         int visionBonus = SpecialAbilitySystem.GetVisionBonus(status)
                         + StatusEffectSystem.GetVisionModifier(status);
+        if (SpecialSkillRuntime.State(status).scoutVisionPenaltyTurns > 0) visionBonus -= 2;
 
         // 高台ボーナス: 周囲1マス平均より高ければ視界+1
         if (IsOnHighGround(status, mapcreate))
@@ -699,6 +705,8 @@ public class VisionGenerator : MonoBehaviour
             foreach (var p in territorysystem.PTSetPos)
             {
                 var cell = new Vector3Int(Mathf.RoundToInt(p.x), 0, Mathf.RoundToInt(p.z));
+                // Owning territory is not permission to see an opponent hiding in environmental cover.
+                if (mapcreate.Environment.IsConcealing(cell) && !_reusableVisionXZ.Contains(cell)) continue;
                 _reusableVisionXZ.Add(cell);
                 _reusableExploardXZ.Add(cell);
             }
@@ -708,6 +716,7 @@ public class VisionGenerator : MonoBehaviour
         var playerexploardXZ = _reusableExploardXZ;
 
         mapcreate.FogChunks?.Refresh(playervisionXZ, playerexploardXZ);
+        mapcreate.Environment.RefreshVisibility(playervisionXZ);
 
         // 視界外で非表示化する対象は「敵側のみ」: 駒・クリスタル・領土・建物
         SetRendererVisibility(EnemyUnit, playervisionXZ);

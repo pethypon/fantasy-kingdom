@@ -1,0 +1,7 @@
+{
+  "Status": "investigation_interrupted",
+  "LastObservedRound": 88,
+  "Reason": "Opening foundation regression confirmed: both armies lost ordinary troops after spending the capital required by missing basic producers. Stopped only the agent-owned validation process to patch and rerun.",
+  "NaturalGameResult": false,
+  "MetadataNote": "match.json retains its original running state because the harness was not allowed to finish. This is diagnostic evidence, not a completed match."
+}

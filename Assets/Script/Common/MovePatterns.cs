@@ -15,7 +15,7 @@ public static class MovePatterns
     /// </summary>
     public static readonly HashSet<Kind> DirectionIndependent = new HashSet<Kind>
     {
-        Kind.King, Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin, Kind.Boss
+        Kind.King, Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin, Kind.Boss, Kind.HolyKnight, Kind.Ninja
     };
 
     /// <summary>
@@ -72,6 +72,8 @@ public static class MovePatterns
         // BOSS: 周囲1マス移動
         { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && Mathf.Abs(dz) <= 1
                                      && !(dx == 0 && dz == 0) },
+        { Kind.HolyKnight, (dx,dz) => Map[Kind.Knight](dx,dz) },
+        { Kind.Ninja, (dx,dz) => Map[Kind.Assassin](dx,dz) },
     };
 
     /// <summary>

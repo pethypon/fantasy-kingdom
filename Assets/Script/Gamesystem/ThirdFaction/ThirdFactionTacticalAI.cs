@@ -46,7 +46,8 @@ public sealed class ThirdFactionTacticalAI
                 {
                     if (other == null || !other.IsAlive || !other.gameObject.activeInHierarchy || !NeutralFactionSystem.AreHostile(u, other)) continue;
                     float dist = GridHelper.ChebyshevDistance(u.GridPosition, other.GridPosition);
-                    if (!CanSee(u, other, vision) || !s.MapCreate.HasClearTerrainLine(u.transform.position, other.transform.position)) continue;
+                    if (!CanSee(u, other, vision) || !s.MapCreate.HasClearTerrainLine(u.transform.position, other.transform.position)
+                        || !s.MapCreate.Environment.HasClearVision(u.transform.position, other.transform.position)) continue;
                     visibleThreats.Add(other);
                     if (dist < nearest) { nearest = dist; enemy = other; }
                 }
@@ -54,7 +55,7 @@ public sealed class ThirdFactionTacticalAI
                 if (enemy != null && !AttackPatterns.IsDirectionIndependent(u))
                     u.direction = enemy.transform.position.z >= u.transform.position.z ? Direction.N : Direction.S;
                 bool success = TrySkill(u, vision);
-                if (!success && s.APSystem.CanAct(u.team, APSystem.ActionType.Attack, u))
+                if (!success && !SpecialSkillRuntime.AttackBlocked(u) && s.APSystem.CanAct(u.team, APSystem.ActionType.Attack, u))
                 {
                     Status best = null;
                     float score = 0;
@@ -118,6 +119,7 @@ public sealed class ThirdFactionTacticalAI
                             u.direction = u.direction == Direction.N ? Direction.S : Direction.N;
                         s.APSystem.Consume(u.team, APSystem.ActionType.Move, u, old, destination);
                         u.transform.position = destination; u.HasMovedThisTurn = true;
+                        SpecialSkillRuntime.OnMoved(u, old, destination, s);
                         s.MoveGenerator.MoveUpdate(s.MoveGenerator.Cell(old), s.MoveGenerator.Cell(destination));
                         success = true;
                     }
@@ -131,7 +133,8 @@ public sealed class ThirdFactionTacticalAI
     }
     bool VisibleHostile(Status u, Status t, int range) => t != null && t.IsAlive && t.gameObject.activeInHierarchy
         && NeutralFactionSystem.AreHostile(u, t) && CanSee(u, t, range)
-        && s.MapCreate.HasClearTerrainLine(u.transform.position, t.transform.position);
+        && s.MapCreate.HasClearTerrainLine(u.transform.position, t.transform.position)
+        && s.MapCreate.Environment.HasClearVision(u.transform.position, t.transform.position);
 
     static bool CanSee(Status actor, Status target, int legacyRange)
     {

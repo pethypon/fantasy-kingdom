@@ -1,0 +1,21 @@
+{
+    "MapRandomInput": 314159,
+    "MaxTurns": 180,
+    "EnemyAISeed": 21538468,
+    "PlayerAISeed": 15015,
+    "ThreatLevel": 15,
+    "TerrainSeedX": 752412.5625,
+    "TerrainSeedZ": 399048.15625,
+    "EnemyPersonality": "Adaptive",
+    "PlayerPersonality": "Intellect",
+    "PersistentPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdom_balance-study-20261015-improved_314159_27f7cc4477fa4aeba5cadfc8cfbec110",
+    "EndCondition": "turn_limit",
+    "Result": "unresolved",
+    "OutcomeReason": "",
+    "LastNormalAttackerTeam": "",
+    "LastNormalAttackerKind": "",
+    "LastNormalAttackerName": "",
+    "LastRound": 180,
+    "GameOver": false,
+    "Seconds": 727.482171
+}

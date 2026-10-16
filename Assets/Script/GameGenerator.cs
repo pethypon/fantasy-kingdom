@@ -327,7 +327,7 @@ public class GameGenerator : MonoBehaviour
         FactionState factionState = factionGo.AddComponent<FactionState>();
         factionState.PlayerNation = playerNation;
         factionState.EnemyNation = enemyNation;
-        _APSystem.Init(factionState);
+        _APSystem.Init(factionState, _MapCreate);
 
         return factionState;
     }

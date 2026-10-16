@@ -17,6 +17,8 @@ public static class BasicResourceEconomyTests
     public static void PlayMode(GameSystems systems)
     {
         BlockedPlans(systems);
+        FundedPlanDoesNotNeedSurplusProduction(systems);
+        ProjectedReserveDoesNotCreateProducerDemand(systems);
         TemporaryIncome(systems);
         ReserveAndEmergency(systems);
         RecoveryHysteresis(systems);
@@ -24,6 +26,7 @@ public static class BasicResourceEconomyTests
         ExistingSupplyUpgrade(systems);
         AlternateProducersAndInvestment(systems);
         OpeningProductionBeforeAssistanceExpires(systems);
+        CriticalOpeningAndFundedLateWarning(systems);
         BothPerspectivesAndAP(systems);
         AdditionalResourcePlansAndReserves(systems);
         CitizenCapacityAndFood(systems);
@@ -65,6 +68,113 @@ public static class BasicResourceEconomyTests
             Check("coverage and deficit use forecast availability and planned demand", Near(water.Coverage,
                 water.ProjectedAvailable / Mathf.Max(.001f, water.ProjectedDemand))
                 && Near(water.Deficit, Mathf.Max(0, water.ProjectedDemand - water.ProjectedAvailable)));
+        }
+    }
+
+    static void FundedPlanDoesNotNeedSurplusProduction(GameSystems systems)
+    {
+        foreach (var team in new[] { Team.Player, Team.Enemy })
+        using (var f = new EconomyR2Tests.Fixture(systems, team))
+        {
+            f.Rules.aiEconomy.plannedDemandWeight = 0;
+            f.Rules.aiEconomy.reserveTurns = f.Rules.aiEconomy.forecastTurns = 4;
+            f.Food(20);
+            f.Building(f.Definition(FacilityKind.Quarry, stone: 20));
+            var camp = f.Definition(FacilityKind.LoggingCamp, wood: 42); f.Building(camp);
+            var mine = f.Definition(FacilityKind.Mine, iron: 20);
+            mine.buildCost = new FacilityData.ResourceCost(wood: 45, stone: 45, water: 20, citizen: 2);
+            var consumer = f.Unit(upkeepWood: 10);
+            consumer.GrowthData.useAuthoredUpkeep = true; consumer.GrowthData.upkeepIron = 10;
+            f.Resources.Wood = 40; f.Resources.Stone = f.Resources.Water = f.Resources.Bread = 200;
+            f.Resources.Iron = 100;
+            var board = f.Board(60); var governor = board.Governor;
+            var wood = governor.BasicResources.Get(ResourceKind.Wood);
+            var surplus = f.BuildAction(camp, board);
+            Check(team + " real mine investment is temporarily short of wood despite ample existing income",
+                f.Resources.Wood < mine.buildCost.Wood && wood.BlockedPlanValue > 0 && wood.PressureScore > 0
+                && wood.IncomePerTurn > 30 && wood.Deficit <= .001f && wood.IncomeGap <= .001f);
+            Check(team + " blocked purchase pressure cannot exempt another surplus camp",
+                !governor.BasicResources.IsFoundationAction(surplus)
+                && !governor.BuildAssessment(surplus, board).ImprovesDeficit
+                && !governor.AllowExecution(surplus, board)
+                && surplus.StrategicRejectReason == "production_not_needed");
+            string stocks = JsonUtility.ToJson(f.Resources); int ap = f.State.GetAP(team);
+            var candidates = new List<AIAction>(); AIActionGenerator.GenerateBuildCandidates(board, candidates);
+            governor.Filter(candidates, board);
+            Check(team + " common candidate path excludes the unneeded extra camp without spending capital",
+                !candidates.Exists(action => action.FacilityDefinition == camp)
+                && stocks == JsonUtility.ToJson(f.Resources) && ap == f.State.GetAP(team));
+
+            // Change the real producer recipe, not the diagnostic snapshot: supply is now
+            // genuinely below the same live unit's maintenance and the camp must be legal.
+            var recipe = camp.levels[0]; recipe.Output.Wood = 2; camp.levels[0] = recipe;
+            board.Refresh(); governor.Evaluate(board);
+            var recovery = f.BuildAction(camp, board);
+            wood = governor.BasicResources.Get(ResourceKind.Wood);
+            Check(team + " actual wood shortfall still enables a necessary producer",
+                wood.IncomeGap > .001f && governor.BasicResources.IsFoundationAction(recovery)
+                && governor.BuildAssessment(recovery, board).ImprovesDeficit
+                && governor.AllowExecution(recovery, board));
+        }
+    }
+
+    static void ProjectedReserveDoesNotCreateProducerDemand(GameSystems systems)
+    {
+        foreach (var team in new[] { Team.Player, Team.Enemy })
+        using (var f = new EconomyR2Tests.Fixture(systems, team))
+        {
+            f.Rules.aiEconomy.plannedDemandWeight = 0;
+            f.Rules.aiEconomy.reserveTurns = f.Rules.aiEconomy.forecastTurns = 4;
+            // Isolate the real missing-producer investment from the separate future-recruit
+            // plan that UnitSetting's automatically supplied Scout definition would add.
+            f.Units.UnitDataMap.Clear();
+            var buffer = f.Rules.aiEconomy.minimumOperationalBuffer; buffer.Wood = 40;
+            f.Rules.aiEconomy.minimumOperationalBuffer = buffer;
+            f.Food(20); f.Building(f.Definition(FacilityKind.Quarry, stone: 20));
+            var camp = f.Definition(FacilityKind.LoggingCamp, wood: 28);
+            camp.buildCost = new FacilityData.ResourceCost(wood: 1000, stone: 1000);
+            camp.levels = new[] { camp.levels[0], new FacilityData.FacilityLevelData {
+                HP = 150, Output = new FacilityData.ProductionBundle { Wood = 10000 },
+                UpgradeCost = new FacilityData.ResourceCost(wood: 150, stone: 70, water: 40, citizen: 2), UpgradeAP = 3 } };
+            var producer = f.Building(camp);
+            var mine = f.Definition(FacilityKind.Mine, iron: 20);
+            mine.buildCost = new FacilityData.ResourceCost(wood: 45, stone: 45, water: 20, citizen: 2);
+            var consumer = f.Unit(upkeepWood: 4);
+            consumer.GrowthData.useAuthoredUpkeep = true; consumer.GrowthData.upkeepIron = 4;
+            f.Resources.Wood = 41; f.Resources.Iron = 8;
+            f.Resources.Stone = f.Resources.Water = f.Resources.Bread = 200;
+            var board = f.Board(60); var governor = board.Governor;
+            var wood = governor.ProductionDemand.Get(ResourceKind.Wood);
+            var foundation = governor.BasicResources.Get(ResourceKind.Wood);
+            float requiredMineWood = mine.buildCost.Wood * f.Rules.aiEconomy.basicResources.planWeight;
+            Check(team + " existing wood production refills a temporarily low reserve despite a separate iron crisis",
+                wood.Stock < wood.SafetyReserve && wood.ProjectedStock >= wood.SafetyReserve && wood.NetPerTurn > 20
+                && (governor.Economy.MandatoryFailureMask & (1 << (int)ResourceKind.Iron)) != 0
+                && (governor.Economy.MandatoryFailureMask & (1 << (int)ResourceKind.Wood)) == 0);
+            Check(team + $" unnecessary producer upgrade cannot inflate its own planned material demand (planned={foundation.PlannedDemand}, expected={requiredMineWood}, gap={foundation.IncomeGap}, deficit={foundation.Deficit})",
+                Near(foundation.PlannedDemand, requiredMineWood) && foundation.IncomeGap <= .001f
+                && foundation.Deficit <= .001f);
+            var upgrade = new AIAction { ActionType = AIActionType.Upgrade, Unit = producer, TargetUnit = producer,
+                Facility = FacilityKind.LoggingCamp, FacilityDefinition = camp, APCost = 3 };
+            Check(team + " funded projected reserve leaves capital for the actually missing producer",
+                !governor.BasicResources.IsFoundationAction(upgrade) && !EconomyHelper.ImprovesProductionDemand(upgrade, board));
+
+            var recipe = camp.levels[0]; recipe.Output.Wood = 1; camp.levels[0] = recipe;
+            board.Refresh(); governor.Evaluate(board);
+            Check(team + " genuinely inadequate existing production still creates a supply investment plan",
+                governor.ProductionDemand.Get(ResourceKind.Wood).NetPerTurn < 0
+                && governor.BasicResources.Get(ResourceKind.Wood).PlannedDemand > requiredMineWood
+                && governor.BasicResources.IsFoundationAction(upgrade));
+
+            recipe.Output.Wood = 28; camp.levels[0] = recipe;
+            f.Resources.Wood = 0; f.Resources.Iron = 200;
+            board.Refresh(); governor.Evaluate(board);
+            wood = governor.ProductionDemand.Get(ResourceKind.Wood);
+            Check(team + " later reserve recovery does not erase a real current payment failure",
+                wood.ProjectedStock >= wood.SafetyReserve
+                && (governor.Economy.MandatoryFailureMask & (1 << (int)ResourceKind.Wood)) != 0
+                && governor.BasicResources.Get(ResourceKind.Wood).PlannedDemand > requiredMineWood
+                && governor.Mode == StrategicMode.EconomicRecovery);
         }
     }
 
@@ -297,6 +407,55 @@ public static class BasicResourceEconomyTests
             Check(team + " real economy stays solvent after assistance expires", f.Resources.Wood > 0
                 && f.Resources.Stone > 0 && f.Resources.Water > 0);
             Debug.Log($"[BasicResourceEconomy] opening actor={team} turns=16 firstWood={woodTurn} firstStone={stoneTurn} firstWater={waterTurn} finalWood={f.Resources.Wood} finalStone={f.Resources.Stone} finalWater={f.Resources.Water} wallMs={watch.Elapsed.TotalMilliseconds:F2}");
+        }
+    }
+
+    static void CriticalOpeningAndFundedLateWarning(GameSystems systems)
+    {
+        // Use the same rule values, facility overrides and recruitment costs as the actual match.
+        // The general economy fixture intentionally replaces these with cheap legacy recipes.
+        string liveRules = JsonUtility.ToJson(GameAuthoringRules.Active);
+        var liveFacilities = new List<FacilityDefinitionData>(FacilityAuthoringCatalog.Loaded.standardOverrides);
+        var liveUnits = new Dictionary<Kind, UnitData>(systems.UnitSetting.UnitDataMap);
+        foreach (var team in new[] { Team.Player, Team.Enemy })
+        {
+            using (var f = new EconomyR2Tests.Fixture(systems, team))
+            {
+                JsonUtility.FromJsonOverwrite(liveRules, f.Rules);
+                f.Catalog.standardOverrides = new List<FacilityDefinitionData>(liveFacilities);
+                typeof(UnitSetting).GetProperty("UnitDataMap").SetValue(f.Units, new Dictionary<Kind, UnitData>(liveUnits));
+                GameContentRevision.NotifyChanged();
+                f.Resources.Wood = 140; f.Resources.Stone = 130; f.Resources.Water = 60;
+                f.Resources.Iron = 30; f.Resources.MagicOre = 12; f.Resources.Wheat = 0; f.Resources.Bread = 100;
+                f.State.GetNation(team).TurnsAlive = 1;
+                foreach (var kind in new[] { Kind.Knight, Kind.Archer, Kind.Scout })
+                {
+                    var unit = f.Unit(); unit.kind = kind; unit.Level = 1; unit.GrowthData = liveUnits[kind];
+                }
+                var board = f.Board(1);
+                foreach (var resource in board.Governor.BasicResources.Resources)
+                    Debug.Log("[BasicResourceOpening] " + team + " " + resource);
+                Check(team + " initial capital and temporary support do not erase a critical foundation shortage", board.Governor.BasicResources.HasCriticalDeficit);
+                Check(team + " critical foundation reserves supply actions before optional expansion", board.Governor.Mode == StrategicMode.EconomicRecovery
+                    && board.Governor.GetRecoveryReserveAP(board) > 0);
+                var actions = new List<AIAction>(); AIActionGenerator.GenerateBuildCandidates(board, actions); board.Governor.Filter(actions, board);
+                bool supplyPriority = false;
+                foreach (var action in actions)
+                    if (board.Governor.BasicResources.IsFoundationAction(action) && action.StrategicPriority <= 2) supplyPriority = true;
+                Check(team + " a feasible opening producer keeps P1 or P2 even before payment failure", supplyPriority);
+            }
+            using (var f = new EconomyR2Tests.Fixture(systems, team))
+            {
+                HealthyProduction(f); var unit = f.Unit(); unit.GrowthData.upkeepMagic = 1; f.Resources.MagicOre = 30;
+                var mine = f.Definition(FacilityKind.Mine); var recipe = mine.levels[0];
+                recipe.BonusChance1 = .25f; recipe.BonusOutput1.MagicOre = 8; mine.levels[0] = recipe; f.Building(mine);
+                f.State.GetNation(team).TurnsAlive = 60;
+                var board = f.Board(60);
+                Check(team + " late probabilistic magic income remains a guaranteed-supply warning", board.Governor.Economy.State == EconomicState.Warning
+                    && !board.Governor.Economy.UpkeepPaymentFailed);
+                Check(team + " funded late magic warning does not restore permanent economic recovery", !board.Governor.BasicResources.HasCriticalDeficit
+                    && board.Governor.Mode != StrategicMode.EconomicRecovery);
+            }
         }
     }
 

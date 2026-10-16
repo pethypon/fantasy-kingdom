@@ -59,6 +59,9 @@ public static class AttackPatterns
 
         // BOSS: 前方3マス+左右1マス
         { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
+        { Kind.HolyKnight, (dx,dz) => NormalMap[Kind.Knight](dx,dz) },
+        { Kind.Ninja, (dx,dz) => NormalMap[Kind.Assassin](dx,dz) },
+        { Kind.Navigator, (dx,dz) => dx == 0 && dz == 1 },
     };
 
     /// <summary>

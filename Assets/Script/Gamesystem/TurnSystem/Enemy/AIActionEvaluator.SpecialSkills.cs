@@ -1,0 +1,483 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public static partial class AIActionEvaluator
+{
+    static float SpecialValue(Status unit)
+        => AIBoardEvaluator.GetPieceValuePublic(unit) + (MatchObjectiveRules.IsDecisive(unit) ? 200 : 0);
+    static float HpCost(Status unit, int loss)
+    {
+        if (unit == null || loss <= 0) return 0;
+        float cost = SpecialValue(unit) * Mathf.Min(loss, unit.HP) / Mathf.Max(1f, unit.HP);
+        if (loss >= unit.HP) cost += SpecialValue(unit) + (MatchObjectiveRules.IsDecisive(unit) ? 2000 : 30);
+        return cost;
+    }
+    public static int EstimateSpecialAwareAttack(Status attacker, Status target, AIBoardState board)
+    {
+        if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive) return 0;
+        if(board==null||!board.HasObservedSpecialState)return AIEvalHelpers.EstimateDamage(attacker,target);
+        // All position-dependent special observations are restricted to the board's actors.
+        float attackMod = 1;
+        if (board != null) foreach (var observer in board.SpecialObservedActors)
+        {
+            var definition = SpecialSkillRuntime.Definition(observer);
+            if (observer.team == attacker.team || definition == null || !definition.enabledForPlay
+                || definition.ability != UnitSpecialSkill.KnightBreakthrough || definition.knightVisibleEnemyAtkPenalty < 0
+                || !SpecialSkillRuntime.InVision(observer, attacker)) continue;
+            attackMod = Mathf.Min(attackMod, 1 - Mathf.Clamp01(definition.knightVisibleEnemyAtkPenalty));
+        }
+        int attack = Mathf.Max(0, Mathf.RoundToInt(attacker.ATK * attackMod));
+        int defence = Mathf.Max(0, Mathf.RoundToInt(target.DEF * SpecialSkillRuntime.GetDEFModifier(target)));
+        var attackDefinition=SpecialSkillRuntime.Definition(attacker);
+        float multiplier=board!=null&&attacker.team!=board.ActorTeam&&attackDefinition?.ability==UnitSpecialSkill.NavigatorPull
+            ?SpecialSkillDefinition.NavigatorMaximum:SpecialSkillRuntime.GetAttackMultiplier(attacker,target);
+        double damage = DamageCalculator.EstimateBaseDamage(attack, defence)*(double)multiplier;
+        var targetDefinition = SpecialSkillRuntime.Definition(target);
+        if (targetDefinition != null && targetDefinition.enabledForPlay && targetDefinition.ability == UnitSpecialSkill.KnightBreakthrough
+            && !SpecialSkillRuntime.InVision(target, attacker)) damage *= SpecialSkillDefinition.KnightBlindSpotMultiplier;
+        return (int)Math.Min(int.MaxValue, Math.Max(0, damage));
+    }
+    static float DamageValue(AIBoardState board, Status target, int amount, HpChangeKind kind, bool includeKill = true)
+    {
+        if (target == null || !target.IsAlive || amount <= 0 || target.ShieldTurns > 0) return 0;
+        var victim = target;
+        int damage;
+        string partnerId = target.Special?.guardianPartnerId;
+        if (!string.IsNullOrEmpty(partnerId) && kind != HpChangeKind.DirectHpReduction && kind != HpChangeKind.ForcedDeath)
+        {
+            var partner = board.FindObservedSpecialActor(partnerId);
+            // A visible link is not permission to query an unobserved partner's current HP/location.
+            if (partner == null) return SpecialValue(target) * .05f;
+            int transferred = SpecialSkillRuntime.PreviewDamage(partner, amount, kind);
+            bool survival = partner.specialAbility == SpecialAbility.SurvivalInstinct && !partner.SurvivalInstinctUsed;
+            if (transferred >= partner.HP && !survival) damage = target.HP;
+            else { victim = partner; damage = transferred; }
+        }
+        else damage = SpecialSkillRuntime.PreviewDamage(target, amount, kind);
+        float value = SpecialValue(victim) * Mathf.Min(damage, victim.HP) / Mathf.Max(1f, victim.HP);
+        if (includeKill && damage >= victim.HP) value += 35 + (MatchObjectiveRules.IsDecisive(victim) ? 500 : 0);
+        return value;
+    }
+    public static int EstimateEffectiveSpecialDamage(Status attacker, Status target, AIBoardState board, out Status victim)
+    {
+        victim=target;
+        int raw=EstimateSpecialAwareAttack(attacker,target,board);
+        if(target==null||target.ShieldTurns>0)return 0;
+        string partnerId=target.Special?.guardianPartnerId;
+        if(!string.IsNullOrEmpty(partnerId))
+        {
+            var partner=board?.FindObservedSpecialActor(partnerId);
+            if(partner==null) {victim=null;return 0;}
+            int redirected=SpecialSkillRuntime.PreviewDamage(partner,raw);
+            bool survival=partner.specialAbility==SpecialAbility.SurvivalInstinct&&!partner.SurvivalInstinctUsed;
+            if(redirected>=partner.HP&&!survival)return target.HP;
+            victim=partner;return redirected;
+        }
+        return SpecialSkillRuntime.PreviewDamage(target,raw);
+    }
+    public static bool CanFinishSpecialTarget(Status attacker,Status target,AIBoardState board)
+    {
+        int damage=EstimateEffectiveSpecialDamage(attacker,target,board,out var victim);
+        return target!=null&&victim==target&&damage>=target.HP;
+    }
+    public static int EstimateObservedHitLoss(Status unit,AIBoardState board,int amount,HpChangeKind kind)
+    {
+        if(unit==null||amount<=0)return 0;
+        if(kind==HpChangeKind.DirectHpReduction)return Mathf.Min(unit.HP,amount);
+        if(unit.ShieldTurns>0)return 0;
+        var partner=board?.FindObservedSpecialActor(unit.Special?.guardianPartnerId);
+        if(partner!=null)
+        {
+            int transferred=SpecialSkillRuntime.PreviewDamage(partner,amount,kind);
+            bool survival=partner.specialAbility==SpecialAbility.SurvivalInstinct&&!partner.SurvivalInstinctUsed;
+            return transferred>=partner.HP&&!survival?unit.HP:0;
+        }
+        return SpecialSkillRuntime.PreviewDamage(unit,amount,kind);
+    }
+    public static int EstimateSpecialReservedThreatAt(AIBoardState board,Status unit,Vector3 point)
+    {
+        if(board==null||unit==null||!board.HasObservedSpecialState)return 0;
+        long damage=board.EstimateSpecialHazardAt(unit,point);
+        foreach(var actor in board.SpecialObservedActors)
+        {
+            var state=actor.Special;if(state==null)continue;
+            if(actor.team!=board.ActorTeam&&state.ritualActive&&state.ritualTargetId==unit.ReflectionLifeId
+                &&state.ritualFireTurn<=state.ownerTurn+1)
+                damage+=EstimateObservedHitLoss(unit,board,state.storedSacrificeDamage,HpChangeKind.IgnoreDefenceDamage);
+            if(actor.team!=board.ActorTeam&&state.sniperActive&&state.sniperTargetId==unit.ReflectionLifeId
+                &&state.sniperFireTurn<=state.ownerTurn+1&&!SpecialSkillRuntime.AttackBlocked(actor)&&!StatusEffectSystem.IsStunned(actor))
+            {
+                var definition=SpecialSkillRuntime.Definition(actor);
+                if(definition!=null)
+                {
+                    double raw=DamageCalculator.EstimateBaseDamage(actor.ATK,unit.DEF)
+                        *(double)definition.SniperMultiplier(GridHelper.ChebyshevDistance(actor.transform.position,point));
+                    damage+=EstimateObservedHitLoss(unit,board,(int)Math.Min(int.MaxValue,raw),HpChangeKind.NormalDamage);
+                }
+            }
+            if(string.IsNullOrEmpty(state.bombCasterId)||state.bombRadius<0||state.bombDueRound>board.TurnCount+1
+                ||GridHelper.ChebyshevDistance(point,actor.transform.position)>state.bombRadius)continue;
+            int power=SpecialSkillRuntime.FractionOfMaximum(actor,SpecialSkillDefinition.BombFraction);
+            if(actor==unit)damage+=EstimateObservedHitLoss(unit,board,power,HpChangeKind.DirectHpReduction);
+            bool affected=actor==unit?(state.bombMask&SpecialFactionMask.Holder)!=0
+                :unit.team==state.bombCasterTeam?(state.bombMask&SpecialFactionMask.Allies)!=0
+                :(state.bombMask&SpecialFactionMask.Hostile)!=0;
+            if(affected)damage+=EstimateObservedHitLoss(unit,board,power,HpChangeKind.IgnoreDefenceDamage);
+        }
+        return (int)Math.Min(int.MaxValue,damage);
+    }
+    static int ThreatAt(AIBoardState board, Status unit, Vector3 point)
+    {
+        if (unit == null) return 0;
+        long damage = board.EstimateCounterDamageAt(point, unit);
+        // The shared counter query already contains the observed reservations.
+        return (int)Math.Min(int.MaxValue, damage);
+    }
+    static float RiskAt(AIBoardState board, Status unit, Vector3 point)
+        => HpCost(unit, ThreatAt(board, unit, point));
+    static float AttackValueAt(AIBoardState board, Status unit, Vector3 point)
+    {
+        float best = 0;
+        foreach (var target in board.AlivePlayerUnits)
+        {
+            if (!board.IsSpecialActorObserved(target) || !AttackPatterns.CanAttack(unit, unit.direction,
+                target.transform.position.x - point.x, target.transform.position.z - point.z)) continue;
+            best = Mathf.Max(best, DamageValue(board, target, EstimateSpecialAwareAttack(unit,target,board), HpChangeKind.NormalDamage));
+        }
+        return best;
+    }
+    public static bool CanSafelyPreserveStationary(Status unit,AIBoardState board)
+    {
+        if(unit==null||board==null||EstimateSpecialReservedThreatAt(board,unit,unit.transform.position)>0)return false;
+        foreach(var opponent in board.AlivePlayerUnits)
+        {
+            if(!board.IsSpecialActorObserved(opponent))continue;
+            if(ObservedDragonThreat.IsDragon(opponent))
+            {if(ObservedDragonThreat.EstimateBreathDamage(board,opponent,unit,unit.transform.position)>0)return false;continue;}
+            if(opponent.Special?.ritualTargetId==unit.ReflectionLifeId||opponent.Special?.sniperTargetId==unit.ReflectionLifeId)return false;
+            if(opponent.Special!=null&&!string.IsNullOrEmpty(opponent.Special.bombCasterId)
+                &&opponent.Special.bombDueRound<=board.TurnCount+1
+                &&GridHelper.ChebyshevDistance(unit.transform.position,opponent.transform.position)<=opponent.Special.bombRadius)return false;
+            if(SpecialSkillRuntime.AttackBlocked(opponent)||StatusEffectSystem.IsStunned(opponent))continue;
+            var profile=BoardActionProfile.For(opponent);if(profile?.CanAttack==false)continue;
+            Vector3 delta=unit.transform.position-opponent.transform.position;
+            if(AttackPatterns.CanAttack(opponent,opponent.direction,delta.x,delta.z))return false;
+            if(opponent.type!=Type.Unit||profile?.CanMove==false||StatusEffectSystem.IsMovementBlocked(opponent)
+                ||SpecialSkillRuntime.MovementBlocked(opponent))continue;
+            float range=AIBoardQuery.EstimateAttackRange(opponent)+1.5f;
+            if(delta.sqrMagnitude<=range*range)return false;
+        }
+        return true;
+    }
+    public static float CalcSpecialSkillScore(AIAction action, AIBoardState board)
+    {
+        var command = action?.SpecialCommand;
+        var unit = command?.Caster;
+        var target = command?.Target;
+        var definition = SpecialSkillRuntime.Definition(unit);
+        if (board == null || definition == null || !board.IsSpecialActorObserved(unit)
+            || !SpecialSkillRuntime.CanUse(unit, board.SpecialSystems ?? unit.RuntimeSystems, command.BerserkerStage, out _)
+            || !SpecialSkillRuntime.IsLegalTarget(unit, target, out _)) return -10000;
+        float reward = 0, future = 0, cost = 0, opportunity = Mathf.Max(0, action.APCost) * 1.5f;
+        switch (definition.ability)
+        {
+            case UnitSpecialSkill.MagicRitual:
+                if (command.Sacrifices == null || command.Sacrifices.Count == 0) return -10000;
+                long total = 0;
+                foreach (var ally in command.Sacrifices)
+                {
+                    if (!SpecialSkillRuntime.IsLegalSacrifice(unit, ally)) return -10000;
+                    int loss = Mathf.Min(ally.HP, SpecialSkillRuntime.FractionOfMaximum(ally, SpecialSkillDefinition.RitualSacrifice));
+                    total += loss; cost += HpCost(ally, loss);
+                }
+                future = DamageValue(board,target,(int)Math.Min(int.MaxValue,total),HpChangeKind.IgnoreDefenceDamage)
+                    * AISpecialSkillKnowledge.FutureWeight(board,1);
+                cost += RiskAt(board,unit,unit.transform.position);
+                opportunity += AttackValueAt(board,unit,unit.transform.position) * .25f;
+                break;
+            case UnitSpecialSkill.AssassinVisionSeal:
+                reward = target.Special?.visionZeroTurns > 0 ? 0 : SpecialValue(target) * .35f
+                    + Mathf.Min(20, target.VisionCell?.Count ?? 0) * .4f;
+                if (AIPlayerModel.IsRanged(target.kind) || MatchObjectiveRules.IsCommander(target)) reward += 12;
+                cost = RiskAt(board,unit,unit.transform.position) * 2;
+                break;
+            case UnitSpecialSkill.ScoutVisionGuard:
+                foreach (var ally in board.AliveEnemyUnits)
+                    if (ally != null && SpecialSkillRuntime.InVision(unit,ally) && !(ally.Special?.damageNullUnused ?? false))
+                        reward += HpCost(ally,ThreatAt(board,ally,ally.transform.position));
+                cost = Mathf.Min(20, unit.VisionCell?.Count ?? 0) * .2f;
+                break;
+            case UnitSpecialSkill.PriestPurification:
+                foreach (var actor in board.SpecialObservedActors)
+                {
+                    if (actor == unit || GridHelper.ChebyshevDistance(unit.transform.position,actor.transform.position)>2) continue;
+                    int buffs=0,debuffs=0;
+                    foreach (var effect in actor.ActiveEffects) { if (effect.buffType != BuffType.None) buffs++; if(effect.debuffType != StatusEffectType.None) debuffs++; }
+                    var state=actor.Special;
+                    if(state!=null) { if(state.nextDamageDouble)debuffs+=2;if(state.visionZeroTurns>0)debuffs++;if(state.damageNullUnused)buffs++; }
+                    reward += (actor.team==board.ActorTeam ? debuffs-buffs : buffs-debuffs)*SpecialValue(actor)*.2f;
+                }
+                cost = HpCost(unit,unit.HP);
+                break;
+            case UnitSpecialSkill.GuardianLifeLink:
+                int targetDanger=ThreatAt(board,target,target.transform.position), ownDanger=ThreatAt(board,unit,unit.transform.position);
+                reward = HpCost(target,targetDanger) - HpCost(unit,targetDanger) + HpCost(unit,ownDanger) - HpCost(target,ownDanger);
+                if(MatchObjectiveRules.IsDecisive(target) && targetDanger>0 && unit.HP>targetDanger)reward+=40;
+                cost = unit.HP <= targetDanger && targetDanger > 0 ? SpecialValue(unit)*.5f : 0;
+                break;
+            case UnitSpecialSkill.CrossbowStakes:
+                future=ProspectiveStakeValue(board,unit,target,definition,action.APCost);
+                // Strategy/personality bonuses must not make an impossible or harmful line desirable.
+                if(future<=opportunity)return -10000;
+                break;
+            case UnitSpecialSkill.MagicSniperLock:
+                float distance=GridHelper.ChebyshevDistance(unit.transform.position,target.transform.position);
+                int sniperDamage=(int)Math.Min(int.MaxValue, EstimateSpecialAwareAttack(unit,target,board)*(double)definition.SniperMultiplier(distance));
+                future=DamageValue(board,target,sniperDamage,HpChangeKind.NormalDamage)*AISpecialSkillKnowledge.FutureWeight(board,1);
+                int recoil=SpecialSkillRuntime.FractionOfMaximum(unit,definition.SniperRecoil(distance));
+                cost=HpCost(unit,recoil)+RiskAt(board,unit,unit.transform.position);
+                opportunity+=Mathf.Max(0,AttackValueAt(board,unit,unit.transform.position)-future)*.5f;
+                if(recoil>=unit.HP && !MatchObjectiveRules.IsDecisive(target))cost+=SpecialValue(unit);
+                break;
+            case UnitSpecialSkill.LifeBomb:
+                int bombPower=SpecialSkillRuntime.FractionOfMaximum(target,SpecialSkillDefinition.BombFraction);
+                future=BombValueAt(board,target,target.transform.position,bombPower,definition.bombExplosionRadius,definition.bombFactionMask);
+                if(board.ReconThreatLevel>=31)
+                    foreach(var enemy in board.AlivePlayerUnits)
+                        if(board.IsSpecialActorObserved(enemy) && GridHelper.ChebyshevDistance(target.transform.position,enemy.transform.position)<=SpecialSkillDefinition.BombDelay)
+                            future=Mathf.Max(future,BombValueAt(board,target,enemy.transform.position,bombPower,definition.bombExplosionRadius,definition.bombFactionMask)*.4f);
+                future*=AISpecialSkillKnowledge.FutureWeight(board,SpecialSkillDefinition.BombDelay);
+                cost=HpCost(target,bombPower);
+                break;
+            case UnitSpecialSkill.WhiteMageHeal:
+                int healing=Mathf.Min(target.MaxHP-target.HP,SpecialSkillRuntime.FractionOfMaximum(target,SpecialSkillDefinition.WhiteMageHealFraction));
+                float healReadiness=Mathf.Clamp01(healing/Mathf.Max(1f,target.MaxHP*SpecialSkillDefinition.WhiteMageHealFraction));
+                float missingHealth=1-target.HPRatio;
+                // Use the existing healing-score scale, prorated to the HP actually restored.
+                reward=(25+missingHealth*35+(target.HPRatio<.3f?15:0))*healReadiness;
+                reward+=SpecialValue(target)*healing/Mathf.Max(1f,target.MaxHP);
+                int incoming=ThreatAt(board,target,target.transform.position);
+                if(incoming>=target.HP&&(long)target.HP+healing>incoming)reward+=25+SpecialValue(target);
+                opportunity=Mathf.Max(0,action.APCost-4)*1.5f; // Same AP opportunity baseline as legacy heal evaluation.
+                if(healing<=0||reward<=opportunity)return -10000;
+                break;
+            case UnitSpecialSkill.HolyKnightSanctuary:
+                foreach(var ally in board.AliveEnemyUnits)
+                {
+                    if(ally==null)continue;var delta=GridHelper.ToGridXZ(ally.transform.position-unit.transform.position);
+                    foreach(var offset in definition.holyKnightArea)if(delta.x==offset.x&&delta.z==offset.y)
+                    { future+=SpecialValue(ally)*Mathf.Min(ally.MaxHP-ally.HP,SpecialSkillRuntime.FractionOfMaximum(ally,SpecialSkillDefinition.HolyKnightHealFraction)*3)/Mathf.Max(1f,ally.MaxHP);break; }
+                }
+                future*=AISpecialSkillKnowledge.FutureWeight(board,3);
+                cost=RiskAt(board,unit,unit.transform.position)*2;
+                opportunity+=AttackValueAt(board,unit,unit.transform.position);
+                break;
+            case UnitSpecialSkill.NinjaSwap:
+                reward=RiskAt(board,unit,unit.transform.position)+RiskAt(board,target,target.transform.position)
+                    -RiskAt(board,unit,target.transform.position)-RiskAt(board,target,unit.transform.position);
+                future=(AttackValueAt(board,unit,target.transform.position)+AttackValueAt(board,target,unit.transform.position)
+                    -AttackValueAt(board,unit,unit.transform.position)-AttackValueAt(board,target,target.transform.position))*.5f;
+                if(board.ReconThreatLevel>=31 && target.Special!=null&&!string.IsNullOrEmpty(target.Special.bombCasterId))
+                {int power=SpecialSkillRuntime.FractionOfMaximum(target,SpecialSkillDefinition.BombFraction);future+=BombValueAt(board,target,unit.transform.position,power,target.Special.bombRadius,target.Special.bombMask)-BombValueAt(board,target,target.transform.position,power,target.Special.bombRadius,target.Special.bombMask);}
+                break;
+            case UnitSpecialSkill.BerserkerRage:
+                int stage=Mathf.Clamp(unit.Special?.berserkerStage??0,0,5)+1;
+                if(stage>5||command.BerserkerStage!=0&&command.BerserkerStage!=stage)return -10000;
+                float next=Mathf.Clamp(definition.berserkerAttackCurve.Evaluate(stage),1,SpecialSkillDefinition.BerserkerMaximum);
+                float current=SpecialSkillRuntime.GetAttackMultiplier(unit,target);
+                future=AttackValueAt(board,unit,unit.transform.position)*Mathf.Max(0,next/Mathf.Max(1,current)-1);
+                cost=RiskAt(board,unit,unit.transform.position)*(1-Mathf.Clamp01(definition.berserkerDefenceCurve.Evaluate(stage)));
+                break;
+            case UnitSpecialSkill.NavigatorPull:
+                Vector3 front=unit.transform.position+new Vector3(0,0,MovePatterns.DirZ(unit.direction));
+                reward=SpecialValue(target)*.2f;
+                foreach(var ally in board.AliveEnemyUnits)if(ally!=null)
+                    if(AttackPatterns.CanAttack(ally,ally.direction,front.x-ally.transform.position.x,front.z-ally.transform.position.z))future+=8;
+                cost=RiskAt(board,unit,front)*.25f;
+                break;
+            case UnitSpecialSkill.KnightBreakthrough:
+                Vector3 advance=unit.transform.position+new Vector3(0,0,MovePatterns.DirZ(unit.direction));
+                reward=AttackValueAt(board,unit,advance)-AttackValueAt(board,unit,unit.transform.position)+8;
+                foreach(var enemy in board.AlivePlayerUnits)if(board.IsSpecialActorObserved(enemy)&&GridHelper.ChebyshevDistance(advance,enemy.transform.position)<=1)reward+=8;
+                cost=Mathf.Max(0,RiskAt(board,unit,advance)-RiskAt(board,unit,unit.transform.position));
+                break;
+        }
+        float score=reward+future-cost-opportunity;
+        return float.IsNaN(score)||float.IsInfinity(score)?-10000:score;
+    }
+    const int MaximumProspectiveStakeTargets=8;
+    static readonly List<Status> prospectiveStakeTargets=new List<Status>(MaximumProspectiveStakeTargets);
+    static readonly Dictionary<Status,int> prospectiveLightningDamage=new Dictionary<Status,int>();
+
+    static Status ObservedLiveStake(AIBoardState board,string id,int appliedTurn,int ownerTurn)
+        => string.IsNullOrEmpty(id)||(long)ownerTurn-appliedTurn>=SpecialSkillDefinition.StakeLifetime
+            ?null:board.FindObservedSpecialActor(id);
+
+    static float ProspectiveStakeValue(AIBoardState board,Status caster,Status proposed,SpecialSkillDefinition definition,int apCost)
+    {
+        prospectiveStakeTargets.Clear();prospectiveLightningDamage.Clear();
+        try{return ProspectiveStakeValueCore(board,caster,proposed,definition,apCost);}
+        finally{prospectiveStakeTargets.Clear();prospectiveLightningDamage.Clear();}
+    }
+
+    static float ProspectiveStakeValueCore(AIBoardState board,Status caster,Status proposed,SpecialSkillDefinition definition,int apCost)
+    {
+        var state=SpecialSkillRuntime.State(caster);
+        var oldA=ObservedLiveStake(board,state.stakeAId,state.stakeAAppliedTurn,state.ownerTurn);
+        var oldB=ObservedLiveStake(board,state.stakeBId,state.stakeBAppliedTurn,state.ownerTurn);
+        bool retainedB=!string.IsNullOrEmpty(state.stakeBId)&&(long)state.ownerTurn-state.stakeBAppliedTurn<SpecialSkillDefinition.StakeLifetime;
+        bool retainedA=!string.IsNullOrEmpty(state.stakeAId)&&(long)state.ownerTurn-state.stakeAAppliedTurn<SpecialSkillDefinition.StakeLifetime;
+        // A retained but hidden endpoint cannot supply its current geometry to this forecast.
+        if(retainedB&&oldB==null||!retainedB&&retainedA&&oldA==null)return float.NegativeInfinity;
+        // Adding a third stake keeps B's original age; an expired A promotes B unchanged.
+        var anchor=oldB!=null?oldB:oldA;
+        int applied=oldB!=null?state.stakeBAppliedTurn:state.stakeAAppliedTurn;
+        if(anchor!=null)
+        {
+            float value=ProjectedLightningValue(board,caster,anchor,proposed,definition,
+                Mathf.Max(0,state.ownerTurn-applied),0);
+            if(oldA!=null&&oldB!=null)
+                value-=ProjectedLightningValue(board,caster,oldA,oldB,definition,
+                    Mathf.Max(0,state.ownerTurn-state.stakeAAppliedTurn),0);
+            return value;
+        }
+
+        int delay=Mathf.Max(0,definition.cooldown);
+        if((long)board.EnemyAP<2L*Mathf.Max(0,apCost))delay=Mathf.Max(1,delay);
+        if(delay>=SpecialSkillDefinition.StakeLifetime)return float.NegativeInfinity;
+        var systems=board.SpecialSystems??caster.RuntimeSystems;
+        if(delay>0&&systems?.FactionState?.GetNation(caster.team)?.AP.Maximum<apCost)return float.NegativeInfinity;
+        prospectiveStakeTargets.Clear();
+        try
+        {
+            // Keep the best eight visible legal alternatives without enumerating target subsets.
+            foreach(var candidate in board.SpecialObservedActors)
+            {
+                if(candidate==proposed||!board.IsSpecialActorObserved(candidate)
+                    ||!SpecialSkillRuntime.IsLegalTarget(caster,candidate,out _))continue;
+                int index=0;
+                while(index<prospectiveStakeTargets.Count&&CompareProspectiveStakeTargets(prospectiveStakeTargets[index],candidate)<=0)index++;
+                if(index>=MaximumProspectiveStakeTargets)continue;
+                prospectiveStakeTargets.Insert(index,candidate);
+                if(prospectiveStakeTargets.Count>MaximumProspectiveStakeTargets)prospectiveStakeTargets.RemoveAt(MaximumProspectiveStakeTargets);
+            }
+            float best=float.NegativeInfinity;
+            foreach(var second in prospectiveStakeTargets)
+            {
+                float value=ProjectedLightningValue(board,caster,proposed,second,definition,delay,delay);
+                // Current placement is charged by the common scorer; reserve the second placement here.
+                value-=Mathf.Max(0,apCost)*1.5f;
+                best=Mathf.Max(best,value);
+            }
+            return best;
+        }
+        finally{prospectiveStakeTargets.Clear();}
+    }
+
+    static int CompareProspectiveStakeTargets(Status a,Status b)
+    {
+        int value=SpecialValue(b).CompareTo(SpecialValue(a));
+        return value!=0?value:a.GetInstanceID().CompareTo(b.GetInstanceID());
+    }
+
+    static float ProjectedLightningValue(AIBoardState board,Status caster,Status a,Status b,
+        SpecialSkillDefinition definition,int anchorAge,int delay)
+    {
+        if(a==null||b==null||a==b||anchorAge>=SpecialSkillDefinition.StakeLifetime)return 0;
+        float value=0;
+        foreach(var actor in board.SpecialObservedActors)
+        {
+            if(!board.IsSpecialActorObserved(actor)||!SpecialSkillRuntime.SegmentTouchesCell(a.transform.position,b.transform.position,actor.GridPosition))continue;
+            bool ally=actor.team==caster.team;
+            if(ally?(definition.lightningFactionMask&SpecialFactionMask.Allies)==0
+                :(definition.lightningFactionMask&SpecialFactionMask.Hostile)==0||!NeutralFactionSystem.AreHostile(caster,actor))continue;
+            if(!prospectiveLightningDamage.TryGetValue(actor,out int normal))
+                prospectiveLightningDamage[actor]=normal=EstimateSpecialAwareAttack(caster,actor,board);
+            double cumulative=0;
+            for(int step=0;anchorAge+step<SpecialSkillDefinition.StakeLifetime;step++)
+            {
+                // Later exposure is less certain because observed endpoints and victims can move.
+                double retention=Math.Pow(.65,step);
+                cumulative+=Math.Floor(normal*(double)SpecialSkillDefinition.StakeMultiplier(anchorAge+step+1))
+                    *retention*AISpecialSkillKnowledge.FutureWeight(board,delay+step);
+            }
+            int projected=(int)Math.Min(int.MaxValue,Math.Max(0,Math.Floor(cumulative)));
+            float impact=DamageValue(board,actor,projected,HpChangeKind.NormalDamage);
+            value+=ally?-impact:impact;
+        }
+        return value;
+    }
+    static float BombValueAt(AIBoardState board,Status holder,Vector3 origin,int damage,int radius,SpecialFactionMask mask)
+    {
+        if(radius<0)return 0;float value=0;
+        foreach(var actor in board.SpecialObservedActors)
+        {
+            if(actor==holder||GridHelper.ChebyshevDistance(origin,actor.transform.position)>radius)continue;
+            if(actor.team==holder.team) {if((mask&SpecialFactionMask.Allies)!=0)value-=HpCost(actor,damage);}
+            else if((mask&SpecialFactionMask.Hostile)!=0)value+=DamageValue(board,actor,damage,HpChangeKind.IgnoreDefenceDamage);
+        }
+        if((mask&SpecialFactionMask.Holder)!=0)value-=HpCost(holder,damage);
+        return value;
+    }
+    public static float CalcSpecialStateAdjustment(AIAction action,AIBoardState board)
+    {
+        if(action?.Unit==null||board==null)return 0;
+        if(!board.HasObservedSpecialState&&!AISpecialSkillKnowledge.HasSpecial(action.Unit)&&!AISpecialSkillKnowledge.HasSpecial(action.TargetUnit))return 0;
+        var unit=action.Unit;var definition=SpecialSkillRuntime.Definition(unit);var state=unit.Special;
+        float score=0;
+        bool movement=action.ActionType==AIActionType.Move||action.ActionType==AIActionType.Retreat
+            ||action.ActionType==AIActionType.Support||action.ActionType==AIActionType.Surround||action.ActionType==AIActionType.DefenseRepos;
+        action.PreserveSpecialEvaluation=board.HasObservedSpecialState&&(movement||action.ActionType==AIActionType.Attack||action.ActionType==AIActionType.Wait);
+        if(movement)
+        {
+            score-=HpCost(unit,board.EstimateSpecialHazardAt(unit,action.TargetPos));
+            score+=(RiskAt(board,unit,unit.transform.position)-RiskAt(board,unit,action.TargetPos))*.25f;
+            if(definition?.ability==UnitSpecialSkill.ArcherStationary)
+            {
+                float charge=definition.ArcherMultiplier(state?.stationaryTurns??0)-1;
+                if(AttackValueAt(board,unit,unit.transform.position)>0)score-=charge*45+12;
+            }
+            foreach(var enemy in board.AlivePlayerUnits)
+            {
+                if(!board.IsSpecialActorObserved(enemy))continue;
+                var enemyDefinition=SpecialSkillRuntime.Definition(enemy);
+                if(enemyDefinition?.ability==UnitSpecialSkill.MagicSniperLock && enemy.Special?.sniperTargetId==unit.ReflectionLifeId)
+                    score+=(GridHelper.ChebyshevDistance(unit.transform.position,enemy.transform.position)-GridHelper.ChebyshevDistance(action.TargetPos,enemy.transform.position))*3;
+            }
+        }
+        if(action.ActionType==AIActionType.Wait&&definition?.ability==UnitSpecialSkill.ArcherStationary)
+        {
+            float shot=AttackValueAt(board,unit,unit.transform.position);
+            if(shot>0&&CanSafelyPreserveStationary(unit,board))
+                score+=20+(definition.ArcherMultiplier(state?.stationaryTurns??0)-1)*45
+                    +(definition.ArcherMultiplier((state?.stationaryTurns??0)+1)-definition.ArcherMultiplier(state?.stationaryTurns??0))*45;
+        }
+        if(action.ActionType==AIActionType.Attack&&action.TargetUnit!=null)
+        {
+            var target=action.TargetUnit;
+            int baseDamage=AIEvalHelpers.EstimateDamage(unit,target);
+            int specialDamage=EstimateSpecialAwareAttack(unit,target,board);
+            score+=DamageValue(board,target,specialDamage,HpChangeKind.NormalDamage)-DamageValue(board,target,baseDamage,HpChangeKind.NormalDamage);
+            if(target.Special?.ritualActive==true)score+=12+Mathf.Min(30,target.Special.storedSacrificeDamage*.2f);
+            var enemyDefinition=SpecialSkillRuntime.Definition(target);
+            if(enemyDefinition?.ability==UnitSpecialSkill.ArcherStationary)score+=(enemyDefinition.ArcherMultiplier(target.Special?.stationaryTurns??0)-1)*20;
+            if(target.Special?.damageNullUnused==true&&target.Special.damageNullTurns>0&&string.IsNullOrEmpty(target.Special.guardianPartnerId))
+                score+=Mathf.Max(0,10-Mathf.Max(1,action.APCost)*2)-Mathf.Min(30,specialDamage*.5f);
+            if(enemyDefinition?.ability==UnitSpecialSkill.SamuraiCounter&&enemyDefinition.samuraiGaugeMax>0
+                &&target.Special?.samuraiGauge>=enemyDefinition.samuraiGaugeMax&&target.Special.samuraiMaxTurns>0&&specialDamage<target.HP)
+                score-=HpCost(unit,Mathf.RoundToInt(specialDamage*SpecialSkillDefinition.SamuraiCounterFraction)+target.ATK);
+        }
+        return float.IsNaN(score)||float.IsInfinity(score)?0:score;
+    }
+
+    public static bool ShouldPreserveStationary(AIAction action,List<AIAction> actions,AIBoardState board)
+    {
+        var unit=action?.Unit;
+        if(unit==null||board==null||SpecialSkillRuntime.Definition(unit)?.ability!=UnitSpecialSkill.ArcherStationary
+            ||!(action.ActionType==AIActionType.Move||action.ActionType==AIActionType.Support||action.ActionType==AIActionType.Surround||action.ActionType==AIActionType.DefenseRepos)
+            ||!CanSafelyPreserveStationary(unit,board)||AttackValueAt(board,unit,unit.transform.position)<=0)return false;
+        foreach(var candidate in actions)if(candidate.Unit==unit&&candidate.ActionType==AIActionType.Wait&&candidate.Score>=action.Score)return true;
+        return false;
+    }
+}

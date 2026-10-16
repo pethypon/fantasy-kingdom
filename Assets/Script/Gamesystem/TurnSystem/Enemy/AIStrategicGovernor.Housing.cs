@@ -115,8 +115,8 @@ public sealed partial class AIStrategicGovernor
         {
             if (i == (int)ResourceKind.Citizen) continue;
             var need = ProductionDemand.Get((ResourceKind)i);
-            if (need.MandatoryDemandPerTurn > .001f && (need.NetPerTurn < -.001f || need.ProjectedStock < need.SafetyReserve)) return true;
-            if (AIBasicResourceSettings.Active.enabled && BasicResources.Get((ResourceKind)i)?.State <= BasicResourceState.Shortage) return true;
+            if (need.MandatoryDemandPerTurn > .001f && need.NetPerTurn < -.001f && need.ProjectedStock < need.SafetyReserve) return true;
+            if (AIBasicResourceSettings.Active.enabled && BasicResources.Get((ResourceKind)i)?.State == BasicResourceState.Critical) return true;
         }
         return false;
     }

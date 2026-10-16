@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -167,7 +167,7 @@ public static class SimBoardEvaluator
             {
                 var u = board.Units[i];
                 if (!u.IsAlive || u.Team != Team.Enemy || u.Type != Type.Unit) continue;
-                if (u.Kind == Kind.King) continue;
+                if (MatchObjectiveRules.IsCommander(u.Kind, u.Team, u.IsPrimaryCommander)) continue;
                 if (SimUtil.Manhattan(u.Position, eKing.Position) <= 3) nearbyAllies++;
             }
             score += Mathf.Min(nearbyAllies * AIConstants.KS_Guard_Per_Ally, AIConstants.KS_Guard_Max);
@@ -528,6 +528,10 @@ public static class SimBoardEvaluator
     // ================================================================
     static float EvalTerminal(SimBoardState board)
     {
+        // Only an observed actor's recorded death proves a terminal outcome.
+        foreach (var unit in board.Units)
+            if (unit != null && !unit.IsAlive && MatchObjectiveRules.IsDecisive(unit.Kind, unit.Team, unit.IsPrimaryCommander))
+                return unit.Team == Team.Player ? AIConstants.TERMINAL_Win : AIConstants.TERMINAL_Lose;
         // 敵(Player)クリスタル破壊 = AI勝利
         var pCrystal = board.GetCrystal(Team.Player);
         if (pCrystal != null && !pCrystal.IsAlive)

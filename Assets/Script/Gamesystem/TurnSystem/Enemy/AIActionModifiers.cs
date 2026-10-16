@@ -43,8 +43,8 @@ public static class AIActionModifiers
             bool wouldDie = counterDmg >= action.Unit.HP;
 
             float importanceMult = 1f;
-            if (action.Unit.IsBoss) importanceMult = 2.0f;
-            else if (action.Unit.kind == Kind.King) importanceMult = 2.5f;
+            if (MatchObjectiveRules.IsCommander(action.Unit)) importanceMult = 2.5f;
+            else if (action.Unit.IsBoss) importanceMult = 2.0f;
             else if (action.Unit.kind == Kind.Priest) importanceMult = 1.8f;
             else if (personality.HasBoss && (action.Unit.kind == Kind.Guardian || action.Unit.kind == Kind.Knight))
             {
@@ -64,8 +64,7 @@ public static class AIActionModifiers
                 penalty = 35f * importanceMult * isolationMult;
                 if (action.ActionType == AIActionType.Attack && action.TargetUnit != null)
                 {
-                    int myDmg = AIEvalHelpers.EstimateDamage(action.Unit, action.TargetUnit);
-                    if (myDmg >= action.TargetUnit.HP)
+                    if (AIActionEvaluator.CanFinishSpecialTarget(action.Unit,action.TargetUnit,board))
                         penalty *= 0.3f;
                 }
             }
@@ -202,6 +201,11 @@ public static class AIActionModifiers
     // ================================================================
     public static void ApplyGradualArmyExpansion(List<AIAction> actions, AIBoardState board)
     {
+        bool scoutPresent = false;
+        foreach (var unit in board.AliveEnemyUnits) if (unit != null && unit.IsAlive && unit.kind == Kind.Scout) { scoutPresent = true; break; }
+        // This bonus competes with ordinary construction; payment/forecast gates remain authoritative.
+        if (!scoutPresent && board.Governor?.Mode != StrategicMode.EmergencyDefense)
+            foreach (var candidate in actions) if (candidate.ActionType == AIActionType.Summon && candidate.SummonKind == Kind.Scout) candidate.Score += 30;
         int allyCount = board.AliveEnemyUnits.Count;
         float surplus = board.GetEconomicSurplus();
 

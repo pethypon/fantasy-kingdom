@@ -16,7 +16,8 @@ public partial class AICommander
             float bestScore = 8;
             foreach (var scout in _board.AliveEnemyUnits)
             {
-                if (scout == null || !scout.IsAlive || scout.kind != Kind.Scout || exploredBy.Contains(scout) || StatusEffectSystem.IsStunned(scout)) continue;
+                if (scout == null || !scout.IsAlive || !(_board.Exploration.IsAssignedUnit(scout) || scout.kind == Kind.Scout)
+                    || MatchObjectiveRules.IsCommander(scout) || exploredBy.Contains(scout) || StatusEffectSystem.IsStunned(scout)) continue;
                 yield return null;
                 if (AITurnBudget.Expired || _turnGen.IsGameOver) yield break;
                 // Do not sacrifice an immediate finishing blow or a dying scout for exploration.

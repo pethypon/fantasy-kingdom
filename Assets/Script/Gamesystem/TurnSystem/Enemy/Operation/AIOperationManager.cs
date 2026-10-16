@@ -75,7 +75,7 @@ public sealed partial class AIOperationManager
         features.Prepare(board, ownTurn); SeedObservations(board, ownTurn); UpdateKnownBases(board, ownTurn);
         ownArmy.Clear();
         foreach (var actor in features.OwnUnits(board, ownTurn))
-            if (actor != null && actor.IsAlive && actor.type == Type.Unit && actor.kind != Kind.King)
+            if (actor != null && actor.IsAlive && actor.type == Type.Unit && !MatchObjectiveRules.IsCommander(actor))
                 ownArmy.Add(actor);
         ownArmy.Sort((a, b) => string.CompareOrdinal(a.ReflectionLifeId, b.ReflectionLifeId));
         finished.Clear();
@@ -125,7 +125,7 @@ public sealed partial class AIOperationManager
         UpdateKnownBases(board, turn);
         ownArmy.Clear();
         foreach (var actor in features.OwnUnits(board, turn))
-            if (actor != null && actor.IsAlive && actor.type == Type.Unit && actor.kind != Kind.King) ownArmy.Add(actor);
+            if (actor != null && actor.IsAlive && actor.type == Type.Unit && !MatchObjectiveRules.IsCommander(actor)) ownArmy.Add(actor);
         ownArmy.Sort((a, b) => string.CompareOrdinal(a.ReflectionLifeId, b.ReflectionLifeId));
         foreach (var plan in state.ActiveOperations)
         {
@@ -421,7 +421,7 @@ public sealed partial class AIOperationManager
                 AddCandidate(board, turn, AIOperationGoal.EliminateEnemyForce, 1, 65, FirstObservedTroop(board, turn), personality, player);
             return;
         }
-        if (facts.EconomyState != EconomicState.Healthy || board.Governor?.Mode == StrategicMode.EconomicRecovery)
+        if (board.Governor?.Mode == StrategicMode.EconomicRecovery)
             AddCandidate(board, turn, AIOperationGoal.EconomicRecovery, 2, 80, null, personality, player);
         GenerateKnownBaseCandidates(board, turn, facts, personality, player);
         if (strategy != TurnStrategy.ScoutSearch && strategy != TurnStrategy.EconomyBuild && strategy != TurnStrategy.RetreatRegroup)
@@ -429,9 +429,9 @@ public sealed partial class AIOperationManager
             Status bestTarget = null; float bestValue = float.NegativeInfinity;
             foreach (var target in features.ObservedUnits(board, turn))
             {
-                if (config.EnableBaseAssault && target.type != Type.Unit) continue;
+                if (target.team != board.OpponentTeam || config.EnableBaseAssault && target.type != Type.Unit) continue;
                 float value = target.kind == Kind.SubCrystal ? 75 : target.kind == Kind.Crystal ? 70
-                    : target.type != Type.Unit ? 40 : target.kind == Kind.King ? 60 : 30;
+                    : target.type != Type.Unit ? 40 : MatchObjectiveRules.IsCommander(target) ? 60 : 30;
                 value -= AIOperationFeatureExtractor.Distance(board.EnemyCrystalPos, target.transform.position);
                 if (value > bestValue) { bestValue = value; bestTarget = target; }
             }
@@ -623,6 +623,11 @@ public sealed partial class AIOperationManager
             Suspend(plan, turn, AIOperationAbortReason.CrystalEmergency);
             return;
         }
+        // Recognize earned recovery before retiring an unnecessary plan, and preserve it
+        // during defense. A funded warning alone is neither success nor an emergency.
+        if (plan.PrimaryGoal == AIOperationGoal.EconomicRecovery
+            && board.Governor != null && board.Governor.Mode != StrategicMode.EconomicRecovery)
+        { Complete(plan, board, turn, AIOperationAbortReason.StrategicPriorityChanged); return; }
         if (facts.EconomyState == EconomicState.Collapse && plan.StrategicPriority > 2)
         {
             Suspend(plan, turn, AIOperationAbortReason.EconomicEmergency);

@@ -14,9 +14,9 @@ public sealed class AIActionFeatureExtractor
     float beliefUncertainty;
     bool beliefPrepared;
     readonly Dictionary<(Status actor, Status target, AIActionType type, FacilityKind facility, FacilityDefinitionData facilityDefinition,
-        Kind summon, UnitData summonDefinition, SkillData skill, int distance, TurnStrategy strategy, int threat),
+        Kind summon, UnitData summonDefinition, SkillData skill, UnitSpecialSkill specialSkill, int specialStage, int distance, TurnStrategy strategy, int threat),
         (string context, string action)> selectionKeys = new Dictionary<(Status, Status, AIActionType, FacilityKind,
-            FacilityDefinitionData, Kind, UnitData, SkillData, int, TurnStrategy, int), (string, string)>();
+            FacilityDefinitionData, Kind, UnitData, SkillData, UnitSpecialSkill, int, int, TurnStrategy, int), (string, string)>();
 
     public AIActionFeatureExtractor(AIReflectionConfig config = null)
         => this.config = config != null ? config : AIReflectionConfig.Active;
@@ -30,7 +30,7 @@ public sealed class AIActionFeatureExtractor
         int distanceBand = distance <= 1 ? 0 : distance <= 3 ? 1 : distance <= 6 ? 2 : 3;
         int threatBand = threatLevel <= 9 ? 0 : threatLevel <= 30 ? 1 : 2;
         var key = (action.Unit, action.TargetUnit, action.ActionType, action.Facility, action.FacilityDefinition,
-            action.SummonKind, action.SummonDefinition, action.Skill, distanceBand, strategy, threatBand);
+            action.SummonKind, action.SummonDefinition, action.Skill, CommandSpecialSkill(action), CommandSpecialStage(action), distanceBand, strategy, threatBand);
         if (!selectionKeys.TryGetValue(key, out var keys))
         {
             var snapshot = Capture(action, board, turn, strategy, threatLevel, artifacts, false);
@@ -91,6 +91,8 @@ public sealed class AIActionFeatureExtractor
         snapshot.TargetX = Mathf.RoundToInt(action.TargetPos.x);
         snapshot.TargetY = Mathf.RoundToInt(action.TargetPos.z);
         Status actor = action.Unit;
+        Status observedCommandTarget = action.TargetUnit != null
+            && (action.TargetUnit.team == board.ActorTeam || observedEnemies.Contains(action.TargetUnit)) ? action.TargetUnit : null;
         if (actor != null && actor.team == board.ActorTeam)
         {
             snapshot.ActorRole = Role(actor.kind);
@@ -101,7 +103,7 @@ public sealed class AIActionFeatureExtractor
             snapshot.ActorHeight = Mathf.RoundToInt(position.y); snapshot.ActorDirection = (int)actor.direction;
             snapshot.ActorEffectCount = actor.ActiveEffects?.Count ?? 0;
             snapshot.ActorShieldTurns = actor.ShieldTurns;
-            snapshot.ActorEffectSignature = includeDetailedFacts ? EffectSignature(actor) : 0;
+            snapshot.ActorEffectSignature = includeDetailedFacts ? EffectSignature(actor, turn) : 0;
             snapshot.OwnCrystalDistance = Distance(position, board.EnemyCrystalPos);
             snapshot.IsRangedActor = snapshot.ActorRole == "Ranged"
                 || actor.kind != Kind.Scout && AIBoardQuery.EstimateAttackRange(actor) > AIReflectionConfig.NonNegative(config.RangedMinimumAttackRange);
@@ -156,18 +158,19 @@ public sealed class AIActionFeatureExtractor
             snapshot.TargetX = Mathf.RoundToInt(target.transform.position.x);
             snapshot.TargetY = Mathf.RoundToInt(target.transform.position.z);
             snapshot.TargetEffectCount = target.ActiveEffects?.Count ?? 0;
-            snapshot.TargetEffectSignature = includeDetailedFacts ? EffectSignature(target) : 0;
+            snapshot.TargetEffectSignature = includeDetailedFacts ? EffectSignature(target, turn)
+                + (actor != null && actor.team == board.ActorTeam ? CommandRelationshipSignature(actor.Special, observedCommandTarget) : 0) : 0;
         }
         else if (action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade)
             snapshot.TargetCategory = "Facility:" + action.Facility;
         else if (action.ActionType == AIActionType.SubCrystal) snapshot.TargetCategory = "SubCrystal";
         else if (action.ActionType == AIActionType.Summon) snapshot.TargetCategory = Role(action.SummonKind);
         else if (target == null) snapshot.TargetCategory = "Cell";
-        if (includeDetailedFacts && action.ActionType == AIActionType.SkillUse && action.Skill != null)
+        if (includeDetailedFacts && action.ActionType == AIActionType.SkillUse && (action.Skill != null || action.SpecialCommand != null))
         {
             if (snapshot.TargetIsAlly && !string.IsNullOrEmpty(snapshot.KnownTargetLifeId))
                 snapshot.SupportTargetLifeIds.Add(snapshot.KnownTargetLifeId);
-            if (actor != null && actor.team == board.ActorTeam && (action.Skill.BuffToSelf || target == null
+            if (actor != null && actor.team == board.ActorTeam && (action.SpecialCommand != null || action.Skill.BuffToSelf || target == null
                 || action.Skill.Target == SkillTarget.Self || action.Skill.Target == SkillTarget.SelfArea))
                 if (!snapshot.SupportTargetLifeIds.Contains(actor.ReflectionLifeId)) snapshot.SupportTargetLifeIds.Add(actor.ReflectionLifeId);
         }
@@ -182,7 +185,7 @@ public sealed class AIActionFeatureExtractor
                         string lifeId = affected.ReflectionLifeId;
                         if (!capturedLifeIds.Add(lifeId)) continue;
                         bool ally = affected.team == board.ActorTeam;
-                        int signature = EffectSignature(affected) * 31 + affected.ShieldTurns;
+                        int signature = EffectSignature(affected, turn) * 31 + affected.ShieldTurns;
                         snapshot.AreaEffectSignature += signature;
                         snapshot.AreaEffects.Add(new AIReflectionEffectObservation { LifeId = lifeId,
                             Signature = signature, IsAlly = ally, HP = ally ? Mathf.Max(0, affected.HP) : 0 });
@@ -218,17 +221,85 @@ public sealed class AIActionFeatureExtractor
             || snapshot.OwnCrystalHP > 0 && snapshot.OwnCrystalHpRatio <= Mathf.Clamp01(config.LatePhaseCrystalHpRatio)) return "Late";
         return snapshot.Turn <= Mathf.Max(1, config.EarlyPhaseMaxTurns) ? "Early" : "Mid";
     }
-    static int EffectSignature(Status actor)
+    static int EffectSignature(Status actor, int turn)
     {
-        if (actor.ActiveEffects == null) return 0;
         unchecked
         {
             int signature = 0;
-            foreach (var effect in actor.ActiveEffects)
-                if (effect != null) signature += ((int)effect.debuffType * 397 ^ (int)effect.buffType * 31) * 17 + effect.remainingTurns;
-            return signature;
+            if (actor.ActiveEffects != null)
+                foreach (var effect in actor.ActiveEffects)
+                    if (effect != null) signature += ((int)effect.debuffType * 397 ^ (int)effect.buffType * 31) * 17 + effect.remainingTurns;
+            return signature + SpecialEffectSignature(actor.Special, turn) * 397;
         }
     }
+
+    // Value-only functional facts. Cooldown/absolute turn changes alone cannot manufacture preparation.
+    // Neither identities nor positions are hashed or learned.
+    static int SpecialEffectSignature(SpecialState state, int turn)
+    {
+        if (state == null) return 0;
+        int signature = 0;
+        void Add(int value) { unchecked { signature = signature * 31 + value; } }
+        void Flag(bool value) => Add(value ? 1 : 0);
+        Flag(state.ritualActive);
+        if (state.ritualActive)
+        {
+            Add(Mathf.Clamp(state.storedSacrificeDamage, 0, 1000000));
+            Add(Remaining(state.ritualFireTurn, state.ownerTurn, 1));
+        }
+        Flag(!string.IsNullOrEmpty(state.guardianPartnerId));
+        Flag(!string.IsNullOrEmpty(state.stakeAId));
+        if (!string.IsNullOrEmpty(state.stakeAId))
+        {
+            Add(Remaining(state.ownerTurn, state.stakeAAppliedTurn, SpecialSkillDefinition.StakeLifetime));
+        }
+        Flag(!string.IsNullOrEmpty(state.stakeBId));
+        if (!string.IsNullOrEmpty(state.stakeBId))
+        {
+            Add(Remaining(state.ownerTurn, state.stakeBAppliedTurn, SpecialSkillDefinition.StakeLifetime));
+        }
+        Flag(state.sniperActive);
+        if (state.sniperActive)
+        {
+            Add(Remaining(state.sniperFireTurn, state.ownerTurn, 1));
+        }
+        Flag(!string.IsNullOrEmpty(state.bombCasterId));
+        if (!string.IsNullOrEmpty(state.bombCasterId))
+        {
+            Add(Remaining(state.bombDueRound, turn, SpecialSkillDefinition.BombDelay));
+            Add(Mathf.Clamp(state.bombRadius, 0, 100000));
+            Add((int)state.bombMask & 7); Add((int)state.bombDeathPolicy);
+        }
+        Flag(state.nextDamageDouble); Flag(state.damageNullUnused); Flag(state.moved);
+        Add(Mathf.Clamp(state.visionZeroTurns, 0, 2));
+        Add(Mathf.Clamp(state.scoutVisionPenaltyTurns, 0, 2));
+        Add(Mathf.Clamp(state.damageNullTurns, 0, 2));
+        Add(Mathf.Clamp(state.stationaryTurns, 0, 100000));
+        Add(Mathf.Clamp(state.samuraiGauge, 0, 1000000));
+        Add(Mathf.Clamp(state.samuraiMaxTurns, 0, 3));
+        Add(Mathf.Clamp(state.ninjaCharge, 0, 5));
+        Add(Mathf.Clamp(state.berserkerStage, 0, 5));
+        Add(Mathf.Clamp(state.holyKnightTurns, 0, 3)); Flag(state.holyKnightRecoveryLock);
+        return signature;
+    }
+    static int CommandRelationshipSignature(SpecialState state, Status observedTarget)
+    {
+        if (state == null || observedTarget == null) return 0;
+        string id = observedTarget.ReflectionLifeId;
+        if (string.IsNullOrEmpty(id)) return 0;
+        // Relationship bits are compared only while the same target is observed before and after.
+        // This detects FIFO stake replacement without hashing identities or crediting visibility loss.
+        int relationships = (state.ritualTargetId == id ? 1 : 0) | (state.guardianPartnerId == id ? 2 : 0)
+            | (state.stakeAId == id ? 4 : 0) | (state.stakeBId == id ? 8 : 0) | (state.sniperTargetId == id ? 16 : 0);
+        return relationships * 104729;
+    }
+    static int Remaining(int end, int start, int maximum)
+        => (int)System.Math.Max(0, System.Math.Min(maximum, (long)end - start));
+    static UnitSpecialSkill CommandSpecialSkill(AIAction action)
+        => action?.SpecialCommand != null ? SpecialSkillRuntime.Definition(action.SpecialCommand.Caster)?.ability ?? UnitSpecialSkill.None
+            : UnitSpecialSkill.None;
+    static int CommandSpecialStage(AIAction action)
+        => CommandSpecialSkill(action) == UnitSpecialSkill.BerserkerRage ? Mathf.Clamp(action.SpecialCommand.BerserkerStage, 0, 5) : 0;
     static (bool attack, bool outside) CombatFacts(Status actor, AIBoardState board)
     {
         bool attack = false, threatened = false, hasObservedEnemy = false;
@@ -312,7 +383,10 @@ public sealed class AIActionFeatureExtractor
     {
         string detail = action != null && (action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade)
             ? ":" + action.Facility + ":" + (action.FacilityDefinition?.definitionId ?? "default")
-            : action != null && action.ActionType == AIActionType.SkillUse ? ":skill" + (action.Skill?.Id ?? -1)
+            : action != null && action.ActionType == AIActionType.SkillUse
+                ? action.SpecialCommand != null ? ":special" + (int)CommandSpecialSkill(action)
+                    + (CommandSpecialSkill(action) == UnitSpecialSkill.BerserkerRage ? ":stage" + CommandSpecialStage(action) : "")
+                    : ":skill" + (action.Skill?.Id ?? -1)
             : action != null && action.ActionType == AIActionType.Summon ? ":" + action.SummonKind
                 + ":" + (action.SummonDefinition?.definitionId ?? "default") : "";
         return snapshot.ActionType + ":" + snapshot.ActorRole + detail;

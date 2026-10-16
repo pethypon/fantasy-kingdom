@@ -508,6 +508,7 @@ public partial class BuildSystem : MonoBehaviour
     /// <summary>AI用: 設置可否チェック（任意チーム対応）</summary>
     private bool AICheckCanPlace(Vector3Int pos, Team team)
     {
+        if (mapcreate.Environment.BlocksMovement(pos.x, pos.z)) return false;
         // 領地チェック
         if (!territorysystem.IsInTerritory(pos, team))
         {

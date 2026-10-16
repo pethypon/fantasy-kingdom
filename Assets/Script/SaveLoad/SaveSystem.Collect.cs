@@ -33,6 +33,7 @@ public static partial class SaveSystem
             MapRiverHalfWidth = turnGen.Systems.MapCreate.riverHalfWidth,
             MapSeedX = turnGen.Systems.MapCreate.SeedX,
             MapSeedZ = turnGen.Systems.MapCreate.SeedZ,
+            Environment = turnGen.Systems.MapCreate.Environment.Capture(),
             PCPx = turnGen.Systems.CrystalSystem.PCP.x,
             PCPy = turnGen.Systems.CrystalSystem.PCP.y,
             PCPz = turnGen.Systems.CrystalSystem.PCP.z,
@@ -151,8 +152,11 @@ public static partial class SaveSystem
         var d = new UnitSaveData
         {
             ReflectionLifeId = s.ReflectionLifeId,
+            Special = SpecialSkillRuntime.CopyState(s.Special),
+            NaturalRecovery = NaturalRecoverySystem.CopyState(s.NaturalRecovery),
             Kind = StableSaveKeys.Key(s.kind),
             DefinitionId = s.type == Type.Unit ? s.unitDefinitionId : null,
+            HasPrimaryCommanderRole = true, IsPrimaryCommander = s.IsPrimaryCommander,
             Team = StableSaveKeys.Key(s.team),
             Type = StableSaveKeys.Key(s.type),
             HP = s.HP,

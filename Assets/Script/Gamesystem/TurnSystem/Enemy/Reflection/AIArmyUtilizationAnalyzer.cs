@@ -275,7 +275,7 @@ public sealed class AIArmyUtilizationAnalyzer
     }
     static bool KnownOpen(AIBoardState board, MapCreate map, int x, int z, bool movement)
         => board.IsTerrainKnown(new Vector3(x, 0, z)) && !map.IsHighMountain(x, z) && (!movement || !map.IsRiver(x, z));
-    static bool ArmyUnit(Status unit) => unit != null && unit.IsAlive && unit.type == Type.Unit && unit.kind != Kind.King;
+    static bool ArmyUnit(Status unit) => unit != null && unit.IsAlive && unit.type == Type.Unit && !MatchObjectiveRules.IsCommander(unit);
     static float Power(Status unit) => (Mathf.Max(0, unit.ATK) + Mathf.Max(0, unit.DEF) * .5f)
         * Mathf.Clamp01(unit.HP / (float)Mathf.Max(1, unit.MaxHP));
     static float Distance(Vector3 a, Vector3 b) => GridHelper.ChebyshevDistance(a, b);

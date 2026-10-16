@@ -29,7 +29,8 @@ public enum Kind
     SubCrystal, // サブクリスタル（領地拡張用建築物）
     WoodWall,   // フェーズ6で使用
     StoneWall,  // フェーズ6で使用
-    None
+    None,
+    WhiteMage, HolyKnight, Samurai, Ninja, Berserker, Navigator
 }
 
 public enum Type
@@ -289,6 +290,7 @@ public class Status : MonoBehaviour
     }
     string reflectionLifeId;
     bool reflectionLifeEnded;
+    internal void MarkLifeFinished() => reflectionLifeEnded = true;
     public string ReflectionLifeId => string.IsNullOrEmpty(reflectionLifeId)
         ? reflectionLifeId = System.Guid.NewGuid().ToString("N") : reflectionLifeId;
     public void RestoreReflectionLifeId(string id)
@@ -299,7 +301,7 @@ public class Status : MonoBehaviour
     void OnEnable()
     {
         // A pooled actor's next life must not collide with its earlier death ledger.
-        if (reflectionLifeEnded) { reflectionLifeId = null; reflectionLifeEnded = false; }
+        if (reflectionLifeEnded) { reflectionLifeId = null; reflectionLifeEnded = false; NaturalRecovery = new NaturalRecoveryState(); }
         CombatRegistry.Register(this);
     }
     void OnDisable() => CombatRegistry.Unregister(this);
@@ -342,12 +344,25 @@ public class Status : MonoBehaviour
     [Tooltip("強敵の脅威度（25=通常/75=激怒）。HP50%以下で75へ昇格")]
     public int wildBossCurrentThreat = 25;
     [Header("ステータス")]
-    public int HP;
+    [SerializeField, InspectorName("HP"), UnityEngine.Serialization.FormerlySerializedAs("HP")]
+    int hitPoints;
+    public int HP
+    {
+        get => hitPoints;
+        set
+        {
+            if (value < hitPoints) (NaturalRecovery ?? (NaturalRecovery = new NaturalRecoveryState())).RecordHpLoss();
+            hitPoints = value;
+        }
+    }
+    [HideInInspector] public NaturalRecoveryState NaturalRecovery = new NaturalRecoveryState();
     public int ATK;
     public int DEF;
     [Header("レベル")]
     public int Level = 1;
     public UnitData GrowthData;
+    public SpecialState Special = new SpecialState();
+    [HideInInspector] public bool IsPrimaryCommander;
     [HideInInspector] public string unitDefinitionId;
     [Header("駒の視界")]
     public HashSet<Vector3Int> VisionCell = new HashSet<Vector3Int>();
@@ -426,16 +441,22 @@ public class Status : MonoBehaviour
 
     /// <summary>ダメージを適用する（0未満にならない）。強敵の無敵判定もここで行う。</summary>
     public int ApplyDamage(int damage)
+        => SpecialSkillRuntime.ApplyHpChange(null, this, damage, HpChangeKind.NormalDamage, false, false);
+
+    public GameSystems RuntimeSystems => GetTurnGenerator()?.Systems;
+    internal bool IsWildBossProtected => IsWildBossInvulnerable();
+
+    internal int ApplyRawDamage(int damage, bool bypassProtection = false, bool recordCombatDamage = true)
     {
         damage = UnityEngine.Mathf.Max(0, damage);
-        if (isWildBoss && IsWildBossInvulnerable())
+        if (!bypassProtection && isWildBoss && IsWildBossInvulnerable())
         {
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] 縄張り外のため無敵: ダメージ{damage}を無効化"); }
             return 0;
         }
         int actual = UnityEngine.Mathf.Min(UnityEngine.Mathf.Max(0, HP), damage);
         HP -= actual;
-        if (actual > 0) GetTurnGenerator()?.Systems.ThirdFactionSystem?.RecordDamage(this, actual);
+        if (actual > 0 && recordCombatDamage) GetTurnGenerator()?.Systems.ThirdFactionSystem?.RecordDamage(this, actual);
         return actual;
     }
 
@@ -645,7 +666,7 @@ public class Status : MonoBehaviour
     public bool TryTriggerGameEndIfDecisive()
     {
         if (HP > 0) return false;
-        if (!MatchObjectiveRules.IsDecisive(kind, team)) return false;
+        if (!MatchObjectiveRules.IsDecisive(this)) return false;
 
         var turnGen = GetTurnGenerator();
         if (turnGen == null) return false;

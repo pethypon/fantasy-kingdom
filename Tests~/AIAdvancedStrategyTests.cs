@@ -100,6 +100,12 @@ public static class AIAdvancedStrategyTests
             b.AlivePlayerUnits.Add(revealedBuilding);seen.Add(GridHelper.ToGridXZ(revealedBuilding.transform.position));Changed(b);plans.Update(b);
             Check("revealed stationary facility is not a responding troop",plans.Current.VisibleResponders==0&&plans.Current.Step==AIPlanStep.ObserveResponse);
             b.AlivePlayerUnits.Remove(revealedBuilding);
+            var local1=Unit(objects,Kind.Knight,Team.Monster,plans.Current.DemonstrationPoint+Vector3.forward);
+            var local2=Unit(objects,Kind.Knight,Team.Monster,plans.Current.DemonstrationPoint-Vector3.forward);
+            b.AlivePlayerUnits.AddRange(new[]{local1,local2});seen.Add(GridHelper.ToGridXZ(local1.transform.position));seen.Add(GridHelper.ToGridXZ(local2.transform.position));
+            Changed(b);plans.Update(b);
+            Check("third faction arrivals cannot satisfy principal opponent diversion",plans.Current.VisibleResponders==0&&plans.Current.Step==AIPlanStep.ObserveResponse);
+            b.AlivePlayerUnits.Remove(local1);b.AlivePlayerUnits.Remove(local2);
             seen.Add(GridHelper.ToGridXZ(p1.transform.position));seen.Add(GridHelper.ToGridXZ(p2.transform.position));Changed(b);plans.Update(b);
             Check("two observed arrivals trigger opposite flank",plans.Current.Step==AIPlanStep.Flank&&plans.Current.VisibleResponders==2);
             assassin.transform.position=plans.Current.FlankPoint;Changed(b);plans.Update(b);Check("flanking wing reaches strike",plans.Current.Step==AIPlanStep.Strike);
@@ -121,6 +127,14 @@ public static class AIAdvancedStrategyTests
             Check("economic raid enters supply delay",plans.Current.Step==AIPlanStep.SupplyDelay);
             Set(b,"TurnCount",11);Changed(b);plans.Update(b);Check("supply delay persists next turn",plans.Current.Step==AIPlanStep.SupplyDelay);
             Set(b,"TurnCount",12);Changed(b);plans.Update(b);Check("estimated supply delay releases main assault",plans.Current.Step==AIPlanStep.MainAssault);
+            var priorHostiles=b.AlivePlayerUnits.ToArray();b.AlivePlayerUnits.Clear();Changed(b);
+            assassin.transform.position=plans.Current.Target-Vector3.right*4;
+            var assaultMove=new AIAction{ActionType=AIActionType.Move,Unit=assassin,TargetPos=assassin.transform.position+Vector3.right};
+            float objectiveBonus=plans.Bonus(assaultMove,b);
+            local1.transform.position=new Vector3(10,0,10);local1.ATK=0;b.AlivePlayerUnits.Add(local1);seen.Add(GridHelper.ToGridXZ(local1.transform.position));Changed(b);
+            Check("local third faction contact cannot redirect the main assault",objectiveBonus>0&&Mathf.Abs(plans.Bonus(assaultMove,b)-objectiveBonus)<.001f);
+            Check("local fight preserves the operation target and goal",plans.Current.Goal==AIPlanGoal.EconomicRaid&&plans.Current.Target==raid.Target);
+            b.AlivePlayerUnits.Clear();b.AlivePlayerUnits.AddRange(priorHostiles);Changed(b);
             var serialized=JsonUtility.FromJson<SaveSystem.AISaveData>(JsonUtility.ToJson(new SaveSystem.AISaveData{Operation=plans.Snapshot()}));
             Check("optional operation survives game-save serialization",serialized.Operation.Goal==AIPlanGoal.EconomicRaid&&serialized.Operation.Step==AIPlanStep.MainAssault);
             plans.Restore(JsonUtility.FromJson<SaveSystem.AISaveData>("{}").Operation);
