@@ -42,11 +42,7 @@ public static partial class SpecialSkillRuntime
         {
             var locked = FindActor(state.sniperTargetId);
             if (locked == null || !locked.IsAlive) state.sniperTargetId = null;
-            else if (definition != null && state.ownerTurn >= state.sniperFireTurn)
-            {
-                float distance = GridHelper.ChebyshevDistance(unit.GridPosition, locked.GridPosition);
-                ApplyScheduledDamage(unit, unit, FractionOfMaximum(unit, definition.SniperRecoil(distance)), HpChangeKind.NormalDamage);
-            }
+
         }
         if (!unit.IsAlive) return;
         PruneStakes(unit);
@@ -72,8 +68,9 @@ public static partial class SpecialSkillRuntime
             if (!TryLightning(crossbow, actors, out var a, out var b, out var multiplier)) continue;
             var d = Definition(crossbow);
             if (FactionApplies(d.lightningFactionMask, crossbow.team, crossbow, unit, null)
-                && SegmentTouchesCell(a.transform.position, b.transform.position, unit.GridPosition))
-                ApplyScheduledDamage(crossbow, unit, LightningDamage(crossbow, unit, multiplier), HpChangeKind.NormalDamage);
+                && SegmentTouchesCell(a.transform.position, b.transform.position, unit.GridPosition)
+                && MarkCrossbowStayHit(crossbow, unit, round))
+                ApplyScheduledDamage(crossbow, unit, LightningDamage(crossbow, unit, multiplier), HpChangeKind.NormalDamage, HpChangeCause.CrossbowLightning);
         }
     }
 
@@ -120,7 +117,7 @@ public static partial class SpecialSkillRuntime
         {
             if (target == null || !target.IsAlive || GridHelper.ChebyshevDistance(origin, target.GridPosition) > radius) continue;
             if (!FactionApplies(mask, sourceTeam, source, target, holder)) continue;
-            ApplyScheduledDamage(source, target, power, HpChangeKind.IgnoreDefenceDamage);
+            ApplyScheduledDamage(source, target, power, HpChangeKind.IgnoreDefenceDamage, HpChangeCause.Bomb);
         }
         Refresh(systems);
     }
@@ -146,7 +143,7 @@ public static partial class SpecialSkillRuntime
             if (!FactionApplies(d.lightningFactionMask, caster.team, caster, unit, null)) continue;
             if (!SegmentsCross(from, to, a.transform.position, b.transform.position)) continue;
             if (movementBatchDepth > 0 && !movementHits.Add((unit, caster))) continue;
-            ApplyScheduledDamage(caster, unit, LightningDamage(caster, unit, multiplier), HpChangeKind.NormalDamage);
+            ApplyScheduledDamage(caster, unit, LightningDamage(caster, unit, multiplier), HpChangeKind.NormalDamage, HpChangeCause.CrossbowLightning);
         }
     }
 
@@ -179,8 +176,12 @@ public static partial class SpecialSkillRuntime
         return PreviewDamage(unit, raw, HpChangeKind.NormalDamage);
     }
 
-    static int ApplyScheduledDamage(Status source, Status target, int amount, HpChangeKind kind)
-        => ApplyAbilityDamage(source, target, amount, kind);
+    static int ApplyScheduledDamage(Status source, Status target, int amount, HpChangeKind kind, HpChangeCause cause = HpChangeCause.Skill)
+    {
+        int actual = ApplyAbilityDamage(source, target, amount, kind, cause);
+        if (cause == HpChangeCause.CrossbowLightning) CombatRuleTelemetry.Record("crossbow_line_hit", source, target, requestedDamage: amount, actualHpLoss: actual);
+        return actual;
+    }
 
     public static float LightningMultiplier(Status crossbow)
     {
@@ -219,12 +220,16 @@ public static partial class SpecialSkillRuntime
     static void PruneStakes(Status caster)
     {
         var state = State(caster);
+        bool hadA = !string.IsNullOrEmpty(state.stakeAId), hadB = !string.IsNullOrEmpty(state.stakeBId);
         if (!string.IsNullOrEmpty(state.stakeAId)
             && (StakeExpired(state.ownerTurn, state.stakeAAppliedTurn) || FindActor(state.stakeAId) == null)) state.stakeAId = null;
         if (!string.IsNullOrEmpty(state.stakeBId)
             && (StakeExpired(state.ownerTurn, state.stakeBAppliedTurn) || FindActor(state.stakeBId) == null)) state.stakeBId = null;
+        if (hadA && string.IsNullOrEmpty(state.stakeAId) || hadB && string.IsNullOrEmpty(state.stakeBId))
+            CombatRuleTelemetry.Record("crossbow_stake_expire", caster);
         if (string.IsNullOrEmpty(state.stakeAId) && !string.IsNullOrEmpty(state.stakeBId))
         {
+            CombatRuleTelemetry.Record("crossbow_stake_promote", caster);
             state.stakeAId = state.stakeBId;
             state.stakeAAppliedTurn = state.stakeBAppliedTurn;
             state.stakeBId = null;
@@ -261,6 +266,8 @@ public static partial class SpecialSkillRuntime
 
     static bool SegmentsCross(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
     {
+        // Leaving or travelling along an already occupied line is not a fresh entry.
+        if (SegmentTouchesCell(c, d, GridHelper.ToGridXZ(a))) return false;
         // Consider every traversed grid cell once, independent of path length or line thickness.
         int steps = Mathf.Max(Mathf.Abs(Mathf.RoundToInt(b.x - a.x)), Mathf.Abs(Mathf.RoundToInt(b.z - a.z)));
         if (steps == 0) return SegmentTouchesCell(c, d, GridHelper.ToGridXZ(b));

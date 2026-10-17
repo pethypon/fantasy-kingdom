@@ -29,6 +29,7 @@ public sealed class TurnInspectionController : MonoBehaviour
             if (ownsSelection) Clear();
             bool playing = turn.CurrentState is PlayerMove || turn.CurrentState is PlayerAttack;
             var candidate = playing ? UnitPanelUI.SelectedStatus : null;
+            if (turn.CurrentState is PlayerAttack attack && attack.attackmode == PlayerMove.AttackMode.Skill) candidate = null;
             if (turn.Systems.BuildSystem != null && turn.Systems.BuildSystem.IsActive) candidate = null;
             if (turn.Systems.SummonSystem != null && turn.Systems.SummonSystem.IsActive) candidate = null;
             if (candidate != selected) { selected = candidate; nextRefresh = 0; }

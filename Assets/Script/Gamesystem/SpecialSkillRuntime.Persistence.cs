@@ -21,6 +21,15 @@ public static partial class SpecialSkillRuntime
         copy.samuraiGauge = Mathf.Max(0, copy.samuraiGauge);
         copy.ninjaCharge = Mathf.Clamp(copy.ninjaCharge, 0, 5);
         copy.berserkerStage = Mathf.Clamp(copy.berserkerStage, 0, 5);
+        copy.archerSnapshotIds = copy.archerSnapshotIds ?? new List<string>();
+        copy.paladinCycles = copy.paladinCycles ?? new List<PaladinAttackCycle>();
+        if (copy.archerSnapshotIds.Count > 1024) copy.archerSnapshotIds.RemoveRange(1024, copy.archerSnapshotIds.Count - 1024);
+        if (copy.paladinCycles.Count > 256) copy.paladinCycles.RemoveRange(0, copy.paladinCycles.Count - 256);
+        copy.archerEscapeTurns = Mathf.Clamp(copy.archerEscapeTurns, 0, 2);
+        copy.tauntTurns = Mathf.Clamp(copy.tauntTurns, 0, 3);
+        copy.guardianAttackCount = Mathf.Clamp(copy.guardianAttackCount, 0, 1000000);
+        copy.bomberIdleTurns = Mathf.Clamp(copy.bomberIdleTurns, 0, 10);
+        NormalizeCrossbowState(copy);
         return copy;
     }
     public static void RestoreLinks()
@@ -39,6 +48,9 @@ public static partial class SpecialSkillRuntime
             if (!string.IsNullOrEmpty(state.bombCasterId) && (state.bombRadius < 0 || state.bombMask == 0 || state.bombDeathPolicy == BombDeathPolicy.Unconfigured))
             { state.bombCasterId = null; state.bombDueRound = 0; }
             state.affectedUnitIds.RemoveAll(id => FindActor(id) == null);
+            state.archerSnapshotIds.RemoveAll(id => FindActor(id) == null);
+            if (FindActor(state.tauntedById) == null) { state.tauntedById = null; state.tauntTurns = 0; }
+            state.paladinCycles.RemoveAll(cycle => cycle == null || FindActor(cycle.targetId) == null);
         }
     }
 }

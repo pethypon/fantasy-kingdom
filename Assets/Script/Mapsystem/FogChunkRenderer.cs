@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 /// <summary>One closed shell per fog state/chunk. Coplanar faces are merged; only dirty chunks rebuild.</summary>
-public sealed class FogChunkRenderer : MonoBehaviour
+public sealed partial class FogChunkRenderer : MonoBehaviour
 {
     const int Size = 16;
     sealed class Layer { public Mesh Mesh; public MeshRenderer Renderer; public byte State; }
@@ -33,10 +33,11 @@ public sealed class FogChunkRenderer : MonoBehaviour
             chunk.Layers[0] = AddLayer(chunk, fog, unknown, 0);
             chunk.Layers[1] = AddLayer(chunk, explored, known, 1);
         }
+        InitializeExterior(map, fog, unknown);
     }
-    Layer AddLayer(Chunk chunk, GameObject prefab, Material material, byte state)
+    Layer AddLayer(Chunk chunk, GameObject prefab, Material material, byte state, string label = null)
     {
-        var go = new GameObject($"Fog {chunk.X},{chunk.Z} {state}", typeof(MeshFilter), typeof(MeshRenderer));
+        var go = new GameObject(label ?? $"Fog {chunk.X},{chunk.Z} {state}", typeof(MeshFilter), typeof(MeshRenderer));
         go.layer = prefab != null ? prefab.layer : gameObject.layer;
         go.transform.SetParent(transform, false);
         var mesh = new Mesh { name = go.name }; mesh.MarkDynamic();
@@ -140,6 +141,7 @@ public sealed class FogChunkRenderer : MonoBehaviour
     }
     void OnDestroy()
     {
+        ReleaseExterior();
         foreach (var chunk in chunks) foreach (var layer in chunk.Layers)
             if (layer.Mesh != null) { if (Application.isPlaying) Destroy(layer.Mesh); else DestroyImmediate(layer.Mesh); }
     }

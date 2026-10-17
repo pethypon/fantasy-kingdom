@@ -200,7 +200,7 @@ static class AICombatEvaluator
                 score += 10f;
         }
 
-        score -= (skill.APCost - 4) * 1.5f;
+        score -= (action.APCost - 4) * 1.5f;
 
         return score;
     }

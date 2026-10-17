@@ -13,11 +13,7 @@ public partial class BuildSummonUIBuilder
     readonly Dictionary<FacilityKind,TextMeshProUGUI> buildTitles = new Dictionary<FacilityKind,TextMeshProUGUI>();
     GameObject buildContent, summonContent;
     // 召喚可能なユニット種別（Crystal/King/壁は除外）
-    public static readonly Kind[] SummonableKinds = {
-        Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
-        Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
-        Kind.Magicsniper, Kind.Bomber,
-    };
+    public static readonly Kind[] SummonableKinds = UnitRoster.SummonableKinds;
 
     public static readonly Dictionary<Kind, string> KindDisplayNames
         = new Dictionary<Kind, string>
@@ -32,6 +28,12 @@ public partial class BuildSummonUIBuilder
         { Kind.Crossbow,    "弩兵" },
         { Kind.Magicsniper, "魔法狙撃" },
         { Kind.Bomber,      "爆撃手" },
+        { Kind.WhiteMage,   "白魔導士" },
+        { Kind.HolyKnight,  "聖騎士" },
+        { Kind.Samurai,     "侍" },
+        { Kind.Ninja,       "忍者" },
+        { Kind.Berserker,   "狂戦士" },
+        { Kind.Navigator,   "航海士" },
     };
 
     // 建築ボタン管理用

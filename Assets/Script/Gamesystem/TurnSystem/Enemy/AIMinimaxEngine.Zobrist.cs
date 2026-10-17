@@ -69,14 +69,14 @@ public partial class AIMinimaxEngine
             if (u.IsPrimaryCommander) h ^= ZobristCommanderPosition[x, z, teamIdx];
             if (u.Type == Type.Unit)
             {
-                ulong recovery = (ulong)Mathf.Clamp(u.NaturalRecoverySafeTurns, 0, NaturalRecoverySystem.SafeTurnThreshold)
+                ulong recovery = (ulong)(uint)Mathf.Clamp(u.NaturalRecoverySafeTurns, 0, NaturalRecoverySystem.SafeTurnThreshold)
                     | (u.NaturalRecoveryHasBaseline ? 8UL : 0) | (u.NaturalRecoveryHpLost ? 16UL : 0)
                     | (u.NaturalRecoveryLastRound == board.TurnCount ? 32UL : 0);
                 if (recovery != 0)
                 {
                     // Recovery changes future HP even when current HP/position match another node.
                     // Mix its bounded semantic state with the actor slot, without a large random table.
-                    ulong slot = (ulong)x | (ulong)z << 6 | (ulong)tk << 12;
+                    ulong slot = (ulong)(uint)x | (ulong)(uint)z << 6 | (ulong)(uint)tk << 12;
                     h ^= RecoveryHash((slot << 6) | recovery);
                 }
             }

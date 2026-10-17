@@ -6,8 +6,8 @@ public static class CombatRegistry
     static readonly HashSet<Status> actors = new HashSet<Status>();
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void Reset() => actors.Clear();
-    public static void Register(Status actor) { if (actor != null && actor.type <= Type.Wall) actors.Add(actor); }
-    public static void Unregister(Status actor) => actors.Remove(actor);
+    public static void Register(Status actor) { if (actor != null && actor.type <= Type.Wall && actors.Add(actor)) SpecialSkillRuntime.InvalidateRules(); }
+    public static void Unregister(Status actor) { if (actors.Remove(actor)) SpecialSkillRuntime.InvalidateRules(); }
     public static HashSet<Status>.Enumerator Enumerate() => actors.GetEnumerator();
     public static Status FindLife(string id)
     { foreach (var actor in actors) if (actor != null && actor.IsAlive && actor.ReflectionLifeId == id) return actor; return null; }

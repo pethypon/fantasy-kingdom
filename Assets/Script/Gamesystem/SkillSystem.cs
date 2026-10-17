@@ -22,6 +22,7 @@ public class SkillSystem : MonoBehaviour
         var recipient = SpecialSkillRuntime.ResolveDamageRecipient(target, requested, HpChangeKind.NormalDamage);
         int actual = SpecialSkillRuntime.ApplyHpChange(attacker, target, requested, HpChangeKind.NormalDamage);
         Status.AwardDamageExperience(attacker, recipient, actual, _factionState);
+        SpecialSkillRuntime.CompleteSpecialDeath(recipient);
         return actual;
     }
 

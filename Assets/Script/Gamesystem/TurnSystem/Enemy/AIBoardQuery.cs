@@ -132,11 +132,20 @@ public static class AIBoardQuery
         foreach (var pu in board.Enemies.Near(pos, 12f))
         {
             if (!IsActiveUnit(pu) || ObservedDragonThreat.IsDragon(pu) || BoardActionProfile.For(pu)?.CanAttack == false
-                || SpecialSkillRuntime.AttackBlocked(pu)||pu.Special?.sniperActive==true) continue;
-            float maxRange = EstimateAttackRange(pu) + 1.5f; // 移動+攻撃マージン
+                || !SpecialSkillRuntime.CanNormalAttackTarget(pu, self)||pu.Special?.sniperActive==true) continue;
+            int knownMoveCost = board.KnownEnvironmentMoveCost(pu.transform.position, pos);
+            float movementMargin = knownMoveCost > 0 ? 1.5f / (1 + knownMoveCost) : 1.5f;
+            float maxRange = EstimateAttackRange(pu) + movementMargin;
             float sqrThreshold = maxRange * maxRange;
             if ((pos - pu.transform.position).sqrMagnitude > sqrThreshold) continue;
             int raw = AIActionEvaluator.EstimateSpecialAwareAttack(pu,self,board);
+            bool ranged = DamageCalculator.IsRangedAttack(pu);
+            bool stone = ((pu.GrowthData?.attackTags ?? CombatAttackTags.None) & CombatAttackTags.Stone) != 0;
+            float oldCover = board.KnownEnvironmentDefinition(self.transform.position) != null
+                ? board.ReconMap.Environment.IncomingDamageMultiplier(self.transform.position, ranged, stone) : 1;
+            float newCover = board.KnownEnvironmentDefinition(pos) != null
+                ? board.ReconMap.Environment.IncomingDamageMultiplier(pos, ranged, stone) : 1;
+            raw = (int)Math.Min(int.MaxValue, Math.Max(0, raw * (double)newCover / Mathf.Max(.01f, oldCover)));
             int dmg = AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage);
             totalDmg = Math.Min(int.MaxValue, totalDmg + dmg);
         }

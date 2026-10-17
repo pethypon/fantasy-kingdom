@@ -20,6 +20,8 @@ public class UnitData : ScriptableObject
     public SpecialAbility authoredSpecialAbility;
     [Header("駒固有能力（兵種に固定するスキル・アビリティ）")]
     public SpecialSkillDefinition specialSkill;
+    [Tooltip("攻撃名ではなく属性で地形相性を判定します。未指定は属性なし。")]
+    public CombatAttackTags attackTags;
 
     public string DisplayName => !string.IsNullOrWhiteSpace(displayName) ? displayName : KindNameJP.Get(kind);
     public bool AvailableFor(Team team) => team == Team.Player ? availableToPlayer

@@ -236,6 +236,7 @@ public class PlayerMove : TurnState
         var profile = BoardActionProfile.For(SelectedUnit);
         if (profile != null && (mode == AttackMode.Skill ? !profile.CanUseSkills : !profile.CanAttack))
         { ToastMessageUI.Show("この駒の行動設定では使用できません", ToastMessageUI.MessageType.Warning); return; }
+        if (mode == AttackMode.Skill && PlayerAttack.BeginSpecialTargeting(SelectedUnit, Systems)) return;
         Systems.MoveGenerator.MoveReset();
         ClickedUnit = null;
         CurrentAttackMode = mode;
@@ -284,6 +285,7 @@ public class PlayerMove : TurnState
 
         if (Systems.BuildingAttackSystem != null)
             Systems.BuildingAttackSystem.ProcessAttacks(Team.Player);
+        if (!Turn.IsGameOver) SpecialSkillRuntime.OnOwnerTurnEnd(Systems, Team.Player, Context.Turn);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Turn.PlayerAI?.Commander?.EndReflectionTurn();

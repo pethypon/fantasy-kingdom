@@ -493,6 +493,7 @@ public class Status : MonoBehaviour
         amount = UnityEngine.Mathf.Max(0, amount);
         int actual = UnityEngine.Mathf.Clamp(MaxHP - HP, 0, amount);
         HP += actual;
+        SpecialSkillRuntime.RecordHeal(this, amount, actual);
         return actual;
     }
 

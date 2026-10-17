@@ -9,7 +9,7 @@ public partial class AICommander
         var systems=_turnGen?.Systems;
         var vision=systems?.VisionGenerator;
         if(vision==null)return;
-        bool Observable(Status actor)=>actor!=null&&vision.IsInVisionXZ(_actorTeam,actor.transform.position);
+        bool Observable(Status actor)=>actor!=null&&vision.IsActorVisibleTo(_actorTeam,actor);
         if(!Observable(command.Caster))return;
         Vector3 origin=systems.CrystalSystem==null?new Vector3(float.NaN,0,float.NaN)
             :_actorTeam==Team.Enemy?systems.CrystalSystem.ECP:systems.CrystalSystem.PCP;

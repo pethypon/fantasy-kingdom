@@ -191,16 +191,16 @@ public class BuildingAttackSystem : MonoBehaviour
             : unitSetting.PlayerUnit;
 
         Status found = FindStatusAtCell(enemyParent, cx, cz, enemyTeam);
-        if (found != null) return found;
+        if (found != null && (visionGenerator == null || visionGenerator.IsActorVisibleTo(_currentAttackTeam, found))) return found;
 
         found = FindStatusAtCell(moveGenerator.NeutralParent, cx, cz);
-        if (found != null) return found;
+        if (found != null && (visionGenerator == null || visionGenerator.IsActorVisibleTo(_currentAttackTeam, found))) return found;
         found = FindStatusAtCell(moveGenerator.ObstacleParent, cx, cz);
-        if (found != null) return found;
+        if (found != null && (visionGenerator == null || visionGenerator.IsActorVisibleTo(_currentAttackTeam, found))) return found;
 
         // 敵の建築物も検索
         found = FindStatusAtCell(buildSystem.GetBuildingParent(enemyTeam), cx, cz);
-        if (found != null) return found;
+        if (found != null && (visionGenerator == null || visionGenerator.IsActorVisibleTo(_currentAttackTeam, found))) return found;
 
         // クリスタルも検索
         Vector3 targetCrystalPos = (enemyTeam == Team.Enemy)

@@ -67,6 +67,7 @@ public class EnemyMove : TurnState
                 SpecialAbilitySystem.OnTurnEnd(Systems.UnitSetting.EnemyUnit);
             if (!Turn.IsGameOver) Systems.EconomySystem?.ProcessTurn(Team.Enemy);
             if (!Turn.IsGameOver) Systems.BuildingAttackSystem?.ProcessAttacks(Team.Enemy);
+            if (!Turn.IsGameOver) SpecialSkillRuntime.OnOwnerTurnEnd(Systems, Team.Enemy, Context.Turn);
         }
         catch (System.Exception e) { Debug.LogException(e); }
         finally

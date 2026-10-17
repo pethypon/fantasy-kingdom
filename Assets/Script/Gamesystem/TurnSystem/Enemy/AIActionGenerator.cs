@@ -628,7 +628,11 @@ public static partial class AIActionGenerator
 
         foreach (var kind in board.AffordableUnits)
         {
-            if (!UnitStaticData.Table.TryGetValue(kind, out var info)) continue;
+            var definition = board.ResolveUnitDefinition(kind);
+            int costAP;
+            if (definition != null && definition.IsValidForAuthoring) costAP = definition.costAP;
+            else if (UnitStaticData.Table.TryGetValue(kind, out var info)) costAP = info.CostAP;
+            else continue;
 
             int existingOfKind = 0;
             foreach (var u in board.AliveEnemyUnits) if (u.kind == kind) existingOfKind++;
@@ -647,8 +651,9 @@ public static partial class AIActionGenerator
                 {
                     ActionType = AIActionType.Summon,
                     SummonKind = kind,
+                    SummonDefinition = definition,
                     TargetPos = new Vector3(pos.x, pos.y, pos.z),
-                    APCost = info.CostAP
+                    APCost = costAP
                 });
             }
         }

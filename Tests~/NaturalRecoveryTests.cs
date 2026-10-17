@@ -126,12 +126,13 @@ public static class NaturalRecoveryTests
         board.RebuildOccupied(); var copy = board.Clone();
         try
         {
-            board.SimulateTurnTransition(Team.Enemy);
+            board.SimulateTurnTransition(Team.Player);
             Check("minimax owner boundary heals at same fifth interval", unit.HP == 50 && unit.NaturalRecoverySafeTurns == 5);
-            copy.Units[0].ApplyDamage(1); copy.SimulateTurnTransition(Team.Enemy);
+            copy.Units[0].ApplyDamage(1); copy.SimulateTurnTransition(Team.Player);
             Check("search clone loss resets only its own clock", copy.Units[0].HP == 39 && copy.Units[0].NaturalRecoverySafeTurns == 0 && unit.NaturalRecoverySafeTurns == 5);
             unit.Effects.Add(new SimEffect { Debuff = StatusEffectType.Poison, RemainingTurns = 2 });
             board.SimulateTurnTransition(Team.Enemy);
+            board.SimulateTurnTransition(Team.Player);
             Check("simulated poison precedes natural healing", unit.HP == 42 && unit.NaturalRecoverySafeTurns == 0);
             var hash = typeof(AIMinimaxEngine).GetMethod("BoardHash", BindingFlags.Static | BindingFlags.NonPublic);
             long first = (long)hash.Invoke(null, new object[] { board }); unit.NaturalRecoverySafeTurns = 4;

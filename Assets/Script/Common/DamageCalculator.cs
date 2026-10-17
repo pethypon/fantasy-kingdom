@@ -42,7 +42,7 @@ public static class DamageCalculator
     {
         float multiplier = 1f;
 
-        switch (attacker.kind)
+        if (SpecialSkillRuntime.Definition(attacker)?.enabledForPlay != true) switch (attacker.kind)
         {
             case Kind.Assassin:
                 // 視界外から攻撃した場合ダメージ1.25倍
@@ -209,7 +209,20 @@ public static class DamageCalculator
     private static bool IsRangedKind(Kind k)
     {
         return k == Kind.Archer || k == Kind.Magic || k == Kind.Crossbow
-            || k == Kind.Magicsniper || k == Kind.Bomber;
+            || k == Kind.Magicsniper || k == Kind.Bomber || k == Kind.Ninja;
+    }
+    public static bool IsRangedAttack(Status actor)
+    {
+        if (actor == null) return false;
+        if (((actor.GrowthData?.attackTags ?? CombatAttackTags.None) & CombatAttackTags.Ranged) != 0) return true;
+        var profile = BoardActionProfile.For(actor);
+        if (profile?.attack != null && profile.attack.useCustom)
+        {
+            foreach (var offset in profile.attack.Offsets)
+                if (Mathf.Max(Mathf.Abs(offset.x), Mathf.Abs(offset.y)) > 1) return true;
+            return false;
+        }
+        return IsRangedKind(actor.kind);
     }
 
     /// <summary>
@@ -260,7 +273,7 @@ public static class DamageCalculator
         atkMod *= GetKingAuraATKMultiplier(attacker);
         defMod *= GetKingAuraDEFMultiplier(target);
 
-        float atk = attacker.ATK * atkMod;
+        float atk = Mathf.Max(0, (long)attacker.ATK + SpecialSkillRuntime.GetATKFlatAdjustment(attacker)) * atkMod;
         float def = target.DEF * defMod;
 
         float baseDmg = CalcRawBase(atk, def);
@@ -271,7 +284,10 @@ public static class DamageCalculator
 
         // 背面攻撃 + 地形効果
         float backMod = GetBackAttackMultiplier(attacker, target);
-        float terrainMod = GetTerrainMultiplier(attacker, target);
+        float terrainMod = GetTerrainMultiplier(attacker, target)
+            * (target.RuntimeSystems?.MapCreate?.Environment?.IncomingDamageMultiplier(target.transform.position,
+                IsRangedAttack(attacker),
+                ((attacker.GrowthData?.attackTags ?? CombatAttackTags.None) & CombatAttackTags.Stone) != 0) ?? 1);
 
         // Special Ability 修飾（通常攻撃は単体扱い）
         float saAttack = SpecialAbilitySystem.GetAttackerModifier(attacker, target, true);
@@ -311,7 +327,7 @@ public static class DamageCalculator
         atkMod *= GetKingAuraATKMultiplier(attacker);
         defMod *= GetKingAuraDEFMultiplier(target);
 
-        float atk = attacker.ATK * atkMod;
+        float atk = Mathf.Max(0, (long)attacker.ATK + SpecialSkillRuntime.GetATKFlatAdjustment(attacker)) * atkMod;
         float def = target.DEF * defMod;
 
         float baseDmg = CalcRawBase(atk, def);
@@ -323,7 +339,10 @@ public static class DamageCalculator
 
         // 背面攻撃 + 地形効果
         float backMod = GetBackAttackMultiplier(attacker, target);
-        float terrainMod = GetTerrainMultiplier(attacker, target);
+        float terrainMod = GetTerrainMultiplier(attacker, target)
+            * (target.RuntimeSystems?.MapCreate?.Environment?.IncomingDamageMultiplier(target.transform.position,
+                IsRangedAttack(attacker),
+                ((skill.AttackTags | (attacker.GrowthData?.attackTags ?? CombatAttackTags.None)) & CombatAttackTags.Stone) != 0) ?? 1);
 
         // 範囲スキル限定の地形修飾（対象の高低差で±）
         float areaTerrainMod = GetAreaSkillTerrainMod(skill, attacker, target);

@@ -1,0 +1,134 @@
+{
+  "status": "PASS",
+  "scope": "Serialized template schema, GUID references, specified provisional tuning, no Unity execution",
+  "roles": [
+    {
+      "role": "Knight",
+      "ability": 1,
+      "ap": 14,
+      "cooldown": 2,
+      "source": "Assets\\Data\\Unit\\Knight.asset",
+      "new_role": false
+    },
+    {
+      "role": "Archer",
+      "ability": 2,
+      "ap": 10,
+      "cooldown": 3,
+      "source": "Assets\\Data\\Unit\\Archer.asset",
+      "new_role": false
+    },
+    {
+      "role": "Magic",
+      "ability": 3,
+      "ap": 22,
+      "cooldown": 3,
+      "source": "Assets\\Data\\Unit\\Magic.asset",
+      "new_role": false
+    },
+    {
+      "role": "Assassin",
+      "ability": 4,
+      "ap": 14,
+      "cooldown": 3,
+      "source": "Assets\\Data\\Unit\\Assassin.asset",
+      "new_role": false
+    },
+    {
+      "role": "Scout",
+      "ability": 5,
+      "ap": 20,
+      "cooldown": 3,
+      "source": "Assets\\Data\\Unit\\Scout.asset",
+      "new_role": false
+    },
+    {
+      "role": "Priest",
+      "ability": 6,
+      "ap": 8,
+      "cooldown": 0,
+      "source": "Assets\\Data\\Unit\\Priest.asset",
+      "new_role": false
+    },
+    {
+      "role": "Guardian",
+      "ability": 7,
+      "ap": 18,
+      "cooldown": 2,
+      "source": "Assets\\Data\\Unit\\Guardian.asset",
+      "new_role": false
+    },
+    {
+      "role": "Crossbow",
+      "ability": 8,
+      "ap": 10,
+      "cooldown": 0,
+      "source": "Assets\\Data\\Unit\\Crossbow.asset",
+      "new_role": false
+    },
+    {
+      "role": "Magicsniper",
+      "ability": 9,
+      "ap": 18,
+      "cooldown": 2,
+      "source": "Assets\\Data\\Unit\\Magic Sniper.asset",
+      "new_role": false
+    },
+    {
+      "role": "Bomber",
+      "ability": 10,
+      "ap": 20,
+      "cooldown": 3,
+      "source": "Assets\\Data\\Unit\\Bomber.asset",
+      "new_role": false
+    },
+    {
+      "role": "WhiteMage",
+      "ability": 11,
+      "ap": 12,
+      "cooldown": 2,
+      "source": "Assets\\Data\\Unit\\Priest.asset",
+      "new_role": true
+    },
+    {
+      "role": "HolyKnight",
+      "ability": 12,
+      "ap": 15,
+      "cooldown": 5,
+      "source": "Assets\\Data\\Unit\\Knight.asset",
+      "new_role": true
+    },
+    {
+      "role": "Samurai",
+      "ability": 13,
+      "ap": 8,
+      "cooldown": 4,
+      "source": "Assets\\Data\\Unit\\Knight.asset",
+      "new_role": true
+    },
+    {
+      "role": "Ninja",
+      "ability": 14,
+      "ap": 13,
+      "cooldown": 2,
+      "source": "Assets\\Data\\Unit\\Assassin.asset",
+      "new_role": true
+    },
+    {
+      "role": "Berserker",
+      "ability": 15,
+      "ap": 5,
+      "cooldown": 0,
+      "source": "Assets\\Data\\Unit\\Knight.asset",
+      "new_role": true
+    },
+    {
+      "role": "Navigator",
+      "ability": 16,
+      "ap": 12,
+      "cooldown": 2,
+      "source": "Assets\\Data\\Unit\\Guardian.asset",
+      "new_role": true
+    }
+  ]
+}

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum HpChangeKind { NormalDamage, IgnoreDefenceDamage, DirectHpReduction, ForcedDeath }
+public enum HpChangeKind { NormalDamage, IgnoreDefenceDamage, DirectHpReduction, ForcedDeath, ExecutionDamage }
 
 /// <summary>Durable actor state. IDs denote a life, not a prefab or a recycled instance.</summary>
 [Serializable]
-public sealed class SpecialState
+public sealed partial class SpecialState
 {
     public int ownerTurn, lastRound = -1, cooldown, stationaryTurns;
     public bool moved, attacked;

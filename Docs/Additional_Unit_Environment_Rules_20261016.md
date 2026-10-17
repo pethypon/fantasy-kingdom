@@ -58,4 +58,6 @@ Unityの **Fantasy Kingdom → 開発スタジオ → 環境オブジェクト�
 
 ## 検証
 
-統合テスト・画面・Windowsビルドの最終結果は完了後に追記する。この追加ルール後の対戦バランスは、前段のAI再調査とは別に評価する必要がある。
+追加機能404項目と既存のSceneSmoke回帰がすべて通過した。自然回復33項目はHP減少、完全無効、生命接続、待機再開、保存、旧HPフィールド互換、探索クローンとハッシュまで検証。環境59項目は視界・移動・滞在・燃焼・洞窟・保存・AIの観測制限を検証した。狂戦士は実際に2回発動し、5＋8APで2段階へ進み、画面の次段階が11APになることも確認した。
+
+[実装と検証の詳細](<E:/fantasykingdom/Unity/fantasy kingdom/Docs/Special_Unit_Abilities_20261015.md>)、[検証データと生ログ](<E:/fantasykingdom/Unity/fantasy kingdom/Docs/PerformanceData/special-skills-20261015/verification.json>)を保存した。Windows64通常ビルドは成功（エラー0・警告0）。未確定値のある能力・環境は、Unityで設定・有効化が必要。環境の標準データ10種は無効・配置なしで導入し、既存マップを自動では変更しない。この追加ルール後の対戦バランスは、前段のAI再調査とは別に評価する必要がある。

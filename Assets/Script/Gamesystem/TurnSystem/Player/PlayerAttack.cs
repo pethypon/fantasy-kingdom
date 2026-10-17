@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerAttack : TurnState
+public partial class PlayerAttack : TurnState
 {
     public PlayerMove move;
     public PlayerMove.AttackMode attackmode;
@@ -17,7 +17,13 @@ public class PlayerAttack : TurnState
 
     public override void Entry()
     {
-        Systems.AttackGenerator.AttackPointCall(move.SelectedUnit, move.SelectedUnitPosition, move);
+        if (attackmode == PlayerMove.AttackMode.Skill && SpecialSkillRuntime.Definition(move.SelectedUnit)?.ability > UnitSpecialSkill.None)
+            BeginFixedSkillTargeting();
+        else
+        {
+            Systems.AttackGenerator.AttackPointCall(move.SelectedUnit, move.SelectedUnitPosition, move);
+            if (attackmode == PlayerMove.AttackMode.Skill) BeginLegacySkillPreview();
+        }
         AttackSuccess = false;
 
         // 攻撃モード中もタイマー切れで強制ターン終了できるよう購読する
@@ -28,10 +34,10 @@ public class PlayerAttack : TurnState
             Systems.TimerSystem.OnTotalTimeExpired += OnTotalTimeExpired;
         }
 
-        if (Systems.DamagePreviewUI != null)
+        if (Systems.DamagePreviewUI != null && !fixedSkillMode)
             Systems.DamagePreviewUI.Activate();
 
-        if (Systems.InputHintUI != null)
+        if (Systems.InputHintUI != null && !fixedSkillMode && !legacySkillPreview)
             Systems.InputHintUI.SetHints(InputHintUI.Hints.PlayerAttack);
 
         // 対象がいなくても攻撃モードを維持し、取消で選択へ戻れるようにする。
@@ -61,17 +67,21 @@ public class PlayerAttack : TurnState
             var profile = BoardActionProfile.For(move.SelectedUnit);
             if (profile != null && (Context.SelectSkillDown ? !profile.CanUseSkills : !profile.CanAttack))
             { ToastMessageUI.Show("この駒の行動設定では使用できません", ToastMessageUI.MessageType.Warning); return; }
+            if (Context.SelectSkillDown && BeginSpecialTargeting(move.SelectedUnit, Systems)) return;
             Reset();
             move.CurrentAttackMode = Context.SelectSkillDown ? PlayerMove.AttackMode.Skill : PlayerMove.AttackMode.Normal;
             Turn.ChangeState(new PlayerAttack(Turn, move, move.CurrentAttackMode));
             return;
         }
+        if (fixedSkillMode) { HandleFixedSkillTargeting(); HandleCancelAttack(); return; }
+        TickLegacySkillPreview();
         HandleAttackClick();
         HandleCancelAttack();
     }
 
     public override void Exit()
     {
+        EndFixedSkillTargeting();
         if (Systems.TimerSystem != null)
         {
             Systems.TimerSystem.OnTurnTimeExpired -= OnTurnTimeExpired;
@@ -119,6 +129,7 @@ public class PlayerAttack : TurnState
             move.SelectedUnitPosition = prevUnit.transform.position;
             move.MenuSwitch = true;
         }
+        else move.Reset();
 
         Turn.ChangeState(move);
 
@@ -135,65 +146,9 @@ public class PlayerAttack : TurnState
         var profile = BoardActionProfile.For(move.SelectedUnit);
         if (profile != null && (attackmode == PlayerMove.AttackMode.Skill ? !profile.CanUseSkills : !profile.CanAttack)) return;
 
-        // スキルモードで自身対象スキルの場合は即実行
-        if (attackmode == PlayerMove.AttackMode.Skill
-            && move.SelectedUnit != null
-            && move.SelectedUnit.AssignedSkillId >= 0
-            && SkillData.Table.ContainsKey(move.SelectedUnit.AssignedSkillId))
-        {
-            SkillData skill = SkillData.Table[move.SelectedUnit.AssignedSkillId];
-            if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
-            {
-                if (Systems.APSystem.GetAP(Team.Player) < skill.APCost)
-                {
-                    ToastMessageUI.Show("AP不足：スキルを使用できません", ToastMessageUI.MessageType.Warning);
-                    return;
-                }
-
-                if (skill.Target == SkillTarget.SelfArea)
-                    ExecuteSelfAreaSkill(move.SelectedUnit, skill);
-                else
-                    Systems.SkillSystem.ExecuteSkill(move.SelectedUnit, move.SelectedUnit, skill);
-
-                Systems.APSystem.ConsumeSkill(Team.Player, skill.APCost, move.SelectedUnit);
-                AttackSuccess = true;
-                return;
-            }
-        }
+        if (attackmode == PlayerMove.AttackMode.Skill && BeginSpecialTargeting(move.SelectedUnit, Systems)) return;
 
         Systems.UnitClick.AttackClick(Systems.BattleSystem, this, Systems.AttackGenerator, move);
-    }
-
-    private void ExecuteSelfAreaSkill(Status caster, SkillData skill)
-    {
-        if (Systems.SkillSystem == null) return;
-
-        Vector3Int center = GridHelper.ToGridXZ(caster.transform.position);
-
-        var positions = SkillSystem.GetAreaPositions(skill.Area, center, caster.direction);
-        positions = SkillSystem.FilterLineSkillBlocked(positions, skill.Area, center,
-            Systems.MapCreate, Systems.MoveGenerator);
-        var posSet = new System.Collections.Generic.HashSet<Vector3Int>(positions);
-
-        var allies = new System.Collections.Generic.List<Status>();
-        Transform parent = Systems.UnitSetting.PlayerUnit;
-        foreach (Status s in parent.GetComponentsInChildren<Status>())
-        {
-            if (s.type != Type.Unit) continue;
-            if (posSet.Contains(GridHelper.ToGridXZ(s.transform.position)))
-                allies.Add(s);
-        }
-
-        if (skill.SpecialEffect == "LastSignal")
-        {
-            foreach (Status ally in allies)
-                StatusEffectSystem.ApplyBuff(ally, BuffType.Offensive);
-            Debug.Log($"[SkillSystem] ラストシグナル: 範囲内味方 {allies.Count}体に攻勢付与");
-        }
-        else
-        {
-            Systems.SkillSystem.ExecuteAreaSupportSkill(caster, skill, allies);
-        }
     }
 
     private void HandleCancelAttack()

@@ -199,6 +199,9 @@ public static class SceneSmoke
         ObservedDragonDangerTests.PlayMode(systems);
         SpecialSkillRuntimeTests.PlayMode(systems);
         SpecialSkillActionTests.PlayMode(systems);
+        CrossbowR1Tests.Run(systems);
+        AbilityR1Tests.Run(systems);
+        SpecialSkillTargetingTests.PlayMode(systems);
         SpecialSkillUITests.PlayMode(systems);
         SpecialSkillAITests.PlayMode(systems);
         NaturalRecoveryTests.PlayMode(systems);

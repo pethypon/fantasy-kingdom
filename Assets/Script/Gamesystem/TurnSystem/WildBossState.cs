@@ -17,9 +17,10 @@ public class WildBossState : TurnState
             SpecialSkillRuntime.OnOwnerTurnStart(Systems, Team.Obstacle, Context.Turn);
             StatusEffectSystem.TickAllUnits(Team.Obstacle, Systems.WildBossSystem?.BossParent);
             Systems.MapCreate?.Environment?.OnOwnerTurnStart(Team.Obstacle, Context.Turn, Systems);
-            NaturalRecoverySystem.ProcessOwnerTurn(Systems, Team.Obstacle, Context.Turn);
+
             if (Turn.IsGameOver) return;
             Systems.WildBossSystem?.ProcessTurn();
+            if (!Turn.IsGameOver) SpecialSkillRuntime.OnOwnerTurnEnd(Systems, Team.Obstacle, Context.Turn);
             RefreshVision();
         }
         finally

@@ -404,7 +404,7 @@ public partial class AICommander
         // AP予算: 建築/召喚が可能なら最低限のAPを予約する
         int reservedAP = CalcReservedAP();
 
-        while (_board.EnemyAP > 0 && iteration < maxIterations && !AITurnBudget.Expired)
+        while (iteration < maxIterations && !AITurnBudget.Expired)
         {
             yield return null;
             if (_turnGen.IsGameOver) yield break;
@@ -412,7 +412,7 @@ public partial class AICommander
 
             if (!boardReadyAfterAction) _board.Refresh();
             boardReadyAfterAction = false;
-            if (_board.EnemyAP <= 0) break;
+            if (_board.EnemyAP <= 0 && !AIActionGenerator.HasFreeBattleAction(_board)) break;
             _governor.Evaluate(_board);
 
             strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
@@ -426,6 +426,9 @@ public partial class AICommander
             AIActionEvaluator.EvaluateAllInto(actionsBuffer, _personality, _board, _learning, _currentStrategy);
             using (AIPerformanceCounters.Measure(AIPerformanceStage.CandidateGeneration))
                 AIOrientation.AppendCandidates(_board, actionsBuffer);
+            if (_board.EnemyAP <= 0)
+                for (int freeIndex = actionsBuffer.Count - 1; freeIndex >= 0; freeIndex--)
+                    if (!AIActionGenerator.IsFreeBattleAction(actionsBuffer[freeIndex])) actionsBuffer.RemoveAt(freeIndex);
             using (AIPerformanceCounters.Measure(AIPerformanceStage.ActionEvaluation))
             {
                 _governor.Filter(actionsBuffer,_board);

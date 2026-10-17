@@ -20,6 +20,7 @@ public static class TacticalUIRegressionTests
     {
         var root = new GameObject("Tactical UI fixture");
         var units = new List<Status>();
+        var originalSelection = turn.Context.SelectUnit;
         var range = systems.AttackGenerator.AttackP.ToArray();
         var vision = (HashSet<Vector3Int>)typeof(VisionGenerator).GetField("_playerVisionBox", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(systems.VisionGenerator);
         var cell = new Vector3Int(10000, 0, 10000);
@@ -54,6 +55,7 @@ public static class TacticalUIRegressionTests
             units[1].ActiveEffects.Clear(); units[2].HP = 100;
 
             var target = units[0]; target.transform.position = cell;
+            turn.Context.SelectUnit = units[1];
             systems.AttackGenerator.AttackP.Clear(); systems.AttackGenerator.AttackP.Add(cell);
             foreach (var team in new[] { Team.Enemy, Team.Monster, Team.Intruder, Team.Obstacle })
             {
@@ -75,6 +77,7 @@ public static class TacticalUIRegressionTests
         }
         finally
         {
+            turn.Context.SelectUnit = originalSelection;
             if (added) vision.Remove(cell); else vision.Add(cell);
             systems.AttackGenerator.AttackP.Clear(); systems.AttackGenerator.AttackP.AddRange(range);
             UnityEngine.Object.DestroyImmediate(root);

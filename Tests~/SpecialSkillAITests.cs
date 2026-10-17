@@ -15,6 +15,7 @@ public static class SpecialSkillAITests
     {
         var definition=ScriptableObject.CreateInstance<SpecialSkillDefinition>();owned.Add(definition);
         definition.ability=ability;definition.apCost=2;definition.cooldown=1;actor.GrowthData.specialSkill=definition;
+        if (ability == UnitSpecialSkill.CrossbowStakes) definition.crossbowInitialAmmo = 0;
         return definition;
     }
     public static void PlayMode(GameSystems live)
@@ -25,8 +26,8 @@ public static class SpecialSkillAITests
             Faction(live,team);
             ConfiguredExecution(live,team,UnitSpecialSkill.WhiteMageHeal);
             ConfiguredExecution(live,team,UnitSpecialSkill.MagicRitual);
-            ConfiguredExecution(live,team,UnitSpecialSkill.CrossbowStakes);
         }
+        SpecialSkillR1AITests.PlayMode(live);
         Learning();Debug.Log("[SpecialAI] "+passed+" checks passed");
     }
     static void Faction(GameSystems live,Team team)
@@ -159,7 +160,7 @@ public static class SpecialSkillAITests
                 var caster=f.Unit();caster.transform.position=new Vector3(10,0,10);caster.ATK=100;
                 var definition=Configure(caster,ability,owned);definition.ApplySpecifiedAPCost();
                 definition.sacrificeLimit=3;definition.lightningFactionMask=SpecialFactionMask.Hostile;
-                caster.kind=ability==UnitSpecialSkill.WhiteMageHeal?Kind.WhiteMage:ability==UnitSpecialSkill.MagicRitual?Kind.Magic:Kind.Crossbow;
+                caster.kind=ability==UnitSpecialSkill.WhiteMageHeal?Kind.WhiteMage:Kind.Magic;
                 void Passive(Status actor,bool skills)
                 {
                     var profile=ScriptableObject.CreateInstance<BoardActionProfile>();owned.Add(profile);
@@ -168,16 +169,13 @@ public static class SpecialSkillAITests
                 }
                 Passive(caster,true);
                 var patient=f.Unit();patient.transform.position=new Vector3(10,0,11);Passive(patient,false);
-                Status first=null,second=null;
+                Status first=null;
                 if(ability==UnitSpecialSkill.WhiteMageHeal)
                 { patient.HP=40;caster.VisionCell.Add(patient.GridPosition); }
                 else
                 {
                     first=f.Opponent(new Vector3(11,0,10),0);first.DEF=0;first.HP=ability==UnitSpecialSkill.MagicRitual?25:100;
                     Passive(first,false);visible.Add(first.GridPosition);caster.VisionCell.Add(first.GridPosition);
-                    if(ability==UnitSpecialSkill.CrossbowStakes)
-                    { second=f.Opponent(new Vector3(13,0,10),0);second.DEF=0;Passive(second,false);visible.Add(second.GridPosition);caster.VisionCell.Add(second.GridPosition); }
-                    else
                     { var donor=f.Unit();donor.transform.position=new Vector3(10,0,12);Passive(donor,false); }
                 }
                 // No economic purchases in this tactical fixture; AP is still the real faction AP.
@@ -233,26 +231,6 @@ public static class SpecialSkillAITests
                     Check(team+" actual AI ritual reserves sufficient donated damage",caster.Special.ritualActive&&caster.Special.storedSacrificeDamage>=first.HP);
                     SpecialSkillRuntime.OnActorTurnStart(caster,systems,21);
                     Check(team+" AI reservation fires on the next owner turn",!first.IsAlive&&!caster.Special.ritualActive);
-                }
-                else
-                {
-                    Check(team+" actual AI begins first lightning stake",!string.IsNullOrEmpty(caster.Special.stakeAId)&&string.IsNullOrEmpty(caster.Special.stakeBId));
-                    SpecialSkillRuntime.OnActorTurnStart(caster,systems,21);board.Refresh();action=Decide();
-                    Check(team+" ordinary AI follows first stake with second",action?.SpecialCommand?.Caster==caster&&executor.Execute(action,board)
-                        &&!string.IsNullOrEmpty(caster.Special.stakeBId));
-                    caster.Special.stakeAId=caster.Special.stakeBId=null;caster.Special.cooldown=0;definition.cooldown=SpecialSkillDefinition.StakeLifetime;board.Refresh();
-                    var impossible=new AIAction{Unit=caster,TargetUnit=first,ActionType=AIActionType.SkillUse,APCost=10,SpecialCommand=new SpecialSkillCommand(caster,first)};
-                    Check(team+" expired-before-second lightning setup is rejected",AIActionEvaluator.CalcSpecialSkillScore(impossible,board)<=0);
-                    definition.cooldown=1;visible.Remove(second.GridPosition);board.Refresh();
-                    float unseenPairScore=AIActionEvaluator.CalcSpecialSkillScore(impossible,board);
-                    var hiddenPosition=second.transform.position;second.transform.position+=Vector3.right*100;board.Refresh();
-                    Check(team+" hidden second endpoint cannot create or alter a prospective line",unseenPairScore<=0
-                        &&AIActionEvaluator.CalcSpecialSkillScore(impossible,board)==unseenPairScore);
-                    second.transform.position=hiddenPosition;visible.Add(second.GridPosition);
-                    var exposedAlly=f.Unit();exposedAlly.transform.position=new Vector3(12,0,10);board.Refresh();
-                    float hostileOnly=AIActionEvaluator.CalcSpecialSkillScore(impossible,board);
-                    definition.lightningFactionMask|=SpecialFactionMask.Allies;
-                    Check(team+" prospective lightning subtracts configured allied exposure",AIActionEvaluator.CalcSpecialSkillScore(impossible,board)<hostileOnly);
                 }
             }
             finally

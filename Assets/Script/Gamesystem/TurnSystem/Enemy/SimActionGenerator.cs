@@ -41,10 +41,6 @@ public static class SimActionGenerator
             FacilityKind.Field, FacilityKind.House, FacilityKind.Bakery,
             FacilityKind.Mine, FacilityKind.Barracks,
         };
-    static readonly Kind[] summonableKinds = {
-            Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
-            Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
-        };
 
     // ================================================================
     //  パターン参照（MovePatterns / AttackPatterns に一元化済み）
@@ -161,7 +157,8 @@ public static class SimActionGenerator
         if (!AttackPatterns.CanUseSkills(unit) || unit.AssignedSkillId < 0) return;
         if (unit.SkillCooldown > 0) return;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
-        if (skill.APCost > ap) return;
+        int skillCost = Mathf.Clamp(skill.APCost, 1, APSystem.MaximumSkillAP);
+        if (skillCost > ap) return;
 
         int dirZ = MovePatterns.DirZ(unit.Direction);
 
@@ -183,7 +180,7 @@ public static class SimActionGenerator
                 candidate.UnitId = unit.Id;
                 candidate.TargetUnitId = unit.Id;
                 candidate.TargetPos = unit.Position;
-                candidate.APCost = skill.APCost;
+                candidate.APCost = skillCost;
                 candidate.SkillId = unit.AssignedSkillId;
                 candidate.ActorTeam = team;
             }
@@ -216,7 +213,7 @@ public static class SimActionGenerator
                 candidate.UnitId = unit.Id;
                 candidate.TargetUnitId = t.Id;
                 candidate.TargetPos = t.Position;
-                candidate.APCost = skill.APCost;
+                candidate.APCost = skillCost;
                 candidate.SkillId = unit.AssignedSkillId;
                 candidate.ActorTeam = team;
             }
@@ -238,7 +235,7 @@ public static class SimActionGenerator
                 candidate.UnitId = unit.Id;
                 candidate.TargetUnitId = a.Id;
                 candidate.TargetPos = a.Position;
-                candidate.APCost = skill.APCost;
+                candidate.APCost = skillCost;
                 candidate.SkillId = unit.AssignedSkillId;
                 candidate.ActorTeam = team;
             }
@@ -261,7 +258,7 @@ public static class SimActionGenerator
                     candidate.UnitId = unit.Id;
                     candidate.TargetUnitId = a.Id;
                     candidate.TargetPos = a.Position;
-                    candidate.APCost = skill.APCost;
+                    candidate.APCost = skillCost;
                     candidate.SkillId = unit.AssignedSkillId;
                     candidate.ActorTeam = team;
                 }
@@ -312,7 +309,7 @@ public static class SimActionGenerator
         Vector3Int spawnPos = FindSpawnPosition(board, crystalPos);
         if (spawnPos.x == int.MinValue) return;
 
-        foreach (var kind in summonableKinds)
+        foreach (var kind in board.RecruitmentKinds ?? UnitRoster.SummonableKinds)
         {
             int costAP;
             if (board.TryGetRecruitment(kind, out var definition))

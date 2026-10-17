@@ -10,6 +10,7 @@ public class BattleSystem : MonoBehaviour
     public Status Target { get; private set; }
     public Status Attacker { get; private set; }
     private TurnGenerator turnGenerator;
+    Status actualRecipient;
 
     /// <summary>攻撃対象を設定する（UnitClick から呼ばれる）</summary>
     public void SetTarget(Status target) => Target = target;
@@ -35,7 +36,7 @@ public class BattleSystem : MonoBehaviour
             return;
         }
         Attacker = turnGenerator.Context.SelectUnit;
-        if (!Attacker.IsAlive || !Target.IsAlive || !NeutralFactionSystem.AreHostile(Attacker, Target)) return;
+        if (!Attacker.IsAlive || !Target.IsAlive || (!NeutralFactionSystem.AreHostile(Attacker, Target) && !SpecialSkillRuntime.IsAssassinAllyTarget(Attacker, Target))) return;
         if (!SpecialSkillRuntime.CanNormalAttackTarget(Attacker, Target)) return;
         var terrain = turnGenerator.Systems.MapCreate;
         bool lockedShot = SpecialSkillRuntime.TryGetSniperTarget(Attacker, out var lockedTarget) && lockedTarget == Target;
@@ -48,10 +49,16 @@ public class BattleSystem : MonoBehaviour
             return;
         }
 
+        if (!SpecialSkillRuntime.TryBeginNormalShot(Attacker, out var firedRound)) return;
+        SpecialSkillRuntime.BeginNormalAttack(Attacker);
+        float lockedDistance = lockedShot ? GridHelper.ChebyshevDistance(Attacker.transform.position, Target.transform.position) : -1;
+
         // シールド中はダメージ無効
         if (Target.ShieldTurns > 0)
         {
             SpecialSkillRuntime.OnAttackLanded(Attacker);
+            SpecialSkillRuntime.CompleteNormalShot(Attacker, Target, firedRound, false);
+            SpecialSkillRuntime.OnNormalAttackResolved(Attacker, Target, 0, false, lockedDistance);
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.kind} はシールド中！ ダメージ無効（残り{Target.ShieldTurns}ターン）"); }
             FloatingDamageUI.ShowShield(Target.transform.position);
             return;
@@ -61,7 +68,7 @@ public class BattleSystem : MonoBehaviour
         int damage = SkillSystem.CalcNormalDamage(Attacker, Target);
 
         // Crossbow: 命中時10%でスタン付与
-        if (Attacker.kind == Kind.Crossbow && damage > 0)
+        if (Attacker.kind == Kind.Crossbow && damage > 0 && SpecialSkillRuntime.Definition(Attacker)?.enabledForPlay != true)
         {
             if (Random.value < GameConstants.CrossbowStunChance)
             {
@@ -71,7 +78,7 @@ public class BattleSystem : MonoBehaviour
         }
 
         // MagicSniper: 攻撃ごとに最大HPの20%自傷 + 敵にマーキング
-        if (Attacker.kind == Kind.Magicsniper && damage > 0)
+        if (Attacker.kind == Kind.Magicsniper && damage > 0 && !SpecialSkillRuntime.HasAbility(Attacker, UnitSpecialSkill.MagicSniperLock))
         {
             int selfDmg = Mathf.RoundToInt(Attacker.MaxHP * GameConstants.MagicSniperSelfDamageRatio);
             Attacker.ApplyDamage(selfDmg);
@@ -83,11 +90,14 @@ public class BattleSystem : MonoBehaviour
         }
 
         // Special Ability: 致死ダメージ耐え（生還本能）
+        if (SpecialSkillRuntime.WouldAssassinate(Attacker, Target)) damage = Mathf.Max(damage, Target.HP);
         damage = ApplyDamage(damage);
 
         // Special Ability: 攻撃命中時効果（単体攻撃 = true）
         SpecialAbilitySystem.OnAttackHit(Attacker, Target, damage, true);
+        SpecialSkillRuntime.CompleteNormalShot(Attacker, Target, firedRound, damage > 0);
         SpecialSkillRuntime.OnAttackLanded(Attacker);
+        SpecialSkillRuntime.OnNormalAttackResolved(Attacker, actualRecipient ?? Target, damage, (actualRecipient ?? Target).HP <= 0, lockedDistance);
 
         // ---- ML観測: プレイヤーの攻撃をMLシステムに記録 ----
         if (Attacker.team == Team.Player && turnGenerator.Systems.AICommander != null && AIConfig.IsMLEnabled)
@@ -160,8 +170,11 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private int ApplyDamage(int damage)
     {
-        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(Target, damage, HpChangeKind.NormalDamage) ?? Target;
-        damage = SpecialSkillRuntime.ApplyHpChange(Attacker, Target, damage, HpChangeKind.NormalDamage);
+        var damageKind = SpecialSkillRuntime.WouldAssassinate(Attacker, Target) ? HpChangeKind.ExecutionDamage : HpChangeKind.NormalDamage;
+        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(Target, damage, damageKind) ?? Target;
+        actualRecipient = recipient;
+        damage = SpecialSkillRuntime.ApplyHpChange(Attacker, Target, damage, damageKind, cause: HpChangeCause.NormalAttack);
+        SpecialSkillRuntime.CompleteSpecialDeath(recipient == Target ? null : recipient);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}"); }
 
         // 反逆の騎士王: 反撃バフ有効時は受けたダメージの1.5倍を反射

@@ -30,6 +30,7 @@ public static class SpecialSkillVisualSmoke
         if (!Application.dataPath.Contains("UnityValidation")) throw new InvalidOperationException("Isolated validation project only");
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdom_SpecialSkillVisual_" + Guid.NewGuid().ToString("N");
+        TerrainEnvironmentEditor.InstallDefaults();
         SessionState.SetBool(Running, true);
         EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity"); EditorApplication.EnterPlaymode();
     }
@@ -54,6 +55,7 @@ public static class SpecialSkillVisualSmoke
                 if (turn == null || !(turn.CurrentState is PlayerMove) || turn.Systems.UnitPanelUI == null) return;
                 systems = turn.Systems; turn.enabled = false;
                 PrepareFixture();
+                Camera.main.fieldOfView = 30; // Rendered fixture only: keep the effect cells readable.
                 systems.TurnGenerator.Context.SelectUnit = mage; systems.UnitPanelUI.Show(mage);
                 turn.GameAction.Enable();
                 InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
@@ -70,18 +72,31 @@ public static class SpecialSkillVisualSmoke
                     + " canIssue=" + typeof(UnitPanelUI).GetMethod("CanIssueCommand", Private).Invoke(systems.UnitPanelUI, null));
                 turn.GetComponent<TurnInputHandler>().Tick();
                 InputSystem.QueueStateEvent(keyboard, new KeyboardState()); InputSystem.Update(); InputSystem.RemoveDevice(keyboard);
+                var targeting = turn.CurrentState as PlayerAttack;
+                if (targeting == null || !targeting.IsFixedSkillTargeting || targeting.SpecialRangeCells.Count == 0 || turn.Context.SelectSkillDown)
+                    throw new InvalidOperationException("Physical 2 did not enter map skill targeting exactly once");
+                targeting.PreviewSpecialTarget(targetA);
+                Debug.Log("[SpecialSkillVisual] Physical 2 opened map skill targeting with range and effect preview");
+                stage = 101; ready = EditorApplication.timeSinceStartup + 1; return;
+            }
+            if (stage == 101)
+            {
+                Capture("skill-target-range.png");
+                var targeting = (PlayerAttack)systems.TurnGenerator.CurrentState;
+                if (!targeting.TryUseSpecialTarget(targetA)) throw new InvalidOperationException("Map target did not open sacrifice choices");
                 var modal = (SpecialSkillSelectionUI)typeof(SpecialSkillSelectionUI).GetField("instance", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-                if (modal == null || turn.Context.SelectSkillDown) throw new InvalidOperationException("Physical 2 did not open the unique skill exactly once");
+                if (modal == null) throw new InvalidOperationException("Sacrifice choices did not open after map target click");
                 Debug.Log("[SpecialSkillVisual] Physical 2 opened the unique skill without ordinary-skill dispatch");
                 var targets = (Dictionary<Status, Image>)typeof(SpecialSkillSelectionUI).GetField("targetImages", Private).GetValue(modal);
                 targets[targetA].GetComponent<Button>().onClick.Invoke();
                 var sacrifices = (Dictionary<Status, TMPro.TextMeshProUGUI>)typeof(SpecialSkillSelectionUI).GetField("sacrificeLabels", Private).GetValue(modal);
                 foreach (var actor in allies.Take(2)) sacrifices[actor].GetComponentInParent<Button>().onClick.Invoke();
-                stage++; ready = EditorApplication.timeSinceStartup + 1; return;
+                stage = 2; ready = EditorApplication.timeSinceStartup + 1; return;
             }
             if (stage == 2)
             {
                 Capture("magic-sacrifice-modal.png");
+                if (systems.TurnGenerator.CurrentState is PlayerAttack completed) { completed.Reset(); systems.TurnGenerator.ChangeState(completed.move); }
                 SpecialSkillSelectionUI.CloseCurrent();
                 mage.Special.ritualTargetId = targetA.ReflectionLifeId; mage.Special.storedSacrificeDamage = 45;
                 mage.Special.ownerTurn = 1; mage.Special.ritualFireTurn = 2;
@@ -107,9 +122,31 @@ public static class SpecialSkillVisualSmoke
                 row.OnPointerEnter(new PointerEventData(EventSystem.current) { position = new Vector2(500, 500) });
                 stage++; ready = EditorApplication.timeSinceStartup + .3; return;
             }
-            Capture("summon-hover-details.png");
+            if (stage == 6)
+            {
+                Capture("summon-hover-details.png"); SummonUnitTooltip.HideCurrent();
+                UnityEngine.Object.FindFirstObjectByType<SlidePanelUI>(FindObjectsInactive.Include).ClosePanel();
+                var berserker = allies[0]; berserker.kind = Kind.Berserker; berserker.Special = new SpecialState();
+                berserker.GrowthData.displayName = "狂戦士（表示検証）";
+                var rage = ScriptableObject.CreateInstance<SpecialSkillDefinition>(); rage.ability = UnitSpecialSkill.BerserkerRage;
+                rage.ApplySpecifiedAPCost(); rage.cooldown = 0;
+                rage.berserkerAttackCurve = AnimationCurve.Linear(0, 1, 5, 2.5f);
+                rage.berserkerDefenceCurve = AnimationCurve.Linear(0, 1, 5, .5f);
+                rage.berserkerAttackAPCurve = AnimationCurve.Linear(0, 1, 1, 5);
+                berserker.GrowthData.specialSkill = rage; systems.FactionState.SetAP(Team.Player, 35);
+                int before = systems.FactionState.GetAP(Team.Player);
+                if (!SpecialSkillRuntime.TryExecute(new SpecialSkillCommand(berserker), systems, out _)
+                    || !SpecialSkillRuntime.TryExecute(new SpecialSkillCommand(berserker), systems, out _)
+                    || berserker.Special.berserkerStage != 2 || before - systems.FactionState.GetAP(Team.Player) != 13)
+                    throw new InvalidOperationException("Berserker did not stack two real casts for five plus eight AP");
+                Debug.Log("[SpecialSkillVisual] Berserker stacked 0 -> 1 -> 2 with real AP5 + AP8; next stage requires AP11");
+                systems.TurnGenerator.Context.SelectUnit = berserker; systems.UnitPanelUI.Show(berserker);
+                SpecialSkillSelectionUI.Show(berserker, systems);
+                stage++; ready = EditorApplication.timeSinceStartup + .7; return;
+            }
+            Capture("berserker-stack-progress.png");
             File.WriteAllText(Path.Combine(OutputFolder(), "capture-notes.txt"),
-                "通常シーンの実カメラ・実HUDをRenderTextureで描画した表示検証です。\n特殊能力のCD0/供儀上限8は表示検証専用で、本番の未確定値は変更していません。APは指定表を使用。\n仮想Keyboardの物理2入力を既存InputAction/TurnInputHandlerへ流し、固有モーダルだけが開くことを確認。\nMagic供儀・予約一覧・Crossbow可視雷線・召喚hoverの4画面。ゲームバランス試合の記録ではありません。\n");
+                "通常シーンの実カメラ・実HUDをRenderTextureで描画した表示検証です。\n特殊能力のCD0/供儀上限8・強化曲線は表示検証専用で、本番の未確定値は変更していません。APは指定表を使用。\n仮想Keyboardの物理2入力を既存InputAction/TurnInputHandlerへ流し、マップ上の使用範囲と効果範囲が表示され、対象クリック後だけ供儀選択が開くことを確認。\n範囲表示・Magic供儀・予約一覧・Crossbow可視雷線・召喚hover・狂戦士連続2回使用後の6画面。狂戦士は実際にAP5+8を支払い0→1→2段階へ上昇。ゲームバランス試合の記録ではありません。\n");
             Debug.Log("[SpecialSkillVisual] ALL CAPTURED " + OutputFolder());
             SessionState.SetBool(Running, false); EditorApplication.Exit(0);
         }
@@ -143,7 +180,7 @@ public static class SpecialSkillVisualSmoke
         magicDefinition.ability = UnitSpecialSkill.MagicRitual; magicDefinition.ApplySpecifiedAPCost(); magicDefinition.cooldown = 0; magicDefinition.sacrificeLimit = 8;
         mage.GrowthData.specialSkill = magicDefinition;
         var crossbowDefinition = ScriptableObject.CreateInstance<SpecialSkillDefinition>();
-        crossbowDefinition.ability = UnitSpecialSkill.CrossbowStakes; crossbowDefinition.ApplySpecifiedAPCost(); crossbowDefinition.cooldown = 0; crossbowDefinition.lightningFactionMask = SpecialFactionMask.Hostile;
+        crossbowDefinition.ability = UnitSpecialSkill.CrossbowStakes; crossbowDefinition.ApplySpecifiedAPCost(); crossbowDefinition.cooldown = 0; crossbowDefinition.lightningFactionMask = SpecialFactionMask.Hostile; crossbowDefinition.crossbowInitialAmmo = 0;
         crossbow.GrowthData.specialSkill = crossbowDefinition;
         crossbow.Special.ownerTurn = 2; crossbow.Special.stakeAId = targetA.ReflectionLifeId; crossbow.Special.stakeBId = targetB.ReflectionLifeId;
         crossbow.Special.stakeAAppliedTurn = 1; crossbow.Special.stakeBAppliedTurn = 2;
@@ -157,13 +194,29 @@ public static class SpecialSkillVisualSmoke
 
     static string OutputFolder()
     {
-        string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../special-skill-captures-20261015"));
+        string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../r1-skill-captures-20261017"));
         Directory.CreateDirectory(folder); return folder;
     }
     static void Capture(string name)
     {
-        Canvas.ForceUpdateCanvases();
-        VisualRegressionTests.CaptureHUD("special-" + name);
+        var camera = Camera.main;
+        var overlays = new List<(Canvas canvas, RenderMode mode, Camera camera, float plane)>();
+        try
+        {
+            foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+            {
+                if (canvas.renderMode != RenderMode.ScreenSpaceOverlay) continue;
+                overlays.Add((canvas, canvas.renderMode, canvas.worldCamera, canvas.planeDistance));
+                canvas.renderMode = RenderMode.ScreenSpaceCamera; canvas.worldCamera = camera; canvas.planeDistance = 1;
+            }
+            Canvas.ForceUpdateCanvases();
+            VisualRegressionTests.CaptureHUD("special-" + name);
+        }
+        finally
+        {
+            foreach (var entry in overlays)
+            { entry.canvas.renderMode = entry.mode; entry.canvas.worldCamera = entry.camera; entry.canvas.planeDistance = entry.plane; }
+        }
         string source = Path.GetFullPath(Path.Combine(Application.dataPath, "../../visual-captures/special-" + name));
         File.Copy(source, Path.Combine(OutputFolder(), name), true);
         Debug.Log("[SpecialSkillVisual] CAPTURED " + name);

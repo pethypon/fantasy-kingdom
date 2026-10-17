@@ -16,7 +16,7 @@ public class AttackGenerator : MonoBehaviour
             if (target == TargetUnit) continue;
             var cell = GridHelper.ToGridXZ(target.transform.position);
             if (target.team == TargetUnit.team) alliedCells.Add(cell);
-            if (NeutralFactionSystem.AreHostile(TargetUnit, target)) hostileCells.Add(cell);
+            if (SpecialSkillRuntime.CanNormalAttackTarget(TargetUnit, target)) hostileCells.Add(cell);
         }
     }
     bool CanTarget(Vector3 cell, bool ally = false)
@@ -131,7 +131,13 @@ public class AttackGenerator : MonoBehaviour
         // Self / SelfArea → 自分の位置のみ
         if (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea)
         {
-            AttackP.Add(objp);
+            if (skill.Target == SkillTarget.Self) AttackP.Add(objp);
+            else
+            {
+                var cells = SkillSystem.GetAreaPositions(skill.Area, GridHelper.ToGridXZ(objp), TargetUnit.direction);
+                foreach (var position in cells)
+                    if (mapcreate.TryGetHeight(position.x, position.z, out float height)) AttackP.Add(new Vector3(position.x, height, position.z));
+            }
             return;
         }
 

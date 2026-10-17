@@ -90,7 +90,7 @@ public static class AtomicSaveStorage
         json = null; reason = "";
         try
         {
-            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             if (stream.Length <= 0 || stream.Length > maximumBytes)
             { reason = "保存ファイルが空、またはサイズ上限を超えています。"; return false; }
             byte[] bytes = new byte[(int)stream.Length];
@@ -134,7 +134,7 @@ public static class AtomicSaveStorage
         string staging = destination + ".tmp";
         try
         {
-            using (var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
             using (var output = new FileStream(staging, FileMode.Create, FileAccess.Write, FileShare.None))
             { input.CopyTo(output); output.Flush(true); }
             if (File.Exists(destination)) Replace(staging, destination, null);
@@ -149,10 +149,26 @@ public static class AtomicSaveStorage
     }
     static void Replace(string source, string destination, string backup)
     {
+        // Windows scanners can briefly hold a generation open. Retry only known transient
+        // locks while both files still exist; never replace through a delete/copy fallback.
+        for (int attempt = 0; ; attempt++)
+        {
+            try
+            {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (ReplaceForTests != null) { ReplaceForTests(source, destination, backup); return; }
+                if (ReplaceForTests != null) { ReplaceForTests(source, destination, backup); return; }
 #endif
-        File.Replace(source, destination, backup);
+                File.Replace(source, destination, backup); return;
+            }
+            catch (IOException exception) when (attempt < 2 && IsTransientReplaceLock(exception)
+                && File.Exists(source) && File.Exists(destination))
+            { System.Threading.Thread.Sleep(10 * (attempt + 1)); }
+        }
+    }
+    static bool IsTransientReplaceLock(IOException exception)
+    {
+        int code = exception.HResult & 0xffff;
+        return code == 32 || code == 33 || code == 1175;
     }
     public static bool Recoverable(Exception exception) => exception is IOException || exception is UnauthorizedAccessException
         || exception is ArgumentException || exception is NotSupportedException || exception is System.Security.SecurityException;

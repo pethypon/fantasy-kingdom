@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>Map-owned sparse cells. Effects run only on movement/owner turns; there is no Update or scene search.</summary>
-public sealed class TerrainEnvironmentRuntime
+public sealed partial class TerrainEnvironmentRuntime
 {
     [Serializable]
     public sealed class CellSnapshot
@@ -14,6 +14,8 @@ public sealed class TerrainEnvironmentRuntime
         public int smokeRounds;
         public bool hasCaveExit;
         public Vector2Int caveExit;
+        public List<Team> revealedTo = new List<Team>();
+        public int caveAvailableRound;
     }
     [Serializable]
     public sealed class Snapshot
@@ -21,6 +23,9 @@ public sealed class TerrainEnvironmentRuntime
         public List<CellSnapshot> cells = new List<CellSnapshot>();
         public int lastWeatherRound = -1;
         public int playerRound = -1, enemyRound = -1, monsterRound = -1, intruderRound = -1, obstacleRound = -1;
+        public List<CaveTransitSnapshot> caveTransits = new List<CaveTransitSnapshot>();
+        public List<AttackRevealSnapshot> attackReveals = new List<AttackRevealSnapshot>();
+        public int currentRound;
     }
     sealed class Cell
     {
@@ -53,13 +58,15 @@ public sealed class TerrainEnvironmentRuntime
             // One environment per cell makes ordering deterministic. The first authored placement wins.
             if (cells.ContainsKey(placement.cell)) continue;
             Add(placement.definition, new CellSnapshot { definitionId = placement.definition.definitionId, cell = placement.cell,
-                hasCaveExit = placement.hasCaveExit, caveExit = placement.caveExit });
+                hasCaveExit = placement.hasCaveExit, caveExit = placement.caveExit,
+                smokeRounds = placement.definition.kind == TerrainEnvironmentKind.Smoke ? placement.definition.burnSmokeRounds : 0 });
         }
         Revision++;
     }
     void Clear()
     {
         cells.Clear(); actors.Clear(); lastOwnerRound.Clear(); lastWeatherRound = -1;
+        caveTransits.Clear(); attackReveals.Clear(); currentRound = 0;
         if (visualRoot != null)
         {
             if (Application.isPlaying) UnityEngine.Object.Destroy(visualRoot.gameObject);
@@ -81,10 +88,11 @@ public sealed class TerrainEnvironmentRuntime
     }
     bool TryCell(Vector3 position, out Cell value) => cells.TryGetValue(Key(position), out value);
     public bool HasCell(Vector3 position) => cells.ContainsKey(Key(position));
-    public bool HasKnownCell(HashSet<Vector3Int> known)
+    public bool HasKnownCell(HashSet<Vector3Int> known, Team team = Team.Enemy)
     {
         if (known == null) return false;
-        foreach (var cell in cells.Keys) if (known.Contains(new Vector3Int(cell.x, 0, cell.y))) return true;
+        foreach (var cell in cells.Keys) if (known.Contains(new Vector3Int(cell.x, 0, cell.y))
+            && IsKnownTo(team, new Vector3(cell.x, 0, cell.y))) return true;
         return false;
     }
     public bool IsConcealing(Vector3 position) => TryCell(position, out var cell)
@@ -93,6 +101,7 @@ public sealed class TerrainEnvironmentRuntime
     {
         foreach (var cell in cells.Values)
             if (cell.Visual != null) cell.Visual.SetActive(!cell.State.burned
+                && IsKnownTo(Team.Player, new Vector3(cell.State.cell.x, 0, cell.State.cell.y))
                 && visible != null && visible.Contains(new Vector3Int(cell.State.cell.x, 0, cell.State.cell.y)));
     }
     public TerrainEnvironmentDefinition DefinitionAt(Vector3 position)
@@ -115,7 +124,9 @@ public sealed class TerrainEnvironmentRuntime
         {
             bool conceal = target.State.burned ? target.State.smokeRounds > 0 : target.Definition.concealsOccupants;
             int reveal = target.State.burned ? target.Definition.burnSmokeRevealDistance : target.Definition.revealDistance;
-            if (conceal && Mathf.Max(Mathf.Abs(end.x - start.x), Mathf.Abs(end.y - start.y)) > reveal) return false;
+            if (target.Definition.kind == TerrainEnvironmentKind.Forest && !target.State.burned) reveal = Mathf.Max(1, reveal);
+            if (conceal && !IsAttackRevealed(to)
+                && Mathf.Max(Mathf.Abs(end.x - start.x), Mathf.Abs(end.y - start.y)) > reveal) return false;
         }
         // A viewer in concealing terrain can see out; other cells block rays behind themselves.
         return Trace(start, end, true);
@@ -153,6 +164,8 @@ public sealed class TerrainEnvironmentRuntime
         if (!TryCell(from, out var cell) || cell.State.burned || cell.Definition.kind != TerrainEnvironmentKind.Cave
             || !cell.State.hasCaveExit || cell.State.cell == cell.State.caveExit) return false;
         var exit = cell.State.caveExit;
+        if (!cells.TryGetValue(exit, out var other) || other.State.burned || other.Definition.kind != TerrainEnvironmentKind.Cave
+            || !other.State.hasCaveExit || other.State.caveExit != cell.State.cell) return false;
         if (!map.TryGetHeight(exit.x, exit.y, out float height) || BlocksMovement(exit.x, exit.y)) return false;
         destination = new Vector3(exit.x, height, exit.y); return true;
     }
@@ -163,8 +176,13 @@ public sealed class TerrainEnvironmentRuntime
     public int StandingDamage(Status actor, Vector3 destination) => Damage(actor, destination, false);
     int Damage(Status actor, Vector3 destination, bool entry)
     {
-        if (actor == null || actor.type != Type.Unit || !TryCell(destination, out var cell) || cell.State.burned
-            || !(entry ? cell.Definition.damageOnEntry : cell.Definition.damageOnOwnerTurn)) return 0;
+        if (actor == null || actor.type != Type.Unit || !TryCell(destination, out var cell)) return 0;
+        if (cell.State.burned) return !entry && cell.State.smokeRounds > 0
+            ? Fraction(actor.MaxHP, cell.Definition.burnSmokeDamageFraction) : 0;
+        if (cell.Definition.kind == TerrainEnvironmentKind.Geyser) return entry ? Fraction(actor.MaxHP, TerrainEnvironmentDefinition.GeyserDamageFraction) : 0;
+        if (cell.Definition.kind == TerrainEnvironmentKind.Smoke) return !entry && cell.State.smokeRounds > 0
+            ? Fraction(actor.MaxHP, cell.Definition.maximumHpDamageFraction < 0 ? cell.Definition.burnSmokeDamageFraction : cell.Definition.maximumHpDamageFraction) : 0;
+        if (!(entry ? cell.Definition.damageOnEntry : cell.Definition.damageOnOwnerTurn)) return 0;
         long amount = Math.Max(0, cell.Definition.flatDamage);
         if (cell.Definition.maximumHpDamageFraction > 0)
             amount += Fraction(actor.MaxHP, cell.Definition.maximumHpDamageFraction);
@@ -185,10 +203,15 @@ public sealed class TerrainEnvironmentRuntime
     public void OnMoved(Status actor, Vector3 from, Vector3 to, GameSystems systems)
     {
         if (actor == null || !actor.IsAlive || actor.type != Type.Unit || Key(from) == Key(to)) return;
+        bool wasKnown = IsKnownTo(actor.team, to);
+        RevealTo(actor.team, to);
+        currentRound = Math.Max(currentRound, systems?.TurnGenerator?.Context.Turn ?? currentRound);
+        if (CombatRuleTelemetry.Enabled) CombatRuleTelemetry.Record("terrain_enter", actor, cause: DefinitionAt(to)?.kind.ToString(), knownToAI: wasKnown);
         int amount = EntryDamage(actor, to);
         if (amount > 0)
         {
             int actual = SpecialSkillRuntime.ApplyAbilityDamage(null, actor, amount, HpChangeKind.IgnoreDefenceDamage);
+            if (CombatRuleTelemetry.Enabled) CombatRuleTelemetry.Record("terrain_damage", target: actor, cause: DefinitionAt(to)?.kind.ToString() ?? "Smoke", requestedDamage: amount, actualHpLoss: actual, knownToAI: wasKnown);
             if (actual > 0) systems?.MoveUndoSystem?.Clear();
         }
     }
@@ -196,7 +219,10 @@ public sealed class TerrainEnvironmentRuntime
     {
         if (lastOwnerRound.TryGetValue(team, out int previous) && previous == round) return;
         lastOwnerRound[team] = round;
+        currentRound = Math.Max(currentRound, round);
         AdvanceWeather(round, systems);
+        CompleteCaveTransits(team, round, systems);
+        PruneAttackReveals();
         if (cells.Count == 0) return;
         try
         {
@@ -204,9 +230,18 @@ public sealed class TerrainEnvironmentRuntime
             foreach (var actor in actors)
             {
                 if (actor == null || actor.team != team || !actor.IsAlive || actor.type != Type.Unit) continue;
+                if (CombatRuleTelemetry.Enabled && HasCell(actor.transform.position)) CombatRuleTelemetry.Record("terrain_stay", actor, cause: DefinitionAt(actor.transform.position)?.kind.ToString());
                 int damage = StandingDamage(actor, actor.transform.position);
-                if (damage > 0) SpecialSkillRuntime.ApplyAbilityDamage(null, actor, damage, HpChangeKind.IgnoreDefenceDamage);
-                if (actor.IsAlive) actor.ApplyHeal(StandingHeal(actor, actor.transform.position));
+                if (damage > 0)
+                {
+                    int actual = SpecialSkillRuntime.ApplyAbilityDamage(null, actor, damage, HpChangeKind.IgnoreDefenceDamage);
+                    if (CombatRuleTelemetry.Enabled) CombatRuleTelemetry.Record("terrain_damage", target: actor, cause: DefinitionAt(actor.transform.position)?.kind.ToString() ?? "Smoke", requestedDamage: damage, actualHpLoss: actual);
+                }
+                if (actor.IsAlive)
+                {
+                    int actual = actor.ApplyHeal(StandingHeal(actor, actor.transform.position));
+                    if (actual > 0) CombatRuleTelemetry.Record("terrain_heal", target: actor, cause: "HealingSpring", actualHpLoss: -actual);
+                }
             }
         }
         finally { actors.Clear(); }
@@ -217,7 +252,12 @@ public sealed class TerrainEnvironmentRuntime
         if (round <= lastWeatherRound) return;
         long elapsed = (long)round - lastWeatherRound; lastWeatherRound = round; bool changed = false;
         foreach (var cell in cells.Values)
-            if (cell.State.smokeRounds > 0) { cell.State.smokeRounds = (int)Math.Max(0, cell.State.smokeRounds - elapsed); changed = true; }
+            if (cell.State.smokeRounds > 0)
+            {
+                cell.State.smokeRounds = (int)Math.Max(0, cell.State.smokeRounds - elapsed);
+                if (cell.State.smokeRounds == 0 && cell.Definition.kind == TerrainEnvironmentKind.Smoke) cell.State.burned = true;
+                changed = true;
+            }
         if (changed) { Revision++; systems?.VisionGenerator?.MarkVisionDirty(); }
     }
     public bool Ignite(Vector3 position, GameSystems systems = null)
@@ -230,19 +270,22 @@ public sealed class TerrainEnvironmentRuntime
     public Snapshot Capture()
     {
         var result = new Snapshot { lastWeatherRound = lastWeatherRound, playerRound = Round(Team.Player), enemyRound = Round(Team.Enemy),
-            monsterRound = Round(Team.Monster), intruderRound = Round(Team.Intruder), obstacleRound = Round(Team.Obstacle) };
+            monsterRound = Round(Team.Monster), intruderRound = Round(Team.Intruder), obstacleRound = Round(Team.Obstacle), currentRound = currentRound };
         foreach (var cell in cells.Values) result.cells.Add(Copy(cell.State));
         result.cells.Sort((a, b) => a.cell.x != b.cell.x ? a.cell.x.CompareTo(b.cell.x) : a.cell.y.CompareTo(b.cell.y));
+        CaptureDynamic(result);
         return result;
     }
     int Round(Team team) => lastOwnerRound.TryGetValue(team, out int round) ? round : -1;
     static CellSnapshot Copy(CellSnapshot value) => new CellSnapshot { definitionId = value.definitionId, cell = value.cell, burned = value.burned,
-        smokeRounds = value.smokeRounds, hasCaveExit = value.hasCaveExit, caveExit = value.caveExit };
+        smokeRounds = value.smokeRounds, hasCaveExit = value.hasCaveExit, caveExit = value.caveExit,
+        revealedTo = value.revealedTo == null ? new List<Team>() : new List<Team>(value.revealedTo), caveAvailableRound = value.caveAvailableRound };
     public void Restore(Snapshot snapshot)
     {
         if (snapshot == null) return; // Old saves keep the current explicitly enabled map configuration.
         var source = catalog; Clear(); catalog = source;
         lastWeatherRound = snapshot.lastWeatherRound;
+        currentRound = Math.Max(0, snapshot.currentRound);
         lastOwnerRound[Team.Player] = snapshot.playerRound; lastOwnerRound[Team.Enemy] = snapshot.enemyRound;
         lastOwnerRound[Team.Monster] = snapshot.monsterRound; lastOwnerRound[Team.Intruder] = snapshot.intruderRound;
         lastOwnerRound[Team.Obstacle] = snapshot.obstacleRound;
@@ -257,6 +300,7 @@ public sealed class TerrainEnvironmentRuntime
             if (saved != null && saved.smokeRounds >= 0 && !cells.ContainsKey(saved.cell)
                 && saved.definitionId != null && definitions.TryGetValue(saved.definitionId, out var definition)
                 && map.TryGetHeight(saved.cell.x, saved.cell.y, out _)) Add(definition, Copy(saved));
+        RestoreDynamic(snapshot);
         Revision++;
     }
 }

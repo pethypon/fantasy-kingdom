@@ -14,9 +14,13 @@ public partial class MapCreate
     }
     public bool IsLegalMove(Status actor, Vector3 from, Vector3 to)
     {
-        if (actor == null || !TryGetHeight(Mathf.RoundToInt(to.x), Mathf.RoundToInt(to.z), out float height)
+        if (actor == null || !actor.IsAlive || actor.type != Type.Unit || BoardActionProfile.For(actor)?.CanMove == false
+            || Environment.IsInCaveTransit(actor)
+            || StatusEffectSystem.IsStunned(actor) || StatusEffectSystem.IsMovementBlocked(actor)
+            || !TryGetHeight(Mathf.RoundToInt(to.x), Mathf.RoundToInt(to.z), out float height)
             || Mathf.Abs(height - to.y) > .01f || Environment.BlocksMovement(Mathf.RoundToInt(to.x), Mathf.RoundToInt(to.z))) return false;
-        if (Environment.IsCaveConnection(from, to)) return true;
+        if (Environment.IsCaveConnection(from, to)) return Environment.CanUseCave(actor, from, to,
+            actor.RuntimeSystems?.TurnGenerator?.Context.Turn ?? 0);
         return MovePatterns.CanMove(actor, actor.direction, to.x - from.x, to.z - from.z) && CanTraverse(from, to);
     }
 }

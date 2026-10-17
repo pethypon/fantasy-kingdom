@@ -9,6 +9,8 @@ public static partial class AIActionEvaluator
         switch (action.ActionType)
         {
             case AIActionType.Attack:
+                if (action.TargetUnit != null && action.TargetUnit.team == board.ActorTeam)
+                    return CalcAssassinAllyAttackScore(action, board);
                 return AICombatEvaluator.CalcAttackBaseScore(action, board);
             case AIActionType.Move:
                 return AICombatEvaluator.CalcMoveBaseScore(action, board);

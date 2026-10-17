@@ -46,6 +46,7 @@ public enum SkillAreaShape
 // =====================================================================
 public class SkillData
 {
+    public CombatAttackTags AttackTags; // Optional typed metadata; existing CSV columns remain unchanged.
     public int Id;
     public string Name;
     public SkillRarity Rarity;

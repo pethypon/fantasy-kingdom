@@ -140,7 +140,7 @@ public static class StatusEffectSystem
             var e = target.ActiveEffects[i];
             if (e.debuffType == StatusEffectType.Poison)
             {
-                target.ApplyDamage(GameConstants.PoisonDamagePerTurn);
+                SpecialSkillRuntime.ApplyHpChange(null, target, GameConstants.PoisonDamagePerTurn, HpChangeKind.NormalDamage, respectShield: false, cause: HpChangeCause.Poison);
                 Debug.Log($"[StatusEffect] {target.kind} が毒で {GameConstants.PoisonDamagePerTurn} ダメージ (残HP:{target.HP})");
                 target.HandleDeathIfDead();
                 if (!target.IsAlive) break;

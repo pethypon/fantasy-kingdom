@@ -14,7 +14,7 @@ public partial class AIBoardState
             if (environmentGeneration != Generation || environmentRevision != environment.Revision)
             {
                 environmentGeneration = Generation; environmentRevision = environment.Revision;
-                knownEnvironment = environment.HasKnownCell(knownCells);
+                knownEnvironment = environment.HasKnownCell(knownCells, ActorTeam);
             }
             return knownEnvironment;
         }
@@ -23,7 +23,9 @@ public partial class AIBoardState
     {
         var map = _moveGen.mapcreate;
         if (!IsTerrainKnown(unit.transform.position) || !map.Environment.TryCaveExit(unit.transform.position, out var exit)
-            || !IsTerrainKnown(exit) || !map.IsLegalMove(unit, unit.transform.position, exit)) return;
+            || !IsTerrainKnown(exit) || !map.Environment.IsKnownTo(ActorTeam, unit.transform.position)
+            || !map.Environment.IsKnownTo(ActorTeam, exit)
+            || !map.Environment.CanUseCave(unit, unit.transform.position, exit, TurnCount)) return;
         var key = GridHelper.ToGridXZ(exit);
         if (key == GridHelper.ToGridXZ(EnemyCrystalPos)
             || CanUsePlayerCrystalAsTarget() && key == GridHelper.ToGridXZ(PlayerCrystalPos)) return;
@@ -34,12 +36,19 @@ public partial class AIBoardState
 
     public int KnownEnvironmentDamage(Status actor, Vector3 position, bool entry)
     {
-        if (actor == null || ReconMap == null || !IsTerrainKnown(position)) return 0;
+        if (actor == null || ReconMap == null || !IsTerrainKnown(position) || !ReconMap.Environment.IsKnownTo(ActorTeam, position)) return 0;
         var environment = ReconMap.Environment;
         return entry ? environment.EntryDamage(actor, position) : environment.StandingDamage(actor, position);
     }
     public int KnownEnvironmentHeal(Status actor, Vector3 position)
-        => actor != null && ReconMap != null && IsTerrainKnown(position) ? ReconMap.Environment.StandingHeal(actor, position) : 0;
+        => actor != null && ReconMap != null && IsTerrainKnown(position) && ReconMap.Environment.IsKnownTo(ActorTeam, position)
+            ? ReconMap.Environment.StandingHeal(actor, position) : 0;
+    public TerrainEnvironmentDefinition KnownEnvironmentDefinition(Vector3 position)
+        => ReconMap != null && IsTerrainKnown(position) ? ReconMap.Environment.KnownDefinitionAt(ActorTeam, position) : null;
+    public int KnownEnvironmentMoveCost(Vector3 from, Vector3 to)
+        => KnownEnvironmentDefinition(to) != null ? ReconMap.Environment.MoveAPAdjustment(from, to) : 0;
+    public int KnownEnvironmentVisionModifier(Vector3 position)
+        => KnownEnvironmentDefinition(position) != null ? ReconMap.Environment.VisionModifier(position) : 0;
     // A conservative two-packet forecast. One-use protection must not be reused for both entry and next-turn damage.
     public int KnownEnvironmentRisk(Status actor, Vector3 position)
     {

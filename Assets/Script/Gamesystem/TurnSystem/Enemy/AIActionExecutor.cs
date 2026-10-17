@@ -127,6 +127,13 @@ public class AIActionExecutor
             || !_moveGen.mapcreate.HasTileAt(Mathf.RoundToInt(actualDest.x), Mathf.RoundToInt(actualDest.z))
             || !_moveGen.mapcreate.IsLegalMove(unit, oldPos, actualDest)) return false;
 
+        if (_moveGen.mapcreate.Environment.IsCaveMove(oldPos, actualDest))
+        {
+            if (!_moveGen.mapcreate.Environment.TryBeginCaveTransit(unit, actualDest, _turnGen.Context.Turn, _turnGen.Systems)) return false;
+            board.ConsumeMove(unit, actualDest);
+            board.Refresh(); return true;
+        }
+
         board.ConsumeMove(unit, actualDest);
         unit.transform.position = actualDest;
         _moveGen.MoveUpdate(oldCell, _moveGen.Cell(actualDest));
@@ -179,11 +186,12 @@ public class AIActionExecutor
         var target = action.TargetUnit;
 
         if (!CanAct(unit) || SpecialSkillRuntime.AttackBlocked(unit) || target == null || !target.IsAlive || !target.gameObject.activeInHierarchy
-            || !NeutralFactionSystem.AreHostile(unit, target)) return false;
+            || !SpecialSkillRuntime.CanNormalAttackTarget(unit, target)) return false;
         bool lockedAttack = SpecialSkillRuntime.TryGetSniperTarget(unit, out var lockedTarget);
         if (AISpecialSkillKnowledge.SniperRestrictsTargets(unit) && (!lockedAttack || lockedTarget != target)) return false;
         var vision = _turnGen.Systems.VisionGenerator;
-        if (!lockedAttack && (vision == null || !vision.IsInVisionXZ(ActorTeam, target.transform.position))) return false;
+        if (!lockedAttack && target.team != ActorTeam
+            && (vision == null || !vision.IsActorVisibleTo(ActorTeam, target))) return false;
         if (!lockedAttack && (!AttackPatterns.CanAttack(unit, unit.direction,
             target.transform.position.x-unit.transform.position.x, target.transform.position.z-unit.transform.position.z)
             || !_moveGen.mapcreate.CanAttackAcrossTerrain(unit, target.transform.position))) return false;
@@ -201,7 +209,7 @@ public class AIActionExecutor
         _battleSystem.ProcessDamage(_turnGen);
 
         int hpAfter = target.HP;
-        bool killed = hpAfter <= 0;
+        bool killed = hpAfter <= 0 && target.team != ActorTeam;
 
         if (killed)
         {
@@ -221,7 +229,7 @@ public class AIActionExecutor
 
     void RecordAttackLearning(Status unit, Status target, int hpBefore, int hpAfter, bool killed)
     {
-        if (!_learning.IsActive) return;
+        if (!_learning.IsActive || target == null || target.team == ActorTeam) return;
 
         if (killed)
         {
@@ -247,6 +255,8 @@ public class AIActionExecutor
         {
             if (!CanAct(action.Unit) || action.SpecialCommand.Caster != action.Unit) return false;
             bool used = SpecialSkillRuntime.TryExecute(action.SpecialCommand, _turnGen.Systems, out _);
+            CombatRuleTelemetry.Record(used ? "ai_skill_candidate" : "ai_skill_reject", action.Unit,
+                action.TargetUnit, used ? "executed" : "execution_revalidation", candidateValue: action.Score, chosen: used);
             if (used) board.Refresh();
             return used;
         }
@@ -289,7 +299,7 @@ public class AIActionExecutor
                 && Vector3.Distance(unit.transform.position, target.transform.position) <= 4f;
         var vision = _turnGen.Systems.VisionGenerator;
         return NeutralFactionSystem.AreHostile(unit, target)
-            && vision != null && vision.IsInVisionXZ(ActorTeam, target.transform.position);
+            && vision != null && vision.IsActorVisibleTo(ActorTeam, target);
     }
 
     bool ExecuteSkillByTarget(AIAction action, AIBoardState board, Status unit, SkillData skill)

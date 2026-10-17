@@ -4,20 +4,21 @@ public static partial class SpecialSkillRuntime
 {
     static int counterDepth;
     public static long HpRevision { get; private set; }
-    public static Status ResolveDamageRecipient(Status target, int amount, HpChangeKind kind)
+    public static HpChangeResult LastHpChange { get; private set; }
+    static void ResetHpHistory() { LastHpChange = default; HpRevision = 0; counterDepth = 0; }
+    public static Status ResolveDamageRecipient(Status target, int amount, HpChangeKind kind, bool respectShield = true)
     {
-        if (target == null || kind == HpChangeKind.DirectHpReduction || kind == HpChangeKind.ForcedDeath || target.ShieldTurns > 0) return target;
+        if (target == null || kind == HpChangeKind.DirectHpReduction || kind == HpChangeKind.ForcedDeath
+            || respectShield && target.ShieldTurns > 0 || State(target).damageNullUnused && State(target).damageNullTurns > 0) return target;
         var partner = FindActor(State(target).guardianPartnerId);
         if (partner == null || State(partner).guardianPartnerId != target.ReflectionLifeId) return target;
-        int transferred = PreviewDamage(partner, amount, kind);
-        bool survival = partner.specialAbility == SpecialAbility.SurvivalInstinct && !partner.SurvivalInstinctUsed;
-        return transferred >= partner.HP && !survival ? target : partner;
+        return partner;
     }
-    public static int ApplyAbilityDamage(Status source, Status target, int amount, HpChangeKind kind)
+    public static int ApplyAbilityDamage(Status source, Status target, int amount, HpChangeKind kind, HpChangeCause cause = HpChangeCause.Skill)
     {
         var recipient = ResolveDamageRecipient(target, amount, kind);
-        int actual = ApplyHpChange(source, target, amount, kind);
-        if (recipient != null && actual > 0 && (kind == HpChangeKind.NormalDamage || kind == HpChangeKind.IgnoreDefenceDamage))
+        int actual = ApplyHpChange(source, target, amount, kind, cause: cause);
+        if (recipient != null && actual > 0 && (kind == HpChangeKind.NormalDamage || kind == HpChangeKind.IgnoreDefenceDamage || kind == HpChangeKind.ExecutionDamage))
         {
             Status.AwardDamageExperience(source, recipient, actual, source?.RuntimeSystems?.FactionState);
             MatchStats.Instance?.RecordDamage(source != null ? source.team : Team.None, recipient.team, actual, !recipient.IsAlive, recipient.isWildBoss);
@@ -50,7 +51,18 @@ public static partial class SpecialSkillRuntime
         if (state.holyKnightTurns > 0 || state.holyKnightRecoveryLock) adjusted *= 2;
         return (int)System.Math.Min(int.MaxValue, adjusted);
     }
-    public static int ApplyHpChange(Status source, Status target, int amount, HpChangeKind kind, bool redirected = false, bool respectShield = true, bool deferCleanup = false)
+    public static int ApplyHpChange(Status source, Status target, int amount, HpChangeKind kind, bool redirected = false, bool respectShield = true, bool deferCleanup = false, HpChangeCause cause = HpChangeCause.Unknown)
+    {
+        var recipient = redirected ? target : ResolveDamageRecipient(target, amount, kind, respectShield);
+        int loss = ApplyHpChangeCore(source, target, amount, kind, redirected, respectShield, deferCleanup);
+        LastHpChange = new HpChangeResult(source, recipient, amount, loss, 0, kind, cause);
+        if (CombatRuleTelemetry.Enabled) CombatRuleTelemetry.Record("actual_hp_loss", source, recipient, cause.ToString(), amount, loss);
+        if (source != null && source != target && loss > 0) State(source).dealtDamage = true;
+        return loss;
+    }
+    public static void RecordHeal(Status target, int requested, int actual)
+        => LastHpChange = new HpChangeResult(null, target, requested, 0, actual, HpChangeKind.NormalDamage);
+    static int ApplyHpChangeCore(Status source, Status target, int amount, HpChangeKind kind, bool redirected, bool respectShield, bool deferCleanup)
     {
         if (target == null || !target.IsAlive || amount <= 0) return 0;
         bool bypass = kind == HpChangeKind.DirectHpReduction || kind == HpChangeKind.ForcedDeath;
@@ -68,35 +80,35 @@ public static partial class SpecialSkillRuntime
         }
         if ((respectShield && target.ShieldTurns > 0) || target.isWildBoss && target.IsWildBossProtected) return 0;
         var s = State(target);
+        // Nullification protects the intended recipient before any link can intercept.
+        if (s.damageNullUnused && s.damageNullTurns > 0)
+        { s.damageNullUnused = false; s.damageNullTurns = 0; HpRevision++; return 0; }
         if (!redirected && !string.IsNullOrEmpty(s.guardianPartnerId))
         {
             var partner = FindActor(s.guardianPartnerId);
             if (partner == null || State(partner).guardianPartnerId != target.ReflectionLifeId) s.guardianPartnerId = null;
             else
             {
-                int transferred = PreviewDamage(partner, amount, kind);
-                bool survival = partner.specialAbility == SpecialAbility.SurvivalInstinct && !partner.SurvivalInstinctUsed;
-                if (transferred >= partner.HP && !survival)
+                if (PreviewDamage(target, amount, kind) >= target.HP)
                 {
                     Unlink(target, partner);
-                    return ApplyHpChange(source, target, target.HP, HpChangeKind.ForcedDeath, true, true, true);
+                    return ApplyHpChange(source, partner, partner.HP, HpChangeKind.ForcedDeath, true);
                 }
                 return ApplyHpChange(source, partner, amount, kind, true);
             }
         }
-        if (s.damageNullUnused && s.damageNullTurns > 0)
-        { s.damageNullUnused = false; s.damageNullTurns = 0; HpRevision++; return 0; }
         long adjusted = amount;
         if (s.nextDamageDouble) adjusted *= 2;
         if (s.holyKnightTurns > 0 || s.holyKnightRecoveryLock) adjusted *= 2;
         int requested = (int)System.Math.Min(int.MaxValue, adjusted);
         if (requested <= 0) return 0;
         int before = target.HP;
-        int applied = SpecialAbilitySystem.TrySurviveLethalCore(target, requested)
+        int applied = kind != HpChangeKind.ExecutionDamage && SpecialAbilitySystem.TrySurviveLethalCore(target, requested)
             ? Mathf.Max(0, before - target.HP) : target.ApplyRawDamage(requested);
         if (applied > 0)
         {
             HpRevision++;
+            if (source != null && source != target) State(source).dealtDamage = true;
             s.nextDamageDouble = false;
             var definition = Definition(target);
             if (definition != null && definition.holyKnightInterruptOnDamage && definition.holyKnightInterruptionConfigured) { s.holyKnightTurns = 0; s.holyKnightRecoveryLock = false; }
@@ -107,7 +119,7 @@ public static partial class SpecialSkillRuntime
                 try
                 {
                     int counter = (int)System.Math.Min(int.MaxValue, (long)Mathf.RoundToInt(applied * SpecialSkillDefinition.SamuraiCounterFraction) + Mathf.Max(0, target.ATK));
-                    int dealt = ApplyHpChange(target, source, counter, HpChangeKind.IgnoreDefenceDamage);
+                    int dealt = ApplyHpChange(target, source, counter, HpChangeKind.IgnoreDefenceDamage, cause: HpChangeCause.Counter);
                     target.ApplyHeal(dealt);
                 }
                 finally { counterDepth--; }

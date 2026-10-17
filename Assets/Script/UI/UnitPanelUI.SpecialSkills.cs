@@ -55,10 +55,11 @@ public partial class UnitPanelUI
             bool usable = SpecialSkillRuntime.CanUse(currentUnit, turnGenerator?.Systems, out var reason);
             specialSkillButton.interactable = CanIssueCommand() && !turnGenerator.DeveloperPlayerAIEnabled;
             string label = SpecialSkillPresentation.Name(definition);
+            string operation = SpecialSkillRuntime.UsesAutomaticTarget(definition.ability) ? "即時" : "対象選択";
             label += definition.apCost < 0 || definition.cooldown < 0 ? "\n<size=70%>[2] AP・待機が未設定</size>"
                 : usable ? definition.ability == UnitSpecialSkill.BerserkerRage
                     ? $"\n<size=70%>[2] {currentUnit.Special?.berserkerStage ?? 0}→{(currentUnit.Special?.berserkerStage ?? 0) + 1}段階 AP{SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
-                    : $"　<size=75%>[2] AP{SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
+                    : $"\n<size=75%>[2] {operation} AP{SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
                     : "\n<size=70%>[2] " + reason + "</size>";
             specialSkillButton.GetComponentInChildren<TextMeshProUGUI>().text = label;
         }
@@ -75,16 +76,13 @@ public partial class UnitPanelUI
     {
         if (!CanIssueCommand() || turnGenerator.DeveloperPlayerAIEnabled) return;
         // Opening a disabled definition still explains which values the author must set.
-        SpecialSkillSelectionUI.Show(currentUnit, turnGenerator.Systems);
+        PlayerAttack.BeginSpecialTargeting(currentUnit, turnGenerator.Systems);
     }
 
     public bool TryOpenSpecialShortcut()
     {
         if (turnGenerator == null || turnGenerator.DeveloperPlayerAIEnabled || !CanIssueCommand()) return false;
-        var definition = SpecialSkillRuntime.Definition(currentUnit);
-        if (definition == null) return false;
-        SpecialSkillSelectionUI.Show(currentUnit, turnGenerator.Systems, definition.IsPassive);
-        return true;
+        return PlayerAttack.BeginSpecialTargeting(currentUnit, turnGenerator.Systems);
     }
 
     public void OnClickSpecialState()

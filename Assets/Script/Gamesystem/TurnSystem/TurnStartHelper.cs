@@ -68,7 +68,7 @@ public static class TurnStartHelper
 
         // Damage reservations, poison, environment and crystal fire all precede natural recovery.
         systems.MapCreate?.Environment?.OnOwnerTurnStart(team, round, systems);
-        NaturalRecoverySystem.ProcessOwnerTurn(systems, team, round);
+
 
         // 強敵ターン処理は WildBossState（専用ターン）で行うためここでは呼ばない
     }

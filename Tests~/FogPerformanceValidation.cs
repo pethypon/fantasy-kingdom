@@ -18,7 +18,7 @@ public static class FogPerformanceValidation
    current.Initialize(map,Load("Fog"),Load("FogExploard"),Load("FogBoard"),Load("FogExploardBoard"));
    var visible=new HashSet<Vector3Int>();var explored=new HashSet<Vector3Int>();
    old.Refresh(visible,explored);current.Refresh(visible,explored);
-   Check(current.RenderObjectCount==18 && old.RenderObjectCount==54,"renderers 54 -> 18 (35x35)");
+   Check(current.RenderObjectCount==19 && old.RenderObjectCount==54,"renderers 54 -> 19 including the entire exterior (35x35)");
    Report(oldObject,newObject,"fully hidden"); ValidateMesh(newObject,1225,0);
    for(int x=9;x<24;x++)for(int z=9;z<24;z++)explored.Add(new Vector3Int(x,0,z));
    for(int x=13;x<20;x++)for(int z=13;z<20;z++)visible.Add(new Vector3Int(x,0,z));

@@ -6,6 +6,7 @@ public partial class AIBoardState
     public GameSystems SpecialSystems { get; set; }
     readonly List<Status> specialObservedActors = new List<Status>(64);
     readonly Dictionary<(Status,Vector3),int> specialHazardCache = new Dictionary<(Status,Vector3),int>();
+    readonly Dictionary<Status,int> specialAttackFlatCache = new Dictionary<Status,int>();
     bool hasObservedSpecialState;
     public bool HasObservedSpecialState { get { _=SpecialObservedActors;return hasObservedSpecialState; } }
     int specialObservedGeneration = -1;
@@ -16,7 +17,7 @@ public partial class AIBoardState
             if (specialObservedGeneration == Generation) return specialObservedActors;
             specialObservedGeneration = Generation;
             specialObservedActors.Clear();
-            specialHazardCache.Clear();hasObservedSpecialState=false;
+            specialHazardCache.Clear(); specialAttackFlatCache.Clear(); hasObservedSpecialState=false;
             foreach (var actor in AliveEnemyUnits) if (IsSpecialActorObserved(actor)) specialObservedActors.Add(actor);
             foreach (var actor in AlivePlayerUnits) if (IsSpecialActorObserved(actor)) specialObservedActors.Add(actor);
             AppendOwnedSpecialTargets(_buildSystem != null ? _buildSystem.GetBuildingParent(ActorTeam) : null);
@@ -29,6 +30,14 @@ public partial class AIBoardState
             foreach(var actor in specialObservedActors)if(AISpecialSkillKnowledge.HasSpecial(actor)){hasObservedSpecialState=true;break;}
             return specialObservedActors;
         }
+    }
+    public int ObservedAttackFlatAdjustment(Status actor)
+    {
+        _ = SpecialObservedActors;
+        if (!IsSpecialActorObserved(actor)) return 0;
+        if (!specialAttackFlatCache.TryGetValue(actor, out int value))
+            specialAttackFlatCache[actor] = value = SpecialSkillRuntime.GetATKFlatAdjustment(actor);
+        return value;
     }
     void AppendOwnedSpecialTargets(Transform parent)
     {
@@ -52,7 +61,8 @@ public partial class AIBoardState
     {
         if (actor == null || !actor.IsAlive || !actor.gameObject.activeInHierarchy) return false;
         if (actor.team == ActorTeam) return true;
-        return (AlivePlayerUnits.Contains(actor) || PlayerCrystalVisible && actor.kind == Kind.Crystal) && IsVisibleToEnemy(actor.transform.position);
+        return (AlivePlayerUnits.Contains(actor) || PlayerCrystalVisible && actor.kind == Kind.Crystal)
+            && IsVisibleToEnemy(actor.transform.position) && _visionGen != null && _visionGen.IsActorVisibleTo(ActorTeam, actor);
     }
 
     public Status FindObservedSpecialActor(string lifeId)

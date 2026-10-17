@@ -1,0 +1,28 @@
+{
+  "RecordedAtUTC": "2026-10-16T10:44:19.992800+00:00",
+  "Unity": "6000.3.8f1",
+  "IsolatedProject": true,
+  "FullRegression": "ALL PASSED",
+  "SpecialChecks": {
+    "RuntimeSaveDamage": 79,
+    "Actions": 62,
+    "UI": 48,
+    "AI": 123,
+    "NaturalRecovery": 33,
+    "Environment": 59
+  },
+  "SpecialChecksTotal": 404,
+  "ReleaseBuild": "[ReleaseValidation] result=Succeeded errors=0 warnings=0 seconds=11.0",
+  "VisualChecks": [
+    "Physical key 2 opens only fixed skill",
+    "Magic sacrifice selection",
+    "Reserved-state details",
+    "Visible Crossbow endpoints only",
+    "Summon hover fits screen after canvas reflow",
+    "Berserker actual consecutive AP5 plus AP8 casts stack to stage2; next stage AP11"
+  ],
+  "VisualFixturesAreNotBalanceMatches": true,
+  "AIExecutionChecks": "Normal generation, strategic governor, evaluation, commander selection and execution for both teams at threat 15; exact AP12 heal, AP22 ritual, AP10 stakes; preparation learning and delayed effect verified",
+  "UnknownAuthoringValuesInvented": false,
+  "AllAbilitiesEnabledInProduction": false
+}

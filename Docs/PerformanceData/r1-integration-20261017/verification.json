@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-17",
+  "unity": "6000.3.8f1",
+  "validation_project": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\UnityValidation",
+  "scene_smoke": {
+    "result": "Passed",
+    "related_checks": {
+      "SpecialSkills": 82,
+      "SpecialSkillActions": 64,
+      "CrossbowR1": 47,
+      "AbilityR1": 71,
+      "SkillTargeting": 25,
+      "SpecialSkillUI": 49,
+      "SpecialAI": 97,
+      "SpecialSkillR1AI": 52,
+      "NaturalRecovery": 33,
+      "TerrainEnvironmentTests": 91
+    },
+    "related_check_total": 611,
+    "other_existing_regressions": "Passed"
+  },
+  "unity_test_framework": {
+    "result": "Passed",
+    "tests": 7,
+    "failed": 0,
+    "note": "One test reuses runtime scene suites; counts are not independent."
+  },
+  "windows_build": {
+    "result": "Succeeded",
+    "development": false,
+    "errors": 0,
+    "build_report_warnings": 0
+  },
+  "visual": {
+    "captures": [
+      "berserker-stack-progress.png",
+      "crossbow-lightning-line.png",
+      "magic-sacrifice-modal.png",
+      "magic-state-details.png",
+      "skill-target-range.png",
+      "summon-hover-details.png"
+    ],
+    "method": "Real scene/camera/HUD with virtual keyboard 2 and collider-ray target selection, plus fixture-only authoring values."
+  },
+  "limitations": [
+    "No manual or repeated full balance matches in this R1 verification.",
+    "Undefined authored values remain disabled/unconfigured; fixture values were not installed as production balance.",
+    "Native JobTempAlloc warnings observed during batch Editor shutdown; origin remains unidentified and is distinct from BuildReport warnings.",
+    "Successful checks do not guarantee zero future bugs or prove sustained-session memory bounds."
+  ],
+  "artifacts_sha256": {
+    "r1-integration-13.log": "48edc3a1ed29c732b9e945ab469e955fc810ff9932c21a1951b03b1d13196473",
+    "r1-utf-03.log": "8827eee160640fb25a29c03655994f22b4af42de3e116b6cd1f885eb79dc34df",
+    "r1-visual-05.log": "a25201a2f832a28d47cadd80ee995d5e0d4237313d9fc07677c3a67e37bd0db6",
+    "r1-release-final-02.log": "ba5e2a3260a52da723a870f4c8a6cc5ea43ccff38b82062340bd77a514be01e0",
+    "r1-utf-03.xml": "03ae8dd3bdfc6b59aa6a22e46526cd90ca17ca75ab410968ecd560a51de4ad71",
+    "source-sha256.json": "a4f869f64eb8bf7848733bb01e18b4d1f66dde0b511a1f387db77b7ae7f0f902"
+  },
+  "screenshots_sha256": {
+    "berserker-stack-progress.png": "52a522b2a37cd8389dfc8fbb44dd8153cc728a3b51d610c366331d6926cae37b",
+    "crossbow-lightning-line.png": "576779368d265f100654c606047b0d3476c6be440b32efd1fd10bb050721bf67",
+    "magic-sacrifice-modal.png": "23a40e3cac0c2e4409e884b343994cbf91037983a3e7a35602c5b74b8170874d",
+    "magic-state-details.png": "029e60ee1b2793c26c3c85be2fec643f937af7e10341329ddfab4d57030ef6e5",
+    "skill-target-range.png": "ccc2c39345f2defcae322561a048f1d10315145734ad49ebc5d505d1a8acdaa5",
+    "summon-hover-details.png": "7f76cef99fda5ba84ae67dc2ba64bde9b465ce0640cdfdb2bd1c368845a7b901",
+    "capture-notes.txt": "85228fa1259817f2465d2cf8a431dc9d21f40bb773eccdb20973e5ad013dfaf8"
+  },
+  "source_snapshot_files": 857
+}

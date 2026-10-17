@@ -14,6 +14,10 @@ public partial class SimBoardState
     public void SimulateTurnTransition(Team nextTeam)
     {
         TurnCount++;
+        // Recovery belongs to the faction ending its turn, before the incoming faction's DoT.
+        var outgoingTeam = nextTeam == Team.Enemy ? Team.Player : Team.Enemy;
+        for (int i = 0; i < Units.Count; i++)
+            if (Units[i].Team == outgoingTeam) ProcessNaturalRecovery(Units[i], TurnCount);
         ResetAP(nextTeam);
 
         for (int i = 0; i < Units.Count; i++)
@@ -25,13 +29,6 @@ public partial class SimBoardState
             ApplyDoT(u);
             TickEffects(u);
             TickCooldowns(u);
-        }
-
-        // Damage/hazards finish before the owner's safe interval is evaluated.
-        for (int i = 0; i < Units.Count; i++)
-        {
-            var unit = Units[i];
-            if (unit.Team == nextTeam) ProcessNaturalRecovery(unit, TurnCount);
         }
 
         RemoveDeadFromOccupied();
@@ -59,13 +56,7 @@ public partial class SimBoardState
     {
         if (!unit.IsAlive || unit.Type != Type.Unit || unit.MaxHP <= 0 || unit.NaturalRecoveryLastRound == round) return;
         unit.NaturalRecoveryLastRound = round;
-        if (!unit.NaturalRecoveryHasBaseline)
-        {
-            unit.NaturalRecoveryHasBaseline = true;
-            unit.NaturalRecoverySafeTurns = 0;
-            unit.NaturalRecoveryHpLost = false;
-            return;
-        }
+        unit.NaturalRecoveryHasBaseline = true;
         if (unit.NaturalRecoveryHpLost)
         {
             unit.NaturalRecoveryHpLost = false;

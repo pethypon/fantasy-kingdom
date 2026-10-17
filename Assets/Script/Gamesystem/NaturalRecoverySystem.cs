@@ -30,6 +30,36 @@ public static class NaturalRecoverySystem
         finally { turnActors.Clear(); }
     }
 
+    public static void ProcessOwnerTurnEnd(GameSystems systems, Team team, int round)
+    {
+        CombatRegistry.Collect(turnActors);
+        try
+        {
+            foreach (var actor in turnActors)
+                if (actor != null && actor.team == team) ProcessActorEnd(actor, round);
+        }
+        finally { turnActors.Clear(); }
+    }
+
+    public static void ProcessActorEnd(Status actor, int round)
+    {
+        if (actor == null || !actor.IsAlive || actor.type != Type.Unit || actor.MaxHP <= 0) return;
+        var state = actor.NaturalRecovery ?? (actor.NaturalRecovery = new NaturalRecoveryState());
+        if (state.LastProcessedRound == round) return;
+        state.LastProcessedRound = round; state.HasTurnBaseline = true;
+        if (state.HpLostSinceLastOwnTurn)
+        {
+            state.HpLostSinceLastOwnTurn = false; state.ConsecutiveSafeTurns = 0;
+            CombatRuleTelemetry.Record("natural_regen_reset", actor, actor); return;
+        }
+        bool starting = state.ConsecutiveSafeTurns == SafeTurnThreshold - 1;
+        state.ConsecutiveSafeTurns = Mathf.Min(SafeTurnThreshold, state.ConsecutiveSafeTurns + 1);
+        if (state.ConsecutiveSafeTurns < SafeTurnThreshold) return;
+        if (starting) CombatRuleTelemetry.Record("natural_regen_start", actor, actor);
+        int actual = actor.ApplyHeal(HealAmount(actor.MaxHP));
+        CombatRuleTelemetry.Record("natural_regen_tick", actor, actor, candidateValue: actual);
+    }
+
     public static void ProcessActor(Status actor, int round)
     {
         if (actor == null || !actor.IsAlive || actor.type != Type.Unit || actor.MaxHP <= 0) return;

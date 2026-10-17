@@ -34,6 +34,12 @@ public partial class MapCreate : MonoBehaviour
     [SerializeField] private TerrainVariantCatalog terrainVariants;
     public FogChunkRenderer FogChunks { get; private set; }
 
+    [Header("マップ外の霧")]
+    [Tooltip("盤面の外を同じ霧で覆います。マップや視界の判定は増やしません。")]
+    public bool showExteriorFog = true;
+    [Min(64), Tooltip("マップ端から外へ霧を広げる距離。描画オブジェクト数は距離によらず1個です。")]
+    public float exteriorFogExtent = 512f;
+
     [Header("石ブロック")]
     [SerializeField] private GameObject stonePrefab;
 

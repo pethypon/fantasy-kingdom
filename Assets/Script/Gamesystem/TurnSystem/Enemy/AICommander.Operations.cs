@@ -29,7 +29,7 @@ public partial class AICommander
     public void NotifyObservedBaseDestroyed(Status target, Team source)
     {
         if (operations == null || operationUnavailable || target == null || target.team == _actorTeam
-            || _visionGen == null || !_visionGen.IsInVisionXZ(_actorTeam, target.transform.position)) return;
+            || _visionGen == null || !_visionGen.IsActorVisibleTo(_actorTeam, target)) return;
         try
         {
             foreach (var known in operations.KnownEnemyBases)

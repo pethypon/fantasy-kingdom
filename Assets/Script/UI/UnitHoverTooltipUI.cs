@@ -43,7 +43,7 @@ public class UnitHoverTooltipUI : MonoBehaviour
             var status = hit.transform.GetComponentInParent<Status>();
             if (status != null && status.IsAlive
                 && (status.team == Team.Player || (turn != null && turn.Systems.VisionGenerator != null
-                    && turn.Systems.VisionGenerator.IsInVisionXZ(Team.Player, status.transform.position)))
+                    && turn.Systems.VisionGenerator.IsActorVisibleTo(Team.Player, status)))
                 && (status.type == Type.Unit || status.type == Type.Building || status.type == Type.Wall))
                 hovered = status;
         }

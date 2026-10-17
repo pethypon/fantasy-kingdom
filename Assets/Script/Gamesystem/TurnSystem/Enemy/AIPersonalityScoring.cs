@@ -280,7 +280,7 @@ static class AIPersonalityScoring
             {
                 bonus -= 20f;
             }
-            if (board.EnemyAP <= action.Skill.APCost + 2 && action.Skill.Multiplier <= 0)
+            if (board.EnemyAP <= action.APCost + 2 && action.Skill.Multiplier <= 0)
             {
                 bonus -= 10f;
             }

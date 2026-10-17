@@ -136,11 +136,23 @@ public sealed class ThirdFactionTacticalAI
         && s.MapCreate.HasClearTerrainLine(u.transform.position, t.transform.position)
         && s.MapCreate.Environment.HasClearVision(u.transform.position, t.transform.position);
 
-    static bool CanSee(Status actor, Status target, int legacyRange)
+    bool CanSee(Status actor, Status target, int legacyRange)
     {
+        if (SpecialSkillRuntime.IsHiddenFrom(actor, target)) return false;
         var profile = BoardActionProfile.For(actor);
         var mask = profile != null ? profile.vision : null;
         int dx = target.GridPosition.x - actor.GridPosition.x, dz = target.GridPosition.z - actor.GridPosition.z;
+        int environmentModifier = s.MapCreate.Environment.VisionModifier(actor.transform.position);
+        if (environmentModifier < 0)
+        {
+            int radius = legacyRange;
+            if (mask != null && mask.useCustom)
+            {
+                radius = 0;
+                foreach (var offset in mask.Offsets) radius = Mathf.Max(radius, Mathf.Max(Mathf.Abs(offset.x), Mathf.Abs(offset.y)));
+            }
+            if (Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dz)) > Mathf.Max(0, radius + environmentModifier)) return false;
+        }
         return mask != null && mask.useCustom ? (dx == 0 && dz == 0) || mask.Contains(dx, dz, actor.direction)
             : GridHelper.ChebyshevDistance(actor.GridPosition, target.GridPosition) <= legacyRange;
     }

@@ -1,0 +1,337 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8746320858988607530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: Mud
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.mud
+  displayName: "\u6CE5"
+  kind: 4
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 0
+  concealsOccupants: 0
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 0
+  damageOnOwnerTurn: 0
+  flatDamage: -1
+  maximumHpDamageFraction: -1
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: -1
+  burnSmokeRevealDistance: -1
+--- !u!114 &-8575506933537946815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: HealingSpring
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.healingspring
+  displayName: "\u56DE\u5FA9\u6CC9"
+  kind: 6
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 0
+  concealsOccupants: 0
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 0
+  damageOnOwnerTurn: 0
+  flatDamage: -1
+  maximumHpDamageFraction: -1
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: -1
+  burnSmokeRevealDistance: -1
+--- !u!114 &-8356305519081500612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: Road
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.road
+  displayName: "\u9053"
+  kind: 5
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 0
+  concealsOccupants: 0
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 0
+  damageOnOwnerTurn: 0
+  flatDamage: -1
+  maximumHpDamageFraction: -1
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: -1
+  burnSmokeRevealDistance: -1
+--- !u!114 &-6628740047933029801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: Geyser
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.geyser
+  displayName: "\u9593\u6B20\u6CC9"
+  kind: 7
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 0
+  concealsOccupants: 0
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 1
+  damageOnOwnerTurn: 0
+  flatDamage: -1
+  maximumHpDamageFraction: 0.25
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: -1
+  burnSmokeRevealDistance: -1
+--- !u!114 &-4838605304200086011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: Rock
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.rock
+  displayName: "\u5CA9\u5834"
+  kind: 2
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 1
+  blocksShots: 1
+  blocksVision: 1
+  concealsOccupants: 0
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 0
+  damageOnOwnerTurn: 0
+  flatDamage: -1
+  maximumHpDamageFraction: -1
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: -1
+  burnSmokeRevealDistance: -1
+--- !u!114 &-4342352262402026669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: Smoke
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.smoke
+  displayName: "\u7159"
+  kind: 9
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 1
+  concealsOccupants: 1
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 0
+  damageOnOwnerTurn: 1
+  flatDamage: -1
+  maximumHpDamageFraction: 0.1
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: 30
+  burnSmokeRevealDistance: -1
+--- !u!114 &-3840624065400992777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: PoisonSwamp
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.poisonswamp
+  displayName: "\u6BD2\u6CBC"
+  kind: 3
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 0
+  concealsOccupants: 0
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 1
+  damageOnOwnerTurn: 1
+  flatDamage: -1
+  maximumHpDamageFraction: -1
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: -1
+  burnSmokeRevealDistance: -1
+--- !u!114 &-2769539848993737155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: Forest
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.forest
+  displayName: "\u68EE"
+  kind: 0
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 1
+  concealsOccupants: 1
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 0
+  damageOnOwnerTurn: 0
+  flatDamage: -1
+  maximumHpDamageFraction: -1
+  maximumHpHealFraction: -1
+  burnable: 1
+  burnSmokeRounds: 30
+  burnSmokeRevealDistance: -1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8852e415b7b4b76b93741559391f675, type: 3}
+  m_Name: EnvironmentCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentCatalog
+  enabledForPlay: 0
+  definitions:
+  - {fileID: -2769539848993737155}
+  - {fileID: 3155776392790842869}
+  - {fileID: -4838605304200086011}
+  - {fileID: -3840624065400992777}
+  - {fileID: -8746320858988607530}
+  - {fileID: -8356305519081500612}
+  - {fileID: -8575506933537946815}
+  - {fileID: -6628740047933029801}
+  - {fileID: 4251971377430858866}
+  - {fileID: -4342352262402026669}
+  placements: []
+--- !u!114 &3155776392790842869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: Bush
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.bush
+  displayName: "\u8349\u3080\u3089"
+  kind: 1
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 0
+  concealsOccupants: 1
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 0
+  damageOnOwnerTurn: 0
+  flatDamage: -1
+  maximumHpDamageFraction: -1
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: -1
+  burnSmokeRevealDistance: -1
+--- !u!114 &4251971377430858866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c099df0469824d14a0e534bec4611001, type: 3}
+  m_Name: Cave
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentDefinition
+  definitionId: environment.cave
+  displayName: "\u6D1E\u7A9F"
+  kind: 8
+  enabledForPlay: 0
+  visualPrefab: {fileID: 0}
+  blocksMovement: 0
+  blocksShots: 0
+  blocksVision: 0
+  concealsOccupants: 0
+  revealDistance: -1
+  moveAPAdjustment: 0
+  damageOnEntry: 0
+  damageOnOwnerTurn: 0
+  flatDamage: -1
+  maximumHpDamageFraction: -1
+  maximumHpHealFraction: -1
+  burnable: 0
+  burnSmokeRounds: -1
+  burnSmokeRevealDistance: -1

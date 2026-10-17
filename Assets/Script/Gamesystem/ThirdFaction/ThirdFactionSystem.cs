@@ -61,8 +61,7 @@ public sealed class ThirdFactionSystem : MonoBehaviour
         SpecialAbilitySystem.OnTurnStart(neutral.UnitParent);
         systems.MapCreate?.Environment?.OnOwnerTurnStart(Team.Monster, round, systems);
         systems.MapCreate?.Environment?.OnOwnerTurnStart(Team.Intruder, round, systems);
-        NaturalRecoverySystem.ProcessOwnerTurn(systems, Team.Monster, round);
-        NaturalRecoverySystem.ProcessOwnerTurn(systems, Team.Intruder, round);
+
         LastIPBefore = IP.Current;
         IP.BeginTurn();
         LastIPAfterRegen = IP.Current;
@@ -95,6 +94,8 @@ public sealed class ThirdFactionSystem : MonoBehaviour
         try { while (!GameOver && steps.MoveNext()) yield return null; }
         finally { (steps as IDisposable)?.Dispose(); }
         if (!GameOver) SpecialAbilitySystem.OnTurnEnd(neutral.UnitParent);
+        if (!GameOver) SpecialSkillRuntime.OnOwnerTurnEnd(systems, Team.Monster, round);
+        if (!GameOver) SpecialSkillRuntime.OnOwnerTurnEnd(systems, Team.Intruder, round);
         RecordTelemetry(round);
     }
     [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]

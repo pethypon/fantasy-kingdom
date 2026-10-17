@@ -38,6 +38,9 @@ public class APSystem : MonoBehaviour
     public int CalcCost(ActionType action, Status obj,
                         Vector3 from = default, Vector3 to = default)
     {
+        var environmentMap = mapCreate != null ? mapCreate : obj?.RuntimeSystems?.MapCreate;
+        if (action == ActionType.Move && environmentMap != null && environmentMap.Environment.IsCaveConnection(from, to))
+            return TerrainEnvironmentRuntime.CaveUseAP;
         int cost = action == ActionType.Move ? BaseMoveCost : action == ActionType.Attack ? BaseAttackCost : BaseCost[action];
         cost = (int)System.Math.Min(int.MaxValue, (long)cost + Mathf.Max(0, obj.Fatigue));
         if (action == ActionType.Attack) cost = SpecialSkillRuntime.AttackAPAdjustment(obj, cost);
@@ -52,6 +55,8 @@ public class APSystem : MonoBehaviour
             if (map != null) movementCost += map.Environment.MoveAPAdjustment(from, to);
             cost = (int)System.Math.Max(1, System.Math.Min(int.MaxValue, movementCost));
         }
+        if (action == ActionType.Move && SpecialSkillRuntime.HasFreeMoveAP(obj)
+            || action == ActionType.Attack && SpecialSkillRuntime.HasFreeAttackAP(obj)) return 0;
         return Mathf.Max(1, cost);
     }
 
@@ -66,6 +71,8 @@ public class APSystem : MonoBehaviour
     {
         int cost = CalcCost(action, obj, from, to);
         if (action != ActionType.Move) OnNonMoveAction?.Invoke(team);
+        if (cost == 0 && (action == ActionType.Move || action == ActionType.Attack))
+            SpecialSkillRuntime.ConsumeFreeAP(obj, action == ActionType.Move);
         _factionState.ModifyAP(team, -cost);
         obj.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(obj.kind);
         if (DevelopmentLog.IsEnabled()) DevelopmentLog.Log($"[APSystem] {team} / {action}  コスト:{cost}  残AP:{_factionState.GetAP(team)}  疲労:{obj.Fatigue}");

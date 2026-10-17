@@ -47,5 +47,5 @@ public sealed class UnitSelectionPicker
 
     public static bool IsVisibleActor(Status actor, VisionGenerator vision) => actor != null && actor.IsAlive
         && actor.type <= Type.Wall && actor.team != Team.None && actor.gameObject.activeInHierarchy
-        && (actor.team == Team.Player || (vision != null && vision.IsInVisionXZ(Team.Player,actor.transform.position)));
+        && (actor.team == Team.Player || (vision != null && vision.IsActorVisibleTo(Team.Player,actor)));
 }

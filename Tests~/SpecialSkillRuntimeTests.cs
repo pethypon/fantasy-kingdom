@@ -17,6 +17,7 @@ public static class SpecialSkillRuntimeTests
         var definition = ScriptableObject.CreateInstance<SpecialSkillDefinition>(); owned.Add(definition);
         data.specialSkill = definition; definition.ability = ability; definition.apCost = 1; definition.cooldown = 0;
         definition.sacrificeLimit = 10; definition.lightningFactionMask = SpecialFactionMask.Hostile;
+        definition.crossbowInitialAmmo = 0;
         definition.bombExplosionRadius = 1; definition.bombFactionMask = SpecialFactionMask.Hostile;
         definition.bombOnHolderDeathPolicy = BombDeathPolicy.Cancel;
         definition.sniperRecoilCurve = AnimationCurve.Linear(0,0,25,.15f);
@@ -31,6 +32,12 @@ public static class SpecialSkillRuntimeTests
     }
     static SaveSystem.UnitSaveData RoundTrip(Status actor)
         => JsonUtility.FromJson<SaveSystem.UnitSaveData>(JsonUtility.ToJson(SaveSystem.CaptureUnit(actor)));
+    static void ShootStake(Status caster, Status target, GameSystems systems)
+    {
+        Cast(new SpecialSkillCommand(caster), systems);
+        Check(SpecialSkillRuntime.TryBeginNormalShot(caster, out var round) && round == CrossbowRoundType.Stake, "loaded stake fires through FIFO");
+        SpecialSkillRuntime.CompleteNormalShot(caster, target, round, true);
+    }
 
     public static void PlayMode(GameSystems systems)
     {
@@ -40,7 +47,7 @@ public static class SpecialSkillRuntimeTests
         {
             Check((int)Kind.Knight == 2 && (int)Kind.Bomber == 11 && (int)Kind.None == 16 && (int)Kind.WhiteMage == 17, "existing Kind values frozen");
             var costDefinition = ScriptableObject.CreateInstance<SpecialSkillDefinition>(); owned.Add(costDefinition);
-            int[] specifiedAP = { -1,14,0,22,14,20,8,18,10,18,20,12,15,0,13,5,12 };
+            int[] specifiedAP = { -1,14,-1,22,14,20,8,18,10,18,20,12,15,-1,13,5,12 };
             for(int ability = 1; ability < specifiedAP.Length; ability++)
             { costDefinition.ability = (UnitSpecialSkill)ability; costDefinition.ApplySpecifiedAPCost(); Check(costDefinition.apCost == specifiedAP[ability] && costDefinition.cooldown == -1, "specified AP and undecided cooldown " + ability); }
             costDefinition.ability = UnitSpecialSkill.WhiteMageHeal; costDefinition.cooldown = 0; costDefinition.apCost = APSystem.MaximumSkillAP + 1;
@@ -102,15 +109,15 @@ public static class SpecialSkillRuntimeTests
             guardian.Special.guardianPartnerId = ward.Special.guardianPartnerId = null;
             SaveGameApplier.ApplyStatusFields(guardian, savedGuardian); SaveGameApplier.ApplyStatusFields(ward, savedWard); SpecialSkillRuntime.RestoreLinks();
             Check(guardian.Special.guardianPartnerId == ward.ReflectionLifeId, "link restored by stable life ID");
-            SpecialSkillRuntime.ApplyHpChange(victim, guardian, 90, HpChangeKind.NormalDamage);
-            Check(!guardian.IsAlive && ward.HP == 80 && string.IsNullOrEmpty(ward.Special.guardianPartnerId), "lethal exchange spares recipient and unlinks");
+            SpecialSkillRuntime.ApplyHpChange(victim, guardian, 1000, HpChangeKind.NormalDamage);
+            Check(guardian.IsAlive && guardian.HP == 1000 && !ward.IsAlive && string.IsNullOrEmpty(guardian.Special.guardianPartnerId), "original lethal damage saves original and kills linked partner");
             var crossbow = Actor(UnitSpecialSkill.CrossbowStakes, Team.Player, 10400, 10400);
             var a = Actor(UnitSpecialSkill.None, Team.Enemy, 10401, 10400);
             var b = Actor(UnitSpecialSkill.None, Team.Enemy, 10403, 10400);
             var c = Actor(UnitSpecialSkill.None, Team.Enemy, 10404, 10400); See(crossbow, a,b,c);
-            Cast(new SpecialSkillCommand(crossbow,a), systems); crossbow.Special.ownerTurn++;
-            Cast(new SpecialSkillCommand(crossbow,b), systems); int appliedB = crossbow.Special.stakeBAppliedTurn; crossbow.Special.ownerTurn++;
-            Cast(new SpecialSkillCommand(crossbow,c), systems);
+            ShootStake(crossbow,a,systems); crossbow.Special.ownerTurn++;
+            ShootStake(crossbow,b,systems); int appliedB = crossbow.Special.stakeBAppliedTurn; crossbow.Special.ownerTurn++;
+            ShootStake(crossbow,c,systems);
             Check(crossbow.Special.stakeAId == b.ReflectionLifeId && crossbow.Special.stakeBId == c.ReflectionLifeId && crossbow.Special.stakeAAppliedTurn == appliedB, "third stake FIFO preserves age");
             var savedStakes = RoundTrip(crossbow); SaveGameApplier.ApplyStatusFields(crossbow,savedStakes); SpecialSkillRuntime.RestoreLinks();
             Check(crossbow.Special.stakeAId == b.ReflectionLifeId && crossbow.Special.stakeAAppliedTurn == appliedB, "stakes survive load");
@@ -124,7 +131,7 @@ public static class SpecialSkillRuntimeTests
             SpecialSkillRuntime.OnActorTurnStart(sniper,systems,9003); int sniperHPAfterRecoil = sniper.HP;
             SaveGameApplier.ApplyStatusFields(sniper,savedSniper); SpecialSkillRuntime.RestoreLinks();
             SpecialSkillRuntime.OnActorTurnStart(sniper,systems,9003);
-            Check(sniper.HP == sniperHPAfterRecoil && sniper.HP < savedSniper.HP, "loaded sniper lock charges identical owner-turn recoil");
+            Check(sniper.HP == sniperHPAfterRecoil && sniper.HP == savedSniper.HP, "loaded sniper lock does not charge recoil before firing");
             SpecialSkillRuntime.OnActorTurnStart(sniper,systems,9003);
             Check(sniper.HP == sniperHPAfterRecoil, "sniper owner-turn recoil cannot run twice in one round");
             sniper.VisionCell.Clear(); distant.transform.position += Vector3.right*100;

@@ -13,7 +13,7 @@ public enum BombDeathPolicy { Unconfigured, Cancel, Explode }
 
 /// <summary>One definition shared by gameplay, UI and AI. -1/empty means not decided, never free.</summary>
 [CreateAssetMenu(menuName = "Fantasy Kingdom/駒と建物/駒固有能力")]
-public sealed class SpecialSkillDefinition : ScriptableObject
+public sealed partial class SpecialSkillDefinition : ScriptableObject
 {
     public UnitSpecialSkill ability;
     public string displayName;
@@ -51,13 +51,13 @@ public sealed class SpecialSkillDefinition : ScriptableObject
     public const float WhiteMageHealFraction = .3f, HolyKnightHealFraction = .1f;
     public const float SamuraiCounterFraction = .5f, BerserkerMaximum = 2.5f, NavigatorMaximum = 1.5f;
 
-    public bool IsPassive => ability == UnitSpecialSkill.ArcherStationary || ability == UnitSpecialSkill.SamuraiCounter;
+    public bool IsPassive => false; // R1 adds active Archer escape and Samurai challenge; their passives remain separate.
     public void ApplySpecifiedAPCost()
     {
         switch (ability)
         {
             case UnitSpecialSkill.KnightBreakthrough: apCost = 14; break;
-            case UnitSpecialSkill.ArcherStationary: case UnitSpecialSkill.SamuraiCounter: apCost = 0; break;
+            case UnitSpecialSkill.ArcherStationary: case UnitSpecialSkill.SamuraiCounter: apCost = -1; break; // UNRESOLVED_BALANCE: old zero was a passive, not an active skill cost.
             case UnitSpecialSkill.MagicRitual: apCost = 22; break;
             case UnitSpecialSkill.AssassinVisionSeal: apCost = 14; break;
             case UnitSpecialSkill.ScoutVisionGuard: apCost = 20; break;
@@ -82,6 +82,7 @@ public sealed class SpecialSkillDefinition : ScriptableObject
             if (!enabledForPlay || ability == UnitSpecialSkill.None) return "駒固有能力が無効です";
             if (!IsPassive && (apCost < 0 || cooldown < 0)) return "AP・クールダウンが未設定です";
             if (!IsPassive && apCost > APSystem.MaximumSkillAP) return $"スキルAPは{APSystem.MaximumSkillAP}以下に設定してください";
+            if (CrossbowConfigurationError != null) return CrossbowConfigurationError;
             if (ability == UnitSpecialSkill.ArcherStationary && !HasCurve(stationaryAttackCurve)) return "未移動強化の中間倍率が未設定です";
             if (ability == UnitSpecialSkill.MagicSniperLock && !HasCurve(sniperRecoilCurve)) return "距離ごとの反動が未設定です";
             if (ability == UnitSpecialSkill.MagicRitual && sacrificeLimit < 1) return "供儀人数上限が未設定です";

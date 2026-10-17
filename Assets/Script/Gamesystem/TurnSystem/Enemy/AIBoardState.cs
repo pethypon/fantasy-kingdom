@@ -253,9 +253,8 @@ public partial class AIBoardState
 
     // ---- Enum.GetValues()キャッシュ（GC回避） ----
     static readonly FacilityKind[] _allFacilityKinds = (FacilityKind[])Enum.GetValues(typeof(FacilityKind));
-    static readonly Kind[] _summonKinds = { Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin,
-                                            Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
-                                            Kind.Magicsniper, Kind.Bomber };
+    // Use the same stable production roster as the player menu, including the six R1 roles.
+    static readonly Kind[] _summonKinds = UnitRoster.SummonableKinds;
 
     // ---- 建築/召喚可能情報を更新 ----
     void RefreshEconomyData()
@@ -419,7 +418,8 @@ public partial class AIBoardState
     public List<Vector3> GetValidMoves(Status unit)
     {
         if (unit == null || _moveGen == null || _moveGen.mapcreate == null
-            || SpecialSkillRuntime.MovementBlocked(unit)) return new List<Vector3>();
+              || BoardActionProfile.For(unit)?.CanMove == false || StatusEffectSystem.IsStunned(unit)
+              || StatusEffectSystem.IsMovementBlocked(unit)) return new List<Vector3>();
         var unitPos = unit.transform.position;
         var offsets = MovePatterns.Offsets(unit);
         var result = new List<Vector3>(offsets.Count);
@@ -474,7 +474,9 @@ public partial class AIBoardState
         // These are the only sources consumed below. With neither an observed hostile (including
         // buildings/third factions) nor a living visible crystal, a full-map attack query cannot
         // produce a candidate. Return caller-owned storage and leave presentation data untouched.
-        if (AlivePlayerUnits.Count == 0 && (!PlayerCrystalVisible || PlayerCrystalHP <= 0)) return targets;
+        bool allyAttack = SpecialSkillRuntime.Definition(unit)?.enabledForPlay == true
+            && SpecialSkillRuntime.Definition(unit).ability == UnitSpecialSkill.AssassinVisionSeal;
+        if (!allyAttack && AlivePlayerUnits.Count == 0 && (!PlayerCrystalVisible || PlayerCrystalHP <= 0)) return targets;
 
         _attackPoint.NormalAttackPData(unit, unitPos);
         if (_attackPoint.AttackP == null) return targets;
@@ -486,8 +488,15 @@ public partial class AIBoardState
             {
                 if (pu == null || !pu.gameObject.activeInHierarchy) continue;
                 var puCell = _moveGen.Cell(pu.transform.position);
-                if (puCell == cell) { targets.Add(pu); break; }
+                if (puCell == cell && SpecialSkillRuntime.CanNormalAttackTarget(unit, pu)) { targets.Add(pu); break; }
             }
+
+            // This is an ordinary paid Attack candidate, with a separate friendly-loss
+            // valuation. It must never bypass the shared targeting/death pipeline.
+            if (allyAttack) foreach (var ally in AliveEnemyUnits)
+                if (ally != unit && ally != null && ally.IsAlive && _moveGen.Cell(ally.transform.position) == cell
+                    && SpecialSkillRuntime.IsAssassinAllyTarget(unit, ally)
+                    && SpecialSkillRuntime.CanNormalAttackTarget(unit, ally)) targets.Add(ally);
 
             if (PlayerCrystalVisible)
             {
@@ -495,7 +504,7 @@ public partial class AIBoardState
                 if (pcpCell == cell)
                 {
                     var crystal = FindCrystal(OpponentCrystalParent);
-                    if (crystal != null && crystal.HP > 0)
+                    if (crystal != null && crystal.HP > 0 && SpecialSkillRuntime.CanNormalAttackTarget(unit, crystal))
                         targets.Add(crystal);
                 }
             }
@@ -647,7 +656,7 @@ public partial class AIBoardState
         foreach (var unit in allPlayerUnits)
         {
             if (unit == null || !unit.gameObject.activeInHierarchy) continue;
-            if (IsCellInEnemyVision(unit.transform.position))
+            if (IsCellInEnemyVision(unit.transform.position) && _visionGen.IsActorVisibleTo(ActorTeam, unit))
                 visible.Add(unit);
         }
     }
@@ -717,7 +726,8 @@ public partial class AIBoardState
         if (parent == null) return;
         parent.GetComponentsInChildren(false, _getCompBuffer);
         foreach (var hostile in _getCompBuffer)
-            if (hostile.IsAlive && hostile.team != ActorTeam && IsCellInEnemyVision(hostile.transform.position))
+            if (hostile.IsAlive && hostile.team != ActorTeam && IsCellInEnemyVision(hostile.transform.position)
+                && _visionGen != null && _visionGen.IsActorVisibleTo(ActorTeam, hostile))
                 AlivePlayerUnits.Add(hostile);
     }
 

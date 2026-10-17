@@ -55,6 +55,9 @@ public static class SpecialSkillUITests
 
             SpecialSkillSelectionUI.Show(caster, systems);
             var modal = Current;
+            var overlay = Read<GameObject>(modal, "overlay"); var canvas = overlay.GetComponent<Canvas>();
+            Check("modal renders and receives input above independent HUD canvases", canvas != null && canvas.overrideSorting
+                && canvas.sortingOrder > 200 && overlay.GetComponent<GraphicRaycaster>() != null);
             Check("modal includes both legal visible enemies only", Read<Dictionary<Status, Image>>(modal, "targetImages").Count == 2);
             var options = Read<Dictionary<Status, TextMeshProUGUI>>(modal, "sacrificeLabels");
             Check("all nine legal sacrifices remain available beyond AI representative subsets", options.Count == 9);
@@ -86,7 +89,7 @@ public static class SpecialSkillUITests
             var ordinary = Actor("UI ordinary unit", Team.Player, 1010, 1010);
             systems.UnitPanelUI.Show(ordinary);
             Check("ordinary actors restore original two row layout", !special.activeSelf && waitRect.anchorMax.y == .5f);
-            definition.ability = UnitSpecialSkill.CrossbowStakes; definition.lightningFactionMask = SpecialFactionMask.Hostile;
+            definition.ability = UnitSpecialSkill.CrossbowStakes; definition.lightningFactionMask = SpecialFactionMask.Hostile; definition.crossbowInitialAmmo = 0;
             caster.Special = new SpecialState { ownerTurn = 1, stakeAId = ordinary.ReflectionLifeId, stakeBId = hidden.ReflectionLifeId, stakeAAppliedTurn = 1, stakeBAppliedTurn = 1 };
             var world = systems.UnitPanelUI.GetComponent<SpecialSkillWorldView>();
             void DrawLines() { typeof(SpecialSkillWorldView).GetField("nextRefresh", Private).SetValue(world, 0f); typeof(SpecialSkillWorldView).GetMethod("LateUpdate", Private).Invoke(world, null); }

@@ -4,6 +4,51 @@ using UnityEngine;
 /// <summary>Authoritative special actions. AP and cooldown are committed by TryExecute only.</summary>
 public static partial class SpecialSkillRuntime
 {
+    /// <summary>Self/area actions have no manually selected recipient. Map-wide single-target actions still do.</summary>
+    public static bool UsesAutomaticTarget(UnitSpecialSkill skill) => skill == UnitSpecialSkill.KnightBreakthrough
+        || skill == UnitSpecialSkill.ArcherStationary || skill == UnitSpecialSkill.ScoutVisionGuard
+        || skill == UnitSpecialSkill.PriestPurification || skill == UnitSpecialSkill.CrossbowStakes
+        || skill == UnitSpecialSkill.HolyKnightSanctuary || skill == UnitSpecialSkill.BerserkerRage;
+
+    /// <summary>Player command guard. AI must continue to use its observed board, not this world query.</summary>
+    public static bool HasAutomaticSkillTarget(Status caster)
+    {
+        var definition = Definition(caster);
+        if (caster == null || !caster.IsAlive || definition == null || !UsesAutomaticTarget(definition.ability)) return false;
+        // Movement, preparation and self buffs remain useful before an enemy has been found.
+        if (definition.ability == UnitSpecialSkill.KnightBreakthrough || definition.ability == UnitSpecialSkill.CrossbowStakes
+            || definition.ability == UnitSpecialSkill.BerserkerRage) return true;
+        var iterator = CombatRegistry.Enumerate();
+        try
+        {
+            while (iterator.MoveNext())
+            {
+                var target = iterator.Current;
+                if (target == null || !target.IsAlive) continue;
+                switch (definition.ability)
+                {
+                    case UnitSpecialSkill.ArcherStationary:
+                        if (NeutralFactionSystem.AreHostile(caster, target) && Distance3D(caster.transform.position, target.transform.position) <= 2) return true;
+                        break;
+                    case UnitSpecialSkill.ScoutVisionGuard:
+                        if (target.team == caster.team && InVision(caster, target)) return true;
+                        break;
+                    case UnitSpecialSkill.PriestPurification:
+                        if (target != caster && GridHelper.ChebyshevDistance(caster.GridPosition, target.GridPosition) <= 2) return true;
+                        break;
+                    case UnitSpecialSkill.HolyKnightSanctuary:
+                        if (!AllyTarget(caster, target) || !OrdinaryUnit(target) || definition.holyKnightArea == null) break;
+                        var delta = target.GridPosition - caster.GridPosition;
+                        foreach (var offset in definition.holyKnightArea)
+                            if (delta.x == offset.x && delta.z == offset.y) return true;
+                        break;
+                }
+            }
+        }
+        finally { iterator.Dispose(); }
+        return false;
+    }
+
     public static bool IsLegalTarget(Status caster, Status target, out string reason)
     {
         reason = null;
@@ -15,16 +60,20 @@ public static partial class SpecialSkillRuntime
             case UnitSpecialSkill.KnightBreakthrough:
                 if (target != null && target != caster) return Reject(out reason, "前方突破は自分から発動します");
                 return CanAdvanceKnight(caster, out reason);
+            case UnitSpecialSkill.SamuraiCounter:
+                return EnemyTarget(caster, target, true, out reason);
+            case UnitSpecialSkill.ArcherStationary:
+                return (target == null || target == caster) && State(caster).archerEscapeTurns <= 0
+                    || Reject(out reason, "自分から発動する能力です（発動中は再使用できません）");
             case UnitSpecialSkill.MagicRitual:
-                return EnemyTarget(caster, target, true, out reason)
+                return EnemyTarget(caster, target, false, out reason)
                     && (!State(caster).ritualActive || Reject(out reason, "すでに儀式中です"));
             case UnitSpecialSkill.AssassinVisionSeal:
                 return EnemyTarget(caster, target, true, out reason);
             case UnitSpecialSkill.CrossbowStakes:
-                if (!EnemyTarget(caster, target, true, out reason)) return false;
-                var stakes = State(caster);
-                return target.ReflectionLifeId != stakes.stakeAId && target.ReflectionLifeId != stakes.stakeBId
-                    || Reject(out reason, "すでに杭を付けた敵です");
+                if (target != null && target != caster) return Reject(out reason, "杭弾は自分の弾倉へ装填します");
+                return definition.enabledForPlay && definition.CrossbowConfigurationError == null
+                    || Reject(out reason, definition.CrossbowConfigurationError ?? "弾倉を使用できません");
             case UnitSpecialSkill.MagicSniperLock:
                 return EnemyTarget(caster, target, false, out reason)
                     && (!State(caster).sniperActive || Reject(out reason, "すでに標的をロックしています"));
@@ -107,7 +156,7 @@ public static partial class SpecialSkillRuntime
                 for (int i = 0; i < command.Sacrifices.Count; i++)
                 {
                     var sacrifice = command.Sacrifices[i];
-                    total += ApplyHpChange(caster, sacrifice, FractionOfMaximum(sacrifice, SpecialSkillDefinition.RitualSacrifice), HpChangeKind.DirectHpReduction);
+                    total += ApplyHpChange(caster, sacrifice, FractionOfMaximum(sacrifice, SpecialSkillDefinition.RitualSacrifice), HpChangeKind.DirectHpReduction, cause: HpChangeCause.Sacrifice);
                 }
                 state.storedSacrificeDamage = (int)System.Math.Min(int.MaxValue, total);
                 // Death during one's own sacrifice does not refund or transfer the ritual.
@@ -118,7 +167,7 @@ public static partial class SpecialSkillRuntime
                 State(target).guardianPartnerId = caster.ReflectionLifeId;
                 break;
             case UnitSpecialSkill.CrossbowStakes:
-                AddStake(caster, target);
+                if (!LoadCrossbowStake(caster, systems, round, out reason)) return false;
                 break;
             case UnitSpecialSkill.MagicSniperLock:
                 state.sniperTargetId = target.ReflectionLifeId;
@@ -140,14 +189,7 @@ public static partial class SpecialSkillRuntime
                 state.holyKnightTurns = 3;
                 break;
             case UnitSpecialSkill.NinjaSwap:
-                var casterPosition = caster.transform.position;
-                var targetPosition = target.transform.position;
-                caster.transform.position = targetPosition;
-                target.transform.position = casterPosition;
-                systems?.MoveGenerator?.UnitPointCore();
-                OnMoved(caster, casterPosition, targetPosition, systems);
-                OnMoved(target, targetPosition, casterPosition, systems);
-                break;
+                return TryForcedSwap(caster, target, systems, out reason);
             case UnitSpecialSkill.BerserkerRage:
                 int nextStage = Mathf.Clamp(state.berserkerStage, 0, 5) + 1;
                 if (nextStage > 5 || command.BerserkerStage != 0 && command.BerserkerStage != nextStage)
@@ -156,11 +198,7 @@ public static partial class SpecialSkillRuntime
                 break;
             case UnitSpecialSkill.NavigatorPull:
                 if (!CanPull(caster, target, out var destination, out reason)) return false;
-                var previous = target.transform.position;
-                target.transform.position = destination;
-                systems?.MoveGenerator?.UnitPointCore();
-                OnMoved(target, previous, destination, systems);
-                break;
+                return TryForcedMove(target, destination, systems, out reason);
             default:
                 return Reject(out reason, "この能力の実行方法がありません");
         }
@@ -172,6 +210,7 @@ public static partial class SpecialSkillRuntime
         var state = State(caster);
         PruneStakes(caster);
         string id = target.ReflectionLifeId;
+        CombatRuleTelemetry.Record("crossbow_stake_attach", caster, target);
         if (state.stakeAId == id || state.stakeBId == id) return;
         if (string.IsNullOrEmpty(state.stakeAId))
         { state.stakeAId = id; state.stakeAAppliedTurn = state.ownerTurn; return; }
@@ -236,16 +275,14 @@ public static partial class SpecialSkillRuntime
         BeginMovementBatch();
         try
         {
-            for (int step = 0; step < 3 && caster.IsAlive; step++)
+            for (int step = 0; step < 3 && caster.IsAlive && systems?.TurnGenerator?.IsGameOver != true; step++)
             {
                 chain.Clear(); destinations.Clear();
                 if (!TryKnightStep(caster, systems, actors, chain, destinations, out var stopReason))
                 { if (!moved) reason = stopReason; break; }
                 // Positions commit atomically before any movement-triggered damage can destroy an actor.
-                var previous = new Vector3[chain.Count];
-                for (int i = 0; i < chain.Count; i++) { previous[i] = chain[i].transform.position; chain[i].transform.position = destinations[i]; }
-                systems?.MoveGenerator?.UnitPointCore();
-                for (int i = chain.Count - 1; i >= 0; i--) OnMoved(chain[i], previous[i], destinations[i], systems);
+                if (!TryForcedBatchMove(chain, destinations, systems, out var moveReason))
+                { if (!moved) reason = moveReason; break; }
                 moved = true;
             }
         }

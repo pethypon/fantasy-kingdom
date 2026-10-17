@@ -14,6 +14,7 @@ public sealed partial class GameDevelopmentStudioWindow
     {
         specialSkillFold = EditorGUILayout.Foldout(specialSkillFold, "駒固有能力（複数ターン・生命接続・爆弾など）", true);
         if (!specialSkillFold) return;
+        EditorGUILayout.PropertyField(unitObject.FindProperty("attackTags"), new GUIContent("攻撃の属性タグ（岩場の石属性補正など）"));
         var reference = unitObject.FindProperty("specialSkill");
         if (reference == null) return;
         EditorGUILayout.PropertyField(reference, new GUIContent("駒固有能力の設定"));
@@ -175,7 +176,15 @@ public sealed partial class GameDevelopmentStudioWindow
     {
         if (definition == null) return;
         var so = new SerializedObject(definition); so.Update();
-        void Draw(string name, string label) { var field = so.FindProperty(name); if (field != null) EditorGUILayout.PropertyField(field, new GUIContent(label), true); }
+        void Draw(string name, string label)
+        {
+            var field = so.FindProperty(name); if (field == null) return;
+            if (name == "knightPenaltyStackRule" || name == "assassinBoostStackRule")
+                field.intValue = EditorGUILayout.IntPopup(label, field.intValue, new[] { "未確定", "最大の効果のみ", "倍率を乗算" }, new[] { 0, 1, 2 });
+            else if (name == "scoutFreeMoveScope" || name == "scoutFreeAttackScope" || name == "guardianAttackCostReset")
+                field.intValue = EditorGUILayout.IntPopup(label, field.intValue, new[] { "未確定", "自軍ターンごと", "この駒の生存中" }, new[] { 0, 1, 2 });
+            else EditorGUILayout.PropertyField(field, new GUIContent(label), true);
+        }
         Draw("enabledForPlay", "ゲームで有効にする"); Draw("displayName", "能力の表示名");
         var type = so.FindProperty("ability");
         type.intValue = EnumPopup(type.intValue, "能力の種類", typeof(UnitSpecialSkill), value => SpecialSkillPresentation.Name((UnitSpecialSkill)value));
@@ -185,18 +194,25 @@ public sealed partial class GameDevelopmentStudioWindow
             so.ApplyModifiedProperties(); Undo.RecordObject(definition, "指定された固有能力APを反映");
             definition.ApplySpecifiedAPCost(); EditorUtility.SetDirty(definition); so.Update();
         }
-        if (ability != UnitSpecialSkill.ArcherStationary && ability != UnitSpecialSkill.SamuraiCounter)
+        if (ability != UnitSpecialSkill.None)
         { Draw("apCost", "使用AP（−1は未設定）"); Draw("cooldown", "再使用待機ターン（−1は未設定）"); }
         switch (ability)
         {
-            case UnitSpecialSkill.KnightBreakthrough: Draw("knightVisibleEnemyAtkPenalty", "視界内の敵のATK低下率（−1は未設定）"); break;
+            case UnitSpecialSkill.KnightBreakthrough: Draw("knightPenaltyStackRule", "複数ナイトの弱体の重複方式（未確定）"); Draw("knightVisibleEnemyAtkPenalty", "視界内の敵のATK低下率（−1は未設定）"); break;
             case UnitSpecialSkill.ArcherStationary: Draw("stationaryAttackCurve", "未移動ターン → 攻撃倍率（上限1.75）"); break;
+            case UnitSpecialSkill.AssassinVisionSeal:
+                Draw("assassinBoostDuration", "味方撃破後の強化ターン（−1は未確定）"); Draw("assassinBoostStackRule", "撃破強化の重複方式（未確定）"); break;
+            case UnitSpecialSkill.ScoutVisionGuard:
+                Draw("scoutFreeMoveScope", "移動AP無料のリセット範囲（未確定）"); Draw("scoutFreeAttackScope", "攻撃AP無料のリセット範囲（未確定）"); break;
+            case UnitSpecialSkill.GuardianLifeLink: Draw("guardianAttackCostReset", "攻撃AP累積のリセット範囲（未確定）"); break;
             case UnitSpecialSkill.MagicRitual: Draw("sacrificeLimit", "供儀人数上限（−1は未設定）"); break;
             case UnitSpecialSkill.CrossbowStakes:
+                Draw("crossbowInitialAmmo", "初期弾数（−1は未確定、0〜3）");
                 DrawFactionMask(so.FindProperty("lightningFactionMask"), "雷線が当たる陣営"); break;
             case UnitSpecialSkill.MagicSniperLock:
                 Draw("sniperDamageCurve", "距離 → 攻撃倍率（上限2.5）"); Draw("sniperRecoilCurve", "距離 → 最大HPに対する反動率（上限0.15）"); break;
             case UnitSpecialSkill.LifeBomb:
+                Draw("bomberAutoExplosionRadius", "10ターン無加害の自爆半径（−1は未確定）");
                 Draw("bombExplosionRadius", "爆発半径（−1は未設定）");
                 DrawFactionMask(so.FindProperty("bombFactionMask"), "爆発が当たる陣営");
                 var policy = so.FindProperty("bombOnHolderDeathPolicy");

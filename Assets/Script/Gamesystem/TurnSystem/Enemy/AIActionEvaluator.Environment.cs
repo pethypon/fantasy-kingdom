@@ -14,10 +14,12 @@ public static partial class AIActionEvaluator
         var from = actor.transform.position; var to = moving ? action.TargetPos : from;
         if (!board.IsTerrainKnown(to)) return 0; // No hazard/connector oracle beyond exploration.
         var environment = board.ReconMap.Environment;
-        if (!environment.HasCell(to) && !environment.HasCell(from)) return 0;
+        var destination = board.KnownEnvironmentDefinition(to);
+        var origin = board.KnownEnvironmentDefinition(from);
+        if (destination == null && origin == null) return 0;
         // The ordinary simulator has no overlay effects/teleportation. Preserve this truthful static model.
         action.PreserveSpecialEvaluation = true;
-        int entry = moving ? board.KnownEnvironmentDamage(actor, to, true) : 0;
+        int entry = moving ? EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, to, true), HpChangeKind.IgnoreDefenceDamage) : 0;
         int standing = board.KnownEnvironmentDamage(actor, to, false);
         int remaining = Mathf.Max(0, actor.HP - entry);
         float value = AIBoardEvaluator.GetPieceValuePublic(actor);
@@ -30,8 +32,24 @@ public static partial class AIActionEvaluator
         {
             int avoided = board.KnownEnvironmentDamage(actor, from, false);
             score += value * Mathf.Min(avoided, actor.HP) / Mathf.Max(1f, actor.HP);
-            score -= environment.MoveAPAdjustment(from, to);
+            score -= board.KnownEnvironmentMoveCost(from, to);
         }
+        int visionChange = board.KnownEnvironmentVisionModifier(to) - board.KnownEnvironmentVisionModifier(from);
+        score += visionChange;
+        if (destination?.kind == TerrainEnvironmentKind.HealingSpring && recovery > 0
+            && board.EstimateCounterDamageAt(to, actor) < actor.HP)
+            score += value * recovery / Mathf.Max(1f, actor.MaxHP) * AISpecialSkillKnowledge.FutureWeight(board, 2);
+        if (destination?.kind == TerrainEnvironmentKind.Rock)
+            foreach (var opponent in board.AlivePlayerUnits)
+                if (board.IsSpecialActorObserved(opponent) && AIBoardQuery.EstimateAttackRange(opponent) > 1.5f)
+                    score += value * .05f;
+        if (destination?.kind == TerrainEnvironmentKind.Cave && moving)
+        {
+            // The three AP transaction arrives next own turn; it is not an instantaneous teleport.
+            score *= AISpecialSkillKnowledge.FutureWeight(board, 1);
+            score -= 1;
+        }
+        CombatRuleTelemetry.Record("ai_environment_value", actor, cause:"known_environment", candidateValue:score);
         return score;
     }
 }

@@ -20,6 +20,7 @@ public static class SpecialSkillActionTests
         var d = ScriptableObject.CreateInstance<SpecialSkillDefinition>(); owned.Add(d); data.specialSkill = d;
         d.ability = ability; d.apCost = 1; d.cooldown = 0; d.sacrificeLimit = 10;
         d.lightningFactionMask = SpecialFactionMask.Hostile;
+        d.crossbowInitialAmmo = 0;
         d.bombExplosionRadius = 1; d.bombFactionMask = SpecialFactionMask.Hostile; d.bombOnHolderDeathPolicy = BombDeathPolicy.Cancel;
         CombatRegistry.Register(actor); return actor;
     }
@@ -35,6 +36,12 @@ public static class SpecialSkillActionTests
         => JsonUtility.FromJson<SaveSystem.UnitSaveData>(JsonUtility.ToJson(SaveSystem.CaptureUnit(unit)));
     static void Load(Status unit, SaveSystem.UnitSaveData saved)
     { SaveGameApplier.ApplyStatusFields(unit, saved); SpecialSkillRuntime.RestoreLinks(); }
+    static void ShootStake(GameSystems systems, Status caster, Status target)
+    {
+        Cast(systems, caster);
+        Check("stake round follows a successful normal shot", SpecialSkillRuntime.TryBeginNormalShot(caster, out var round) && round == CrossbowRoundType.Stake);
+        SpecialSkillRuntime.CompleteNormalShot(caster, target, round, true);
+    }
 
     public static void PlayMode(GameSystems systems)
     {
@@ -64,16 +71,20 @@ public static class SpecialSkillActionTests
             map.SetPos.Add(deniedTile);
 
             var lineCaster = Actor(UnitSpecialSkill.CrossbowStakes, Team.Enemy, 40080, 40000);
-            var a = Actor(UnitSpecialSkill.None, Team.Player, 40100, 40000);
-            var b = Actor(UnitSpecialSkill.None, Team.Player, 40100, 40010);
-            See(lineCaster, a, b); Cast(systems, lineCaster, a); Cast(systems, lineCaster, b);
-            var runner = Actor(UnitSpecialSkill.KnightBreakthrough, Team.Player, 40100, 40002); runner.kind = Kind.Knight; runner.direction = Direction.N;
+            var a = Actor(UnitSpecialSkill.None, Team.Player, 40098, 40003);
+            var b = Actor(UnitSpecialSkill.None, Team.Player, 40102, 40003);
+            See(lineCaster, a, b); ShootStake(systems, lineCaster, a); ShootStake(systems, lineCaster, b);
+            // Keep the same rear-attack relationship before/after crossing so this fixture
+            // isolates one line hit, rather than also changing the normal damage formula.
+            var runner = Actor(UnitSpecialSkill.KnightBreakthrough, Team.Player, 40100, 40001); runner.kind = Kind.Knight; runner.direction = Direction.N;
             int lineHit = Mathf.FloorToInt(DamageCalculator.CalcNormal(lineCaster, runner) * SpecialSkillRuntime.LightningMultiplier(lineCaster));
             Cast(systems, runner);
-            Check("Knight's three-step action receives one hit from a given line", runner.GridPosition.z == 40005 && runner.HP == runner.MaxHP - lineHit);
+            Check("Knight's three-step action receives one hit when entering a given line"
+                + $" (z={runner.GridPosition.z}, HP={runner.HP}/{runner.MaxHP}, expected loss={lineHit})",
+                runner.GridPosition.z == 40004 && runner.HP == runner.MaxHP - lineHit);
             runner.HP = runner.MaxHP;
             int repeatedHit = Mathf.FloorToInt(DamageCalculator.CalcNormal(lineCaster, runner) * SpecialSkillRuntime.LightningMultiplier(lineCaster));
-            SpecialSkillRuntime.OnMoved(runner, new Vector3(40100, 1, 40002), new Vector3(40100, 1, 40009), systems);
+            SpecialSkillRuntime.OnMoved(runner, new Vector3(40100, 1, 40001), new Vector3(40100, 1, 40009), systems);
             Check("crossing many lightning cells in one move is one hit", runner.HP == runner.MaxHP - repeatedHit);
             Check("missing observed endpoint contributes no secret line", SpecialSkillRuntime.HazardDamageAt(runner, new Vector3(40100, 1, 40008), new List<Status> { lineCaster, a }) == 0);
 
@@ -173,14 +184,15 @@ public static class SpecialSkillActionTests
             rage.berserkerDefenceCurve = AnimationCurve.Linear(0, 1, 5, .5f);
             rage.berserkerAttackAPCurve = AnimationCurve.Linear(0, 1, 1, 5);
             systems.FactionState.SetAP(Team.Player, APSystem.MaximumAP);
+            int rageAPCap = systems.FactionState.GetAP(Team.Player);
             Check("Berserker cannot skip straight to third stage or spend AP", !SpecialSkillRuntime.TryExecute(new SpecialSkillCommand(berserker, berserkerStage: 3), systems, out _)
-                && berserker.Special.berserkerStage == 0 && systems.FactionState.GetAP(Team.Player) == APSystem.MaximumAP);
+                && berserker.Special.berserkerStage == 0 && systems.FactionState.GetAP(Team.Player) == rageAPCap);
             Cast(systems, berserker);
             Check("Berserker first use reaches only stage one for five AP", berserker.Special.berserkerStage == 1
-                && systems.FactionState.GetAP(Team.Player) == APSystem.MaximumAP - 5 && SpecialSkillRuntime.GetAPCost(berserker) == 8);
+                && systems.FactionState.GetAP(Team.Player) == rageAPCap - 5 && SpecialSkillRuntime.GetAPCost(berserker) == 8);
             Cast(systems, berserker); Cast(systems, berserker);
             Check("Berserker repeated uses progress to stage three for eleven AP", berserker.Special.berserkerStage == 3
-                && SpecialSkillRuntime.GetAPCost(berserker) == 15 && systems.FactionState.GetAP(Team.Player) == APSystem.MaximumAP - 11);
+                && SpecialSkillRuntime.GetAPCost(berserker) == 15 && systems.FactionState.GetAP(Team.Player) == rageAPCap - 11);
             var rageSave = Save(berserker); Cast(systems, berserker, berserkerStage: 4); float fourthStage = SpecialSkillRuntime.GetAttackMultiplier(berserker, assailant);
             Load(berserker, rageSave); Cast(systems, berserker, berserkerStage: 4);
             Check("Berserker stage Save Load preserves authored strength", Mathf.Approximately(SpecialSkillRuntime.GetAttackMultiplier(berserker, assailant), fourthStage));
@@ -193,7 +205,7 @@ public static class SpecialSkillActionTests
                 && SpecialSkillRuntime.GetDEFModifier(berserker) == .5f && SpecialSkillRuntime.AttackAPAdjustment(berserker, 2) == 6);
             systems.FactionState.SetAP(Team.Player, APSystem.MaximumAP);
             Check("maximum-stage Berserker cannot cast again or pay AP", !SpecialSkillRuntime.TryExecute(new SpecialSkillCommand(berserker), systems, out _)
-                && berserker.Special.berserkerStage == 5 && systems.FactionState.GetAP(Team.Player) == APSystem.MaximumAP);
+                && berserker.Special.berserkerStage == 5 && systems.FactionState.GetAP(Team.Player) == rageAPCap);
             berserker.ActiveEffects.Add(new ActiveEffect(BuffType.Insight, 2)); SpecialSkillRuntime.OnAttackLanded(berserker, false);
             Check("non-normal damage preserves Berserker's next normal-attack enhancement", berserker.Special.berserkerStage == 5);
             SpecialSkillRuntime.OnAttackLanded(berserker);
@@ -202,7 +214,7 @@ public static class SpecialSkillActionTests
             Check("Berserker restarts at first stage after its normal attack", berserker.Special.berserkerStage == 1);
             systems.FactionState.SetAP(Team.Player, APSystem.MaximumAP);
             Check("stale Berserker command cannot replay its previous stage", !SpecialSkillRuntime.TryExecute(new SpecialSkillCommand(berserker, berserkerStage: 1), systems, out _)
-                && berserker.Special.berserkerStage == 1 && systems.FactionState.GetAP(Team.Player) == APSystem.MaximumAP);
+                && berserker.Special.berserkerStage == 1 && systems.FactionState.GetAP(Team.Player) == rageAPCap);
 
             var navigator = Actor(UnitSpecialSkill.NavigatorPull, Team.Player, 40270, 40000); navigator.direction = Direction.N;
             navigator.GrowthData.specialSkill.navigatorAPDamageCurve = AnimationCurve.Linear(0, 1, APSystem.MaximumAP, 2);

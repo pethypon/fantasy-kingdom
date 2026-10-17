@@ -1,0 +1,6 @@
+{
+  "name": "FantasyKingdom.R1.EditModeTests",
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

@@ -280,6 +280,20 @@ public sealed class AIActionFeatureExtractor
         Add(Mathf.Clamp(state.ninjaCharge, 0, 5));
         Add(Mathf.Clamp(state.berserkerStage, 0, 5));
         Add(Mathf.Clamp(state.holyKnightTurns, 0, 3)); Flag(state.holyKnightRecoveryLock);
+        Add(Mathf.Clamp(state.archerEscapeTurns, 0, SpecialSkillDefinition.ArcherEscapeDuration));
+        Add(Mathf.Clamp(state.archerSnapshotIds?.Count ?? 0, 0, 100000));
+        Add(Mathf.Clamp(state.tauntTurns, 0, SpecialSkillDefinition.SamuraiTauntDuration)); Flag(!string.IsNullOrEmpty(state.tauntedById));
+        Add(Mathf.Clamp(state.assassinBoostTurns, 0, 100000)); Add(Mathf.Clamp(state.assassinBoostStacks, 0, 32));
+        Flag(state.scoutFreeMoveUsed); Flag(state.scoutFreeAttackUsed);
+        Add(Mathf.Clamp(state.guardianAttackCount, 0, 100000)); Add(Mathf.Clamp(state.bomberIdleTurns, 0, SpecialSkillDefinition.BomberIdleLimit));
+        Flag(state.dealtDamage);
+        // FIFO order is a functional preparation state. Absolute shot/load sequence values
+        // are replay bookkeeping and must not create spurious learning progress.
+        Add(Mathf.Clamp(state.crossbowMagazine?.Count ?? 0, 0, 3));
+        if (state.crossbowMagazine != null)
+            for (int i = 0; i < Mathf.Min(3, state.crossbowMagazine.Count); i++) Add((int)state.crossbowMagazine[i]);
+        if (state.paladinCycles != null) foreach (var cycle in state.paladinCycles)
+        { Add(Mathf.Clamp(cycle.stolenAttack,0,1000000)); Add(Mathf.Clamp(cycle.returnedAttack,0,1000000)); Flag(cycle.returned); }
         return signature;
     }
     static int CommandRelationshipSignature(SpecialState state, Status observedTarget)
@@ -290,7 +304,8 @@ public sealed class AIActionFeatureExtractor
         // Relationship bits are compared only while the same target is observed before and after.
         // This detects FIFO stake replacement without hashing identities or crediting visibility loss.
         int relationships = (state.ritualTargetId == id ? 1 : 0) | (state.guardianPartnerId == id ? 2 : 0)
-            | (state.stakeAId == id ? 4 : 0) | (state.stakeBId == id ? 8 : 0) | (state.sniperTargetId == id ? 16 : 0);
+            | (state.stakeAId == id ? 4 : 0) | (state.stakeBId == id ? 8 : 0) | (state.sniperTargetId == id ? 16 : 0)
+            | (state.tauntedById == id ? 32 : 0) | (state.archerSnapshotIds.Contains(id) ? 64 : 0);
         return relationships * 104729;
     }
     static int Remaining(int end, int start, int maximum)

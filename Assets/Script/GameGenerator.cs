@@ -102,6 +102,7 @@ public class GameGenerator : MonoBehaviour
 
     private void StartGameInit(int loadSlot = -1)
     {
+        SpecialSkillRuntime.ResetForMatch();
         UniqueRewardSystem.Records.Clear();
         var content = R1ContentCatalog.Load();
         SkillData.FixedSkillIds.Clear();

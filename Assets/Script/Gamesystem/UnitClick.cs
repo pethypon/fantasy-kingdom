@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -149,7 +149,7 @@ public class UnitClick : MonoBehaviour
     private bool IsVisibleHostile(Status target) => target != null && target.IsAlive
         && target.team != Team.Player && target.team != Team.None
         && turnGenerator.Systems.VisionGenerator != null
-        && turnGenerator.Systems.VisionGenerator.IsInVisionXZ(Team.Player, target.transform.position);
+        && turnGenerator.Systems.VisionGenerator.IsActorVisibleTo(Team.Player, target);
 
     private void HandleNormalAttackClick(RaycastHit hit)
     {
@@ -165,10 +165,10 @@ public class UnitClick : MonoBehaviour
         battlesystem.SetTarget(AttackTarget);
         playermove.MenuSwitch = false;
         int hpBefore = AttackTarget.HP;
+        turnGenerator.Systems.APSystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.SelectedUnit);
         battlesystem.ProcessDamage(turnGenerator);
         int dmgDealt = hpBefore - AttackTarget.HP;
         ActionLogUI.LogAttack(KindNameJP.Get(playermove.SelectedUnit), KindNameJP.Get(AttackTarget), dmgDealt, AttackTarget.HP <= 0);
-        turnGenerator.Systems.APSystem.Consume(Team.Player, APSystem.ActionType.Attack, playermove.SelectedUnit);
         playerattack.AttackSuccess = true;
     }
 
@@ -332,18 +332,26 @@ public class UnitClick : MonoBehaviour
         // ---- 移動確定 ----
         Status movedUnit = turnGenerator.Context.SelectUnit;
 
+        if (map.Environment.IsCaveMove(from, to))
+        {
+            if (!map.Environment.TryBeginCaveTransit(movedUnit, to, turnGenerator.Context.Turn, turnGenerator.Systems)) return;
+            turnGenerator.Systems.APSystem.Consume(Team.Player, APSystem.ActionType.Move, movedUnit, from, to);
+            turnGenerator.Systems.MoveUndoSystem?.Clear();
+            playermove.Reset(); moves.MoveReset(); turnGenerator.Systems.RefreshVision(); return;
+        }
+
         // ---- Undo用に移動コストを事前計算・記録 ----
         int moveCost = turnGenerator.Systems.APSystem.CalcCost(APSystem.ActionType.Move, playermove.SelectedUnit, from, to);
         if (turnGenerator.Systems.MoveUndoSystem != null)
             turnGenerator.Systems.MoveUndoSystem.Record(movedUnit, from, to, moveCost);
 
+        turnGenerator.Systems.APSystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.SelectedUnit, from, to);
         turnGenerator.Context.SelectUnit.transform.position = to;
         turnGenerator.Context.NewCell = turnGenerator.Context.SelectUnit.transform.position;
         turnGenerator.Systems.MoveGenerator.MoveUpdate(turnGenerator.Context.OldCell, turnGenerator.Context.NewCell);
         turnGenerator.Systems.MoveGenerator.MoveReset();
 
         // ---- AP消費（移動コスト） ----
-        turnGenerator.Systems.APSystem.Consume(Team.Player, APSystem.ActionType.Move, playermove.SelectedUnit, from, to);
         movedUnit.HasMovedThisTurn = true;
         SpecialSkillRuntime.OnMoved(movedUnit, from, to, turnGenerator.Systems);
         if (!movedUnit.IsAlive)
@@ -413,8 +421,14 @@ public class UnitClick : MonoBehaviour
     }
 
     /// <summary>Shared target eligibility for normal attack clicks and their preview.</summary>
-    public bool CanTargetNormalAttack(Status target) => attackGenerator != null
-        && IsVisibleHostile(target) && IsInAttackRange(attackGenerator.AttackP, target.transform.position);
+    public bool CanTargetNormalAttack(Status target)
+    {
+        var generator = turnGenerator?.Systems?.AttackGenerator ?? attackGenerator;
+        var attacker = turnGenerator?.Context?.SelectUnit ?? generator?.TargetUnit;
+        return generator != null && target != null && SpecialSkillRuntime.CanNormalAttackTarget(attacker, target)
+            && (IsVisibleHostile(target) || SpecialSkillRuntime.IsAssassinAllyTarget(attacker, target))
+            && IsInAttackRange(generator.AttackP, target.transform.position);
+    }
 
     // ---- LINQ排除: 攻撃範囲内判定 ----
     private static bool IsInAttackRange(List<Vector3> attackP, Vector3 pos)

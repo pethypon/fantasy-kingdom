@@ -34,6 +34,18 @@ public sealed class SpecialSkillSelectionUI : MonoBehaviour
     {
         if (instance != null) instance.Close();
     }
+    public static void ShowForSacrifices(Status caster, Status selectedTarget, GameSystems systems)
+    {
+        Show(caster, systems);
+        if (instance == null) return;
+        instance.target = selectedTarget;
+        foreach (var entry in instance.targetImages)
+        {
+            var button = entry.Value != null ? entry.Value.GetComponent<Button>() : null;
+            if (button != null) button.interactable = entry.Key == selectedTarget;
+        }
+        instance.RefreshSelection();
+    }
 
     void OnDestroy()
     {
@@ -71,6 +83,10 @@ public sealed class SpecialSkillSelectionUI : MonoBehaviour
         var root = UIFactory.CreatePanel("SpecialSkillOverlay", UIBuilder.ScreenCanvas.transform,
             Vector2.zero, Vector2.one, new Vector2(.5f, .5f), Vector2.zero);
         UIFactory.StretchFill(root); overlay = root.gameObject;
+        // Independent HUD canvases (log, AP preview, hints) must not draw or receive clicks above the modal.
+        var modalCanvas = root.gameObject.AddComponent<Canvas>();
+        modalCanvas.overrideSorting = true; modalCanvas.sortingOrder = 250;
+        root.gameObject.AddComponent<GraphicRaycaster>();
         root.SetAsLastSibling();
         UIFactory.AddImage(root.gameObject, new Color(0, 0, 0, .8f));
         var panel = UIFactory.CreatePanel("SpecialSkillPanel", root, new Vector2(.1f, .12f),
@@ -254,8 +270,8 @@ public sealed class SpecialSkillSelectionUI : MonoBehaviour
         try
         {
             turn.Context.SelectUnit = attacker;
-            systems.BattleSystem.ProcessDamage(turn);
             systems.APSystem.Consume(Team.Player, APSystem.ActionType.Attack, attacker);
+            systems.BattleSystem.ProcessDamage(turn);
             ActionLogUI.LogAttack(KindNameJP.Get(attacker), KindNameJP.Get(target), Mathf.Max(0, before - target.HP), !target.IsAlive);
         }
         finally

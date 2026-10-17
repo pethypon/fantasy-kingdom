@@ -77,6 +77,33 @@ public class VisionGenerator : MonoBehaviour
         return false;
     }
 
+    /// <summary>Entity visibility respects per-observer stealth without hiding the shared terrain tile.</summary>
+    public bool IsActorVisibleTo(Team team, Status actor)
+    {
+        if (actor == null || !actor.IsAlive) return false;
+        if (actor.team == team) return true;
+        return IsInVisionXZ(team, actor.transform.position) && HasUnblockedObserver(team, actor);
+    }
+
+    bool HasUnblockedObserver(Team team, Status actor)
+    {
+        if (actor == null) return true;
+        var state = SpecialSkillRuntime.State(actor);
+        if (state.archerEscapeTurns <= 0 || state.archerSnapshotIds.Count == 0) return true;
+        // Only friendly observers are read. Unseen hostile positions never participate in knowledge evaluation.
+        var iterator = CombatRegistry.Enumerate();
+        try
+        {
+            while (iterator.MoveNext())
+            {
+                var observer = iterator.Current;
+                if (observer != null && observer.IsAlive && observer.team == team && SpecialSkillRuntime.InVision(observer, actor)) return true;
+            }
+        }
+        finally { iterator.Dispose(); }
+        return false;
+    }
+
     public bool IsInVision(Team team, Vector3Int cell)
     {
         var set = team == Team.Player ? _playerVisionBox : _enemyVisionBox;
@@ -288,6 +315,7 @@ public class VisionGenerator : MonoBehaviour
     void CollectStatuses(Transform parent, List<Status> result)
     {
         result.Clear();
+        if (parent == null) return;
         foreach (Transform child in parent)
         {
             if (child == null) continue;
@@ -431,7 +459,8 @@ public class VisionGenerator : MonoBehaviour
             if (!Temporary.gameObject.activeInHierarchy) continue;
 
             var data = GridHelper.ToGridXZ(Temporary.position);
-            bool visible = visionXZ.Contains(data);
+            var actor = Temporary.GetComponentInChildren<Status>(true);
+            bool visible = visionXZ.Contains(data) && HasUnblockedObserver(Team.Player, actor);
             Temporary.GetComponentsInChildren(true, _visRenderers);
             foreach (var r in _visRenderers) r.enabled = visible;
 
@@ -571,15 +600,22 @@ public class VisionGenerator : MonoBehaviour
 
         // Special Ability: 監視眼（視界+1）+ StatusEffect の視界修飾
         int visionBonus = SpecialAbilitySystem.GetVisionBonus(status)
-                        + StatusEffectSystem.GetVisionModifier(status);
+                        + StatusEffectSystem.GetVisionModifier(status)
+                        + mapcreate.Environment.VisionModifier(status.transform.position);
         if (SpecialSkillRuntime.State(status).scoutVisionPenaltyTurns > 0) visionBonus -= 2;
 
         // 高台ボーナス: 周囲1マス平均より高ければ視界+1
         if (IsOnHighGround(status, mapcreate))
             visionBonus += 1;
 
+        int baseRadius = 0;
+        foreach (var offset in visionData) baseRadius = Mathf.Max(baseRadius,
+            Mathf.Max(Mathf.Abs(offset.x), Mathf.Max(Mathf.Abs(offset.y), Mathf.Abs(offset.z))));
+        int reducedRadius = Mathf.Max(0, baseRadius + Mathf.Min(0, visionBonus));
+
         foreach (Vector3Int p in visionData)
         {
+            if (visionBonus < 0 && Mathf.Max(Mathf.Abs(p.x), Mathf.Max(Mathf.Abs(p.y), Mathf.Abs(p.z))) > reducedRadius) continue;
             Vector3Int directionP = p;
 
             int px = statusX + directionP.x;

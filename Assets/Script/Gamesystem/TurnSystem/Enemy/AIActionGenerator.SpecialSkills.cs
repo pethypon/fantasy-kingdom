@@ -3,6 +3,24 @@ using UnityEngine;
 
 public static partial class AIActionGenerator
 {
+    public static bool IsFreeBattleAction(AIAction action) => action != null && action.APCost == 0
+        && (action.ActionType == AIActionType.Attack || action.ActionType == AIActionType.Move
+            || action.ActionType == AIActionType.Retreat || action.ActionType == AIActionType.Support
+            || action.ActionType == AIActionType.Surround || action.ActionType == AIActionType.DefenseRepos);
+    // Called only at AP0. Shared cost validation consumes the one-use Scout token on execution;
+    // the existing per-turn iteration/time budgets remain the independent termination guard.
+    public static bool HasFreeBattleAction(AIBoardState board)
+    {
+        if (board == null) return false;
+        foreach (var actor in board.AliveEnemyUnits)
+        {
+            if (actor == null || !actor.IsAlive || StatusEffectSystem.IsStunned(actor)) continue;
+            if (board.CalcAttackCost(actor) == 0 && board.GetAttackTargets(actor).Count > 0) return true;
+            if (StatusEffectSystem.IsMovementBlocked(actor) || SpecialSkillRuntime.MovementBlocked(actor)) continue;
+            foreach (var point in board.GetValidMoves(actor)) if (board.CalcMoveCost(actor, point) == 0) return true;
+        }
+        return false;
+    }
     const int MaximumSpecialTargets = 8;
     // Scratch belongs to one synchronous candidate generation; no subset enumeration.
     static readonly List<Status> specialTargets = new List<Status>(32);

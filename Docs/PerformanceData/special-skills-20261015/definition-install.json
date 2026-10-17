@@ -1,7 +1,121 @@
 {
-  "Count": 0,
-  "ModifiedUnitData": [],
-  "SpecifiedAP": true,
+  "DefinitionCount": 10,
+  "AssignedUnitDataCount": 10,
+  "PreviouslyAssignedReferencesPreserved": true,
+  "EnabledDefinitionCount": 0,
   "UnknownValuesPreserved": true,
-  "EnabledAfterAuthorCompletesSettings": false
+  "Assignments": [
+    {
+      "UnitData": "Assets/Data/Unit/Knight.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_3a6c94b3.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Guardian.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Guardian_beef82bb.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Archer.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Archer_6cf96d63.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Priest.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Priest_55d55d89.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Assassin.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Assassin_227de916.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Magic Sniper.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Magicsniper_48453cdd.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Crossbow.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Crossbow_7352050f.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Scout.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Scout_c1edb57c.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Magic.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Magic_e6fdbbe1.asset"
+    },
+    {
+      "UnitData": "Assets/Data/Unit/Bomber.asset",
+      "Definition": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Bomber_c221ddb5.asset"
+    }
+  ],
+  "Definitions": [
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Archer_6cf96d63.asset",
+      "Ability": "2",
+      "AP": "0",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Assassin_227de916.asset",
+      "Ability": "4",
+      "AP": "14",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Bomber_c221ddb5.asset",
+      "Ability": "10",
+      "AP": "20",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Crossbow_7352050f.asset",
+      "Ability": "8",
+      "AP": "10",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Guardian_beef82bb.asset",
+      "Ability": "7",
+      "AP": "18",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_3a6c94b3.asset",
+      "Ability": "1",
+      "AP": "14",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Magicsniper_48453cdd.asset",
+      "Ability": "9",
+      "AP": "18",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Magic_e6fdbbe1.asset",
+      "Ability": "3",
+      "AP": "22",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Priest_55d55d89.asset",
+      "Ability": "6",
+      "AP": "8",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    },
+    {
+      "Path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Scout_c1edb57c.asset",
+      "Ability": "5",
+      "AP": "20",
+      "Cooldown": "-1",
+      "Enabled": "0"
+    }
+  ]
 }

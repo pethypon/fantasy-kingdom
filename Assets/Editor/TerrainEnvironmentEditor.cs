@@ -34,6 +34,18 @@ public sealed class TerrainEnvironmentEditor : EditorWindow
             AssetDatabase.CreateAsset(asset, AssetPath);
         }
         if (asset.definitions == null) asset.definitions = new List<TerrainEnvironmentDefinition>();
+        foreach (var existing in asset.definitions)
+        {
+            if (existing == null) continue;
+            // Fill only values explicitly settled by R1; authored tuning and opt-in activation remain intact.
+            if ((existing.kind == TerrainEnvironmentKind.Forest || existing.kind == TerrainEnvironmentKind.Smoke) && existing.burnSmokeRounds < 0)
+                existing.burnSmokeRounds = 30;
+            if (existing.kind == TerrainEnvironmentKind.Geyser && existing.maximumHpDamageFraction < 0)
+                existing.maximumHpDamageFraction = TerrainEnvironmentDefinition.GeyserDamageFraction;
+            if (existing.kind == TerrainEnvironmentKind.Smoke && existing.maximumHpDamageFraction < 0)
+                existing.maximumHpDamageFraction = .10f;
+            EditorUtility.SetDirty(existing);
+        }
         foreach (TerrainEnvironmentKind kind in Enum.GetValues(typeof(TerrainEnvironmentKind)))
         {
             bool exists = false;
@@ -48,7 +60,11 @@ public sealed class TerrainEnvironmentEditor : EditorWindow
             value.blocksVision = kind == TerrainEnvironmentKind.Forest || kind == TerrainEnvironmentKind.Rock || kind == TerrainEnvironmentKind.Smoke;
             value.concealsOccupants = kind == TerrainEnvironmentKind.Forest || kind == TerrainEnvironmentKind.Bush || kind == TerrainEnvironmentKind.Smoke;
             value.burnable = kind == TerrainEnvironmentKind.Forest;
-            value.damageOnEntry = value.damageOnOwnerTurn = kind == TerrainEnvironmentKind.PoisonSwamp || kind == TerrainEnvironmentKind.Geyser;
+            value.damageOnEntry = kind == TerrainEnvironmentKind.PoisonSwamp || kind == TerrainEnvironmentKind.Geyser;
+            value.damageOnOwnerTurn = kind == TerrainEnvironmentKind.PoisonSwamp || kind == TerrainEnvironmentKind.Smoke;
+            value.hidden = kind == TerrainEnvironmentKind.Geyser;
+            if (kind == TerrainEnvironmentKind.Geyser) value.maximumHpDamageFraction = .25f;
+            if (kind == TerrainEnvironmentKind.Smoke) value.maximumHpDamageFraction = .10f;
             AssetDatabase.AddObjectToAsset(value, asset); asset.definitions.Add(value);
         }
         EditorUtility.SetDirty(asset); AssetDatabase.SaveAssets();
@@ -108,7 +124,20 @@ public sealed class TerrainEnvironmentEditor : EditorWindow
             {
                 Undo.RecordObject(catalog, "洞窟の接続先変更"); selection.hasCaveExit = hasExit; selection.caveExit = exit; EditorUtility.SetDirty(catalog);
             }
-            EditorGUILayout.HelpBox("双方向にしたい場合は出口側にも洞窟を置き、入口を接続先に設定します。出口が岩・水・高山・占有マスの場合は移動できません。AIは探索済みの接続だけを使います。", MessageType.None);
+            EditorGUILayout.HelpBox("洞窟は入口・出口の2地点が互いに接続されて初めて使用できます。使用AP3・次の自軍ターンに到着・同時利用1体です。再利用待ちターン数を設定してください。AIは探索済みの接続だけを使います。", MessageType.None);
+            if (selection.hasCaveExit && selection.caveExit != selection.cell && GUILayout.Button("出口にも洞窟を置いて相互接続する"))
+            {
+                var other = Find(selection.caveExit);
+                if (other != null && other.definition != null && other.definition.kind != TerrainEnvironmentKind.Cave)
+                    ShowNotification(new GUIContent("出口には別の環境があります。先に配置を変更してください。"));
+                else
+                {
+                    Undo.RecordObject(catalog, "洞窟の相互接続");
+                    if (other == null) { other = new TerrainEnvironmentPlacement { cell = selection.caveExit }; catalog.placements.Add(other); }
+                    other.definition = selection.definition; other.hasCaveExit = true; other.caveExit = selection.cell;
+                    EditorUtility.SetDirty(catalog);
+                }
+            }
         }
         EditorGUILayout.LabelField("配置数: " + catalog.placements.Count);
         if (brush != null)
@@ -142,8 +171,8 @@ public sealed class TerrainEnvironmentEditor : EditorWindow
 [CustomEditor(typeof(TerrainEnvironmentDefinition))]
 public sealed class TerrainEnvironmentDefinitionInspector : Editor
 {
-    static readonly string[] Fields = { "definitionId", "displayName", "kind", "enabledForPlay", "visualPrefab", "blocksMovement", "blocksShots", "blocksVision", "concealsOccupants", "revealDistance", "moveAPAdjustment", "damageOnEntry", "damageOnOwnerTurn", "flatDamage", "maximumHpDamageFraction", "maximumHpHealFraction", "burnable", "burnSmokeRounds", "burnSmokeRevealDistance" };
-    static readonly string[] Labels = { "識別ID（保存後は変更しない）", "表示名", "環境の種類", "ゲームで使用する", "見た目のプレハブ", "移動を遮る", "射線を遮る", "奥の視界を遮る", "マス内の駒を隠す", "隠密を確認できる距離", "移動APの補正", "侵入時にダメージ", "所有ターン開始時にダメージ", "固定ダメージ", "最大HPに対するダメージ割合", "毎ターンの回復割合", "焼却可能", "焼却後の煙のラウンド数", "焼却後の煙の確認距離" };
+    static readonly string[] Fields = { "definitionId", "displayName", "kind", "enabledForPlay", "visualPrefab", "blocksMovement", "blocksShots", "blocksVision", "concealsOccupants", "revealDistance", "moveAPAdjustment", "hidden", "attackRevealRounds", "caveCooldownTurns", "damageOnEntry", "damageOnOwnerTurn", "flatDamage", "maximumHpDamageFraction", "maximumHpHealFraction", "burnable", "burnSmokeRounds", "burnSmokeDamageFraction", "burnSmokeRevealDistance" };
+    static readonly string[] Labels = { "識別ID（保存後は変更しない）", "表示名", "環境の種類", "ゲームで使用する", "見た目のプレハブ", "移動を遮る", "射線を遮る", "奥の視界を遮る", "マス内の駒を隠す", "隠密を確認できる距離", "移動APの補正", "未発見時に隠す", "森の攻撃後露見ラウンド数", "洞窟の再利用待ちターン数", "侵入時にダメージ", "所有ターン開始時にダメージ", "固定ダメージ", "最大HPに対するダメージ割合", "毎ターンの回復割合", "焼却可能", "煙の持続ラウンド数（標準30）", "煙の毎ターンダメージ割合（標準10%）", "焼却後の煙の確認距離" };
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -161,7 +190,9 @@ public sealed class TerrainEnvironmentDefinitionInspector : Editor
         serializedObject.ApplyModifiedProperties();
         var definition = (TerrainEnvironmentDefinition)target;
         if (definition.ConfigurationError != null) EditorGUILayout.HelpBox(definition.ConfigurationError + "。この環境の効果はまだ有効になりません。", MessageType.Warning);
-        if (definition.kind == TerrainEnvironmentKind.Geyser) EditorGUILayout.HelpBox("最大HP25%は提案段階のため、自動では設定しません。割合を0.25にすると25%になります。", MessageType.Info);
+        if (definition.kind == TerrainEnvironmentKind.Geyser) EditorGUILayout.HelpBox("隠し間欠泉は侵入時（強制移動を含む）に最大HP25%ダメージ。作動した陣営にだけ発見情報が残ります。", MessageType.Info);
+        if (definition.kind == TerrainEnvironmentKind.Rock) EditorGUILayout.HelpBox("岩場の駒は遠距離ダメージ×0.75、Stoneタグの攻撃ダメージ×1.25。名前の文字列では判定しません。", MessageType.Info);
+        if (definition.kind == TerrainEnvironmentKind.Forest) EditorGUILayout.HelpBox("森内部の視界-1。近距離1マスなら確認可能。攻撃後の露見時間はUNRESOLVED_BALANCEです。", MessageType.Info);
     }
 }
 

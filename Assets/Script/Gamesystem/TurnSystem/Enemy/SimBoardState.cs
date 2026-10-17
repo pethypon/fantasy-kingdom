@@ -18,6 +18,7 @@ public partial class SimBoardState
     public List<SimUnit> Units;
     // Definition values are captured once. Nested clones share this read-only snapshot.
     internal Dictionary<Kind, SimRecruitmentDefinition> RecruitmentDefinitions;
+    internal Kind[] RecruitmentKinds;
     public bool TryGetRecruitment(Kind kind, out SimRecruitmentDefinition definition)
     {
         definition = default;
@@ -112,6 +113,11 @@ public partial class SimBoardState
             foreach (var pair in unitSet.UnitDataMap)
                 if (pair.Value != null && pair.Value.IsValidForAuthoring)
                     state.RecruitmentDefinitions[pair.Key] = new SimRecruitmentDefinition(pair.Value);
+            // Captured once and shared by clones; enum order keeps equivalent snapshots deterministic.
+            var recruitmentKinds = new List<Kind>();
+            foreach (var kind in UnitRoster.SummonableKinds)
+                if (state.RecruitmentDefinitions.ContainsKey(kind)) recruitmentKinds.Add(kind);
+            state.RecruitmentKinds = recruitmentKinds.ToArray();
         }
         if (state.RealActorTeam == Team.Player)
         {
@@ -254,6 +260,7 @@ public partial class SimBoardState
         copy.EnemySummonDirection = EnemySummonDirection;
         copy.PlayerSummonDirection = PlayerSummonDirection;
         copy.RecruitmentDefinitions = RecruitmentDefinitions;
+        copy.RecruitmentKinds = RecruitmentKinds;
         copy.Units = SimBoardPool.RentUnitList(Units.Count);
         for (int i = 0; i < Units.Count; i++)
             copy.Units.Add(Units[i].Clone());
