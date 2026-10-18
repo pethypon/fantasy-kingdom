@@ -1,0 +1,44 @@
+{
+    "mode": "idle",
+    "unity": "6000.3.8f1",
+    "projectPath": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\UnityValidation",
+    "persistentDataPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdom_SpecialSkillVisual_acc76adfeedb483f89932e0949d70070",
+    "result": "Passed",
+    "diagnosticFlagPresent": true,
+    "playedFrames": 0,
+    "interpretation": "Editor-process snapshots; Unity tracked memory, managed heap, and OS process memory are separate measures. No value alone attributes a JobTempAlloc allocation or proves a leak.",
+    "samples": [
+        {
+            "phase": "editor-start",
+            "utc": "2026-10-17T21:37:51.8652811Z",
+            "frame": 1,
+            "gameObjects": 1,
+            "meshes": 0,
+            "materials": 4,
+            "textures": 105,
+            "unityAllocatedBytes": 142123524,
+            "unityReservedBytes": 488501248,
+            "unityUnusedReservedBytes": 346377724,
+            "monoUsedBytes": 19779584,
+            "monoHeapBytes": 115245056,
+            "processPrivateBytes": 0,
+            "processWorkingSetBytes": 0
+        },
+        {
+            "phase": "editor-idle",
+            "utc": "2026-10-17T21:37:54.8633674Z",
+            "frame": 3,
+            "gameObjects": 1,
+            "meshes": 0,
+            "materials": 8,
+            "textures": 125,
+            "unityAllocatedBytes": 139700644,
+            "unityReservedBytes": 488501248,
+            "unityUnusedReservedBytes": 348800604,
+            "monoUsedBytes": 14675968,
+            "monoHeapBytes": 115245056,
+            "processPrivateBytes": 0,
+            "processWorkingSetBytes": 0
+        }
+    ]
+}

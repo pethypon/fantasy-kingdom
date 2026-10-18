@@ -24,7 +24,7 @@ public static partial class SaveSystem
     static readonly Action<GameSaveData>[] MigrationSteps =
     {
         Migrate_V0_to_V1, Migrate_V1_to_V2, Migrate_V2_to_V3, Migrate_V3_to_V4,
-        Migrate_V4_to_V5, Migrate_V5_to_V6, Migrate_V6_to_V7, Migrate_V7_to_V8
+        Migrate_V4_to_V5, Migrate_V5_to_V6, Migrate_V6_to_V7, Migrate_V7_to_V8, Migrate_V8_to_V9
     };
     public static bool ValidateMigrationChain(out string reason)
     {
@@ -64,6 +64,12 @@ public static partial class SaveSystem
         if (data.Units == null) return;
         foreach (var unit in data.Units)
             if (unit != null) unit.HasDefinitionStatSnapshot = false;
+    }
+    static void Migrate_V8_to_V9(GameSaveData data)
+    {
+        // Old formats did not identify a match. Derive a stable identity from its immutable
+        // generation/AI identity, rather than awarding a fresh identity on every load.
+        data.MatchId = LegacyMatchId(data);
     }
     static void Migrate_V6_to_V7(GameSaveData data)
     {

@@ -32,6 +32,7 @@ public static class R1MemoryDiagnostics
         public int frame, gameObjects, meshes, materials, textures;
         public long unityAllocatedBytes, unityReservedBytes, unityUnusedReservedBytes;
         public long monoUsedBytes, monoHeapBytes, processPrivateBytes, processWorkingSetBytes;
+        public bool processMemoryAvailable;
     }
 
     [Serializable]
@@ -103,7 +104,7 @@ public static class R1MemoryDiagnostics
                 if (title == null) return;
                 string project = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
                 var method = typeof(SaveSystem).GetMethod("UseTestStorageRoot", BindingFlags.Static | BindingFlags.NonPublic);
-                saveScope = (IDisposable)method.Invoke(null, new object[] { Path.Combine(project, "Temp/R1MemoryDiagnostics") });
+                saveScope = (IDisposable)method.Invoke(null, new object[] { Path.Combine(Path.GetTempPath(), "FantasyKingdomR1Memory-" + Guid.NewGuid().ToString("N")) });
                 var turn = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
                 turn?.MarkDeveloperMatch(); // Prevents persistent learning during this diagnostic match.
                 UnityEngine.Random.InitState(56192);
@@ -153,8 +154,7 @@ public static class R1MemoryDiagnostics
             unityReservedBytes = Profiler.GetTotalReservedMemoryLong(),
             unityUnusedReservedBytes = Profiler.GetTotalUnusedReservedMemoryLong(),
             monoUsedBytes = Profiler.GetMonoUsedSizeLong(), monoHeapBytes = Profiler.GetMonoHeapSizeLong() };
-        using (var process = Process.GetCurrentProcess())
-        { process.Refresh(); sample.processPrivateBytes = process.PrivateMemorySize64; sample.processWorkingSetBytes = process.WorkingSet64; }
+        ReadProcessMemory(sample);
         // Count after memory sampling so these temporary query arrays do not inflate the snapshot above.
         sample.gameObjects = Resources.FindObjectsOfTypeAll<GameObject>().Length;
         sample.meshes = Resources.FindObjectsOfTypeAll<Mesh>().Length;
@@ -162,6 +162,23 @@ public static class R1MemoryDiagnostics
         sample.textures = Resources.FindObjectsOfTypeAll<Texture>().Length;
         var report = ReadReport(); report.samples.Add(sample); SaveReport(report);
         Debug.Log("[R1MemoryDiagnostics] SAMPLE " + JsonUtility.ToJson(sample));
+    }
+
+    static void ReadProcessMemory(Sample sample)
+    {
+        try
+        {
+            using (var process = Process.GetCurrentProcess())
+            {
+                process.Refresh();
+                sample.processPrivateBytes = process.PrivateMemorySize64;
+                sample.processWorkingSetBytes = process.WorkingSet64;
+                // Unity Mono may supply zeros. Treat them as unavailable; use the external
+                // host-process.csv sampler for OS process memory instead of interpreting zeros.
+                sample.processMemoryAvailable = sample.processPrivateBytes > 0 && sample.processWorkingSetBytes > 0;
+            }
+        }
+        catch (NotSupportedException) { }
     }
 
     static Report ReadReport() => JsonUtility.FromJson<Report>(SessionState.GetString(Key + "Report", "{}"));

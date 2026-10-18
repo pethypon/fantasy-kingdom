@@ -271,6 +271,7 @@ public class SummonSystem : MonoBehaviour
             {
                 spawnedStatus.team = team;
                 spawnedStatus.direction = dir;
+                BoardActorAnimation.NotifyFacing(spawnedStatus);
             }
         }
         else
@@ -297,6 +298,7 @@ public class SummonSystem : MonoBehaviour
 
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SummonSystem] {kind} を ({pos.x}, {Mathf.RoundToInt(spawnY)}, {pos.z}) に召喚 ({team})"); }
         MatchStats.Instance?.RecordSummon(team);
+        BoardActionFeedback.Summon(spawnedStatus);
         return spawnedStatus;
     }
 
@@ -374,6 +376,7 @@ public class SummonSystem : MonoBehaviour
             {
                 status.team = team;
                 status.direction = dir;
+                BoardActorAnimation.NotifyFacing(status);
             }
         }
         else

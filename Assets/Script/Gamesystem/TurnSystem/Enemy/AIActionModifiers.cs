@@ -45,7 +45,7 @@ public static class AIActionModifiers
             float importanceMult = 1f;
             if (MatchObjectiveRules.IsCommander(action.Unit)) importanceMult = 2.5f;
             else if (action.Unit.IsBoss) importanceMult = 2.0f;
-            else if (action.Unit.kind == Kind.Priest) importanceMult = 1.8f;
+            else if (UnitRoster.IsDedicatedHealer(action.Unit.kind)) importanceMult = 1.8f;
             else if (personality.HasBoss && (action.Unit.kind == Kind.Guardian || action.Unit.kind == Kind.Knight))
             {
                 float bossDist = Vector3.Distance(posAfter, personality.BossUnit.transform.position);

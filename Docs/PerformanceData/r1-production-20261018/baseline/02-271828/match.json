@@ -1,0 +1,310 @@
+{
+    "MatchIndex": 2,
+    "Seed": 271828,
+    "Round": 244,
+    "PlayerAISeed": 15015,
+    "EnemyAISeed": 254396656,
+    "ThreatLevel": 15,
+    "TerrainSeedX": 523673.46875,
+    "TerrainSeedZ": 397892.1875,
+    "InitialTurnTimeLimit": 180.0,
+    "InitialPlayerTime": 36000.0,
+    "InitialEnemyTime": 36000.0,
+    "InitialTimeScale": 1.0,
+    "StartedUtc": "2026-10-17T21:54:05.4323946Z",
+    "FinishedUtc": "2026-10-17T21:57:54.2527038Z",
+    "EndCondition": "game_over",
+    "Result": "Win",
+    "OutcomeReason": "勝利理由：敵の王を撃破しました",
+    "PersistentPath": "C:/Users/pethi/AppData/LocalLow/CodexValidation/FantasyKingdom_R1Production_20261017-214955-f69acc12_1",
+    "PlayerPersonality": "Intellect",
+    "EnemyPersonality": "Adaptive",
+    "AIConfigMode": "MLAssisted",
+    "State": "GameEndState",
+    "Folder": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\r1-production-playtest-20261018\\02-271828",
+    "Fault": "",
+    "GameOver": true,
+    "PlayerReflectionAvailable": true,
+    "EnemyReflectionAvailable": true,
+    "GCAllocationRecorderValid": true,
+    "PlayerCompletedOwnerTurns": 244,
+    "EnemyCompletedOwnerTurns": 243,
+    "CompletedOwnerTurns": 487,
+    "PlayerCommanderSkills": 9,
+    "EnemyCommanderSkills": 12,
+    "PlayerObservedSkills": 9,
+    "EnemyObservedSkills": 12,
+    "PlayerSuccessfulSpecialSkills": 9,
+    "EnemySuccessfulSpecialSkills": 12,
+    "SpecialSkillTypesUsed": 6,
+    "PlayerActionRecordGaps": 0,
+    "EnemyActionRecordGaps": 0,
+    "Warnings": 3,
+    "Errors": 0,
+    "Exceptions": 0,
+    "Assertions": 0,
+    "NativeWarningMessages": 0,
+    "AllLogMessages": 588,
+    "MemorySamples": 488,
+    "Seconds": 232.80863380000003,
+    "FirstMemory": {
+        "Seconds": 4.3300020000000078,
+        "CompletedOwnerTurns": 0,
+        "LoadedUnityObjects": 20085,
+        "SceneGameObjects": 2887,
+        "GC0": 3,
+        "GC1": 3,
+        "GC2": 3,
+        "TrackedAllocatedBytes": 192817924,
+        "MonoUsedBytes": 27688960,
+        "MonoReservedBytes": 120385536,
+        "TrackedReservedBytes": 544624640,
+        "TrackedUnusedReservedBytes": 351806716,
+        "ManagedGCBytes": 27688960,
+        "ProcessPrivateBytes": 0,
+        "ProcessWorkingSetBytes": 0
+    },
+    "LastMemory": {
+        "Seconds": 232.8026543,
+        "CompletedOwnerTurns": 487,
+        "LoadedUnityObjects": 22601,
+        "SceneGameObjects": 3391,
+        "GC0": 615,
+        "GC1": 615,
+        "GC2": 615,
+        "TrackedAllocatedBytes": 197254517,
+        "MonoUsedBytes": 59101184,
+        "MonoReservedBytes": 120385536,
+        "TrackedReservedBytes": 544493568,
+        "TrackedUnusedReservedBytes": 347239051,
+        "ManagedGCBytes": 59101184,
+        "ProcessPrivateBytes": 0,
+        "ProcessWorkingSetBytes": 0
+    },
+    "Skills": [
+        {
+            "Team": "Player",
+            "Ability": "KnightBreakthrough",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "ArcherStationary",
+            "Attempts": 1,
+            "Succeeded": 1,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "MagicRitual",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "AssassinVisionSeal",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "ScoutVisionGuard",
+            "Attempts": 3,
+            "Succeeded": 3,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "PriestPurification",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "GuardianLifeLink",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "CrossbowStakes",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "MagicSniperLock",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "LifeBomb",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "WhiteMageHeal",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "HolyKnightSanctuary",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "SamuraiCounter",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "NinjaSwap",
+            "Attempts": 1,
+            "Succeeded": 1,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "BerserkerRage",
+            "Attempts": 4,
+            "Succeeded": 4,
+            "Failed": 0
+        },
+        {
+            "Team": "Player",
+            "Ability": "NavigatorPull",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "KnightBreakthrough",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "ArcherStationary",
+            "Attempts": 2,
+            "Succeeded": 2,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "MagicRitual",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "AssassinVisionSeal",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "ScoutVisionGuard",
+            "Attempts": 1,
+            "Succeeded": 1,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "PriestPurification",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "GuardianLifeLink",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "CrossbowStakes",
+            "Attempts": 2,
+            "Succeeded": 2,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "MagicSniperLock",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "LifeBomb",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "WhiteMageHeal",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "HolyKnightSanctuary",
+            "Attempts": 1,
+            "Succeeded": 1,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "SamuraiCounter",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "NinjaSwap",
+            "Attempts": 7,
+            "Succeeded": 1,
+            "Failed": 6
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "BerserkerRage",
+            "Attempts": 5,
+            "Succeeded": 5,
+            "Failed": 0
+        },
+        {
+            "Team": "Enemy",
+            "Ability": "NavigatorPull",
+            "Attempts": 0,
+            "Succeeded": 0,
+            "Failed": 0
+        }
+    ]
+}

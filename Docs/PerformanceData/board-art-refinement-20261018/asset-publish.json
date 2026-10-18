@@ -1,0 +1,447 @@
+{
+  "published": true,
+  "checked_assets": 485,
+  "changes": [
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Bakery.asset",
+      "before": "fb5a05afa799b9f8ad280f100b598bf34ce1cecd81c6677dcb199ed48cd1d67e",
+      "after": "eb6e42bba6f448df62af2b12bb0d4fd2f479bf09999a89a0f60266582e5c5c86"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Barracks.asset",
+      "before": "4fe2c10caf912712c2de1df3e65c568a1244d28715ff7b25e9cb5f4e5f9c0d76",
+      "after": "f5ef52c9742c316c80060a32d885151899c6db571d677d5ce6c895af7f8f2465"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Cannon.asset",
+      "before": "acdbf19fbb9ccdda8e76cb7fc4b959cd7417d285962a80bcbb92b0b3bec84a55",
+      "after": "362bc559d3687eaf532e4bc01e39333d4b15e6f716171ca6c2d76e39f94c6850"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/House.asset",
+      "before": "06493d6416f95416c109479e653e7ddc4084f9867ba892bfe9820cf03fd601e5",
+      "after": "adcc11fbbec3128aad528c4879c958ba35ba233fa42ab15d73a61add25f5d8a4"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/LoggingCamp.asset",
+      "before": "5d01823a7c5ab7f4a9582e0b8af96defce1e09589b283f8661c02082af39a151",
+      "after": "8f14949640057284e338bbd22f5d171e6fbfaf2e086a57146cdb000b84f91738"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/LuxuryHouse.asset",
+      "before": "1ec63b204fdbe27e1e4cc3272951880b10bba1d8fc43fcfc3ee48d29b71dbbda",
+      "after": "60a85202bae97d21a84d73b2112534cf586da17b24eacd1e2a2ce0e9b2faa248"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Mine.asset",
+      "before": "24cc35587108d71677aca474c38399c3685dcce7cfc8b2c271bd7256c418b637",
+      "after": "b26a254d661bf9dd1f09688efb68fa581ff2a6a9bd61ac3b007a5314fea97e05"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Mortar.asset",
+      "before": "7acbeaf023df44fc4fcc10da62c7873d05ea3fad297cff80c08bfaad0b3f85e0",
+      "after": "902e04e4d8c0d6f93882e96c45d62a7c076e39b4d892067d5c1dd36cea0b5be5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Quarry.asset",
+      "before": "97d8d2c017f71245035d194022c37fb91c38619e25eb4d6665b20a6ec2921285",
+      "after": "9f1ede4efd0f61fcf4bf12c99d038c96efe00189a6ab2736a10fa2db86edad12"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/StoneWall.asset",
+      "before": "348db039d454c534ea8e42bde0e61fc15ad8438d50cd6ad35e493d29cd6e9163",
+      "after": "d396367308d370fd215133a45e0f34a5a72fb38f45590aa5c49128f5a172b961"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Warehouse.asset",
+      "before": "cc1da943a077c3d4616aef6c3415b75960ddd8489bdfa5ebdb2dd6b177baf92c",
+      "after": "30ed580dd89076f06e4acc106fa2ed437825b091f17779f5d3627a7ec2fb7677"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Well.asset",
+      "before": "3fc7450255fd49e28a4407ed4c30a0ead8f4552813966f32236dc24f6f4c0ea7",
+      "after": "4f33fc8c37d727c45e984a090a36274816a1145d30d37982d1e3dcef8d7cb9ea"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Bakery.asset",
+      "before": "873046bbeb9f75f743e5ec0d73e29b01d156f71a724b3bd698e6be3fc055fb8b",
+      "after": "9315fb66c69288fa29da20bc71195b8f91556b556aa20e10609c21c1226a7c57"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Barracks.asset",
+      "before": "8373dd79d19078709b257e88738aba969de1275f95b84537cde5db509c5e39cb",
+      "after": "a397da7974be82883e14f199186ffd00f646f1d85f6ffb4554d3e7fa9e88b9aa"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Cannon.asset",
+      "before": "2c0058b0164d3b609e7f211b0f40c0eff2a11bd07e462c10f783d09151662699",
+      "after": "b9734cab77d4efaf02e252033c2e922c9d67786fc2fc1a0077100225a73e57ef"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/House.asset",
+      "before": "45138292525364d8f368b7f71b89b13e10bee53ba5023183359cd850173abf8c",
+      "after": "97efe3ba73c68cfc0f89f756249852c836fcd554ec12675d1a1f4ddcceaf04e6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/LoggingCamp.asset",
+      "before": "8d088d19944c6ba6e94366367c4894efbacfc47a30ab46f52767e8774c48be44",
+      "after": "2f618f2b9e1d965fb674f907f9b217539869bf02f9bb57986170689619f74ea1"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/LuxuryHouse.asset",
+      "before": "997c87365fefa1088eb4e3e7a699d8a579bb6cfd847cf3ad0def2ca8042ce6f3",
+      "after": "883e0ea2d14124be0450dade590ebc4bcabe7bd0a2f8306da7b6656965fdec45"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Mine.asset",
+      "before": "dfa5bdbe5cb1e5b77c2d8824bf52fd6d2d64786595b2c637b8d6099c9e47a185",
+      "after": "b7e644f49473e51f9278c4ac79c8a6808fa7688bc90dc21700e431ec7cf8380c"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Mortar.asset",
+      "before": "3ebf1e6c3ab8e9aaef39d940576689bd2dcb93774f2b23e03f0d1345398cf6b6",
+      "after": "9cf8c28c391e8f83d3030671df55c7825b1c86261ccb60111c27c01d7bbdae95"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Quarry.asset",
+      "before": "76c66837d04d30139a5e563ceb743bd24aaab77a7cbeacc125273be89262c2f7",
+      "after": "0ccfcc03a1c0fc869a4bb133965a6e7b53fcffede58cc4e36442938b8de62b86"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/StoneWall.asset",
+      "before": "9c6c480ec9d9d9da6317047ed72a5e78156052f2c31932341beb24d842fb6f16",
+      "after": "d7d6756fe4c37861cd0b9d6e699ae3a5431d9e7871e25ebee0d9425a26425f8c"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Warehouse.asset",
+      "before": "e52f848b78283cc940a5905d4204fa60b995beae485ef3f9cbfd50e6c9618103",
+      "after": "b497e4a595da74934e5498c701bbc06324447f5d6bc326d82784f61bd346c2d2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Well.asset",
+      "before": "2adf54db1120d15feebeb29bc811297a341683ebac7354a12f8810ae0edaf955",
+      "after": "292e0b0e8cbd47bb069099b3435749347ec722345c926536b076374b7fc0cfa1"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Review/KingdomBuildings.png",
+      "before": "4fe72eb03630d804435d1b4095f45ac745653697675197ea0c361205b542750b",
+      "after": "8bcc370562dd46f65c4e006fa7b49e855d89410660629d1f7880784533266131"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Review/CrimsonBosses.png",
+      "before": "c46cc5f30440f8844e8019bf60f31603b22798cccf8a94c17b7a7d0bd0c971ae",
+      "after": "7e465ec1cbfa1be7c9e4f5f89ccd7e472fc7baeb957b8c10bb4197319dd4086f"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Review/EnemyBlackUnits.png",
+      "before": "34d73f288472a8c6c2be445f9253f41644ffb940b0e352742c4892e26ff42d2a",
+      "after": "bfc51c52608bdc912cf09beda6679982b9074e77e5183ca14468e63f8ef0f973"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Review/FactionBuildings.png",
+      "before": "932560da2099f65aebb0d82dde343817f7f39a3c767d81572b7e421e70e24db6",
+      "after": "bdc66a6e6a78afd65d3e23761263dd212c85019a70da8fd147c22ad921757b35"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Review/PlayerWhiteUnits.png",
+      "before": "c72d431c94c68740cd5ce0187f4934f27cf515c7808671f07be2d781069ce115",
+      "after": "67c49416435051c13b566edea03b16ef19f520f66c189b3416424337118eef21"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_Dragon.asset",
+      "before": "8a3af50df44d0051b6e6bc9742ce4c9901499c7c5ec894f7fbfcae3a446314cf",
+      "after": "048ef52e9152d0967e466c2939e6915d4621e2a2857ae7cd475a0982d8f65a20"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_GhostKing.asset",
+      "before": "034a573803b297b6127af4db73eb42c6d08e3c0225f34fc0e97d62d307701d6d",
+      "after": "5ef4ebf862c1f38080664f7eba8620cf49fd22908ed9d7002984e04c9dc39553"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_RebelKnight.asset",
+      "before": "ebfc2e6ce6788f9ba8b83647939dc3848481f2ac42fe4d2ce3664b257bf9c620",
+      "after": "8cb26897d4f0f5feef3ec86cc1174b9108dfb8da2e40cbf75b6a01cd92a8e537"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_ThunderMagus.asset",
+      "before": "800867d26691f7b95089bc599d8923d4533fbf632f7708dbe175b2ac08a2680e",
+      "after": "f1c8c371033dbd60da25e6725ad06ee01f2c08ef90b5ef11b6738867b391a531"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Archer.asset",
+      "before": "7c34d5c257bfb711c142c90fa684b0cebed97b5be60d7d81b0bab404a0ede0f4",
+      "after": "c10a48dd6c0d1f5359cc35bf6f196923ab438cc6ece32ac268b6d335d4c1b580"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Assassin.asset",
+      "before": "068e4fc98af5c5cc98ffeafe5d0a058940d3feda4eadb6a6b719595fc739f319",
+      "after": "a3d6e5445292ea8893e905a47e15fbe4d52b8bc09ae1d89e4d099dac8e82048b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Berserker.asset",
+      "before": "98657f6e5331e4433b095b989e89007a8b35b8ced662255d1c93a31130b9410d",
+      "after": "b3eb9f70006657283d87868c8fb3442fc811a9ae31498f06b16f5a763682c768"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Bomber.asset",
+      "before": "fd34d6134b2451b16ede39c0c3babbedd22692fc6938f700be16866e3067b24a",
+      "after": "f3a37b463265e860d942e6805e99c56b44e6811bbac0292d46958d721a11a6eb"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Crossbow.asset",
+      "before": "86ef805e69dbd324e19ddfce5ce579fb360dfbdedd2b389e114930c555abcfa2",
+      "after": "1b0d2b65b605eb74bfa5a7ec1d2a03fc839d55766d63aa3646e0657689373636"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Guardian.asset",
+      "before": "a4bd33376a82e39acfef29dc7f7d2c025703eed500291c5a27108087b85abed3",
+      "after": "f30bcbf574f10b91d5be7ad00235a2cd66b0cecf10bf0c3279ad4cecbf3fcc1f"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_HolyKnight.asset",
+      "before": "0c3609714eaee8a9b7625c54a3977d51c5927a52b2644888f5af6b7c895a817a",
+      "after": "ab25bf2e070e7c43a0e9ef35e9fecd472c394024d9bc9d1d386637d6d438332a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_King.asset",
+      "before": "6ccc8fa0ceffee212df0590bf8728c8293d4cc74ac230416e5276192e435bb49",
+      "after": "60739d908748b6c5930f8cefd5496397886271ef44d64ba859dd6922cc607fee"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Knight.asset",
+      "before": "a3da96a2603023532857030f285e5bd672974da999992442c03980444a9117ba",
+      "after": "056f0eb24a62f9734289d7a07d7fa7973ea65d331584aeb021e9c7440085b268"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Magic.asset",
+      "before": "040d32040de68e0b6eaef622bd7a6698a6f8910b576f305e8c8df02a7973fdc0",
+      "after": "d821126581eded390ae44c156d1b9b37ea8dc45c82260770bda0b451eb12522f"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Magicsniper.asset",
+      "before": "ef4c2f66dcac1a016fbd613207db27f9421be1ada3f658bfb2060459c7442955",
+      "after": "4850ba94e0c1484964f867d27029e99ac59c4fdeb53757cfd0acddfe0ec12b23"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Navigator.asset",
+      "before": "0453e24c5f03753c2a0ae934fc44d52b88a1360ad54bdf54538267381a5844e2",
+      "after": "cadd4404d621cceca09659dd926bf7687955adb45277068b3625aee950e7d942"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Ninja.asset",
+      "before": "cc660dfcebc14df6f054dd2d0b67c8541ac321a108eb9e2ccbd555b05a24d2d7",
+      "after": "16e09c9dec60bc4867e5d5c1302c840837790dd11f1a32c61e45ff7d0e1d6fb7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Priest.asset",
+      "before": "f3c1a5f6742c84c4ca92efd6dfd759f3df60d41a9f6399138c00a58d2bbb13ca",
+      "after": "c51cb4153f417f0aae6174e285c61041cd859210f027905f5ef19c0356ba6fe6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Samurai.asset",
+      "before": "04483a7f4530bbddcfb83219c4ded6b9cad5700841e9fe57d91da372552444f4",
+      "after": "04dc9cf26818a6a0150eebb560ada3ec2d890a8b4394169c1b7d4d7fdc9dbaff"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Scout.asset",
+      "before": "6936cc91cbb66c3aafbafd0188c6b79c483e9f5c6b6793718de07c3f22ad1e71",
+      "after": "3cff5e23358b11cb99c8b7add3144b68feba081d4cbe2113b1ea738607948dd9"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_WhiteMage.asset",
+      "before": "d3f5764054700119fdd432bbec4fe08e1535942d1e62827f781a716b4327c3b1",
+      "after": "be876c5511e32a3592f7507809b27e7e5cc397811afd77525ef6dbd4fd48d968"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Review/BossAberrations.png",
+      "before": "87d517a31111161b23daab2a5952bcc991b28f49f9257c6de6714fa55014c02d",
+      "after": "4cdff7090e33a1f8aef35f4988c9a77b3ca104e0fbf25bc662691b7c5bd5225b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Review/BossAberrations.txt.meta",
+      "before": null,
+      "after": "fa8d88671c866e513743ed64ef6283394d7e747235df908e73362c10af41734b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Review/EnemyAberrations.png",
+      "before": "62e93d8cbd05d16cf4928c10b3eae1fde8aa6dd4a1f030779c27781e836994ee",
+      "after": "3e0eed84345b0f2878917d5f23f590ea5212ede89d49c7a4769e421977e7775b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Review/EnemyAberrations.txt.meta",
+      "before": null,
+      "after": "b675d7b32db7cb542acda28495d7759a1488af035ddd9150a3d93cd55b6f4b50"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Bakery/Visual.prefab",
+      "before": "d4384f20d6bef7119e042dab6835df309dca6bcd4b7a0b3915aba35d53e782a4",
+      "after": "05311f11ea471d28d679a705d8821c10cfdf0865fda9ce34bb8bfa4602c3c1f2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Barracks/Visual.prefab",
+      "before": "c3c06af73db795f900467e1a5541b4a3175e19b14879325684c29ea0ee5e4d05",
+      "after": "cf25f9318042f305e76d401b413460fa80b9788f63b9290cc1c6b9f330807883"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Cannon/Visual.prefab",
+      "before": "f73290040dc35e668d6d10e8cc588a51fb0e09867aba089fde1cd62dcbc5a499",
+      "after": "2b45b937586b8630f91f4196bf307826854064827d48c37aa8a75f90fb70d5b7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Field/Visual.prefab",
+      "before": "3d376bf1097fced6834d099932fe5ae9c0e776139b5e2ac2fe6672fc7d3a3da0",
+      "after": "aa0489520082ebcc1339038874091dadbd4e4718718ddcc5898fc6849cb7dc8e"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/HeroSword/Visual.prefab",
+      "before": "6af56b9e7231b4e8ec2748a11296f3203087d0d7af7505075cf87798d8ca8427",
+      "after": "ff4bc3225424ad6c1ee0762b0960077ebebb0a3d042e5044ed041059b0ca5e36"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/House/Visual.prefab",
+      "before": "f0edc97f068a080a4b8631f19a42ce37301cc4f4c5b8655cc8c22daf0d8e09bc",
+      "after": "f4c1121281b96845d6459f0477898251fc9bf8648bf98a92315063802d838c1f"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/LoggingCamp/Visual.prefab",
+      "before": "3ec67f702ace98a0960ebd216a2671e2bac5d323766e40bd492f8b658b7b2c39",
+      "after": "4406ae6c092020d7f38e5d057e01ac4212b84c80b1b90f140f5f20b5d3648857"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/LuxuryHouse/Visual.prefab",
+      "before": "e8e0509d0a00f0adce58f3337b44a8e7f97c4933ee821aa36238007c62052b19",
+      "after": "7e714763a56e58b7c5c6d2e76ffc1dcf8f1e2f4691f33106f94fa9f0b7e05cb9"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Mine/Visual.prefab",
+      "before": "a41247371ca8c0955d74886157bcde17a2f30b526f25bf6282a18f36e78b3fe8",
+      "after": "0a8e29cadab1b1f1166757764826a29491315432838065ad6519b4b2e45d6490"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Mortar/Visual.prefab",
+      "before": "ae5e46c82261f87321cb3424da62d952280e5b1d38663a1386d77b81e4649d4b",
+      "after": "d4bd4ecdddc93881a1b996e0c158f89e44187643706ab9655940321a294b7bd0"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Quarry/Visual.prefab",
+      "before": "00811dbeb43b3766e6b8265f80a866fa547d96525f0f3e5dc06136576508db23",
+      "after": "da9f76d71ab06f9de39b587fa878ae38a9196f4fac9bd091a5662f9a84d34eab"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/RestraintTrap/Visual.prefab",
+      "before": "616f141036bc961ee88160af2fbae4e9e790df29c00fcf1e1711eeda82d03873",
+      "after": "e09fe60be53fcef68d6bb5f2ddf40fb7d2ebc003ceb21c24b9b39f857a4fd977"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/SpikeTrap/Visual.prefab",
+      "before": "f2fa7f8bd3a158940035fd0e61d2506cdd2f67605c1c9cc832ba8b289433323b",
+      "after": "ecccd22f4bcdf5ea02d84eb1032ffae071a37657251850ef02d80b7a976126a8"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/StoneWall/Visual.prefab",
+      "before": "720d8cc3fd827f21130bf550010d7e184eb9a832297fdf2503e671218db58b68",
+      "after": "3fac402d4050d8d732a82652a4f5ed1c0758f976228aa33d5159b4cc17379fdc"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Warehouse/Visual.prefab",
+      "before": "b068844359eee0ee400257c49e2f3a06016ac0290ef406fe2a092338ae8c2511",
+      "after": "76e555a03127aee2ff03f9a8676a05a958b0cd6939cec3f83daf3253928027ba"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Well/Visual.prefab",
+      "before": "5da613f4c6edf31ab7dbb5f29e02214e8ad985f8ee34d535f5aa490d9370058b",
+      "after": "71c8d324f603ebf6ff5be60f3200eb48a9c42cb42a50ef0095104f9c5c414aeb"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/WoodWall/Visual.prefab",
+      "before": "1d7aa3145567271e23e10419e179d41d76f0545827f98be71dde4985c0fdd685",
+      "after": "b12b203c7b72d3848556d10d260562d0c123afe78277e3006503148ca1808634"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Archer.asset",
+      "before": "ea047ef2a1e6cd57e7c39a6ad10a2045c09af453bb8b847f22caa11e65b40f33",
+      "after": "b5634765c4e2f288eecf65fdeef4c76284e491206d7a4eeffb6b40f547f4e319"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Assassin.asset",
+      "before": "bb4a4405c261b86976e5b81aad442308a3b7c13095fe827cc3fb0b059b68415a",
+      "after": "bba404630122c543c129a1be7148443e61a58de4ef67b43ddf7df5bbc564a6c9"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Berserker.asset",
+      "before": "521dcec48c3a24cb6736b572fc78014a965bf5cc44ac010cf14448e0bb6daeee",
+      "after": "52938175c1d52d8dc4e04cc0ec309737b71d070b0bcb5f6b2ced10fae61e947a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Bomber.asset",
+      "before": "064df31fde41ce9f4816e8c8aedda8818990d9fc2da48c8a0efe85632883e33a",
+      "after": "907c8602675aed413e37778f3152c4df5862d44282e28912c048c525d59d60e5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Crossbow.asset",
+      "before": "41580a682e493102add0da305f24c4c655266168894ceb1b47fb8916e85edec8",
+      "after": "1c70246d438b6164b946108d34a2a305e5aef85a70d433cdb6b7c1538a9b829b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Guardian.asset",
+      "before": "5a24822eae3e35cb9fdbc811cbf06fff0cf0607a2ec3cd5f4f8ce3d7f7840185",
+      "after": "989882afd52341c7450e8f7a153e7ec610c76404f7afca97577261ab58d345b0"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/HolyKnight.asset",
+      "before": "6c58e6201772605a076c4565bc4582c21719241174d9499780b08f7f36166fe4",
+      "after": "2369e7658ff0a8f756f531d995c43d6dd71941cd39dd0fb37cd68be30ccd52c4"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Knight.asset",
+      "before": "a53e4aaa10605b1a78e55c2bd2d1214bbd30e91d9c0d768c1628574eb5b0923e",
+      "after": "7e0bb5d5b821b4e342bc6c4ea850284833cfc264cd06576a366dda6bab7937b2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Magic.asset",
+      "before": "80be9c4053017572e64d11f6ab0537e4651360a24863eca57ea1b8d169ade0af",
+      "after": "bf760a249f90e7e3c72104b88cea3e9b286abec25bdd7a4d050e6b2ee20dbea9"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Magicsniper.asset",
+      "before": "07c673953c85794d52b681a2a2a54e3e514657ce366e7bcd7d1653d6e982f51a",
+      "after": "0985824d54498f69ccfca305b5647822449e42a68f4d246da6beb7d73bf99d32"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Navigator.asset",
+      "before": "67d9d5e4fbc2bbb696058f8f1b368067ec9f0163efebb82f5f089a5d5e9de97a",
+      "after": "ea8f445770cbd73d87d54cbc202fc8313f066be21761a81f959675e0d3647c63"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Ninja.asset",
+      "before": "c09b1403996dbe3ae5ad2603f835da6b1c133e475247ea4e54eec25cc3868a3a",
+      "after": "68483fb853e8750205da7fa7685362ad24bf016e03d0bf9a19842ab04adb1ce5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Priest.asset",
+      "before": "444fcbea761ea4bb0ddebc44592173c5289bf553cfc4b2cac7c415e74433f851",
+      "after": "70ef93b8f5ff695e774a27f7ca7a5540f8f3e906de4186a7a3a8991df843896f"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Samurai.asset",
+      "before": "eefad9a293524fb50115da5d54c98f13164c6e16e10eb8ea26055013fd16f659",
+      "after": "9eeee6255ad036ed164d99d0a640e470f97aad6ea4b08d2a986c6a571c742b47"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/Scout.asset",
+      "before": "e5941dfd438791eddf65646b7b744da7ecb6e9165a818fd2dba39fb86e1a0afc",
+      "after": "fbd8b062c78a41288a39299424f9ae91297e5000e034a4b01b37d9ea6e1ec962"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/UnitVisuals/Meshes/WhiteMage.asset",
+      "before": "13c0303e4b08497865d97568975967ecebffbac2447306be1ff976439c8d9a71",
+      "after": "8e412f2170fcded9462ab772f5289529cc2d0f07853b4474c8e86cf959a228d8"
+    }
+  ],
+  "protected_existing_materials": {
+    "E:\\fantasykingdom\\Unity\\fantasy kingdom\\Assets\\Prefabs\\Units\\Materials\\Materials\\キャラクターマテリアル\\プレイヤー　キャラクター　白.mat": "ca09e986d2063fb9143261fa3b5f99c67baba63433b9f71febefb00a6dbd7687",
+    "E:\\fantasykingdom\\Unity\\fantasy kingdom\\Assets\\Prefabs\\Units\\Materials\\Materials\\キャラクターマテリアル\\異形　キャラクター　黒.mat": "385d98df8334451364fc2aa159881bb51cc912c8c3cbab4169b2707ecaad4c15",
+    "E:\\fantasykingdom\\Unity\\fantasy kingdom\\Assets\\Prefabs\\Units\\Materials\\Materials\\キャラクターマテリアル\\敵　キャラクター　赤.mat": "5b86a50549bc2a0a6432efc1d02ee7fa06894e52060e8e3ce9a5d1d51014a747"
+  },
+  "backup": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\board-art-refinement-backup-20261018"
+}

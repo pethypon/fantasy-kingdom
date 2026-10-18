@@ -17,6 +17,7 @@ public static partial class SaveSystem
         var data = new GameSaveData
         {
             Turn = turnGen.Context.Turn,
+            MatchId = turnGen.MatchId,
             ThreatLevel = aiCommander?.ThreatLevel.Level ?? LoadProfile().ThreatLevel,
             Checkpoint = "player_turn",
             HasExplicitMapSnapshot = true,

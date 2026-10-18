@@ -202,6 +202,8 @@ public sealed class ThirdFactionSystem : MonoBehaviour
                 var root = spawnedRoots[i].transform;
                 root.SetParent(owner.neutral.UnitParent, true);
                 root.gameObject.SetActive(true);
+                // Strong-enemy events finalize their identity after staging; apply the final faction art now.
+                BoardActorPresentation.Apply(u, root.gameObject);
                 owner.neutral.RegisterSpawn(u, candidate.Encounter, members[i], d.CanActImmediately ? round : round + 1);
                 int id = owner.neutral.ActorId(u); active.Actors.Add(id);
                 owner.State.Objectives.Add(new ThirdFactionObjective { ActorId = id, Kind = d.Objective,

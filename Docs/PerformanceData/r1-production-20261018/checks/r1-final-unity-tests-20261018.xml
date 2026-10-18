@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Passed" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-18 03:07:37Z" end-time="2026-10-18 03:07:38Z" duration="1.4416581">
+  <test-suite type="TestSuite" id="1000" name="FantasyKingdomR1Validation" fullname="FantasyKingdomR1Validation" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-18 03:07:37Z" end-time="2026-10-18 03:07:38Z" duration="1.441658" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1011" name="FantasyKingdom.R1.EditModeTests.dll" fullname="C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation/Library/ScriptAssemblies/FantasyKingdom.R1.EditModeTests.dll" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-18 03:07:37Z" end-time="2026-10-18 03:07:38Z" duration="1.363703" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="13160" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestFixture" id="1001" name="FantasyKingdomR1ContractTests" fullname="FantasyKingdomR1ContractTests" classname="FantasyKingdomR1ContractTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-18 03:07:37Z" end-time="2026-10-18 03:07:38Z" duration="1.362200" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1010" name="AtomicSave_TransientSharingLock_RetriesWithoutDeletingValidGeneration" fullname="FantasyKingdomR1ContractTests.AtomicSave_TransientSharingLock_RetriesWithoutDeletingValidGeneration" methodname="AtomicSave_TransientSharingLock_RetriesWithoutDeletingValidGeneration" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="1272381789" result="Passed" start-time="2026-10-18 03:07:34Z" end-time="2026-10-18 03:07:34Z" duration="0.079255" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1003" name="ClearProgression_IsExactlyOne_AndPersistsAcrossCheckpointReloads" fullname="FantasyKingdomR1ContractTests.ClearProgression_IsExactlyOne_AndPersistsAcrossCheckpointReloads" methodname="ClearProgression_IsExactlyOne_AndPersistsAcrossCheckpointReloads" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="1900055981" result="Passed" start-time="2026-10-18 03:07:34Z" end-time="2026-10-18 03:07:34Z" duration="0.165997" asserts="0">
+          <properties />
+          <output><![CDATA[[ThreatClear] PASS isolated profile
+[ThreatClear] PASS normal victory advances exactly one
+[ThreatClear] PASS victory and identity committed together
+[ThreatClear] PASS same victory after profile reload cannot award twice
+[ThreatClear] PASS time-up victory also advances exactly one
+[ThreatClear] PASS defeat records without increasing
+[ThreatClear] PASS repeated defeat is idempotent
+[ThreatClear] PASS draw never increases threat
+[ThreatClear] PASS different ending from the same completed checkpoint is not another match
+[ThreatClear] PASS developer autoplay does not record progress
+[ThreatClear] PASS invalid identity cannot modify profile
+[ThreatClear] PASS checkpoint saves match identity
+[ThreatClear] PASS same checkpoint in another slot keeps identity
+[ThreatClear] PASS new game snapshots get different identities
+[ThreatClear] PASS v8 snapshot migrates with stable identity
+[ThreatClear] PASS reloading unmodified old save reuses identity
+[ThreatClear] PASS legacy identity ignores turn and save date
+[ThreatClear] PASS legacy completion also awards only once
+[ThreatClear] PASS near cap profile
+[ThreatClear] PASS 99 advances to maximum 100
+[ThreatClear] PASS maximum remains 100 and victory still counts
+[ThreatClear] PASS maximum victory is not counted twice
+[ThreatClear] PASS old profile preserves progression
+[ThreatClear] PASS old profile can commit new result
+[ThreatClear] PASS future profile is protected from progression write
+[ThreatClear] PASS AI in-memory progression agrees +1 at turn 1
+[ThreatClear] PASS AI loss holds threat at turn 1
+[ThreatClear] PASS AI in-memory progression agrees +1 at turn 9
+[ThreatClear] PASS AI loss holds threat at turn 9
+[ThreatClear] PASS AI in-memory progression agrees +1 at turn 19
+[ThreatClear] PASS AI loss holds threat at turn 19
+[ThreatClear] PASS AI in-memory progression agrees +1 at turn 100
+[ThreatClear] PASS AI loss holds threat at turn 100
+[ThreatClear] PASS AI in-memory cap
+[ThreatClear] 34 checks passed
+]]></output>
+        </test-case>
+        <test-case id="1008" name="Crossbow_ThreeRounds_AndExactLightningAgeMultipliers" fullname="FantasyKingdomR1ContractTests.Crossbow_ThreeRounds_AndExactLightningAgeMultipliers" methodname="Crossbow_ThreeRounds_AndExactLightningAgeMultipliers" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="1390059477" result="Passed" start-time="2026-10-18 03:07:34Z" end-time="2026-10-18 03:07:34Z" duration="0.000976" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1006" name="NaturalRecovery_ActualOneHpLoss_Resets_ButEqualAssignmentDoesNot" fullname="FantasyKingdomR1ContractTests.NaturalRecovery_ActualOneHpLoss_Resets_ButEqualAssignmentDoesNot" methodname="NaturalRecovery_ActualOneHpLoss_Resets_ButEqualAssignmentDoesNot" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="1599973876" result="Passed" start-time="2026-10-18 03:07:34Z" end-time="2026-10-18 03:07:34Z" duration="0.002199" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1005" name="NaturalRecovery_FifthCompletedTurn_HealsAtEnd_AndDuplicateEndIsIdempotent" fullname="FantasyKingdomR1ContractTests.NaturalRecovery_FifthCompletedTurn_HealsAtEnd_AndDuplicateEndIsIdempotent" methodname="NaturalRecovery_FifthCompletedTurn_HealsAtEnd_AndDuplicateEndIsIdempotent" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="1224081574" result="Passed" start-time="2026-10-18 03:07:34Z" end-time="2026-10-18 03:07:34Z" duration="0.003456" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1004" name="ProductionRoster_AbilityConfiguration_AndVisualBudgets" fullname="FantasyKingdomR1ContractTests.ProductionRoster_AbilityConfiguration_AndVisualBudgets" methodname="ProductionRoster_AbilityConfiguration_AndVisualBudgets" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="994943293" result="Passed" start-time="2026-10-18 03:07:34Z" end-time="2026-10-18 03:07:34Z" duration="0.227079" asserts="0">
+          <properties />
+          <output><![CDATA[[R1Production] Installed 0; preserved 16 previously installed roles. Tuning: Provisional initial tuning v1. Skill costs, cooldowns, curves and inherited new-role stats are editable proposals, not confirmed R1 requirements.
+[R1ProductionTests] 113 checks passed.
+[R1ProductionAI] 171 production recruitment/recipe/mask checks passed
+[R1UnitVisuals] 生成モデル検証OK: 16 Mesh / 1 Material / triangles 15828
+[R1UnitVisuals] 保護: Knight / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Archer / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Magic / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Assassin / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Scout / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Priest / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Guardian / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Crossbow / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Magicsniper / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Bomber / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: WhiteMage / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: HolyKnight / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Samurai / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Ninja / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Berserker / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 保護: Navigator / 独自のMaterialまたはRenderer設定
+[R1UnitVisuals] 生成モデル検証OK: 16 Mesh / 1 Material / triangles 15828
+[R1UnitVisuals] 16職種の見た目導入=0、既存設定保護=16。各1 Mesh/1 Renderer、共有Material 1、追加Runtimeスクリプト0。
+[R1UnitVisualTests] 119 checks passed.
+]]></output>
+        </test-case>
+        <test-case id="1002" name="RuntimeMechanics_Environment_AndCombatAI_ThroughRealScene" fullname="FantasyKingdomR1ContractTests.RuntimeMechanics_Environment_AndCombatAI_ThroughRealScene" methodname="RuntimeMechanics_Environment_AndCombatAI_ThroughRealScene" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="1660084751" result="Passed" start-time="2026-10-18 03:07:34Z" end-time="2026-10-18 03:07:38Z" duration="3.581929" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[<color=#ffff00ff>[StartSetting]</color> マップ・Fog 完了
+<color=#ffff00ff>[StartSetting]</color> プレイヤークリスタル設置完了
+<color=#ffff00ff>[StartSetting]</color> 敵クリスタル設置完了 (relax=0)
+<color=#ffff00ff>[StartSetting]</color>王設置
+<color=#ffff00ff>[StartSetting]</color>異形の王設置
+<color=#ffff00ff>[StartSetting]</color>Player Knight 設置 @(27,31)
+<color=#ffff00ff>[StartSetting]</color>Player Archer 設置 @(27,29)
+<color=#ffff00ff>[StartSetting]</color>Player Scout 設置 @(31,29)
+<color=#ffff00ff>[StartSetting]</color>Enemy Knight 設置 @(13,5)
+<color=#ffff00ff>[StartSetting]</color>Enemy Archer 設置 @(13,12)
+<color=#ffff00ff>[StartSetting]</color>Enemy Scout 設置 @(14,13)
+[DungeonSystem] ダンジョン配置: (8, 1, 32) 報酬=PhoenixFeather
+[DungeonSystem] ダンジョン配置: (33, 2, 4) 報酬=CrystalShard
+[WildBoss] wildBossPrefab 未割当 → StrangePiece からフォールバック生成
+[SystemInitializer] TimerSystem 未設定 → 自動生成
+[KingCommanderSystem] 階層指揮システム初期化完了
+[AICommander] 初期化完了
+[CrossbowR1] PASS empty magazine cannot attack
+[CrossbowR1] PASS authoritative normal attack refuses empty ammunition
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS skill loads one stake without attaching to an enemy
+[CrossbowR1] PASS old direct-target skill is rejected without payment
+[CrossbowR1] PASS a real successful normal attack expends and attaches a stake
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS fully blocked stake round is expended but does not attach
+[CrossbowR1] PASS completing a shot twice cannot forge a stake
+[CrossbowR1] PASS first lifecycle boundary does not invent an elapsed no-attack turn
+[CrossbowR1] PASS no normal attack replenishes one normal round
+[CrossbowR1] PASS repeated owner boundary cannot replenish twice
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS rounds retain FIFO ordering
+[CrossbowR1] PASS UI reverses FIFO so the oldest round is shown firing from the right
+[CrossbowR1] PASS normal round fires before the newer stake
+[CrossbowR1] PASS a turn with a fired normal attack does not replenish
+[CrossbowR1] PASS non-normal attacks do not suppress the normal-ammo replenishment
+[CrossbowR1] PASS replenishment is capped at three
+[CrossbowR1] PASS authored full initial magazine has three ordinary rounds
+[CrossbowR1] PASS UI and AI ammunition inspection never mutate live state
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS full-magazine conversion never grows beyond three
+[CrossbowR1] PASS a full normal magazine converts exactly one existing round
+[CrossbowR1] PASS stake conversion consumes no Unity random state
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS same saved seed/turn/unit/action sequence replays the same conversion
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS fresh equivalent gameplay identity does not depend on GUID or Unity instance order
+[CrossbowR1] PASS save copies own their ammunition collections
+[CrossbowR1] PASS malformed persisted ammunition is normalized and bounded
+[CrossbowR1] PASS unspecified starting ammunition remains explicit rather than a guessed balance value
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS line setup consumes a loaded stake
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS line setup consumes a loaded stake
+[CrossbowR1] PASS stake loading uses the shared AP action
+[CrossbowR1] PASS line setup consumes a loaded stake
+[CrossbowR1] PASS third landed stake promotes B with its original age
+[CrossbowR1] PASS line age one has the specified 1.25 multiplier
+[CrossbowR1] PASS line age two has the specified 1.50 multiplier
+[CrossbowR1] PASS line age three has the specified 2.00 multiplier
+[CrossbowR1] PASS a live line applies standing damage only once per target and round
+[CrossbowR1] PASS line follows both moving endpoints
+[CrossbowR1] PASS moving endpoint geometry changes the actual crossing hazard
+[CrossbowR1] PASS entering a line by forced movement triggers shared hazard damage
+[CrossbowR1] PASS leaving an occupied line is not a fresh entry
+[CrossbowR1] SUMMARY passed=47
+[StatusEffect] Player Archer に Poison 付与 (2T)
+[AbilityR1] PASS authorized ArcherStationary
+[AbilityR1] PASS Archer snapshots only enemies within two cells
+[AbilityR1] PASS Archer grants two-turn poison and a real enemy ATK boost
+[AbilityR1] PASS snapshot enemies cannot target the escaped Archer
+[AbilityR1] PASS Archer is attack locked but remains able to move
+[AbilityR1] PASS snapshot survives movement and does not add a later entrant
+[AbilityR1] PASS Archer snapshot survives save and load
+[AbilityR1] PASS Archer attack lock and enemy boost expire together
+[AbilityR1] PASS Magician low-HP aura distinguishes strong and ordinary targets
+[AbilityR1] PASS Magician aura does not activate above twenty-five percent HP
+[AbilityR1] PASS Magician adjacency respects vertical distance
+[AbilityR1] PASS Assassin can select an allied normal attack
+[AbilityR1] PASS real normal attack executes the twenty-percent ally despite lethal-survival ability
+[AbilityR1] PASS allied execution grants configured 1.75 attack boost without HP-one penalty
+[AbilityR1] PASS allied target above the threshold receives ordinary damage
+[AbilityR1] PASS enemy ordinary execution is lethal and leaves Assassin at one HP
+[AbilityR1] PASS enemy execution self reduction resets natural recovery
+[AbilityR1] PASS strong enemy categories are excluded from execution
+[AbilityR1] PASS Enemy Scout grants cost-stage free movement
+[AbilityR1] PASS Enemy free movement spends no AP and is consumed once
+[AbilityR1] PASS Enemy attack is independently free once
+[AbilityR1] PASS Enemy free attack does not recur
+[AbilityR1] PASS Enemy authored owner-turn scope restores both allowances
+[AbilityR1] PASS Player Scout grants cost-stage free movement
+[AbilityR1] PASS Player free movement spends no AP and is consumed once
+[AbilityR1] PASS Player attack is independently free once
+[AbilityR1] PASS Player free attack does not recur
+[AbilityR1] PASS Player authored owner-turn scope restores both allowances
+[AbilityR1] PASS lifetime allowance remains consumed across turns
+[AbilityR1] PASS Priest aura heals itself, allies, and enemies by maximum HP five percent
+[AbilityR1] PASS Priest aura excludes actors beyond one cell
+[AbilityR1] PASS authorized GuardianLifeLink
+[AbilityR1] PASS Guardian reciprocal link restores by saved life identity
+[AbilityR1] PASS lethal intended victim is saved while its linked partner dies
+[AbilityR1] PASS Guardian crystal damage uses the specified multiplier
+[AbilityR1] PASS Guardian starts without extra attack AP
+[AbilityR1] PASS real Guardian attacks accrue one AP each
+[AbilityR1] PASS Guardian follows authored attack-AP reset scope
+[AbilityR1] PASS Sniper recognizes a target with lower HP ratio
+[AbilityR1] PASS ordinary Sniper shot charges twenty percent self HP exactly once
+[AbilityR1] PASS authorized MagicSniperLock
+[AbilityR1] PASS resolving the lock turn itself does not charge shot recoil
+[AbilityR1] PASS ready Sniper lock ignores range and lost vision
+[AbilityR1] PASS locked shot charges twenty plus fifteen percent recoil and clears reservation
+[AbilityR1] PASS one Scout nullification blocks ordinary twenty-percent recoil without resetting the safe clock
+[AbilityR1] PASS authorized MagicSniperLock
+[AbilityR1] PASS a locked shot has two recoil events so one nullification blocks twenty percent but not distance fifteen percent
+[AbilityR1] PASS authorized MagicSniperLock
+[AbilityR1] PASS shield blocks both recoil events while preserving the Scout token and natural-recovery clock
+[AbilityR1] PASS authorized GuardianLifeLink
+[AbilityR1] PASS authorized MagicSniperLock
+[AbilityR1] PASS Guardian receives both normal recoil events and only actual HP loss resets recovery
+[AbilityR1] PASS idle Bomber remains alive for nine non-damaging turns
+[AbilityR1] PASS tenth idle turn detonates and kills Bomber
+[AbilityR1] PASS automatic explosion applies friendly fire, enemy, and crystal damage
+[AbilityR1] PASS successful Paladin hit steals twenty-five percent ATK immediately from victim
+[AbilityR1] PASS Paladin gains stolen ATK on its following turn
+[AbilityR1] PASS two-turn return adds eighty percent of current Paladin ATK to original enemy
+[AbilityR1] PASS Paladin return modifier ends at that turn's end
+[AbilityR1] PASS authorized SamuraiCounter
+[AbilityR1] PASS Samurai taunt restricts normal attack candidates to caster
+[AbilityR1] PASS taunt target and duration survive save/load
+[AbilityR1] PASS taunt remains effective throughout challenged owner turn 1
+[AbilityR1] PASS taunt remains effective throughout challenged owner turn 2
+[AbilityR1] PASS taunt remains effective throughout challenged owner turn 3
+[AbilityR1] PASS taunt expires after three completed challenged owner turns
+[AbilityR1] PASS four completed safe turns have no natural heal
+[AbilityR1] PASS fifth safe turn heals at its end without a sixth-turn wait
+[AbilityR1] PASS same turn-end cannot heal twice
+[AbilityR1] PASS zero actual HP loss preserves natural recovery and subsequent heal
+[AbilityR1] PASS one direct HP loss resets natural recovery at end
+[AbilityR1] SUMMARY passed=71
+[TerrainEnvironmentTests] 91 movement/visibility/hazard/cave/save checks passed
+[StatusEffect] Player WhiteMage に Stun 付与 (1T)
+[StatusEffect] Enemy WhiteMage に Poison 付与 (2T)
+[StatusEffect] Player WhiteMage に Offensive 付与 (1T)
+[SkillSystem] WhiteMage がスキル 'ガードスタンス' を使用 (AP:3)
+[StatusEffect] Player WhiteMage に Defensive 付与 (1T)
+[SkillTargeting] SUMMARY passed=25
+[SpecialAI] PASS Player ritual creates bounded representative branches
+[SpecialAI] PASS Player hidden hostile never becomes lock candidate
+[SpecialAI] PASS Player ritual respects authored count
+[SpecialAI] PASS Player special candidate keeps shared AP and static future score
+[SpecialAI] PASS Player hidden hostile never becomes lock candidate
+[SpecialAI] PASS Player ritual respects authored count
+[SpecialAI] PASS Player special candidate keeps shared AP and static future score
+[SpecialAI] PASS Player hidden hostile never becomes lock candidate
+[SpecialAI] PASS Player ritual respects authored count
+[SpecialAI] PASS Player special candidate keeps shared AP and static future score
+[SpecialAI] PASS Player minimum, minimum kill and maximum remain distinct
+[SpecialAI] PASS Player hidden actor mutation cannot change legal target set
+[SpecialAI] PASS Player undefined cooldown never becomes a free active skill
+[SpecialAI] PASS Player damage null prevents false finishing bonus
+[SpecialAI] PASS Player observed ritual caster earns interruption value
+[SpecialAI] PASS Player charged safe archer preserves a firing position
+[SpecialAI] PASS Player lethal reservation overrides stationary preservation
+[SpecialAI] PASS Player observed line is a movement hazard
+[SpecialAI] PASS Player hidden crossbow cannot reveal a current line
+[SpecialAI] PASS Player knowledge reads the same gameplay definition
+[SpecialAI] PASS Player guardian can choose an owned important building
+[SpecialAI] PASS Player AI considers only the next Berserker stage
+[SpecialAI] PASS Player AI excludes an unaffordable next Berserker stage
+[SpecialAI] PASS Player AI pays eleven AP for the next third Berserker stage
+[SpecialAI] PASS Player AI never generates a sixth Berserker stage
+[SpecialAI] PASS Player malformed Berserker stage AP is rejected
+[KingCommanderSystem] 階層指揮システム初期化完了
+[AICommander] 初期化完了
+[SpecialAI] PASS Player exact AP WhiteMageHeal is selected by the ordinary AI pipeline
+[SpecialAI] PASS Player special learning/cache key distinguishes fixed ability WhiteMageHeal
+[SpecialAI] PASS Player executes selected WhiteMageHeal
+[SpecialAI] PASS Player pays exact authored WhiteMageHeal AP only once
+[SpecialAI] PASS Player cooldown prevents repeat WhiteMageHeal
+[SpecialAI] PASS Player applied WhiteMageHeal counts as preparation rather than no-damage failure
+[SpecialAI] PASS Player applied WhiteMageHeal remains eligible for delayed credit
+[SpecialAI] PASS Player a successful no-change executor alone receives no special credit
+[SpecialAI] PASS Player actual AI healing reaches ally
+[SpecialAI] PASS Player one HP heal does not justify AP12
+[KingCommanderSystem] 階層指揮システム初期化完了
+[AICommander] 初期化完了
+[SpecialAI] PASS Player exact AP MagicRitual is selected by the ordinary AI pipeline
+[SpecialAI] PASS Player special learning/cache key distinguishes fixed ability MagicRitual
+[SpecialAI] PASS Player executes selected MagicRitual
+[SpecialAI] PASS Player pays exact authored MagicRitual AP only once
+[SpecialAI] PASS Player cooldown prevents repeat MagicRitual
+[SpecialAI] PASS Player applied MagicRitual counts as preparation rather than no-damage failure
+[SpecialAI] PASS Player applied MagicRitual remains eligible for delayed credit
+[SpecialAI] PASS Player a successful no-change executor alone receives no special credit
+[SpecialAI] PASS Player actual AI ritual reserves sufficient donated damage
+[SpecialAI] PASS Player AI reservation fires on the next owner turn
+[SpecialAI] PASS Enemy ritual creates bounded representative branches
+[SpecialAI] PASS Enemy hidden hostile never becomes lock candidate
+[SpecialAI] PASS Enemy ritual respects authored count
+[SpecialAI] PASS Enemy special candidate keeps shared AP and static future score
+[SpecialAI] PASS Enemy hidden hostile never becomes lock candidate
+[SpecialAI] PASS Enemy ritual respects authored count
+[SpecialAI] PASS Enemy special candidate keeps shared AP and static future score
+[SpecialAI] PASS Enemy hidden hostile never becomes lock candidate
+[SpecialAI] PASS Enemy ritual respects authored count
+[SpecialAI] PASS Enemy special candidate keeps shared AP and static future score
+[SpecialAI] PASS Enemy minimum, minimum kill and maximum remain distinct
+[SpecialAI] PASS Enemy hidden actor mutation cannot change legal target set
+[SpecialAI] PASS Enemy undefined cooldown never becomes a free active skill
+[SpecialAI] PASS Enemy damage null prevents false finishing bonus
+[SpecialAI] PASS Enemy observed ritual caster earns interruption value
+[SpecialAI] PASS Enemy charged safe archer preserves a firing position
+[SpecialAI] PASS Enemy lethal reservation overrides stationary preservation
+[SpecialAI] PASS Enemy observed line is a movement hazard
+[SpecialAI] PASS Enemy hidden crossbow cannot reveal a current line
+[SpecialAI] PASS Enemy knowledge reads the same gameplay definition
+[SpecialAI] PASS Enemy guardian can choose an owned important building
+[SpecialAI] PASS Enemy AI considers only the next Berserker stage
+[SpecialAI] PASS Enemy AI excludes an unaffordable next Berserker stage
+[SpecialAI] PASS Enemy AI pays eleven AP for the next third Berserker stage
+[SpecialAI] PASS Enemy AI never generates a sixth Berserker stage
+[SpecialAI] PASS Enemy malformed Berserker stage AP is rejected
+[KingCommanderSystem] 階層指揮システム初期化完了
+[AICommander] 初期化完了
+[SpecialAI] PASS Enemy exact AP WhiteMageHeal is selected by the ordinary AI pipeline
+[SpecialAI] PASS Enemy special learning/cache key distinguishes fixed ability WhiteMageHeal
+[SpecialAI] PASS Enemy executes selected WhiteMageHeal
+[SpecialAI] PASS Enemy pays exact authored WhiteMageHeal AP only once
+[SpecialAI] PASS Enemy cooldown prevents repeat WhiteMageHeal
+[SpecialAI] PASS Enemy applied WhiteMageHeal counts as preparation rather than no-damage failure
+[SpecialAI] PASS Enemy applied WhiteMageHeal remains eligible for delayed credit
+[SpecialAI] PASS Enemy a successful no-change executor alone receives no special credit
+[SpecialAI] PASS Enemy actual AI healing reaches ally
+[SpecialAI] PASS Enemy one HP heal does not justify AP12
+[KingCommanderSystem] 階層指揮システム初期化完了
+[AICommander] 初期化完了
+[SpecialAI] PASS Enemy exact AP MagicRitual is selected by the ordinary AI pipeline
+[SpecialAI] PASS Enemy special learning/cache key distinguishes fixed ability MagicRitual
+[SpecialAI] PASS Enemy executes selected MagicRitual
+[SpecialAI] PASS Enemy pays exact authored MagicRitual AP only once
+[SpecialAI] PASS Enemy cooldown prevents repeat MagicRitual
+[SpecialAI] PASS Enemy applied MagicRitual counts as preparation rather than no-damage failure
+[SpecialAI] PASS Enemy applied MagicRitual remains eligible for delayed credit
+[SpecialAI] PASS Enemy a successful no-change executor alone receives no special credit
+[SpecialAI] PASS Enemy actual AI ritual reserves sufficient donated damage
+[SpecialAI] PASS Enemy AI reservation fires on the next owner turn
+[SpecialSkillR1AI] 52 observed skill/environment/recovery checks passed
+[SpecialAI] PASS special-only observations save
+[SpecialAI] PASS missing observations do not enter detail denominator
+[SpecialAI] PASS special learning stores no actors, targets or positions
+[SpecialAI] PASS profile snapshot does not alias live arrays
+[SpecialAI] PASS completed match does not duplicate samples
+[SpecialAI] 97 checks passed
+[SpecialSkillR1AI] 52 observed skill/environment/recovery checks passed
+[SpecialSkillUI] PASS fixed special skill replaces historical skill action
+[SpecialSkillUI] PASS three command rows do not overlap
+[SpecialSkillUI] PASS modal renders and receives input above independent HUD canvases
+[SpecialSkillUI] PASS modal includes both legal visible enemies only
+[SpecialSkillUI] PASS all nine legal sacrifices remain available beyond AI representative subsets
+[SpecialSkillUI] PASS player can select every legal sacrifice
+[SpecialSkillUI] PASS legal selected target enables confirmation
+[SpecialSkillUI] PASS changed authoring limit invalidates pending selection
+[SpecialSkillUI] PASS unconfigured AP explains refusal without executing
+[SpecialSkillUI] PASS unconfigured cooldown also refuses use
+[SpecialSkillUI] PASS Japanese ability name None
+[SpecialSkillUI] PASS Japanese ability name KnightBreakthrough
+[SpecialSkillUI] PASS Japanese ability name ArcherStationary
+[SpecialSkillUI] PASS Japanese ability name MagicRitual
+[SpecialSkillUI] PASS Japanese ability name AssassinVisionSeal
+[SpecialSkillUI] PASS Japanese ability name ScoutVisionGuard
+[SpecialSkillUI] PASS Japanese ability name PriestPurification
+[SpecialSkillUI] PASS Japanese ability name GuardianLifeLink
+[SpecialSkillUI] PASS Japanese ability name CrossbowStakes
+[SpecialSkillUI] PASS Japanese ability name MagicSniperLock
+[SpecialSkillUI] PASS Japanese ability name LifeBomb
+[SpecialSkillUI] PASS Japanese ability name WhiteMageHeal
+[SpecialSkillUI] PASS Japanese ability name HolyKnightSanctuary
+[SpecialSkillUI] PASS Japanese ability name SamuraiCounter
+[SpecialSkillUI] PASS Japanese ability name NinjaSwap
+[SpecialSkillUI] PASS Japanese ability name BerserkerRage
+[SpecialSkillUI] PASS Japanese ability name NavigatorPull
+[SpecialSkillUI] PASS details display ritual amount and reservation
+[SpecialSkillUI] PASS details show persistent double damage and one hit protection
+[SpecialSkillUI] PASS details show life link and maximum HP based bomb
+[SpecialSkillUI] PASS missing saved target displays safely
+[SpecialSkillUI] PASS ordinary actors restore original two row layout
+[SpecialSkillUI] PASS hidden stake endpoint never produces a revealing line
+[SpecialSkillUI] PASS both observable endpoints display the actual lightning pair
+[SpecialSkillUI] PASS losing endpoint visibility removes the line immediately
+[SpecialSkillUI] PASS summon hover uses authored level-one stats and production costs
+[SpecialSkillUI] PASS summon hover uses canonical upkeep and fixed ability instead of a legacy random choice
+[SpecialSkillUI] PASS hover popup belongs to real canvas and blocks no commands
+[SpecialSkillUI] PASS scroll immediately hides summon tooltip
+[SpecialSkillUI] PASS disabled row cannot leave a tooltip behind
+[SpecialSkillUI] PASS closing panel explicitly dismisses shared tooltip
+[SpecialSkillUI] PASS status details show fixed skill and ability without a random skill section
+[SpecialSkillUI] PASS Berserker modal previews only the next stage without stage-choice buttons
+[SpecialSkillUI] PASS Berserker next-stage preview displays its exact AP before confirming
+[SpecialSkillUI] PASS AP changes invalidate a pending Berserker increment
+[SpecialSkillUI] PASS a changed Berserker state invalidates the old pending increment
+[SpecialSkillUI] PASS maximum Berserker stage disables another skill use
+[SpecialSkillUI] PASS Ninja skill and passive descriptions remain separate
+[SpecialSkillUI] PASS Navigator skill and passive descriptions remain separate
+[SpecialSkillUI] SUMMARY passed=49
+[EnvironmentGenerationTests] 8704 generation/cluster/reservation/save/budget checks passed
+[R1ProductionAI] Player WhiteMage AP=35->29 cost=6 stats=28/3/11 exact recipe/mask/ability passed
+[R1ProductionAI] Player HolyKnight AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+[R1ProductionAI] Player Samurai AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+[R1ProductionAI] Player Ninja AP=35->29 cost=6 stats=16/15/10 exact recipe/mask/ability passed
+[R1ProductionAI] Player Berserker AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+[R1ProductionAI] Player Navigator AP=35->25 cost=10 stats=42/14/20 exact recipe/mask/ability passed
+[R1ProductionAI] Enemy WhiteMage AP=35->29 cost=6 stats=28/3/11 exact recipe/mask/ability passed
+[R1ProductionAI] Enemy HolyKnight AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+[R1ProductionAI] Enemy Samurai AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+[R1ProductionAI] Enemy Ninja AP=35->29 cost=6 stats=16/15/10 exact recipe/mask/ability passed
+[R1ProductionAI] Enemy Berserker AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+[R1ProductionAI] Enemy Navigator AP=35->25 cost=10 stats=42/14/20 exact recipe/mask/ability passed
+[R1ProductionAI] 216 real both-faction recruitment checks passed
+[R1OwnWall] 42 owned wall/normal building/fog/forced-swap checks passed
+[KingCommanderSystem] 階層指揮システム初期化完了
+[AICommander] 初期化完了
+[KingCommanderSystem] 階層指揮システム初期化完了
+[AICommander] 初期化完了
+[AIOperationLifetimeTests] 26 destroyed/cached/turn-tail/faction checks passed
+]]></output>
+        </test-case>
+        <test-case id="1009" name="Telemetry_IsOptIn_Resettable_AndBounded" fullname="FantasyKingdomR1ContractTests.Telemetry_IsOptIn_Resettable_AndBounded" methodname="Telemetry_IsOptIn_Resettable_AndBounded" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="808906771" result="Passed" start-time="2026-10-18 03:07:38Z" end-time="2026-10-18 03:07:38Z" duration="0.004679" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1007" name="UndefinedNewActiveSkillCosts_AreNotInvented_AndRageCostsStaySequential" fullname="FantasyKingdomR1ContractTests.UndefinedNewActiveSkillCosts_AreNotInvented_AndRageCostsStaySequential" methodname="UndefinedNewActiveSkillCosts_AreNotInvented_AndRageCostsStaySequential" classname="FantasyKingdomR1ContractTests" runstate="Runnable" seed="649928368" result="Passed" start-time="2026-10-18 03:07:38Z" end-time="2026-10-18 03:07:38Z" duration="0.001190" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Saving results to: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r1-final-unity-tests-20261018.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

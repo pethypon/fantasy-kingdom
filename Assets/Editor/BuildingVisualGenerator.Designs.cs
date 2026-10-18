@@ -5,7 +5,7 @@ public static partial class BuildingVisualGenerator
 {
     // Palette index: oak, cut wood, stone, slate, brass, iron, water,
     // red tile, furnace amber, wheat, foliage, plaster, earth, crystal, dark, silver.
-    static Builder MakeBuilding(FacilityKind kind)
+    static Builder MakeBuilding(FacilityKind kind, bool dark = false)
     {
         var b = new Builder();
         b.Box(new Vector3(0, .04f, 0), new Vector3(.86f, .08f, .86f), 5);
@@ -31,30 +31,61 @@ public static partial class BuildingVisualGenerator
             case FacilityKind.HeroSword: HeroSword(b); break;
             case FacilityKind.SubCrystal: SubCrystal(b); break;
         }
+        // Crystal art is authored separately and retains its original geometry/material.
+        if (kind != FacilityKind.SubCrystal) AddKingdomDetails(b, kind, dark);
         return b;
     }
 
     static void Cabin(Builder b, Vector3 center, Vector3 size, int wall, int roof, float rise)
     {
-        b.Box(center, size, wall);
         float bottom = center.y - size.y / 2, top = center.y + size.y / 2;
+        // Build actual masonry around an entrance. A recessed door reads in a
+        // single marble material, where a painted dark rectangle would disappear.
+        float thickness = .045f, doorWidth = size.x * .30f, doorHeight = Mathf.Min(.31f, size.y * .72f);
+        b.Box(center + Vector3.forward * (size.z - thickness) * .5f, new Vector3(size.x, size.y, thickness), wall);
+        for (int side = -1; side <= 1; side += 2)
+        {
+            b.Box(center + Vector3.right * side * (size.x - thickness) * .5f,
+                new Vector3(thickness, size.y, size.z), wall);
+            float pierWidth = (size.x - doorWidth) * .5f;
+            b.Box(new Vector3(center.x + side * (doorWidth + pierWidth) * .5f, center.y, center.z - (size.z - thickness) * .5f),
+                new Vector3(pierWidth, size.y, thickness), wall);
+        }
+        b.Box(new Vector3(center.x, bottom + doorHeight + (size.y - doorHeight) * .5f, center.z - (size.z - thickness) * .5f),
+            new Vector3(doorWidth, size.y - doorHeight, thickness), wall);
         for (int x = -1; x <= 1; x += 2) for (int z = -1; z <= 1; z += 2)
             b.Box(center + new Vector3(x * (size.x / 2 - .022f), 0, z * (size.z / 2 - .022f)), new Vector3(.047f, size.y + .015f, .047f), 0);
         b.Box(new Vector3(center.x, bottom + .035f, center.z), new Vector3(size.x + .02f, .055f, size.z + .02f), 0);
         b.Roof(new Vector3(center.x, top + .015f, center.z), size.x + .095f, size.z + .10f, rise, roof);
+        b.Roof(new Vector3(center.x, top - .018f, center.z), size.x + .11f, size.z + .115f, rise, 2);
         b.Box(new Vector3(center.x, top + rise + .02f, center.z), new Vector3(.05f, .045f, size.z + .10f), 4);
-        // Small roof ribs read clearly at board distance without a texture or decal.
+        // The eaves have an underside and a projecting stone fascia rather than
+        // the silhouette of a paper-thin triangle.
         for (int side = -1; side <= 1; side += 2)
-            for (int i = 0; i < 3; i++)
-                b.Box(new Vector3(center.x + side * size.x * .26f, top + rise * .48f + .028f, center.z + (i - 1) * size.z * .32f), new Vector3(.022f, .024f, size.z * .27f), roof);
+        {
+            b.Box(new Vector3(center.x + side * (size.x + .08f) * .5f, top + .002f, center.z),
+                new Vector3(.043f, .055f, size.z + .12f), 2);
+            var slope = new Vector3(side * (size.x + .095f) * .5f, -rise, 0);
+            for (int i = -1; i <= 1; i++)
+                b.Frustum(new Vector3(center.x, top + rise + .028f, center.z + i * size.z * .34f),
+                    .009f, .009f, slope.magnitude, 4, 4, slope.normalized);
+        }
     }
 
     static void Window(Builder b, float x, float y, float z, bool side = false)
     {
-        var size = side ? new Vector3(.015f, .13f, .13f) : new Vector3(.13f, .13f, .015f);
-        b.Box(new Vector3(x, y, z), size + new Vector3(.028f, .028f, .028f), 0);
-        b.Box(new Vector3(x, y, z) + (side ? new Vector3(.018f, 0, 0) : new Vector3(0, 0, -.018f)), size, 8);
-        b.Box(new Vector3(x, y, z) + (side ? new Vector3(.03f, 0, 0) : new Vector3(0, 0, -.03f)), side ? new Vector3(.016f, .016f, .15f) : new Vector3(.15f, .016f, .016f), 4);
+        var center = new Vector3(x, y, z);
+        var horizontal = side ? Vector3.forward : Vector3.right;
+        var outward = side ? Vector3.right : Vector3.back;
+        var upright = side ? new Vector3(.035f, .16f, .022f) : new Vector3(.022f, .16f, .035f);
+        var lintel = side ? new Vector3(.035f, .022f, .18f) : new Vector3(.18f, .022f, .035f);
+        for (int edge = -1; edge <= 1; edge += 2)
+        {
+            b.Box(center + horizontal * edge * .073f + outward * .012f, upright, 2);
+            b.Box(center + Vector3.up * edge * .073f + outward * .014f, lintel, 11);
+        }
+        b.Box(center + outward * .022f, side ? new Vector3(.018f, .135f, .018f) : new Vector3(.018f, .135f, .018f), 4);
+        b.Box(center + outward * .024f, side ? new Vector3(.018f, .018f, .14f) : new Vector3(.14f, .018f, .018f), 4);
     }
 
     static void Barrel(Builder b, Vector3 center, float radius = .10f, float height = .20f)
@@ -89,8 +120,8 @@ public static partial class BuildingVisualGenerator
     {
         Cabin(b, new Vector3(-.05f, .37f, .06f), new Vector3(.58f, .50f, .52f), 11, 7, .25f);
         b.Box(new Vector3(-.08f, .30f, -.218f), new Vector3(.29f, .26f, .035f), 2);
-        b.Frustum(new Vector3(-.08f, .38f, -.24f), .145f, .145f, .025f, 2, 8, Vector3.back);
-        b.Box(new Vector3(-.08f, .27f, -.247f), new Vector3(.21f, .20f, .015f), 14);
+        b.Ring(new Vector3(-.08f, .38f, -.24f), .145f, .108f, .025f, 2, 10, Vector3.back);
+        b.Box(new Vector3(-.08f, .27f, -.177f), new Vector3(.21f, .20f, .015f), 14);
         b.Box(new Vector3(-.08f, .215f, -.26f), new Vector3(.18f, .06f, .015f), 8);
         b.Box(new Vector3(.15f, .80f, .15f), new Vector3(.14f, .59f, .15f), 2);
         for (int i = 0; i < 5; i++) b.Box(new Vector3(.15f, .57f + i * .095f, .15f), new Vector3(.158f, .018f, .168f), 4);
@@ -103,7 +134,7 @@ public static partial class BuildingVisualGenerator
     static void LoggingCamp(Builder b)
     {
         Cabin(b, new Vector3(-.12f, .33f, .14f), new Vector3(.42f, .40f, .40f), 1, 3, .22f);
-        b.Box(new Vector3(-.12f, .28f, -.067f), new Vector3(.21f, .27f, .022f), 14);
+        b.Box(new Vector3(-.12f, .28f, -.034f), new Vector3(.16f, .27f, .022f), 14);
         b.Box(new Vector3(.13f, .18f, -.22f), new Vector3(.50f, .09f, .20f), 0);
         for (int i = 0; i < 3; i++)
         {
@@ -153,7 +184,7 @@ public static partial class BuildingVisualGenerator
     static void Barracks(Builder b)
     {
         Cabin(b, new Vector3(-.06f, .36f, 0), new Vector3(.54f, .50f, .59f), 2, 3, .23f);
-        b.Box(new Vector3(-.08f, .28f, -.307f), new Vector3(.24f, .30f, .03f), 0);
+        b.Box(new Vector3(-.08f, .28f, -.267f), new Vector3(.16f, .30f, .025f), 0);
         b.Box(new Vector3(-.08f, .40f, -.329f), new Vector3(.27f, .04f, .025f), 4);
         b.Box(new Vector3(.28f, .60f, .22f), new Vector3(.21f, .98f, .23f), 3);
         b.Frustum(new Vector3(.28f, 1.1f, .22f), .16f, 0, .21f, 4, 4);
@@ -168,7 +199,7 @@ public static partial class BuildingVisualGenerator
     {
         float height = luxury ? .64f : .42f, y = .13f + height / 2;
         Cabin(b, new Vector3(0, y, .05f), new Vector3(.57f, height, .54f), luxury ? 11 : 1, luxury ? 3 : 7, luxury ? .30f : .27f);
-        b.Box(new Vector3(0, .25f, -.235f), new Vector3(.15f, .25f, .03f), 0);
+        b.Box(new Vector3(0, .25f, -.198f), new Vector3(.15f, .25f, .025f), 0);
         b.Box(new Vector3(.045f, .26f, -.256f), new Vector3(.022f, .023f, .013f), 4);
         Window(b, -.19f, .36f, -.238f); Window(b, .19f, .36f, -.238f);
         Window(b, .294f, .37f, .09f, true);

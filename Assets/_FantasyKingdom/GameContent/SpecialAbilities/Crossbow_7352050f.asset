@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe405636929147b2875172fb26b870e8, type: 3}
   m_Name: Crossbow_7352050f
   m_EditorClassIdentifier: Assembly-CSharp::SpecialSkillDefinition
+  crossbowInitialAmmo: 2
   ability: 8
   displayName: "\u96F7\u676D"
-  enabledForPlay: 0
+  enabledForPlay: 1
   apCost: 10
-  cooldown: -1
+  cooldown: 0
   stageAPCosts: 05000000080000000b0000000f00000014000000
   knightVisibleEnemyAtkPenalty: -1
   stationaryAttackCurve:
@@ -59,7 +60,7 @@ MonoBehaviour:
   bombExplosionRadius: -1
   bombFactionMask: 0
   bombOnHolderDeathPolicy: 0
-  lightningFactionMask: 0
+  lightningFactionMask: 1
   holyKnightArea: []
   holyKnightInterruptionConfigured: 0
   holyKnightInterruptOnDamage: 0
@@ -96,3 +97,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  knightPenaltyStackRule: 0
+  assassinBoostDuration: -1
+  assassinBoostStackRule: 0
+  scoutFreeMoveScope: 0
+  scoutFreeAttackScope: 0
+  guardianAttackCostReset: 0
+  bomberAutoExplosionRadius: -1

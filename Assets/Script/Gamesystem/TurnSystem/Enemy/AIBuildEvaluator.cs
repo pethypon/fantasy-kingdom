@@ -171,7 +171,7 @@ static class AIBuildEvaluator
         float score = 30f;
 
         bool contact = board.Recon.TryGetContactTarget(out _);
-        bool combatRecruit = action.SummonKind != Kind.Scout && action.SummonKind != Kind.Priest;
+        bool combatRecruit = action.SummonKind != Kind.Scout && !UnitRoster.IsDedicatedHealer(action.SummonKind);
         var demand = board.ProductionDemand;
         bool needsRecovery = AIStrategicGovernor.RequiresEconomicRecovery(demand);
         if (contact && combatRecruit)

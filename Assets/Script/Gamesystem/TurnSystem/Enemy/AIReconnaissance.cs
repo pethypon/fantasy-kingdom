@@ -217,5 +217,5 @@ public sealed class AIReconnaissance
 
     public float InformationAt(Vector3Int cell) { Prepare(); return interest.TryGetValue(GridHelper.ToGridXZ(cell), out float value) ? value : 0; }
     public bool TryGetContactTarget(out Vector3 target) { Prepare(); target = contactTarget; return hasContact; }
-    static bool IsRanged(Kind kind) => kind == Kind.Archer || kind == Kind.Crossbow || kind == Kind.Magicsniper || kind == Kind.Magic || kind == Kind.Bomber;
+    static bool IsRanged(Kind kind) => AIPlayerModel.IsRanged(kind) || kind == Kind.Bomber;
 }

@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4e53bc09a8ccec4ab02b88d9e281df4, type: 3}
+  m_Name: Stats
+  m_EditorClassIdentifier: Assembly-CSharp::UnitData
+  definitionId: r1.unit.navigator
+  displayName: "\u822A\u6D77\u58EB"
+  category: R1
+  prefab: {fileID: 139945830093812145, guid: 738b5c50ddf414542bc04d94cf8d4589, type: 3}
+  actionProfile: {fileID: 11400000, guid: 5cf9fd24971a15b46bd9dec3a25b58cc, type: 2}
+  defaultTeam: 0
+  availableToPlayer: 1
+  availableToEnemy: 1
+  useAuthoredAbilities: 0
+  authoredPassive: 0
+  authoredSkillId: -1
+  authoredSpecialAbility: 0
+  specialSkill: {fileID: 11400000, guid: 1675d8623672b2349a80a0766dde3562, type: 2}
+  attackTags: 0
+  kind: 22
+  baseHP: 42
+  baseATK: 14
+  baseDEF: 20
+  hpGrowth: 0.35
+  atkGrowth: 0.5
+  defGrowth: 0.1
+  upkeepExempt: 0
+  useAuthoredUpkeep: 0
+  upkeepWood: 0
+  upkeepStone: 3
+  upkeepIron: 0
+  upkeepMagic: 1
+  upkeepWater: 0
+  upkeepBread: 0
+  upkeepMagicScales: 1
+  costWood: 0
+  costStone: 50
+  costIron: 0
+  costMagic: 30
+  costWater: 50
+  costBread: 0
+  costCitizen: 0
+  costAP: 10

@@ -145,6 +145,7 @@ public class UnitSetting : MonoBehaviour
             }
             else if (!string.IsNullOrEmpty(actor.authoredFacilityId)) actor.AuthoredFacility = FacilityAuthoringCatalog.Loaded?.Find(actor.authoredFacilityId);
             StatusBalanceRefresh.ApplyLatestDefinition(actor);
+            BoardActorPresentation.Apply(actor);
         }
         refreshActors.Clear();
         SpecialSkillRuntime.InvalidateRules();
@@ -208,6 +209,7 @@ public class UnitSetting : MonoBehaviour
 
         // 頭上UI（Lv + HP）をアタッチ
         if (runtimeSpawn) status.MarkRuntimeSpawn(obj);
+        BoardActorPresentation.Apply(status, obj);
         UnitHeadUI.Attach(obj);
 
         return obj;
@@ -233,6 +235,7 @@ public class UnitSetting : MonoBehaviour
         data.ApplyToStatus(status, level); data.InitializeAbilities(status);
         PrimitiveMaterialBinding.Apply(obj.GetComponent<Renderer>(), BrandGuide.GetUnitFallbackColor(status.team));
         if (runtimeSpawn) status.MarkRuntimeSpawn(obj);
+        BoardActorPresentation.Apply(status, obj);
         UnitHeadUI.Attach(obj);
         return obj;
     }
@@ -333,6 +336,7 @@ public class UnitSetting : MonoBehaviour
             {
                 status.team = team;
                 status.direction = dir;
+                BoardActorAnimation.NotifyFacing(status);
             }
             Debug.Log($"<color=#ffff00ff>[StartSetting]</color>{team} {kind} 設置 @({pos.x},{pos.z})");
         }

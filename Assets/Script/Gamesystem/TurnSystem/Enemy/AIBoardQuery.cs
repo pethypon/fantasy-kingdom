@@ -102,7 +102,13 @@ public static class AIBoardQuery
         foreach (var u in board.Allies.Near(pos, range))
         {
             if (!IsActiveUnit(u)) continue;
-            if (!AttackPatterns.CanUseSkills(u) || u.AssignedSkillId < 0) continue;
+            if (!AttackPatterns.CanUseSkills(u)) continue;
+            var definition = SpecialSkillRuntime.Definition(u);
+            if (definition != null && definition.enabledForPlay && definition.ConfigurationError == null
+                && (definition.ability == UnitSpecialSkill.WhiteMageHeal || definition.ability == UnitSpecialSkill.HolyKnightSanctuary)
+                && (pos - u.transform.position).sqrMagnitude <= sqrRange)
+                return board.HealerCache[(pos,range)] = true;
+            if (u.AssignedSkillId < 0) continue;
             if (!SkillData.Table.TryGetValue(u.AssignedSkillId, out var skill)) continue;
             if (skill.FixedHeal > 0 && (pos - u.transform.position).sqrMagnitude <= sqrRange)
                 return board.HealerCache[(pos,range)] = true;

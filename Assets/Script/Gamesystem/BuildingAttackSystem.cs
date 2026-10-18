@@ -140,7 +140,7 @@ public class BuildingAttackSystem : MonoBehaviour
             Vector3 splashPos = new Vector3(tx + splash.x, 0f, tz + splash.y);
             Status splashTarget = FindEnemyAtCell(splashPos, enemyTeam);
             if (splashTarget != null)
-                ApplyBuildingDamage(mortar, splashTarget);
+                ApplyBuildingDamageCore(mortar, splashTarget, false);
         }
     }
 
@@ -242,6 +242,9 @@ public class BuildingAttackSystem : MonoBehaviour
     /// 建築物によるダメージ適用。正式な共通ダメージ式・最低命中ダメージを使う。
     /// </summary>
     private void ApplyBuildingDamage(Status attacker, Status target)
+        => ApplyBuildingDamageCore(attacker, target, true);
+
+    private void ApplyBuildingDamageCore(Status attacker, Status target, bool primaryTarget)
     {
         // シールド中はダメージ無効
         if (target.ShieldTurns > 0)
@@ -251,6 +254,7 @@ public class BuildingAttackSystem : MonoBehaviour
         }
 
         if (moveGenerator.mapcreate != null && !moveGenerator.mapcreate.CanAttackAcrossTerrain(attacker, target.transform.position)) return;
+        if (primaryTarget) BoardActorAnimation.NotifyAttack(attacker, target.transform.position);
         int raw = DamageCalculator.CalcNormal(attacker, target);
 
         // Special Ability: 致死ダメージ耐え（生還本能）— 他の攻撃経路と同等に判定する

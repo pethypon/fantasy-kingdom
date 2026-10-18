@@ -172,7 +172,7 @@ public static class AIConstants
     // =====================================================================
     public static float GetPieceValue(Kind kind)
     {
-        switch (kind)
+        switch (UnitRoster.EvaluationBaseKind(kind))
         {
             case Kind.Crystal:      return PV_Crystal;
             case Kind.King:         return PV_King;
@@ -196,7 +196,8 @@ public static class AIConstants
     {
         switch (kind)
         {
-            case Kind.Archer:       return AR_Archer;
+            case Kind.Archer:
+            case Kind.Ninja:        return AR_Archer;
             case Kind.Magic:        return AR_Magic;
             case Kind.Crossbow:     return AR_Crossbow;
             case Kind.Magicsniper:  return AR_Magicsniper;

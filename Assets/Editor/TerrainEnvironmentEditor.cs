@@ -86,6 +86,8 @@ public sealed class TerrainEnvironmentEditor : EditorWindow
         EditorGUI.BeginChangeCheck();
         bool enabled = EditorGUILayout.Toggle("このカタログをゲームで使う", catalog.enabledForPlay);
         if (EditorGUI.EndChangeCheck()) { Undo.RecordObject(catalog, "環境を有効化"); catalog.enabledForPlay = enabled; EditorUtility.SetDirty(catalog); }
+        var catalogProperties = new SerializedObject(catalog);
+        catalogProperties.Update(); TerrainEnvironmentGenerationEditorUI.Draw(catalogProperties); catalogProperties.ApplyModifiedProperties();
         brush = (TerrainEnvironmentDefinition)EditorGUILayout.ObjectField("配置する環境", brush, typeof(TerrainEnvironmentDefinition), false);
         for (int first = 0; first < catalog.definitions.Count; first += 5)
         {
@@ -203,11 +205,65 @@ public sealed class TerrainEnvironmentCatalogInspector : Editor
     {
         serializedObject.Update();
         EditorGUILayout.PropertyField(serializedObject.FindProperty("enabledForPlay"), new GUIContent("このカタログをゲームで使う"));
+        TerrainEnvironmentGenerationEditorUI.Draw(serializedObject);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("definitions"), new GUIContent("登録した環境の種類"), true);
         serializedObject.ApplyModifiedProperties();
         EditorGUILayout.LabelField("配置済みマス", ((TerrainEnvironmentCatalog)target).placements?.Count.ToString() ?? "0");
         EditorGUILayout.HelpBox("配置と洞窟の接続先は8×8タイル画面で編集できます。", MessageType.Info);
         if (GUILayout.Button("環境オブジェクト設定を開く")) TerrainEnvironmentEditor.Open();
+    }
+}
+
+static class TerrainEnvironmentGenerationEditorUI
+{
+    public static void Draw(SerializedObject serialized)
+    {
+        var generation = serialized.FindProperty("generation");
+        if (generation == null) return;
+        generation.isExpanded = EditorGUILayout.Foldout(generation.isExpanded, "開始時の自動生成", true);
+        if (!generation.isExpanded) return;
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(generation.FindPropertyRelative("enabled"), new GUIContent("新規ゲームで自動配置する"));
+        EditorGUILayout.PropertyField(generation.FindPropertyRelative("seedOffset"), new GUIContent("環境専用シード"));
+        EditorGUILayout.Slider(generation.FindPropertyRelative("coverage"), 0, .4f, new GUIContent("環境の目標割合"));
+        EditorGUILayout.PropertyField(generation.FindPropertyRelative("maximumCells"), new GUIContent("手動配置を含む総マス数の上限"));
+        EditorGUILayout.PropertyField(generation.FindPropertyRelative("maximumAttempts"), new GUIContent("配置の試行回数上限"));
+        EditorGUILayout.PropertyField(generation.FindPropertyRelative("initialSafeRadius"), new GUIContent("クリスタル周辺の安全距離（5以上）"));
+        EditorGUILayout.HelpBox("森と草むらは同じ高さの3～4マスで、不定形につながります。別の群れとは1マス以上離します。初期部隊・川・高山・狭路を避け、洞窟は相互接続した2入口を配置します。ロードでは保存した配置を使います。", MessageType.None);
+        var rules = generation.FindPropertyRelative("rules");
+        EditorGUILayout.PropertyField(rules, new GUIContent("種類ごとの生成設定"), true);
+        EditorGUI.indentLevel--;
+    }
+}
+
+[CustomPropertyDrawer(typeof(TerrainEnvironmentGenerationRule))]
+public sealed class TerrainEnvironmentGenerationRuleDrawer : PropertyDrawer
+{
+    static string[] names;
+    public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => EditorGUIUtility.singleLineHeight * 2 + 4;
+    public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
+    {
+        if (names == null)
+        {
+            names = new string[10];
+            for (int i = 0; i < names.Length; i++) names[i] = TerrainEnvironmentDefinition.NameJapanese((TerrainEnvironmentKind)i);
+        }
+        EditorGUI.BeginProperty(rect, label, property);
+        float lineHeight = EditorGUIUtility.singleLineHeight;
+        var kind = property.FindPropertyRelative("kind");
+        var first = new Rect(rect.x, rect.y, rect.width, lineHeight);
+        var toggle = new Rect(first.x, first.y, 22, lineHeight);
+        EditorGUI.PropertyField(toggle, property.FindPropertyRelative("enabled"), GUIContent.none);
+        var popup = new Rect(first.x + 24, first.y, first.width - 24, lineHeight);
+        kind.enumValueIndex = EditorGUI.Popup(popup, "生成する環境", kind.enumValueIndex, names);
+        float width = (rect.width - 8) * .5f;
+        var second = new Rect(rect.x, rect.y + lineHeight + 2, width, lineHeight);
+        float previousWidth = EditorGUIUtility.labelWidth; EditorGUIUtility.labelWidth = Math.Min(100, width * .65f);
+        EditorGUI.PropertyField(second, property.FindPropertyRelative("weight"), new GUIContent("出現の重み"));
+        second.x += width + 8;
+        EditorGUI.PropertyField(second, property.FindPropertyRelative("maximumCells"), new GUIContent("種類の上限マス数"));
+        EditorGUIUtility.labelWidth = previousWidth;
+        EditorGUI.EndProperty();
     }
 }
 #endif

@@ -112,13 +112,25 @@ public sealed class AIOperationFeatureExtractor
     }
 
     public IEnumerable<Status> OwnUnits(AIBoardState board, int ownTurn)
-    { Prepare(board, ownTurn); return own.Values; }
+    { Prepare(board, ownTurn); return LiveUnits(own.Values); }
     public IEnumerable<Status> ObservedUnits(AIBoardState board, int ownTurn)
-    { Prepare(board, ownTurn); return observed.Values; }
+    { Prepare(board, ownTurn); return LiveUnits(observed.Values); }
     public bool TryOwn(string life, out Status unit)
-    { unit = null; return !string.IsNullOrEmpty(life) && own.TryGetValue(life, out unit); }
+    { return TryLive(own, life, out unit); }
     public bool TryObserved(string life, out Status unit)
-    { unit = null; return !string.IsNullOrEmpty(life) && observed.TryGetValue(life, out unit); }
+    { return TryLive(observed, life, out unit); }
+
+    // A cached board generation can outlive a killed or destroyed Unity object.
+    // Reject Unity fake-null before any native property (transform/gameObject) is read.
+    static bool TryLive(Dictionary<string, Status> index, string life, out Status unit)
+    {
+        if (!string.IsNullOrEmpty(life) && index.TryGetValue(life, out unit) && unit != null && unit.IsAlive) return true;
+        unit = null; return false;
+    }
+    static IEnumerable<Status> LiveUnits(IEnumerable<Status> source)
+    {
+        foreach (var unit in source) if (unit != null && unit.IsAlive) yield return unit;
+    }
 
     public AIOperationContext Capture(AIBoardState board, AIOperationPlan plan, int ownTurn)
     {

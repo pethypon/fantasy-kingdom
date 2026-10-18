@@ -12,16 +12,71 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe405636929147b2875172fb26b870e8, type: 3}
   m_Name: Archer_6cf96d63
   m_EditorClassIdentifier: Assembly-CSharp::SpecialSkillDefinition
+  crossbowInitialAmmo: -1
   ability: 2
   displayName: "\u672A\u79FB\u52D5\u5F37\u5316"
-  enabledForPlay: 0
-  apCost: 0
-  cooldown: -1
+  enabledForPlay: 1
+  apCost: 10
+  cooldown: 3
   stageAPCosts: 05000000080000000b0000000f00000014000000
   knightVisibleEnemyAtkPenalty: -1
   stationaryAttackCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0.15
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1.15
+      inSlope: 0.15
+      outSlope: 0.15
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 2
+      value: 1.3
+      inSlope: 0.15
+      outSlope: 0.15
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 3
+      value: 1.45
+      inSlope: 0.15
+      outSlope: 0.15
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 4
+      value: 1.6
+      inSlope: 0.15
+      outSlope: 0.15
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 5
+      value: 1.75
+      inSlope: 0.15
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -96,3 +151,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  knightPenaltyStackRule: 0
+  assassinBoostDuration: -1
+  assassinBoostStackRule: 0
+  scoutFreeMoveScope: 0
+  scoutFreeAttackScope: 0
+  guardianAttackCostReset: 0
+  bomberAutoExplosionRadius: -1

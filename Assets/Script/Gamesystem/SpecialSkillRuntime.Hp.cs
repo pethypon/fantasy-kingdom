@@ -16,6 +16,12 @@ public static partial class SpecialSkillRuntime
     }
     public static int ApplyAbilityDamage(Status source, Status target, int amount, HpChangeKind kind, HpChangeCause cause = HpChangeCause.Skill)
     {
+        // Direct offensive skills and counters are attacks; buffs, healing,
+        // sacrifices and delayed terrain/bomb damage do not animate the caster.
+        if (source != null && target != null && source != target && amount > 0
+            && (cause == HpChangeCause.Skill || cause == HpChangeCause.Counter)
+            && (kind == HpChangeKind.NormalDamage || kind == HpChangeKind.IgnoreDefenceDamage || kind == HpChangeKind.ExecutionDamage))
+            BoardActorAnimation.NotifyAttack(source, target.transform.position);
         var recipient = ResolveDamageRecipient(target, amount, kind);
         int actual = ApplyHpChange(source, target, amount, kind, cause: cause);
         if (recipient != null && actual > 0 && (kind == HpChangeKind.NormalDamage || kind == HpChangeKind.IgnoreDefenceDamage || kind == HpChangeKind.ExecutionDamage))
@@ -78,11 +84,12 @@ public static partial class SpecialSkillRuntime
             if (target.HP <= 0) { OnSpecialDeath(target); CompleteSpecialDeath(target); }
             return actual;
         }
-        if ((respectShield && target.ShieldTurns > 0) || target.isWildBoss && target.IsWildBossProtected) return 0;
+        if ((respectShield && target.ShieldTurns > 0) || target.isWildBoss && target.IsWildBossProtected)
+        { BoardActionFeedback.Shield(target); return 0; }
         var s = State(target);
         // Nullification protects the intended recipient before any link can intercept.
         if (s.damageNullUnused && s.damageNullTurns > 0)
-        { s.damageNullUnused = false; s.damageNullTurns = 0; HpRevision++; return 0; }
+        { s.damageNullUnused = false; s.damageNullTurns = 0; HpRevision++; BoardActionFeedback.Shield(target); return 0; }
         if (!redirected && !string.IsNullOrEmpty(s.guardianPartnerId))
         {
             var partner = FindActor(s.guardianPartnerId);

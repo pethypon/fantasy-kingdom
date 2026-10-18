@@ -120,6 +120,7 @@ public static partial class SpecialSkillRuntime
                 succeeded = ExecuteAuthorized(command, systems, systems.TurnGenerator != null ? systems.TurnGenerator.Context.Turn : 0, out reason); break;
         }
         if (!succeeded) return false;
+        BoardActorAnimation.NotifySkill(caster, command.Target != null ? (Vector3?)command.Target.transform.position : null);
         // Confirmed actions alone consume their authored AP; no implicit random-skill discount.
         systems.MoveUndoSystem?.Clear();
         systems.FactionState.ModifyAP(caster.team, -actionCost);
@@ -245,6 +246,7 @@ public static partial class SpecialSkillRuntime
     public static void OnMoved(Status actor, Vector3 from, Vector3 to, GameSystems systems)
     {
         if (actor == null || GridHelper.ToGridXZ(from) == GridHelper.ToGridXZ(to)) return;
+        BoardActorAnimation.NotifyMove(actor, from);
         var s = State(actor); s.moved = true; s.stationaryTurns = 0;
         actor.HasMovedThisTurn = true;
         long before = HpRevision;

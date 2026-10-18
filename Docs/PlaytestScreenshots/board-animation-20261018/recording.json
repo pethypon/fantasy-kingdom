@@ -1,0 +1,21 @@
+{
+    "source": "BoardActorAnimation production runtime; cosmetic notification preview, not a battle replay",
+    "width": 960,
+    "height": 420,
+    "framesPerSecond": 30,
+    "framesPerPhase": 20,
+    "frames": 120,
+    "phases": [
+        "Idle",
+        "Move",
+        "Attack",
+        "Skill",
+        "Hit",
+        "Death"
+    ],
+    "actors": [
+        "Player Knight / existing white marble",
+        "Enemy Knight / existing black marble",
+        "Wild Dragon / existing red marble"
+    ]
+}

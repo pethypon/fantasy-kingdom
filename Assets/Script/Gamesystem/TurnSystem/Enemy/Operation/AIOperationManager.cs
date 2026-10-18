@@ -289,6 +289,8 @@ public sealed partial class AIOperationManager
         using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Operation);
         if (!config.Enabled || state.Ended || ownTurn <= state.OwnTurns || state.LastEndedOwnTurn == ownTurn) return;
         state.OwnTurns = ownTurn; state.LastEndedOwnTurn = ownTurn;
+        // Turn-end board refresh does not rebuild the army retained from BeginTurn/Refresh.
+        ownArmy.RemoveAll(actor => actor == null || !actor.IsAlive);
         foreach (var plan in state.ActiveOperations)
         {
             plan.CurrentContext = features.Capture(board, plan, ownTurn);
@@ -925,7 +927,7 @@ public sealed partial class AIOperationManager
         if (attackedSide) plan.CurrentContext.FlankConfirmed = true;
         foreach (var partner in ownArmy)
         {
-            if (partner == actor || !partner.IsAlive || AIOperationFeatureExtractor.Distance(partner.transform.position, target.transform.position) > 2) continue;
+            if (partner == null || partner == actor || !partner.IsAlive || AIOperationFeatureExtractor.Distance(partner.transform.position, target.transform.position) > 2) continue;
             var first = actor.transform.position - target.transform.position;
             var second = partner.transform.position - target.transform.position;
             if (first.x * second.x + first.z * second.z < 0)

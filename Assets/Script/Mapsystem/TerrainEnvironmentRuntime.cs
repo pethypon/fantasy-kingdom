@@ -26,6 +26,8 @@ public sealed partial class TerrainEnvironmentRuntime
         public List<CaveTransitSnapshot> caveTransits = new List<CaveTransitSnapshot>();
         public List<AttackRevealSnapshot> attackReveals = new List<AttackRevealSnapshot>();
         public int currentRound;
+        public bool generatedAtStart;
+        public int generationSeed;
     }
     sealed class Cell
     {
@@ -67,8 +69,10 @@ public sealed partial class TerrainEnvironmentRuntime
     {
         cells.Clear(); actors.Clear(); lastOwnerRound.Clear(); lastWeatherRound = -1;
         caveTransits.Clear(); attackReveals.Clear(); currentRound = 0;
+        generatedAtStart = false; generationLocked = false; generationSeed = 0; LastGenerationAttemptCount = 0;
         if (visualRoot != null)
         {
+            visualRoot.gameObject.SetActive(false);
             if (Application.isPlaying) UnityEngine.Object.Destroy(visualRoot.gameObject);
             else UnityEngine.Object.DestroyImmediate(visualRoot.gameObject);
         }
@@ -77,14 +81,29 @@ public sealed partial class TerrainEnvironmentRuntime
     void Add(TerrainEnvironmentDefinition definition, CellSnapshot state)
     {
         var cell = new Cell { Definition = definition, State = state }; cells[state.cell] = cell;
-        if (definition.visualPrefab == null || state.burned) return;
+        CreateVisual(cell);
+    }
+    void CreateVisual(Cell cell)
+    {
+        GameObject prefab = cell.Definition.visualPrefab;
+        if (cell.State.burned)
+        {
+            prefab = null;
+            if (cell.State.smokeRounds > 0 && catalog?.definitions != null) foreach (var definition in catalog.definitions)
+                if (definition != null && definition.IsActive && definition.kind == TerrainEnvironmentKind.Smoke && definition.visualPrefab != null)
+                { prefab = definition.visualPrefab; break; }
+        }
+        if (prefab == null) return;
         if (visualRoot == null)
         {
             visualRoot = new GameObject("EnvironmentObjects").transform;
             visualRoot.SetParent(map.transform, false);
         }
-        if (map.TryGetHeight(state.cell.x, state.cell.y, out float y))
-            cell.Visual = UnityEngine.Object.Instantiate(definition.visualPrefab, new Vector3(state.cell.x, y, state.cell.y), Quaternion.identity, visualRoot);
+        if (map.TryGetHeight(cell.State.cell.x, cell.State.cell.y, out float y))
+        {
+            cell.Visual = UnityEngine.Object.Instantiate(prefab, new Vector3(cell.State.cell.x, y, cell.State.cell.y), Quaternion.identity, visualRoot);
+            cell.Visual.SetActive(false); // Visibility owns presentation, including while loading or replacing burned trees.
+        }
     }
     bool TryCell(Vector3 position, out Cell value) => cells.TryGetValue(Key(position), out value);
     public bool HasCell(Vector3 position) => cells.ContainsKey(Key(position));
@@ -100,7 +119,7 @@ public sealed partial class TerrainEnvironmentRuntime
     public void RefreshVisibility(HashSet<Vector3Int> visible)
     {
         foreach (var cell in cells.Values)
-            if (cell.Visual != null) cell.Visual.SetActive(!cell.State.burned
+            if (cell.Visual != null) cell.Visual.SetActive((!cell.State.burned || cell.State.smokeRounds > 0)
                 && IsKnownTo(Team.Player, new Vector3(cell.State.cell.x, 0, cell.State.cell.y))
                 && visible != null && visible.Contains(new Vector3Int(cell.State.cell.x, 0, cell.State.cell.y)));
     }
@@ -256,6 +275,7 @@ public sealed partial class TerrainEnvironmentRuntime
             {
                 cell.State.smokeRounds = (int)Math.Max(0, cell.State.smokeRounds - elapsed);
                 if (cell.State.smokeRounds == 0 && cell.Definition.kind == TerrainEnvironmentKind.Smoke) cell.State.burned = true;
+                if (cell.State.burned && cell.State.smokeRounds == 0 && cell.Visual != null) cell.Visual.SetActive(false);
                 changed = true;
             }
         if (changed) { Revision++; systems?.VisionGenerator?.MarkVisionDirty(); }
@@ -264,13 +284,20 @@ public sealed partial class TerrainEnvironmentRuntime
     {
         if (!TryCell(position, out var cell) || cell.State.burned || !cell.Definition.burnable) return false;
         cell.State.burned = true; cell.State.smokeRounds = cell.Definition.burnSmokeRounds;
-        if (cell.Visual != null) cell.Visual.SetActive(false);
+        if (cell.Visual != null)
+        {
+            cell.Visual.SetActive(false);
+            if (Application.isPlaying) UnityEngine.Object.Destroy(cell.Visual); else UnityEngine.Object.DestroyImmediate(cell.Visual);
+            cell.Visual = null;
+        }
+        CreateVisual(cell);
         Revision++; systems?.MoveUndoSystem?.Clear(); systems?.RefreshVision(); return true;
     }
     public Snapshot Capture()
     {
         var result = new Snapshot { lastWeatherRound = lastWeatherRound, playerRound = Round(Team.Player), enemyRound = Round(Team.Enemy),
-            monsterRound = Round(Team.Monster), intruderRound = Round(Team.Intruder), obstacleRound = Round(Team.Obstacle), currentRound = currentRound };
+            monsterRound = Round(Team.Monster), intruderRound = Round(Team.Intruder), obstacleRound = Round(Team.Obstacle), currentRound = currentRound,
+            generatedAtStart = generatedAtStart, generationSeed = generationSeed };
         foreach (var cell in cells.Values) result.cells.Add(Copy(cell.State));
         result.cells.Sort((a, b) => a.cell.x != b.cell.x ? a.cell.x.CompareTo(b.cell.x) : a.cell.y.CompareTo(b.cell.y));
         CaptureDynamic(result);
@@ -282,10 +309,12 @@ public sealed partial class TerrainEnvironmentRuntime
         revealedTo = value.revealedTo == null ? new List<Team>() : new List<Team>(value.revealedTo), caveAvailableRound = value.caveAvailableRound };
     public void Restore(Snapshot snapshot)
     {
-        if (snapshot == null) return; // Old saves keep the current explicitly enabled map configuration.
+        if (snapshot == null) { generationLocked = true; return; } // Old saves keep authored cells without generating new ones.
         var source = catalog; Clear(); catalog = source;
+        generationLocked = true;
         lastWeatherRound = snapshot.lastWeatherRound;
         currentRound = Math.Max(0, snapshot.currentRound);
+        generatedAtStart = snapshot.generatedAtStart; generationSeed = snapshot.generationSeed;
         lastOwnerRound[Team.Player] = snapshot.playerRound; lastOwnerRound[Team.Enemy] = snapshot.enemyRound;
         lastOwnerRound[Team.Monster] = snapshot.monsterRound; lastOwnerRound[Team.Intruder] = snapshot.intruderRound;
         lastOwnerRound[Team.Obstacle] = snapshot.obstacleRound;

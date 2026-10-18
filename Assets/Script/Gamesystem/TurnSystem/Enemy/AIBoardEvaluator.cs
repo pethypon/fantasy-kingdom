@@ -99,7 +99,7 @@ public static class AIBoardEvaluator
 
     static float GetPieceValue(Status unit)
     {
-        float base_ = PieceValues.TryGetValue(unit.kind, out float v) ? v : 20f;
+        float base_ = PieceValues.TryGetValue(UnitRoster.EvaluationBaseKind(unit.kind), out float v) ? v : 20f;
         // HPが減っている駒は価値が下がる
         float hpRatio = unit.MaxHP > 0 ? (float)unit.HP / unit.MaxHP : 1f;
         return base_ * (0.3f + 0.7f * hpRatio);

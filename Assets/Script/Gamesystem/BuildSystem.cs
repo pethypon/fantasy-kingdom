@@ -197,6 +197,7 @@ public partial class BuildSystem : MonoBehaviour
         }
 
         bool isSubCrystal = FacilityData.IsSubCrystal(SelectedFacility);
+        GameObject placedBuilding;
 
         if (isSubCrystal)
         {
@@ -206,7 +207,8 @@ public partial class BuildSystem : MonoBehaviour
                 return false;
             }
             if (!apsystem.CanBuild(Team.Player, SelectedFacility, factionState)) return false;
-            if (InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player) == null) return false;
+            placedBuilding = InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player);
+            if (placedBuilding == null) return false;
             apsystem.ConsumeBuild(Team.Player, SelectedFacility, factionState);
             factionState.ModifySubCrystals(Team.Player, -1);
 
@@ -226,7 +228,8 @@ public partial class BuildSystem : MonoBehaviour
                 return false;
             }
 
-            if (InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player) == null) return false;
+            placedBuilding = InstantiateBuilding(cursor.LastPosition, SelectedFacility, Team.Player);
+            if (placedBuilding == null) return false;
             apsystem.ConsumeBuild(Team.Player, SelectedFacility, factionState);
         }
 
@@ -238,6 +241,7 @@ public partial class BuildSystem : MonoBehaviour
         // 建物配置後に視界を即時更新して配置オブジェクトの表示状態を正しくする
         turnGenerator.Systems.VisionGenerator?.MarkVisionDirty();
         turnGenerator.Systems.RefreshVision();
+        BoardActionFeedback.Build(placedBuilding.GetComponent<Status>());
 
         return true;
     }
@@ -303,6 +307,7 @@ public partial class BuildSystem : MonoBehaviour
             status.AuthoredFacility = definition;
             status.authoredFacilityId = definition != null ? definition.definitionId : null;
             StatusBalanceRefresh.RecordDefinitionBaseline(status);
+            BoardActorPresentation.Apply(status, building);
         }
         if (definition != null) building.name = definition.displayName;
 
@@ -501,6 +506,7 @@ public partial class BuildSystem : MonoBehaviour
         // 建物配置後に視界を即時更新して配置オブジェクトの表示状態を正しくする
         turnGenerator.Systems.VisionGenerator?.MarkVisionDirty();
         turnGenerator.Systems.RefreshVision();
+        BoardActionFeedback.Build(building.GetComponent<Status>());
 
         return true;
     }

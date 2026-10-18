@@ -1,0 +1,15 @@
+{
+  "unity": "6000.3.8f1",
+  "originalCrystalAssetsUnchanged": 24,
+  "existingFactionMaterialsUnchanged": 3,
+  "livePresentationChecks": 280,
+  "eventAnimationChecks": 46,
+  "idleFramesPixelIdentical": 20,
+  "previewFrames": 80,
+  "unityTests": "10/10 passed",
+  "sceneSmoke": "passed",
+  "validatedCloneMatchingFiles": 558,
+  "playerUnitTriangles": 20000,
+  "enemyAndBossTriangles": 54488,
+  "buildingTriangles": 31144
+}

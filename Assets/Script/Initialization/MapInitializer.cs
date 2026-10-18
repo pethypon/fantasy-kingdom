@@ -84,6 +84,14 @@ public static class MapInitializer
             ApplyAllUnitData(unitSetting, unitSetting.EnemyUnit);
         }
 
+        // 環境の自動生成は初期駒の配置後に一度だけ行う。ロードでは保存セルだけを復元する。
+        if (loadData == null)
+        {
+            var safeCenters = new List<Vector3>();
+            if (crystalSystem != null) { safeCenters.Add(crystalSystem.PCP); safeCenters.Add(crystalSystem.ECP); }
+            mapCreate.Environment.GenerateInitial(safeCenters);
+        }
+
         // 領地・占有セル・視界
         if (territorySystem != null) territorySystem.Territory();
         if (moveGenerator != null) moveGenerator.UnitPointCore();

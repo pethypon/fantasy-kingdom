@@ -61,10 +61,13 @@ public class TurnStrategyPlanner
         int criticalUnitCount = CountCriticalUnits(board);
         board.Governor?.Evaluate(board);
         bool econSufficient = EconomyHelper.IsEconomySufficient(board);
-        bool hasBasicEconomy = econSufficient;
         int supplyReserve = board.Governor?.GetRecoveryReserveAP(board) ?? 0;
         bool recoveryInvestment = board.Governor?.Mode == StrategicMode.EconomicRecovery && supplyReserve > 0;
         float advantage = board.GetAdvantageRatio();
+        // The principal crystal is a live strategic target even when its defenders are gone.
+        // Memories still guide reconnaissance, but cannot reveal an unseen or destroyed objective.
+        bool opponentContact = board.HasPrincipalOpponentContact
+            || board.CanUsePlayerCrystalAsTarget() && board.PlayerCrystalHP > 0;
 
         // ---- 優先度ベース判定（上位条件が優先） ----
 
@@ -90,10 +93,15 @@ public class TurnStrategyPlanner
             decision.Strategy = TurnStrategy.EconomyBuild;
             decision.Reason = "不足する供給を回復する実行可能な計画あり";
         }
-        else if (board.HasPrincipalOpponentContact)
+        else if (opponentContact && econSufficient && advantage > 0.25f)
+        {
+            decision.Strategy = TurnStrategy.Assault;
+            decision.Reason = $"供給安定・戦力有利({advantage:F2}) → 攻勢";
+        }
+        else if (opponentContact)
         {
             decision.Strategy = TurnStrategy.ContactEngage;
-            decision.Reason = "接敵中: 経済の完成を待たず交戦";
+            decision.Reason = "敵部隊または生存拠点を視認: 経済の完成を待たず交戦";
         }
         else if (board.GetExplorationRatio() < 0.6f)
         {
@@ -111,32 +119,13 @@ public class TurnStrategyPlanner
             decision.Strategy = TurnStrategy.Balanced;
             decision.Reason = "序盤の少数精鋭期";
         }
-        // 5. 初接敵
-        else if (board.IsFirstContact && board.HasPrincipalOpponentContact)
-        {
-            decision.Strategy = TurnStrategy.ContactEngage;
-            decision.Reason = "初接敵 → 交戦開始";
-        }
-        // 6. 索敵
-        else if (!board.HasPrincipalOpponentContact && board.GetExplorationRatio() < 0.6f
-            && hasBasicEconomy)
-        {
-            decision.Strategy = TurnStrategy.ScoutSearch;
-            decision.Reason = $"敵未視認・探索率{board.GetExplorationRatio():P0}";
-        }
-        // 7. 中盤敵未視認
-        else if (turnCount > 10 && !board.HasPrincipalOpponentContact)
+        // 中盤・敵未視認（接敵と索敵の条件は上で処理済み）
+        else if (turnCount > 10)
         {
             decision.Strategy = TurnStrategy.Balanced;
             decision.Reason = "中盤・敵未視認 → バランス";
         }
-        // 8. 有利時攻勢
-        else if (advantage > 0.25f && board.HasPrincipalOpponentContact)
-        {
-            decision.Strategy = TurnStrategy.Assault;
-            decision.Reason = $"戦力有利({advantage:F2}) → 攻勢";
-        }
-        // 9. BOSS性格の影響
+        // BOSS性格の影響
         else if (personality.ShouldApplyMajorBonus)
         {
             decision.Strategy = DecideByPersonality(personality, advantage, recoveryInvestment);

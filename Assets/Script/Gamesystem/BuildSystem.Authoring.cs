@@ -50,6 +50,7 @@ public partial class BuildSystem
         }
         turnGenerator?.Systems.VisionGenerator?.MarkVisionDirty();
         turnGenerator?.Systems.RefreshVision();
+        BoardActionFeedback.Build(building.GetComponent<Status>());
         return true;
     }
 }

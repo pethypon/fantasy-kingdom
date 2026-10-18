@@ -77,6 +77,9 @@ public class VisionGenerator : MonoBehaviour
         return false;
     }
 
+    /// <summary>Presentation-only fog mask (includes visible territory). Never use this for AI knowledge or targeting.</summary>
+    public bool IsPresentationCellVisible(Vector3 position) => _reusableVisionXZ.Contains(GridHelper.ToGridXZ(position));
+
     /// <summary>Entity visibility respects per-observer stealth without hiding the shared terrain tile.</summary>
     public bool IsActorVisibleTo(Team team, Status actor)
     {
@@ -463,6 +466,7 @@ public class VisionGenerator : MonoBehaviour
             bool visible = visionXZ.Contains(data) && HasUnblockedObserver(Team.Player, actor);
             Temporary.GetComponentsInChildren(true, _visRenderers);
             foreach (var r in _visRenderers) r.enabled = visible;
+            BoardActorAnimation.SetVisible(actor, visible);
 
             Temporary.GetComponentsInChildren(true, _visColliders);
             foreach (var c in _visColliders) c.enabled = visible;

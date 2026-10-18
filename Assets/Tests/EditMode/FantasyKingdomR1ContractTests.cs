@@ -37,7 +37,32 @@ public sealed class FantasyKingdomR1ContractTests
         System.Type.GetType("SpecialSkillAITests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
         System.Type.GetType("SpecialSkillR1AITests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
         System.Type.GetType("SpecialSkillUITests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
+        foreach (string suite in new[] { "EnvironmentGenerationTests", "R1ProductionAIRecruitmentTests", "R1AIOwnWallLegalityTests", "AIOperationLifetimeTests", "BoardThemePresentationTests", "BoardActorAnimationTests", "BoardFeedbackTests", "AIClosingTests" })
+            System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
+        System.Type.GetType("AIClosingObjectiveTests, Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems, turn });
         yield return new ExitPlayMode();
+    }
+
+    [Test]
+    public void ClearProgression_IsExactlyOne_AndPersistsAcrossCheckpointReloads()
+    {
+        System.Type.GetType("ThreatClearProgressionTests, Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, null);
+    }
+
+    [Test]
+    public void FactionArt_UsesExistingMaterials_AndKeepsVisualBudgets()
+    {
+        if (!Application.dataPath.Contains("UnityValidation")) Assert.Ignore("Art assets are verified in the isolated clone.");
+        foreach (string suite in new[] { "BoardVisualThemeTests", "KingdomWorldVisualTests" })
+            System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, null);
+    }
+
+    [Test]
+    public void ProductionRoster_AbilityConfiguration_AndVisualBudgets()
+    {
+        if (!Application.dataPath.Contains("UnityValidation")) Assert.Ignore("Production asset validation runs in the isolated clone.");
+        foreach (string suite in new[] { "R1ProductionContentTests", "R1ProductionAIRecruitmentTests", "R1UnitVisualTests" })
+            System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, null);
     }
 
     [UnityTearDown]

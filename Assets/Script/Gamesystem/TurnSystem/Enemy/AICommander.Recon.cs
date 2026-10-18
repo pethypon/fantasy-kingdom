@@ -66,7 +66,7 @@ public partial class AICommander
         {
             yield return null;
             if (AITurnBudget.Expired || _turnGen.IsGameOver) yield break;
-            if (action.SummonKind == Kind.Scout || action.SummonKind == Kind.Priest || action.APCost > spendableAP) continue;
+            if (action.SummonKind == Kind.Scout || UnitRoster.IsDedicatedHealer(action.SummonKind) || action.APCost > spendableAP) continue;
             float score = AIBuildEvaluator.CalcSummonBaseScore(action, _board);
             if (score > bestScore) { bestScore = score; best = action; }
         }

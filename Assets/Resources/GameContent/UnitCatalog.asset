@@ -12,7 +12,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fbbbd1f1842bf342bdcf61a3b667ff7, type: 3}
   m_Name: UnitCatalog
   m_EditorClassIdentifier: Assembly-CSharp::UnitAuthoringCatalog
-  units: []
+  units:
+  - kind: 17
+    prefab: {fileID: 2800704943503836489, guid: 0f9a39fc42349fe42bb7ab2549f17290, type: 3}
+    data: {fileID: 11400000, guid: e6eb0270b2f09d94d919f257204c259a, type: 2}
+    standaloneDefinition: 0
+  - kind: 18
+    prefab: {fileID: 3526282866656366259, guid: b0295b9a76c8ff846b71f3a33e66bfe9, type: 3}
+    data: {fileID: 11400000, guid: 50fb0206aed48044eb239efd0a911c5f, type: 2}
+    standaloneDefinition: 0
+  - kind: 19
+    prefab: {fileID: 5039588385528869007, guid: 84f7fbdb315397a4c9c5319b749f0170, type: 3}
+    data: {fileID: 11400000, guid: c07c3ff9b5330ee41b3d285ee012fa38, type: 2}
+    standaloneDefinition: 0
+  - kind: 20
+    prefab: {fileID: 8202680542157753600, guid: c52c348b2d95e2441b6d5e19dd4420e2, type: 3}
+    data: {fileID: 11400000, guid: ca1acfa50bd62914aa8771b5782a2510, type: 2}
+    standaloneDefinition: 0
+  - kind: 21
+    prefab: {fileID: 1317115163804413267, guid: af633ba22d3d2cf4c9a1e610c605c11f, type: 3}
+    data: {fileID: 11400000, guid: 14f861ecfb7b3f549a0202bff11f7dcb, type: 2}
+    standaloneDefinition: 0
+  - kind: 22
+    prefab: {fileID: 139945830093812145, guid: 738b5c50ddf414542bc04d94cf8d4589, type: 3}
+    data: {fileID: 11400000, guid: c9bf201875ad91641b357dd0fef3931d, type: 2}
+    standaloneDefinition: 0
   retiredUnits:
   - kind: 2
     prefab: {fileID: 8561302351369880905, guid: a617b6e4c9419a9409214eb65b89a13c, type: 3}

@@ -65,6 +65,7 @@ public class AIRoleAssigner
                     scouts.Add(u);
                     break;
                 case Kind.Priest:
+                case Kind.WhiteMage:
                     healers.Add(u);
                     break;
                 case Kind.Archer:
@@ -72,6 +73,7 @@ public class AIRoleAssigner
                 case Kind.Crossbow:
                 case Kind.Magicsniper:
                 case Kind.Bomber:
+                case Kind.Ninja:
                     ranged.Add(u);
                     break;
                 default:
@@ -266,7 +268,7 @@ public class AIRoleAssigner
                 {
                     if (action.TargetUnit.kind == Kind.Crystal) bonus += 15f;
                     if (MatchObjectiveRules.IsCommander(action.TargetUnit)) bonus += 10f;
-                    if (action.TargetUnit.kind == Kind.Priest) bonus += 8f;
+                    if (UnitRoster.IsDedicatedHealer(action.TargetUnit.kind)) bonus += 8f;
                 }
                 break;
 

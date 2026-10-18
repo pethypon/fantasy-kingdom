@@ -11,8 +11,10 @@ public readonly struct SimRecruitmentDefinition
     {
         HP = definition.baseHP; ATK = definition.baseATK; DEF = definition.baseDEF; APCost = definition.costAP;
         AvailableToPlayer = definition.availableToPlayer; AvailableToEnemy = definition.availableToEnemy;
-        Passive = definition.useAuthoredAbilities ? definition.authoredPassive : PassiveSkill.None;
-        SkillId = definition.useAuthoredAbilities ? definition.authoredSkillId
+        // Match UnitData.ApplyAbilityIdentity: a fixed special definition replaces legacy abilities.
+        bool special = definition.specialSkill != null && definition.specialSkill.ability != UnitSpecialSkill.None;
+        Passive = !special && definition.useAuthoredAbilities ? definition.authoredPassive : PassiveSkill.None;
+        SkillId = special ? -1 : definition.useAuthoredAbilities ? definition.authoredSkillId
             : SkillData.FixedSkillIds.TryGetValue(definition.kind, out int skill) ? skill : -1;
         ActionProfile = definition.actionProfile;
     }

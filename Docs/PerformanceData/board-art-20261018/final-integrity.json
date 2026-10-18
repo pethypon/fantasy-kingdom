@@ -1,0 +1,15 @@
+{
+  "mainMatchesValidatedClone": 567,
+  "protectedExistingMaterialsUnchanged": 3,
+  "originalObjUnchanged": 4,
+  "emptyUnpublishedFoldersRemoved": [
+    "E:\\fantasykingdom\\Unity\\fantasy kingdom\\Assets\\_FantasyKingdom\\BoardVisualTheme\\Materials.meta",
+    "E:\\fantasykingdom\\Unity\\fantasy kingdom\\Assets\\_FantasyKingdom\\BoardVisualTheme\\Textures.meta",
+    "E:\\fantasykingdom\\Unity\\fantasy kingdom\\Assets\\_FantasyKingdom\\BoardVisualTheme\\Shaders.meta",
+    "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\UnityValidation\\Assets\\_FantasyKingdom\\BoardVisualTheme\\Materials.meta",
+    "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\UnityValidation\\Assets\\_FantasyKingdom\\BoardVisualTheme\\Textures.meta",
+    "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\UnityValidation\\Assets\\_FantasyKingdom\\BoardVisualTheme\\Shaders.meta"
+  ],
+  "gitDiffCheck": "passed",
+  "windowsNonDevelopmentBuild": "succeeded"
+}

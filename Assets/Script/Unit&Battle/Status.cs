@@ -281,6 +281,7 @@ public class Status : MonoBehaviour
     }
     public void DeactivateAfterDeath()
     {
+        BoardActorAnimation.NotifyDeath(this);
         UnitRegistry.Instance?.Unregister(this);
         gameObject.SetActive(false);
         if (runtimeSpawnRoot == null) return;
@@ -303,9 +304,10 @@ public class Status : MonoBehaviour
         // A pooled actor's next life must not collide with its earlier death ledger.
         if (reflectionLifeEnded) { reflectionLifeId = null; reflectionLifeEnded = false; NaturalRecovery = new NaturalRecoveryState(); }
         CombatRegistry.Register(this);
+        BoardActorPresentation.Reactivate(this);
     }
-    void OnDisable() => CombatRegistry.Unregister(this);
-    void OnDestroy() => CombatRegistry.Unregister(this);
+    void OnDisable() { BoardActorAnimation.Unbind(this); CombatRegistry.Unregister(this); }
+    void OnDestroy() { BoardActorAnimation.Unbind(this); CombatRegistry.Unregister(this); }
     [Header("種類")]
     public Kind kind;
     [Header("チーム")]
@@ -351,7 +353,13 @@ public class Status : MonoBehaviour
         get => hitPoints;
         set
         {
-            if (value < hitPoints) (NaturalRecovery ?? (NaturalRecovery = new NaturalRecoveryState())).RecordHpLoss();
+            if (value < hitPoints)
+            {
+                (NaturalRecovery ?? (NaturalRecovery = new NaturalRecoveryState())).RecordHpLoss();
+                if (value <= 0 && hitPoints > 0)
+                { BoardActionFeedback.Hit(this); BoardActorAnimation.NotifyDeath(this); }
+                else BoardActorAnimation.NotifyHit(this);
+            }
             hitPoints = value;
         }
     }
@@ -494,6 +502,7 @@ public class Status : MonoBehaviour
         int actual = UnityEngine.Mathf.Clamp(MaxHP - HP, 0, amount);
         HP += actual;
         SpecialSkillRuntime.RecordHeal(this, amount, actual);
+        if (actual > 0) BoardActionFeedback.Heal(this);
         return actual;
     }
 

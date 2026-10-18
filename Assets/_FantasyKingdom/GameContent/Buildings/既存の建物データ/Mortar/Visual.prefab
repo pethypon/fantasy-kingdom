@@ -76,7 +76,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
-  m_MotionVectors: 1
+  m_MotionVectors: 2
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
@@ -143,11 +143,74 @@ MonoBehaviour:
   wildBossAtkBuffTurns: 0
   wildBossPhase2Active: 0
   wildBossCurrentThreat: 25
-  HP: 220
+  hitPoints: 220
+  NaturalRecovery:
+    ConsecutiveSafeTurns: 0
+    LastProcessedRound: -1
+    HpLostSinceLastOwnTurn: 0
+    HasTurnBaseline: 0
   ATK: 30
   DEF: 0
   Level: 1
   GrowthData: {fileID: 0}
+  Special:
+    crossbowMagazine:
+    crossbowMagazineInitialized: 0
+    crossbowNormalAttacked: 0
+    crossbowLoadSequence: 0
+    crossbowShotSequence: 0
+    crossbowReplayKey: 0
+    crossbowStayHits: []
+    ownerTurn: 0
+    lastRound: -1
+    cooldown: 0
+    stationaryTurns: 0
+    moved: 0
+    attacked: 0
+    ritualTargetId:
+    storedSacrificeDamage: 0
+    ritualFireTurn: 0
+    guardianPartnerId:
+    stakeAId:
+    stakeBId:
+    stakeAAppliedTurn: 0
+    stakeBAppliedTurn: 0
+    sniperTargetId:
+    sniperFireTurn: 0
+    bombCasterId:
+    bombDueRound: 0
+    bombRadius: -1
+    bombMask: 0
+    bombDeathPolicy: 0
+    bombCasterTeam: 0
+    nextDamageDouble: 0
+    visionZeroTurns: 0
+    scoutVisionPenaltyTurns: 0
+    damageNullTurns: 0
+    damageNullUnused: 0
+    affectedUnitIds: []
+    samuraiGauge: 0
+    samuraiMaxTurns: 0
+    ninjaCharge: 0
+    berserkerStage: 0
+    holyKnightTurns: 0
+    holyKnightRecoveryLock: 0
+    archerSnapshotIds: []
+    archerEscapeTurns: 0
+    lastEndRound: -1
+    assassinBoostTurns: 0
+    assassinBoostStacks: 0
+    scoutFreeMoveUsed: 0
+    scoutFreeAttackUsed: 0
+    scoutMoveUsedScope: 0
+    scoutAttackUsedScope: 0
+    guardianAttackCount: 0
+    tauntedById:
+    tauntTurns: 0
+    bomberIdleTurns: 0
+    dealtDamage: 0
+    paladinCycles: []
+  IsPrimaryCommander: 0
   unitDefinitionId: 
   Fatigue: 0
   UpkeepUnpaidTurns: 0

@@ -26,7 +26,7 @@ public sealed class AIAdvancedStrategy
             if(!movement || action.Unit==null)continue;
             if(action.Unit.kind==Kind.Scout)action.Score+=board.Belief.InformationGain(action.Unit,action.TargetPos);
             float expected=board.Belief.RiskAt(action.TargetPos,board.ReconThreatLevel);
-            float exposure=action.Unit.kind==Kind.Priest || action.Unit.HP<action.Unit.MaxHP*.4f?1.8f:1;
+            float exposure=UnitRoster.IsDedicatedHealer(action.Unit.kind) || action.Unit.HP<action.Unit.MaxHP*.4f?1.8f:1;
             action.Score-=Mathf.Min(55,expected*exposure);
         }
     }

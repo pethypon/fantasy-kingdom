@@ -54,6 +54,8 @@ public static class SaveGameApplier
         }
         if (!SaveSystem.ValidateGameData(data, out string validationFailure))
             throw new System.ArgumentException("セーブを適用できません: " + validationFailure, nameof(data));
+        turnGen.RestoreMatchId(data.MatchId);
+        using var presentationRestore = BoardActorAnimation.SuppressEffects();
 
         Debug.Log($"[SaveGameApplier] ロード適用: Turn{data.Turn} 脅威度{data.ThreatLevel}");
         mapCreate?.Environment.Restore(data.Environment);
@@ -107,6 +109,7 @@ public static class SaveGameApplier
         turnGen.Systems.WildBossSystem?.Restore(data.WildBoss);
         turnGen.Systems.ThirdFactionSystem?.Restore(data.ThirdFaction);
         turnGen.MarkDeveloperMatch(data.DeveloperAutoplayUsed);
+        BoardActorPresentation.ApplyAll();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         turnGen.PlayerAI?.RestoreUsedFlag(data.DeveloperAutoplayUsed);
 #endif
@@ -277,7 +280,10 @@ public static class SaveGameApplier
         s.SurvivalInstinctUsed = ud.SurvivalInstinctUsed;
 
         if (StableSaveKeys.TryParse<Direction>(ud.Direction, out var dir))
+        {
             s.direction = dir;
+            BoardActorAnimation.NotifyFacing(s);
+        }
         if (StableSaveKeys.TryParse<PassiveSkill>(ud.PassiveSkill, out var passive))
             s.passiveskill = passive;
         if (!string.IsNullOrEmpty(ud.SpecialAbility)

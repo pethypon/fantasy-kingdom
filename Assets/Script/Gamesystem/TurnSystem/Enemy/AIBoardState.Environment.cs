@@ -27,7 +27,7 @@ public partial class AIBoardState
             || !map.Environment.IsKnownTo(ActorTeam, exit)
             || !map.Environment.CanUseCave(unit, unit.transform.position, exit, TurnCount)) return;
         var key = GridHelper.ToGridXZ(exit);
-        if (key == GridHelper.ToGridXZ(EnemyCrystalPos)
+        if (ownedWallCells.Contains(key) || key == GridHelper.ToGridXZ(EnemyCrystalPos)
             || CanUsePlayerCrystalAsTarget() && key == GridHelper.ToGridXZ(PlayerCrystalPos)) return;
         foreach (var actor in AliveEnemyUnits) if (actor != null && actor.GridPosition == key) return;
         foreach (var actor in AlivePlayerUnits) if (actor != null && actor.GridPosition == key) return;

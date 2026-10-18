@@ -503,7 +503,7 @@ public static class SimActionGenerator
 
     public static float EstimateMoveRange(Kind kind)
     {
-        switch (kind)
+        switch (UnitRoster.EvaluationBaseKind(kind))
         {
             case Kind.Assassin:    return 2.5f;
             case Kind.Scout:       return 2f;

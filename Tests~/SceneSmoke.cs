@@ -20,6 +20,7 @@ public static class SceneSmoke
         Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdomR1Validation";
+        R1ProductionContentTests.Run(); R1ProductionAIRecruitmentTests.Run(); ThreatClearProgressionTests.Run();
         SaveCompatibilityTests.RunAll(); LongTermContentTests.EditMode(); LegacyEnumCompatibilityTests.RunAll();
         BalanceSaveTests.Run();
         PlayerProfilerPerformanceTests.Run();
@@ -206,6 +207,10 @@ public static class SceneSmoke
         SpecialSkillAITests.PlayMode(systems);
         NaturalRecoveryTests.PlayMode(systems);
         TerrainEnvironmentTests.PlayMode(systems);
+        EnvironmentGenerationTests.PlayMode(systems);
+        R1ProductionAIRecruitmentTests.PlayMode(systems);
+        R1AIOwnWallLegalityTests.PlayMode(systems);
+        AIOperationLifetimeTests.PlayMode(systems);
         MinimumHitDamageTests.Run();
         AIHousingTests.Run(systems); AIKnownBaseTests.PlayMode(systems);
         SimulationBalanceTests.Run(systems); StudioSettingTests.PlayMode(systems, turn);

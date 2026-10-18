@@ -1,0 +1,402 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.UI;
+
+/// <summary>
+/// Bounded ordinary AI-mode observation; copy to Assets/Editor in UnityValidation only.
+/// -executeMethod AIClosingPlaytest.Run, without -quit. No AP/resource/map/rules/search-budget override.
+/// FK_CLOSING_SEEDS=161803,271828 FK_CLOSING_OWNER_TURNS=120 FK_CLOSING_WALL_SECONDS=300
+/// FK_CLOSING_OUTPUT=absolute directory FK_CLOSING_LABEL=baseline|adjusted.
+/// Unlike the production initializer's clock seed, this observer supplies a fixed enemy commander seed
+/// before either AI acts. A bounded interruption is explicitly unresolved, never a fabricated victory.
+/// </summary>
+[InitializeOnLoad]
+public static class AIClosingPlaytest
+{
+    const string Key = "FK.AIClosingPlaytest";
+    const string Prefix = "[AIClosingPlaytest]";
+    static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+    [Serializable] sealed class Settings
+    {
+        public int[] Seeds;
+        public int OwnerTurnLimit, WallSeconds;
+        public string Output, Label, RunId, OriginalCompany, OriginalProduct;
+    }
+    [Serializable] sealed class RunReport
+    {
+        public string Label, StartedUtc, FinishedUtc;
+        public string MeasurementScope = "Ordinary SampleScene and production roster. Title New Game and developer player AI, threat 15. Fixed map seed and enemy commander seed/personality; no AP, resources, timer, timeScale or thinking-budget changes. Frame scheduling/search limits can still affect exact trajectories. Observer reads authoritative HP/decisive identity for reporting only, never supplies hidden information to AI. CommanderHP follows MatchObjectiveRules.IsCommander, including Kind.Boss primary commanders. Legacy KingHP fields alias CommanderHP. VictoryObjectiveAttacks match actual opposing commander/main-crystal life IDs, not the Reflection role string Boss.";
+        public int Resolved, Interrupted, Faulted;
+        public List<MatchReport> Matches = new List<MatchReport>();
+    }
+    [Serializable] sealed class MatchReport
+    {
+        public int MapSeed, EnemyAISeed, PlayerAISeed, ThreatLevel = 15, Round, OwnerTurns;
+        public string EnemyPersonality, PersistentPath, StartedUtc, FinishedUtc, EndCondition, Result = "unresolved", OutcomeReason, Fault;
+        public bool ActualPlayerAIModeUsed, GameOver;
+        public double Seconds;
+        public float InitialTimeScale, InitialTurnTimeLimit, TerrainSeedX, TerrainSeedZ;
+        public int PlayerKingHP, PlayerCrystalHP, EnemyKingHP, EnemyCrystalHP, Errors, Exceptions, Assertions;
+        public int PlayerCommanderHP, EnemyCommanderHP, PlayerCommandersFound, EnemyCommandersFound;
+        public string PlayerCommanderKinds, EnemyCommanderKinds;
+        public List<string> FirstErrors = new List<string>();
+        public SideReport Player = new SideReport { Team = "Player" }, Enemy = new SideReport { Team = "Enemy" };
+    }
+    [Serializable] sealed class SideReport
+    {
+        public string Team;
+        public int OwnerTurns, Actions, SuccessfulActions, FailedActions, Moves, Attacks, Skills, Builds, Summons;
+        public int ExplorationMoves, ObjectiveApproachMoves, ObjectiveDistanceGain, RevealedCells, DamageDealt, EnemyKills;
+        public int ObjectiveAttacks, VictoryObjectiveAttacks, CommanderTargetAttacks, MainCrystalTargetAttacks;
+        public int RepeatedActions, Oscillations, FailedProgressActions, RecordGaps;
+        public int FirstObservedEnemyRound = -1, FirstAttackRound = -1;
+        public float AttackRatio, BuildRatio, ExplorationMoveRatio;
+    }
+    sealed class SideObserver : IDisposable
+    {
+        public readonly AICommander Commander;
+        readonly AIActionReflectionSystem reflection;
+        readonly SideReport report;
+        long lastId;
+        public SideObserver(AICommander commander, SideReport target)
+        {
+            Commander = commander; report = target; reflection = commander.Reflection;
+            if (reflection == null) throw new InvalidOperationException("Ordinary AI reflection is unavailable.");
+            reflection.ActionCompleted += Observe;
+            var records = reflection.CaptureBattleState()?.RecentRecords;
+            if (records != null)
+            {
+                records.Sort((a, b) => (a?.ActionId ?? 0).CompareTo(b?.ActionId ?? 0));
+                foreach (var record in records) Observe(record);
+            }
+        }
+        public void Snapshot()
+        {
+            report.OwnerTurns = reflection.OwnTurns;
+            report.AttackRatio = Ratio(report.Attacks, report.SuccessfulActions);
+            report.BuildRatio = Ratio(report.Builds, report.SuccessfulActions);
+            report.ExplorationMoveRatio = Ratio(report.ExplorationMoves, report.Moves);
+        }
+        void Observe(AIActionRecord record)
+        {
+            if (record == null || record.ActionId <= lastId) return;
+            if (record.ActionId > lastId + 1) report.RecordGaps += (int)(record.ActionId - lastId - 1);
+            lastId = record.ActionId; report.Actions++;
+            bool moved = record.Before != null && record.After != null
+                && (record.Before.ActorX != record.After.ActorX || record.Before.ActorY != record.After.ActorY);
+            var outcome = record.Outcome;
+            int gain = outcome?.DistanceToObjectiveDelta ?? 0;
+            int revealed = outcome?.NewTilesRevealed ?? 0;
+            if (record.ExecutionSucceeded)
+            {
+                report.SuccessfulActions++;
+                if (moved)
+                {
+                    report.Moves++;
+                    if (revealed > 0) report.ExplorationMoves++;
+                    if (gain > 0) { report.ObjectiveApproachMoves++; report.ObjectiveDistanceGain += gain; }
+                }
+                if (record.ActionType == AIActionType.Attack)
+                {
+                    report.Attacks++;
+                    if (report.FirstAttackRound < 0) report.FirstAttackRound = record.Turn;
+                    string category = record.TargetCategory ?? "";
+                    bool commanderTarget = IsCommanderTarget(report.Team, record.TargetLifeId);
+                    bool crystalTarget = IsMainCrystalTarget(report.Team, record.TargetLifeId);
+                    if (commanderTarget || crystalTarget || category == "SubCrystal") report.ObjectiveAttacks++;
+                    if (commanderTarget || crystalTarget) report.VictoryObjectiveAttacks++;
+                    if (commanderTarget) report.CommanderTargetAttacks++;
+                    if (crystalTarget) report.MainCrystalTargetAttacks++;
+                }
+                if (record.ActionType == AIActionType.SkillUse) report.Skills++;
+                if (record.ActionType == AIActionType.Build) report.Builds++;
+                if (record.ActionType == AIActionType.Summon) report.Summons++;
+                report.RevealedCells += revealed; report.DamageDealt += outcome?.DamageDealt ?? 0;
+                report.EnemyKills += outcome?.EnemyKills ?? 0;
+            }
+            else report.FailedActions++;
+            if (record.IsRepeatedAction) report.RepeatedActions++;
+            if (record.IsOscillation) report.Oscillations++;
+            if (!record.MeaningfulProgress) report.FailedProgressActions++;
+            if (report.FirstObservedEnemyRound < 0 && (record.Before?.VisibleEnemyCount ?? 0) > 0)
+                report.FirstObservedEnemyRound = record.Turn;
+            WriteRow(actions, report.Team, record.Turn, record.ActionId, record.ActionType, record.ActorRole,
+                record.TargetCategory, record.ExecutionSucceeded, record.FailureReason, moved, revealed, gain,
+                outcome?.DamageDealt ?? 0, outcome?.EnemyKills ?? 0, record.Before?.ActorX, record.Before?.ActorY,
+                record.After?.ActorX, record.After?.ActorY, record.Before?.Strategy, record.ActionKey,
+                IsCommanderTarget(report.Team, record.TargetLifeId), IsMainCrystalTarget(report.Team, record.TargetLifeId));
+        }
+        public void Dispose() => reflection.ActionCompleted -= Observe;
+    }
+    static Settings settings;
+    static RunReport run;
+    static MatchReport match;
+    static TurnGenerator turn;
+    static SideObserver player, enemy;
+    static StreamWriter actions, turns;
+    static bool initialized, clicked, finishing;
+    static int lastOwners = -1;
+    static double started, lastProgress;
+    static string progressKey, folder;
+    static readonly HashSet<string> playerCommanderIds = new HashSet<string>();
+    static readonly HashSet<string> enemyCommanderIds = new HashSet<string>();
+    static readonly HashSet<string> playerMainCrystalIds = new HashSet<string>();
+    static readonly HashSet<string> enemyMainCrystalIds = new HashSet<string>();
+
+    static AIClosingPlaytest() => EditorApplication.update += Tick;
+    public static void Run()
+    {
+        if (new DirectoryInfo(Path.GetDirectoryName(Application.dataPath)).Name != "UnityValidation")
+            throw new InvalidOperationException("Use the isolated UnityValidation project only.");
+        if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Start in Edit Mode.");
+        string id = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", Invariant) + "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+        settings = new Settings { RunId = id,
+            Seeds = Array.ConvertAll((Environment.GetEnvironmentVariable("FK_CLOSING_SEEDS") ?? "161803,271828")
+                .Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries), x => int.Parse(x, Invariant)),
+            OwnerTurnLimit = Setting("FK_CLOSING_OWNER_TURNS", 120, 2, 1000),
+            WallSeconds = Setting("FK_CLOSING_WALL_SECONDS", 300, 30, 3600),
+            Label = Environment.GetEnvironmentVariable("FK_CLOSING_LABEL") ?? "observation",
+            Output = Path.GetFullPath(Environment.GetEnvironmentVariable("FK_CLOSING_OUTPUT")
+                ?? Path.Combine(Application.dataPath, "../../ai-closing-" + id)),
+            OriginalCompany = PlayerSettings.companyName, OriginalProduct = PlayerSettings.productName };
+        if (settings.Seeds.Length == 0) throw new ArgumentException("At least one fixed seed is required.");
+        Directory.CreateDirectory(settings.Output);
+        run = new RunReport { Label = settings.Label, StartedUtc = DateTime.UtcNow.ToString("o") };
+        SessionState.SetString(Key + ".Settings", JsonUtility.ToJson(settings));
+        SessionState.SetString(Key + ".Run", JsonUtility.ToJson(run));
+        SessionState.SetInt(Key + ".Index", 0); SessionState.SetString(Key + ".Phase", "prepare");
+        SessionState.SetBool(Key, true); WriteJson("settings.json", settings); WriteJson("run.json", run);
+        Debug.Log(Prefix + " SCHEDULED label=" + settings.Label + " fixedSeeds=" + string.Join(",", settings.Seeds));
+    }
+    static void Tick()
+    {
+        if (!SessionState.GetBool(Key, false) || EditorApplication.isCompiling) return;
+        try
+        {
+            if (settings == null) settings = JsonUtility.FromJson<Settings>(SessionState.GetString(Key + ".Settings", ""));
+            if (run == null) run = JsonUtility.FromJson<RunReport>(SessionState.GetString(Key + ".Run", ""));
+            string phase = SessionState.GetString(Key + ".Phase", "");
+            if (phase == "prepare" || phase == "advance")
+            {
+                if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+                int index = SessionState.GetInt(Key + ".Index", 0);
+                if (phase == "advance") SessionState.SetInt(Key + ".Index", ++index);
+                if (index >= settings.Seeds.Length) { Complete(); return; }
+                initialized = clicked = finishing = false; turn = null; player = enemy = null; lastOwners = -1;
+                PlayerSettings.companyName = "CodexValidation";
+                PlayerSettings.productName = "FantasyKingdom_AIClosing_" + settings.RunId + "_" + index;
+                SessionState.SetString(Key + ".Phase", "observe");
+                SessionState.SetString(Key + ".Started", EditorApplication.timeSinceStartup.ToString("R", Invariant));
+                EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity"); EditorApplication.EnterPlaymode(); return;
+            }
+            if (!EditorApplication.isPlaying || finishing) return;
+            if (!initialized) Initialize();
+            Observe();
+        }
+        catch (Exception error)
+        {
+            Debug.LogException(error);
+            if (initialized && !finishing) { Finish("observer_failure", error.ToString()); return; }
+            if (settings != null) File.WriteAllText(Path.Combine(settings.Output, "harness-failure.txt"), error.ToString());
+            Cleanup(); RestoreIdentity(); SessionState.SetBool(Key, false); EditorApplication.Exit(1);
+        }
+    }
+    static void Initialize()
+    {
+        int index = SessionState.GetInt(Key + ".Index", 0), seed = settings.Seeds[index];
+        folder = Path.Combine(settings.Output, (index + 1).ToString("D2") + "-" + seed); Directory.CreateDirectory(folder);
+        started = double.Parse(SessionState.GetString(Key + ".Started", "0"), Invariant); lastProgress = started;
+        match = new MatchReport { MapSeed = seed, EnemyAISeed = seed ^ 476393, StartedUtc = DateTime.UtcNow.ToString("o"),
+            PersistentPath = Application.persistentDataPath, InitialTimeScale = Time.timeScale };
+        playerCommanderIds.Clear(); enemyCommanderIds.Clear(); playerMainCrystalIds.Clear(); enemyMainCrystalIds.Clear();
+        actions = Writer("actions.csv"); turns = Writer("turns.csv");
+        WriteRow(actions, "team", "round", "id", "type", "role", "targetCategory", "succeeded", "failureReason", "moved",
+            "newTiles", "objectiveDistanceGain", "damageDealt", "kills", "beforeX", "beforeZ", "afterX", "afterZ", "strategy", "actionKey",
+            "targetsOpposingCommander", "targetsOpposingMainCrystal");
+        WriteRow(turns, "seconds", "round", "state", "ownerTurns", "playerMoves", "enemyMoves", "playerAttacks", "enemyAttacks",
+            "playerBuilds", "enemyBuilds", "playerSummons", "enemySummons", "playerKingHP", "playerCrystalHP", "enemyKingHP", "enemyCrystalHP",
+            "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound");
+        Application.logMessageReceived += Log;
+        if (!SaveSystem.TrySaveProfile(new SaveSystem.ProfileData { ThreatLevel = 15 }, out string reason))
+            throw new IOException("Cannot initialize isolated threat profile: " + reason);
+        initialized = true;
+    }
+    static void Observe()
+    {
+        double now = EditorApplication.timeSinceStartup;
+        if (!clicked)
+        {
+            if (now - started >= settings.WallSeconds) { Finish("initialization_wall_limit"); return; }
+            if (TitleScreenUI.Instance == null || UIBuilder.ScreenCanvas == null) return;
+            var button = UIBuilder.ScreenCanvas.transform.Find("TitleScreenOverlay/ButtonArea/はじめからBtn")?.GetComponent<Button>();
+            if (button == null) throw new InvalidOperationException("Actual title New Game button is unavailable.");
+            UnityEngine.Random.InitState(match.MapSeed); button.onClick.Invoke(); clicked = true; return;
+        }
+        if (turn == null)
+        {
+            var candidate = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
+            if (candidate != null && candidate.CurrentState is PlayerMove && candidate.Systems.AICommander != null)
+            {
+                turn = candidate; turn.MarkDeveloperMatch(); var s = turn.Systems;
+                // The original enemy has not acted: preserve all normal systems and rules, fix only random personality/seed.
+                var major = AIPersonality.RandomMajor(match.EnemyAISeed);
+                s.AICommander = new AICommander(turn, s.MoveGenerator, s.AttackGenerator, s.BattleSystem, s.VisionGenerator,
+                    s.APSystem, s.UnitSetting, s.CrystalSystem, s.MapCreate, major, s.BuildSystem, s.SummonSystem,
+                    s.FactionState, s.SkillSystem, s.SubCrystalSystem, 15, match.EnemyAISeed, Team.Enemy);
+                enemy = new SideObserver(s.AICommander, match.Enemy);
+                match.EnemyPersonality = major.ToString(); match.InitialTurnTimeLimit = s.TimerSystem.TurnTimeLimit;
+                match.TerrainSeedX = s.MapCreate.SeedX; match.TerrainSeedZ = s.MapCreate.SeedZ;
+                ObserveDecisiveActors();
+                turn.PlayerAI.SetEnabled(true, false);
+                match.ActualPlayerAIModeUsed = turn.PlayerAI.Enabled;
+                Debug.Log(Prefix + " ACTUAL_AI_MODE_ENABLED mapSeed=" + match.MapSeed + " enemySeed=" + match.EnemyAISeed
+                    + " enemyPersonality=" + major + " threat=15 normalRules=True");
+            }
+        }
+        if (turn != null && player == null && turn.PlayerAI.Commander != null)
+        {
+            player = new SideObserver(turn.PlayerAI.Commander, match.Player); match.PlayerAISeed = player.Commander.RandomSeed;
+        }
+        if (turn != null)
+        {
+            if (turn.IsGameOver) { Finish("game_over"); return; }
+            if (!turn.PlayerAI.Enabled) { Finish("player_ai_disabled", "Actual player AI stopped before a terminal result."); return; }
+            player?.Snapshot(); enemy?.Snapshot();
+            int owners = match.Player.OwnerTurns + match.Enemy.OwnerTurns;
+            string key = turn.Context.Turn + "|" + turn.CurrentState?.GetType().Name + "|" + match.Player.Actions + "|" + match.Enemy.Actions;
+            if (key != progressKey) { progressKey = key; lastProgress = now; }
+            if (owners != lastOwners)
+            {
+                lastOwners = owners; Snapshot();
+                if (owners > 0 && owners % 20 == 0) Debug.Log(Prefix + " PROGRESS seed=" + match.MapSeed + " ownerTurns=" + owners
+                    + " attacks=" + match.Player.Attacks + "/" + match.Enemy.Attacks + " builds=" + match.Player.Builds + "/" + match.Enemy.Builds);
+            }
+            if (owners >= settings.OwnerTurnLimit) { Finish("owner_turn_limit"); return; }
+        }
+        if (now - started >= settings.WallSeconds) { Finish("wall_limit"); return; }
+        if (now - lastProgress >= 90) Finish("progress_stalled", "No phase/action progress for 90 seconds.");
+    }
+    static void Snapshot()
+    {
+        player?.Snapshot(); enemy?.Snapshot(); match.OwnerTurns = match.Player.OwnerTurns + match.Enemy.OwnerTurns;
+        match.Seconds = EditorApplication.timeSinceStartup - started; match.Round = turn?.Context.Turn ?? 0;
+        if (turn != null)
+        {
+            var s = turn.Systems; ObserveDecisiveActors();
+            match.PlayerCommanderHP = CommanderHP(s.UnitSetting.PlayerUnit, Team.Player, out match.PlayerCommandersFound, out match.PlayerCommanderKinds);
+            match.EnemyCommanderHP = CommanderHP(s.UnitSetting.EnemyUnit, Team.Enemy, out match.EnemyCommandersFound, out match.EnemyCommanderKinds);
+            match.PlayerKingHP = match.PlayerCommanderHP; match.EnemyKingHP = match.EnemyCommanderHP;
+            match.PlayerCrystalHP = HP(s.CrystalSystem.Playercrystal, Kind.Crystal); match.EnemyCrystalHP = HP(s.CrystalSystem.Enemycrystal, Kind.Crystal);
+        }
+        WriteRow(turns, match.Seconds, match.Round, turn?.CurrentState?.GetType().Name, match.OwnerTurns,
+            match.Player.Moves, match.Enemy.Moves, match.Player.Attacks, match.Enemy.Attacks, match.Player.Builds, match.Enemy.Builds,
+            match.Player.Summons, match.Enemy.Summons, match.PlayerKingHP, match.PlayerCrystalHP, match.EnemyKingHP, match.EnemyCrystalHP,
+            match.PlayerCommanderHP, match.EnemyCommanderHP, match.PlayerCommandersFound, match.EnemyCommandersFound);
+        turns.Flush(); actions.Flush(); File.WriteAllText(Path.Combine(folder, "match.json"), JsonUtility.ToJson(match, true), new UTF8Encoding(false));
+    }
+    static int HP(Transform parent, Kind kind)
+    {
+        int result = 0;
+        if (parent != null) foreach (var actor in parent.GetComponentsInChildren<Status>(true))
+            if (actor != null && actor.kind == kind) result += Math.Max(0, actor.HP);
+        return result;
+    }
+    static int CommanderHP(Transform parent, Team team, out int found, out string kinds)
+    {
+        int result = 0; found = 0;
+        var names = new HashSet<string>();
+        if (parent != null) foreach (var actor in parent.GetComponentsInChildren<Status>(true))
+            if (actor != null && actor.team == team && MatchObjectiveRules.IsCommander(actor))
+            {
+                result += Math.Max(0, actor.HP); found++; names.Add(actor.kind.ToString());
+            }
+        var ordered = new List<string>(names); ordered.Sort(StringComparer.Ordinal); kinds = string.Join("/", ordered);
+        return result;
+    }
+    static void ObserveDecisiveActors()
+    {
+        if (turn == null) return;
+        var s = turn.Systems;
+        ObserveIds(s.UnitSetting.PlayerUnit, Team.Player, playerCommanderIds, true);
+        ObserveIds(s.UnitSetting.EnemyUnit, Team.Enemy, enemyCommanderIds, true);
+        ObserveIds(s.CrystalSystem.Playercrystal, Team.Player, playerMainCrystalIds, false);
+        ObserveIds(s.CrystalSystem.Enemycrystal, Team.Enemy, enemyMainCrystalIds, false);
+    }
+    static void ObserveIds(Transform parent, Team team, HashSet<string> ids, bool commanders)
+    {
+        if (parent == null) return;
+        foreach (var actor in parent.GetComponentsInChildren<Status>(true))
+            if (actor != null && actor.team == team && (commanders ? MatchObjectiveRules.IsCommander(actor) : actor.kind == Kind.Crystal))
+                ids.Add(actor.ReflectionLifeId);
+    }
+    static bool IsCommanderTarget(string observingTeam, string targetLifeId)
+        => !string.IsNullOrEmpty(targetLifeId)
+            && (observingTeam == "Player" ? enemyCommanderIds : playerCommanderIds).Contains(targetLifeId);
+    static bool IsMainCrystalTarget(string observingTeam, string targetLifeId)
+        => !string.IsNullOrEmpty(targetLifeId)
+            && (observingTeam == "Player" ? enemyMainCrystalIds : playerMainCrystalIds).Contains(targetLifeId);
+    static void Finish(string condition, string fault = null)
+    {
+        if (finishing) return; finishing = true;
+        var terminal = turn?.CurrentState as GameEndState;
+        match.EndCondition = condition; match.Fault = fault; match.GameOver = terminal != null;
+        match.Result = terminal == null ? "unresolved" : typeof(GameEndState)
+            .GetField("_result", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(terminal).ToString();
+        match.OutcomeReason = terminal?.OutcomeReason ?? ""; match.FinishedUtc = DateTime.UtcNow.ToString("o");
+        Snapshot(); Cleanup(); run.Matches.Add(match);
+        if (match.GameOver) run.Resolved++; else run.Interrupted++;
+        if (!string.IsNullOrEmpty(fault) || match.Errors + match.Exceptions + match.Assertions > 0) run.Faulted++;
+        SessionState.SetString(Key + ".Run", JsonUtility.ToJson(run)); WriteJson("run.json", run);
+        Debug.Log(Prefix + " MATCH_END seed=" + match.MapSeed + " condition=" + condition + " result=" + match.Result
+            + " ownerTurns=" + match.OwnerTurns + " attacks=" + match.Player.Attacks + "/" + match.Enemy.Attacks);
+        SessionState.SetString(Key + ".Phase", "advance"); EditorApplication.ExitPlaymode();
+    }
+    static void Log(string message, string stack, LogType type)
+    {
+        if (type == LogType.Error) match.Errors++;
+        if (type == LogType.Exception) match.Exceptions++;
+        if (type == LogType.Assert) match.Assertions++;
+        if ((type == LogType.Error || type == LogType.Exception || type == LogType.Assert) && match.FirstErrors.Count < 12)
+            match.FirstErrors.Add(type + ": " + message + "\n" + stack);
+    }
+    static void Cleanup()
+    {
+        Application.logMessageReceived -= Log; player?.Dispose(); enemy?.Dispose();
+        actions?.Dispose(); turns?.Dispose(); actions = turns = null;
+    }
+    static void Complete()
+    {
+        run.FinishedUtc = DateTime.UtcNow.ToString("o"); WriteJson("run.json", run); RestoreIdentity(); SessionState.SetBool(Key, false);
+        Debug.Log(Prefix + " COMPLETE label=" + run.Label + " resolved=" + run.Resolved + " interrupted=" + run.Interrupted + " faulted=" + run.Faulted);
+        EditorApplication.Exit(run.Faulted == 0 ? 0 : 1);
+    }
+    static void RestoreIdentity()
+    {
+        if (settings == null) return;
+        PlayerSettings.companyName = settings.OriginalCompany; PlayerSettings.productName = settings.OriginalProduct;
+    }
+    static int Setting(string name, int fallback, int min, int max)
+        => int.TryParse(Environment.GetEnvironmentVariable(name), out int value) ? Mathf.Clamp(value, min, max) : fallback;
+    static float Ratio(int numerator, int denominator) => denominator > 0 ? (float)numerator / denominator : 0;
+    static StreamWriter Writer(string name) => new StreamWriter(Path.Combine(folder, name), false, new UTF8Encoding(false));
+    static void WriteJson(string name, object value) => File.WriteAllText(Path.Combine(settings.Output, name), JsonUtility.ToJson(value, true), new UTF8Encoding(false));
+    static void WriteRow(StreamWriter writer, params object[] values)
+    {
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (i != 0) writer.Write(',');
+            string value = Convert.ToString(values[i], Invariant) ?? "";
+            writer.Write('"'); writer.Write(value.Replace("\"", "\"\"")); writer.Write('"');
+        }
+        writer.WriteLine();
+    }
+}
+#endif

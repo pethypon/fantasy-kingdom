@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe405636929147b2875172fb26b870e8, type: 3}
   m_Name: Knight_3a6c94b3
   m_EditorClassIdentifier: Assembly-CSharp::SpecialSkillDefinition
+  crossbowInitialAmmo: -1
   ability: 1
   displayName: "\u524D\u65B9\u7A81\u7834"
-  enabledForPlay: 0
+  enabledForPlay: 1
   apCost: 14
-  cooldown: -1
+  cooldown: 2
   stageAPCosts: 05000000080000000b0000000f00000014000000
-  knightVisibleEnemyAtkPenalty: -1
+  knightVisibleEnemyAtkPenalty: 0.1
   stationaryAttackCurve:
     serializedVersion: 2
     m_Curve: []
@@ -96,3 +97,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  knightPenaltyStackRule: 1
+  assassinBoostDuration: -1
+  assassinBoostStackRule: 0
+  scoutFreeMoveScope: 0
+  scoutFreeAttackScope: 0
+  guardianAttackCostReset: 0
+  bomberAutoExplosionRadius: -1

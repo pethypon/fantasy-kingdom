@@ -69,6 +69,7 @@ public class MoveUndoSystem : System.IDisposable
 
         // ユニットを元の位置に戻す
         record.Unit.transform.position = record.FromPos;
+        BoardActorAnimation.NotifyMove(record.Unit, record.ToPos);
 
         // 占有セルを更新
         _moveGen.MoveUpdate(record.ToPos, record.FromPos);

@@ -1,0 +1,16 @@
+{
+    "Seeds": [
+        161803,
+        271828,
+        314159
+    ],
+    "WallSeconds": 1200,
+    "StallSeconds": 180,
+    "RequiredOwnerTurns": 100,
+    "ThreatLevel": 15,
+    "Output": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\r1-production-playtest-20261018",
+    "RunId": "20261017-214955-f69acc12",
+    "StartedUtc": "2026-10-17T21:49:55.8139873Z",
+    "OriginalCompany": "CodexValidation",
+    "OriginalProduct": "FantasyKingdomR1Validation"
+}

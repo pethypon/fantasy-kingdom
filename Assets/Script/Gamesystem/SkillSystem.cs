@@ -70,6 +70,7 @@ public class SkillSystem : MonoBehaviour
         }
 
         // 攻撃スキル
+        BoardActorAnimation.NotifySkill(attacker, target != null ? (Vector3?)target.transform.position : null);
         if (skill.Multiplier > 0 && target != null)
         {
             ExecuteAttackSkill(attacker, target, skill);

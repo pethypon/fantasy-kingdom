@@ -69,6 +69,7 @@ public static class UIFactory
         img.color = bgColor;
 
         var btn = go.AddComponent<Button>();
+        btn.onClick.AddListener(BoardActionFeedback.UI);
         BrandGuide.ApplyButtonStyle(btn, bgColor);
 
         var txt = CreateTMP("Label", go.transform, label, fontSize, font);

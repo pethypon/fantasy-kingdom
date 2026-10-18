@@ -1,0 +1,1002 @@
+{
+  "dateJst": "2026-10-18",
+  "phase": "confirmation after own-wall / SpecialSkillMovementBlocked / OperationLifetime corrections; before threat progression and new six unit visuals",
+  "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\r1-production-playtest-confirmed-20261018",
+  "configuration": {
+    "Seeds": [
+      161803
+    ],
+    "WallSeconds": 1200,
+    "StallSeconds": 180,
+    "RequiredOwnerTurns": 100,
+    "ThreatLevel": 15,
+    "Output": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\r1-production-playtest-confirmed-20261018",
+    "RunId": "20261018-025111-ec873e38",
+    "StartedUtc": "2026-10-18T02:51:11.0080134Z",
+    "OriginalCompany": "CodexValidation",
+    "OriginalProduct": "FantasyKingdomR1Validation"
+  },
+  "matches": [
+    {
+      "Seed": 161803,
+      "Result": "Lose",
+      "OutcomeReason": "敗北理由：味方の王が撃破されました",
+      "Round": 93,
+      "CompletedOwnerTurns": 186,
+      "PlayerCompletedOwnerTurns": 93,
+      "EnemyCompletedOwnerTurns": 93,
+      "Seconds": 72.6250747,
+      "GameOver": true,
+      "EndCondition": "game_over",
+      "Fault": "",
+      "EnemyAISeed": 561453,
+      "PlayerAISeed": 15015,
+      "PlayerPersonality": "Intellect",
+      "EnemyPersonality": "Growth",
+      "AIConfigMode": "MLAssisted",
+      "InitialTurnTimeLimit": 180.0,
+      "InitialPlayerTime": 36000.0,
+      "InitialEnemyTime": 36000.0,
+      "InitialTimeScale": 1.0,
+      "Warnings": 2,
+      "Errors": 0,
+      "Exceptions": 0,
+      "Assertions": 0,
+      "NativeWarningMessages": 0,
+      "PlayerActionRecordGaps": 0,
+      "EnemyActionRecordGaps": 0,
+      "actionAttempts": 1765,
+      "failedActions": 2,
+      "failurePercent": 0.1133,
+      "failureReasons": {
+        "ExecutionFailed": 2
+      },
+      "failedByActionType": {
+        "Move": 1,
+        "Surround": 1
+      },
+      "duplicateTeamActionIds": 0,
+      "maxFailuresPerSameRoundTeamActorType": 1,
+      "actionTypes": {
+        "Attack": {
+          "attempts": 97,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "Build": {
+          "attempts": 142,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "DefenseRepos": {
+          "attempts": 25,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "Move": {
+          "attempts": 1313,
+          "failed": 1,
+          "failurePercent": 0.0762
+        },
+        "Retreat": {
+          "attempts": 39,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "Rotate": {
+          "attempts": 7,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "SkillUse": {
+          "attempts": 4,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "SubCrystal": {
+          "attempts": 4,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "Summon": {
+          "attempts": 25,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "Support": {
+          "attempts": 75,
+          "failed": 0,
+          "failurePercent": 0.0
+        },
+        "Surround": {
+          "attempts": 11,
+          "failed": 1,
+          "failurePercent": 9.0909
+        },
+        "Upgrade": {
+          "attempts": 23,
+          "failed": 0,
+          "failurePercent": 0.0
+        }
+      },
+      "skills": [
+        {
+          "team": "Player",
+          "ability": "KnightBreakthrough",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "ArcherStationary",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "MagicRitual",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "AssassinVisionSeal",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "ScoutVisionGuard",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "PriestPurification",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "GuardianLifeLink",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "CrossbowStakes",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "MagicSniperLock",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "LifeBomb",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "WhiteMageHeal",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "HolyKnightSanctuary",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "SamuraiCounter",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "NinjaSwap",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "BerserkerRage",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Player",
+          "ability": "NavigatorPull",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "KnightBreakthrough",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "ArcherStationary",
+          "attempts": 2,
+          "succeeded": 2,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "MagicRitual",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "AssassinVisionSeal",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "ScoutVisionGuard",
+          "attempts": 2,
+          "succeeded": 2,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "PriestPurification",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "GuardianLifeLink",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "CrossbowStakes",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "MagicSniperLock",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "LifeBomb",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "WhiteMageHeal",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "HolyKnightSanctuary",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "SamuraiCounter",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "NinjaSwap",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "BerserkerRage",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        },
+        {
+          "team": "Enemy",
+          "ability": "NavigatorPull",
+          "attempts": 0,
+          "succeeded": 0,
+          "failed": 0
+        }
+      ],
+      "sides": {
+        "player": {
+          "actionAttempts": 936,
+          "failedActions": 2,
+          "unpaidObservedRoundRanges": [
+            [
+              12,
+              21
+            ]
+          ],
+          "maxUnpaidUnits": 3.0,
+          "unpaidSamplesAfterRound50": 0,
+          "successfulSummonsByKind": {
+            "Archer": 5,
+            "Scout": 3,
+            "Magic": 3,
+            "Knight": 6,
+            "Assassin": 2,
+            "Berserker": 2
+          },
+          "resources": {
+            "Wood": {
+              "first": 140.0,
+              "last": 199.0,
+              "minimum": 29.0,
+              "maximum": 200.0,
+              "median": 122.0,
+              "p90": 200.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "Stone": {
+              "first": 130.0,
+              "last": 225.0,
+              "minimum": 12.0,
+              "maximum": 225.0,
+              "median": 108.0,
+              "p90": 200.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "Water": {
+              "first": 60.0,
+              "last": 208.0,
+              "minimum": 10.0,
+              "maximum": 225.0,
+              "median": 121.0,
+              "p90": 200.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "Iron": {
+              "first": 30.0,
+              "last": 225.0,
+              "minimum": 0.0,
+              "maximum": 225.0,
+              "median": 32.0,
+              "p90": 200.0,
+              "zeroSamples": 22,
+              "sampleCount": 187,
+              "zeroSamplePercent": 11.7647,
+              "zeroObservedRoundRanges": [
+                [
+                  12,
+                  22
+                ]
+              ]
+            },
+            "MagicOre": {
+              "first": 12.0,
+              "last": 26.0,
+              "minimum": 5.0,
+              "maximum": 26.0,
+              "median": 13.0,
+              "p90": 20.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "Wheat": {
+              "first": 0.0,
+              "last": 96.0,
+              "minimum": 0.0,
+              "maximum": 99.0,
+              "median": 96.0,
+              "p90": 99.0,
+              "zeroSamples": 1,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.5348,
+              "zeroObservedRoundRanges": [
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "Bread": {
+              "first": 100.0,
+              "last": 145.0,
+              "minimum": 36.0,
+              "maximum": 155.0,
+              "median": 87.0,
+              "p90": 149.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            }
+          },
+          "counters": {
+            "AP": {
+              "first": 35.0,
+              "last": 0.0,
+              "minimum": 0.0,
+              "maximum": 35.0,
+              "median": 1.0,
+              "p90": 2.0
+            },
+            "Units": {
+              "first": 4.0,
+              "last": 10.0,
+              "minimum": 1.0,
+              "maximum": 14.0,
+              "median": 8.0,
+              "p90": 10.400000000000006
+            },
+            "Buildings": {
+              "first": 0.0,
+              "last": 57.0,
+              "minimum": 0.0,
+              "maximum": 57.0,
+              "median": 39.0,
+              "p90": 53.0
+            },
+            "UnpaidUnits": {
+              "first": 0.0,
+              "last": 0.0,
+              "minimum": 0.0,
+              "maximum": 3.0,
+              "median": 0.0,
+              "p90": 1.0
+            },
+            "SharedMemory": {
+              "first": 0.0,
+              "last": 12.0,
+              "minimum": 0.0,
+              "maximum": 21.0,
+              "median": 0.0,
+              "p90": 19.0
+            },
+            "PositionHistoryEntries": {
+              "first": 0.0,
+              "last": 0.0,
+              "minimum": 0.0,
+              "maximum": 51.0,
+              "median": 25.0,
+              "p90": 36.80000000000001
+            },
+            "ReflectionRecords": {
+              "first": 0.0,
+              "last": 128.0,
+              "minimum": 0.0,
+              "maximum": 128.0,
+              "median": 128.0,
+              "p90": 128.0
+            },
+            "ReflectionKnowledge": {
+              "first": 0.0,
+              "last": 251.0,
+              "minimum": 0.0,
+              "maximum": 251.0,
+              "median": 99.0,
+              "p90": 222.0
+            },
+            "CompletedOperations": {
+              "first": 0.0,
+              "last": 24.0,
+              "minimum": 0.0,
+              "maximum": 24.0,
+              "median": 14.0,
+              "p90": 22.0
+            },
+            "LastSearchMaxSliceMs": {
+              "first": 0.0,
+              "last": 0.4061,
+              "minimum": 0.0,
+              "maximum": 3.644,
+              "median": 0.0667,
+              "p90": 0.3865
+            }
+          }
+        },
+        "enemy": {
+          "actionAttempts": 829,
+          "failedActions": 0,
+          "unpaidObservedRoundRanges": [
+            [
+              19,
+              22
+            ],
+            [
+              24,
+              44
+            ],
+            [
+              48,
+              49
+            ],
+            [
+              57,
+              61
+            ]
+          ],
+          "maxUnpaidUnits": 3.0,
+          "unpaidSamplesAfterRound50": 6,
+          "successfulSummonsByKind": {
+            "Assassin": 1,
+            "Knight": 2,
+            "Archer": 1
+          },
+          "resources": {
+            "Wood": {
+              "first": 140.0,
+              "last": 65.0,
+              "minimum": 21.0,
+              "maximum": 140.0,
+              "median": 41.0,
+              "p90": 69.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "Stone": {
+              "first": 130.0,
+              "last": 151.0,
+              "minimum": 27.0,
+              "maximum": 200.0,
+              "median": 125.0,
+              "p90": 200.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "Water": {
+              "first": 60.0,
+              "last": 136.0,
+              "minimum": 10.0,
+              "maximum": 146.0,
+              "median": 67.0,
+              "p90": 91.40000000000003,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "Iron": {
+              "first": 30.0,
+              "last": 23.0,
+              "minimum": 8.0,
+              "maximum": 61.0,
+              "median": 38.0,
+              "p90": 53.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "MagicOre": {
+              "first": 12.0,
+              "last": 24.0,
+              "minimum": 12.0,
+              "maximum": 34.0,
+              "median": 21.0,
+              "p90": 32.0,
+              "zeroSamples": 0,
+              "sampleCount": 187,
+              "zeroSamplePercent": 0.0,
+              "zeroObservedRoundRanges": []
+            },
+            "Wheat": {
+              "first": 0.0,
+              "last": 54.0,
+              "minimum": 0.0,
+              "maximum": 54.0,
+              "median": 36.0,
+              "p90": 54.0,
+              "zeroSamples": 2,
+              "sampleCount": 187,
+              "zeroSamplePercent": 1.0695,
+              "zeroObservedRoundRanges": [
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "Bread": {
+              "first": 100.0,
+              "last": 49.0,
+              "minimum": 0.0,
+              "maximum": 104.0,
+              "median": 8.0,
+              "p90": 58.0,
+              "zeroSamples": 16,
+              "sampleCount": 187,
+              "zeroSamplePercent": 8.5561,
+              "zeroObservedRoundRanges": [
+                [
+                  19,
+                  21
+                ],
+                [
+                  24,
+                  28
+                ],
+                [
+                  38,
+                  40
+                ],
+                [
+                  57,
+                  58
+                ]
+              ]
+            }
+          },
+          "counters": {
+            "AP": {
+              "first": 30.0,
+              "last": 14.0,
+              "minimum": 0.0,
+              "maximum": 35.0,
+              "median": 30.0,
+              "p90": 35.0
+            },
+            "Units": {
+              "first": 4.0,
+              "last": 4.0,
+              "minimum": 2.0,
+              "maximum": 4.0,
+              "median": 4.0,
+              "p90": 4.0
+            },
+            "Buildings": {
+              "first": 0.0,
+              "last": 30.0,
+              "minimum": 0.0,
+              "maximum": 30.0,
+              "median": 18.0,
+              "p90": 24.0
+            },
+            "UnpaidUnits": {
+              "first": 0.0,
+              "last": 0.0,
+              "minimum": 0.0,
+              "maximum": 3.0,
+              "median": 0.0,
+              "p90": 2.0
+            },
+            "SharedMemory": {
+              "first": 0.0,
+              "last": 7.0,
+              "minimum": 0.0,
+              "maximum": 8.0,
+              "median": 1.0,
+              "p90": 6.0
+            },
+            "PositionHistoryEntries": {
+              "first": 0.0,
+              "last": 0.0,
+              "minimum": 0.0,
+              "maximum": 16.0,
+              "median": 16.0,
+              "p90": 16.0
+            },
+            "ReflectionRecords": {
+              "first": 0.0,
+              "last": 128.0,
+              "minimum": 0.0,
+              "maximum": 128.0,
+              "median": 128.0,
+              "p90": 128.0
+            },
+            "ReflectionKnowledge": {
+              "first": 0.0,
+              "last": 276.0,
+              "minimum": 0.0,
+              "maximum": 276.0,
+              "median": 117.0,
+              "p90": 239.20000000000002
+            },
+            "CompletedOperations": {
+              "first": 0.0,
+              "last": 19.0,
+              "minimum": 0.0,
+              "maximum": 19.0,
+              "median": 9.0,
+              "p90": 15.0
+            },
+            "LastSearchMaxSliceMs": {
+              "first": 0.0,
+              "last": 0.1287,
+              "minimum": 0.0,
+              "maximum": 4.1298,
+              "median": 0.0941,
+              "p90": 0.1977
+            }
+          }
+        }
+      },
+      "memory": {
+        "trackedAllocatedBytes": {
+          "first": 195922367.0,
+          "last": 202571719.0,
+          "minimum": 195922367.0,
+          "maximum": 202571719.0,
+          "median": 198144505.0,
+          "p90": 202147382.0,
+          "lastMinusFirst": 6649352.0,
+          "linearSlopePerOwnerTurn": 27925.845303330043,
+          "early10To35PercentMean": 197544056.19148937,
+          "last25PercentMean": 201139739.4893617
+        },
+        "monoUsedBytes": {
+          "first": 20221952.0,
+          "last": 45805568.0,
+          "minimum": 20221952.0,
+          "maximum": 50298880.0,
+          "median": 35352576.0,
+          "p90": 41266380.8,
+          "lastMinusFirst": 25583616.0,
+          "linearSlopePerOwnerTurn": 90931.86447869221,
+          "early10To35PercentMean": 31907229.95744681,
+          "last25PercentMean": 40794852.765957445
+        },
+        "monoReservedBytes": {
+          "first": 119861248.0,
+          "last": 119861248.0,
+          "minimum": 119861248.0,
+          "maximum": 119861248.0,
+          "median": 119861248.0,
+          "p90": 119861248.0,
+          "lastMinusFirst": 0.0,
+          "linearSlopePerOwnerTurn": 0.0,
+          "early10To35PercentMean": 119861248.0,
+          "last25PercentMean": 119861248.0
+        },
+        "trackedReservedBytes": {
+          "first": 534138880.0,
+          "last": 536236032.0,
+          "minimum": 534138880.0,
+          "maximum": 536236032.0,
+          "median": 536236032.0,
+          "p90": 536236032.0,
+          "lastMinusFirst": 2097152.0,
+          "linearSlopePerOwnerTurn": 3082.700061293606,
+          "early10To35PercentMean": 536236032.0,
+          "last25PercentMean": 536236032.0
+        },
+        "trackedUnusedReservedBytes": {
+          "first": 338216513.0,
+          "last": 333664313.0,
+          "minimum": 333664313.0,
+          "maximum": 339477128.0,
+          "median": 338032684.0,
+          "p90": 339393451.6,
+          "lastMinusFirst": -4552200.0,
+          "linearSlopePerOwnerTurn": -24843.145242036415,
+          "early10To35PercentMean": 338691975.80851066,
+          "last25PercentMean": 335096292.5106383
+        },
+        "loadedUnityObjects": {
+          "first": 20584.0,
+          "last": 21711.0,
+          "minimum": 20584.0,
+          "maximum": 21711.0,
+          "median": 21237.0,
+          "p90": 21467.4,
+          "lastMinusFirst": 1127.0,
+          "linearSlopePerOwnerTurn": 4.893705107924497,
+          "early10To35PercentMean": 20891.85106382979,
+          "last25PercentMean": 21456.787234042553
+        },
+        "sceneGameObjects": {
+          "first": 2981.0,
+          "last": 3195.0,
+          "minimum": 2981.0,
+          "maximum": 3203.0,
+          "median": 3109.0,
+          "p90": 3154.4,
+          "lastMinusFirst": 214.0,
+          "linearSlopePerOwnerTurn": 0.9848087235143637,
+          "early10To35PercentMean": 3037.0,
+          "last25PercentMean": 3151.7659574468084
+        }
+      },
+      "processApiAvailable": false,
+      "hostOSMemory": {
+        "privateBytes": {
+          "first": 1357422592.0,
+          "last": 1370705920.0,
+          "minimum": 1357422592.0,
+          "maximum": 1370705920.0,
+          "median": 1360740352.0,
+          "p90": 1368033689.6,
+          "linearSlopeBytesPerMinute": 11927230.47914589
+        },
+        "workingSetBytes": {
+          "first": 1120436224.0,
+          "last": 1163866112.0,
+          "minimum": 1120436224.0,
+          "maximum": 1163866112.0,
+          "median": 1141288960.0,
+          "p90": 1159847116.8,
+          "linearSlopeBytesPerMinute": 41538707.822465956
+        },
+        "sampleCount": 5
+      },
+      "frames": {
+        "excludesFirstStartupObservation": true,
+        "observedAllocationFrames": 19708.0,
+        "sampledGCAllocatedBytes": 901370032.0,
+        "sampledGCBytesPerFrame": 45736.25086259387,
+        "sampledWeightedMeanFrameMs": 3.4668621176025423,
+        "maximumObservedFrameMs": 899.636805057526,
+        "intervalMaximumP95Ms": 54.163271561265,
+        "note": "intervalMaximumP95は各観測区間の最大フレームの95 percentile。全フレームの95 percentileではない。"
+      },
+      "diagnostics": [
+        {
+          "utc": "2026-10-18T02:51:15.6808629Z",
+          "type": "Warning",
+          "nativeWarningPattern": "False",
+          "message": "[WildBoss] wildBossPrefab 未割当 → StrangePiece からフォールバック生成",
+          "stack": "UnityEngine.Debug:LogWarning (object)\\nWildBossSystem:GenerateWildBoss () (at Assets/Script/Gamesystem/WildBossSystem.cs:222)\\nSystemInitializer:InitGameSystems (GameGenerator,TurnGenerator,FactionState,MapCreate,TerritorySystem,APSystem,MoveGenerator,VisionGenerator,CrystalSystem,UnitSetting,BuildSystem&,SummonSystem&,EconomySystem&,BuildingAttackSystem&,SubCrystalSystem&,DungeonSystem&,WildBossSystem&,UIBuilder) (at Assets/Script/Initialization/SystemInitializer.cs:87)\\nGameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:150)\\nGameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)\\n"
+        },
+        {
+          "utc": "2026-10-18T02:51:15.6844669Z",
+          "type": "Warning",
+          "nativeWarningPattern": "False",
+          "message": "[SystemInitializer] TimerSystem 未設定 → 自動生成",
+          "stack": "UnityEngine.Debug:LogWarning (object)\\nSystemInitializer:EnsureComponent<TimerSystem> (GameGenerator,TimerSystem) (at Assets/Script/Initialization/SystemInitializer.cs:183)\\nSystemInitializer:InitSkillsAndTimer (GameGenerator,TurnGenerator,FactionState,MoveGenerator,UnitSetting,SkillSystem&) (at Assets/Script/Initialization/SystemInitializer.cs:126)\\nGameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:158)\\nGameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)\\n"
+        }
+      ]
+    }
+  ],
+  "aggregate": {
+    "resolvedMatches": 1,
+    "faultedMatches": 0,
+    "results": {
+      "Lose": 1
+    },
+    "ownerTurns": 186,
+    "seconds": 72.6250747,
+    "actions": 1765,
+    "failedActions": 2,
+    "actionFailurePercent": 0.1133,
+    "failedByType": {
+      "Move": 1,
+      "Surround": 1
+    },
+    "successfulSpecialSkillsByAbility": {
+      "KnightBreakthrough": 0,
+      "ArcherStationary": 2,
+      "MagicRitual": 0,
+      "AssassinVisionSeal": 0,
+      "ScoutVisionGuard": 2,
+      "PriestPurification": 0,
+      "GuardianLifeLink": 0,
+      "CrossbowStakes": 0,
+      "MagicSniperLock": 0,
+      "LifeBomb": 0,
+      "WhiteMageHeal": 0,
+      "HolyKnightSanctuary": 0,
+      "SamuraiCounter": 0,
+      "NinjaSwap": 0,
+      "BerserkerRage": 0,
+      "NavigatorPull": 0
+    },
+    "specialSkillAttempts": 4,
+    "specialSkillSucceeded": 4,
+    "specialSkillFailed": 0,
+    "warnings": 2,
+    "errors": 0,
+    "exceptions": 0,
+    "assertions": 0
+  },
+  "hostOverall": {
+    "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\r1-production-playtest-confirmed-20261018\\host-process.csv",
+    "sampleCount": 5,
+    "singleProcessIds": [
+      "3180"
+    ],
+    "coldStartup": [
+      {
+        "utc": "2026-10-18T02:51:16.5861625Z",
+        "pid": "3180",
+        "privateBytes": "1357422592",
+        "workingSetBytes": "1120436224",
+        "cpuSeconds": "12.859375"
+      },
+      {
+        "utc": "2026-10-18T02:51:31.6226452Z",
+        "pid": "3180",
+        "privateBytes": "1360740352",
+        "workingSetBytes": "1136721920",
+        "cpuSeconds": "30.3125"
+      },
+      {
+        "utc": "2026-10-18T02:51:46.6315992Z",
+        "pid": "3180",
+        "privateBytes": "1357430784",
+        "workingSetBytes": "1141288960",
+        "cpuSeconds": "47.453125"
+      }
+    ],
+    "warmExcludesFirstSeconds": 30,
+    "warmSampleCount": 3,
+    "privateBytes": {
+      "first": 1357430784.0,
+      "last": 1370705920.0,
+      "minimum": 1357430784.0,
+      "maximum": 1370705920.0,
+      "median": 1364025344.0,
+      "p90": 1369369804.8
+    },
+    "workingSetBytes": {
+      "first": 1141288960.0,
+      "last": 1163866112.0,
+      "minimum": 1141288960.0,
+      "maximum": 1163866112.0,
+      "median": 1153818624.0,
+      "p90": 1161856614.4
+    }
+  },
+  "measurementLimits": [
+    "実タイトルから実SampleSceneで開発者プレイヤーAI対通常敵AIを観測。手動マウス操作によるプレイではない。",
+    "両軍脅威度15。マップseed161803、プレイヤーAI seed15015。敵AI seed/性格はbaselineと異なる。",
+    "通常資源/AP/時計/timeScale/AI予算を維持。Editor batchmodeの負荷はUI/観測器を含む。製品playerのFPS保証ではない。",
+    "確認1試合で一般勝率や先後公平性は断定できない。",
+    "action failureはExecutionFailedまで。全件を壁と断定できない。",
+    "Unity Monoのprocess APIは全0で未提供。外部OS記録と区別する。",
+    "メモリ変化は軍数/シーン/Editorキャッシュを含む。短い確認1試合から長期リーク有無は断定できない。",
+    "対戦中native警告0はEditor終了警告を否定しない。別のbuild終了診断が必要。"
+  ]
+}

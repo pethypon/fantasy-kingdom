@@ -162,6 +162,7 @@ public class PlayerMove : TurnState
 
         Status unit = Context.SelectUnit;
         unit.direction = (unit.direction == Direction.N) ? Direction.S : Direction.N;
+        BoardActorAnimation.NotifyFacing(unit);
 
         if (MenuSwitch)
         {

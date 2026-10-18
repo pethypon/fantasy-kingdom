@@ -5,7 +5,9 @@ using UnityEngine.UI;
 
 public class GameEndState : TurnState
 {
-    private GameResult _result;
+    private readonly GameResult _result;
+    bool entered, progressionSaved;
+    SaveSystem.MatchProgression progression;
     public string OutcomeReason { get; }
 
     public GameEndState(TurnGenerator turn, GameResult result, Status decisiveTarget = null) : base(turn)
@@ -23,6 +25,9 @@ public class GameEndState : TurnState
 
     public override void Entry()
     {
+        if (entered) return;
+        entered = true;
+        if (_result != GameResult.TimeUpDraw) BoardActionFeedback.Result(_result);
         Debug.Log($"[GameEnd] ゲーム終了 結果: {_result}");
 
         if (MatchStats.Instance != null)
@@ -48,34 +53,28 @@ public class GameEndState : TurnState
         Turn.PlayerAI?.Commander?.EndExplorationTurn();
 #endif
 
-        UpdateThreatLevel();
+        RecordMatchProgression();
 
         // 実績（試合全体判定）
         bool isWinFinal = _result == GameResult.Win || _result == GameResult.TimeUpWin;
-        if (!Turn.DeveloperPlayerAIWasUsed) AchievementSystem.GetOrCreate().OnMatchEnd(isWinFinal);
+        if (progression.Recorded) AchievementSystem.GetOrCreate().OnMatchEnd(isWinFinal);
 
         BuildGameEndUI();
     }
 
-    private void UpdateThreatLevel()
+    private void RecordMatchProgression()
     {
-        if (Turn.DeveloperPlayerAIWasUsed) return;
         bool isWin = _result == GameResult.Win || _result == GameResult.TimeUpWin;
         bool isLose = _result == GameResult.Lose || _result == GameResult.TimeUpLose;
-
-        if (isWin)
+        progressionSaved = SaveSystem.TryRecordMatchResult(Turn.MatchId, _result,
+            Turn.DeveloperPlayerAIWasUsed, out progression, out string reason);
+        if (!progressionSaved)
         {
-            int newLevel = SaveSystem.IncrementThreatLevel();
-            Debug.Log($"[GameEnd] 勝利！ 脅威度+1 → {newLevel}");
-
-
+            Debug.LogWarning("[GameEnd] 脅威度の保存に失敗しました: " + reason);
+            return;
         }
-        else if (isLose)
-        {
-            SaveSystem.RecordLoss();
-            Debug.Log("[GameEnd] 敗北 → 脅威度据え置き");
-        }
-        if (isWin || isLose) Systems.AICommander?.RecordMatchResult(isWin,
+        if (progression.Increased) Debug.Log($"[GameEnd] 勝利！ 脅威度+1 → {progression.ThreatLevel}");
+        if (progression.Recorded && (isWin || isLose)) Systems.AICommander?.RecordMatchResult(isWin,
             new MatchAnalysis { TurnsPlayed = Context.Turn, PrimaryFailure = FailureReason.Unknown });
     }
 
@@ -161,7 +160,6 @@ public class GameEndState : TurnState
         detailTMP.color = new Color(0.8f, 0.8f, 0.8f);
 
         // 脅威度テキスト
-        var profile = SaveSystem.LoadProfile();
         var threatGo = new GameObject("ThreatText", typeof(RectTransform));
         threatGo.transform.SetParent(panel.transform, false);
         var threatRT = threatGo.GetComponent<RectTransform>();
@@ -170,10 +168,12 @@ public class GameEndState : TurnState
         threatRT.offsetMin = new Vector2(20, 0);
         threatRT.offsetMax = new Vector2(-20, 0);
         var threatTMP = threatGo.AddComponent<TextMeshProUGUI>();
-        bool isWin = _result == GameResult.Win || _result == GameResult.TimeUpWin;
-        threatTMP.text = Turn.DeveloperPlayerAIWasUsed ? $"開発者テスト: 脅威度 {profile.ThreatLevel}（進行記録なし）" : isWin
-            ? $"脅威度: {profile.ThreatLevel} (↑)"
-            : $"脅威度: {profile.ThreatLevel}";
+        threatTMP.text = !progressionSaved ? "脅威度の保存に失敗しました。保存先を確認してください。"
+            : progression.DeveloperTest ? $"開発者テスト: 脅威度 {progression.ThreatLevel}（進行記録なし）"
+            : progression.AlreadyRecorded ? $"脅威度: {progression.ThreatLevel}（この試合は記録済み）"
+            : progression.Increased ? $"次の脅威度: {progression.PreviousThreatLevel} → {progression.ThreatLevel}（+1）"
+            : progression.ThreatLevel == AIThreatLevel.MaxLevel ? $"脅威度: {progression.ThreatLevel}（上限）"
+            : $"脅威度: {progression.ThreatLevel}";
         threatTMP.fontSize = 20;
         threatTMP.alignment = TextAlignmentOptions.Center;
         threatTMP.color = new Color(0.7f, 0.7f, 0.5f);

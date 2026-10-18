@@ -77,9 +77,15 @@ public partial class AIBoardState
     {
         result.Clear();
         if (caster == null) return;
+        bool swap = SpecialSkillRuntime.Definition(caster)?.ability == UnitSpecialSkill.NinjaSwap;
+        // Forced relocation also rejects normal buildings. Only owned structures are prefiltered here;
+        // hidden hostile occupancy remains an authoritative execution-time check.
+        if (swap && HasOwnedStructureAt(caster.transform.position)) return;
         if (SpecialSkillRuntime.IsLegalTarget(caster, caster, out _)) result.Add(caster);
         foreach (var actor in SpecialObservedActors)
-            if (actor != caster && IsSpecialActorObserved(actor) && SpecialSkillRuntime.IsLegalTarget(caster, actor, out _)) result.Add(actor);
+            if (actor != caster && IsSpecialActorObserved(actor)
+                && (!swap || !HasOwnedStructureAt(actor.transform.position))
+                && SpecialSkillRuntime.IsLegalTarget(caster, actor, out _)) result.Add(actor);
     }
 
     public void CollectRitualSacrifices(Status caster, List<Status> result)

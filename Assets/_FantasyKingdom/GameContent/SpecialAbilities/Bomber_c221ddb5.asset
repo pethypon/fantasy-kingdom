@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe405636929147b2875172fb26b870e8, type: 3}
   m_Name: Bomber_c221ddb5
   m_EditorClassIdentifier: Assembly-CSharp::SpecialSkillDefinition
+  crossbowInitialAmmo: -1
   ability: 10
   displayName: "\u751F\u547D\u7206\u5F3E"
-  enabledForPlay: 0
+  enabledForPlay: 1
   apCost: 20
-  cooldown: -1
+  cooldown: 3
   stageAPCosts: 05000000080000000b0000000f00000014000000
   knightVisibleEnemyAtkPenalty: -1
   stationaryAttackCurve:
@@ -56,9 +57,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  bombExplosionRadius: -1
-  bombFactionMask: 0
-  bombOnHolderDeathPolicy: 0
+  bombExplosionRadius: 2
+  bombFactionMask: 7
+  bombOnHolderDeathPolicy: 1
   lightningFactionMask: 0
   holyKnightArea: []
   holyKnightInterruptionConfigured: 0
@@ -96,3 +97,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  knightPenaltyStackRule: 0
+  assassinBoostDuration: -1
+  assassinBoostStackRule: 0
+  scoutFreeMoveScope: 0
+  scoutFreeAttackScope: 0
+  guardianAttackCostReset: 0
+  bomberAutoExplosionRadius: 2

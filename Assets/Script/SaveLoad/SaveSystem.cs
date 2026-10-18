@@ -7,7 +7,7 @@ public static partial class SaveSystem
 {
     const string SaveDir = "saves", ProfileFile = "profile.json";
     const int MaxSlots = 3;
-    public const int CurrentSaveVersion = 8, CurrentProfileVersion = 1;
+    public const int CurrentSaveVersion = 9, CurrentProfileVersion = 2;
     public const string PlayerTurnCheckpoint = "player_turn";
     public const int MaximumSaveBytes = 64 * 1024 * 1024, MaximumProfileBytes = 16 * 1024 * 1024;
     static string testStorageRoot = null;
@@ -45,20 +45,6 @@ public static partial class SaveSystem
     }
     public static void SaveProfile(ProfileData data)
     { if (!TrySaveProfile(data, out string reason)) Debug.LogWarning("[SaveSystem] " + reason); }
-    public static int IncrementThreatLevel()
-    {
-        if (!TryLoadProfile(out var profile, out string reason)) { Debug.LogWarning("[SaveSystem] " + reason); return 1; }
-        profile.ThreatLevel = Mathf.Clamp(profile.ThreatLevel + 1, 1, 100);
-        if (profile.TotalWins < int.MaxValue) profile.TotalWins++;
-        SaveProfile(profile); return profile.ThreatLevel;
-    }
-    public static void RecordLoss()
-    {
-        if (!TryLoadProfile(out var profile, out string reason)) { Debug.LogWarning("[SaveSystem] " + reason); return; }
-        if (profile.TotalLosses < int.MaxValue) profile.TotalLosses++;
-        SaveProfile(profile);
-    }
-
     public static bool TrySaveGame(int slot, GameSaveData data, out string reason)
     {
         reason = "";
@@ -114,6 +100,7 @@ public static partial class SaveSystem
         var data = JsonUtility.FromJson<GameSaveData>(json);
         var header = JsonUtility.FromJson<SaveHeader>(json);
         if (data != null && header != null) { data.Version = header.Version; data.SchemaVersion = header.SchemaVersion; }
+        if (data != null && header != null && header.Version >= 9 && !HasJsonField(json, "MatchId")) data.MatchId = null;
         // Unity can construct absent nested serializable payloads. Absence must not invent a battle/session.
         if (data?.AI != null)
         {
@@ -148,6 +135,7 @@ public static partial class SaveSystem
         var data = JsonUtility.FromJson<ProfileData>(json);
         if (data == null) return null;
         if (data.MatchHistory == null) data.MatchHistory = new System.Collections.Generic.List<MatchAnalysisData>();
+        if (data.CompletedMatchIds == null) data.CompletedMatchIds = new System.Collections.Generic.List<string>();
         if (string.IsNullOrEmpty(data.CreatedVersion)) data.CreatedVersion = "legacy";
         data.SchemaVersion = CurrentProfileVersion; return data;
     }

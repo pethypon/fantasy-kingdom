@@ -1,0 +1,1225 @@
+{
+  "root": "E:\\fantasykingdom\\Unity\\fantasy kingdom",
+  "scope": [
+    "Assets",
+    "Packages",
+    "ProjectSettings",
+    "Tests~"
+  ],
+  "readOnly": true,
+  "untrackedAssetCount": 67,
+  "scannedTextFiles": 3820,
+  "skippedBinaryFiles": 0,
+  "allCopiedAsPreviouslyAbsent": true,
+  "allStillMatchCopiedHashes": true,
+  "externalGuidReferenceCount": 0,
+  "externalNameReferenceCount": 0,
+  "entries": [
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_017c4a0b.asset",
+      "guid": "b4a761b2e7850b24db441f7cecd684a1",
+      "assetSha256": "b76a64a18cc4a0dedcf3780da9d91f23cbd7f184ffdc92e9f34542df86d013cb",
+      "metaSha256": "07b5df0f79e19570b18dd7e92e227f8d5e9f70ddeed6a16445b1feb681b7acdc",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_017c4a0b.asset",
+        "before": null,
+        "after": "b76a64a18cc4a0dedcf3780da9d91f23cbd7f184ffdc92e9f34542df86d013cb"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_017c4a0b.asset.meta",
+        "before": null,
+        "after": "07b5df0f79e19570b18dd7e92e227f8d5e9f70ddeed6a16445b1feb681b7acdc"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_02190a74.asset",
+      "guid": "8403cf591d91da24faf3fc901bd797b1",
+      "assetSha256": "521c3119a2e922025bc974784d0207fd61beaeabf4d54629f898e025d79b4a04",
+      "metaSha256": "f133dc6c6e88a7b04ef5f961ccd09637600b45791f5d18fa204147223c5b9cb1",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_02190a74.asset",
+        "before": null,
+        "after": "521c3119a2e922025bc974784d0207fd61beaeabf4d54629f898e025d79b4a04"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_02190a74.asset.meta",
+        "before": null,
+        "after": "f133dc6c6e88a7b04ef5f961ccd09637600b45791f5d18fa204147223c5b9cb1"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_069f2635.asset",
+      "guid": "d865a4894c66a3a4394ad58a4b2e0155",
+      "assetSha256": "2c5b480aa54bdce5df08f327fd447d4c637a4e2a7c56c3db521913a31387a9fc",
+      "metaSha256": "fd47467c1599cb96ca41f81b44abbc0b61555018cde1fe2903f9664f6b0b14a6",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_069f2635.asset",
+        "before": null,
+        "after": "2c5b480aa54bdce5df08f327fd447d4c637a4e2a7c56c3db521913a31387a9fc"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_069f2635.asset.meta",
+        "before": null,
+        "after": "fd47467c1599cb96ca41f81b44abbc0b61555018cde1fe2903f9664f6b0b14a6"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_08f55c7a.asset",
+      "guid": "8d07f24ca520bf143953a934b7786ba7",
+      "assetSha256": "ebc9867e8bf7136844fbda04b14dd814feace698121dd5c8a9c61ace0fd8cd78",
+      "metaSha256": "5b5fd1dc95259e927389fd1ac50143b159b4300a3fd4776313c0b443423e64bb",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_08f55c7a.asset",
+        "before": null,
+        "after": "ebc9867e8bf7136844fbda04b14dd814feace698121dd5c8a9c61ace0fd8cd78"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_08f55c7a.asset.meta",
+        "before": null,
+        "after": "5b5fd1dc95259e927389fd1ac50143b159b4300a3fd4776313c0b443423e64bb"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0a591f5f.asset",
+      "guid": "790e3b887f1ec1942ac54e600690f7c0",
+      "assetSha256": "07a45d3411c4c29390b1bea40c624d46000889dca05b9f097cec5af800dd1e77",
+      "metaSha256": "c79c60680f1ab0ab23b15a49d80ac7fc6ff7292e3f5b2c3f5e03ca4bfb3127ba",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0a591f5f.asset",
+        "before": null,
+        "after": "07a45d3411c4c29390b1bea40c624d46000889dca05b9f097cec5af800dd1e77"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0a591f5f.asset.meta",
+        "before": null,
+        "after": "c79c60680f1ab0ab23b15a49d80ac7fc6ff7292e3f5b2c3f5e03ca4bfb3127ba"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0aa7e7f3.asset",
+      "guid": "f070abc22fb18394e9a87df671837719",
+      "assetSha256": "b00a1df4e037e21064bb167acc9698ff77ab28cecf73795958fd0e40b746cc4f",
+      "metaSha256": "1a57b43485a7187354a9bbd5956ba79bf9979f729d6cabb4eeda35241423b4d1",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0aa7e7f3.asset",
+        "before": null,
+        "after": "b00a1df4e037e21064bb167acc9698ff77ab28cecf73795958fd0e40b746cc4f"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0aa7e7f3.asset.meta",
+        "before": null,
+        "after": "1a57b43485a7187354a9bbd5956ba79bf9979f729d6cabb4eeda35241423b4d1"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0cef228d.asset",
+      "guid": "e3ed91565890580498e7c7b25eb485d4",
+      "assetSha256": "1a3d1533f347a030fa788c76a84469bc737bdc579b99765bb4e63cf64d4e37d3",
+      "metaSha256": "99b3ba528ba402aed1fc74dda00e2230f53ecd7044ac6efb4faa4e20857eea8b",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0cef228d.asset",
+        "before": null,
+        "after": "1a3d1533f347a030fa788c76a84469bc737bdc579b99765bb4e63cf64d4e37d3"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_0cef228d.asset.meta",
+        "before": null,
+        "after": "99b3ba528ba402aed1fc74dda00e2230f53ecd7044ac6efb4faa4e20857eea8b"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_113cdcac.asset",
+      "guid": "47c058244c89c21479d58b97ffa68977",
+      "assetSha256": "851f127031b82f08120fd52cc94d0a9bc08603e78284e4d847b087a14e3c1db7",
+      "metaSha256": "32619dec811f43df92c1165a256637b30c058a915c4d44bdc79f913b190547b4",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_113cdcac.asset",
+        "before": null,
+        "after": "851f127031b82f08120fd52cc94d0a9bc08603e78284e4d847b087a14e3c1db7"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_113cdcac.asset.meta",
+        "before": null,
+        "after": "32619dec811f43df92c1165a256637b30c058a915c4d44bdc79f913b190547b4"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_13e971e6.asset",
+      "guid": "661e05090aed4dc409957ed70f3f0259",
+      "assetSha256": "488eea1ba1fca71d99bd1508cc3adfb1169b8998644f498a764b530fef31e0c4",
+      "metaSha256": "b4a0c6c8ca8beae9ad95bce5871de27786a2b882e0295155ba08c46d2bb30d71",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_13e971e6.asset",
+        "before": null,
+        "after": "488eea1ba1fca71d99bd1508cc3adfb1169b8998644f498a764b530fef31e0c4"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_13e971e6.asset.meta",
+        "before": null,
+        "after": "b4a0c6c8ca8beae9ad95bce5871de27786a2b882e0295155ba08c46d2bb30d71"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_171a4e0c.asset",
+      "guid": "822a3501b8e19c94a84a1ea297fab74c",
+      "assetSha256": "63bb7f063d18189f459aee6b25c4f497b22ae15e8d32f51cc57cca67ae18984c",
+      "metaSha256": "f46e3ba6be2526386f6f35fa875032ef15fc98214cbc6c36f6991d66441f3642",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_171a4e0c.asset",
+        "before": null,
+        "after": "63bb7f063d18189f459aee6b25c4f497b22ae15e8d32f51cc57cca67ae18984c"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_171a4e0c.asset.meta",
+        "before": null,
+        "after": "f46e3ba6be2526386f6f35fa875032ef15fc98214cbc6c36f6991d66441f3642"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_17cffcb0.asset",
+      "guid": "a73535f486d62194789ce1534de008fe",
+      "assetSha256": "6c09b3ecd944ec9fd307ffed6e1404c9d7e69939fef81bd6fcf95d25f7dafbe6",
+      "metaSha256": "0fdc24b839a95796414a355147eae4e981f458242e95acfd887c410def8c4128",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_17cffcb0.asset",
+        "before": null,
+        "after": "6c09b3ecd944ec9fd307ffed6e1404c9d7e69939fef81bd6fcf95d25f7dafbe6"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_17cffcb0.asset.meta",
+        "before": null,
+        "after": "0fdc24b839a95796414a355147eae4e981f458242e95acfd887c410def8c4128"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_17dd3cf1.asset",
+      "guid": "b6556326376e36d40a50f9f50728079a",
+      "assetSha256": "223e8d2164b4a5675e9bfb93d00c27e9a9e205bc7658cc8a3a44d9dca7b74b90",
+      "metaSha256": "cdef9d84eb61c93a51e1b75fdd0c8d9c8125e2ff9d1d3aab3ec02929474499c0",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_17dd3cf1.asset",
+        "before": null,
+        "after": "223e8d2164b4a5675e9bfb93d00c27e9a9e205bc7658cc8a3a44d9dca7b74b90"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_17dd3cf1.asset.meta",
+        "before": null,
+        "after": "cdef9d84eb61c93a51e1b75fdd0c8d9c8125e2ff9d1d3aab3ec02929474499c0"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_1f9f371b.asset",
+      "guid": "4f5dcb129ecc45643bb27597d535bfdd",
+      "assetSha256": "ada5718b32089c1baf3b1f5e8a2158e3bf7e9e3a72e6757742ab5f0936b944d0",
+      "metaSha256": "d616eb2faf8ce9d92dd16372b6504ad3bfc729f947f579d7fb387c68abcf7d2d",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_1f9f371b.asset",
+        "before": null,
+        "after": "ada5718b32089c1baf3b1f5e8a2158e3bf7e9e3a72e6757742ab5f0936b944d0"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_1f9f371b.asset.meta",
+        "before": null,
+        "after": "d616eb2faf8ce9d92dd16372b6504ad3bfc729f947f579d7fb387c68abcf7d2d"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_2230e7ef.asset",
+      "guid": "5fbc4ff86356de841a672d03f6f6ebdd",
+      "assetSha256": "101de2ad68855d23c5f1ad481c63338f359b66bd9782e017733a68a4f33dd33d",
+      "metaSha256": "dde162c2de6dafb6556c552af5d3de887d1376e8536ce81c652b3ef984f422b1",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_2230e7ef.asset",
+        "before": null,
+        "after": "101de2ad68855d23c5f1ad481c63338f359b66bd9782e017733a68a4f33dd33d"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_2230e7ef.asset.meta",
+        "before": null,
+        "after": "dde162c2de6dafb6556c552af5d3de887d1376e8536ce81c652b3ef984f422b1"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_259a54cb.asset",
+      "guid": "f4eea118f25a22b4d8e0ca12a2dd8499",
+      "assetSha256": "a2b76d6cb906258b24da50b90ff8a4c70a94173b8b3bf2dfb2bb6f38a4eda2be",
+      "metaSha256": "233cc0d7e4a523d51b72efa58c1ebaf2307ba737cf12fdcdc2b8a0a9bf1cbbcc",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_259a54cb.asset",
+        "before": null,
+        "after": "a2b76d6cb906258b24da50b90ff8a4c70a94173b8b3bf2dfb2bb6f38a4eda2be"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_259a54cb.asset.meta",
+        "before": null,
+        "after": "233cc0d7e4a523d51b72efa58c1ebaf2307ba737cf12fdcdc2b8a0a9bf1cbbcc"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_306b1840.asset",
+      "guid": "caa721a5bd8a7ac4e8a236466e2913a7",
+      "assetSha256": "ecabc2710e0b91d70a0cd833661290ba5aec658dc287998692d841771ee24da0",
+      "metaSha256": "20e1ba246c86d142c3c3005ee56dc16ea9125c339dfc547b7170ba68f99460c3",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_306b1840.asset",
+        "before": null,
+        "after": "ecabc2710e0b91d70a0cd833661290ba5aec658dc287998692d841771ee24da0"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_306b1840.asset.meta",
+        "before": null,
+        "after": "20e1ba246c86d142c3c3005ee56dc16ea9125c339dfc547b7170ba68f99460c3"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_35f46909.asset",
+      "guid": "743c91377d811154482fbd979b77ee33",
+      "assetSha256": "5bee41e3666a89b80531535f6300ab90d6a5b062ab27d77dfca7c2160f37b962",
+      "metaSha256": "dd4180c19475a8f263f5026cafd96cbd8efe0e764416b266bbaea95d3da8e6c7",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_35f46909.asset",
+        "before": null,
+        "after": "5bee41e3666a89b80531535f6300ab90d6a5b062ab27d77dfca7c2160f37b962"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_35f46909.asset.meta",
+        "before": null,
+        "after": "dd4180c19475a8f263f5026cafd96cbd8efe0e764416b266bbaea95d3da8e6c7"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_3b35d041.asset",
+      "guid": "351e373fa0ccdf54992dd1cb7c07e0d3",
+      "assetSha256": "e49ca0211a567a4510f7062338eceae5bbd2207f1602616ee58dd49466c0c71d",
+      "metaSha256": "81048c441059314405f79a442cc76c0d7e6c285a0f1f811b0858574ceacc3aa3",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_3b35d041.asset",
+        "before": null,
+        "after": "e49ca0211a567a4510f7062338eceae5bbd2207f1602616ee58dd49466c0c71d"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_3b35d041.asset.meta",
+        "before": null,
+        "after": "81048c441059314405f79a442cc76c0d7e6c285a0f1f811b0858574ceacc3aa3"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_41a9846c.asset",
+      "guid": "710e13c921531e048be9ff0df184d61a",
+      "assetSha256": "2acda3f215fc0718c24cdd8bf8885f89269042b4c8d03b526ba8e24b8b616798",
+      "metaSha256": "236adaaa6be8c2013e869dd153947823c1a145734321bdbd4da7b13b676a4d47",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_41a9846c.asset",
+        "before": null,
+        "after": "2acda3f215fc0718c24cdd8bf8885f89269042b4c8d03b526ba8e24b8b616798"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_41a9846c.asset.meta",
+        "before": null,
+        "after": "236adaaa6be8c2013e869dd153947823c1a145734321bdbd4da7b13b676a4d47"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_43756385.asset",
+      "guid": "908ccb865da3f7544b1a49a0853818ed",
+      "assetSha256": "69725f7a9f1cfb2c2b6368344a837bcd92e6361bb1945849c7329426a73d2326",
+      "metaSha256": "4fd547c566010bface2c064dccf76bc65919e96ca4cd7581e1898414f7ebb169",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_43756385.asset",
+        "before": null,
+        "after": "69725f7a9f1cfb2c2b6368344a837bcd92e6361bb1945849c7329426a73d2326"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_43756385.asset.meta",
+        "before": null,
+        "after": "4fd547c566010bface2c064dccf76bc65919e96ca4cd7581e1898414f7ebb169"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_46605d31.asset",
+      "guid": "685a35769e18c6444bd28e317d544c19",
+      "assetSha256": "b0e47407068c2454cc5346bd84fceb6e3fdea8b11ffd20216a28b036c530fb8d",
+      "metaSha256": "4f2cc0dc1b118590ecf50242dd4940c0f242863c343894ba7b04dc30fce856ee",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_46605d31.asset",
+        "before": null,
+        "after": "b0e47407068c2454cc5346bd84fceb6e3fdea8b11ffd20216a28b036c530fb8d"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_46605d31.asset.meta",
+        "before": null,
+        "after": "4f2cc0dc1b118590ecf50242dd4940c0f242863c343894ba7b04dc30fce856ee"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_49244655.asset",
+      "guid": "23eab643f35ff084c8a67c0af29674f2",
+      "assetSha256": "840247a661d8a83746f2bd6d220c55710c744e0308b946ab1bf244020e07653d",
+      "metaSha256": "7f2b98beb09e90cf9b3687333dfc3083317d1175c8a2e0609ef300937c96c1fa",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_49244655.asset",
+        "before": null,
+        "after": "840247a661d8a83746f2bd6d220c55710c744e0308b946ab1bf244020e07653d"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_49244655.asset.meta",
+        "before": null,
+        "after": "7f2b98beb09e90cf9b3687333dfc3083317d1175c8a2e0609ef300937c96c1fa"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_49413ee2.asset",
+      "guid": "ac6174c6c1cabc5478548a8b5b170f00",
+      "assetSha256": "eca9c3935c4f10b29e6da85e47e199aed85b180963dd0d6185219f5b52241b8f",
+      "metaSha256": "fae8f25d9562aae34828e587335ad89933a2f5eaccf44bcb46daab2147924af1",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_49413ee2.asset",
+        "before": null,
+        "after": "eca9c3935c4f10b29e6da85e47e199aed85b180963dd0d6185219f5b52241b8f"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_49413ee2.asset.meta",
+        "before": null,
+        "after": "fae8f25d9562aae34828e587335ad89933a2f5eaccf44bcb46daab2147924af1"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4a9d6d3e.asset",
+      "guid": "99c3ff07c4a93d1438d3fb9e1f4d768b",
+      "assetSha256": "c65bea3a8b6722825835315c8131502a5cdaeaa7a724805f07a888d5721e127a",
+      "metaSha256": "89a8695ecd7696ee0b7081e410d5f3f53c34e50359896ac224c2283d73eda955",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4a9d6d3e.asset",
+        "before": null,
+        "after": "c65bea3a8b6722825835315c8131502a5cdaeaa7a724805f07a888d5721e127a"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4a9d6d3e.asset.meta",
+        "before": null,
+        "after": "89a8695ecd7696ee0b7081e410d5f3f53c34e50359896ac224c2283d73eda955"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4b74068d.asset",
+      "guid": "8fe8b5946e19d064cb0873dbb9b58e93",
+      "assetSha256": "e351a6ff2e6957881e0a68e6acf847dc3189d619e7cae74421fc9b5079398249",
+      "metaSha256": "6be2c3821fe529176729e9a46be6a87169f24b55b1c31282bd4d2675d7505089",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4b74068d.asset",
+        "before": null,
+        "after": "e351a6ff2e6957881e0a68e6acf847dc3189d619e7cae74421fc9b5079398249"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4b74068d.asset.meta",
+        "before": null,
+        "after": "6be2c3821fe529176729e9a46be6a87169f24b55b1c31282bd4d2675d7505089"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4fe2df4b.asset",
+      "guid": "21481a2fa8eef8344aad59ded06b41f4",
+      "assetSha256": "a421af5549cc5b5db6b66e8f5d3ef16f5915dcaa5c54643b09a80cd54e663510",
+      "metaSha256": "fb2656065c99caa471f65d3e07d3d97753f1038ea70f02fa8ef711493046fb17",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4fe2df4b.asset",
+        "before": null,
+        "after": "a421af5549cc5b5db6b66e8f5d3ef16f5915dcaa5c54643b09a80cd54e663510"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4fe2df4b.asset.meta",
+        "before": null,
+        "after": "fb2656065c99caa471f65d3e07d3d97753f1038ea70f02fa8ef711493046fb17"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4fef06f3.asset",
+      "guid": "bb3e00d718ebf2245a378b5d38febd4d",
+      "assetSha256": "964701d3f4e59a792c274b3a1568bbede8e76d3ef06c1d0e27f5b1f9f61dec3a",
+      "metaSha256": "6472927be1a07b9c2c00b5aa4e6dad2bf62c378578579ed2f960fb18d9eeeb2d",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4fef06f3.asset",
+        "before": null,
+        "after": "964701d3f4e59a792c274b3a1568bbede8e76d3ef06c1d0e27f5b1f9f61dec3a"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_4fef06f3.asset.meta",
+        "before": null,
+        "after": "6472927be1a07b9c2c00b5aa4e6dad2bf62c378578579ed2f960fb18d9eeeb2d"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_566b6578.asset",
+      "guid": "b5ab08c985672f74e8534071b874c992",
+      "assetSha256": "8ea4b96fb2909b32a00fcf10b9f285bf51ff91eecccf37742e4bd28744634e18",
+      "metaSha256": "4c79833810eff0d43b884af693bbdb7fb98d58d994cd0929cfdf00dce9795f37",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_566b6578.asset",
+        "before": null,
+        "after": "8ea4b96fb2909b32a00fcf10b9f285bf51ff91eecccf37742e4bd28744634e18"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_566b6578.asset.meta",
+        "before": null,
+        "after": "4c79833810eff0d43b884af693bbdb7fb98d58d994cd0929cfdf00dce9795f37"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_5b7fb1fb.asset",
+      "guid": "c09a5c21ec5ea1740b7e7702ba2cc2dd",
+      "assetSha256": "1d34a573c069b4d335aaa93097118c71240b7ac8816b3960d7bcc9050a56786f",
+      "metaSha256": "f48275f55ebdbec89d58b4a948ee7da6b82ebd58442c90a7b96db5e631ead470",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_5b7fb1fb.asset",
+        "before": null,
+        "after": "1d34a573c069b4d335aaa93097118c71240b7ac8816b3960d7bcc9050a56786f"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_5b7fb1fb.asset.meta",
+        "before": null,
+        "after": "f48275f55ebdbec89d58b4a948ee7da6b82ebd58442c90a7b96db5e631ead470"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_6057c55c.asset",
+      "guid": "def7de54af4dd494795627f7005a99ca",
+      "assetSha256": "0cd2d4f69bf45c432271bc515d21286d121bbe1ca6f7fb40ec8cced7025850fd",
+      "metaSha256": "c5a8dfe4bbe6a1e57ac60a594f8619ab92e813e49574b0ad7159588b293eca6c",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_6057c55c.asset",
+        "before": null,
+        "after": "0cd2d4f69bf45c432271bc515d21286d121bbe1ca6f7fb40ec8cced7025850fd"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_6057c55c.asset.meta",
+        "before": null,
+        "after": "c5a8dfe4bbe6a1e57ac60a594f8619ab92e813e49574b0ad7159588b293eca6c"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_64172e7f.asset",
+      "guid": "1bac48ee024e3da429d911cb6071e5f6",
+      "assetSha256": "473b57e59dec79608e178ba4e00f14f7453a027a237348c180e3bfb33cd433ca",
+      "metaSha256": "eb492bb2510523725165c3796de4916775610bdb472adf7b1c1cc5d2e5c30a64",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_64172e7f.asset",
+        "before": null,
+        "after": "473b57e59dec79608e178ba4e00f14f7453a027a237348c180e3bfb33cd433ca"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_64172e7f.asset.meta",
+        "before": null,
+        "after": "eb492bb2510523725165c3796de4916775610bdb472adf7b1c1cc5d2e5c30a64"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_6d193604.asset",
+      "guid": "c2aed72cc321fde4ea0e580c0f34e42d",
+      "assetSha256": "bd3aecbdc63db2622dbef41626aab429eba34f3385b2fa8472f82a4d98ea4194",
+      "metaSha256": "f3460c187ea23f407352260cddb6cb227a886cbd7156f89af41eebb793269b02",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_6d193604.asset",
+        "before": null,
+        "after": "bd3aecbdc63db2622dbef41626aab429eba34f3385b2fa8472f82a4d98ea4194"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_6d193604.asset.meta",
+        "before": null,
+        "after": "f3460c187ea23f407352260cddb6cb227a886cbd7156f89af41eebb793269b02"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_72af9622.asset",
+      "guid": "81d5422391a20584f84f201a6ec95d23",
+      "assetSha256": "bdb79eb911502057aac6d2c98e1a084b7b1a9a56a47781f9a3a06b1f42af2c8d",
+      "metaSha256": "e9085e7458e161da9ef8db22f18b20c0106d85d48c51a3b3a7a1fd2fed532056",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_72af9622.asset",
+        "before": null,
+        "after": "bdb79eb911502057aac6d2c98e1a084b7b1a9a56a47781f9a3a06b1f42af2c8d"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_72af9622.asset.meta",
+        "before": null,
+        "after": "e9085e7458e161da9ef8db22f18b20c0106d85d48c51a3b3a7a1fd2fed532056"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7428f779.asset",
+      "guid": "748cd700a4d4e4a4db95cbc4035e82f1",
+      "assetSha256": "ad05638d0dd0c238e8e37c06eda8bcf95fb333962e8b9e793d95918bf6369720",
+      "metaSha256": "467c7e83582c125b53ad029659bbca9f7440fb57fe268b6c23172ef13766c459",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7428f779.asset",
+        "before": null,
+        "after": "ad05638d0dd0c238e8e37c06eda8bcf95fb333962e8b9e793d95918bf6369720"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7428f779.asset.meta",
+        "before": null,
+        "after": "467c7e83582c125b53ad029659bbca9f7440fb57fe268b6c23172ef13766c459"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_78ff63f7.asset",
+      "guid": "d9f1e1f1c7eac514488009a8ab0c986a",
+      "assetSha256": "b4855a0f29f06d5a05bfd4cae8663ae9d4a857593a25006767031b0aa18aacc7",
+      "metaSha256": "a5b2fccc87113d7d57bc9798fecc3244cf6f91fee9b393251d0788a28dad0204",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_78ff63f7.asset",
+        "before": null,
+        "after": "b4855a0f29f06d5a05bfd4cae8663ae9d4a857593a25006767031b0aa18aacc7"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_78ff63f7.asset.meta",
+        "before": null,
+        "after": "a5b2fccc87113d7d57bc9798fecc3244cf6f91fee9b393251d0788a28dad0204"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7aa67927.asset",
+      "guid": "69d4ec9660278964b93b81c72bfa5a11",
+      "assetSha256": "e109fd78f28dfad42693aa4024ee0edc8c65ccd977cb4cdf21f5b87864c699b0",
+      "metaSha256": "7b36ea30071268f09f40eaf10c1adcdf9e1109cf8cd675f25d7eb61b69b769d1",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7aa67927.asset",
+        "before": null,
+        "after": "e109fd78f28dfad42693aa4024ee0edc8c65ccd977cb4cdf21f5b87864c699b0"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7aa67927.asset.meta",
+        "before": null,
+        "after": "7b36ea30071268f09f40eaf10c1adcdf9e1109cf8cd675f25d7eb61b69b769d1"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7da41785.asset",
+      "guid": "dfa56f91f744ab944a982c9b450441f5",
+      "assetSha256": "2c29ac15440619de9cac21126ba5804b964efbd96087193602735c2258664912",
+      "metaSha256": "47e59d5586818b5ff7da6ae836b5dab0d5657f1ae41115a00e945078cfdf344f",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7da41785.asset",
+        "before": null,
+        "after": "2c29ac15440619de9cac21126ba5804b964efbd96087193602735c2258664912"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7da41785.asset.meta",
+        "before": null,
+        "after": "47e59d5586818b5ff7da6ae836b5dab0d5657f1ae41115a00e945078cfdf344f"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7e22df54.asset",
+      "guid": "f52a0429100fde24e8c12219f8502e91",
+      "assetSha256": "442e8218bcef9e2b33181ae50c444de80748b24888bc79785a93decd743ccc68",
+      "metaSha256": "ce787f1261f288f1a18bd01b489afdb523416453edfce7dfe20c03ffa2762f14",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7e22df54.asset",
+        "before": null,
+        "after": "442e8218bcef9e2b33181ae50c444de80748b24888bc79785a93decd743ccc68"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_7e22df54.asset.meta",
+        "before": null,
+        "after": "ce787f1261f288f1a18bd01b489afdb523416453edfce7dfe20c03ffa2762f14"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_8a018abc.asset",
+      "guid": "45abfb78b058bf8448dbc881d76baa2d",
+      "assetSha256": "8b425247dd2f199914fea2970529def2dd82d92b64dcc000926a348fa8e2257d",
+      "metaSha256": "dca0b12d7e20ab4f880f6b32506a9c4c1e966d02406b6c1404f39ebfec568825",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_8a018abc.asset",
+        "before": null,
+        "after": "8b425247dd2f199914fea2970529def2dd82d92b64dcc000926a348fa8e2257d"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_8a018abc.asset.meta",
+        "before": null,
+        "after": "dca0b12d7e20ab4f880f6b32506a9c4c1e966d02406b6c1404f39ebfec568825"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_97fbb3f1.asset",
+      "guid": "636577d536ec6f34ebda320fbac7e026",
+      "assetSha256": "e7bf324b3eb33c8578f666366c16355c409fafb1b2dbd8c12955c819f5c1c255",
+      "metaSha256": "1eb80ce540d6ff7be40050b340b53a43fb67d89335884fc9d79e3e6680cecff5",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_97fbb3f1.asset",
+        "before": null,
+        "after": "e7bf324b3eb33c8578f666366c16355c409fafb1b2dbd8c12955c819f5c1c255"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_97fbb3f1.asset.meta",
+        "before": null,
+        "after": "1eb80ce540d6ff7be40050b340b53a43fb67d89335884fc9d79e3e6680cecff5"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_9a3150a0.asset",
+      "guid": "d2103a789499ede4c88b818f080fd9fa",
+      "assetSha256": "ebf84cdcfde8a5c4ecf03bfa32cda33690d0d42acedaa820fe9c384979a2f165",
+      "metaSha256": "07b118a284de34332351f57fbc029406b691c345cd27230ddeed8d60214831ef",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_9a3150a0.asset",
+        "before": null,
+        "after": "ebf84cdcfde8a5c4ecf03bfa32cda33690d0d42acedaa820fe9c384979a2f165"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_9a3150a0.asset.meta",
+        "before": null,
+        "after": "07b118a284de34332351f57fbc029406b691c345cd27230ddeed8d60214831ef"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a3758175.asset",
+      "guid": "a972e37ff524c7049b838e240b3da611",
+      "assetSha256": "3ee7ba784ab9963eeec3d4d5e34201f2661d4c748b7403f6553b663b572fd8c1",
+      "metaSha256": "6c66f32ad7f3ca04cddb7f688f31192b986ccb9ee0f001d8ef245bda390abde7",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a3758175.asset",
+        "before": null,
+        "after": "3ee7ba784ab9963eeec3d4d5e34201f2661d4c748b7403f6553b663b572fd8c1"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a3758175.asset.meta",
+        "before": null,
+        "after": "6c66f32ad7f3ca04cddb7f688f31192b986ccb9ee0f001d8ef245bda390abde7"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a5f708ca.asset",
+      "guid": "6f98a445df786d04da506c644acc2507",
+      "assetSha256": "4843c8b1efc060443e80957c9aaa2325d254ceb01443fcaea8d6c269c59d5c26",
+      "metaSha256": "93e927940aa8843d8c636b4f91d85f99301b41693100636bae8dc28c5ef36a70",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a5f708ca.asset",
+        "before": null,
+        "after": "4843c8b1efc060443e80957c9aaa2325d254ceb01443fcaea8d6c269c59d5c26"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a5f708ca.asset.meta",
+        "before": null,
+        "after": "93e927940aa8843d8c636b4f91d85f99301b41693100636bae8dc28c5ef36a70"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a9ba1c14.asset",
+      "guid": "3bed4ef33c774f442ab7fb1a56dc1461",
+      "assetSha256": "c526e8bbd757038006174a4e35eaab18c95fb952ee91c86182f10a9b07aa0c47",
+      "metaSha256": "7ae85e84acfccfaea5771f5921fd45af9f2ce48f4f952e74d8cb3708205cd607",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a9ba1c14.asset",
+        "before": null,
+        "after": "c526e8bbd757038006174a4e35eaab18c95fb952ee91c86182f10a9b07aa0c47"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_a9ba1c14.asset.meta",
+        "before": null,
+        "after": "7ae85e84acfccfaea5771f5921fd45af9f2ce48f4f952e74d8cb3708205cd607"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_abf4144b.asset",
+      "guid": "f1466249c1738a84f85665926291d757",
+      "assetSha256": "71d429d4a445460086c11974a7b84828832d2eb6eb6eaf63916d0fba993014c8",
+      "metaSha256": "d5e5b4d2f3b9993fa54792296bb6d579ecbd5eb6c9c0147ce57f4b5e70de2f6b",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_abf4144b.asset",
+        "before": null,
+        "after": "71d429d4a445460086c11974a7b84828832d2eb6eb6eaf63916d0fba993014c8"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_abf4144b.asset.meta",
+        "before": null,
+        "after": "d5e5b4d2f3b9993fa54792296bb6d579ecbd5eb6c9c0147ce57f4b5e70de2f6b"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ac88f06c.asset",
+      "guid": "9ec0e8f1a5d996a4888e292f63372a40",
+      "assetSha256": "700bd7ee850a3db5eec388a9d6219c47ee88def1cd1e9c42c829c6c013182a9c",
+      "metaSha256": "e98b9b0969d9ce3dc49150c4095b332de58938be72ef4e9fd76518b7af0ed471",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ac88f06c.asset",
+        "before": null,
+        "after": "700bd7ee850a3db5eec388a9d6219c47ee88def1cd1e9c42c829c6c013182a9c"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ac88f06c.asset.meta",
+        "before": null,
+        "after": "e98b9b0969d9ce3dc49150c4095b332de58938be72ef4e9fd76518b7af0ed471"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_b0fe3838.asset",
+      "guid": "42ea356e0c72898469844358a6d5689c",
+      "assetSha256": "87b4275f08c9677cff7c275925853110c7a2e0cdea27303c6d66605826e5b46b",
+      "metaSha256": "38b482888c6f57390df4faa33dc1f9bb060fdf6425d2c3969a8f137b3a03306f",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_b0fe3838.asset",
+        "before": null,
+        "after": "87b4275f08c9677cff7c275925853110c7a2e0cdea27303c6d66605826e5b46b"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_b0fe3838.asset.meta",
+        "before": null,
+        "after": "38b482888c6f57390df4faa33dc1f9bb060fdf6425d2c3969a8f137b3a03306f"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_b134980f.asset",
+      "guid": "a06ea608effbf1f4098e4d37cfabfef9",
+      "assetSha256": "81bfb5f53d0895f9ebf0c1f6dc2514f4b77d438cfd5f5457c7694f6dc0bb0a9d",
+      "metaSha256": "723cd141d26950e15bcc4993e2671c40aaf563217c374aab9629780ff1319be9",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_b134980f.asset",
+        "before": null,
+        "after": "81bfb5f53d0895f9ebf0c1f6dc2514f4b77d438cfd5f5457c7694f6dc0bb0a9d"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_b134980f.asset.meta",
+        "before": null,
+        "after": "723cd141d26950e15bcc4993e2671c40aaf563217c374aab9629780ff1319be9"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_bee63e9a.asset",
+      "guid": "3fc441537dc511542b8b90f0b32b41a1",
+      "assetSha256": "3eeccd80b8da27d3dd23b3ca216c722ba1f759126c8898a76b0efd4d6c018062",
+      "metaSha256": "08e64357a414031f831eaa047f124ec213ed3e39d3af37ae7f72d6dd0c59d843",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_bee63e9a.asset",
+        "before": null,
+        "after": "3eeccd80b8da27d3dd23b3ca216c722ba1f759126c8898a76b0efd4d6c018062"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_bee63e9a.asset.meta",
+        "before": null,
+        "after": "08e64357a414031f831eaa047f124ec213ed3e39d3af37ae7f72d6dd0c59d843"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c1ea3f76.asset",
+      "guid": "5ec2aad90640f4f44b436b1fe69fcda7",
+      "assetSha256": "552a8b8d187097ee8f2f6e4aaf7e5633d2ede789add7967a402eeb05d21023aa",
+      "metaSha256": "533626464cf32a92d7308514d5789f4951de527bdaf0831bbf89ae7529c30661",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c1ea3f76.asset",
+        "before": null,
+        "after": "552a8b8d187097ee8f2f6e4aaf7e5633d2ede789add7967a402eeb05d21023aa"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c1ea3f76.asset.meta",
+        "before": null,
+        "after": "533626464cf32a92d7308514d5789f4951de527bdaf0831bbf89ae7529c30661"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c6b0f5f9.asset",
+      "guid": "43ca255e7927a2745b7271a80d52a1be",
+      "assetSha256": "e07d6f5ea48861bbfe1b90cad071033a7f9136177ea1dacbf7168207fc5cb795",
+      "metaSha256": "3a733a67ed18365deec1a78af4549478ebc1163b815453e74caf8be324b6b22c",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c6b0f5f9.asset",
+        "before": null,
+        "after": "e07d6f5ea48861bbfe1b90cad071033a7f9136177ea1dacbf7168207fc5cb795"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c6b0f5f9.asset.meta",
+        "before": null,
+        "after": "3a733a67ed18365deec1a78af4549478ebc1163b815453e74caf8be324b6b22c"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c7c2f142.asset",
+      "guid": "86ab54bbc5d7399419b1bd8fde0e8852",
+      "assetSha256": "ffca065c7e13412b5c6fae09a8ba309c23bf06e3faa472524a19549a11038f14",
+      "metaSha256": "390e5a889bca2c4a8640031b00c913aa5da54166e6311f97396d2ddbaa36dbc9",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c7c2f142.asset",
+        "before": null,
+        "after": "ffca065c7e13412b5c6fae09a8ba309c23bf06e3faa472524a19549a11038f14"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_c7c2f142.asset.meta",
+        "before": null,
+        "after": "390e5a889bca2c4a8640031b00c913aa5da54166e6311f97396d2ddbaa36dbc9"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ca42feb2.asset",
+      "guid": "b4bec808ad706b44a847ad2041185bc7",
+      "assetSha256": "09ad89acf93e4d0e79d8021505a5698be30df2c11cb1820e0cedbc4e28cfbdf2",
+      "metaSha256": "a750c937d34db53651d187f6612baf6b59239952eb516c661c227adf56534636",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ca42feb2.asset",
+        "before": null,
+        "after": "09ad89acf93e4d0e79d8021505a5698be30df2c11cb1820e0cedbc4e28cfbdf2"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ca42feb2.asset.meta",
+        "before": null,
+        "after": "a750c937d34db53651d187f6612baf6b59239952eb516c661c227adf56534636"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cd02c18c.asset",
+      "guid": "c1af963f630db3b4a8ce096418a14174",
+      "assetSha256": "9d842c11add1e0e45d02a6c60ffbd76878f839e618818d22208c0c83f7d5a930",
+      "metaSha256": "538c5919233a5df0cf0da73b6e13bb07b20e67920c85a36cc31ef9300cccf1ee",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cd02c18c.asset",
+        "before": null,
+        "after": "9d842c11add1e0e45d02a6c60ffbd76878f839e618818d22208c0c83f7d5a930"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cd02c18c.asset.meta",
+        "before": null,
+        "after": "538c5919233a5df0cf0da73b6e13bb07b20e67920c85a36cc31ef9300cccf1ee"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cd860ef7.asset",
+      "guid": "3ec4c5d5855b94a4e9403d85369731d9",
+      "assetSha256": "3037ada94ecc39fbd8cd6ea9fec547301166e2519f8cc8d6ebe60cb11ab81c26",
+      "metaSha256": "7c8394a393537f1411bd4ecb8e2e8fa25c35e2a8544ede6b92a68d12028231f7",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cd860ef7.asset",
+        "before": null,
+        "after": "3037ada94ecc39fbd8cd6ea9fec547301166e2519f8cc8d6ebe60cb11ab81c26"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cd860ef7.asset.meta",
+        "before": null,
+        "after": "7c8394a393537f1411bd4ecb8e2e8fa25c35e2a8544ede6b92a68d12028231f7"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cf2ef300.asset",
+      "guid": "09d2e51c8ead6604db809163419d2b14",
+      "assetSha256": "d52c49e77554bde9178f446c98f59cad0d4d092bb654d5df6d2260ca6fef0a4b",
+      "metaSha256": "693f28c45115839ead7fe6c1692aeab6980bfb7d3a68752977f2ef4d55b7a4f8",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cf2ef300.asset",
+        "before": null,
+        "after": "d52c49e77554bde9178f446c98f59cad0d4d092bb654d5df6d2260ca6fef0a4b"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_cf2ef300.asset.meta",
+        "before": null,
+        "after": "693f28c45115839ead7fe6c1692aeab6980bfb7d3a68752977f2ef4d55b7a4f8"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_db3dc360.asset",
+      "guid": "6a0f767e3915668488baab00f1db377d",
+      "assetSha256": "eaaa2fbd22514eb4f7889d6b1575c9b5fe3ee5c27ceaa3af064522ed8b367bc0",
+      "metaSha256": "1c128a21bda82682cf12918a54113be956f16ce9ac9b7a4a5f774972e9aee3bf",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_db3dc360.asset",
+        "before": null,
+        "after": "eaaa2fbd22514eb4f7889d6b1575c9b5fe3ee5c27ceaa3af064522ed8b367bc0"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_db3dc360.asset.meta",
+        "before": null,
+        "after": "1c128a21bda82682cf12918a54113be956f16ce9ac9b7a4a5f774972e9aee3bf"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_dd282dc8.asset",
+      "guid": "46c5dfd6503da174ab8c7920495bb251",
+      "assetSha256": "2ec07f2ba37a3593d51d8055d33e0b7437261b8623adb5dae881d54c765f8814",
+      "metaSha256": "01d0dae8f612b7efbe2fee4891ea195fd37ae855805ea2f63e5b342d315960c1",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_dd282dc8.asset",
+        "before": null,
+        "after": "2ec07f2ba37a3593d51d8055d33e0b7437261b8623adb5dae881d54c765f8814"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_dd282dc8.asset.meta",
+        "before": null,
+        "after": "01d0dae8f612b7efbe2fee4891ea195fd37ae855805ea2f63e5b342d315960c1"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_dd618ebd.asset",
+      "guid": "4d436719383f72c43898da92fb18630b",
+      "assetSha256": "ac208b593cecb1584b86734771672492c613128d1e92d86cdf96f291250ef087",
+      "metaSha256": "db6abd28e56bdf1fce48a105ef1e8a856fd376ec1d0a4ebcaf65643efe91fa57",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_dd618ebd.asset",
+        "before": null,
+        "after": "ac208b593cecb1584b86734771672492c613128d1e92d86cdf96f291250ef087"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_dd618ebd.asset.meta",
+        "before": null,
+        "after": "db6abd28e56bdf1fce48a105ef1e8a856fd376ec1d0a4ebcaf65643efe91fa57"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ddbcf5fd.asset",
+      "guid": "c500678a4db28674e959aaf211f6bb74",
+      "assetSha256": "697e8a6fa1b75b3256ed053f4b820067c935af264f4e39039889b3f585466451",
+      "metaSha256": "143e3d04427a4281725f4607dbedd91e7706cdc868ec3669c12436699a2da594",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ddbcf5fd.asset",
+        "before": null,
+        "after": "697e8a6fa1b75b3256ed053f4b820067c935af264f4e39039889b3f585466451"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ddbcf5fd.asset.meta",
+        "before": null,
+        "after": "143e3d04427a4281725f4607dbedd91e7706cdc868ec3669c12436699a2da594"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_e41c5fa8.asset",
+      "guid": "7f73dfb7bfdeb1c409fbf08459ae8392",
+      "assetSha256": "a9378f8353774651059155b6b25150d455a1873611d9015dbf33bfe5ea6eb2f9",
+      "metaSha256": "55503c16935e45caef756f8486d8e65b5c34e491903be8dfcf7dc1c850d4e3ac",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_e41c5fa8.asset",
+        "before": null,
+        "after": "a9378f8353774651059155b6b25150d455a1873611d9015dbf33bfe5ea6eb2f9"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_e41c5fa8.asset.meta",
+        "before": null,
+        "after": "55503c16935e45caef756f8486d8e65b5c34e491903be8dfcf7dc1c850d4e3ac"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_e4ac015a.asset",
+      "guid": "f79b6e5af58ac05408f30114f6e0fa47",
+      "assetSha256": "a0a1a61556c1461b758d4b4c1adb3820d2bd12da516ea965198f7854746b789b",
+      "metaSha256": "180e2d0cf16ddb5371d9be4abe4d28222e826d0c26aebc098c9ef223415e13ff",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_e4ac015a.asset",
+        "before": null,
+        "after": "a0a1a61556c1461b758d4b4c1adb3820d2bd12da516ea965198f7854746b789b"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_e4ac015a.asset.meta",
+        "before": null,
+        "after": "180e2d0cf16ddb5371d9be4abe4d28222e826d0c26aebc098c9ef223415e13ff"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_eb11f9ae.asset",
+      "guid": "02b5dbc382c57114a9822968cd912e3b",
+      "assetSha256": "b42b30cd9ccbfaf8887a91a0b0234e385d15f46129dbd15b6e60a7f50e320de1",
+      "metaSha256": "521f7557ce268f5c168b81ce4740eba59f0aecd9b7d7b479e02f6505ad76c299",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_eb11f9ae.asset",
+        "before": null,
+        "after": "b42b30cd9ccbfaf8887a91a0b0234e385d15f46129dbd15b6e60a7f50e320de1"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_eb11f9ae.asset.meta",
+        "before": null,
+        "after": "521f7557ce268f5c168b81ce4740eba59f0aecd9b7d7b479e02f6505ad76c299"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ee2d488a.asset",
+      "guid": "05347e6cd714b6f4da279e9f5b356735",
+      "assetSha256": "c50dc49decfcfd84beca67713483f23bd1e33bf40b120887ed4931d1459883eb",
+      "metaSha256": "cac29d2dad0b67ea78a32760a15bfab687fcf93e39082c7dc2a4bab6422b96c1",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ee2d488a.asset",
+        "before": null,
+        "after": "c50dc49decfcfd84beca67713483f23bd1e33bf40b120887ed4931d1459883eb"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_ee2d488a.asset.meta",
+        "before": null,
+        "after": "cac29d2dad0b67ea78a32760a15bfab687fcf93e39082c7dc2a4bab6422b96c1"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_f90898b9.asset",
+      "guid": "cf28d5415b12a1849b4bb68b253b4bcd",
+      "assetSha256": "d2d28c053f057eeb3c1e60e8c6605d02e3000f4f9f17205bec75a63788c92ef1",
+      "metaSha256": "35c378c74da5a418976a97ec00132f61a7adbdf794854c319e9b683d24f1751c",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_f90898b9.asset",
+        "before": null,
+        "after": "d2d28c053f057eeb3c1e60e8c6605d02e3000f4f9f17205bec75a63788c92ef1"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_f90898b9.asset.meta",
+        "before": null,
+        "after": "35c378c74da5a418976a97ec00132f61a7adbdf794854c319e9b683d24f1751c"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_f99a3162.asset",
+      "guid": "e6074f4cfe5b16343a4bff93c3ae3b98",
+      "assetSha256": "31859938bbfa075b9e2483b5eed30373cddc2cb80937216f8cf5ee5e7468b04c",
+      "metaSha256": "21b6b9b7b9dee6d37c83b40ea5239efeb60863697b84d16745f9ea242b0ba085",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_f99a3162.asset",
+        "before": null,
+        "after": "31859938bbfa075b9e2483b5eed30373cddc2cb80937216f8cf5ee5e7468b04c"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_f99a3162.asset.meta",
+        "before": null,
+        "after": "21b6b9b7b9dee6d37c83b40ea5239efeb60863697b84d16745f9ea242b0ba085"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    },
+    {
+      "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_fa7844bf.asset",
+      "guid": "0b6932459face654d9776b2856873af3",
+      "assetSha256": "2323834a86b967abddac9caca5965059483060f89355261987a323ba61f1b829",
+      "metaSha256": "4abd823770d802dae748ab6f5cdd3319ab25f11c8ae0a6e9fd00fbfdf0de7bd7",
+      "copyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_fa7844bf.asset",
+        "before": null,
+        "after": "2323834a86b967abddac9caca5965059483060f89355261987a323ba61f1b829"
+      },
+      "metaCopyRecord": {
+        "path": "Assets/_FantasyKingdom/GameContent/SpecialAbilities/Knight_fa7844bf.asset.meta",
+        "before": null,
+        "after": "4abd823770d802dae748ab6f5cdd3319ab25f11c8ae0a6e9fd00fbfdf0de7bd7"
+      },
+      "guidReferences": [],
+      "nameReferences": []
+    }
+  ]
+}

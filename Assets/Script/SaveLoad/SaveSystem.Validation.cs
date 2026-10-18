@@ -12,6 +12,7 @@ public static partial class SaveSystem
         if (data == null || data.Version != CurrentSaveVersion || data.SchemaVersion != CurrentSaveVersion)
             return Invalid("セーブの形式が現在の版と一致しません。", out reason);
         if (data.Checkpoint != PlayerTurnCheckpoint) return Invalid("保存したターンの再開位置に対応していません。", out reason);
+        if (!IsValidMatchId(data.MatchId)) return Invalid("試合の識別子が不正です。", out reason);
         if (data.Turn < 1 || data.Turn == int.MaxValue || data.ThreatLevel < 1 || data.ThreatLevel > 100)
             return Invalid("ターン数または脅威度が不正です。", out reason);
         if (data.MapWidth < 1 || data.MapDepth < 1 || data.MapWidth > MaximumMapDimension || data.MapDepth > MaximumMapDimension)
@@ -117,6 +118,11 @@ public static partial class SaveSystem
         foreach (var match in data.MatchHistory)
             if (match == null || match.TurnsPlayed < 0 || match.PrimaryFailure != null && match.PrimaryFailure.Length > 4096)
                 return Invalid("試合履歴が不正です。", out reason);
+        if (data.CompletedMatchIds == null || data.CompletedMatchIds.Count > MaximumCompletedMatches)
+            return Invalid("試合の完了記録が不正です。", out reason);
+        var completed = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string matchId in data.CompletedMatchIds)
+            if (!IsValidMatchId(matchId) || !completed.Add(matchId)) return Invalid("試合の完了記録が重複、または不正です。", out reason);
         return true;
     }
     static bool ResourcesValid(ResourceSaveData r) => r != null && r.Wood >= 0 && r.Stone >= 0 && r.Water >= 0

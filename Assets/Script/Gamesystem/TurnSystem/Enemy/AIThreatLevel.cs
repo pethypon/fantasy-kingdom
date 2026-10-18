@@ -286,7 +286,7 @@ public class AIThreatLevel
     {
         if (playerWon)
         {
-            int increment = CalcLevelIncrement(analysis);
+            const int increment = 1;
             int oldLevel = Level;
             Level = Mathf.Clamp(Level + increment, MinLevel, MaxLevel);
 
@@ -303,18 +303,6 @@ public class AIThreatLevel
         {
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIThreatLevel] Player敗北 → 脅威度据え置き ({Level})"); }
         }
-    }
-
-    int CalcLevelIncrement(MatchAnalysis analysis)
-    {
-        int inc = 1;
-        if (analysis.TurnsPlayed < 10) inc = 3;
-        else if (analysis.TurnsPlayed < 20) inc = 2;
-
-        if (analysis.PrimaryFailure == FailureReason.EconomyCollapse)
-            inc += 1;
-
-        return Mathf.Max(1, inc);
     }
 
     void UpdateLearnedBiases()

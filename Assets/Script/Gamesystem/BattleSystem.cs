@@ -50,6 +50,7 @@ public class BattleSystem : MonoBehaviour
         }
 
         if (!SpecialSkillRuntime.TryBeginNormalShot(Attacker, out var firedRound)) return;
+        BoardActorAnimation.NotifyAttack(Attacker, Target.transform.position);
         SpecialSkillRuntime.BeginNormalAttack(Attacker);
         float lockedDistance = lockedShot ? GridHelper.ChebyshevDistance(Attacker.transform.position, Target.transform.position) : -1;
 
@@ -61,6 +62,7 @@ public class BattleSystem : MonoBehaviour
             SpecialSkillRuntime.OnNormalAttackResolved(Attacker, Target, 0, false, lockedDistance);
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.kind} はシールド中！ ダメージ無効（残り{Target.ShieldTurns}ターン）"); }
             FloatingDamageUI.ShowShield(Target.transform.position);
+            BoardActionFeedback.Shield(Target);
             return;
         }
 

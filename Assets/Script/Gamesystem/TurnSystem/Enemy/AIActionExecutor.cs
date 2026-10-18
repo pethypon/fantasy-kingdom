@@ -97,6 +97,7 @@ public class AIActionExecutor
             || (action.TargetDirection != Direction.N && action.TargetDirection != Direction.S)
             || !board.RotatedUnits.Add(unit.GetInstanceID())) return false;
         unit.direction = action.TargetDirection;
+        BoardActorAnimation.NotifyFacing(unit);
         var vision = _turnGen.Systems.VisionGenerator;
         if (vision != null && _turnGen.Systems.CrystalSystem != null)
         {

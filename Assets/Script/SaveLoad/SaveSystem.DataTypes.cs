@@ -21,6 +21,8 @@ public static partial class SaveSystem
         public int TotalWins = 0;
         public int TotalLosses = 0;
         public List<MatchAnalysisData> MatchHistory = new List<MatchAnalysisData>();
+        // Retained across game reloads; completion and progression are saved atomically.
+        public List<string> CompletedMatchIds = new List<string>();
 
         // 機械学習AI通算データ
         public int MLTotalMatchesTrained = 0;
@@ -48,6 +50,7 @@ public static partial class SaveSystem
         public int SchemaVersion = CurrentSaveVersion;
         public string GameVersion, CreatedVersion, LastSavedVersion;
         public string Checkpoint = PlayerTurnCheckpoint;
+        public string MatchId = Guid.NewGuid().ToString("N");
 
         public string SaveDate;
         public int Turn;

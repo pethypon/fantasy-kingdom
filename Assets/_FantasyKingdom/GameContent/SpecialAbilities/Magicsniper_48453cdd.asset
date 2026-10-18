@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe405636929147b2875172fb26b870e8, type: 3}
   m_Name: Magicsniper_48453cdd
   m_EditorClassIdentifier: Assembly-CSharp::SpecialSkillDefinition
+  crossbowInitialAmmo: -1
   ability: 9
   displayName: "\u8D85\u9060\u8DDD\u96E2\u30ED\u30C3\u30AF"
-  enabledForPlay: 0
+  enabledForPlay: 1
   apCost: 18
-  cooldown: -1
+  cooldown: 2
   stageAPCosts: 05000000080000000b0000000f00000014000000
   knightVisibleEnemyAtkPenalty: -1
   stationaryAttackCurve:
@@ -52,7 +53,25 @@ MonoBehaviour:
     m_RotationOrder: 4
   sniperRecoilCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0.006
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 25
+      value: 0.15
+      inSlope: 0.006
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -96,3 +115,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  knightPenaltyStackRule: 0
+  assassinBoostDuration: -1
+  assassinBoostStackRule: 0
+  scoutFreeMoveScope: 0
+  scoutFreeAttackScope: 0
+  guardianAttackCostReset: 0
+  bomberAutoExplosionRadius: -1

@@ -45,7 +45,7 @@ public sealed class AITacticalPatterns
                 if(GridHelper.ChebyshevDistance(ally.transform.position,target.transform.position)<=3)info.AlliesNearby++;
                 if(MatchObjectiveRules.IsCommander(target) && target.HP<target.MaxHP*.4f && GridHelper.ChebyshevDistance(ally.transform.position,target.transform.position)<=8 && WithinTwoMoves(board,ally,target.transform.position))info.KingReachable=true;
             }
-            info.PriestExposed=target.kind==Kind.Priest && info.EnemiesNearby==0;
+            info.PriestExposed=UnitRoster.IsDedicatedHealer(target.kind) && info.EnemiesNearby==0;
             situations[target.GetInstanceID()]=info;
         }
     }

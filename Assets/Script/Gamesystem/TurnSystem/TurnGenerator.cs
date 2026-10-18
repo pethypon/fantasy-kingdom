@@ -43,6 +43,13 @@ public class TurnGenerator : MonoBehaviour
     bool developerMatchUsed;
     public bool DeveloperPlayerAIWasUsed => developerMatchUsed;
     public void MarkDeveloperMatch(bool used = true) { developerMatchUsed |= used; }
+    string matchId = System.Guid.NewGuid().ToString("N");
+    public string MatchId => matchId;
+    public void RestoreMatchId(string savedMatchId)
+    {
+        if (!SaveSystem.IsValidMatchId(savedMatchId)) throw new System.ArgumentException("Invalid saved match identity.", nameof(savedMatchId));
+        matchId = savedMatchId;
+    }
 
     public void ChangeState(StateCore next)
     {

@@ -163,6 +163,7 @@ public class CrystalSystem : MonoBehaviour
             var collider = crystal.AddComponent<BoxCollider>();
             collider.center = bounds.center; collider.size = bounds.size;
         }
+        BoardActorPresentation.Apply(status, crystal);
     }
 
     private List<Vector3> GetEnemyCandidates(float minDistX, float minDistZ, int margin)

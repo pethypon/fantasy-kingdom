@@ -17,6 +17,10 @@ public partial class AIBoardState
     public int Generation { get; private set; }
     public readonly ObservedUnitIndex Allies = new ObservedUnitIndex(), Enemies = new ObservedUnitIndex();
     readonly HashSet<Vector3Int> knownCells = new HashSet<Vector3Int>();
+    // Rebuilt once with the owned building snapshot; never query hidden hostile occupancy.
+    readonly HashSet<Vector3Int> ownedWallCells = new HashSet<Vector3Int>();
+    readonly HashSet<Vector3Int> ownedStructureCells = new HashSet<Vector3Int>();
+    public bool HasOwnedStructureAt(Vector3 position) => ownedStructureCells.Contains(GridHelper.ToGridXZ(position));
     readonly List<Vector3> knownTerrain = new List<Vector3>();
     int terrainGeneration = -1;
     // ---- 参照 ----
@@ -170,6 +174,8 @@ public partial class AIBoardState
         public Vector3Int PreviousPosition;
         public int PreviousTurn;
         public bool HasPrevious;
+        // Snapshot only while observed. Missing fields in older memory safely default to false.
+        public bool WasPrincipalCommander;
     }
 
     public AIBoardState(
@@ -356,6 +362,7 @@ public partial class AIBoardState
             {
                 Position = position,
                 Kind = pu.kind, Type = pu.type, Direction = pu.direction, ObservedAttackPower = Mathf.Max(0, pu.ATK), ActionProfile = BoardActionProfile.For(pu),
+                WasPrincipalCommander = pu.team == OpponentTeam && MatchObjectiveRules.IsCommander(pu),
                 PreviousPosition = moved ? previous.Position : previous.PreviousPosition,
                 PreviousTurn = moved ? previous.Turn : previous.PreviousTurn,
                 HasPrevious = moved || previous.HasPrevious,
@@ -372,9 +379,10 @@ public partial class AIBoardState
                 Position = ToCell(PlayerCrystalPos),
                 Kind = Kind.Crystal, Type = Type.Building,
                 Turn = TurnCount,
-                Valid = true
+                Valid = PlayerCrystalHP > 0
             };
-            _lastKnownPlayerPositions[int.MinValue] = _lastKnownPlayerCrystal;
+            if (_lastKnownPlayerCrystal.Valid) _lastKnownPlayerPositions[int.MinValue] = _lastKnownPlayerCrystal;
+            else _lastKnownPlayerPositions.Remove(int.MinValue);
         }
     }
 
@@ -419,7 +427,7 @@ public partial class AIBoardState
     {
         if (unit == null || _moveGen == null || _moveGen.mapcreate == null
               || BoardActionProfile.For(unit)?.CanMove == false || StatusEffectSystem.IsStunned(unit)
-              || StatusEffectSystem.IsMovementBlocked(unit)) return new List<Vector3>();
+              || StatusEffectSystem.IsMovementBlocked(unit) || SpecialSkillRuntime.MovementBlocked(unit)) return new List<Vector3>();
         var unitPos = unit.transform.position;
         var offsets = MovePatterns.Offsets(unit);
         var result = new List<Vector3>(offsets.Count);
@@ -440,7 +448,8 @@ public partial class AIBoardState
             var p = new Vector3(x, height, z);
             if (!MovePatterns.CanMove(unit, unit.direction, p.x - unitPos.x, p.z - unitPos.z)) continue;
             if (!_moveGen.mapcreate.CanTraverse(unitPos, p)) continue;
-            bool occupied = GridHelper.MatchXZ(p, ownCrystal)
+            bool occupied = ownedWallCells.Contains(new Vector3Int(x, 0, z))
+                || GridHelper.MatchXZ(p, ownCrystal)
                 || (opponentCrystalKnown && GridHelper.MatchXZ(p, opponentCrystal));
             if (occupied) continue;
             foreach (var ally in AliveEnemyUnits)
@@ -752,6 +761,8 @@ public partial class AIBoardState
 
     Dictionary<FacilityKind, int> CountBuildings()
     {
+        ownedWallCells.Clear();
+        ownedStructureCells.Clear();
         if (_buildingCountsCache == null)
             _buildingCountsCache = new Dictionary<FacilityKind, int>();
         else
@@ -765,6 +776,11 @@ public partial class AIBoardState
         {
             var s = child.GetComponent<Status>();
             if (s == null || s.HP <= 0) continue;
+            if (s.team == ActorTeam && s.gameObject.activeInHierarchy)
+            {
+                if (s.type == Type.Wall) ownedWallCells.Add(s.GridPosition);
+                if (s.type == Type.Building || s.type == Type.Wall) ownedStructureCells.Add(s.GridPosition);
+            }
             _buildingCountsCache.TryGetValue(s.facilityKind, out int cnt);
             _buildingCountsCache[s.facilityKind] = cnt + 1;
         }

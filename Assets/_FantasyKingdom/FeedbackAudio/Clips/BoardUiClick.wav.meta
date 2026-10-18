@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: 9eb305bb00ac5880b2b75924c6539f38
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 7
+  defaultSettings:
+    serializedVersion: 2
+    loadType: 0
+    sampleRateSetting: 0
+    sampleRateOverride: 22050
+    compressionFormat: 0
+    quality: 1
+    conversionMode: 0
+    preloadAudioData: 1
+  platformSettingOverrides: {}
+  forceToMono: 1
+  normalize: 0
+  ambisonic: 0
+  loadInBackground: 0
+  userData: Original procedural board sound; GenerateBoardSounds.py
+  assetBundleName: 
+  assetBundleVariant: 

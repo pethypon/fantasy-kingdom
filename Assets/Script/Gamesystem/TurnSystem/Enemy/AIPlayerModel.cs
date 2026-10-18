@@ -104,7 +104,7 @@ public sealed partial class AIPlayerModel
         float weight = level < 21 ? .2f : .6f;
         return Mathf.Lerp(prior, current / observations, weight);
     }
-    public static bool IsRanged(Kind kind) => kind == Kind.Archer || kind == Kind.Crossbow || kind == Kind.Magic || kind == Kind.Magicsniper;
+    public static bool IsRanged(Kind kind) => kind == Kind.Archer || kind == Kind.Crossbow || kind == Kind.Magic || kind == Kind.Magicsniper || kind == Kind.Ninja;
     public PlayerResponseModel CreateResponseModel(int level, PlayerProfiler.PlayerProfile observedProfile = null)
     {
         if (level < 10) return null;

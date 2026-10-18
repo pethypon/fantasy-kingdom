@@ -286,12 +286,66 @@ public sealed partial class AIStrategicGovernor
         }
         int foundationPriority = BasicResources.ActionPriority(a);
         if (foundationPriority < 4 && Mode == StrategicMode.EconomicRecovery) return foundationPriority;
+        // Exploring and fighting are peer objectives after survival/supply obligations.
+        // Otherwise every P3 scout step lexicographically excludes even a worthwhile
+        // P4 attack before tactical score, search or operation bonuses can be compared.
+        if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
+            && IsSafeEffectiveBattleAction(a, board)) return 3;
         if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
             &&Exploration.TryGetAssignedTarget(a.Unit,out var frontier)
             &&Exploration.IsObjectiveProgress(a.Unit,a.TargetPos,board)
             &&IncomingDamage(board,a.Unit,a.TargetPos,null)<a.Unit.HP)return 3;
         return 4;
+    }
+
+    bool IsSafeEffectiveBattleAction(AIAction action, AIBoardState board)
+    {
+        if (action.ActionType != AIActionType.Attack && action.ActionType != AIActionType.SkillUse) return false;
+        var actor = action.Unit;
+        if (actor == null || !actor.IsAlive || actor.team != board.ActorTeam
+            || action.APCost < 0 || action.APCost > board.EnemyAP || StatusEffectSystem.IsStunned(actor)
+            || IncomingDamage(board, actor, actor.transform.position, null) >= actor.HP) return false;
+        var target = action.TargetUnit;
+        bool ObservedHostile(Status candidate) => candidate != null && candidate.IsAlive
+            && NeutralFactionSystem.AreHostile(actor, candidate) && board.IsSpecialActorObserved(candidate);
+        if (action.ActionType == AIActionType.Attack)
+        {
+            if (!ObservedHostile(target) || target.ShieldTurns > 0
+                || board.CalcAttackCost(actor) > board.EnemyAP || !SpecialSkillRuntime.CanNormalAttackTarget(actor, target)) return false;
+            bool locked = SpecialSkillRuntime.TryGetSniperTarget(actor, out var lockTarget) && lockTarget == target;
+            var offset = target.transform.position - actor.transform.position;
+            if (!locked && (!AttackPatterns.CanAttack(actor, actor.direction, offset.x, offset.z)
+                || board.MapCreate != null && !board.MapCreate.CanAttackAcrossTerrain(actor, target.transform.position))) return false;
+            return AIActionEvaluator.EstimateEffectiveSpecialDamage(actor, target, board, out var victim) > 0
+                && victim != null && board.IsSpecialActorObserved(victim);
+        }
+        if (action.ActionType != AIActionType.SkillUse || !AttackPatterns.CanUseSkills(actor)) return false;
+        if (action.SpecialCommand != null)
+        {
+            var command = action.SpecialCommand;
+            if (command.Caster != actor || command.Target != target
+                || target != null && target.team != board.ActorTeam && !ObservedHostile(target)) return false;
+            // Shared authored-skill evaluation validates AP, cooldown, targets, sacrifices
+            // and actual utility. It never commits the command or inspects hidden actors.
+            return AIActionEvaluator.CalcSpecialSkillScore(action, board) > 0;
+        }
+        var skill = action.Skill;
+        if (skill == null || actor.AssignedSkillId != skill.Id || actor.SkillCooldown > 0
+            || StatusEffectSystem.HasDebuff(actor, StatusEffectType.Seal)
+            || board.CalcSkillCost(actor, skill) > board.EnemyAP || SpecialSkillRuntime.AttackBlocked(actor)) return false;
+        if (ObservedHostile(target) && skill.Multiplier > 0 && target.ShieldTurns <= 0)
+        {
+            var delta = target.transform.position - actor.transform.position;
+            return SkillOffsets(actor, skill).Contains(new Vector2Int(Mathf.RoundToInt(delta.x), Mathf.RoundToInt(delta.z)))
+                && (board.MapCreate == null || board.MapCreate.CanAttackAcrossTerrain(actor, target.transform.position))
+                && AIActionEvaluator.EstimateObservedHitLoss(target, board, SkillSystem.CalcSkillDamage(actor, target, skill), HpChangeKind.NormalDamage) > 0;
+        }
+        return target != null && target.IsAlive && target.team == board.ActorTeam
+            && skill.FixedHeal > 0 && target.HP < target.MaxHP
+            && (skill.Target == SkillTarget.AllySingle && target != actor
+                    && Vector3.Distance(actor.transform.position, target.transform.position) <= 4
+                || (skill.Target == SkillTarget.Self || skill.Target == SkillTarget.SelfArea) && target == actor);
     }
     public ProductionBuildAssessment BuildAssessment(AIAction action, AIBoardState board)
     {

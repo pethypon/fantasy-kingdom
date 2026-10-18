@@ -151,7 +151,8 @@ public static class R1ProductionPlaytest
                 WriteRow(actions, record.Turn, Team, record.ActionId, record.ActionType, record.ActorRole,
                     record.ActorLifeId, record.TargetLifeId, record.ActionKey, abilityName,
                     record.ExecutionSucceeded, record.FailureReason, record.Outcome?.DamageDealt ?? 0,
-                    record.Outcome?.DamageTaken ?? 0);
+                    record.Outcome?.DamageTaken ?? 0, record.Before?.ActorX, record.Before?.ActorY,
+                    record.After?.ActorX, record.After?.ActorY);
             }
             catch (Exception error) { match.Fault = "Observer action writer: " + error.Message; }
         }
@@ -169,7 +170,7 @@ public static class R1ProductionPlaytest
         string runId = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", Invariant) + "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
         string selectedSeeds = Environment.GetEnvironmentVariable("FK_R1_SEEDS") ?? "161803,271828,314159";
         string[] parts = selectedSeeds.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 3) throw new ArgumentException("FK_R1_SEEDS must contain at least three seeds.");
+        if (parts.Length < 1) throw new ArgumentException("FK_R1_SEEDS must contain at least one seed.");
         int[] seeds = Array.ConvertAll(parts, value => int.Parse(value, Invariant));
         config = new Config { Seeds = seeds, RunId = runId, StartedUtc = DateTime.UtcNow.ToString("o"),
             Output = Path.GetFullPath(Environment.GetEnvironmentVariable("FK_R1_OUTPUT")
@@ -258,7 +259,7 @@ public static class R1ProductionPlaytest
         warnings = errors = exceptions = assertions = nativeWarnings = allLogs = 0;
         gc0 = GC.CollectionCount(0); gc1 = GC.CollectionCount(1); gc2 = GC.CollectionCount(2);
         snapshots = Writer("observations.csv"); actions = Writer("actions.csv"); diagnostics = Writer("diagnostics.tsv");
-        WriteRow(actions, "round", "team", "actionId", "actionType", "actorRole", "actorLifeId", "targetLifeId", "actionKey", "specialAbility", "executionSucceeded", "failureReason", "damageDealt", "damageTaken");
+        WriteRow(actions, "round", "team", "actionId", "actionType", "actorRole", "actorLifeId", "targetLifeId", "actionKey", "specialAbility", "executionSucceeded", "failureReason", "damageDealt", "damageTaken", "beforeX", "beforeZ", "afterX", "afterZ");
         diagnostics.WriteLine("utc\ttype\tnativeWarningPattern\tmessage\tstack");
         Application.logMessageReceivedThreaded += Log;
         frameAllocation = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame", 1);

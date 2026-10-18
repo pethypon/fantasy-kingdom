@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: R1ProductionSettings
   m_EditorClassIdentifier: Assembly-CSharp::R1ProductionContentSettings
   version: R1-production-provisional-v1-20261017
-  balanceStatus: "Provisional initial tuning v1. Skill costs, cooldowns, curves and inherited new-role stats are editable proposals, not confirmed R1 requirements."
+  balanceStatus: Provisional initial tuning v1. Skill costs, cooldowns, curves and
+    inherited new-role stats are editable proposals, not confirmed R1 requirements.
   entries:
   - kind: 2
     sourceData: {fileID: 11400000, guid: 3a6c94b31b3209c4aa48bc95a08767bf, type: 2}
@@ -21,110 +22,192 @@ MonoBehaviour:
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: fcdca7484cf946be95f145497d88547b, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 3
     sourceData: {fileID: 11400000, guid: 6cf96d6395107f547ae976c39ff6903a, type: 2}
     sourcePrefab: {fileID: 9157691242623236745, guid: 07a182a50923e1e41ae77a628fc7e0c4, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: 4392655c6fd446c68907e3fe0161f991, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 4
     sourceData: {fileID: 11400000, guid: e6fdbbe1b415a224b92e7b646b9e18a3, type: 2}
     sourcePrefab: {fileID: 2894931931086965330, guid: 1692d16f122cac747bd9911ac14e66e5, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: a1edcc050f5c4e9c99cc441787c09620, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 5
     sourceData: {fileID: 11400000, guid: 227de916462bb9645a412d5decc08871, type: 2}
     sourcePrefab: {fileID: 4029833035383774878, guid: 55602cf8971201f45ba0dbe32c094b0a, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: c880d400388944b6bc1e383793cb9cf7, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 6
     sourceData: {fileID: 11400000, guid: c1edb57ced652584e8a134ab0a0acb37, type: 2}
     sourcePrefab: {fileID: 5262881611718164221, guid: 382c5885cf6605f43a17004dc2c338ce, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: 5590698d8c9d4de584af10bec87b0cc6, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 7
     sourceData: {fileID: 11400000, guid: 55d55d89ca6e29e429cf858e32425a69, type: 2}
     sourcePrefab: {fileID: 847000554796651711, guid: b987dbd1c73e8a942886a31f279b4fb6, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: e2b384b596074f87aa4f13030810eebf, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 8
     sourceData: {fileID: 11400000, guid: beef82bbeb6963a4091200ade8f56a97, type: 2}
     sourcePrefab: {fileID: 2651054855195057606, guid: b4d0d51f3cb0bf948afd91a058f191de, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: b04b42b542ac43ad8d372e8839ce2459, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 9
     sourceData: {fileID: 11400000, guid: 7352050f4d1c02c4cb4bdbbe1fbaa1cf, type: 2}
     sourcePrefab: {fileID: 4016323912818408116, guid: 2c7c0622dae3d6b499b544dd1429367f, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: 2cb091d69c3f49ad8cea1afaa8f04d08, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 10
     sourceData: {fileID: 11400000, guid: 48453cdd30ebf8f419441cb3aa7c42be, type: 2}
     sourcePrefab: {fileID: 6362282592922127018, guid: 9a588fbc60ad0a1479568719db45f21d, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: b3672c98ae6345eba64382502ab1b6e1, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 11
     sourceData: {fileID: 11400000, guid: c221ddb5fb935724fae6dac990955c07, type: 2}
     sourcePrefab: {fileID: 5593511995207437977, guid: 7b3e873b02a877c46a94802e5c88eeaf, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: 4fb72e94c1c84bfd955272f507607f13, type: 2}
     createPlayableUnit: 0
-    balanceNote: "Provisional v1 skill tuning; existing baseline stats, costs, upkeep and masks are retained."
+    balanceNote: Provisional v1 skill tuning; existing baseline stats, costs, upkeep
+      and masks are retained.
   - kind: 17
     sourceData: {fileID: 11400000, guid: 55d55d89ca6e29e429cf858e32425a69, type: 2}
     sourcePrefab: {fileID: 847000554796651711, guid: b987dbd1c73e8a942886a31f279b4fb6, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: 7f89bcffd2eb42c7813590e5061fd621, type: 2}
     createPlayableUnit: 1
-    balanceNote: "Provisional v1: base stats, growth, recruitment cost, upkeep and model inherited from Priest; editable independent production assets."
+    balanceNote: 'Provisional v1: base stats, growth, recruitment cost, upkeep and
+      model inherited from Priest; editable independent production assets.'
   - kind: 18
     sourceData: {fileID: 11400000, guid: 3a6c94b31b3209c4aa48bc95a08767bf, type: 2}
     sourcePrefab: {fileID: 5702459098739905946, guid: ad985085cd9a19e45be1d6b42b1e4d8c, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: 9c90f6db448c49aca54134cbfb941b4a, type: 2}
     createPlayableUnit: 1
-    balanceNote: "Provisional v1: base stats, growth, recruitment cost, upkeep and model inherited from Knight; editable independent production assets."
+    balanceNote: 'Provisional v1: base stats, growth, recruitment cost, upkeep and
+      model inherited from Knight; editable independent production assets.'
   - kind: 19
     sourceData: {fileID: 11400000, guid: 3a6c94b31b3209c4aa48bc95a08767bf, type: 2}
     sourcePrefab: {fileID: 5702459098739905946, guid: ad985085cd9a19e45be1d6b42b1e4d8c, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: 535ef586e8eb465fa365c5d18eb09531, type: 2}
     createPlayableUnit: 1
-    balanceNote: "Provisional v1: base stats, growth, recruitment cost, upkeep and model inherited from Knight; editable independent production assets."
+    balanceNote: 'Provisional v1: base stats, growth, recruitment cost, upkeep and
+      model inherited from Knight; editable independent production assets.'
   - kind: 20
     sourceData: {fileID: 11400000, guid: 227de916462bb9645a412d5decc08871, type: 2}
     sourcePrefab: {fileID: 4029833035383774878, guid: 55602cf8971201f45ba0dbe32c094b0a, type: 3}
     attackPatternSource: {fileID: 11400000, guid: 6cf96d6395107f547ae976c39ff6903a, type: 2}
     skillDefaults: {fileID: 11400000, guid: dad4f2a001b2494db2a26af019a48f8d, type: 2}
     createPlayableUnit: 1
-    balanceNote: "Provisional v1: base stats, growth, recruitment cost, upkeep and model inherited from Assassin; editable independent production assets. Movement and vision inherit Assassin; ranged kunai attack mask inherits Archer."
+    balanceNote: 'Provisional v1: base stats, growth, recruitment cost, upkeep and
+      model inherited from Assassin; editable independent production assets. Movement
+      and vision inherit Assassin; ranged kunai attack mask inherits Archer.'
   - kind: 21
     sourceData: {fileID: 11400000, guid: 3a6c94b31b3209c4aa48bc95a08767bf, type: 2}
     sourcePrefab: {fileID: 5702459098739905946, guid: ad985085cd9a19e45be1d6b42b1e4d8c, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: f1b366c9c1b24118b73d6d11e3952e33, type: 2}
     createPlayableUnit: 1
-    balanceNote: "Provisional v1: base stats, growth, recruitment cost, upkeep and model inherited from Knight; editable independent production assets."
+    balanceNote: 'Provisional v1: base stats, growth, recruitment cost, upkeep and
+      model inherited from Knight; editable independent production assets.'
   - kind: 22
     sourceData: {fileID: 11400000, guid: beef82bbeb6963a4091200ade8f56a97, type: 2}
     sourcePrefab: {fileID: 2651054855195057606, guid: b4d0d51f3cb0bf948afd91a058f191de, type: 3}
     attackPatternSource: {fileID: 0}
     skillDefaults: {fileID: 11400000, guid: 0cab2095667e42078c9a50fbc4009803, type: 2}
     createPlayableUnit: 1
-    balanceNote: "Provisional v1: base stats, growth, recruitment cost, upkeep and model inherited from Guardian; editable independent production assets. Guardian attack mask matches the specified single forward cell."
-  installed: []
+    balanceNote: 'Provisional v1: base stats, growth, recruitment cost, upkeep and
+      model inherited from Guardian; editable independent production assets. Guardian
+      attack mask matches the specified single forward cell.'
+  installed:
+  - kind: 2
+    data: {fileID: 11400000, guid: 3a6c94b31b3209c4aa48bc95a08767bf, type: 2}
+    ability: {fileID: 11400000, guid: aa566f01d4f9c1941ae98ba75308392e, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 3
+    data: {fileID: 11400000, guid: 6cf96d6395107f547ae976c39ff6903a, type: 2}
+    ability: {fileID: 11400000, guid: 77493d92ccdb55144bde3b228cbd85c2, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 4
+    data: {fileID: 11400000, guid: e6fdbbe1b415a224b92e7b646b9e18a3, type: 2}
+    ability: {fileID: 11400000, guid: d43df4ff3d13dc14ba4ece0432b4f9bd, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 5
+    data: {fileID: 11400000, guid: 227de916462bb9645a412d5decc08871, type: 2}
+    ability: {fileID: 11400000, guid: b7f13c860fbacd14ca94f77fc9036219, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 6
+    data: {fileID: 11400000, guid: c1edb57ced652584e8a134ab0a0acb37, type: 2}
+    ability: {fileID: 11400000, guid: cd49dbcdd262d724cba8f3c39727f2d3, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 7
+    data: {fileID: 11400000, guid: 55d55d89ca6e29e429cf858e32425a69, type: 2}
+    ability: {fileID: 11400000, guid: cf313b322a865704baa5efec33077bc2, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 8
+    data: {fileID: 11400000, guid: beef82bbeb6963a4091200ade8f56a97, type: 2}
+    ability: {fileID: 11400000, guid: 2f0f6522601f81a43a54dc5c66cdccb1, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 9
+    data: {fileID: 11400000, guid: 7352050f4d1c02c4cb4bdbbe1fbaa1cf, type: 2}
+    ability: {fileID: 11400000, guid: 4b6fc3f5dafc6c548ae070719438c7b9, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 10
+    data: {fileID: 11400000, guid: 48453cdd30ebf8f419441cb3aa7c42be, type: 2}
+    ability: {fileID: 11400000, guid: 71bec7bbdf649ac4b98b0844f196033d, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 11
+    data: {fileID: 11400000, guid: c221ddb5fb935724fae6dac990955c07, type: 2}
+    ability: {fileID: 11400000, guid: 27f76e9be89f78048b9f3bb2363d4941, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 17
+    data: {fileID: 11400000, guid: e6eb0270b2f09d94d919f257204c259a, type: 2}
+    ability: {fileID: 11400000, guid: a87d345c6c5d56245a5102f7e6a9f1f3, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 18
+    data: {fileID: 11400000, guid: 50fb0206aed48044eb239efd0a911c5f, type: 2}
+    ability: {fileID: 11400000, guid: 1bc7417dbe3e9b546a44a3dc8924b4fb, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 19
+    data: {fileID: 11400000, guid: c07c3ff9b5330ee41b3d285ee012fa38, type: 2}
+    ability: {fileID: 11400000, guid: 1902ee6ccfc2d9d4fa88c261cd9867e1, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 20
+    data: {fileID: 11400000, guid: ca1acfa50bd62914aa8771b5782a2510, type: 2}
+    ability: {fileID: 11400000, guid: ac1caaaea7bc9a541835871dfd196c53, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 21
+    data: {fileID: 11400000, guid: 14f861ecfb7b3f549a0202bff11f7dcb, type: 2}
+    ability: {fileID: 11400000, guid: 4c0717637f4f0b24eab2dc3ef2c8344d, type: 2}
+    version: R1-production-provisional-v1-20261017
+  - kind: 22
+    data: {fileID: 11400000, guid: c9bf201875ad91641b357dd0fef3931d, type: 2}
+    ability: {fileID: 11400000, guid: 1675d8623672b2349a80a0766dde3562, type: 2}
+    version: R1-production-provisional-v1-20261017

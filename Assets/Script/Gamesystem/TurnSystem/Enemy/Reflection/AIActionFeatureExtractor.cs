@@ -367,7 +367,8 @@ public sealed class AIActionFeatureExtractor
     static int Distance(Vector3 first, Vector3 second) => Mathf.RoundToInt(GridHelper.ChebyshevDistance(first, second));
     public static string Role(Kind kind)
     {
-        switch (kind)
+        if (kind == Kind.Ninja) return "Ranged";
+        switch (UnitRoster.EvaluationBaseKind(kind))
         {
             case Kind.King: return "King";
             case Kind.Boss: return "Boss";

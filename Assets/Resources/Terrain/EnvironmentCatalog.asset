@@ -15,14 +15,17 @@ MonoBehaviour:
   definitionId: environment.mud
   displayName: "\u6CE5"
   kind: 4
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 1278832589944243596, guid: aed2ea4059ce4ce469d71b0f97c3b517, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 0
   concealsOccupants: 0
   revealDistance: -1
-  moveAPAdjustment: 0
+  moveAPAdjustment: 1
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: -1
   damageOnEntry: 0
   damageOnOwnerTurn: 0
   flatDamage: -1
@@ -30,6 +33,7 @@ MonoBehaviour:
   maximumHpHealFraction: -1
   burnable: 0
   burnSmokeRounds: -1
+  burnSmokeDamageFraction: 0.1
   burnSmokeRevealDistance: -1
 --- !u!114 &-8575506933537946815
 MonoBehaviour:
@@ -46,21 +50,25 @@ MonoBehaviour:
   definitionId: environment.healingspring
   displayName: "\u56DE\u5FA9\u6CC9"
   kind: 6
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 448852921075078290, guid: b3ee85908ed347c49ab8a97f1121aa25, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 0
   concealsOccupants: 0
   revealDistance: -1
   moveAPAdjustment: 0
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: -1
   damageOnEntry: 0
   damageOnOwnerTurn: 0
   flatDamage: -1
   maximumHpDamageFraction: -1
-  maximumHpHealFraction: -1
+  maximumHpHealFraction: 0.05
   burnable: 0
   burnSmokeRounds: -1
+  burnSmokeDamageFraction: 0.1
   burnSmokeRevealDistance: -1
 --- !u!114 &-8356305519081500612
 MonoBehaviour:
@@ -77,14 +85,17 @@ MonoBehaviour:
   definitionId: environment.road
   displayName: "\u9053"
   kind: 5
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 6276416129167178289, guid: 3a0bf428f2686024993fa20f6b2931e8, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 0
   concealsOccupants: 0
   revealDistance: -1
-  moveAPAdjustment: 0
+  moveAPAdjustment: -1
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: -1
   damageOnEntry: 0
   damageOnOwnerTurn: 0
   flatDamage: -1
@@ -92,6 +103,7 @@ MonoBehaviour:
   maximumHpHealFraction: -1
   burnable: 0
   burnSmokeRounds: -1
+  burnSmokeDamageFraction: 0.1
   burnSmokeRevealDistance: -1
 --- !u!114 &-6628740047933029801
 MonoBehaviour:
@@ -108,14 +120,17 @@ MonoBehaviour:
   definitionId: environment.geyser
   displayName: "\u9593\u6B20\u6CC9"
   kind: 7
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 5332955366083565136, guid: 849241355a780974eb0929a2d519f21d, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 0
   concealsOccupants: 0
   revealDistance: -1
   moveAPAdjustment: 0
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: -1
   damageOnEntry: 1
   damageOnOwnerTurn: 0
   flatDamage: -1
@@ -123,6 +138,7 @@ MonoBehaviour:
   maximumHpHealFraction: -1
   burnable: 0
   burnSmokeRounds: -1
+  burnSmokeDamageFraction: 0.1
   burnSmokeRevealDistance: -1
 --- !u!114 &-4838605304200086011
 MonoBehaviour:
@@ -139,14 +155,17 @@ MonoBehaviour:
   definitionId: environment.rock
   displayName: "\u5CA9\u5834"
   kind: 2
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
-  blocksMovement: 1
-  blocksShots: 1
+  enabledForPlay: 1
+  visualPrefab: {fileID: 7729518831891588440, guid: 3ccb51849b4cf2e46a8e58376bc531c5, type: 3}
+  blocksMovement: 0
+  blocksShots: 0
   blocksVision: 1
   concealsOccupants: 0
   revealDistance: -1
   moveAPAdjustment: 0
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: -1
   damageOnEntry: 0
   damageOnOwnerTurn: 0
   flatDamage: -1
@@ -154,6 +173,7 @@ MonoBehaviour:
   maximumHpHealFraction: -1
   burnable: 0
   burnSmokeRounds: -1
+  burnSmokeDamageFraction: 0.1
   burnSmokeRevealDistance: -1
 --- !u!114 &-4342352262402026669
 MonoBehaviour:
@@ -170,14 +190,17 @@ MonoBehaviour:
   definitionId: environment.smoke
   displayName: "\u7159"
   kind: 9
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 4485273828431576663, guid: b274a36a3e5208d4ab37ffc97ad26bda, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 1
   concealsOccupants: 1
-  revealDistance: -1
+  revealDistance: 1
   moveAPAdjustment: 0
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: -1
   damageOnEntry: 0
   damageOnOwnerTurn: 1
   flatDamage: -1
@@ -185,7 +208,8 @@ MonoBehaviour:
   maximumHpHealFraction: -1
   burnable: 0
   burnSmokeRounds: 30
-  burnSmokeRevealDistance: -1
+  burnSmokeDamageFraction: 0.1
+  burnSmokeRevealDistance: 1
 --- !u!114 &-3840624065400992777
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201,21 +225,25 @@ MonoBehaviour:
   definitionId: environment.poisonswamp
   displayName: "\u6BD2\u6CBC"
   kind: 3
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 7192828593587712046, guid: b47f4bcef0664b548a85274dfc2c33af, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 0
   concealsOccupants: 0
   revealDistance: -1
   moveAPAdjustment: 0
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: -1
   damageOnEntry: 1
   damageOnOwnerTurn: 1
   flatDamage: -1
-  maximumHpDamageFraction: -1
+  maximumHpDamageFraction: 0.05
   maximumHpHealFraction: -1
   burnable: 0
   burnSmokeRounds: -1
+  burnSmokeDamageFraction: 0.1
   burnSmokeRevealDistance: -1
 --- !u!114 &-2769539848993737155
 MonoBehaviour:
@@ -232,14 +260,17 @@ MonoBehaviour:
   definitionId: environment.forest
   displayName: "\u68EE"
   kind: 0
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 5052100716477017222, guid: 8443154d4b35b9d4e9e65bc5cddeabb5, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 1
   concealsOccupants: 1
-  revealDistance: -1
+  revealDistance: 1
   moveAPAdjustment: 0
+  hidden: 0
+  attackRevealRounds: 2
+  caveCooldownTurns: -1
   damageOnEntry: 0
   damageOnOwnerTurn: 0
   flatDamage: -1
@@ -247,7 +278,8 @@ MonoBehaviour:
   maximumHpHealFraction: -1
   burnable: 1
   burnSmokeRounds: 30
-  burnSmokeRevealDistance: -1
+  burnSmokeDamageFraction: 0.1
+  burnSmokeRevealDistance: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -260,7 +292,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8852e415b7b4b76b93741559391f675, type: 3}
   m_Name: EnvironmentCatalog
   m_EditorClassIdentifier: Assembly-CSharp::TerrainEnvironmentCatalog
-  enabledForPlay: 0
+  enabledForPlay: 1
   definitions:
   - {fileID: -2769539848993737155}
   - {fileID: 3155776392790842869}
@@ -273,6 +305,50 @@ MonoBehaviour:
   - {fileID: 4251971377430858866}
   - {fileID: -4342352262402026669}
   placements: []
+  generation:
+    enabled: 1
+    seedOffset: 19827
+    coverage: 0.16
+    maximumCells: 160
+    maximumAttempts: 1600
+    initialSafeRadius: 5
+    rules:
+    - kind: 0
+      enabled: 1
+      weight: 4
+      maximumCells: 64
+    - kind: 1
+      enabled: 1
+      weight: 4
+      maximumCells: 64
+    - kind: 2
+      enabled: 1
+      weight: 1
+      maximumCells: 8
+    - kind: 3
+      enabled: 1
+      weight: 1
+      maximumCells: 8
+    - kind: 4
+      enabled: 1
+      weight: 1
+      maximumCells: 12
+    - kind: 5
+      enabled: 1
+      weight: 1
+      maximumCells: 12
+    - kind: 6
+      enabled: 1
+      weight: 1
+      maximumCells: 3
+    - kind: 7
+      enabled: 1
+      weight: 1
+      maximumCells: 4
+    - kind: 8
+      enabled: 1
+      weight: 1
+      maximumCells: 4
 --- !u!114 &3155776392790842869
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -288,14 +364,17 @@ MonoBehaviour:
   definitionId: environment.bush
   displayName: "\u8349\u3080\u3089"
   kind: 1
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 8232076536478429362, guid: 53958a0d81b69894685324bd22ea3ad7, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 0
   concealsOccupants: 1
-  revealDistance: -1
+  revealDistance: 1
   moveAPAdjustment: 0
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: -1
   damageOnEntry: 0
   damageOnOwnerTurn: 0
   flatDamage: -1
@@ -303,6 +382,7 @@ MonoBehaviour:
   maximumHpHealFraction: -1
   burnable: 0
   burnSmokeRounds: -1
+  burnSmokeDamageFraction: 0.1
   burnSmokeRevealDistance: -1
 --- !u!114 &4251971377430858866
 MonoBehaviour:
@@ -319,14 +399,17 @@ MonoBehaviour:
   definitionId: environment.cave
   displayName: "\u6D1E\u7A9F"
   kind: 8
-  enabledForPlay: 0
-  visualPrefab: {fileID: 0}
+  enabledForPlay: 1
+  visualPrefab: {fileID: 360949985227565329, guid: 586bea129cf3f27459bb53cac4c4ec44, type: 3}
   blocksMovement: 0
   blocksShots: 0
   blocksVision: 0
   concealsOccupants: 0
   revealDistance: -1
   moveAPAdjustment: 0
+  hidden: 0
+  attackRevealRounds: -1
+  caveCooldownTurns: 2
   damageOnEntry: 0
   damageOnOwnerTurn: 0
   flatDamage: -1
@@ -334,4 +417,5 @@ MonoBehaviour:
   maximumHpHealFraction: -1
   burnable: 0
   burnSmokeRounds: -1
+  burnSmokeDamageFraction: 0.1
   burnSmokeRevealDistance: -1

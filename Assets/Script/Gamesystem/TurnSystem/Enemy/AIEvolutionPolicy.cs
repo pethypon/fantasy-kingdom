@@ -27,25 +27,69 @@ public sealed class AIEvolutionPolicy
         if (crisis || board.AliveEnemyUnits.Count * 2 < initialArmy)
         { HasObjective = false; return; }
         int duration = board.ReconThreatLevel >= 10 ? 5 : 3;
+        // Newly observed victory objectives can interrupt a lower-value standing order.
+        // The opponent's main crystal is stored separately from AlivePlayerUnits.
+        float decisiveScore = float.NegativeInfinity;
+        Vector3 decisivePosition = default;
+        int decisiveId = 0;
+        foreach (var target in board.AlivePlayerUnits)
+        {
+            if (target == null || !target.IsAlive || target.team != board.OpponentTeam
+                || !MatchObjectiveRules.IsCommander(target) || !board.IsSpecialActorObserved(target)) continue;
+            float score = 60 - GridHelper.ChebyshevDistance(target.transform.position, board.EnemyCrystalPos);
+            if (score <= decisiveScore) continue;
+            decisiveScore = score; decisivePosition = target.transform.position; decisiveId = target.GetInstanceID();
+        }
+        if (board.CanUsePlayerCrystalAsTarget() && board.PlayerCrystalHP > 0)
+        {
+            float score = 60 - GridHelper.ChebyshevDistance(board.PlayerCrystalPos, board.EnemyCrystalPos);
+            if (score > decisiveScore)
+            { decisiveScore = score; decisivePosition = board.PlayerCrystalPos; decisiveId = int.MinValue; }
+        }
+        if (decisiveId != 0)
+        { SetObjective(board, decisivePosition, decisiveId); return; }
+
         if (HasObjective && board.TurnCount - StartedTurn < duration)
         {
             foreach (var target in board.AlivePlayerUnits)
-                if (target != null && target.IsAlive && target.GetInstanceID() == objectiveId)
+                if (target != null && target.IsAlive && target.GetInstanceID() == objectiveId && board.IsSpecialActorObserved(target))
                 { Objective = target.transform.position; return; }
-            // An empty visible location invalidates a stale contact immediately.
-            if (board.ReconThreatLevel >= 4 && !board.IsVisibleToEnemy(Objective)) return;
+            // Seeing a destroyed crystal or an empty old contact invalidates the order.
+            bool destroyedCrystal = objectiveId == int.MinValue && (!board.GetLastKnownPlayerCrystal().Valid
+                || board.PlayerCrystalVisible && board.PlayerCrystalHP <= 0);
+            if (!destroyedCrystal && board.ReconThreatLevel >= 4 && !board.IsVisibleToEnemy(Objective)) return;
         }
         HasObjective = false;
         float best = float.NegativeInfinity;
         foreach (var target in board.AlivePlayerUnits)
         {
-            if (target == null || !target.IsAlive) continue;
+            if (target == null || !target.IsAlive || !board.IsSpecialActorObserved(target)) continue;
             float priority = -GridHelper.ChebyshevDistance(target.transform.position, board.EnemyCrystalPos);
-            if (board.ReconThreatLevel >= 8 && target.type != Type.Unit) priority += 20;
+            // Principal opposition takes precedence over incidental neutral structures.
+            if (target.team == board.OpponentTeam) priority += target.type == Type.Unit ? 25 : 12;
             if (priority <= best) continue;
-            best = priority; Objective = target.transform.position; objectiveId = target.GetInstanceID(); HasObjective = true;
+            best = priority; SetObjective(board, target.transform.position, target.GetInstanceID());
         }
-        if (HasObjective) { StartedTurn = board.TurnCount; initialArmy = board.AliveEnemyUnits.Count; }
+        if (board.ReconThreatLevel < 4) return;
+        var crystal = board.GetLastKnownPlayerCrystal();
+        int age = board.TurnCount - crystal.Turn;
+        if (crystal.Valid && age >= 0 && age < duration && !board.IsVisibleToEnemy(crystal.Position))
+        {
+            float priority = 40 - GridHelper.ChebyshevDistance(crystal.Position, board.EnemyCrystalPos);
+            if (priority > best) { best = priority; SetObjective(board, crystal.Position, int.MinValue, crystal.Turn); }
+        }
+        if (board.GetLastKnownPrincipalCommander(out var remembered, out int observedTurn))
+        {
+            float priority = 40 - GridHelper.ChebyshevDistance(remembered, board.EnemyCrystalPos);
+            if (priority > best) SetObjective(board, remembered, int.MinValue + 1, observedTurn);
+        }
+    }
+
+    void SetObjective(AIBoardState board, Vector3 position, int id, int observedTurn = -1)
+    {
+        HasObjective = true; Objective = position; objectiveId = id;
+        StartedTurn = observedTurn >= 0 ? observedTurn : board.TurnCount;
+        initialArmy = board.AliveEnemyUnits.Count;
     }
 
     public void Score(List<AIAction> actions, AIBoardState board, AIPlayerModel model)

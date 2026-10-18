@@ -265,6 +265,7 @@ public sealed partial class AIOperationManager
         Vector3 origin = board.EnemyCrystalPos; int nearest = int.MaxValue;
         foreach (var actor in ownArmy)
         {
+            if (actor == null || !actor.IsAlive) continue;
             int distance = AIOperationFeatureExtractor.Distance(actor.transform.position, target);
             if (distance < nearest) { nearest = distance; origin = actor.transform.position; }
         }
@@ -440,7 +441,7 @@ public sealed partial class AIOperationManager
         {
             bool gathered = plan.AssignedUnitLifeIds.Count > 0;
             foreach (string life in plan.AssignedUnitLifeIds)
-                if (features.TryOwn(life, out var actor) && AIOperationFeatureExtractor.Distance(actor.transform.position, new Vector3(plan.RallyX, 0, plan.RallyZ)) > RallyRadius) gathered = false;
+                if (!features.TryOwn(life, out var actor) || AIOperationFeatureExtractor.Distance(actor.transform.position, new Vector3(plan.RallyX, 0, plan.RallyZ)) > RallyRadius) gathered = false;
             if (gathered) { var step = CurrentStep(plan); step.Completed = true; step.EndTurn = turn; plan.CurrentStep++; plan.LastProgressTurn = turn; }
         }
     }

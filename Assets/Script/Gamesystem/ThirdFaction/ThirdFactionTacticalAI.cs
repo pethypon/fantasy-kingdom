@@ -53,7 +53,10 @@ public sealed class ThirdFactionTacticalAI
                 }
                 // Facing is the same free N/S operation available to principal factions.
                 if (enemy != null && !AttackPatterns.IsDirectionIndependent(u))
+                {
                     u.direction = enemy.transform.position.z >= u.transform.position.z ? Direction.N : Direction.S;
+                    BoardActorAnimation.NotifyFacing(u);
+                }
                 bool success = TrySkill(u, vision);
                 if (!success && !SpecialSkillRuntime.AttackBlocked(u) && s.APSystem.CanAct(u.team, APSystem.ActionType.Attack, u))
                 {
@@ -87,7 +90,10 @@ public sealed class ThirdFactionTacticalAI
                     if (enemy != null) goal = enemy.transform.position;
                     bool withdraw = objective?.Kind == ThirdFactionObjectiveKind.Withdraw || u.HPRatio < .3f && enemy != null;
                     if (!MovePatterns.IsDirectionIndependent(u))
+                    {
                         u.direction = (withdraw ? u.transform.position.z - goal.z : goal.z - u.transform.position.z) >= 0 ? Direction.N : Direction.S;
+                        BoardActorAnimation.NotifyFacing(u);
+                    }
                     float best = 0; Vector3 destination = u.transform.position;
                     foreach (var offset in MovePatterns.Offsets(u))
                     {
@@ -116,7 +122,10 @@ public sealed class ThirdFactionTacticalAI
                     {
                         var old = u.transform.position; previous[id] = old;
                         if (!MovePatterns.CanMove(u, u.direction, destination.x - old.x, destination.z - old.z))
+                        {
                             u.direction = u.direction == Direction.N ? Direction.S : Direction.N;
+                            BoardActorAnimation.NotifyFacing(u);
+                        }
                         s.APSystem.Consume(u.team, APSystem.ActionType.Move, u, old, destination);
                         u.transform.position = destination; u.HasMovedThisTurn = true;
                         SpecialSkillRuntime.OnMoved(u, old, destination, s);

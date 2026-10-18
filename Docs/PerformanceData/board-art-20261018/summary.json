@@ -1,0 +1,2309 @@
+{
+  "date": "2026-10-18",
+  "unity": "6000.3.8f1",
+  "worldChecks": 5078,
+  "catalogChecks": 250,
+  "livePresentationChecks": 266,
+  "animationChecks": 41,
+  "utfPassed": 10,
+  "utfTotal": 10,
+  "sceneSmokePassed": true,
+  "animationPreviewFrames": 120,
+  "sharedFactionMaterials": 3,
+  "originalObjUnchanged": [
+    {
+      "source": "E:\\fantasykingdom\\Enemy駒\\完成\\obj\\蟹の異形　下級 完成.obj",
+      "sha256": "250951e198f15f66f969a52bdc069447ebedde11b1ef7488fa082bc20ab75d34",
+      "sourceTriangles": 20033,
+      "bakedBodyTriangles": 1798
+    },
+    {
+      "source": "E:\\fantasykingdom\\Enemy駒\\完成\\obj\\犬の異形　下級.obj",
+      "sha256": "5c6704d0e9034d116f72bf817cffabf11c69d009fa86e5b336f0b76508685724",
+      "sourceTriangles": 15258,
+      "bakedBodyTriangles": 1799
+    },
+    {
+      "source": "E:\\fantasykingdom\\Enemy駒\\完成\\obj\\鯉　異形 2完成.obj",
+      "sha256": "66f291fc9e4d31b05c84d150a65859987e086fd8cf81e4e73cc0611945b7a248",
+      "sourceTriangles": 126949,
+      "bakedBodyTriangles": 2072
+    },
+    {
+      "source": "E:\\fantasykingdom\\Enemy駒\\完成\\obj\\羊の異形　下級完成 .obj",
+      "sha256": "cd3a84d6259e4baf5cdfb47b32efb00c50a58a9e80b34f52b3f0ba7ffb886609",
+      "sourceTriangles": 32351,
+      "bakedBodyTriangles": 1799
+    }
+  ],
+  "sourceAndAssetHashes": [
+    {
+      "path": "Assets/Script/GameGenerator.cs",
+      "sha256": "07509633d276d4988cb1db192cb7e6e11a7cfa69d40963bdd517f30a3118dfac"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/MapCreate.cs",
+      "sha256": "422d822d91a0c364768e9e5c209808e93de1cbe72f8b0475cab137f8f456657e"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/UnitSetting.cs",
+      "sha256": "e8c8d99815bbe863150c9b67692224d77a824993d5f308cc70aef8281dd7743e"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/TerritorySystem.cs",
+      "sha256": "aac62c03f74f1a8ab189e5e50ef0700932beb88b249836947ef5ac3d4f98f150"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/CrystalSystem.cs",
+      "sha256": "821df5337d4fe34c26577a7a86b67b852c8ab8dec413e3be744bae360349e4a7"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/FogChunkRenderer.cs",
+      "sha256": "a803d8b365c014d50e22b749ebb9c8bca2e1d76a2a71759f6685ef9b92f1bb5b"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/TerritoryRegionOverlay.cs",
+      "sha256": "27d7b552cafe13b7185c0e0b12223bb1315a2ad932aa1fb81fc4ea80f017e0bb"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/MapGridOverlay.cs",
+      "sha256": "5e88db9002cc838d1996c7b88173a7c1955f59042fbf061280fae51eb24cd744"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/TerrainVariantCatalog.cs",
+      "sha256": "88eb59dc10b0fce3546332250fd4a70436b6ac05324c396f757094488a6f7df6"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/TerrainEnvironmentDefinition.cs",
+      "sha256": "da1601cedaad9cb773ba97c124bb90e746346c2dbbb867658a2ca745f29e5c00"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/TerrainEnvironmentCatalog.cs",
+      "sha256": "53a5656df8c8619ed56705fb94eb53aeadaba04086188c2c9c760e538b1b23ba"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/TerrainEnvironmentRuntime.cs",
+      "sha256": "e9845141119fb91364d8a52bd51d4d4109608a9140a4e5d379474c74e13d35cb"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/MapCreate.Environment.cs",
+      "sha256": "1891465c7d037599728da47b35788fb22b2a325d026d91cb0d4b49834d14ec67"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/TerrainEnvironmentRuntime.Dynamic.cs",
+      "sha256": "470a003393a578ef3e9cf6a6065252e9f2eb998e7a1e2dd25038dbba86168850"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/FogChunkRenderer.Exterior.cs",
+      "sha256": "26abea54a20d9b0d02478fd2d981ed03ad6d1c51ab8a0a0081425fea5cc11646"
+    },
+    {
+      "path": "Assets/Script/Mapsystem/TerrainEnvironmentRuntime.Generation.cs",
+      "sha256": "f3386e82322859ab47867075ae7662ff13358065cc2494665c57050272afb495"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/BattleSystem.cs",
+      "sha256": "a6d2c2fc343afb8923645e1f3d543f49a570bed2ee24f24064c3edef2f4a9d28"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/UnitClick.cs",
+      "sha256": "3b6e279ea55f30168635fcf9d67a8482d2ccdf25fb4b5222d6867325d9744793"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/AttackGenerator.cs",
+      "sha256": "97a0c75de485b4c67bcafdb436bbc4573541c45f6a2eab9fc342e6c40bb1afd2"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/BuildSystem.cs",
+      "sha256": "57ac14dec4247875742fb87c74050af6f1f1dd318dc8df50198aa4381d28c5e3"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/BuildValidator.cs",
+      "sha256": "89581c90b9d242ec5522495d3a434fec5206a1eb1d6e09a626ceac97539a8a37"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SkillSystem.cs",
+      "sha256": "4f7f515511d0d825743b7fd6df408afc8c4cad83c5797aca62a80961650d8c46"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/EconomySystem.cs",
+      "sha256": "9ae0779848c80ac4db5624ebb31ae42b4d14bf11ea0cb4ec72ab84484a26cff2"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SummonSystem.cs",
+      "sha256": "6f177f928d1c274df8cb2ca10e18e1d44d35c667b2b291a1e82e328ad159a836"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SubCrystalSystem.cs",
+      "sha256": "09cba6050f126bc2ac2e351f51a5c3dd6beb7204617141c39c2008561f686c8b"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/BuildingAttackSystem.cs",
+      "sha256": "ff2801e719273b55f95d49ea22c65fcb02e385c5066b0a0bce3ae73fe20497be"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/StatusEffectSystem.cs",
+      "sha256": "8000901f2b31cfd2fed23ebe43c84b1e02e1213c7135d72d04b24620b0575132"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialAbilitySystem.cs",
+      "sha256": "fb5ca5a69c659645dde1bfc3f3738c3e1c2a3828610c904e83e5326bd0577e1c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/MoveGenerator.cs",
+      "sha256": "432873e639fe063c86db643bfd61ac10a591964237a220dfbf9226b9a891404a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/VisionGenerator.cs",
+      "sha256": "e4dfb8136970ca8a3a3b5d35cf0266309250dda73b77db18438a278d42e2886d"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/BuildCursorController.cs",
+      "sha256": "c8adb555dea00af55c1afdce96eb8ad95ae30c838a902af44cf3c79f3e50545b"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/DungeonSystem.cs",
+      "sha256": "4938f0711cd5f3592f3bf3e014aa1e26077f862a6781b418c647be6d0fe51a5f"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/WildBossSystem.cs",
+      "sha256": "c27f2ae74fca336ec8cbf4d713906e8baa49d6a7e435ed40c59c0c77c81e76a4"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/NeutralFactionSystem.cs",
+      "sha256": "52319ba0b000a9bdd8eca2c7e382b9f2a45993500d75d61fde79e73ec33a4bba"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/UnitSelectionPicker.cs",
+      "sha256": "92242af1cbd086e1b519ba9da8bb2435df0b1227741221bf26900ff8a36e5ee5"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/BuildSystem.Authoring.cs",
+      "sha256": "5f41e9db699e39cd18049e0b2166259e5befbc534c3b69ba0d01975d535721a1"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/MatchObjectiveRules.cs",
+      "sha256": "214990e29330ff9047b279b5a42fca6adc551379bc49f6d5b079fcf7a03b3161"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialSkillRuntime.cs",
+      "sha256": "09a8b62227a48ce98ccb17cae54d1793d9e53c7fe55debf9f7f9f6ff0913ac31"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialSkillRuntime.Actions.cs",
+      "sha256": "5b427549a555d8c750fe00a609a27eb688a6b8b0302b2be4686bfdd668bb6c32"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialSkillRuntime.Turns.cs",
+      "sha256": "6e610fc38ec8771b24a1da876b5aa5374ce1e4935187a6619664ccec377a7f6c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialSkillRuntime.Hp.cs",
+      "sha256": "f69afdd127cecf1c41fe4306f6def084bb826900112acdcafd64528c834048dd"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialSkillRuntime.Persistence.cs",
+      "sha256": "dbd759a55b73a289c520a3ef3dc5973dc44c919cfc6c19dc48af5c36a3a345cd"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/NaturalRecoverySystem.cs",
+      "sha256": "c58386fea5a9c0349f276161ce8d6adf33bf93a6cb5ff7c3cb61bbfd2c9245da"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialSkillRuntime.Crossbow.cs",
+      "sha256": "7bae35768c95b5d82b977cd4e046197624fe6cba00d872e512f1c70796285dc3"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/CombatRuleTelemetry.cs",
+      "sha256": "fec96bffa802ff91df5e228f3e4643c0ec422bafb017698a1fcf117c7de28c82"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialSkillRuntime.AbilitiesR1.cs",
+      "sha256": "400af376c63f60385cf48f9a6486cb62fbd8472dadf2960a58f56cb5fbaa4f8e"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/SpecialSkillRuntime.ForcedMovement.cs",
+      "sha256": "2c92037c295b1932b823a479b9e7b7a5213b78e9a581bf2b93f975a1c2b44ce6"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/HpChangeResult.cs",
+      "sha256": "cf09a63e4925fbe902d5e2e0e034ca65ad2080b5be6bc2841d5bb48a14931095"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/ThirdFaction/ThirdFactionDirectorConfig.cs",
+      "sha256": "8939174079fae7ce671a61243712b5c616b5983da1d3762bac9b9ef65d481688"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/ThirdFaction/ThirdFactionEventDefinition.cs",
+      "sha256": "c4c5d52a28000c1fb103b5e6fe4fb0258da8e911901dbac6591ad83ddebdecd2"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/ThirdFaction/ThirdFactionDirectorState.cs",
+      "sha256": "60457468807201a96d3cdcdc20a222a149369f163e26d8651533bdcddc5bd539"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/ThirdFaction/ThirdFactionWorldSnapshot.cs",
+      "sha256": "7f41d5e67edd454a2e404da849629a1b3ee3053819a8e6e66f3f3bc93640125b"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/ThirdFaction/ThirdFactionDirector.cs",
+      "sha256": "f315ff91e23f230d3d4bc586abeb55a00f915109eeb3b0e7d045e529dfef1064"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/ThirdFaction/ThirdFactionSystem.cs",
+      "sha256": "3b62f7e794f852c46c80561a7fc29895cd3c84b1ac38bef64eb32437bef6cd29"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/ThirdFaction/ThirdFactionTacticalAI.cs",
+      "sha256": "c806993c3dbdd13b616eeea71894d7ce1948efcf14bdb5fe2b5f43674d4bdd2e"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/ThirdFaction/ThirdFactionPathPlanner.cs",
+      "sha256": "0470a6a4886c85ed82041dd6118383858537fb1db390fefaa5fe018739bc4535"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/Performance/AIPerformanceConfig.cs",
+      "sha256": "ff7d489a028725530091a1241976721ee3c6e79cb359e8746d87a3d0d25679d1"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/Performance/AIPerformanceCounters.cs",
+      "sha256": "cd3fb65d3b742d5d6b7b0e2991bd6c1ad7032e8d9d41b702c1099e2dbda6fcce"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/Performance/AIPresentationQueue.cs",
+      "sha256": "811672fcddea2940825908fe2f66adfce01a590c38f47f9f9b655ad4f6db9e69"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/TurnCameraController.cs",
+      "sha256": "d47206a3b40dbfd34d259a36d9f0cf865fa66ba6f2055f1b5a4ef708ae3ce4e3"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/TurnInputHandler.cs",
+      "sha256": "c1b9b6cbe8274616829a25c8dd0600e29f5bcd8d27a8104a8cca37201ac6a285"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/TimerSystem.cs",
+      "sha256": "3eed44557851de9bb907c64d53cb0db2ba32e80dc1fb7b7a73f28c59504d0083"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/GameEndState.cs",
+      "sha256": "9ea04c056d53f23e814a34a6165d7dae00d81f71c107e115558c0ed49cde7dfe"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/StateCore.cs",
+      "sha256": "293a24a2d49f9542722030d1d3cdf0f5b0b31fd7bba65d6dc42966a7cb5fa833"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/WildBossState.cs",
+      "sha256": "60e3930b23d72bee6f096252b3a0077f25f0d2d1a3dc443dc48ef7d552ebb3d1"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/TurnGenerator.cs",
+      "sha256": "0994acb6b1552aaa78d81677f97ea77b3d2c0f429c4b3e30582d00b989f9ea2f"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/TurnStartHelper.cs",
+      "sha256": "1a1b9a45425898a678878627791a7135ace051f097e0a397371f27ebdd0ec20e"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/TurnInspectionController.cs",
+      "sha256": "e59ad254bb4350daafe77c4b37f87cfdc2ebfa63a34ed807b3effc6f0759b8ff"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/DeveloperPlayerAIController.cs",
+      "sha256": "1efd814bf36fcbb46784a715f2dbcd986b71ab4153c296d7cd02aa2a99349b3a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/TopDownCameraSettings.cs",
+      "sha256": "8e380a53152251e0cc1d3bdfd96d431cfdd7658512b9c7c7447229b2920e3089"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/CameraStateSnapshot.cs",
+      "sha256": "f792a8acfccf890c51ad0a25d8220932a76e6fd5904e1b47db3308d35348c3a1"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Player/PlayerMove.cs",
+      "sha256": "a8cee3feb474966076c9d26b416dbd1879d9858aa3780bdfce0c71f9c0514d8b"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Player/PlayerAttack.cs",
+      "sha256": "123784203dae5c06e783043ea7ac3d866cb221af8539b818e387f534d988f725"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Player/PlayerStart.cs",
+      "sha256": "47280a8092849b7ca6ed38fbc19d66e206ea80571c22e7807637d89eb4e2b7b7"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Player/APSystem.cs",
+      "sha256": "6b477514457c629edcb1b0c149de5abdd691e25920c24700f0a8e680cbf6a8d6"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Player/PlayerAttack.SpecialTargeting.cs",
+      "sha256": "4de17c0004a1bc7952c4ca13b1cf1c55cba696ac783851455e8fa94b9641ade5"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Player/PlayerAttack.LegacySkillPreview.cs",
+      "sha256": "d831588a4c521d5ecd554c733d032b798130ea20ef5ad280a0cb79dcf30a7a2a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Player/PlayerAttack.SkillCommands.cs",
+      "sha256": "cdafc9256286c3871aff6d15daf77b19257307b928a604bfa0c06ac1d5a417d7"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBeliefMap.cs",
+      "sha256": "d26193041bf79de12b1f7fec80704627a67486e20c1c8ecbe9e0e0d4e0d318fd"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AITacticalPriorities.cs",
+      "sha256": "4c9283f7f68efd255edffc30f152d03f4e06276ad5df21cd1d6d285c95abe8ff"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIOutpostPlanner.cs",
+      "sha256": "ac2dfeb2ca09fb7419958f9dc63f01c6754ea8077876d97f0c22455a7096f22c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIOrientation.cs",
+      "sha256": "dd093ed8267d02e202876fe7f64e6ffe6b8dc234dbe8cd3f65de8ae8f1aea2e0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIEvolutionPolicy.cs",
+      "sha256": "f0e7538b0bb981742b74b8a863a57e925f82ab92edb94f51f2d5b4d9176046b0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIPlayerModel.cs",
+      "sha256": "cb1dd7e5768a9e918a05659254b8714d88cfcee17a43e9786c61bea289d2e1b3"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIPlan.cs",
+      "sha256": "054e74d1070878ce1c32fafc54dd4f23c6004d71dfda486f68275d4616a24d96"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIPlanManager.cs",
+      "sha256": "5887f0822d4f697a57e79868798f3ae6402c8f30142aacdb7b64c63100367a02"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIInvestmentPlanner.cs",
+      "sha256": "de072b33ed107248a1cb961e8cc7f01fb7771c762592e249f59c59f160f1c155"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AITacticalPatterns.cs",
+      "sha256": "fa0551bd40e01d8282067ea7aa18be42a84b39498e617bfda09202073317a5c2"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/PlayerResponseModel.cs",
+      "sha256": "d4eeed177f785b3c24fdc9b16099c752dedbbb9bd317dfc5657ec7c3844f96a2"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIAdvancedStrategy.cs",
+      "sha256": "a10628f896fcf32f44e3bc6f6df137e767e31992591c3a73b2d3abd7c526edc9"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AITacticalPatternSettings.cs",
+      "sha256": "3f5c96a5fa01a0e9591b2c94674ec8418d2e02effe6355a850303033c3b6b3b0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.AuthoredUnits.cs",
+      "sha256": "cda677dd1864d1e47a0b62aed61e948627974cf4ea0f06ee66a47e89032a6830"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+      "sha256": "0591b3769e14a5100cb81b24eb9631a29f5094b38a67a3d16134ea0569776cd0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+      "sha256": "157bf0e60b27f350c81d0c4916657a697d5c2490da6deac7b1ededd4ad00ad74"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIEconomySettings.cs",
+      "sha256": "8fe3579dd58adb9b7eab866d98913a478ea54de5ba0b7400c727b40633361649"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicProductionDemand.cs",
+      "sha256": "b930ed879bb7b706aaec61aae141cfce56191ee84f9c22ee67aa0a7dfec7a085"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+      "sha256": "9e850a7a0cb7d9f9a86a441a1f2e16ac5e1bb76c326059a53602d6113fc9568b"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBasicResourceEconomy.cs",
+      "sha256": "84eee5b45774c0658d671220dd5dc24e2d1da9ab3431e8b1fe81d2c9a7a19a45"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Reflection.cs",
+      "sha256": "c48205bb5c7b8fba2a51714e4415ba59948f483e9b8b7c8f6e29a68e609f8602"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ReflectionEvents.cs",
+      "sha256": "635d6247769fef8aa0cb4d06ba77ffd8372a1f45d193c7fdd0278768e72e9d88"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+      "sha256": "7a625e614744c88488b55664fb75eefe299aa6d05584fcfa3cf50e2e2acf1e8f"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+      "sha256": "a3c2f5716f237376a5dea9791b05b709f9323159c86fbbba88ab2b040bc72304"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Performance.cs",
+      "sha256": "cf1ef78f80f4b2fb16bc4d669fd534c66f050b673c29c78c774cb2ee837e121c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRuntimeMaintenance.cs",
+      "sha256": "d9afafbca2dae3ad7c23b0c308202f87af0f028f3f4dcadc178baca0d574141c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+      "sha256": "ca9a035609d1550e948a202738f520244b6d4e40ae0173e0e8bd56ddded13644"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+      "sha256": "8d712f269a253bd674aa707e6362ddd40ef9838ffecee0bcdb02bf862e110c11"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimRecruitmentDefinition.cs",
+      "sha256": "2547fc6177559091b7ebbf6580c016e8f86421e4f13e5192e33c0ad36c2acca5"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ObservedDragonThreat.cs",
+      "sha256": "03bfe9ff95c6a5b2036d24a5d6ad7bda99ed4d81e64b69f2d1888594f28d8334"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AISpecialSkillKnowledge.cs",
+      "sha256": "3210ff81f305981e7e426c8000f483b6f451f6a7224571cc4ff6956e61cc2d99"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+      "sha256": "025604940883bf56de37a6e4737d8e19a626019a59dae377a55fb3276404a007"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.SpecialSkills.cs",
+      "sha256": "9ccc16e1ebc76c38e893244c3de00c4dfec0a3e19acab0add832e687f659756c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionEvaluator.SpecialSkills.cs",
+      "sha256": "7f3267bc5bdda951e2e0fea1b5d1abec7bf7f2b5556ba569852f88235ded06bb"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIPlayerModel.SpecialSkills.cs",
+      "sha256": "0ada0f53d8215d751ebdbe0ae3b5419ba7008ab5c0ce656e5eaece037e708d1d"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.SpecialSkills.cs",
+      "sha256": "cdbd6002df6ee3be9da37b91373f85400f2d646355447e63dc08b5be1c439d97"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Environment.cs",
+      "sha256": "c74160e424c0b91d38bac02bd076412f40c88d07992dd7447543328aa2186c17"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionEvaluator.Environment.cs",
+      "sha256": "52359bee77ba41f1327d7e1765cdf6ec07306acb2d3294c23395bad358b48740"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionEvaluator.SpecialProjection.cs",
+      "sha256": "94e433d752fdaddef63f39d5e3552b4997d6b0b59aca72bb87cfe2dcc0bc1c22"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.SpecialSkills.cs",
+      "sha256": "a79d125ebee0a21e702997abd39a41e7c7b1e1e726fe1b83701318d1e0acf6ce"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+      "sha256": "deb2a31b4a1fdef9ebe1e66f9d5b26e30e38bb89a6282dd441472b485034e4e0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIAction.cs",
+      "sha256": "09ea36dad1be33326e551328d15620f859e49fb963300b7f2f6d8a4670ac9f38"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategyBonus.cs",
+      "sha256": "4c59e335fb17da3dc91f493095e77d77b820767fbfed8c1b346c0b5394adf8d8"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIPersonalityScoring.cs",
+      "sha256": "a9e1e2d36a1a67285578a45b2eba3dc926994394eeb980606070a697393b1503"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/DivisionCommander.cs",
+      "sha256": "b331b8a140e66064403322a38e2e3b081d035fdf72ef3968594df65eb4d9684a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/DivisionProposal.cs",
+      "sha256": "006d6410656003577779215bf33a0655a217b4858dc2120bd95fe62e7baef09f"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/KingCommanderSystem.cs",
+      "sha256": "8deb2ba28d3c8ea2414e1cd1b7c2538f06326f482e4e94b96258b693fe1fc6c6"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIDeterministicRandom.cs",
+      "sha256": "b9bf00a079f3f0c3671fbbbc33d91a24e8ab656f6294adf3099b51d2ec1a76b3"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionEvaluator.Combat.cs",
+      "sha256": "993173521817a666273dddbe03ab86c5858dc9181b0052b517572d2d9a3d5fd7"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionEvaluator.Personality.cs",
+      "sha256": "b03d658c6d28765e6519008e728ebcf06e59fb5f5cf7482009b692cfe46714cc"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIConfig.cs",
+      "sha256": "57c6ff8816b71f29c2eac6512053756a14b6810be3d01a8af769e13c5f6577cb"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Hierarchical.cs",
+      "sha256": "1887dafaa7cd3843eb2856822d6df934b98c7a46c458ee8d2666a853d88f25ea"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Selection.cs",
+      "sha256": "2e1beaf7eac5726c9203da309034b4cff33c6832972ebc28ff13e6090a177cdf"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Strategy.cs",
+      "sha256": "c9523f999ebedd72188c1f1e824de79ba49d618462ed2925a84aadfc352ba9c3"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimAction.cs",
+      "sha256": "50f7b585314a31ff92e179d23c082902bfea52f2c7b95e67d70eb71f8e793772"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimBoardPool.cs",
+      "sha256": "24e776d733961f2491edf6c8a672b107743b14c2c2dc7c73c1756f282a74e6a8"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimBoardState.Combat.cs",
+      "sha256": "67947ee6a5ce5e9aca82d2e5a705e6c5d75fd8c6a2c1cc3b975971374ed0738d"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimBoardState.Vision.cs",
+      "sha256": "e339d7a448c6b81ebbff4334f789f13723e6700de92aa0cec07df0354ae2778d"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimEffect.cs",
+      "sha256": "613d3447a9b6cf0727aade92bf1d56d474e2e0b249e16cc733a09962a93bb083"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimUtil.cs",
+      "sha256": "75a4d3247fef79a3cbf1e3bd34478600c98e461a33714d1a539ab8d2bbddc8f6"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIMinimaxEngine.Greedy.cs",
+      "sha256": "a78674c86f07e181278c26e52ea95bd75f35d1718e92463294f8dc669e3f3566"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIMinimaxEngine.Search.cs",
+      "sha256": "0547c6484fbd91a0334a43ea3a32905aa990c77025ff919fe84841f6831f1094"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIMinimaxEngine.Zobrist.cs",
+      "sha256": "a631d8d077ad346ae93b2fb3a28da6e30d7ade0b591b357b9d1940fbe389056d"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIMinimaxEngine.cs",
+      "sha256": "59eceb0088adc13158be2f29e6e17ec175cee7387c300f5e2c20a2161cbf341b"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIMinimaxEngine.Convert.cs",
+      "sha256": "b7d57a915746d0d2a4d2d7399682b6d211bee7759651dc9ff8b26c2a79764184"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AISearchEngine.cs",
+      "sha256": "5312cdbac7b59e7addb3bfb6435ace733d5238c9dbf4e56b74d625b2b3017811"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyStart.cs",
+      "sha256": "94ec85c3da7b05148765c77c9b08acb118ef42d86a849733234940a442d1ca94"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionEvaluator.Positioning.cs",
+      "sha256": "4e08c5e520fdaf6e4a3a1d2da8c39afc595bc48fc1a2a64111abaadf82c6c01b"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimBoardState.cs",
+      "sha256": "065b4f117d970e1caf851af4bd45db8885abe7a58cd01e3b6ace0a71f4725140"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+      "sha256": "9b445f02a4764d77fba65cd440af4df00ca218bc82db90a44ffdf1bd03b946d2"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimBoardState.Turn.cs",
+      "sha256": "445f7b4bddb8ec9a4ee42b2dbdbdcf5f0275d47e6a5737968e59ac7f868527db"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimCombatEval.cs",
+      "sha256": "803b6486bff62a9910f0fe2ddbad53bebfb9cea45768cf9296a1af754d701ac5"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimUnit.cs",
+      "sha256": "0c1e9b06208928cedd48867c9db3592268b7e85c80f5d445d52147709af58ccc"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionEvaluator.Economy.cs",
+      "sha256": "542e2a4b30ddf4bbb963c2b09d5f59bf136da980fe15dd2bbaf31a5971501f81"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildEvaluator.cs",
+      "sha256": "aca778820e1819726380f6a9bec170b971a44b30f29e421a6bd5476d0e0a25c6"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+      "sha256": "098680df4206cc6a081862d12b5014fe9188d5a9d67247344807518a441e2583"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.APBudget.cs",
+      "sha256": "d475f4d3e5fdce24e5ab90684b5e3ae033d16cd7d8f792ebd73929ddc3b57b41"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimBoardEvaluator.cs",
+      "sha256": "1d752f1189841ab069b34ed48485d45d076d1cc1e446798160f8fa9f1d2d6f5a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/TurnStrategyPlanner.cs",
+      "sha256": "80b06b805169464093e4953dd505dcb8b2a0e8559673a8e963a914c13635b62b"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardEvaluator.cs",
+      "sha256": "d9850761bf17a65b991da486e72ca32fc4e6d33dbccbf0f6c4f46b4b0f3e3b91"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICombatEvaluator.cs",
+      "sha256": "ba22b5d892e8a4106ea74114bcdf414083bd0cc89ae00f31b5e7cba90ac53ddd"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AILearning.cs",
+      "sha256": "2f613120a071e11906f9ccec62615ad6a4d036fae2b9dc48f3b7175cc1e09919"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIPersonality.cs",
+      "sha256": "69be3e21124f2ba0672574dfbae5e1a071348ac3f0547f12b791ba2d6800fa14"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimActionGenerator.cs",
+      "sha256": "3ce52a88b6e961c1e7362106bb49640ad70f334d06da16ee5864166c8ca8f3d8"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionModifiers.cs",
+      "sha256": "600b825a6b84ab9ab61fd303dea0a4ce7d99bb700f54e32aac81c3e13090f8b3"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionEvaluator.cs",
+      "sha256": "e953562783698afaf6bc71fbbdcf55a9a6d10158d60e378aec9ff4098fd2d65a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+      "sha256": "0f97bfe84efe92f966ff8779ed1633dc0e690f7ef7fb98668c990ed0c44b283c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardQuery.cs",
+      "sha256": "3f55da6a284fd7e35882d59df27ac8c36d5a33d75a9e38032f704abae1a00b1a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyMove.cs",
+      "sha256": "5cc6cd74e3092ff8cb68f31dcd429977335f0df3671447b7229598c1218a1d55"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimBoardState.Actions.cs",
+      "sha256": "be0a72a03297a0f41db7ca36c61785582c316e63f5ed54f76bbfba4e41274fdb"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AITurnBudget.cs",
+      "sha256": "60950371412997d5722c1dc67689dd7346c4c323be65b7c69ffe42a1ffd7653e"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ObservedUnitIndex.cs",
+      "sha256": "aa38553ce6249bb36442247a67f51743a908e9ad18b5afd4299e09a264041085"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/SimActionBuffer.cs",
+      "sha256": "8bce9ec25c3613d89b72f12c2eadd25e4c20fa807b554fcb52770bee5289dbde"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIThreatLevel.cs",
+      "sha256": "57728177583742205a0814b7ebae41d24aa0edc137dcb40768d9ea8f0a88da98"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AISlicedWork.cs",
+      "sha256": "8ae112b4ffdd0f1d0c1bb5aa49e970a9416813bad9728872575612ed71d3b4e4"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Recon.cs",
+      "sha256": "84220da39d676b9d3a3f8419e8aca716f8226fffb2569fa43f9fb40718ec0ccd"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIReconnaissance.cs",
+      "sha256": "4eef1c8f46881d977718f9a7156afead11b1ca632ff0c16854807cf303695ba8"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Recon.cs",
+      "sha256": "abbe99ea691c0fb20ea1e1e498d05a94f04ec3347a2888d3012fcd49871fbc4f"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIReflectionConfig.cs",
+      "sha256": "d4d15b395e901fc999d238e2271e5178af0e8e985ebab2715a6c70c53fec38aa"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIActionRecord.cs",
+      "sha256": "8e296b43057e0cae1dc515d21576b5b4397040eb5eac7194d4d5c1f4176e05dc"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIActionFeatureExtractor.cs",
+      "sha256": "560f1ed8b98ffc67dfa8d7e8355fa5fc526b503137676862fe6dd3e030a151e0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIActionLearningProfile.cs",
+      "sha256": "95ba20a8d3ebc305c264137d6358981d00e2ca371e51a7296d4f0c5b459bff0a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIReflectionSaveRepository.cs",
+      "sha256": "0bb98bc65949109004fee678008a01a1bfe57609850f8db4e4b0b97013cc4906"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIDiaryWriter.cs",
+      "sha256": "c382cc0908a81b26374ff5e11090a09b62c164dade36081530d5d0f702bca3e9"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIActionReflectionSystem.cs",
+      "sha256": "9cf83d501d113ca25d384d3aa0360214f1106c0642fb26354cd4f84fae922646"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIRewardBreakdown.cs",
+      "sha256": "9febe93e2367ccbf995ea3269540554040588f032cd61135f4478b855015f064"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIReflectionDecisionTrace.cs",
+      "sha256": "ec707ce60667e09bdbd695f0d811c7eed7169521a9106d504121f2f98764f06c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIEconomyRewardTracker.cs",
+      "sha256": "25c5d6770d7395e384bb055f9e38af214d98a150b1c694cf62ee1b372b7f8ea7"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIDelayedCreditAssigner.cs",
+      "sha256": "6955d91146004efa6ca0d6fb4d682f33bac5491c4cac48d8523811d096f11132"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIArmyUtilizationAnalyzer.cs",
+      "sha256": "6de2221f8fc9983c00788b32ad0f20c5b320d478b2740601968b6eb732cb37f6"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIReflectionMigration.cs",
+      "sha256": "5d44c61e12327a100ad88dbdd57bee4715bd1378dcb7da8817e017bac7f020ac"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIActionReflectionSystem.Evaluation.cs",
+      "sha256": "748f696818eb25da68b591a0e373af4dd7387313d23248507252d6638e67c561"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIActionReflectionSystem.Operations.cs",
+      "sha256": "24500588751495187648b6964ce769efe29e4065a63f78098acb3d583f28750c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIDiarySnapshot.cs",
+      "sha256": "48869c181ad933959b7e9b47346650f7b0b70ca3d679b6d6980d6f06662a0691"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/ExplorationAISettings.cs",
+      "sha256": "d3893d64493f3f84474568c5fdb3e6ed974435594ac02bff2dcc10b9409559ba"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/ExplorationModels.cs",
+      "sha256": "cf75dbe2f43de0e04323fc55013174e2ba97f0eb4f2c9e3bda61d02a02c4daec"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/ExplorationMovementHistory.cs",
+      "sha256": "7df6e36087a63fcc85c73b54d72d347bf9818a14f333e541de70250d9818677a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/ExplorationTelemetry.cs",
+      "sha256": "434bb67f5c65dfa5f9a68802bee6551e579e11f4040407faff0a633e049e001a"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs",
+      "sha256": "04f0de908a566abdcb19edd9b1064603f932fe0fca81c42900ca4ed541762866"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.Board.cs",
+      "sha256": "10c8ad3208e18b60c19f85b6a427f6616595c72bb012b9f00c2990f0ae63c6a0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.Persistence.cs",
+      "sha256": "2716be5a31e3c74fa167e89f69759b93eb56860d4d9bc72ab76d2ddabbe79423"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/ExplorationKnownRoute.cs",
+      "sha256": "56128f3a63f9db2ef2dd82f55555cc6204eb52cebe3910091c7385300a329d49"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationKnowledgeEntry.cs",
+      "sha256": "7f3eef8bbcd33ccb4350c43abaee63fa9d603b03a4158198455fb2c20364c8e4"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationLearningProfile.cs",
+      "sha256": "38b895a263139c1770a0d2eb0f99668f65c3d0d1daaf21f2e9554be5a5613165"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationGoal.cs",
+      "sha256": "be685990e6b63db50188861399a30230b363aae0a0414d26b89aa81f3b6a3d8d"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationStep.cs",
+      "sha256": "fa765601b7727cbbede32dfb7c4b348aa8af59ce577378323e70e5111fb78a0c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationContext.cs",
+      "sha256": "a913d0052c391597c7daf529162a9a8136c5c8a4bdb048f849ee767b47a38cfa"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPlan.cs",
+      "sha256": "d88555ad0c5f1e3878fbf43f949cf695e7767762370fddc3a3772a02358802e5"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationBattleState.cs",
+      "sha256": "6d71ba4830763ed434623e0a42b0dc76165d3bf3f6edd4439ada3b5115d64252"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationScoreBreakdown.cs",
+      "sha256": "4a06a91aec3c55f7edbf4f0ca0486ac4a569457b197166d4b3e196ca1d9cf175"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+      "sha256": "823751607f00db97b2906a40ddefc91d5802adabe3069552cb9d5e75531a457d"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationConfig.cs",
+      "sha256": "667c8d17070f772a60f38bd3cc1948cf1c3f702f5c241b621823bcdcb5e09c51"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationDiary.cs",
+      "sha256": "27efb71a5ac2d17bc436660244137c662ac242a3e2e265a78e393aa8e6f77112"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationScorer.cs",
+      "sha256": "83136c355dd45da4120006e9b5875c4f9ad22cec9ed5b4413e82630155c8663c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationFailureAnalyzer.cs",
+      "sha256": "562ba8bf425c57cf5b894591d1b168709e99274d06d22a22457026e8cc272c30"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationSuccessAnalyzer.cs",
+      "sha256": "c88fc419c826bd05c1e3d2b6fe755a709fea1ba55db80d60373854a927ac1258"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIKnownEnemyBase.cs",
+      "sha256": "9432752829983c8e53a094463fbafcbcdbd6795bb0d3b4716abac8958c21334c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationFeatureExtractor.cs",
+      "sha256": "294fb12e8c5d6f9197184fedadfb53ee48ea0f70bcd57c2eaa44d4f1904092f0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Bases.cs",
+      "sha256": "0fc9a7a8186b7b89c24e3851d7bc76327ececdf629bdeaeb5d83b8ada3b1935c"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+      "sha256": "2779e4cf1fc42c072945ba6de3533e118f5e41b03b7b297909ee8283bbcec3c8"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/MLPersistence.cs",
+      "sha256": "3116d603824dd0c2f51f37d0c0b5a66afe149b82d93d497237c04cff2f2ec436"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/MLReplayBuffer.cs",
+      "sha256": "3ff9652dcdf46e55221fc031f6836e63cae44ac3b20b217b8af00e7720129aef"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/MLTrainer.cs",
+      "sha256": "609e74ee5ce957576f29f058c71242a29ef58f9f04e53ee7b495c143885029e0"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/MLBrain.cs",
+      "sha256": "8f3fc7a8a4bdf4000d9f8d9074115090619d2b0636cf8430a49a5027248046de"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/BehaviorPredictor.cs",
+      "sha256": "78c642c235211c2f3e2cf8638db719c1506862cc27691c9004f42b23fb286e94"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/CounterStrategyEngine.cs",
+      "sha256": "eabf22b9388693a17d2dbb499a1415b0ad4f7523a2f26c96da11fb70107e7341"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/PlayerProfiler.cs",
+      "sha256": "b7052f2d066f85630cec174f73d540c0bc106237ec9263666c8ebd54fad13463"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/RealtimeAdaptation.cs",
+      "sha256": "c183f8000c129313f9b7c49d97d8d2c6df4878cd9a57205e079428b61e99faf1"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/MLIntegration.cs",
+      "sha256": "23e5acc96db5cc5329abed48d94a3209ee50fea7bb6a31e0b940534034e7f511"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/ML/MLFeatureExtractor.cs",
+      "sha256": "686312ee0ba6330c070e0b109122a3c7ee8dd343985757925bd9a5bf3df64d47"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FactionState.cs",
+      "sha256": "2d5721fd2578adba1c008c6ff4ae6f596da613fc16cb08239b17d0096628bd2d"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/Status.cs",
+      "sha256": "b61696447422e53ba4054f1426f761247e20b4e472c1e7f4250f56908c5655ae"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/UnitData.cs",
+      "sha256": "6e1ae4b9f6414acd997c759193887dd4e81da65a0efad6807c785fda0da72c14"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FacilityData.cs",
+      "sha256": "2b44d21902bfa40da1adef3366ace1aa28217ce4fca2b76f504fa40080358d23"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/UnitStaticData.cs",
+      "sha256": "87b28f78ea3163541cba40eee3abacf9773a958b02ee674beab5d050024cdf83"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/SkillData.cs",
+      "sha256": "4cc01fdf6b6ece1217401a45d90594841d3f49a3e34fba0741e83a2b87686d27"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/NationState.cs",
+      "sha256": "5ed846420a1f2df05c7c58e9624d6a8492498c657b2aa9f82284b32129ecfe18"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/SpecialAbilityData.cs",
+      "sha256": "b5080f03bdaa2a078253eb0e3f7fc76e41f2f2311933c41185d651733806f774"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FacilityData.Offensive.cs",
+      "sha256": "c48a19edb6cf9c25d9d6254633992e47dc4c0fc8b4b2b22873a7640861485327"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FacilityData.Production.cs",
+      "sha256": "bb2a9a84bb82d47217b3fb146b92ae3257b9f3ee14775d8f931f682fd8201df5"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FacilityData.Resources.cs",
+      "sha256": "5136f16178c3ba1175390201911f18a4af951ee6d5553a616d6f4813998dad82"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FacilityData.Walls.cs",
+      "sha256": "de36004624a873621875b6071bbf44d50f1a2b3f33a9b9ac4524aea1fa3ffb08"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/R1ContentCatalog.cs",
+      "sha256": "e810e6d5423c47d9a7781332af720a782309a64bb35d5baf39974a8e5418f2c8"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/UnitAuthoringCatalog.cs",
+      "sha256": "01b0dd430e4f66dcac6a7ff7e07310245a4241aebedddd86a3763b2208432ed8"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/BoardActionProfile.cs",
+      "sha256": "c6d18bbea9961dbe1c83bb6f6113e04d681bdec8d45a4e8a158cadb17fba06b3"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/GameAuthoringRules.cs",
+      "sha256": "417f9c22c28c7fd131a1732860efd05e3c1639667656026c4578bda7e8a5eb6f"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FacilityDefinitionData.cs",
+      "sha256": "39c12a98a09bcdd10fb71d22022ac6f6d159cfcacec0fd7a6f517a7a62af2b10"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FacilityAuthoringCatalog.cs",
+      "sha256": "31b3db2d73af2852b50bdc5a4ae13cfac0e2e509f956c533d0d0c2ea0e455c17"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/FacilityData.Authoring.cs",
+      "sha256": "5d1243d4f8dc01337b7d5814a5c5519ab0ba3dca59b8512fdaf199feab45cd19"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/BuildingProductionBalance.cs",
+      "sha256": "1b9d0a14ab1a7528972ed5279bf9b7173281d296ad598177337b916e14b42cd3"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/GameContentRevision.cs",
+      "sha256": "5a3dd95ee77c45cab1bbc2444666f525366b01d32ce4be0ed5df9a6500331f4c"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/StatusBalanceRefresh.cs",
+      "sha256": "5a0af6e1bd333b0faa7889faa92abb8189bd2eaa0ac5fc318ad2a8943fca1c2b"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/SpecialSkillDefinition.cs",
+      "sha256": "a0edcdc117f39baa645ee17e7991e62ce95c7bb73c2c3945446a9127c28cb3cf"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/SpecialState.cs",
+      "sha256": "c6ebb89caab0dc8eeee7e0ae004475139f822528e1f0f3783aea34eb8bd95353"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/NaturalRecoveryState.cs",
+      "sha256": "cbb8da79b5b210dc66f67579c0aed5186c8c913189b16a86488e836f512d4e81"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/SpecialState.Crossbow.cs",
+      "sha256": "47d7c5bbaad5e87d53952f0c8004e53de5462d04d2b453bb6296d2ff5a941d6e"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/SpecialSkillDefinition.Crossbow.cs",
+      "sha256": "cc6b5c2fa189df56eda11e0bb052efaf3cd3fb255e734ecab078086653dba34a"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/SpecialState.R1.cs",
+      "sha256": "87291437a2f62b211e52acfa0cf3c439d2b6c8329ad1079ea67daceca97ca4f7"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/SpecialSkillDefinition.R1.cs",
+      "sha256": "2435e3fb86a940b269d08f99ffe199a98536e96c8c10e33a7b006a41d45be84d"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/CombatAttackTags.cs",
+      "sha256": "31881f29e6440ddcb1596236275e22b5bebccd4e86603684d2d96f354d1aaefd"
+    },
+    {
+      "path": "Assets/Script/Unit&Battle/R1ProductionContentSettings.cs",
+      "sha256": "87dbc13035987fa508ff66ad3ad9741b54308b7429a733447244c7e73879d006"
+    },
+    {
+      "path": "Assets/Script/UI/UIFactory.cs",
+      "sha256": "87696d9b8f4fb60b3ae022e0c667409c20868f89134bbc90f46ed9bfdfb4a08d"
+    },
+    {
+      "path": "Assets/Script/UI/UnitSelectionHighlight.cs",
+      "sha256": "0a1c88d22270b3d9b5af54f8d74212c41868c92c76eb156ebdb0d6834cb6e2e8"
+    },
+    {
+      "path": "Assets/Script/UI/ResourceBarUI.cs",
+      "sha256": "eebf00e6b9d63f6b94f15ea3c2c7bf5f917114858eb01d2fbcdc18576d5adfce"
+    },
+    {
+      "path": "Assets/Script/UI/ToastUI.cs",
+      "sha256": "418b32e3cbaf9ac9b9629f16537f55acf75a6c886fba65dc443f7ffac20551b2"
+    },
+    {
+      "path": "Assets/Script/UI/GameManualUI.cs",
+      "sha256": "55547d692cb65c62ed40bd003b16d24b9b84b0399b868e0f0f7fe9996016ace3"
+    },
+    {
+      "path": "Assets/Script/UI/BrandGuide.cs",
+      "sha256": "36792d719f1d86f347cf1d1333d91778e7d05f5dba359b7854d9788afa1fb672"
+    },
+    {
+      "path": "Assets/Script/UI/BuildSummonUIBuilder.cs",
+      "sha256": "e3df59eff7e0da9c7b17059ee8daa20e91905f9e70e2229299230e4d16ebee47"
+    },
+    {
+      "path": "Assets/Script/UI/DamagePreviewUI.cs",
+      "sha256": "3bc2022bb977d98b2e4ebc368745fe3bc42236b3581466c1dc41ca18571c8627"
+    },
+    {
+      "path": "Assets/Script/UI/EnemyTurnBannerUI.cs",
+      "sha256": "adc1df607d9a4a2979c119f78a3fb9d426a5f27a878fa1bf7e0ff63272a6e2c4"
+    },
+    {
+      "path": "Assets/Script/UI/FloatingDamageUI.cs",
+      "sha256": "58b300cc96906c7881ec3db3854dfb63ae52bafb495c80fd9f04fb0b68653459"
+    },
+    {
+      "path": "Assets/Script/UI/SkillChoiceUI.cs",
+      "sha256": "d57970b751fe7a1c382018ab6d6bac0959ded2cef07ff8cc363a043d74bdde7f"
+    },
+    {
+      "path": "Assets/Script/UI/ToastMessageUI.cs",
+      "sha256": "70f6afb619a23b048c7b017360224b8c93d4f12569d37790d4a3444debe8ea1e"
+    },
+    {
+      "path": "Assets/Script/UI/TopBarUI.cs",
+      "sha256": "092bb98f162459ffa1d6ccec4bc365d44ad74a9e588135acaaa78fb079b9fa3f"
+    },
+    {
+      "path": "Assets/Script/UI/UnitHoverTooltipUI.cs",
+      "sha256": "885275b6472d56796b8548ab9e8ddda73cccc92bf665d772fd00424c26624767"
+    },
+    {
+      "path": "Assets/Script/UI/UnitPanelUI.cs",
+      "sha256": "994a14dec06cb26837e403eccf22ca69b6063b0300207c786b38b3b28ec45aea"
+    },
+    {
+      "path": "Assets/Script/UI/MoveUndoSystem.cs",
+      "sha256": "098427098cc38671f3a9f2e0912c87207f84625942ff7f73de57bec532f20f22"
+    },
+    {
+      "path": "Assets/Script/UI/SlidePanelUI.cs",
+      "sha256": "c28c0a9106d45fc13260ea30bd32d1bf13b596c61f4941a39c15d3d8daa3a158"
+    },
+    {
+      "path": "Assets/Script/UI/APPanelUI.cs",
+      "sha256": "ca1565d25ea4624635f2396178818bf4cdaddb447121930bddec7f04993bc00d"
+    },
+    {
+      "path": "Assets/Script/UI/ActionLogUI.cs",
+      "sha256": "6a362a41a9c41be5de33eb857a3696610fb131a65cb8ba0db0f17ca37dd1d852"
+    },
+    {
+      "path": "Assets/Script/UI/InputHintUI.cs",
+      "sha256": "5b45cf87084f936cc4d3a81e452ce3dca663f62d896095874467e704c480babd"
+    },
+    {
+      "path": "Assets/Script/UI/UIBuilder.cs",
+      "sha256": "31bfe1591e525eb02188769c3eb5421cd2cafd1621ebe3667ff0a4b3b9b676b5"
+    },
+    {
+      "path": "Assets/Script/UI/MovementPreviewUI.cs",
+      "sha256": "705eb667a0196d02d52d50deb8ebea84201955864a8f5d17d76840890437f760"
+    },
+    {
+      "path": "Assets/Script/UI/GameUITheme.cs",
+      "sha256": "996b91f8fcb93953038a58fd169ac93cb23e7d85dbb5b126b036103c5334a1dc"
+    },
+    {
+      "path": "Assets/Script/UI/ResourceValueTooltip.cs",
+      "sha256": "fde044ce62dae0abb424d90fcb874b0608d139ae9a2f5f4b696a55fa166cd0f4"
+    },
+    {
+      "path": "Assets/Script/UI/UnitHeadUI.cs",
+      "sha256": "83de12629e93c838dceedf29e7e9501fc19eea721c35516570c444e5176d144c"
+    },
+    {
+      "path": "Assets/Script/UI/BuildSummonUIBuilder.AuthoredUnits.cs",
+      "sha256": "875516c1e92e8403417fef7ac37f03272090403380acc00fdc7fe016500df82f"
+    },
+    {
+      "path": "Assets/Script/UI/BuildSummonUIBuilder.AuthoredBuildings.cs",
+      "sha256": "bddee4a88847510e414a526427bf659b2200be710c966ff968cbb623f1845868"
+    },
+    {
+      "path": "Assets/Script/UI/AIDiaryUI.cs",
+      "sha256": "32926a6d85e52fa3ce3e16a4a5cbe976d4ed723d1e8e0bcc2d20ef4abb914390"
+    },
+    {
+      "path": "Assets/Script/UI/SpecialSkillPresentation.cs",
+      "sha256": "406bf1f7158e96e0cb4d5f1f9974f04965c627661f2ad52c35381dff8ba258f8"
+    },
+    {
+      "path": "Assets/Script/UI/SpecialSkillSelectionUI.cs",
+      "sha256": "a58ebd7b256af93fc2d0c345d327f3bafaf79b3b32041f2c38d1b498a40f5cd3"
+    },
+    {
+      "path": "Assets/Script/UI/UnitPanelUI.SpecialSkills.cs",
+      "sha256": "76054060f8b1c55ebe144732c3e72c45f9d2bc2d82f56a0f2e12d51fb1c04da5"
+    },
+    {
+      "path": "Assets/Script/UI/SpecialSkillWorldView.cs",
+      "sha256": "1ea50a5a57a05dfa2a57804d9db8dbf811824c99bc9f76588cb474a893564235"
+    },
+    {
+      "path": "Assets/Script/UI/SummonUnitTooltip.cs",
+      "sha256": "c45aa625df98ad192ca56b1063c6a0581ef19b9cab86fcd0b6af0d84908535ad"
+    },
+    {
+      "path": "Assets/Script/UI/SkillTargetRangeView.cs",
+      "sha256": "c0238b4277a8b58435dfd166027d7c016f69be1866c93a5b1d9ca80e8915886d"
+    },
+    {
+      "path": "Assets/Script/UI/BoardActorAnimation.cs",
+      "sha256": "4149cbd8b360f5c6a182bbc0b75faca954905ed387782318f8332b497b388bc4"
+    },
+    {
+      "path": "Assets/Script/UI/BoardActorAnimationDriver.cs",
+      "sha256": "d065eeed7e56c4a1c920786f5e86c6e7ac8cea934e258820806dcdc4c2d138cc"
+    },
+    {
+      "path": "Assets/Script/UI/BoardVisualThemeCatalog.cs",
+      "sha256": "348b19ddad4a6c622656dbc1c2862123abe9a2d7e028f4158893f2e842aa4bc7"
+    },
+    {
+      "path": "Assets/Script/UI/BoardActorPresentation.cs",
+      "sha256": "870d96cc73641c4313640ff4374b40f13491774541615362e07d53fbf1ea3777"
+    },
+    {
+      "path": "Assets/Script/UI/BoardActorPresentationView.cs",
+      "sha256": "11371dcba9c9de6c9598914f3803d6029bbe1b10dd4330a73f3b3ba9480bc4e2"
+    },
+    {
+      "path": "Assets/Script/Common/KindNameJP.cs",
+      "sha256": "85eebffef06d5e056aed2b30cd076b940d747e5e798ff4faabee93371f0294ef"
+    },
+    {
+      "path": "Assets/Script/Common/AttackPatterns.cs",
+      "sha256": "3e9668f79721922c7a8437e20ccbe1bc3b857f1032e87831f0e48db89caeb38f"
+    },
+    {
+      "path": "Assets/Script/Common/GameContext.cs",
+      "sha256": "916a6c2f510c90bab4c84f4a8e461c941e18f83ace64680ff7701ea85338af48"
+    },
+    {
+      "path": "Assets/Script/Common/MovePatterns.cs",
+      "sha256": "f9b086bc11dff7f66b7e3b4b2e1a0f709d3a328d061e3517560bd58bf5aa2323"
+    },
+    {
+      "path": "Assets/Script/Common/GridHelper.cs",
+      "sha256": "425f4c12cdeea4a945596db2de4bff288fe8b6ec061c3b95353be4779929f4ea"
+    },
+    {
+      "path": "Assets/Script/Common/AchievementSystem.cs",
+      "sha256": "927ae87a61b5a2081e5b8e809f6731a0de0265ed1d62a28783d5552df3603d51"
+    },
+    {
+      "path": "Assets/Script/Common/MatchStats.cs",
+      "sha256": "5918dbae8bcc213831768354c038483f70c37ecbca47bee51570a30c5ea91d13"
+    },
+    {
+      "path": "Assets/Script/Common/LegacyCostConverter.cs",
+      "sha256": "89c41671afe8eb7b3dcf4552b8e95353056c03f822462ad88ee39fba842e1c56"
+    },
+    {
+      "path": "Assets/Script/Common/AIConstants.cs",
+      "sha256": "835f7636ff118efc5d966d2f3db43ba0e531d2e087a918d62b745b9cba5cdf5d"
+    },
+    {
+      "path": "Assets/Script/Common/DamageCalculator.cs",
+      "sha256": "ef4a244bf6948785df4a4de2ffc8badbd7e430240d0bc7f577cf0a029012bd9c"
+    },
+    {
+      "path": "Assets/Script/Common/ObjectPool.cs",
+      "sha256": "a17ede3a655691ff79820ed116aa1cf4255c8a2f9fb1188c232177688ac51d04"
+    },
+    {
+      "path": "Assets/Script/Common/UnitRegistry.cs",
+      "sha256": "9f876a3a3dffe020ba5e35bc6f800a36eb18baf448598bf55e0d5919bb13bad4"
+    },
+    {
+      "path": "Assets/Script/Common/GameSystems.cs",
+      "sha256": "f99f15b5216b7b8ff662e2f8374163008de9478d6c1e022cbf259eb3e7c55dfd"
+    },
+    {
+      "path": "Assets/Script/Common/CombatRegistry.cs",
+      "sha256": "7fc4dd710f43c7f93e117ef42236447fe8e7f1752e03367fdda8303a5ba052d2"
+    },
+    {
+      "path": "Assets/Script/Common/DevelopmentLog.cs",
+      "sha256": "0b56609dd3954d2b1f11003646f047fdbbeb7a4231fecd0bfe8856902203f48a"
+    },
+    {
+      "path": "Assets/Script/Common/GameConstants.cs",
+      "sha256": "80baa2053dbd816f8129cd4d0d84cb418540541c3c2942dca331cff365e229b4"
+    },
+    {
+      "path": "Assets/Script/Common/PrimitiveMaterialBinding.cs",
+      "sha256": "0891d07e7706c3c5d495de4ee573c137a668cd2cce20347a5644391ed14b9b8f"
+    },
+    {
+      "path": "Assets/Script/Common/RuntimeFrameBudget.cs",
+      "sha256": "6ea02e288bd87cbaf3c121409a8d14ffcbc5281ddea44fe69c1bad3ff2d42c5e"
+    },
+    {
+      "path": "Assets/Script/Common/FKBuildInfo.cs",
+      "sha256": "1b5900b340a71ccd37b8588a2f14b2293a81de734146b2a657e5d7208193ca7f"
+    },
+    {
+      "path": "Assets/Script/Common/IRandomSource.cs",
+      "sha256": "ab40e48c69f35b94583176ff48295a7a21dffd5ea58ddd127dcd6ac10b2d31bc"
+    },
+    {
+      "path": "Assets/Script/Common/UnitRoster.cs",
+      "sha256": "06eb0ca7d4e7b015322ebf1ba6fb2776a95c2afb21d8323055282fe28f5d7369"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/TitleScreenUI.cs",
+      "sha256": "8c18addc1d8e94bd14e94c2de66af1f8ef28645503006be0b0bbe44f8ffa2fb8"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/GameMenuUI.cs",
+      "sha256": "f748fad4ae17b687a0c79ef1a7e272850b52d4495c0d905d7b1bb865ff2bcfb5"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/SaveSystem.Restore.cs",
+      "sha256": "f3bc25c1fdaadc18a3bd537632b7b5fcf218a5d5b2c66a4de10ff6d883fb17bd"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/SaveSystem.Collect.cs",
+      "sha256": "c198cb2f70c6fa73b98d7c59abae9db825d3fab762a7fcae629985441827d81e"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/SaveSystem.DataTypes.cs",
+      "sha256": "dce74a52aa5ee28abcc2908dd9c48027acedaef7a41b758d4fb535ba35b441f6"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/SaveSystem.Migration.cs",
+      "sha256": "5a87f81f37de553f43a0841d435a226d7df712d307f1a6008bd6583f0bb011a4"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/AtomicSaveStorage.cs",
+      "sha256": "d4d210a8dab815c5c954e255a5135a78e6962a3cac6a1a29ac6480f683f80939"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/SaveSystem.cs",
+      "sha256": "72ddccfe24e4973647c338d6b8b95fa53bfa71aea69aa0a8bf3542841fc489cf"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/SaveCheckpoint.cs",
+      "sha256": "5a9cafc4cd43399b812dfd69b80ae398d2a13d7eafec0b45980d6a29d120107f"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/SaveSystem.Validation.cs",
+      "sha256": "58fa4bc2deb45aed15f6f2663561538b691d2cc0e4557cea1610071a265767e6"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/StableSaveKeys.cs",
+      "sha256": "25a083861f37c465b3e9d63c511d5c411c9df413e4b7078eee6dfe10494003bc"
+    },
+    {
+      "path": "Assets/Script/SaveLoad/SaveSystem.MatchProgression.cs",
+      "sha256": "edf06925a5c9df4a533fff61cadb103d644f6f10042d83422d76e055833765f8"
+    },
+    {
+      "path": "Assets/Script/Initialization/MapInitializer.cs",
+      "sha256": "f4359705b6b97e4560b5f7c30a51318d50baa5b2d9f55a48eac9804efa926222"
+    },
+    {
+      "path": "Assets/Script/Initialization/EconomyInitializer.cs",
+      "sha256": "df16b338501187d166b6a3abcbda81e253146be5c7695e04056d51dbe1d2b959"
+    },
+    {
+      "path": "Assets/Script/Initialization/SaveGameApplier.cs",
+      "sha256": "584f3c16a8640e606f1fd386620ee87813164901c0fbf570d191948ae57f9799"
+    },
+    {
+      "path": "Assets/Script/Initialization/UIInitializer.cs",
+      "sha256": "190948f4ea4e3a04eef074fa07584296037638caa832020fd805f0e653534eec"
+    },
+    {
+      "path": "Assets/Script/Initialization/SystemInitializer.cs",
+      "sha256": "302cff383bd95e0ce64062f192d184e11d7daeeb3d32051a42f80a492c60fdea"
+    },
+    {
+      "path": "Assets/Script/Tests/CoreLogicTests.cs",
+      "sha256": "1cacacc9134a7c9b7324be83260ecb956cfc9cfda988c1041e40f473c594896c"
+    },
+    {
+      "path": "Assets/Script/Tests/ReflectionBalanceCoreTests.cs",
+      "sha256": "4e88336180598ae9fb1b27d407396bf7bca95485007cd5d6d37d726cb4725432"
+    },
+    {
+      "path": "Assets/Script/Tests/AIReflectionCoreTests.cs",
+      "sha256": "e2d933a87c5d6790e12ae3dd55383410161d7edaa20a6049b680104598c1d7d9"
+    },
+    {
+      "path": "Assets/Script/Tests/ExplorationR2CoreTests.cs",
+      "sha256": "73f6aa5a63ff942a4a8b4c733d6f988bc55080f9526235f5d87df68846c5a5fc"
+    },
+    {
+      "path": "Assets/Script/Tests/ExplorationR2BoundaryTests.cs",
+      "sha256": "f48075ef551abef61691cf2f05eb50d5bb94fe5a4ecc670cd533feeef9e4e645"
+    },
+    {
+      "path": "Assets/Script/Tests/AIReflectionIntegratedTests.cs",
+      "sha256": "0f780a2acfc35b0b3b69cff51dc9f8f458cace48bc31696061e06af44113350d"
+    },
+    {
+      "path": "Assets/Script/Tests/AIOperationCoreTests.cs",
+      "sha256": "e1d3bc076bcb042ade2376deb9042b71ddaa3ab58e66e8c484ea8c86d7dcda94"
+    },
+    {
+      "path": "Assets/Script/Tests/AILongSessionCoreTests.cs",
+      "sha256": "a7fba6915d2663e440f99e59aea1f77f0ae53d8dec14ea9437c1ce7cd3b8369a"
+    },
+    {
+      "path": "Assets/Script/Tests/FailedBuildingPrefab.cs",
+      "sha256": "5f304feed78e0989db9cbd14130d1e5f5bbc79385508cf5639f5c818ca81a6fb"
+    },
+    {
+      "path": "Assets/Editor/NotoSansJPFontCreator.cs",
+      "sha256": "173e795b3aba8aa9cfcb574f95943ce926f371d8be2dd66f7f6eec038e0aa8bb"
+    },
+    {
+      "path": "Assets/Editor/R1ContentEditor.cs",
+      "sha256": "632af91429b5cd6dfa737d13e8d4e4468f2edfef1b4847f6bba1ceb8df626a41"
+    },
+    {
+      "path": "Assets/Editor/TerrainPrefabEditor.cs",
+      "sha256": "30f6fde5c2aede273044ef4b385b9512e2f73729054f61b6841879540c77f691"
+    },
+    {
+      "path": "Assets/Editor/MarbleImageShaderGUI.cs",
+      "sha256": "65eeb2167c5791fc93330bc04e07532a17646b8ce6e5f93a5c5b0d35fe8288aa"
+    },
+    {
+      "path": "Assets/Editor/TerrainImageMaterialsEditor.cs",
+      "sha256": "322e3d52207b8db50fe052db6c6fa2ad1bef968f9fb89e2b05b6954cb4f3535d"
+    },
+    {
+      "path": "Assets/Editor/GameUIThemeEditor.cs",
+      "sha256": "bed7ba97b5581c68ffd61b73e3157f0c20444701e676456ffee0d31d7fbf4f53"
+    },
+    {
+      "path": "Assets/Editor/TerrainVariantsEditor.cs",
+      "sha256": "9cdeb2ffbda17a45600a74cd843de3e91dee627cd8a2b6ceeb5df602cd0a0732"
+    },
+    {
+      "path": "Assets/Editor/CrystalPrefabEditor.cs",
+      "sha256": "7597676d2f908332953e0a078cbfe38cb7db64220c8417ed643775f704236119"
+    },
+    {
+      "path": "Assets/Editor/UnitWorkshopWindow.cs",
+      "sha256": "478639e15fbb5ba1fa408c961b59d7c193908557c913ee503c0e567695814457"
+    },
+    {
+      "path": "Assets/Editor/ProjectGuideWindow.cs",
+      "sha256": "c0aa0969e9ad4b3b32b3d32e2c93763945264919f979b98c2c972d544a2485de"
+    },
+    {
+      "path": "Assets/Editor/ThirdFactionDirectorWindow.cs",
+      "sha256": "39d30921d719b84bf65ffbf4dca874dfcc3dd2f989838c6f0b992bd4e8b952f7"
+    },
+    {
+      "path": "Assets/Editor/DevelopmentStudioTiles.cs",
+      "sha256": "00a8ef47ae410c63c655ddf51787cc62fa2e529d8cddfc0260bfd72c28b10ab1"
+    },
+    {
+      "path": "Assets/Editor/GameDevelopmentStudioWindow.cs",
+      "sha256": "82ccfc410287ac68ebe95b321f5c9b7511e22b8bd4938679f76da569ebeee0e6"
+    },
+    {
+      "path": "Assets/Editor/GameDevelopmentStudioWindow.Data.cs",
+      "sha256": "9098594c9d9842a9cb966ab82f663a237bb3a96cbb63e4a4ee61022cf8bccc9e"
+    },
+    {
+      "path": "Assets/Editor/GameDevelopmentStudioWindow.Fields.cs",
+      "sha256": "23b5a82f6bf48a016ef4e0e1be5ad1736decf491b335a2d5f05ebfcd9cf36627"
+    },
+    {
+      "path": "Assets/Editor/GameDevelopmentStudioWindow.RulesThird.cs",
+      "sha256": "77717951de90a5abc42b5f7d44986b6707fbed9c171ad1e6f09ac453ce774fc0"
+    },
+    {
+      "path": "Assets/Editor/GameDevelopmentStudioWindow.Balance.cs",
+      "sha256": "3ab8adcf04ca09796d450a36668527d0be89d2d307ed4df953c8ffde40acaabd"
+    },
+    {
+      "path": "Assets/Editor/AIReflectionConfigEditor.cs",
+      "sha256": "db74536ea176548d55993a4ebafc4366a41836896035f3bb38ea693e417430c3"
+    },
+    {
+      "path": "Assets/Editor/ExplorationAISettingsEditor.cs",
+      "sha256": "9c18b06462fc29ba25a5d25aa42ca2aa43a74b22d8785b37e50abfdf33c06f95"
+    },
+    {
+      "path": "Assets/Editor/AIExplorationDecisionWindow.cs",
+      "sha256": "18a4fbbd907ae9e686908069799d8b45a34cd06880e7359736a93b98876b9710"
+    },
+    {
+      "path": "Assets/Editor/AIOperationConfigEditor.cs",
+      "sha256": "719bfad2524f0ae9da56dbffb5c37a41f451ab424d4954150aa1839c4478b329"
+    },
+    {
+      "path": "Assets/Editor/AIPerformanceConfigEditor.cs",
+      "sha256": "705a7f0da4c515954ba75752d8dd1ff351128cf2f1e86a7568a8f89afc334d78"
+    },
+    {
+      "path": "Assets/Editor/LongTermContentValidation.cs",
+      "sha256": "3217cc3decaa8702b634f8f3ad2860a6e2eae9131d13e569c6fe67870594f467"
+    },
+    {
+      "path": "Assets/Editor/FKBuildMetadata.cs",
+      "sha256": "430793106452c03aff928be266e62f1a01caea8d40ec69252ac6ff5135941216"
+    },
+    {
+      "path": "Assets/Editor/AIHousingConfigEditor.cs",
+      "sha256": "54792ec6f91784b186855d4d6f177bb249d3932d596ee71ff54fd0cc5e90dcab"
+    },
+    {
+      "path": "Assets/Editor/StudioArchiveData.cs",
+      "sha256": "38549751af89172ad8184633536b34ca87a2afbe5bb1c9d53a930d7d8d3fcb80"
+    },
+    {
+      "path": "Assets/Editor/StudioDeletion.cs",
+      "sha256": "d948259ff843dece5a694bc95ce4ca378f1c753f5f2f67b141f8e0846f149bac"
+    },
+    {
+      "path": "Assets/Editor/GameDevelopmentStudioWindow.Deletion.cs",
+      "sha256": "250765a5a1eafc9509c8d3d8b6c9b2bb1ddc2f1970d4d7194e43693955947616"
+    },
+    {
+      "path": "Assets/Editor/BuildingVisualGenerator.cs",
+      "sha256": "4be863efc86ae4caf0640e8d7df7ca74b6b9ca00867119d5ca46903f339dff83"
+    },
+    {
+      "path": "Assets/Editor/BuildingVisualGenerator.Designs.cs",
+      "sha256": "632f938db5f07826893c28f84f16163463cf2a53bfe2ff9acead37e3991c8a2f"
+    },
+    {
+      "path": "Assets/Editor/GameDevelopmentStudioWindow.SpecialSkills.cs",
+      "sha256": "9aae71526d72427a857e6f3f821e082db83d54d826738aa6cefa4ec5ed9bffda"
+    },
+    {
+      "path": "Assets/Editor/SpecialSkillAuthoringDefaults.cs",
+      "sha256": "6db3768da63699e840c68c3dbadcc85f7ab73e5578022c81a5c5ec2d539b9d97"
+    },
+    {
+      "path": "Assets/Editor/TerrainEnvironmentEditor.cs",
+      "sha256": "9c640e89a4ed17e96f8ed976a2585ee0be66ba0e399920f15c00720c553f13b1"
+    },
+    {
+      "path": "Assets/Editor/R1ProductionContentInstaller.cs",
+      "sha256": "3511d0c3ef31d3bdb71dd4f7a67a1ffefbc6a9766247de426ff6ca206df56017"
+    },
+    {
+      "path": "Assets/Editor/R1UnitVisualInstaller.cs",
+      "sha256": "374a5b0d4d517a9ab62a77976a704621f5752c32288c849d031d109cd10a0756"
+    },
+    {
+      "path": "Assets/Editor/R1UnitVisualInstaller.Meshes.cs",
+      "sha256": "1aa14535da3981fe4e5f19f0ab90cb140d5915062fb5ffa40986ff26837cd857"
+    },
+    {
+      "path": "Assets/Editor/BuildingVisualGenerator.Kingdom.cs",
+      "sha256": "613c59486b5312df38d2fb794b999ccb02d25169b40777eabeba3c1426192e3a"
+    },
+    {
+      "path": "Assets/Editor/DarkEnemyVisualInstaller.cs",
+      "sha256": "46bf5ebc24b8ca38aae441f1645117c3017eaa11671807d541202517b180b923"
+    },
+    {
+      "path": "Assets/Editor/DarkEnemyVisualInstaller.Meshes.cs",
+      "sha256": "f1440166889bc206e6069747c7a905ffa43af20c136935c73bda557b567543ef"
+    },
+    {
+      "path": "Assets/Editor/BoardVisualThemeInstaller.cs",
+      "sha256": "240097b59778f81fa2bb6e29e28c94409a79039ff2bf26bf8975ba4e349d14d5"
+    },
+    {
+      "path": "Assets/Editor/BoardVisualThemeInstaller.Review.cs",
+      "sha256": "7d009a485f4a0674002d2fbcb9e8ace03c55143c0aacf0c79de80fddd89e4ff6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/BlackObsidian.mat",
+      "sha256": "14b8f7d8f63eddadf2313f4c7820c7ca5fcddaf4d45c4e9dd669802fcbd7b2bc"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/BlackPalette.png",
+      "sha256": "eda8ecd37ce86026a3b0c8c0dee50278c17ff50e3672a66f1f0b6c029ab41c55"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/CrimsonObsidian.mat",
+      "sha256": "91e01dc719d63e400646f9af9a27d8d68751fbbad98c9970b275886b26f07eb5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/CrimsonPalette.png",
+      "sha256": "4d4e997e4930c80c848e1b39c475d07d171ae23286a7321975e2f458de95fa71"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Sources/Koi.json",
+      "sha256": "32c903e104595e435ceb65a2c233380d13fe8d963bec9d2ce025f08ffd6426c5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Sources/Ram.json",
+      "sha256": "d2c199da49277e378315e38915d1b1568431453ef177ff838baeed61aae2be82"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Sources/Crab.json",
+      "sha256": "17dc6b0423311e0ae5e218bfa1088d560668fc1b0e979883f29a149fd64a14e3"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Sources/Hound.json",
+      "sha256": "c64be972c6b5c516295e14a5a3979122def21a3812e92f32a93b5cfd0824ba03"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_Dragon.asset",
+      "sha256": "8a3af50df44d0051b6e6bc9742ce4c9901499c7c5ec894f7fbfcae3a446314cf"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_GhostKing.asset",
+      "sha256": "034a573803b297b6127af4db73eb42c6d08e3c0225f34fc0e97d62d307701d6d"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_RebelKnight.asset",
+      "sha256": "ebfc2e6ce6788f9ba8b83647939dc3848481f2ac42fe4d2ce3664b257bf9c620"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_ThunderMagus.asset",
+      "sha256": "800867d26691f7b95089bc599d8923d4533fbf632f7708dbe175b2ac08a2680e"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Archer.asset",
+      "sha256": "7c34d5c257bfb711c142c90fa684b0cebed97b5be60d7d81b0bab404a0ede0f4"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Assassin.asset",
+      "sha256": "068e4fc98af5c5cc98ffeafe5d0a058940d3feda4eadb6a6b719595fc739f319"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Berserker.asset",
+      "sha256": "98657f6e5331e4433b095b989e89007a8b35b8ced662255d1c93a31130b9410d"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Bomber.asset",
+      "sha256": "fd34d6134b2451b16ede39c0c3babbedd22692fc6938f700be16866e3067b24a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Crossbow.asset",
+      "sha256": "86ef805e69dbd324e19ddfce5ce579fb360dfbdedd2b389e114930c555abcfa2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Guardian.asset",
+      "sha256": "a4bd33376a82e39acfef29dc7f7d2c025703eed500291c5a27108087b85abed3"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_HolyKnight.asset",
+      "sha256": "0c3609714eaee8a9b7625c54a3977d51c5927a52b2644888f5af6b7c895a817a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_King.asset",
+      "sha256": "6ccc8fa0ceffee212df0590bf8728c8293d4cc74ac230416e5276192e435bb49"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Knight.asset",
+      "sha256": "a3da96a2603023532857030f285e5bd672974da999992442c03980444a9117ba"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Magic.asset",
+      "sha256": "040d32040de68e0b6eaef622bd7a6698a6f8910b576f305e8c8df02a7973fdc0"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Magicsniper.asset",
+      "sha256": "ef4c2f66dcac1a016fbd613207db27f9421be1ada3f658bfb2060459c7442955"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Navigator.asset",
+      "sha256": "0453e24c5f03753c2a0ae934fc44d52b88a1360ad54bdf54538267381a5844e2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Ninja.asset",
+      "sha256": "cc660dfcebc14df6f054dd2d0b67c8541ac321a108eb9e2ccbd555b05a24d2d7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Priest.asset",
+      "sha256": "f3c1a5f6742c84c4ca92efd6dfd759f3df60d41a9f6399138c00a58d2bbb13ca"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Samurai.asset",
+      "sha256": "04483a7f4530bbddcfb83219c4ded6b9cad5700841e9fe57d91da372552444f4"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Scout.asset",
+      "sha256": "6936cc91cbb66c3aafbafd0188c6b79c483e9f5c6b6793718de07c3f22ad1e71"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_WhiteMage.asset",
+      "sha256": "d3f5764054700119fdd432bbec4fe08e1535942d1e62827f781a716b4327c3b1"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Boss_Dragon.prefab",
+      "sha256": "0d38363ff607b1452fc2f19ed65999b6f5ec3da4f8c6544cfacb4b99bfecc5e8"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Boss_GhostKing.prefab",
+      "sha256": "60258a8bc31173be78c9453be6aabcc1d893b1419c23c03c43b36bb3eda423ce"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Boss_RebelKnight.prefab",
+      "sha256": "927ff17fa9abd107e236ee7e24841f43de0259e4f27ba1ee5c7271926664f5ca"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Boss_ThunderMagus.prefab",
+      "sha256": "df96374dab6baf6a2f968f351bcee4ae414ad15eb662a8149af91980007cae74"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Archer.prefab",
+      "sha256": "b2a2762b0b4a28001076e4477721960ef45094937f51fc7adc02f16d895ef9f4"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Assassin.prefab",
+      "sha256": "3ee141d417650f80c32798cfac908fbb8f112341a6d577b5a5a07202e7cacf28"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Berserker.prefab",
+      "sha256": "a7fbeca9c124c7599baf31dd2105a96db34ef6f1d42576fe46a1bbc232c3df60"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Bomber.prefab",
+      "sha256": "2961e65f01c58df35c36ca828e5f759b82e5fac67b8c12f9971288d3951a2386"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Crossbow.prefab",
+      "sha256": "fe8c8cafaf00c000f32160e0275f4360e429fcba884bd4205ce4405e099b8e2e"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Guardian.prefab",
+      "sha256": "6e1d5b80f112ff554336ce864a6b511cdfb5c5efebd885e96ec65121c040a0bc"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_HolyKnight.prefab",
+      "sha256": "a8462eb2f75426680c7f18bfe023e9af62b765f470f03dd626bc921e75cdb4df"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_King.prefab",
+      "sha256": "9e438d465cc75bed1189f925e0065d4e1f76ef91349e388e368005cfce08d50e"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Knight.prefab",
+      "sha256": "0e1fe915a1e200281a0dd8563a596af97248eac2efe8c7cbc84771d0471ac1a7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Magic.prefab",
+      "sha256": "9892e0477cd163c73a714415399a143366ff009c47b47be6930d00cc93385e31"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Magicsniper.prefab",
+      "sha256": "314876723bfeb7ed8b601d47e99e892401665ec42af53dc341d27d25bf3ef154"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Navigator.prefab",
+      "sha256": "a33fb40452f55f87ead8f58a406eb65832c216977d300abc8dda4581bd8cdd99"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Ninja.prefab",
+      "sha256": "45777e082040ea0bd747eb120cdafebf32a3b40f043d7aecadf1d6675322f60c"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Priest.prefab",
+      "sha256": "61005785d6b7ad9e3febdebf7742f6089f7b0e4531cca23f72db525fc26a1f70"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Samurai.prefab",
+      "sha256": "7a2c61bb85ed94f5a247df62f1688ae4d5b67f79612e2cd6f857075657746683"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_Scout.prefab",
+      "sha256": "22b0afc8870c8c3ac83b44bb42e09add2ab3f67aede9701a930d83dac66c9ac6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Prefabs/Enemy_WhiteMage.prefab",
+      "sha256": "7213ca682f59b65e1b7422e83f4844d998134dacddf134266ba8f0b53a7acfb7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Review/BossAberrations.png",
+      "sha256": "87d517a31111161b23daab2a5952bcc991b28f49f9257c6de6714fa55014c02d"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/DarkEnemyVisuals/Review/EnemyAberrations.png",
+      "sha256": "62e93d8cbd05d16cf4928c10b3eae1fde8aa6dd4a1f030779c27781e836994ee"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Bakery.prefab",
+      "sha256": "39c4536932abbadfac9f8d0b5840c87acd3ecf5c7e4ed6f2230032d40cc6a079"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Barracks.prefab",
+      "sha256": "a2bf2aa48a6f42ce561b62d6d1870d4989c8378d2d2994e83beb9f262777863b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Cannon.prefab",
+      "sha256": "a0becd186ca9cf9baca98e1a26a828d90f168feeb53f266ff2ab6365559973e0"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Field.prefab",
+      "sha256": "f0478508bbc403a8558bc5e67815d66f89520e23d9ba2046057d18416c794521"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_HeroSword.prefab",
+      "sha256": "a6279e89cefa4e225d56dfa8adce2aceac76b230e08dfd85f703f8ab6a21197f"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_House.prefab",
+      "sha256": "f8081c58eb71a1232a4f20b843b6d86d67782dec01b6b0eee49c051a9e139df0"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_LoggingCamp.prefab",
+      "sha256": "ff6bd1ae96c6ddc5cba268908c908d29004e356232fb4352762fe13e7b08289e"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_LuxuryHouse.prefab",
+      "sha256": "267b7a93fe4a8867906cf5b87157483d65a6502a6c7f8ea5784cd62de4f6f4e0"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Mine.prefab",
+      "sha256": "83f910884e9ebb4b0ccd1a7494ab331cce8dcec10e595ce3f99adabe7256a3e6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Mortar.prefab",
+      "sha256": "6e620a46e27380f756a3526933af452bc8080227ef692076071c0acf514fa951"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Quarry.prefab",
+      "sha256": "3206df79d66cd1a9dc675cbe8438a8f6c4b00c0a6ceac1663d035848a61026c3"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_RestraintTrap.prefab",
+      "sha256": "ab6bfcec8c77888d1174e70bcf7692e9501a40fb1b041477a66ae4cdfcaf023a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_SpikeTrap.prefab",
+      "sha256": "143fcebe51cc5c7fac4877822143f1886608a286f3a04d6306f67c77d3cc4acc"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_StoneWall.prefab",
+      "sha256": "7c20fabf0945d52e9ce37e0b0de92fb6f0b4dcd6b23929dcb6666d28b9aa9029"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_SubCrystal.prefab",
+      "sha256": "4a1899c73587476994232086441759531c4d9cdf94fd442287d8894f20ef777b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Warehouse.prefab",
+      "sha256": "4d72a64f4f2dea05c527fa4c6d97c14b1262b8a634910f01de78327be5aaf891"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_Well.prefab",
+      "sha256": "06ec41b30d11827df1f4de89a8ab0e905802c4d3fbda8abf1ceb137828c86214"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerBuilding_WoodWall.prefab",
+      "sha256": "a44ab8e16d753f6f5376508e4f84bb72dcfb3f63fdd603ce97e9cb5b75821a73"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Archer.prefab",
+      "sha256": "c7b633a7d8930b58782337dfa1077cd38d29b1e8c64d9bff8d727f15c440f597"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Assassin.prefab",
+      "sha256": "ae7264b5f8ca372e6e4e9dada434293ad50c0bb3b78e284d9165fea444492049"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Berserker.prefab",
+      "sha256": "14ed2723e0421a5e73977242d54e72d08cc6a981ca41652b0bc192dacde6d94a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Bomber.prefab",
+      "sha256": "985bb5ad059a1a935772fb559faac1ec0dd78d02c2c5ba983ed9554e7f2207dc"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Crossbow.prefab",
+      "sha256": "221f6388572bf50e42b8a2a4e478a5cddeeb6519ac0b9fdb4da48d244f184834"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Guardian.prefab",
+      "sha256": "05d459b827d30306d4d839c11e70d3f4a3c746a8752fb3b4d194db4ba10d4242"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_HolyKnight.prefab",
+      "sha256": "abe2ad984ebe4ad04dacf0740a260d7b398dbeaf23c35344940691dbb648027b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Knight.prefab",
+      "sha256": "be4fe52f789886edc946a42f37dde4987c266fe9d6c23b8cb613057db9dd46f9"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Magic.prefab",
+      "sha256": "8ecc319d3eaee404a86a56124c2863b6b1a639a9368d4c56b66464a459b99795"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Magicsniper.prefab",
+      "sha256": "8dca44c65bf1744dbede1f7f4d4070ebd34ee8fceadd729e6c1de9eeddc46d5c"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Navigator.prefab",
+      "sha256": "0027290b75093023ab31fb52bb76636a818dc39d2f67e6db72f5e587bb79fb82"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Ninja.prefab",
+      "sha256": "8b3c6a2851e3550540cd2e0b7f5d1c5cc1ccb0ff1f084206075613be497c0db4"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Priest.prefab",
+      "sha256": "64e416eda3ed3c2a8cbb263ec116966580ec55ceaddc6958cbb201eab045c201"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Samurai.prefab",
+      "sha256": "61e30efc7e432460fe4b59c0416b9fa34944ba84b667cdc0dc13f8fa666095fd"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_Scout.prefab",
+      "sha256": "afbd6e11f8481c120f4bc30e6ccf10498b9780b4c251045ecf3461d60d1a8161"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Prefabs/PlayerUnit_WhiteMage.prefab",
+      "sha256": "fd445e19b5f0f1e1af857a1449b9b2c853411794c8751ae97a69c0548bf818ff"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Review/CrimsonBosses.png",
+      "sha256": "c46cc5f30440f8844e8019bf60f31603b22798cccf8a94c17b7a7d0bd0c971ae"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Review/EnemyBlackUnits.png",
+      "sha256": "34d73f288472a8c6c2be445f9253f41644ffb940b0e352742c4892e26ff42d2a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Review/FactionBuildings.png",
+      "sha256": "932560da2099f65aebb0d82dde343817f7f39a3c767d81572b7e421e70e24db6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/BoardVisualTheme/Review/PlayerWhiteUnits.png",
+      "sha256": "c72d431c94c68740cd5ce0187f4934f27cf515c7808671f07be2d781069ce115"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/EnvironmentPalette.mat",
+      "sha256": "9145065a814349ef98822d2d4e2695b4c07d936b2361080aa502cad636ea8607"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/EnvironmentPalette.png",
+      "sha256": "84e8729f111dca7e17bf2792f97ba8a07847bdd0d097741229d97ea73f09fa7a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/EnvironmentProductionSettings.asset",
+      "sha256": "585bd8a5428310a46a135c13656469c5caeb8620eda2f61fd5b8d873f630a364"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Editor/TerrainEnvironmentProductionSettings.cs",
+      "sha256": "43e2bdf248c3b47d969765475e103cfb49845346037dbf3b3e63f505a8294211"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Editor/TerrainEnvironmentProductionInstaller.cs",
+      "sha256": "42e6de332f6faa1720e0825956ed3cfab7b6c56253f2a8b75008c0fdc1a769ee"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Editor/TerrainEnvironmentProductionInstaller.Meshes.cs",
+      "sha256": "f8c5bc17e24a57d5c4c29e0cb80d40b5b25b9d5078c707c21db87b7e74acbcda"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Editor/TerrainEnvironmentProductionInstaller.Nature.cs",
+      "sha256": "8e1609f660584d9d84c5956c532c5ea0c0e0d3d57225a3639c6a56fddd5eae33"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/Bush.asset",
+      "sha256": "948d0831db6633195615c26f52d2b50b600ad5558de4da3742da19b8142da767"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/Cave.asset",
+      "sha256": "18b8ea0db841e7d9717dcc1d1ef3d066994e7fb0fa135ac5b1e3f89ce939e1f3"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/Forest.asset",
+      "sha256": "179b444a13c4bb932fb9273396e74e2e43fcf9126fa7622319f71ac5c81ff040"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/Geyser.asset",
+      "sha256": "d744948aef8f77e4f67c31ee9f0eed506e4a345ed6af004633685be3ca6d280a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/HealingSpring.asset",
+      "sha256": "80468c35f4d3d669073e477c2a2bf7243cd3548f84cdafa65c39c5e5a9e70af3"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/Mud.asset",
+      "sha256": "97ebdd7f93964d87bb367d32caa0ad87e65d6f3f33990d4639154557604a50d5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/PoisonSwamp.asset",
+      "sha256": "9134a3bef5d742813faf9a1684e3ab04195ed77ecf30658c82eaa9ccb77b7dc5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/Road.asset",
+      "sha256": "c07ccb0853e484d7f1610459c394a070940648f669cb52a527405c1e526c6610"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/Rock.asset",
+      "sha256": "597c249ac218016216c2ee3cb6fb86f95e94cacb28690c3566ee3c660c647d52"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Meshes/Smoke.asset",
+      "sha256": "39c956c39a00a04206b844a66587d80d8e3f5c6490704a6b0fa37ee4bd8e68af"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/Bush.prefab",
+      "sha256": "5bffbb6f0b5c44252753d1c31a57fb78f0e90afedbf2879317a9d4c6b15446b2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/Cave.prefab",
+      "sha256": "1968a1943bcc07e7ab305e61e34d14b61d0ec8816d5bc58d3d91d04116f88949"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/Forest.prefab",
+      "sha256": "fbb00d13e80be4316048fde1c780cbd72721d0415294994d2cc2a682e722640b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/Geyser.prefab",
+      "sha256": "621ebf5acb1e46dc8a6c5a74ad330e1f63154c484c8c7604ad62a962233e0dd6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/HealingSpring.prefab",
+      "sha256": "df71b1504ee89d652d7b561e6094ceeb2ceca4314d9f071a41a896a3d9e290c4"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/Mud.prefab",
+      "sha256": "2b2932b6a15648bfada6d5979b5ec943b01b29000f8e5dad1e01879305c8c0d3"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/PoisonSwamp.prefab",
+      "sha256": "925be63a7638dbd2a8fb486a045c3c6fc9a8cfc26e076f7d1cf27817756a8bca"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/Road.prefab",
+      "sha256": "041cf0512fe0f75182abe1604c6fe21f3c46f51e725bbee928a389bb93cbade7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/Rock.prefab",
+      "sha256": "ddbec3178f29b06a63f52c3080d179bf3e7b7f38b104a575ce6cb9ab320b26e2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Prefabs/Smoke.prefab",
+      "sha256": "268318c1c88d3cab1398cf428adb025c8a3a97076f3517cb9f23810c503aaba1"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/EnvironmentVisuals/Review/EnvironmentVisuals.png",
+      "sha256": "8df19d1bfe770a7c413dde1e62fb63cdd5f899431e30d9f50010134d2876e14e"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/BuildingPalette.mat",
+      "sha256": "711634915cd6cda750448f347d1a5feb61c64c91c9c7d8aeccfc243907973683"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/BuildingPalette.png",
+      "sha256": "5c1dcf0fcff2487218c1e8d387a81eaec72f149a1fbc1e58a6b658b4dd4a33e7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyBuildingPalette.mat",
+      "sha256": "101ddf5806e0fa395de04ad473b58052e0d614f1b64129ac13e3f6758eee9837"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyBuildingPalette.png",
+      "sha256": "4d150fc61c2448f19df6c890e8c9ed6cc7472e41a35a2d13b2eeaf17f4737072"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Bakery.asset",
+      "sha256": "873046bbeb9f75f743e5ec0d73e29b01d156f71a724b3bd698e6be3fc055fb8b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Barracks.asset",
+      "sha256": "8373dd79d19078709b257e88738aba969de1275f95b84537cde5db509c5e39cb"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Cannon.asset",
+      "sha256": "2c0058b0164d3b609e7f211b0f40c0eff2a11bd07e462c10f783d09151662699"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Field.asset",
+      "sha256": "abe06874e6f7949d01358930cceed57918b6a975c22dfabcfaa2e390c73bd2dd"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/HeroSword.asset",
+      "sha256": "e1d6811aa7c40d6d372be637ec57910e6e06c8f235b798952fc3a1af51526aa8"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/House.asset",
+      "sha256": "45138292525364d8f368b7f71b89b13e10bee53ba5023183359cd850173abf8c"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/LoggingCamp.asset",
+      "sha256": "8d088d19944c6ba6e94366367c4894efbacfc47a30ab46f52767e8774c48be44"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/LuxuryHouse.asset",
+      "sha256": "997c87365fefa1088eb4e3e7a699d8a579bb6cfd847cf3ad0def2ca8042ce6f3"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Mine.asset",
+      "sha256": "dfa5bdbe5cb1e5b77c2d8824bf52fd6d2d64786595b2c637b8d6099c9e47a185"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Mortar.asset",
+      "sha256": "3ebf1e6c3ab8e9aaef39d940576689bd2dcb93774f2b23e03f0d1345398cf6b6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Quarry.asset",
+      "sha256": "76c66837d04d30139a5e563ceb743bd24aaab77a7cbeacc125273be89262c2f7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/RestraintTrap.asset",
+      "sha256": "5ff7b9220f9358943fcac3bca093c807ff752e9bc3090da9d667884074ba56d2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/SpikeTrap.asset",
+      "sha256": "2ca4b579b631f589c307b2c57ba6e74e20721f141664a11a282a18ef873f6b3d"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/StoneWall.asset",
+      "sha256": "9c6c480ec9d9d9da6317047ed72a5e78156052f2c31932341beb24d842fb6f16"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/SubCrystal.asset",
+      "sha256": "8129143be704f6f78111db08c764889fff089b0205afa02ca19d08ba27be9e10"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Warehouse.asset",
+      "sha256": "e52f848b78283cc940a5905d4204fa60b995beae485ef3f9cbfd50e6c9618103"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/Well.asset",
+      "sha256": "2adf54db1120d15feebeb29bc811297a341683ebac7354a12f8810ae0edaf955"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Meshes/WoodWall.asset",
+      "sha256": "ba713a6c035a05ce49f07a431c2ec4f6d2ba622c197c8811a4089ca0b370e789"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Bakery.asset",
+      "sha256": "fb5a05afa799b9f8ad280f100b598bf34ce1cecd81c6677dcb199ed48cd1d67e"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Barracks.asset",
+      "sha256": "4fe2c10caf912712c2de1df3e65c568a1244d28715ff7b25e9cb5f4e5f9c0d76"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Cannon.asset",
+      "sha256": "acdbf19fbb9ccdda8e76cb7fc4b959cd7417d285962a80bcbb92b0b3bec84a55"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Field.asset",
+      "sha256": "e16666db326cb65492abdef2584c4abbc74aeeaec5fdde50581b51ef362b44c7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/HeroSword.asset",
+      "sha256": "4a689fdad8ea43e09cd5dc013ecfbe02b5edbfd9bbf1e11ccd890bee2fe56b69"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/House.asset",
+      "sha256": "06493d6416f95416c109479e653e7ddc4084f9867ba892bfe9820cf03fd601e5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/LoggingCamp.asset",
+      "sha256": "5d01823a7c5ab7f4a9582e0b8af96defce1e09589b283f8661c02082af39a151"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/LuxuryHouse.asset",
+      "sha256": "1ec63b204fdbe27e1e4cc3272951880b10bba1d8fc43fcfc3ee48d29b71dbbda"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Mine.asset",
+      "sha256": "24cc35587108d71677aca474c38399c3685dcce7cfc8b2c271bd7256c418b637"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Mortar.asset",
+      "sha256": "7acbeaf023df44fc4fcc10da62c7873d05ea3fad297cff80c08bfaad0b3f85e0"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Quarry.asset",
+      "sha256": "97d8d2c017f71245035d194022c37fb91c38619e25eb4d6665b20a6ec2921285"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/RestraintTrap.asset",
+      "sha256": "6c5d4cb9e2f4b6e94d52b21d67ad89278ff5c217b256ef9ef9c396c26ead6a87"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/SpikeTrap.asset",
+      "sha256": "02c7258b3af1b5f6270fd2c060e1f666dfdd646f8364e9ee9bc72444e217f40b"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/StoneWall.asset",
+      "sha256": "348db039d454c534ea8e42bde0e61fc15ad8438d50cd6ad35e493d29cd6e9163"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/SubCrystal.asset",
+      "sha256": "9359bf95c65298d3fbbb2b3c654458703c2e4ddcc88ae92c2323aea8d6d80d56"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Warehouse.asset",
+      "sha256": "cc1da943a077c3d4616aef6c3415b75960ddd8489bdfa5ebdb2dd6b177baf92c"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Well.asset",
+      "sha256": "3fc7450255fd49e28a4407ed4c30a0ead8f4552813966f32236dc24f6f4c0ea7"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/WoodWall.asset",
+      "sha256": "58136418515f2f6e7dd3d7fe940e581ca9d29563f0052f64d086a4ce802fb9a2"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Bakery.prefab",
+      "sha256": "04ee64edd224984cb16745d8b6055cefe3eaa21f2151402f3b94d79c4737da0a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Barracks.prefab",
+      "sha256": "7556f213d043e06ec7983d9ee11d3b9503be3038712c232fae9da69924b0bd7a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Cannon.prefab",
+      "sha256": "7acaa79a6e6132b5c68a4de9c36a08c351b41e1ed029fb6574e704e2e1411cc6"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Field.prefab",
+      "sha256": "9bf16f859cba476fc15ece92da61be9bf6daaf9cfee33154a7066dda036f4c98"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/HeroSword.prefab",
+      "sha256": "11702573bdc4c77b48fc2ff2b9502101005a9532b03d01c019f360b4018a9a62"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/House.prefab",
+      "sha256": "8239e8ffc3084032d4c77ebb7a638458f9429c1c3294003cfa76b7a1eaef1cae"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/LoggingCamp.prefab",
+      "sha256": "be07802fabe4e5e6eb88f5ddfff6f3d4fd901dc0928c13e663cff996f66de45a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/LuxuryHouse.prefab",
+      "sha256": "40f108fa94b35d99c5d4645881779fed05f3c8b41a722dfab79b8cb5f34b07ee"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Mine.prefab",
+      "sha256": "ac6307e26c6529ceeef5d774475262a1524e8b01cb51c7a506220c7d775a2e56"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Mortar.prefab",
+      "sha256": "b3abcef271e57fe11ec26db01746f6c9829dbc33066889147666e58a6c061643"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Quarry.prefab",
+      "sha256": "9860a2aa4987b8bd6127f488bee1e6046b94652f892c27e754d7a0bbfa51d12a"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/RestraintTrap.prefab",
+      "sha256": "01f07d9e2c5f30716801c5443295871e63c44584e94bb12779064ad8c4e69677"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/SpikeTrap.prefab",
+      "sha256": "af655cc5937acbb47a74f4cbe142367f641ae54bcc374fb792b6ef3257f87fc5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/StoneWall.prefab",
+      "sha256": "2b272df8bd320637c10d59abd5a86a7cf8e5bb1080521f5e88da6f0dec5903c5"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/SubCrystal.prefab",
+      "sha256": "5684c5dcbd2605c723cdf30f90e93fe4fddbd5f7e7f6cc593ab2824cf045ba39"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Warehouse.prefab",
+      "sha256": "e61da148b6f4b2c8f808925bd4c67713826b4a825639d9bbdcef213c59a99930"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/Well.prefab",
+      "sha256": "e869a807858e6463d1059659fef7a9a56677d1db9923c4d2501b6dab2066f88e"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/EnemyPrefabs/WoodWall.prefab",
+      "sha256": "52baa789494206405e70eebe6552261fef1b8f50eb2401f2bf6a102d627019bc"
+    },
+    {
+      "path": "Assets/_FantasyKingdom/Art/Buildings/Review/KingdomBuildings.png",
+      "sha256": "4fe72eb03630d804435d1b4095f45ac745653697675197ea0c361205b542750b"
+    },
+    {
+      "path": "Assets/Resources/GameContent/FacilityCatalog.asset",
+      "sha256": "3eeb3807062edec57306767dd1ca72c1cef1f6308321a130459a0a13e869f10d"
+    },
+    {
+      "path": "Assets/Resources/GameContent/Rules.asset",
+      "sha256": "d0ea5bf49c42ee55e7cedf44cb4aaebce7238591335eb2ad35c131106779ded0"
+    },
+    {
+      "path": "Assets/Resources/GameContent/UnitCatalog.asset",
+      "sha256": "8303c169429271c03cd5605317e233d46f02d81c61aa63f9b89c0a2ecb8379e6"
+    },
+    {
+      "path": "Assets/Resources/GameContent/BoardVisualTheme.asset",
+      "sha256": "88e77b1c594462665d93be9b8e02fdc2083c5ade8a78ac09cb478629598d5a22"
+    }
+  ]
+}

@@ -120,6 +120,7 @@ public class NeutralFactionSystem : MonoBehaviour
         if (stats == null) systems.UnitSetting.UnitDataMap.TryGetValue(status.kind, out stats);
         if (stats != null) { stats.ApplyToStatus(status, level); stats.InitializeAbilities(status); }
         else { status.AssignedSkillId = -1; SkillData.AssignFixedSkill(status); }
+        BoardActorPresentation.Apply(status, obj);
         return status;
     }
     Status Spawn(R1ContentCatalog.Encounter entry, Team team, int member = -1, Vector3? savedPosition = null)
@@ -214,6 +215,7 @@ public class NeutralFactionSystem : MonoBehaviour
             {
                 SaveGameApplier.ApplyStatusFields(status, unit);
                 WildBossSystem.RestoreBossStatus(status, record.Boss);
+                BoardActorPresentation.Apply(status);
                 RegisterSpawn(status, entry, record.MemberIndex, record.ReadyRound, record.ActorId);
             }
         }

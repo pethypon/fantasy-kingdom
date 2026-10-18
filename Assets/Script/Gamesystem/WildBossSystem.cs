@@ -98,8 +98,8 @@ public class WildBossSystem : MonoBehaviour
         foreach (var crystal in _thunderCrystals) if (crystal != null) Destroy(crystal);
         _ghostDecoys.Clear(); _guardKnights.Clear(); _thunderCrystals.Clear();
         RestoreBossStatus(SpawnedBoss, saved);
-        foreach (var unit in saved.Decoys) _ghostDecoys.Add(RestoreFollower(unit, "GhostDecoy"));
-        foreach (var unit in saved.Guards) _guardKnights.Add(RestoreFollower(unit, "GuardKnight"));
+        foreach (var unit in saved.Decoys) _ghostDecoys.Add(RestoreFollower(unit, "GhostDecoy", WildBossArchetype.GhostKing));
+        foreach (var unit in saved.Guards) _guardKnights.Add(RestoreFollower(unit, "GuardKnight", WildBossArchetype.RebelKnight));
         foreach (var position in saved.Thunder)
         {
             var crystal = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -123,7 +123,7 @@ public class WildBossSystem : MonoBehaviour
         boss.wildBossCurrentThreat = saved.Threat; boss.wildBossPhase2Active = saved.Phase2;
     }
 
-    Status RestoreFollower(SaveSystem.UnitSaveData saved, string label)
+    Status RestoreFollower(SaveSystem.UnitSaveData saved, string label, WildBossArchetype archetype)
     {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Capsule);
         obj.name = label; obj.transform.SetParent(BossParent);
@@ -132,6 +132,7 @@ public class WildBossSystem : MonoBehaviour
         if (System.Enum.TryParse<Kind>(saved.Kind, out var kind)) unit.kind = kind;
         SaveGameApplier.ApplyStatusFields(unit, saved);
         unit.MarkRuntimeSpawn(obj);
+        BoardActorPresentation.ApplyStrongEnemyFollower(unit, archetype, obj);
         return unit;
     }
 
@@ -359,6 +360,7 @@ public class WildBossSystem : MonoBehaviour
         obj.name = $"WildBoss_{prof.DisplayName}";
 
         SpawnedBoss = status;
+        BoardActorPresentation.Apply(status, obj);
         SpawnTerritoryTiles(pos);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss] 配置: {prof.DisplayName} at {pos} HP{prof.HP} ATK{prof.ATK} DEF{prof.DEF} AP{prof.MaxAP}"); }
     }
@@ -621,6 +623,7 @@ public class WildBossSystem : MonoBehaviour
     {
         if (mapcreate != null && target != null && !mapcreate.CanAttackAcrossTerrain(SpawnedBoss, target.transform.position)) return;
         if (target == null || !target.IsAlive) return;
+        BoardActorAnimation.NotifyAttack(SpawnedBoss, target.transform.position);
         int dmg = DamageCalculator.CalcNormal(SpawnedBoss, target);
         if (SpawnedBoss.wildBossAtkBuffTurns > 0) dmg = Mathf.RoundToInt(dmg * 1.25f);
 
@@ -654,7 +657,9 @@ public class WildBossSystem : MonoBehaviour
         }
         if (candidates.Count == 0) return;
         var picked = candidates[Random.Range(0, candidates.Count)];
+        Vector3 previous = SpawnedBoss.transform.position;
         SpawnedBoss.transform.position = picked;
+        BoardActorAnimation.NotifyMove(SpawnedBoss, previous);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/GhostKing] テレポート → {picked}"); }
     }
 
@@ -782,6 +787,7 @@ public class WildBossSystem : MonoBehaviour
         s.DEF = 0;
         s.Level = SpawnedBoss.Level;
         s.MarkRuntimeSpawn(go);
+        BoardActorPresentation.ApplyStrongEnemyFollower(s, WildBossArchetype.GhostKing, go);
         _ghostDecoys.Add(s);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/GhostKing] デコイ召喚 at {g} ATK={s.ATK}"); }
     }
@@ -814,6 +820,7 @@ public class WildBossSystem : MonoBehaviour
             s.type = Type.Unit;
             s.MaxHP = 400; s.HP = 400; s.ATK = 18; s.DEF = 18; s.Level = 10;
             s.MarkRuntimeSpawn(go);
+            BoardActorPresentation.ApplyStrongEnemyFollower(s, WildBossArchetype.RebelKnight, go);
             _guardKnights.Add(s);
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/RebelKnight] 親衛騎士召喚 at {g}"); }
         }
@@ -896,6 +903,7 @@ public class WildBossSystem : MonoBehaviour
             intruders.RemoveAt(idx);
             if (mapcreate != null && !mapcreate.CanAttackAcrossTerrain(SpawnedBoss, t.transform.position)) continue;
             int dmg = Mathf.RoundToInt(DamageCalculator.CalcNormal(SpawnedBoss, t) * 1.25f);
+            BoardActorAnimation.NotifySkill(SpawnedBoss, t.transform.position);
             t.ApplyDamage(dmg);
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/ThunderMagus] 雷直撃: {t.kind} に {dmg}"); }
             t.HandleDeathIfDead();
@@ -915,6 +923,7 @@ public class WildBossSystem : MonoBehaviour
         // Phase2: 反撃3倍（1.5×2）、通常: 1.5倍
         float mult = target.wildBossPhase2Active ? 3.0f : 1.5f;
         int reflect = Mathf.RoundToInt(receivedDamage * mult);
+        BoardActorAnimation.NotifyAttack(target, attacker.transform.position);
         attacker.ApplyDamage(reflect);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[WildBoss/RebelKnight] 反撃×{mult}: {attacker.kind} に {reflect} dmg"); }
         attacker.HandleDeathIfDead();
