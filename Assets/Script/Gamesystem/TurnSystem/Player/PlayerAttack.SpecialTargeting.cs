@@ -32,6 +32,14 @@ public partial class PlayerAttack
             foreach (var cell in specialEffect) AddRange(cell);
             AddRange(caster.transform.position);
         }
+        else if (definition.ability == UnitSpecialSkill.HeavyWarriorBreak || definition.ability == UnitSpecialSkill.DragonKnightPierce)
+        {
+            foreach (var cell in caster.VisionCell)
+                if (cell != caster.GridPosition && GridHelper.ChebyshevDistance(caster.GridPosition, cell) <= 1
+                    && Systems.MapCreate.TryGetHeight(cell.x, cell.z, out float height))
+                    AddRange(new Vector3(cell.x, height, cell.z));
+            foreach (var target in specialTargets) AddRange(target.transform.position);
+        }
         else
         {
             foreach (var cell in caster.VisionCell)

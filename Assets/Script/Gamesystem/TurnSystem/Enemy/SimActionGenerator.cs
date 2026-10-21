@@ -371,10 +371,12 @@ public static class SimActionGenerator
                 var target = board.GetUnit(action.TargetUnitId);
                 if (attacker != null && target != null)
                 {
-                    int dmg = SimBoardState.CalcDamage(attacker, target);
+                    int raw = SimBoardState.CalcDamage(attacker, target);
+                    int dmg = BarrierSystem.PreviewHpLoss(target.HP,target.UsesBarrier ? target.Barrier : 0,raw);
                     bool wouldKill = dmg >= target.HP;
 
                     score += dmg * AIConstants.QS_Attack_DmgMult;
+                    score += Mathf.Min(target.Barrier, raw) * AIConstants.QS_Attack_DmgMult;
                     if (wouldKill)
                     {
                         score += GetPieceValue(target) * 2f;
@@ -396,15 +398,18 @@ public static class SimActionGenerator
                 {
                     if (skill.Multiplier > 0)
                     {
-                        int dmg = SimBoardState.CalcSkillDamage(unit, target, skill);
+                        int raw = SimBoardState.CalcSkillDamage(unit, target, skill);
+                        int dmg = BarrierSystem.PreviewHpLoss(target.HP, target.UsesBarrier ? target.Barrier : 0, raw);
                         score += dmg * AIConstants.QS_Skill_DmgMult;
+                        score += Mathf.Min(target.Barrier, raw) * AIConstants.QS_Skill_DmgMult;
                         if (dmg >= target.HP)
                         {
                             score += GetPieceValue(target) * 1.5f;
                             if (target.Kind == Kind.Crystal) score += AIConstants.QS_Kill_Crystal;
                         }
                         // デバフ付与ボーナス
-                        if (skill.InflictDebuff != StatusEffectType.None)
+                        if (skill.InflictDebuff != StatusEffectType.None
+                            && !(target.UsesBarrier && skill.InflictDebuff == StatusEffectType.ArmorBreak))
                             score += AIConstants.QS_Skill_Debuff;
                     }
                     if (skill.FixedHeal > 0)
@@ -413,7 +418,8 @@ public static class SimActionGenerator
                         float hpRatio = target.MaxHP > 0 ? (float)target.HP / target.MaxHP : 1f;
                         score += healValue * (1f - hpRatio);
                     }
-                    if (skill.GrantBuff != BuffType.None)
+                    if (skill.GrantBuff != BuffType.None
+                        && !(skill.GrantBuff == BuffType.Defensive && (skill.BuffToSelf ? unit : target).UsesBarrier))
                         score += 8f;
                 }
                 break;

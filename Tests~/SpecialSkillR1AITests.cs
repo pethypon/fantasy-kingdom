@@ -135,10 +135,10 @@ public static class SpecialSkillR1AITests
                 assassinRule.assassinBoostStackRule=AbilityStackRule.Strongest;
                 var expendable=Own(2,9);expendable.HP=10;board.Refresh();
                 var attackCandidates=new List<AIAction>();AIActionGenerator.GenerateAttackCandidates(assassin,board,attackCandidates);
-                Check(attackCandidates.Exists(candidate=>candidate.TargetUnit==expendable),"assassin ally execution is an ordinary Attack candidate");
+                Check(!attackCandidates.Exists(candidate=>candidate.TargetUnit==expendable),"replacement assassin never generates allied execution candidates");
                 var evaluated=AIActionEvaluator.EvaluateAll(new AIPersonality(MajorPersonality.Combat,123),board,null);
                 var friendly=evaluated.Find(candidate=>candidate.Unit==assassin&&candidate.TargetUnit==expendable&&candidate.ActionType==AIActionType.Attack);
-                Check(friendly!=null&&friendly.Score<0,"isolated friendly execution is rejected by casualty and opportunity value");
+                Check(friendly==null,"replacement assassin cannot evaluate removed allied execution");
 
                 var crossbow=Own(9,8);crossbow.kind=Kind.Crossbow;crossbow.direction=Direction.N;crossbow.ATK=10;
                 var crossbowRule=Special(crossbow,UnitSpecialSkill.CrossbowStakes);crossbowRule.crossbowInitialAmmo=0;

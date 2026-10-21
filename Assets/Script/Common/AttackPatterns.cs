@@ -60,6 +60,8 @@ public static class AttackPatterns
         // BOSS: 前方3マス+左右1マス
         { Kind.Boss,        (dx, dz) => Mathf.Abs(dx) <= 1 && dz == 1 },
         { Kind.HolyKnight, (dx,dz) => NormalMap[Kind.Knight](dx,dz) },
+        { Kind.HeavyWarrior, (dx,dz) => NormalMap[Kind.Knight](dx,dz) },
+        { Kind.DragonKnight, (dx,dz) => NormalMap[Kind.Knight](dx,dz) },
         { Kind.Ninja, (dx,dz) => NormalMap[Kind.Assassin](dx,dz) },
         { Kind.Navigator, (dx,dz) => dx == 0 && dz == 1 },
     };
@@ -73,6 +75,8 @@ public static class AttackPatterns
     {
         { Kind.King,        new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
         { Kind.Knight,      new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
+        { Kind.HeavyWarrior,new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
+        { Kind.DragonKnight,new[] { new Vector2Int(-1,1), new Vector2Int(0,1), new Vector2Int(1,1) } },
         { Kind.Archer,      new[] { new Vector2Int(0,2), new Vector2Int(0,3) } },
         { Kind.Magic,       new[] { new Vector2Int(-2,0), new Vector2Int(2,0), new Vector2Int(0,2), new Vector2Int(0,-2) } },
         { Kind.Assassin,    new[] { new Vector2Int(-1,1), new Vector2Int(1,1) } },

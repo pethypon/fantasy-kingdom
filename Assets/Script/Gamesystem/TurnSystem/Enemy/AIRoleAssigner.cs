@@ -261,7 +261,7 @@ public class AIRoleAssigner
 
             case UnitRole.Striker:
                 if (action.ActionType == AIActionType.Attack) bonus += 12f;
-                if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0)
+                if (AISpecialSkillKnowledge.IsOffensiveSkill(action))
                     bonus += 10f;
                 // 高価値目標に集中
                 if (action.TargetUnit != null)

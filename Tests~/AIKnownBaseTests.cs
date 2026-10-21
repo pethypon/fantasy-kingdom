@@ -75,6 +75,7 @@ public static class AIKnownBaseTests
             target.HP = 1; target.ATK = 9999;
             board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
             Check("T21 hidden updated HP is not read " + team, known.LastKnownHpRatio == oldHp && !known.CurrentlyVisible && !known.ConfirmedDestroyed);
+            FreshBaseMovementContracts(manager, board, target, known, config, team);
             manager.EndTurn(board, 1); manager.BeginTurn(board, TurnStrategy.Balanced, 5);
             Check("T07 stale target remains known with lower confidence " + team, manager.KnownEnemyBases.Count == 1 && known.IntelConfidence < 1);
             bool scoutPattern = false; foreach (var candidate in manager.LastCandidates) if (candidate.Plan.IsBaseAssault && candidate.Plan.BaseAssaultPattern == AIBaseAssaultPattern.ScoutThenAssault) scoutPattern = true;
@@ -114,6 +115,50 @@ public static class AIKnownBaseTests
     }
     static int CountAssaults(AIOperationManager manager)
     { int count = 0; foreach (var candidate in manager.LastCandidates) if (candidate.Plan.IsBaseAssault) count++; return count; }
+
+    static void FreshBaseMovementContracts(AIOperationManager manager,AIBoardState board,Status target,
+        AIKnownEnemyBase known,AIOperationConfig config,Team team)
+    {
+        Status actor=null;
+        foreach(var unit in board.AliveEnemyUnits)if(unit!=null&&unit.IsAlive&&unit.kind==Kind.Knight){actor=unit;break;}
+        Check("fresh-memory fixture owns assault infantry "+team,actor!=null);
+        var plan=new AIOperationPlan{IsBaseAssault=true,TargetLifeId=known.StableTargetId,TargetX=known.X,TargetZ=known.Z,
+            RallyX=known.X+10,RallyZ=known.Z,Status=AIOperationStatus.Active,BaseRouteConfirmed=true,
+            BaseDefenseKnown=true,RequiredAssaultForce=1,CurrentContext=new AIOperationContext()};
+        plan.AssignedUnitLifeIds.Add(actor.ReflectionLifeId);
+        plan.Steps.Add(new AIOperationStep{Type=AIOperationStepType.Approach});
+        var movement=typeof(AIOperationManager).GetMethod("BaseMovementAim",Private);
+        Vector3 Aim()=>(Vector3)movement.Invoke(manager,new object[]{plan,actor});
+        var remembered=new Vector3(known.X,0,known.Z);var rally=new Vector3(plan.RallyX,0,plan.RallyZ);
+        int lastSeen=known.LastSeenTurn;bool defense=known.DefenseIntelKnown,destroyed=known.ConfirmedDestroyed;
+        var hiddenPosition=target.transform.position;int hiddenHP=target.HP;
+        try
+        {
+            known.DefenseIntelKnown=true;known.LastSeenTurn=manager.State.LastStartedOwnTurn;
+            Check("fresh observed base memory permits a verified active assault "+team,Aim()==remembered);
+            target.transform.position+=new Vector3(17,0,19);target.HP=0;
+            Check("hidden live base coordinates and HP cannot change remembered movement "+team,Aim()==remembered);
+            var attack=new AIAction{ActionType=AIActionType.Attack,Unit=actor,TargetUnit=target,TargetPos=target.transform.position};
+            float hiddenAttack=(float)typeof(AIOperationManager).GetMethod("BaseAttackBonus",Private)
+                .Invoke(manager,new object[]{plan,attack,board});
+            Check("remembered movement grants no hidden lethal-attack bonus "+team,hiddenAttack==0);
+            plan.TargetLifeId="unobserved_wrong_base";
+            Check("another target cannot borrow remembered base permission "+team,Aim()==rally);
+            plan.TargetLifeId=known.StableTargetId;plan.BaseRouteConfirmed=false;
+            Check("unverified route retains staging "+team,Aim()==rally);
+            plan.BaseRouteConfirmed=true;plan.RequiredAssaultForce=float.MaxValue;
+            Check("insufficient assigned force retains staging "+team,Aim()==rally);
+            plan.RequiredAssaultForce=1;known.LastSeenTurn=manager.State.LastStartedOwnTurn-Mathf.Clamp(config.BaseIntelFreshTurns,1,12)-1;
+            Check("stale remembered base retains scout preparation "+team,Aim()==rally);
+            known.LastSeenTurn=manager.State.LastStartedOwnTurn;known.ConfirmedDestroyed=true;
+            Check("confirmed destroyed base never permits a remembered advance "+team,Aim()==rally);
+        }
+        finally
+        {
+            known.LastSeenTurn=lastSeen;known.DefenseIntelKnown=defense;known.ConfirmedDestroyed=destroyed;
+            target.transform.position=hiddenPosition;target.HP=hiddenHP;
+        }
+    }
     static void FillVision(HashSet<Vector3Int> cells, MapCreate map)
     { for (int x = 0; x < map.maxX; x++) for (int z = 0; z < map.maxZ; z++) cells.Add(new Vector3Int(x, 0, z)); }
     static AIKnownEnemyBase FindBase(AIOperationManager manager, string life)

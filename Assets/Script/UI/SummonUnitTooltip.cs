@@ -38,27 +38,33 @@ public sealed class SummonUnitTooltip : MonoBehaviour, IPointerEnterHandler, IPo
     public static string Description(UnitData data)
     {
         if (data == null) return "駒のデータが未登録です。";
-        var text = new StringBuilder("<b>").Append(data.DisplayName).Append("</b>　Lv1\nHP ")
-            .Append(UnitData.CalcStat(data.baseHP, data.hpGrowth, 1)).Append("　攻撃力 ").Append(UnitData.CalcStat(data.baseATK, data.atkGrowth, 1))
-            .Append("　防御力 ").Append(UnitData.CalcStat(data.baseDEF, data.defGrowth, 1))
-            .Append("\n<b>制作費</b>　AP ").Append(data.costAP).Append("\n").Append(BuildSummonUIBuilder.FormatAuthoredUnitCost(data));
+        var prefab = data.prefab != null ? data.prefab.GetComponentInChildren<Status>(true) : null;
+        bool usesBarrier = BarrierSystem.UsesBarrier(data.kind, Type.Unit, prefab != null && prefab.isWildBoss);
+        int hp = UnitData.CalcStat(data.baseHP, data.hpGrowth, 1);
+        var text = new StringBuilder("<b>").Append(data.DisplayName).Append("</b>　Lv1\nHP ").Append(hp).Append(" / ").Append(hp);
+        if (usesBarrier)
+        {
+            int barrier = BarrierSystem.Maximum(data.baseBarrier < 0 ? BarrierSystem.Initial(data.kind) : data.baseBarrier, 1);
+            text.Append("\nバリア ").Append(barrier).Append(" / ").Append(barrier);
+        }
+        text.Append("\nATK ").Append(UnitData.CalcStat(data.baseATK, data.atkGrowth, 1));
+        text.Append("\n<b>制作費</b>　AP ").Append(data.costAP).Append("\n").Append(BuildSummonUIBuilder.FormatAuthoredUnitCost(data));
         var upkeep = data.GetUpkeep(1);
-        text.Append("\n<b>毎ターンの維持費（Lv1）</b>\n").Append(upkeep.IsEmpty ? "なし" : BuildSummonUIBuilder.FormatProductionBundle(upkeep));
-        text.Append("\n共通：HPを失わず5ターン経過後、毎ターン最大HP10%自然回復。");
+        text.Append("\n<b>維持費 / 毎ターン</b>\n").Append(upkeep.IsEmpty ? "なし" : BuildSummonUIBuilder.FormatProductionBundle(upkeep));
         if (data.specialSkill != null && data.specialSkill.ability != UnitSpecialSkill.None)
         {
-            text.Append("\n\n<b>固有スキル</b>\n").Append(data.specialSkill.IsPassive ? "なし（常時発動）" : SpecialSkillPresentation.Name(data.specialSkill) + "\n" + SpecialSkillPresentation.Description(data.specialSkill))
-                .Append("\n<b>固有アビリティ</b>\n").Append(SpecialSkillPresentation.PassiveDescription(data.specialSkill));
+            text.Append("\n<b>固有能力</b>　").Append(SpecialSkillPresentation.Name(data.specialSkill));
             return text.ToString();
         }
         int skillId = data.useAuthoredAbilities ? data.authoredSkillId : SkillData.FixedSkillIds.TryGetValue(data.kind, out int fixedId) ? fixedId : -1;
-        var prefab = data.prefab != null ? data.prefab.GetComponentInChildren<Status>(true) : null;
         var passive = data.useAuthoredAbilities ? data.authoredPassive : data.kind == Kind.Boss ? PassiveSkill.StrangeKingAura : prefab != null ? prefab.passiveskill : PassiveSkill.None;
-        text.Append("\n\n<b>通常スキル</b>\n").Append(SpecialSkillPresentation.SkillDescription(skillId));
-        text.Append("\n<b>常時能力</b>\n").Append(SpecialSkillPresentation.PassiveDescription(passive));
-        text.Append("\n<b>追加アビリティ</b>\n").Append(data.useAuthoredAbilities
-            ? SpecialSkillPresentation.AbilityDescription(data.authoredSpecialAbility) : "なし（ランダム配布は行いません）");
-        text.Append("\n<b>駒固有能力</b>\n").Append(SpecialSkillPresentation.Description(data.specialSkill));
+        if (skillId >= 0 && SkillData.Table.TryGetValue(skillId, out var skill))
+            text.Append("\n<b>スキル</b>　").Append(skill.Name);
+        if (passive != PassiveSkill.None)
+            text.Append("\n<b>常時能力</b>　").Append(SpecialSkillPresentation.PassiveDescription(passive).Split('：')[0]);
+        if (data.useAuthoredAbilities && data.authoredSpecialAbility != SpecialAbility.None
+            && SpecialAbilityData.Table.TryGetValue(data.authoredSpecialAbility, out var ability))
+            text.Append("\n<b>追加能力</b>　").Append(ability.NameJP);
         return text.ToString();
     }
 }
@@ -105,7 +111,7 @@ public sealed class SummonTooltipView : MonoBehaviour
         var root = (RectTransform)ownerCanvas.transform; var popup = (RectTransform)transform;
         lastCanvasSize = root.rect.size; lastRenderMode = ownerCanvas.renderMode;
         label.enableAutoSizing = false; label.fontSize = 20;
-        float width = Mathf.Min(600, root.rect.width - 32);
+        float width = Mathf.Min(460, root.rect.width - 32);
         float height = Mathf.Clamp(label.GetPreferredValues(label.text, width - 36, 0).y + 28, 100, Mathf.Max(100, root.rect.height - 32));
         popup.sizeDelta = new Vector2(width, height);
         label.enableAutoSizing = true; label.fontSizeMin = 15; label.fontSizeMax = 20;

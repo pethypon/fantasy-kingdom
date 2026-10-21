@@ -13,6 +13,8 @@ public static partial class SaveSystem
     public struct MatchProgression
     {
         public int PreviousThreatLevel, ThreatLevel;
+        // DeveloperTest is retained as compatibility metadata: autoplay use does
+        // not disqualify a completed match from progression.
         public bool Recorded, AlreadyRecorded, DeveloperTest;
         public bool Increased => Recorded && ThreatLevel > PreviousThreatLevel;
     }
@@ -21,7 +23,7 @@ public static partial class SaveSystem
         => value != null && Guid.TryParseExact(value, "N", out var id)
             && string.Equals(value, id.ToString("N"), StringComparison.Ordinal);
 
-    /// <summary>Commit one terminal result. A checkpoint resumed after completion cannot award it again.</summary>
+    /// <summary>Commit one terminal result, including autoplay. A completed checkpoint cannot award it again.</summary>
     public static bool TryRecordMatchResult(string matchId, GameResult result, bool developerTest,
         out MatchProgression progression, out string reason)
     {
@@ -33,7 +35,6 @@ public static partial class SaveSystem
         if (!won && !lost && result != GameResult.TimeUpDraw) { reason = "終了していない試合は記録できません。"; return false; }
         if (!TryLoadProfile(out var profile, out reason)) return false;
         progression.PreviousThreatLevel = progression.ThreatLevel = profile.ThreatLevel;
-        if (developerTest) return true;
         if (profile.CompletedMatchIds.Contains(matchId))
         { progression.AlreadyRecorded = true; return true; }
         if (profile.CompletedMatchIds.Count >= MaximumCompletedMatches)

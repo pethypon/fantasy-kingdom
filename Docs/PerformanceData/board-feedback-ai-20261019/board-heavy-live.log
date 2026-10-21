@@ -1,0 +1,1046 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.8f1 (1c7db571dde0) revision 1867189'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Channel LicenseClient-pethi doesn't exist
+OS: 'Windows 11  (10.0.26200) Core' Language: 'ja' Physical Memory: 16094 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-10-19T11:42:40Z
+[Licensing::Module] Successfully launched the LicensingClient (PId: 9676)
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Unity.exe
+-batchmode
+-projectPath
+C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+-executeMethod
+BoardVisualLiveValidation.Run
+-logFile
+C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/board-heavy-live.log
+Successfully changed project path to: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [2256]  Target information:
+
+Player connection [2256]  * "[IP] 192.168.3.11 [Port] 55505 [Flags] 2 [Guid] 4135182289 [EditorId] 4135182289 [Version] 1048832 [Id] WindowsEditor(7,pethypon) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [2256] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [2256] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-6016" after 0.3 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-pethi" at "2026-10-19T11:42:40.9536834Z"
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              65d071d95e494b70831965f2df880b3c
+  Correlation Id:          36177420b1b8c48b73821e486508d720
+  External correlation Id: 3572229109608115142
+  Machine Id:              HOlBkbQPFHQsEm9rI0T5KHxoBuA=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-pethi" (connect: 0.57s, validation: 0.05s, handshake: 2.54s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-pethi-notifications" at "2026-10-19T11:42:43.5471289Z"
+[Licensing::Module] Connected to LicensingClient (PId: 9676, launch time: 0.00, total connection time: 3.16s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 15668479432157-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 3.19s
+[Licensing::Module] Licensing is initialized (took 2.69s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Artifact Garbage Collection - Removed 3 unused hashed content files
+Refreshing native plugins compatible for Editor in 0.34 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.8f1 (1c7db571dde0)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: NVIDIA GeForce RTX 4060 (ID=0x2882)
+    Vendor:   NVIDIA
+    VRAM:     7956 MB
+    Driver:   32.0.16.1088
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56016
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+[Licensing::Client] Successfully resolved entitlement details
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.dll
+Registered in 0.006005 seconds.
+- Loaded All Assemblies, in  0.443 seconds
+Native extension for iOS target not found
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.444 seconds
+Domain Reload Profiling: 883ms
+	BeginReloadAssembly (155ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (7ms)
+	RebuildCommonClasses (33ms)
+	RebuildNativeTypeToScriptingClass (12ms)
+	initialDomainReloadingComplete (53ms)
+	LoadAllAssembliesAndSetupDomain (186ms)
+		LoadAssemblies (142ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (183ms)
+			TypeCache.Refresh (181ms)
+				TypeCache.ScanAssembly (165ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (444ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (407ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (66ms)
+			SetLoadedEditorAssemblies (4ms)
+			BeforeProcessingInitializeOnLoad (86ms)
+			ProcessInitializeOnLoadAttributes (169ms)
+			ProcessInitializeOnLoadMethodAttributes (83ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 51 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.collab-proxy@2.11.3 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.collab-proxy@e566cd3e7623)
+    com.unity.inputsystem@1.18.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.inputsystem@57d0e36f6123)
+    com.unity.timeline@1.8.10 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.timeline@7f8b2fb101b6)
+    com.unity.visualscripting@1.9.9 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.visualscripting@191c0d7e3b69)
+    com.unity.ide.visualstudio@2.0.26 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.ide.visualstudio@a99d56dec63f)
+    com.unity.ide.rider@3.0.39 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.ide.rider@4504839d03f7)
+    com.unity.editorcoroutines@1.0.1 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.editorcoroutines@54394ed3283c)
+    com.unity.performance.profile-analyzer@1.3.1 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.performance.profile-analyzer@311968ce4be7)
+    com.unity.testtools.codecoverage@1.3.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.testtools.codecoverage@19a841221620)
+    com.unity.settings-manager@2.1.1 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.settings-manager@0b8638c5ce86)
+  Built-in packages:
+    com.unity.feature.development@1.0.2 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.feature.development@767aadbc6eb7)
+    com.unity.multiplayer.center@1.0.1 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.ugui@2.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.ugui@bb329a87fcdc)
+    com.unity.modules.accessibility@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.test-framework@1.6.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d)
+    com.unity.ext.nunit@2.0.5 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.03 seconds
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+DisplayProgressbar: Compiling Scripts
+ExitCode: 0 Duration: 0s168ms
+*** Tundra build success (0.13 seconds), 0 items updated, 509 evaluated
+AssetDatabase: script compilation time: 0.619560s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.913 seconds
+Refreshing native plugins compatible for Editor in 1.50 ms, found 3 plugins.
+Native extension for iOS target not found
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.790 seconds
+Domain Reload Profiling: 1697ms
+	BeginReloadAssembly (361ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (47ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (156ms)
+	RebuildCommonClasses (41ms)
+	RebuildNativeTypeToScriptingClass (14ms)
+	initialDomainReloadingComplete (31ms)
+	LoadAllAssembliesAndSetupDomain (459ms)
+		LoadAssemblies (362ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (221ms)
+			TypeCache.Refresh (163ms)
+				TypeCache.ScanAssembly (155ms)
+			BuildScriptInfoCaches (48ms)
+			ResolveRequiredComponents (6ms)
+	FinalizeReload (790ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (653ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (36ms)
+			SetLoadedEditorAssemblies (4ms)
+			BeforeProcessingInitializeOnLoad (165ms)
+			ProcessInitializeOnLoadAttributes (372ms)
+			ProcessInitializeOnLoadMethodAttributes (66ms)
+			AfterProcessingInitializeOnLoad (10ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (10ms)
+Asset Pipeline Refresh (id=044cc2678fc7930468e81b9ee2a33b35): Total: 2.738 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=1109 ms
+		Asset DB Callback time: managed=17 ms, native=28 ms
+		Scripting: domain reloads=1, domain reload time=913 ms, compile time=622 ms, other=46 ms
+		Project Asset Count: scripts=1059, non-scripts=3073
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.001ms
+	InvokePackagesCallback: 31.591ms
+	ApplyChangesToAssetFolders: 0.670ms
+	Scan: 83.283ms
+	OnSourceAssetsModified: 0.003ms
+	CategorizeAssetsWithTransientArtifact: 34.849ms
+	ProcessAssetsWithTransientArtifactChanges: 50.727ms
+	CategorizeAssets: 31.695ms
+	ImportOutOfDateAssets: 798.151ms (174.615ms without children)
+		CompileScripts: 622.265ms
+		ReloadNativeAssets: 0.007ms
+		UnloadImportedAssets: 0.255ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.573ms
+		InitializingProgressBar: 0.001ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 0.435ms
+	PostProcessAllAssets: 17.774ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.001ms
+	UnloadStreamsBegin: 1.250ms
+	PersistCurrentRevisions: 0.140ms
+	UnloadStreamsEnd: 0.001ms
+	GenerateScriptTypeHashes: 2.860ms
+	Untracked: 1688.223ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.01 seconds
+Scanning for USB devices : 4.742ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-FantasyKingdomR1Validation
+Unloading 20 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 4495 unused Assets / (14.0 MB). Loaded Objects now: 5074.
+Memory consumption went from 156.7 MB to 142.7 MB.
+Total: 10.046700 ms (FindLiveObjects: 0.421500 ms CreateObjectMapping: 0.411200 ms MarkObjects: 5.908100 ms  DeleteObjects: 3.304800 ms)
+
+[BoardVisualTheme] ALL PASSED units=17 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=38 managedIds=24
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:ValidateAssets () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:62)
+BoardVisualThemeTests:Run () (at Assets/Editor/BoardVisualThemeTests.cs:16)
+BoardVisualLiveValidation:Run () (at Assets/Editor/BoardVisualLiveValidation.cs:18)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.Review.cs Line: 62)
+
+Start importing Assets/Resources/GameContent/BoardVisualTheme.asset using Guid(3493e873e23c52c4983777f34b24786d) (NativeFormatImporter) -> (artifact id: '35699cb6ffcf9d7722940b38d068ef1d') in 0.0071755 seconds
+Refreshing native plugins compatible for Editor in 1.99 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=12fe7bdb657e3f749a81ad50f1853fcd): Total: 0.164 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/GameContent/BoardVisualTheme.asset using Guid(3493e873e23c52c4983777f34b24786d) (NativeFormatImporter) -> (artifact id: '35699cb6ffcf9d7722940b38d068ef1d') in 0.0026073 seconds
+Refreshing native plugins compatible for Editor in 1.93 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=0cad1f20b017fa7498be2455c98db69d): Total: 0.027 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[BoardVisualTheme] ALL PASSED units=17 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=38 managedIds=24
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:ValidateAssets () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:62)
+BoardVisualThemeInstaller:Install () (at Assets/Editor/BoardVisualThemeInstaller.cs:48)
+BoardVisualThemeTests:Run () (at Assets/Editor/BoardVisualThemeTests.cs:59)
+BoardVisualLiveValidation:Run () (at Assets/Editor/BoardVisualLiveValidation.cs:18)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.Review.cs Line: 62)
+
+[BoardVisualTheme] 導入完了。既存の白・黒・赤3マテリアルを共有参照。元Material変更0、新Material/Shader/Texture生成0。
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:Install () (at Assets/Editor/BoardVisualThemeInstaller.cs:49)
+BoardVisualThemeTests:Run () (at Assets/Editor/BoardVisualThemeTests.cs:59)
+BoardVisualLiveValidation:Run () (at Assets/Editor/BoardVisualLiveValidation.cs:18)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.cs Line: 49)
+
+Start importing Assets/Resources/GameContent/BoardVisualTheme.asset using Guid(3493e873e23c52c4983777f34b24786d) (NativeFormatImporter) -> (artifact id: 'e1ce4a61231ae23f52ea0fc8c7f7988c') in 0.0026475 seconds
+Refreshing native plugins compatible for Editor in 1.86 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=8654b06ab4eb56545a925cb3f6169184): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[BoardVisualThemeTests] ALL PASSED checks=250
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeTests:Run () (at Assets/Editor/BoardVisualThemeTests.cs:74)
+BoardVisualLiveValidation:Run () (at Assets/Editor/BoardVisualLiveValidation.cs:18)
+
+(Filename: Assets/Editor/BoardVisualThemeTests.cs Line: 74)
+
+[BoardVisualTheme] ALL PASSED units=17 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=38 managedIds=24
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:ValidateAssets () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:62)
+BoardVisualThemeInstaller:RenderPreview () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:83)
+BoardVisualLiveValidation:Run () (at Assets/Editor/BoardVisualLiveValidation.cs:20)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.Review.cs Line: 62)
+
+Start importing Assets/_FantasyKingdom/BoardVisualTheme/Review/PlayerWhiteUnits.png using Guid(3cc442b47f5f55043905a1084d15ee43) (TextureImporter) -> (artifact id: '027a9de49b1d347d0d6dd482e2ab8b4a') in 0.0685213 seconds
+Refreshing native plugins compatible for Editor in 1.28 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=8c4b39477a957724e85d6a5a03c1c426): Total: 0.090 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/BoardVisualTheme/Review/EnemyBlackUnits.png using Guid(0d20e9b544e19e94f894819811a067f6) (TextureImporter) -> (artifact id: 'cf96ace58367240cabd842237175b939') in 0.0629418 seconds
+Refreshing native plugins compatible for Editor in 1.36 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=556964f466ab515489610a55c87ce61d): Total: 0.093 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/BoardVisualTheme/Review/CrimsonBosses.png using Guid(5e66a9c1e2c7dad48b87022e0242d55f) (TextureImporter) -> (artifact id: '0f85a6542a2ae804b90704b4c9b17f85') in 0.0172912 seconds
+Refreshing native plugins compatible for Editor in 1.14 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=bde575efc8d3a69468cf12c415c2b965): Total: 0.035 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/BoardVisualTheme/Review/FactionBuildings.png using Guid(2e3fa4b46a5254a44b6c3fc83902773d) (TextureImporter) -> (artifact id: '0e396e6cf4d7d082abeba49a923b1b1d') in 0.1154778 seconds
+Refreshing native plugins compatible for Editor in 1.32 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=ca6a2db043f2fed4b86af515c58d38e4): Total: 0.136 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Opening scene 'Assets/Scenes/SampleScene.unity'
+Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
+Loaded scene 'Assets/Scenes/SampleScene.unity'
+	Deserialize:            0.819 ms
+	Integration:            10.471 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.088 ms
+	Total Operation Time:   11.381 ms
+Unloading 661 unused Assets / (3.2 MB). Loaded Objects now: 5660.
+Memory consumption went from 163.5 MB to 160.3 MB.
+Total: 6.698300 ms (FindLiveObjects: 0.269400 ms CreateObjectMapping: 0.199700 ms MarkObjects: 5.561500 ms  DeleteObjects: 0.666700 ms)
+
+[Project] Loading completed in 9.875 seconds
+	Project init time: 				7.839 seconds
+		Template init time: 		0.000 seconds
+		Package Manager init time: 		2.996 seconds
+		Asset Database init time: 		0.159 seconds
+		Global illumination init time: 	0.003 seconds
+		Assemblies load time: 			0.911 seconds
+		Unity extensions init time: 	0.021 seconds
+		Asset Database refresh time: 	2.739 seconds
+	Scene opening time: 			1.859 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1792410170242,"processId":6016,"projectLoad":9.8745637,"projectInit":7.8394917,"templateInit":0.0,"packageManagerInit":2.9957051,"assetDatabaseInit":0.1594148,"globalIlluminationInit":0.0025511,"assembliesLoad":0.9109152,"unityExtensionsInit":0.0214678,"assetDatabaseRefresh":2.7385339,"sceneOpening":1.8588145}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1792410170242,"processId":6016,"editorVersion":"6000.3.8f1 (1c7db571dde0)","branch":"6000.3/staging","buildType":"Release","platform":"Windows"}
+Reloading assemblies for play mode.
+Reloading assemblies after forced synchronous recompile.
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.584 seconds
+Refreshing native plugins compatible for Editor in 2.08 ms, found 3 plugins.
+Native extension for iOS target not found
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.943 seconds
+Domain Reload Profiling: 1522ms
+	BeginReloadAssembly (277ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (34ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (66ms)
+	RebuildCommonClasses (43ms)
+	RebuildNativeTypeToScriptingClass (12ms)
+	initialDomainReloadingComplete (34ms)
+	LoadAllAssembliesAndSetupDomain (213ms)
+		LoadAssemblies (166ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (178ms)
+			TypeCache.Refresh (7ms)
+				TypeCache.ScanAssembly (0ms)
+			BuildScriptInfoCaches (162ms)
+			ResolveRequiredComponents (7ms)
+	FinalizeReload (943ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (636ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (45ms)
+			SetLoadedEditorAssemblies (5ms)
+			BeforeProcessingInitializeOnLoad (172ms)
+			ProcessInitializeOnLoadAttributes (330ms)
+			ProcessInitializeOnLoadMethodAttributes (73ms)
+			AfterProcessingInitializeOnLoad (10ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (20ms)
+Asset Pipeline Refresh (id=3746add23c468e84e8e8bc81514aa00d): Total: 1.631 seconds - Initiated by StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=1009 ms
+		Asset DB Callback time: managed=16 ms, native=0 ms
+		Scripting: domain reloads=1, domain reload time=603 ms, compile time=2 ms, other=0 ms
+		Project Asset Count: scripts=1059, non-scripts=3073
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.001ms
+	InvokePackagesCallback: 2.833ms
+	ApplyChangesToAssetFolders: 0.269ms
+	Scan: 0.001ms
+	OnSourceAssetsModified: 0.002ms
+	CategorizeAssetsWithTransientArtifact: 0.004ms
+	ProcessAssetsWithTransientArtifactChanges: 2.314ms
+	CategorizeAssets: 28.462ms
+	ImportOutOfDateAssets: 951.910ms (948.751ms without children)
+		CompileScripts: 1.802ms
+		CollectScriptTypesHashes: 0.105ms
+		ReloadNativeAssets: 0.176ms
+		UnloadImportedAssets: 0.121ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.653ms
+		InitializingProgressBar: 0.001ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 0.302ms
+	PostProcessAllAssets: 16.337ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.196ms
+	UnloadStreamsBegin: 0.061ms
+	PersistCurrentRevisions: 0.144ms
+	UnloadStreamsEnd: 0.001ms
+	GenerateScriptTypeHashes: 3.168ms
+	Untracked: 628.895ms
+
+Loaded scene 'Temp/__Backupscenes/0.backup'
+	Deserialize:            2.382 ms
+	Integration:            297.253 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.009 ms
+	Total Operation Time:   299.647 ms
+Asset Pipeline Refresh (id=3973116c2c7314a4d98b0465c4dcf1c5): Total: 0.043 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[TitleScreen] 閉じる: slot=-1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+TitleScreenUI:Close () (at Assets/Script/SaveLoad/TitleScreenUI.cs:213)
+TitleScreenUI:OnNewGame () (at Assets/Script/SaveLoad/TitleScreenUI.cs:191)
+UnityEngine.Events.InvokableCall:Invoke ()
+UnityEngine.Events.UnityEvent:Invoke ()
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:34)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Script/SaveLoad/TitleScreenUI.cs Line: 213)
+
+Start Indexing on Editor startup
+[Indexing] Starting Initial Indexing for Assets
+<color=#ffff00ff>[StartSetting]</color> マップ・Fog 完了
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+MapCreate:BuildTop () (at Assets/Script/Mapsystem/MapCreate.cs:173)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:62)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/MapCreate.cs Line: 173)
+
+<color=#ffff00ff>[StartSetting]</color> プレイヤークリスタル設置完了
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+CrystalSystem:PlacePlayerCrystal () (at Assets/Script/Mapsystem/CrystalSystem.cs:95)
+CrystalSystem:CrystalCore () (at Assets/Script/Mapsystem/CrystalSystem.cs:44)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:75)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/CrystalSystem.cs Line: 95)
+
+<color=#ffff00ff>[StartSetting]</color> 敵クリスタル設置完了 (relax=0)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+CrystalSystem:PlaceEnemyCrystal () (at Assets/Script/Mapsystem/CrystalSystem.cs:114)
+CrystalSystem:CrystalCore () (at Assets/Script/Mapsystem/CrystalSystem.cs:45)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:75)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/CrystalSystem.cs Line: 114)
+
+<color=#ffff00ff>[StartSetting]</color>王設置
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnitSetting:UnitSet () (at Assets/Script/Mapsystem/UnitSetting.cs:274)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:82)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/UnitSetting.cs Line: 274)
+
+<color=#ffff00ff>[StartSetting]</color>異形の王設置
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnitSetting:UnitSet () (at Assets/Script/Mapsystem/UnitSetting.cs:280)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:82)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/UnitSetting.cs Line: 280)
+
+<color=#ffff00ff>[StartSetting]</color>Player Knight 設置 @(12,27)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnitSetting:SpawnInitialSquad (System.Collections.Generic.List`1<UnityEngine.Vector3>,UnityEngine.Vector3,UnityEngine.Transform,Team,System.Collections.Generic.HashSet`1<UnityEngine.Vector3>) (at Assets/Script/Mapsystem/UnitSetting.cs:341)
+UnitSetting:UnitSet () (at Assets/Script/Mapsystem/UnitSetting.cs:283)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:82)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/UnitSetting.cs Line: 341)
+
+<color=#ffff00ff>[StartSetting]</color>Player Archer 設置 @(18,25)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnitSetting:SpawnInitialSquad (System.Collections.Generic.List`1<UnityEngine.Vector3>,UnityEngine.Vector3,UnityEngine.Transform,Team,System.Collections.Generic.HashSet`1<UnityEngine.Vector3>) (at Assets/Script/Mapsystem/UnitSetting.cs:341)
+UnitSetting:UnitSet () (at Assets/Script/Mapsystem/UnitSetting.cs:283)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:82)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/UnitSetting.cs Line: 341)
+
+<color=#ffff00ff>[StartSetting]</color>Player Scout 設置 @(20,32)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnitSetting:SpawnInitialSquad (System.Collections.Generic.List`1<UnityEngine.Vector3>,UnityEngine.Vector3,UnityEngine.Transform,Team,System.Collections.Generic.HashSet`1<UnityEngine.Vector3>) (at Assets/Script/Mapsystem/UnitSetting.cs:341)
+UnitSetting:UnitSet () (at Assets/Script/Mapsystem/UnitSetting.cs:283)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:82)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/UnitSetting.cs Line: 341)
+
+<color=#ffff00ff>[StartSetting]</color>Enemy Knight 設置 @(26,14)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnitSetting:SpawnInitialSquad (System.Collections.Generic.List`1<UnityEngine.Vector3>,UnityEngine.Vector3,UnityEngine.Transform,Team,System.Collections.Generic.HashSet`1<UnityEngine.Vector3>) (at Assets/Script/Mapsystem/UnitSetting.cs:341)
+UnitSetting:UnitSet () (at Assets/Script/Mapsystem/UnitSetting.cs:284)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:82)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/UnitSetting.cs Line: 341)
+
+<color=#ffff00ff>[StartSetting]</color>Enemy Archer 設置 @(31,17)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnitSetting:SpawnInitialSquad (System.Collections.Generic.List`1<UnityEngine.Vector3>,UnityEngine.Vector3,UnityEngine.Transform,Team,System.Collections.Generic.HashSet`1<UnityEngine.Vector3>) (at Assets/Script/Mapsystem/UnitSetting.cs:341)
+UnitSetting:UnitSet () (at Assets/Script/Mapsystem/UnitSetting.cs:284)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:82)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/UnitSetting.cs Line: 341)
+
+<color=#ffff00ff>[StartSetting]</color>Enemy Scout 設置 @(24,17)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnitSetting:SpawnInitialSquad (System.Collections.Generic.List`1<UnityEngine.Vector3>,UnityEngine.Vector3,UnityEngine.Transform,Team,System.Collections.Generic.HashSet`1<UnityEngine.Vector3>) (at Assets/Script/Mapsystem/UnitSetting.cs:341)
+UnitSetting:UnitSet () (at Assets/Script/Mapsystem/UnitSetting.cs:284)
+MapInitializer:Initialize (MapCreate,CrystalSystem,UnitSetting,TerritorySystem,MoveGenerator,VisionGenerator,SaveSystem/GameSaveData) (at Assets/Script/Initialization/MapInitializer.cs:82)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:135)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Mapsystem/UnitSetting.cs Line: 341)
+
+[DungeonSystem] ダンジョン配置: (15, 1, 21) 報酬=IronAegis
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+DungeonSystem:GenerateDungeons () (at Assets/Script/Gamesystem/DungeonSystem.cs:141)
+SystemInitializer:InitGameSystems (GameGenerator,TurnGenerator,FactionState,MapCreate,TerritorySystem,APSystem,MoveGenerator,VisionGenerator,CrystalSystem,UnitSetting,BuildSystem&,SummonSystem&,EconomySystem&,BuildingAttackSystem&,SubCrystalSystem&,DungeonSystem&,WildBossSystem&,UIBuilder) (at Assets/Script/Initialization/SystemInitializer.cs:80)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:150)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Gamesystem/DungeonSystem.cs Line: 141)
+
+[DungeonSystem] ダンジョン配置: (11, 1, 9) 報酬=PhoenixFeather
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+DungeonSystem:GenerateDungeons () (at Assets/Script/Gamesystem/DungeonSystem.cs:141)
+SystemInitializer:InitGameSystems (GameGenerator,TurnGenerator,FactionState,MapCreate,TerritorySystem,APSystem,MoveGenerator,VisionGenerator,CrystalSystem,UnitSetting,BuildSystem&,SummonSystem&,EconomySystem&,BuildingAttackSystem&,SubCrystalSystem&,DungeonSystem&,WildBossSystem&,UIBuilder) (at Assets/Script/Initialization/SystemInitializer.cs:80)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:150)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Gamesystem/DungeonSystem.cs Line: 141)
+
+[WildBoss] wildBossPrefab 未割当 → StrangePiece からフォールバック生成
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+WildBossSystem:GenerateWildBoss () (at Assets/Script/Gamesystem/WildBossSystem.cs:223)
+SystemInitializer:InitGameSystems (GameGenerator,TurnGenerator,FactionState,MapCreate,TerritorySystem,APSystem,MoveGenerator,VisionGenerator,CrystalSystem,UnitSetting,BuildSystem&,SummonSystem&,EconomySystem&,BuildingAttackSystem&,SubCrystalSystem&,DungeonSystem&,WildBossSystem&,UIBuilder) (at Assets/Script/Initialization/SystemInitializer.cs:87)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:150)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Gamesystem/WildBossSystem.cs Line: 223)
+
+[SystemInitializer] TimerSystem 未設定 → 自動生成
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:LogWarning (object)
+SystemInitializer:EnsureComponent<TimerSystem> (GameGenerator,TimerSystem) (at Assets/Script/Initialization/SystemInitializer.cs:183)
+SystemInitializer:InitSkillsAndTimer (GameGenerator,TurnGenerator,FactionState,MoveGenerator,UnitSetting,SkillSystem&) (at Assets/Script/Initialization/SystemInitializer.cs:126)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:158)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Initialization/SystemInitializer.cs Line: 183)
+
+[KingCommanderSystem] 階層指揮システム初期化完了
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+DevelopmentLog:Summary (object) (at Assets/Script/Common/DevelopmentLog.cs:13)
+KingCommanderSystem:.ctor (AIPersonality,AIDeterministicRandom) (at Assets/Script/Gamesystem/TurnSystem/Enemy/KingCommanderSystem.cs:67)
+AICommander:.ctor (TurnGenerator,MoveGenerator,AttackGenerator,BattleSystem,VisionGenerator,APSystem,UnitSetting,CrystalSystem,MapCreate,MajorPersonality,BuildSystem,SummonSystem,FactionState,SkillSystem,SubCrystalSystem,int,int,Team,PersonalityTraits) (at Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs:171)
+SystemInitializer:InitAI (TurnGenerator,MoveGenerator,VisionGenerator,APSystem,UnitSetting,CrystalSystem,MapCreate,BuildSystem,SummonSystem,FactionState,SkillSystem,SubCrystalSystem,SaveSystem/GameSaveData) (at Assets/Script/Initialization/SystemInitializer.cs:161)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:198)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Common/DevelopmentLog.cs Line: 13)
+
+[AICommander] 初期化完了
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+DevelopmentLog:Summary (object) (at Assets/Script/Common/DevelopmentLog.cs:13)
+AICommander:.ctor (TurnGenerator,MoveGenerator,AttackGenerator,BattleSystem,VisionGenerator,APSystem,UnitSetting,CrystalSystem,MapCreate,MajorPersonality,BuildSystem,SummonSystem,FactionState,SkillSystem,SubCrystalSystem,int,int,Team,PersonalityTraits) (at Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs:174)
+SystemInitializer:InitAI (TurnGenerator,MoveGenerator,VisionGenerator,APSystem,UnitSetting,CrystalSystem,MapCreate,BuildSystem,SummonSystem,FactionState,SkillSystem,SubCrystalSystem,SaveSystem/GameSaveData) (at Assets/Script/Initialization/SystemInitializer.cs:161)
+GameGenerator:StartGameInit (int) (at Assets/Script/GameGenerator.cs:198)
+GameGenerator:Update () (at Assets/Script/GameGenerator.cs:82)
+
+(Filename: Assets/Script/Common/DevelopmentLog.cs Line: 13)
+
+Created GICache directory at C:/Users/pethi/AppData/LocalLow/Unity/Caches/GiCache. Took: 0.023s, timestamps: [12.077 - 12.100]
+[BoardThemeLive] ALL PASSED 280
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardThemePresentationTests:PlayMode (GameSystems) (at Assets/Editor/BoardThemePresentationTests.cs:157)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:38)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/BoardThemePresentationTests.cs Line: 157)
+
+[BoardActorAnimation] ALL PASSED 46
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardActorAnimationTests:PlayMode (GameSystems) (at Assets/Editor/BoardActorAnimationTests.cs:180)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:39)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/BoardActorAnimationTests.cs Line: 180)
+
+[R1ProductionAI] Player WhiteMage AP=35->29 cost=6 stats=28/3/11 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Player HolyKnight AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Player Samurai AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Player Ninja AP=35->29 cost=6 stats=16/15/10 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Player Berserker AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Player Navigator AP=35->25 cost=10 stats=42/14/20 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Enemy WhiteMage AP=35->29 cost=6 stats=28/3/11 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Enemy HolyKnight AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Enemy Samurai AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Enemy Ninja AP=35->29 cost=6 stats=16/15/10 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Enemy Berserker AP=35->32 cost=3 stats=32/10/13 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] Enemy Navigator AP=35->25 cost=10 stats=42/14/20 exact recipe/mask/ability passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:191)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 191)
+
+[R1ProductionAI] 216 real both-faction recruitment checks passed
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1ProductionAIRecruitmentTests:PlayMode (GameSystems) (at Assets/Editor/R1ProductionAIRecruitmentTests.cs:219)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:40)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/R1ProductionAIRecruitmentTests.cs Line: 219)
+
+[BoardAnimationPreview] ALL PASSED frames=80 fps=30 output=C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Docs/PlaytestScreenshots/board-animation-event-only-20261018
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardAnimationPreview:Capture (GameSystems) (at Assets/Editor/BoardAnimationPreview.cs:149)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:41)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/BoardAnimationPreview.cs Line: 149)
+
+Releasing render texture that is set to be RenderTexture.active!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.Object:DestroyImmediate (UnityEngine.Object,bool)
+UnityEngine.Object:DestroyImmediate (UnityEngine.Object)
+BoardAnimationPreview:Capture (GameSystems) (at Assets/Editor/BoardAnimationPreview.cs:154)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:41)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+[Assets/Editor/BoardAnimationPreview.cs line 154]
+
+[BoardVisualLiveValidation] ALL PASSED
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:42)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: Assets/Editor/BoardVisualLiveValidation.cs Line: 42)
+
+Clearing [NotoSansJP-VariableFont_wght SDF] dynamic font asset data.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+TMPro.EditorEventCallbacks/<>c:<InitializeFontAssetResourceChangeCallBacks>b__0_0 () (at ./Library/PackageCache/com.unity.ugui@bb329a87fcdc/Editor/TMP/TMP_EditorResourceManager.cs:36)
+UnityEditor.EditorApplication:Internal_EditorApplicationQuit ()
+BoardVisualLiveValidation:Tick () (at Assets/Editor/BoardVisualLiveValidation.cs:43)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.unity.ugui@bb329a87fcdc/Editor/TMP/TMP_EditorResourceManager.cs Line: 36)
+
+Start importing Assets/TextMesh Pro/Resources/Fonts & Materials/NotoSansJP-VariableFont_wght SDF.asset using Guid(a65f11baf803f3a4e84c357474be9921) (NativeFormatImporter) -> (artifact id: '7609706e4a951ea3292799af110cfcc1') in 0.010243 seconds
+Refreshing native plugins compatible for Editor in 1.80 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=ca5e2ea6d12ba6c4dbf2642c38007997): Total: 0.073 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-pethi-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-pethi channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+[Package Manager] Server process was shutdown
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1792410176787,"processId":6016,"allocatedMemory":19885761,"memoryLabels":[{"Default":29313},{"Permanent":15236},{"NewDelete":67827},{"Thread":4230344},{"Manager":32349},{"VertexData":776},{"Geometry":816},{"Texture":296},{"Shader":79379},{"Material":24},{"GfxDevice":55689},{"Animation":392},{"Audio":3040},{"FreeType":8},{"FontEngine":942072},{"Physics":2090},{"Physics2D":16},{"Serialization":656},{"Input":14984},{"JobScheduler":33024},{"TextLib":216},{"Mono":32},{"ScriptingNativeRuntime":155060},{"BaseObject":1620736},{"Resource":1336},{"Renderer":3000},{"Transform":4685},{"File":6874},{"WebCam":616},{"Culling":32},{"Terrain":11394},{"Wind":24},{"STL":40},{"String":22412},{"DynamicArray":113377},{"HashMap":4278772},{"Utility":2660134},{"Curl":2559},{"PoolAlloc":2056},{"AI":80},{"TypeTree":5341},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7792},{"Director":8240},{"CloudService":9792},{"WebRequest":808},{"VR":47994},{"SceneManager":504},{"Video":208},{"LazyScriptCache":32},{"Camera":17},{"Secure":2113},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57888},{"StaticSafetyDebugInfo":278528},{"Analytics":384},{"Hierarchy":608},{"CoreStats":13032},{"Identifiers":12960},{"Gui":96},{"EditorUtility":145031},{"VersionControl":4},{"Undo":947},{"AssetDatabase":4843149},{"EditorGi":328},{"UnityConnect":29232},{"Upm":1896},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":211},{"ProfilerEditor":9746},{"CoreBusinessMetrics":2866},{"Licensing":1232},{"AssetReference":32},{"IPCStream":32}]}

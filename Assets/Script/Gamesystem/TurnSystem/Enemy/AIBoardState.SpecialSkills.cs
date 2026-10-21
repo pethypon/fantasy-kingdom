@@ -7,6 +7,7 @@ public partial class AIBoardState
     readonly List<Status> specialObservedActors = new List<Status>(64);
     readonly Dictionary<(Status,Vector3),int> specialHazardCache = new Dictionary<(Status,Vector3),int>();
     readonly Dictionary<Status,int> specialAttackFlatCache = new Dictionary<Status,int>();
+    readonly Dictionary<(Status,Vector3Int),bool> allyVisionSupportCache = new Dictionary<(Status,Vector3Int),bool>();
     bool hasObservedSpecialState;
     public bool HasObservedSpecialState { get { _=SpecialObservedActors;return hasObservedSpecialState; } }
     int specialObservedGeneration = -1;
@@ -17,7 +18,7 @@ public partial class AIBoardState
             if (specialObservedGeneration == Generation) return specialObservedActors;
             specialObservedGeneration = Generation;
             specialObservedActors.Clear();
-            specialHazardCache.Clear(); specialAttackFlatCache.Clear(); hasObservedSpecialState=false;
+            specialHazardCache.Clear(); specialAttackFlatCache.Clear(); allyVisionSupportCache.Clear(); hasObservedSpecialState=false;
             foreach (var actor in AliveEnemyUnits) if (IsSpecialActorObserved(actor)) specialObservedActors.Add(actor);
             foreach (var actor in AlivePlayerUnits) if (IsSpecialActorObserved(actor)) specialObservedActors.Add(actor);
             AppendOwnedSpecialTargets(_buildSystem != null ? _buildSystem.GetBuildingParent(ActorTeam) : null);
@@ -54,6 +55,25 @@ public partial class AIBoardState
         if(!hasObservedSpecialState)return 0;
         if(specialHazardCache.TryGetValue((unit,destination),out int value))return value;
         return specialHazardCache[(unit,destination)]=SpecialSkillRuntime.HazardDamageAt(unit,destination,observed);
+    }
+
+    /// <summary>Project the moving actor into current teammates' actual masks; self vision never supports isolation.</summary>
+    public bool HasOtherAllyVisionAt(Status actor, Vector3 destination)
+    {
+        var observers = SpecialObservedActors;
+        if (actor == null) return false;
+        var cell = GridHelper.ToGridXZ(destination);
+        if (allyVisionSupportCache.TryGetValue((actor, cell), out bool supported)) return supported;
+        foreach (var observer in observers)
+        {
+            if (observer == actor || observer.type != Type.Unit || observer.team != actor.team || !observer.IsAlive || observer.VisionCell == null
+                || SpecialSkillRuntime.IsHiddenFrom(observer, actor)
+                || observer.Special?.visionZeroTurns > 0) continue;
+            foreach (var visible in observer.VisionCell)
+                if (visible.x == cell.x && visible.z == cell.z)
+                    return allyVisionSupportCache[(actor, cell)] = true;
+        }
+        return allyVisionSupportCache[(actor, cell)] = false;
     }
 
     /// <summary>Only owned or currently observed actors may expose their current state to evaluation.</summary>

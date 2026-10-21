@@ -16,7 +16,7 @@ public static partial class DarkEnemyVisualInstaller
     public const string BossMaterialPath = "Assets/Prefabs/Units/Materials/Materials/キャラクターマテリアル/敵　キャラクター　赤.mat";
     public static readonly Kind[] EnemyKinds = { Kind.King, Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin, Kind.Scout,
         Kind.Priest, Kind.Guardian, Kind.Crossbow, Kind.Magicsniper, Kind.Bomber, Kind.WhiteMage, Kind.HolyKnight,
-        Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator };
+        Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator, Kind.HeavyWarrior, Kind.DragonKnight };
     public static readonly WildBossArchetype[] Bosses = { WildBossArchetype.GhostKing, WildBossArchetype.Dragon,
         WildBossArchetype.RebelKnight, WildBossArchetype.ThunderMagus };
     public static string EnemyPrefabPath(Kind kind) => Folder + "/Prefabs/Enemy_" + kind + ".prefab";
@@ -32,7 +32,7 @@ public static partial class DarkEnemyVisualInstaller
         public float[] positions, normals;
     }
 
-    [MenuItem("Fantasy Kingdom/開発スタジオ/駒の見た目/敵の異形17種と強敵4種を導入")]
+    [MenuItem("Fantasy Kingdom/開発スタジオ/駒の見た目/敵の異形19種と強敵4種を導入")]
     public static void Install()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("ゲームを停止してから見た目を導入してください。");
@@ -45,7 +45,7 @@ public static partial class DarkEnemyVisualInstaller
         foreach (var boss in Bosses)
             Bake(BossMeshPath(boss), BossPrefabPath(boss), "強敵_" + boss, MakeBoss(boss), red);
         AssetDatabase.SaveAssets(); ValidateAssets();
-        Debug.Log("[DarkEnemyVisuals] 敵17種・強敵4種。各1Mesh / 1Renderer / Collider・Status・追加スクリプト0。既存Prefabは保護。");
+        Debug.Log("[DarkEnemyVisuals] 敵" + EnemyKinds.Length + "種・強敵" + Bosses.Length + "種。各1Mesh / 1Renderer / Collider・Status・追加スクリプト0。既存Prefabは保護。");
     }
     static void Bake(string meshPath, string prefabPath, string label, Sculpture sculpture, Material material)
     {
@@ -91,7 +91,7 @@ public static partial class DarkEnemyVisualInstaller
         foreach (var kind in EnemyKinds) ReplaceValidationMesh(EnemyMeshPath(kind), MakeEnemy(kind), "異形_" + kind);
         foreach (var boss in Bosses) ReplaceValidationMesh(BossMeshPath(boss), MakeBoss(boss), "強敵_" + boss);
         AssetDatabase.SaveAssets(); ValidateAssets(); RenderPreview();
-        Debug.Log("[DarkEnemyVisuals] VALIDATION REBUILD: 21 Mesh、Prefab GUID・元Material変更0。");
+        Debug.Log("[DarkEnemyVisuals] VALIDATION REBUILD: " + (EnemyKinds.Length + Bosses.Length) + " Mesh、Prefab GUID・元Material変更0。");
     }
     static void ReplaceValidationMesh(string path, Sculpture sculpture, string label)
     {
@@ -107,7 +107,7 @@ public static partial class DarkEnemyVisualInstaller
         int total = 0;
         foreach (var kind in EnemyKinds) total += Validate(EnemyMeshPath(kind), EnemyPrefabPath(kind), 3400, .95f);
         foreach (var boss in Bosses) total += Validate(BossMeshPath(boss), BossPrefabPath(boss), 4600, 1.25f);
-        Debug.Log("[DarkEnemyVisuals] 検証OK: 21 Mesh、21 Renderer、合計 " + total + " triangles。");
+        Debug.Log("[DarkEnemyVisuals] 検証OK: " + (EnemyKinds.Length + Bosses.Length) + " Mesh、各1 Renderer、合計 " + total + " triangles。");
     }
     static int Validate(string meshPath, string prefabPath, int limit, float height)
     {

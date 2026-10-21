@@ -15,7 +15,8 @@ public static partial class R1UnitVisualInstaller
     public const string MaterialPath = Folder + "/ChessMetal.mat";
     public static readonly Kind[] Kinds = {
         Kind.Knight, Kind.Archer, Kind.Magic, Kind.Assassin, Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
-        Kind.Magicsniper, Kind.Bomber, Kind.WhiteMage, Kind.HolyKnight, Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator
+        Kind.Magicsniper, Kind.Bomber, Kind.WhiteMage, Kind.HolyKnight, Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator,
+        Kind.HeavyWarrior, Kind.DragonKnight
     };
     static readonly Color32[] Palette = {
         new Color32(37, 46, 57, 255), new Color32(60, 73, 87, 255), new Color32(102, 119, 133, 255),
@@ -25,7 +26,8 @@ public static partial class R1UnitVisualInstaller
     };
     public static string MeshPath(Kind kind) => Folder + "/Meshes/" + kind + ".asset";
     public static bool IsNewRole(Kind kind) => kind == Kind.WhiteMage || kind == Kind.HolyKnight || kind == Kind.Samurai
-        || kind == Kind.Ninja || kind == Kind.Berserker || kind == Kind.Navigator;
+        || kind == Kind.Ninja || kind == Kind.Berserker || kind == Kind.Navigator
+        || kind == Kind.HeavyWarrior || kind == Kind.DragonKnight;
     public static string PrefabPath(Kind kind) => IsNewRole(kind) ? R1ProductionContentInstaller.Folder + "/Units/" + kind + "/Visual.prefab"
         : "Assets/Prefabs/Units/Player/" + (kind == Kind.Magicsniper ? "MagicSniper" : kind.ToString()) + ".prefab";
     public static string DataPath(Kind kind)
@@ -36,7 +38,17 @@ public static partial class R1UnitVisualInstaller
         return entry == null || entry.sourceData == null ? null : AssetDatabase.GetAssetPath(entry.sourceData);
     }
 
-    [MenuItem("Fantasy Kingdom/開発スタジオ/駒の見た目/16職種の金属チェス駒を導入（未加工モデルのみ）")]
+    /// <summary>Creates only a missing stock mesh; existing generated and author-edited assets remain intact.</summary>
+    public static Mesh LoadOrCreateRoleMesh(Kind kind)
+    {
+        if (Array.IndexOf(Kinds, kind) < 0) throw new ArgumentException("標準モデルのない兵種です: " + kind);
+        EnsureFolder(Folder + "/Meshes");
+        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(MeshPath(kind));
+        if (mesh == null) { mesh = MakeVisual(kind).Build("R1_" + kind + "_Chess"); AssetDatabase.CreateAsset(mesh, MeshPath(kind)); }
+        return mesh;
+    }
+
+    [MenuItem("Fantasy Kingdom/開発スタジオ/駒の見た目/18職種のチェス駒を導入（未加工モデルのみ）")]
     public static void Install()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("ゲームを停止してから駒の見た目を導入してください。");
@@ -52,8 +64,7 @@ public static partial class R1UnitVisualInstaller
         int replaced = 0, preserved = 0;
         foreach (var kind in Kinds)
         {
-            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(MeshPath(kind));
-            if (mesh == null) { mesh = MakeVisual(kind).Build("R1_" + kind + "_Chess"); AssetDatabase.CreateAsset(mesh, MeshPath(kind)); }
+            var mesh = LoadOrCreateRoleMesh(kind);
             var data = AssetDatabase.LoadAssetAtPath<UnitData>(DataPath(kind));
             var prefab = IsNewRole(kind) ? data.prefab : AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath(kind));
             // A catalog replacement, edited/generated mesh, hierarchy, or extra component is author-owned.
@@ -74,7 +85,7 @@ public static partial class R1UnitVisualInstaller
         }
         AssetDatabase.SaveAssets();
         ValidateAssets();
-        Debug.Log("[R1UnitVisuals] 16職種の見た目導入=" + replaced + "、既存設定保護=" + preserved + "。各1 Mesh/1 Renderer、共有Material 1、追加Runtimeスクリプト0。");
+        Debug.Log("[R1UnitVisuals] " + Kinds.Length + "職種の見た目導入=" + replaced + "、既存設定保護=" + preserved + "。各1 Mesh/1 Renderer、追加Runtimeスクリプト0。");
     }
 
     /// <summary>Recognize only the untouched R1 sphere copy. Never infer ownership from the asset path alone.</summary>
@@ -106,6 +117,7 @@ public static partial class R1UnitVisualInstaller
     {
         var material = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
         if (material == null || !material.enableInstancing) throw new InvalidOperationException("駒の共有マテリアルがありません。");
+        var white = AssetDatabase.LoadAssetAtPath<Material>(BoardVisualThemeInstaller.ExistingWhiteMaterialPath);
         int triangles = 0;
         foreach (var kind in Kinds)
         {
@@ -120,11 +132,12 @@ public static partial class R1UnitVisualInstaller
             // User-authored replacements are valid and stay outside the generated-model contract.
             if (filter == null || filter.sharedMesh != mesh) continue;
             if (prefab.GetComponentsInChildren<Renderer>(true).Length != 1 || prefab.GetComponentsInChildren<MeshFilter>(true).Length != 1
-                || prefab.GetComponent<MeshRenderer>().sharedMaterial != material || prefab.GetComponentsInChildren<Collider>(true).Length != 1
+                || (prefab.GetComponent<MeshRenderer>().sharedMaterial != material && prefab.GetComponent<MeshRenderer>().sharedMaterial != white)
+                || prefab.GetComponentsInChildren<Collider>(true).Length != 1
                 || prefab.GetComponentsInChildren<Status>(true).Length != 1 || prefab.GetComponentsInChildren<MonoBehaviour>(true).Length != 1)
                 throw new InvalidOperationException("駒のPrefabの既存動作・共有描画条件が不正です: " + kind);
         }
-        Debug.Log("[R1UnitVisuals] 生成モデル検証OK: 16 Mesh / 1 Material / triangles " + triangles);
+        Debug.Log("[R1UnitVisuals] 生成モデル検証OK: " + Kinds.Length + " Mesh / triangles " + triangles);
     }
 
     static Material LoadOrCreateMaterial()
@@ -156,13 +169,14 @@ public static partial class R1UnitVisualInstaller
         string parent = Path.GetDirectoryName(path).Replace('\\', '/'); EnsureFolder(parent); AssetDatabase.CreateFolder(parent, Path.GetFileName(path));
     }
 
-    [MenuItem("Fantasy Kingdom/開発スタジオ/駒の見た目/16職種の見本画像を作成")]
+    [MenuItem("Fantasy Kingdom/開発スタジオ/駒の見た目/18職種の見本画像を作成")]
     public static void RenderPreview()
     {
-        const int width = 330, height = 360;
+        const int width = 330, height = 360, columns = 4;
+        int rows = (Kinds.Length + columns - 1) / columns;
         EnsureFolder(Folder + "/Review");
         var scene = EditorSceneManager.NewPreviewScene();
-        var atlas = new Texture2D(width * 4, height * 4, TextureFormat.RGB24, false);
+        var atlas = new Texture2D(width * columns, height * rows, TextureFormat.RGB24, false);
         var readback = new Texture2D(width, height, TextureFormat.RGB24, false);
         var target = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
         var previous = RenderTexture.active; var ambient = RenderSettings.ambientLight; var ambientMode = RenderSettings.ambientMode;
@@ -184,9 +198,9 @@ public static partial class R1UnitVisualInstaller
                 try
                 {
                     model.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(MeshPath(Kinds[i]));
-                    model.AddComponent<MeshRenderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
+                    model.AddComponent<MeshRenderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(BoardVisualThemeInstaller.ExistingWhiteMaterialPath);
                     camera.Render(); RenderTexture.active = target; readback.ReadPixels(new Rect(0, 0, width, height), 0, 0); readback.Apply();
-                    atlas.SetPixels((i % 4) * width, (3 - i / 4) * height, width, height, readback.GetPixels());
+                    atlas.SetPixels((i % columns) * width, (rows - 1 - i / columns) * height, width, height, readback.GetPixels());
                 }
                 finally { UnityEngine.Object.DestroyImmediate(model); }
             }

@@ -6,6 +6,45 @@ using UnityEngine;
 // =====================================================================
 public partial class SimBoardState
 {
+    /// <summary>Friendly support uses authored masks and known LOS after the initial observed mask changes.</summary>
+    public bool HasOtherAllyVision(SimUnit actor)
+    {
+        foreach (var observer in Units)
+            if (observer != actor && observer.IsAlive && observer.Type == Type.Unit
+                && observer.Team == actor.Team && ObserverSees(observer, actor.Position))
+                return true;
+        return false;
+    }
+
+    bool ObserverSees(SimUnit observer, Vector3Int destination)
+    {
+        if (observer.VisionZeroTurns > 0) return false;
+        destination.y = 0;
+        if (observer.CapturedVisionCells != null)
+        {
+            foreach (var cell in observer.CapturedVisionCells) if (cell == destination) return true;
+            return false;
+        }
+        var delta = destination - observer.Position;
+        if (delta == Vector3Int.zero) return true;
+        if (!MapTiles.Contains(destination) || !Trace(observer.Position, destination, false)) return false;
+        if (observer.HasDebuff(StatusEffectType.Blind) || observer.HasDebuff(StatusEffectType.NarrowVision))
+            return delta.x == 0 && delta.z == MovePatterns.DirZ(observer.Direction);
+        var offsets = VisionGenerator.BaseVisionOffsets(observer.Kind, observer.Direction, observer.ActionProfile);
+        int bonus = observer.InnateVisionBonus + (observer.HasBuff(BuffType.Insight) ? 1 : 0)
+            - (observer.ScoutVisionPenaltyTurns > 0 ? 2 : 0);
+        int radius = 0;
+        foreach (var offset in offsets)
+            radius = Mathf.Max(radius, Mathf.Max(Mathf.Abs(offset.x), Mathf.Max(Mathf.Abs(offset.y), Mathf.Abs(offset.z))));
+        int limitedRadius = Mathf.Max(0, radius + Mathf.Min(0, bonus));
+        foreach (var offset in offsets)
+        {
+            if (bonus < 0 && Mathf.Max(Mathf.Abs(offset.x), Mathf.Max(Mathf.Abs(offset.y), Mathf.Abs(offset.z))) > limitedRadius) continue;
+            if (Mathf.Max(Mathf.Abs(delta.x - offset.x), Mathf.Abs(delta.z - offset.z)) <= Mathf.Max(0, bonus)) return true;
+        }
+        return bonus > 0 && Mathf.Max(Mathf.Abs(delta.x), Mathf.Abs(delta.z)) <= bonus;
+    }
+
     [System.ThreadStatic] static HashSet<Vector3Int> visionScratch;
     static HashSet<Vector3Int> ClearVisionScratch() { if(visionScratch==null) visionScratch=new HashSet<Vector3Int>();visionScratch.Clear();return visionScratch; }
 

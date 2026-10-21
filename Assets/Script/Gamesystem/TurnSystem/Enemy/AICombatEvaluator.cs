@@ -14,6 +14,13 @@ static class AICombatEvaluator
         float score = 30f;
 
         int expectedDmg = AIActionEvaluator.EstimateEffectiveSpecialDamage(action.Unit, action.TargetUnit, board, out var actualVictim);
+        if (actualVictim == action.TargetUnit && BarrierSystem.UsesBarrier(actualVictim))
+        {
+            int raw = AIActionEvaluator.EstimateObservedNormalPacket(action.Unit, actualVictim,board,
+                AIActionEvaluator.EstimateSpecialAwareAttack(action.Unit, actualVictim, board));
+            int barrierLoss = Mathf.Min(actualVictim.Barrier, SpecialSkillRuntime.PreviewDamage(actualVictim, raw));
+            score += 15f * barrierLoss / Mathf.Max(1f, actualVictim.MaxBarrier);
+        }
         if (actualVictim != null && expectedDmg >= actualVictim.HP)
             score += 40f;
 
@@ -44,6 +51,18 @@ static class AICombatEvaluator
 
         Vector3 unitPos = action.Unit.transform.position;
         Vector3 dest = action.TargetPos;
+
+        if (MatchObjectiveRules.IsCommander(action.Unit))
+        {
+            // Scouting/contact bonuses belong to the field army. A commander
+            // moves to recover safety or return home, not to reveal more Fog.
+            float homeProgress = Vector3.Distance(unitPos, board.EnemyCrystalPos) - Vector3.Distance(dest, board.EnemyCrystalPos);
+            float before = board.Governor != null ? board.Governor.IncomingDamage(board, action.Unit, unitPos, null)
+                : board.EstimateCounterDamageAt(unitPos, action.Unit);
+            float after = board.Governor != null ? board.Governor.IncomingDamage(board, action.Unit, dest, null)
+                : board.EstimateCounterDamageAt(dest, action.Unit);
+            return homeProgress * 10 + Mathf.Clamp(before - after, -action.Unit.HP, action.Unit.HP) * .5f - 15;
+        }
 
         // ★ 視界制限: Playerクリスタルへの接近加点は視認済みの場合のみ
         if (board.CanUsePlayerCrystalAsTarget())
@@ -127,11 +146,18 @@ static class AICombatEvaluator
         float score = 20f;
 
         var skill = action.Skill;
+        Status buffTarget = skill.BuffToSelf ? action.Unit : action.TargetUnit ?? action.Unit;
+        bool inertDefenceBuff = skill.GrantBuff == BuffType.Defensive && BarrierSystem.UsesBarrier(buffTarget);
+        bool inertDefenceDebuff = skill.InflictDebuff == StatusEffectType.ArmorBreak && BarrierSystem.UsesBarrier(action.TargetUnit);
+        if (inertDefenceBuff && skill.Multiplier <= 0 && skill.FixedDamage <= 0 && skill.FixedHeal <= 0
+            && string.IsNullOrEmpty(skill.SpecialEffect)
+            && (skill.InflictDebuff == StatusEffectType.None || inertDefenceDebuff)) return -10000;
 
         // 攻撃スキル
         if (skill.Multiplier > 0 && action.TargetUnit != null)
         {
-            int expectedDmg = SkillSystem.CalcSkillDamage(action.Unit, action.TargetUnit, skill);
+            int expectedDmg = SpecialSkillRuntime.PreviewHpDamage(action.TargetUnit,
+                SkillSystem.CalcSkillDamage(action.Unit, action.TargetUnit, skill));
             if (expectedDmg >= action.TargetUnit.HP)
                 score += 45f;
 
@@ -160,7 +186,7 @@ static class AICombatEvaluator
         }
 
         // バフスキル
-        if (skill.GrantBuff != BuffType.None)
+        if (skill.GrantBuff != BuffType.None && !inertDefenceBuff)
         {
             score += 12f;
             if (skill.GrantBuff == BuffType.Haste)
@@ -191,7 +217,7 @@ static class AICombatEvaluator
         }
 
         // デバフ付き
-        if (skill.InflictDebuff != StatusEffectType.None)
+        if (skill.InflictDebuff != StatusEffectType.None && !inertDefenceDebuff)
         {
             score += 8f;
             if (skill.InflictDebuff == StatusEffectType.Stun)

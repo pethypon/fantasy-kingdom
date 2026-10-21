@@ -194,7 +194,8 @@ public static class R1ProductionContentInstaller
         Undo.RecordObject(target, "R1未設定値を導入");
         var destination = new SerializedObject(target); var source = new SerializedObject(defaults);
         foreach (string field in new[] { "apCost", "cooldown", "knightVisibleEnemyAtkPenalty", "sacrificeLimit", "bombExplosionRadius",
-            "samuraiGaugeGain", "samuraiGaugeMax", "assassinBoostDuration", "bomberAutoExplosionRadius", "crossbowInitialAmmo" })
+            "samuraiGaugeGain", "samuraiGaugeMax", "assassinBoostDuration", "bomberAutoExplosionRadius", "crossbowInitialAmmo",
+            "heavyBarrierMultiplier", "dragonKnightSkillMultiplier" })
         {
             var value = destination.FindProperty(field); var supplied = source.FindProperty(field);
             if (value.propertyType == SerializedPropertyType.Float ? value.floatValue < 0 : value.intValue < 0)
@@ -215,7 +216,7 @@ public static class R1ProductionContentInstaller
         destination.ApplyModifiedProperties(); EditorUtility.SetDirty(target);
     }
 
-    static BoardActionProfile CaptureProfile(UnitData source)
+    public static BoardActionProfile CaptureProfile(UnitData source)
     {
         var profile = source.actionProfile != null ? UnityEngine.Object.Instantiate(source.actionProfile) : ScriptableObject.CreateInstance<BoardActionProfile>();
         try

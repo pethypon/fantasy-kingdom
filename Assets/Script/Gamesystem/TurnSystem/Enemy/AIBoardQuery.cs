@@ -58,10 +58,10 @@ public static class AIBoardQuery
     {
         int enemyPower = 0;
         for (int i = 0; i < board.AliveEnemyUnits.Count; i++)
-            enemyPower += board.AliveEnemyUnits[i].HP + board.AliveEnemyUnits[i].ATK;
+            enemyPower += board.AliveEnemyUnits[i].HP + board.AliveEnemyUnits[i].Barrier + board.AliveEnemyUnits[i].ATK;
         int playerPower = 0;
         for (int i = 0; i < board.AlivePlayerUnits.Count; i++)
-            playerPower += board.AlivePlayerUnits[i].HP + board.AlivePlayerUnits[i].ATK;
+            playerPower += board.AlivePlayerUnits[i].HP + board.AlivePlayerUnits[i].Barrier + board.AlivePlayerUnits[i].ATK;
         if (playerPower + enemyPower == 0) return 0f;
         return (enemyPower - playerPower) / (float)(enemyPower + playerPower);
     }
@@ -124,16 +124,20 @@ public static class AIBoardQuery
     /// あるマスに駒が立ったとき、次ターンにプレイヤーから受ける予想ダメージ合計。
     /// 視界内のプレイヤー駒それぞれについて、攻撃が届くかを簡易判定する。
     /// </summary>
-    public static int EstimateCounterDamageAt(AIBoardState board, Vector3 pos, Status self)
+    public static int EstimateCounterDamageAt(AIBoardState board, Vector3 pos, Status self, bool ignoreFiniteBarrier = false)
     {
-        if(board.CounterCache.TryGetValue((pos,self,self.DEF),out var cached)) return cached;
+        int stateKey;
+        unchecked { stateKey = (self.DEF * 397 ^ self.Barrier) * 397 ^ self.HP; }
+        if(!ignoreFiniteBarrier && board.CounterCache.TryGetValue((pos,self,stateKey),out var cached)) return cached;
         long totalDmg = 0;
+        int barrier = !ignoreFiniteBarrier && BarrierSystem.UsesBarrier(self) ? self.Barrier : 0;
         // A dragon can breathe across its fixed territory even when its current position
         // lies beyond the local index radius. Only the board's observed actors are eligible.
         foreach (var opponent in board.AlivePlayerUnits)
         {
             if (!ObservedDragonThreat.IsDragon(opponent)) continue;
-            totalDmg = Math.Min(int.MaxValue, totalDmg + ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, pos));
+            totalDmg = Math.Min(int.MaxValue, totalDmg + AIActionEvaluator.EstimateObservedHitLoss(self,board,
+                ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, pos), HpChangeKind.NormalDamage,ref barrier));
         }
         foreach (var pu in board.Enemies.Near(pos, 12f))
         {
@@ -152,12 +156,14 @@ public static class AIBoardQuery
             float newCover = board.KnownEnvironmentDefinition(pos) != null
                 ? board.ReconMap.Environment.IncomingDamageMultiplier(pos, ranged, stone) : 1;
             raw = (int)Math.Min(int.MaxValue, Math.Max(0, raw * (double)newCover / Mathf.Max(.01f, oldCover)));
-            int dmg = AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage);
+            raw = BarrierSystem.NormalAttackDamage(pu.kind, barrier, raw);
+            int dmg = AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage,ref barrier);
             totalDmg = Math.Min(int.MaxValue, totalDmg + dmg);
         }
-        totalDmg=Math.Min(int.MaxValue,totalDmg+AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,pos));
-        totalDmg=Math.Min(int.MaxValue,totalDmg+board.KnownEnvironmentRisk(self,pos));
-        return board.CounterCache[(pos,self,self.DEF)] = (int)totalDmg;
+        totalDmg=Math.Min(int.MaxValue,totalDmg+AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,pos,ref barrier));
+        totalDmg=Math.Min(int.MaxValue,totalDmg+board.KnownEnvironmentRisk(self,pos,ref barrier));
+        if (!ignoreFiniteBarrier) board.CounterCache[(pos,self,stateKey)] = (int)totalDmg;
+        return (int)totalDmg;
     }
 
     /// <summary>駒種から大まかな攻撃射程を返す</summary>

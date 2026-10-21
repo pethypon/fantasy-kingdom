@@ -11,7 +11,7 @@ public static partial class DarkEnemyVisualInstaller
         {
             case Kind.King: case Kind.Priest: case Kind.WhiteMage: case Kind.HolyKnight: source = "Ram"; break;
             case Kind.Archer: case Kind.Magic: case Kind.Magicsniper: case Kind.Navigator: source = "Koi"; break;
-            case Kind.Guardian: case Kind.Crossbow: case Kind.Bomber: case Kind.Samurai: case Kind.Berserker: source = "Crab"; break;
+            case Kind.Guardian: case Kind.Crossbow: case Kind.Bomber: case Kind.Samurai: case Kind.Berserker: case Kind.HeavyWarrior: source = "Crab"; break;
             default: source = "Hound"; break;
         }
         var s = NewSculpture(source);
@@ -110,8 +110,26 @@ public static partial class DarkEnemyVisualInstaller
                 s.Beam(new Vector3(.09f, .48f, 0), new Vector3(.41f, .48f, 0), .023f, 4, 6);
                 s.Horn(new Vector3(.25f, -.08f, 0), new Vector3(.07f, .11f, 0), .045f, 3);
                 s.Horn(new Vector3(.25f, -.08f, 0), new Vector3(.43f, .11f, 0), .045f, 3); break;
+            case Kind.HeavyWarrior:
+                ShoulderArmor(s, .16f, .16f);
+                Shield(s, new Vector3(-.24f, .02f, -.18f), .15f, .28f);
+                s.Beam(new Vector3(.29f, -.22f, -.04f), new Vector3(.29f, .65f, -.04f), .038f, 5, 7);
+                s.Box(new Vector3(.29f, .54f, -.04f), new Vector3(.24f, .22f, .20f), 3, Quaternion.identity);
+                s.Gem(new Vector3(.29f, .68f, -.04f), new Vector3(.07f, .06f, .07f), 6);
+                Spine(s, 3); break;
+            case Kind.DragonKnight:
+                Spine(s, 5); ShoulderArmor(s, .12f, .12f);
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    s.Fin(new Vector3(side * .09f, .07f, .14f), new Vector3(side * .18f, .62f, .15f),
+                        new Vector3(side * .40f, .40f, .21f), new Vector3(side * .28f, -.02f, .19f), 2);
+                    s.Horn(new Vector3(side * .10f, .40f, .02f), new Vector3(side * .18f, .72f, .07f), .035f, 6);
+                }
+                s.Beam(new Vector3(.28f, -.22f, -.04f), new Vector3(.28f, .62f, -.04f), .027f, 5, 6);
+                s.Blade(new Vector3(.28f, .61f, -.04f), new Vector3(.28f, .88f, -.04f), .10f, .025f, 3);
+                Shield(s, new Vector3(-.24f, .02f, -.18f), .12f, .22f); break;
         }
-        float ornamentHeight = source == "Ram" ? .82f : source == "Crab" ? .80f : .86f;
+        float ornamentHeight = source == "Ram" || source == "Crab" ? .78f : .81f;
         const float ornamentWidth = .82f;
         s.CompactOrnaments(ornamentHeight, ornamentWidth);
         ConnectEquipment(s, kind, source, ornamentHeight, ornamentWidth);
@@ -120,17 +138,34 @@ public static partial class DarkEnemyVisualInstaller
     static Sculpture NewSculpture(string source)
     {
         var s = new Sculpture();
-        s.Lathe(new Vector3(0, -.50f, 0), new[] { new Vector2(.28f, 0), new Vector2(.355f, .025f), new Vector2(.355f, .065f), new Vector2(.31f, .10f) }, 0, 12);
-        s.Lathe(new Vector3(0, -.40f, 0), new[] { new Vector2(.31f, 0), new Vector2(.30f, .035f), new Vector2(.26f, .10f), new Vector2(.25f, .14f) }, 1, 12);
-        s.Lathe(new Vector3(0, -.405f, 0), new[] { new Vector2(.312f, 0), new Vector2(.312f, .014f) }, 4, 12);
+        s.Lathe(new Vector3(0, -.50f, 0), new[] { new Vector2(.315f, 0), new Vector2(.389f, .025f), new Vector2(.389f, .065f), new Vector2(.345f, .10f) }, 0, 12);
+        s.Lathe(new Vector3(0, -.40f, 0), new[] { new Vector2(.345f, 0), new Vector2(.33f, .035f), new Vector2(.29f, .10f), new Vector2(.275f, .14f) }, 1, 12);
+        s.Lathe(new Vector3(0, -.405f, 0), new[] { new Vector2(.347f, 0), new Vector2(.347f, .022f) }, 4, 12);
         for (int i = 0; i < 8; i++)
         {
             float a = i * Mathf.PI / 4;
-            s.Gem(new Vector3(Mathf.Cos(a) * .30f, -.34f, Mathf.Sin(a) * .30f), Vector3.one * .013f, 4, 4, 2);
+            s.Gem(new Vector3(Mathf.Cos(a) * .331f, -.34f, Mathf.Sin(a) * .331f), Vector3.one * .018f, 4, 4, 2);
         }
         // The long koi was almost a horizontal sliver from game height. Preserve its face/fins while giving its body more relief.
-        s.Import(LoadSource(source), source == "Koi" ? new Vector3(1, 1.43f, 1.10f) : Vector3.one);
+        var bodyScale = source == "Koi" ? new Vector3(1.08f, 1.38f, 1.20f)
+            : source == "Crab" ? new Vector3(1.12f, .94f, 1.08f)
+            : source == "Ram" ? new Vector3(1.10f, .96f, 1.11f) : new Vector3(1.12f, .98f, 1.10f);
+        s.Import(LoadSource(source), bodyScale);
+        HeavyHarness(s, source);
         s.BeginOrnaments(); return s;
+    }
+    static void HeavyHarness(Sculpture s, string source)
+    {
+        // Reinforce the root and flanks, leaving the original animal's upper body, head, claws and fins exposed.
+        // These are deliberately broad carved planes: black marble needs readable depth, not tiny color marks.
+        float shoulderY = source == "Ram" ? .055f : -.095f;
+        for (int side = -1; side <= 1; side += 2)
+        {
+            s.Gem(new Vector3(side * .175f, shoulderY, .045f), new Vector3(.11f, .075f, .135f), 2, 6, 2);
+            s.Box(new Vector3(side * .135f, -.185f, .025f), new Vector3(.115f, .15f, .235f), 1,
+                Quaternion.Euler(0, side * 12, side * -8));
+        }
+        s.Lathe(new Vector3(0, -.245f, .015f), new[] { new Vector2(.205f, 0), new Vector2(.22f, .045f) }, 4, 8);
     }
     static Sculpture MakeBoss(WildBossArchetype boss)
     {
@@ -171,7 +206,7 @@ public static partial class DarkEnemyVisualInstaller
                 ShoulderArmor(s, .19f, .17f);
                 s.Box(new Vector3(0, .13f, .09f), new Vector3(.47f, .16f, .16f), 2, Quaternion.identity); break;
         }
-        float compactY = boss == WildBossArchetype.GhostKing ? .88f : .92f;
+        float compactY = boss == WildBossArchetype.GhostKing ? .83f : .87f;
         const float bossWidth = .88f;
         s.CompactOrnaments(compactY, bossWidth);
         if (boss == WildBossArchetype.Dragon)
@@ -217,7 +252,8 @@ public static partial class DarkEnemyVisualInstaller
     {
         if (source == "Koi") KoiRoot(s);
         bool right = kind == Kind.Knight || kind == Kind.Archer || kind == Kind.Magic || kind == Kind.Priest
-            || kind == Kind.HolyKnight || kind == Kind.Samurai || kind == Kind.Navigator || kind == Kind.Berserker;
+            || kind == Kind.HolyKnight || kind == Kind.Samurai || kind == Kind.Navigator || kind == Kind.Berserker
+            || kind == Kind.HeavyWarrior || kind == Kind.DragonKnight;
         bool left = kind == Kind.Assassin || kind == Kind.WhiteMage || kind == Kind.Ninja || kind == Kind.Berserker;
         float shoulderY = source == "Ram" ? .08f : -.10f;
         var rightGrip = CompactPoint(new Vector3(.29f, -.06f, -.04f), height, width);
@@ -230,8 +266,8 @@ public static partial class DarkEnemyVisualInstaller
             for (int side = -1; side <= 1; side += 2)
                 s.Beam(new Vector3(side * .06f, -.08f, .01f), CompactPoint(new Vector3(side * .25f, .15f, .02f), height, width), .032f, 1, 6);
         }
-        if (kind == Kind.Guardian || kind == Kind.HolyKnight)
-            s.Beam(new Vector3(0, -.08f, 0), CompactPoint(new Vector3(kind == Kind.HolyKnight ? -.20f : 0, .03f, kind == Kind.HolyKnight ? -.19f : -.29f), height, width), .035f, 1, 6);
+        if (kind == Kind.Guardian || kind == Kind.HolyKnight || kind == Kind.HeavyWarrior || kind == Kind.DragonKnight)
+            s.Beam(new Vector3(0, -.08f, 0), CompactPoint(new Vector3(kind == Kind.Guardian ? 0 : -.24f, .03f, kind == Kind.Guardian ? -.29f : -.19f), height, width), .035f, 1, 6);
         if (kind == Kind.Priest)
             s.Beam(new Vector3(-.04f, .16f, .01f), CompactPoint(new Vector3(-.26f, .34f, -.04f), height, width), .023f, 1, 6);
         if (kind == Kind.Ninja)
@@ -252,14 +288,16 @@ public static partial class DarkEnemyVisualInstaller
     static void ClawArm(Sculpture s, Vector3 shoulder, Vector3 grip)
     {
         Vector3 elbow = Vector3.Lerp(shoulder, grip, .58f) + Vector3.back * .045f;
-        s.Beam(shoulder, elbow, .026f, 1, 6); s.Beam(elbow, grip, .021f, 1, 6);
-        s.Gem(grip, Vector3.one * .026f, 1, 5, 2);
+        s.Beam(shoulder, elbow, .043f, 1, 6); s.Beam(elbow, grip, .035f, 1, 6);
+        s.Gem(grip, Vector3.one * .038f, 1, 5, 2);
+        s.Box(Vector3.Lerp(elbow, grip, .55f), new Vector3(.083f, .115f, .095f), 2,
+            Quaternion.FromToRotation(Vector3.up, (grip - elbow).normalized));
     }
     static void KoiRoot(Sculpture s)
     {
         // A dark, tapered coil joins the swimming sculpture to its plinth instead of a floating fish and weapon.
-        s.Beam(new Vector3(.06f, -.26f, .025f), new Vector3(.04f, -.17f, .03f), .040f, 1, 7);
-        s.Beam(new Vector3(.04f, -.17f, .03f), new Vector3(-.02f, -.11f, .015f), .030f, 1, 6);
+        s.Beam(new Vector3(.06f, -.26f, .025f), new Vector3(.04f, -.17f, .03f), .057f, 1, 7);
+        s.Beam(new Vector3(.04f, -.17f, .03f), new Vector3(-.02f, -.11f, .015f), .043f, 1, 6);
     }
     static void Crown(Sculpture s, float y, float r, int points)
     {
@@ -283,15 +321,15 @@ public static partial class DarkEnemyVisualInstaller
     static void Sword(Sculpture s, Vector3 origin, float height, float width, float tilt)
     {
         Quaternion rotation = Quaternion.Euler(0, 0, tilt); var grip = origin + rotation * Vector3.up * .15f;
-        s.Beam(origin, grip, .02f, 5, 6); var hand = grip + rotation * Vector3.up * .025f;
-        s.Beam(hand + rotation * Vector3.left * .09f, hand + rotation * Vector3.right * .09f, .018f, 4, 5);
-        s.Blade(hand, origin + rotation * Vector3.up * height, width * 1.5f, .015f, 3);
-        s.Gem(origin, new Vector3(.025f, .032f, .025f), 4, 5, 2);
+        s.Beam(origin, grip, .028f, 5, 6); var hand = grip + rotation * Vector3.up * .025f;
+        s.Beam(hand + rotation * Vector3.left * .105f, hand + rotation * Vector3.right * .105f, .026f, 4, 5);
+        s.Blade(hand, origin + rotation * Vector3.up * height, width * 1.85f, .030f, 3);
+        s.Gem(origin, new Vector3(.034f, .040f, .034f), 4, 5, 2);
     }
     static void Staff(Sculpture s, float x, float y, int gemColor)
     {
-        s.Beam(new Vector3(x, -.22f, 0), new Vector3(x, y - .08f, 0), .018f, 5, 6);
-        s.Gem(new Vector3(x, y, 0), new Vector3(.065f, .10f, .065f), gemColor, 6, 3);
+        s.Beam(new Vector3(x, -.22f, 0), new Vector3(x, y - .08f, 0), .027f, 5, 6);
+        s.Gem(new Vector3(x, y, 0), new Vector3(.074f, .115f, .074f), gemColor, 6, 3);
         Halo(s, new Vector3(x, y, .012f), .11f, 4, 8);
     }
     static void Halo(Sculpture s, Vector3 center, float radius, int color, int sides)
@@ -300,7 +338,7 @@ public static partial class DarkEnemyVisualInstaller
         {
             float a = i * Mathf.PI * 2 / sides, b = (i + 1) * Mathf.PI * 2 / sides;
             s.Beam(center + new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0) * radius,
-                center + new Vector3(Mathf.Cos(b), Mathf.Sin(b), 0) * radius, .010f, color, 4);
+                center + new Vector3(Mathf.Cos(b), Mathf.Sin(b), 0) * radius, .016f, color, 4);
         }
     }
     static void Crescent(Sculpture s, Vector3 center, float radius, int color)
@@ -309,20 +347,20 @@ public static partial class DarkEnemyVisualInstaller
         {
             float a = (i / 7f * 1.4f + .3f) * Mathf.PI, b = ((i + 1) / 7f * 1.4f + .3f) * Mathf.PI;
             s.Beam(center + new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0) * radius,
-                center + new Vector3(Mathf.Cos(b), Mathf.Sin(b), 0) * radius, .018f, color, 5);
+                center + new Vector3(Mathf.Cos(b), Mathf.Sin(b), 0) * radius, .026f, color, 5);
         }
     }
     static void Sickle(Sculpture s, float x, float y, float tilt)
     {
-        s.Beam(new Vector3(x, -.20f, -.04f), new Vector3(x, y, -.04f), .018f, 5, 5);
+        s.Beam(new Vector3(x, -.20f, -.04f), new Vector3(x, y, -.04f), .026f, 5, 5);
         var root = new Vector3(x, y, -.04f); var bend = new Vector3(x * .75f, y + .15f, -.075f);
-        s.Blade(root, bend, .055f, .016f, 6);
-        s.Blade(bend, new Vector3(x * .25f, y + .20f, -.11f), .05f, .012f, 6);
+        s.Blade(root, bend, .068f, .026f, 6);
+        s.Blade(bend, new Vector3(x * .25f, y + .20f, -.11f), .06f, .022f, 6);
     }
     static void BoneBow(Sculpture s)
     {
         var top = new Vector3(.22f, .68f, -.02f); var middle = new Vector3(.40f, .20f, -.02f); var bottom = new Vector3(.22f, -.22f, -.02f);
-        s.Beam(top, middle, .028f, 6, 6); s.Beam(middle, bottom, .028f, 6, 6); s.Beam(top, bottom, .005f, 4, 4);
+        s.Beam(top, middle, .038f, 6, 6); s.Beam(middle, bottom, .038f, 6, 6); s.Beam(top, bottom, .005f, 4, 4);
         s.Horn(top, new Vector3(.18f, .77f, -.02f), .023f, 6); s.Horn(bottom, new Vector3(.18f, -.26f, -.02f), .023f, 6);
     }
     static void Shield(Sculpture s, Vector3 center, float width, float height)
@@ -332,17 +370,17 @@ public static partial class DarkEnemyVisualInstaller
             new Vector3(width * .84f, -height * .43f, 0), new Vector3(0, -height, 0),
             new Vector3(-width * .84f, -height * .43f, 0), new Vector3(-width, height * .62f, 0) };
         for (int i = 0; i < rim.Length; i++) rim[i] += center;
-        s.RidgedPlate(rim, center + Vector3.back * .055f, .025f, 2);
+        s.RidgedPlate(rim, center + Vector3.back * .078f, .045f, 2);
         s.Beam(center + Vector3.up * height * .65f, center - Vector3.up * height * .80f, .018f, 4, 5);
-        s.Gem(center + new Vector3(0, 0, -.058f), new Vector3(.045f, .06f, .02f), 10);
+        s.Gem(center + new Vector3(0, 0, -.085f), new Vector3(.055f, .07f, .025f), 10);
     }
     static void ShoulderArmor(Sculpture s, float y, float size)
     {
         for (int side = -1; side <= 1; side += 2)
         {
-            var c = new Vector3(side * .16f, y, .005f);
-            s.Gem(c, new Vector3(size, size * .50f, size * .83f), 2, 5, 2);
-            s.Beam(c + Vector3.down * size * .28f, new Vector3(side * .07f, y - .07f, .02f), .035f, 1, 5);
+            var c = new Vector3(side * .18f, y, .005f);
+            s.Gem(c, new Vector3(size * 1.15f, size * .70f, size * .95f), 2, 5, 2);
+            s.Beam(c + Vector3.down * size * .32f, new Vector3(side * .07f, y - .07f, .02f), .047f, 1, 5);
         }
     }
     static void AxeHead(Sculpture s, Vector3 center, int side)
@@ -350,7 +388,7 @@ public static partial class DarkEnemyVisualInstaller
         var rim = new[] { center + new Vector3(-.04f * side, .10f, 0), center + new Vector3(.16f * side, .11f, 0),
             center + new Vector3(.19f * side, -.12f, 0), center + new Vector3(.06f * side, -.07f, 0),
             center + new Vector3(-.04f * side, -.03f, 0) };
-        s.RidgedPlate(rim, center + Vector3.back * .04f, .028f, 3);
+        s.RidgedPlate(rim, center + Vector3.back * .06f, .044f, 3);
     }
     static void FoldedCloak(Sculpture s, Vector3 shoulder, float topWidth, float length, float hemWidth, int color)
     {
@@ -461,14 +499,14 @@ public static partial class DarkEnemyVisualInstaller
             var normal = Vector3.Cross(b - a, c - a).normalized;
             var rim = new[] { a, b, c, d };
             var center = (a + b + c + d) * .25f;
-            var front = center + normal * .026f; var back = center - normal * .014f;
+            var front = center + normal * .036f; var back = center - normal * .024f;
             // Closed thickness and a raised fold remain visible when the camera looks along the panel.
             for (int i = 0; i < 4; i++)
             {
                 int j = (i + 1) % 4;
                 Tri(rim[i], rim[j], front, color);
-                Tri(rim[j] - normal * .014f, rim[i] - normal * .014f, back, color);
-                Quad(rim[j], rim[i], rim[i] - normal * .014f, rim[j] - normal * .014f, color);
+                Tri(rim[j] - normal * .024f, rim[i] - normal * .024f, back, color);
+                Quad(rim[j], rim[i], rim[i] - normal * .024f, rim[j] - normal * .024f, color);
             }
         }
         public void RidgedPlate(Vector3[] rim, Vector3 front, float thickness, int color)

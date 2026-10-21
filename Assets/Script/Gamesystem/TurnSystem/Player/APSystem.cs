@@ -38,6 +38,7 @@ public class APSystem : MonoBehaviour
     public int CalcCost(ActionType action, Status obj,
                         Vector3 from = default, Vector3 to = default)
     {
+        if (action == ActionType.Move && SpecialSkillRuntime.HasAssassinPassive(obj)) return SpecialSkillDefinition.AssassinMoveAP;
         var environmentMap = mapCreate != null ? mapCreate : obj?.RuntimeSystems?.MapCreate;
         if (action == ActionType.Move && environmentMap != null && environmentMap.Environment.IsCaveConnection(from, to))
             return TerrainEnvironmentRuntime.CaveUseAP;

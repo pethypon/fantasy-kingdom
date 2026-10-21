@@ -9,7 +9,7 @@ public sealed partial class GameDevelopmentStudioWindow
     {
         {"displayName","表示名"},{"category","種類の分類"},{"defaultTeam","初期陣営"},{"kind","基礎役割（AIの判断用）"},
         {"availableToPlayer","プレイヤーが作成できる"},{"availableToEnemy","敵AIが作成できる"},{"prefab","見た目のPrefab"},
-        {"baseHP","最大HP"},{"baseATK","攻撃力"},{"baseDEF","防御力"},{"hpGrowth","HP成長率"},{"atkGrowth","攻撃成長率"},{"defGrowth","防御成長率"},
+        {"baseHP","最大HP"},{"baseATK","攻撃力"},{"baseBarrier","Lv1の最大バリア（−1は兵種の標準値）"},{"hpGrowth","HP成長率"},{"atkGrowth","攻撃成長率"},
         {"costWood","作成費：木材"},{"costStone","作成費：石材"},{"costIron","作成費：鉄"},{"costMagic","作成費：魔石"},
         {"costWater","作成費：水"},{"costBread","作成費：パン"},{"costCitizen","作成費：市民"},{"costAP","作成費：AP"},
         {"upkeepWood","維持費：木材"},{"upkeepStone","維持費：石材"},{"upkeepIron","維持費：鉄"},{"upkeepMagic","維持費：魔石"},
@@ -21,7 +21,7 @@ public sealed partial class GameDevelopmentStudioWindow
         {"useAuthoredUpkeep","この駒専用の鉄・パン維持費を使う"},
         {"intervalTurns","生産の間隔（ターン）"},{"level","適用するレベル"},
         {"useAuthoredAbilities","この駒専用の能力を使う"},{"authoredPassive","常時発動する能力"},{"authoredSpecialAbility","特殊能力"},
-        {"behaviourKind","施設の基本動作"},{"buildAP","建築費：AP"},{"HP","最大HP"},{"ATK","攻撃力"},{"DEF","防御力"},
+        {"behaviourKind","施設の基本動作"},{"buildAP","建築費：AP"},{"HP","最大HP"},{"ATK","攻撃力"},
         {"UpgradeAP","強化費：AP"},{"SpecialValue","特殊効果の値"},{"BonusChance1","確率生産１の発生率"},{"BonusChance2","確率生産２の発生率"},
         {"Wood","木材"},{"Stone","石材"},{"Iron","鉄"},{"MagicOre","魔石"},{"Wheat","小麦"},{"Bread","パン"},{"Water","水"},{"Citizen","市民"},
         {"applyRules","このルールで新規ゲームを始める"},{"aiBreadReserveTurns","AIが確保するパンの予備ターン数"},{"turnSeconds","１ターンの制限時間（秒）"},{"totalSeconds","各軍の持ち時間（秒）"},
@@ -97,6 +97,7 @@ public sealed partial class GameDevelopmentStudioWindow
     static void Field(SerializedProperty p)
     {
         if (p == null) return;
+        if (p.name == "baseDEF" || p.name == "defGrowth" || p.name == "DEF") return;
         string label = Labels.TryGetValue(p.name,out var translated) ? translated : p.displayName;
         if (p.propertyType == SerializedPropertyType.Enum)
         {

@@ -37,9 +37,10 @@ public sealed class FantasyKingdomR1ContractTests
         System.Type.GetType("SpecialSkillAITests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
         System.Type.GetType("SpecialSkillR1AITests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
         System.Type.GetType("SpecialSkillUITests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
-        foreach (string suite in new[] { "EnvironmentGenerationTests", "R1ProductionAIRecruitmentTests", "R1AIOwnWallLegalityTests", "AIOperationLifetimeTests", "BoardThemePresentationTests", "BoardActorAnimationTests", "BoardFeedbackTests", "AIClosingTests" })
+        foreach (string suite in new[] { "EnvironmentGenerationTests", "R1ProductionAIRecruitmentTests", "R1AIOwnWallLegalityTests", "AIOperationLifetimeTests", "BoardThemePresentationTests", "BoardActorAnimationTests", "BoardFeedbackTests", "AIClosingTests", "AIClosingAdvanceTests", "AICommanderSafetyTests", "AssassinAbilityTests" })
             System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
         System.Type.GetType("AIClosingObjectiveTests, Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems, turn });
+        System.Type.GetType("ThreatClearProgressionTests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems, turn });
         yield return new ExitPlayMode();
     }
 

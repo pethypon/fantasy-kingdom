@@ -6,6 +6,67 @@ using UnityEngine.UI;
 public static class StatusUIRegressionTests
 {
     static void Check(string label,bool ok) { if(!ok) throw new Exception("[StatusUI] "+label); Debug.Log("[StatusUI] PASS "+label); }
+    static void CheckBarrierUI(GameSystems systems)
+    {
+        if (!BarrierCombatSettings.Active.enabledForPlay) return;
+        var panel = systems.UnitPanelUI;
+        var targetGo = new GameObject("Barrier UI target fixture");
+        var attackerGo = new GameObject("Barrier UI attacker fixture");
+        var definition = ScriptableObject.CreateInstance<UnitData>();
+        definition.kind = Kind.Knight; definition.baseBarrier = 20;
+        var target = targetGo.AddComponent<Status>(); target.kind = Kind.Knight; target.type = Type.Unit;
+        target.team = Team.Enemy; target.GrowthData = definition; target.MaxHP = target.HP = 100; target.ResetBarrier();
+        var attacker = attackerGo.AddComponent<Status>(); attacker.kind = Kind.Knight; attacker.type = Type.Unit;
+        attacker.team = Team.Player; attacker.MaxHP = attacker.HP = 100; attacker.ATK = 1;
+        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+        var preview = systems.TurnGenerator.GetComponentInChildren<DamagePreviewUI>(true)
+            ?? UnityEngine.Object.FindFirstObjectByType<DamagePreviewUI>();
+        try
+        {
+            panel.Hide(); panel.Preview(target);
+            var hp = panel.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).First(t=>t.name=="HPText");
+            var barrier = panel.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).First(t=>t.name=="DEFText");
+            string originalHP = hp.text;
+            SpecialSkillRuntime.ApplyHpChange(null, target, 4, HpChangeKind.NormalDamage);
+            panel.Refresh();
+            var fill = panel.GetComponentsInChildren<Image>(true).First(i=>i.name=="BarrierBarFill");
+            Check("barrier-only damage preserves HP and HP label", target.HP==100&&target.Barrier==16&&hp.text==originalHP);
+            Check("HUD exposes independent barrier value and gauge", barrier.text.Contains("バリア")&&barrier.text.Contains("16")
+                &&fill.transform.parent.gameObject.activeSelf&&Mathf.Abs(fill.fillAmount-.8f)<.001f);
+            var head = UnitHeadUI.Attach(targetGo);
+            var headObject = (GameObject)typeof(UnitHeadUI).GetField("headUIObject",flags).GetValue(head);
+            Check("world display has a separate barrier gauge", headObject.transform.Find("BarrierFrame/BarrierWell/BarrierFill")!=null);
+            if (preview != null)
+            {
+                var show = typeof(DamagePreviewUI).GetMethod("ShowPreview",flags);
+                var label = (TMPro.TextMeshProUGUI)typeof(DamagePreviewUI).GetField("_hpText",flags).GetValue(preview);
+                target.Barrier = 20;
+                show.Invoke(preview,new object[]{attacker,target,Vector2.zero});
+                Check("damage preview shows absorption without HP loss", label.text.Contains("HP: 100 → 100")&&label.text.Contains("バリア: 20 →"));
+                target.Barrier = 1;
+                int incoming = SkillSystem.CalcNormalDamage(attacker,target);
+                int expectedHP = 100-SpecialSkillRuntime.PreviewHpDamage(target,incoming);
+                show.Invoke(preview,new object[]{attacker,target,Vector2.zero});
+                Check("damage preview sends only barrier overflow to HP", expectedHP<100&&label.text.Contains("HP: 100 → "+expectedHP)
+                    &&label.text.Contains("バリア: 1 → 0"));
+                typeof(DamagePreviewUI).GetMethod("ClearPreview",flags).Invoke(preview,null);
+                var popup = (RectTransform)typeof(DamagePreviewUI).GetField("_panelRect",flags).GetValue(preview);
+                Check("a missing hover reference still clears the damage popup",!popup.gameObject.activeSelf);
+                preview.Hide();
+            }
+            else Check("normal damage preview is present",false);
+            target.Barrier = 16; panel.Refresh();
+            VisualRegressionTests.CaptureHUD("barrier-hud.png");
+            targetGo.SetActive(false);
+            Check("disabling an owner hides both world gauges",!headObject.activeSelf);
+        }
+        finally
+        {
+            panel.Hide(); if(preview!=null)preview.Hide();
+            UnityEngine.Object.DestroyImmediate(targetGo); UnityEngine.Object.DestroyImmediate(attackerGo);
+            UnityEngine.Object.DestroyImmediate(definition);
+        }
+    }
     public static void Run(GameSystems systems,TurnGenerator turn)
     {
         var actor=systems.UnitSetting.PlayerUnit.GetComponentsInChildren<Status>().First(s=>s.type==Type.Unit);
@@ -13,6 +74,7 @@ public static class StatusUIRegressionTests
         panel.Hide();panel.Preview(actor);
         var group=panel.GetComponent<CanvasGroup>();
         Check("hover uses shared panel without action raycasts",group.alpha==1&&!group.blocksRaycasts&&!panel.HasSelection);
+        CheckBarrierUI(systems);
         var move=new PlayerMove(turn){SelectedUnit=actor,SelectedUnitPosition=actor.transform.position,MenuSwitch=true};
         turn.ChangeState(move);turn.Context.SelectUnit=actor;panel.Show(actor);
         panel.Preview(null);

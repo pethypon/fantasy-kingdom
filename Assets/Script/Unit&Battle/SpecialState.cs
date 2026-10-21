@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum HpChangeKind { NormalDamage, IgnoreDefenceDamage, DirectHpReduction, ForcedDeath, ExecutionDamage }
+public enum HpChangeKind { NormalDamage, IgnoreDefenceDamage, DirectHpReduction, ForcedDeath, ExecutionDamage, BarrierBypassDamage }
 
 /// <summary>Durable actor state. IDs denote a life, not a prefab or a recycled instance.</summary>
 [Serializable]
@@ -27,6 +27,7 @@ public sealed partial class SpecialState
     public int visionZeroTurns, scoutVisionPenaltyTurns, damageNullTurns;
     public bool damageNullUnused;
     public List<string> affectedUnitIds = new List<string>();
+    public int dragonKnightGauge;
     public int samuraiGauge, samuraiMaxTurns, ninjaCharge, berserkerStage, holyKnightTurns;
     public bool holyKnightRecoveryLock;
     public bool ritualActive => !string.IsNullOrEmpty(ritualTargetId);

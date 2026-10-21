@@ -19,8 +19,9 @@ public static partial class AIActionEvaluator
         if (destination == null && origin == null) return 0;
         // The ordinary simulator has no overlay effects/teleportation. Preserve this truthful static model.
         action.PreserveSpecialEvaluation = true;
-        int entry = moving ? EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, to, true), HpChangeKind.IgnoreDefenceDamage) : 0;
-        int standing = board.KnownEnvironmentDamage(actor, to, false);
+        int barrier = BarrierSystem.UsesBarrier(actor) ? actor.Barrier : 0;
+        int entry = moving ? EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, to, true), HpChangeKind.IgnoreDefenceDamage,ref barrier) : 0;
+        int standing = EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, to, false), HpChangeKind.IgnoreDefenceDamage,ref barrier);
         int remaining = Mathf.Max(0, actor.HP - entry);
         float value = AIBoardEvaluator.GetPieceValuePublic(actor);
         int loss = (int)System.Math.Min(actor.HP, (long)entry + Mathf.Min(remaining, standing));
@@ -30,7 +31,7 @@ public static partial class AIActionEvaluator
         score += value * recovery / Mathf.Max(1f, actor.MaxHP);
         if (moving && board.IsTerrainKnown(from))
         {
-            int avoided = board.KnownEnvironmentDamage(actor, from, false);
+            int avoided = EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, from, false), HpChangeKind.IgnoreDefenceDamage);
             score += value * Mathf.Min(avoided, actor.HP) / Mathf.Max(1f, actor.HP);
             score -= board.KnownEnvironmentMoveCost(from, to);
         }

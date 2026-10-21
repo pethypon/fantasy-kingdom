@@ -206,6 +206,8 @@ public class AIActionExecutor
         _battleSystem.SetTarget(target);
 
         int hpBefore = target.HP;
+        int expectedHpLoss = AIActionEvaluator.EstimateEffectiveSpecialDamage(unit, target, board, out var expectedVictim);
+        if (expectedVictim != target) expectedHpLoss = 0;
         board.ConsumeAttack(unit);
         _battleSystem.ProcessDamage(_turnGen);
 
@@ -222,13 +224,13 @@ public class AIActionExecutor
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] 攻撃: {unit.kind}→{target.kind}  DMG={hpBefore - hpAfter}  残HP={hpAfter}"); }
         }
 
-        RecordAttackLearning(unit, target, hpBefore, hpAfter, killed);
+        RecordAttackLearning(unit, target, hpBefore, hpAfter, killed, expectedHpLoss);
         return true;
         }
         finally { _turnGen.Context.SelectUnit = prevSelect; _battleSystem.SetTarget(prevTarget); }
     }
 
-    void RecordAttackLearning(Status unit, Status target, int hpBefore, int hpAfter, bool killed)
+    void RecordAttackLearning(Status unit, Status target, int hpBefore, int hpAfter, bool killed, int expectedDmg)
     {
         if (!_learning.IsActive || target == null || target.team == ActorTeam) return;
 
@@ -241,7 +243,6 @@ public class AIActionExecutor
         else
         {
             int dmgDealt = hpBefore - hpAfter;
-            int expectedDmg = DamageCalculator.EstimateBaseDamage(unit.ATK, target.DEF);
             if (dmgDealt < expectedDmg * 0.5f)
                 _learning.RecordFrontalFailure(target.transform.position);
         }

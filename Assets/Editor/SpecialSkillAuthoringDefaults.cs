@@ -40,6 +40,7 @@ public static class SpecialSkillAuthoringDefaults
             Kind.WhiteMage => UnitSpecialSkill.WhiteMageHeal, Kind.HolyKnight => UnitSpecialSkill.HolyKnightSanctuary,
             Kind.Samurai => UnitSpecialSkill.SamuraiCounter, Kind.Ninja => UnitSpecialSkill.NinjaSwap,
             Kind.Berserker => UnitSpecialSkill.BerserkerRage, Kind.Navigator => UnitSpecialSkill.NavigatorPull,
+            Kind.HeavyWarrior => UnitSpecialSkill.HeavyWarriorBreak, Kind.DragonKnight => UnitSpecialSkill.DragonKnightPierce,
             _ => UnitSpecialSkill.None
         };
         return ability != UnitSpecialSkill.None;

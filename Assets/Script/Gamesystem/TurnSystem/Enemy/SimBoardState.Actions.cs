@@ -33,6 +33,7 @@ public partial class SimBoardState
 
         _occupiedCells.Remove(unit.Position);
         unit.Position = action.TargetPos;
+        unit.CapturedVisionCells = null;
         _occupiedCells.Add(unit.Position);
         unit.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(unit.Kind);
 
@@ -47,6 +48,7 @@ public partial class SimBoardState
         if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive)
             return false;
         if (attacker.IsStunned) return false;
+        attacker.SimulationRound = target.SimulationRound = TurnCount;
         if (attacker.ActionProfile != null && (!AttackPatterns.CanAttack(attacker, attacker.Direction,
             target.Position.x - attacker.Position.x, target.Position.z - attacker.Position.z)
             || !CanAttack(attacker, target.Position))) return false;
@@ -54,6 +56,7 @@ public partial class SimBoardState
         // シールドチェック
         if (target.ShieldTurns > 0)
         {
+            target.RecordNegatedHit();
             attacker.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(attacker.Kind);
             ConsumeAP(action.ActorTeam, action.APCost);
             return true;
@@ -111,6 +114,8 @@ public partial class SimBoardState
             var target = GetUnit(action.TargetUnitId);
             if (target != null && target.IsAlive)
             {
+                target.SimulationRound = TurnCount;
+                if (skill.Multiplier > 0 && target.ShieldTurns > 0) target.RecordNegatedHit();
                 if (skill.Multiplier > 0 && target.ShieldTurns <= 0)
                 {
                     // 攻撃スキル
@@ -124,6 +129,7 @@ public partial class SimBoardState
                         {
                             int dur = GetDefaultDebuffDuration(skill.InflictDebuff);
                             target.Effects.Add(new SimEffect(skill.InflictDebuff, dur));
+                            target.CapturedVisionCells = null;
                         }
                     }
 
@@ -150,6 +156,7 @@ public partial class SimBoardState
                     {
                         int dur = skill.GrantBuff == BuffType.Haste ? 0 : 1;
                         buffTarget.Effects.Add(new SimEffect(skill.GrantBuff, dur));
+                        buffTarget.CapturedVisionCells = null;
                     }
                 }
             }

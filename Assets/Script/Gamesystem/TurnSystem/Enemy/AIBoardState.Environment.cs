@@ -52,10 +52,16 @@ public partial class AIBoardState
     // A conservative two-packet forecast. One-use protection must not be reused for both entry and next-turn damage.
     public int KnownEnvironmentRisk(Status actor, Vector3 position)
     {
+        int barrier = actor != null && BarrierSystem.UsesBarrier(actor) ? actor.Barrier : 0;
+        return KnownEnvironmentRisk(actor, position, ref barrier);
+    }
+    public int KnownEnvironmentRisk(Status actor, Vector3 position, ref int barrier)
+    {
         if (actor == null || ReconMap == null || !IsTerrainKnown(position)) return 0;
-        long risk = KnownEnvironmentDamage(actor, position, false);
+        long risk = 0;
         if (GridHelper.ToGridXZ(actor.transform.position) != GridHelper.ToGridXZ(position))
-            risk += AIActionEvaluator.EstimateObservedHitLoss(actor, this, KnownEnvironmentDamage(actor, position, true), HpChangeKind.IgnoreDefenceDamage);
+            risk += AIActionEvaluator.EstimateObservedHitLoss(actor, this, KnownEnvironmentDamage(actor, position, true), HpChangeKind.IgnoreDefenceDamage,ref barrier);
+        risk += AIActionEvaluator.EstimateObservedHitLoss(actor, this, KnownEnvironmentDamage(actor, position, false), HpChangeKind.IgnoreDefenceDamage,ref barrier);
         return (int)System.Math.Min(int.MaxValue, risk);
     }
 }

@@ -177,7 +177,7 @@ public static class BuildSummonUIRegressionTests
                 Check("summon list contains no authored building row: " + child.name, !child.name.StartsWith("AuthoredBuilding_", StringComparison.Ordinal));
 
             builder.RefreshBuildButtons(); builder.RefreshSummonButtons();
-            Check("all sixteen production unit kinds are covered", BuildSummonUIBuilder.SummonableKinds.Length == 16);
+            Check("all eighteen production unit kinds are covered", BuildSummonUIBuilder.SummonableKinds.Length == 18);
             foreach (var kind in BuildSummonUIBuilder.SummonableKinds)
             {
                 Check("effective summon definition exists: " + kind,

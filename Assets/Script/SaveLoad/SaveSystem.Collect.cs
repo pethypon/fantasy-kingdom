@@ -155,6 +155,7 @@ public static partial class SaveSystem
             ReflectionLifeId = s.ReflectionLifeId,
             Special = SpecialSkillRuntime.CopyState(s.Special),
             NaturalRecovery = NaturalRecoverySystem.CopyState(s.NaturalRecovery),
+            HasBarrierSnapshot = true, Barrier = s.Barrier, MaxBarrier = s.MaxBarrier, BarrierRecovery = BarrierSystem.CopyState(s.BarrierRecovery),
             Kind = StableSaveKeys.Key(s.kind),
             DefinitionId = s.type == Type.Unit ? s.unitDefinitionId : null,
             HasPrimaryCommanderRole = true, IsPrimaryCommander = s.IsPrimaryCommander,

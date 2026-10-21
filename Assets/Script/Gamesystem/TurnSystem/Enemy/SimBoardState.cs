@@ -146,17 +146,20 @@ public partial class SimBoardState
         }
         // Own units become the maximizing side, regardless of their live team.
         int idCounter = 0;
+        var capturedActors = new HashSet<Status>();
         foreach (var u in realBoard.AliveEnemyUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            state.Units.Add(CaptureUnit(u, idCounter++, state.ToSimulationTeam(u.team)));
+            state.Units.Add(CaptureUnit(u, idCounter++, state.ToSimulationTeam(u.team),state.TurnCount));
+            capturedActors.Add(u);
         }
 
         // Only observed opponents enter the snapshot. Neutral ownership is kept.
         foreach (var u in realBoard.AlivePlayerUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            state.Units.Add(CaptureUnit(u, idCounter++, state.ToSimulationTeam(u.team)));
+            state.Units.Add(CaptureUnit(u, idCounter++, state.ToSimulationTeam(u.team),state.TurnCount));
+            capturedActors.Add(u);
         }
 
         // クリスタル
@@ -166,11 +169,19 @@ public partial class SimBoardState
         // クリスタルをユニットとして追加 (まだ追加されていなければ)
         var eCrystal = FindCrystalStatus(realBoard.OwnCrystalParent);
         if (eCrystal != null && !HasCrystal(state, Team.Enemy))
-            state.Units.Add(CaptureUnit(eCrystal, idCounter++, state.ToSimulationTeam(eCrystal.team)));
+        {
+            state.Units.Add(CaptureUnit(eCrystal, idCounter++, state.ToSimulationTeam(eCrystal.team),state.TurnCount));
+            capturedActors.Add(eCrystal);
+        }
 
         var pCrystal = FindCrystalStatus(realBoard.OpponentCrystalParent);
         if (pCrystal != null && realBoard.PlayerCrystalVisible && !HasCrystal(state, Team.Player))
-            state.Units.Add(CaptureUnit(pCrystal, idCounter++, state.ToSimulationTeam(pCrystal.team)));
+            state.Units.Add(CaptureUnit(pCrystal, idCounter++, state.ToSimulationTeam(pCrystal.team),state.TurnCount));
+
+        // Owned structures also provide friendly vision. Only the board's observed snapshot is read.
+        foreach (var observer in realBoard.SpecialObservedActors)
+            if (observer.team == realBoard.ActorTeam && observer.type != Type.Unit && capturedActors.Add(observer))
+                state.Units.Add(CaptureUnit(observer, idCounter++, state.ToSimulationTeam(observer.team),state.TurnCount));
 
         // AP
         state.EnemyAPReset = apSystem.GetMaxAP(realBoard.ActorTeam);
@@ -195,7 +206,7 @@ public partial class SimBoardState
         return false;
     }
 
-    static SimUnit CaptureUnit(Status s, int id, Team simulationTeam)
+    static SimUnit CaptureUnit(Status s, int id, Team simulationTeam, int round)
     {
         var su = new SimUnit
         {
@@ -209,15 +220,30 @@ public partial class SimBoardState
             MaxHP = s.MaxHP,
             ATK = s.ATK,
             DEF = s.DEF,
+            MaxBarrier = s.MaxBarrier,
+            Barrier = s.Barrier,
+            BarrierSafeTurns = s.BarrierRecovery?.SafeTurns ?? 0,
+            BarrierLastRound = s.BarrierRecovery?.LastProcessedRound ?? -1,
+            BarrierDamaged = s.BarrierRecovery?.DamageSinceOwnTurn ?? false,
+            BarrierLastDamagedRound = s.BarrierRecovery?.LastDamagedRound ?? -1,
+            BarrierHasRecovered = s.BarrierRecovery?.HasRecovered ?? false,
+            BarrierHasOwnTurnBaseline = s.BarrierRecovery?.HasOwnTurnBaseline ?? false,
+            SimulationRound = round,
             Position = GridHelper.ToGridXZ(s.transform.position),
             Direction = s.direction,
-            IsBoss = s.IsBoss, IsPrimaryCommander = s.IsPrimaryCommander,
+            IsBoss = s.IsBoss, IsWildBoss = s.isWildBoss, IsPrimaryCommander = s.IsPrimaryCommander,
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
             Fatigue = s.Fatigue,
             ShieldTurns = s.ShieldTurns,
             ShieldActivated = s.ShieldActivated,
             Passive = s.passiveskill,
+            AssassinPassive = SpecialSkillRuntime.HasAssassinPassive(s),
+            VisionZeroTurns = s.Special?.visionZeroTurns ?? 0,
+            ScoutVisionPenaltyTurns = s.Special?.scoutVisionPenaltyTurns ?? 0,
+            InnateVisionBonus = SpecialAbilitySystem.GetVisionBonus(s),
+            CapturedVisionCells = CaptureVisionCells(s),
+            AssassinLastEndRound = s.Special?.lastEndRound ?? -1,
             NaturalRecoverySafeTurns = Mathf.Clamp(s.NaturalRecovery?.ConsecutiveSafeTurns ?? 0, 0, NaturalRecoverySystem.SafeTurnThreshold),
             NaturalRecoveryLastRound = s.NaturalRecovery?.LastProcessedRound ?? -1,
             NaturalRecoveryHpLost = s.NaturalRecovery?.HpLostSinceLastOwnTurn ?? false,
@@ -238,6 +264,15 @@ public partial class SimBoardState
         }
 
         return su;
+    }
+
+    static Vector3Int[] CaptureVisionCells(Status observer)
+    {
+        if (observer.VisionCell == null) return null;
+        var cells = new Vector3Int[observer.VisionCell.Count];
+        int index = 0;
+        foreach (var cell in observer.VisionCell) cells[index++] = new Vector3Int(cell.x, 0, cell.z);
+        return cells;
     }
 
     static Status FindCrystalStatus(Transform parent)
@@ -383,6 +418,8 @@ public partial class SimBoardState
             def = data.BaseDEF;
         }
 
+        int barrier = BarrierSystem.UsesBarrier(kind,Type.Unit)
+            ? authored ? definition.Barrier : BarrierSystem.Initial(kind) : 0;
         return new SimUnit
         {
             Id = id,
@@ -393,6 +430,9 @@ public partial class SimBoardState
             MaxHP = hp,
             ATK = atk,
             DEF = def,
+            MaxBarrier = barrier,
+            Barrier = barrier,
+            SimulationRound = TurnCount,
             Position = pos,
             Direction = team == Team.Enemy ? EnemySummonDirection : PlayerSummonDirection,
             IsBoss = false,
@@ -402,6 +442,7 @@ public partial class SimBoardState
             ShieldTurns = 0,
             ShieldActivated = false,
             Passive = authored ? definition.Passive : PassiveSkill.None,
+            AssassinPassive = authored && definition.AssassinPassive,
             ActionProfile = authored ? definition.ActionProfile : null,
         };
     }

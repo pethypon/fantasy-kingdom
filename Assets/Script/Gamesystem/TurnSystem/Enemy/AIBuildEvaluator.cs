@@ -204,7 +204,7 @@ static class AIBuildEvaluator
                 score += 10f;
         }
 
-        switch (action.SummonKind)
+        switch (UnitRoster.EvaluationBaseKind(action.SummonKind))
         {
             case Kind.Knight:  score += 12f; break;
             case Kind.Archer:  score += 10f; break;
@@ -213,6 +213,33 @@ static class AIBuildEvaluator
             case Kind.Scout:   score += 5f; break;
         }
 
-        return score;
+        return score + ObservedBarrierRecruitmentBonus(action.SummonKind, board);
+    }
+
+    // One bounded preference, using current legal observations and the whole inherited melee role.
+    // Already covering that role with barrier specialists reduces demand instead of treating each
+    // new Kind as an empty army slot. Resource/payment and recruitment limits stay authoritative.
+    internal static float ObservedBarrierRecruitmentBonus(Kind kind, AIBoardState board)
+    {
+        if (kind != Kind.HeavyWarrior && kind != Kind.DragonKnight) return 0;
+        double barrier = 0, durability = 0;
+        foreach (var target in board.AlivePlayerUnits)
+        {
+            if (target == null || !target.IsAlive || !board.IsSpecialActorObserved(target)
+                || !BarrierSystem.UsesBarrier(target)) continue;
+            barrier += target.Barrier;
+            durability += target.HP + (double)target.Barrier;
+        }
+        if (barrier <= 0 || durability <= 0) return 0;
+        int infantry = 0, specialists = 0;
+        foreach (var actor in board.AliveEnemyUnits)
+        {
+            if (actor == null || !actor.IsAlive || actor.type != Type.Unit || MatchObjectiveRules.IsCommander(actor)
+                || UnitRoster.EvaluationBaseKind(actor.kind) != Kind.Knight) continue;
+            infantry++;
+            if (actor.kind == Kind.HeavyWarrior || actor.kind == Kind.DragonKnight) specialists++;
+        }
+        float unmet = 1f - specialists / (float)Mathf.Max(1, infantry);
+        return 12f * Mathf.Clamp01((float)(barrier / durability)) * unmet;
     }
 }

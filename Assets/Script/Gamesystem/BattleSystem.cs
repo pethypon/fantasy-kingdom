@@ -57,6 +57,7 @@ public class BattleSystem : MonoBehaviour
         // シールド中はダメージ無効
         if (Target.ShieldTurns > 0)
         {
+            BarrierSystem.RecordNegatedHit(Target);
             SpecialSkillRuntime.OnAttackLanded(Attacker);
             SpecialSkillRuntime.CompleteNormalShot(Attacker, Target, firedRound, false);
             SpecialSkillRuntime.OnNormalAttackResolved(Attacker, Target, 0, false, lockedDistance);
@@ -83,9 +84,8 @@ public class BattleSystem : MonoBehaviour
         if (Attacker.kind == Kind.Magicsniper && damage > 0 && !SpecialSkillRuntime.HasAbility(Attacker, UnitSpecialSkill.MagicSniperLock))
         {
             int selfDmg = Mathf.RoundToInt(Attacker.MaxHP * GameConstants.MagicSniperSelfDamageRatio);
-            Attacker.ApplyDamage(selfDmg);
+            SpecialSkillRuntime.ApplyHpChange(Attacker, Attacker, selfDmg, HpChangeKind.NormalDamage, cause: HpChangeCause.SelfRecoil);
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} 自傷ダメージ {selfDmg}（残HP:{Attacker.HP}）"); }
-            FloatingDamageUI.ShowDamage(Attacker.transform.position, selfDmg, !Attacker.IsAlive);
 
             StatusEffectSystem.ApplyDebuff(Target, StatusEffectType.Mark, 1);
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.kind} にマーキング付与（被ダメ+10%、1ターン）"); }
@@ -176,17 +176,18 @@ public class BattleSystem : MonoBehaviour
         var recipient = SpecialSkillRuntime.ResolveDamageRecipient(Target, damage, damageKind) ?? Target;
         actualRecipient = recipient;
         damage = SpecialSkillRuntime.ApplyHpChange(Attacker, Target, damage, damageKind, cause: HpChangeCause.NormalAttack);
+        int experienceDamage = SpecialSkillRuntime.ExperienceDamage(Attacker, recipient, damage);
         SpecialSkillRuntime.CompleteSpecialDeath(recipient == Target ? null : recipient);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}"); }
-
-        // 反逆の騎士王: 反撃バフ有効時は受けたダメージの1.5倍を反射
-        if (damage > 0) WildBossSystem.TryReflectDamage(recipient, Attacker, damage);
 
         // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）。兵舎XP%を乗算
         if (damage > 0 && Attacker != null && Attacker.team != Target.team)
         {
             Status.AwardDamageExperience(Attacker, recipient, damage, turnGenerator?.Systems?.FactionState);
         }
+
+        // 反逆の騎士王: 反撃バフ有効時は受けたダメージの1.5倍を反射
+        if (damage > 0) WildBossSystem.TryReflectDamage(recipient, Attacker, damage);
 
         // StrangeKingAura: 与ダメージの20%を吸収してHP回復
         if (damage > 0 && Attacker != null &&
@@ -201,10 +202,7 @@ public class BattleSystem : MonoBehaviour
             ProcessCrystalCounterAttack(Target, Attacker);
 
         bool isKill = !recipient.IsAlive;
-        if (damage > 0)
-            FloatingDamageUI.ShowDamage(recipient.transform.position, damage, isKill);
-        else
-            FloatingDamageUI.ShowMiss(Target.transform.position);
+        if (damage <= 0) FloatingDamageUI.ShowMiss(Target.transform.position);
 
         // 実績
         if (isKill && Attacker != null && Attacker.team == Team.Player && Target.team != Team.Player)
@@ -224,7 +222,7 @@ public class BattleSystem : MonoBehaviour
             if (damage > 0 && Attacker != null && Attacker.type == Type.Unit
                 && Attacker.team != Target.team)
             {
-                MatchStats.Instance.RecordXPGain(Attacker.team, damage);
+                MatchStats.Instance.RecordXPGain(Attacker.team, experienceDamage);
             }
         }
         return damage;
@@ -283,13 +281,11 @@ public class BattleSystem : MonoBehaviour
             // Special Ability: 致死ダメージ耐え（生還本能）— 他のダメージ経路と同様に適用
             if (SpecialAbilitySystem.TrySurviveLethal(t, dmg))
             {
-                FloatingDamageUI.ShowDamage(t.transform.position, dmg, false);
                 { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} は生還本能で耐えた  targets={count}"); }
                 continue;
             }
 
             int actual = t.ApplyDamage(dmg);
-            FloatingDamageUI.ShowDamage(t.transform.position, actual, !t.IsAlive);
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} に {actual} ダメージ（残HP:{t.HP}）  targets={count}"); }
 
             // 死亡時は HandleDeathIfDead に一元委譲する。

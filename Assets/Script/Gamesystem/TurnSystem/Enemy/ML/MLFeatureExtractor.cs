@@ -194,7 +194,7 @@ public static class MLFeatureExtractor
         foreach (var u in units)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            sum += u.DEF;
+            sum += BarrierSystem.UsesBarrier(u) ? u.Barrier : u.DEF;
             count++;
         }
         return count > 0 ? Normalize(sum / count, 0, 40) : 0f;
@@ -377,14 +377,14 @@ public static class MLFeatureExtractor
     static float EstimatedDamageRatio(AIAction action)
     {
         if (action.Unit == null || action.TargetUnit == null) return 0f;
-        int dmg = DamageCalculator.EstimateBaseDamage(action.Unit.ATK, action.TargetUnit.DEF);
+        int dmg = AIEvalHelpers.EstimateDamage(action.Unit, action.TargetUnit);
         return Normalize(dmg, 0, action.TargetUnit.MaxHP);
     }
 
     static bool CanKillTarget(AIAction action)
     {
         if (action.Unit == null || action.TargetUnit == null) return false;
-        int dmg = DamageCalculator.EstimateBaseDamage(action.Unit.ATK, action.TargetUnit.DEF);
+        int dmg = AIEvalHelpers.EstimateDamage(action.Unit, action.TargetUnit);
         return dmg >= action.TargetUnit.HP;
     }
 

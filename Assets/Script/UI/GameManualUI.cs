@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 駒・ルール説明書（取扱説明書）UI。
 /// GameMenuUI から開く。タブで「駒」「ゲームルール」「アーティファクト」などを切替表示する。
-/// コンテンツは静的データ（UnitStaticData, SkillData, FacilityData, GameConstants）から自動生成する。
+/// 駒の説明はゲームで使用中の登録データを優先し、共通ルールは同じ定数から生成する。
 /// </summary>
 public class GameManualUI : MonoBehaviour
 {
@@ -170,16 +170,27 @@ public class GameManualUI : MonoBehaviour
     {
         var sb = new StringBuilder();
         sb.AppendLine("<b>■ 駒一覧</b>\n");
-        foreach (var kvp in UnitStaticData.Table)
+        var setting = Object.FindFirstObjectByType<UnitSetting>();
+        var catalog = UnitAuthoringCatalog.Load();
+        var definitions = setting != null ? setting.UnitDataMap : null;
+        if (definitions == null)
         {
-            var k = kvp.Key; var info = kvp.Value;
-            sb.AppendLine($"<b>{info.DisplayName}</b>  (Kind: {k})");
-            sb.AppendLine($"  Lv1 ATK {info.BaseATK} / HP {info.BaseHP} / DEF {info.BaseDEF}");
-            sb.AppendLine($"  固定成長 ATK+{UnitData.CalcGrowthPerLevel(info.BaseATK, info.AtkGrowth)} / HP+{UnitData.CalcGrowthPerLevel(info.BaseHP, info.HpGrowth)} / DEF+{UnitData.CalcGrowthPerLevel(info.BaseDEF, info.DefGrowth)} / Lv（最大Lv{GameConstants.MaxUnitLevel}）");
-            sb.AppendLine();
+            definitions = new Dictionary<Kind, UnitData>();
+            catalog?.Apply(definitions, null);
         }
+        foreach (var kind in UnitRoster.SummonableKinds)
+        {
+            definitions.TryGetValue(kind, out var data);
+            AppendManualUnit(sb, kind, data);
+        }
+        if (setting != null)
+            foreach (var data in setting.AuthoredDefinitions) AppendManualUnit(sb, data.kind, data);
+        else if (catalog != null)
+            foreach (var data in catalog.EnumerateStandaloneDefinitions()) AppendManualUnit(sb, data.kind, data);
 
         sb.AppendLine("<b>■ 特殊駒</b>");
+        definitions.TryGetValue(Kind.King, out var king); AppendManualUnit(sb, Kind.King, king);
+        definitions.TryGetValue(Kind.Boss, out var boss); AppendManualUnit(sb, Kind.Boss, boss);
         sb.AppendLine("  <b>クリスタル</b>: 最大HP 15000。破壊されたら敗北。被弾時に反撃を行う");
         sb.AppendLine("  <b>異形の王</b>: Lv1ステータスはキング相当だが成長率が大幅に高く、専用パッシブにより");
         sb.AppendLine("    被ダメ-40%・ダメージの20%を吸血・HP50%以下でATK+25%となる");
@@ -187,23 +198,50 @@ public class GameManualUI : MonoBehaviour
         return sb.ToString();
     }
 
+    private static void AppendManualUnit(StringBuilder sb, Kind kind, UnitData data)
+    {
+        if (data != null && !data.availableToPlayer && !data.availableToEnemy) return;
+        bool hasFallback = UnitStaticData.Table.TryGetValue(kind, out var fallback);
+        if (data == null && !hasFallback) return;
+        string name = data != null ? data.DisplayName : fallback.DisplayName;
+        int hp = data != null ? data.baseHP : fallback.BaseHP;
+        int atk = data != null ? data.baseATK : fallback.BaseATK;
+        float hpGrowth = data != null ? data.hpGrowth : fallback.HpGrowth;
+        float atkGrowth = data != null ? data.atkGrowth : fallback.AtkGrowth;
+        var prefab = data != null && data.prefab != null ? data.prefab.GetComponentInChildren<Status>(true) : null;
+        bool usesBarrier = BarrierSystem.UsesBarrier(kind, Type.Unit, prefab != null && prefab.isWildBoss);
+        int initialBarrier = data != null && data.baseBarrier >= 0 ? data.baseBarrier : BarrierSystem.Initial(kind);
+        sb.AppendLine($"<b>{name}</b>");
+        sb.AppendLine($"  Lv1 HP {hp}" + (usesBarrier ? $" / バリア {initialBarrier}" : "") + $" / ATK {atk}");
+        sb.AppendLine($"  固定成長 HP+{UnitData.CalcGrowthPerLevel(hp, hpGrowth)}"
+            + (usesBarrier ? $" / バリア+{BarrierSystem.GrowthPerLevel}" : "") + $" / ATK+{UnitData.CalcGrowthPerLevel(atk, atkGrowth)}"
+            + $" / Lv（最大Lv{GameConstants.MaxUnitLevel}）");
+        if (data != null && data.specialSkill != null && data.specialSkill.ability != UnitSpecialSkill.None)
+            sb.AppendLine("  固有能力：" + SpecialSkillPresentation.Name(data.specialSkill));
+        sb.AppendLine();
+    }
+
     private string BuildRulesText()
     {
         return
 "<b>■ 基本ルール</b>\n" +
 "  ターン制のチェス風戦略ゲーム。プレイヤーと敵が交互にターンを消費して駒を動かし、相手のクリスタルを破壊した側が勝利。\n\n" +
+BuildDurabilityRulesText() +
 "<b>■ AP（行動力）</b>\n" +
 $"  市民1人ごとに追加AP{EconomySystem.CitizenAPBonus}を得る。移動{APSystem.BaseMoveCost}・攻撃{APSystem.BaseAttackCost}・建築/召喚でAPを消費する。\n\n" +
 "<b>■ 経験値</b>\n" +
 $"  Lv2に必要なXP: {GameConstants.XPRequiredLv2}、各レベルで ×{GameConstants.XPLevelMultiplier} 倍ずつ増加。\n" +
-"  与ダメージがそのままXPとして獲得できる（倒さなくても蓄積）。兵舎ボーナスで+%が乗る。\n" +
+"  " + (!BarrierCombatSettings.Active.enabledForPlay ? "HPへの実ダメージをXPとして獲得。"
+    : !BarrierCombatSettings.Active.barrierDamageGrantsExperience ? "HPへの実ダメージをXPとして獲得（暫定設定：バリア損失は含めない）。"
+    : "HPとバリアへの実ダメージをXPとして獲得（バリア分を含めるかは暫定設定）。")
+    + "倒さなくても蓄積し、兵舎ボーナスで+%が乗ります。\n" +
 "  実獲得XP = floor(damage × (1 + BarracksXP%/100))\n\n" +
 "<b>■ クリスタル反撃</b>\n" +
 $"  ターン開始時 / クリスタル被弾時の双方で発動。領土内の敵で最近接1体に MaxHP×{GameConstants.CrystalCounterDamageRatio*100:F0}%ダメージ。\n" +
-$"  シールド発動後は最大{GameConstants.CrystalCounterTargetsAfterShield}体まで拡大する。DEF無視の固定ダメージ。\n\n" +
+$"  完全防御シールド発動後は最大{GameConstants.CrystalCounterTargetsAfterShield}体まで拡大する。バリア優先の固定ダメージ。\n\n" +
 "<b>■ 指揮官バフ（キング/異形の王）</b>\n" +
 $"  自軍 King または Boss(異形の王) から{GameConstants.KingAuraRange}マス以内の味方は\n" +
-$"  ATK+{(GameConstants.KingAuraATKBonus-1)*100:F0}%、DEF+{(GameConstants.KingAuraDEFBonus-1)*100:F0}%。指揮官自身は対象外。\n\n" +
+$"  ATK+{(GameConstants.KingAuraATKBonus-1)*100:F0}%。指揮官自身は対象外。\n\n" +
 "<b>■ ダンジョン</b>\n" +
 $"  マップに2箇所ランダム生成。サブクリスタルで起動し、共有{DungeonSystem.ClaimTurns}ターンタイマーが0に達した側がアーティファクトを獲得。\n" +
 "  陣営が変わってもタイマーは引き継がれる（残りターンを消費する形式）。\n" +
@@ -213,13 +251,29 @@ $"  マップに2箇所ランダム生成。サブクリスタルで起動し、
 "  固定割当が未設定の兵種はアクティブスキルなし。";
     }
 
+    private static string BuildDurabilityRulesText()
+    {
+        if (!BarrierCombatSettings.Active.enabledForPlay)
+            return "<b>■ HP</b>\n  HPが0になると撃破されます。完全防御シールド中はダメージを無効化します。\n"
+                + "  HPを失わず5ターン経過後、毎自軍ターン終了時に最大HP10%を自然回復します。\n\n";
+        return "<b>■ HPとバリア</b>\n" +
+$"  通常駒は先にバリアを消耗し、超過ダメージだけHPから減少します。最大バリアは兵種ごとの初期値＋{BarrierSystem.GrowthPerLevel}×（Lv−1）。\n" +
+"  一部の既存スキル・能力は効果未調整です。\n" +
+"  " + SpecialSkillPresentation.BarrierRecoveryDescription() + "\n" +
+"  レベル上昇時の現在バリア（暫定）：" + (BarrierCombatSettings.Active.growCurrentBarrierOnLevelUp
+    ? $"増えた最大値の分だけ増加（毎Lv＋{BarrierSystem.GrowthPerLevel}、最大値まで）。\n" : "現在値を維持し、最大値だけ増加。\n") +
+$"  通常駒への暫定ダメージ式：{BarrierCombatSettings.Active.provisionalDamageBase:0.##}＋ATK×{BarrierCombatSettings.Active.provisionalAttackCoefficient:0.###}。各種倍率・最低ダメージは別途適用。最終式は未確定です。\n" +
+"  HP自然回復（HPを失わず5ターンで最大HP10%）は別に判定します。完全防御シールドはダメージを無効化し、軽減障壁は被ダメージを軽減する効果です。\n" +
+"  竜騎士の固有スキルはバリアを貫通します。通常攻撃と通常の攻撃スキルはバリアから先に減らします。バリアを持たない駒や施設はHPでダメージを受けます。\n\n";
+    }
+
     private string BuildArtifactsText()
     {
         return
 "<b>■ アーティファクト（ダンジョン報酬）</b>\n\n" +
 "  <b>クリスタルシャード</b>: 自軍クリスタル最大HP +1000\n" +
 "  <b>ウォーバナー</b>: 全ユニット ATK +2\n" +
-"  <b>アイアンイージス</b>: 全ユニット DEF +2\n" +
+"  <b>アイアンイージス</b>: 効果未調整\n" +
 "  <b>マナフォーカス</b>: 毎ターン 魔法鉱石 +3\n" +
 "  <b>フェニックスフェザー</b>: クリスタルシールドを再発動可能にする";
     }
@@ -236,7 +290,8 @@ $"  <b>範囲スキル対象が低地</b>: ダメージ×{GameConstants.AreaSkil
 "<b>■ 直線スキルの遮蔽</b>\n" +
 $"  壁（WoodWall/StoneWall）または高低差{GameConstants.LineSkillBlockYDiff}以上のタイルがあると、それ以降のマスには当たらない。\n\n" +
 "<b>■ パッシブ・背面攻撃</b>\n" +
-$"  背面攻撃ダメージ +{(GameConstants.BackAttackBonus-1)*100:F0}%、Assassinationパッシブでさらに×{GameConstants.AssassinationBackAttackBonus}。\n" +
+$"  背面攻撃ダメージ +{(GameConstants.BackAttackBonus-1)*100:F0}%、共通常時能力Assassinationを設定した駒はさらに×{GameConstants.AssassinationBackAttackBonus}。\n" +
+"  アサシン固有：通常移動は常に3AP。自軍ターン終了時に1回、自分以外の味方の視界外なら最大HP10%減少（端数切り捨て、最低1）。味方の建物・クリスタルの視界も有効。\n" +
 $"  HunterEyes: 視界内敵へ +{(GameConstants.HunterEyesDamageBonus-1)*100:F0}%  /  Destroyer: 建物・クリスタルへ +{(GameConstants.DestroyerBuildingBonus-1)*100:F0}%\n" +
 $"  Sniper: 距離{GameConstants.SniperMinRange}以上で+{(GameConstants.SniperLongRangeBonus-1)*100:F0}%  /  Impregnable: 被ダメ×{GameConstants.ImpregnableDamageReduction}";
     }
@@ -248,16 +303,16 @@ $"  Sniper: 距離{GameConstants.SniperMinRange}以上で+{(GameConstants.Sniper
 "  ゲーム開始時にマップ上へ1体ランダム配置。両陣営の領土とダンジョンを避ける。\n" +
 "  縄張りは強敵ごとに異なり、正確な境界は表示されない。縄張り外では被弾無効。縄張り内に駒が入ると攻撃可能になる。\n\n" +
 "<b>■ アーキタイプと固有行動</b>\n\n" +
-"  <b>ゴーストキング</b> (HP6200/ATK26/DEF18/MaxAP23)\n" +
+"  <b>ゴーストキング</b> (HP6200/ATK26/MaxAP23)\n" +
 "    2T毎: テレポート(3AP)→視界外攻撃+NarrowVision付与(5AP)→デコイ召喚(10AP)\n" +
 "    奇数T: 通常攻撃(3AP)\n\n" +
-"  <b>ドラゴン</b> (HP8200/ATK32/DEF24/MaxAP20)\n" +
+"  <b>ドラゴン</b> (HP8200/ATK32/MaxAP20)\n" +
 "    4T毎: 炎ブレス=縄張り内全体攻撃(10AP)\n" +
 "    その他: 50%でATK×1.25バフ(5AP) / 50%で前方3マス攻撃(4AP)\n\n" +
-"  <b>反逆の騎士王</b> (HP7600/ATK28/DEF28/MaxAP15)\n" +
+"  <b>反逆の騎士王</b> (HP7600/ATK28/MaxAP15)\n" +
 "    2T毎: 反撃の誓い(2T間1.5倍返し, 5AP) + 親衛騎士最大2体召喚(10AP)\n" +
 "    HP50%以下でPhase2: 反撃3倍・親衛4体\n\n" +
-"  <b>雷の魔導兵</b> (HP7000/ATK30/DEF20/MaxAP20)\n" +
+"  <b>雷の魔導兵</b> (HP7000/ATK30/MaxAP20)\n" +
 "    毎T: 雷クリスタル設置(3AP)\n" +
 "    5T毎: 起爆=半径1範囲攻撃(10AP) / その他: ランダム3体に雷撃(5AP)\n\n" +
 "<b>■ 脅威度システム</b>\n" +

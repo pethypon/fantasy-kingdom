@@ -218,6 +218,8 @@ public sealed partial class AIStrategicGovernor
             float risk=Risk(action,board);
             float minimum=safest.TryGetValue(action.Unit,out var safe)?safe:IncomingDamage(board,action.Unit,action.Unit.transform.position,null);
             if(risk>=action.Unit.HP&&(minimum<action.Unit.HP||safeAlternativesPrepared&&risk>minimum+.01f))return "king_known_lethal";
+            string movementReason = CommanderMovementRejectReason(action, board, risk);
+            if (movementReason != null) return movementReason;
         }
         if(action.ActionType==AIActionType.Summon)
         {
@@ -291,6 +293,7 @@ public sealed partial class AIStrategicGovernor
         // P4 attack before tactical score, search or operation bonuses can be compared.
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             && IsSafeEffectiveBattleAction(a, board)) return 3;
+        if (IsSafeArmyAdvance(a, board)) return 3;
         if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
             &&Exploration.TryGetAssignedTarget(a.Unit,out var frontier)
@@ -317,7 +320,7 @@ public sealed partial class AIStrategicGovernor
             var offset = target.transform.position - actor.transform.position;
             if (!locked && (!AttackPatterns.CanAttack(actor, actor.direction, offset.x, offset.z)
                 || board.MapCreate != null && !board.MapCreate.CanAttackAcrossTerrain(actor, target.transform.position))) return false;
-            return AIActionEvaluator.EstimateEffectiveSpecialDamage(actor, target, board, out var victim) > 0
+            return AIActionEvaluator.EstimateEffectiveSpecialImpact(actor, target, board, out var victim) > 0
                 && victim != null && board.IsSpecialActorObserved(victim);
         }
         if (action.ActionType != AIActionType.SkillUse || !AttackPatterns.CanUseSkills(actor)) return false;
@@ -339,7 +342,7 @@ public sealed partial class AIStrategicGovernor
             var delta = target.transform.position - actor.transform.position;
             return SkillOffsets(actor, skill).Contains(new Vector2Int(Mathf.RoundToInt(delta.x), Mathf.RoundToInt(delta.z)))
                 && (board.MapCreate == null || board.MapCreate.CanAttackAcrossTerrain(actor, target.transform.position))
-                && AIActionEvaluator.EstimateObservedHitLoss(target, board, SkillSystem.CalcSkillDamage(actor, target, skill), HpChangeKind.NormalDamage) > 0;
+                && SpecialSkillRuntime.PreviewDamage(target, SkillSystem.CalcSkillDamage(actor, target, skill), HpChangeKind.NormalDamage) > 0;
         }
         return target != null && target.IsAlive && target.team == board.ActorTeam
             && skill.FixedHeal > 0 && target.HP < target.MaxHP
@@ -480,6 +483,7 @@ public sealed partial class AIStrategicGovernor
     {
         var key=(self,GridHelper.ToGridXZ(position),eliminated);if(damageCache.TryGetValue(key,out var cached))return cached;
         double total=0;
+        int barrier=BarrierSystem.UsesBarrier(self)?self.Barrier:0;
         foreach(var opponent in board.AlivePlayerUnits)
         {
             if(opponent==null||!opponent.IsAlive||opponent==eliminated)continue;
@@ -487,7 +491,8 @@ public sealed partial class AIStrategicGovernor
             // Only the observed dragon and its present territory may establish a breath threat.
             if (ObservedDragonThreat.IsDragon(opponent))
             {
-                total += ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, position);
+                total += AIActionEvaluator.EstimateObservedHitLoss(self,board,
+                    ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, position),HpChangeKind.NormalDamage,ref barrier);
                 continue;
             }
             if(StatusEffectSystem.IsStunned(opponent))continue;
@@ -495,17 +500,20 @@ public sealed partial class AIStrategicGovernor
             float attack=ThreatPower(board,opponent,position);
             if(attack>0)
             {
-                int raw=DamageCalculator.EstimateBaseDamage(Mathf.CeilToInt(attack),self.DEF);
+                int defence=BarrierSystem.UsesBarrier(self)?0:self.DEF;
+                bool usesBarrier=BarrierSystem.UsesBarrier(self);
+                int raw=DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBaseForTarget(Mathf.CeilToInt(attack),defence,usesBarrier));
                 if(board.HasObservedSpecialState)
                 {
-                    int baseline=DamageCalculator.EstimateBaseDamage(opponent.ATK,self.DEF);
+                    int baseline=DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBaseForTarget(opponent.ATK,defence,usesBarrier));
                     raw=(int)Math.Min(int.MaxValue,raw*(double)AIActionEvaluator.EstimateSpecialAwareAttack(opponent,self,board)/Mathf.Max(1,baseline));
                 }
-                total+=AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage);
+                raw=BarrierSystem.NormalAttackDamage(opponent.kind,barrier,raw);
+                total+=AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage,ref barrier);
             }
         }
-        total+=AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,position);
-        total+=board.KnownEnvironmentRisk(self,position);
+        total+=AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,position,ref barrier);
+        total+=board.KnownEnvironmentRisk(self,position,ref barrier);
         return damageCache[key]=(float)Math.Min(int.MaxValue,total);
     }
     bool CanThreaten(AIBoardState board,Status opponent,Vector3 destination)

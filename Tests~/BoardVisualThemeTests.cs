@@ -16,7 +16,10 @@ public static class BoardVisualThemeTests
         checks = 0; BoardVisualThemeInstaller.ValidateAssets();
         var catalog = AssetDatabase.LoadAssetAtPath<BoardVisualThemeCatalog>(BoardVisualThemeInstaller.CatalogPath);
         Check(catalog != null, "catalog exists");
-        Check(catalog.units.Count == 17 && catalog.buildings.Count == 18 && catalog.bosses.Count == 4, "17 / 18 / 4 stock styles");
+        Check(catalog.units.Count == DarkEnemyVisualInstaller.EnemyKinds.Length
+            && catalog.buildings.Count == Enum.GetValues(typeof(FacilityKind)).Length
+            && catalog.bosses.Count == DarkEnemyVisualInstaller.Bosses.Length,
+            "all current stock unit, building and boss styles");
         Check(AssetDatabase.FindAssets("t:Material", new[] { BoardVisualThemeInstaller.Folder }).Length == 0, "no new materials generated");
         Check(catalog.Unit(Kind.Boss) == catalog.Unit(Kind.King), "enemy commander uses King presentation alias");
         Check(catalog.Unit(Kind.King).playerVisual == null, "initial player King silhouette is retained");

@@ -129,10 +129,9 @@ public sealed class SpecialSkillSelectionUI : MonoBehaviour
             {
                 string attack = definition.HasCurve(definition.berserkerAttackCurve)
                     ? Mathf.Clamp(definition.berserkerAttackCurve.Evaluate(berserkerStage), 1, SpecialSkillDefinition.BerserkerMaximum).ToString("0.##") : "未設定";
-                string defence = definition.HasCurve(definition.berserkerDefenceCurve)
-                    ? Mathf.Clamp01(definition.berserkerDefenceCurve.Evaluate(berserkerStage)).ToString("0.##") : "未設定";
                 ragePreview = TextRow(targets, "RageProgress",
-                    $"現在{berserkerStage - 1}段階 → 次は{berserkerStage}段階\n使用AP：{SpecialSkillRuntime.GetAPCost(caster, berserkerStage)}\n強化後：攻撃×{attack}　防御×{defence}　通常攻撃AP＋1", 22);
+                    $"現在{berserkerStage - 1}段階 → 次は{berserkerStage}段階\n使用AP：{SpecialSkillRuntime.GetAPCost(caster, berserkerStage)}\n強化後：攻撃×{attack}"
+                    + "　通常攻撃AP＋1", 22);
             }
             else ragePreview = TextRow(targets, "RageProgress", "現在5段階（最大）。通常攻撃で強化を使い切るまで再使用できません。", 22);
         }
@@ -265,14 +264,15 @@ public sealed class SpecialSkillSelectionUI : MonoBehaviour
         { RefreshSelection(); return; }
         var previous = turn.Context.SelectUnit;
         var attacker = caster;
-        int before = target.HP;
+        long before = (long)target.HP + target.Barrier;
         systems.BattleSystem.SetTarget(target);
         try
         {
             turn.Context.SelectUnit = attacker;
             systems.APSystem.Consume(Team.Player, APSystem.ActionType.Attack, attacker);
             systems.BattleSystem.ProcessDamage(turn);
-            ActionLogUI.LogAttack(KindNameJP.Get(attacker), KindNameJP.Get(target), Mathf.Max(0, before - target.HP), !target.IsAlive);
+            int dealt = (int)System.Math.Min(int.MaxValue, System.Math.Max(0, before - target.HP - target.Barrier));
+            ActionLogUI.LogAttack(KindNameJP.Get(attacker), KindNameJP.Get(target), dealt, !target.IsAlive);
         }
         finally
         {
@@ -293,7 +293,9 @@ public sealed class SpecialSkillSelectionUI : MonoBehaviour
         Close();
     }
 
-    static string Label(Status actor) => actor == null ? "対象不在" : $"{KindNameJP.Get(actor)}　HP {actor.HP}/{actor.MaxHP}　({actor.GridPosition.x},{actor.GridPosition.z})";
+    static string Label(Status actor) => actor == null ? "対象不在" : $"{KindNameJP.Get(actor)}　HP {actor.HP}/{actor.MaxHP}"
+        + (BarrierSystem.UsesBarrier(actor) ? $"　バリア {actor.Barrier}/{actor.MaxBarrier}" : "")
+        + $"　({actor.GridPosition.x},{actor.GridPosition.z})";
 
     static RectTransform ScrollArea(string name, RectTransform parent, float x0, float y0, float x1, float y1)
     {

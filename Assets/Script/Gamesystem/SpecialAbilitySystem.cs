@@ -118,7 +118,7 @@ public static class SpecialAbilitySystem
         if (sa == SpecialAbility.IndomitableWill)
             mod -= IndomitableWillReduction;
 
-        if (sa == SpecialAbility.WallFamiliar && IsAdjacentToBuilding(target))
+        if (sa == SpecialAbility.WallFamiliar && !BarrierSystem.UsesBarrier(target) && IsAdjacentToBuilding(target))
             mod -= WallFamiliarDEFBonus;
 
         if (HasNearbyAllyWithAbility(target, SpecialAbility.GuardianZone))
@@ -207,9 +207,15 @@ public static class SpecialAbilitySystem
     // =====================================================================
     public static bool TrySurviveLethal(Status target, int damage)
     {
+        if (target == null || target.ShieldTurns > 0 || target.isWildBoss && target.IsWildBossProtected) return false;
         var state = target != null ? target.Special : null;
         if (state != null && (state.damageNullUnused || state.nextDamageDouble || state.holyKnightTurns > 0 || state.holyKnightRecoveryLock || !string.IsNullOrEmpty(state.guardianPartnerId))) return false;
-        return TrySurviveLethalCore(target, damage);
+        int hpBefore = target != null ? target.HP : 0, barrierBefore = target != null ? target.Barrier : 0;
+        int hpDamage = BarrierSystem.PreviewHpLoss(target != null ? target.HP : 0, target != null ? target.Barrier : 0, damage);
+        bool survived = TrySurviveLethalCore(target, hpDamage);
+        if (survived && target.Barrier > 0) { target.Barrier = 0; BarrierSystem.RecordDamage(target); }
+        if (survived) FloatingDamageUI.ShowCombatDamage(target, Mathf.Max(0, hpBefore - target.HP), barrierBefore, false);
+        return survived;
     }
     internal static bool TrySurviveLethalCore(Status target, int damage)
     {

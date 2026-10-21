@@ -30,7 +30,8 @@ public enum Kind
     WoodWall,   // フェーズ6で使用
     StoneWall,  // フェーズ6で使用
     None,
-    WhiteMage, HolyKnight, Samurai, Ninja, Berserker, Navigator
+    WhiteMage, HolyKnight, Samurai, Ninja, Berserker, Navigator,
+    HeavyWarrior = 23, DragonKnight = 24
 }
 
 public enum Type
@@ -268,7 +269,7 @@ public enum SkillRarity
     Legendary    // 出現率5%
 }
 
-public class Status : MonoBehaviour
+public partial class Status : MonoBehaviour
 {
     // Initial scene slots retain their inactive state for save matching; runtime spawns own disposable visuals.
     GameObject runtimeSpawnRoot;
@@ -302,7 +303,7 @@ public class Status : MonoBehaviour
     void OnEnable()
     {
         // A pooled actor's next life must not collide with its earlier death ledger.
-        if (reflectionLifeEnded) { reflectionLifeId = null; reflectionLifeEnded = false; NaturalRecovery = new NaturalRecoveryState(); }
+        if (reflectionLifeEnded) { reflectionLifeId = null; reflectionLifeEnded = false; NaturalRecovery = new NaturalRecoveryState(); ResetBarrier(); }
         CombatRegistry.Register(this);
         BoardActorPresentation.Reactivate(this);
     }
@@ -356,6 +357,7 @@ public class Status : MonoBehaviour
             if (value < hitPoints)
             {
                 (NaturalRecovery ?? (NaturalRecovery = new NaturalRecoveryState())).RecordHpLoss();
+                BarrierSystem.RecordDamage(this);
                 if (value <= 0 && hitPoints > 0)
                 { BoardActionFeedback.Hit(this); BoardActorAnimation.NotifyDeath(this); }
                 else BoardActorAnimation.NotifyHit(this);
@@ -449,7 +451,7 @@ public class Status : MonoBehaviour
 
     /// <summary>ダメージを適用する（0未満にならない）。強敵の無敵判定もここで行う。</summary>
     public int ApplyDamage(int damage)
-        => SpecialSkillRuntime.ApplyHpChange(null, this, damage, HpChangeKind.NormalDamage, false, false);
+        => SpecialSkillRuntime.ApplyHpChange(null, this, damage, HpChangeKind.NormalDamage);
 
     public GameSystems RuntimeSystems => GetTurnGenerator()?.Systems;
     internal bool IsWildBossProtected => IsWildBossInvulnerable();
@@ -562,6 +564,7 @@ public class Status : MonoBehaviour
         Level = Mathf.Clamp(Level, 1, GameConstants.MaxUnitLevel);
         if (Level >= GameConstants.MaxUnitLevel) return;
         bool wasAlive = HP > 0;
+        int oldBarrierMaximum = MaxBarrier, oldBarrier = Barrier;
         UnitStaticData.Table.TryGetValue(kind, out var growth);
         int hpGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseHP, GrowthData.hpGrowth)
             : UnitData.CalcGrowthPerLevel(growth.BaseHP, growth.HpGrowth);
@@ -580,6 +583,8 @@ public class Status : MonoBehaviour
             if (team == Team.Player && AchievementSystem.Instance != null)
                 AchievementSystem.Instance.OnLevelUp(Level);
         }
+        if (wasAlive) Barrier = (int)System.Math.Min(MaxBarrier, (long)oldBarrier
+            + (BarrierCombatSettings.Active.growCurrentBarrierOnLevelUp ? MaxBarrier - oldBarrierMaximum : 0));
         StatusBalanceRefresh.RecordDefinitionBaseline(this);
     }
 
@@ -600,7 +605,7 @@ public class Status : MonoBehaviour
         if (target.HP <= 0) target.reflectionLifeEnded = true;
         int bonus = factions != null && (attacker.team == Team.Player || attacker.team == Team.Enemy)
             ? factions.GetBarracksXP(attacker.team) : 0;
-        if (attacker.type == Type.Unit) attacker.GainExperienceFromDamage(damage, bonus);
+        if (attacker.type == Type.Unit) attacker.GainExperienceFromDamage(SpecialSkillRuntime.ExperienceDamage(attacker, target, damage), bonus);
         if (!target.IsAlive && !target.uniqueRewardGranted)
         {
             target.uniqueRewardGranted = true;
@@ -645,6 +650,7 @@ public class Status : MonoBehaviour
         ActiveEffects.Clear();
         ShieldTurns = 0;
         SkillCooldown = 0;
+        ResetBarrier();
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Status] {kind} を Lv1 にリセット (ATK={ATK} DEF={DEF} MaxHP={MaxHP})"); }
     }
 

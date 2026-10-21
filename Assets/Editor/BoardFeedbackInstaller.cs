@@ -21,6 +21,7 @@ public static class BoardFeedbackInstaller
         if (material == null) { material = new Material(shader) { name = "短時間の盤面エフェクト" }; AssetDatabase.CreateAsset(material, materialPath); }
         var settings = AssetDatabase.LoadAssetAtPath<BoardFeedbackSettings>(SettingsPath);
         if (settings == null) { settings = ScriptableObject.CreateInstance<BoardFeedbackSettings>(); settings.name = "エフェクトと効果音"; AssetDatabase.CreateAsset(settings, SettingsPath); }
+        if (settings.sounds == null) settings.sounds = new System.Collections.Generic.List<BoardFeedbackSettings.SoundEntry>();
         if (settings.effectMaterial == null) settings.effectMaterial = material;
         foreach (BoardFeedbackKind kind in Enum.GetValues(typeof(BoardFeedbackKind)))
         {

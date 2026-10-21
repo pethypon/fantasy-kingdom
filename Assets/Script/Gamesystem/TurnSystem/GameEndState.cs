@@ -168,12 +168,7 @@ public class GameEndState : TurnState
         threatRT.offsetMin = new Vector2(20, 0);
         threatRT.offsetMax = new Vector2(-20, 0);
         var threatTMP = threatGo.AddComponent<TextMeshProUGUI>();
-        threatTMP.text = !progressionSaved ? "脅威度の保存に失敗しました。保存先を確認してください。"
-            : progression.DeveloperTest ? $"開発者テスト: 脅威度 {progression.ThreatLevel}（進行記録なし）"
-            : progression.AlreadyRecorded ? $"脅威度: {progression.ThreatLevel}（この試合は記録済み）"
-            : progression.Increased ? $"次の脅威度: {progression.PreviousThreatLevel} → {progression.ThreatLevel}（+1）"
-            : progression.ThreatLevel == AIThreatLevel.MaxLevel ? $"脅威度: {progression.ThreatLevel}（上限）"
-            : $"脅威度: {progression.ThreatLevel}";
+        threatTMP.text = FormatThreatProgressionText(progression, progressionSaved);
         threatTMP.fontSize = 20;
         threatTMP.alignment = TextAlignmentOptions.Center;
         threatTMP.color = new Color(0.7f, 0.7f, 0.5f);
@@ -234,6 +229,13 @@ public class GameEndState : TurnState
         quitTMP.alignment = TextAlignmentOptions.Center;
         quitTMP.color = Color.white;
     }
+
+    static string FormatThreatProgressionText(SaveSystem.MatchProgression value, bool saved)
+        => !saved ? "脅威度の保存に失敗しました。保存先を確認してください。"
+            : value.AlreadyRecorded ? $"脅威度: {value.ThreatLevel}（この試合は記録済み）"
+            : value.Increased ? $"次の脅威度: {value.PreviousThreatLevel} → {value.ThreatLevel}（+1）"
+            : value.ThreatLevel == AIThreatLevel.MaxLevel ? $"脅威度: {value.ThreatLevel}（上限）"
+            : $"脅威度: {value.ThreatLevel}";
 
     private string GetResultText()
     {

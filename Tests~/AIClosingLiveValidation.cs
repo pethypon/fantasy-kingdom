@@ -15,7 +15,8 @@ public static class AIClosingLiveValidation
     public static void Run()
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new Exception("Isolated clone only");
-        PlayerSettings.companyName = "CodexValidation"; PlayerSettings.productName = "AIClosingLiveValidation20261018";
+        ThreatClearProgressionTests.Run();
+        PlayerSettings.companyName = "CodexValidation"; PlayerSettings.productName = "AIClosingLiveValidation20261019";
         SessionState.SetBool(Key, true); EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity"); EditorApplication.EnterPlaymode();
     }
     static void Tick()
@@ -34,7 +35,11 @@ public static class AIClosingLiveValidation
             if (turn == null || !(turn.CurrentState is PlayerMove) || Time.frameCount - startedFrame < 20) return;
             AIClosingTests.PlayMode(turn.Systems);
             AIClosingObjectiveTests.Run(turn.Systems, turn);
+            AIClosingAdvanceTests.PlayMode(turn.Systems);
+            System.Type.GetType("AICommanderSafetyTests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new object[] { turn.Systems });
             AIEvolutionTests.Run(turn.Systems, turn);
+            AssassinAbilityTests.PlayMode(turn.Systems);
+            ThreatClearProgressionTests.PlayMode(turn.Systems, turn);
             Debug.Log("[AIClosingLiveValidation] ALL PASSED");
             SessionState.SetBool(Key, false); EditorApplication.Exit(0);
         }

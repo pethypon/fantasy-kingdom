@@ -18,6 +18,7 @@ public static partial class SpecialSkillRuntime
         copy.damageNullTurns = Mathf.Clamp(copy.damageNullTurns, 0, 2);
         copy.holyKnightTurns = Mathf.Clamp(copy.holyKnightTurns, 0, 3);
         copy.samuraiMaxTurns = Mathf.Clamp(copy.samuraiMaxTurns, 0, 3);
+        copy.dragonKnightGauge = Mathf.Clamp(copy.dragonKnightGauge, 0, 2);
         copy.samuraiGauge = Mathf.Max(0, copy.samuraiGauge);
         copy.ninjaCharge = Mathf.Clamp(copy.ninjaCharge, 0, 5);
         copy.berserkerStage = Mathf.Clamp(copy.berserkerStage, 0, 5);

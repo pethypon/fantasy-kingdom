@@ -37,7 +37,7 @@ public static class ObservedDragonThreat
     static int NormalDamageBudget(Status dragon, Status target, Vector3 destination)
     {
         float attack = dragon.ATK * StatusEffectSystem.GetATKModifier(dragon) * (1 - dragon.UpkeepPenaltyATKDEF);
-        float defense = target.DEF * StatusEffectSystem.GetDEFModifier(target) * (1 - target.UpkeepPenaltyATKDEF);
+        float defense = BarrierSystem.UsesBarrier(target) ? 0 : target.DEF * StatusEffectSystem.GetDEFModifier(target) * (1 - target.UpkeepPenaltyATKDEF);
         float multiplier = 1;
         if (dragon.passiveskill == PassiveSkill.StrangeKingAura && dragon.HPRatio <= GameConstants.StrangeKingRageThreshold)
             multiplier *= GameConstants.StrangeKingRageATKBonus;
@@ -48,7 +48,7 @@ public static class ObservedDragonThreat
         // A knight can receive the out-of-vision increase; hidden/future visibility cannot prove its reduction.
         if (target.kind == Kind.Knight) multiplier *= GameConstants.KnightOutOfVisionDamageIncrease;
         float incoming = StatusEffectSystem.GetIncomingDamageModifier(target);
-        int damage = DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBase(attack, defense) * multiplier * incoming, incoming > 0);
+        int damage = DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBaseForTarget(attack, defense,BarrierSystem.UsesBarrier(target)) * multiplier * incoming, incoming > 0);
         // Roar is consumed before the attack and multiplies the already rounded normal hit.
         if (dragon.wildBossAtkBuffTurns > 1) damage = Mathf.RoundToInt(damage * 1.25f);
         return damage;
@@ -70,7 +70,8 @@ public static class ObservedDragonThreat
             if (cell.x != from.x || ahead <= 0 || ahead >= distance) return false;
             // A nearer unit killed by breath is gone before the follow-up selects its first target.
             return !CanBreatheAt(board, dragon, actor.transform.position) || actor.ShieldTurns > 0
-                || NormalDamageBudget(dragon, actor, actor.transform.position) < actor.HP;
+                || BarrierSystem.PreviewHpLoss(actor.HP, actor.Barrier,
+                    NormalDamageBudget(dragon, actor, actor.transform.position)) < actor.HP;
         }
         foreach (var ally in board.AliveEnemyUnits) if (Blocks(ally)) return false;
         foreach (var hostile in board.AlivePlayerUnits) if (Blocks(hostile)) return false;

@@ -53,7 +53,7 @@ public partial class AIMinimaxEngine
                         var target = board.GetUnit(a.TargetUnitId);
                         if (attacker != null && target != null)
                         {
-                            int dmg = SimBoardState.CalcDamage(attacker, target);
+                            int dmg = SimBoardState.CalcHpDamage(attacker, target);
                             if (dmg >= target.HP) isKillShot = true;
                         }
                     }

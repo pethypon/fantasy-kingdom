@@ -12,7 +12,7 @@ using UnityEngine;
 public static class BoardFeedbackPreview
 {
     const int Layer = 30, Width = 960, Height = 420, FPS = 30, FramesPerPhase = 18;
-    const string Output = "Docs/PlaytestScreenshots/board-feedback-20261018";
+    const string Output = "Docs/PlaytestScreenshots/board-feedback-20261019";
     static readonly string[] Phases = { "Melee", "Projectile", "Magic", "Heal", "Summon", "Build" };
     static readonly MethodInfo EffectTick = typeof(BoardCombatEffects).GetMethod("Tick", BindingFlags.Static | BindingFlags.NonPublic);
     static readonly MethodInfo BodyTick = typeof(BoardActorAnimation).GetMethod("Tick", BindingFlags.Static | BindingFlags.NonPublic);

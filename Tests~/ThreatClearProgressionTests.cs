@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 
 /// <summary>Progression and old checkpoints use isolated temporary profile/save storage only.</summary>
@@ -12,6 +13,8 @@ public static class ThreatClearProgressionTests
     static void Check(string label, bool ok)
     { if (!ok) throw new InvalidOperationException("[ThreatClear] FAIL " + label); passed++; Debug.Log("[ThreatClear] PASS " + label); }
     static string Id() => Guid.NewGuid().ToString("N");
+    static string ThreatText(SaveSystem.MatchProgression value, bool saved = true)
+        => (string)typeof(GameEndState).GetMethod("FormatThreatProgressionText", Private).Invoke(null, new object[] { value, saved });
     static SaveSystem.GameSaveData Save() => new SaveSystem.GameSaveData
     {
         Turn = 8, ThreatLevel = 8, MapWidth = 35, MapDepth = 35,
@@ -52,15 +55,27 @@ public static class ThreatClearProgressionTests
             Check("different ending from the same completed checkpoint is not another match", SaveSystem.TryRecordMatchResult(draw, GameResult.Win, false, out p, out _)
                 && p.AlreadyRecorded && p.ThreatLevel == 10);
             string profilePath = Path.Combine(root, "saves", "profile.json");
+            string autoWin = Id();
+            Check("developer autoplay victory is a real clear and advances one", SaveSystem.TryRecordMatchResult(autoWin, GameResult.Win, true, out p, out _)
+                && p.DeveloperTest && p.Recorded && p.Increased && p.PreviousThreatLevel == 10 && p.ThreatLevel == 11
+                && SaveSystem.LoadProfile().TotalWins == 3);
+            Check("autoplay clear UI shows the actual +1", ThreatText(p).Contains("10 → 11（+1）") && !ThreatText(p).Contains("進行記録なし"));
+            Check("switching autoplay off or reloading its completed checkpoint cannot award twice",
+                SaveSystem.TryRecordMatchResult(autoWin, GameResult.Win, false, out p, out _) && p.AlreadyRecorded
+                && !p.Recorded && p.ThreatLevel == 11 && SaveSystem.LoadProfile().TotalWins == 3);
+            Check("replayed autoplay result UI reports the saved result", ThreatText(p).Contains("記録済み"));
+            Check("autoplay time-up victory also advances exactly one", SaveSystem.TryRecordMatchResult(Id(), GameResult.TimeUpWin, true, out p, out _)
+                && p.Recorded && p.Increased && p.ThreatLevel == 12 && SaveSystem.LoadProfile().TotalWins == 4);
+            Check("autoplay defeat holds threat and records a loss", SaveSystem.TryRecordMatchResult(Id(), GameResult.Lose, true, out p, out _)
+                && p.Recorded && !p.Increased && p.ThreatLevel == 12 && SaveSystem.LoadProfile().TotalLosses == 2);
             string before = File.ReadAllText(profilePath);
-            Check("developer autoplay does not record progress", SaveSystem.TryRecordMatchResult(Id(), GameResult.Win, true, out p, out _)
-                && p.DeveloperTest && !p.Recorded && p.ThreatLevel == 10 && File.ReadAllText(profilePath) == before);
             Check("invalid identity cannot modify profile", !SaveSystem.TryRecordMatchResult("invalid", GameResult.Win, false, out _, out _)
                 && File.ReadAllText(profilePath) == before);
 
             var saved = Save();
+            saved.DeveloperAutoplayUsed = true;
             Check("checkpoint saves match identity", SaveSystem.TrySaveGame(0, saved, out _) && SaveSystem.TryLoadGame(0, out var loaded, out _)
-                && loaded.MatchId == saved.MatchId);
+                && loaded.MatchId == saved.MatchId && loaded.DeveloperAutoplayUsed);
             Check("same checkpoint in another slot keeps identity", SaveSystem.TrySaveGame(1, saved, out _) && SaveSystem.TryLoadGame(1, out loaded, out _)
                 && loaded.MatchId == saved.MatchId);
             Check("new game snapshots get different identities", Save().MatchId != saved.MatchId);
@@ -71,7 +86,7 @@ public static class ThreatClearProgressionTests
             string oldPath = Path.Combine(root, "saves", "save_2.json");
             File.WriteAllText(oldPath, oldJson);
             Check("v8 snapshot migrates with stable identity", SaveSystem.TryLoadGame(2, out loaded, out _)
-                && loaded.Version == 9 && SaveSystem.IsValidMatchId(loaded.MatchId));
+                && loaded.Version == SaveSystem.CurrentSaveVersion && SaveSystem.IsValidMatchId(loaded.MatchId));
             string legacyId = loaded.MatchId;
             Check("reloading unmodified old save reuses identity", SaveSystem.TryLoadGame(2, out loaded, out _) && loaded.MatchId == legacyId
                 && File.ReadAllText(oldPath) == oldJson);
@@ -79,8 +94,8 @@ public static class ThreatClearProgressionTests
             File.WriteAllText(oldPath, JsonUtility.ToJson(saved));
             Check("legacy identity ignores turn and save date", SaveSystem.TryLoadGame(2, out loaded, out _) && loaded.MatchId == legacyId);
             Check("legacy completion also awards only once", SaveSystem.TryRecordMatchResult(legacyId, GameResult.Win, false, out p, out _)
-                && p.ThreatLevel == 11 && SaveSystem.TryRecordMatchResult(legacyId, GameResult.Win, false, out p, out _)
-                && p.AlreadyRecorded && SaveSystem.LoadProfile().ThreatLevel == 11);
+                && p.ThreatLevel == 13 && SaveSystem.TryRecordMatchResult(legacyId, GameResult.Win, true, out p, out _)
+                && p.AlreadyRecorded && SaveSystem.LoadProfile().ThreatLevel == 13);
 
             Check("near cap profile", SaveSystem.TrySaveProfile(new SaveSystem.ProfileData { ThreatLevel = 99 }, out _));
             Check("99 advances to maximum 100", SaveSystem.TryRecordMatchResult(Id(), GameResult.Win, false, out p, out _)
@@ -100,6 +115,7 @@ public static class ThreatClearProgressionTests
             File.WriteAllText(profilePath, future);
             Check("future profile is protected from progression write", !SaveSystem.TryRecordMatchResult(Id(), GameResult.Win, false, out p, out _)
                 && !p.Recorded && File.ReadAllText(profilePath) == future);
+            Check("failed save cannot be displayed as a successful clear", ThreatText(p, false).Contains("保存に失敗"));
 
             foreach (int turns in new[] { 1, 9, 19, 100 })
             {
@@ -118,6 +134,76 @@ public static class ThreatClearProgressionTests
             if (full.StartsWith(temporary, StringComparison.OrdinalIgnoreCase)) Directory.Delete(full, true);
         }
         Debug.Log("[ThreatClear] " + passed + " checks passed");
+    }
+
+    /// <summary>Runs the real result save/UI, title profile and next AI initializer against temporary progression storage.</summary>
+    public static void PlayMode(GameSystems systems, TurnGenerator turn)
+    {
+        if (!Application.isPlaying || systems == null || turn == null || turn.IsGameOver || UIBuilder.ScreenCanvas == null)
+            throw new InvalidOperationException("An ongoing real Play Mode scene is required.");
+        if (new DirectoryInfo(Application.dataPath).Parent.Name != "UnityValidation")
+            throw new InvalidOperationException("Use the isolated validation project only.");
+        passed = 0;
+        string root = Path.Combine(Path.GetTempPath(), "FK_ThreatClearLive_" + Id()); Directory.CreateDirectory(root);
+        const BindingFlags InstancePrivate = BindingFlags.Instance | BindingFlags.NonPublic;
+        var oldTitle = TitleScreenUI.Instance;
+        var titleInstance = typeof(TitleScreenUI).GetField("<Instance>k__BackingField", Private);
+        var developerFlag = typeof(TurnGenerator).GetField("developerMatchUsed", InstancePrivate);
+        bool usedBefore = turn.DeveloperPlayerAIWasUsed;
+        var originalState = turn.CurrentState;
+        int previousEnemyThreat = systems.AICommander.ThreatLevel.Level;
+        var random = UnityEngine.Random.state;
+        var aiMode = AIConfig.Mode;
+        GameObject resultOverlay = null, titleHost = null, titleOverlay = null, nextHost = null;
+        try
+        {
+            using var isolated = (IDisposable)typeof(SaveSystem).GetMethod("UseTestStorageRoot", Private).Invoke(null, new object[] { root });
+            Check("live isolated starting profile", SaveSystem.TrySaveProfile(new SaveSystem.ProfileData { ThreatLevel = 20 }, out _));
+            turn.MarkDeveloperMatch();
+            var ending = new GameEndState(turn, GameResult.Win);
+            var record = typeof(GameEndState).GetMethod("RecordMatchProgression", InstancePrivate);
+            record.Invoke(ending, null);
+            Check("actual GameEnd save accepts a match that used developer AI", SaveSystem.LoadProfile().ThreatLevel == 21
+                && SaveSystem.LoadProfile().TotalWins == 1 && SaveSystem.LoadProfile().CompletedMatchIds.Contains(turn.MatchId));
+            Check("autoplay progression does not enable persistent opponent learning", systems.AICommander.ThreatLevel.Level == previousEnemyThreat);
+            Check("fixture starts without an existing result overlay", UIBuilder.ScreenCanvas.transform.Find("GameEndOverlay") == null);
+            typeof(GameEndState).GetMethod("BuildGameEndUI", InstancePrivate).Invoke(ending, null);
+            resultOverlay = UIBuilder.ScreenCanvas.transform.Find("GameEndOverlay")?.gameObject;
+            var resultText = resultOverlay != null ? resultOverlay.transform.Find("GameEndPanel/ThreatText")?.GetComponent<TextMeshProUGUI>() : null;
+            Check("actual result UI displays the committed +1", resultText != null && resultText.text.Contains("20 → 21（+1）")
+                && !resultText.text.Contains("進行記録なし"));
+            record.Invoke(ending, null);
+            Check("repeated actual result callback is idempotent", SaveSystem.LoadProfile().ThreatLevel == 21 && SaveSystem.LoadProfile().TotalWins == 1);
+
+            titleHost = new GameObject("Threat progression title fixture");
+            var title = titleHost.AddComponent<TitleScreenUI>();
+            titleOverlay = (GameObject)typeof(TitleScreenUI).GetField("rootOverlay", InstancePrivate).GetValue(title);
+            var subtitle = titleOverlay != null ? titleOverlay.transform.Find("SubTitle")?.GetComponent<TextMeshProUGUI>() : null;
+            Check("actual title rebuild reads the updated saved threat", subtitle != null && subtitle.text.Contains("脅威度: 21")
+                && subtitle.text.Contains("1勝"));
+
+            nextHost = new GameObject("Threat progression next game initializer");
+            var nextTurn = nextHost.AddComponent<TurnGenerator>(); nextTurn.enabled = false; nextTurn.MarkDeveloperMatch();
+            SystemInitializer.InitAI(nextTurn, systems.MoveGenerator, systems.VisionGenerator, systems.APSystem, systems.UnitSetting,
+                systems.CrystalSystem, systems.MapCreate, systems.BuildSystem, systems.SummonSystem, systems.FactionState,
+                systems.SkillSystem, systems.SubCrystalSystem);
+            Check("actual next-game AI initializer consumes the increased profile threat", nextTurn.Systems.AICommander.ThreatLevel.Level == 21);
+            Check("progression/UI fixture leaves the running match state unchanged", turn.CurrentState == originalState && !turn.IsGameOver);
+            Check("progression/UI fixture leaves gameplay Random unchanged", UnityEngine.Random.state.Equals(random));
+        }
+        finally
+        {
+            if (nextHost != null) UnityEngine.Object.DestroyImmediate(nextHost);
+            if (titleOverlay != null) UnityEngine.Object.DestroyImmediate(titleOverlay);
+            if (titleHost != null) UnityEngine.Object.DestroyImmediate(titleHost);
+            titleInstance.SetValue(null, oldTitle);
+            if (resultOverlay != null) UnityEngine.Object.DestroyImmediate(resultOverlay);
+            developerFlag.SetValue(turn, usedBefore);
+            AIConfig.Mode = aiMode; UnityEngine.Random.state = random;
+            string full = Path.GetFullPath(root), temporary = Path.GetFullPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            if (full.StartsWith(temporary, StringComparison.OrdinalIgnoreCase)) Directory.Delete(full, true);
+        }
+        Debug.Log("[ThreatClearLive] " + passed + " checks passed");
     }
 }
 #endif

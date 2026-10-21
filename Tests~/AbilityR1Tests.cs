@@ -96,19 +96,20 @@ public static class AbilityR1Tests
             var assassin = Actor(UnitSpecialSkill.AssassinVisionSeal, Team.Enemy, 120030, 120000, kind: Kind.Assassin);
             var ally = Actor(UnitSpecialSkill.None, Team.Enemy, 120031, 120000); ally.HP = 200;
             ally.specialAbility = SpecialAbility.SurvivalInstinct;
-            Check("Assassin can select an allied normal attack", SpecialSkillRuntime.CanNormalAttackTarget(assassin, ally));
+            Check("replacement Assassin cannot select allied normal attacks", !SpecialSkillRuntime.CanNormalAttackTarget(assassin, ally));
             Shoot(systems, assassin, ally);
-            Check("real normal attack executes the twenty-percent ally despite lethal-survival ability", !ally.IsAlive);
-            Check("allied execution grants configured 1.75 attack boost without HP-one penalty", Mathf.Approximately(SpecialSkillRuntime.GetATKModifier(assassin), 1.75f)
+            Check("former allied execution cannot damage allies", ally.IsAlive && ally.HP == 200);
+            assassin.Special.assassinBoostTurns = 2; assassin.Special.assassinBoostStacks = 1;
+            Check("old saved Assassin boost has no combat effect", Mathf.Approximately(SpecialSkillRuntime.GetATKModifier(assassin), 1)
                 && assassin.HP == assassin.MaxHP);
             var healthyAlly = Actor(UnitSpecialSkill.None, Team.Enemy, 120032, 120000); healthyAlly.HP = 900;
             Shoot(systems, assassin, healthyAlly);
-            Check("allied target above the threshold receives ordinary damage", healthyAlly.IsAlive && healthyAlly.HP < 900);
+            Check("healthy allied target is also protected", healthyAlly.IsAlive && healthyAlly.HP == 900);
             var hostile = Actor(UnitSpecialSkill.None, Team.Player, 120033, 120000); hostile.specialAbility = SpecialAbility.SurvivalInstinct;
             Shoot(systems, assassin, hostile);
-            Check("enemy ordinary execution is lethal and leaves Assassin at one HP", !hostile.IsAlive && assassin.HP == 1);
-            Check("enemy execution self reduction resets natural recovery", assassin.NaturalRecovery.HpLostSinceLastOwnTurn);
-            Check("strong enemy categories are excluded from execution", !SpecialSkillRuntime.WouldAssassinate(assassin, strong));
+            Check("ordinary enemies take ordinary damage without execution or self HP-one cost", hostile.IsAlive && hostile.HP < hostile.MaxHP && assassin.HP == assassin.MaxHP);
+            Check("ordinary attack has no former execution self reduction", !assassin.NaturalRecovery.HpLostSinceLastOwnTurn);
+            Check("all former execution targets are disabled", !SpecialSkillRuntime.WouldAssassinate(assassin, strong) && !SpecialSkillRuntime.WouldAssassinate(assassin, hostile));
 
             var scout = Actor(UnitSpecialSkill.ScoutVisionGuard, Team.Enemy, 120040, 120000);
             var scoutDef = SpecialSkillRuntime.Definition(scout); scoutDef.scoutFreeMoveScope = scoutDef.scoutFreeAttackScope = AbilityResetScope.OwnerTurn;

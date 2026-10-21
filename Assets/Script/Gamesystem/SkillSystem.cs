@@ -41,7 +41,7 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public static int CalcNormalDamage(Status attacker, Status target)
     {
-        return DamageCalculator.CalcNormal(attacker, target);
+        return BarrierSystem.NormalAttackDamage(attacker, target, DamageCalculator.CalcNormal(attacker, target));
     }
 
     public static int CalcSkillDamage(Status attacker, Status target, SkillData skill)
@@ -152,6 +152,7 @@ public class SkillSystem : MonoBehaviour
         if (target.ShieldTurns > 0)
         {
             Debug.Log($"[SkillSystem] {target.kind} はシールド中！ ダメージ無効");
+            BarrierSystem.RecordNegatedHit(target);
             FloatingDamageUI.ShowShield(target.transform.position);
             return;
         }
@@ -162,10 +163,7 @@ public class SkillSystem : MonoBehaviour
 
         // フローティングダメージ表示
         bool isKill = target.HP <= 0;
-        if (damage > 0)
-            FloatingDamageUI.ShowDamage(target.transform.position, damage, isKill);
-        else
-            FloatingDamageUI.ShowMiss(target.transform.position);
+        if (damage <= 0) FloatingDamageUI.ShowMiss(target.transform.position);
 
         // 2連撃 / チェイン（DamageCalculator経由で重複排除）
         if (skill.Area == SkillAreaShape.SingleDouble && skill.SecondMultiplier > 0)
@@ -176,7 +174,7 @@ public class SkillSystem : MonoBehaviour
             int dmg2 = DamageCalculator.CalcSkillFromValues(
                 atk, def,
                 StatusEffectSystem.GetIncomingDamageModifier(target),
-                skill.SecondMultiplier, sealMod);
+                skill.SecondMultiplier, sealMod, BarrierSystem.UsesBarrier(target));
             dmg2 = ApplySkillDamage(attacker, target, dmg2);
             Debug.Log($"[SkillSystem] 2段目 DMG:{dmg2} 残HP:{target.HP}");
         }
@@ -560,7 +558,7 @@ public class SkillSystem : MonoBehaviour
     {
         float atk = attacker.ATK * StatusEffectSystem.GetATKModifier(attacker);
         float def = target.DEF * StatusEffectSystem.GetDEFModifier(target);
-        float baseDmg = DamageCalculator.CalcRawBase(atk, def);
+        float baseDmg = DamageCalculator.CalcRawBaseForTarget(atk, def, BarrierSystem.UsesBarrier(target));
         return DamageCalculator.FinalizeHitDamage(baseDmg * bonusMultiplier, bonusMultiplier > 0);
     }
 

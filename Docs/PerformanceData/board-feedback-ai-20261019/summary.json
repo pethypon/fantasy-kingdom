@@ -1,0 +1,131 @@
+{
+  "scope": "Actual Unity SampleScene / title New Game / developer PlayerAI, threat15. These six bounded runs precede the subsequent Assassin ability update. They do not establish a long-term win rate. Cosmetic preview is a fixture, not a battle replay.",
+  "runs": [
+    {
+      "label": "baseline",
+      "resolved": 0,
+      "interrupted": 2,
+      "faulted": 0,
+      "matches": [
+        {
+          "seed": 161803,
+          "round": 40,
+          "ownerTurns": 80,
+          "condition": "owner_turn_limit",
+          "result": "unresolved",
+          "actualPlayerAIMode": true,
+          "playerAttacks": 7,
+          "enemyAttacks": 3,
+          "playerCommanderMoves": 52,
+          "enemyCommanderMoves": 69,
+          "playerCommanderHP": 360,
+          "enemyCommanderHP": 575,
+          "errors": 0,
+          "exceptions": 0,
+          "failedActions": 0
+        },
+        {
+          "seed": 271828,
+          "round": 40,
+          "ownerTurns": 80,
+          "condition": "owner_turn_limit",
+          "result": "unresolved",
+          "actualPlayerAIMode": true,
+          "playerAttacks": 43,
+          "enemyAttacks": 5,
+          "playerCommanderMoves": 73,
+          "enemyCommanderMoves": 51,
+          "playerCommanderHP": 345,
+          "enemyCommanderHP": 500,
+          "errors": 0,
+          "exceptions": 0,
+          "failedActions": 0
+        }
+      ]
+    },
+    {
+      "label": "adjusted",
+      "resolved": 0,
+      "interrupted": 2,
+      "faulted": 0,
+      "matches": [
+        {
+          "seed": 161803,
+          "round": 40,
+          "ownerTurns": 80,
+          "condition": "owner_turn_limit",
+          "result": "unresolved",
+          "actualPlayerAIMode": true,
+          "playerAttacks": 0,
+          "enemyAttacks": 2,
+          "playerCommanderMoves": 25,
+          "enemyCommanderMoves": 29,
+          "playerCommanderHP": 300,
+          "enemyCommanderHP": 525,
+          "errors": 0,
+          "exceptions": 0,
+          "failedActions": 0
+        },
+        {
+          "seed": 271828,
+          "round": 40,
+          "ownerTurns": 80,
+          "condition": "owner_turn_limit",
+          "result": "unresolved",
+          "actualPlayerAIMode": true,
+          "playerAttacks": 0,
+          "enemyAttacks": 7,
+          "playerCommanderMoves": 102,
+          "enemyCommanderMoves": 21,
+          "playerCommanderHP": 300,
+          "enemyCommanderHP": 500,
+          "errors": 0,
+          "exceptions": 0,
+          "failedActions": 0
+        }
+      ]
+    },
+    {
+      "label": "final",
+      "resolved": 0,
+      "interrupted": 2,
+      "faulted": 0,
+      "matches": [
+        {
+          "seed": 161803,
+          "round": 80,
+          "ownerTurns": 160,
+          "condition": "owner_turn_limit",
+          "result": "unresolved",
+          "actualPlayerAIMode": true,
+          "playerAttacks": 7,
+          "enemyAttacks": 51,
+          "playerCommanderMoves": 0,
+          "enemyCommanderMoves": 2,
+          "playerCommanderHP": 300,
+          "enemyCommanderHP": 500,
+          "errors": 0,
+          "exceptions": 0,
+          "failedActions": 3
+        },
+        {
+          "seed": 271828,
+          "round": 80,
+          "ownerTurns": 160,
+          "condition": "owner_turn_limit",
+          "result": "unresolved",
+          "actualPlayerAIMode": true,
+          "playerAttacks": 185,
+          "enemyAttacks": 88,
+          "playerCommanderMoves": 1,
+          "enemyCommanderMoves": 0,
+          "playerCommanderHP": 300,
+          "enemyCommanderHP": 500,
+          "errors": 0,
+          "exceptions": 0,
+          "failedActions": 0
+        }
+      ]
+    }
+  ]
+}

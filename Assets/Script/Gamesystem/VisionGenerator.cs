@@ -210,7 +210,8 @@ public class VisionGenerator : MonoBehaviour
 
     public static System.Collections.Generic.IReadOnlyList<Vector3Int> BaseVisionOffsets(Kind kind)
         => VisionDataMap.TryGetValue(LegacyVisionRole(kind), out var offsets) ? offsets : System.Array.Empty<Vector3Int>();
-    static Kind LegacyVisionRole(Kind kind) => kind == Kind.HolyKnight ? Kind.Knight : kind == Kind.Ninja ? Kind.Assassin : kind;
+    static Kind LegacyVisionRole(Kind kind) => kind == Kind.HolyKnight || kind == Kind.HeavyWarrior || kind == Kind.DragonKnight
+        ? Kind.Knight : kind == Kind.Ninja ? Kind.Assassin : kind;
 
     // Custom masks are weakly cached by definition, never by Kind: several authored pieces can share one AI role.
     sealed class MaskVisionCache
@@ -574,6 +575,17 @@ public class VisionGenerator : MonoBehaviour
         _playerExplored.UnionWith(_playerVisionBox);
         _enemyExplored.UnionWith(_enemyVisionBox);
         VisionSetting(mapcreate);
+    }
+
+    /// <summary>Rebuild one observer's rules mask without updating fog, territory or renderers.</summary>
+    public void RefreshActorVision(Status status, MapCreate map, CrystalSystem crystals)
+    {
+        if (status == null || map == null) return;
+        this.mapcreate = map;
+        this.crystalsystem = crystals;
+        if (status.VisionCell == null) status.VisionCell = new HashSet<Vector3Int>();
+        else status.VisionCell.Clear();
+        if (status.IsAlive) VisionCreate(status, map, crystals);
     }
 
     public void VisionCreate(Status status, MapCreate mapcreate, CrystalSystem crystalsystem)

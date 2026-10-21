@@ -498,13 +498,16 @@ public class UIBuilder : MonoBehaviour
         var nameText = CreateTMP("NameText", left, "---", 30);
         nameText.color = BrandGuide.TextPrimary;
         nameText.fontStyle = FontStyles.Bold;
-        SetAnchors(nameText, 0, 0.66f, 1, 1);
+        SetAnchors(nameText, 0, .76f, 1, 1);
         var levelText = CreateTMP("LevelText", left, "Lv 1", BrandGuide.FontHud);
         levelText.color = BrandGuide.TextSecondary;
-        SetAnchors(levelText, 0, 0.33f, 1, 0.66f);
+        SetAnchors(levelText, 0, .60f, 1, .76f);
         var hpText = CreateTMP("HPText", left, "HP 0", BrandGuide.FontHud);
-        hpText.fontSize = 30;
-        SetAnchors(hpText, 0, 0, 1, 0.33f);
+        hpText.fontSize = 26;
+        SetAnchors(hpText, 0, .30f, 1, .60f);
+        var barrierText = CreateTMP("BarrierText", left, "バリア 0", 26);
+        barrierText.color = new Color(.60f, .82f, 1f);
+        SetAnchors(barrierText, 0, 0, 1, .30f);
 
         // ---- CenterStats ----
         var center = CreatePanel("CenterStats", panel,
@@ -518,16 +521,13 @@ public class UIBuilder : MonoBehaviour
 
         var atkText = CreateTMP("ATKText", center, "ATK 0", BrandGuide.FontHud);
         atkText.color = new Color(1f, 0.75f, 0.60f);
-        SetAnchors(atkText, 0, 0.75f, 1, 1);
-        var defText = CreateTMP("DEFText", center, "DEF 0", BrandGuide.FontHud);
-        defText.color = new Color(0.60f, 0.82f, 1f);
-        SetAnchors(defText, 0, 0.50f, 1, 0.75f);
+        SetAnchors(atkText, 0, .70f, 1, 1);
         var kindText = CreateTMP("KindText", center, "", BrandGuide.FontHudCaption);
         kindText.color = BrandGuide.TextSecondary;
-        SetAnchors(kindText, 0, 0.25f, 1, 0.50f);
+        SetAnchors(kindText, 0, .40f, 1, .70f);
         var passiveText = CreateTMP("PassiveText", center, "", BrandGuide.FontHudCaption);
         passiveText.color = BrandGuide.TextSecondary;
-        SetAnchors(passiveText, 0, 0, 1, 0.25f);
+        SetAnchors(passiveText, 0, 0, 1, .40f);
 
         // ---- RightCommands ----
         var right = CreatePanel("RightCommands", panel,

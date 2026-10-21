@@ -483,9 +483,7 @@ public partial class AIBoardState
         // These are the only sources consumed below. With neither an observed hostile (including
         // buildings/third factions) nor a living visible crystal, a full-map attack query cannot
         // produce a candidate. Return caller-owned storage and leave presentation data untouched.
-        bool allyAttack = SpecialSkillRuntime.Definition(unit)?.enabledForPlay == true
-            && SpecialSkillRuntime.Definition(unit).ability == UnitSpecialSkill.AssassinVisionSeal;
-        if (!allyAttack && AlivePlayerUnits.Count == 0 && (!PlayerCrystalVisible || PlayerCrystalHP <= 0)) return targets;
+        if (AlivePlayerUnits.Count == 0 && (!PlayerCrystalVisible || PlayerCrystalHP <= 0)) return targets;
 
         _attackPoint.NormalAttackPData(unit, unitPos);
         if (_attackPoint.AttackP == null) return targets;
@@ -499,13 +497,6 @@ public partial class AIBoardState
                 var puCell = _moveGen.Cell(pu.transform.position);
                 if (puCell == cell && SpecialSkillRuntime.CanNormalAttackTarget(unit, pu)) { targets.Add(pu); break; }
             }
-
-            // This is an ordinary paid Attack candidate, with a separate friendly-loss
-            // valuation. It must never bypass the shared targeting/death pipeline.
-            if (allyAttack) foreach (var ally in AliveEnemyUnits)
-                if (ally != unit && ally != null && ally.IsAlive && _moveGen.Cell(ally.transform.position) == cell
-                    && SpecialSkillRuntime.IsAssassinAllyTarget(unit, ally)
-                    && SpecialSkillRuntime.CanNormalAttackTarget(unit, ally)) targets.Add(ally);
 
             if (PlayerCrystalVisible)
             {

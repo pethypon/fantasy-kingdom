@@ -132,6 +132,9 @@ public static class AIActionModifiers
     {
         if (!p.HasBoss) return;
         var boss = p.BossUnit;
+        // A primary commander losing its life loses the match. The frontline
+        // personality bonus is reserved for expendable, non-principal bosses.
+        if (boss == null || MatchObjectiveRules.IsCommander(boss)) return;
 
         bool noVisibleEnemies = board.AlivePlayerUnits.Count == 0;
 
@@ -158,8 +161,9 @@ public static class AIActionModifiers
                 float d = Vector3.Distance(action.TargetPos, u.transform.position);
                 if (d < nearestAllyOnFrontline) nearestAllyOnFrontline = d;
             }
-            if (nearestAllyOnFrontline > 4f)
+            if (nearestAllyOnFrontline <= 3f)
             { conditionScore += 6f; conditionsMet++; }
+            else if (nearestAllyOnFrontline > 4f) conditionScore -= 10f;
 
             foreach (var pu in board.AlivePlayerUnits)
             {
@@ -232,7 +236,8 @@ public static class AIActionModifiers
             if (action.ActionType != AIActionType.Summon) continue;
             action.Score += expansionBonus;
 
-            if (action.SummonKind == Kind.Knight || action.SummonKind == Kind.Archer || action.SummonKind == Kind.Scout)
+            var baseKind = UnitRoster.EvaluationBaseKind(action.SummonKind);
+            if (baseKind == Kind.Knight || baseKind == Kind.Archer || baseKind == Kind.Scout)
                 action.Score += 5f;
         }
     }

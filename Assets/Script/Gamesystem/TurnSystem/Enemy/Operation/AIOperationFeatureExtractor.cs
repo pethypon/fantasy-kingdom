@@ -268,8 +268,7 @@ public sealed class AIOperationFeatureExtractor
 
     public static string Category(Status unit) => unit == null ? "None" : unit.kind == Kind.Crystal ? "Crystal"
         : unit.kind == Kind.SubCrystal ? "SubCrystal" : unit.type == Type.Unit ? AIActionFeatureExtractor.Role(unit.kind) : "Building";
-    public static float MilitaryPower(Status unit) => unit == null ? 0
-        : (Mathf.Max(0, unit.ATK) + Mathf.Max(0, unit.DEF) * .5f) * Mathf.Clamp01((float)unit.HP / Mathf.Max(1, unit.MaxHP));
+    public static float MilitaryPower(Status unit) => AIEvalHelpers.CombatPower(unit);
     public static int Distance(Vector3 first, Vector3 second)
         => Mathf.RoundToInt(GridHelper.ChebyshevDistance(first, second));
 }

@@ -33,7 +33,8 @@ public class UnitData : ScriptableObject
     [Header("基礎ステータス（Lv1の値）")]
     public int baseHP;
     public int baseATK;
-    public int baseDEF;
+    [HideInInspector] public int baseDEF; // Retained for historical saves and commander definitions.
+    [Min(-1), InspectorName("初期バリア（-1は職種設定）")] public int baseBarrier = -1;
 
     [Header("成長率（Lv1基礎値から固定加算・最低+2/Lv）")]
     public float hpGrowth;
@@ -66,7 +67,7 @@ public class UnitData : ScriptableObject
     public int costCitizen;
     public int costAP;
 
-    public bool IsValidForAuthoring => baseHP > 0 && baseATK >= 0 && baseDEF >= 0
+    public bool IsValidForAuthoring => baseHP > 0 && baseATK >= 0 && baseDEF >= 0 && baseBarrier >= -1
         && ValidGrowth(hpGrowth) && ValidGrowth(atkGrowth) && ValidGrowth(defGrowth)
         && upkeepWood >= 0 && upkeepStone >= 0 && upkeepIron >= 0 && upkeepMagic >= 0 && upkeepWater >= 0 && upkeepBread >= 0
         && costWood >= 0 && costStone >= 0 && costIron >= 0 && costMagic >= 0 && costWater >= 0 && costBread >= 0 && costCitizen >= 0 && costAP >= 0;
@@ -149,6 +150,7 @@ public class UnitData : ScriptableObject
         status.ATK = CalcStat(baseATK, atkGrowth, level);
         status.HP = CalcStat(baseHP, hpGrowth, level);
         status.MaxHP = status.HP;
+        status.ResetBarrier();
         status.DEF = CalcStat(baseDEF, defGrowth, level);
         StatusBalanceRefresh.RecordDefinitionBaseline(status);
     }
@@ -159,6 +161,7 @@ public class UnitData : ScriptableObject
         if (status == null) return;
         status.Special = new SpecialState();
         status.NaturalRecovery = new NaturalRecoveryState();
+        status.ResetBarrier();
         SpecialSkillRuntime.InvalidateRules();
         ApplyAbilityIdentity(status);
     }

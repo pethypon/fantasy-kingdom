@@ -45,7 +45,7 @@ public static class AIStrategyBonus
     {
         float b = 0f;
         if (a.ActionType == AIActionType.Attack) b += 18f;
-        if (a.ActionType == AIActionType.SkillUse && a.Skill != null && a.Skill.Multiplier > 0) b += 15f;
+        if (AISpecialSkillKnowledge.IsOffensiveSkill(a)) b += 15f;
         if (a.ActionType == AIActionType.Surround) b += 12f;
         if (a.ActionType == AIActionType.Move)
             b += AIEvalHelpers.GetApproachToEnemy(a, board) * 4f;
@@ -139,7 +139,7 @@ public static class AIStrategyBonus
             else if (allyDist > 7f) b -= 10f;
         }
         if (a.ActionType == AIActionType.Attack) b += 12f;
-        if (a.ActionType == AIActionType.SkillUse && a.Skill != null && a.Skill.Multiplier > 0) b += 10f;
+        if (AISpecialSkillKnowledge.IsOffensiveSkill(a)) b += 10f;
         if (a.ActionType == AIActionType.Build || a.ActionType == AIActionType.Upgrade)
             b += IsSupplyImprovement(a, board) ? 10f : -5f;
         if (a.ActionType == AIActionType.Wait) b -= 15f;
@@ -150,9 +150,9 @@ public static class AIStrategyBonus
     {
         float b = 0f;
         if (a.ActionType == AIActionType.Attack) b += 25f;
-        if (a.ActionType == AIActionType.SkillUse && a.Skill != null)
+        if (a.ActionType == AIActionType.SkillUse)
         {
-            if (a.Skill.Multiplier > 0) b += 22f;
+            if (AISpecialSkillKnowledge.IsOffensiveSkill(a)) b += 22f;
             if (a.AreaTargets != null && a.AreaTargets.Count > 1)
                 b += a.AreaTargets.Count * 8f;
         }
@@ -245,9 +245,34 @@ public static class AIEvalHelpers
         return nearest;
     }
 
-    public static int EstimateDamage(Status attacker, Status defender)
+    public static int EstimateRawDamage(Status attacker, Status defender)
     {
         if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive || defender.ShieldTurns > 0) return 0;
-        return DamageCalculator.EstimateBaseDamage(attacker.ATK, defender.DEF);
+        if (!BarrierSystem.UsesBarrier(defender)) return DamageCalculator.EstimateBaseDamage(attacker.ATK, defender.DEF);
+        float incoming = StatusEffectSystem.GetIncomingDamageModifier(defender);
+        return DamageCalculator.CalcFromValues(attacker.ATK * ObservedAttackModifier(attacker) * (1-attacker.UpkeepPenaltyATKDEF),0,incoming,true);
+    }
+
+    public static float ObservedAttackModifier(Status attacker)
+    {
+        float value = 1;
+        if (StatusEffectSystem.HasDebuff(attacker,StatusEffectType.Weaken)) value-=GameConstants.WeakenATKReduction;
+        if (StatusEffectSystem.HasDebuff(attacker,StatusEffectType.Chill)) value-=GameConstants.ChillATKReduction;
+        if (StatusEffectSystem.HasBuff(attacker,BuffType.Offensive)) value+=GameConstants.OffensiveATKBonus;
+        return Mathf.Clamp(value,0,2);
+    }
+
+    public static int EstimateDamage(Status attacker, Status defender)
+        => defender == null || !string.IsNullOrEmpty(defender.Special?.guardianPartnerId) ? 0 : SpecialSkillRuntime.PreviewHpDamage(defender,
+            BarrierSystem.NormalAttackDamage(attacker, defender, EstimateRawDamage(attacker, defender)));
+
+    public static float CombatPower(Status unit)
+    {
+        if (unit == null || !unit.IsAlive) return 0;
+        bool barrier = BarrierSystem.UsesBarrier(unit);
+        float maximum = Mathf.Max(1f, unit.MaxHP + (barrier ? (float)unit.MaxBarrier : 0));
+        float health = unit.HP + (barrier ? (float)unit.Barrier : 0);
+        return (Mathf.Max(0, unit.ATK) + (barrier ? 0 : Mathf.Max(0, unit.DEF) * .5f))
+            * Mathf.Clamp01(health / maximum);
     }
 }

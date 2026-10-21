@@ -14,7 +14,7 @@ public partial class AIMinimaxEngine
     static readonly long[] ZobristHP;           // [hp] (0-999)
     static readonly long[] ZobristAP;           // [ap] (0-99)
     const int ZobristBoardSize = 64;
-    const int ZobristKindCount = 16;
+    const int ZobristKindCount = 32;
     const int ZobristHPRange = 1000;
     const int ZobristAPRange = 100;
 
@@ -69,6 +69,15 @@ public partial class AIMinimaxEngine
             if (u.IsPrimaryCommander) h ^= ZobristCommanderPosition[x, z, teamIdx];
             if (u.Type == Type.Unit)
             {
+                ulong slot = (ulong)(uint)x | (ulong)(uint)z << 6 | (ulong)(uint)tk << 12;
+                ulong barrierState = (ulong)(uint)u.Barrier | (ulong)(uint)u.MaxBarrier << 32;
+                h ^= RecoveryHash(barrierState ^ (slot * 0x9E3779B97F4A7C15UL));
+                ulong barrierRecovery = (ulong)(uint)Mathf.Clamp(u.BarrierSafeTurns, 0, 4)
+                    | (u.BarrierDamaged ? 8UL : 0) | (u.BarrierLastRound == board.TurnCount ? 16UL : 0)
+                    | (u.BarrierHasRecovered ? 32UL : 0) | (u.BarrierHasOwnTurnBaseline ? 64UL : 0);
+                ulong damageAge = u.BarrierLastDamagedRound < 0 ? 5UL
+                    : (ulong)System.Math.Min(4,System.Math.Max(0,(long)board.TurnCount-u.BarrierLastDamagedRound));
+                h ^= RecoveryHash((slot << 10) ^ (damageAge << 7) ^ barrierRecovery ^ 0xD1B54A32D192ED03UL);
                 ulong recovery = (ulong)(uint)Mathf.Clamp(u.NaturalRecoverySafeTurns, 0, NaturalRecoverySystem.SafeTurnThreshold)
                     | (u.NaturalRecoveryHasBaseline ? 8UL : 0) | (u.NaturalRecoveryHpLost ? 16UL : 0)
                     | (u.NaturalRecoveryLastRound == board.TurnCount ? 32UL : 0);
@@ -76,7 +85,6 @@ public partial class AIMinimaxEngine
                 {
                     // Recovery changes future HP even when current HP/position match another node.
                     // Mix its bounded semantic state with the actor slot, without a large random table.
-                    ulong slot = (ulong)(uint)x | (ulong)(uint)z << 6 | (ulong)(uint)tk << 12;
                     h ^= RecoveryHash((slot << 6) | recovery);
                 }
             }

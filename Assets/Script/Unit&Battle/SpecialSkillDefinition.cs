@@ -6,7 +6,7 @@ public enum UnitSpecialSkill
     None, KnightBreakthrough, ArcherStationary, MagicRitual, AssassinVisionSeal,
     ScoutVisionGuard, PriestPurification, GuardianLifeLink, CrossbowStakes,
     MagicSniperLock, LifeBomb, WhiteMageHeal, HolyKnightSanctuary,
-    SamuraiCounter, NinjaSwap, BerserkerRage, NavigatorPull
+    SamuraiCounter, NinjaSwap, BerserkerRage, NavigatorPull, HeavyWarriorBreak, DragonKnightPierce
 }
 public enum BombDeathPolicy { Unconfigured, Cancel, Explode }
 [System.Flags] public enum SpecialFactionMask { Unconfigured = 0, Hostile = 1, Allies = 2, Holder = 4 }
@@ -44,6 +44,9 @@ public sealed partial class SpecialSkillDefinition : ScriptableObject
     public AnimationCurve berserkerAttackAPCurve = new AnimationCurve();
     public AnimationCurve navigatorAPDamageCurve = new AnimationCurve();
 
+    [Min(1)] public float heavyBarrierMultiplier = 2;
+    [Min(0)] public float dragonKnightSkillMultiplier = 1.5f;
+
     public const float ArcherMaximum = 1.75f, SniperMaximum = 2.5f;
     public const float KnightBlindSpotMultiplier = 2;
     public const float SniperMaximumRecoil = .15f, RitualSacrifice = .15f, BombFraction = .8f;
@@ -71,6 +74,8 @@ public sealed partial class SpecialSkillDefinition : ScriptableObject
             case UnitSpecialSkill.NinjaSwap: apCost = 13; break;
             case UnitSpecialSkill.BerserkerRage: apCost = 5; stageAPCosts = new[] { 5, 8, 11, 15, 20 }; break;
             case UnitSpecialSkill.NavigatorPull: apCost = 12; break;
+            case UnitSpecialSkill.HeavyWarriorBreak: apCost = -1; break; // R1 leaves AP undecided; explicit prototype data supplies a trial value.
+            case UnitSpecialSkill.DragonKnightPierce: apCost = -1; break; // R1 leaves AP undecided.
             default: apCost = -1; break;
         }
     }
@@ -95,6 +100,8 @@ public sealed partial class SpecialSkillDefinition : ScriptableObject
             if (ability == UnitSpecialSkill.BerserkerRage && (!HasCurve(berserkerAttackCurve) || !HasCurve(berserkerDefenceCurve) || !HasCurve(berserkerAttackAPCurve))) return "狂戦士の段階・APが未設定です";
             if (ability == UnitSpecialSkill.BerserkerRage && (stageAPCosts == null || stageAPCosts.Length != 5 || System.Array.Exists(stageAPCosts, cost => cost < 0))) return "狂戦士の次段階スキルAPが未設定です";
             if (ability == UnitSpecialSkill.BerserkerRage && System.Array.Exists(stageAPCosts, cost => cost > APSystem.MaximumSkillAP)) return $"各段階のスキルAPは{APSystem.MaximumSkillAP}以下に設定してください";
+            if (ability == UnitSpecialSkill.HeavyWarriorBreak && (float.IsNaN(heavyBarrierMultiplier) || float.IsInfinity(heavyBarrierMultiplier) || heavyBarrierMultiplier < 1)) return "バリア破壊倍率を設定してください";
+            if (ability == UnitSpecialSkill.DragonKnightPierce && (float.IsNaN(dragonKnightSkillMultiplier) || float.IsInfinity(dragonKnightSkillMultiplier) || dragonKnightSkillMultiplier <= 0)) return "竜騎士のスキル倍率を設定してください";
             return null;
         }
     }

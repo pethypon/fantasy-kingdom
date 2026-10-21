@@ -43,7 +43,8 @@ public static class SimCombatEval
         float baseVal = AIConstants.GetPieceValue(unit.Kind);
 
         // HP減衰
-        float hpRatio = unit.MaxHP > 0 ? (float)unit.HP / unit.MaxHP : 1f;
+        float maximum = (float)unit.MaxHP + (unit.UsesBarrier ? unit.MaxBarrier : 0);
+        float hpRatio = maximum > 0 ? (unit.HP + (unit.UsesBarrier ? (float)unit.Barrier : 0)) / maximum : 1f;
         float val = baseVal * (0.3f + 0.7f * hpRatio);
 
         // ステータス効果ペナルティ
@@ -53,7 +54,7 @@ public static class SimCombatEval
 
         // バフボーナス
         if (unit.HasBuff(BuffType.Offensive)) val *= 1.1f;
-        if (unit.HasBuff(BuffType.Defensive)) val *= 1.08f;
+        if (!unit.UsesBarrier && unit.HasBuff(BuffType.Defensive)) val *= 1.08f;
         if (unit.HasBuff(BuffType.Barrier)) val *= 1.12f;
 
         return val;
@@ -87,7 +88,7 @@ public static class SimCombatEval
 
                 if (dist <= threatRange)
                 {
-                    int potentialDmg = SimBoardState.CalcDamage(pu, eu);
+                    int potentialDmg = SimBoardState.CalcHpDamage(pu, eu);
                     score -= potentialDmg * 0.3f;
 
                     // 確殺可能ならさらに危険
@@ -107,7 +108,7 @@ public static class SimCombatEval
                 var ec = board.GetCrystal(Team.Enemy);
                 if (ec != null && ec.IsAlive && ec.ShieldTurns <= 0)
                 {
-                    int dmg = SimBoardState.CalcDamage(pu, ec);
+                    int dmg = SimBoardState.CalcHpDamage(pu, ec);
                     score -= dmg * 0.5f;
                 }
             }
@@ -131,7 +132,7 @@ public static class SimCombatEval
 
                 if (dist <= threatRange)
                 {
-                    int potentialDmg = SimBoardState.CalcDamage(eu, pu);
+                    int potentialDmg = SimBoardState.CalcHpDamage(eu, pu);
                     score += potentialDmg * 0.2f;
 
                     if (potentialDmg >= pu.HP)
@@ -172,7 +173,8 @@ public static class SimCombatEval
         {
             var target = defenders[i];
             int threateningCount = 0;
-            int totalDmg = 0;
+            long totalDmg = 0;
+            int remainingBarrier = target.UsesBarrier ? target.Barrier : 0;
 
             for (int j = 0; j < attackers.Count; j++)
             {
@@ -190,7 +192,17 @@ public static class SimCombatEval
                 if (dist <= range)
                 {
                     threateningCount++;
-                    totalDmg += SimBoardState.CalcDamage(atk, target);
+                    int raw = SimBoardState.CalcDamage(atk, target);
+                    // CalcDamage includes Heavy Warrior's bonus against the current barrier;
+                    // recompute it against this sequence's remaining barrier after earlier hits.
+                    if (atk.Kind == Kind.HeavyWarrior && remainingBarrier != target.Barrier)
+                    {
+                        float defence = target.UsesBarrier ? 0 : target.DEF * target.GetDEFMod();
+                        raw = BarrierSystem.NormalAttackDamage(atk.Kind, remainingBarrier,
+                            DamageCalculator.CalcFromValues(atk.ATK * atk.GetATKMod(), defence, target.GetIncomingDamageMod(),target.UsesBarrier));
+                    }
+                    remainingBarrier = BarrierSystem.Absorb(remainingBarrier, raw, out int hpDamage);
+                    totalDmg += hpDamage;
                 }
             }
 

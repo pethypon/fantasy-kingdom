@@ -52,7 +52,8 @@ public static class AuthoringEditorTests
             copy.kind=Kind.Scout;EditorUtility.SetDirty(copy);
             typeof(GameDevelopmentStudioWindow).GetMethod("SaveEverything",flags).Invoke(window,null);
             Check("saving role edits keeps ID resolvable",unitCatalog.GetById(copy.definitionId)==copy&&unitCatalog.units.Find(e=>e.data==copy).kind==Kind.Scout);
-            var newRoles = new[] { Kind.WhiteMage, Kind.HolyKnight, Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator };
+            var newRoles = new[] { Kind.WhiteMage, Kind.HolyKnight, Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator,
+                Kind.HeavyWarrior, Kind.DragonKnight };
             for (int index = 0; index < newRoles.Length; index++)
             {
                 typeof(GameDevelopmentStudioWindow).GetMethod("CreateSpecialRoleCopy",flags).Invoke(window,new object[] { index });
@@ -74,7 +75,7 @@ public static class AuthoringEditorTests
             try
             {
                 copy.kind=Kind.Knight;copy.actionProfile=null;
-                foreach(int index in new[]{0,2,4})
+                foreach(int index in new[]{0,2,4,6,7})
                 {
                     typeof(GameDevelopmentStudioWindow).GetField("selectedUnit",flags).SetValue(window,copy);
                     typeof(GameDevelopmentStudioWindow).GetMethod("CreateSpecialRoleCopy",flags).Invoke(window,new object[]{index});

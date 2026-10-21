@@ -16,7 +16,7 @@ public static partial class AIActionEvaluator
     public static int EstimateSpecialAwareAttack(Status attacker, Status target, AIBoardState board)
     {
         if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive) return 0;
-        if(board==null||!board.HasObservedSpecialState)return AIEvalHelpers.EstimateDamage(attacker,target);
+        if(board==null||!board.HasObservedSpecialState)return AIEvalHelpers.EstimateRawDamage(attacker,target);
         // All position-dependent special observations are restricted to the board's actors.
         float attackMod = 1, stackedKnightModifier = 1;
         if (board != null) foreach (var observer in board.SpecialObservedActors)
@@ -30,29 +30,25 @@ public static partial class AIActionEvaluator
             else attackMod = Mathf.Min(attackMod, 1 - Mathf.Clamp01(definition.knightVisibleEnemyAtkPenalty));
         }
         attackMod *= stackedKnightModifier;
-        if (attacker.Special?.assassinBoostTurns > 0 && attacker.Special.assassinBoostStacks > 0)
-        {
-            int stacks = SpecialSkillRuntime.Definition(attacker)?.assassinBoostStackRule == AbilityStackRule.Multiply
-                ? Mathf.Clamp(attacker.Special.assassinBoostStacks, 1, 32) : 1;
-            attackMod *= Mathf.Pow(SpecialSkillDefinition.AssassinAttackBoost, stacks);
-        }
+        if (BarrierSystem.UsesBarrier(target)) attackMod *= AIEvalHelpers.ObservedAttackModifier(attacker)*(1-attacker.UpkeepPenaltyATKDEF);
         foreach (var archer in board.SpecialObservedActors)
             if (archer.Special?.archerEscapeTurns > 0 && archer.Special.archerSnapshotIds.Contains(attacker.ReflectionLifeId))
             { attackMod *= SpecialSkillDefinition.ArcherEnemyAttackBoost; break; }
         int attack = (int)Math.Min(int.MaxValue, Math.Max(0, (attacker.ATK + (long)board.ObservedAttackFlatAdjustment(attacker)) * (double)attackMod));
-        int defence = Mathf.Max(0, Mathf.RoundToInt(target.DEF * SpecialSkillRuntime.GetDEFModifier(target)));
+        int defence = BarrierSystem.UsesBarrier(target) ? 0 : Mathf.Max(0, Mathf.RoundToInt(target.DEF * SpecialSkillRuntime.GetDEFModifier(target)));
         var attackDefinition=SpecialSkillRuntime.Definition(attacker);
         float multiplier=attacker.team!=board.ActorTeam&&attackDefinition?.ability==UnitSpecialSkill.NavigatorPull
             ?SpecialSkillDefinition.NavigatorMaximum:attackDefinition?.ability == UnitSpecialSkill.MagicRitual
                 ? ObservedMagicianMultiplier(attacker, target, board) : SpecialSkillRuntime.GetAttackMultiplier(attacker,target);
-        double damage = DamageCalculator.EstimateBaseDamage(attack, defence)*(double)multiplier;
-        if (SpecialSkillRuntime.WouldAssassinate(attacker, target)) damage = Mathf.Max(target.HP, 1);
+        double damage = DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBaseForTarget(attack, defence,
+            BarrierSystem.UsesBarrier(target)))*(double)multiplier;
         var targetDefinition = SpecialSkillRuntime.Definition(target);
         if (targetDefinition != null && targetDefinition.enabledForPlay && targetDefinition.ability == UnitSpecialSkill.KnightBreakthrough
             && !SpecialSkillRuntime.InVision(target, attacker)) damage *= SpecialSkillDefinition.KnightBlindSpotMultiplier;
         if (board.KnownEnvironmentDefinition(target.transform.position) != null)
             damage *= board.ReconMap.Environment.IncomingDamageMultiplier(target.transform.position,
                 DamageCalculator.IsRangedAttack(attacker), ((attacker.GrowthData?.attackTags ?? CombatAttackTags.None) & CombatAttackTags.Stone) != 0);
+        if (BarrierSystem.UsesBarrier(target)) damage *= StatusEffectSystem.GetIncomingDamageModifier(target);
         return (int)Math.Min(int.MaxValue, Math.Max(0, damage));
     }
     static float ObservedMagicianMultiplier(Status attacker, Status target, AIBoardState board)
@@ -66,6 +62,34 @@ public static partial class AIActionEvaluator
         }
         return 1;
     }
+    static Status ObservedDamageRecipient(AIBoardState board, Status target)
+    {
+        if (target == null || target.ShieldTurns > 0
+            || target.Special?.damageNullUnused == true && target.Special.damageNullTurns > 0) return target;
+        string partnerId = target.Special?.guardianPartnerId;
+        if (string.IsNullOrEmpty(partnerId)) return target;
+        var partner = board?.FindObservedSpecialActor(partnerId);
+        if (partner == null) return null;
+        return partner.Special?.guardianPartnerId == target.ReflectionLifeId ? partner : target;
+    }
+    /// <summary>Barrier-only bonuses use the observed recipient; a hidden link never exposes its barrier.</summary>
+    public static int EstimateObservedNormalPacket(Status attacker, Status target, AIBoardState board, int raw)
+    {
+        var recipient = ObservedDamageRecipient(board,target);
+        return BarrierSystem.NormalAttackDamage(attacker != null ? attacker.kind : Kind.None,
+            recipient != null ? recipient.Barrier : 0,raw);
+    }
+    static int EstimateObservedDedicatedPacket(Status attacker, Status target, AIBoardState board)
+    {
+        int raw = EstimateSpecialAwareAttack(attacker,target,board);
+        var definition = SpecialSkillRuntime.Definition(attacker);
+        if (definition?.ability == UnitSpecialSkill.HeavyWarriorBreak)
+        {
+            var recipient = ObservedDamageRecipient(board,target);
+            return BarrierSystem.AmplifyBarrierPortion(raw,recipient != null ? recipient.Barrier : 0,definition.heavyBarrierMultiplier);
+        }
+        return SpecialSkillRuntime.PreviewDedicatedSkillDamage(attacker,target,raw);
+    }
     static float DamageValue(AIBoardState board, Status target, int amount, HpChangeKind kind, bool includeKill = true)
     {
         if (target == null || !target.IsAlive || amount <= 0 || target.ShieldTurns > 0) return 0;
@@ -74,71 +98,116 @@ public static partial class AIActionEvaluator
         string partnerId = target.Special?.guardianPartnerId;
         if (!string.IsNullOrEmpty(partnerId) && kind != HpChangeKind.DirectHpReduction && kind != HpChangeKind.ForcedDeath)
         {
-            var partner = board.FindObservedSpecialActor(partnerId);
+            var partner = ObservedDamageRecipient(board,target);
             // A visible link is not permission to query an unobserved partner's current HP/location.
             if (partner == null) return SpecialValue(target) * .05f;
-            int original = SpecialSkillRuntime.PreviewDamage(target, amount, kind);
-            if (original <= 0) return 0;
+            int original = SpecialSkillRuntime.PreviewHpDamage(target, amount, kind);
+            if (SpecialSkillRuntime.PreviewDamage(target, amount, kind) <= 0) return 0;
             victim = partner;
-            damage = original >= target.HP ? partner.HP : SpecialSkillRuntime.PreviewDamage(partner, amount, kind);
+            damage = original >= target.HP ? partner.HP : SpecialSkillRuntime.PreviewHpDamage(partner, amount, kind);
         }
-        else damage = SpecialSkillRuntime.PreviewDamage(target, amount, kind);
+        else damage = SpecialSkillRuntime.PreviewHpDamage(target, amount, kind);
         float value = SpecialValue(victim) * Mathf.Min(damage, victim.HP) / Mathf.Max(1f, victim.HP);
+        if (kind != HpChangeKind.DirectHpReduction && kind != HpChangeKind.ForcedDeath && kind != HpChangeKind.BarrierBypassDamage
+            && BarrierSystem.UsesBarrier(victim))
+        {
+            int barrierLoss = Mathf.Min(victim.Barrier, SpecialSkillRuntime.PreviewDamage(victim, amount, kind));
+            value += SpecialValue(victim) * barrierLoss / Mathf.Max(1f, victim.HP + (float)victim.Barrier);
+        }
         if (includeKill && damage >= victim.HP) value += 35 + (MatchObjectiveRules.IsDecisive(victim) ? 500 : 0);
+        return value;
+    }
+    static float CounterDamageValue(AIBoardState board, Status target, int amount)
+    {
+        if (target == null || SpecialSkillRuntime.PreviewDamage(target,amount) <= 0) return 0;
+        float value = DamageValue(board,target,amount,HpChangeKind.BarrierBypassDamage);
+        var victim = string.IsNullOrEmpty(target.Special?.guardianPartnerId) ? target
+            : board.FindObservedSpecialActor(target.Special.guardianPartnerId);
+        if (victim != null && BarrierSystem.UsesBarrier(victim) && SpecialSkillRuntime.PreviewDamage(victim,amount)>0)
+            value += SpecialValue(victim) * victim.Barrier / Mathf.Max(1f,victim.HP+(float)victim.Barrier);
         return value;
     }
     public static int EstimateEffectiveSpecialDamage(Status attacker, Status target, AIBoardState board, out Status victim)
     {
         victim=target;
         int raw=EstimateSpecialAwareAttack(attacker,target,board);
+        raw=EstimateObservedNormalPacket(attacker,target,board,raw);
         if(target==null||target.ShieldTurns>0)return 0;
         string partnerId=target.Special?.guardianPartnerId;
         if(!string.IsNullOrEmpty(partnerId))
         {
-            var partner=board?.FindObservedSpecialActor(partnerId);
+            var partner=ObservedDamageRecipient(board,target);
             if(partner==null) {victim=null;return 0;}
-            int original=SpecialSkillRuntime.PreviewDamage(target,raw);
-            if(original<=0)return 0;
-            victim=partner;return original>=target.HP?partner.HP:SpecialSkillRuntime.PreviewDamage(partner,raw);
+            int original=SpecialSkillRuntime.PreviewHpDamage(target,raw);
+            if(SpecialSkillRuntime.PreviewDamage(target,raw)<=0)return 0;
+            victim=partner;return original>=target.HP?partner.HP:SpecialSkillRuntime.PreviewHpDamage(partner,raw);
         }
-        return SpecialSkillRuntime.PreviewDamage(target,raw);
+        return SpecialSkillRuntime.PreviewHpDamage(target,raw);
     }
     public static bool CanFinishSpecialTarget(Status attacker,Status target,AIBoardState board)
     {
         int damage=EstimateEffectiveSpecialDamage(attacker,target,board,out var victim);
         return target!=null&&victim==target&&damage>=target.HP;
     }
+    public static int EstimateEffectiveSpecialImpact(Status attacker, Status target, AIBoardState board, out Status victim)
+    {
+        int hp = EstimateEffectiveSpecialDamage(attacker,target,board,out victim);
+        if (victim == null) return 0;
+        int raw = EstimateObservedNormalPacket(attacker,target,board,EstimateSpecialAwareAttack(attacker,target,board));
+        int barrier = Mathf.Min(victim.Barrier,SpecialSkillRuntime.PreviewDamage(victim,raw));
+        return (int)Math.Min(int.MaxValue,(long)hp+barrier);
+    }
     public static int EstimateObservedHitLoss(Status unit,AIBoardState board,int amount,HpChangeKind kind)
     {
         if(unit==null||amount<=0)return 0;
         if(kind==HpChangeKind.DirectHpReduction)return Mathf.Min(unit.HP,amount);
+        if(kind==HpChangeKind.ForcedDeath)return unit.HP;
         if(unit.ShieldTurns>0)return 0;
         var partner=board?.FindObservedSpecialActor(unit.Special?.guardianPartnerId);
         if(partner!=null)
         {
             return 0; // A linked target is protected; the observed partner takes the packet/death.
         }
-        return SpecialSkillRuntime.PreviewDamage(unit,amount,kind);
+        return SpecialSkillRuntime.PreviewHpDamage(unit,amount,kind);
+    }
+    /// <summary>Consume one shared barrier budget when several observed packets threaten the same actor.</summary>
+    public static int EstimateObservedHitLoss(Status unit, AIBoardState board, int amount, HpChangeKind kind, ref int barrier)
+    {
+        if (unit == null || amount <= 0) return 0;
+        if (kind == HpChangeKind.DirectHpReduction || kind == HpChangeKind.ForcedDeath || kind == HpChangeKind.BarrierBypassDamage)
+            return EstimateObservedHitLoss(unit, board, amount, kind);
+        if (board?.FindObservedSpecialActor(unit.Special?.guardianPartnerId) != null) return 0;
+        int adjusted = SpecialSkillRuntime.PreviewDamage(unit, amount, kind);
+        barrier = BarrierSystem.Absorb(barrier, adjusted, out int hpLoss);
+        return hpLoss;
     }
     public static int EstimateSpecialReservedThreatAt(AIBoardState board,Status unit,Vector3 point)
     {
+        int barrier = unit != null && BarrierSystem.UsesBarrier(unit) ? unit.Barrier : 0;
+        return EstimateSpecialReservedThreatAt(board, unit, point, ref barrier);
+    }
+    public static int EstimateSpecialReservedThreatAt(AIBoardState board,Status unit,Vector3 point,ref int barrier)
+    {
         if(board==null||unit==null||!board.HasObservedSpecialState)return 0;
-        long damage=board.EstimateSpecialHazardAt(unit,point);
+        int hazard = board.FindObservedSpecialActor(unit.Special?.guardianPartnerId) == null
+            ? board.EstimateSpecialHazardAt(unit,point) : 0;
+        barrier = BarrierSystem.Absorb(barrier, hazard, out int hazardHp);
+        long damage=hazardHp;
         foreach(var actor in board.SpecialObservedActors)
         {
             var state=actor.Special;if(state==null)continue;
             if(actor.team!=board.ActorTeam&&state.ritualActive&&state.ritualTargetId==unit.ReflectionLifeId
                 &&state.ritualFireTurn<=state.ownerTurn+1)
-                damage+=EstimateObservedHitLoss(unit,board,state.storedSacrificeDamage,HpChangeKind.IgnoreDefenceDamage);
+                damage+=EstimateObservedHitLoss(unit,board,state.storedSacrificeDamage,HpChangeKind.IgnoreDefenceDamage,ref barrier);
             if(actor.team!=board.ActorTeam&&state.sniperActive&&state.sniperTargetId==unit.ReflectionLifeId
                 &&state.sniperFireTurn<=state.ownerTurn+1&&!SpecialSkillRuntime.AttackBlocked(actor)&&!StatusEffectSystem.IsStunned(actor))
             {
                 var definition=SpecialSkillRuntime.Definition(actor);
                 if(definition!=null)
                 {
-                    double raw=DamageCalculator.EstimateBaseDamage(actor.ATK,unit.DEF)
+                    double raw=DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBaseForTarget(actor.ATK,unit.DEF,BarrierSystem.UsesBarrier(unit)))
                         *(double)definition.SniperMultiplier(GridHelper.ChebyshevDistance(actor.transform.position,point));
-                    damage+=EstimateObservedHitLoss(unit,board,(int)Math.Min(int.MaxValue,raw),HpChangeKind.NormalDamage);
+                    damage+=EstimateObservedHitLoss(unit,board,(int)Math.Min(int.MaxValue,raw),HpChangeKind.NormalDamage,ref barrier);
                 }
             }
             if(string.IsNullOrEmpty(state.bombCasterId)||state.bombRadius<0||state.bombDueRound>board.TurnCount+1
@@ -148,7 +217,7 @@ public static partial class AIActionEvaluator
             bool affected=actor==unit?(state.bombMask&SpecialFactionMask.Holder)!=0
                 :unit.team==state.bombCasterTeam?(state.bombMask&SpecialFactionMask.Allies)!=0
                 :(state.bombMask&SpecialFactionMask.Hostile)!=0;
-            if(affected)damage+=EstimateObservedHitLoss(unit,board,power,HpChangeKind.IgnoreDefenceDamage);
+            if(affected)damage+=EstimateObservedHitLoss(unit,board,power,HpChangeKind.IgnoreDefenceDamage,ref barrier);
         }
         return (int)Math.Min(int.MaxValue,damage);
     }
@@ -168,7 +237,8 @@ public static partial class AIActionEvaluator
         {
             if (!board.IsSpecialActorObserved(target) || !AttackPatterns.CanAttack(unit, unit.direction,
                 target.transform.position.x - point.x, target.transform.position.z - point.z)) continue;
-            best = Mathf.Max(best, DamageValue(board, target, EstimateSpecialAwareAttack(unit,target,board), HpChangeKind.NormalDamage));
+            best = Mathf.Max(best, DamageValue(board, target, EstimateObservedNormalPacket(unit,target,board,
+                EstimateSpecialAwareAttack(unit,target,board)), HpChangeKind.NormalDamage));
         }
         return best;
     }
@@ -207,6 +277,15 @@ public static partial class AIActionEvaluator
         float reward = 0, future = 0, cost = 0, opportunity = Mathf.Max(0, action.APCost) * 1.5f;
         switch (definition.ability)
         {
+            case UnitSpecialSkill.HeavyWarriorBreak:
+                reward = DamageValue(board, target, EstimateObservedDedicatedPacket(unit,target,board), HpChangeKind.NormalDamage);
+                opportunity += AttackValueAt(board, unit, unit.transform.position) * .25f;
+                break;
+            case UnitSpecialSkill.DragonKnightPierce:
+                if ((unit.Special?.dragonKnightGauge ?? 0) < 2) return -10000;
+                reward = DamageValue(board, target, EstimateObservedDedicatedPacket(unit,target,board), HpChangeKind.BarrierBypassDamage);
+                opportunity += AttackValueAt(board, unit, unit.transform.position) * .25f;
+                break;
             case UnitSpecialSkill.ArcherStationary:
                 foreach (var opponent in board.SpecialObservedActors)
                 {
@@ -339,7 +418,7 @@ public static partial class AIActionEvaluator
                 if (future <= 0)
                     future = BestReachableAttackValue(board, unit) * Mathf.Max(0, next / Mathf.Max(1, current) - 1)
                         * AISpecialSkillKnowledge.FutureWeight(board, 1);
-                cost=RiskAt(board,unit,unit.transform.position)*(1-Mathf.Clamp01(definition.berserkerDefenceCurve.Evaluate(stage)));
+                cost=BarrierSystem.UsesBarrier(unit)?0:RiskAt(board,unit,unit.transform.position)*(1-Mathf.Clamp01(definition.berserkerDefenceCurve.Evaluate(stage)));
                 break;
             case UnitSpecialSkill.NavigatorPull:
                 Vector3 front=unit.transform.position+new Vector3(0,0,MovePatterns.DirZ(unit.direction));
@@ -355,15 +434,23 @@ public static partial class AIActionEvaluator
                 cost=Mathf.Max(0,RiskAt(board,unit,advance)-RiskAt(board,unit,unit.transform.position));
                 break;
             case UnitSpecialSkill.SamuraiCounter:
-                int retaliation = EstimateSpecialAwareAttack(target, unit, board);
-                cost = HpCost(unit, retaliation * SpecialSkillDefinition.SamuraiTauntDuration);
+                int retaliation = EstimateObservedNormalPacket(target, unit,board, EstimateSpecialAwareAttack(target, unit, board));
+                int tauntBarrier = unit.Barrier;
+                long tauntHpLoss = 0;
+                for (int turn = 0; turn < SpecialSkillDefinition.SamuraiTauntDuration; turn++)
+                    tauntHpLoss += EstimateObservedHitLoss(unit,board,retaliation,HpChangeKind.NormalDamage,ref tauntBarrier);
+                cost = HpCost(unit, (int)Math.Min(int.MaxValue,tauntHpLoss));
                 foreach (var ally in board.AliveEnemyUnits)
                     if (ally != unit && ObservedCouldAttack(board, target, ally.transform.position, ally))
-                        reward += HpCost(ally, EstimateSpecialAwareAttack(target, ally, board));
-                if (definition.samuraiGaugeMax > 0 && unit.Special?.samuraiGauge >= definition.samuraiGaugeMax
-                    && retaliation < unit.HP)
-                    reward += DamageValue(board, target, (int)Math.Min(int.MaxValue, (long)unit.ATK
-                        + Mathf.FloorToInt(retaliation * SpecialSkillDefinition.SamuraiCounterFraction)), HpChangeKind.IgnoreDefenceDamage);
+                        reward += HpCost(ally, EstimateObservedHitLoss(ally,board,
+                            EstimateSpecialAwareAttack(target, ally, board),HpChangeKind.NormalDamage));
+                if (SpecialSkillRuntime.PreviewDamage(unit,retaliation)>0
+                    && SpecialSkillRuntime.PreviewHpDamage(unit,retaliation) < unit.HP)
+                {
+                    int firstReceived=(int)Math.Min(int.MaxValue,Math.Min(SpecialSkillRuntime.PreviewDamage(unit,retaliation),(long)unit.HP+unit.Barrier));
+                    reward += CounterDamageValue(board,target,(int)Math.Min(int.MaxValue,(long)unit.ATK
+                        + Mathf.RoundToInt(firstReceived * SpecialSkillDefinition.SamuraiCounterFraction)));
+                }
                 break;
         }
         float score=reward+future-cost-opportunity;
@@ -551,6 +638,13 @@ public static partial class AIActionEvaluator
         bool movement=action.ActionType==AIActionType.Move||action.ActionType==AIActionType.Retreat
             ||action.ActionType==AIActionType.Support||action.ActionType==AIActionType.Surround||action.ActionType==AIActionType.DefenseRepos;
         action.PreserveSpecialEvaluation=board.HasObservedSpecialState&&(movement||action.ActionType==AIActionType.Attack||action.ActionType==AIActionType.Wait);
+        if (SpecialSkillRuntime.HasAssassinPassive(unit))
+        {
+            Vector3 finalPosition = movement ? action.TargetPos : unit.transform.position;
+            if (!board.HasOtherAllyVisionAt(unit, finalPosition))
+                score -= HpCost(unit, SpecialSkillRuntime.AssassinIsolationDamage(unit));
+            action.PreserveSpecialEvaluation = true;
+        }
         if(movement)
         {
             score-=HpCost(unit,board.EstimateSpecialHazardAt(unit,action.TargetPos));
@@ -598,15 +692,10 @@ public static partial class AIActionEvaluator
         {
             var target=action.TargetUnit;
             if (target.team == board.ActorTeam) return 0; // Friendly loss is the complete base valuation, not a hostile bonus.
-            int baseDamage=AIEvalHelpers.EstimateDamage(unit,target);
+            int baseDamage=EstimateObservedNormalPacket(unit,target,board,AIEvalHelpers.EstimateRawDamage(unit,target));
             int specialDamage=EstimateSpecialAwareAttack(unit,target,board);
+            specialDamage=EstimateObservedNormalPacket(unit,target,board,specialDamage);
             score+=DamageValue(board,target,specialDamage,HpChangeKind.NormalDamage)-DamageValue(board,target,baseDamage,HpChangeKind.NormalDamage);
-            if (definition?.enabledForPlay == true && definition.ability == UnitSpecialSkill.AssassinVisionSeal
-                && SpecialSkillRuntime.PreviewDamage(target, specialDamage) >= target.HP)
-            {
-                score -= HpCost(unit, Mathf.Max(0, unit.HP - 1));
-                if (ThreatAt(board, unit, unit.transform.position) > 0) score -= SpecialValue(unit);
-            }
             if (definition?.enabledForPlay == true && definition.ability == UnitSpecialSkill.MagicSniperLock)
             {
                 int recoil = SpecialSkillRuntime.FractionOfMaximum(unit, SpecialSkillDefinition.SniperNormalRecoilFraction);
@@ -632,9 +721,16 @@ public static partial class AIActionEvaluator
             if(enemyDefinition?.ability==UnitSpecialSkill.ArcherStationary)score+=(enemyDefinition.ArcherMultiplier(target.Special?.stationaryTurns??0)-1)*20;
             if(target.Special?.damageNullUnused==true&&target.Special.damageNullTurns>0&&string.IsNullOrEmpty(target.Special.guardianPartnerId))
                 score+=Mathf.Max(0,10-Mathf.Max(1,action.APCost)*2)-Mathf.Min(30,specialDamage*.5f);
-            if(enemyDefinition?.ability==UnitSpecialSkill.SamuraiCounter&&enemyDefinition.samuraiGaugeMax>0
-                &&target.Special?.samuraiGauge>=enemyDefinition.samuraiGaugeMax&&target.Special.samuraiMaxTurns>0&&specialDamage<target.HP)
-                score-=HpCost(unit,Mathf.RoundToInt(specialDamage*SpecialSkillDefinition.SamuraiCounterFraction)+target.ATK);
+            bool counterReady = enemyDefinition?.ability==UnitSpecialSkill.SamuraiCounter
+                && (enemyDefinition.samuraiGaugeMax>0 && target.Special?.samuraiGauge>=enemyDefinition.samuraiGaugeMax && target.Special.samuraiMaxTurns>0
+                    || unit.Special?.tauntTurns>0 && unit.Special.tauntedById==target.ReflectionLifeId);
+            if(counterReady && SpecialSkillRuntime.PreviewDamage(target,specialDamage)>0
+                && SpecialSkillRuntime.PreviewHpDamage(target,specialDamage)<target.HP)
+            {
+                int received=(int)Math.Min(int.MaxValue,Math.Min(SpecialSkillRuntime.PreviewDamage(target,specialDamage),(long)target.HP+target.Barrier));
+                int counter=(int)Math.Min(int.MaxValue,(long)Mathf.RoundToInt(received*SpecialSkillDefinition.SamuraiCounterFraction)+target.ATK);
+                score-=CounterDamageValue(board,unit,counter);
+            }
         }
         return float.IsNaN(score)||float.IsInfinity(score)?0:score;
     }

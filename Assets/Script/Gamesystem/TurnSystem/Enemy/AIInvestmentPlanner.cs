@@ -43,10 +43,10 @@ public sealed class AIInvestmentPlanner
             {
                 available.TryGetValue(kind, out int count);
                 if (count > 0) { available[kind] = count - 1; continue; }
-                AddUnitRequirement(kind);
+                AddUnitRequirement(board,kind);
             }
         }
-        else { AddUnitRequirement(Kind.Knight); AddUnitRequirement(Kind.Bomber); }
+        else { AddUnitRequirement(board,Kind.Knight); AddUnitRequirement(board,Kind.Bomber); }
         for (int i = 0; i < 8; i++)
         {
             required[i] = Mathf.Max(0, required[i] - stock[i] - Mathf.Max(0, production[i]) * 5);
@@ -57,8 +57,15 @@ public sealed class AIInvestmentPlanner
         if (required[5] > 0) { price[4] = Mathf.Max(price[4], 2); price[6] = Mathf.Max(price[6], 2); }
     }
 
-    void AddUnitRequirement(Kind kind)
+    void AddUnitRequirement(AIBoardState board,Kind kind)
     {
+        var definition = board.ResolveUnitDefinition(kind);
+        if (definition != null)
+        {
+            required[0]+=definition.costWood; required[1]+=definition.costStone; required[2]+=definition.costIron; required[3]+=definition.costMagic;
+            required[5]+=definition.costBread; required[6]+=definition.costWater; required[7]+=definition.costCitizen;
+            return;
+        }
         if (!UnitStaticData.Table.TryGetValue(kind, out var u)) return;
         required[0]+=u.CostWood; required[1]+=u.CostStone; required[2]+=u.CostIron; required[3]+=u.CostMagicOre;
         required[5]+=u.CostBread; required[6]+=u.CostWater; required[7]+=u.CostCitizen;

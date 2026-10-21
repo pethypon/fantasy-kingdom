@@ -1,0 +1,22 @@
+{
+  "source_files_matched": 401,
+  "source_mismatches": [],
+  "test_framework": {
+    "result": "Passed",
+    "total": "10",
+    "passed": "10",
+    "failed": "0",
+    "skipped": "0"
+  },
+  "windows_non_development_build": {
+    "result": "Succeeded",
+    "errors": 0,
+    "warnings": 0,
+    "seconds": 14.2
+  },
+  "existing_unity_editor_shutdown_JobTempAlloc_messages": 2,
+  "new_assassin_passive_checks": 35,
+  "feedback_checks": 175,
+  "owner_and_king_safety_checks": 429,
+  "native_audio_assertion": "Accepted requests and native playing voices observed; speaker listening not automated."
+}

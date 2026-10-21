@@ -102,7 +102,7 @@ public static class AuthoringPatternsTests
         real.kind = Kind.Knight; real.direction = Direction.N;
         real.HP = real.MaxHP = 40; real.ATK = 10; real.DEF = 2;
         var capture = typeof(SimBoardState).GetMethod("CaptureUnit", BindingFlags.Static | BindingFlags.NonPublic);
-        var captured = (SimUnit)capture.Invoke(null, new object[] { real, 1, Team.Enemy });
+        var captured = (SimUnit)capture.Invoke(null, new object[] { real, 1, Team.Enemy, 0 });
         Check("simulation captures exact live action profile", ReferenceEquals(captured.ActionProfile, profile));
         var unit = new SimUnit { Id = 1, Team = Team.Enemy, Kind = Kind.Knight, Type = Type.Unit,
             Position = new Vector3Int(3, 0, 3), Direction = Direction.N, HP = 40, MaxHP = 40, ATK = 10, DEF = 2,

@@ -16,10 +16,11 @@ public partial class UnitPanelUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI levelText;
     [SerializeField] private TextMeshProUGUI hpText;
+    [FormerlySerializedAs("defText")]
+    [SerializeField] private TextMeshProUGUI barrierText;
 
     [Header("中央: ステータス")]
     [SerializeField] private TextMeshProUGUI atkText;
-    [SerializeField] private TextMeshProUGUI defText;
     [SerializeField] private TextMeshProUGUI kindText;
     [SerializeField] private TextMeshProUGUI passiveText;
 
@@ -91,6 +92,7 @@ public partial class UnitPanelUI : MonoBehaviour
 
     // HPバー（動的生成）
     private Image hpBarFill;
+    private Image barrierBarFill;
 
     private void Awake()
     {
@@ -106,6 +108,7 @@ public partial class UnitPanelUI : MonoBehaviour
         BuildUpgradeUI();
         BuildDestroyUI();
         BuildHPBar();
+        BuildBarrierBar();
         BuildSpecialControls();
         previewHint = UIFactory.CreateTMP("PreviewHint", transform.Find("RightCommands"),
             "プレビュー\nクリックで選択", BrandGuide.FontHud, UIFactory.LoadDefaultFont());
@@ -163,19 +166,71 @@ public partial class UnitPanelUI : MonoBehaviour
         hpBarFill.color = BrandGuide.HPColor(ratio);
     }
 
+    private void BuildBarrierBar()
+    {
+        if (barrierText == null || ownedHPBarSprite == null) return;
+        var background = new GameObject("BarrierBarBg", typeof(RectTransform), typeof(Image));
+        background.transform.SetParent(barrierText.transform, false);
+        background.GetComponent<Image>().color = new Color(.15f, .15f, .15f, .9f);
+        background.GetComponent<Image>().raycastTarget = false;
+        var rect = background.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero; rect.anchorMax = new Vector2(1, 0);
+        rect.pivot = new Vector2(.5f, 0);
+        rect.offsetMin = Vector2.zero; rect.offsetMax = new Vector2(0, 6);
+        var fill = new GameObject("BarrierBarFill", typeof(RectTransform), typeof(Image));
+        fill.transform.SetParent(background.transform, false);
+        barrierBarFill = fill.GetComponent<Image>();
+        barrierBarFill.sprite = ownedHPBarSprite;
+        barrierBarFill.type = Image.Type.Filled;
+        barrierBarFill.fillMethod = Image.FillMethod.Horizontal;
+        barrierBarFill.color = BrandGuide.FeedbackShield;
+        barrierBarFill.raycastTarget = false;
+        var fillRect = fill.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero; fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = Vector2.one; fillRect.offsetMax = -Vector2.one;
+        background.SetActive(false);
+    }
+
+    private void UpdateBarrierBar()
+    {
+        if (barrierBarFill == null) return;
+        bool visible = BarrierSystem.UsesBarrier(currentUnit);
+        if (barrierText != null)
+        {
+            barrierText.gameObject.SetActive(visible);
+            barrierText.text = visible ? $"バリア  <b>{currentUnit.Barrier}</b>/{currentUnit.MaxBarrier}" : "";
+        }
+        barrierBarFill.transform.parent.gameObject.SetActive(visible);
+        barrierBarFill.fillAmount = visible && currentUnit.MaxBarrier > 0
+            ? Mathf.Clamp01((float)currentUnit.Barrier / currentUnit.MaxBarrier) : 0;
+    }
+
     private void AutoFindChildren()
     {
         if (nameText == null) nameText = FindTMP("NameText");
         if (levelText == null) levelText = FindTMP("LevelText");
         if (hpText == null) hpText = FindTMP("HPText");
         if (atkText == null) atkText = FindTMP("ATKText");
-        if (defText == null) defText = FindTMP("DEFText");
+        if (barrierText == null) barrierText = FindTMP("BarrierText") ?? FindTMP("DEFText");
         if (kindText == null) kindText = FindTMP("KindText");
         if (passiveText == null) passiveText = FindTMP("PassiveText");
         if (attackButton == null) attackButton = FindButton("AttackBtn");
         if (skillButton == null) skillButton = FindButton("SkillBtn");
         if (waitButton == null) waitButton = FindButton("WaitBtn");
         if (cancelButton == null) cancelButton = FindButton("CancelBtn");
+        if (barrierText != null && hpText != null)
+        {
+            // Older panel prefabs stored this reference in the former middle stat row.
+            barrierText.name = "BarrierText";
+            barrierText.transform.SetParent(hpText.transform.parent, false);
+            UIFactory.SetAnchors(barrierText, 0, 0, 1, .30f);
+            barrierText.fontSize = 26;
+            barrierText.enableAutoSizing = true;
+            barrierText.fontSizeMin = 21; barrierText.fontSizeMax = 26;
+        }
+        if (nameText != null) UIFactory.SetAnchors(nameText, 0, .76f, 1, 1);
+        if (levelText != null) UIFactory.SetAnchors(levelText, 0, .60f, 1, .76f);
+        if (hpText != null) UIFactory.SetAnchors(hpText, 0, .30f, 1, .60f);
     }
 
     private void AutoFindReferences()
@@ -409,25 +464,23 @@ public partial class UnitPanelUI : MonoBehaviour
 
         if (levelText != null)
         {
-            int remaining = Mathf.Max(0, Status.XPRequiredForLevel(currentUnit.Level + 1) - currentUnit.Experience);
             levelText.text = currentUnit.Level >= GameConstants.MaxUnitLevel ? $"Lv {GameConstants.MaxUnitLevel}  <size=75%>MAX</size>"
-                : $"Lv {currentUnit.Level}\n<size=75%>次のレベルまで {remaining} XP</size>";
+                : $"Lv {currentUnit.Level}";
         }
         // 中央: ステータス
         if (atkText != null) atkText.text = "攻撃力  <b>" + currentUnit.ATK + "</b>";
-        if (defText != null) defText.text = "防御力  <b>" + currentUnit.DEF + "</b>";
+        UpdateBarrierBar();
         if (kindText != null)
         {
             // スキル名を表示
             if (currentUnit.AssignedSkillId >= 0 && SkillData.Table.ContainsKey(currentUnit.AssignedSkillId))
             {
                 var skill = SkillData.Table[currentUnit.AssignedSkillId];
-                kindText.text = $"[{skill.Rarity}] {skill.Name} AP:{skill.APCost}";
+                kindText.text = skill.Name;
             }
             else
             {
-                kindText.text = currentUnit.GrowthData != null && !string.IsNullOrWhiteSpace(currentUnit.GrowthData.category)
-                    ? currentUnit.GrowthData.category : KindNameJP.Get(currentUnit.kind);
+                kindText.text = "";
             }
         }
         if (passiveText != null)
@@ -436,8 +489,6 @@ public partial class UnitPanelUI : MonoBehaviour
             string effectStr = BuildEffectString(currentUnit);
             if (!string.IsNullOrEmpty(effectStr))
                 passiveText.text = effectStr;
-            else if (currentUnit.passiveskill != PassiveSkill.None)
-                passiveText.text = currentUnit.passiveskill.ToString();
             else
                 passiveText.text = "";
         }
@@ -461,16 +512,17 @@ public partial class UnitPanelUI : MonoBehaviour
 
     private static string BuildEffectString(Status unit)
     {
-        if (unit.ActiveEffects == null || unit.ActiveEffects.Count == 0) return "";
         var parts = new System.Collections.Generic.List<string>();
-        foreach (var e in unit.ActiveEffects)
+        if (unit.ShieldTurns > 0) parts.Add($"完全防御({unit.ShieldTurns})");
+        if (unit.ActiveEffects != null) foreach (var e in unit.ActiveEffects)
         {
+            if (e.debuffType == StatusEffectType.ArmorBreak || e.buffType == BuffType.Defensive) continue;
             if (e.IsDebuff)
-                parts.Add($"{SpecialSkillPresentation.DebuffName(e.debuffType)}({e.remainingTurns}ターン)");
+                parts.Add($"{SpecialSkillPresentation.DebuffName(e.debuffType)}({e.remainingTurns})");
             else if (e.IsBuff)
-                parts.Add($"{SpecialSkillPresentation.BuffName(e.buffType)}({e.remainingTurns}ターン)");
+                parts.Add($"{SpecialSkillPresentation.BuffName(e.buffType)}({e.remainingTurns})");
         }
-        return string.Join(" ", parts);
+        return parts.Count <= 2 ? string.Join("　", parts) : string.Join("　", parts.GetRange(0, 2)) + $"　+{parts.Count - 2}";
     }
 
     private void RefreshBuilding()
@@ -491,7 +543,7 @@ public partial class UnitPanelUI : MonoBehaviour
 
         // 中央: ステータス
         if (atkText != null) atkText.text = currentUnit.ATK > 0 ? "攻撃力  <b>" + currentUnit.ATK + "</b>" : "";
-        if (defText != null) defText.text = currentUnit.DEF > 0 ? "防御力  <b>" + currentUnit.DEF + "</b>" : "";
+        UpdateBarrierBar();
 
         // 効果説明
         if (kindText != null)

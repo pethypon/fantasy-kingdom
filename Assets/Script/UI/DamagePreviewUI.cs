@@ -24,8 +24,8 @@ public class DamagePreviewUI : MonoBehaviour
     private float nextRefresh;
 
     // ---- 定数 ----
-    private const float PanelWidth = 320f;
-    private const float PanelHeight = 102f;
+    private const float PanelWidth = 400f;
+    private const float PanelHeight = 136f;
     private static readonly Color BgColor = new Color(0.05f, 0.05f, 0.08f, 0.94f);
     private static readonly Color KillColor = new Color(1f, 0.25f, 0.22f);
     private static readonly Color NormalColor = new Color(1f, 0.92f, 0.55f);
@@ -76,7 +76,7 @@ public class DamagePreviewUI : MonoBehaviour
         _damageText.alignment = TextAlignmentOptions.Left;
         _damageText.color = NormalColor;
         var dmgRect = _damageText.GetComponent<RectTransform>();
-        dmgRect.anchorMin = new Vector2(0, 0.5f);
+        dmgRect.anchorMin = new Vector2(0, 0.65f);
         dmgRect.anchorMax = new Vector2(1, 1);
         dmgRect.offsetMin = new Vector2(10, 0);
         dmgRect.offsetMax = new Vector2(-10, -5);
@@ -85,14 +85,14 @@ public class DamagePreviewUI : MonoBehaviour
         var hpGo = new GameObject("HpText");
         hpGo.transform.SetParent(panelGo.transform, false);
         _hpText = hpGo.AddComponent<TextMeshProUGUI>();
-        _hpText.fontSize = 24;
+        _hpText.fontSize = 22;
         _hpText.font = _damageText.font;
         _hpText.raycastTarget = false;
         _hpText.alignment = TextAlignmentOptions.Left;
         _hpText.color = HpColor;
         var hpRect = _hpText.GetComponent<RectTransform>();
         hpRect.anchorMin = new Vector2(0, 0);
-        hpRect.anchorMax = new Vector2(1, 0.5f);
+        hpRect.anchorMax = new Vector2(1, 0.65f);
         hpRect.offsetMin = new Vector2(10, 5);
         hpRect.offsetMax = new Vector2(-10, 0);
     }
@@ -148,32 +148,45 @@ public class DamagePreviewUI : MonoBehaviour
 
     private void ClearPreview()
     {
-        if (_lastHovered != null)
-        {
-            _lastHovered = null;
+        _lastHovered = null;
+        if (_panelRect != null && _panelRect.gameObject.activeSelf)
             _panelRect.gameObject.SetActive(false);
-        }
     }
 
     private void ShowPreview(Status attacker, Status target, Vector2 mousePos)
     {
-        int normalDmg = DamageCalculator.CalcNormal(attacker, target);
-        int hpAfter = Mathf.Max(0, target.HP - normalDmg);
+        int normalDmg = SkillSystem.CalcNormalDamage(attacker, target);
+        var kind = SpecialSkillRuntime.WouldAssassinate(attacker, target)
+            ? HpChangeKind.ExecutionDamage : HpChangeKind.NormalDamage;
+        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(target, normalDmg, kind) ?? target;
+        if (recipient != target && SpecialSkillRuntime.PreviewHpDamage(target, normalDmg, kind) >= target.HP)
+        {
+            // 致死攻撃を引き受ける生命連結は、連結先が直接死亡する。
+            kind = HpChangeKind.ForcedDeath;
+            normalDmg = recipient.HP;
+        }
+        int predictedDamage = SpecialSkillRuntime.PreviewDamage(recipient, normalDmg, kind);
+        int hpAfter = Mathf.Max(0, recipient.HP - SpecialSkillRuntime.PreviewHpDamage(recipient, normalDmg, kind));
+        int barrierAfter = kind == HpChangeKind.ForcedDeath ? 0
+            : Mathf.Max(0, recipient.Barrier - Mathf.Min(recipient.Barrier, predictedDamage));
         bool isKill = hpAfter <= 0;
 
         _damageText.text = isKill
-            ? $"予測 {normalDmg}  <color=#FF7065>撃破</color>"
-            : $"予測ダメージ  {normalDmg}";
+            ? $"予測 {predictedDamage}  <color=#FF7065>撃破</color>"
+            : $"予測ダメージ  {predictedDamage}";
         _damageText.color = isKill ? KillColor : NormalColor;
 
-        _hpText.text = $"HP: {target.HP} → {hpAfter}";
+        _hpText.text = (recipient != target ? $"身代わり：{KindNameJP.Get(recipient)}\n" : "")
+            + $"HP: {recipient.HP} → {hpAfter}"
+            + (BarrierSystem.UsesBarrier(recipient)
+                ? $"\n<color=#80D1FF>バリア: {recipient.Barrier} → {barrierAfter}</color>" : "");
 
         // シールド中の表示
         if (target.ShieldTurns > 0)
         {
-            _damageText.text = "シールドで防御";
+            _damageText.text = "完全防御シールドで無効";
             _damageText.color = new Color(0.5f, 0.8f, 1f);
-            _hpText.text = $"残り {target.ShieldTurns} ターン";
+            _hpText.text = $"HP: {target.HP} → {target.HP}\n完全防御：残り {target.ShieldTurns} ターン";
         }
 
         UpdatePosition(mousePos);

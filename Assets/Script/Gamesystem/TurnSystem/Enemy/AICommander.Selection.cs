@@ -10,6 +10,7 @@ public partial class AICommander
     // cleared on each selection/battle disposal. Never caps candidates or changes their tie-breaking order.
     readonly List<(AIAction action, float score)> selectionBuffer = new List<(AIAction action, float score)>(64);
     readonly AIRuntimeMaintenance runtimeMaintenance = new AIRuntimeMaintenance();
+    readonly AITurnMovementHistory turnMovementHistory = new AITurnMovementHistory();
     // ================================================================
     //  死亡ユニットの位置履歴を掃除
     // ================================================================
@@ -32,6 +33,7 @@ public partial class AICommander
         foreach (var action in actions)
         {
             if (action.ActionType == AIActionType.Wait) continue;
+            if (turnMovementHistory.ShouldReject(action, _board)) continue;
             if (action.SpecialCommand != null && action.Score <= 0) continue;
             if (AIActionEvaluator.ShouldPreserveStationary(action, actions, _board)) continue;
             if (action.APCost > _board.EnemyAP) continue;

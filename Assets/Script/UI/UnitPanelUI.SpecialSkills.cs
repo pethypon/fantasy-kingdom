@@ -24,9 +24,9 @@ public partial class UnitPanelUI
         var heading = transform.Find("StatusHeading");
         if (heading != null)
         {
-            specialStateButton = UIFactory.CreateButton("SpecialStateBtn", heading, "能力・スキル詳細", BrandGuide.FontHudCaption,
+            specialStateButton = UIFactory.CreateButton("SpecialStateBtn", heading, "詳細", BrandGuide.FontHudCaption,
                 BrandGuide.BtnSkill, UIFactory.LoadDefaultFont());
-            UIFactory.SetAnchors(specialStateButton.GetComponent<RectTransform>(), .72f, 0, 1, 1);
+            UIFactory.SetAnchors(specialStateButton.GetComponent<RectTransform>(), .84f, 0, 1, 1);
             specialStateButton.onClick.AddListener(OnClickSpecialState);
             specialStateButton.gameObject.SetActive(false);
         }
@@ -40,7 +40,7 @@ public partial class UnitPanelUI
         if (fixedIdentity) SetButtonVisible(skillButton, false);
         bool hasDetails = currentUnit.type == Type.Unit || SpecialSkillPresentation.HasState(currentUnit);
         SetButtonVisible(specialStateButton, hasDetails);
-        if (headingText != null) headingText.rectTransform.offsetMax = new Vector2(hasDetails ? -300 : -16, 0);
+        if (headingText != null) headingText.rectTransform.offsetMax = new Vector2(hasDetails ? -180 : -16, 0);
         bool activeAbility = definition != null && !definition.IsPassive && definition.ability != UnitSpecialSkill.None;
         bool showAction = activeAbility && !isBuilding && currentUnit.team == Team.Player && !previewOnly && !inspectionOnly;
         SetButtonVisible(specialSkillButton, showAction);
@@ -52,15 +52,14 @@ public partial class UnitPanelUI
             UIFactory.SetAnchors(specialSkillButton.GetComponent<RectTransform>(), 0, .33f, 1, .66f);
             if (waitButton != null) UIFactory.SetAnchors(waitButton.GetComponent<RectTransform>(), 0, 0, .5f, .33f);
             if (cancelButton != null) UIFactory.SetAnchors(cancelButton.GetComponent<RectTransform>(), .5f, 0, 1, .33f);
-            bool usable = SpecialSkillRuntime.CanUse(currentUnit, turnGenerator?.Systems, out var reason);
+            bool usable = SpecialSkillRuntime.CanUse(currentUnit, turnGenerator?.Systems, out _);
             specialSkillButton.interactable = CanIssueCommand() && !turnGenerator.DeveloperPlayerAIEnabled;
             string label = SpecialSkillPresentation.Name(definition);
-            string operation = SpecialSkillRuntime.UsesAutomaticTarget(definition.ability) ? "即時" : "対象選択";
-            label += definition.apCost < 0 || definition.cooldown < 0 ? "\n<size=70%>[2] AP・待機が未設定</size>"
+            label += definition.apCost < 0 || definition.cooldown < 0 ? "\n<size=75%>調整中</size>"
                 : usable ? definition.ability == UnitSpecialSkill.BerserkerRage
-                    ? $"\n<size=70%>[2] {currentUnit.Special?.berserkerStage ?? 0}→{(currentUnit.Special?.berserkerStage ?? 0) + 1}段階 AP{SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
-                    : $"\n<size=75%>[2] {operation} AP{SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
-                    : "\n<size=70%>[2] " + reason + "</size>";
+                    ? $"\n<size=75%>[2] 次{(currentUnit.Special?.berserkerStage ?? 0) + 1}段階　AP {SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
+                    : $"\n<size=75%>[2] AP {SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
+                    : "\n<size=75%>準備待ち</size>";
             specialSkillButton.GetComponentInChildren<TextMeshProUGUI>().text = label;
         }
         else if (!isBuilding)
@@ -69,7 +68,7 @@ public partial class UnitPanelUI
             if (waitButton != null) UIFactory.SetAnchors(waitButton.GetComponent<RectTransform>(), 0, 0, .5f, .5f);
         }
         string state = SpecialSkillPresentation.Summary(currentUnit);
-        if (!string.IsNullOrEmpty(state) && passiveText != null) passiveText.text = state;
+        if (!string.IsNullOrEmpty(state) && passiveText != null && string.IsNullOrEmpty(passiveText.text)) passiveText.text = state;
     }
 
     public void OnClickSpecialSkill()

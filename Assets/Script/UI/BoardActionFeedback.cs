@@ -87,8 +87,10 @@ public static class BoardActionFeedback
     public static void Result(GameResult result)
     {
         if (!Application.isPlaying || BoardActorAnimation.EffectsSuppressed) return;
+        bool won = result == GameResult.Win || result == GameResult.TimeUpWin;
+        if (!won && result != GameResult.Lose && result != GameResult.TimeUpLose) return;
         var settings = BoardFeedbackSettings.Active;
         if (settings != null && settings.soundsEnabled)
-            BoardSoundEffects.Play(result == GameResult.Win || result == GameResult.TimeUpWin ? BoardFeedbackKind.Victory : BoardFeedbackKind.Defeat, settings);
+            BoardSoundEffects.Play(won ? BoardFeedbackKind.Victory : BoardFeedbackKind.Defeat, settings);
     }
 }

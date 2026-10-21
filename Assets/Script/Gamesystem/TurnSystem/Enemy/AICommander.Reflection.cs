@@ -124,6 +124,8 @@ public partial class AICommander
     }
     bool ExecuteReflectedAction(AIAction action)
     {
+        var movementActor = action?.Unit;
+        var movementOrigin = movementActor != null ? movementActor.transform.position : Vector3.zero;
         var system = EnsureReflection();
         AIActionToken token = default;
         if (system != null && system.Enabled) try
@@ -138,6 +140,8 @@ public partial class AICommander
         try { success = _actionExecutor.Execute(action, _board); return success; }
         finally
         {
+            if (movementActor != null)
+                turnMovementHistory.Record(movementActor, movementOrigin, movementActor.transform.position, success);
             bool reflectionPending = token.IsValid && !reflectionUnavailable;
             bool explorationActive = ExplorationAISettings.Active.Enabled;
             if (reflectionPending || explorationActive || operationActionOpen)

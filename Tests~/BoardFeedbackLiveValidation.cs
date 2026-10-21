@@ -16,7 +16,7 @@ public static class BoardFeedbackLiveValidation
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new Exception("Isolated clone only");
         BoardFeedbackTests.Assets();
-        PlayerSettings.companyName = "CodexValidation"; PlayerSettings.productName = "BoardFeedbackLiveValidation20261018";
+        PlayerSettings.companyName = "CodexValidation"; PlayerSettings.productName = "BoardFeedbackLiveValidation20261019";
         SessionState.SetBool(Key, true); EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity"); EditorApplication.EnterPlaymode();
     }
     static void Tick()

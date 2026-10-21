@@ -144,7 +144,8 @@ public sealed partial class AIPlayerModel
         if (action.ActionType == AIActionType.DefenseRepos) return Blend(history.Aggression, aggression, level) * 12 * scale+special;
         if (action.ActionType == AIActionType.Attack && action.TargetUnit != null && action.TargetUnit.type != Type.Unit)
             return Blend(history.Economy, economy, level) * 15 * scale+special;
-        if (action.ActionType == AIActionType.Summon && (action.SummonKind == Kind.Assassin || action.SummonKind == Kind.Knight))
+        if (action.ActionType == AIActionType.Summon && (UnitRoster.EvaluationBaseKind(action.SummonKind) == Kind.Assassin
+            || UnitRoster.EvaluationBaseKind(action.SummonKind) == Kind.Knight))
             return Blend(history.Ranged, ranged, level) * 12 * scale+special;
         if (action.ActionType == AIActionType.Summon && action.SummonKind == Kind.Scout)
             return Blend(history.Scout, scout, level) * 8 * scale+special;

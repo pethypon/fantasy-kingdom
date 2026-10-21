@@ -22,6 +22,8 @@ public static class SpecialSkillPresentation
         UnitSpecialSkill.NinjaSwap => "味方との位置交換",
         UnitSpecialSkill.BerserkerRage => "狂戦士の強化",
         UnitSpecialSkill.NavigatorPull => "正面への引き寄せ",
+        UnitSpecialSkill.HeavyWarriorBreak => "バリア砕き",
+        UnitSpecialSkill.DragonKnightPierce => "竜槍貫通",
         _ => "なし"
     };
 
@@ -35,20 +37,22 @@ public static class SpecialSkillPresentation
         {
             UnitSpecialSkill.KnightBreakthrough => "正面へ最大3マス、敵を押して前進します。後方が塞がると停止します。",
             UnitSpecialSkill.ArcherStationary => "発動時の周囲2マスの敵を記憶。2ターン、その敵から自身が見えなくなり、敵へ毒を付与します。対象敵のATKは20%上昇し、自身は攻撃できません（移動は可能）。",
-            UnitSpecialSkill.MagicRitual => $"視界内の敵駒1体をロックし、選択した周囲の味方から最大HPの{SpecialSkillDefinition.RitualSacrifice:P0}を直接削減。次の自軍ターンに削減合計と同じ防御無視ダメージを与えます。供儀HPは返りません。使用ターンは移動できません。",
+            UnitSpecialSkill.MagicRitual => $"視界内の敵駒1体をロックし、選択した周囲の味方から最大HPの{SpecialSkillDefinition.RitualSacrifice:P0}を直接削減。次の自軍ターンに削減合計と同じ量のダメージを与えます（バリア優先）。供儀HPは返りません。使用ターンは移動できません。",
             UnitSpecialSkill.AssassinVisionSeal => "視界内の敵1体の視界を2ターン0にします。自身に「次に実際に受けるダメージ×2」が付き、被弾するまで残ります。",
             UnitSpecialSkill.ScoutVisionGuard => "発動時の視界内の味方に、2ターンの間「次のダメージ1回無効」を付与。自身の視界は2低下します。後から範囲へ入った味方には付きません。",
             UnitSpecialSkill.PriestPurification => "自身が強制死亡し、死亡地点の周囲2マスにいる敵味方の通常バフ・デバフを解除します。爆弾・生命接続・杭・標的ロック等の特殊状態は消しません。",
             UnitSpecialSkill.GuardianLifeLink => "味方の駒または建物1つと生命接続します。受けるダメージを相手が肩代わりします。攻撃された側にとって致死ダメージなら、その側を救い、接続相手が死亡して接続を解除します。",
             UnitSpecialSkill.CrossbowStakes => "弾倉へ杭弾を1発装填。満弾なら決定的な抽選で1発を杭弾へ変換します。弾は古い順に発射し、杭弾の命中時だけ敵へ杭を付けます。杭2本が作る雷線は対象の移動に追従し、侵入・滞在でダメージ。杭の寿命は各3ターン。",
             UnitSpecialSkill.MagicSniperLock => $"視界内の敵1体をロック。次ターンはその敵だけを距離・視界に関係なく通常攻撃できます。距離{SpecialSkillDefinition.SniperMaximumDistance}マスで上限×{SpecialSkillDefinition.SniperMaximum:0.##}、射撃時の距離反動は最大HPの上限{SpecialSkillDefinition.SniperMaximumRecoil:P0}。通常攻撃の20%自傷も同時に発生します。",
-            UnitSpecialSkill.LifeBomb => $"自分または味方へ追従する爆弾を付与。{SpecialSkillDefinition.BombDelay}ターン後、所持者の最大HPの{SpecialSkillDefinition.BombFraction:P0}を直接削減し、同じ基準量の防御無視ダメージに変えます。爆発範囲・陣営・死亡時処理は設定に従います。",
+            UnitSpecialSkill.LifeBomb => $"自分または味方へ追従する爆弾を付与。{SpecialSkillDefinition.BombDelay}ターン後、所持者の最大HPの{SpecialSkillDefinition.BombFraction:P0}を直接削減し、同じ基準量のダメージに変えます（バリア優先）。爆発範囲・陣営・死亡時処理は設定に従います。",
             UnitSpecialSkill.WhiteMageHeal => $"視界内の味方駒1体を最大HPの{SpecialSkillDefinition.WhiteMageHealFraction:P0}回復します。通常攻撃も行えます。",
             UnitSpecialSkill.HolyKnightSanctuary => $"自身中心の設定範囲で3ターン、毎ターン最大HPの{SpecialSkillDefinition.HolyKnightHealFraction:P0}回復。発動中は移動・攻撃不可で被ダメージ×2。範囲と中断条件は設定に従います。",
-            UnitSpecialSkill.SamuraiCounter => "敵の駒1体を挑発。3ターン、その敵の通常攻撃先をこの侍だけに制限します。",
+            UnitSpecialSkill.SamuraiCounter => "敵の駒1体を挑発。3ターン、その敵の通常攻撃先をこの侍だけに制限します。その敵から被弾すると、反撃を受ける相手の現在バリアを0にしてから反撃します。バリアの最大値は変えません。",
             UnitSpecialSkill.NinjaSwap => "マップ上の自分以外の味方駒1体と位置交換します。距離・自身の視界による制限はありません。敵は選べません。",
-            UnitSpecialSkill.BerserkerRage => $"使用するたびに強化が1段階進み、最大5段階になります。攻撃力上昇（上限×{SpecialSkillDefinition.BerserkerMaximum:0.##}）・防御低下・通常攻撃AP＋1。次の通常攻撃でこのスキルによる強化と弱体だけを解除します。各段階の倍率は設定に従います。",
+            UnitSpecialSkill.BerserkerRage => $"使用するたびに強化が1段階進み、最大5段階になります。攻撃力上昇（上限×{SpecialSkillDefinition.BerserkerMaximum:0.##}）・通常攻撃AP＋1。次の通常攻撃でこのスキルによる強化を解除します。各段階の倍率は設定に従います。一部効果は未調整です。",
             UnitSpecialSkill.NavigatorPull => "視界内の敵1体を自分の正面1マスへ強制移動します。",
+            UnitSpecialSkill.HeavyWarriorBreak => $"視界内・周囲1マスの敵1体を通常攻撃相当の威力で攻撃し、バリアに当たる部分を×{definition.heavyBarrierMultiplier:0.##}にします。対バリアの追加ダメージはHPへ持ち越しません。",
+            UnitSpecialSkill.DragonKnightPierce => $"竜槍ゲージ2で使用できます。視界内・周囲1マスの敵1体へ通常攻撃相当の威力×{definition.dragonKnightSkillMultiplier:0.##}で攻撃し、バリアを消耗せずHPへダメージを与えます。発動後ゲージは0に戻ります。完全防御シールドは貫通しません。",
             _ => "駒固有能力の種類を設定してください。"
         };
         if (!definition.IsPassive && definition.ability != UnitSpecialSkill.BerserkerRage)
@@ -56,7 +60,23 @@ public static class SpecialSkillPresentation
         if (definition.ability == UnitSpecialSkill.BerserkerRage && definition.stageAPCosts != null)
             text += "\n1〜5段階の強化AP：" + string.Join(" / ", definition.stageAPCosts) + $"　再使用待機：{Configured(definition.cooldown)}ターン";
         if (definition.ConfigurationError != null) text += "\n<color=#FFD0A0>" + definition.ConfigurationError + "</color>";
+        if (BarrierCombatSettings.Active.trialBalance
+            && (definition.ability == UnitSpecialSkill.HeavyWarriorBreak || definition.ability == UnitSpecialSkill.DragonKnightPierce))
+            text += "\n<color=#FFD0A0>威力・AP・再使用待機は暫定の調整値です。</color>";
         return text;
+    }
+
+    public static string BarrierRecoveryDescription()
+    {
+        var settings = BarrierCombatSettings.Active;
+        string timing = settings.recoveryAtOwnerTurnStart ? "自軍ターン開始時" : "自軍ターン終了時";
+        string first = settings.recoverOnThresholdTurn ? "条件を満たした判定から回復" : "条件達成の次の判定から回復";
+        string repeat = settings.repeatRecoveryEveryTurn ? "以後も条件を満たす毎ターンに回復" : "無被弾が続く間に1回だけ回復";
+        string rounding = settings.recoveryRounding == BarrierRecoveryRounding.Floor ? "切り捨て"
+            : settings.recoveryRounding == BarrierRecoveryRounding.Nearest ? "最も近い整数に丸め" : "切り上げ";
+        string negated = settings.fullyNegatedHitsResetRecovery ? "完全無効の攻撃でもカウントをリセット" : "完全無効の攻撃ではカウントを維持";
+        return $"HP70%以上・連続{BarrierSystem.SafeTurnThreshold}ターン無被弾で、最大バリア20%を回復。"
+            + $"\n暫定設定：{timing}に判定し、{first}。{repeat}。端数は{rounding}。{negated}。";
     }
 
     static string Configured(int value) => value < 0 ? "未設定" : value.ToString();
@@ -69,9 +89,9 @@ public static class SpecialSkillPresentation
                 return "視界内の敵ATK低下：" + (definition.knightVisibleEnemyAtkPenalty < 0 ? "未設定" : definition.knightVisibleEnemyAtkPenalty.ToString("P0"))
                     + $"。自身の視界外からの攻撃は通常倍率にさらに×{SpecialSkillDefinition.KnightBlindSpotMultiplier}。";
             case UnitSpecialSkill.ArcherStationary: return $"未移動で攻撃倍率上昇（最大×{SpecialSkillDefinition.ArcherMaximum}）、強制移動でも蓄積リセット。";
-            case UnitSpecialSkill.SamuraiCounter: return "通常攻撃で刀ゲージ上昇。MAX時に被弾すると被ダメージ×0.5＋ATKで反撃し、反撃の実ダメージ分回復。元の攻撃は受けます。MAX保持は3ターン。";
+            case UnitSpecialSkill.SamuraiCounter: return "通常攻撃で刀ゲージ上昇。MAX時に被弾すると、元の攻撃を受けた後、相手の現在バリアを0にして、受けたダメージの半分＋ATKで反撃します。反撃で減らしたHP量だけ自身のHPを回復。完全防御シールド・1回無効は尊重します。MAX保持は3ターン。";
             case UnitSpecialSkill.MagicRitual: return "周囲1マスにHP25%以下の駒がいる間、Crystal・Boss・強敵への攻撃×1.5、それ以外×0.75。";
-            case UnitSpecialSkill.AssassinVisionSeal: return "味方も通常攻撃可能。HP20%以下の味方と一般敵は命中で即死。味方撃破後ATK×1.75（持続・重複は設定）。敵撃破後は自身HP1。";
+            case UnitSpecialSkill.AssassinVisionSeal: return "通常移動は常に3AP（疲労・地形・移動AP補正を受けません）。自軍ターン終了時に1回、自分以外の味方の視界に入っていなければ最大HPの10%を失います（端数は切り捨て、最低1）。味方の建物・クリスタルの視界も有効です。";
             case UnitSpecialSkill.ScoutVisionGuard: return "視界内の敵味方の移動AP・攻撃APを各1回無料化（リセット範囲は設定）。";
             case UnitSpecialSkill.PriestPurification: return "毎ターン、周囲1マスの敵味方の駒を最大HP5%回復。";
             case UnitSpecialSkill.GuardianLifeLink: return "Crystalへのダメージ×2。通常攻撃ごとに攻撃AP＋1累積（リセット範囲は設定）。";
@@ -83,6 +103,8 @@ public static class SpecialSkillPresentation
             case UnitSpecialSkill.NinjaSwap: return "未攻撃ターンでクナイを最大5段階強化。視界外攻撃は通常の40%。";
             case UnitSpecialSkill.BerserkerRage: return "HPが少ないほど通常攻撃APが低下します（設定した曲線に従います）。";
             case UnitSpecialSkill.NavigatorPull: return $"正面1マスへ通常攻撃。残りAPに応じて最大×{SpecialSkillDefinition.NavigatorMaximum}。";
+            case UnitSpecialSkill.HeavyWarriorBreak: return $"通常攻撃はバリアを先に減らします。通常攻撃の対バリア部分の倍率×{BarrierCombatSettings.Active.heavyNormalBarrierMultiplier:0.##}。";
+            case UnitSpecialSkill.DragonKnightPierce: return "通常攻撃を使うたびに竜槍ゲージ＋1（最大2）。通常攻撃はバリアを貫通しません。";
             default: return "常時能力はありません。スキルの効果・代償は上記の固有スキルに従います。";
         }
     }
@@ -94,24 +116,32 @@ public static class SpecialSkillPresentation
             (state.ritualActive || state.sniperActive || !string.IsNullOrEmpty(state.guardianPartnerId)
             || !string.IsNullOrEmpty(state.stakeAId) || !string.IsNullOrEmpty(state.bombCasterId)
             || state.nextDamageDouble || state.visionZeroTurns > 0 || state.damageNullUnused
-            || state.holyKnightTurns > 0 || state.samuraiGauge > 0 || state.ninjaCharge > 0 || state.berserkerStage > 0);
+            || state.holyKnightTurns > 0 || state.samuraiGauge > 0 || state.ninjaCharge > 0 || state.berserkerStage > 0 || state.dragonKnightGauge > 0);
     }
 
     public static string Summary(Status actor)
     {
         var state = actor?.Special;
         if (state == null) return string.Empty;
-        if (state.damageNullUnused && state.damageNullTurns > 0) return "【無効】次のダメージ1回無効";
-        if (state.nextDamageDouble) return "【危険】次の被ダメージ×2";
-        if (state.visionZeroTurns > 0) return $"【視界0】残り{state.visionZeroTurns}ターン";
-        if (!string.IsNullOrEmpty(state.bombCasterId)) return $"【生命爆弾】爆発予約あり";
-        if (state.ritualActive) return $"【儀式】供儀合計{state.storedSacrificeDamage}";
-        if (!string.IsNullOrEmpty(state.guardianPartnerId)) return "【生命接続】状態を確認";
-        if (state.sniperActive) return "【狙撃ロック】状態を確認";
+        if (actor.ShieldTurns > 0) return $"完全防御 {actor.ShieldTurns}T";
+        if (state.damageNullUnused && state.damageNullTurns > 0) return "1回無効";
+        if (state.nextDamageDouble) return "次の被ダメージ×2";
+        if (state.visionZeroTurns > 0) return $"視界0 {state.visionZeroTurns}T";
+        if (!string.IsNullOrEmpty(state.bombCasterId)) return "生命爆弾";
+        if (state.ritualActive) return $"儀式 {state.storedSacrificeDamage}";
+        if (!string.IsNullOrEmpty(state.guardianPartnerId)) return "生命接続";
+        if (state.sniperActive) return "狙撃ロック";
         var definition = SpecialSkillRuntime.Definition(actor);
-        return definition?.ability == UnitSpecialSkill.ArcherStationary
-            ? $"未移動 {state.stationaryTurns}ターン　攻撃×{definition.ArcherMultiplier(state.stationaryTurns):0.##}"
-            : definition != null ? "固有：" + Name(definition) + (definition.ConfigurationError != null ? "（設定を確認）" : "") : string.Empty;
+        if (definition?.ability == UnitSpecialSkill.DragonKnightPierce)
+            return $"竜槍 {state.dragonKnightGauge}/2";
+        if (definition?.ability == UnitSpecialSkill.SamuraiCounter && state.samuraiGauge > 0)
+            return $"刀 {state.samuraiGauge}/{definition.samuraiGaugeMax}";
+        if (state.berserkerStage > 0) return $"強化 {state.berserkerStage}/5";
+        if (state.ninjaCharge > 0) return $"クナイ {state.ninjaCharge}/5";
+        if (state.holyKnightTurns > 0) return $"聖域 {state.holyKnightTurns}T";
+        if (definition?.ability == UnitSpecialSkill.ArcherStationary && state.stationaryTurns > 0)
+            return $"未移動 {state.stationaryTurns}T　攻撃×{definition.ArcherMultiplier(state.stationaryTurns):0.##}";
+        return string.Empty;
     }
 
     public static string Details(Status actor, int round)
@@ -131,6 +161,17 @@ public static class SpecialSkillPresentation
             text.Append("\n\n<b>共通・自然回復</b>\nHPを失わなかった5ターン目の終了時から、毎自軍ターン終了時に最大HP10%回復。")
                 .Append("\n無損失経過：").Append(safe).Append(" / 5ターン／回復量：").Append(NaturalRecoverySystem.HealAmount(actor.MaxHP));
         }
+        if (BarrierSystem.UsesBarrier(actor))
+        {
+            int safe = Mathf.Clamp(actor.BarrierRecovery?.SafeTurns ?? 0, 0, BarrierSystem.SafeTurnThreshold);
+            text.Append("\n\n<b>バリア</b>\n現在 ").Append(actor.Barrier).Append(" / ").Append(actor.MaxBarrier)
+                .Append("。先にバリアを消耗し、超過分だけHPが減少します。最大値は毎Lv＋").Append(BarrierSystem.GrowthPerLevel).Append('。')
+                .Append('\n').Append(BarrierRecoveryDescription())
+                .Append("\n無被弾経過：").Append(safe).Append(" / ").Append(BarrierSystem.SafeTurnThreshold)
+                .Append("ターン。HP自然回復・完全防御シールド・軽減障壁とは別の効果です。");
+        }
+        if (actor.ShieldTurns > 0)
+            text.Append("\n\n<b>完全防御シールド</b>\nダメージを無効化。残り ").Append(actor.ShieldTurns).Append("ターン。");
         if (state == null) return text.ToString();
         text.Append("\n\n<b>現在の特殊状態</b>");
         bool any = false;
@@ -168,6 +209,8 @@ public static class SpecialSkillPresentation
         }
         if (!string.IsNullOrEmpty(state.bombCasterId)) Line($"生命爆弾：あと{Mathf.Max(0, state.bombDueRound - round)}ターン／予定威力：{SpecialSkillRuntime.FractionOfMaximum(actor, SpecialSkillDefinition.BombFraction)}");
         if (state.samuraiGauge > 0) Line($"刀ゲージ：{state.samuraiGauge}／MAX保持残り：{state.samuraiMaxTurns}ターン");
+        if (definition?.ability == UnitSpecialSkill.DragonKnightPierce)
+            Line($"竜槍ゲージ：{state.dragonKnightGauge} / 2（通常攻撃1回につき＋1、固有スキル発動後に0）");
         if (state.ninjaCharge > 0) Line($"クナイ強化：{state.ninjaCharge}段階");
         if (state.berserkerStage > 0) Line($"狂戦士の強化：{state.berserkerStage}段階");
         if (state.holyKnightTurns > 0 || state.holyKnightRecoveryLock) Line($"聖域：回復あと{state.holyKnightTurns}回（このターン移動・攻撃不可／被ダメージ×2）");
@@ -193,6 +236,8 @@ public static class SpecialSkillPresentation
         if (skill.FixedDamage > 0) text.Append("\n固定効果値：").Append(skill.FixedDamage);
         if (skill.InflictDebuff != StatusEffectType.None) text.Append("\n").Append(DebuffName(skill.InflictDebuff)).Append("を付与 ").Append((skill.DebuffChance * 100).ToString("0.#")).Append('%');
         if (skill.GrantBuff != BuffType.None) text.Append("\n").Append(skill.BuffToSelf ? "自身に" : "対象に").Append(BuffName(skill.GrantBuff)).Append("を付与");
+        if (skill.InflictDebuff == StatusEffectType.ArmorBreak || skill.GrantBuff == BuffType.Defensive)
+            text.Append("\n一部効果は未調整です。");
         if (!string.IsNullOrEmpty(skill.SpecialEffect)) text.Append("\n特殊効果：").Append(skill.SpecialEffect switch
         {
             "SmashBuilding" => "建物への追加効果", "FlamePoison" => "炎と毒", "ShadowRush" => "影の急襲",
@@ -212,8 +257,8 @@ public static class SpecialSkillPresentation
         PassiveSkill.StrangeKingAura => $"異形の王のオーラ：被ダメージ×{GameConstants.StrangeKingDamageReduction:0.##}、被害の{GameConstants.StrangeKingLifesteal:P0}を回復。HP{GameConstants.StrangeKingRageThreshold:P0}以下で攻撃×{GameConstants.StrangeKingRageATKBonus:0.##}",
         _ => "なし"
     };
-    public static string AbilityDescription(SpecialAbility ability) => SpecialAbilityData.Table.TryGetValue(ability, out var entry)
-        ? entry.NameJP + "：" + entry.Description : "なし";
+    public static string AbilityDescription(SpecialAbility ability) => ability == SpecialAbility.WallFamiliar ? "防壁慣れ：効果未調整"
+        : SpecialAbilityData.Table.TryGetValue(ability, out var entry) ? entry.NameJP + "：" + entry.Description : "なし";
     public static string DebuffName(StatusEffectType value) => value switch
     {
         StatusEffectType.Stun => "スタン", StatusEffectType.Mark => "標的", StatusEffectType.ArmorBreak => "破甲", StatusEffectType.Weaken => "弱体",
@@ -223,7 +268,7 @@ public static class SpecialSkillPresentation
     public static string BuffName(BuffType value) => value switch
     {
         BuffType.Offensive => "攻勢", BuffType.Defensive => "守勢", BuffType.Haste => "加速", BuffType.Insight => "看破",
-        BuffType.Barrier => "障壁", BuffType.Reflect => "反射", _ => "なし"
+        BuffType.Barrier => "軽減障壁", BuffType.Reflect => "反射", _ => "なし"
     };
     static string TargetDescription(SkillTarget value) => value switch
     {

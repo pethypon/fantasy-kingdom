@@ -247,6 +247,7 @@ public partial class AICommander
     {
         AITurnBudget.Begin(TurnThinkingBudgetMs);
         _actedUnits.Clear();
+        turnMovementHistory.Clear();
         _triedStrategies.Clear();
         if (_actorTeam == Team.Player) _turnCount = _turnGen.Context.Turn;
         else _turnCount++;

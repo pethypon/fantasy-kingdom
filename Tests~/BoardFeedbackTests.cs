@@ -97,6 +97,8 @@ public static class BoardFeedbackTests
                 "Unknown enemy events reveal neither effects nor sounds");
             Check(!systems.VisionGenerator.IsPresentationCellVisible(hidden.transform.position), "Hidden fixture really lies outside the display mask");
 
+            BoardActionFeedback.Result(GameResult.TimeUpDraw);
+            Check(BoardSoundEffects.AcceptedPlayCount == 0, "A draw does not play the defeat cue");
             BoardActionFeedback.Attack(actor, cell);
             Check(BoardCombatEffects.ActiveCount > 0, "Observed normal attack reaches the production effects pool");
             Check(BoardSoundEffects.AcceptedPlayCount > 0, "Observed normal attack submits a real AudioSource.Play request");

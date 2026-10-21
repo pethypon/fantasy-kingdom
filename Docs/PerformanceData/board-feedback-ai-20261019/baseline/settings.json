@@ -1,0 +1,13 @@
+{
+    "Seeds": [
+        161803,
+        271828
+    ],
+    "OwnerTurnLimit": 80,
+    "WallSeconds": 150,
+    "Output": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\ai-closing-baseline",
+    "Label": "baseline",
+    "RunId": "20261018-132259-574a354d",
+    "OriginalCompany": "CodexValidation",
+    "OriginalProduct": "FantasyKingdomR1Validation"
+}

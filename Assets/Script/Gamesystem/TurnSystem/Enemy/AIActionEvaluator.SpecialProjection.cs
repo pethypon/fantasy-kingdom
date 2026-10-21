@@ -23,6 +23,8 @@ public static partial class AIActionEvaluator
         bool moving = IsPositionalAction(action.ActionType);
         if (!moving && action.ActionType != AIActionType.Wait) return 0;
         Vector3 from = actor.transform.position, to = moving ? action.TargetPos : from;
+        if (SpecialSkillRuntime.HasAssassinPassive(actor)
+            && !board.HasOtherAllyVisionAt(actor, to)) return 0;
         int danger = ThreatAt(board, actor, to);
         if (danger > 0) return 0; // Imminent real HP loss breaks this plan; a null hit does not.
         int heal = Mathf.Min(actor.MaxHP - actor.HP, NaturalRecoverySystem.HealAmount(actor.MaxHP));
@@ -35,19 +37,46 @@ public static partial class AIActionEvaluator
         return reward;
     }
 
-    static float CalcAssassinAllyAttackScore(AIAction action, AIBoardState board)
+    public static float CalcBarrierRecoveryAdjustment(AIAction action, AIBoardState board)
     {
-        var assassin = action.Unit; var ally = action.TargetUnit;
-        if (!SpecialSkillRuntime.IsAssassinAllyTarget(assassin, ally)
-            || !SpecialSkillRuntime.CanNormalAttackTarget(assassin, ally)) return -10000;
-        int damage = EstimateSpecialAwareAttack(assassin, ally, board);
-        float cost = DamageValue(board, ally, damage, HpChangeKind.NormalDamage);
-        // Friendly casualties cost their entire remaining unit value as well as HP loss.
-        bool kill = SpecialSkillRuntime.PreviewDamage(ally, damage) >= ally.HP;
-        if (!kill) return -cost - Mathf.Max(0, action.APCost) * 1.5f;
-        float nextAttack = AttackValueAt(board, assassin, assassin.transform.position);
-        float gain = nextAttack * .75f * AISpecialSkillKnowledge.FutureWeight(board, 1);
-        return gain - cost - SpecialValue(ally) - Mathf.Max(0, action.APCost) * 1.5f;
+        var actor = action?.Unit; var recovery = actor?.BarrierRecovery;
+        var settings = BarrierCombatSettings.Active;
+        if (board == null || actor == null || !BarrierSystem.UsesBarrier(actor) || actor.Barrier >= actor.MaxBarrier
+            || recovery == null || recovery.DamageSinceOwnTurn || recovery.SafeTurns < 2
+            || !BarrierSystem.CanRegenerate(actor.HP, actor.MaxHP, 3)
+            || settings.recoveryAtOwnerTurnStart && !recovery.HasOwnTurnBaseline
+            || !settings.recoveryAtOwnerTurnStart && recovery.LastProcessedRound == board.TurnCount
+            || StatusEffectSystem.HasDebuff(actor, StatusEffectType.Poison)) return 0;
+        int safeTurns = recovery.SafeTurns; bool damaged = recovery.DamageSinceOwnTurn, hasRecovered = recovery.HasRecovered;
+        int amount = Mathf.Min(actor.MaxBarrier-actor.Barrier,BarrierSystem.AdvanceRecovery(ref safeTurns,
+            ref damaged,ref hasRecovered,actor.HP,actor.MaxHP,actor.MaxBarrier));
+        if (amount <= 0) return 0;
+        bool moving = IsPositionalAction(action.ActionType);
+        if (!moving && action.ActionType != AIActionType.Wait) return 0;
+        Vector3 destination = moving ? action.TargetPos : actor.transform.position;
+        if (SpecialSkillRuntime.HasAssassinPassive(actor) && !board.HasOtherAllyVisionAt(actor, destination)) return 0;
+        if (ThreatAt(board, actor, destination) > 0 || board.EstimateSpecialHazardAt(actor, destination) > 0
+            || board.KnownEnvironmentDamage(actor, destination, false) > 0
+            || moving && board.KnownEnvironmentDamage(actor, destination, true) > 0) return 0;
+        // Absorbed hits also restart barrier recovery, even when the HP forecast is zero.
+        foreach (var opponent in board.SpecialObservedActors)
+        {
+            if (opponent.team == actor.team || !NeutralFactionSystem.AreHostile(opponent, actor)) continue;
+            var state = opponent.Special;
+            if (state != null && (state.ritualActive && state.ritualTargetId == actor.ReflectionLifeId
+                || state.sniperActive && state.sniperTargetId == actor.ReflectionLifeId
+                || !string.IsNullOrEmpty(state.bombCasterId) && state.bombDueRound <= board.TurnCount + 1
+                    && GridHelper.ChebyshevDistance(destination, opponent.transform.position) <= state.bombRadius)) return 0;
+            if (StatusEffectSystem.IsStunned(opponent) || SpecialSkillRuntime.AttackBlocked(opponent)
+                || !SpecialSkillRuntime.CanNormalAttackTarget(opponent, actor)) continue;
+            float range = AIBoardQuery.EstimateAttackRange(opponent) + 1.5f;
+            if ((destination - opponent.transform.position).sqrMagnitude <= range * range
+                && (settings.fullyNegatedHitsResetRecovery
+                    || SpecialSkillRuntime.PreviewDamage(actor, EstimateSpecialAwareAttack(opponent, actor, board)) > 0)) return 0;
+        }
+        action.PreserveSpecialEvaluation = true;
+        return SpecialValue(actor) * amount / Mathf.Max(1f, actor.MaxHP + (float)actor.MaxBarrier)
+            * AISpecialSkillKnowledge.FutureWeight(board, 1);
     }
 
     static float PassivePositionValue(AIBoardState board, Status actor, Vector3 point)
@@ -162,14 +191,16 @@ public static partial class AIActionEvaluator
     public static float KnownForcedEntryValue(AIBoardState board, Status actor, Vector3 from, Vector3 to)
     {
         if (board == null || actor == null || !board.IsSpecialActorObserved(actor)) return 0;
-        long entry = board.KnownEnvironmentDamage(actor, to, true);
-        entry += board.EstimateSpecialHazardAt(actor, to);
-        int actual = EstimateObservedHitLoss(actor, board, (int)Math.Min(int.MaxValue, entry), HpChangeKind.IgnoreDefenceDamage);
+        int barrier = BarrierSystem.UsesBarrier(actor) ? actor.Barrier : 0;
+        int hazard = board.FindObservedSpecialActor(actor.Special?.guardianPartnerId) == null ? board.EstimateSpecialHazardAt(actor,to) : 0;
+        barrier = BarrierSystem.Absorb(barrier,hazard,out int hazardHp);
+        int actual = (int)Math.Min(int.MaxValue,(long)hazardHp+EstimateObservedHitLoss(actor,board,
+            board.KnownEnvironmentDamage(actor,to,true),HpChangeKind.IgnoreDefenceDamage,ref barrier));
         float benefit = HpCost(actor, actual);
         // A staying hazard is a second packet, discounted because the actor can leave.
-        int standing = board.KnownEnvironmentDamage(actor, to, false);
+        int standing = EstimateObservedHitLoss(actor,board,board.KnownEnvironmentDamage(actor,to,false),HpChangeKind.IgnoreDefenceDamage,ref barrier);
         benefit += HpCost(actor, standing) * .5f;
-        benefit -= HpCost(actor, board.KnownEnvironmentDamage(actor, from, false)) * .5f;
+        benefit -= HpCost(actor, EstimateObservedHitLoss(actor,board,board.KnownEnvironmentDamage(actor,from,false),HpChangeKind.IgnoreDefenceDamage)) * .5f;
         int heal = board.KnownEnvironmentHeal(actor, to);
         benefit -= SpecialValue(actor) * Mathf.Min(Mathf.Max(0, actor.MaxHP - actor.HP), heal) / Mathf.Max(1f, actor.MaxHP);
         var known = board.KnownEnvironmentDefinition(to);

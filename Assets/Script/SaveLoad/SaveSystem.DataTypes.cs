@@ -118,6 +118,9 @@ public static partial class SaveSystem
         public string ReflectionLifeId;
         public SpecialState Special;
         public NaturalRecoveryState NaturalRecovery;
+        public bool HasBarrierSnapshot;
+        public int Barrier, MaxBarrier;
+        public BarrierRecoveryState BarrierRecovery;
         public bool HasPrimaryCommanderRole, IsPrimaryCommander;
         public string Kind;
         public string DefinitionId;

@@ -62,6 +62,13 @@ public static partial class SpecialSkillRuntime
                 return CanAdvanceKnight(caster, out reason);
             case UnitSpecialSkill.SamuraiCounter:
                 return EnemyTarget(caster, target, true, out reason);
+            case UnitSpecialSkill.HeavyWarriorBreak:
+            case UnitSpecialSkill.DragonKnightPierce:
+                return EnemyTarget(caster, target, false, out reason)
+                    && (GridHelper.ChebyshevDistance(caster.GridPosition, target.GridPosition) <= 1 || Reject(out reason, "周囲1マス以内の敵を選択してください"))
+                    && (caster.RuntimeSystems?.MapCreate?.CanAttackAcrossTerrain(caster, target.transform.position) != false || Reject(out reason, "地形に遮られています"))
+                    && (definition.ability != UnitSpecialSkill.DragonKnightPierce || State(caster).dragonKnightGauge >= 2
+                        || Reject(out reason, "竜騎士のゲージが2必要です"));
             case UnitSpecialSkill.ArcherStationary:
                 return (target == null || target == caster) && State(caster).archerEscapeTurns <= 0
                     || Reject(out reason, "自分から発動する能力です（発動中は再使用できません）");
@@ -135,6 +142,13 @@ public static partial class SpecialSkillRuntime
         var state = State(caster);
         switch (definition.ability)
         {
+            case UnitSpecialSkill.HeavyWarriorBreak:
+            case UnitSpecialSkill.DragonKnightPierce:
+                int power = PreviewDedicatedSkillDamage(caster, target);
+                var damageKind = definition.ability == UnitSpecialSkill.DragonKnightPierce ? HpChangeKind.BarrierBypassDamage : HpChangeKind.NormalDamage;
+                if (definition.ability == UnitSpecialSkill.DragonKnightPierce) state.dragonKnightGauge = 0;
+                ApplyAbilityDamage(caster, target, power, damageKind);
+                return true;
             case UnitSpecialSkill.KnightBreakthrough:
                 return AdvanceKnight(caster, systems, out reason);
             case UnitSpecialSkill.MagicRitual:

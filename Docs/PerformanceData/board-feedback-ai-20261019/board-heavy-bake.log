@@ -1,0 +1,1798 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.8f1 (1c7db571dde0) revision 1867189'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) Core' Language: 'ja' Physical Memory: 16094 MB
+[Licensing::IpcConnector] Channel LicenseClient-pethi doesn't exist
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-10-19T11:41:25Z
+[Licensing::Module] Successfully launched the LicensingClient (PId: 4064)
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Unity.exe
+-batchmode
+-quit
+-projectPath
+C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+-executeMethod
+BoardArtRefinementValidation.Run
+-logFile
+C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/board-heavy-bake.log
+Successfully changed project path to: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [18120]  Target information:
+
+Player connection [18120]  * "[IP] 192.168.3.11 [Port] 55505 [Flags] 2 [Guid] 2623723130 [EditorId] 2623723130 [Version] 1048832 [Id] WindowsEditor(7,pethypon) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [18120] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [18120] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-16388" after 0.4 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-pethi" at "2026-10-19T11:41:26.3948295Z"
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              a0c42af95de9473ab49f794633b46ae8
+  Correlation Id:          d0cbd41fe255d35783087a2f2a0c06fb
+  External correlation Id: 6618301711171390533
+  Machine Id:              HOlBkbQPFHQsEm9rI0T5KHxoBuA=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-pethi" (connect: 0.57s, validation: 0.05s, handshake: 2.76s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-pethi-notifications" at "2026-10-19T11:41:29.2027893Z"
+[Licensing::Module] Connected to LicensingClient (PId: 4064, launch time: 0.00, total connection time: 3.37s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 15668479432157-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 3.41s
+[Licensing::Module] Licensing is initialized (took 2.85s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Artifact Garbage Collection - Removed 27 unused hashed content files
+Refreshing native plugins compatible for Editor in 0.37 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.8f1 (1c7db571dde0)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: NVIDIA GeForce RTX 4060 (ID=0x2882)
+    Vendor:   NVIDIA
+    VRAM:     7956 MB
+    Driver:   32.0.16.1088
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56388
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+[Licensing::Client] Successfully resolved entitlement details
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.dll
+Registered in 0.007840 seconds.
+- Loaded All Assemblies, in  0.507 seconds
+Native extension for iOS target not found
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.477 seconds
+Domain Reload Profiling: 980ms
+	BeginReloadAssembly (178ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (8ms)
+	RebuildCommonClasses (42ms)
+	RebuildNativeTypeToScriptingClass (15ms)
+	initialDomainReloadingComplete (61ms)
+	LoadAllAssembliesAndSetupDomain (206ms)
+		LoadAssemblies (165ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (202ms)
+			TypeCache.Refresh (200ms)
+				TypeCache.ScanAssembly (185ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (478ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (433ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (75ms)
+			SetLoadedEditorAssemblies (4ms)
+			BeforeProcessingInitializeOnLoad (88ms)
+			ProcessInitializeOnLoadAttributes (175ms)
+			ProcessInitializeOnLoadMethodAttributes (91ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 51 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.collab-proxy@2.11.3 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.collab-proxy@e566cd3e7623)
+    com.unity.inputsystem@1.18.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.inputsystem@57d0e36f6123)
+    com.unity.timeline@1.8.10 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.timeline@7f8b2fb101b6)
+    com.unity.visualscripting@1.9.9 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.visualscripting@191c0d7e3b69)
+    com.unity.ide.visualstudio@2.0.26 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.ide.visualstudio@a99d56dec63f)
+    com.unity.ide.rider@3.0.39 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.ide.rider@4504839d03f7)
+    com.unity.editorcoroutines@1.0.1 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.editorcoroutines@54394ed3283c)
+    com.unity.performance.profile-analyzer@1.3.1 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.performance.profile-analyzer@311968ce4be7)
+    com.unity.testtools.codecoverage@1.3.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.testtools.codecoverage@19a841221620)
+    com.unity.settings-manager@2.1.1 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.settings-manager@0b8638c5ce86)
+  Built-in packages:
+    com.unity.feature.development@1.0.2 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.feature.development@767aadbc6eb7)
+    com.unity.multiplayer.center@1.0.1 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.ugui@2.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.ugui@bb329a87fcdc)
+    com.unity.modules.accessibility@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.test-framework@1.6.0 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d)
+    com.unity.ext.nunit@2.0.5 (location: C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\UnityValidation\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.03 seconds
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/UnityValidation
+DisplayProgressbar: Compiling Scripts
+ExitCode: 0 Duration: 1s842ms
+[503/509    0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+[504/509    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+[505/509    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
+[506/509    0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[507/509    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[508/509    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (1.80 seconds), 6 items updated, 509 evaluated
+AssetDatabase: script compilation time: 2.320915s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  1.052 seconds
+Refreshing native plugins compatible for Editor in 1.79 ms, found 3 plugins.
+Native extension for iOS target not found
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.827 seconds
+Domain Reload Profiling: 1871ms
+	BeginReloadAssembly (380ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (21ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (163ms)
+	RebuildCommonClasses (45ms)
+	RebuildNativeTypeToScriptingClass (15ms)
+	initialDomainReloadingComplete (37ms)
+	LoadAllAssembliesAndSetupDomain (566ms)
+		LoadAssemblies (444ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (265ms)
+			TypeCache.Refresh (186ms)
+				TypeCache.ScanAssembly (176ms)
+			BuildScriptInfoCaches (69ms)
+			ResolveRequiredComponents (6ms)
+	FinalizeReload (828ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (685ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (39ms)
+			SetLoadedEditorAssemblies (4ms)
+			BeforeProcessingInitializeOnLoad (171ms)
+			ProcessInitializeOnLoadAttributes (390ms)
+			ProcessInitializeOnLoadMethodAttributes (71ms)
+			AfterProcessingInitializeOnLoad (10ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (16ms)
+Refreshing native plugins compatible for Editor in 1.52 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=f1c9271904a81504fb682d6809ef1ba7): Total: 4.873 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=1208 ms
+		Asset DB Callback time: managed=205 ms, native=35 ms
+		Scripting: domain reloads=1, domain reload time=1052 ms, compile time=2323 ms, other=48 ms
+		Project Asset Count: scripts=1059, non-scripts=3073
+		Asset File Changes: new=0, changed=6, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.001ms
+	InvokePackagesCallback: 31.877ms
+	ApplyChangesToAssetFolders: 0.722ms
+	Scan: 115.301ms
+	OnSourceAssetsModified: 0.847ms
+	CategorizeAssetsWithTransientArtifact: 37.403ms
+	ProcessAssetsWithTransientArtifactChanges: 65.517ms
+	CategorizeAssets: 31.504ms
+	ImportOutOfDateAssets: 836.693ms (-1487.752ms without children)
+		CompileScripts: 2323.165ms
+		ReloadNativeAssets: 0.011ms
+		UnloadImportedAssets: 0.201ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.600ms
+		InitializingProgressBar: 0.001ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.001ms
+		OnDemandSchedulerStart: 0.467ms
+	PostProcessAllAssets: 207.482ms
+	Hotreload: 3.146ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.002ms
+	UnloadStreamsBegin: 1.223ms
+	PersistCurrentRevisions: 0.214ms
+	UnloadStreamsEnd: 0.001ms
+	GenerateScriptTypeHashes: 2.906ms
+	Untracked: 3541.526ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Scanning for USB devices : 4.968ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-FantasyKingdomR1Validation
+Unloading 20 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 4495 unused Assets / (14.5 MB). Loaded Objects now: 5075.
+Memory consumption went from 162.1 MB to 147.5 MB.
+Total: 10.913700 ms (FindLiveObjects: 0.382800 ms CreateObjectMapping: 0.442800 ms MarkObjects: 5.935200 ms  DeleteObjects: 4.151800 ms)
+
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Ninja.asset using Guid(5139842c4420f2c4a9d23bb5dd5951cf) (NativeFormatImporter)Main Object Name 'R1_Ninja_Chess' does not match filename 'Ninja'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: '0d5489ce2a5f6733ef50f46d5ce0525e') in 0.0085699 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Scout.asset using Guid(a2c58784ba6f3bb4b930d3ff348e0585) (NativeFormatImporter)Main Object Name 'R1_Scout_Chess' does not match filename 'Scout'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: '90eb74dbd90f9d379c1a7dcf1189e84b') in 0.0027642 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Crossbow.asset using Guid(d258a2e06ad6c0f4384404225386a518) (NativeFormatImporter)Main Object Name 'R1_Crossbow_Chess' does not match filename 'Crossbow'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: '831a6df212e4aecc3fec7159a68b533b') in 0.0035568 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Knight.asset using Guid(a478e0ed9d08cf346a838411ac34beaf) (NativeFormatImporter)Main Object Name 'R1_Knight_Chess' does not match filename 'Knight'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'bc7d9cddb260aee4d38cc59f8056cb49') in 0.0026463 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/HolyKnight.asset using Guid(75e5db8225902c04dbfe417dab5c46c5) (NativeFormatImporter)Main Object Name 'R1_HolyKnight_Chess' does not match filename 'HolyKnight'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'a1850155cdfae2d835ba4fe8dcdbe9b0') in 0.0031499 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Assassin.asset using Guid(75eb4fac7e7cbfe4b881a9dc5239c7af) (NativeFormatImporter)Main Object Name 'R1_Assassin_Chess' does not match filename 'Assassin'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'b957f4d74b98bd7daf15c7eefbc39748') in 0.0023648 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Bomber.asset using Guid(d5098eec13212f8448ba734659de2d56) (NativeFormatImporter)Main Object Name 'R1_Bomber_Chess' does not match filename 'Bomber'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'e23393e65dfa6945393829a046fd5920') in 0.0031633 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Berserker.asset using Guid(b665b94f3eacb3a4da300c17ee1cff1a) (NativeFormatImporter)Main Object Name 'R1_Berserker_Chess' does not match filename 'Berserker'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: '71656a04d5e0b5fddbe54db1a588c6de') in 0.0030121 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Guardian.asset using Guid(7960e48127ad93c499e24a639e7ab006) (NativeFormatImporter)Main Object Name 'R1_Guardian_Chess' does not match filename 'Guardian'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'd02a36bdc05ebcb8b164cf57ff6f3e35') in 0.0024283 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Navigator.asset using Guid(7906427c7a9d06c48b0c6766099d7e0d) (NativeFormatImporter)Main Object Name 'R1_Navigator_Chess' does not match filename 'Navigator'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'a521e7572f7bedfb8d57a386254301cf') in 0.0030375 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Magicsniper.asset using Guid(9910c8d30e0ebcd4688e82800d138efa) (NativeFormatImporter)Main Object Name 'R1_Magicsniper_Chess' does not match filename 'Magicsniper'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'e6d24466e01fca5f898d827b31b40dd6') in 0.0024421 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Archer.asset using Guid(a96b458f6d25de14f96d9a88d4a9ddd7) (NativeFormatImporter)Main Object Name 'R1_Archer_Chess' does not match filename 'Archer'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: '752fdd66f679c1c28c9a3475d529bde6') in 0.0037582 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Samurai.asset using Guid(5a111b4c444842249b89de877f4c5e5b) (NativeFormatImporter)Main Object Name 'R1_Samurai_Chess' does not match filename 'Samurai'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: '7d31dd901b7c7e096b4df94c17ab10a1') in 0.0028266 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/WhiteMage.asset using Guid(3b251026367ddb94e8a61122adf55e36) (NativeFormatImporter)Main Object Name 'R1_WhiteMage_Chess' does not match filename 'WhiteMage'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'd2ee02e2d581520022efe8b3be422ea7') in 0.0030431 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Magic.asset using Guid(dc38d86f8579a194abf997ec468810c9) (NativeFormatImporter)Main Object Name 'R1_Magic_Chess' does not match filename 'Magic'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'af2e6dfbce1ea148eb2270b25d90fc92') in 0.0025462 seconds
+Start importing Assets/_FantasyKingdom/UnitVisuals/Meshes/Priest.asset using Guid(0e528e209d5acce4ba7e2a9b55f068d9) (NativeFormatImporter)Main Object Name 'R1_Priest_Chess' does not match filename 'Priest'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:61)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+[Assets/Editor/R1UnitVisualInstaller.Meshes.cs line 61]
+
+ -> (artifact id: 'f853348a97bb3b40f4c39046378376c0') in 0.002877 seconds
+Refreshing native plugins compatible for Editor in 1.15 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=5baec860e85cadd4c8b32eefa76215c6): Total: 0.095 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[R1UnitVisuals] 生成モデル検証OK: 16 Mesh / 1 Material / triangles 21764
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:ValidateAssets () (at Assets/Editor/R1UnitVisualInstaller.cs:127)
+R1UnitVisualInstaller:RebuildForValidation () (at Assets/Editor/R1UnitVisualInstaller.Meshes.cs:62)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:32)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 127)
+
+Start importing Assets/_FantasyKingdom/Art/Buildings/BuildingPalette.png using Guid(115e319b40226a54db8bdbb1f4abf3d8) (TextureImporter) -> (artifact id: 'd3d2f9b542768a3fe670666f333a393d') in 0.0120255 seconds
+Refreshing native plugins compatible for Editor in 1.21 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=b9bd71b73b4f0f242a81685f2aebfafc): Total: 0.033 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/Art/Buildings/BuildingPalette.png using Guid(115e319b40226a54db8bdbb1f4abf3d8) (TextureImporter) -> (artifact id: 'd3d2f9b542768a3fe670666f333a393d') in 0.0022701 seconds
+Refreshing native plugins compatible for Editor in 1.10 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=90c48608fdb9862449d6e922087c591f): Total: 0.020 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyBuildingPalette.png using Guid(9c8bd7a1be2653b4391116791a1acb35) (TextureImporter) -> (artifact id: 'cbaeb0ee739e9536a78f2c4e81e08e7e') in 0.0029319 seconds
+Refreshing native plugins compatible for Editor in 1.07 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=1f64e7f99f5236940a90b4a803822982): Total: 0.021 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyBuildingPalette.png using Guid(9c8bd7a1be2653b4391116791a1acb35) (TextureImporter) -> (artifact id: 'cbaeb0ee739e9536a78f2c4e81e08e7e') in 0.0025085 seconds
+Refreshing native plugins compatible for Editor in 1.50 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=223665c008a64224ea1de804f5498442): Total: 0.021 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/31a907b378641d84eaafe1ebbacd8c19'
+	Deserialize:            1.002 ms
+	Integration:            0.582 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.014 ms
+	Total Operation Time:   1.599 ms
+Asset Pipeline Refresh (id=aacff53b16cc33f438ab0bbde648e979): Total: 0.012 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/15d787d8c76568a48abb1683a083b30f'
+	Deserialize:            0.466 ms
+	Integration:            0.194 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.010 ms
+	Total Operation Time:   0.672 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Field/Visual.prefab using Guid(cbec36e024eb74c47ac07b0f9142dde3) (PrefabImporter) -> (artifact id: '4002850406f7281a10915931767dc2ff') in 0.0054445 seconds
+Refreshing native plugins compatible for Editor in 1.34 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=07969c81a27242446ae937cf3641b5ba): Total: 0.026 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=451396fb5b41b7e4ab69fe710e289523): Total: 0.011 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/8310640f90c54a54689fc2644473c165'
+	Deserialize:            0.265 ms
+	Integration:            0.246 ms
+	Integration of assets:  0.041 ms
+	Thread Wait Time:       -0.027 ms
+	Total Operation Time:   0.525 ms
+Asset Pipeline Refresh (id=f150a7b15c3389940a8f246ae9e5ba18): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/f8ab6310b54009741ad31bb409061289'
+	Deserialize:            0.376 ms
+	Integration:            0.223 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.009 ms
+	Total Operation Time:   0.610 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Bakery/Visual.prefab using Guid(42b5ac08cf4e3c247b073972bba2fb91) (PrefabImporter) -> (artifact id: '581ab7d32267c0944435ca051bfeb9db') in 0.0032065 seconds
+Refreshing native plugins compatible for Editor in 1.52 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=24a9b9287fe665d468744b485604a6c1): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=a12c83f510b51db41b80ecfe5c008c6c): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/7056c98fb9c88fd45ae3dd5fd8d5ed5e'
+	Deserialize:            0.253 ms
+	Integration:            0.320 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.014 ms
+	Total Operation Time:   0.588 ms
+Asset Pipeline Refresh (id=084874c4332a6354c9ba7175e10ee654): Total: 0.009 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/338a1361d7fd2bb49aef9d9549770064'
+	Deserialize:            0.360 ms
+	Integration:            0.128 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.011 ms
+	Total Operation Time:   0.500 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/LoggingCamp/Visual.prefab using Guid(9ba1871201e5f8e40b456f198e448880) (PrefabImporter) -> (artifact id: 'e15fea7ac3f26484a16ff5bf90c9127d') in 0.0034459 seconds
+Refreshing native plugins compatible for Editor in 1.62 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=9b34c764f0f691a40821d0fca300ec37): Total: 0.023 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=974133b8a04d72f4fbbb496590b49034): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/6c3b1193edb680c4eb64ef47015052f9'
+	Deserialize:            0.244 ms
+	Integration:            0.183 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.013 ms
+	Total Operation Time:   0.442 ms
+Asset Pipeline Refresh (id=6d6a0297c4de3564180c54543fc22d0f): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/24514d0b09a71394baee28a4e638939e'
+	Deserialize:            0.316 ms
+	Integration:            0.174 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.008 ms
+	Total Operation Time:   0.499 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Quarry/Visual.prefab using Guid(6e43b405a0148914f9f0de145edeb9b1) (PrefabImporter) -> (artifact id: '26d329b3cdd85bf7d1cd954ed6ad23cd') in 0.0028195 seconds
+Refreshing native plugins compatible for Editor in 1.50 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=3a3bef36358d5ad4a9b9a0ff0f2ba919): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=a81b794aef838bd4dab68a1610aa0916): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/50008f8c8fb4d094eb1233eee3ea988a'
+	Deserialize:            0.319 ms
+	Integration:            0.143 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.010 ms
+	Total Operation Time:   0.473 ms
+Asset Pipeline Refresh (id=0bba3a45897f99e4a91adb8c52a7958d): Total: 0.011 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/b7af2e8d6d036264dbb859246a32d9df'
+	Deserialize:            0.369 ms
+	Integration:            0.147 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.011 ms
+	Total Operation Time:   0.528 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Mine/Visual.prefab using Guid(cbe51fffe9c48d6419d2db8e9894ad49) (PrefabImporter) -> (artifact id: 'd88d2689b6eec6a460ada8cffdfd2c97') in 0.0035637 seconds
+Refreshing native plugins compatible for Editor in 1.22 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=28fe1bb1c9e47b446ae198cd5a7ea188): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=52f6984aa614e074f80323a7565aa736): Total: 0.011 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/b12508f6488becc44b6289e6b821b1a6'
+	Deserialize:            0.339 ms
+	Integration:            0.168 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.012 ms
+	Total Operation Time:   0.521 ms
+Asset Pipeline Refresh (id=f20b34147640231499946518f1956633): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/c762777c4b3a45e4691bd9072f63687c'
+	Deserialize:            0.422 ms
+	Integration:            0.204 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.012 ms
+	Total Operation Time:   0.640 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Barracks/Visual.prefab using Guid(eb03331e601795146abc7106d63ecbcd) (PrefabImporter) -> (artifact id: '3c95cc5cbf9a94ff086d35a4efe0e99b') in 0.0035317 seconds
+Refreshing native plugins compatible for Editor in 1.22 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=e0d93ca8ec9cfe2468188d1252ff9423): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=b70d431c9ce82674496327822ff09efd): Total: 0.009 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/53d49e894cebcaa45b8aa3cd5c63494a'
+	Deserialize:            0.257 ms
+	Integration:            0.168 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.008 ms
+	Total Operation Time:   0.435 ms
+Asset Pipeline Refresh (id=94c388f2a39bfc142a6df51f9a1f685b): Total: 0.009 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/aa6e263eedfc1824fafa37c4ff0db679'
+	Deserialize:            0.428 ms
+	Integration:            0.189 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.021 ms
+	Total Operation Time:   0.639 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/House/Visual.prefab using Guid(3446b64f388ed3d49a51b4f18c8f98da) (PrefabImporter) -> (artifact id: '6fab2fe2107cc019731c227f9197c033') in 0.0034894 seconds
+Refreshing native plugins compatible for Editor in 1.06 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=d0a0b8a56e4b35c479a8788fbe5d4097): Total: 0.021 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=4b0396245d07e504a808dbf87678935e): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/1c8ed70070650b749916b8e34dfa2387'
+	Deserialize:            0.264 ms
+	Integration:            0.169 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.015 ms
+	Total Operation Time:   0.450 ms
+Asset Pipeline Refresh (id=1a2a58b8982435f4cbf87821c4f3dda0): Total: 0.011 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/bed7f5617913efa48a968e19c498c36f'
+	Deserialize:            0.345 ms
+	Integration:            0.177 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.014 ms
+	Total Operation Time:   0.539 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/LuxuryHouse/Visual.prefab using Guid(33ab6da3827c07c4e8b3110b79273d6c) (PrefabImporter) -> (artifact id: '0f35c0159cc4c732dfae681260d19406') in 0.0036115 seconds
+Refreshing native plugins compatible for Editor in 1.45 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=adbc5d325c9986f43a63a8b38d4bf112): Total: 0.023 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=f204fb4df0fc42c478d0c14c242174e5): Total: 0.009 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/1dabede05137cd244a45724951e53487'
+	Deserialize:            0.305 ms
+	Integration:            0.120 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.010 ms
+	Total Operation Time:   0.437 ms
+Asset Pipeline Refresh (id=ad7f12e48eb13064499ffa7b9d21da3f): Total: 0.011 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/19b4ea404027ef1408f157eb17da525b'
+	Deserialize:            0.334 ms
+	Integration:            0.192 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.014 ms
+	Total Operation Time:   0.541 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Well/Visual.prefab using Guid(d5f5f9b071cbde14abfe62c61ecd7dd6) (PrefabImporter) -> (artifact id: '5a78fe28cdcc2cf676b8caf20a42b594') in 0.0031905 seconds
+Refreshing native plugins compatible for Editor in 1.33 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=72cc81b3f1860e840ae29db2691b910f): Total: 0.021 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=66ebbdd1692deae4ea38ad5c62e11cb0): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/0d4749d6a4e74db45bce1172de57906d'
+	Deserialize:            0.246 ms
+	Integration:            0.151 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.015 ms
+	Total Operation Time:   0.413 ms
+Asset Pipeline Refresh (id=3d0d3879fa6ef164882bd4e941447b78): Total: 0.009 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/52399dbe8d370c34abc843cc7a6924da'
+	Deserialize:            0.345 ms
+	Integration:            0.168 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.015 ms
+	Total Operation Time:   0.530 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Warehouse/Visual.prefab using Guid(ee38ceba4d5561647986dee53353d53f) (PrefabImporter) -> (artifact id: '701c59e96ed6fa8b9f5598a8a5907f37') in 0.0030567 seconds
+Refreshing native plugins compatible for Editor in 1.54 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=34fc9e14a0af5eb4eb9ac3f38ca98185): Total: 0.023 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=36d4b5cdd11737140aff2e4892d55ce7): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/c9918fa08eb6e6a4197a5aeec319dbb0'
+	Deserialize:            0.253 ms
+	Integration:            0.135 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.008 ms
+	Total Operation Time:   0.398 ms
+Asset Pipeline Refresh (id=94af613a19eef2a4290248a0592855aa): Total: 0.011 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/98b41cf3fbea38844917a3d786d9c523'
+	Deserialize:            0.326 ms
+	Integration:            0.153 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.013 ms
+	Total Operation Time:   0.493 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/WoodWall/Visual.prefab using Guid(6f8b0215084101a488aa349f2202c415) (PrefabImporter) -> (artifact id: '2fe61dc2eaf85a9d60758a7d9dde3a6c') in 0.0028814 seconds
+Refreshing native plugins compatible for Editor in 1.30 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=8322b673aebc8fb4c8bd93b3b1eaf0d7): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=d278182b9d597a04c8c95c5dcf7d03a1): Total: 0.011 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/86adce81ef4f3cd4d933480c48917a31'
+	Deserialize:            0.311 ms
+	Integration:            0.136 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.013 ms
+	Total Operation Time:   0.461 ms
+Asset Pipeline Refresh (id=865649232fc29c844b0c2c0a5de60f10): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/5933092b3653baf41a7645aade22f405'
+	Deserialize:            0.520 ms
+	Integration:            0.186 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.012 ms
+	Total Operation Time:   0.720 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/StoneWall/Visual.prefab using Guid(e91ffcf0bc59d12448e6336dc41ad638) (PrefabImporter) -> (artifact id: '01cb46713ab09a066c6ed4ba3bcaffb9') in 0.0034406 seconds
+Refreshing native plugins compatible for Editor in 1.15 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=d0e423323b11ef14780f1a2713056549): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=c886bb5a6e73117449002d719e7abbb2): Total: 0.012 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/313e7171a6fd6e84daa96b9f7f5ca934'
+	Deserialize:            0.245 ms
+	Integration:            0.140 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.016 ms
+	Total Operation Time:   0.403 ms
+Asset Pipeline Refresh (id=4e47a4d913f5c4b4a84e46a777eccd2f): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/6af51d21989ff2349b0b5b30986dbf46'
+	Deserialize:            0.337 ms
+	Integration:            0.169 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.016 ms
+	Total Operation Time:   0.523 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Mortar/Visual.prefab using Guid(f49bd17c8dea5fc44ad26a9dfd8d0abb) (PrefabImporter) -> (artifact id: 'd20788afe2b10a0c92fc3a1865c469c6') in 0.0027968 seconds
+Refreshing native plugins compatible for Editor in 1.33 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=9410836bf9df63c419ab1599d8587ed0): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=409c387c16819504b9f30d0501dc882f): Total: 0.011 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/361aab4ef65321f4eb1db7c6ab2e7c53'
+	Deserialize:            0.264 ms
+	Integration:            0.150 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.014 ms
+	Total Operation Time:   0.430 ms
+Asset Pipeline Refresh (id=ada193f516becd24c8eecbbfb4098768): Total: 0.012 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/8e6e81748b4f114428f32b98a3d62ba3'
+	Deserialize:            0.396 ms
+	Integration:            0.162 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.015 ms
+	Total Operation Time:   0.574 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/Cannon/Visual.prefab using Guid(a42f256d07767f9448e254b484f3ec2c) (PrefabImporter) -> (artifact id: '1c8a11591089cacdc7eb1b9b60c72220') in 0.0034374 seconds
+Refreshing native plugins compatible for Editor in 1.81 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=261ac423ffc8f7e4a996ad8d008dbd4c): Total: 0.025 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=a2c135935519a4745b4ad9bb2427c24a): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/4293b5381bb7c6145bf8666e665da3ba'
+	Deserialize:            0.250 ms
+	Integration:            0.131 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.010 ms
+	Total Operation Time:   0.392 ms
+Asset Pipeline Refresh (id=4fc2f6923a4fee44f84471d7c997193d): Total: 0.008 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/1de60ff17e0df71449be7076340c3082'
+	Deserialize:            0.379 ms
+	Integration:            0.370 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.012 ms
+	Total Operation Time:   0.763 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/RestraintTrap/Visual.prefab using Guid(d93c80a947b2e1647993929f5d94d086) (PrefabImporter) -> (artifact id: '8de4d5d31e0953a63c6ca5dd8721cb2b') in 0.0034449 seconds
+Refreshing native plugins compatible for Editor in 1.86 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=165bce01ddeaa9f49a9a848842e9ca19): Total: 0.023 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=b796da61c4a23b9469a7682e8c90b21e): Total: 0.009 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/59e4d2d2f96f1ab42a5b918b5c755834'
+	Deserialize:            0.340 ms
+	Integration:            0.161 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.013 ms
+	Total Operation Time:   0.516 ms
+Asset Pipeline Refresh (id=f3c2f8d810020ee45946ca13b3016609): Total: 0.009 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/4f27eea7de9fb5642b7fe2489396f1de'
+	Deserialize:            0.353 ms
+	Integration:            0.291 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.013 ms
+	Total Operation Time:   0.658 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/SpikeTrap/Visual.prefab using Guid(c33805bb0ec5e704e814fef89392eda8) (PrefabImporter) -> (artifact id: 'bd6ee8360eb564892dc33242eb2a9188') in 0.0031969 seconds
+Refreshing native plugins compatible for Editor in 1.44 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=5ae06c06dca1e4f4c9064dc5d0d7f015): Total: 0.022 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=5c0866e62eb84e840b56cad124900418): Total: 0.012 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/6334ad41a697d4f458f88272f1b840ea'
+	Deserialize:            0.302 ms
+	Integration:            0.167 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.011 ms
+	Total Operation Time:   0.482 ms
+Asset Pipeline Refresh (id=a95491983f9148f4ba57dc52b8d8fa65): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/33f7793b3ef669442b7810842a2ffd2c'
+	Deserialize:            0.394 ms
+	Integration:            0.220 ms
+	Integration of assets:  0.002 ms
+	Thread Wait Time:       0.018 ms
+	Total Operation Time:   0.633 ms
+Start importing Assets/_FantasyKingdom/GameContent/Buildings/既存の建物データ/HeroSword/Visual.prefab using Guid(e41add1a66adec441953fb0c97b5bf5f) (PrefabImporter) -> (artifact id: 'c31f3f8a2daea70cb181e4ab0599e671') in 0.0034049 seconds
+Refreshing native plugins compatible for Editor in 1.16 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=56a5f23328e730843bccfab52690ea0b): Total: 0.023 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=f52c60c53c8dd7344ac50a5d1d5c1798): Total: 0.010 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/Art/Buildings/BuildingPalette.mat using Guid(5207e2848104ecc449b0b5e2ebfb7874) (NativeFormatImporter) -> (artifact id: 'b50b66d2358d28deda82e6f4dd74c56f') in 0.0028071 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyBuildingPalette.mat using Guid(6e08e1a5650968f4aa56dcc62ea6bb78) (NativeFormatImporter) -> (artifact id: '1233ac09adebd2fd40f3b1eece3b2fbd') in 0.0023897 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Mine.asset using Guid(209446e5667a8a94ba7b3f2d2f677bb3) (NativeFormatImporter)Main Object Name 'Mine_MarbleKingdom' does not match filename 'Mine'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '3eddab3167804787c826dcf301f63ef0') in 0.0028952 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Mortar.asset using Guid(60ee9a55853cb774790a075a72a247b5) (NativeFormatImporter)Main Object Name 'Mortar_DarkKingdom' does not match filename 'Mortar'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '8786ce5d0e10cb1f6bd03c85bba689df') in 0.0026428 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/HeroSword.asset using Guid(14f39f4c86a65a641a5113e0b5e9eb96) (NativeFormatImporter)Main Object Name 'HeroSword_MarbleKingdom' does not match filename 'HeroSword'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '531d6f257a822114de03495ba1d9c0cb') in 0.0023392 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/House.asset using Guid(84464074179d68847bf2d4a077281dba) (NativeFormatImporter)Main Object Name 'House_DarkKingdom' does not match filename 'House'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'a9d7607b455a6e837799f65fa84dffeb') in 0.0031386 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Quarry.asset using Guid(c4eaed6df6f538140a0a6ba41e3da8f8) (NativeFormatImporter)Main Object Name 'Quarry_MarbleKingdom' does not match filename 'Quarry'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '3d321cf8eb1f5ed0bf5295914ce57576') in 0.0024957 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/StoneWall.asset using Guid(c42ddcb3d70eff447ac85f6f923e6b13) (NativeFormatImporter)Main Object Name 'StoneWall_DarkKingdom' does not match filename 'StoneWall'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '251cf36a56649bb1d6d7d6ebb9b3c43c') in 0.0026354 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Field.asset using Guid(d420cfe8f3e056e4da0d251ce690cf95) (NativeFormatImporter)Main Object Name 'Field_DarkKingdom' does not match filename 'Field'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '094bb0b50353f70eb01c501c918e1f98') in 0.0027764 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/WoodWall.asset using Guid(550c0466d30596c4da8f3a4e46af4c72) (NativeFormatImporter)Main Object Name 'WoodWall_DarkKingdom' does not match filename 'WoodWall'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '03b81b7d2afafc099d01725bf274398f') in 0.0031682 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/LoggingCamp.asset using Guid(b5350ef038e1d1547bc48bf6ea389b0a) (NativeFormatImporter)Main Object Name 'LoggingCamp_DarkKingdom' does not match filename 'LoggingCamp'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '1c147677f24c4ccefeffe65d17e31509') in 0.0030884 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Mine.asset using Guid(f56966b244acc8c478443e2e03541d95) (NativeFormatImporter)Main Object Name 'Mine_DarkKingdom' does not match filename 'Mine'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '6b4b0a095c734cc56521536acb461bfc') in 0.0030023 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Barracks.asset using Guid(165bdf5b3b1356c4eb89dac62608601e) (NativeFormatImporter)Main Object Name 'Barracks_DarkKingdom' does not match filename 'Barracks'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '99756f5a526e751293ba801a25a4da8d') in 0.0027763 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/SpikeTrap.asset using Guid(263c0db5bb614b14cb53b2a64ae14a26) (NativeFormatImporter)Main Object Name 'SpikeTrap_MarbleKingdom' does not match filename 'SpikeTrap'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '55e1c477135dfd28e005087039d11c37') in 0.0024728 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Cannon.asset using Guid(f652e269442d33243a08dfcabf0e43c9) (NativeFormatImporter)Main Object Name 'Cannon_DarkKingdom' does not match filename 'Cannon'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '8f71c7d50abbeebb68d8d9eb6b7003f9') in 0.002308 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/SpikeTrap.asset using Guid(175d5d4d28a237644b129ac352041fce) (NativeFormatImporter)Main Object Name 'SpikeTrap_DarkKingdom' does not match filename 'SpikeTrap'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'ca438f6b6739c02036eff670b604a890') in 0.0030117 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/LoggingCamp.asset using Guid(b74b7c8d60aff2042b3e2cf28d8b4cba) (NativeFormatImporter)Main Object Name 'LoggingCamp_MarbleKingdom' does not match filename 'LoggingCamp'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'daeb1fa44d5e41bb7d3eef771789d381') in 0.0029554 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Cannon.asset using Guid(284f2fdf6c2961b449a1d352a6ee6c76) (NativeFormatImporter)Main Object Name 'Cannon_MarbleKingdom' does not match filename 'Cannon'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'ffe9ae75084817d529729c678a54fa93') in 0.0028821 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/House.asset using Guid(68b5d1233bfca0a42b65a4e2261ec449) (NativeFormatImporter)Main Object Name 'House_MarbleKingdom' does not match filename 'House'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '8d5a17cb98b081fa9655e65e89d9396c') in 0.0027306 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/HeroSword.asset using Guid(b8415f8a6a34cea48b1428da6d69cb88) (NativeFormatImporter)Main Object Name 'HeroSword_DarkKingdom' does not match filename 'HeroSword'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '7dc211e7cfce659c27672153094a353d') in 0.0023963 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Barracks.asset using Guid(e845231124cff4f4ab65dd408eaf3c7a) (NativeFormatImporter)Main Object Name 'Barracks_MarbleKingdom' does not match filename 'Barracks'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'ea5d528ee525f535e0a43c9bf8cc0ed4') in 0.0034384 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Quarry.asset using Guid(195803f4023cbab489c148af3ddaec39) (NativeFormatImporter)Main Object Name 'Quarry_DarkKingdom' does not match filename 'Quarry'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '7f779188802a59daf724a97c2e7eb951') in 0.0034552 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Bakery.asset using Guid(39670faa9263fcc45b15fa4d6408f425) (NativeFormatImporter)Main Object Name 'Bakery_DarkKingdom' does not match filename 'Bakery'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'c36117cf936132caad9d561a4ae36fb2') in 0.0027786 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Well.asset using Guid(896df1eae991a734eb26532558f4c508) (NativeFormatImporter)Main Object Name 'Well_DarkKingdom' does not match filename 'Well'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '1b4d9e92b96f620d629094658c014729') in 0.0028717 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Bakery.asset using Guid(a9f22fff65306c146877372076671c69) (NativeFormatImporter)Main Object Name 'Bakery_MarbleKingdom' does not match filename 'Bakery'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '7db7e674b9332fc2898b2ba0ce79fcdb') in 0.0023981 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/StoneWall.asset using Guid(d956d205f9d63174ca1677b236e34ac6) (NativeFormatImporter)Main Object Name 'StoneWall_MarbleKingdom' does not match filename 'StoneWall'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '5e5e1663344ff88bd0a273958536a154') in 0.0030571 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/LuxuryHouse.asset using Guid(4a3143e88fefb2043a6a32f4c3617c3d) (NativeFormatImporter)Main Object Name 'LuxuryHouse_DarkKingdom' does not match filename 'LuxuryHouse'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '67611ba3823c57c75960f286daa9676a') in 0.0028669 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Well.asset using Guid(3b9b6c0846eb3494fb0483b73cd22065) (NativeFormatImporter)Main Object Name 'Well_MarbleKingdom' does not match filename 'Well'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'bf5948fc10567a7e7edd8d56403f02fa') in 0.0028176 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Mortar.asset using Guid(8b07409f467486a40b89789565d45d59) (NativeFormatImporter)Main Object Name 'Mortar_MarbleKingdom' does not match filename 'Mortar'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'e049a9848ab6fa7236af68265a2acf58') in 0.0031199 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/RestraintTrap.asset using Guid(4c15f1ed9be11534dba8a291bb6698d6) (NativeFormatImporter)Main Object Name 'RestraintTrap_MarbleKingdom' does not match filename 'RestraintTrap'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '2b1eecfe2ba8ff71fe31f6e4d54fa810') in 0.0024481 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/WoodWall.asset using Guid(4dd36a88c59650d419b6a14be00192ae) (NativeFormatImporter)Main Object Name 'WoodWall_MarbleKingdom' does not match filename 'WoodWall'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: '5315566d8e83fb2c785df77df0ad4820') in 0.0030498 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/RestraintTrap.asset using Guid(7d07bbb78b048fe4aa5e50fd8e2d2628) (NativeFormatImporter)Main Object Name 'RestraintTrap_DarkKingdom' does not match filename 'RestraintTrap'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'b878e8336b309c9c927d70eae3157315') in 0.0033342 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/LuxuryHouse.asset using Guid(9dc55cb667a7f7649922dc8f8689b14c) (NativeFormatImporter)Main Object Name 'LuxuryHouse_MarbleKingdom' does not match filename 'LuxuryHouse'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'd69b85359ab8204aa47b627f074ff92c') in 0.0031848 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Field.asset using Guid(dd3e58f87a1b10c46b12c2fce368ed3d) (NativeFormatImporter)Main Object Name 'Field_MarbleKingdom' does not match filename 'Field'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'cc654f8c080f71c1b9ae65c6091fee8f') in 0.0026591 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/Meshes/Warehouse.asset using Guid(3ffa500f90858734281ed0d95529f7ef) (NativeFormatImporter)Main Object Name 'Warehouse_MarbleKingdom' does not match filename 'Warehouse'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'aa60a1fab03824233a18e6d8acc9a344') in 0.0028182 seconds
+Start importing Assets/_FantasyKingdom/Art/Buildings/EnemyMeshes/Warehouse.asset using Guid(cf5e2be20f27ec3498bc7a92cbc588cf) (NativeFormatImporter)Main Object Name 'Warehouse_DarkKingdom' does not match filename 'Warehouse'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+[Assets/Editor/BuildingVisualGenerator.Kingdom.cs line 67]
+
+ -> (artifact id: 'c71d62bd1d576479678e8b6a003176c2') in 0.0031715 seconds
+Refreshing native plugins compatible for Editor in 1.74 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=5272037219de8fc4db05d46a704980bf): Total: 0.140 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[KingdomBuildings] ALL PASSED 36 distinct meshes / 2 shared palette materials / totalTriangles=31144
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BuildingVisualGenerator:ValidateKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:319)
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:68)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+(Filename: Assets/Editor/BuildingVisualGenerator.Kingdom.cs Line: 319)
+
+Start importing Assets/_FantasyKingdom/Art/Buildings/Review/KingdomBuildings.png using Guid(f53c3eb80c811554981a293dde852b9c) (TextureImporter) -> (artifact id: '9e1c4f8aa261aa2207efc8b1f15855a5') in 0.1116854 seconds
+Refreshing native plugins compatible for Editor in 1.21 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=0368b2fe03ff2994d89774d805034570): Total: 0.132 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[KingdomBuildings] 17 white marble / 17 dark stone models refined; crystal assets retained; upgraded standard prefabs=17. Custom mesh references retained.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BuildingVisualGenerator:InstallKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:70)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:33)
+
+(Filename: Assets/Editor/BuildingVisualGenerator.Kingdom.cs Line: 70)
+
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Magicsniper.asset using Guid(b0cdfe16d701a3747a02e4b706f5c697) (NativeFormatImporter)Main Object Name '異形_Magicsniper' does not match filename 'Enemy_Magicsniper'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '9a739644bcd42a1871b5ae904cc7a341') in 0.0032328 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Knight.asset using Guid(f015df3d6e5c2f948affba0e8e167aee) (NativeFormatImporter)Main Object Name '異形_Knight' does not match filename 'Enemy_Knight'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'c7aca897113cd98604fb4acddcddde5a') in 0.003278 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Magic.asset using Guid(11096778526803c4ea01181b18f907bd) (NativeFormatImporter)Main Object Name '異形_Magic' does not match filename 'Enemy_Magic'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'd635a26ef521781ac0457965dc537418') in 0.0035084 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Assassin.asset using Guid(82454359016f6064582d2ee5e45592b4) (NativeFormatImporter)Main Object Name '異形_Assassin' does not match filename 'Enemy_Assassin'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '99db2f87e7ab03ccd3d35f80dbc9186b') in 0.0031488 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Ninja.asset using Guid(0388a73f45631ba48b4830d285ff79a9) (NativeFormatImporter)Main Object Name '異形_Ninja' does not match filename 'Enemy_Ninja'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'd40fb98dce3317ae3e47965220cd457e') in 0.0031473 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_HolyKnight.asset using Guid(6312c475847c6ab40bd818e823065a63) (NativeFormatImporter)Main Object Name '異形_HolyKnight' does not match filename 'Enemy_HolyKnight'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'ee354bc7e44fc663d6ef8d916c7e127c') in 0.0028225 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_King.asset using Guid(a4f1bc5d7f53dc346b20d5d800d02f51) (NativeFormatImporter)Main Object Name '異形_King' does not match filename 'Enemy_King'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '6a87557461463ce8ec1494776ed6b28f') in 0.0026616 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Priest.asset using Guid(65f664f729a4d574fa0268d455d57e01) (NativeFormatImporter)Main Object Name '異形_Priest' does not match filename 'Enemy_Priest'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'ac7a8bc50c706f5c4cee6363b6782f74') in 0.0028555 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_GhostKing.asset using Guid(16ab561ccb2698a45b015742ddfd5044) (NativeFormatImporter)Main Object Name '強敵_GhostKing' does not match filename 'Boss_GhostKing'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'a8a39a3759ef43035eed01973dd68efa') in 0.0026753 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Archer.asset using Guid(48214928977545145aae19d19e440b93) (NativeFormatImporter)Main Object Name '異形_Archer' does not match filename 'Enemy_Archer'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'bcbde28c074d88a3a05a5b26f2737bf5') in 0.0030679 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_Dragon.asset using Guid(5801a3609fc6d6c4eaff5eede822cad1) (NativeFormatImporter)Main Object Name '強敵_Dragon' does not match filename 'Boss_Dragon'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'ad903caaea17563512befe732924cf52') in 0.0026763 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_ThunderMagus.asset using Guid(c86f4e0b99446554cbb6f311959b0f6a) (NativeFormatImporter)Main Object Name '強敵_ThunderMagus' does not match filename 'Boss_ThunderMagus'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '732fd8acf7dcb0b0f7751ce4e32aa145') in 0.0028693 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_WhiteMage.asset using Guid(497bf5fa8c717094db6277c9b33c0dcf) (NativeFormatImporter)Main Object Name '異形_WhiteMage' does not match filename 'Enemy_WhiteMage'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'cd5c7e2a1f10b0f76404c743ab41deb6') in 0.0026757 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Bomber.asset using Guid(8a3b0ba6d0617b148b62070ec6300e3e) (NativeFormatImporter)Main Object Name '異形_Bomber' does not match filename 'Enemy_Bomber'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '00b5c2a7403dad939eaace89697bce5f') in 0.0026739 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Boss_RebelKnight.asset using Guid(3bf65d5dc58fc084bb9c1c6187871999) (NativeFormatImporter)Main Object Name '強敵_RebelKnight' does not match filename 'Boss_RebelKnight'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '284964a88682cb0c5c1ccc28b2d260de') in 0.0040192 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Navigator.asset using Guid(7bc7648b2edf8d74fb7b3b1e70cd204e) (NativeFormatImporter)Main Object Name '異形_Navigator' does not match filename 'Enemy_Navigator'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'bca037abe33c38448ba07fd9fc7fc604') in 0.0029578 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Guardian.asset using Guid(1d694c9e49b17534281367523054fa48) (NativeFormatImporter)Main Object Name '異形_Guardian' does not match filename 'Enemy_Guardian'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'c6242db62a683b0081c3ddc186633aa6') in 0.0035499 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Scout.asset using Guid(ed29375912e8ced4493c13be8f266fab) (NativeFormatImporter)Main Object Name '異形_Scout' does not match filename 'Enemy_Scout'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '744c9e576f4f7fed1e0686827430fe4a') in 0.0033781 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Crossbow.asset using Guid(4e35788a2c8f29049bb62ea7c3f143a3) (NativeFormatImporter)Main Object Name '異形_Crossbow' does not match filename 'Enemy_Crossbow'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '67b47dd3b62e5a114c9bf36ac8db52c7') in 0.0028106 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Berserker.asset using Guid(8e29be905badc7d489a5f3ec418156f4) (NativeFormatImporter)Main Object Name '異形_Berserker' does not match filename 'Enemy_Berserker'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: 'd6da4f1d3341445fa2a5340bffc55b6d') in 0.0037411 seconds
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Meshes/Enemy_Samurai.asset using Guid(4f51f025971e1f945a27aaa25d7fb34f) (NativeFormatImporter)Main Object Name '異形_Samurai' does not match filename 'Enemy_Samurai'
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+[Assets/Editor/DarkEnemyVisualInstaller.cs line 93]
+
+ -> (artifact id: '8ebc2ba02720dd26f8b25c5ffe36ad1c') in 0.0035208 seconds
+Refreshing native plugins compatible for Editor in 1.40 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=bcb4efdbf2ddef34fa931f83ea26dcb6): Total: 0.097 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[DarkEnemyVisuals] 検証OK: 21 Mesh、21 Renderer、合計 56852 triangles。
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+DarkEnemyVisualInstaller:ValidateAssets () (at Assets/Editor/DarkEnemyVisualInstaller.cs:110)
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:93)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+(Filename: Assets/Editor/DarkEnemyVisualInstaller.cs Line: 110)
+
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Review/EnemyAberrations.png using Guid(115b55108f0ba134b8ae2d1b8d05252e) (TextureImporter) -> (artifact id: 'f7230247223d40f936f380c127bf8d1e') in 0.0655517 seconds
+Refreshing native plugins compatible for Editor in 1.16 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=a596a70cea91c0c449592a457ddea306): Total: 0.084 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/DarkEnemyVisuals/Review/BossAberrations.png using Guid(a80ce4e381869ea429c63d68e5abd3be) (TextureImporter) -> (artifact id: '0df1291ead41dd7fc6c8588a0013bede') in 0.0191524 seconds
+Refreshing native plugins compatible for Editor in 1.63 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=67cfb0ed9f87e17479e8a6a68c6f8534): Total: 0.039 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[DarkEnemyVisuals] VALIDATION REBUILD: 21 Mesh、Prefab GUID・元Material変更0。
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+DarkEnemyVisualInstaller:RebuildForValidation () (at Assets/Editor/DarkEnemyVisualInstaller.cs:94)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:34)
+
+(Filename: Assets/Editor/DarkEnemyVisualInstaller.cs Line: 94)
+
+[BoardVisualTheme] ALL PASSED units=17 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=38 managedIds=24
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:ValidateAssets () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:62)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:35)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.Review.cs Line: 62)
+
+[BoardVisualTheme] ALL PASSED units=17 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=38 managedIds=24
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:ValidateAssets () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:62)
+BoardVisualThemeInstaller:RenderPreview () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:83)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:36)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.Review.cs Line: 62)
+
+Start importing Assets/_FantasyKingdom/BoardVisualTheme/Review/PlayerWhiteUnits.png using Guid(3cc442b47f5f55043905a1084d15ee43) (TextureImporter) -> (artifact id: 'f56f9ad499e0200f98410dc913b1555c') in 0.0646107 seconds
+Refreshing native plugins compatible for Editor in 1.17 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=706e58a6fd4bed04d852444d4eeb5cea): Total: 0.084 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/BoardVisualTheme/Review/EnemyBlackUnits.png using Guid(0d20e9b544e19e94f894819811a067f6) (TextureImporter) -> (artifact id: 'c07558af98973b72c33f2abafc10f3a4') in 0.0628197 seconds
+Refreshing native plugins compatible for Editor in 1.17 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=49dc7aab3acc9aa4c86b687dccf63587): Total: 0.079 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/BoardVisualTheme/Review/CrimsonBosses.png using Guid(5e66a9c1e2c7dad48b87022e0242d55f) (TextureImporter) -> (artifact id: '94a0e451f3e5aa0a9d739698b355aba7') in 0.0184751 seconds
+Refreshing native plugins compatible for Editor in 1.29 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=8ab7ad586b0398a4a964fe00aed43a7f): Total: 0.036 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/_FantasyKingdom/BoardVisualTheme/Review/FactionBuildings.png using Guid(2e3fa4b46a5254a44b6c3fc83902773d) (TextureImporter) -> (artifact id: '0e396e6cf4d7d082abeba49a923b1b1d') in 0.119141 seconds
+Refreshing native plugins compatible for Editor in 1.63 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=2ae07e7d31dbde1499734aeb2979ff75): Total: 0.141 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[KingdomBuildings] ALL PASSED 36 distinct meshes / 2 shared palette materials / totalTriangles=31144
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BuildingVisualGenerator:ValidateKingdomArt () (at Assets/Editor/BuildingVisualGenerator.Kingdom.cs:319)
+KingdomWorldVisualTests:Run () (at Assets/Editor/KingdomWorldVisualTests.cs:14)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:39)
+
+(Filename: Assets/Editor/BuildingVisualGenerator.Kingdom.cs Line: 319)
+
+[EnvironmentProduction] 見た目検証OK: 10 prefab / 1 material / Collider 0 / Status 0 / triangles 5213
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+TerrainEnvironmentProductionInstaller:ValidateAssets () (at Assets/_FantasyKingdom/EnvironmentVisuals/Editor/TerrainEnvironmentProductionInstaller.cs:201)
+KingdomWorldVisualTests:Run () (at Assets/Editor/KingdomWorldVisualTests.cs:15)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:39)
+
+(Filename: Assets/_FantasyKingdom/EnvironmentVisuals/Editor/TerrainEnvironmentProductionInstaller.cs Line: 201)
+
+[KingdomWorldVisual] ALL PASSED checks=5078
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+KingdomWorldVisualTests:Run () (at Assets/Editor/KingdomWorldVisualTests.cs:46)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:39)
+
+(Filename: Assets/Editor/KingdomWorldVisualTests.cs Line: 46)
+
+[BoardVisualTheme] ALL PASSED units=17 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=38 managedIds=24
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:ValidateAssets () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:62)
+BoardVisualThemeTests:Run () (at Assets/Editor/BoardVisualThemeTests.cs:16)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:40)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.Review.cs Line: 62)
+
+Start importing Assets/Resources/GameContent/BoardVisualTheme.asset using Guid(3493e873e23c52c4983777f34b24786d) (NativeFormatImporter) -> (artifact id: '35699cb6ffcf9d7722940b38d068ef1d') in 0.0022772 seconds
+Refreshing native plugins compatible for Editor in 1.51 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=d38d993e4e65bbe4fa3164ddd507577c): Total: 0.024 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Resources/GameContent/BoardVisualTheme.asset using Guid(3493e873e23c52c4983777f34b24786d) (NativeFormatImporter) -> (artifact id: '35699cb6ffcf9d7722940b38d068ef1d') in 0.0023807 seconds
+Refreshing native plugins compatible for Editor in 1.34 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=a8e414aa225bd3845afc144e854d5748): Total: 0.021 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[BoardVisualTheme] ALL PASSED units=17 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=38 managedIds=24
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:ValidateAssets () (at Assets/Editor/BoardVisualThemeInstaller.Review.cs:62)
+BoardVisualThemeInstaller:Install () (at Assets/Editor/BoardVisualThemeInstaller.cs:48)
+BoardVisualThemeTests:Run () (at Assets/Editor/BoardVisualThemeTests.cs:59)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:40)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.Review.cs Line: 62)
+
+[BoardVisualTheme] 導入完了。既存の白・黒・赤3マテリアルを共有参照。元Material変更0、新Material/Shader/Texture生成0。
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeInstaller:Install () (at Assets/Editor/BoardVisualThemeInstaller.cs:49)
+BoardVisualThemeTests:Run () (at Assets/Editor/BoardVisualThemeTests.cs:59)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:40)
+
+(Filename: Assets/Editor/BoardVisualThemeInstaller.cs Line: 49)
+
+Start importing Assets/Resources/GameContent/BoardVisualTheme.asset using Guid(3493e873e23c52c4983777f34b24786d) (NativeFormatImporter) -> (artifact id: 'e1ce4a61231ae23f52ea0fc8c7f7988c') in 0.0030058 seconds
+Refreshing native plugins compatible for Editor in 1.70 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=146ade13875d7414e91da1967a111a96): Total: 0.021 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[BoardVisualThemeTests] ALL PASSED checks=250
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardVisualThemeTests:Run () (at Assets/Editor/BoardVisualThemeTests.cs:74)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:40)
+
+(Filename: Assets/Editor/BoardVisualThemeTests.cs Line: 74)
+
+[R1UnitVisuals] 生成モデル検証OK: 16 Mesh / 1 Material / triangles 21764
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:ValidateAssets () (at Assets/Editor/R1UnitVisualInstaller.cs:127)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:48)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 127)
+
+[R1UnitVisuals] 保護: Knight / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Archer / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Magic / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Assassin / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Scout / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Priest / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Guardian / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Crossbow / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Magicsniper / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Bomber / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: WhiteMage / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: HolyKnight / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Samurai / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Ninja / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Berserker / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 保護: Navigator / 独自のMaterialまたはRenderer設定
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:63)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 63)
+
+[R1UnitVisuals] 生成モデル検証OK: 16 Mesh / 1 Material / triangles 21764
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:ValidateAssets () (at Assets/Editor/R1UnitVisualInstaller.cs:127)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:76)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 127)
+
+[R1UnitVisuals] 16職種の見た目導入=0、既存設定保護=16。各1 Mesh/1 Renderer、共有Material 1、追加Runtimeスクリプト0。
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualInstaller:Install () (at Assets/Editor/R1UnitVisualInstaller.cs:77)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:64)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualInstaller.cs Line: 77)
+
+[R1UnitVisualTests] 119 checks passed.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+R1UnitVisualTests:Run () (at Assets/Editor/R1UnitVisualTests.cs:67)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:41)
+
+(Filename: Assets/Editor/R1UnitVisualTests.cs Line: 67)
+
+[BoardArtRefinement] ALL PASSED originalCrystalAssets=24
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+BoardArtRefinementValidation:Run () (at Assets/Editor/BoardArtRefinementValidation.cs:42)
+
+(Filename: Assets/Editor/BoardArtRefinementValidation.cs Line: 42)
+
+Batchmode quit successfully invoked - shutting down!
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-pethi-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-pethi channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

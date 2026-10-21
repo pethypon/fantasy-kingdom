@@ -8,14 +8,14 @@ public static partial class R1UnitVisualInstaller
     static ChessMesh MakeVisual(Kind kind)
     {
         var mesh = new ChessMesh();
-        mesh.Lathe(new Vector3(0, -.5f, 0), new[] { new Vector2(.29f, 0), new Vector2(.35f, .025f), new Vector2(.35f, .065f), new Vector2(.31f, .10f) }, 4, 12);
-        mesh.Lathe(new Vector3(0, -.4f, 0), new[] { new Vector2(.30f, 0), new Vector2(.29f, .055f), new Vector2(.23f, .09f) }, 0, 12);
-        mesh.Lathe(new Vector3(0, -.31f, 0), new[] { new Vector2(.235f, 0), new Vector2(.235f, .025f), new Vector2(.20f, .045f) }, 4, 12);
+        mesh.Lathe(new Vector3(0, -.5f, 0), new[] { new Vector2(.32f, 0), new Vector2(.382f, .025f), new Vector2(.382f, .065f), new Vector2(.342f, .10f) }, 4, 12);
+        mesh.Lathe(new Vector3(0, -.4f, 0), new[] { new Vector2(.335f, 0), new Vector2(.32f, .055f), new Vector2(.26f, .09f) }, 0, 12);
+        mesh.Lathe(new Vector3(0, -.31f, 0), new[] { new Vector2(.265f, 0), new Vector2(.265f, .025f), new Vector2(.225f, .045f) }, 4, 12);
         // Brass dots keep the same visible base silhouette at distant map zooms.
         for (int i = 0; i < 8; i++)
         {
             float a = i * Mathf.PI / 4;
-            mesh.Gem(new Vector3(Mathf.Cos(a) * .304f, -.355f, Mathf.Sin(a) * .304f), new Vector3(.014f, .014f, .014f), 4, 4, 4);
+            mesh.Gem(new Vector3(Mathf.Cos(a) * .334f, -.355f, Mathf.Sin(a) * .334f), new Vector3(.018f, .015f, .018f), 4, 4, 4);
         }
         switch (kind)
         {
@@ -35,7 +35,12 @@ public static partial class R1UnitVisualInstaller
             case Kind.Ninja: Ninja(mesh); break;
             case Kind.Berserker: Berserker(mesh); break;
             case Kind.Navigator: Navigator(mesh); break;
+            case Kind.HeavyWarrior: HeavyWarrior(mesh); break;
+            case Kind.DragonKnight: DragonKnight(mesh); break;
         }
+        // A broader body on a weighted plinth reads as a carved board piece rather than a light figurine.
+        // Compress only the sculpture above the plinth; the footprint and contact height remain unchanged.
+        mesh.LowerStance(.92f);
         return mesh;
     }
 
@@ -61,14 +66,14 @@ public static partial class R1UnitVisualInstaller
     static void Knight(ChessMesh mesh)
     {
         mesh.EllipticLathe(new Vector3(0, -.265f, .025f), new[] {
-            new Vector2(.21f, 0), new Vector2(.19f, .07f), new Vector2(.13f, .22f),
-            new Vector2(.13f, .36f), new Vector2(.10f, .48f) }, .82f, 1, 12);
+            new Vector2(.24f, 0), new Vector2(.225f, .07f), new Vector2(.16f, .22f),
+            new Vector2(.15f, .36f), new Vector2(.115f, .48f) }, .97f, 1, 12);
         // A traditional chess knight profile. The outline is extruded across X; the muzzle points forward (-Z).
         mesh.Profile(new Vector3(0, .12f, 0), new[] {
             new Vector2(.15f, 0), new Vector2(.15f, .34f), new Vector2(.10f, .52f), new Vector2(.04f, .48f),
             new Vector2(-.01f, .41f), new Vector2(-.10f, .39f), new Vector2(-.24f, .22f), new Vector2(-.23f, .14f),
             new Vector2(-.11f, .13f), new Vector2(-.02f, .23f), new Vector2(.03f, .04f)
-        }, .095f, 3, Quaternion.Euler(0, -90, 0));
+        }, .118f, 3, Quaternion.Euler(0, -90, 0));
         mesh.Beam(new Vector3(-.10f, .45f, -.02f), new Vector3(.10f, .45f, -.02f), .02f, 4, 6);
         mesh.Gem(new Vector3(.099f, .47f, -.07f), new Vector3(.015f, .017f, .018f), 11, 5, 4);
         mesh.Gem(new Vector3(-.099f, .47f, -.07f), new Vector3(.015f, .017f, .018f), 11, 5, 4);
@@ -83,6 +88,10 @@ public static partial class R1UnitVisualInstaller
             mesh.CarvedBox(new Vector3(0, .20f + .065f * i, .135f), new Vector3(.16f - i * .009f, .065f, .07f), 0,
                 Quaternion.Euler(-22, 0, 0));
         mesh.Lathe(new Vector3(0, -.03f, 0), new[] { new Vector2(.165f, 0), new Vector2(.16f, .035f) }, 4, 10);
+        for (int side = -1; side <= 1; side += 2)
+            mesh.CarvedBox(new Vector3(side * .155f, -.01f, .035f), new Vector3(.12f, .235f, .225f), 2,
+                Quaternion.Euler(0, side * 12, side * -8));
+        mesh.CarvedBox(new Vector3(0, -.075f, -.135f), new Vector3(.225f, .205f, .085f), 3);
     }
     static void Archer(ChessMesh mesh)
     {
@@ -238,11 +247,12 @@ public static partial class R1UnitVisualInstaller
     }
     static void Torso(ChessMesh mesh, float width, int color)
     {
-        mesh.EllipticLathe(new Vector3(0, -.26f, 0), new[] {
-            new Vector2(width * .96f, 0), new Vector2(width, .045f), new Vector2(width * .73f, .19f),
-            new Vector2(width * .83f, .30f), new Vector2(width * 1.05f, .405f), new Vector2(width * .62f, .48f)
-        }, .76f, color, 10);
-        mesh.EllipticLathe(new Vector3(0, -.12f, 0), new[] { new Vector2(width * .87f, 0), new Vector2(width * .87f, .035f) }, .78f, 4, 8);
+        width *= 1.12f;
+        mesh.EllipticLathe(new Vector3(0, -.26f, .035f), new[] {
+            new Vector2(width * .98f, 0), new Vector2(width, .045f), new Vector2(width * .84f, .19f),
+            new Vector2(width * .96f, .30f), new Vector2(width * 1.08f, .405f), new Vector2(width * .70f, .48f)
+        }, .91f, color, 10);
+        mesh.EllipticLathe(new Vector3(0, -.12f, .035f), new[] { new Vector2(width * .95f, 0), new Vector2(width * .95f, .045f) }, .92f, 4, 8);
         mesh.EllipticLathe(new Vector3(0, .20f, 0), new[] { new Vector2(width * .62f, 0), new Vector2(width * .45f, .045f), new Vector2(width * .44f, .075f) }, .86f, 3, 8);
     }
     static void WhiteMage(ChessMesh mesh)
@@ -365,12 +375,50 @@ public static partial class R1UnitVisualInstaller
         mesh.Beam(new Vector3(.15f, .15f, -.02f), new Vector3(.27f, .05f, -.10f), .047f, 7, 6);
         mesh.Beam(new Vector3(.26f, .05f, -.17f), new Vector3(.26f, .05f, .09f), .037f, 5, 8);
     }
+    static void HeavyWarrior(ChessMesh mesh)
+    {
+        // Broad closed armour and a square maul remain legible with the shared white material.
+        JoinedArms(mesh, .22f, new Vector3(-.27f, .04f, -.13f), new Vector3(.29f, .10f, -.04f), 1);
+        Torso(mesh, .22f, 1);
+        mesh.CarvedBox(new Vector3(0, .09f, -.17f), new Vector3(.29f, .29f, .075f), 3);
+        mesh.Box(new Vector3(0, .09f, -.218f), new Vector3(.045f, .27f, .022f), 4);
+        mesh.Gem(new Vector3(0, .36f, 0), new Vector3(.125f, .14f, .12f), 2, 8, 5);
+        mesh.CarvedBox(new Vector3(0, .38f, -.105f), new Vector3(.18f, .10f, .055f), 3);
+        mesh.Box(new Vector3(0, .395f, -.139f), new Vector3(.13f, .018f, .012f), 11);
+        mesh.Box(new Vector3(0, .505f, 0), new Vector3(.065f, .12f, .17f), 4);
+        mesh.Shield(new Vector3(-.265f, .015f, -.17f), .13f, .25f, .055f, 3);
+        mesh.Beam(new Vector3(.29f, -.22f, -.04f), new Vector3(.29f, .60f, -.04f), .034f, 5, 7);
+        mesh.CarvedBox(new Vector3(.29f, .52f, -.04f), new Vector3(.23f, .20f, .18f), 3);
+        mesh.Box(new Vector3(.29f, .52f, -.137f), new Vector3(.17f, .12f, .025f), 4);
+    }
+    static void DragonKnight(ChessMesh mesh)
+    {
+        JoinedArms(mesh, .18f, new Vector3(-.24f, .07f, -.13f), new Vector3(.28f, .10f, -.03f), 1);
+        Torso(mesh, .18f, 1);
+        // Folded, solid dragon wings stay inside the selection footprint and need no animation.
+        for (int side = -1; side <= 1; side += 2)
+        {
+            mesh.Profile(new Vector3(side * .11f, -.05f, .14f), new[] {
+                new Vector2(0, 0), new Vector2(side * .21f, .03f), new Vector2(side * .26f, .30f),
+                new Vector2(side * .15f, .47f), new Vector2(side * .075f, .26f) }, .045f, 2, Quaternion.identity);
+            mesh.Beam(new Vector3(side * .10f, .12f, .14f), new Vector3(side * .26f, .42f, .14f), .024f, 4, 5);
+            mesh.Beam(new Vector3(side * .06f, .44f, .015f), new Vector3(side * .14f, .61f, .055f), .025f, 4, 5);
+        }
+        mesh.Gem(new Vector3(0, .35f, 0), new Vector3(.11f, .14f, .10f), 2, 8, 5);
+        mesh.CarvedBox(new Vector3(0, .34f, -.105f), new Vector3(.14f, .08f, .14f), 3);
+        mesh.Box(new Vector3(0, .38f, -.178f), new Vector3(.11f, .02f, .015f), 11);
+        mesh.Shield(new Vector3(-.235f, .015f, -.18f), .11f, .21f, .04f, 3);
+        mesh.Beam(new Vector3(.28f, -.23f, -.03f), new Vector3(.28f, .61f, -.03f), .023f, 5, 7);
+        mesh.DiamondBlade(new Vector3(.28f, .58f, -.03f), .055f, .23f, 3);
+        mesh.Box(new Vector3(.28f, .59f, -.03f), new Vector3(.16f, .025f, .04f), 4);
+    }
     static void CarvedRobe(ChessMesh mesh, float width, int color)
     {
-        mesh.EllipticLathe(new Vector3(0, -.265f, 0), new[] {
+        width *= 1.08f;
+        mesh.EllipticLathe(new Vector3(0, -.265f, .025f), new[] {
             new Vector2(width, 0), new Vector2(width * .95f, .045f), new Vector2(width * .72f, .19f),
-            new Vector2(width * .49f, .33f), new Vector2(width * .67f, .44f), new Vector2(width * .38f, .50f)
-        }, .78f, color, 12);
+            new Vector2(width * .58f, .33f), new Vector2(width * .80f, .44f), new Vector2(width * .45f, .50f)
+        }, .91f, color, 12);
         // Raised folds are part of the mesh, so a single white material retains fabric depth.
         for (int side = -1; side <= 1; side += 2)
             mesh.Beam(new Vector3(side * width * .52f, -.22f, -.11f), new Vector3(side * width * .22f, .105f, -.078f), .018f, color, 5);
@@ -381,25 +429,30 @@ public static partial class R1UnitVisualInstaller
         for (int side = -1; side <= 1; side += 2)
         {
             var hand = side < 0 ? leftHand : rightHand;
-            var shoulder = new Vector3(side * shoulderWidth * .88f, .175f, .005f);
+            var shoulder = new Vector3(side * shoulderWidth * 1.01f, .175f, .005f);
             var elbow = Vector3.Lerp(shoulder, hand, .52f) + new Vector3(side * .025f, -.035f, .018f);
-            mesh.Beam(shoulder, elbow, .048f, color, 5);
-            mesh.Beam(elbow, hand, .034f, color, 5);
-            mesh.Gem(hand, new Vector3(.043f, .042f, .044f), 3, 5, 3);
+            mesh.Beam(shoulder, elbow, .064f, color, 5);
+            mesh.Beam(elbow, hand, .049f, color, 5);
+            mesh.Gem(hand, new Vector3(.053f, .050f, .055f), 3, 5, 3);
+            // Broad bevels, rather than small surface decorations, survive the white-marble map lighting.
+            mesh.CarvedBox(shoulder + new Vector3(side * .025f, .005f, .005f), new Vector3(.135f, .12f, .19f), color,
+                Quaternion.Euler(0, side * 8, side * -12));
+            mesh.CarvedBox(Vector3.Lerp(elbow, hand, .52f), new Vector3(.105f, .125f, .11f), 3,
+                Quaternion.FromToRotation(Vector3.up, (hand - elbow).normalized));
         }
     }
     static void Sword(ChessMesh mesh, Vector3 origin, float height, float angle)
     {
         var rotation = Quaternion.Euler(0, 0, angle);
-        mesh.Box(origin + rotation * new Vector3(0, .08f, 0), new Vector3(.033f, .16f, .033f), 5, rotation);
-        mesh.Box(origin + rotation * new Vector3(0, .16f, 0), new Vector3(.16f, .025f, .045f), 4, rotation);
-        mesh.Blade(origin + rotation * new Vector3(0, .17f, 0), height - .17f, .044f, 3, rotation);
+        mesh.Box(origin + rotation * new Vector3(0, .08f, 0), new Vector3(.045f, .16f, .045f), 5, rotation);
+        mesh.Box(origin + rotation * new Vector3(0, .16f, 0), new Vector3(.18f, .035f, .065f), 4, rotation);
+        mesh.Blade(origin + rotation * new Vector3(0, .17f, 0), height - .17f, .055f, 3, rotation);
     }
     static void Axe(ChessMesh mesh, float x)
     {
-        mesh.Beam(new Vector3(x, -.20f, -.025f), new Vector3(x, .50f, -.025f), .021f, 5, 7);
-        mesh.Box(new Vector3(x, .39f, -.025f), new Vector3(.16f, .15f, .055f), 3, Quaternion.Euler(0, 0, x < 0 ? -12 : 12));
-        mesh.Blade(new Vector3(x + (x < 0 ? -.09f : .09f), .31f, -.025f), .22f, .055f, 3, Quaternion.Euler(0, 0, x < 0 ? -15 : 15));
+        mesh.Beam(new Vector3(x, -.20f, -.025f), new Vector3(x, .50f, -.025f), .029f, 5, 7);
+        mesh.Box(new Vector3(x, .39f, -.025f), new Vector3(.185f, .17f, .085f), 3, Quaternion.Euler(0, 0, x < 0 ? -12 : 12));
+        mesh.Blade(new Vector3(x + (x < 0 ? -.09f : .09f), .31f, -.025f), .22f, .068f, 3, Quaternion.Euler(0, 0, x < 0 ? -15 : 15));
         mesh.Gem(new Vector3(x, .50f, -.025f), new Vector3(.035f, .05f, .035f), 4, 5, 4);
     }
 
@@ -413,6 +466,15 @@ public static partial class R1UnitVisualInstaller
             triangles.Add(i); triangles.Add(i + 1); triangles.Add(i + 2);
         }
         void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, int color) { Tri(a, b, c, color); Tri(a, c, d, color); }
+        public void LowerStance(float heightScale)
+        {
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                var p = vertices[i];
+                if (p.y > -.26f) p.y = -.26f + (p.y + .26f) * heightScale;
+                vertices[i] = p;
+            }
+        }
         public void Lathe(Vector3 origin, Vector2[] profile, int color, int sides)
         {
             for (int j = 0; j < profile.Length - 1; j++) for (int i = 0; i < sides; i++)
@@ -465,6 +527,7 @@ public static partial class R1UnitVisualInstaller
         }
         public void Beam(Vector3 from, Vector3 to, float radius, int color, int sides)
         {
+            if (radius >= .017f) radius *= 1.14f;
             var direction = to - from; var rotation = Quaternion.FromToRotation(Vector3.up, direction.normalized);
             var side = rotation * Vector3.right; var forward = rotation * Vector3.forward;
             for (int i = 0; i < sides; i++)
@@ -499,6 +562,7 @@ public static partial class R1UnitVisualInstaller
         }
         public void Shield(Vector3 center, float halfWidth, float halfHeight, float depth, int color)
         {
+            depth *= 1.4f;
             var outline = new[] { new Vector2(0, -halfHeight), new Vector2(-halfWidth, halfHeight * .25f), new Vector2(-halfWidth * .8f, halfHeight), new Vector2(halfWidth * .8f, halfHeight), new Vector2(halfWidth, halfHeight * .25f) };
             for (int i = 0; i < outline.Length; i++)
             {
@@ -556,7 +620,7 @@ public static partial class R1UnitVisualInstaller
         public void Blade(Vector3 origin, float height, float width, int color, Quaternion rotation)
         {
             var a = origin + rotation * new Vector3(-width, 0, 0); var b = origin + rotation * new Vector3(width, 0, 0);
-            var ridge = origin + rotation * new Vector3(0, height * .80f, -.021f); var back = origin + rotation * new Vector3(0, height * .80f, .021f);
+            var ridge = origin + rotation * new Vector3(0, height * .80f, -.030f); var back = origin + rotation * new Vector3(0, height * .80f, .030f);
             var top = origin + rotation * new Vector3(0, height, 0);
             Tri(a, ridge, b, color); Tri(a, top, ridge, color); Tri(b, ridge, top, color);
             Tri(b, back, a, color); Tri(a, back, top, color); Tri(b, top, back, color);

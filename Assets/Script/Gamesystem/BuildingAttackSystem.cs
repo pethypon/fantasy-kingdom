@@ -249,6 +249,7 @@ public class BuildingAttackSystem : MonoBehaviour
         // シールド中はダメージ無効
         if (target.ShieldTurns > 0)
         {
+            BarrierSystem.RecordNegatedHit(target);
             Debug.Log($"[BuildingAttack] {target.kind} はシールド中！ ダメージ無効（残り{target.ShieldTurns}ターン）");
             return;
         }

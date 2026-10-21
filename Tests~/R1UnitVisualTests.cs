@@ -48,13 +48,16 @@ public static class R1UnitVisualTests
         checks = 0; R1UnitVisualInstaller.ValidateAssets();
         var distinct = new HashSet<string>(); var snapshots = new Dictionary<string, string>();
         var material = AssetDatabase.LoadAssetAtPath<Material>(R1UnitVisualInstaller.MaterialPath);
+        var white = AssetDatabase.LoadAssetAtPath<Material>(BoardVisualThemeInstaller.ExistingWhiteMaterialPath);
         foreach (var kind in R1UnitVisualInstaller.Kinds)
         {
             string meshPath = R1UnitVisualInstaller.MeshPath(kind), prefabPath = R1UnitVisualInstaller.PrefabPath(kind);
             var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath); var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             Check(mesh != null && mesh.vertexCount > 100 && mesh.subMeshCount == 1 && mesh.triangles.Length / 3 <= 1800, "single bounded mesh " + kind);
             Check(distinct.Add(Sha(meshPath)), "distinct authored silhouette " + kind);
-            Check(prefab.GetComponent<MeshFilter>().sharedMesh == mesh && prefab.GetComponent<MeshRenderer>().sharedMaterial == material, "playable prefab uses baked shared material " + kind);
+            var expectedMaterial = kind == Kind.HeavyWarrior || kind == Kind.DragonKnight ? white : material;
+            Check(prefab.GetComponent<MeshFilter>().sharedMesh == mesh && prefab.GetComponent<MeshRenderer>().sharedMaterial == expectedMaterial,
+                "playable prefab uses its original shared material " + kind);
             Check(prefab.GetComponentsInChildren<Renderer>(true).Length == 1 && prefab.GetComponentsInChildren<Collider>(true).Length == 1
                 && prefab.GetComponentsInChildren<MonoBehaviour>(true).Length == 1 && prefab.GetComponent<Status>().kind == kind, "one renderer and original actor/collider only " + kind);
             Check(!R1UnitVisualInstaller.CanReplacePrimitivePrefab(prefab, kind), "generated visual is protected on repeat " + kind);

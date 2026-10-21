@@ -10,19 +10,34 @@ public static partial class SpecialSkillRuntime
     public static bool HasAbility(Status actor, UnitSpecialSkill ability)
         => actor != null && Definition(actor)?.enabledForPlay == true && Definition(actor).ability == ability;
 
-    public static bool IsAssassinAllyTarget(Status attacker, Status target)
-        => HasAbility(attacker, UnitSpecialSkill.AssassinVisionSeal) && target != null && target != attacker
-            && target.IsAlive && target.team == attacker.team && OrdinaryUnit(target);
+    // Compatibility entry points for saved ability IDs and older callers. The former
+    // execution/ally-sacrifice passive was replaced; the active vision seal is unchanged.
+    public static bool IsAssassinAllyTarget(Status attacker, Status target) => false;
 
     public static bool IsStrongTarget(Status target) => target != null
         && (target.kind == Kind.Crystal || target.kind == Kind.SubCrystal || target.kind == Kind.Boss || target.isWildBoss);
 
-    public static bool WouldAssassinate(Status attacker, Status target)
+    public static bool WouldAssassinate(Status attacker, Status target) => false;
+
+    public static bool HasAssassinPassive(Status actor)
+        => actor != null && actor.type == Type.Unit && HasAbility(actor, UnitSpecialSkill.AssassinVisionSeal);
+
+    /// <summary>Uses actual observer masks, independent of the presentation fog and the actor's own sight.</summary>
+    public static bool HasOtherFriendlyVision(Status actor, IReadOnlyList<Status> observers)
     {
-        if (!HasAbility(attacker, UnitSpecialSkill.AssassinVisionSeal) || target == null || !target.IsAlive) return false;
-        if (IsAssassinAllyTarget(attacker, target)) return target.HPRatio <= SpecialSkillDefinition.AssassinAllyThreshold;
-        return NeutralFactionSystem.AreHostile(attacker, target) && OrdinaryUnit(target) && !IsStrongTarget(target);
+        if (actor == null || !actor.IsAlive || observers == null) return false;
+        for (int i = 0; i < observers.Count; i++)
+        {
+            var observer = observers[i];
+            if (observer != actor && observer != null && observer.type == Type.Unit && observer.IsAlive && observer.team == actor.team
+                && State(observer).visionZeroTurns <= 0
+                && InVision(observer, actor)) return true;
+        }
+        return false;
     }
+
+    public static int AssassinIsolationDamage(Status actor)
+        => actor == null || actor.MaxHP <= 0 ? 0 : Mathf.Max(1, FractionOfMaximum(actor, SpecialSkillDefinition.AssassinIsolationFraction));
 
     public static bool IsHiddenFrom(Status observer, Status target)
         => observer != null && target != null && State(target).archerEscapeTurns > 0
@@ -94,12 +109,8 @@ public static partial class SpecialSkillRuntime
 
     static float R1ATKMultiplier(Status actor)
     {
-        var state = State(actor); float result = 1;
-        if (state.assassinBoostTurns > 0 && state.assassinBoostStacks > 0)
-        {
-            int stacks = Definition(actor)?.assassinBoostStackRule == AbilityStackRule.Multiply ? state.assassinBoostStacks : 1;
-            result *= Mathf.Pow(SpecialSkillDefinition.AssassinAttackBoost, Mathf.Clamp(stacks, 1, 32));
-        }
+        float result = 1;
+        // Old saved assassinBoost fields remain readable, but no longer modify combat.
         foreach (var archer in RuleActors())
         {
             if (archer != null && archer.IsAlive && State(archer).archerEscapeTurns > 0
@@ -174,6 +185,7 @@ public static partial class SpecialSkillRuntime
     public static void OnNormalAttackResolved(Status attacker, Status target, int actualDamage, bool killed, float lockDistance = -1)
     {
         if (attacker == null) return;
+        if (attacker.IsAlive && HasAbility(attacker, UnitSpecialSkill.DragonKnightPierce)) State(attacker).dragonKnightGauge = Mathf.Min(2, State(attacker).dragonKnightGauge + 1);
         if (actualDamage > 0) State(attacker).dealtDamage = true;
         if (HasAbility(attacker, UnitSpecialSkill.HolyKnightSanctuary) && actualDamage > 0
             && target != null && NeutralFactionSystem.AreHostile(attacker, target))
@@ -181,16 +193,6 @@ public static partial class SpecialSkillRuntime
             int stolen = BoundedFloor(EffectiveATK(target) * SpecialSkillDefinition.PaladinStealFraction);
             State(attacker).paladinCycles.Add(new PaladinAttackCycle { sourceId = attacker.ReflectionLifeId,
                 targetId = target.ReflectionLifeId, stolenAttack = stolen, startOwnerTurn = State(attacker).ownerTurn });
-        }
-        if (HasAbility(attacker, UnitSpecialSkill.AssassinVisionSeal) && killed && target != null)
-        {
-            if (target.team == attacker.team)
-            {
-                var d = Definition(attacker);
-                if (d.assassinBoostDuration > 0 && d.assassinBoostStackRule != AbilityStackRule.Unconfigured)
-                { State(attacker).assassinBoostTurns = d.assassinBoostDuration; State(attacker).assassinBoostStacks = Mathf.Min(32, State(attacker).assassinBoostStacks + 1); }
-            }
-            else if (attacker.IsAlive && attacker.HP > 1) ApplyHpChange(attacker, attacker, attacker.HP - 1, HpChangeKind.DirectHpReduction);
         }
         if (HasAbility(attacker, UnitSpecialSkill.MagicSniperLock) && attacker.IsAlive)
         {
@@ -203,12 +205,37 @@ public static partial class SpecialSkillRuntime
     public static void OnOwnerTurnEnd(GameSystems systems, Team team, int round)
     {
         var actors = new List<Status>(); CombatRegistry.Collect(actors);
+        var isolatedAssassins = new HashSet<Status>();
+        bool needsAssassinCheck = false;
+        foreach (var actor in actors)
+            if (actor != null && actor.IsAlive && actor.team == team && HasAssassinPassive(actor)
+                && State(actor).lastEndRound != round) { needsAssassinCheck = true; break; }
+        if (needsAssassinCheck)
+        {
+            // Refresh only this faction's observer masks once at its end boundary.
+            // Buildings, crystals and the third faction use the same authored vision rules.
+            if (systems?.VisionGenerator != null && systems.MapCreate != null)
+                foreach (var observer in actors)
+                    if (observer != null && observer.IsAlive && observer.team == team)
+                        systems.VisionGenerator.RefreshActorVision(observer, systems.MapCreate, systems.CrystalSystem);
+            // Snapshot coverage before applying damage so iteration order cannot remove support.
+            foreach (var actor in actors)
+                if (actor != null && actor.IsAlive && actor.team == team && HasAssassinPassive(actor)
+                    && !HasOtherFriendlyVision(actor, actors)) isolatedAssassins.Add(actor);
+        }
         foreach (var actor in actors)
         {
             if (actor == null || !actor.IsAlive || actor.team != team) continue;
             var state = State(actor);
             if (state.lastEndRound == round) continue;
             state.lastEndRound = round;
+            if (isolatedAssassins.Contains(actor))
+            {
+                int loss = ApplyHpChange(actor, actor, AssassinIsolationDamage(actor), HpChangeKind.DirectHpReduction,
+                    cause: HpChangeCause.AssassinIsolation);
+                CombatRuleTelemetry.Record("assassin_isolation", actor, actor, requestedDamage: AssassinIsolationDamage(actor), actualHpLoss: loss);
+            }
+            if (!actor.IsAlive) continue;
             if (state.tauntTurns > 0 && --state.tauntTurns == 0) state.tauntedById = null;
             if (HasAbility(actor, UnitSpecialSkill.LifeBomb))
             {
@@ -218,7 +245,11 @@ public static partial class SpecialSkillRuntime
             }
             state.paladinCycles.RemoveAll(cycle => cycle.returned || FindActor(cycle.targetId) == null);
         }
-        if (systems?.TurnGenerator?.IsGameOver != true) NaturalRecoverySystem.ProcessOwnerTurnEnd(systems, team, round);
+        if (systems?.TurnGenerator?.IsGameOver != true)
+        {
+            BarrierSystem.ProcessOwnerTurnEnd(team, round);
+            NaturalRecoverySystem.ProcessOwnerTurnEnd(systems, team, round);
+        }
     }
 
     static void ExplodeIdleBomber(Status actor, GameSystems systems)

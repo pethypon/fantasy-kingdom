@@ -230,7 +230,8 @@ public sealed partial class AIOperationManager
             {
                 if (data == null || !data.IsValidForAuthoring || data.kind == Kind.None || data.kind == Kind.King || data.kind == Kind.Boss
                     || data.kind == Kind.Scout || data.kind == Kind.Crystal || data.kind == Kind.SubCrystal || data.kind == Kind.WoodWall || data.kind == Kind.StoneWall) continue;
-                float power = Mathf.Max(0, data.baseATK) + Mathf.Max(0, data.baseDEF) * .5f;
+                float power = Mathf.Max(0, data.baseATK)
+                    + (BarrierSystem.UsesBarrier(data.kind, Type.Unit) ? 0 : Mathf.Max(0, data.baseDEF) * .5f);
                 if (power <= 0) continue;
                 float efficiency = power / Mathf.Max(.25f, data.costCitizen);
                 if (efficiency > bestEfficiency)
@@ -343,11 +344,12 @@ public sealed partial class AIOperationManager
     Vector3 BaseMovementAim(AIOperationPlan plan, Status actor)
     {
         var entry = FindKnownBase(plan.TargetLifeId);
-        if (plan.CurrentContext.ConfirmedTargetDestroyed || CurrentStep(plan)?.Type == AIOperationStepType.Retreat)
+        if (plan.CurrentContext?.ConfirmedTargetDestroyed == true || CurrentStep(plan)?.Type == AIOperationStepType.Retreat)
             return new Vector3(plan.RallyX, 0, plan.RallyZ);
         var step = CurrentStep(plan)?.Type;
         if (step == AIOperationStepType.Regroup || actor.kind != Kind.Scout && (plan.Status == AIOperationStatus.Preparing
-            || entry == null || !entry.CurrentlyVisible || step == AIOperationStepType.Scout))
+            || entry == null || !entry.CurrentlyVisible && !CanAdvanceUsingFreshBaseMemory(plan, entry)
+            || step == AIOperationStepType.Scout))
             return new Vector3(plan.RallyX, 0, plan.RallyZ);
         if (plan.BaseAssaultPattern == AIBaseAssaultPattern.DiversionAssault && step == AIOperationStepType.Diversion && actor.kind == Kind.Scout)
         {
@@ -369,6 +371,17 @@ public sealed partial class AIOperationManager
         }
         return new Vector3(plan.TargetX, 0, plan.TargetZ);
     }
+
+    bool CanAdvanceUsingFreshBaseMemory(AIOperationPlan plan, AIKnownEnemyBase entry)
+    {
+        // Movement may follow a recent legal observation over an already verified route.
+        // Attack permission still requires current visibility in BaseAttackBonus/execution.
+        return entry != null && !entry.ConfirmedDestroyed && plan.Status == AIOperationStatus.Active
+            && plan.BaseRouteConfirmed && plan.BaseDefenseKnown && entry.DefenseIntelKnown
+            && plan.TargetX == entry.X && plan.TargetZ == entry.Z
+            && Math.Max(0, state.LastStartedOwnTurn - entry.LastSeenTurn) <= Mathf.Clamp(config.BaseIntelFreshTurns, 1, 12)
+            && AssignedAssaultForce(plan) >= plan.RequiredAssaultForce;
+    }
     static uint LifeHash(string life)
     { uint hash = 2166136261; if (life != null) foreach (char character in life) hash = unchecked((hash ^ character) * 16777619); return hash; }
     static string BasePatternLabel(AIBaseAssaultPattern pattern) => pattern == AIBaseAssaultPattern.DirectAssault ? "正面攻略"
@@ -383,7 +396,7 @@ public sealed partial class AIOperationManager
             || !board.IsVisibleToEnemy(observedTarget.transform.position)) return 0;
         if (observedTarget.ReflectionLifeId == plan.TargetLifeId)
         {
-            if (action.ActionType == AIActionType.Attack && DamageCalculator.CalcNormal(action.Unit, observedTarget) >= observedTarget.HP) return 1.5f;
+            if (action.ActionType == AIActionType.Attack && AIActionEvaluator.CanFinishSpecialTarget(action.Unit, observedTarget, board)) return 1.5f;
             var step = CurrentStep(plan)?.Type;
             if (plan.Status == AIOperationStatus.Preparing || step == AIOperationStepType.Scout || step == AIOperationStepType.Regroup) return 0;
             if (step == AIOperationStepType.Diversion && !plan.CurrentContext.DiversionConfirmed) return 0;

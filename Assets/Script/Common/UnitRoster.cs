@@ -7,6 +7,7 @@ public static class UnitRoster
         Kind.Scout, Kind.Priest, Kind.Guardian, Kind.Crossbow,
         Kind.Magicsniper, Kind.Bomber, Kind.WhiteMage, Kind.HolyKnight,
         Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator,
+        Kind.HeavyWarrior, Kind.DragonKnight,
     };
 
     /// <summary>Reuse the inherited role's existing valuation until separate R1 tuning is authored.
@@ -18,7 +19,9 @@ public static class UnitRoster
             case Kind.WhiteMage: return Kind.Priest;
             case Kind.HolyKnight:
             case Kind.Samurai:
-            case Kind.Berserker: return Kind.Knight;
+            case Kind.Berserker:
+            case Kind.HeavyWarrior:
+            case Kind.DragonKnight: return Kind.Knight;
             case Kind.Ninja: return Kind.Assassin;
             case Kind.Navigator: return Kind.Guardian;
             default: return kind;

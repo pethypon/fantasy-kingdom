@@ -121,8 +121,26 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         Heading("駒の基本設定");
         Fields(so, "displayName", "category", "defaultTeam", "kind", "availableToPlayer", "availableToEnemy", "prefab");
         EditorGUILayout.HelpBox("基礎役割はAIの判断と既存の固有処理に使います。移動・通常攻撃・視界は下のタイルで個別に設定できます。駒と行動タイプの名前、種類の分類は自由です。スキルの範囲・効果は選んだスキルに従います。",MessageType.None);
-        Heading("能力値"); Fields(so,"baseHP","baseATK","baseDEF");
-        growthFold = EditorGUILayout.Foldout(growthFold,"レベルごとの成長",true); if (growthFold) Fields(so,"hpGrowth","atkGrowth","defGrowth");
+        Heading("能力値"); Fields(so,"baseHP","baseATK");
+        var editedKind = (Kind)so.FindProperty("kind").intValue;
+        var editedPrefab = so.FindProperty("prefab").objectReferenceValue as GameObject;
+        var editedStatus = editedPrefab != null ? editedPrefab.GetComponentInChildren<Status>(true) : null;
+        bool usesBarrier = Array.IndexOf(UnitRoster.SummonableKinds, editedKind) >= 0
+            && (editedStatus == null || !editedStatus.isWildBoss);
+        if (usesBarrier)
+        {
+            Field(so.FindProperty("baseBarrier"));
+            int authored = so.FindProperty("baseBarrier").intValue;
+            int initial = authored < 0 ? BarrierSystem.Initial(editedKind) : authored;
+            EditorGUILayout.LabelField("最大バリア（Lv1 / 最大Lv）", initial + " / " + BarrierSystem.Maximum(initial, GameConstants.MaxUnitLevel));
+            EditorGUILayout.HelpBox($"−1は兵種ごとの初期バリアを使用します。最大バリアは毎Lv＋{BarrierSystem.GrowthPerLevel}。ダメージはバリア、HPの順に減少します。", MessageType.Info);
+        }
+        growthFold = EditorGUILayout.Foldout(growthFold,"レベルごとの成長",true);
+        if (growthFold)
+        {
+            Fields(so,"hpGrowth","atkGrowth");
+            if (usesBarrier) EditorGUILayout.LabelField("バリア成長", "毎Lv＋" + BarrierSystem.GrowthPerLevel);
+        }
         costFold = EditorGUILayout.Foldout(costFold,"作成に必要な資材・AP",true);
         if (costFold) Fields(so,"costWood","costStone","costIron","costMagic","costWater","costBread","costCitizen","costAP");
         upkeepFold = EditorGUILayout.Foldout(upkeepFold,"毎ターンの維持費",true);
@@ -179,7 +197,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             level.isExpanded = EditorGUILayout.Foldout(level.isExpanded,"レベル " + (i+1),true);
             if (!level.isExpanded) continue;
             EditorGUI.indentLevel++;
-            foreach (var key in new[] { "HP","ATK","DEF","UpgradeAP","SpecialValue" }) Field(level.FindPropertyRelative(key));
+            foreach (var key in new[] { "HP","ATK","UpgradeAP","SpecialValue" }) Field(level.FindPropertyRelative(key));
             DrawBundle(level.FindPropertyRelative("Input"),"生産時に消費する資材");
             Field(level.FindPropertyRelative("ProductionIntervalTurns"));
             EditorGUILayout.LabelField("生産周期", "1は毎ターン、2は2ターンごと。旧データの0は毎ターン。材料は生産時だけ消費します。", EditorStyles.wordWrappedMiniLabel);

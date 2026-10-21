@@ -36,7 +36,7 @@ static class AIPersonalityScoring
             case MajorPersonality.Combat:
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 15f;
-                if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0)
+                if (AISpecialSkillKnowledge.IsOffensiveSkill(action))
                     bonus += 12f;
                 if (action.ActionType == AIActionType.Move)
                 {
@@ -121,10 +121,10 @@ static class AIPersonalityScoring
                 break;
 
             case AIActionType.SkillUse:
+                if (AISpecialSkillKnowledge.IsOffensiveSkill(action))
+                    bonus += p.ObsessionRate * 15f;
                 if (action.Skill != null)
                 {
-                    if (action.Skill.Multiplier > 0)
-                        bonus += p.ObsessionRate * 15f;
                     if (action.Skill.FixedHeal > 0 || action.Skill.GrantBuff != BuffType.None)
                         bonus += p.CommandRate * 12f;
                     if (action.Skill.InflictDebuff != StatusEffectType.None)
@@ -222,7 +222,7 @@ static class AIPersonalityScoring
             {
                 if (action.ActionType == AIActionType.Attack)
                     bonus += 12f;
-                if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.Multiplier > 0)
+                if (AISpecialSkillKnowledge.IsOffensiveSkill(action))
                     bonus += 10f;
                 if (action.ActionType == AIActionType.Move)
                     bonus += AIEvalHelpers.GetApproachToEnemy(action, board) * 4f;

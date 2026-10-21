@@ -305,6 +305,7 @@ public static class SaveGameApplier
         if (s.type == Type.Unit && s.GrowthData != null) s.GrowthData.ApplyAbilityIdentity(s);
         // HP/balance restoration is not a new hit. Restore the saved clock only after all HP writes.
         s.NaturalRecovery = NaturalRecoverySystem.CopyState(ud.NaturalRecovery);
+        s.RestoreBarrier(ud.HasBarrierSnapshot, ud.Barrier, ud.BarrierRecovery);
     }
 
     // Use current formal settings, retaining runtime rewards as a delta from the saved baseline.

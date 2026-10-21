@@ -34,6 +34,15 @@ public static class DamageCalculator
              + ((atk / GameConstants.DamageATKHalf) - (def / GameConstants.DamageDEFDivisor));
     }
 
+    /// <summary>The R1 document leaves this formula provisional and author-adjustable.</summary>
+    public static float CalcRawBaseForTarget(float atk, float def, bool usesBarrier)
+    {
+        if (!usesBarrier) return CalcRawBase(atk, def);
+        var settings = BarrierCombatSettings.Active;
+        float basis = float.IsNaN(settings.provisionalDamageBase) || float.IsInfinity(settings.provisionalDamageBase) ? 1 : Mathf.Max(0, settings.provisionalDamageBase);
+        float coefficient = float.IsNaN(settings.provisionalAttackCoefficient) || float.IsInfinity(settings.provisionalAttackCoefficient) ? .7f : Mathf.Max(0, settings.provisionalAttackCoefficient);
+        return basis + Mathf.Max(0, atk) * coefficient;
+    }
     /// <summary>
     /// 攻撃側パッシブスキルの倍率を計算する。
     /// Kindベースの従来パッシブ + PassiveSkill 再設計の効果を併算。
@@ -274,9 +283,9 @@ public static class DamageCalculator
         defMod *= GetKingAuraDEFMultiplier(target);
 
         float atk = Mathf.Max(0, (long)attacker.ATK + SpecialSkillRuntime.GetATKFlatAdjustment(attacker)) * atkMod;
-        float def = target.DEF * defMod;
+        float def = BarrierSystem.UsesBarrier(target) ? 0 : target.DEF * defMod;
 
-        float baseDmg = CalcRawBase(atk, def);
+        float baseDmg = CalcRawBaseForTarget(atk, def, BarrierSystem.UsesBarrier(target));
 
         // パッシブスキル適用（攻撃側 → 防御側）
         float passiveMod = GetAttackerPassiveMultiplier(attacker, target)
@@ -328,9 +337,9 @@ public static class DamageCalculator
         defMod *= GetKingAuraDEFMultiplier(target);
 
         float atk = Mathf.Max(0, (long)attacker.ATK + SpecialSkillRuntime.GetATKFlatAdjustment(attacker)) * atkMod;
-        float def = target.DEF * defMod;
+        float def = BarrierSystem.UsesBarrier(target) ? 0 : target.DEF * defMod;
 
-        float baseDmg = CalcRawBase(atk, def);
+        float baseDmg = CalcRawBaseForTarget(atk, def, BarrierSystem.UsesBarrier(target));
         float effectiveMultiplier = Mathf.Clamp(skill.Multiplier + sealMod, 0f, 2f);
 
         // パッシブスキル適用（攻撃側 → 防御側）
@@ -390,18 +399,18 @@ public static class DamageCalculator
     /// <summary>
     /// AI シミュレーション用: float値からダメージを計算する。
     /// </summary>
-    public static int CalcFromValues(float atk, float def, float incomingMod)
+    public static int CalcFromValues(float atk, float def, float incomingMod, bool usesBarrier = false)
     {
-        float baseDmg = CalcRawBase(atk, def) * incomingMod;
+        float baseDmg = CalcRawBaseForTarget(atk, def, usesBarrier) * incomingMod;
         return FinalizeHitDamage(baseDmg, incomingMod > 0);
     }
 
     /// <summary>
     /// AI シミュレーション用: スキル倍率付きダメージを計算する。
     /// </summary>
-    public static int CalcSkillFromValues(float atk, float def, float incomingMod, float skillMultiplier, float sealMod)
+    public static int CalcSkillFromValues(float atk, float def, float incomingMod, float skillMultiplier, float sealMod, bool usesBarrier = false)
     {
-        float baseDmg = CalcRawBase(atk, def);
+        float baseDmg = CalcRawBaseForTarget(atk, def, usesBarrier);
         float effectiveMultiplier = Mathf.Clamp(skillMultiplier + sealMod, 0f, 2f);
         float skillDmg = baseDmg * effectiveMultiplier * incomingMod;
         return FinalizeHitDamage(skillDmg, effectiveMultiplier > 0 && incomingMod > 0);

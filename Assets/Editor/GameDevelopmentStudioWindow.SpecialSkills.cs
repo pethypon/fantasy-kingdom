@@ -7,8 +7,9 @@ public sealed partial class GameDevelopmentStudioWindow
 {
     bool specialSkillFold;
     int specialTemplateRole;
-    static readonly Kind[] SpecialTemplateRoles = { Kind.WhiteMage, Kind.HolyKnight, Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator };
-    static readonly string[] SpecialTemplateLabels = { "白魔導士", "聖騎士", "侍", "忍者", "狂戦士", "航海士" };
+    static readonly Kind[] SpecialTemplateRoles = { Kind.WhiteMage, Kind.HolyKnight, Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator,
+        Kind.HeavyWarrior, Kind.DragonKnight };
+    static readonly string[] SpecialTemplateLabels = { "白魔導士", "聖騎士", "侍", "忍者", "狂戦士", "航海士", "重戦士", "竜騎士" };
 
     void DrawUnitSpecialSkill(SerializedObject unitObject)
     {
@@ -47,7 +48,7 @@ public sealed partial class GameDevelopmentStudioWindow
         specialTemplateRole = EditorGUILayout.Popup("作成する役割", specialTemplateRole, SpecialTemplateLabels);
         if (GUILayout.Button("能力値・見た目・行動マスを引き継いで新しい駒を作成"))
             TryAction(() => CreateSpecialRoleCopy(specialTemplateRole));
-        EditorGUILayout.HelpBox("新しい6役割のHP・攻撃力・移動マス等は指定されていません。選択中の駒から複製し、下の能力値・行動マス・固有能力を編集してください。元の駒は変わりません。", MessageType.None);
+        EditorGUILayout.HelpBox("追加の8役割は選択中の駒から独立したデータとして複製します。HP・攻撃力・移動マス・費用・未設定の固有能力を確認して編集してください。", MessageType.None);
     }
 
     void CreateSpecialRoleCopy(int index)
@@ -64,12 +65,8 @@ public sealed partial class GameDevelopmentStudioWindow
         }
         finally { DestroyImmediate(inherited); }
         selectedUnit.kind = SpecialTemplateRoles[index]; selectedUnit.displayName = SpecialTemplateLabels[index];
-        var ability = index switch
-        {
-            0 => UnitSpecialSkill.WhiteMageHeal, 1 => UnitSpecialSkill.HolyKnightSanctuary,
-            2 => UnitSpecialSkill.SamuraiCounter, 3 => UnitSpecialSkill.NinjaSwap,
-            4 => UnitSpecialSkill.BerserkerRage, _ => UnitSpecialSkill.NavigatorPull
-        };
+        if (!SpecialSkillAuthoringDefaults.TryAbility(selectedUnit.kind, out var ability))
+            throw new ArgumentException("固有能力の雛形がありません: " + selectedUnit.kind);
         // The inherited definition is already an independent asset. Reset that copy so
         // a different ability never inherits an undecided AP/curve from the source role.
         if (selectedUnit.specialSkill != null)
@@ -201,7 +198,7 @@ public sealed partial class GameDevelopmentStudioWindow
             case UnitSpecialSkill.KnightBreakthrough: Draw("knightPenaltyStackRule", "複数ナイトの弱体の重複方式（未確定）"); Draw("knightVisibleEnemyAtkPenalty", "視界内の敵のATK低下率（−1は未設定）"); break;
             case UnitSpecialSkill.ArcherStationary: Draw("stationaryAttackCurve", "未移動ターン → 攻撃倍率（上限1.75）"); break;
             case UnitSpecialSkill.AssassinVisionSeal:
-                Draw("assassinBoostDuration", "味方撃破後の強化ターン（−1は未確定）"); Draw("assassinBoostStackRule", "撃破強化の重複方式（未確定）"); break;
+                EditorGUILayout.HelpBox(SpecialSkillPresentation.PassiveDescription(definition), MessageType.Info); break;
             case UnitSpecialSkill.ScoutVisionGuard:
                 Draw("scoutFreeMoveScope", "移動AP無料のリセット範囲（未確定）"); Draw("scoutFreeAttackScope", "攻撃AP無料のリセット範囲（未確定）"); break;
             case UnitSpecialSkill.GuardianLifeLink: Draw("guardianAttackCostReset", "攻撃AP累積のリセット範囲（未確定）"); break;
@@ -229,6 +226,11 @@ public sealed partial class GameDevelopmentStudioWindow
                 Draw("stageAPCosts", "次の強化段階へ進むスキルAP（1〜5段階・上限25）");
                 Draw("berserkerAttackCurve", "強化段階 → 攻撃倍率（上限2.5）"); Draw("berserkerDefenceCurve", "強化段階 → 防御倍率"); Draw("berserkerAttackAPCurve", "HP割合 → 通常攻撃AP"); break;
             case UnitSpecialSkill.NavigatorPull: Draw("navigatorAPDamageCurve", "残りAP → 攻撃倍率（上限1.5）"); break;
+            case UnitSpecialSkill.HeavyWarriorBreak:
+                Draw("heavyBarrierMultiplier", "バリアへ与えるダメージ倍率（−1は未設定）"); break;
+            case UnitSpecialSkill.DragonKnightPierce:
+                Draw("dragonKnightSkillMultiplier", "バリアを越えるスキルのHPダメージ倍率（−1は未設定）");
+                EditorGUILayout.HelpBox("通常攻撃を使うと竜ゲージ+1（上限2）。ゲージ2でスキルを使うと0へ戻り、相手のバリアを残してHPへ直接ダメージを与えます。", MessageType.Info); break;
         }
         so.ApplyModifiedProperties();
         string reason = definition.ConfigurationError;

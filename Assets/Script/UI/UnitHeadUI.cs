@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// ユニットの頭上に Lv と HP バーを表示する。
+/// ユニットの頭上に Lv・HP と、通常駒のバリアを別々に表示する。
 ///
 /// Screen Space Overlay 上にUIを表示することで、
 /// 3Dユニットより常に手前へ描画する。
@@ -22,6 +22,11 @@ public class UnitHeadUI : MonoBehaviour
     private TextMeshProUGUI hpText;
     private Image hpFillImage;
     private TextMeshProUGUI lvText;
+    private TextMeshProUGUI barrierText;
+    private Image barrierFillImage;
+    private GameObject barrierFrame;
+    private RectTransform hpFrameRect;
+    private Sprite ownedGaugeSprite;
 
     private Renderer unitRenderer;
 
@@ -42,6 +47,9 @@ public class UnitHeadUI : MonoBehaviour
     private int cachedHP = -1;
     private int cachedMaxHP = -1;
     private int cachedLevel = -1;
+    private int cachedBarrier = -1;
+    private int cachedMaxBarrier = -1;
+    private bool cachedUsesBarrier;
 
 
     // ============================================================
@@ -205,6 +213,13 @@ public class UnitHeadUI : MonoBehaviour
 
         var theme =
             GameUITheme.Current;
+        var gaugeSprite = theme != null ? theme.healthFill : null;
+        if (gaugeSprite == null)
+        {
+            var white = Texture2D.whiteTexture;
+            ownedGaugeSprite = Sprite.Create(white, new Rect(0, 0, white.width, white.height), new Vector2(.5f, .5f));
+            gaugeSprite = ownedGaugeSprite;
+        }
 
 
         // ========================================================
@@ -301,6 +316,7 @@ public class UnitHeadUI : MonoBehaviour
                     ? theme.healthFrame
                     : null
             );
+        hpFrameRect = hpFrame.rectTransform;
 
 
         // ========================================================
@@ -355,9 +371,7 @@ public class UnitHeadUI : MonoBehaviour
                     9f
                 ),
 
-                theme != null
-                    ? theme.healthFill
-                    : null
+                gaugeSprite
             );
 
 
@@ -408,6 +422,28 @@ public class UnitHeadUI : MonoBehaviour
 
         hpText.fontSizeMin = 8f;
         hpText.fontSizeMax = 10f;
+
+        // HPと同じ位置追従・ズーム処理を共有し、消耗量だけを別ゲージで示す。
+        var barrierFrameImage = CreateGraphic("BarrierFrame", headUIObject.transform,
+            new Vector2(1, .5f), new Vector2(-44, -10), new Vector2(88, 14),
+            theme != null ? theme.healthFrame : null);
+        barrierFrame = barrierFrameImage.gameObject;
+        var barrierWell = CreateGraphic("BarrierWell", barrierFrame.transform, new Vector2(.5f, .5f),
+            Vector2.zero, new Vector2(64, 9), null);
+        barrierWell.color = new Color(.04f, .06f, .07f, 1);
+        barrierFillImage = CreateGraphic("BarrierFill", barrierWell.transform, new Vector2(.5f, .5f),
+            Vector2.zero, new Vector2(64, 9), gaugeSprite);
+        barrierFillImage.type = Image.Type.Filled;
+        barrierFillImage.fillMethod = Image.FillMethod.Horizontal;
+        barrierFillImage.color = BrandGuide.FeedbackShield;
+        barrierText = CreateText("BarrierText", barrierFrame.transform, "", 9);
+        barrierText.alignment = TextAlignmentOptions.Center;
+        barrierText.fontStyle = FontStyles.Bold;
+        UIFactory.StretchFill(barrierText.rectTransform);
+        barrierText.margin = new Vector4(5, 0, 5, 0);
+        barrierText.enableAutoSizing = true;
+        barrierText.fontSizeMin = 7;
+        barrierText.fontSizeMax = 9;
 
 
         // 初期値反映
@@ -554,7 +590,10 @@ public class UnitHeadUI : MonoBehaviour
         if (
             cachedHP != status.HP ||
             cachedMaxHP != status.MaxHP ||
-            cachedLevel != status.Level
+            cachedLevel != status.Level ||
+            cachedBarrier != status.Barrier ||
+            cachedMaxBarrier != status.MaxBarrier ||
+            cachedUsesBarrier != BarrierSystem.UsesBarrier(status)
         )
         {
             Refresh();
@@ -716,6 +755,15 @@ public class UnitHeadUI : MonoBehaviour
 
         cachedLevel =
             status.Level;
+        cachedBarrier = status.Barrier;
+        cachedMaxBarrier = status.MaxBarrier;
+        cachedUsesBarrier = BarrierSystem.UsesBarrier(status);
+        if (barrierFrame != null) barrierFrame.SetActive(cachedUsesBarrier);
+        if (hpFrameRect != null)
+            hpFrameRect.anchoredPosition = new Vector2(-44, cachedUsesBarrier ? 7 : 0);
+        if (barrierText != null) barrierText.text = $"バリア {cachedBarrier}/{cachedMaxBarrier}";
+        if (barrierFillImage != null)
+            barrierFillImage.fillAmount = cachedMaxBarrier > 0 ? Mathf.Clamp01((float)cachedBarrier / cachedMaxBarrier) : 0;
 
 
         // ========================================================
@@ -725,7 +773,7 @@ public class UnitHeadUI : MonoBehaviour
         if (hpText != null)
         {
             hpText.text =
-                $"{cachedHP}/{Mathf.Max(1, cachedMaxHP)}";
+                $"HP {cachedHP}/{Mathf.Max(1, cachedMaxHP)}";
         }
 
 
@@ -944,6 +992,7 @@ public class UnitHeadUI : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (ownedGaugeSprite != null) Destroy(ownedGaugeSprite);
         // HeadUIはユニットの子ではなく
         // ScreenCanvasの子になっているので、
         // ユニット死亡時に明示的に削除する。

@@ -24,12 +24,13 @@ public partial class AICommander
                 if (scout.HP < scout.MaxHP / 3) continue;
                 bool killAvailable = false;
                 foreach (var target in _board.GetAttackTargets(scout))
-                    if (DamageCalculator.EstimateBaseDamage(scout.ATK, target.DEF) >= target.HP) { killAvailable = true; break; }
+                    if (AIActionEvaluator.CanFinishSpecialTarget(scout, target, _board)) { killAvailable = true; break; }
                 if (killAvailable) continue;
                 candidates.Clear();
                 AIActionGenerator.GenerateMoveCandidates(scout, _board, candidates);
                 foreach (var action in candidates)
                 {
+                    if (turnMovementHistory.ShouldReject(action, _board)) continue;
                     if (action.APCost > remainingAP) continue;
                     if (_board.EstimateCounterDamageAt(action.TargetPos, scout) >= scout.HP / 2f) continue;
                     float value = _board.Recon.ScoreMove(scout, action.TargetPos) - action.APCost;

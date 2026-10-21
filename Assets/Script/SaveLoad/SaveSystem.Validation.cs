@@ -94,6 +94,7 @@ public static partial class SaveSystem
                 + " (位置 " + unit.PosX + "," + unit.PosY + "," + unit.PosZ + "; HP " + unit.HP + "/" + unit.MaxHP + ")", out reason);
         if (!string.IsNullOrEmpty(unit.ReflectionLifeId) && (unit.ReflectionLifeId.Length > 64 || !lifeIds.Add(unit.ReflectionLifeId)))
             return Invalid("駒の永続識別子が重複、または不正です。", out reason);
+        if (unit.HasBarrierSnapshot && (unit.Barrier < 0 || unit.MaxBarrier < 0 || unit.Barrier > unit.MaxBarrier)) return Invalid("バリアが不正です", out reason);
         if (unit.HasDefinitionStatSnapshot && (unit.DefinitionMaxHP < 1 || unit.DefinitionATK < 0 || unit.DefinitionDEF < 0))
             return Invalid("駒の設定値スナップショットが不正です。", out reason);
         if (!string.IsNullOrEmpty(unit.DefinitionId) && UnitAuthoringCatalog.Load()?.GetById(unit.DefinitionId) == null)

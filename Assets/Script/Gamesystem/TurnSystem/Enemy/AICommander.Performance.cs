@@ -111,6 +111,7 @@ public partial class AICommander
     {
         _unitPositionHistory.Clear();
         _actedUnits.Clear();
+        turnMovementHistory.Clear();
         selectionBuffer.Clear();
         runtimeMaintenance.Clear();
     }

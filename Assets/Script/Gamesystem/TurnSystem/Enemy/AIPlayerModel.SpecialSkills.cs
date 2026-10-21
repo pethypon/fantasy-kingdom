@@ -3,7 +3,7 @@ using UnityEngine;
 
 public sealed partial class AIPlayerModel
 {
-    const int SpecialAbilityCount=(int)UnitSpecialSkill.NavigatorPull+1;
+    const int SpecialAbilityCount=(int)UnitSpecialSkill.DragonKnightPierce+1;
     const int MaximumSpecialSamples=1000000;
     public sealed partial class Profile
     {

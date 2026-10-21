@@ -14,10 +14,17 @@ public partial class SimBoardState
     public void SimulateTurnTransition(Team nextTeam)
     {
         TurnCount++;
-        // Recovery belongs to the faction ending its turn, before the incoming faction's DoT.
+        foreach (var unit in Units) unit.SimulationRound = TurnCount;
+        // Snapshot support before any isolation death removes another friendly observer.
         var outgoingTeam = nextTeam == Team.Enemy ? Team.Player : Team.Enemy;
+        ProcessAssassinIsolation(outgoingTeam, TurnCount);
+        // Recovery sees the actual HP loss, before the incoming faction's DoT.
         for (int i = 0; i < Units.Count; i++)
-            if (Units[i].Team == outgoingTeam) ProcessNaturalRecovery(Units[i], TurnCount);
+            if (Units[i].Team == outgoingTeam)
+            {
+                if (!BarrierCombatSettings.Active.recoveryAtOwnerTurnStart) ProcessBarrierRecovery(Units[i], TurnCount);
+                ProcessNaturalRecovery(Units[i], TurnCount);
+            }
         ResetAP(nextTeam);
 
         for (int i = 0; i < Units.Count; i++)
@@ -26,12 +33,33 @@ public partial class SimBoardState
             if (!u.IsAlive || u.Team != nextTeam) continue;
 
             u.Fatigue = 0;
+            if (u.VisionZeroTurns > 0) u.VisionZeroTurns--;
+            if (u.ScoutVisionPenaltyTurns > 0) u.ScoutVisionPenaltyTurns--;
             ApplyDoT(u);
             TickEffects(u);
             TickCooldowns(u);
+            if (BarrierCombatSettings.Active.recoveryAtOwnerTurnStart) ProcessBarrierRecovery(u, TurnCount);
         }
 
         RemoveDeadFromOccupied();
+    }
+
+    [System.ThreadStatic] static System.Collections.Generic.List<SimUnit> isolatedAssassins;
+    void ProcessAssassinIsolation(Team team, int round)
+    {
+        if (isolatedAssassins == null) isolatedAssassins = new System.Collections.Generic.List<SimUnit>();
+        isolatedAssassins.Clear();
+        foreach (var actor in Units)
+        {
+            if (!actor.IsAlive || actor.Team != team || actor.Type != Type.Unit || !actor.AssassinPassive
+                || actor.AssassinLastEndRound == round) continue;
+            actor.AssassinLastEndRound = round;
+            if (!HasOtherAllyVision(actor)) isolatedAssassins.Add(actor);
+        }
+        foreach (var actor in isolatedAssassins)
+            if (actor.MaxHP > 0) actor.ApplyHpDirectDamage(Mathf.Max(1, (int)System.Math.Floor(
+                actor.MaxHP * (double)SpecialSkillDefinition.AssassinIsolationFraction)));
+        isolatedAssassins.Clear();
     }
 
     private void ResetAP(Team team)
@@ -69,8 +97,23 @@ public partial class SimBoardState
             unit.ApplyHeal(NaturalRecoverySystem.HealAmount(unit.MaxHP));
     }
 
+    static void ProcessBarrierRecovery(SimUnit unit, int round)
+    {
+        if (!unit.IsAlive || !unit.UsesBarrier || unit.BarrierLastRound == round) return;
+        unit.BarrierLastRound = round;
+        if (!unit.BarrierHasOwnTurnBaseline)
+        {
+            unit.BarrierHasOwnTurnBaseline = true;
+            if (BarrierCombatSettings.Active.recoveryAtOwnerTurnStart) return;
+        }
+        int amount = BarrierSystem.AdvanceRecovery(ref unit.BarrierSafeTurns,ref unit.BarrierDamaged,
+            ref unit.BarrierHasRecovered,unit.HP,unit.MaxHP,unit.MaxBarrier);
+        if (amount > 0) unit.Barrier = (int)System.Math.Min(unit.MaxBarrier,(long)unit.Barrier+amount);
+    }
+
     private static void TickEffects(SimUnit u)
     {
+        u.CapturedVisionCells = null;
         for (int j = u.Effects.Count - 1; j >= 0; j--)
         {
             var eff = u.Effects[j];

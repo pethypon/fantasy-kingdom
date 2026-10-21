@@ -7,9 +7,9 @@ using UnityEngine;
 /// <summary>Run after explicit R1 installation. Real recipes and masks must survive live/search recruitment.</summary>
 public static class R1ProductionAIRecruitmentTests
 {
-    static readonly Kind[] NewKinds = { Kind.WhiteMage, Kind.HolyKnight, Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator };
-    static readonly Kind[] BaseKinds = { Kind.Priest, Kind.Knight, Kind.Knight, Kind.Assassin, Kind.Knight, Kind.Guardian };
-    static readonly string[] Roles = { "Healer", "Infantry", "Infantry", "Ranged", "Infantry", "Guardian" };
+    static readonly Kind[] NewKinds = { Kind.WhiteMage, Kind.HolyKnight, Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator, Kind.HeavyWarrior, Kind.DragonKnight };
+    static readonly Kind[] BaseKinds = { Kind.Priest, Kind.Knight, Kind.Knight, Kind.Assassin, Kind.Knight, Kind.Guardian, Kind.Knight, Kind.Knight };
+    static readonly string[] Roles = { "Healer", "Infantry", "Infantry", "Ranged", "Infantry", "Guardian", "Infantry", "Infantry" };
     const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     static int checks;
     static void Check(bool value, string label)
@@ -22,11 +22,11 @@ public static class R1ProductionAIRecruitmentTests
         var catalog = UnitAuthoringCatalog.Load();
         Check(catalog != null, "installed catalog exists");
         catalog.Apply(definitions, null);
-        Check(UnitRoster.SummonableKinds.Length == 16 && new HashSet<Kind>(UnitRoster.SummonableKinds).Count == 16,
-            "live UI and AI roster contains sixteen unique kinds");
+        Check(UnitRoster.SummonableKinds.Length == 18 && new HashSet<Kind>(UnitRoster.SummonableKinds).Count == 18,
+            "live UI and AI roster contains eighteen unique kinds");
         Check(ReferenceEquals(BuildSummonUIBuilder.SummonableKinds, UnitRoster.SummonableKinds), "UI shares common roster");
         var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<R1ProductionContentSettings>(R1ProductionContentInstaller.SettingsPath);
-        Check(settings != null && settings.installed.Count == 16, "sixteen installed ability records");
+        Check(settings != null && settings.installed.Count >= 16 && settings.installed.Count <= 18, "sixteen established roles and only explicitly installed barrier roles");
         foreach (var record in settings.installed)
         {
             var recipe = new SimRecruitmentDefinition(record.data);
@@ -36,6 +36,12 @@ public static class R1ProductionAIRecruitmentTests
         for (int i = 0; i < NewKinds.Length; i++)
         {
             Kind kind = NewKinds[i];
+            if (i >= 6 && !settings.installed.Exists(record => record != null && record.kind == kind))
+            {
+                Check(!definitions.TryGetValue(kind,out var draft) || !draft.AvailableFor(Team.Player) && !draft.AvailableFor(Team.Enemy),
+                    "unapproved role remains unavailable " + kind);
+                continue;
+            }
             Check(Array.IndexOf(UnitRoster.SummonableKinds, kind) >= 0 && definitions.TryGetValue(kind, out _), "registered " + kind);
             var data = definitions[kind];
             Check(data.IsValidForAuthoring && data.AvailableFor(Team.Player) && data.AvailableFor(Team.Enemy), "valid both-faction recipe " + kind);
@@ -88,6 +94,9 @@ public static class R1ProductionAIRecruitmentTests
                 && unit.ATK == data.baseATK && unit.DEF == data.baseDEF && copy.GetAP(team) == ap - data.costAP,
                 team + " exact summon stats and AP " + data.kind);
             Check(unit.ActionProfile == data.actionProfile, team + " exact summon mask " + data.kind);
+            int expectedBarrier=BarrierSystem.UsesBarrier(data.kind,Type.Unit)
+                ? BarrierSystem.Maximum(data.baseBarrier>=0?data.baseBarrier:BarrierSystem.Initial(data.kind),1):0;
+            Check(unit.MaxBarrier==expectedBarrier&&unit.Barrier==expectedBarrier,team+" exact Lv1 summon barrier "+data.kind);
             var after = SimActionGenerator.GenerateAllActions(copy, team);
             bool moves = false, legal = true;
             foreach (var action in after)
@@ -148,6 +157,8 @@ public static class R1ProductionAIRecruitmentTests
             {
                 foreach (var kind in NewKinds)
                 {
+                    if ((kind == Kind.HeavyWarrior || kind == Kind.DragonKnight)
+                        && (!live.UnitSetting.UnitDataMap.TryGetValue(kind,out var draft) || !draft.AvailableFor(team))) continue;
                     resources.Wood = resources.Stone = resources.Iron = resources.MagicOre = resources.Water = resources.Bread = resources.Citizen = 100000;
                     live.FactionState.SetAP(team, 60);
                     var board = new AIBoardState(live.MoveGenerator, live.AttackGenerator, live.APSystem, live.UnitSetting,

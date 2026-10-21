@@ -14,9 +14,25 @@ public static class SceneSmoke
     static bool executing;
     static SceneSmoke() { EditorApplication.update += Tick; }
 
+    sealed class LegacyBarrierScope : IDisposable
+    {
+        BarrierCombatSettings config; IDisposable scope;
+        public LegacyBarrierScope()
+        {
+            if (!SessionState.GetBool("FK.LegacyBarrierCompatibility", false)) return;
+            config = ScriptableObject.CreateInstance<BarrierCombatSettings>(); config.enabledForPlay = false;
+            scope = BarrierCombatSettings.UseForValidation(config);
+        }
+        public void Dispose() { scope?.Dispose(); if (config != null) UnityEngine.Object.DestroyImmediate(config); }
+    }
+    public static void RunLegacyCompatibility()
+    {
+        SessionState.SetBool("FK.LegacyBarrierCompatibility", true); Run();
+    }
     public static void Run()
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new Exception("Smoke test requires isolated project");
+        using var legacy = new LegacyBarrierScope();
         Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
         PlayerSettings.companyName = "CodexValidation";
         PlayerSettings.productName = "FantasyKingdomR1Validation";
@@ -74,6 +90,7 @@ public static class SceneSmoke
         var game = UnityEngine.Object.FindFirstObjectByType<GameGenerator>();
         if (game == null || TitleScreenUI.Instance == null) return;
         executing = true;
+        using var legacy = new LegacyBarrierScope();
         try
         {
             typeof(GameGenerator).GetField("_waitingForTitle", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(game, false);
@@ -202,6 +219,7 @@ public static class SceneSmoke
         SpecialSkillActionTests.PlayMode(systems);
         CrossbowR1Tests.Run(systems);
         AbilityR1Tests.Run(systems);
+        AssassinAbilityTests.PlayMode(systems);
         SpecialSkillTargetingTests.PlayMode(systems);
         SpecialSkillUITests.PlayMode(systems);
         SpecialSkillAITests.PlayMode(systems);

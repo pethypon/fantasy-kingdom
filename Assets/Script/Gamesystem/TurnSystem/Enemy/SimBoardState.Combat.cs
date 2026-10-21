@@ -16,10 +16,16 @@ public partial class SimBoardState
         float incomingMod = defender.GetIncomingDamageMod();
 
         float atk = attacker.ATK * atkMod;
-        float def = defender.DEF * defMod;
+        float def = defender.UsesBarrier ? 0 : defender.DEF * defMod;
 
-        return DamageCalculator.CalcFromValues(atk, def, incomingMod);
+        return BarrierSystem.NormalAttackDamage(attacker.Kind, defender.UsesBarrier ? defender.Barrier : 0,
+            DamageCalculator.CalcFromValues(atk, def, incomingMod,defender.UsesBarrier));
     }
+
+    /// <summary>Expected HP loss after the ordinary hit consumes the current barrier.</summary>
+    public static int CalcHpDamage(SimUnit attacker, SimUnit defender)
+        => defender == null ? 0 : BarrierSystem.PreviewHpLoss(defender.HP,
+            defender.UsesBarrier ? defender.Barrier : 0, CalcDamage(attacker, defender));
 
     /// <summary>スキルダメージ計算。封技/固定ダメージを反映。</summary>
     public static int CalcSkillDamage(SimUnit caster, SimUnit target, SkillData skill)
@@ -31,9 +37,9 @@ public partial class SimBoardState
         float incomingMod = target.GetIncomingDamageMod();
 
         float atk = caster.ATK * atkMod;
-        float def = target.DEF * defMod;
+        float def = target.UsesBarrier ? 0 : target.DEF * defMod;
 
-        float baseDmg = DamageCalculator.CalcRawBase(atk, def);
+        float baseDmg = DamageCalculator.CalcRawBaseForTarget(atk, def,target.UsesBarrier);
         float skillMul = skill.Multiplier;
 
         // 封技修飾
@@ -81,6 +87,7 @@ public partial class SimBoardState
     // ================================================================
     public int CalcMoveCost(SimUnit unit)
     {
+        if (unit.AssassinPassive) return SpecialSkillDefinition.AssassinMoveAP;
         return Mathf.Max(1, APSystem.BaseMoveCost + unit.Fatigue + unit.GetMoveAPBonus());
     }
 

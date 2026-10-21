@@ -41,7 +41,13 @@ public static class AIClosingPlaytest
     {
         public int MapSeed, EnemyAISeed, PlayerAISeed, ThreatLevel = 15, Round, OwnerTurns;
         public string EnemyPersonality, PersistentPath, StartedUtc, FinishedUtc, EndCondition, Result = "unresolved", OutcomeReason, Fault;
-        public bool ActualPlayerAIModeUsed, GameOver;
+        public bool ActualPlayerAIModeUsed, GameOver, BarrierEnabled;
+        public int BarrierRevision, FrameSamples, HpDamage, BarrierDamage, BarrierOnlyHits, BypassHits, HeavySkills;
+        public float P95FrameMs, WorstFrameMs, InitialMemoryMB, FinalMemoryMB, PeakMemoryMB;
+        public string CombatRules;
+        public SaveSystem.ResourceSaveData PlayerResources, EnemyResources;
+        public int HeavyWarriorsSeen, DragonKnightsSeen, PlayerLivingUnits, EnemyLivingUnits;
+        public int PlayerStarvationTurns, EnemyStarvationTurns;
         public double Seconds;
         public float InitialTimeScale, InitialTurnTimeLimit, TerrainSeedX, TerrainSeedZ;
         public int PlayerKingHP, PlayerCrystalHP, EnemyKingHP, EnemyCrystalHP, Errors, Exceptions, Assertions;
@@ -143,6 +149,55 @@ public static class AIClosingPlaytest
     static SideObserver player, enemy;
     static StreamWriter actions, turns;
     static bool initialized, clicked, finishing;
+    static readonly List<float> frameTimes = new List<float>(12000);
+    static int sampledFrame = -1, lastCaptureRound = -1;
+    static readonly HashSet<string> heavyLives = new HashSet<string>(), dragonLives = new HashSet<string>();
+    static readonly List<Status> reportActors = new List<Status>(128);
+    static SaveSystem.ResourceSaveData Resources(FactionState.ResourceData source) => new SaveSystem.ResourceSaveData
+    { Wood=source.Wood,Stone=source.Stone,Iron=source.Iron,MagicOre=source.MagicOre,Water=source.Water,Bread=source.Bread,Wheat=source.Wheat,Citizen=source.Citizen };
+    static void OnHpChange(HpChangeResult result)
+    {
+        if (match == null || finishing) return;
+        match.HpDamage += result.ActualHpLoss; match.BarrierDamage += result.ActualBarrierLoss;
+        if (result.ActualBarrierLoss > 0 && result.ActualHpLoss == 0) match.BarrierOnlyHits++;
+        if (result.Kind == HpChangeKind.BarrierBypassDamage && result.ActualHpLoss > 0) match.BypassHits++;
+        if (result.Source != null && result.Source.kind == Kind.HeavyWarrior && result.Cause == HpChangeCause.Skill) match.HeavySkills++;
+    }
+    static void SampleFrame()
+    {
+        if (Time.frameCount == sampledFrame) return;
+        sampledFrame = Time.frameCount;
+        if (frameTimes.Count < 20000) frameTimes.Add(Time.unscaledDeltaTime * 1000);
+        float memory = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() / (1024f * 1024f);
+        match.PeakMemoryMB = Mathf.Max(match.PeakMemoryMB, memory); match.FinalMemoryMB = memory;
+    }
+    static void CaptureNativeView(string suffix)
+    {
+        if (Environment.GetEnvironmentVariable("FK_CLOSING_CAPTURE_VISUALS") != "1") return;
+        string name = "barrier-ai-" + match.MapSeed + "-" + suffix + ".png";
+        VisualRegressionTests.CaptureHUD(name);
+        var camera = Camera.main; var oldPosition=camera.transform.position; float oldFov=camera.fieldOfView,oldSize=camera.orthographicSize;
+        try
+        {
+            Vector3 focus=turn.Systems.CrystalSystem.PCP; int found=0;Vector3 sum=Vector3.zero;
+            foreach (var actor in turn.Systems.UnitSetting.PlayerUnit.GetComponentsInChildren<Status>())
+                if(actor.IsAlive&&!MatchObjectiveRules.IsCommander(actor)){sum+=actor.transform.position;found++;}
+            if(found>0)focus=sum/found;
+            camera.fieldOfView=45;camera.orthographicSize=9;
+            camera.transform.position=focus-camera.transform.forward*18;
+            foreach(var head in UnityEngine.Object.FindObjectsByType<UnitHeadUI>(FindObjectsSortMode.None))head.SendMessage("LateUpdate",SendMessageOptions.DontRequireReceiver);
+            string closeName="close-"+name; VisualRegressionTests.CaptureHUD(closeName);
+            string closeFrom=Path.GetFullPath(Path.Combine(Application.dataPath,"../../visual-captures",closeName));
+            if(File.Exists(closeFrom))File.Copy(closeFrom,Path.Combine(folder,closeName),true);
+        }
+        finally
+        {
+            camera.transform.position=oldPosition;camera.fieldOfView=oldFov;camera.orthographicSize=oldSize;
+            foreach(var head in UnityEngine.Object.FindObjectsByType<UnitHeadUI>(FindObjectsSortMode.None))head.SendMessage("LateUpdate",SendMessageOptions.DontRequireReceiver);
+        }
+        string from = Path.GetFullPath(Path.Combine(Application.dataPath,"../../visual-captures",name));
+        if (File.Exists(from)) File.Copy(from,Path.Combine(folder,name),true);
+    }
     static int lastOwners = -1;
     static double started, lastProgress;
     static string progressKey, folder;
@@ -169,6 +224,7 @@ public static class AIClosingPlaytest
             OriginalCompany = PlayerSettings.companyName, OriginalProduct = PlayerSettings.productName };
         if (settings.Seeds.Length == 0) throw new ArgumentException("At least one fixed seed is required.");
         Directory.CreateDirectory(settings.Output);
+        if (Environment.GetEnvironmentVariable("FK_CLOSING_CAPTURE_VISUALS") == "1") BoardVisualThemeInstaller.RenderPreview();
         run = new RunReport { Label = settings.Label, StartedUtc = DateTime.UtcNow.ToString("o") };
         SessionState.SetString(Key + ".Settings", JsonUtility.ToJson(settings));
         SessionState.SetString(Key + ".Run", JsonUtility.ToJson(run));
@@ -227,6 +283,12 @@ public static class AIClosingPlaytest
         Application.logMessageReceived += Log;
         if (!SaveSystem.TrySaveProfile(new SaveSystem.ProfileData { ThreatLevel = 15 }, out string reason))
             throw new IOException("Cannot initialize isolated threat profile: " + reason);
+        frameTimes.Clear(); heavyLives.Clear(); dragonLives.Clear(); sampledFrame = lastCaptureRound = -1;
+        match.InitialMemoryMB = match.FinalMemoryMB = match.PeakMemoryMB = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong()/(1024f*1024f);
+        match.BarrierEnabled = BarrierCombatSettings.Active.enabledForPlay; match.BarrierRevision = BarrierCombatSettings.Active.specificationRevision;
+        match.CombatRules = "R1 confirmed table; +"+BarrierSystem.GrowthPerLevel+" per level. "
+            + SpecialSkillPresentation.BarrierRecoveryDescription();
+        SpecialSkillRuntime.HpChangeCommitted += OnHpChange;
         initialized = true;
     }
     static void Observe()
@@ -246,6 +308,7 @@ public static class AIClosingPlaytest
             if (candidate != null && candidate.CurrentState is PlayerMove && candidate.Systems.AICommander != null)
             {
                 turn = candidate; turn.MarkDeveloperMatch(); var s = turn.Systems;
+                SpecialSkillRuntime.HpChangeCommitted -= OnHpChange; SpecialSkillRuntime.HpChangeCommitted += OnHpChange;
                 // The original enemy has not acted: preserve all normal systems and rules, fix only random personality/seed.
                 var major = AIPersonality.RandomMajor(match.EnemyAISeed);
                 s.AICommander = new AICommander(turn, s.MoveGenerator, s.AttackGenerator, s.BattleSystem, s.VisionGenerator,
@@ -267,6 +330,7 @@ public static class AIClosingPlaytest
         }
         if (turn != null)
         {
+            SampleFrame();
             if (turn.IsGameOver) { Finish("game_over"); return; }
             if (!turn.PlayerAI.Enabled) { Finish("player_ai_disabled", "Actual player AI stopped before a terminal result."); return; }
             player?.Snapshot(); enemy?.Snapshot();
@@ -276,6 +340,8 @@ public static class AIClosingPlaytest
             if (owners != lastOwners)
             {
                 lastOwners = owners; Snapshot();
+                if ((turn.Context.Turn == 1 || turn.Context.Turn % 40 == 0) && lastCaptureRound != turn.Context.Turn)
+                { lastCaptureRound = turn.Context.Turn; CaptureNativeView("round-"+turn.Context.Turn); }
                 if (owners > 0 && owners % 20 == 0) Debug.Log(Prefix + " PROGRESS seed=" + match.MapSeed + " ownerTurns=" + owners
                     + " attacks=" + match.Player.Attacks + "/" + match.Enemy.Attacks + " builds=" + match.Player.Builds + "/" + match.Enemy.Builds);
             }
@@ -291,6 +357,17 @@ public static class AIClosingPlaytest
         if (turn != null)
         {
             var s = turn.Systems; ObserveDecisiveActors();
+            match.PlayerResources=Resources(s.FactionState.PlayerResources);match.EnemyResources=Resources(s.FactionState.EnemyResources);
+            match.PlayerStarvationTurns=s.FactionState.PlayerNation.StarvationCounter;match.EnemyStarvationTurns=s.FactionState.EnemyNation.StarvationCounter;
+            match.PlayerLivingUnits=match.EnemyLivingUnits=0;CombatRegistry.Collect(reportActors);
+            foreach(var actor in reportActors)
+            {
+                if(actor==null||!actor.IsAlive||actor.type!=Type.Unit)continue;
+                if(actor.team==Team.Player)match.PlayerLivingUnits++;if(actor.team==Team.Enemy)match.EnemyLivingUnits++;
+                if(actor.kind==Kind.HeavyWarrior&&heavyLives.Count<512)heavyLives.Add(actor.ReflectionLifeId);
+                if(actor.kind==Kind.DragonKnight&&dragonLives.Count<512)dragonLives.Add(actor.ReflectionLifeId);
+            }
+            reportActors.Clear();match.HeavyWarriorsSeen=heavyLives.Count;match.DragonKnightsSeen=dragonLives.Count;
             match.PlayerCommanderHP = CommanderHP(s.UnitSetting.PlayerUnit, Team.Player, out match.PlayerCommandersFound, out match.PlayerCommanderKinds);
             match.EnemyCommanderHP = CommanderHP(s.UnitSetting.EnemyUnit, Team.Enemy, out match.EnemyCommandersFound, out match.EnemyCommanderKinds);
             match.PlayerKingHP = match.PlayerCommanderHP; match.EnemyKingHP = match.EnemyCommanderHP;
@@ -351,6 +428,9 @@ public static class AIClosingPlaytest
         match.Result = terminal == null ? "unresolved" : typeof(GameEndState)
             .GetField("_result", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(terminal).ToString();
         match.OutcomeReason = terminal?.OutcomeReason ?? ""; match.FinishedUtc = DateTime.UtcNow.ToString("o");
+        if (turn != null) CaptureNativeView("final");
+        frameTimes.Sort(); match.FrameSamples = frameTimes.Count;
+        if (frameTimes.Count > 0) { match.P95FrameMs = frameTimes[Mathf.Clamp(Mathf.CeilToInt(frameTimes.Count*.95f)-1,0,frameTimes.Count-1)]; match.WorstFrameMs=frameTimes[frameTimes.Count-1]; }
         Snapshot(); Cleanup(); run.Matches.Add(match);
         if (match.GameOver) run.Resolved++; else run.Interrupted++;
         if (!string.IsNullOrEmpty(fault) || match.Errors + match.Exceptions + match.Assertions > 0) run.Faulted++;
@@ -369,6 +449,7 @@ public static class AIClosingPlaytest
     }
     static void Cleanup()
     {
+        SpecialSkillRuntime.HpChangeCommitted -= OnHpChange;
         Application.logMessageReceived -= Log; player?.Dispose(); enemy?.Dispose();
         actions?.Dispose(); turns?.Dispose(); actions = turns = null;
     }

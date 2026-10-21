@@ -384,7 +384,8 @@ public class AISearchEngine
             case AIActionType.SkillUse:
                 if (action.Skill != null && action.Skill.Multiplier > 0 && action.TargetUnit != null)
                 {
-                    int dmg = SkillSystem.CalcSkillDamage(action.Unit, action.TargetUnit, action.Skill);
+                    int dmg = SpecialSkillRuntime.PreviewHpDamage(action.TargetUnit,
+                        SkillSystem.CalcSkillDamage(action.Unit, action.TargetUnit, action.Skill));
                     effect += dmg * 0.6f;
                     if (dmg >= action.TargetUnit.HP) effect += GetPieceValue(action.TargetUnit);
                     if (action.AreaTargets != null) effect += action.AreaTargets.Count * 8f;
@@ -490,7 +491,7 @@ public class AISearchEngine
     static int EstimateDamage(Status attacker, Status defender)
     {
         if (attacker == null || defender == null) return 0;
-        return DamageCalculator.EstimateBaseDamage(attacker.ATK, defender.DEF);
+        return AIEvalHelpers.EstimateDamage(attacker, defender);
     }
 
     static float GetPieceValue(Status unit)

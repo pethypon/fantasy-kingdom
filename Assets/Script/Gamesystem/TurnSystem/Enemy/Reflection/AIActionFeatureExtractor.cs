@@ -229,6 +229,12 @@ public sealed class AIActionFeatureExtractor
             if (actor.ActiveEffects != null)
                 foreach (var effect in actor.ActiveEffects)
                     if (effect != null) signature += ((int)effect.debuffType * 397 ^ (int)effect.buffType * 31) * 17 + effect.remainingTurns;
+            signature = signature * 31 + actor.Barrier;
+            signature = signature * 31 + actor.MaxBarrier;
+            signature = signature * 31 + (actor.BarrierRecovery?.SafeTurns ?? 0);
+            signature = signature * 31 + (actor.BarrierRecovery?.DamageSinceOwnTurn == true ? 1 : 0);
+            signature = signature * 31 + (actor.BarrierRecovery?.HasRecovered == true ? 1 : 0);
+            signature = signature * 31 + (actor.BarrierRecovery?.HasOwnTurnBaseline == true ? 1 : 0);
             return signature + SpecialEffectSignature(actor.Special, turn) * 397;
         }
     }
@@ -277,6 +283,7 @@ public sealed class AIActionFeatureExtractor
         Add(Mathf.Clamp(state.stationaryTurns, 0, 100000));
         Add(Mathf.Clamp(state.samuraiGauge, 0, 1000000));
         Add(Mathf.Clamp(state.samuraiMaxTurns, 0, 3));
+        Add(Mathf.Clamp(state.dragonKnightGauge, 0, 2));
         Add(Mathf.Clamp(state.ninjaCharge, 0, 5));
         Add(Mathf.Clamp(state.berserkerStage, 0, 5));
         Add(Mathf.Clamp(state.holyKnightTurns, 0, 3)); Flag(state.holyKnightRecoveryLock);
@@ -362,8 +369,7 @@ public sealed class AIActionFeatureExtractor
             if (unit != null && unit.IsAlive && Distance(point, unit.transform.position) <= 4) result.y += Power(unit);
         return result;
     }
-    static float Power(Status unit) => (Mathf.Max(0, unit.ATK) + Mathf.Max(0, unit.DEF) * .5f)
-        * Mathf.Clamp01((float)unit.HP / Mathf.Max(1, unit.MaxHP));
+    static float Power(Status unit) => AIEvalHelpers.CombatPower(unit);
     static int Distance(Vector3 first, Vector3 second) => Mathf.RoundToInt(GridHelper.ChebyshevDistance(first, second));
     public static string Role(Kind kind)
     {

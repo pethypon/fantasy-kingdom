@@ -1,0 +1,17 @@
+{
+    "source": "Actual BoardActorAnimation.NotifyAttack -> BoardActionFeedback and BoardCombatEffects runtime; cosmetic demonstration, not a battle replay.",
+    "width": 960,
+    "height": 420,
+    "framesPerSecond": 30,
+    "framesPerPhase": 18,
+    "frames": 108,
+    "phases": [
+        "Melee",
+        "Projectile",
+        "Magic",
+        "Heal",
+        "Summon",
+        "Build"
+    ],
+    "audio": "Production sound requests are issued by each facade event. PNG/GIF frames do not contain audio."
+}

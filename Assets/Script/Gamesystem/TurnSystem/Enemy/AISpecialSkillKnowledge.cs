@@ -4,6 +4,16 @@ using UnityEngine;
 /// <summary>Rule knowledge holds a shared definition, never a second balance table.</summary>
 public static class AISpecialSkillKnowledge
 {
+    /// <summary>Immediate offensive skills share existing strategy weights; support commands do not.</summary>
+    public static bool IsOffensiveSkill(AIAction action)
+    {
+        if (action == null || action.ActionType != AIActionType.SkillUse) return false;
+        if (action.SpecialCommand == null) return action.Skill != null && action.Skill.Multiplier > 0;
+        var definition = SpecialSkillRuntime.Definition(action.SpecialCommand.Caster);
+        return definition?.enabledForPlay == true && (definition.ability == UnitSpecialSkill.HeavyWarriorBreak
+            || definition.ability == UnitSpecialSkill.DragonKnightPierce);
+    }
+
     public readonly struct Knowledge
     {
         public readonly Kind UnitKind;
@@ -27,10 +37,12 @@ public static class AISpecialSkillKnowledge
         var definition = SpecialSkillRuntime.Definition(unit);
         switch (definition != null ? definition.ability : UnitSpecialSkill.None)
         {
+            case UnitSpecialSkill.HeavyWarriorBreak: return new Knowledge(unit,"バリア破壊","接近戦","バリアへの強打","視界内の隣接敵","HP直接攻撃・集中攻撃","前衛",0,true,false,false);
+            case UnitSpecialSkill.DragonKnightPierce: return new Knowledge(unit,"ゲージ貫通","通常攻撃2回の準備","バリアを保ったままHPへ専用スキル","視界内の隣接敵","ゲージ消費後の攻撃","バリアの厚い敵",0,true,false,false);
             case UnitSpecialSkill.KnightBreakthrough: return new Knowledge(unit,"突破","突出・死角","押し込み","正面","回り込み","前衛",0,false,false,false);
             case UnitSpecialSkill.ArcherStationary: return new Knowledge(unit,"固定砲台・離脱","攻撃不能・敵ATK強化","未移動火力・敵別隠密","周囲の敵を発動時に記録","強制移動・別の敵で追跡","護衛",2,false,false,false);
             case UnitSpecialSkill.MagicRitual: return new Knowledge(unit,"予約必中","術者撃破・味方HP","供儀分の防御無視","視界内敵駒","術者撃破","護衛・回復",1,true,false,true);
-            case UnitSpecialSkill.AssassinVisionSeal: return new Knowledge(unit,"視界妨害","次被ダメージ倍","敵視界封鎖","視界内敵","使用後追撃","回り込み",2,true,true,false);
+            case UnitSpecialSkill.AssassinVisionSeal: return new Knowledge(unit,"定額移動・視界妨害","孤立時最大HP10%減・次被ダメージ倍","通常移動AP3・敵視界封鎖","視界内敵","味方視界から分断","味方の視界支援",2,true,true,false);
             case UnitSpecialSkill.ScoutVisionGuard: return new Knowledge(unit,"防護","自身視界低下","一撃無効","発動時の視界内味方","小威力で解除","高価値後衛",2,false,false,false);
             case UnitSpecialSkill.PriestPurification: return new Knowledge(unit,"浄化","自己犠牲・味方強化消失","通常効果解除","周囲双方","範囲外へ","弱体解除",0,false,true,false);
             case UnitSpecialSkill.GuardianLifeLink: return new Knowledge(unit,"接続防衛","転送・死亡交換","重要対象保護","味方駒・建物","転送先評価","王・後衛",0,false,true,true);

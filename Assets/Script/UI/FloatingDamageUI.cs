@@ -53,6 +53,7 @@ public class FloatingDamageUI : MonoBehaviour
     {
         _nextIndex = 0;
         _pool = new DamagePopup[PoolSize];
+        var popupFont = UIFactory.LoadDefaultFont();
         for (int i = 0; i < PoolSize; i++)
         {
             var existing = transform.Find($"DmgPopup_{i}");
@@ -61,6 +62,7 @@ public class FloatingDamageUI : MonoBehaviour
 
             var tmp = go.GetComponent<TextMeshPro>();
             if (tmp == null) tmp = go.AddComponent<TextMeshPro>();
+            if (popupFont != null) tmp.font = popupFont;
             tmp.fontSize = FontSize;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.sortingOrder = 100;
@@ -90,18 +92,47 @@ public class FloatingDamageUI : MonoBehaviour
         Instance.Spawn(worldPos, text, c);
     }
 
+    /// <summary>一つの確定した命中結果を、HP損失・バリア損失に分けて表示する。</summary>
+    public static void ShowCombatDamage(Status actor, int hpDamage, int barrierDamage, bool isKill = false)
+    {
+        if (Instance == null || actor == null) return;
+        hpDamage = Mathf.Max(0, hpDamage); barrierDamage = Mathf.Max(0, barrierDamage);
+        if (hpDamage == 0 && barrierDamage == 0) return;
+        string text = barrierDamage > 0 ? $"<color=#80D1FF>バリア -{barrierDamage}</color>" : "";
+        if (hpDamage > 0)
+            text += (text.Length > 0 ? "\n" : "") + $"<color=#FF7065>HP -{hpDamage}</color>";
+        if (barrierDamage > 0 && actor.Barrier == 0)
+            text += "\n<color=#FFD36B>バリア破壊</color>";
+        if (isKill) text += "\n撃破";
+        Instance.Spawn(actor.transform.position, text, isKill ? KillColor : hpDamage > 0 ? DamageColor : ShieldColor);
+    }
+
+    /// <summary>侍などの固有能力で現在バリアだけを解除した時の表示。</summary>
+    public static void ShowBarrierBreak(Status actor)
+    {
+        if (Instance == null || actor == null) return;
+        Instance.Spawn(actor.transform.position, "バリア破壊", new Color(1, .83f, .42f));
+    }
+
+    /// <summary>HP回復と区別し、実際に回復したバリア量を表示する。</summary>
+    public static void ShowBarrierRecovery(Status actor, int amount)
+    {
+        if (Instance == null || actor == null || amount <= 0) return;
+        Instance.Spawn(actor.transform.position, $"バリア +{amount}", new Color(.35f, 1, .95f));
+    }
+
     /// <summary>回復ポップアップを表示する</summary>
     public static void ShowHeal(Vector3 worldPos, int amount)
     {
         if (Instance == null) return;
-        Instance.Spawn(worldPos, $"+{amount}", HealColor);
+        Instance.Spawn(worldPos, $"HP +{amount}", HealColor);
     }
 
     /// <summary>シールドブロック表示</summary>
     public static void ShowShield(Vector3 worldPos)
     {
         if (Instance == null) return;
-        Instance.Spawn(worldPos, "SHIELD", ShieldColor);
+        Instance.Spawn(worldPos, "完全防御", ShieldColor);
     }
 
     /// <summary>ミス・無効表示</summary>

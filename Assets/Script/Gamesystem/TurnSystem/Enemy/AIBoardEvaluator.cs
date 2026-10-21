@@ -101,7 +101,8 @@ public static class AIBoardEvaluator
     {
         float base_ = PieceValues.TryGetValue(UnitRoster.EvaluationBaseKind(unit.kind), out float v) ? v : 20f;
         // HPが減っている駒は価値が下がる
-        float hpRatio = unit.MaxHP > 0 ? (float)unit.HP / unit.MaxHP : 1f;
+        float maximum = (float)unit.MaxHP + (BarrierSystem.UsesBarrier(unit) ? unit.MaxBarrier : 0);
+        float hpRatio = maximum > 0 ? (unit.HP + (BarrierSystem.UsesBarrier(unit) ? (float)unit.Barrier : 0)) / maximum : 1f;
         return base_ * (0.3f + 0.7f * hpRatio);
     }
 

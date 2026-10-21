@@ -1,0 +1,17 @@
+King
+Knight
+Archer
+Magic
+Assassin
+Scout
+Priest
+Guardian
+Crossbow
+Magicsniper
+Bomber
+WhiteMage
+HolyKnight
+Samurai
+Ninja
+Berserker
+Navigator

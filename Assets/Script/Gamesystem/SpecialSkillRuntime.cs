@@ -15,7 +15,7 @@ public static partial class SpecialSkillRuntime
         ResetRuleCaches(); EndTurnSpecials(); movementBatchDepth = 0; movementHits.Clear();
         CombatRuleTelemetry.Reset(); ResetHpHistory();
         var actors = new List<Status>(); CombatRegistry.Collect(actors);
-        foreach (var actor in actors) { actor.Special = new SpecialState(); actor.NaturalRecovery = new NaturalRecoveryState(); }
+        foreach (var actor in actors) { actor.Special = new SpecialState(); actor.NaturalRecovery = new NaturalRecoveryState(); actor.ResetBarrier(); }
     }
     static List<Status> RuleActors()
     {
@@ -68,6 +68,8 @@ public static partial class SpecialSkillRuntime
             if (next > 5) { reason = "すでに最大の5段階まで強化しています"; return false; }
             if (berserkerStage != 0 && berserkerStage != next) { reason = "強化段階が変わりました。次の1段階だけ強化できます"; return false; }
         }
+        if (definition.ability == UnitSpecialSkill.DragonKnightPierce && State(caster).dragonKnightGauge < 2)
+        { reason = "通常攻撃を2回使用してゲージをためてください"; return false; }
         int cost = GetAPCost(caster, berserkerStage);
         if (cost < 0 || cost > APSystem.MaximumSkillAP) { reason = "スキルの消費AP設定を確認してください"; return false; }
         if (systems?.FactionState == null || systems.APSystem == null || systems.FactionState.GetAP(caster.team) < cost) { reason = "行動ポイント不足です"; return false; }
@@ -222,6 +224,7 @@ public static partial class SpecialSkillRuntime
         }
         }
         finally { EndTurnSpecials(); }
+        BarrierSystem.ProcessOwnerTurnStart(team, round);
         Refresh(systems);
     }
     public static void OnActorTurnStart(Status actor, GameSystems systems, int round)
