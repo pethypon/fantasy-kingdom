@@ -33,13 +33,13 @@ public class UnitData : ScriptableObject
     [Header("基礎ステータス（Lv1の値）")]
     public int baseHP;
     public int baseATK;
-    [HideInInspector] public int baseDEF; // Retained for historical saves and commander definitions.
+    [HideInInspector] public int baseDEF; // Historical serialized data; unused by R1 combat.
     [Min(-1), InspectorName("初期バリア（-1は職種設定）")] public int baseBarrier = -1;
 
     [Header("成長率（Lv1基礎値から固定加算・最低+2/Lv）")]
     public float hpGrowth;
     public float atkGrowth;
-    public float defGrowth;
+    [HideInInspector] public float defGrowth;
 
     [Header("維持費（Lv1から発生・Lv10ごとに増加）")]
     [Tooltip("召喚体など維持費を免除する駒。王・異形の王は常に免除。通常の生産駒は有効にしません。")]

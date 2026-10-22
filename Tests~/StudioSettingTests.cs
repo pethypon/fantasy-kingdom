@@ -237,8 +237,8 @@ public static class StudioSettingTests
             try
             {
                 systems.UnitPanelUI.ShowInspection(actor);
-                Check("status UI displays the updated live attack and defense", Field<TextMeshProUGUI>(systems.UnitPanelUI, "atkText").text.Contains("40")
-                    && Field<TextMeshProUGUI>(systems.UnitPanelUI, "defText").text.Contains("22"));
+                Check("status UI displays updated attack and the current barrier rule without obsolete DEF", Field<TextMeshProUGUI>(systems.UnitPanelUI, "atkText").text.Contains("40")
+                    && Field<TextMeshProUGUI>(systems.UnitPanelUI, "barrierText").gameObject.activeSelf == BarrierSystem.UsesBarrier(actor));
             }
             finally { if (old != null && old.IsAlive) systems.UnitPanelUI.Show(old); else systems.UnitPanelUI.Hide(); }
             var target = f.Opponent(actor.transform.position + Vector3.forward, 0); target.kind = Kind.Scout; target.DEF = 0;

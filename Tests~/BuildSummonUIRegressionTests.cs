@@ -68,6 +68,15 @@ public static class BuildSummonUIRegressionTests
         Check(name + " shows the effective definition's AP", label != null
             && Compact(label.text).EndsWith("AP:" + data.costAP, StringComparison.Ordinal));
         Check(name + " shows every required resource and amount", Compact(cost.text.Split('\n')[0]) == Compact(ExpectedCost(data)));
+        string tooltip = SummonUnitTooltip.Description(data);
+        Check(name + " hover groups costs upkeep and combat stats without defence", tooltip.Contains("制作費")
+            && tooltip.Contains("維持費") && tooltip.Contains("HP ") && tooltip.Contains("攻撃力 ")
+            && !tooltip.Contains("DEF") && !tooltip.Contains("防御力"));
+        if (data.specialSkill != null && data.specialSkill.ability != UnitSpecialSkill.None)
+            Check(name + " hover separates the skill effect from its passive", tooltip.Contains("<b>スキル</b>")
+                && tooltip.Contains("<b>アビリティ</b>")
+                && tooltip.Contains(SpecialSkillPresentation.PassiveDescription(data.specialSkill))
+                && (data.specialSkill.IsPassive || tooltip.Contains(SpecialSkillPresentation.Description(data.specialSkill))));
     }
 
     static void CheckCostLayout(string name, RectTransform parent, Transform content, Button button, TextMeshProUGUI cost)

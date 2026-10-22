@@ -195,6 +195,7 @@ public static partial class SpecialSkillRuntime
     }
     public static float GetDEFModifier(Status actor)
     {
+        if (!DamageCalculator.UsesLegacyDefence) return 1;
         var d = Definition(actor); return d != null && d.enabledForPlay && d.ability == UnitSpecialSkill.BerserkerRage && State(actor).berserkerStage > 0 && d.HasCurve(d.berserkerDefenceCurve)
             ? Mathf.Clamp01(d.berserkerDefenceCurve.Evaluate(State(actor).berserkerStage)) : 1;
     }

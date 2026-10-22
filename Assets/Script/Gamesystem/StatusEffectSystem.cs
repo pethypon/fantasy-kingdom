@@ -239,6 +239,7 @@ public static class StatusEffectSystem
     /// <summary>DEF修飾: 破甲-15%, 守勢+20%</summary>
     public static float GetDEFModifier(Status unit)
     {
+        if (!DamageCalculator.UsesLegacyDefence) return 1;
         float mod = 1f;
         if (HasDebuff(unit, StatusEffectType.ArmorBreak)) mod -= GameConstants.ArmorBreakDEFReduction;
         if (HasBuff(unit, BuffType.Defensive))            mod += GameConstants.DefensiveDEFBonus;

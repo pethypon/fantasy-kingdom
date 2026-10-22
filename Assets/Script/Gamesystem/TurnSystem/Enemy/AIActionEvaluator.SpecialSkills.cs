@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,7 +30,7 @@ public static partial class AIActionEvaluator
             else attackMod = Mathf.Min(attackMod, 1 - Mathf.Clamp01(definition.knightVisibleEnemyAtkPenalty));
         }
         attackMod *= stackedKnightModifier;
-        if (BarrierSystem.UsesBarrier(target)) attackMod *= AIEvalHelpers.ObservedAttackModifier(attacker)*(1-attacker.UpkeepPenaltyATKDEF);
+        if (BarrierCombatSettings.Active.enabledForPlay) attackMod *= AIEvalHelpers.ObservedAttackModifier(attacker)*(1-attacker.UpkeepPenaltyATKDEF);
         foreach (var archer in board.SpecialObservedActors)
             if (archer.Special?.archerEscapeTurns > 0 && archer.Special.archerSnapshotIds.Contains(attacker.ReflectionLifeId))
             { attackMod *= SpecialSkillDefinition.ArcherEnemyAttackBoost; break; }
@@ -39,7 +39,9 @@ public static partial class AIActionEvaluator
         var attackDefinition=SpecialSkillRuntime.Definition(attacker);
         float multiplier=attacker.team!=board.ActorTeam&&attackDefinition?.ability==UnitSpecialSkill.NavigatorPull
             ?SpecialSkillDefinition.NavigatorMaximum:attackDefinition?.ability == UnitSpecialSkill.MagicRitual
-                ? ObservedMagicianMultiplier(attacker, target, board) : SpecialSkillRuntime.GetAttackMultiplier(attacker,target);
+                ? ObservedMagicianMultiplier(attacker, target, board)
+                : attackDefinition?.ability==UnitSpecialSkill.NinjaSwap ? ObservedNinjaMultiplier(attacker,attackDefinition)
+                : SpecialSkillRuntime.GetAttackMultiplier(attacker,target);
         double damage = DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBaseForTarget(attack, defence,
             BarrierSystem.UsesBarrier(target)))*(double)multiplier;
         var targetDefinition = SpecialSkillRuntime.Definition(target);
@@ -48,7 +50,7 @@ public static partial class AIActionEvaluator
         if (board.KnownEnvironmentDefinition(target.transform.position) != null)
             damage *= board.ReconMap.Environment.IncomingDamageMultiplier(target.transform.position,
                 DamageCalculator.IsRangedAttack(attacker), ((attacker.GrowthData?.attackTags ?? CombatAttackTags.None) & CombatAttackTags.Stone) != 0);
-        if (BarrierSystem.UsesBarrier(target)) damage *= StatusEffectSystem.GetIncomingDamageModifier(target);
+        if (BarrierCombatSettings.Active.enabledForPlay) damage *= StatusEffectSystem.GetIncomingDamageModifier(target);
         return (int)Math.Min(int.MaxValue, Math.Max(0, damage));
     }
     static float ObservedMagicianMultiplier(Status attacker, Status target, AIBoardState board)
@@ -61,6 +63,13 @@ public static partial class AIActionEvaluator
                 return SpecialSkillRuntime.IsStrongTarget(target) ? SpecialSkillDefinition.MagicStrongTargetMultiplier : SpecialSkillDefinition.MagicOrdinaryTargetMultiplier;
         }
         return 1;
+    }
+    static float ObservedNinjaMultiplier(Status attacker,SpecialSkillDefinition definition)
+    {
+        // Opponent vision masks are private. Budget the known out-of-sight damage floor
+        // instead of consulting the target's current VisionCell as a combat oracle.
+        return .4f*(definition.HasCurve(definition.ninjaChargeCurve)
+            ? Mathf.Max(1,definition.ninjaChargeCurve.Evaluate(Mathf.Clamp(attacker.Special?.ninjaCharge??0,0,5))) : 1);
     }
     static Status ObservedDamageRecipient(AIBoardState board, Status target)
     {
@@ -159,46 +168,43 @@ public static partial class AIActionEvaluator
     }
     public static int EstimateObservedHitLoss(Status unit,AIBoardState board,int amount,HpChangeKind kind)
     {
-        if(unit==null||amount<=0)return 0;
-        if(kind==HpChangeKind.DirectHpReduction)return Mathf.Min(unit.HP,amount);
-        if(kind==HpChangeKind.ForcedDeath)return unit.HP;
-        if(unit.ShieldTurns>0)return 0;
-        var partner=board?.FindObservedSpecialActor(unit.Special?.guardianPartnerId);
-        if(partner!=null)
-        {
-            return 0; // A linked target is protected; the observed partner takes the packet/death.
-        }
-        return SpecialSkillRuntime.PreviewHpDamage(unit,amount,kind);
+        var budget = AIObservedDamageBudget.Capture(unit);
+        int loss = EstimateObservedHitLoss(unit,board,amount,kind,ref budget);
+        return unit != null ? Mathf.Min(unit.HP,loss) : 0;
     }
-    /// <summary>Consume one shared barrier budget when several observed packets threaten the same actor.</summary>
+    /// <summary>Compatibility overload for single packets. Multi-packet forecasts must share the complete budget.</summary>
     public static int EstimateObservedHitLoss(Status unit, AIBoardState board, int amount, HpChangeKind kind, ref int barrier)
     {
-        if (unit == null || amount <= 0) return 0;
-        if (kind == HpChangeKind.DirectHpReduction || kind == HpChangeKind.ForcedDeath || kind == HpChangeKind.BarrierBypassDamage)
-            return EstimateObservedHitLoss(unit, board, amount, kind);
-        if (board?.FindObservedSpecialActor(unit.Special?.guardianPartnerId) != null) return 0;
-        int adjusted = SpecialSkillRuntime.PreviewDamage(unit, amount, kind);
-        barrier = BarrierSystem.Absorb(barrier, adjusted, out int hpLoss);
-        return hpLoss;
+        var budget = AIObservedDamageBudget.Capture(unit); budget.Barrier = barrier;
+        int loss = EstimateObservedHitLoss(unit,board,amount,kind,ref budget);
+        barrier = budget.Barrier;
+        return loss;
+    }
+    public static int EstimateObservedHitLoss(Status unit, AIBoardState board, int amount, HpChangeKind kind, ref AIObservedDamageBudget budget)
+    {
+        return budget.Apply(unit,board,amount,kind);
     }
     public static int EstimateSpecialReservedThreatAt(AIBoardState board,Status unit,Vector3 point)
     {
-        int barrier = unit != null && BarrierSystem.UsesBarrier(unit) ? unit.Barrier : 0;
-        return EstimateSpecialReservedThreatAt(board, unit, point, ref barrier);
+        var budget = AIObservedDamageBudget.Capture(unit);
+        return EstimateSpecialReservedThreatAt(board, unit, point, ref budget);
     }
     public static int EstimateSpecialReservedThreatAt(AIBoardState board,Status unit,Vector3 point,ref int barrier)
     {
+        var budget = AIObservedDamageBudget.Capture(unit); budget.Barrier = barrier;
+        int loss = EstimateSpecialReservedThreatAt(board,unit,point,ref budget); barrier = budget.Barrier;
+        return loss;
+    }
+    public static int EstimateSpecialReservedThreatAt(AIBoardState board,Status unit,Vector3 point,ref AIObservedDamageBudget budget)
+    {
         if(board==null||unit==null||!board.HasObservedSpecialState)return 0;
-        int hazard = board.FindObservedSpecialActor(unit.Special?.guardianPartnerId) == null
-            ? board.EstimateSpecialHazardAt(unit,point) : 0;
-        barrier = BarrierSystem.Absorb(barrier, hazard, out int hazardHp);
-        long damage=hazardHp;
+        long damage=board.EstimateSpecialHazardAt(unit,point,ref budget);
         foreach(var actor in board.SpecialObservedActors)
         {
             var state=actor.Special;if(state==null)continue;
             if(actor.team!=board.ActorTeam&&state.ritualActive&&state.ritualTargetId==unit.ReflectionLifeId
                 &&state.ritualFireTurn<=state.ownerTurn+1)
-                damage+=EstimateObservedHitLoss(unit,board,state.storedSacrificeDamage,HpChangeKind.IgnoreDefenceDamage,ref barrier);
+                damage+=EstimateObservedHitLoss(unit,board,state.storedSacrificeDamage,HpChangeKind.IgnoreDefenceDamage,ref budget);
             if(actor.team!=board.ActorTeam&&state.sniperActive&&state.sniperTargetId==unit.ReflectionLifeId
                 &&state.sniperFireTurn<=state.ownerTurn+1&&!SpecialSkillRuntime.AttackBlocked(actor)&&!StatusEffectSystem.IsStunned(actor))
             {
@@ -207,19 +213,30 @@ public static partial class AIActionEvaluator
                 {
                     double raw=DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBaseForTarget(actor.ATK,unit.DEF,BarrierSystem.UsesBarrier(unit)))
                         *(double)definition.SniperMultiplier(GridHelper.ChebyshevDistance(actor.transform.position,point));
-                    damage+=EstimateObservedHitLoss(unit,board,(int)Math.Min(int.MaxValue,raw),HpChangeKind.NormalDamage,ref barrier);
+                    damage+=EstimateObservedHitLoss(unit,board,(int)Math.Min(int.MaxValue,raw),HpChangeKind.NormalDamage,ref budget);
                 }
             }
             if(string.IsNullOrEmpty(state.bombCasterId)||state.bombRadius<0||state.bombDueRound>board.TurnCount+1
                 ||GridHelper.ChebyshevDistance(point,actor.transform.position)>state.bombRadius)continue;
             int power=SpecialSkillRuntime.FractionOfMaximum(actor,SpecialSkillDefinition.BombFraction);
-            if(actor==unit)damage+=EstimateObservedHitLoss(unit,board,power,HpChangeKind.DirectHpReduction);
+            if(actor==unit)damage+=EstimateObservedHitLoss(unit,board,power,HpChangeKind.DirectHpReduction,ref budget);
             bool affected=actor==unit?(state.bombMask&SpecialFactionMask.Holder)!=0
                 :unit.team==state.bombCasterTeam?(state.bombMask&SpecialFactionMask.Allies)!=0
                 :(state.bombMask&SpecialFactionMask.Hostile)!=0;
-            if(affected)damage+=EstimateObservedHitLoss(unit,board,power,HpChangeKind.IgnoreDefenceDamage,ref barrier);
+            if(affected)damage+=EstimateObservedHitLoss(unit,board,power,HpChangeKind.IgnoreDefenceDamage,ref budget);
         }
         return (int)Math.Min(int.MaxValue,damage);
+    }
+    public static int ObservedSniperRecoilLoss(Status unit,AIBoardState board,SpecialSkillDefinition definition,float distance,bool locked)
+    {
+        if (unit==null) return 0;
+        var budget=AIObservedDamageBudget.Capture(unit);
+        long loss=EstimateObservedHitLoss(unit,board,SpecialSkillRuntime.FractionOfMaximum(unit,
+            SpecialSkillDefinition.SniperNormalRecoilFraction),HpChangeKind.NormalDamage,ref budget);
+        if (locked && definition!=null)
+            loss+=EstimateObservedHitLoss(unit,board,SpecialSkillRuntime.FractionOfMaximum(unit,
+                definition.SniperRecoil(distance)),HpChangeKind.NormalDamage,ref budget);
+        return (int)Math.Min(unit.HP,loss);
     }
     static int ThreatAt(AIBoardState board, Status unit, Vector3 point)
     {
@@ -360,8 +377,7 @@ public static partial class AIActionEvaluator
                 float distance=GridHelper.ChebyshevDistance(unit.transform.position,target.transform.position);
                 int sniperDamage=(int)Math.Min(int.MaxValue, EstimateSpecialAwareAttack(unit,target,board)*(double)definition.SniperMultiplier(distance));
                 future=DamageValue(board,target,sniperDamage,HpChangeKind.NormalDamage)*AISpecialSkillKnowledge.FutureWeight(board,1);
-                int recoil=(int)Math.Min(int.MaxValue, (long)SpecialSkillRuntime.FractionOfMaximum(unit,definition.SniperRecoil(distance))
-                    + SpecialSkillRuntime.FractionOfMaximum(unit, SpecialSkillDefinition.SniperNormalRecoilFraction));
+                int recoil=ObservedSniperRecoilLoss(unit,board,definition,distance,true);
                 cost=HpCost(unit,recoil)+RiskAt(board,unit,unit.transform.position);
                 opportunity+=Mathf.Max(0,AttackValueAt(board,unit,unit.transform.position)-future)*.5f;
                 if(recoil>=unit.HP && !MatchObjectiveRules.IsDecisive(target))cost+=SpecialValue(unit);
@@ -418,7 +434,7 @@ public static partial class AIActionEvaluator
                 if (future <= 0)
                     future = BestReachableAttackValue(board, unit) * Mathf.Max(0, next / Mathf.Max(1, current) - 1)
                         * AISpecialSkillKnowledge.FutureWeight(board, 1);
-                cost=BarrierSystem.UsesBarrier(unit)?0:RiskAt(board,unit,unit.transform.position)*(1-Mathf.Clamp01(definition.berserkerDefenceCurve.Evaluate(stage)));
+                cost=BarrierCombatSettings.Active.enabledForPlay?0:RiskAt(board,unit,unit.transform.position)*(1-Mathf.Clamp01(definition.berserkerDefenceCurve.Evaluate(stage)));
                 break;
             case UnitSpecialSkill.NavigatorPull:
                 Vector3 front=unit.transform.position+new Vector3(0,0,MovePatterns.DirZ(unit.direction));
@@ -435,10 +451,10 @@ public static partial class AIActionEvaluator
                 break;
             case UnitSpecialSkill.SamuraiCounter:
                 int retaliation = EstimateObservedNormalPacket(target, unit,board, EstimateSpecialAwareAttack(target, unit, board));
-                int tauntBarrier = unit.Barrier;
+                var tauntBudget = AIObservedDamageBudget.Capture(unit);
                 long tauntHpLoss = 0;
                 for (int turn = 0; turn < SpecialSkillDefinition.SamuraiTauntDuration; turn++)
-                    tauntHpLoss += EstimateObservedHitLoss(unit,board,retaliation,HpChangeKind.NormalDamage,ref tauntBarrier);
+                    tauntHpLoss += EstimateObservedHitLoss(unit,board,retaliation,HpChangeKind.NormalDamage,ref tauntBudget);
                 cost = HpCost(unit, (int)Math.Min(int.MaxValue,tauntHpLoss));
                 foreach (var ally in board.AliveEnemyUnits)
                     if (ally != unit && ObservedCouldAttack(board, target, ally.transform.position, ally))
@@ -698,10 +714,8 @@ public static partial class AIActionEvaluator
             score+=DamageValue(board,target,specialDamage,HpChangeKind.NormalDamage)-DamageValue(board,target,baseDamage,HpChangeKind.NormalDamage);
             if (definition?.enabledForPlay == true && definition.ability == UnitSpecialSkill.MagicSniperLock)
             {
-                int recoil = SpecialSkillRuntime.FractionOfMaximum(unit, SpecialSkillDefinition.SniperNormalRecoilFraction);
-                if (unit.Special?.sniperActive == true)
-                    recoil = (int)Math.Min(int.MaxValue, (long)recoil + SpecialSkillRuntime.FractionOfMaximum(unit,
-                        definition.SniperRecoil(GridHelper.ChebyshevDistance(unit.transform.position, target.transform.position))));
+                int recoil = ObservedSniperRecoilLoss(unit,board,definition,
+                    GridHelper.ChebyshevDistance(unit.transform.position,target.transform.position),unit.Special?.sniperActive==true);
                 score -= HpCost(unit, recoil);
             }
             if (definition?.enabledForPlay == true && definition.ability == UnitSpecialSkill.HolyKnightSanctuary

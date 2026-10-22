@@ -105,9 +105,10 @@ public static class SpecialSkillUITests
             data.useAuthoredAbilities = true; data.authoredSkillId = 1; data.authoredPassive = PassiveSkill.Impregnable;
             data.authoredSpecialAbility = SpecialAbility.Tenacity;
             string tooltipText = SummonUnitTooltip.Description(data);
-            Check("summon hover uses authored level-one stats and production costs", tooltipText.Contains("HP 90") && tooltipText.Contains("攻撃力 12") && tooltipText.Contains("防御力 8") && tooltipText.Contains("木材 17") && tooltipText.Contains("AP 6"));
+            Check("summon hover uses authored level-one stats and production costs without obsolete DEF", tooltipText.Contains("HP 90") && tooltipText.Contains("攻撃力 12") && !tooltipText.Contains("防御力") && tooltipText.Contains("木材 17") && tooltipText.Contains("AP 6"));
             Check("summon hover uses canonical upkeep and fixed ability instead of a legacy random choice", tooltipText.Contains(BuildSummonUIBuilder.FormatProductionBundle(data.GetUpkeep(1)))
-                && tooltipText.Contains("固有スキル") && tooltipText.Contains(SpecialSkillPresentation.Name(data.specialSkill)) && !tooltipText.Contains(SkillData.Table[1].Name));
+                && tooltipText.Contains("<b>スキル</b>") && tooltipText.Contains("<b>アビリティ</b>")
+                && tooltipText.Contains(SpecialSkillPresentation.Name(data.specialSkill)) && !tooltipText.Contains(SkillData.Table[1].Name));
             var scrollGo = new GameObject("Tooltip lifecycle fixture", typeof(RectTransform), typeof(ScrollRect)); created.Add(scrollGo);
             scrollGo.transform.SetParent(UIBuilder.ScreenCanvas.transform, false);
             var tooltip = scrollGo.AddComponent<SummonUnitTooltip>(); tooltip.Definition = data;

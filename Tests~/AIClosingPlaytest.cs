@@ -47,7 +47,11 @@ public static class AIClosingPlaytest
         public string CombatRules;
         public SaveSystem.ResourceSaveData PlayerResources, EnemyResources;
         public int HeavyWarriorsSeen, DragonKnightsSeen, PlayerLivingUnits, EnemyLivingUnits;
+        public int PlayerMaxUnitLevel, EnemyMaxUnitLevel;
         public int PlayerStarvationTurns, EnemyStarvationTurns;
+        public int PlayerUnpaidUnits, EnemyUnpaidUnits, PlayerMaxUnpaidTurns, EnemyMaxUnpaidTurns;
+        public int PlayerUnavailableBuildings, EnemyUnavailableBuildings;
+        public int PlayerInputBlockedProducers, EnemyInputBlockedProducers, PlayerResourceCapacity, EnemyResourceCapacity;
         public double Seconds;
         public float InitialTimeScale, InitialTurnTimeLimit, TerrainSeedX, TerrainSeedZ;
         public int PlayerKingHP, PlayerCrystalHP, EnemyKingHP, EnemyCrystalHP, Errors, Exceptions, Assertions;
@@ -279,7 +283,13 @@ public static class AIClosingPlaytest
             "targetsOpposingCommander", "targetsOpposingMainCrystal");
         WriteRow(turns, "seconds", "round", "state", "ownerTurns", "playerMoves", "enemyMoves", "playerAttacks", "enemyAttacks",
             "playerBuilds", "enemyBuilds", "playerSummons", "enemySummons", "playerKingHP", "playerCrystalHP", "enemyKingHP", "enemyCrystalHP",
-            "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound");
+            "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound",
+            "playerWood", "playerStone", "playerIron", "playerMagic", "playerWater", "playerBread", "playerWheat", "playerCitizen",
+            "enemyWood", "enemyStone", "enemyIron", "enemyMagic", "enemyWater", "enemyBread", "enemyWheat", "enemyCitizen",
+            "playerStarvation", "enemyStarvation", "playerLivingUnits", "enemyLivingUnits",
+            "playerUnpaidUnits", "enemyUnpaidUnits", "playerMaxUnpaidTurns", "enemyMaxUnpaidTurns",
+            "playerUnavailableBuildings", "enemyUnavailableBuildings", "playerInputBlockedProducers", "enemyInputBlockedProducers",
+            "playerResourceCapacity", "enemyResourceCapacity", "playerMaxUnitLevel", "enemyMaxUnitLevel");
         Application.logMessageReceived += Log;
         if (!SaveSystem.TrySaveProfile(new SaveSystem.ProfileData { ThreatLevel = 15 }, out string reason))
             throw new IOException("Cannot initialize isolated threat profile: " + reason);
@@ -359,11 +369,34 @@ public static class AIClosingPlaytest
             var s = turn.Systems; ObserveDecisiveActors();
             match.PlayerResources=Resources(s.FactionState.PlayerResources);match.EnemyResources=Resources(s.FactionState.EnemyResources);
             match.PlayerStarvationTurns=s.FactionState.PlayerNation.StarvationCounter;match.EnemyStarvationTurns=s.FactionState.EnemyNation.StarvationCounter;
-            match.PlayerLivingUnits=match.EnemyLivingUnits=0;CombatRegistry.Collect(reportActors);
+            match.PlayerLivingUnits=match.EnemyLivingUnits=0;
+            match.PlayerMaxUnitLevel=match.EnemyMaxUnitLevel=0;
+            match.PlayerUnpaidUnits=match.EnemyUnpaidUnits=match.PlayerMaxUnpaidTurns=match.EnemyMaxUnpaidTurns=0;
+            match.PlayerUnavailableBuildings=match.EnemyUnavailableBuildings=0;
+            match.PlayerInputBlockedProducers=match.EnemyInputBlockedProducers=0;
+            match.PlayerResourceCapacity=s.FactionState.GetResourceCap(Team.Player);
+            match.EnemyResourceCapacity=s.FactionState.GetResourceCap(Team.Enemy);
+            CombatRegistry.Collect(reportActors);
             foreach(var actor in reportActors)
             {
-                if(actor==null||!actor.IsAlive||actor.type!=Type.Unit)continue;
+                if(actor==null||!actor.IsAlive)continue;
+                if(actor.type==Type.Building)
+                {
+                    ObserveBuildingEconomy(actor,s.FactionState);
+                    continue;
+                }
+                if(actor.type!=Type.Unit)continue;
                 if(actor.team==Team.Player)match.PlayerLivingUnits++;if(actor.team==Team.Enemy)match.EnemyLivingUnits++;
+                if(!MatchObjectiveRules.IsCommander(actor))
+                {
+                    if(actor.team==Team.Player)match.PlayerMaxUnitLevel=Mathf.Max(match.PlayerMaxUnitLevel,actor.Level);
+                    if(actor.team==Team.Enemy)match.EnemyMaxUnitLevel=Mathf.Max(match.EnemyMaxUnitLevel,actor.Level);
+                }
+                if(actor.UpkeepUnpaidTurns>0)
+                {
+                    if(actor.team==Team.Player){match.PlayerUnpaidUnits++;match.PlayerMaxUnpaidTurns=Mathf.Max(match.PlayerMaxUnpaidTurns,actor.UpkeepUnpaidTurns);}
+                    if(actor.team==Team.Enemy){match.EnemyUnpaidUnits++;match.EnemyMaxUnpaidTurns=Mathf.Max(match.EnemyMaxUnpaidTurns,actor.UpkeepUnpaidTurns);}
+                }
                 if(actor.kind==Kind.HeavyWarrior&&heavyLives.Count<512)heavyLives.Add(actor.ReflectionLifeId);
                 if(actor.kind==Kind.DragonKnight&&dragonLives.Count<512)dragonLives.Add(actor.ReflectionLifeId);
             }
@@ -376,8 +409,32 @@ public static class AIClosingPlaytest
         WriteRow(turns, match.Seconds, match.Round, turn?.CurrentState?.GetType().Name, match.OwnerTurns,
             match.Player.Moves, match.Enemy.Moves, match.Player.Attacks, match.Enemy.Attacks, match.Player.Builds, match.Enemy.Builds,
             match.Player.Summons, match.Enemy.Summons, match.PlayerKingHP, match.PlayerCrystalHP, match.EnemyKingHP, match.EnemyCrystalHP,
-            match.PlayerCommanderHP, match.EnemyCommanderHP, match.PlayerCommandersFound, match.EnemyCommandersFound);
+            match.PlayerCommanderHP, match.EnemyCommanderHP, match.PlayerCommandersFound, match.EnemyCommandersFound,
+            match.PlayerResources?.Wood, match.PlayerResources?.Stone, match.PlayerResources?.Iron, match.PlayerResources?.MagicOre,
+            match.PlayerResources?.Water, match.PlayerResources?.Bread, match.PlayerResources?.Wheat, match.PlayerResources?.Citizen,
+            match.EnemyResources?.Wood, match.EnemyResources?.Stone, match.EnemyResources?.Iron, match.EnemyResources?.MagicOre,
+            match.EnemyResources?.Water, match.EnemyResources?.Bread, match.EnemyResources?.Wheat, match.EnemyResources?.Citizen,
+            match.PlayerStarvationTurns, match.EnemyStarvationTurns, match.PlayerLivingUnits, match.EnemyLivingUnits,
+            match.PlayerUnpaidUnits, match.EnemyUnpaidUnits, match.PlayerMaxUnpaidTurns, match.EnemyMaxUnpaidTurns,
+            match.PlayerUnavailableBuildings, match.EnemyUnavailableBuildings, match.PlayerInputBlockedProducers, match.EnemyInputBlockedProducers,
+            match.PlayerResourceCapacity, match.EnemyResourceCapacity, match.PlayerMaxUnitLevel, match.EnemyMaxUnitLevel);
         turns.Flush(); actions.Flush(); File.WriteAllText(Path.Combine(folder, "match.json"), JsonUtility.ToJson(match, true), new UTF8Encoding(false));
+    }
+    static void ObserveBuildingEconomy(Status actor,FactionState factions)
+    {
+        if(actor.team!=Team.Player&&actor.team!=Team.Enemy)return;
+        bool playerSide=actor.team==Team.Player;
+        if(!actor.BuildingOperationAvailable)
+        {
+            if(playerSide)match.PlayerUnavailableBuildings++;else match.EnemyUnavailableBuildings++;
+        }
+        var recipe=FacilityData.GetLevel(actor,actor.Level);
+        var stock=playerSide?factions.PlayerResources:factions.EnemyResources;
+        // Current-stock diagnostic only: do not infer that a past production payment failed.
+        if(recipe.HasProduction&&actor.BuildingOperationAvailable&&!FacilityData.CanAffordProduction(stock,recipe.Input))
+        {
+            if(playerSide)match.PlayerInputBlockedProducers++;else match.EnemyInputBlockedProducers++;
+        }
     }
     static int HP(Transform parent, Kind kind)
     {

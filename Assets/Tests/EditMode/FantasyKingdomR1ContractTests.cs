@@ -15,6 +15,50 @@ public sealed class FantasyKingdomR1ContractTests
     static void Set(object value, string name, object data) => value.GetType().GetField(name).SetValue(value, data);
     static T Get<T>(object value, string name) => (T)value.GetType().GetField(name).GetValue(value);
 
+    sealed class CombatRuleScope : IDisposable
+    {
+        readonly ScriptableObject definition;
+        readonly IDisposable scope;
+        public CombatRuleScope(bool enabled)
+        {
+            definition = ScriptableObject.CreateInstance(Runtime("BarrierCombatSettings"));
+            definition.GetType().GetMethod("PopulateR1Values").Invoke(definition, null);
+            Set(definition, "enabledForPlay", enabled);
+            scope = (IDisposable)definition.GetType().GetMethod("UseForValidation").Invoke(null, new object[] { definition });
+        }
+        public void Dispose() { scope.Dispose(); UnityEngine.Object.DestroyImmediate(definition); }
+    }
+
+    static object InitializeSceneMatch()
+    {
+        var game = UnityEngine.Object.FindFirstObjectByType(Runtime("GameGenerator"));
+        Assert.That(game, Is.Not.Null);
+        var title = Runtime("TitleScreenUI").GetProperty("Instance").GetValue(null) as Component;
+        game.GetType().GetField("_waitingForTitle", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(game, false);
+        if (title != null) UnityEngine.Object.DestroyImmediate(title.gameObject);
+        UnityEngine.Random.InitState(12345);
+        game.GetType().GetMethod("StartGameInit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(game, new object[] { -1 });
+        var turn = UnityEngine.Object.FindFirstObjectByType(Runtime("TurnGenerator"));
+        return turn.GetType().GetProperty("Systems").GetValue(turn);
+    }
+
+    [UnityTest]
+    public IEnumerator BarrierR1_FiniteProtection_AIForecast_AndReadableHUD_ThroughRealScene()
+    {
+        if (!Application.dataPath.Contains("UnityValidation")) Assert.Ignore("Run integration fixtures in the isolated UnityValidation project.");
+        EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
+        yield return new EnterPlayMode();
+        using (new CombatRuleScope(true))
+        {
+            var systems = InitializeSceneMatch();
+            foreach (string suite in new[] { "BarrierSystemTests", "BarrierAITests" })
+                System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems });
+            var turn = UnityEngine.Object.FindFirstObjectByType(Runtime("TurnGenerator"));
+            System.Type.GetType("StatusUIRegressionTests, Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems, turn });
+        }
+        yield return new ExitPlayMode();
+    }
+
     [UnityTest]
     public IEnumerator RuntimeMechanics_Environment_AndCombatAI_ThroughRealScene()
     {
@@ -30,6 +74,9 @@ public sealed class FantasyKingdomR1ContractTests
         game.GetType().GetMethod("StartGameInit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(game, new object[] { -1 });
         var turn = UnityEngine.Object.FindFirstObjectByType(Runtime("TurnGenerator"));
         var systems = turn.GetType().GetProperty("Systems").GetValue(turn);
+        // Historical HP-only contracts stay explicit; the separate R1 test above verifies production barrier rules.
+        using (new CombatRuleScope(false))
+        {
         foreach (var suite in new[] { "CrossbowR1Tests", "AbilityR1Tests" })
             System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems });
         System.Type.GetType("TerrainEnvironmentTests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
@@ -41,6 +88,7 @@ public sealed class FantasyKingdomR1ContractTests
             System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems });
         System.Type.GetType("AIClosingObjectiveTests, Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems, turn });
         System.Type.GetType("ThreatClearProgressionTests, Assembly-CSharp-Editor", true).GetMethod("PlayMode").Invoke(null, new[] { systems, turn });
+        }
         yield return new ExitPlayMode();
     }
 

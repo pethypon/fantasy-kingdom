@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public static partial class AIActionEvaluator
 {
@@ -19,9 +19,9 @@ public static partial class AIActionEvaluator
         if (destination == null && origin == null) return 0;
         // The ordinary simulator has no overlay effects/teleportation. Preserve this truthful static model.
         action.PreserveSpecialEvaluation = true;
-        int barrier = BarrierSystem.UsesBarrier(actor) ? actor.Barrier : 0;
-        int entry = moving ? EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, to, true), HpChangeKind.IgnoreDefenceDamage,ref barrier) : 0;
-        int standing = EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, to, false), HpChangeKind.IgnoreDefenceDamage,ref barrier);
+        var budget = AIObservedDamageBudget.Capture(actor);
+        int entry = moving ? EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, to, true), HpChangeKind.IgnoreDefenceDamage,ref budget) : 0;
+        int standing = EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, to, false), HpChangeKind.IgnoreDefenceDamage,ref budget);
         int remaining = Mathf.Max(0, actor.HP - entry);
         float value = AIBoardEvaluator.GetPieceValuePublic(actor);
         int loss = (int)System.Math.Min(actor.HP, (long)entry + Mathf.Min(remaining, standing));

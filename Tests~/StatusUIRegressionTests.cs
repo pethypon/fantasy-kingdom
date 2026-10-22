@@ -25,7 +25,12 @@ public static class StatusUIRegressionTests
         {
             panel.Hide(); panel.Preview(target);
             var hp = panel.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).First(t=>t.name=="HPText");
-            var barrier = panel.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).First(t=>t.name=="DEFText");
+            var barrier = panel.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).First(t=>t.name=="BarrierText");
+            Canvas.ForceUpdateCanvases();
+            Check("barrier follows HP in the same basic information column", barrier.transform.parent==hp.transform.parent
+                && barrier.rectTransform.anchorMax.y<=hp.rectTransform.anchorMin.y);
+            Check("the status panel no longer exposes a defence stat", !panel.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true)
+                .Any(t=>t.name=="DEFText" || t.text?.Contains("防御力")==true));
             string originalHP = hp.text;
             SpecialSkillRuntime.ApplyHpChange(null, target, 4, HpChangeKind.NormalDamage);
             panel.Refresh();
@@ -36,6 +41,15 @@ public static class StatusUIRegressionTests
             var head = UnitHeadUI.Attach(targetGo);
             var headObject = (GameObject)typeof(UnitHeadUI).GetField("headUIObject",flags).GetValue(head);
             Check("world display has a separate barrier gauge", headObject.transform.Find("BarrierFrame/BarrierWell/BarrierFill")!=null);
+            var worldHP=(RectTransform)headObject.transform.Find("HPFrame");
+            var worldBarrier=(RectTransform)headObject.transform.Find("BarrierFrame");
+            Check("world barrier is below HP without overlapping it", worldBarrier.anchoredPosition.y+worldBarrier.rect.height*.5f
+                <worldHP.anchoredPosition.y-worldHP.rect.height*.5f);
+            Check("crowded world gauges show numbers without repeating stat labels", worldHP.Find("HPText").GetComponent<TMPro.TextMeshProUGUI>().text=="100/100"
+                && worldBarrier.Find("BarrierText").GetComponent<TMPro.TextMeshProUGUI>().text=="16/20");
+            var worldRoot=(RectTransform)headObject.transform;
+            Check("head layout bounds include both stacked gauges", worldBarrier.anchoredPosition.y-worldBarrier.rect.height*.5f>=worldRoot.rect.yMin
+                && worldHP.anchoredPosition.y+worldHP.rect.height*.5f<=worldRoot.rect.yMax);
             if (preview != null)
             {
                 var show = typeof(DamagePreviewUI).GetMethod("ShowPreview",flags);
@@ -55,7 +69,11 @@ public static class StatusUIRegressionTests
                 preview.Hide();
             }
             else Check("normal damage preview is present",false);
-            target.Barrier = 16; panel.Refresh();
+            target.kind = Kind.King; target.ResetBarrier(); panel.Refresh();
+            Check("HP-only roles do not show a legacy stat or configuration placeholder", !barrier.gameObject.activeSelf
+                && !panel.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true)
+                    .Any(t=>t.gameObject.activeInHierarchy && (t.text?.Contains("防御力")==true || t.text?.Contains("未設定")==true)));
+            target.kind = Kind.Knight; target.ResetBarrier(); target.Barrier = 16; panel.Refresh();
             VisualRegressionTests.CaptureHUD("barrier-hud.png");
             targetGo.SetActive(false);
             Check("disabling an owner hides both world gauges",!headObject.activeSelf);

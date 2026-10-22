@@ -52,16 +52,22 @@ public partial class AIBoardState
     // A conservative two-packet forecast. One-use protection must not be reused for both entry and next-turn damage.
     public int KnownEnvironmentRisk(Status actor, Vector3 position)
     {
-        int barrier = actor != null && BarrierSystem.UsesBarrier(actor) ? actor.Barrier : 0;
-        return KnownEnvironmentRisk(actor, position, ref barrier);
+        var budget = AIObservedDamageBudget.Capture(actor);
+        return KnownEnvironmentRisk(actor, position, ref budget);
     }
     public int KnownEnvironmentRisk(Status actor, Vector3 position, ref int barrier)
+    {
+        var budget = AIObservedDamageBudget.Capture(actor); budget.Barrier = barrier;
+        int risk = KnownEnvironmentRisk(actor,position,ref budget); barrier = budget.Barrier;
+        return risk;
+    }
+    public int KnownEnvironmentRisk(Status actor, Vector3 position, ref AIObservedDamageBudget budget)
     {
         if (actor == null || ReconMap == null || !IsTerrainKnown(position)) return 0;
         long risk = 0;
         if (GridHelper.ToGridXZ(actor.transform.position) != GridHelper.ToGridXZ(position))
-            risk += AIActionEvaluator.EstimateObservedHitLoss(actor, this, KnownEnvironmentDamage(actor, position, true), HpChangeKind.IgnoreDefenceDamage,ref barrier);
-        risk += AIActionEvaluator.EstimateObservedHitLoss(actor, this, KnownEnvironmentDamage(actor, position, false), HpChangeKind.IgnoreDefenceDamage,ref barrier);
+            risk += AIActionEvaluator.EstimateObservedHitLoss(actor, this, KnownEnvironmentDamage(actor, position, true), HpChangeKind.IgnoreDefenceDamage,ref budget);
+        risk += AIActionEvaluator.EstimateObservedHitLoss(actor, this, KnownEnvironmentDamage(actor, position, false), HpChangeKind.IgnoreDefenceDamage,ref budget);
         return (int)System.Math.Min(int.MaxValue, risk);
     }
 }

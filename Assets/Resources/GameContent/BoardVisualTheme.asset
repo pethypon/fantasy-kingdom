@@ -73,6 +73,12 @@ MonoBehaviour:
   - kind: 22
     playerVisual: {fileID: 878722937696860739, guid: 8f3cd934f20fc624889267655a226fd0, type: 3}
     enemyVisual: {fileID: 3738783654410678314, guid: 0360f858e31efb1429f693f74446f56e, type: 3}
+  - kind: 23
+    playerVisual: {fileID: 3970982057191314426, guid: 2320501004a47d84b9fecc565761a741, type: 3}
+    enemyVisual: {fileID: 8733024802413039940, guid: f02111071d8ecae40b59ba23c57011b3, type: 3}
+  - kind: 24
+    playerVisual: {fileID: 7528915468661701179, guid: ecddd825477e9af4c9c89779cffa7e82, type: 3}
+    enemyVisual: {fileID: 3455642090343749174, guid: 8543c88df73a64848bafbc402c209b71, type: 3}
   buildings:
   - kind: 0
     playerVisual: {fileID: 7031846140319156205, guid: 0c820352bfdc58940ad3995e0f58b8c7, type: 3}
@@ -164,7 +170,9 @@ MonoBehaviour:
   - {fileID: 4300000, guid: b665b94f3eacb3a4da300c17ee1cff1a, type: 2}
   - {fileID: 4300000, guid: d5098eec13212f8448ba734659de2d56, type: 2}
   - {fileID: 4300000, guid: d258a2e06ad6c0f4384404225386a518, type: 2}
+  - {fileID: 4300000, guid: 58fd7cab5b30831488ddd8dc343a93fe, type: 2}
   - {fileID: 4300000, guid: 7960e48127ad93c499e24a639e7ab006, type: 2}
+  - {fileID: 4300000, guid: e8bb891dc61499f459f0bba72aefe5fb, type: 2}
   - {fileID: 4300000, guid: 75e5db8225902c04dbfe417dab5c46c5, type: 2}
   - {fileID: 4300000, guid: a478e0ed9d08cf346a838411ac34beaf, type: 2}
   - {fileID: 4300000, guid: dc38d86f8579a194abf997ec468810c9, type: 2}
@@ -196,6 +204,8 @@ MonoBehaviour:
   - building-e43689af376a46388fd1d745fd219b72
   - building-fdaa9d14d90447cdae8f561aa6ffb920
   - r1.unit.berserker
+  - r1.unit.dragonknight
+  - r1.unit.heavywarrior
   - r1.unit.holyknight
   - r1.unit.navigator
   - r1.unit.ninja

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -147,8 +147,8 @@ static class AICombatEvaluator
 
         var skill = action.Skill;
         Status buffTarget = skill.BuffToSelf ? action.Unit : action.TargetUnit ?? action.Unit;
-        bool inertDefenceBuff = skill.GrantBuff == BuffType.Defensive && BarrierSystem.UsesBarrier(buffTarget);
-        bool inertDefenceDebuff = skill.InflictDebuff == StatusEffectType.ArmorBreak && BarrierSystem.UsesBarrier(action.TargetUnit);
+        bool inertDefenceBuff = skill.GrantBuff == BuffType.Defensive && !DamageCalculator.UsesLegacyDefence;
+        bool inertDefenceDebuff = skill.InflictDebuff == StatusEffectType.ArmorBreak && !DamageCalculator.UsesLegacyDefence;
         if (inertDefenceBuff && skill.Multiplier <= 0 && skill.FixedDamage <= 0 && skill.FixedHeal <= 0
             && string.IsNullOrEmpty(skill.SpecialEffect)
             && (skill.InflictDebuff == StatusEffectType.None || inertDefenceDebuff)) return -10000;

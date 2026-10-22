@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -54,7 +54,7 @@ public static class SimCombatEval
 
         // バフボーナス
         if (unit.HasBuff(BuffType.Offensive)) val *= 1.1f;
-        if (!unit.UsesBarrier && unit.HasBuff(BuffType.Defensive)) val *= 1.08f;
+        if (DamageCalculator.UsesLegacyDefence && unit.HasBuff(BuffType.Defensive)) val *= 1.08f;
         if (unit.HasBuff(BuffType.Barrier)) val *= 1.12f;
 
         return val;

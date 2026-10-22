@@ -133,9 +133,9 @@ public class TurnGenerator : MonoBehaviour
         movePreview.Bind(this);
     }
 
-    public void StartFirstTurn()
+    public void StartFirstTurn(bool frameStartingArea = false)
     {
-        _cameraController?.FocusPlayerBase();
+        _cameraController?.FocusPlayerBase(frameStartingArea);
         ChangeState(new PlayerStart(this));
     }
 

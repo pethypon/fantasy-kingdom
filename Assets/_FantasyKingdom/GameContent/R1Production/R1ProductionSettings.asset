@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9181270dd9534926970c658953293c8d, type: 3}
   m_Name: R1ProductionSettings
   m_EditorClassIdentifier: Assembly-CSharp::R1ProductionContentSettings
-  version: R1-production-provisional-v1-20261017
-  balanceStatus: Provisional initial tuning v1. Skill costs, cooldowns, curves and
-    inherited new-role stats are editable proposals, not confirmed R1 requirements.
+  version: R1-barrier-role-prototypes-20261021
+  balanceStatus: New-role HP/ATK, recruitment costs and skill tuning are editable
+    prototypes. The confirmed R1 barrier table is configured separately.
   entries:
   - kind: 2
     sourceData: {fileID: 11400000, guid: 3a6c94b31b3209c4aa48bc95a08767bf, type: 2}
@@ -146,6 +146,22 @@ MonoBehaviour:
     balanceNote: 'Provisional v1: base stats, growth, recruitment cost, upkeep and
       model inherited from Guardian; editable independent production assets. Guardian
       attack mask matches the specified single forward cell.'
+  - kind: 23
+    sourceData: {fileID: 11400000, guid: 3a6c94b31b3209c4aa48bc95a08767bf, type: 2}
+    sourcePrefab: {fileID: 5702459098739905946, guid: ad985085cd9a19e45be1d6b42b1e4d8c, type: 3}
+    attackPatternSource: {fileID: 0}
+    skillDefaults: {fileID: 11400000, guid: 8464a24a360fec84a9a53245f64775c5, type: 2}
+    createPlayableUnit: 1
+    balanceNote: User-authorized editable barrier trial. Independent Knight movement/attack/vision;
+      HP/ATK and recruitment trial values are provisional.
+  - kind: 24
+    sourceData: {fileID: 11400000, guid: 50fb0206aed48044eb239efd0a911c5f, type: 2}
+    sourcePrefab: {fileID: 3526282866656366259, guid: b0295b9a76c8ff846b71f3a33e66bfe9, type: 3}
+    attackPatternSource: {fileID: 0}
+    skillDefaults: {fileID: 11400000, guid: 6bd70bcabc97d554aa9c8bd326d2eb5d, type: 2}
+    createPlayableUnit: 1
+    balanceNote: User-authorized editable barrier trial. Independent HolyKnight movement/attack/vision;
+      HP/ATK and recruitment trial values are provisional.
   installed:
   - kind: 2
     data: {fileID: 11400000, guid: 3a6c94b31b3209c4aa48bc95a08767bf, type: 2}
@@ -211,3 +227,11 @@ MonoBehaviour:
     data: {fileID: 11400000, guid: c9bf201875ad91641b357dd0fef3931d, type: 2}
     ability: {fileID: 11400000, guid: 1675d8623672b2349a80a0766dde3562, type: 2}
     version: R1-production-provisional-v1-20261017
+  - kind: 23
+    data: {fileID: 11400000, guid: 416e1b49b83f55249924cfe6aad46db5, type: 2}
+    ability: {fileID: 11400000, guid: 7296140aa2f976640b8281c76418faa3, type: 2}
+    version: R1-barrier-trial-20261020
+  - kind: 24
+    data: {fileID: 11400000, guid: b525ba277bb94d847b45c96be592ade2, type: 2}
+    ability: {fileID: 11400000, guid: 1d5d0bdcfb69bc84c89943df34ded89a, type: 2}
+    version: R1-barrier-trial-20261020

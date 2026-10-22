@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -409,7 +409,7 @@ public static class SimActionGenerator
                         }
                         // デバフ付与ボーナス
                         if (skill.InflictDebuff != StatusEffectType.None
-                            && !(target.UsesBarrier && skill.InflictDebuff == StatusEffectType.ArmorBreak))
+                            && !(!DamageCalculator.UsesLegacyDefence && skill.InflictDebuff == StatusEffectType.ArmorBreak))
                             score += AIConstants.QS_Skill_Debuff;
                     }
                     if (skill.FixedHeal > 0)
@@ -419,7 +419,7 @@ public static class SimActionGenerator
                         score += healValue * (1f - hpRatio);
                     }
                     if (skill.GrantBuff != BuffType.None
-                        && !(skill.GrantBuff == BuffType.Defensive && (skill.BuffToSelf ? unit : target).UsesBarrier))
+                        && !(skill.GrantBuff == BuffType.Defensive && !DamageCalculator.UsesLegacyDefence))
                         score += 8f;
                 }
                 break;

@@ -38,6 +38,9 @@ public static class HeadHPRegressionTests
             typeof(UnitPanelUI).GetProperty("SelectedStatus").SetValue(null,status);
             typeof(UnitHeadUI).GetMethod("LateUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(ui,null);
             Check("selected head draws above crowded heads",head.GetSiblingIndex()==heads.childCount-1);
+            Check("selected priority keeps the entire HP and barrier head visible", head.gameObject.activeSelf
+                && head.Find("HPFrame").gameObject.activeSelf
+                && head.Find("BarrierFrame").gameObject.activeSelf==BarrierSystem.UsesBarrier(status));
             UnityEngine.Object.DestroyImmediate((GameObject)typeof(UnitHeadUI).GetField("headUIObject",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(other.GetComponent<UnitHeadUI>()));
             UnityEngine.Object.DestroyImmediate(other);
             typeof(UnitPanelUI).GetProperty("SelectedStatus").SetValue(null,null);

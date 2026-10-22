@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -127,17 +127,25 @@ public static class AIBoardQuery
     public static int EstimateCounterDamageAt(AIBoardState board, Vector3 pos, Status self, bool ignoreFiniteBarrier = false)
     {
         int stateKey;
-        unchecked { stateKey = (self.DEF * 397 ^ self.Barrier) * 397 ^ self.HP; }
+        unchecked
+        {
+            stateKey = ((DamageCalculator.UsesLegacyDefence ? self.DEF : 0) * 397 ^ self.Barrier) * 397 ^ self.HP;
+            var state = self.Special;
+            stateKey = stateKey * 397 ^ self.ShieldTurns;
+            stateKey = stateKey * 397 ^ (state?.damageNullUnused == true && state.damageNullTurns > 0 ? 1 : 0);
+            stateKey = stateKey * 397 ^ (state?.nextDamageDouble == true ? 1 : 0);
+            stateKey = stateKey * 397 ^ (state != null && (state.holyKnightTurns > 0 || state.holyKnightRecoveryLock) ? 1 : 0);
+        }
         if(!ignoreFiniteBarrier && board.CounterCache.TryGetValue((pos,self,stateKey),out var cached)) return cached;
         long totalDmg = 0;
-        int barrier = !ignoreFiniteBarrier && BarrierSystem.UsesBarrier(self) ? self.Barrier : 0;
+        var budget = AIObservedDamageBudget.Capture(self,ignoreFiniteBarrier);
         // A dragon can breathe across its fixed territory even when its current position
         // lies beyond the local index radius. Only the board's observed actors are eligible.
         foreach (var opponent in board.AlivePlayerUnits)
         {
             if (!ObservedDragonThreat.IsDragon(opponent)) continue;
             totalDmg = Math.Min(int.MaxValue, totalDmg + AIActionEvaluator.EstimateObservedHitLoss(self,board,
-                ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, pos), HpChangeKind.NormalDamage,ref barrier));
+                ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, pos), HpChangeKind.NormalDamage,ref budget));
         }
         foreach (var pu in board.Enemies.Near(pos, 12f))
         {
@@ -156,12 +164,12 @@ public static class AIBoardQuery
             float newCover = board.KnownEnvironmentDefinition(pos) != null
                 ? board.ReconMap.Environment.IncomingDamageMultiplier(pos, ranged, stone) : 1;
             raw = (int)Math.Min(int.MaxValue, Math.Max(0, raw * (double)newCover / Mathf.Max(.01f, oldCover)));
-            raw = BarrierSystem.NormalAttackDamage(pu.kind, barrier, raw);
-            int dmg = AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage,ref barrier);
+            raw = BarrierSystem.NormalAttackDamage(pu.kind, budget.Barrier, raw);
+            int dmg = AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage,ref budget);
             totalDmg = Math.Min(int.MaxValue, totalDmg + dmg);
         }
-        totalDmg=Math.Min(int.MaxValue,totalDmg+AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,pos,ref barrier));
-        totalDmg=Math.Min(int.MaxValue,totalDmg+board.KnownEnvironmentRisk(self,pos,ref barrier));
+        totalDmg=Math.Min(int.MaxValue,totalDmg+AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,pos,ref budget));
+        totalDmg=Math.Min(int.MaxValue,totalDmg+board.KnownEnvironmentRisk(self,pos,ref budget));
         if (!ignoreFiniteBarrier) board.CounterCache[(pos,self,stateKey)] = (int)totalDmg;
         return (int)totalDmg;
     }

@@ -68,6 +68,15 @@ public sealed class AIBasicResourceEconomy
     readonly bool[] critical = new bool[StrategicEconomyForecast.ResourceCount];
     readonly int[] blockedTurns = new int[StrategicEconomyForecast.ResourceCount];
     readonly List<BasicResourcePlan> plans = new List<BasicResourcePlan>(9);
+    readonly List<MandatorySupplyInvestment> mandatoryInvestments = new List<MandatorySupplyInvestment>(1);
+    readonly struct MandatorySupplyInvestment
+    {
+        public readonly ResourceKind Resource;
+        public readonly FacilityData.ProductionBundle Cost;
+        public readonly float FundingTurns, ExhaustionTurns;
+        public MandatorySupplyInvestment(ResourceKind resource, FacilityData.ResourceCost cost, float fundingTurns, float exhaustionTurns)
+        { Resource = resource; Cost = ToBundle(cost); FundingTurns = fundingTurns; ExhaustionTurns = exhaustionTurns; }
+    }
     readonly List<Status> buildings = new List<Status>(32);
     readonly HashSet<(FacilityKind, FacilityDefinitionData, Status)> plannedSources = new HashSet<(FacilityKind, FacilityDefinitionData, Status)>();
     readonly Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, Kind, UnitData), float> scores
@@ -113,6 +122,7 @@ public sealed class AIBasicResourceEconomy
         if (plannedActions == null) CollectPlans();
         else
         {
+            mandatoryInvestments.Clear();
             PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
             foreach (var plan in plannedActions)
                 PlannedUnclassifiedCitizens += Mathf.Max(0, plan.Cost.Citizen) * Mathf.Clamp01(Finite(AIBasicResourceSettings.Active.planWeight));
@@ -155,6 +165,7 @@ public sealed class AIBasicResourceEconomy
         PlanRevision = PlanRevision < int.MaxValue ? PlanRevision + 1 : 0;
         PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
         board = null; demand = null; generation = -1; emergency = essentialDefense; scores.Clear();
+        mandatoryInvestments.Clear();
         FeasibleSupplyAP = 0;
         for (int i = 0; i < snapshots.Length; i++)
         {
@@ -235,7 +246,7 @@ public sealed class AIBasicResourceEconomy
     void CollectPlans()
     {
         PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
-        plans.Clear(); plannedSources.Clear(); board.CollectOwnBuildings(buildings);
+        plans.Clear(); plannedSources.Clear(); mandatoryInvestments.Clear(); board.CollectOwnBuildings(buildings);
         int paymentFailures = demand.Forecast.MandatoryFailureMask | demand.Forecast.InputFailureMask;
         // Consider only useful economic projects, using their real authored/legacy costs.
         foreach (var resource in resources)
@@ -254,8 +265,9 @@ public sealed class AIBasicResourceEconomy
             FacilityKind chosenKind = default; FacilityDefinitionData chosenDefinition = null; Status chosenActor = null;
             FacilityData.ResourceCost chosenCost = default; float best = float.PositiveInfinity;
             if (board.BuildablePositions.Count > 0) foreach (var entry in FacilityData.Table)
-                ConsiderPlan(resource, entry.Key, null, null, entry.Value.BuildCost, FacilityData.GetLevel(entry.Key, 1), default,
-                    ref best, ref chosenKind, ref chosenDefinition, ref chosenActor, ref chosenCost);
+                if (FacilityData.IsAvailableFor(entry.Key, board.ActorTeam))
+                    ConsiderPlan(resource, entry.Key, null, null, entry.Value.BuildCost, FacilityData.GetLevel(entry.Key, 1), default,
+                        ref best, ref chosenKind, ref chosenDefinition, ref chosenActor, ref chosenCost);
             var catalog = FacilityAuthoringCatalog.Loaded;
             if (board.BuildablePositions.Count > 0 && catalog?.buildings != null) foreach (var definition in catalog.buildings)
                 if (definition != null && definition.IsAvailable(board.ActorTeam) && catalog.Find(definition.definitionId) == definition)
@@ -270,6 +282,23 @@ public sealed class AIBasicResourceEconomy
                 var next = FacilityData.GetLevel(actor, currentLevel + 1);
                 ConsiderPlan(resource, actor.facilityKind, actor.AuthoredFacility, actor, next.UpgradeCost, next, FacilityData.GetLevel(actor, currentLevel),
                     ref best, ref chosenKind, ref chosenDefinition, ref chosenActor, ref chosenCost);
+            }
+            if (!float.IsInfinity(best) && current.MandatoryDemandPerTurn > .001f && current.NetPerTurn < -.001f
+                && current.ProjectedStock < current.SafetyReserve - .001f)
+            {
+                // Reserve the actual producer's capital before ongoing obligations exhaust stock.
+                // Other foundation projects used to repeatedly spend this same stone/water reserve,
+                // leaving a missing producer unaffordable even while its upkeep was going unpaid.
+                float exhaustionTurns = current.Stock / -current.NetPerTurn;
+                float fundingTurns = Mathf.Clamp(Mathf.Floor(exhaustionTurns), 0,
+                    Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8));
+                // Keep one concrete project, for the obligation that will fail first. Reserving
+                // every hypothetical producer at once would prevent ordinary foundation growth.
+                if (mandatoryInvestments.Count == 0 || exhaustionTurns < mandatoryInvestments[0].ExhaustionTurns)
+                {
+                    mandatoryInvestments.Clear();
+                    mandatoryInvestments.Add(new MandatorySupplyInvestment(resource, chosenCost, fundingTurns, exhaustionTurns));
+                }
             }
             if (!float.IsInfinity(best) && plannedSources.Add((chosenKind, chosenDefinition, chosenActor)))
             {
@@ -405,6 +434,7 @@ public sealed class AIBasicResourceEconomy
         reason = null;
         if (action == null || essentialDefense || !AIBasicResourceSettings.Active.enabled) return true;
         var cost = ActionCost(action); bool urgentRecovery = IsUrgentRecoveryInvestment(action);
+        if (!PreservesMandatoryInvestment(action, cost, out reason)) return false;
         bool foundation = IsFoundationAction(action) || urgentRecovery;
         foreach (var s in snapshots)
         {
@@ -423,6 +453,34 @@ public sealed class AIBasicResourceEconomy
             }
             if (remaining + .001f < floor)
             { reason = "basic_resource_reserve_" + s.ResourceType; return false; }
+        }
+        return true;
+    }
+
+    bool PreservesMandatoryInvestment(AIAction action, FacilityData.ProductionBundle cost, out string reason)
+    {
+        reason = null;
+        if (demand == null || mandatoryInvestments.Count == 0) return true;
+        bool hasRecipe = TryRecipe(action, out var next, out var previous, out _);
+        // Competing real payment failures remain legal repairs; neither side is forced to save
+        // for one producer while knowingly abandoning another mandatory supply chain.
+        foreach (var resource in demand.Resources)
+            if (resource.MandatoryDemandPerTurn > .001f && resource.NetPerTurn < -.001f
+                && resource.ProjectedStock < resource.SafetyReserve - .001f
+                && RecipeGain(action, resource.Resource) > .001f && OperatingFractionFor(action, cost) > .001f) return true;
+        foreach (var investment in mandatoryInvestments)
+        for (int i = 0; i < resources.Length; i++)
+        {
+            float spent = StrategicEconomyForecast.Amount(cost, i);
+            float required = StrategicEconomyForecast.Amount(investment.Cost, i);
+            if (spent <= .001f || required <= .001f) continue;
+            var supply = demand.Resources[i];
+            float baseline = Mathf.Max(0, supply.Stock + supply.NetPerTurn * investment.FundingTurns);
+            float capitalGain = hasRecipe ? Mathf.Max(0, NetOutput(next, i) - NetOutput(previous, i)) : 0;
+            float projected = baseline - spent + capitalGain * investment.FundingTurns;
+            if (projected + .001f >= Mathf.Min(required, baseline)) continue;
+            reason = "mandatory_supply_capital_" + investment.Resource + "_" + resources[i];
+            return false;
         }
         return true;
     }

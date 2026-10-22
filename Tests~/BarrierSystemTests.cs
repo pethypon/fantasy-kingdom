@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 /// <summary>Boundary contracts use an isolated temporary rule proposal; never activate production settings.</summary>
@@ -97,8 +98,15 @@ public static class BarrierSystemTests
             int ordinary = DamageCalculator.CalcNormal(attacker, target); target.DEF = 0;
             Check("ordinary role DEF no longer changes damage", DamageCalculator.CalcNormal(attacker, target) == ordinary && ordinary > 1);
             var king = Actor(Kind.King);
-            Check("commanders retain their existing durability", !BarrierSystem.UsesBarrier(king) && king.MaxBarrier == 0);
-            target.type = Type.Building; Check("buildings retain existing durability", !BarrierSystem.UsesBarrier(target)); target.type = Type.Unit;
+            Check("commanders do not receive an unconfirmed barrier", !BarrierSystem.UsesBarrier(king) && king.MaxBarrier == 0);
+            int kingHit = DamageCalculator.CalcNormal(attacker, king); king.DEF = 0;
+            Check("commander DEF is abolished too", kingHit == DamageCalculator.CalcNormal(attacker, king) && kingHit > 1);
+            target.type = Type.Building; target.DEF = 1000;
+            int buildingHit = DamageCalculator.CalcNormal(attacker, target); target.DEF = 0;
+            Check("buildings use HP without DEF or invented barrier", !BarrierSystem.UsesBarrier(target)
+                && buildingHit == DamageCalculator.CalcNormal(attacker, target) && buildingHit > 1);
+            Check("R1 value estimates ignore old DEF", DamageCalculator.EstimateBaseDamage(20, 1000) == DamageCalculator.EstimateBaseDamage(20, 0));
+            target.type = Type.Unit;
             Check("breaker bonus cannot create HP overflow", BarrierSystem.AmplifyBarrierPortion(10, 15, 2) == 15
                 && BarrierSystem.AmplifyBarrierPortion(20, 8, 2) == 20);
             target.HP = 100; target.ResetBarrier(); target.Barrier = 9; target.BarrierRecovery.SafeTurns = 2;
@@ -137,6 +145,7 @@ public static class BarrierSystemTests
             SpecialSkillRuntime.ApplyHpChange(enemy, samurai, 4, HpChangeKind.NormalDamage);
             Check("counter respects perfect protection", enemy.Barrier == 70 && enemy.HP == 100);
             SkillCycle(systems);
+            UpkeepDefection();
             target.HP = 10; target.Barrier = 4;
             SpecialSkillRuntime.ApplyHpChange(null, target, 100, HpChangeKind.NormalDamage);
             Check("overkill returns actual losses", SpecialSkillRuntime.LastHpChange.ActualHpLoss == 10
@@ -151,6 +160,32 @@ public static class BarrierSystemTests
             foreach (var value in owned) if (value != null) UnityEngine.Object.DestroyImmediate(value);
             owned.Clear(); SpecialSkillRuntime.InvalidateRules();
         }
+    }
+    static void UpkeepDefection()
+    {
+        var go = new GameObject("Barrier upkeep contract"); owned.Add(go);
+        var unitSetting = go.AddComponent<UnitSetting>(); unitSetting.PlayerUnit = go.transform;
+        var factions = go.AddComponent<FactionState>();
+        factions.PlayerNation = go.AddComponent<NationState>();
+        var economy = go.AddComponent<EconomySystem>(); economy.Init(null, factions, unitSetting);
+        var actor = Actor(); actor.transform.SetParent(go.transform);
+        var data = ScriptableObject.CreateInstance<UnitData>(); owned.Add(data);
+        data.kind = actor.kind; data.baseHP = 100; data.baseATK = 20; data.baseBarrier = 200;
+        actor.GrowthData = data; actor.ResetBarrier(); actor.ShieldTurns = 3;
+        var state = SpecialSkillRuntime.State(actor); state.damageNullUnused = true; state.damageNullTurns = 3;
+        var partner = Actor(); state.guardianPartnerId = partner.ReflectionLifeId;
+        SpecialSkillRuntime.State(partner).guardianPartnerId = actor.ReflectionLifeId;
+        actor.UpkeepUnpaidTurns = GameConstants.UpkeepPenaltyDefectTurns - 2;
+        var process = typeof(EconomySystem).GetMethod("ProcessUnitMaintenance", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (process == null) throw new MissingMethodException("EconomySystem.ProcessUnitMaintenance");
+        var args = new object[] { Team.Player, factions.PlayerResources };
+        process.Invoke(economy, args);
+        Check("ninth unpaid turn preserves live protected unit", actor.IsAlive && actor.gameObject.activeSelf
+            && actor.UpkeepUnpaidTurns == 9 && actor.Barrier == 200);
+        process.Invoke(economy, args);
+        Check("tenth unpaid turn removes unit despite barrier and protection", !actor.IsAlive && !actor.gameObject.activeSelf
+            && actor.HP == 0 && actor.Barrier == 0);
+        Check("economic defection never redirects to linked ally", partner.HP == 100 && partner.Barrier == partner.MaxBarrier);
     }
     static void SkillCycle(GameSystems live)
     {

@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 272d53085f294eef8894660ed6cc26b1, type: 3}
+  m_Name: BarrierCombat
+  m_EditorClassIdentifier: Assembly-CSharp::BarrierCombatSettings
+  enabledForPlay: 1
+  trialBalance: 1
+  specificationRevision: 1
+  recoveryAtOwnerTurnStart: 0
+  recoverOnThresholdTurn: 1
+  repeatRecoveryEveryTurn: 1
+  fullyNegatedHitsResetRecovery: 0
+  recoveryRounding: 0
+  growCurrentBarrierOnLevelUp: 1
+  barrierDamageGrantsExperience: 1
+  provisionalDamageBase: 1
+  provisionalAttackCoefficient: 0.7
+  initialBarriers:
+  - kind: 2
+    initialBarrier: 70
+  - kind: 3
+    initialBarrier: 25
+  - kind: 4
+    initialBarrier: 30
+  - kind: 5
+    initialBarrier: 5
+  - kind: 6
+    initialBarrier: 20
+  - kind: 7
+    initialBarrier: 20
+  - kind: 8
+    initialBarrier: 15
+  - kind: 9
+    initialBarrier: 40
+  - kind: 10
+    initialBarrier: 20
+  - kind: 11
+    initialBarrier: 40
+  - kind: 17
+    initialBarrier: 15
+  - kind: 18
+    initialBarrier: 50
+  - kind: 19
+    initialBarrier: 30
+  - kind: 20
+    initialBarrier: 10
+  - kind: 21
+    initialBarrier: 30
+  - kind: 22
+    initialBarrier: 30
+  - kind: 23
+    initialBarrier: 50
+  - kind: 24
+    initialBarrier: 30
+  heavyNormalBarrierMultiplier: 1

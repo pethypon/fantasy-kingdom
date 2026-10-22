@@ -3,13 +3,14 @@ using UnityEngine;
 /// <summary>
 /// ダメージ計算を一元管理するユーティリティクラス。
 /// BattleSystem, SkillSystem, AI シミュレーション全てがこの式を使用する。
-/// 計算式: 1 + (ATK/5) + ((ATK/2) - (DEF/3))
+/// R1は調整可能なATK式。旧DEF式は過去ルールの互換読込時だけ使用する。
 ///
 /// パッシブスキル適用順序:
 ///   基礎ダメージ → 攻撃側パッシブ → 防御側パッシブ → 地形補正 → バフ/デバフ → 最終確定
 /// </summary>
 public static class DamageCalculator
 {
+    public static bool UsesLegacyDefence => !BarrierCombatSettings.Active.enabledForPlay;
     /// <summary>Missing/disabled legacy rule assets still guarantee one point per valid hit.</summary>
     public static int MinimumAttackDamage => Mathf.Clamp(GameAuthoringRules.Active?.minimumAttackDamage ?? 1, 1, 100);
 
@@ -37,7 +38,9 @@ public static class DamageCalculator
     /// <summary>The R1 document leaves this formula provisional and author-adjustable.</summary>
     public static float CalcRawBaseForTarget(float atk, float def, bool usesBarrier)
     {
-        if (!usesBarrier) return CalcRawBase(atk, def);
+        // R1 removes DEF for every target, including HP-only commanders and buildings.
+        // The parameter is retained for source compatibility with historical simulations.
+        if (UsesLegacyDefence) return CalcRawBase(atk, def);
         var settings = BarrierCombatSettings.Active;
         float basis = float.IsNaN(settings.provisionalDamageBase) || float.IsInfinity(settings.provisionalDamageBase) ? 1 : Mathf.Max(0, settings.provisionalDamageBase);
         float coefficient = float.IsNaN(settings.provisionalAttackCoefficient) || float.IsInfinity(settings.provisionalAttackCoefficient) ? .7f : Mathf.Max(0, settings.provisionalAttackCoefficient);
@@ -245,7 +248,7 @@ public static class DamageCalculator
 
     public static float GetKingAuraDEFMultiplier(Status unit)
     {
-        return HasKingAura(unit) ? GameConstants.KingAuraDEFBonus : 1f;
+        return UsesLegacyDefence && HasKingAura(unit) ? GameConstants.KingAuraDEFBonus : 1f;
     }
 
     private static bool HasKingAura(Status unit)
@@ -275,7 +278,7 @@ public static class DamageCalculator
     {
         if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive || target.ShieldTurns > 0) return 0;
         float atkMod = ApplyUpkeepATKPenalty(attacker, StatusEffectSystem.GetATKModifier(attacker));
-        float defMod = ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target));
+        float defMod = UsesLegacyDefence ? ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target)) : 1;
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
 
         // 指揮オーラ: King周囲2マス以内の味方は ATK/DEF +10%
@@ -283,7 +286,7 @@ public static class DamageCalculator
         defMod *= GetKingAuraDEFMultiplier(target);
 
         float atk = Mathf.Max(0, (long)attacker.ATK + SpecialSkillRuntime.GetATKFlatAdjustment(attacker)) * atkMod;
-        float def = BarrierSystem.UsesBarrier(target) ? 0 : target.DEF * defMod;
+        float def = UsesLegacyDefence ? target.DEF * defMod : 0;
 
         float baseDmg = CalcRawBaseForTarget(atk, def, BarrierSystem.UsesBarrier(target));
 
@@ -328,7 +331,7 @@ public static class DamageCalculator
     {
         if (attacker == null || target == null || skill == null || !attacker.IsAlive || !target.IsAlive || target.ShieldTurns > 0) return 0;
         float atkMod = ApplyUpkeepATKPenalty(attacker, StatusEffectSystem.GetATKModifier(attacker));
-        float defMod = ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target));
+        float defMod = UsesLegacyDefence ? ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target)) : 1;
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
         float sealMod = StatusEffectSystem.GetSkillMultiplierModifier(attacker);
 
@@ -337,7 +340,7 @@ public static class DamageCalculator
         defMod *= GetKingAuraDEFMultiplier(target);
 
         float atk = Mathf.Max(0, (long)attacker.ATK + SpecialSkillRuntime.GetATKFlatAdjustment(attacker)) * atkMod;
-        float def = BarrierSystem.UsesBarrier(target) ? 0 : target.DEF * defMod;
+        float def = UsesLegacyDefence ? target.DEF * defMod : 0;
 
         float baseDmg = CalcRawBaseForTarget(atk, def, BarrierSystem.UsesBarrier(target));
         float effectiveMultiplier = Mathf.Clamp(skill.Multiplier + sealMod, 0f, 2f);
@@ -393,7 +396,7 @@ public static class DamageCalculator
     /// </summary>
     public static int EstimateBaseDamage(int atk, int def)
     {
-        return FinalizeHitDamage(CalcRawBase(atk, def));
+        return FinalizeHitDamage(CalcRawBaseForTarget(atk, def, false));
     }
 
     /// <summary>

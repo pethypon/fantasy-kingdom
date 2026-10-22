@@ -63,7 +63,7 @@ public static partial class FacilityData
     {
         // ステータス
         public int HP;
-        public int DEF;
+        [HideInInspector] public int DEF;
         public int ATK;
 
         // 生産（周期ごと。旧データの0は1ターン周期として扱う）
@@ -95,7 +95,7 @@ public static partial class FacilityData
     {
         public int APCost;
         public int HP;
-        public int DEF;
+        [HideInInspector] public int DEF;
         public int ATK;
         public ResourceCost BuildCost;
         public string DisplayName;

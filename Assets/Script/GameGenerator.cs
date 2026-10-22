@@ -231,7 +231,7 @@ public class GameGenerator : MonoBehaviour
 
         // Step 10: 最初のターン開始
         if (_TurnGenerator != null)
-            _TurnGenerator.StartFirstTurn();
+            _TurnGenerator.StartFirstTurn(loadData == null);
         else
             Debug.LogError("[GameGenerator] TurnGenerator が null のためゲームを開始できません");
     }

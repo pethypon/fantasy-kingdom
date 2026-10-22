@@ -367,7 +367,7 @@ public partial class Status : MonoBehaviour
     }
     [HideInInspector] public NaturalRecoveryState NaturalRecovery = new NaturalRecoveryState();
     public int ATK;
-    public int DEF;
+    [HideInInspector] public int DEF; // Save compatibility only while R1 is enabled.
     [Header("レベル")]
     public int Level = 1;
     public UnitData GrowthData;

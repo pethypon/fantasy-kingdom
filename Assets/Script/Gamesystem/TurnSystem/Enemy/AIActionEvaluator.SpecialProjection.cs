@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -191,14 +191,13 @@ public static partial class AIActionEvaluator
     public static float KnownForcedEntryValue(AIBoardState board, Status actor, Vector3 from, Vector3 to)
     {
         if (board == null || actor == null || !board.IsSpecialActorObserved(actor)) return 0;
-        int barrier = BarrierSystem.UsesBarrier(actor) ? actor.Barrier : 0;
-        int hazard = board.FindObservedSpecialActor(actor.Special?.guardianPartnerId) == null ? board.EstimateSpecialHazardAt(actor,to) : 0;
-        barrier = BarrierSystem.Absorb(barrier,hazard,out int hazardHp);
+        var budget = AIObservedDamageBudget.Capture(actor);
+        int hazardHp = board.EstimateSpecialHazardAt(actor,to,ref budget);
         int actual = (int)Math.Min(int.MaxValue,(long)hazardHp+EstimateObservedHitLoss(actor,board,
-            board.KnownEnvironmentDamage(actor,to,true),HpChangeKind.IgnoreDefenceDamage,ref barrier));
+            board.KnownEnvironmentDamage(actor,to,true),HpChangeKind.IgnoreDefenceDamage,ref budget));
         float benefit = HpCost(actor, actual);
         // A staying hazard is a second packet, discounted because the actor can leave.
-        int standing = EstimateObservedHitLoss(actor,board,board.KnownEnvironmentDamage(actor,to,false),HpChangeKind.IgnoreDefenceDamage,ref barrier);
+        int standing = EstimateObservedHitLoss(actor,board,board.KnownEnvironmentDamage(actor,to,false),HpChangeKind.IgnoreDefenceDamage,ref budget);
         benefit += HpCost(actor, standing) * .5f;
         benefit -= HpCost(actor, EstimateObservedHitLoss(actor,board,board.KnownEnvironmentDamage(actor,from,false),HpChangeKind.IgnoreDefenceDamage)) * .5f;
         int heal = board.KnownEnvironmentHeal(actor, to);

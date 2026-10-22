@@ -118,7 +118,7 @@ public static class SpecialAbilitySystem
         if (sa == SpecialAbility.IndomitableWill)
             mod -= IndomitableWillReduction;
 
-        if (sa == SpecialAbility.WallFamiliar && !BarrierSystem.UsesBarrier(target) && IsAdjacentToBuilding(target))
+        if (sa == SpecialAbility.WallFamiliar && DamageCalculator.UsesLegacyDefence && IsAdjacentToBuilding(target))
             mod -= WallFamiliarDEFBonus;
 
         if (HasNearbyAllyWithAbility(target, SpecialAbility.GuardianZone))

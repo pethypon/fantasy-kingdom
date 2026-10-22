@@ -37,7 +37,23 @@ public partial class AIBoardState
         _ = SpecialObservedActors;
         if (!IsSpecialActorObserved(actor)) return 0;
         if (!specialAttackFlatCache.TryGetValue(actor, out int value))
-            specialAttackFlatCache[actor] = value = SpecialSkillRuntime.GetATKFlatAdjustment(actor);
+        {
+            long adjustment=0;
+            foreach (var owner in specialObservedActors)
+            {
+                var state=owner.Special;
+                if (state==null) continue;
+                foreach (var cycle in state.paladinCycles)
+                    if (cycle.returned)
+                    { if (cycle.targetId==actor.ReflectionLifeId) adjustment+=cycle.returnedAttack; }
+                    else
+                    {
+                        if (cycle.targetId==actor.ReflectionLifeId) adjustment-=cycle.stolenAttack;
+                        if (cycle.sourceId==actor.ReflectionLifeId && state.ownerTurn>cycle.startOwnerTurn) adjustment+=cycle.stolenAttack;
+                    }
+            }
+            specialAttackFlatCache[actor]=value=(int)System.Math.Max(int.MinValue,System.Math.Min(int.MaxValue,adjustment));
+        }
         return value;
     }
     void AppendOwnedSpecialTargets(Transform parent)
@@ -55,6 +71,16 @@ public partial class AIBoardState
         if(!hasObservedSpecialState)return 0;
         if(specialHazardCache.TryGetValue((unit,destination),out int value))return value;
         return specialHazardCache[(unit,destination)]=SpecialSkillRuntime.HazardDamageAt(unit,destination,observed);
+    }
+    public int EstimateSpecialHazardAt(Status unit, Vector3 destination, ref AIObservedDamageBudget budget)
+    {
+        long risk = 0;
+        var observed = SpecialObservedActors;
+        if (!hasObservedSpecialState) return 0;
+        foreach (var caster in observed)
+            risk += AIActionEvaluator.EstimateObservedHitLoss(unit,this,
+                SpecialSkillRuntime.ObservedHazardPacketAt(unit,destination,caster,observed),HpChangeKind.NormalDamage,ref budget);
+        return (int)System.Math.Min(int.MaxValue,risk);
     }
 
     /// <summary>Project the moving actor into current teammates' actual masks; self vision never supports isolation.</summary>

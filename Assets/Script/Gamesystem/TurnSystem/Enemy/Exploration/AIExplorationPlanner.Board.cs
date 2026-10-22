@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public sealed partial class AIExplorationPlanner
@@ -134,7 +134,7 @@ public sealed partial class AIExplorationPlanner
         unchecked
         {
             int value = unit.GetInstanceID() * 397 ^ (includePosition ? GridHelper.ToGrid(unit.transform.position).GetHashCode() : 0);
-            value = value * 31 + unit.HP; value = value * 31 + unit.ATK; value = value * 31 + unit.DEF;
+            value = value * 31 + unit.HP; value = value * 31 + unit.ATK; value = value * 31 + (DamageCalculator.UsesLegacyDefence ? unit.DEF : 0);
             value = value * 31 + unit.Barrier; value = value * 31 + unit.MaxBarrier;
             value = value * 31 + unit.AssignedSkillId; value = value * 31 + unit.SkillCooldown;
             value = value * 31 + unit.ShieldTurns; value = value * 31 + (int)unit.direction;

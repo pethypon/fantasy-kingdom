@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4e53bc09a8ccec4ab02b88d9e281df4, type: 3}
+  m_Name: Stats
+  m_EditorClassIdentifier: Assembly-CSharp::UnitData
+  definitionId: r1.unit.dragonknight
+  displayName: "\u7ADC\u9A0E\u58EB"
+  category: R1 Barrier Trial
+  prefab: {fileID: 7250053681619698131, guid: 5372fc675098139499dc77290d4b8811, type: 3}
+  actionProfile: {fileID: 11400000, guid: 7c3b29313ca58254390dbeba7f6e9d1d, type: 2}
+  defaultTeam: 0
+  availableToPlayer: 1
+  availableToEnemy: 1
+  useAuthoredAbilities: 0
+  authoredPassive: 0
+  authoredSkillId: -1
+  authoredSpecialAbility: 0
+  specialSkill: {fileID: 11400000, guid: 1d5d0bdcfb69bc84c89943df34ded89a, type: 2}
+  attackTags: 0
+  kind: 24
+  baseHP: 36
+  baseATK: 11
+  baseDEF: 13
+  baseBarrier: -1
+  hpGrowth: 0.2
+  atkGrowth: 0.1
+  defGrowth: 0.2
+  upkeepExempt: 0
+  useAuthoredUpkeep: 0
+  upkeepWood: 0
+  upkeepStone: 0
+  upkeepIron: 1
+  upkeepMagic: 0
+  upkeepWater: 0
+  upkeepBread: 1
+  upkeepMagicScales: 1
+  costWood: 6
+  costStone: 4
+  costIron: 16
+  costMagic: 0
+  costWater: 0
+  costBread: 8
+  costCitizen: 1
+  costAP: 5

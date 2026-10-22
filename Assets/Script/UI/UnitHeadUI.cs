@@ -761,7 +761,8 @@ public class UnitHeadUI : MonoBehaviour
         if (barrierFrame != null) barrierFrame.SetActive(cachedUsesBarrier);
         if (hpFrameRect != null)
             hpFrameRect.anchoredPosition = new Vector2(-44, cachedUsesBarrier ? 7 : 0);
-        if (barrierText != null) barrierText.text = $"バリア {cachedBarrier}/{cachedMaxBarrier}";
+        // The stacked green/cyan gauges identify each value; repeated labels obscure crowded pieces.
+        if (barrierText != null) barrierText.text = $"{cachedBarrier}/{cachedMaxBarrier}";
         if (barrierFillImage != null)
             barrierFillImage.fillAmount = cachedMaxBarrier > 0 ? Mathf.Clamp01((float)cachedBarrier / cachedMaxBarrier) : 0;
 
@@ -773,7 +774,7 @@ public class UnitHeadUI : MonoBehaviour
         if (hpText != null)
         {
             hpText.text =
-                $"HP {cachedHP}/{Mathf.Max(1, cachedMaxHP)}";
+                $"{cachedHP}/{Mathf.Max(1, cachedMaxHP)}";
         }
 
 

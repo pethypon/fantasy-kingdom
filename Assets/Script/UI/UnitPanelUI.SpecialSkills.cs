@@ -37,7 +37,12 @@ public partial class UnitPanelUI
         if (currentUnit == null) return;
         var definition = SpecialSkillRuntime.Definition(currentUnit);
         bool fixedIdentity = definition != null && definition.ability != UnitSpecialSkill.None;
-        if (fixedIdentity) SetButtonVisible(skillButton, false);
+        if (fixedIdentity)
+        {
+            SetButtonVisible(skillButton, false);
+            // The fixed skill replaces the legacy assignment; show its actual name in the compact panel.
+            if (kindText != null && !isBuilding) kindText.text = SpecialSkillPresentation.Name(definition);
+        }
         bool hasDetails = currentUnit.type == Type.Unit || SpecialSkillPresentation.HasState(currentUnit);
         SetButtonVisible(specialStateButton, hasDetails);
         if (headingText != null) headingText.rectTransform.offsetMax = new Vector2(hasDetails ? -180 : -16, 0);

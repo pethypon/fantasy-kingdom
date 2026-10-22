@@ -167,14 +167,29 @@ public static partial class SpecialSkillRuntime
     static int LightningDamage(Status caster, Status unit, float multiplier)
         => (int)System.Math.Min(int.MaxValue, System.Math.Floor(DamageCalculator.CalcNormal(caster, unit) * (double)multiplier));
 
+    /// <summary>One observed line packet, before protection. Multi-hit forecasts consume protection once per packet.</summary>
+    public static int ObservedHazardPacketAt(Status unit, Vector3 destination, Status caster, IReadOnlyList<Status> observed)
+    {
+        if (unit == null || caster == null || observed == null) return 0;
+        bool seen = false;
+        for (int i = 0; i < observed.Count; i++) if (observed[i] == caster) { seen = true; break; }
+        if (!seen || !TryLightning(caster, observed, out var a, out var b, out var multiplier)) return 0;
+        var definition = Definition(caster);
+        if (!FactionApplies(definition.lightningFactionMask, caster.team, caster, unit, null)
+            || !SegmentsCross(unit.transform.position, destination, a.transform.position, b.transform.position)) return 0;
+        return ObservedLightningRawDamage(caster, unit, multiplier);
+    }
+
     static int ObservedLightningDamage(Status caster, Status unit, float multiplier)
     {
         // CalcNormal includes global King/Knight aura queries. Forecasts may only use
         // the supplied observations; the canonical base formula itself has no scene access.
-        int raw = (int)System.Math.Min(int.MaxValue, System.Math.Floor(
-            DamageCalculator.EstimateBaseDamage(caster.ATK, unit.DEF) * (double)multiplier));
-        return PreviewDamage(unit, raw, HpChangeKind.NormalDamage);
+        return PreviewDamage(unit, ObservedLightningRawDamage(caster, unit, multiplier), HpChangeKind.NormalDamage);
     }
+
+    static int ObservedLightningRawDamage(Status caster, Status unit, float multiplier)
+        => (int)System.Math.Min(int.MaxValue, System.Math.Floor(
+            DamageCalculator.EstimateBaseDamage(caster.ATK, unit.DEF) * (double)multiplier));
 
     static int ApplyScheduledDamage(Status source, Status target, int amount, HpChangeKind kind, HpChangeCause cause = HpChangeCause.Skill)
     {

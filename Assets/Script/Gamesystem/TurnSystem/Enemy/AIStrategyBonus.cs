@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -93,7 +93,7 @@ public static class AIStrategyBonus
         if (a.ActionType == AIActionType.Retreat) b += 20f;
         if (a.ActionType == AIActionType.Support) b += 15f;
         if (a.ActionType == AIActionType.SkillUse && a.Skill != null && a.Skill.FixedHeal > 0) b += 18f;
-        if (a.ActionType == AIActionType.SkillUse && a.Skill != null && a.Skill.GrantBuff == BuffType.Defensive) b += 10f;
+        if (a.ActionType == AIActionType.SkillUse && a.Skill != null && a.Skill.GrantBuff == BuffType.Defensive && DamageCalculator.UsesLegacyDefence) b += 10f;
         if (a.ActionType == AIActionType.Attack) b -= 8f;
         if (a.ActionType == AIActionType.Surround) b -= 12f;
         return b;
@@ -248,7 +248,7 @@ public static class AIEvalHelpers
     public static int EstimateRawDamage(Status attacker, Status defender)
     {
         if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive || defender.ShieldTurns > 0) return 0;
-        if (!BarrierSystem.UsesBarrier(defender)) return DamageCalculator.EstimateBaseDamage(attacker.ATK, defender.DEF);
+        if (DamageCalculator.UsesLegacyDefence) return DamageCalculator.EstimateBaseDamage(attacker.ATK, defender.DEF);
         float incoming = StatusEffectSystem.GetIncomingDamageModifier(defender);
         return DamageCalculator.CalcFromValues(attacker.ATK * ObservedAttackModifier(attacker) * (1-attacker.UpkeepPenaltyATKDEF),0,incoming,true);
     }
@@ -272,7 +272,7 @@ public static class AIEvalHelpers
         bool barrier = BarrierSystem.UsesBarrier(unit);
         float maximum = Mathf.Max(1f, unit.MaxHP + (barrier ? (float)unit.MaxBarrier : 0));
         float health = unit.HP + (barrier ? (float)unit.Barrier : 0);
-        return (Mathf.Max(0, unit.ATK) + (barrier ? 0 : Mathf.Max(0, unit.DEF) * .5f))
+        return (Mathf.Max(0, unit.ATK) + (DamageCalculator.UsesLegacyDefence ? Mathf.Max(0, unit.DEF) * .5f : 0))
             * Mathf.Clamp01(health / maximum);
     }
 }

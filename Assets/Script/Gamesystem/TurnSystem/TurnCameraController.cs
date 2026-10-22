@@ -61,12 +61,62 @@ public class TurnCameraController : MonoBehaviour
         return cachedCamera;
     }
 
-    public void FocusPlayerBase()
+    public void FocusPlayerBase(bool frameStartingArea = false)
     {
         var camera = ResolveCamera();
         var crystal = _turn?.Systems.CrystalSystem;
         if (camera == null || crystal == null) return;
+        if (frameStartingArea && !IsTopDown)
+        {
+            var bounds = new Bounds(crystal.PCP + Vector3.up, new Vector3(8f, 3f, 8f));
+            var units = _turn.Systems.UnitSetting?.PlayerUnit;
+            if (units != null) foreach (var unit in units.GetComponentsInChildren<Status>())
+                if (unit.IsAlive && unit.type == Type.Unit && unit.team == Team.Player)
+                    bounds.Encapsulate(new Bounds(unit.transform.position + Vector3.up, new Vector3(2f, 3f, 2f)));
+            if (camera.orthographic)
+                camera.orthographicSize = StartingOrthographicSize(bounds, camera.transform.rotation, camera.aspect);
+            else camera.fieldOfView = 45f;
+            float distance = StartingViewDistance(bounds, camera.transform.rotation, camera.fieldOfView, camera.aspect);
+            float offset = camera.orthographic ? camera.orthographicSize * .1f
+                : distance * Mathf.Tan(camera.fieldOfView * .5f * Mathf.Deg2Rad) * .1f;
+            camera.transform.position = bounds.center - camera.transform.forward * distance - camera.transform.up * offset;
+            return;
+        }
         camera.transform.position = FocusPosition(camera.transform.position, camera.transform.forward, crystal.PCP);
+    }
+
+    /// <summary>Frame only the starting party, with space for the top HUD, rather than the whole fog-covered map.</summary>
+    public static float StartingViewDistance(Bounds bounds, Quaternion rotation, float fieldOfView, float aspect)
+    {
+        if (float.IsNaN(aspect) || float.IsInfinity(aspect) || aspect <= 0f) aspect = 1f;
+        if (float.IsNaN(fieldOfView) || float.IsInfinity(fieldOfView)) fieldOfView = 45f;
+        float tangent = Mathf.Tan(Mathf.Clamp(fieldOfView, 10f, 90f) * .5f * Mathf.Deg2Rad);
+        float distance = 8f;
+        var inverse = Quaternion.Inverse(rotation);
+        foreach (float x in new[] { -bounds.extents.x, bounds.extents.x })
+        foreach (float y in new[] { -bounds.extents.y, bounds.extents.y })
+        foreach (float z in new[] { -bounds.extents.z, bounds.extents.z })
+        {
+            var local = inverse * new Vector3(x, y, z);
+            distance = Mathf.Max(distance, Mathf.Max(Mathf.Abs(local.x) / (tangent * aspect * .8f),
+                Mathf.Abs(local.y) / (tangent * .7f)) - local.z);
+        }
+        return distance;
+    }
+
+    public static float StartingOrthographicSize(Bounds bounds, Quaternion rotation, float aspect)
+    {
+        if (float.IsNaN(aspect) || float.IsInfinity(aspect) || aspect <= 0f) aspect = 1f;
+        float size = .5f;
+        var inverse = Quaternion.Inverse(rotation);
+        foreach (float x in new[] { -bounds.extents.x, bounds.extents.x })
+        foreach (float y in new[] { -bounds.extents.y, bounds.extents.y })
+        foreach (float z in new[] { -bounds.extents.z, bounds.extents.z })
+        {
+            var local = inverse * new Vector3(x, y, z);
+            size = Mathf.Max(size, Mathf.Max(Mathf.Abs(local.x) / (aspect * .8f), Mathf.Abs(local.y) / .7f));
+        }
+        return size;
     }
 
     public static Vector3 FocusPosition(Vector3 position, Vector3 forward, Vector3 target)

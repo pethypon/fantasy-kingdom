@@ -262,7 +262,7 @@ $"  通常駒は先にバリアを消耗し、超過ダメージだけHPから�
 "  " + SpecialSkillPresentation.BarrierRecoveryDescription() + "\n" +
 "  レベル上昇時の現在バリア（暫定）：" + (BarrierCombatSettings.Active.growCurrentBarrierOnLevelUp
     ? $"増えた最大値の分だけ増加（毎Lv＋{BarrierSystem.GrowthPerLevel}、最大値まで）。\n" : "現在値を維持し、最大値だけ増加。\n") +
-$"  通常駒への暫定ダメージ式：{BarrierCombatSettings.Active.provisionalDamageBase:0.##}＋ATK×{BarrierCombatSettings.Active.provisionalAttackCoefficient:0.###}。各種倍率・最低ダメージは別途適用。最終式は未確定です。\n" +
+$"  暫定ダメージ式：{BarrierCombatSettings.Active.provisionalDamageBase:0.##}＋ATK×{BarrierCombatSettings.Active.provisionalAttackCoefficient:0.###}。各種倍率・最低ダメージは別途適用。最終式は未確定です。\n" +
 "  HP自然回復（HPを失わず5ターンで最大HP10%）は別に判定します。完全防御シールドはダメージを無効化し、軽減障壁は被ダメージを軽減する効果です。\n" +
 "  竜騎士の固有スキルはバリアを貫通します。通常攻撃と通常の攻撃スキルはバリアから先に減らします。バリアを持たない駒や施設はHPでダメージを受けます。\n\n";
     }
@@ -291,7 +291,7 @@ $"  <b>範囲スキル対象が低地</b>: ダメージ×{GameConstants.AreaSkil
 $"  壁（WoodWall/StoneWall）または高低差{GameConstants.LineSkillBlockYDiff}以上のタイルがあると、それ以降のマスには当たらない。\n\n" +
 "<b>■ パッシブ・背面攻撃</b>\n" +
 $"  背面攻撃ダメージ +{(GameConstants.BackAttackBonus-1)*100:F0}%、共通常時能力Assassinationを設定した駒はさらに×{GameConstants.AssassinationBackAttackBonus}。\n" +
-"  アサシン固有：通常移動は常に3AP。自軍ターン終了時に1回、自分以外の味方の視界外なら最大HP10%減少（端数切り捨て、最低1）。味方の建物・クリスタルの視界も有効。\n" +
+"  アサシン固有：通常移動は常に3AP。自軍ターン終了時に1回、自分以外の味方ユニットの視界外なら最大HP10%減少（端数切り捨て、最低1）。\n" +
 $"  HunterEyes: 視界内敵へ +{(GameConstants.HunterEyesDamageBonus-1)*100:F0}%  /  Destroyer: 建物・クリスタルへ +{(GameConstants.DestroyerBuildingBonus-1)*100:F0}%\n" +
 $"  Sniper: 距離{GameConstants.SniperMinRange}以上で+{(GameConstants.SniperLongRangeBonus-1)*100:F0}%  /  Impregnable: 被ダメ×{GameConstants.ImpregnableDamageReduction}";
     }

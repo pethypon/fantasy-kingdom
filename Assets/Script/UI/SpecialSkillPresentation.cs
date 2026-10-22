@@ -91,7 +91,7 @@ public static class SpecialSkillPresentation
             case UnitSpecialSkill.ArcherStationary: return $"未移動で攻撃倍率上昇（最大×{SpecialSkillDefinition.ArcherMaximum}）、強制移動でも蓄積リセット。";
             case UnitSpecialSkill.SamuraiCounter: return "通常攻撃で刀ゲージ上昇。MAX時に被弾すると、元の攻撃を受けた後、相手の現在バリアを0にして、受けたダメージの半分＋ATKで反撃します。反撃で減らしたHP量だけ自身のHPを回復。完全防御シールド・1回無効は尊重します。MAX保持は3ターン。";
             case UnitSpecialSkill.MagicRitual: return "周囲1マスにHP25%以下の駒がいる間、Crystal・Boss・強敵への攻撃×1.5、それ以外×0.75。";
-            case UnitSpecialSkill.AssassinVisionSeal: return "通常移動は常に3AP（疲労・地形・移動AP補正を受けません）。自軍ターン終了時に1回、自分以外の味方の視界に入っていなければ最大HPの10%を失います（端数は切り捨て、最低1）。味方の建物・クリスタルの視界も有効です。";
+            case UnitSpecialSkill.AssassinVisionSeal: return "通常移動は常に3AP（疲労・地形・移動AP補正を受けません）。自軍ターン終了時に1回、自分以外の味方ユニットの視界に入っていなければ最大HPの10%を失います（端数は切り捨て、最低1）。";
             case UnitSpecialSkill.ScoutVisionGuard: return "視界内の敵味方の移動AP・攻撃APを各1回無料化（リセット範囲は設定）。";
             case UnitSpecialSkill.PriestPurification: return "毎ターン、周囲1マスの敵味方の駒を最大HP5%回復。";
             case UnitSpecialSkill.GuardianLifeLink: return "Crystalへのダメージ×2。通常攻撃ごとに攻撃AP＋1累積（リセット範囲は設定）。";
@@ -99,7 +99,7 @@ public static class SpecialSkillPresentation
             case UnitSpecialSkill.MagicSniperLock: return "通常攻撃ごとに最大HP20%自傷。対象のHP割合が自身より低い場合ダメージ×1.5。";
             case UnitSpecialSkill.LifeBomb: return "実際にダメージを与えず10ターン経過すると、現在HP×2で敵味方・Crystalを巻き込んで自爆（範囲は設定）。";
             case UnitSpecialSkill.HolyKnightSanctuary: return "攻撃成功で敵ATK25%を奪い、次ターン自身へ加算。2ターン後は自身の現在ATK80%を元の敵へ加算し、そのターン終了で解除。";
-            case UnitSpecialSkill.WhiteMageHeal: return "なし（R1では未設定）";
+            case UnitSpecialSkill.WhiteMageHeal: return "なし";
             case UnitSpecialSkill.NinjaSwap: return "未攻撃ターンでクナイを最大5段階強化。視界外攻撃は通常の40%。";
             case UnitSpecialSkill.BerserkerRage: return "HPが少ないほど通常攻撃APが低下します（設定した曲線に従います）。";
             case UnitSpecialSkill.NavigatorPull: return $"正面1マスへ通常攻撃。残りAPに応じて最大×{SpecialSkillDefinition.NavigatorMaximum}。";

@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4e53bc09a8ccec4ab02b88d9e281df4, type: 3}
+  m_Name: Stats
+  m_EditorClassIdentifier: Assembly-CSharp::UnitData
+  definitionId: r1.unit.heavywarrior
+  displayName: "\u91CD\u6226\u58EB"
+  category: R1 Barrier Trial
+  prefab: {fileID: 8090993422228010945, guid: 596cb4165850da64a8451ca34a81727f, type: 3}
+  actionProfile: {fileID: 11400000, guid: f21f5bbb5dbed59498b80888c9a91c02, type: 2}
+  defaultTeam: 0
+  availableToPlayer: 1
+  availableToEnemy: 1
+  useAuthoredAbilities: 0
+  authoredPassive: 0
+  authoredSkillId: -1
+  authoredSpecialAbility: 0
+  specialSkill: {fileID: 11400000, guid: 7296140aa2f976640b8281c76418faa3, type: 2}
+  attackTags: 0
+  kind: 23
+  baseHP: 44
+  baseATK: 12
+  baseDEF: 13
+  baseBarrier: -1
+  hpGrowth: 0.2
+  atkGrowth: 0.1
+  defGrowth: 0.2
+  upkeepExempt: 0
+  useAuthoredUpkeep: 0
+  upkeepWood: 0
+  upkeepStone: 0
+  upkeepIron: 1
+  upkeepMagic: 0
+  upkeepWater: 0
+  upkeepBread: 1
+  upkeepMagicScales: 1
+  costWood: 6
+  costStone: 4
+  costIron: 16
+  costMagic: 0
+  costWater: 0
+  costBread: 8
+  costCitizen: 1
+  costAP: 5

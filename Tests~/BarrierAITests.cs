@@ -67,6 +67,17 @@ public static class BarrierAITests
         actor.Effects.Clear();actor.Effects.Add(new SimEffect(StatusEffectType.ArmorBreak,2));
         Check(SimBoardState.CalcDamage(attacker,actor)==damage,"legacy DEF debuff is inert for normal roles until configured");
         actor.Effects.Clear();
+        foreach(var kind in new[]{Kind.King,Kind.Crystal})
+        {
+            var target=new SimUnit{Kind=kind,Type=kind==Kind.Crystal?Type.Building:Type.Unit,
+                IsPrimaryCommander=kind==Kind.King,HP=100,MaxHP=100,DEF=100000};
+            int withoutLegacyDefence=SimBoardState.CalcDamage(attacker,target);target.DEF=0;
+            Check(!target.UsesBarrier&&withoutLegacyDefence==SimBoardState.CalcDamage(attacker,target),
+                "R1 abolishes DEF without inventing a barrier for "+kind);
+            float value=SimCombatEval.GetAdjustedValue(target);target.Effects.Add(new SimEffect(BuffType.Defensive,2));
+            Check(SimBoardState.CalcDamage(attacker,target)==withoutLegacyDefence&&SimCombatEval.GetAdjustedValue(target)==value,
+                "historical defensive buff gives no damage or search-value bonus to "+kind);
+        }
         Check(actor.ApplyDamage(31)==31&&actor.Barrier==1&&actor.HP==70,"one barrier point remains without early HP damage");
         Check(actor.BarrierDamaged&&actor.BarrierSafeTurns==0,"barrier-only loss resets recovery");
         actor.BarrierDamaged=false;actor.BarrierSafeTurns=2;actor.BarrierLastRound=12;actor.BarrierLastDamagedRound=17;
@@ -207,6 +218,7 @@ public static class BarrierAITests
             var governor=new AIStrategicGovernor();
             float incoming=governor.IncomingDamage(board,actor,actor.transform.position,null);
             Check(Mathf.Abs(incoming-expected)<.01f,"strategic danger uses the same cumulative barrier budget actual="+incoming+" expected="+expected);
+            ProtectionBudgets(actor,board,raw,secondRaw);
             first.HP=8;
             Check(!AIActionEvaluator.CanFinishSpecialTarget(actor,first,board)&&AIEvalHelpers.EstimateDamage(actor,first)==0,
                 "low HP behind barrier is not an early ordinary kill");
@@ -264,6 +276,72 @@ public static class BarrierAITests
         }
     }
 
+    static void ProtectionBudgets(Status actor,AIBoardState board,int firstRaw,int secondRaw)
+    {
+        var state=SpecialSkillRuntime.State(actor);
+        bool oldNull=state.damageNullUnused,oldDouble=state.nextDamageDouble,oldLock=state.holyKnightRecoveryLock;
+        int oldNullTurns=state.damageNullTurns,oldHolyTurns=state.holyKnightTurns,oldBarrier=actor.Barrier,oldShield=actor.ShieldTurns;
+        int hp=actor.HP;
+        try
+        {
+            actor.ShieldTurns=0;actor.Barrier=20;state.damageNullUnused=true;state.damageNullTurns=2;
+            state.nextDamageDouble=true;state.holyKnightTurns=0;state.holyKnightRecoveryLock=false;
+            var budget=AIObservedDamageBudget.Capture(actor);
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,0,HpChangeKind.NormalDamage,ref budget)==0,
+                "zero packet does not consume a nullification");
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,10,HpChangeKind.NormalDamage,ref budget)==0&&budget.Barrier==20,
+                "first observed packet uses nullification before vulnerability and finite barrier");
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,10,HpChangeKind.IgnoreDefenceDamage,ref budget)==0&&budget.Barrier==0,
+                "second packet consumes one vulnerability and the finite barrier");
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,10,HpChangeKind.NormalDamage,ref budget)==10,
+                "third packet cannot reuse consumed vulnerability or nullification");
+            Check(actor.HP==hp&&actor.Barrier==20&&state.damageNullUnused&&state.nextDamageDouble,
+                "forecast consumes only its local budget, never live combat state");
+
+            budget=AIObservedDamageBudget.Capture(actor);
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,3,HpChangeKind.DirectHpReduction,ref budget)==3&&budget.Barrier==20,
+                "direct HP costs bypass protection without spending it");
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,10,HpChangeKind.BarrierBypassDamage,ref budget)==0&&budget.Barrier==20,
+                "Dragon Knight bypass is still blocked by one nullification");
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,10,HpChangeKind.BarrierBypassDamage,ref budget)==Mathf.Min(hp,20)&&budget.Barrier==20,
+                "next bypass packet consumes vulnerability while preserving finite barrier");
+
+            actor.ShieldTurns=1;budget=AIObservedDamageBudget.Capture(actor);
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,100,HpChangeKind.NormalDamage,ref budget)==0&&budget.Barrier==20,
+                "persistent perfect shield protects the forecast");
+            actor.ShieldTurns=0;
+            Check(AIActionEvaluator.EstimateObservedHitLoss(actor,board,10,HpChangeKind.NormalDamage,ref budget)==0&&budget.Barrier==20,
+                "perfect shield does not prematurely consume one-use nullification");
+
+            actor.Barrier=0;state.nextDamageDouble=false;
+            board.Refresh();
+            int counter=board.EstimateCounterDamageAt(actor.transform.position,actor);
+            float incoming=new AIStrategicGovernor().IncomingDamage(board,actor,actor.transform.position,null);
+            Check(counter==secondRaw&&Mathf.Abs(incoming-secondRaw)<.01f,
+                "counter and governor cannot reuse one nullification for two observed attackers");
+
+            actor.Barrier=20;state.damageNullUnused=false;state.nextDamageDouble=true;
+            board.Refresh();
+            int expected=Mathf.Max(0,firstRaw*2+secondRaw-20);
+            counter=board.EstimateCounterDamageAt(actor.transform.position,actor);
+            incoming=new AIStrategicGovernor().IncomingDamage(board,actor,actor.transform.position,null);
+            Check(counter==expected&&Mathf.Abs(incoming-expected)<.01f,
+                "counter and governor multiply only the first actual damage packet");
+            actor.Barrier=20;state.nextDamageDouble=false;
+            Check(AIActionEvaluator.ObservedSniperRecoilLoss(actor,board,null,0,false)==0,
+                "ordinary Magic Sniper recoil spends finite barrier before HP in the AI model");
+            actor.Barrier=0;state.damageNullUnused=true;state.damageNullTurns=2;
+            Check(AIActionEvaluator.ObservedSniperRecoilLoss(actor,board,null,0,false)==0,
+                "ordinary Magic Sniper recoil respects one-use nullification in the AI model");
+        }
+        finally
+        {
+            actor.Barrier=oldBarrier;actor.ShieldTurns=oldShield;state.damageNullUnused=oldNull;state.nextDamageDouble=oldDouble;
+            state.damageNullTurns=oldNullTurns;state.holyKnightTurns=oldHolyTurns;state.holyKnightRecoveryLock=oldLock;
+            board.Refresh();
+        }
+    }
+
     static void HeavyRecipient(EconomyR2Tests.Fixture fixture,List<UnityEngine.Object> owned)
     {
         var heavy=fixture.Unit();heavy.kind=Kind.HeavyWarrior;heavy.Level=1;heavy.ATK=20;
@@ -289,11 +367,52 @@ public static class BarrierAITests
             recipient.Barrier=0;intended.Barrier=100;
             Check(AIActionEvaluator.EstimateObservedNormalPacket(heavy,intended,board,20)==20,
                 "intended target barrier cannot inflate a hit redirected to an empty barrier");
+            intended.Barrier=0;recipient.HP=10;recipient.Barrier=5;
+            SpecialSkillRuntime.State(intended).nextDamageDouble=true;
+            var budget=AIObservedDamageBudget.Capture(intended);
+            Check(AIActionEvaluator.EstimateObservedHitLoss(intended,board,20,HpChangeKind.NormalDamage,ref budget)==0
+                &&AIActionEvaluator.EstimateObservedHitLoss(intended,board,20,HpChangeKind.NormalDamage,ref budget)==40,
+                "observed partner death ends local interception while preserving intended-target vulnerability");
+            Check(recipient.HP==10&&recipient.Barrier==5&&intended.Barrier==0&&intended.Special.nextDamageDouble
+                &&recipient.Special.guardianPartnerId==intended.ReflectionLifeId,
+                "life-link forecast never kills or unlinks the live actors");
+            intended.Special.nextDamageDouble=false;recipient.Special.guardianPartnerId=null;
+            budget=AIObservedDamageBudget.Capture(intended);
+            Check(AIActionEvaluator.EstimateObservedHitLoss(intended,board,20,HpChangeKind.NormalDamage,ref budget)==20,
+                "nonreciprocal link does not falsely protect its intended target");
+            recipient.Special.guardianPartnerId=intended.ReflectionLifeId;
+            int intendedHP=intended.HP;intended.HP=5;recipient.HP=50;recipient.Barrier=100;recipient.ShieldTurns=2;
+            budget=AIObservedDamageBudget.Capture(intended);
+            Check(AIActionEvaluator.EstimateObservedHitLoss(intended,board,10,HpChangeKind.NormalDamage,ref budget)==0
+                &&AIActionEvaluator.EstimateObservedHitLoss(intended,board,10,HpChangeKind.NormalDamage,ref budget)==10,
+                "lethal intended packet sacrifices partner before its perfect shield and ends interception");
+            intended.HP=intendedHP;recipient.ShieldTurns=0;
             recipient.team=Team.Player;board.Refresh();
             int hiddenForecast=AIActionEvaluator.EstimateObservedNormalPacket(heavy,intended,board,20);
             recipient.Barrier=100;
             Check(AIActionEvaluator.EstimateObservedNormalPacket(heavy,intended,board,20)==hiddenForecast,
                 "hidden guardian barrier changes do not leak into heavy attack forecasts");
+            budget=AIObservedDamageBudget.Capture(intended);
+            int hiddenLoss=AIActionEvaluator.EstimateObservedHitLoss(intended,board,20,HpChangeKind.NormalDamage,ref budget);
+            recipient.HP=1;recipient.Barrier=0;recipient.Special.nextDamageDouble=true;
+            budget=AIObservedDamageBudget.Capture(intended);
+            Check(hiddenLoss==20&&AIActionEvaluator.EstimateObservedHitLoss(intended,board,20,HpChangeKind.NormalDamage,ref budget)==hiddenLoss,
+                "hidden life-link partner protection and HP cannot change observed danger forecasts");
+            int flatBefore=board.ObservedAttackFlatAdjustment(intended);
+            recipient.Special.paladinCycles.Add(new PaladinAttackCycle{targetId=intended.ReflectionLifeId,stolenAttack=5});
+            board.Refresh();
+            Check(board.ObservedAttackFlatAdjustment(intended)==flatBefore,
+                "hidden paladin cycle cannot leak into observed attack adjustment");
+            recipient.team=Team.Enemy;board.Refresh();
+            Check(board.ObservedAttackFlatAdjustment(intended)==flatBefore-5,
+                "observed paladin cycle applies its known stolen-attack adjustment");
+
+            rule.ability=UnitSpecialSkill.NinjaSwap;rule.ninjaChargeCurve=new AnimationCurve(new Keyframe(0,1),new Keyframe(5,2));
+            heavy.Special.ninjaCharge=2;
+            intended.VisionCell.Clear();int ninjaBefore=AIActionEvaluator.EstimateSpecialAwareAttack(heavy,intended,board);
+            intended.VisionCell.Add(heavy.GridPosition);
+            Check(AIActionEvaluator.EstimateSpecialAwareAttack(heavy,intended,board)==ninjaBefore,
+                "Ninja attack forecast uses a conservative bound without querying opponent vision masks");
         }
         finally { settings.heavyNormalBarrierMultiplier=oldMultiplier; }
     }

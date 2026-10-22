@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -483,7 +483,7 @@ public sealed partial class AIStrategicGovernor
     {
         var key=(self,GridHelper.ToGridXZ(position),eliminated);if(damageCache.TryGetValue(key,out var cached))return cached;
         double total=0;
-        int barrier=BarrierSystem.UsesBarrier(self)?self.Barrier:0;
+        var budget=AIObservedDamageBudget.Capture(self);
         foreach(var opponent in board.AlivePlayerUnits)
         {
             if(opponent==null||!opponent.IsAlive||opponent==eliminated)continue;
@@ -492,7 +492,7 @@ public sealed partial class AIStrategicGovernor
             if (ObservedDragonThreat.IsDragon(opponent))
             {
                 total += AIActionEvaluator.EstimateObservedHitLoss(self,board,
-                    ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, position),HpChangeKind.NormalDamage,ref barrier);
+                    ObservedDragonThreat.EstimateBreathDamage(board, opponent, self, position),HpChangeKind.NormalDamage,ref budget);
                 continue;
             }
             if(StatusEffectSystem.IsStunned(opponent))continue;
@@ -508,12 +508,12 @@ public sealed partial class AIStrategicGovernor
                     int baseline=DamageCalculator.FinalizeHitDamage(DamageCalculator.CalcRawBaseForTarget(opponent.ATK,defence,usesBarrier));
                     raw=(int)Math.Min(int.MaxValue,raw*(double)AIActionEvaluator.EstimateSpecialAwareAttack(opponent,self,board)/Mathf.Max(1,baseline));
                 }
-                raw=BarrierSystem.NormalAttackDamage(opponent.kind,barrier,raw);
-                total+=AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage,ref barrier);
+                raw=BarrierSystem.NormalAttackDamage(opponent.kind,budget.Barrier,raw);
+                total+=AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage,ref budget);
             }
         }
-        total+=AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,position,ref barrier);
-        total+=board.KnownEnvironmentRisk(self,position,ref barrier);
+        total+=AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,position,ref budget);
+        total+=board.KnownEnvironmentRisk(self,position,ref budget);
         return damageCache[key]=(float)Math.Min(int.MaxValue,total);
     }
     bool CanThreaten(AIBoardState board,Status opponent,Vector3 destination)

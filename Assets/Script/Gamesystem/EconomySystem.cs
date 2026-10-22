@@ -270,7 +270,9 @@ public class EconomySystem : MonoBehaviour
                 {
                     // 10ターン不足 → 離脱（占有セル解除・Lv1リセット込みの共通死亡処理を使う）
                     { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {status.kind} Lv{status.Level} が維持費不足で離脱"); }
-                    status.ApplyDamage(status.HP);
+                    // Defection is an economic removal, not an attack that barriers, shields,
+                    // one-use damage nullification or a life link can absorb or redirect.
+                    SpecialSkillRuntime.ApplyHpChange(null, status, status.HP, HpChangeKind.ForcedDeath, deferCleanup: true);
                     status.HandleDeathIfDead();
                     defectCount++;
                 }

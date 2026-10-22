@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -231,7 +231,7 @@ public sealed partial class AIOperationManager
                 if (data == null || !data.IsValidForAuthoring || data.kind == Kind.None || data.kind == Kind.King || data.kind == Kind.Boss
                     || data.kind == Kind.Scout || data.kind == Kind.Crystal || data.kind == Kind.SubCrystal || data.kind == Kind.WoodWall || data.kind == Kind.StoneWall) continue;
                 float power = Mathf.Max(0, data.baseATK)
-                    + (BarrierSystem.UsesBarrier(data.kind, Type.Unit) ? 0 : Mathf.Max(0, data.baseDEF) * .5f);
+                    + (DamageCalculator.UsesLegacyDefence ? Mathf.Max(0, data.baseDEF) * .5f : 0);
                 if (power <= 0) continue;
                 float efficiency = power / Mathf.Max(.25f, data.costCitizen);
                 if (efficiency > bestEfficiency)

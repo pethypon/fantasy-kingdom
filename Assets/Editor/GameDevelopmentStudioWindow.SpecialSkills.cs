@@ -224,7 +224,7 @@ public sealed partial class GameDevelopmentStudioWindow
                 Draw("ninjaChargeCurve", "クナイ段階 → 攻撃倍率"); break;
             case UnitSpecialSkill.BerserkerRage:
                 Draw("stageAPCosts", "次の強化段階へ進むスキルAP（1〜5段階・上限25）");
-                Draw("berserkerAttackCurve", "強化段階 → 攻撃倍率（上限2.5）"); Draw("berserkerDefenceCurve", "強化段階 → 防御倍率"); Draw("berserkerAttackAPCurve", "HP割合 → 通常攻撃AP"); break;
+                Draw("berserkerAttackCurve", "強化段階 → 攻撃倍率（上限2.5）"); Draw("berserkerAttackAPCurve", "HP割合 → 通常攻撃AP"); break;
             case UnitSpecialSkill.NavigatorPull: Draw("navigatorAPDamageCurve", "残りAP → 攻撃倍率（上限1.5）"); break;
             case UnitSpecialSkill.HeavyWarriorBreak:
                 Draw("heavyBarrierMultiplier", "バリアへ与えるダメージ倍率（−1は未設定）"); break;

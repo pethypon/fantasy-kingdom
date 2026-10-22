@@ -37,6 +37,9 @@ public static class TopDownCameraTests
         bool orthographic = settings.UseOrthographic, pan = settings.AllowPan, zoom = settings.AllowZoom;
         try
         {
+            StartingFraming(camera, controller);
+            original.Restore(camera);
+            camera.aspect = aspect;
             Chords();
             settings.UseOrthographic = true;
             Field("dragging").SetValue(controller, true);
@@ -124,6 +127,33 @@ public static class TopDownCameraTests
             turn.Context.MoveInput = move; turn.Context.ScrollInput = scroll;
             turn.Context.ConsumeUICommand();
         }
+    }
+
+    static void StartingFraming(Camera camera, TurnCameraController controller)
+    {
+        var bounds = new Bounds(new Vector3(8, 2, 8), new Vector3(8, 3, 8));
+        var rotation = Quaternion.Euler(60, 3, 4);
+        foreach (float aspect in new[] { 16f / 9f, 9f / 16f })
+        foreach (bool orthographic in new[] { false, true })
+        {
+            camera.aspect = aspect; camera.orthographic = orthographic; camera.fieldOfView = 45;
+            camera.transform.rotation = rotation;
+            camera.orthographicSize = TurnCameraController.StartingOrthographicSize(bounds, rotation, aspect);
+            float distance = TurnCameraController.StartingViewDistance(bounds, rotation, 45, aspect);
+            float offset = orthographic ? camera.orthographicSize * .1f : distance * Mathf.Tan(22.5f * Mathf.Deg2Rad) * .1f;
+            camera.transform.position = bounds.center - camera.transform.forward * distance - camera.transform.up * offset;
+            Check("starting party is framed in " + (orthographic ? "orthographic " : "perspective ") + aspect, ContainsCorners(camera, bounds));
+            if (!orthographic && aspect > 1f)
+                Check("eight starting tiles occupy a readable screen width", Vector3.Distance(
+                    camera.WorldToViewportPoint(bounds.center - camera.transform.right * 4),
+                    camera.WorldToViewportPoint(bounds.center + camera.transform.right * 4)) > .25f);
+        }
+        float existingFov = camera.fieldOfView, existingSize = camera.orthographicSize;
+        controller.FocusPlayerBase();
+        Check("ordinary base focus preserves manual or loaded zoom", camera.fieldOfView == existingFov
+            && camera.orthographicSize == existingSize);
+        Check("starting framing rejects invalid numeric inputs", !float.IsNaN(
+            TurnCameraController.StartingViewDistance(bounds, rotation, float.NaN, float.NaN)));
     }
 
     static void Chords()

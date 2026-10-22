@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -281,7 +281,7 @@ public class RealtimeAdaptation
             case AIActionType.SkillUse:
                 if (action.Skill != null && action.Skill.FixedHeal > 0)
                     bonus += m.HealPriority;
-                if (action.Skill != null && action.Skill.GrantBuff == BuffType.Defensive)
+                if (action.Skill != null && action.Skill.GrantBuff == BuffType.Defensive && DamageCalculator.UsesLegacyDefence)
                     bonus += m.DefenseUrgency * 0.5f;
                 bonus += m.CounterAttackBonus * 0.5f;
                 break;

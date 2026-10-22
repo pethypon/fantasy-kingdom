@@ -19,6 +19,7 @@ public static class BasicResourceEconomyTests
         BlockedPlans(systems);
         FundedPlanDoesNotNeedSurplusProduction(systems);
         ProjectedReserveDoesNotCreateProducerDemand(systems);
+        MandatoryProducerCapital(systems);
         TemporaryIncome(systems);
         ReserveAndEmergency(systems);
         RecoveryHysteresis(systems);
@@ -33,6 +34,60 @@ public static class BasicResourceEconomyTests
         ChanceSupplyIsNotGuaranteed(systems);
         NeededProducerAtCatalogTail(systems);
         Debug.Log("[BasicResourceEconomy] ALL PASSED");
+    }
+
+    static void MandatoryProducerCapital(GameSystems systems)
+    {
+        foreach (var team in new[] { Team.Player, Team.Enemy })
+        using (var f = new EconomyR2Tests.Fixture(systems, team))
+        {
+            f.Units.UnitDataMap.Clear(); f.Rules.aiEconomy.plannedDemandWeight = 0;
+            f.Rules.aiEconomy.forecastTurns = f.Rules.aiEconomy.reserveTurns = 4;
+            f.Food(20); f.Building(f.Definition(FacilityKind.LoggingCamp, wood: 20));
+            var quarry = f.Definition(FacilityKind.Quarry, stone: 6); f.Building(quarry);
+            var mine = f.Definition(FacilityKind.Mine, iron: 3);
+            mine.buildCost = new FacilityData.ResourceCost(wood: 45, stone: 45, water: 20, citizen: 2);
+            var diversion = f.Definition(FacilityKind.Well, water: 5);
+            diversion.buildCost = new FacilityData.ResourceCost(wood: 20, stone: 30);
+            var consumer = f.Unit(); consumer.GrowthData.useAuthoredUpkeep = true;
+            consumer.GrowthData.upkeepIron = 3; consumer.GrowthData.upkeepBread = 0;
+            f.Resources.Wood = f.Resources.Bread = 100; f.Resources.Water = 60;
+            f.Resources.Stone = 39; f.Resources.Iron = 8;
+            var board = f.Board(20); var policy = board.Governor.BasicResources;
+            var purchase = f.BuildAction(diversion, board); var repair = f.BuildAction(mine, board);
+            string stock = JsonUtility.ToJson(f.Resources); int ap = f.State.GetAP(team);
+            Check(team + " impending iron upkeep failure needs a real unaffordable mine",
+                board.Governor.ProductionDemand.Get(ResourceKind.Iron).MandatoryDemandPerTurn == 3
+                && board.Governor.ProductionDemand.Get(ResourceKind.Iron).ProjectedStock < 3
+                && f.Resources.Stone < mine.buildCost.Stone && policy.ActionPriority(repair) <= 2);
+            Check(team + " competing foundation spending preserves the mine's actual stone capital",
+                !policy.AllowSpend(purchase, false, out string reason)
+                && reason == "mandatory_supply_capital_Iron_Stone");
+            Check(team + " urgent producer and relevant emergency spending remain legal",
+                policy.AllowSpend(f.BuildAction(quarry, board), false, out _)
+                && policy.AllowSpend(purchase, true, out _));
+            Check(team + " reservation checks never manufacture resources or spend AP",
+                stock == JsonUtility.ToJson(f.Resources) && ap == f.State.GetAP(team));
+            policy.Evaluate(board, board.Governor.ProductionDemand, false, Array.Empty<BasicResourcePlan>());
+            policy.AllowSpend(purchase, false, out string manualPlanReason);
+            Check(team + " explicit replacement plans clear the old mandatory investment cache",
+                manualPlanReason == null || !manualPlanReason.StartsWith("mandatory_supply_capital_", StringComparison.Ordinal));
+            board.Refresh(); board.Governor.Evaluate(board);
+            Check(team + " a refreshed real diagnosis reinstates its one concrete producer reserve",
+                !policy.AllowSpend(purchase, false, out string restoredReason)
+                && restoredReason == "mandatory_supply_capital_Iron_Stone");
+            // Existing quarry income can now reach 45 stone rather than being spent again
+            // on an unrelated project. Execute the real build transaction before iron runs out.
+            f.Economy.ProcessTurn(team); board.Refresh(); board.Governor.Evaluate(board);
+            repair = f.BuildAction(mine, board);
+            Check(team + " one paid turn funds the reserved producer without a resource grant",
+                f.Resources.Stone == 45 && f.Resources.Iron == 5 && consumer.UpkeepUnpaidTurns == 0
+                && board.Governor.AllowExecution(repair, board)
+                && f.Builder.TryPlaceDefinition(Vector3Int.RoundToInt(repair.TargetPos), mine, team));
+            for (int i = 0; i < 3; i++) f.Economy.ProcessTurn(team);
+            Check(team + " producer investment sustains the actual army's upkeep",
+                consumer.UpkeepUnpaidTurns == 0 && consumer.IsAlive && f.Resources.Iron == 5);
+        }
     }
 
     static void HealthyProduction(EconomyR2Tests.Fixture f)

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -194,7 +194,7 @@ public static class MLFeatureExtractor
         foreach (var u in units)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            sum += BarrierSystem.UsesBarrier(u) ? u.Barrier : u.DEF;
+            sum += DamageCalculator.UsesLegacyDefence ? u.DEF : u.Barrier;
             count++;
         }
         return count > 0 ? Normalize(sum / count, 0, 40) : 0f;
