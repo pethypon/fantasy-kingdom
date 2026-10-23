@@ -27,13 +27,13 @@ public static class AIClosingPlaytest
     [Serializable] sealed class Settings
     {
         public int[] Seeds;
-        public int OwnerTurnLimit, WallSeconds;
-        public string Output, Label, RunId, OriginalCompany, OriginalProduct;
+        public int OwnerTurnLimit, WallSeconds, ThreatLevel;
+        public string Output, Label, RunId, OriginalCompany, OriginalProduct, EnemyPersonality;
     }
     [Serializable] sealed class RunReport
     {
         public string Label, StartedUtc, FinishedUtc;
-        public string MeasurementScope = "Ordinary SampleScene and production roster. Title New Game and developer player AI, threat 15. Fixed map seed and enemy commander seed/personality; no AP, resources, timer, timeScale or thinking-budget changes. Frame scheduling/search limits can still affect exact trajectories. Observer reads authoritative HP/decisive identity for reporting only, never supplies hidden information to AI. CommanderHP follows MatchObjectiveRules.IsCommander, including Kind.Boss primary commanders. Legacy KingHP fields alias CommanderHP. VictoryObjectiveAttacks match actual opposing commander/main-crystal life IDs, not the Reflection role string Boss.";
+        public string MeasurementScope = "Ordinary SampleScene and production roster. Title New Game and developer player AI (fixed intelligence 15). Enemy threat/personality are recorded per match. Fixed map and commander seeds; no AP, resources, timer, timeScale or thinking-budget overrides. Frame scheduling/search limits can still affect exact trajectories. Observer reads authoritative HP/decisive identity for reporting only, never supplies hidden information to AI. CommanderHP follows MatchObjectiveRules.IsCommander, including Kind.Boss primary commanders. Legacy KingHP fields alias CommanderHP. VictoryObjectiveAttacks match actual opposing commander/main-crystal life IDs, not the Reflection role string Boss.";
         public int Resolved, Interrupted, Faulted;
         public List<MatchReport> Matches = new List<MatchReport>();
     }
@@ -74,11 +74,13 @@ public static class AIClosingPlaytest
     {
         public readonly AICommander Commander;
         readonly AIActionReflectionSystem reflection;
+        readonly AIActionExecutor observedExecutor;
         readonly SideReport report;
         long lastId;
         public SideObserver(AICommander commander, SideReport target)
         {
             Commander = commander; report = target; reflection = commander.Reflection;
+            observedExecutor = typeof(AICommander).GetField("_actionExecutor", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(commander) as AIActionExecutor;
             if (reflection == null) throw new InvalidOperationException("Ordinary AI reflection is unavailable.");
             reflection.ActionCompleted += Observe;
             var records = reflection.CaptureBattleState()?.RecentRecords;
@@ -138,11 +140,27 @@ public static class AIClosingPlaytest
             if (!record.MeaningfulProgress) report.FailedProgressActions++;
             if (report.FirstObservedEnemyRound < 0 && (record.Before?.VisibleEnemyCount ?? 0) > 0)
                 report.FirstObservedEnemyRound = record.Turn;
+            string occupancy = "", destinationVisible = "";
+            if (!record.ExecutionSucceeded && observedExecutor?.LastFailureReason == "move_destination_occupied"
+                && record.Before != null && Environment.GetEnvironmentVariable("FK_TERRITORY_TELEMETRY") == "1")
+            {
+                // Reporting only, after execution. Authoritative occupants never flow back into AI decisions.
+                var cell = GridHelper.ToGridXZ(observedExecutor.LastRequestedDestination);
+                var board = typeof(AICommander).GetField("_board", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(Commander) as AIBoardState;
+                destinationVisible = (board?.IsVisibleToEnemy(cell) ?? false).ToString();
+                foreach (var actor in UnityEngine.Object.FindObjectsByType<Status>(FindObjectsSortMode.None))
+                    if (actor != null && actor.IsAlive && GridHelper.MatchXZ(actor.transform.position, cell))
+                        occupancy += actor.team + ":" + actor.type + ":" + actor.kind
+                            + ":observed=" + (board?.IsSpecialActorObserved(actor) ?? false) + ";";
+            }
             WriteRow(actions, report.Team, record.Turn, record.ActionId, record.ActionType, record.ActorRole,
                 record.TargetCategory, record.ExecutionSucceeded, record.FailureReason, moved, revealed, gain,
                 outcome?.DamageDealt ?? 0, outcome?.EnemyKills ?? 0, record.Before?.ActorX, record.Before?.ActorY,
                 record.After?.ActorX, record.After?.ActorY, record.Before?.Strategy, record.ActionKey,
-                IsCommanderTarget(report.Team, record.TargetLifeId), IsMainCrystalTarget(report.Team, record.TargetLifeId));
+                IsCommanderTarget(report.Team, record.TargetLifeId), IsMainCrystalTarget(report.Team, record.TargetLifeId),
+                record.Before?.ActorAp, record.After?.ActorAp, record.Before?.ActionApCost,
+                observedExecutor?.LastFailureReason ?? "not_recorded", observedExecutor?.LastRequestedDestination.x, observedExecutor?.LastRequestedDestination.z,
+                destinationVisible, occupancy);
         }
         public void Dispose() => reflection.ActionCompleted -= Observe;
     }
@@ -222,6 +240,8 @@ public static class AIClosingPlaytest
                 .Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries), x => int.Parse(x, Invariant)),
             OwnerTurnLimit = Setting("FK_CLOSING_OWNER_TURNS", 120, 2, 1000),
             WallSeconds = Setting("FK_CLOSING_WALL_SECONDS", 300, 30, 3600),
+            ThreatLevel = Setting("FK_CLOSING_THREAT", 15, 1, 100),
+            EnemyPersonality = Environment.GetEnvironmentVariable("FK_CLOSING_PERSONALITY") ?? "",
             Label = Environment.GetEnvironmentVariable("FK_CLOSING_LABEL") ?? "observation",
             Output = Path.GetFullPath(Environment.GetEnvironmentVariable("FK_CLOSING_OUTPUT")
                 ?? Path.Combine(Application.dataPath, "../../ai-closing-" + id)),
@@ -274,13 +294,13 @@ public static class AIClosingPlaytest
         int index = SessionState.GetInt(Key + ".Index", 0), seed = settings.Seeds[index];
         folder = Path.Combine(settings.Output, (index + 1).ToString("D2") + "-" + seed); Directory.CreateDirectory(folder);
         started = double.Parse(SessionState.GetString(Key + ".Started", "0"), Invariant); lastProgress = started;
-        match = new MatchReport { MapSeed = seed, EnemyAISeed = seed ^ 476393, StartedUtc = DateTime.UtcNow.ToString("o"),
+        match = new MatchReport { MapSeed = seed, EnemyAISeed = seed ^ 476393, ThreatLevel = settings.ThreatLevel, StartedUtc = DateTime.UtcNow.ToString("o"),
             PersistentPath = Application.persistentDataPath, InitialTimeScale = Time.timeScale };
         playerCommanderIds.Clear(); enemyCommanderIds.Clear(); playerMainCrystalIds.Clear(); enemyMainCrystalIds.Clear();
         actions = Writer("actions.csv"); turns = Writer("turns.csv");
         WriteRow(actions, "team", "round", "id", "type", "role", "targetCategory", "succeeded", "failureReason", "moved",
             "newTiles", "objectiveDistanceGain", "damageDealt", "kills", "beforeX", "beforeZ", "afterX", "afterZ", "strategy", "actionKey",
-            "targetsOpposingCommander", "targetsOpposingMainCrystal");
+            "targetsOpposingCommander", "targetsOpposingMainCrystal", "APBefore", "APAfter", "ActionAPCost", "executorFailure", "requestedX", "requestedZ", "failedDestinationVisible", "reportedPhysicalOccupants");
         WriteRow(turns, "seconds", "round", "state", "ownerTurns", "playerMoves", "enemyMoves", "playerAttacks", "enemyAttacks",
             "playerBuilds", "enemyBuilds", "playerSummons", "enemySummons", "playerKingHP", "playerCrystalHP", "enemyKingHP", "enemyCrystalHP",
             "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound",
@@ -291,7 +311,7 @@ public static class AIClosingPlaytest
             "playerUnavailableBuildings", "enemyUnavailableBuildings", "playerInputBlockedProducers", "enemyInputBlockedProducers",
             "playerResourceCapacity", "enemyResourceCapacity", "playerMaxUnitLevel", "enemyMaxUnitLevel");
         Application.logMessageReceived += Log;
-        if (!SaveSystem.TrySaveProfile(new SaveSystem.ProfileData { ThreatLevel = 15 }, out string reason))
+        if (!SaveSystem.TrySaveProfile(new SaveSystem.ProfileData { ThreatLevel = settings.ThreatLevel }, out string reason))
             throw new IOException("Cannot initialize isolated threat profile: " + reason);
         frameTimes.Clear(); heavyLives.Clear(); dragonLives.Clear(); sampledFrame = lastCaptureRound = -1;
         match.InitialMemoryMB = match.FinalMemoryMB = match.PeakMemoryMB = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong()/(1024f*1024f);
@@ -321,9 +341,11 @@ public static class AIClosingPlaytest
                 SpecialSkillRuntime.HpChangeCommitted -= OnHpChange; SpecialSkillRuntime.HpChangeCommitted += OnHpChange;
                 // The original enemy has not acted: preserve all normal systems and rules, fix only random personality/seed.
                 var major = AIPersonality.RandomMajor(match.EnemyAISeed);
+                if (!string.IsNullOrEmpty(settings.EnemyPersonality)
+                    && !Enum.TryParse(settings.EnemyPersonality, true, out major)) throw new ArgumentException("Unknown enemy personality");
                 s.AICommander = new AICommander(turn, s.MoveGenerator, s.AttackGenerator, s.BattleSystem, s.VisionGenerator,
                     s.APSystem, s.UnitSetting, s.CrystalSystem, s.MapCreate, major, s.BuildSystem, s.SummonSystem,
-                    s.FactionState, s.SkillSystem, s.SubCrystalSystem, 15, match.EnemyAISeed, Team.Enemy);
+                    s.FactionState, s.SkillSystem, s.SubCrystalSystem, match.ThreatLevel, match.EnemyAISeed, Team.Enemy);
                 enemy = new SideObserver(s.AICommander, match.Enemy);
                 match.EnemyPersonality = major.ToString(); match.InitialTurnTimeLimit = s.TimerSystem.TurnTimeLimit;
                 match.TerrainSeedX = s.MapCreate.SeedX; match.TerrainSeedZ = s.MapCreate.SeedZ;
@@ -331,7 +353,7 @@ public static class AIClosingPlaytest
                 turn.PlayerAI.SetEnabled(true, false);
                 match.ActualPlayerAIModeUsed = turn.PlayerAI.Enabled;
                 Debug.Log(Prefix + " ACTUAL_AI_MODE_ENABLED mapSeed=" + match.MapSeed + " enemySeed=" + match.EnemyAISeed
-                    + " enemyPersonality=" + major + " threat=15 normalRules=True");
+                    + " enemyPersonality=" + major + " threat=" + match.ThreatLevel + " normalRules=True");
             }
         }
         if (turn != null && player == null && turn.PlayerAI.Commander != null)
@@ -362,6 +384,8 @@ public static class AIClosingPlaytest
     }
     static void Snapshot()
     {
+        AITerritoryPlaytestTelemetry.Capture(player?.Commander, folder, turn?.Context.Turn ?? 0);
+        AITerritoryPlaytestTelemetry.Capture(enemy?.Commander, folder, turn?.Context.Turn ?? 0);
         player?.Snapshot(); enemy?.Snapshot(); match.OwnerTurns = match.Player.OwnerTurns + match.Enemy.OwnerTurns;
         match.Seconds = EditorApplication.timeSinceStartup - started; match.Round = turn?.Context.Turn ?? 0;
         if (turn != null)

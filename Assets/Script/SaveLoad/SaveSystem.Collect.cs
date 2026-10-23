@@ -60,6 +60,8 @@ public static partial class SaveSystem
         data.Rewards = new List<RewardRecord>(UniqueRewardSystem.Records);
         data.ThirdFaction = turnGen.Systems.ThirdFactionSystem?.Capture();
         data.DeveloperAutoplayUsed = turnGen.DeveloperPlayerAIWasUsed;
+        data.PlayerTerritoryIntel = turnGen.CapturePlayerTerritoryIntel();
+        data.HasPlayerTerritoryIntelSnapshot = data.PlayerTerritoryIntel != null;
         data.WildBoss = turnGen.Systems.WildBossSystem?.Capture();
         // ユニット収集
         CollectUnits(data, turnGen.Systems.UnitSetting.PlayerUnit, turnGen.Systems.UnitSetting.EnemyUnit);
@@ -275,6 +277,8 @@ public static partial class SaveSystem
         dst.Operations = commander.CaptureOperationState();
         dst.Exploration = commander.CaptureExplorationState();
         dst.StrategicObjective=commander.SaveStrategicObjective;
+        dst.TerritoryIntel=commander.CaptureTerritoryState();
+        dst.HasTerritoryIntelSnapshot = dst.TerritoryIntel != null;
         dst.RngSeed = commander.RandomSeed;
         dst.HasDeterministicSeed = true;
 

@@ -1,0 +1,13 @@
+{
+    "Seeds": [
+        161803,
+        271828
+    ],
+    "OwnerTurnLimit": 400,
+    "WallSeconds": 300,
+    "Output": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022",
+    "Label": "barrier-r1-final-20261022",
+    "RunId": "20261022-114719-306ea34a",
+    "OriginalCompany": "CodexValidation",
+    "OriginalProduct": "FantasyKingdomR1Validation"
+}

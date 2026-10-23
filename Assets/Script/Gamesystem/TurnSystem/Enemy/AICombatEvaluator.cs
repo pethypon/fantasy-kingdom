@@ -10,6 +10,7 @@ static class AICombatEvaluator
     internal static float CalcAttackBaseScore(AIAction action, AIBoardState board)
     {
         if (action.TargetUnit == null) return 0f;
+        if (AIActionEvaluator.IsIneffectiveProtectedAttack(action, board)) return -10000f;
 
         float score = 30f;
 
@@ -137,12 +138,18 @@ static class AICombatEvaluator
         // Reconnaissance has value in every strategy, even while other enemies are visible.
         score += board.Recon.ScoreMove(action.Unit, dest);
 
+        // Only the observer's stored territory waypoint contributes here. Known
+        // route distance permits a necessary detour without inventing enemy actors.
+        if (board.Governor?.HasActiveTerritoryAdvance == true)
+            score += board.Governor.TerritoryIntel.ProgressScore(action.Unit, dest, board);
+
         return score;
     }
 
     internal static float CalcSkillBaseScore(AIAction action, AIBoardState board)
     {
         if (action.Skill == null) return 0f;
+        if (AIActionEvaluator.IsIneffectiveProtectedAttack(action, board)) return -10000f;
         float score = 20f;
 
         var skill = action.Skill;
@@ -154,7 +161,8 @@ static class AICombatEvaluator
             && (skill.InflictDebuff == StatusEffectType.None || inertDefenceDebuff)) return -10000;
 
         // 攻撃スキル
-        if (skill.Multiplier > 0 && action.TargetUnit != null)
+        if (skill.Multiplier > 0 && action.TargetUnit != null
+            && !AIActionEvaluator.IsObservedCompleteProtection(board, action.TargetUnit))
         {
             int expectedDmg = SpecialSkillRuntime.PreviewHpDamage(action.TargetUnit,
                 SkillSystem.CalcSkillDamage(action.Unit, action.TargetUnit, skill));

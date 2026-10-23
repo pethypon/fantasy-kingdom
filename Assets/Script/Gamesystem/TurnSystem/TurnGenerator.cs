@@ -42,6 +42,22 @@ public class TurnGenerator : MonoBehaviour
 #endif
     bool developerMatchUsed;
     public bool DeveloperPlayerAIWasUsed => developerMatchUsed;
+    EnemyTerritoryIntelState savedPlayerTerritoryIntel;
+    public EnemyTerritoryIntelState CapturePlayerTerritoryIntel()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        return _playerAI?.CaptureTerritoryState() ?? savedPlayerTerritoryIntel;
+#else
+        return savedPlayerTerritoryIntel;
+#endif
+    }
+    public void RestorePlayerTerritoryIntel(EnemyTerritoryIntelState state)
+    {
+        savedPlayerTerritoryIntel = state;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _playerAI?.RestoreTerritoryState(state);
+#endif
+    }
     public void MarkDeveloperMatch(bool used = true) { developerMatchUsed |= used; }
     string matchId = System.Guid.NewGuid().ToString("N");
     public string MatchId => matchId;

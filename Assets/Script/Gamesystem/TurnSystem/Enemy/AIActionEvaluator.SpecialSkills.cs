@@ -16,6 +16,7 @@ public static partial class AIActionEvaluator
     public static int EstimateSpecialAwareAttack(Status attacker, Status target, AIBoardState board)
     {
         if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive) return 0;
+        if (IsObservedCompleteProtection(board, target)) return 0;
         if(board==null||!board.HasObservedSpecialState)return AIEvalHelpers.EstimateRawDamage(attacker,target);
         // All position-dependent special observations are restricted to the board's actors.
         float attackMod = 1, stackedKnightModifier = 1;
@@ -101,7 +102,7 @@ public static partial class AIActionEvaluator
     }
     static float DamageValue(AIBoardState board, Status target, int amount, HpChangeKind kind, bool includeKill = true)
     {
-        if (target == null || !target.IsAlive || amount <= 0 || target.ShieldTurns > 0) return 0;
+        if (target == null || !target.IsAlive || amount <= 0 || IsObservedCompleteProtection(board, target)) return 0;
         var victim = target;
         int damage;
         string partnerId = target.Special?.guardianPartnerId;
@@ -128,7 +129,7 @@ public static partial class AIActionEvaluator
     }
     static float CounterDamageValue(AIBoardState board, Status target, int amount)
     {
-        if (target == null || SpecialSkillRuntime.PreviewDamage(target,amount) <= 0) return 0;
+        if (target == null || IsObservedCompleteProtection(board, target) || SpecialSkillRuntime.PreviewDamage(target,amount) <= 0) return 0;
         float value = DamageValue(board,target,amount,HpChangeKind.BarrierBypassDamage);
         var victim = string.IsNullOrEmpty(target.Special?.guardianPartnerId) ? target
             : board.FindObservedSpecialActor(target.Special.guardianPartnerId);
@@ -141,7 +142,7 @@ public static partial class AIActionEvaluator
         victim=target;
         int raw=EstimateSpecialAwareAttack(attacker,target,board);
         raw=EstimateObservedNormalPacket(attacker,target,board,raw);
-        if(target==null||target.ShieldTurns>0)return 0;
+        if(target==null||IsObservedCompleteProtection(board,target))return 0;
         string partnerId=target.Special?.guardianPartnerId;
         if(!string.IsNullOrEmpty(partnerId))
         {

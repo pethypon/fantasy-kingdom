@@ -151,7 +151,7 @@ public static class BarrierSystemTests
             Check("overkill returns actual losses", SpecialSkillRuntime.LastHpChange.ActualHpLoss == 10
                 && SpecialSkillRuntime.LastHpChange.ActualBarrierLoss == 4 && !target.IsAlive);
             Check("dead unit cannot regenerate", target.Barrier == 0);
-            Check("save migration chain includes barrier revision", SaveSystem.ValidateMigrationChain(out _) && SaveSystem.CurrentSaveVersion == 10);
+            Check("save migration chain includes barrier revision", SaveSystem.ValidateMigrationChain(out _) && SaveSystem.CurrentSaveVersion >= 10);
             Debug.Log("[Barrier] ALL PASSED " + count);
         }
         finally

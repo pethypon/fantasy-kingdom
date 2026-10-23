@@ -95,10 +95,12 @@ public sealed class SummonTooltipView : MonoBehaviour
             label.rectTransform.offsetMin = new Vector2(18, 14); label.rectTransform.offsetMax = new Vector2(-18, -14);
         }
         label.text = SummonUnitTooltip.Description(source.Definition);
+        // A newly created TMP under the hidden popup must initialize before measuring.
+        // Otherwise the first hover can size the background to the minimum height.
+        gameObject.SetActive(true);
         Reflow();
         scroll = source.Scroll;
         if (scroll != null) scroll.onValueChanged.AddListener(OnScroll);
-        gameObject.SetActive(true);
         Canvas.willRenderCanvases += BeforeRender;
     }
     void BeforeRender()
@@ -113,6 +115,7 @@ public sealed class SummonTooltipView : MonoBehaviour
         var root = (RectTransform)ownerCanvas.transform; var popup = (RectTransform)transform;
         lastCanvasSize = root.rect.size; lastRenderMode = ownerCanvas.renderMode;
         label.enableAutoSizing = false; label.fontSize = 20;
+        label.ForceMeshUpdate(true);
         float width = Mathf.Min(460, root.rect.width - 32);
         float height = Mathf.Clamp(label.GetPreferredValues(label.text, width - 36, 0).y + 28, 100, Mathf.Max(100, root.rect.height - 32));
         popup.sizeDelta = new Vector2(width, height);

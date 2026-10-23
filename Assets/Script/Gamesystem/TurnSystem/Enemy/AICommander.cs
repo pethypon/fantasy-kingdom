@@ -198,6 +198,7 @@ public partial class AICommander
     public int RandomSeed => _rng.Seed;
     public AILearning Learning => _learning;
     public TurnStrategy CurrentStrategy => _currentStrategy;
+    public string CurrentStrategyReason { get; private set; } = "";
     public AIThreatLevel ThreatLevel => _threatLevel;
     public AIRoleAssigner RoleAssigner => _roleAssigner;
     public TurnStrategyPlanner StrategyPlanner => _strategyPlanner;
@@ -303,6 +304,7 @@ public partial class AICommander
         // ターン方針を決定（TurnStrategyPlannerが盤面を評価して方針+AP予算を計画）
         var strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
         _currentStrategy = strategyDecision.Strategy;
+        CurrentStrategyReason = strategyDecision.Reason ?? "";
         _apBudget = strategyDecision.Budget;
         _triedStrategies.Add(_currentStrategy);
 
@@ -418,6 +420,7 @@ public partial class AICommander
 
             strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
             _currentStrategy = strategyDecision.Strategy;
+            CurrentStrategyReason = strategyDecision.Reason ?? "";
             _apBudget = strategyDecision.Budget;
             _evolution.UpdateObjective(_board);
             if (_threatLevel.UseRoleAssignment) _roleAssigner.AssignRoles(_board, _currentStrategy, _personality);

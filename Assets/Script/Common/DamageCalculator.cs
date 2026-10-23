@@ -11,6 +11,9 @@ using UnityEngine;
 public static class DamageCalculator
 {
     public static bool UsesLegacyDefence => !BarrierCombatSettings.Active.enabledForPlay;
+    /// <summary>Live protection for actual combat/UI. AI forecasts must first establish protection from their observed board.</summary>
+    public static bool IsFullyProtected(Status target) => target != null
+        && (target.ShieldTurns > 0 || target.isWildBoss && target.IsWildBossProtected);
     /// <summary>Missing/disabled legacy rule assets still guarantee one point per valid hit.</summary>
     public static int MinimumAttackDamage => Mathf.Clamp(GameAuthoringRules.Active?.minimumAttackDamage ?? 1, 1, 100);
 
@@ -276,7 +279,7 @@ public static class DamageCalculator
     /// </summary>
     public static int CalcNormal(Status attacker, Status target)
     {
-        if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive || target.ShieldTurns > 0) return 0;
+        if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive || IsFullyProtected(target)) return 0;
         float atkMod = ApplyUpkeepATKPenalty(attacker, StatusEffectSystem.GetATKModifier(attacker));
         float defMod = UsesLegacyDefence ? ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target)) : 1;
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);
@@ -329,7 +332,7 @@ public static class DamageCalculator
     /// </summary>
     public static int CalcSkill(Status attacker, Status target, SkillData skill)
     {
-        if (attacker == null || target == null || skill == null || !attacker.IsAlive || !target.IsAlive || target.ShieldTurns > 0) return 0;
+        if (attacker == null || target == null || skill == null || !attacker.IsAlive || !target.IsAlive || IsFullyProtected(target)) return 0;
         float atkMod = ApplyUpkeepATKPenalty(attacker, StatusEffectSystem.GetATKModifier(attacker));
         float defMod = UsesLegacyDefence ? ApplyUpkeepDEFPenalty(target, StatusEffectSystem.GetDEFModifier(target)) : 1;
         float incomingMod = StatusEffectSystem.GetIncomingDamageModifier(target);

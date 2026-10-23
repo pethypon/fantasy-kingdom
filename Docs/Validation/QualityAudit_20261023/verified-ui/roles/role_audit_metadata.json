@@ -1,0 +1,26 @@
+﻿{
+    "Method": "Unity Play Mode: authored production data + isolated runtime normal-damage exchange",
+    "StartedUtc": "2026-10-22T21:51:37.6068453Z",
+    "UnityVersion": "6000.3.8f1",
+    "BarrierRulesEnabled": true,
+    "LegacyDefence": false,
+    "ProvisionalBalance": true,
+    "Roles": 18,
+    "StatRows": 72,
+    "Exchanges": 1368,
+    "MixedLevelExchanges": 72,
+    "Packets": 9618,
+    "Draws": 0,
+    "RoundLimit": 10,
+    "APBudget": 60,
+    "Seconds": 0.7717915,
+    "LiveActorHealthAndEconomyUnchanged": true,
+    "Limitations": [
+        "The adjacent normal-damage bench bypasses legal targeting, movement, range, terrain and AI decisions. It is not an AI match or a full class win-rate ranking.",
+        "Each side has the same current configured maximum AP and resets fatigue at its next owner turn. Both opening orders are tested.",
+        "Only DamageCalculator, barrier absorption, HP changes, normal-hit gauge notification and AP consume are exercised. No XP gain, active skills, ammunition, turn-start/end abilities, regen or automatic sniper recoil are executed.",
+        "Samurai counter reactions affect the survivor outcome and final HP/barrier. Per-side damage totals count the initiating normal packet only, not nested reaction damage.",
+        "Temporary actors are outside the map and excluded from CombatRegistry. Nearby auras, cooperation, battlefield visibility, and strategic role value are not assessed here.",
+        "A draw means the ten-round stress-bench cutoff; it is not a game result. Full class balance requires the separately recorded actual AI matches and scenario tests."
+    ]
+}

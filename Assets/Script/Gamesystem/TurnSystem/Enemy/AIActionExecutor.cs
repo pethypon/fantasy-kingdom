@@ -25,6 +25,11 @@ public class AIActionExecutor
     public int TotalKills { get => _totalKills; set => _totalKills = value; }
     public BuildSystem BuildSystem { get => _buildSystem; set => _buildSystem = value; }
     public SummonSystem SummonSystem { get => _summonSystem; set => _summonSystem = value; }
+    /// <summary>Passive diagnostics for the latest execution; never used to choose or authorize an action.</summary>
+    public string LastFailureReason { get; private set; }
+    public Vector3 LastRequestedDestination { get; private set; }
+
+    bool Fail(string reason) { LastFailureReason = reason; return false; }
 
     public AIActionExecutor(
         TurnGenerator turnGen, MoveGenerator moveGen, AttackGenerator attackPoint,
@@ -53,9 +58,16 @@ public class AIActionExecutor
     // ================================================================
     public bool Execute(AIAction action, AIBoardState board)
     {
+        LastFailureReason = null;
+        LastRequestedDestination = action != null ? action.TargetPos : default;
         action?.ResetHousingExecutionAssessment();
-        if (action == null || board == null || board.ActorTeam != ActorTeam || _turnGen == null || _turnGen.IsGameOver) return false;
-        if (board.Governor != null && !board.Governor.AllowExecution(action,board)) return false;
+        if (action == null) return Fail("action_missing");
+        if (board == null) return Fail("board_missing");
+        if (board.ActorTeam != ActorTeam) return Fail("actor_team_mismatch");
+        if (_turnGen == null) return Fail("turn_generator_missing");
+        if (_turnGen.IsGameOver) return Fail("game_over");
+        if (board.Governor != null && !board.Governor.AllowExecution(action,board))
+            return Fail("governor:" + (action.StrategicRejectReason ?? "rejected"));
         switch (action.ActionType)
         {
             case AIActionType.Move:
@@ -83,7 +95,7 @@ public class AIActionExecutor
                 return true;
             default:
                 { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] 未知のアクション: {action.ActionType}"); }
-                return false;
+                return Fail("unknown_action_type");
         }
     }
 
@@ -112,25 +124,29 @@ public class AIActionExecutor
     {
         var unit = action.Unit;
         var dest = action.TargetPos;
-        if (!CanAct(unit) || StatusEffectSystem.IsMovementBlocked(unit) || SpecialSkillRuntime.MovementBlocked(unit)) return false;
-        if (!_moveGen.mapcreate.IsLegalMove(unit, unit.transform.position, dest)) return false;
+        if (!CanAct(unit)) return Fail("move_actor_cannot_act");
+        if (StatusEffectSystem.IsMovementBlocked(unit)) return Fail("move_status_blocked");
+        if (SpecialSkillRuntime.MovementBlocked(unit)) return Fail("move_special_blocked");
+        if (!_moveGen.mapcreate.IsLegalMove(unit, unit.transform.position, dest)) return Fail("move_requested_destination_illegal");
 
         if (!_apSystem.CanAct(ActorTeam, APSystem.ActionType.Move, unit,
                 unit.transform.position, dest))
-            return false;
+            return Fail("move_ap_insufficient");
 
         Vector3 oldPos = unit.transform.position;
         Vector3 oldCell = _moveGen.Cell(oldPos);
 
         Vector3 actualDest = ResolveDestination(dest);
         _moveGen.UnitPointCore();
-        if (_moveGen.IsOccupied(_moveGen.Cell(actualDest))
-            || !_moveGen.mapcreate.HasTileAt(Mathf.RoundToInt(actualDest.x), Mathf.RoundToInt(actualDest.z))
-            || !_moveGen.mapcreate.IsLegalMove(unit, oldPos, actualDest)) return false;
+        if (_moveGen.IsOccupied(_moveGen.Cell(actualDest))) return Fail("move_destination_occupied");
+        if (!_moveGen.mapcreate.HasTileAt(Mathf.RoundToInt(actualDest.x), Mathf.RoundToInt(actualDest.z)))
+            return Fail("move_destination_tile_missing");
+        if (!_moveGen.mapcreate.IsLegalMove(unit, oldPos, actualDest)) return Fail("move_resolved_destination_illegal");
 
         if (_moveGen.mapcreate.Environment.IsCaveMove(oldPos, actualDest))
         {
-            if (!_moveGen.mapcreate.Environment.TryBeginCaveTransit(unit, actualDest, _turnGen.Context.Turn, _turnGen.Systems)) return false;
+            if (!_moveGen.mapcreate.Environment.TryBeginCaveTransit(unit, actualDest, _turnGen.Context.Turn, _turnGen.Systems))
+                return Fail("move_cave_transit_rejected");
             board.ConsumeMove(unit, actualDest);
             board.Refresh(); return true;
         }

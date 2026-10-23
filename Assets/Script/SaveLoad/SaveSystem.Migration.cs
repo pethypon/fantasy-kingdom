@@ -24,7 +24,8 @@ public static partial class SaveSystem
     static readonly Action<GameSaveData>[] MigrationSteps =
     {
         Migrate_V0_to_V1, Migrate_V1_to_V2, Migrate_V2_to_V3, Migrate_V3_to_V4,
-        Migrate_V4_to_V5, Migrate_V5_to_V6, Migrate_V6_to_V7, Migrate_V7_to_V8, Migrate_V8_to_V9, Migrate_V9_to_V10
+        Migrate_V4_to_V5, Migrate_V5_to_V6, Migrate_V6_to_V7, Migrate_V7_to_V8, Migrate_V8_to_V9, Migrate_V9_to_V10,
+        Migrate_V10_to_V11
     };
     public static bool ValidateMigrationChain(out string reason)
     {
@@ -70,6 +71,14 @@ public static partial class SaveSystem
         // Old saves contain no barrier clock. Alive units initialize from their current definition on restore.
         if (data.Units == null) return;
         foreach (var unit in data.Units) if (unit != null) { unit.HasBarrierSnapshot = false; unit.BarrierRecovery = null; }
+    }
+    static void Migrate_V10_to_V11(GameSaveData data)
+    {
+        if (data.AI == null) data.AI = new AISaveData();
+        // Earlier formats never observed territorial ownership. Explored terrain is not that evidence.
+        data.AI.TerritoryIntel = null;
+        data.PlayerTerritoryIntel = null;
+        data.AI.HasTerritoryIntelSnapshot = data.HasPlayerTerritoryIntelSnapshot = false;
     }
     static void Migrate_V8_to_V9(GameSaveData data)
     {

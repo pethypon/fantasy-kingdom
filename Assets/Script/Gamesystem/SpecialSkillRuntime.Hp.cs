@@ -58,7 +58,7 @@ public static partial class SpecialSkillRuntime
         if (kind == HpChangeKind.ForcedDeath) return target.HP;
         if (kind == HpChangeKind.DirectHpReduction) return Mathf.Min(target.HP, amount);
         var state = State(target);
-        if (target.ShieldTurns > 0 || state.damageNullUnused && state.damageNullTurns > 0) return 0;
+        if (DamageCalculator.IsFullyProtected(target) || state.damageNullUnused && state.damageNullTurns > 0) return 0;
         long adjusted = amount;
         if (state.nextDamageDouble) adjusted *= 2;
         if (state.holyKnightTurns > 0 || state.holyKnightRecoveryLock) adjusted *= 2;

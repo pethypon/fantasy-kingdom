@@ -73,6 +73,12 @@ public sealed partial class AIExplorationPlanner
             foreach (var entry in board.ObservedHistory)
                 if (entry.Value.Valid && entry.Value.Type != Type.Unit && board.IsTerrainKnown(entry.Value.Position))
                     boardObservation.ImportantCells[GridHelper.ToGridXZ(entry.Value.Position)] = 1f;
+            // A missing army route requests reconnaissance toward remembered territory.
+            // The supplied point is observed territory/known adjacent geography, not an inferred base.
+            boardObservation.HasTerritoryReconDirection = board.TerritoryIntel.TryGetReconTarget(board, out var territoryRecon);
+            boardObservation.TerritoryReconDirection = GridHelper.ToGridXZ(territoryRecon);
+            if (boardObservation.HasTerritoryReconDirection)
+                boardObservation.ImportantCells[GridHelper.ToGridXZ(territoryRecon)] = 1f;
             boardObservation.EstimateDanger = EstimateObservedDanger;
             boardObservation.DangerVersion = ObservedDangerVersion(board);
         }

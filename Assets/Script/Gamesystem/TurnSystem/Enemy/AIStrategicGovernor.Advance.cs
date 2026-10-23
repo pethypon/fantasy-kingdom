@@ -28,13 +28,14 @@ public sealed partial class AIStrategicGovernor
         if (float.IsNaN(destination.sqrMagnitude) || float.IsInfinity(destination.sqrMagnitude)
             || GridHelper.MatchXZ(from, GridHelper.ToGridXZ(destination)) || !board.IsTerrainKnown(destination)) return false;
         PrepareArmyAdvanceTargets(board);
-        if (armyAdvanceTargets.Count == 0) return false;
+        if (armyAdvanceTargets.Count == 0 && !HasActiveTerritoryAdvance) return false;
         var key = (actor, GridHelper.ToGrid(destination));
         if (armyAdvanceSafety.TryGetValue(key, out bool cached)) return cached;
 
         bool result = LegalArmyAdvance(action, board, from, destination)
             && IncomingDamage(board, actor, destination, null) < actor.HP * .25f
-            && ArmyAdvanceMakesProgress(from, destination);
+            && (ArmyAdvanceMakesProgress(from, destination)
+                || HasActiveTerritoryAdvance && TerritoryIntel.IsProgress(actor, destination, board));
         armyAdvanceSafety[key] = result;
         return result;
     }

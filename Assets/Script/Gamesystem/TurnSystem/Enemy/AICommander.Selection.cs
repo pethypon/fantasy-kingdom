@@ -33,6 +33,7 @@ public partial class AICommander
         foreach (var action in actions)
         {
             if (action.ActionType == AIActionType.Wait) continue;
+            if (AIActionEvaluator.IsIneffectiveProtectedAttack(action, _board)) continue;
             if (turnMovementHistory.ShouldReject(action, _board)) continue;
             if (action.SpecialCommand != null && action.Score <= 0) continue;
             if (AIActionEvaluator.ShouldPreserveStationary(action, actions, _board)) continue;

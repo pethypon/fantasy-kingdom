@@ -382,7 +382,8 @@ public class AISearchEngine
                 }
                 break;
             case AIActionType.SkillUse:
-                if (action.Skill != null && action.Skill.Multiplier > 0 && action.TargetUnit != null)
+                if (action.Skill != null && action.Skill.Multiplier > 0 && action.TargetUnit != null
+                    && !AIActionEvaluator.IsObservedCompleteProtection(board,action.TargetUnit))
                 {
                     int dmg = SpecialSkillRuntime.PreviewHpDamage(action.TargetUnit,
                         SkillSystem.CalcSkillDamage(action.Unit, action.TargetUnit, action.Skill));

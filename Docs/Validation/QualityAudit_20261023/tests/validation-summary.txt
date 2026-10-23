@@ -1,0 +1,16 @@
+quality-verified-focused.log:1749: [Barrier] ALL PASSED 74
+quality-verified-focused.log:1762: [BarrierAI] 116 opt-in barrier/search/forecast checks passed
+quality-verified-focused.log:1775: [ProtectedTargetAI] 40 observation/protection/candidate checks passed
+quality-verified-focused.log:4839: [BasicResourceEconomy] ALL PASSED
+quality-verified-focused.log:6492: [KnownBases] 106 observed-base/opportunity/lifetime/save checks passed
+quality-verified-focused.log:6854: [AssassinAbility] 35 replacement-passive checks passed
+quality-verified-focused.log:7075: [R1ProductionAI] 288 real both-faction recruitment checks passed
+quality-verified-focused.log:7088: [BarrierLiveValidation] ALL PASSED (temporary rule fixture; production activation unchanged)
+quality-ui-cold-hover-final.log:702: [UIQualityAudit] PASS cold summon hover fits and matches reopen at (1280, 720)
+quality-ui-cold-hover-final.log:716: [UIQualityAudit] PASS cold summon hover fits and matches reopen at (960, 600)
+quality-ui-cold-hover-final.log:730: [UIQualityAudit] Native screens=22 output=C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\quality-audit-20261023\verified-ui\ui
+quality-ui-cold-hover-final.log:756: [QualityAuditSession] COMPLETE exit=0
+quality-win64-final.log:5667: [ReleaseValidation] result=Succeeded errors=0 warnings=0 seconds=12.9 mode=editor-idle requestedIdleSeconds=3.0
+quality-win64-final.log:5695: [ReleaseValidation] idle_completed mode=editor-idle requestedIdleSeconds=3.0 actualIdleSeconds=3.000 editorUpdates=13874
+quality-win64-final.log:5719: Internal: There are remaining Allocations on the JobTempAlloc. This is a leak, and will impact performance
+quality-win64-final.log:5721: Internal: There are remaining Allocations on the JobTempAlloc. This is a leak, and will impact performance

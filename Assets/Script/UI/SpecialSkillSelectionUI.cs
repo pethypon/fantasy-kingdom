@@ -105,7 +105,7 @@ public sealed class SpecialSkillSelectionUI : MonoBehaviour
         if (inspect)
         {
             var content = ScrollArea("StateDetails", panel, .025f, .045f, .975f, .875f);
-            description = TextRow(content, "Details", SpecialSkillPresentation.Details(caster, systems.TurnGenerator.Context.Turn), 22);
+            description = TextRow(content, "Details", SpecialSkillPresentation.Details(caster, systems.TurnGenerator.Context.Turn), 26);
             return;
         }
 

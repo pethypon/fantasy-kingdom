@@ -9,7 +9,8 @@ public partial class SimBoardState
     /// <summary>通常攻撃ダメージ計算。</summary>
     public static int CalcDamage(SimUnit attacker, SimUnit defender)
     {
-        if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive || defender.ShieldTurns > 0) return 0;
+        if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive
+            || defender.ShieldTurns > 0 || defender.WildBossProtected) return 0;
 
         float atkMod = attacker.GetATKMod();
         float defMod = defender.GetDEFMod();
@@ -30,7 +31,8 @@ public partial class SimBoardState
     /// <summary>スキルダメージ計算。封技/固定ダメージを反映。</summary>
     public static int CalcSkillDamage(SimUnit caster, SimUnit target, SkillData skill)
     {
-        if (skill == null || caster == null || target == null || !caster.IsAlive || !target.IsAlive || target.ShieldTurns > 0) return 0;
+        if (skill == null || caster == null || target == null || !caster.IsAlive || !target.IsAlive
+            || target.ShieldTurns > 0 || target.WildBossProtected) return 0;
 
         float atkMod = caster.GetATKMod();
         float defMod = target.GetDEFMod();

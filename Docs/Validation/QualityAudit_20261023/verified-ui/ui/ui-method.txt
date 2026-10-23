@@ -1,0 +1,9 @@
+Native camera render, production UI callbacks, initialized ordinary match
+No human first-time comprehension test, mouse motor assessment, or pixel contrast measurement. Overflow candidates require screenshot review. Scroll-hidden content is not a clipping defect.
+1280x720 and 960x600 are native RenderTexture output dimensions; controls use production CanvasScaler.
+Selection uses existing UnitPanelUI.Show; opening menus invokes production Button.onClick; hover invokes the real pointer handler. This is automated UI execution, not a manual mouse playthrough.
+Missing enemy/building states are recorded without teleporting actors or exposing hidden enemies.
+(1280, 720) enemy selection: no enemy in legitimate player vision at this audit moment.
+(1280, 720) building selection: no existing friendly building at this audit moment.
+(960, 600) enemy selection: no enemy in legitimate player vision at this audit moment.
+(960, 600) building selection: no existing friendly building at this audit moment.

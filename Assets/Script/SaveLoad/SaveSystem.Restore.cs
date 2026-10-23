@@ -108,6 +108,7 @@ public static partial class SaveSystem
         commander.SaveTurnCount = src.AITurnCount;
         commander.RestorePlan(src.Operation);
         commander.RestoreStrategicObjective(src.StrategicObjective);
+        commander.RestoreTerritoryState(src.HasTerritoryIntelSnapshot ? src.TerritoryIntel : null);
 
         if (StableSaveKeys.TryParse<TurnStrategy>(src.CurrentStrategy, out var strategy))
             commander.RestoreStrategy(strategy);

@@ -1,0 +1,14 @@
+{
+    "Seeds": [
+        424242
+    ],
+    "OwnerTurnLimit": 240,
+    "WallSeconds": 300,
+    "ThreatLevel": 30,
+    "Output": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-30",
+    "Label": "quality-threat-30",
+    "RunId": "20261022-212710-0d7ecdaa",
+    "OriginalCompany": "CodexValidation",
+    "OriginalProduct": "FantasyKingdomR1Validation",
+    "EnemyPersonality": "Combat"
+}

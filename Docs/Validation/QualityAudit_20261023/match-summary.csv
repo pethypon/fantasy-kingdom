@@ -1,0 +1,8 @@
+﻿revision,run,seed,threat,personality,rounds,owner_turns,result,end_condition,player_ai_used,attacks_player,attacks_enemy,victory_attacks_player,victory_attacks_enemy,dragon_bypass_hits,heavy_skills,errors,exceptions,asserts,editor_p95_ms,editor_worst_ms,memory_initial_mb,memory_final_mb
+comparison,capital-before,161803,15,Adaptive,200,400,unresolved,owner_turn_limit,True,414,363,0,0,0,0,0,0,0,11.562804222106934,1364.158935546875,184.1319580078125,234.85079956054688
+comparison,capital-before,271828,15,Intellect,200,400,unresolved,owner_turn_limit,True,390,428,0,0,0,0,0,0,0,9.43489933013916,877.0794677734375,202.85018920898438,216.4979248046875
+formal-before-protection,capital-after,161803,15,Adaptive,200,400,unresolved,owner_turn_limit,True,522,478,0,0,0,0,0,0,0,13.458396911621094,486.4285888671875,184.35166931152344,235.65118408203125
+formal-before-protection,capital-after,271828,15,Intellect,200,400,unresolved,owner_turn_limit,True,258,74,0,0,0,0,0,0,0,13.907001495361328,5076.3896484375,203.7541046142578,217.5447540283203
+formal-before-protection,threat-1,424242,1,Combat,120,240,unresolved,owner_turn_limit,True,32,37,0,0,0,0,0,0,0,19.03139877319336,958.0355834960938,184.377197265625,233.6512451171875
+formal-before-protection,threat-30,424242,30,Combat,120,240,unresolved,owner_turn_limit,True,164,122,0,0,0,0,0,0,0,10.901998519897461,973.4055786132812,186.37161254882812,232.8666534423828
+formal-after-protection,protected-retest,271828,15,Intellect,200,400,unresolved,owner_turn_limit,True,452,455,0,0,2,0,0,0,0,10.032198905944824,845.1321411132812,184.35025024414062,234.29547119140625

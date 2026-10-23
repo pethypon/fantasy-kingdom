@@ -28,7 +28,7 @@ public struct AIObservedDamageBudget
         { int loss=own.HP;own.HP=own.Barrier=0;linked=false;linkResolved=true;return loss; }
         if (kind == HpChangeKind.DirectHpReduction)
         { int loss=Mathf.Min(own.HP,amount);own.HP-=loss;return loss; }
-        if (own.Shielded || own.TryNullify()) return 0;
+        if (own.Shielded || AIActionEvaluator.IsObservedWildBossProtected(board,actor) || own.TryNullify()) return 0;
         ResolveLink(actor,board);
         if (linked)
         {
@@ -37,7 +37,8 @@ public struct AIObservedDamageBudget
             int intended = BarrierSystem.PreviewHpLoss(own.HP,own.Barrier,own.Adjusted(amount),kind==HpChangeKind.BarrierBypassDamage);
             if (intended >= own.HP)
             { partner.HP=partner.Barrier=0;linked=false;return 0; }
-            partner.ApplyPacket(amount,kind,true);
+            var observedPartner = board?.FindObservedSpecialActor(actor.Special?.guardianPartnerId);
+            if (!AIActionEvaluator.IsObservedWildBossProtected(board,observedPartner)) partner.ApplyPacket(amount,kind,true);
             if (partner.HP <= 0) linked=false;
             return 0;
         }
@@ -60,7 +61,7 @@ struct AIObservedProtection
         {
             HP=Mathf.Max(0,actor.HP),
             Barrier=!ignoreFiniteBarrier && BarrierSystem.UsesBarrier(actor)?actor.Barrier:0,
-            Shielded=actor.ShieldTurns>0 || actor.isWildBoss && actor.IsWildBossProtected,
+            Shielded=actor.ShieldTurns>0,
             nullUnused=state?.damageNullUnused==true && state.damageNullTurns>0,
             nextDamageDouble=state?.nextDamageDouble==true,
             holyKnightDouble=state!=null && (state.holyKnightTurns>0 || state.holyKnightRecoveryLock),

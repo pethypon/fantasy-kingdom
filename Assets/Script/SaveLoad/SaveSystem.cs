@@ -7,7 +7,7 @@ public static partial class SaveSystem
 {
     const string SaveDir = "saves", ProfileFile = "profile.json";
     const int MaxSlots = 3;
-    public const int CurrentSaveVersion = 10, CurrentProfileVersion = 2;
+    public const int CurrentSaveVersion = 11, CurrentProfileVersion = 2;
     public const string PlayerTurnCheckpoint = "player_turn";
     public const int MaximumSaveBytes = 64 * 1024 * 1024, MaximumProfileBytes = 16 * 1024 * 1024;
     static string testStorageRoot = null;
@@ -109,7 +109,11 @@ public static partial class SaveSystem
             if (!HasJsonField(json, "Exploration")) data.AI.Exploration = null;
             if (!HasJsonField(json, "Operation")) data.AI.Operation = null;
             if (!HasJsonField(json, "StrategicObjective")) data.AI.StrategicObjective = null;
+            // JsonUtility can materialize a default object for a null nested class.
+            // The explicit snapshot flag distinguishes real evidence from that placeholder.
+            if (!data.AI.HasTerritoryIntelSnapshot || !HasJsonField(json, "TerritoryIntel")) data.AI.TerritoryIntel = null;
         }
+        if (data != null && (!data.HasPlayerTerritoryIntelSnapshot || !HasJsonField(json, "PlayerTerritoryIntel"))) data.PlayerTerritoryIntel = null;
         return data;
     }
     static bool HasJsonField(string json, string field)

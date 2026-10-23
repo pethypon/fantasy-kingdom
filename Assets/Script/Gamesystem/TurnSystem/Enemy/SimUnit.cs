@@ -49,6 +49,7 @@ public class SimUnit
     public Direction Direction;
     public bool IsBoss;
     public bool IsWildBoss;
+    public bool WildBossProtected;
     public bool UsesBarrier => !IsPrimaryCommander && BarrierSystem.UsesBarrier(Kind, Type, IsWildBoss);
     public bool IsPrimaryCommander;
     public int AssignedSkillId;
@@ -89,7 +90,8 @@ public class SimUnit
         c.BarrierLastDamagedRound = BarrierLastDamagedRound; c.SimulationRound = SimulationRound;
         c.BarrierHasRecovered = BarrierHasRecovered; c.BarrierHasOwnTurnBaseline = BarrierHasOwnTurnBaseline;
         c.Position = Position; c.Direction = Direction;
-        c.IsBoss = IsBoss; c.IsWildBoss = IsWildBoss; c.IsPrimaryCommander = IsPrimaryCommander; c.AssignedSkillId = AssignedSkillId;
+        c.IsBoss = IsBoss; c.IsWildBoss = IsWildBoss; c.WildBossProtected = WildBossProtected;
+        c.IsPrimaryCommander = IsPrimaryCommander; c.AssignedSkillId = AssignedSkillId;
         c.SkillCooldown = SkillCooldown; c.Fatigue = Fatigue;
         c.ShieldTurns = ShieldTurns; c.ShieldActivated = ShieldActivated;
         c.Passive = Passive;
@@ -110,7 +112,7 @@ public class SimUnit
     public int ApplyDamage(int amount)
     {
         if (amount <= 0 || !IsAlive) return 0;
-        if (ShieldTurns > 0) { RecordNegatedHit(); return 0; }
+        if (ShieldTurns > 0 || WildBossProtected) { RecordNegatedHit(); return 0; }
         int beforeBarrier = UsesBarrier ? Barrier : 0;
         if (UsesBarrier) Barrier = BarrierSystem.Absorb(Barrier, amount, out amount);
         int hpLoss = ApplyHpDirectDamage(amount);

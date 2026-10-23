@@ -16,6 +16,7 @@ public class GameManualUI : MonoBehaviour
 
     private GameObject overlay;
     private TextMeshProUGUI bodyText;
+    private ScrollRect bodyScroll;
 
     private enum Tab { Pieces, Rules, Artifacts, Terrain, WildBoss }
     private Tab currentTab = Tab.Pieces;
@@ -77,7 +78,9 @@ public class GameManualUI : MonoBehaviour
         panelRT.anchorMax = new Vector2(0.85f, 0.90f);
         panelRT.offsetMin = Vector2.zero;
         panelRT.offsetMax = Vector2.zero;
-        panel.AddComponent<Image>().color = BrandGuide.PanelBgLight;
+        var panelImage = panel.AddComponent<Image>();
+        panelImage.color = BrandGuide.PanelBgLight;
+        GameUITheme.Current?.StylePanel(panelImage);
 
         // ヘッダー
         var header = CreateTMP("ManualHeader", panel.transform, "駒・ルール説明書", 28, BrandGuide.Primary);
@@ -109,14 +112,20 @@ public class GameManualUI : MonoBehaviour
         srt.offsetMin = Vector2.zero; srt.offsetMax = Vector2.zero;
 
         var scroll = scrollGO.AddComponent<ScrollRect>();
+        bodyScroll = scroll;
         scroll.horizontal = false;
+        scroll.scrollSensitivity = 42;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
 
         var viewport = new GameObject("Viewport", typeof(RectTransform));
         viewport.transform.SetParent(scrollGO.transform, false);
         var vrt = viewport.GetComponent<RectTransform>();
         StretchFill(vrt);
+        vrt.offsetMax = new Vector2(-38, 0);
         viewport.AddComponent<RectMask2D>();
         scroll.viewport = vrt;
+        scroll.verticalScrollbar = UIFactory.CreateVerticalScrollbar(scrollGO.transform);
+        scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
 
         var content = new GameObject("Content", typeof(RectTransform));
         content.transform.SetParent(viewport.transform, false);
@@ -126,13 +135,17 @@ public class GameManualUI : MonoBehaviour
         crt.offsetMin = Vector2.zero; crt.offsetMax = Vector2.zero;
         var csf = content.AddComponent<ContentSizeFitter>();
         csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        var bodyLayout = content.AddComponent<VerticalLayoutGroup>();
+        bodyLayout.padding = new RectOffset(12, 12, 10, 10);
+        bodyLayout.childControlWidth = bodyLayout.childControlHeight = true;
+        bodyLayout.childForceExpandWidth = true;
+        bodyLayout.childForceExpandHeight = false;
         scroll.content = crt;
 
-        bodyText = CreateTMP("ManualBody", content.transform, "", 16, BrandGuide.TextLabel);
+        bodyText = CreateTMP("ManualBody", content.transform, "", 26, BrandGuide.TextPrimary);
         bodyText.alignment = TextAlignmentOptions.TopLeft;
-        var brt = bodyText.GetComponent<RectTransform>();
-        brt.anchorMin = new Vector2(0, 0); brt.anchorMax = new Vector2(1, 1);
-        brt.offsetMin = new Vector2(10, 10); brt.offsetMax = new Vector2(-10, -10);
+        bodyText.enableAutoSizing = false;
+        bodyText.overflowMode = TextOverflowModes.Overflow;
 
         // 閉じる
         var closeRow = new GameObject("CloseRow", typeof(RectTransform));
@@ -141,6 +154,7 @@ public class GameManualUI : MonoBehaviour
         crt2.anchorMin = new Vector2(0.35f, 0.01f); crt2.anchorMax = new Vector2(0.65f, 0.07f);
         crt2.offsetMin = Vector2.zero; crt2.offsetMax = Vector2.zero;
         var closeBtn = CreateBtn("閉じる", closeRow.transform, BrandGuide.BtnWait);
+        StretchFill(closeBtn.GetComponent<RectTransform>());
         closeBtn.onClick.AddListener(Close);
     }
 
@@ -160,6 +174,11 @@ public class GameManualUI : MonoBehaviour
             case Tab.Artifacts: bodyText.text = BuildArtifactsText(); break;
             case Tab.Terrain:   bodyText.text = BuildTerrainText(); break;
             case Tab.WildBoss:  bodyText.text = BuildWildBossText(); break;
+        }
+        if (bodyScroll != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(bodyScroll.content);
+            bodyScroll.verticalNormalizedPosition = 1;
         }
     }
 
@@ -225,7 +244,7 @@ public class GameManualUI : MonoBehaviour
     {
         return
 "<b>■ 基本ルール</b>\n" +
-"  ターン制のチェス風戦略ゲーム。プレイヤーと敵が交互にターンを消費して駒を動かし、相手のクリスタルを破壊した側が勝利。\n\n" +
+"  ターン制のチェス風戦略ゲーム。相手の王、またはメインクリスタルのどちらかを倒すと勝利。自軍の王、またはメインクリスタルのどちらかを失うと敗北。サブクリスタルは敗北条件に含みません。\n\n" +
 BuildDurabilityRulesText() +
 "<b>■ AP（行動力）</b>\n" +
 $"  市民1人ごとに追加AP{EconomySystem.CitizenAPBonus}を得る。移動{APSystem.BaseMoveCost}・攻撃{APSystem.BaseAttackCost}・建築/召喚でAPを消費する。\n\n" +
@@ -336,6 +355,7 @@ $"  Sniper: 距離{GameConstants.SniperMinRange}以上で+{(GameConstants.Sniper
         var go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(parent, false);
         var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.font = UIFactory.LoadDefaultFont();
         tmp.text = text; tmp.fontSize = size; tmp.color = color;
         tmp.textWrappingMode = TextWrappingModes.Normal;
         return tmp;
@@ -343,15 +363,13 @@ $"  Sniper: 距離{GameConstants.SniperMinRange}以上で+{(GameConstants.Sniper
 
     private static Button CreateBtn(string label, Transform parent, Color color)
     {
-        var go = new GameObject("Btn_" + label, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        var img = go.AddComponent<Image>(); img.color = color;
-        var btn = go.AddComponent<Button>();
-        var txt = CreateTMP("Label", go.transform, label, 16, Color.white);
+        var btn = UIFactory.CreateButton("Btn_" + label, parent, label, 24, color, UIFactory.LoadDefaultFont());
+        var txt = btn.GetComponentInChildren<TextMeshProUGUI>();
         txt.alignment = TextAlignmentOptions.Center;
+        txt.enableAutoSizing = true; txt.fontSizeMin = 22; txt.fontSizeMax = 24;
         var trt = txt.GetComponent<RectTransform>();
         StretchFill(trt);
-        var le = go.AddComponent<LayoutElement>(); le.minHeight = 40;
+        var le = btn.gameObject.AddComponent<LayoutElement>(); le.minHeight = 40;
         return btn;
     }
 }

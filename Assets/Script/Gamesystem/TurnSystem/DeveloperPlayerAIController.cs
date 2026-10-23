@@ -10,6 +10,13 @@ public sealed class DeveloperPlayerAIController : IDisposable
     const string Hints = "開発者: プレイヤーAI 脅威度15　[F8]手動に戻す　[中ボタンドラッグ]カメラ移動";
     readonly TurnGenerator turn;
     AICommander commander;
+    EnemyTerritoryIntelState pendingTerritoryIntel;
+    public EnemyTerritoryIntelState CaptureTerritoryState() => commander?.CaptureTerritoryState() ?? pendingTerritoryIntel;
+    public void RestoreTerritoryState(EnemyTerritoryIntelState state)
+    {
+        pendingTerritoryIntel = state;
+        commander?.RestoreTerritoryState(state);
+    }
     IEnumerator steps;
     PlayerMove owner;
     bool stepping, stopPending, menuPaused;
@@ -77,10 +84,14 @@ public sealed class DeveloperPlayerAIController : IDisposable
             ClearInteraction();
             var s = turn.Systems;
             if (commander == null)
+            {
                 commander = new AICommander(turn, s.MoveGenerator, s.AttackGenerator, s.BattleSystem,
                     s.VisionGenerator, s.APSystem, s.UnitSetting, s.CrystalSystem, s.MapCreate,
                     MajorPersonality.Intellect, s.BuildSystem, s.SummonSystem, s.FactionState,
                     s.SkillSystem, s.SubCrystalSystem, ThreatLevel, 15015, Team.Player);
+                commander.RestoreTerritoryState(pendingTerritoryIntel);
+                pendingTerritoryIntel = null;
+            }
             commander.TurnThinkingBudgetMs = 3000;
             commander.SearchSliceBudgetMs = 3;
             owner = move;

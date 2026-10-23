@@ -1,0 +1,82 @@
+{
+  "Log": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-win64-jobtemp-diagnostic.log",
+  "Bytes": 9972621,
+  "AllocationRecords": 8376,
+  "StackCategories": {
+    "ShaderCompilation": 8376
+  },
+  "States": {
+    "OK": 8376
+  },
+  "WarningLines": [
+    {
+      "line": 5605,
+      "message": "[ReleaseValidation] result=Succeeded errors=0 warnings=0 seconds=5.1 mode=editor-idle requestedIdleSeconds=3.0"
+    },
+    {
+      "line": 5658,
+      "message": "Internal: There are remaining Allocations on the JobTempAlloc. This is a leak, and will impact performance"
+    },
+    {
+      "line": 55875,
+      "message": "Internal: There are remaining Allocations on the JobTempAlloc. This is a leak, and will impact performance"
+    },
+    {
+      "line": 106093,
+      "message": "Internal: There are remaining Allocations on the JobTempAlloc. This is a leak, and will impact performance"
+    }
+  ],
+  "Examples": [
+    {
+      "line": 5659,
+      "header": "Allocation of 504 bytes at a008f160 in block 0 (frameIndex=0, lifetime=15, age=2, state=OK)",
+      "frames": [
+        "(Unity) ShaderCompilation::CompileVariantJob",
+        "(Unity) ujob_execute_job",
+        "(Unity) lane_guts",
+        "(Unity) worker_thread_routine",
+        "(Unity) Thread::RunThreadWrapper",
+        "(KERNEL32) BaseThreadInitThunk",
+        "(ntdll) RtlUserThreadStart"
+      ]
+    },
+    {
+      "line": 5675,
+      "header": "Allocation of 504 bytes at a008f420 in block 0 (frameIndex=0, lifetime=15, age=2, state=OK)",
+      "frames": [
+        "(Unity) ShaderCompilation::CompileVariantJob",
+        "(Unity) ujob_execute_job",
+        "(Unity) ujob_wait_for",
+        "(Unity) CompleteFenceInternal",
+        "(Unity) ShaderCompilation::ProcessCompilationResults",
+        "(Unity) ShaderCompilation::CompileVariants",
+        "(Unity) ShaderCompilation::CompileVariants",
+        "(Unity) ShaderCompilation::CalculateUsedVertexComponents",
+        "(Unity) Shader::CalculateUsedVertexComponents",
+        "(Unity) CalculateRequiredVertexComponents",
+        "(Unity) CalculateRequiredVertexComponentsForRenderer",
+        "(Unity) ComputeRendererSupportedMeshChannelsAndReadable",
+        "(Unity) ComputeBuildUsageTagOnObjects",
+        "(Unity) ComputeBuildUsageTagOnObjects",
+        "(Unity) CompileGameScene",
+        "(Unity) BuildCopyGameScene",
+        "(Unity) BuildPlayerData",
+        "(Unity) DoBuildPlayer_Build"
+      ]
+    },
+    {
+      "line": 5703,
+      "header": "Allocation of 504 bytes at a008f6f0 in block 0 (frameIndex=0, lifetime=15, age=2, state=OK)",
+      "frames": [
+        "(Unity) ShaderCompilation::CompileVariantJob",
+        "(Unity) ujob_execute_job",
+        "(Unity) lane_guts",
+        "(Unity) worker_thread_routine",
+        "(Unity) Thread::RunThreadWrapper",
+        "(KERNEL32) BaseThreadInitThunk",
+        "(ntdll) RtlUserThreadStart"
+      ]
+    }
+  ],
+  "Interpretation": "Allocation stacks in this Editor build diagnostic point to native shader compilation. This does not prove or disprove a runtime gameplay leak; no engine source fix attempted."
+}

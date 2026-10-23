@@ -45,6 +45,10 @@ public sealed partial class AIStrategicGovernor
     public StrategicProductionDemand ProductionDemand { get; private set; }
     public AIBasicResourceEconomy BasicResources { get; } = new AIBasicResourceEconomy();
     public AIExplorationPlanner Exploration { get; } = new AIExplorationPlanner();
+    // Observed territory is a durable direction for deployment, never a hidden
+    // actor/crystal target and never the short-lived frontier objective below.
+    public EnemyTerritoryIntel TerritoryIntel { get; } = new EnemyTerritoryIntel();
+    public bool HasActiveTerritoryAdvance => TerritoryIntel.HasWaypoint && !TerritoryIntel.Suspended;
     public PersistentStrategicObjective Objective {get;private set;}=new PersistentStrategicObjective();
     int bridgedExploreObjective = -1;
     bool restoredLegacyObjective;
@@ -79,6 +83,10 @@ public sealed partial class AIStrategicGovernor
                 || AIBasicResourceSettings.Active.enabled && BasicResources.HasCriticalDeficit
                 ? StrategicMode.EconomicRecovery
             : !board.HasPrincipalOpponentContact ? StrategicMode.Exploration : StrategicMode.StrategicAttack;
+        TerritoryIntel.Observe(board);
+        TerritoryIntel.Update(board, emergency || Mode == StrategicMode.EconomicRecovery,
+            emergency ? "emergency_defense" : Mode == StrategicMode.EconomicRecovery ? "economic_recovery" : null);
+        if (Mode == StrategicMode.Exploration && HasActiveTerritoryAdvance) Mode = StrategicMode.StrategicAttack;
         LogProductionDemand(board);
         // Emergency orders suspend persistent exploration. Supply recovery retains targets but outranks movement.
         Exploration.Update(board, emergency);
@@ -288,13 +296,13 @@ public sealed partial class AIStrategicGovernor
         }
         int foundationPriority = BasicResources.ActionPriority(a);
         if (foundationPriority < 4 && Mode == StrategicMode.EconomicRecovery) return foundationPriority;
-        // Exploring and fighting are peer objectives after survival/supply obligations.
-        // Otherwise every P3 scout step lexicographically excludes even a worthwhile
-        // P4 attack before tactical score, search or operation bonuses can be compared.
+        // With a confirmed deployment direction, act on current combat opportunities
+        // before staging the army; unrelated frontier work follows at the ordinary tier.
+        // Without that direction, preserve the existing combat/exploration peer tier.
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
-            && IsSafeEffectiveBattleAction(a, board)) return 3;
+            && IsSafeEffectiveBattleAction(a, board)) return HasActiveTerritoryAdvance ? 2 : 3;
         if (IsSafeArmyAdvance(a, board)) return 3;
-        if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
+        if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery && !HasActiveTerritoryAdvance
             &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
             &&Exploration.TryGetAssignedTarget(a.Unit,out var frontier)
             &&Exploration.IsObjectiveProgress(a.Unit,a.TargetPos,board)
@@ -337,7 +345,8 @@ public sealed partial class AIStrategicGovernor
         if (skill == null || actor.AssignedSkillId != skill.Id || actor.SkillCooldown > 0
             || StatusEffectSystem.HasDebuff(actor, StatusEffectType.Seal)
             || board.CalcSkillCost(actor, skill) > board.EnemyAP || SpecialSkillRuntime.AttackBlocked(actor)) return false;
-        if (ObservedHostile(target) && skill.Multiplier > 0 && target.ShieldTurns <= 0)
+        if (ObservedHostile(target) && skill.Multiplier > 0
+            && !AIActionEvaluator.IsObservedCompleteProtection(board,target))
         {
             var delta = target.transform.position - actor.transform.position;
             return SkillOffsets(actor, skill).Contains(new Vector2Int(Mathf.RoundToInt(delta.x), Mathf.RoundToInt(delta.z)))

@@ -51,10 +51,28 @@ public sealed class FantasyKingdomR1ContractTests
         using (new CombatRuleScope(true))
         {
             var systems = InitializeSceneMatch();
-            foreach (string suite in new[] { "BarrierSystemTests", "BarrierAITests" })
+            foreach (string suite in new[] { "BarrierSystemTests", "BarrierAITests", "ProtectedTargetAITests" })
                 System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems });
             var turn = UnityEngine.Object.FindFirstObjectByType(Runtime("TurnGenerator"));
             System.Type.GetType("StatusUIRegressionTests, Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems, turn });
+        }
+        yield return new ExitPlayMode();
+    }
+
+    [UnityTest]
+    public IEnumerator TerritoryIntel_Memory_SafeAdvance_AndSave_ThroughRealScene()
+    {
+        if (!Application.dataPath.Contains("UnityValidation")) Assert.Ignore("Run integration fixtures in the isolated UnityValidation project.");
+        EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
+        yield return new EnterPlayMode();
+        using (new CombatRuleScope(true))
+        {
+            var systems = InitializeSceneMatch();
+            var turn = UnityEngine.Object.FindFirstObjectByType(Runtime("TurnGenerator"));
+            foreach (string suite in new[] { "AITerritoryIntelTests", "AITerritorySafetyTests", "AITerritoryReconTests" })
+                System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems });
+            foreach (string suite in new[] { "AITerritoryExecutionTests", "AITerritoryPersistenceTests" })
+                System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems, turn });
         }
         yield return new ExitPlayMode();
     }

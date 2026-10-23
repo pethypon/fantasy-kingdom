@@ -68,6 +68,7 @@ public class TurnStrategyPlanner
         // Memories still guide reconnaissance, but cannot reveal an unseen or destroyed objective.
         bool opponentContact = board.HasPrincipalOpponentContact
             || board.CanUsePlayerCrystalAsTarget() && board.PlayerCrystalHP > 0;
+        bool territoryDeployment = board.Governor?.HasActiveTerritoryAdvance == true;
 
         // ---- 優先度ベース判定（上位条件が優先） ----
 
@@ -102,6 +103,13 @@ public class TurnStrategyPlanner
         {
             decision.Strategy = TurnStrategy.ContactEngage;
             decision.Reason = "敵部隊または生存拠点を視認: 経済の完成を待たず交戦";
+        }
+        else if (territoryDeployment)
+        {
+            // Territory confirms an approach region, not contact with an enemy
+            // unit or a guessed crystal. The governor evaluates safe army moves.
+            decision.Strategy = TurnStrategy.Balanced;
+            decision.Reason = "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）";
         }
         else if (board.GetExplorationRatio() < 0.6f)
         {

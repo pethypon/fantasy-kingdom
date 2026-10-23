@@ -40,14 +40,15 @@ public partial class UnitPanelUI
         if (fixedIdentity)
         {
             SetButtonVisible(skillButton, false);
-            // The fixed skill replaces the legacy assignment; show its actual name in the compact panel.
-            if (kindText != null && !isBuilding) kindText.text = SpecialSkillPresentation.Name(definition);
         }
         bool hasDetails = currentUnit.type == Type.Unit || SpecialSkillPresentation.HasState(currentUnit);
         SetButtonVisible(specialStateButton, hasDetails);
         if (headingText != null) headingText.rectTransform.offsetMax = new Vector2(hasDetails ? -180 : -16, 0);
         bool activeAbility = definition != null && !definition.IsPassive && definition.ability != UnitSpecialSkill.None;
         bool showAction = activeAbility && !isBuilding && currentUnit.team == Team.Player && !previewOnly && !inspectionOnly;
+        // The action button already names the skill; inspections still need its compact label.
+        if (fixedIdentity && kindText != null && !isBuilding)
+            kindText.text = showAction ? string.Empty : SpecialSkillPresentation.Name(definition);
         SetButtonVisible(specialSkillButton, showAction);
         if (showAction)
         {

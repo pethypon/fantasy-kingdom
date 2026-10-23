@@ -1,0 +1,734 @@
+{
+  "date": "2026-10-23",
+  "method": "Native Unity Play Mode / developer player AI / actual production callbacks",
+  "formal_matches": 5,
+  "formal_rounds": 840,
+  "comparison_matches": 2,
+  "comparison_rounds": 400,
+  "runs": [
+    {
+      "revision": "comparison",
+      "run": "capital-before",
+      "seed": 161803,
+      "threat": 15,
+      "personality": "Adaptive",
+      "rounds": 200,
+      "owner_turns": 400,
+      "result": "unresolved",
+      "end_condition": "owner_turn_limit",
+      "player_ai_used": true,
+      "attacks_player": 414,
+      "attacks_enemy": 363,
+      "victory_attacks_player": 0,
+      "victory_attacks_enemy": 0,
+      "dragon_bypass_hits": 0,
+      "heavy_skills": 0,
+      "errors": 0,
+      "exceptions": 0,
+      "asserts": 0,
+      "editor_p95_ms": 11.562804222106934,
+      "editor_worst_ms": 1364.158935546875,
+      "memory_initial_mb": 184.1319580078125,
+      "memory_final_mb": 234.85079956054688
+    },
+    {
+      "revision": "comparison",
+      "run": "capital-before",
+      "seed": 271828,
+      "threat": 15,
+      "personality": "Intellect",
+      "rounds": 200,
+      "owner_turns": 400,
+      "result": "unresolved",
+      "end_condition": "owner_turn_limit",
+      "player_ai_used": true,
+      "attacks_player": 390,
+      "attacks_enemy": 428,
+      "victory_attacks_player": 0,
+      "victory_attacks_enemy": 0,
+      "dragon_bypass_hits": 0,
+      "heavy_skills": 0,
+      "errors": 0,
+      "exceptions": 0,
+      "asserts": 0,
+      "editor_p95_ms": 9.43489933013916,
+      "editor_worst_ms": 877.0794677734375,
+      "memory_initial_mb": 202.85018920898438,
+      "memory_final_mb": 216.4979248046875
+    },
+    {
+      "revision": "formal-before-protection",
+      "run": "capital-after",
+      "seed": 161803,
+      "threat": 15,
+      "personality": "Adaptive",
+      "rounds": 200,
+      "owner_turns": 400,
+      "result": "unresolved",
+      "end_condition": "owner_turn_limit",
+      "player_ai_used": true,
+      "attacks_player": 522,
+      "attacks_enemy": 478,
+      "victory_attacks_player": 0,
+      "victory_attacks_enemy": 0,
+      "dragon_bypass_hits": 0,
+      "heavy_skills": 0,
+      "errors": 0,
+      "exceptions": 0,
+      "asserts": 0,
+      "editor_p95_ms": 13.458396911621094,
+      "editor_worst_ms": 486.4285888671875,
+      "memory_initial_mb": 184.35166931152344,
+      "memory_final_mb": 235.65118408203125
+    },
+    {
+      "revision": "formal-before-protection",
+      "run": "capital-after",
+      "seed": 271828,
+      "threat": 15,
+      "personality": "Intellect",
+      "rounds": 200,
+      "owner_turns": 400,
+      "result": "unresolved",
+      "end_condition": "owner_turn_limit",
+      "player_ai_used": true,
+      "attacks_player": 258,
+      "attacks_enemy": 74,
+      "victory_attacks_player": 0,
+      "victory_attacks_enemy": 0,
+      "dragon_bypass_hits": 0,
+      "heavy_skills": 0,
+      "errors": 0,
+      "exceptions": 0,
+      "asserts": 0,
+      "editor_p95_ms": 13.907001495361328,
+      "editor_worst_ms": 5076.3896484375,
+      "memory_initial_mb": 203.7541046142578,
+      "memory_final_mb": 217.5447540283203
+    },
+    {
+      "revision": "formal-before-protection",
+      "run": "threat-1",
+      "seed": 424242,
+      "threat": 1,
+      "personality": "Combat",
+      "rounds": 120,
+      "owner_turns": 240,
+      "result": "unresolved",
+      "end_condition": "owner_turn_limit",
+      "player_ai_used": true,
+      "attacks_player": 32,
+      "attacks_enemy": 37,
+      "victory_attacks_player": 0,
+      "victory_attacks_enemy": 0,
+      "dragon_bypass_hits": 0,
+      "heavy_skills": 0,
+      "errors": 0,
+      "exceptions": 0,
+      "asserts": 0,
+      "editor_p95_ms": 19.03139877319336,
+      "editor_worst_ms": 958.0355834960938,
+      "memory_initial_mb": 184.377197265625,
+      "memory_final_mb": 233.6512451171875
+    },
+    {
+      "revision": "formal-before-protection",
+      "run": "threat-30",
+      "seed": 424242,
+      "threat": 30,
+      "personality": "Combat",
+      "rounds": 120,
+      "owner_turns": 240,
+      "result": "unresolved",
+      "end_condition": "owner_turn_limit",
+      "player_ai_used": true,
+      "attacks_player": 164,
+      "attacks_enemy": 122,
+      "victory_attacks_player": 0,
+      "victory_attacks_enemy": 0,
+      "dragon_bypass_hits": 0,
+      "heavy_skills": 0,
+      "errors": 0,
+      "exceptions": 0,
+      "asserts": 0,
+      "editor_p95_ms": 10.901998519897461,
+      "editor_worst_ms": 973.4055786132812,
+      "memory_initial_mb": 186.37161254882812,
+      "memory_final_mb": 232.8666534423828
+    },
+    {
+      "revision": "formal-after-protection",
+      "run": "protected-retest",
+      "seed": 271828,
+      "threat": 15,
+      "personality": "Intellect",
+      "rounds": 200,
+      "owner_turns": 400,
+      "result": "unresolved",
+      "end_condition": "owner_turn_limit",
+      "player_ai_used": true,
+      "attacks_player": 452,
+      "attacks_enemy": 455,
+      "victory_attacks_player": 0,
+      "victory_attacks_enemy": 0,
+      "dragon_bypass_hits": 2,
+      "heavy_skills": 0,
+      "errors": 0,
+      "exceptions": 0,
+      "asserts": 0,
+      "editor_p95_ms": 10.032198905944824,
+      "editor_worst_ms": 845.1321411132812,
+      "memory_initial_mb": 184.35025024414062,
+      "memory_final_mb": 234.29547119140625
+    }
+  ],
+  "files": [
+    {
+      "file": "matches/capital-before/run.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022\\run.json",
+      "bytes": 12814,
+      "sha256": "05958dc730dda77a9ba968c7996cf9d47df9ec37dbf5676d6d1bc884c3cbe39f"
+    },
+    {
+      "file": "matches/capital-before/settings.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022\\settings.json",
+      "bytes": 385,
+      "sha256": "4fcb4bdb04b7c1d4a8f112c5ea5f67d5c7d1211c042e90a00824f87f9e961a60"
+    },
+    {
+      "file": "matches/capital-before/01-161803/match.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022\\01-161803\\match.json",
+      "bytes": 4751,
+      "sha256": "a2dad2831e4ac36156bdc47780c1a8785d91b667ceb549ffb2d41795a4153bad"
+    },
+    {
+      "file": "matches/capital-before/01-161803/turns.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022\\01-161803\\turns.csv",
+      "bytes": 118075,
+      "sha256": "758b84184be06e1543a9edfd199573ff13d8b7538f31a49c83e7f7792d1da1c1"
+    },
+    {
+      "file": "matches/capital-before/01-161803/actions.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022\\01-161803\\actions.csv",
+      "bytes": 608374,
+      "sha256": "6bee4b10f3ba6d3eb47dc91b13b5512cf0d4b60cf6c51e926c1533ccbcd45edb"
+    },
+    {
+      "file": "matches/capital-before/02-271828/match.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022\\02-271828\\match.json",
+      "bytes": 4750,
+      "sha256": "751fba8ffba9b183a55442e46fa80c75f9f9f3e7365525fa24cad52997eae9b9"
+    },
+    {
+      "file": "matches/capital-before/02-271828/turns.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022\\02-271828\\turns.csv",
+      "bytes": 118216,
+      "sha256": "1ffe96f735d4c00889431221fe511d2e896f65e13421ae566dd06183043901f6"
+    },
+    {
+      "file": "matches/capital-before/02-271828/actions.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-final-20261022\\02-271828\\actions.csv",
+      "bytes": 617385,
+      "sha256": "21ec6f8e36399ee6617f3e95ec36389dc9eaeea129252545b6d355bc18d64648"
+    },
+    {
+      "file": "matches/capital-after/run.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-resource-corrected-20261022\\run.json",
+      "bytes": 12819,
+      "sha256": "ce7b397c5bcb2bbd6124893a739386ee8078dda86ee90afe4690579ef606fbd4"
+    },
+    {
+      "file": "matches/capital-after/settings.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-resource-corrected-20261022\\settings.json",
+      "bytes": 402,
+      "sha256": "e790c02da076e05562947c102aa2562ee29ebdfc894eaefaf640f8e5b7f1cf9e"
+    },
+    {
+      "file": "matches/capital-after/01-161803/match.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-resource-corrected-20261022\\01-161803\\match.json",
+      "bytes": 4757,
+      "sha256": "405c51515f87ac0c3923f898b2f11b26767a9adca2dadb7ea7a46f7563bec193"
+    },
+    {
+      "file": "matches/capital-after/01-161803/turns.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-resource-corrected-20261022\\01-161803\\turns.csv",
+      "bytes": 117986,
+      "sha256": "aeae931168ebb809a69b8502b61e4278fdea69e1c16ad5ccfdac397a0f7beef1"
+    },
+    {
+      "file": "matches/capital-after/01-161803/actions.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-resource-corrected-20261022\\01-161803\\actions.csv",
+      "bytes": 706406,
+      "sha256": "d91bef0ff55b01d452f93b58b435b624d5bc4e5b3750125b8339069f9f5f528e"
+    },
+    {
+      "file": "matches/capital-after/02-271828/match.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-resource-corrected-20261022\\02-271828\\match.json",
+      "bytes": 4745,
+      "sha256": "10b19e60740a7c14b59def6c84b10e5300612aee126b17a9e5a08d89c17db251"
+    },
+    {
+      "file": "matches/capital-after/02-271828/turns.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-resource-corrected-20261022\\02-271828\\turns.csv",
+      "bytes": 118532,
+      "sha256": "8626bbe8b545815584f24049156e82c3499bc9035a08d620cf402938408d64b8"
+    },
+    {
+      "file": "matches/capital-after/02-271828/actions.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\barrier-ai-resource-corrected-20261022\\02-271828\\actions.csv",
+      "bytes": 594828,
+      "sha256": "f77dd0c670dca841054f3bad77f772d1c74b4a2265696a5ad41ff8fae52589ab"
+    },
+    {
+      "file": "matches/threat-1/run.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-1\\run.json",
+      "bytes": 6860,
+      "sha256": "1f21b8944348caa4138767d05ad29c949cd216263d3d7b61db79fce534291538"
+    },
+    {
+      "file": "matches/threat-1/settings.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-1\\settings.json",
+      "bytes": 423,
+      "sha256": "6f77e16348ebd6853b6eba6f6cb7dbf7d0e672cdce6c46f0f086255be0a9985b"
+    },
+    {
+      "file": "matches/threat-1/01-424242/match.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-1\\01-424242\\match.json",
+      "bytes": 4724,
+      "sha256": "3d406f48f2ecb9b060f00d9f77498c81aa447eb984abac7fbfdef70419e167f8"
+    },
+    {
+      "file": "matches/threat-1/01-424242/turns.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-1\\01-424242\\turns.csv",
+      "bytes": 69860,
+      "sha256": "38aaeb025ce2d363db5ff75841ae622eabbbac2622f4656b969f0880443e0611"
+    },
+    {
+      "file": "matches/threat-1/01-424242/actions.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-1\\01-424242\\actions.csv",
+      "bytes": 331727,
+      "sha256": "d6b1d85ba54d5840376a9efdf68b2ca556319c61d2e449ba349c8fb976864f44"
+    },
+    {
+      "file": "matches/threat-30/run.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-30\\run.json",
+      "bytes": 6876,
+      "sha256": "1b09841ee983c8214f7af07b0538c48fa35cad65d64080bd192f565528011622"
+    },
+    {
+      "file": "matches/threat-30/settings.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-30\\settings.json",
+      "bytes": 426,
+      "sha256": "8e2fdc69fd2c81e4380dd65aebdf495cdb137551b2d88f345cffb1e44737a4a7"
+    },
+    {
+      "file": "matches/threat-30/01-424242/match.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-30\\01-424242\\match.json",
+      "bytes": 4739,
+      "sha256": "7bdf6f6e6c01a40ea040602c65792db08794c82a2a636fe724663c730ae15b50"
+    },
+    {
+      "file": "matches/threat-30/01-424242/turns.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-30\\01-424242\\turns.csv",
+      "bytes": 69945,
+      "sha256": "6db9cd3f2da3dcf9c1c164d68ffc09dfad66274ab0d41be2d1945591600fa3a4"
+    },
+    {
+      "file": "matches/threat-30/01-424242/actions.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\threat-30\\01-424242\\actions.csv",
+      "bytes": 341316,
+      "sha256": "febdd411b104ac6b61ddc5e5ce9926e0dca435e6ee76997a3f21d47e2dfb3c17"
+    },
+    {
+      "file": "matches/protected-retest/run.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\protected-retest\\run.json",
+      "bytes": 6900,
+      "sha256": "731bfc27b9dbe642c5edea05bcb2b6b4f39154d6de098a5d3091b5192414ebf7"
+    },
+    {
+      "file": "matches/protected-retest/settings.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\protected-retest\\settings.json",
+      "bytes": 444,
+      "sha256": "9b0e84442c3c09d8626604dd59fa28119804bb6645c6aa56b676814c7582a99a"
+    },
+    {
+      "file": "matches/protected-retest/01-271828/match.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\protected-retest\\01-271828\\match.json",
+      "bytes": 4755,
+      "sha256": "e777543a1519f2c91e1e268f51897341523c17dbcef609122d93127aa7223a8a"
+    },
+    {
+      "file": "matches/protected-retest/01-271828/turns.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\protected-retest\\01-271828\\turns.csv",
+      "bytes": 117743,
+      "sha256": "04a681b36e7aabeb10d001d5ae0f7829f0f7456d0416d2468921109abbb3ab4d"
+    },
+    {
+      "file": "matches/protected-retest/01-271828/actions.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\protected-retest\\01-271828\\actions.csv",
+      "bytes": 643205,
+      "sha256": "7a0f546611ac2730a90e798157577c0da14914ff24a6d40a0884c9c1071ef80f"
+    },
+    {
+      "file": "verified-ui/ui/01-default-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\01-default-1280x720.png",
+      "bytes": 833257,
+      "sha256": "08ff23d8b0f088e9b2d4a57be766d882ccc85ff06fa1af0f994d95c19d728115"
+    },
+    {
+      "file": "verified-ui/ui/01-default-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\01-default-960x600.png",
+      "bytes": 554978,
+      "sha256": "b39ad8ef9d4f15e9697c63afd718e6324cf0045e7c79d361608cdf7346a39df6"
+    },
+    {
+      "file": "verified-ui/ui/02-ally-selected-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\02-ally-selected-1280x720.png",
+      "bytes": 884106,
+      "sha256": "fa89fa6b0826bed13c7832dcd2775de6d3f7e9c9b73869ab2f99703422873b30"
+    },
+    {
+      "file": "verified-ui/ui/02-ally-selected-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\02-ally-selected-960x600.png",
+      "bytes": 597838,
+      "sha256": "95438f49c1c7c1117026b6ae4a42e233353b1371c41aeac4476a11ab40b7f570"
+    },
+    {
+      "file": "verified-ui/ui/03-ally-details-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\03-ally-details-1280x720.png",
+      "bytes": 288124,
+      "sha256": "ed06842c3e2a1af7468759e5dd71a3d96ef1936eb695e75d595cff0c5fe97114"
+    },
+    {
+      "file": "verified-ui/ui/03-ally-details-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\03-ally-details-960x600.png",
+      "bytes": 212305,
+      "sha256": "ba75d14a0845255f246f8350bf40434e6e529ac951575c27ed597c2a9d14df89"
+    },
+    {
+      "file": "verified-ui/ui/06-building-list-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\06-building-list-1280x720.png",
+      "bytes": 878369,
+      "sha256": "868ef986bbb6f92020a5527bbfd341d9b46bcce29f0f391f2df1aba6d4daef47"
+    },
+    {
+      "file": "verified-ui/ui/06-building-list-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\06-building-list-960x600.png",
+      "bytes": 585046,
+      "sha256": "0ba2d141f56058ebcf75f7455023fa90d57751d736e8c570d525de76928e8285"
+    },
+    {
+      "file": "verified-ui/ui/07-summon-list-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\07-summon-list-1280x720.png",
+      "bytes": 878504,
+      "sha256": "ac07e0ad9d0be3ad150c6e3da84d562041791292f1dda31193593bdce389f5ce"
+    },
+    {
+      "file": "verified-ui/ui/07-summon-list-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\07-summon-list-960x600.png",
+      "bytes": 583878,
+      "sha256": "e8e600babfc8523725555a498c38ee170835be571067c546cc6aec60383a0fd4"
+    },
+    {
+      "file": "verified-ui/ui/08-summon-hover-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\08-summon-hover-1280x720.png",
+      "bytes": 825828,
+      "sha256": "06bfa44ac375e114f9efac2ebac146f26b9c445ab4c049eb9ad4e54841dc685b"
+    },
+    {
+      "file": "verified-ui/ui/08-summon-hover-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\08-summon-hover-960x600.png",
+      "bytes": 552493,
+      "sha256": "21d5cf07d5420856e292629ac002a024a7734edcce89d0aaa818ca0ef8782143"
+    },
+    {
+      "file": "verified-ui/ui/08b-summon-reopen-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\08b-summon-reopen-1280x720.png",
+      "bytes": 825345,
+      "sha256": "36d056f20eacf146ab8f3592d4d7ee75a4188051cc53bc78c38480d010021b76"
+    },
+    {
+      "file": "verified-ui/ui/08b-summon-reopen-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\08b-summon-reopen-960x600.png",
+      "bytes": 552791,
+      "sha256": "8ce320e6b4563d20cf52c57a1dd7847f3f747174dc63d72705b6b40901b90584"
+    },
+    {
+      "file": "verified-ui/ui/09-menu-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\09-menu-1280x720.png",
+      "bytes": 554210,
+      "sha256": "77c4a75edafe98dd805da6c745c2908e2d939bf5a64ab0d79831bb8c5e6a7c9b"
+    },
+    {
+      "file": "verified-ui/ui/09-menu-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\09-menu-960x600.png",
+      "bytes": 394887,
+      "sha256": "ff1c28b97a93bcc8beabc4f04f9df893927c2fcdda19881eb1a306e7300ecdc1"
+    },
+    {
+      "file": "verified-ui/ui/10-manual-pieces-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\10-manual-pieces-1280x720.png",
+      "bytes": 500631,
+      "sha256": "67392f59254ab1fa179d3a1fb96dd8de54da2bee62f3e8148034f044a76996d6"
+    },
+    {
+      "file": "verified-ui/ui/10-manual-pieces-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\10-manual-pieces-960x600.png",
+      "bytes": 360450,
+      "sha256": "d16c55dc24dcd0b4b675ea39caa61691e402fbe0cdce17023e7ce60f970f94bd"
+    },
+    {
+      "file": "verified-ui/ui/11-manual-rules-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\11-manual-rules-1280x720.png",
+      "bytes": 586094,
+      "sha256": "b0725ae85a1739f37bb1d39f8116eec4701938bc5c8cf3c6fea97689da96e461"
+    },
+    {
+      "file": "verified-ui/ui/11-manual-rules-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\11-manual-rules-960x600.png",
+      "bytes": 420971,
+      "sha256": "3dfcbb37f8dfbf328943ae9a2f8f5f36332d0c1b5593a97fb09a54cf4e743666"
+    },
+    {
+      "file": "verified-ui/ui/12-manual-rules-bottom-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\12-manual-rules-bottom-1280x720.png",
+      "bytes": 550499,
+      "sha256": "7b83b62f2ea39cdf4a92ff0920ef63bb06003b57e3d65b53ca451777c804b859"
+    },
+    {
+      "file": "verified-ui/ui/12-manual-rules-bottom-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\12-manual-rules-bottom-960x600.png",
+      "bytes": 395817,
+      "sha256": "94f3f6f33f897c07315a486262ed744244425c7f3f440215f22c88176688fc49"
+    },
+    {
+      "file": "verified-ui/ui/ui-method.txt",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\ui-method.txt",
+      "bytes": 1001,
+      "sha256": "fba9359a5ad1cc33513249dff7ad430f9f1aa72ed8b5ec040fef773579e32dc2"
+    },
+    {
+      "file": "verified-ui/ui/ui-observations.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\ui\\ui-observations.json",
+      "bytes": 394487,
+      "sha256": "4826a652dce008acd1875a33dc3fa5292402272dc5249ea599c833d1b59e95cb"
+    },
+    {
+      "file": "verified-ui/roles/normal_exchange_packets.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\roles\\normal_exchange_packets.csv",
+      "bytes": 753057,
+      "sha256": "a02bd1a5a20b87ade4b37c4f508af9f3b0f30af6dac1b6c4cb8a923318e06541"
+    },
+    {
+      "file": "verified-ui/roles/normal_exchange_scores.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\roles\\normal_exchange_scores.csv",
+      "bytes": 4057,
+      "sha256": "75ffcadf5eaeb8f2257b9ad03d76bd9e3ac7a5a48a799a6ebded502532557105"
+    },
+    {
+      "file": "verified-ui/roles/normal_exchange_summary.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\roles\\normal_exchange_summary.csv",
+      "bytes": 142302,
+      "sha256": "13a8deef36d853c84c876ed6f0fd38b58b011a61282ed564b10c48420aedfb66"
+    },
+    {
+      "file": "verified-ui/roles/normal_mixed_level_packets.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\roles\\normal_mixed_level_packets.csv",
+      "bytes": 45638,
+      "sha256": "080501f7e485d3a40fc4c92e3f744dcb897f4e34d089eb2fad666cba72fcb1f0"
+    },
+    {
+      "file": "verified-ui/roles/normal_mixed_level_summary.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\roles\\normal_mixed_level_summary.csv",
+      "bytes": 8516,
+      "sha256": "49b53ff1c6a48f48cc8128a3e663a8baa8228a57d38523e08c5d402e08d71cb1"
+    },
+    {
+      "file": "verified-ui/roles/role_audit_metadata.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\roles\\role_audit_metadata.json",
+      "bytes": 1634,
+      "sha256": "97561145f17f7c713caf4e301098dd2a728588eeff4c2e681295a58c57a1b47e"
+    },
+    {
+      "file": "verified-ui/roles/roles.csv",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\verified-ui\\roles\\roles.csv",
+      "bytes": 19475,
+      "sha256": "2defba4a981674c3df52ae785d24db7613de2c66e390cc18dbb5c91709d8db2f"
+    },
+    {
+      "file": "ui-before/01-default-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\01-default-1280x720.png",
+      "bytes": 833843,
+      "sha256": "753df883dd311634f82cacf08787588fe045acdf7b2067d0c78981fa2b0e427d"
+    },
+    {
+      "file": "ui-before/01-default-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\01-default-960x600.png",
+      "bytes": 552342,
+      "sha256": "e510f2f1c98abff0327d9237eec383b58c4cbd132916b546b82fd5e37ea79973"
+    },
+    {
+      "file": "ui-before/02-ally-selected-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\02-ally-selected-1280x720.png",
+      "bytes": 886355,
+      "sha256": "2677c40a34413b7762e92df6a904c3d54ad9c9faf7cec8c1185c1c3fbd495fe2"
+    },
+    {
+      "file": "ui-before/02-ally-selected-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\02-ally-selected-960x600.png",
+      "bytes": 596789,
+      "sha256": "9d4b89d67f299e12305256ad524a1674eb13af19261cf9ee3acd5ba44866141e"
+    },
+    {
+      "file": "ui-before/03-ally-details-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\03-ally-details-1280x720.png",
+      "bytes": 278245,
+      "sha256": "adb0a7bca871c6c93b9ee71d45c7118640821fc1754f30b3694dbdd0d8c8a7e3"
+    },
+    {
+      "file": "ui-before/03-ally-details-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\03-ally-details-960x600.png",
+      "bytes": 200570,
+      "sha256": "88e8d3fc4095934fe1c3b1a2022a2fb34abcb6ff516348048aeab24a7282d4f3"
+    },
+    {
+      "file": "ui-before/06-building-list-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\06-building-list-1280x720.png",
+      "bytes": 878336,
+      "sha256": "8f939f33ddce8731ef3eb381dbb8db81bac69182a76495040dc61f7be39f65fb"
+    },
+    {
+      "file": "ui-before/06-building-list-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\06-building-list-960x600.png",
+      "bytes": 583057,
+      "sha256": "bcacc722cef5808bbcfd3ccbb6fe1c673674ea7d383482093e7b4000bf19ac2b"
+    },
+    {
+      "file": "ui-before/07-summon-list-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\07-summon-list-1280x720.png",
+      "bytes": 875756,
+      "sha256": "5dd51380793818641288a76dd0a2758d0a9ae8e5bfba7fb17597e04b9f7ffff6"
+    },
+    {
+      "file": "ui-before/07-summon-list-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\07-summon-list-960x600.png",
+      "bytes": 581738,
+      "sha256": "43c98074d85b3231f4c2b29554528a5dd63c300e324cc679f076e8fb891925ed"
+    },
+    {
+      "file": "ui-before/08-summon-hover-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\08-summon-hover-1280x720.png",
+      "bytes": 876036,
+      "sha256": "6d0af31417930268374e0c840db0facf0b4c2e8922c81e81ca2575b7aec7387b"
+    },
+    {
+      "file": "ui-before/08-summon-hover-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\08-summon-hover-960x600.png",
+      "bytes": 581506,
+      "sha256": "826be8bbc36d778fb3ba41a8478f5bd3e13ed21ad178313aa4456964a21b563a"
+    },
+    {
+      "file": "ui-before/09-menu-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\09-menu-1280x720.png",
+      "bytes": 554596,
+      "sha256": "abbba9a571c51c78079e48392d75ba6cb91bf0d0a75d381a687a8288a229a3a7"
+    },
+    {
+      "file": "ui-before/09-menu-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\09-menu-960x600.png",
+      "bytes": 392366,
+      "sha256": "224b978f7096dc1695ca644140c28f504b22f6b26bc9af4f411dda8465a5794c"
+    },
+    {
+      "file": "ui-before/10-manual-pieces-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\10-manual-pieces-1280x720.png",
+      "bytes": 180503,
+      "sha256": "89f13c0a656e8eb3ceffb2340c7a1a5317fcf8c73c425943e41be3347ecc744e"
+    },
+    {
+      "file": "ui-before/10-manual-pieces-960x600.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\10-manual-pieces-960x600.png",
+      "bytes": 134908,
+      "sha256": "26ad953fb3bed468b15206a8b298e1a4575b8d618704dc85781b921df7e14e31"
+    },
+    {
+      "file": "ui-before/ui-method.txt",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\ui-method.txt",
+      "bytes": 1001,
+      "sha256": "fba9359a5ad1cc33513249dff7ad430f9f1aa72ed8b5ec040fef773579e32dc2"
+    },
+    {
+      "file": "ui-before/ui-observations.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-before\\ui-observations.json",
+      "bytes": 257527,
+      "sha256": "4226fb325b3bc602c00305ca0ca93a07f3052323028cec657f1bc0b49db0a287"
+    },
+    {
+      "file": "ui-first-hover-before/08-summon-hover-1280x720.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-first-hover-before\\08-summon-hover-1280x720.png",
+      "bytes": 825828,
+      "sha256": "06bfa44ac375e114f9efac2ebac146f26b9c445ab4c049eb9ad4e54841dc685b"
+    },
+    {
+      "file": "ui-first-hover-before/ui-observations.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-first-hover-before\\ui-observations.json",
+      "bytes": 394487,
+      "sha256": "4826a652dce008acd1875a33dc3fa5292402272dc5249ea599c833d1b59e95cb"
+    },
+    {
+      "file": "ai-economy-findings.md",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ai-economy-findings.md",
+      "bytes": 17082,
+      "sha256": "ed46ec2783c0b9a2a488af5ba465d1f77662775770b42ff23e190d620bd109d5"
+    },
+    {
+      "file": "role-findings.md",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\role-findings.md",
+      "bytes": 15308,
+      "sha256": "c5dd89ef811c1b4419a720a8da361af9f3eb539d785fb1e979ab4ff7be26959b"
+    },
+    {
+      "file": "ui-findings.md",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\ui-findings.md",
+      "bytes": 15343,
+      "sha256": "37697435661a1179f7de232408bf342355c6bb26001fcb6eca70322710199be9"
+    },
+    {
+      "file": "jobtemp-diagnostic-summary.json",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\jobtemp-diagnostic-summary.json",
+      "bytes": 3188,
+      "sha256": "6888189b22dac63d82046115624d776c1cf9db10732b67fdb187bc481f7e1350"
+    },
+    {
+      "file": "tests/quality-r1-tests.xml",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-r1-tests.xml",
+      "bytes": 108552,
+      "sha256": "c025f6a85603d8e70c6fb47be8268f8d5ae3bd9cbeffe3c32cf636d00fe180bd"
+    },
+    {
+      "file": "screens/match-round-120.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\protected-retest\\01-271828\\barrier-ai-271828-round-120.png",
+      "bytes": 1113255,
+      "sha256": "dcb97d186b86f8bd6904d68cd260a986b3851a0b473b2b47b4c0e75ec47aebd0"
+    },
+    {
+      "file": "screens/match-round-200.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\protected-retest\\01-271828\\barrier-ai-271828-round-200.png",
+      "bytes": 1159695,
+      "sha256": "0e15818d1516ef24695c48218c29d38ced471e6dc8f330842d3e231e089ce78e"
+    },
+    {
+      "file": "screens/match-close-round-200.png",
+      "source": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\quality-audit-20261023\\protected-retest\\01-271828\\close-barrier-ai-271828-round-200.png",
+      "bytes": 1279469,
+      "sha256": "6629253add07a5ca30933f98755396b1e370c3fd8f88622ff8bbc07b28b7d3fe"
+    }
+  ],
+  "limits": [
+    "No human mouse playthrough or usability study",
+    "Capped unresolved matches are not victories or completed games",
+    "Damage exchanges are not full tactical AI matches",
+    "Native UI RenderTexture capture cannot validate crowded world-head positions",
+    "Editor timings include capture and editor work; not normal-player performance guarantees"
+  ]
+}

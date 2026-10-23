@@ -50,6 +50,14 @@ public static partial class SaveSystem
         if (data.AI == null || data.AI.AITurnCount < 0 || data.AI.AITurnCount == int.MaxValue
             || data.AI.HasDeterministicSeed && (data.AI.RngSeed < 0 || data.AI.RandomAlgorithm != "system-random-v1"))
             return Invalid("AI の乱数またはターン情報が不正です。", out reason);
+        var enemyTerritory = data.AI.HasTerritoryIntelSnapshot ? data.AI.TerritoryIntel : null;
+        var playerTerritory = data.HasPlayerTerritoryIntelSnapshot ? data.PlayerTerritoryIntel : null;
+        if (data.AI.HasTerritoryIntelSnapshot && enemyTerritory == null || data.HasPlayerTerritoryIntelSnapshot && playerTerritory == null
+            || !EnemyTerritoryIntel.IsValidState(enemyTerritory, data.MapWidth, data.MapDepth, Team.Enemy)
+            || !EnemyTerritoryIntel.IsValidState(playerTerritory, data.MapWidth, data.MapDepth, Team.Player)
+            || !TerritoryClockValid(enemyTerritory, data.AI.AITurnCount)
+            || !TerritoryClockValid(playerTerritory, data.Turn))
+            return Invalid("AI の敵領土観測記憶が不正です。", out reason);
         if (!string.IsNullOrEmpty(data.AI.MajorPersonality) && !EnumName<MajorPersonality>(data.AI.MajorPersonality)
             || !string.IsNullOrEmpty(data.AI.CurrentStrategy) && !EnumName<TurnStrategy>(data.AI.CurrentStrategy))
             return Invalid("AI の性格または戦略が不明です。", out reason);
@@ -79,6 +87,10 @@ public static partial class SaveSystem
         }
         return true;
     }
+    static bool TerritoryClockValid(EnemyTerritoryIntelState state, int turn)
+        => state == null || state.FirstObservedTurn <= turn && state.LastConfirmedTurn <= turn
+            && state.LastProgressTurn <= turn && state.PausedTurn <= turn && state.LastObservationTurn <= turn;
+
     static bool UnitValid(UnitSaveData unit, GameSaveData data, HashSet<string> lifeIds, out string reason)
     {
         reason = "";

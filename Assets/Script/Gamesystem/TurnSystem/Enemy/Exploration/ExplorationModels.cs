@@ -68,6 +68,8 @@ public sealed class ExplorationObservation
     public int ViewVersion;
     public int CellVersion;
     public int DangerVersion;
+    public bool HasTerritoryReconDirection;
+    public Vector3Int TerritoryReconDirection;
     public Vector3Int OwnBase;
     public readonly List<ExplorationObservedCell> KnownCells = new List<ExplorationObservedCell>();
     public readonly List<Vector3Int> VisibleCells = new List<Vector3Int>();

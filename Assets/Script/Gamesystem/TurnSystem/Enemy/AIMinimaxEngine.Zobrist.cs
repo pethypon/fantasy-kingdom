@@ -67,6 +67,7 @@ public partial class AIMinimaxEngine
             h ^= ZobristPosition[x, z, tk];
             h ^= ZobristHP[Mathf.Clamp(u.HP, 0, ZobristHPRange - 1)];
             if (u.IsPrimaryCommander) h ^= ZobristCommanderPosition[x, z, teamIdx];
+            if (u.WildBossProtected) h ^= RecoveryHash((ulong)(uint)(x + z * ZobristBoardSize + tk * 4096) ^ 0xB5AD4ECEDA1CE2A9UL);
             if (u.Type == Type.Unit)
             {
                 ulong slot = (ulong)(uint)x | (ulong)(uint)z << 6 | (ulong)(uint)tk << 12;

@@ -475,7 +475,8 @@ public partial class AIBoardState
     {
         if (unit == null || SpecialSkillRuntime.AttackBlocked(unit)) return new List<Status>();
         if (SpecialSkillRuntime.TryGetSniperTarget(unit, out var lockedTarget))
-            return lockedTarget != null ? new List<Status> { lockedTarget } : new List<Status>();
+            return lockedTarget != null && !AIActionEvaluator.IsObservedCompleteProtection(this, lockedTarget)
+                ? new List<Status> { lockedTarget } : new List<Status>();
         if (AISpecialSkillKnowledge.SniperRestrictsTargets(unit)) return new List<Status>();
         var unitPos = unit.transform.position;
         var targets = new List<Status>();
@@ -495,7 +496,8 @@ public partial class AIBoardState
             {
                 if (pu == null || !pu.gameObject.activeInHierarchy) continue;
                 var puCell = _moveGen.Cell(pu.transform.position);
-                if (puCell == cell && SpecialSkillRuntime.CanNormalAttackTarget(unit, pu)) { targets.Add(pu); break; }
+                if (puCell == cell && !AIActionEvaluator.IsObservedCompleteProtection(this, pu)
+                    && SpecialSkillRuntime.CanNormalAttackTarget(unit, pu)) { targets.Add(pu); break; }
             }
 
             if (PlayerCrystalVisible)
@@ -504,7 +506,8 @@ public partial class AIBoardState
                 if (pcpCell == cell)
                 {
                     var crystal = FindCrystal(OpponentCrystalParent);
-                    if (crystal != null && crystal.HP > 0 && SpecialSkillRuntime.CanNormalAttackTarget(unit, crystal))
+                    if (crystal != null && crystal.HP > 0 && !AIActionEvaluator.IsObservedCompleteProtection(this, crystal)
+                        && SpecialSkillRuntime.CanNormalAttackTarget(unit, crystal))
                         targets.Add(crystal);
                 }
             }

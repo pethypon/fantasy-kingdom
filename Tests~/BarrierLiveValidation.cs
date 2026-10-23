@@ -42,6 +42,7 @@ public static class BarrierLiveValidation
             if (turn == null || !(turn.CurrentState is PlayerMove) || Time.frameCount - start < 20) return;
             BarrierSystemTests.Run(turn.Systems);
             BarrierAITests.Run(turn.Systems);
+            ProtectedTargetAITests.Run(turn.Systems);
             BasicResourceEconomyTests.PlayMode(turn.Systems);
             AIKnownBaseTests.PlayMode(turn.Systems);
             var config = ScriptableObject.CreateInstance<BarrierCombatSettings>(); config.PopulateTrialValues(); config.enabledForPlay = true;

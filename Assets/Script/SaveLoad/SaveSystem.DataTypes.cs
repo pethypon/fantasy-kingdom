@@ -106,6 +106,9 @@ public static partial class SaveSystem
 
         // AI状態
         public AISaveData AI = new AISaveData();
+        // Developer player AI may be toggled off before saving. Keep its observations independent.
+        public EnemyTerritoryIntelState PlayerTerritoryIntel;
+        public bool HasPlayerTerritoryIntelSnapshot;
 
         // NationState追加データ
         public NationExtraSaveData PlayerNationExtra = new NationExtraSaveData();
@@ -220,6 +223,8 @@ public static partial class SaveSystem
     [Serializable]
     public class AISaveData
     {
+        public EnemyTerritoryIntelState TerritoryIntel;
+        public bool HasTerritoryIntelSnapshot;
         public AIReflectionBattleState Reflection;
         public AIOperationBattleState Operations;
         public AIExplorationState Exploration;

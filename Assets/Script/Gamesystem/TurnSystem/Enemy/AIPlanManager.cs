@@ -118,8 +118,14 @@ public sealed class AIPlanManager
         }
         else if (Has(Kind.Scout) && RangedCount() >= 2 && visibleTroops > 0) goal = AIPlanGoal.Ambush;
         Vector3 home = board.EnemyCrystalPos;
+        bool territoryReconAvailable = board.TerritoryIntel.TryGetReconTarget(board, out var territoryRecon);
         Vector3 aim = target != null && best > -50 ? target.transform.position
+            : board.Governor?.HasActiveTerritoryAdvance == true ? (Vector3)board.Governor.TerritoryIntel.Waypoint
+            : territoryReconAvailable ? (Vector3)territoryRecon
             : board.Belief.TryGetPriority(out var probable) ? probable : home + board.GetUnexploredDirection().normalized * 7;
+        // The bounded reconnaissance plan may finish/expire independently. Its
+        // stored territory source belongs to the governor and survives that event,
+        // so a distant deployment is not forgotten after this plan's eight turns.
         Vector3 forward = (aim - home).normalized;
         if (forward.sqrMagnitude < .01f) forward = Vector3.forward;
         Vector3 side = new Vector3(forward.z, 0, -forward.x);

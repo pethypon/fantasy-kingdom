@@ -150,7 +150,7 @@ public partial class SimBoardState
         foreach (var u in realBoard.AliveEnemyUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            state.Units.Add(CaptureUnit(u, idCounter++, state.ToSimulationTeam(u.team),state.TurnCount));
+            state.Units.Add(CaptureObservedUnit(u, idCounter++, state.ToSimulationTeam(u.team),state.TurnCount,realBoard));
             capturedActors.Add(u);
         }
 
@@ -158,7 +158,7 @@ public partial class SimBoardState
         foreach (var u in realBoard.AlivePlayerUnits)
         {
             if (u == null || !u.gameObject.activeInHierarchy) continue;
-            state.Units.Add(CaptureUnit(u, idCounter++, state.ToSimulationTeam(u.team),state.TurnCount));
+            state.Units.Add(CaptureObservedUnit(u, idCounter++, state.ToSimulationTeam(u.team),state.TurnCount,realBoard));
             capturedActors.Add(u);
         }
 
@@ -231,7 +231,8 @@ public partial class SimBoardState
             SimulationRound = round,
             Position = GridHelper.ToGridXZ(s.transform.position),
             Direction = s.direction,
-            IsBoss = s.IsBoss, IsWildBoss = s.isWildBoss, IsPrimaryCommander = s.IsPrimaryCommander,
+            IsBoss = s.IsBoss, IsWildBoss = s.isWildBoss, WildBossProtected = s.isWildBoss,
+            IsPrimaryCommander = s.IsPrimaryCommander,
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
             Fatigue = s.Fatigue,
@@ -264,6 +265,13 @@ public partial class SimBoardState
         }
 
         return su;
+    }
+
+    static SimUnit CaptureObservedUnit(Status actor,int id,Team simulationTeam,int round,AIBoardState board)
+    {
+        var result=CaptureUnit(actor,id,simulationTeam,round);
+        result.WildBossProtected=AIActionEvaluator.IsObservedWildBossProtected(board,actor);
+        return result;
     }
 
     static Vector3Int[] CaptureVisionCells(Status observer)

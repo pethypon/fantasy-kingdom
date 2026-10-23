@@ -52,10 +52,10 @@ public sealed class ExplorationKnownRoute
         IReadOnlyDictionary<Vector3Int, Vector3Int> knownTerrain, IReadOnlyCollection<Vector3Int> blocked,
         IReadOnlyList<Vector2Int> movementOffsets, bool directional, int dirZ, int terrainRevision,
         int turn, int dangerRevision, Func<int, Vector3Int, float> estimatedDamage,
-        out float remaining, out Vector3Int waypoint, int width = int.MaxValue, int depth = int.MaxValue)
+        out float remaining, out Vector3Int waypoint, int width = int.MaxValue, int depth = int.MaxValue, bool requireEnabled = true)
     {
         remaining = 0; waypoint = actor.Cell;
-        if (!settings.Enabled || knownTerrain == null || movementOffsets == null || movementOffsets.Count == 0
+        if (requireEnabled && !settings.Enabled || knownTerrain == null || movementOffsets == null || movementOffsets.Count == 0
             || actor.HP <= 0 || width <= 0 || depth <= 0) return false;
         Vector3Int start = XZ(actor.Cell), target = XZ(goal);
         TrimCache(actor.UnitId);

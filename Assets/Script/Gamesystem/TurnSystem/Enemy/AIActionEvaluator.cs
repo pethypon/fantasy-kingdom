@@ -60,6 +60,7 @@ public static partial class AIActionEvaluator
             AIActionGenerator.GenerateAllCandidates(board, actions);
         using (AIPerformanceCounters.Measure(AIPerformanceStage.ActionEvaluation))
         {
+            RemoveIneffectiveProtectedAttacks(actions, board);
             board.Governor?.Filter(actions,board);
 
             // 各候補にスコア付け
