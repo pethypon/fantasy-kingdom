@@ -1,0 +1,36 @@
+[Barrier] ALL PASSED 74
+[BarrierAI] 116 opt-in barrier/search/forecast checks passed
+[ProtectedTargetAI] 40 observation/protection/candidate checks passed
+[ThreatClear] 40 checks passed
+[BoardVisualTheme] ALL PASSED units=19 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=40 managedIds=26
+[BoardVisualTheme] ALL PASSED units=19 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=40 managedIds=26
+[BoardVisualThemeTests] ALL PASSED checks=262
+[KingdomBuildings] ALL PASSED 36 distinct meshes / 2 shared palette materials / totalTriangles=31144
+[KingdomWorldVisual] ALL PASSED checks=5078
+[R1ProductionTests] 141 checks passed.
+[R1ProductionAI] 239 production recruitment/recipe/mask checks passed
+[R1UnitVisualTests] 133 checks passed.
+[TerrainEnvironmentTests] 91 movement/visibility/hazard/cave/save checks passed
+[SpecialSkillR1AI] 52 observed skill/environment/recovery checks passed
+[SpecialAI] 97 checks passed
+[SpecialSkillR1AI] 52 observed skill/environment/recovery checks passed
+[EnvironmentGenerationTests] 8704 generation/cluster/reservation/save/budget checks passed
+[R1ProductionAI] 288 real both-faction recruitment checks passed
+[R1OwnWall] 42 owned wall/normal building/fog/forced-swap checks passed
+[AIOperationLifetimeTests] 26 destroyed/cached/turn-tail/faction checks passed
+[BoardThemeLive] ALL PASSED 310
+[BoardActorAnimation] ALL PASSED 46
+[BoardFeedbackTests] ALL PASSED 175
+[AIClosing] 48 faction/priority/strategy checks passed
+[AIClosingAdvance] 75 safe army/priority/observation checks passed
+[AICommanderSafety] 429 commander/faction safety checks passed
+[AssassinAbility] 35 replacement-passive checks passed
+[AIClosingObjective] 53 observation/objective checks passed
+[ThreatClearLive] 10 checks passed
+[AITerritoryIntel] 112 native memory/fairness/persistence checks passed; output=C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\territory-r1-acceptance2-utf
+[AITerritorySafety] ALL PASSED 38
+[AITerritoryRecon] ALL PASSED 26 (controlled topology and native board restore)
+[AITerritoryExecution] ALL PASSED 96 executedMoves=6 (controlled execution, not a full match)
+[AITerritoryCollision] ALL PASSED 27 (controlled public collision outcomes)
+[AITerritoryArrival] ALL PASSED 40 (actual arrival, controlled post-arrival continuation)
+[TerritorySave] ALL PASSED 11

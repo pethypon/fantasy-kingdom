@@ -1,0 +1,45 @@
+{
+    "Checks": 112,
+    "Observations": [
+        {
+            "Width": 40,
+            "Depth": 40,
+            "MapCells": 1600,
+            "VisibleCells": 64,
+            "ExploredCells": 64,
+            "OpponentTerritoryCells": 1600,
+            "Reobservations": 8,
+            "AllocationCounterAvailable": false,
+            "ColdAllocatedBytes": -1,
+            "ReobserveAllocatedBytes": -1,
+            "CachedAllocatedBytes": -1,
+            "ReobserveOwnershipQueries": 512,
+            "CachedOwnershipQueries": 0,
+            "ColdMs": 1.1054000000000002,
+            "ReobserveTotalMs": 3.3577999999999998,
+            "ReobserveMaxMs": 0.6073000000000001,
+            "Cached1000Ms": 2.8372,
+            "Scope": "EnemyTerritoryIntel.Observe only. Complete synthetic native map/ownership lists; no mesh rendering, main AI search, or full-match timing. Fixture construction and board.Refresh are outside measured intervals."
+        },
+        {
+            "Width": 300,
+            "Depth": 300,
+            "MapCells": 90000,
+            "VisibleCells": 64,
+            "ExploredCells": 64,
+            "OpponentTerritoryCells": 90000,
+            "Reobservations": 8,
+            "AllocationCounterAvailable": false,
+            "ColdAllocatedBytes": -1,
+            "ReobserveAllocatedBytes": -1,
+            "CachedAllocatedBytes": -1,
+            "ReobserveOwnershipQueries": 512,
+            "CachedOwnershipQueries": 0,
+            "ColdMs": 21.264100000000004,
+            "ReobserveTotalMs": 181.53170000000004,
+            "ReobserveMaxMs": 24.7846,
+            "Cached1000Ms": 3.4606000000000005,
+            "Scope": "EnemyTerritoryIntel.Observe only. Complete synthetic native map/ownership lists; no mesh rendering, main AI search, or full-match timing. Fixture construction and board.Refresh are outside measured intervals."
+        }
+    ]
+}

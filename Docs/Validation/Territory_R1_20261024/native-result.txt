@@ -1,0 +1,17 @@
+[AITerritoryIntel] 112 native memory/fairness/persistence checks passed; output=C:\Users\pethi\Documents\Codex\2026-09-19\ko\work\territory-r1-acceptance2-native
+[AITerritoryStage] PASS intel
+[AITerritorySafety] ALL PASSED 38
+[AITerritoryStage] PASS safety
+[AITerritoryExecution] ALL PASSED 96 executedMoves=6 (controlled execution, not a full match)
+[AITerritoryStage] PASS executed-movement
+[AITerritoryRecon] ALL PASSED 26 (controlled topology and native board restore)
+[AITerritoryStage] PASS reconnaissance-request
+[AITerritoryCollision] ALL PASSED 27 (controlled public collision outcomes)
+[AITerritoryStage] PASS shared-collision-outcome
+[AITerritoryArrival] ALL PASSED 40 (actual arrival, controlled post-arrival continuation)
+[AITerritoryStage] PASS completed-approach-reconnaissance
+[TerritorySave] ALL PASSED 11
+[AITerritoryStage] PASS persistence
+[SaveCompatibility] 136 migration/atomic/recovery/future/schema checks passed
+[AITerritoryStage] PASS save-compatibility
+[AITerritoryLiveValidation] COMPLETE exit=0

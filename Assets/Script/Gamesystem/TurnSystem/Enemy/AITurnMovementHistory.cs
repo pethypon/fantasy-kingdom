@@ -1,27 +1,44 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>At most 64 successful departures during one owner's turn; contains only owned actors.</summary>
+/// <summary>Bounded current-own-turn movement outcomes; never observes an occupant or creates an attack target.</summary>
 public sealed class AITurnMovementHistory
 {
     const int Limit = 64;
     struct Departure { public Status Actor; public Vector3Int Cell; }
     readonly List<Departure> departures = new List<Departure>(Limit);
+    readonly List<Vector3Int> blockedDestinations = new List<Vector3Int>(Limit);
     public int Count => departures.Count;
-    public void Clear() => departures.Clear();
+    public int BlockedDestinationCount => blockedDestinations.Count;
+    public void Clear() { departures.Clear(); blockedDestinations.Clear(); }
+
+    /// <summary>Call only after the real executor reports occupancy refusal at the requested destination.</summary>
+    public void RecordBlockedDestination(Vector3 requested)
+    {
+        var cell = GridHelper.ToGridXZ(requested);
+        if (blockedDestinations.Contains(cell)) return;
+        if (blockedDestinations.Count >= Limit) blockedDestinations.RemoveAt(0);
+        blockedDestinations.Add(cell);
+    }
+    /// <summary>A successful attack/skill may destroy or relocate an occupant; no hidden re-query is needed.</summary>
+    public void InvalidateBlockedDestinations() => blockedDestinations.Clear();
 
     public void Record(Status actor, Vector3 before, Vector3 after, bool success)
     {
         if (!success || actor == null || GridHelper.ToGridXZ(before) == GridHelper.ToGridXZ(after)) return;
+        blockedDestinations.Remove(GridHelper.ToGridXZ(before));
         if (departures.Count >= Limit) departures.RemoveAt(0);
         departures.Add(new Departure { Actor = actor, Cell = GridHelper.ToGridXZ(before) });
     }
 
     public bool ShouldReject(AIAction action, AIBoardState board)
     {
-        if (action?.Unit == null || action.ActionType != AIActionType.Move
-            && action.ActionType != AIActionType.Support && action.ActionType != AIActionType.Surround) return false;
+        if (action?.Unit == null) return false;
+        bool ordinaryAdvance = action.ActionType == AIActionType.Move || action.ActionType == AIActionType.Support || action.ActionType == AIActionType.Surround;
+        if (!ordinaryAdvance && action.ActionType != AIActionType.Retreat && action.ActionType != AIActionType.DefenseRepos) return false;
         var destination = GridHelper.ToGridXZ(action.TargetPos);
+        if (blockedDestinations.Contains(destination)) return true;
+        if (!ordinaryAdvance) return false;
         bool returning = false;
         for (int i = departures.Count - 1; i >= 0; i--)
             if (departures[i].Actor == action.Unit && departures[i].Cell == destination) { returning = true; break; }

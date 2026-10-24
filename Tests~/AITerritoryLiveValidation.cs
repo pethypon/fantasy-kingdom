@@ -49,6 +49,8 @@ public static class AITerritoryLiveValidation
                 Stage("safety", () => System.Type.GetType("AITerritorySafetyTests, Assembly-CSharp-Editor",true).GetMethod("Run").Invoke(null,new object[]{turn.Systems}));
                 Stage("executed-movement", () => AITerritoryExecutionTests.Run(turn.Systems,turn));
                 Stage("reconnaissance-request", () => AITerritoryReconTests.Run(turn.Systems));
+                Stage("shared-collision-outcome", () => AITerritoryCollisionTests.Run(turn.Systems,turn));
+                Stage("completed-approach-reconnaissance", () => AITerritoryArrivalTests.Run(turn.Systems,turn));
                 Stage("persistence", () => AITerritoryPersistenceTests.Run(turn.Systems,turn));
                 Stage("save-compatibility", () => SaveCompatibilityTests.RunAll());
             }

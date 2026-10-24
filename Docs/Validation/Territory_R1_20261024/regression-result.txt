@@ -1,0 +1,8 @@
+[Barrier] ALL PASSED 74
+[BarrierAI] 116 opt-in barrier/search/forecast checks passed
+[ProtectedTargetAI] 40 observation/protection/candidate checks passed
+[BasicResourceEconomy] ALL PASSED
+[KnownBases] 106 observed-base/opportunity/lifetime/save checks passed
+[AssassinAbility] 35 replacement-passive checks passed
+[R1ProductionAI] 288 real both-faction recruitment checks passed
+[BarrierLiveValidation] ALL PASSED (temporary rule fixture; production activation unchanged)

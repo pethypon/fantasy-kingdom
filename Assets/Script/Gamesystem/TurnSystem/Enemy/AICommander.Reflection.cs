@@ -142,6 +142,10 @@ public partial class AICommander
         {
             if (movementActor != null)
                 turnMovementHistory.Record(movementActor, movementOrigin, movementActor.transform.position, success);
+            if (!success && _actionExecutor.LastMoveWasBlocked)
+                turnMovementHistory.RecordBlockedDestination(_actionExecutor.LastRequestedDestination);
+            else if (success && (action.ActionType == AIActionType.Attack || action.ActionType == AIActionType.SkillUse))
+                turnMovementHistory.InvalidateBlockedDestinations();
             // Credit the executed route before after-action features can replace its waypoint.
             _governor.TerritoryIntel.RecordAction(action, success, _board);
             bool reflectionPending = token.IsValid && !reflectionUnavailable;

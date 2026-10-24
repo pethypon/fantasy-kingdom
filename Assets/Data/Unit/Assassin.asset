@@ -25,10 +25,12 @@ MonoBehaviour:
   authoredSkillId: -1
   authoredSpecialAbility: 0
   specialSkill: {fileID: 11400000, guid: b7f13c860fbacd14ca94f77fc9036219, type: 2}
+  attackTags: 0
   kind: 5
   baseHP: 16
   baseATK: 15
   baseDEF: 10
+  baseBarrier: -1
   hpGrowth: 0.1
   atkGrowth: 0.3
   defGrowth: 0.1
@@ -41,11 +43,11 @@ MonoBehaviour:
   upkeepWater: 0
   upkeepBread: 2
   upkeepMagicScales: 1
-  costWood: 0
-  costStone: 0
+  costWood: 50
+  costStone: 50
   costIron: 15
   costMagic: 5
-  costWater: 0
-  costBread: 10
+  costWater: 30
+  costBread: 20
   costCitizen: 1
-  costAP: 6
+  costAP: 10

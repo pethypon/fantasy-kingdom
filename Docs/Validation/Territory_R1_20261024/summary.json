@@ -1,0 +1,2908 @@
+{
+  "scope": "Native Unity actual ordinary AI games; owner-turn-capped results remain unresolved. Turn CSV deduplicated by team/boardTurn. Goalward moves use stable observed waypoint and endpoint geometry, not execution-time strategic attribution.",
+  "runs": [
+    {
+      "label": "before",
+      "source": "territory-r1-before",
+      "completed": true,
+      "matches": [
+        {
+          "MapSeed": 161803,
+          "EnemyAISeed": 343266,
+          "PlayerAISeed": 15015,
+          "ThreatLevel": 15,
+          "EnemyPersonality": "Adaptive",
+          "Round": 200,
+          "OwnerTurns": 400,
+          "StartedUtc": "2026-10-23T10:13:43.2218619Z",
+          "FinishedUtc": "2026-10-23T10:17:18.9696248Z",
+          "EndCondition": "owner_turn_limit",
+          "Result": "unresolved",
+          "OutcomeReason": "",
+          "ActualPlayerAIModeUsed": true,
+          "Errors": 0,
+          "Exceptions": 0,
+          "Assertions": 0,
+          "Seconds": 218.773068,
+          "P95FrameMs": 11.568998336791992,
+          "WorstFrameMs": 1008.9453735351562,
+          "InitialMemoryMB": 176.75424194335938,
+          "FinalMemoryMB": 217.70956420898438,
+          "PeakMemoryMB": 217.9416046142578,
+          "PlayerCommanderHP": 300,
+          "EnemyCommanderHP": 500,
+          "PlayerCrystalHP": 15000,
+          "EnemyCrystalHP": 15000,
+          "sides": [
+            {
+              "team": "Player",
+              "metrics": {
+                "Team": "Player",
+                "OwnerTurns": 200,
+                "Actions": 2247,
+                "SuccessfulActions": 2162,
+                "FailedActions": 85,
+                "Moves": 1425,
+                "Attacks": 528,
+                "Skills": 27,
+                "Builds": 75,
+                "Summons": 86,
+                "ExplorationMoves": 144,
+                "ObjectiveApproachMoves": 505,
+                "ObjectiveDistanceGain": 722,
+                "RevealedCells": 1082,
+                "DamageDealt": 9115,
+                "EnemyKills": 85,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 25,
+                "Oscillations": 17,
+                "FailedProgressActions": 724,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 19,
+                "FirstAttackRound": 19,
+                "AttackRatio": 0.24421831965446472,
+                "BuildRatio": 0.03469010069966316,
+                "ExplorationMoveRatio": 0.10105263441801071
+              },
+              "uniqueTurns": 200,
+              "meanHomeDistance": 5.04077268,
+              "territoryOnlyTurns": [
+                173,
+                174,
+                175,
+                186,
+                187,
+                197
+              ],
+              "territoryOnlyActive": 0,
+              "memoryNoContactTurns": 0,
+              "activeGoalTurns": 0,
+              "modes": {
+                "EconomicRecovery": 33,
+                "Exploration": 62,
+                "StrategicAttack": 105
+              },
+              "firstObserved": null,
+              "maxUnconfirmedAge": 0,
+              "failureReasons": {
+                "ExecutionFailed": 85
+              },
+              "combatRoleGoalwardNoContactMoves": 0,
+              "sampleGoalwardMoves": []
+            },
+            {
+              "team": "Enemy",
+              "metrics": {
+                "Team": "Enemy",
+                "OwnerTurns": 200,
+                "Actions": 2222,
+                "SuccessfulActions": 2188,
+                "FailedActions": 34,
+                "Moves": 1443,
+                "Attacks": 523,
+                "Skills": 15,
+                "Builds": 86,
+                "Summons": 103,
+                "ExplorationMoves": 136,
+                "ObjectiveApproachMoves": 688,
+                "ObjectiveDistanceGain": 994,
+                "RevealedCells": 1068,
+                "DamageDealt": 7931,
+                "EnemyKills": 65,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 7,
+                "Oscillations": 4,
+                "FailedProgressActions": 579,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 8,
+                "FirstAttackRound": 14,
+                "AttackRatio": 0.23903107643127441,
+                "BuildRatio": 0.03930530324578285,
+                "ExplorationMoveRatio": 0.09424809366464615
+              },
+              "uniqueTurns": 200,
+              "meanHomeDistance": 5.285713315,
+              "territoryOnlyTurns": [
+                53,
+                62,
+                63,
+                66
+              ],
+              "territoryOnlyActive": 0,
+              "memoryNoContactTurns": 0,
+              "activeGoalTurns": 0,
+              "modes": {
+                "EconomicRecovery": 42,
+                "Exploration": 67,
+                "StrategicAttack": 91
+              },
+              "firstObserved": null,
+              "maxUnconfirmedAge": 0,
+              "failureReasons": {
+                "ExecutionFailed": 34
+              },
+              "combatRoleGoalwardNoContactMoves": 0,
+              "sampleGoalwardMoves": []
+            }
+          ]
+        },
+        {
+          "MapSeed": 271828,
+          "EnemyAISeed": 221501,
+          "PlayerAISeed": 15015,
+          "ThreatLevel": 15,
+          "EnemyPersonality": "Intellect",
+          "Round": 200,
+          "OwnerTurns": 400,
+          "StartedUtc": "2026-10-23T10:17:20.9930995Z",
+          "FinishedUtc": "2026-10-23T10:20:28.7311132Z",
+          "EndCondition": "owner_turn_limit",
+          "Result": "unresolved",
+          "OutcomeReason": "",
+          "ActualPlayerAIModeUsed": true,
+          "Errors": 0,
+          "Exceptions": 0,
+          "Assertions": 0,
+          "Seconds": 189.65340060000003,
+          "P95FrameMs": 11.1961030960083,
+          "WorstFrameMs": 881.7319946289062,
+          "InitialMemoryMB": 187.6842498779297,
+          "FinalMemoryMB": 200.93519592285156,
+          "PeakMemoryMB": 201.16265869140625,
+          "PlayerCommanderHP": 375,
+          "EnemyCommanderHP": 500,
+          "PlayerCrystalHP": 15000,
+          "EnemyCrystalHP": 15000,
+          "sides": [
+            {
+              "team": "Player",
+              "metrics": {
+                "Team": "Player",
+                "OwnerTurns": 200,
+                "Actions": 1938,
+                "SuccessfulActions": 1929,
+                "FailedActions": 9,
+                "Moves": 1492,
+                "Attacks": 263,
+                "Skills": 30,
+                "Builds": 81,
+                "Summons": 48,
+                "ExplorationMoves": 119,
+                "ObjectiveApproachMoves": 661,
+                "ObjectiveDistanceGain": 978,
+                "RevealedCells": 866,
+                "DamageDealt": 5271,
+                "EnemyKills": 29,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 2,
+                "Oscillations": 0,
+                "FailedProgressActions": 508,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 24,
+                "FirstAttackRound": 24,
+                "AttackRatio": 0.13634006679058075,
+                "BuildRatio": 0.04199066758155823,
+                "ExplorationMoveRatio": 0.07975871115922928
+              },
+              "uniqueTurns": 200,
+              "meanHomeDistance": 6.53300371,
+              "territoryOnlyTurns": [
+                34,
+                35,
+                97,
+                98
+              ],
+              "territoryOnlyActive": 0,
+              "memoryNoContactTurns": 0,
+              "activeGoalTurns": 0,
+              "modes": {
+                "EconomicRecovery": 30,
+                "Exploration": 149,
+                "StrategicAttack": 21
+              },
+              "firstObserved": null,
+              "maxUnconfirmedAge": 0,
+              "failureReasons": {
+                "ExecutionFailed": 9
+              },
+              "combatRoleGoalwardNoContactMoves": 0,
+              "sampleGoalwardMoves": []
+            },
+            {
+              "team": "Enemy",
+              "metrics": {
+                "Team": "Enemy",
+                "OwnerTurns": 200,
+                "Actions": 2004,
+                "SuccessfulActions": 2003,
+                "FailedActions": 1,
+                "Moves": 1682,
+                "Attacks": 152,
+                "Skills": 13,
+                "Builds": 87,
+                "Summons": 47,
+                "ExplorationMoves": 133,
+                "ObjectiveApproachMoves": 756,
+                "ObjectiveDistanceGain": 885,
+                "RevealedCells": 802,
+                "DamageDealt": 2136,
+                "EnemyKills": 23,
+                "ObjectiveAttacks": 5,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 0,
+                "Oscillations": 0,
+                "FailedProgressActions": 653,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 13,
+                "FirstAttackRound": 14,
+                "AttackRatio": 0.07588616758584976,
+                "BuildRatio": 0.04343484714627266,
+                "ExplorationMoveRatio": 0.07907253503799438
+              },
+              "uniqueTurns": 200,
+              "meanHomeDistance": 5.980975145,
+              "territoryOnlyTurns": [
+                41,
+                42
+              ],
+              "territoryOnlyActive": 0,
+              "memoryNoContactTurns": 0,
+              "activeGoalTurns": 0,
+              "modes": {
+                "EconomicRecovery": 26,
+                "Exploration": 138,
+                "StrategicAttack": 36
+              },
+              "firstObserved": null,
+              "maxUnconfirmedAge": 0,
+              "failureReasons": {
+                "ExecutionFailed": 1
+              },
+              "combatRoleGoalwardNoContactMoves": 0,
+              "sampleGoalwardMoves": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "final",
+      "source": "territory-r1-acceptance2-matches",
+      "completed": true,
+      "matches": [
+        {
+          "MapSeed": 161803,
+          "EnemyAISeed": 343266,
+          "PlayerAISeed": 15015,
+          "ThreatLevel": 15,
+          "EnemyPersonality": "Adaptive",
+          "Round": 200,
+          "OwnerTurns": 400,
+          "StartedUtc": "2026-10-23T22:58:19.5067130Z",
+          "FinishedUtc": "2026-10-23T23:02:02.7496404Z",
+          "EndCondition": "owner_turn_limit",
+          "Result": "unresolved",
+          "OutcomeReason": "",
+          "ActualPlayerAIModeUsed": true,
+          "Errors": 0,
+          "Exceptions": 0,
+          "Assertions": 0,
+          "Seconds": 225.5262181,
+          "P95FrameMs": 20.550100326538086,
+          "WorstFrameMs": 439.7940979003906,
+          "InitialMemoryMB": 177.47665405273438,
+          "FinalMemoryMB": 217.45330810546875,
+          "PeakMemoryMB": 217.55593872070312,
+          "PlayerCommanderHP": 300,
+          "EnemyCommanderHP": 500,
+          "PlayerCrystalHP": 15000,
+          "EnemyCrystalHP": 15000,
+          "sides": [
+            {
+              "team": "Player",
+              "metrics": {
+                "Team": "Player",
+                "OwnerTurns": 200,
+                "Actions": 2305,
+                "SuccessfulActions": 2220,
+                "FailedActions": 85,
+                "Moves": 1373,
+                "Attacks": 656,
+                "Skills": 20,
+                "Builds": 64,
+                "Summons": 94,
+                "ExplorationMoves": 144,
+                "ObjectiveApproachMoves": 608,
+                "ObjectiveDistanceGain": 954,
+                "RevealedCells": 1115,
+                "DamageDealt": 9764,
+                "EnemyKills": 96,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 8,
+                "Oscillations": 2,
+                "FailedProgressActions": 624,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 19,
+                "FirstAttackRound": 19,
+                "AttackRatio": 0.29549551010131836,
+                "BuildRatio": 0.028828829526901245,
+                "ExplorationMoveRatio": 0.10487982630729675
+              },
+              "uniqueTurns": 200,
+              "meanHomeDistance": 5.592086855,
+              "territoryOnlyTurns": [
+                94,
+                125,
+                131,
+                144
+              ],
+              "territoryOnlyActive": 4,
+              "memoryNoContactTurns": 25,
+              "activeGoalTurns": 116,
+              "modes": {
+                "EconomicRecovery": 38,
+                "Exploration": 32,
+                "StrategicAttack": 130
+              },
+              "firstObserved": 68,
+              "maxUnconfirmedAge": 21,
+              "failureReasons": {
+                "move_destination_occupied": 85
+              },
+              "combatRoleGoalwardNoContactMoves": 45,
+              "sampleGoalwardMoves": [
+                {
+                  "round": "77",
+                  "id": "704",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "25",
+                  "beforeZ": "25",
+                  "afterX": "24",
+                  "afterZ": "25",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "12",
+                    "13"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "94",
+                  "id": "943",
+                  "type": "Support",
+                  "role": "Ranged",
+                  "beforeX": "19",
+                  "beforeZ": "12",
+                  "afterX": "18",
+                  "afterZ": "11",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "12",
+                    "10"
+                  ],
+                  "visibleOpponentTerritory": "1"
+                },
+                {
+                  "round": "94",
+                  "id": "944",
+                  "type": "Support",
+                  "role": "Infantry",
+                  "beforeX": "15",
+                  "beforeZ": "15",
+                  "afterX": "15",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "12",
+                    "10"
+                  ],
+                  "visibleOpponentTerritory": "1"
+                },
+                {
+                  "round": "94",
+                  "id": "945",
+                  "type": "Support",
+                  "role": "Infantry",
+                  "beforeX": "14",
+                  "beforeZ": "16",
+                  "afterX": "14",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "12",
+                    "10"
+                  ],
+                  "visibleOpponentTerritory": "1"
+                },
+                {
+                  "round": "94",
+                  "id": "946",
+                  "type": "Support",
+                  "role": "Infantry",
+                  "beforeX": "12",
+                  "beforeZ": "13",
+                  "afterX": "12",
+                  "afterZ": "12",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "12",
+                    "10"
+                  ],
+                  "visibleOpponentTerritory": "1"
+                },
+                {
+                  "round": "95",
+                  "id": "953",
+                  "type": "Support",
+                  "role": "Ranged",
+                  "beforeX": "18",
+                  "beforeZ": "11",
+                  "afterX": "17",
+                  "afterZ": "12",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "12",
+                    "10"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "125",
+                  "id": "1359",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "13",
+                  "beforeZ": "14",
+                  "afterX": "13",
+                  "afterZ": "13",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "2"
+                },
+                {
+                  "round": "128",
+                  "id": "1395",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "12",
+                  "beforeZ": "15",
+                  "afterX": "12",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "129",
+                  "id": "1407",
+                  "type": "Support",
+                  "role": "Infantry",
+                  "beforeX": "12",
+                  "beforeZ": "16",
+                  "afterX": "12",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "129",
+                  "id": "1408",
+                  "type": "Support",
+                  "role": "Infantry",
+                  "beforeX": "13",
+                  "beforeZ": "16",
+                  "afterX": "13",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "129",
+                  "id": "1412",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "14",
+                  "beforeZ": "16",
+                  "afterX": "14",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "129",
+                  "id": "1414",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "15",
+                  "beforeZ": "15",
+                  "afterX": "14",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "131",
+                  "id": "1426",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "10",
+                  "beforeZ": "15",
+                  "afterX": "10",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "3"
+                },
+                {
+                  "round": "135",
+                  "id": "1477",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "12",
+                  "beforeZ": "15",
+                  "afterX": "12",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "135",
+                  "id": "1478",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "8",
+                  "beforeZ": "15",
+                  "afterX": "8",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "140",
+                  "id": "1535",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "13",
+                  "beforeZ": "15",
+                  "afterX": "13",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "140",
+                  "id": "1536",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "15",
+                  "beforeZ": "16",
+                  "afterX": "15",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "140",
+                  "id": "1538",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "12",
+                  "beforeZ": "15",
+                  "afterX": "12",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "143",
+                  "id": "1558",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "15",
+                  "beforeZ": "14",
+                  "afterX": "14",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "143",
+                  "id": "1562",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "8",
+                  "beforeZ": "14",
+                  "afterX": "8",
+                  "afterZ": "13",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "9",
+                    "9"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                }
+              ],
+              "failureOccupancyContexts": [
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Magic:observed=False;",
+                  "count": 1
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:HeavyWarrior:observed=False;",
+                  "count": 15
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:DragonKnight:observed=False;",
+                  "count": 40
+                },
+                {
+                  "visible": "True",
+                  "occupants": "Enemy:Unit:Archer:observed=False;",
+                  "count": 2
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Archer:observed=False;",
+                  "count": 4
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Berserker:observed=False;",
+                  "count": 13
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Samurai:observed=False;",
+                  "count": 7
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:HolyKnight:observed=False;",
+                  "count": 3
+                }
+              ]
+            },
+            {
+              "team": "Enemy",
+              "metrics": {
+                "Team": "Enemy",
+                "OwnerTurns": 200,
+                "Actions": 2168,
+                "SuccessfulActions": 2085,
+                "FailedActions": 83,
+                "Moves": 1256,
+                "Attacks": 626,
+                "Skills": 11,
+                "Builds": 70,
+                "Summons": 107,
+                "ExplorationMoves": 107,
+                "ObjectiveApproachMoves": 571,
+                "ObjectiveDistanceGain": 704,
+                "RevealedCells": 850,
+                "DamageDealt": 8830,
+                "EnemyKills": 79,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 8,
+                "Oscillations": 1,
+                "FailedProgressActions": 631,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 8,
+                "FirstAttackRound": 14,
+                "AttackRatio": 0.30023980140686035,
+                "BuildRatio": 0.03357314318418503,
+                "ExplorationMoveRatio": 0.08519108593463898
+              },
+              "uniqueTurns": 200,
+              "meanHomeDistance": 5.716583505,
+              "territoryOnlyTurns": [
+                58,
+                61,
+                64,
+                140,
+                148,
+                149,
+                185,
+                188
+              ],
+              "territoryOnlyActive": 8,
+              "memoryNoContactTurns": 37,
+              "activeGoalTurns": 143,
+              "modes": {
+                "EconomicRecovery": 40,
+                "Exploration": 17,
+                "StrategicAttack": 143
+              },
+              "firstObserved": 53,
+              "maxUnconfirmedAge": 33,
+              "failureReasons": {
+                "move_destination_occupied": 83
+              },
+              "combatRoleGoalwardNoContactMoves": 64,
+              "sampleGoalwardMoves": [
+                {
+                  "round": "61",
+                  "id": "549",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "11",
+                  "beforeZ": "14",
+                  "afterX": "12",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "16",
+                    "14"
+                  ],
+                  "visibleOpponentTerritory": "8"
+                },
+                {
+                  "round": "61",
+                  "id": "550",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "12",
+                  "beforeZ": "13",
+                  "afterX": "13",
+                  "afterZ": "13",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "16",
+                    "14"
+                  ],
+                  "visibleOpponentTerritory": "8"
+                },
+                {
+                  "round": "61",
+                  "id": "561",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "10",
+                  "beforeZ": "13",
+                  "afterX": "11",
+                  "afterZ": "13",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "16",
+                    "14"
+                  ],
+                  "visibleOpponentTerritory": "8"
+                },
+                {
+                  "round": "72",
+                  "id": "699",
+                  "type": "Support",
+                  "role": "Infantry",
+                  "beforeX": "14",
+                  "beforeZ": "13",
+                  "afterX": "14",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "14",
+                    "16"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "72",
+                  "id": "702",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "10",
+                  "beforeZ": "11",
+                  "afterX": "11",
+                  "afterZ": "12",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "14",
+                    "16"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "72",
+                  "id": "703",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "4",
+                  "beforeZ": "13",
+                  "afterX": "5",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "14",
+                    "16"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "72",
+                  "id": "704",
+                  "type": "Support",
+                  "role": "Infantry",
+                  "beforeX": "12",
+                  "beforeZ": "12",
+                  "afterX": "12",
+                  "afterZ": "13",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "14",
+                    "16"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "95",
+                  "id": "947",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "10",
+                  "beforeZ": "12",
+                  "afterX": "11",
+                  "afterZ": "12",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "99",
+                  "id": "991",
+                  "type": "Surround",
+                  "role": "Infantry",
+                  "beforeX": "9",
+                  "beforeZ": "14",
+                  "afterX": "10",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "101",
+                  "id": "1017",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "11",
+                  "beforeZ": "13",
+                  "afterX": "12",
+                  "afterZ": "13",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "101",
+                  "id": "1018",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "11",
+                  "beforeZ": "14",
+                  "afterX": "12",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "101",
+                  "id": "1020",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "9",
+                  "beforeZ": "12",
+                  "afterX": "10",
+                  "afterZ": "12",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "103",
+                  "id": "1045",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "11",
+                  "beforeZ": "12",
+                  "afterX": "12",
+                  "afterZ": "12",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "103",
+                  "id": "1047",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "10",
+                  "beforeZ": "15",
+                  "afterX": "11",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "103",
+                  "id": "1051",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "11",
+                  "beforeZ": "15",
+                  "afterX": "12",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "104",
+                  "id": "1057",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "12",
+                  "beforeZ": "15",
+                  "afterX": "13",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "107",
+                  "id": "1102",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "10",
+                  "beforeZ": "11",
+                  "afterX": "11",
+                  "afterZ": "11",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "111",
+                  "id": "1139",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "3",
+                  "beforeZ": "14",
+                  "afterX": "4",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "111",
+                  "id": "1140",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "4",
+                  "beforeZ": "12",
+                  "afterX": "5",
+                  "afterZ": "12",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "114",
+                  "id": "1167",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "4",
+                  "beforeZ": "15",
+                  "afterX": "5",
+                  "afterZ": "15",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "17",
+                    "17"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                }
+              ],
+              "failureOccupancyContexts": [
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Berserker:observed=False;",
+                  "count": 16
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Scout:observed=False;",
+                  "count": 10
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Wall:WoodWall:observed=False;",
+                  "count": 1
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Magic:observed=False;",
+                  "count": 2
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:HeavyWarrior:observed=False;",
+                  "count": 16
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Archer:observed=False;",
+                  "count": 9
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Knight:observed=False;",
+                  "count": 12
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Samurai:observed=False;",
+                  "count": 10
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:DragonKnight:observed=False;",
+                  "count": 5
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:HolyKnight:observed=False;",
+                  "count": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "MapSeed": 271828,
+          "EnemyAISeed": 221501,
+          "PlayerAISeed": 15015,
+          "ThreatLevel": 15,
+          "EnemyPersonality": "Intellect",
+          "Round": 200,
+          "OwnerTurns": 400,
+          "StartedUtc": "2026-10-23T23:02:04.6862123Z",
+          "FinishedUtc": "2026-10-23T23:05:40.6267308Z",
+          "EndCondition": "owner_turn_limit",
+          "Result": "unresolved",
+          "OutcomeReason": "",
+          "ActualPlayerAIModeUsed": true,
+          "Errors": 0,
+          "Exceptions": 0,
+          "Assertions": 0,
+          "Seconds": 217.7798549,
+          "P95FrameMs": 15.835394859313965,
+          "WorstFrameMs": 350.3074951171875,
+          "InitialMemoryMB": 188.3285675048828,
+          "FinalMemoryMB": 200.24252319335938,
+          "PeakMemoryMB": 200.45172119140625,
+          "PlayerCommanderHP": 375,
+          "EnemyCommanderHP": 500,
+          "PlayerCrystalHP": 15000,
+          "EnemyCrystalHP": 15000,
+          "sides": [
+            {
+              "team": "Player",
+              "metrics": {
+                "Team": "Player",
+                "OwnerTurns": 200,
+                "Actions": 1904,
+                "SuccessfulActions": 1878,
+                "FailedActions": 26,
+                "Moves": 1222,
+                "Attacks": 482,
+                "Skills": 19,
+                "Builds": 72,
+                "Summons": 73,
+                "ExplorationMoves": 107,
+                "ObjectiveApproachMoves": 481,
+                "ObjectiveDistanceGain": 631,
+                "RevealedCells": 834,
+                "DamageDealt": 7351,
+                "EnemyKills": 47,
+                "ObjectiveAttacks": 4,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 6,
+                "Oscillations": 4,
+                "FailedProgressActions": 572,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 24,
+                "FirstAttackRound": 24,
+                "AttackRatio": 0.2566560208797455,
+                "BuildRatio": 0.03833865746855736,
+                "ExplorationMoveRatio": 0.08756137639284134
+              },
+              "uniqueTurns": 200,
+              "meanHomeDistance": 7.86427255,
+              "territoryOnlyTurns": [
+                63,
+                75,
+                86,
+                103,
+                107,
+                114,
+                115,
+                117,
+                127,
+                128,
+                129,
+                130,
+                131,
+                132,
+                141,
+                142,
+                148,
+                185,
+                186
+              ],
+              "territoryOnlyActive": 17,
+              "memoryNoContactTurns": 50,
+              "activeGoalTurns": 158,
+              "modes": {
+                "EconomicRecovery": 34,
+                "Exploration": 6,
+                "StrategicAttack": 160
+              },
+              "firstObserved": 39,
+              "maxUnconfirmedAge": 35,
+              "failureReasons": {
+                "move_destination_occupied": 26
+              },
+              "combatRoleGoalwardNoContactMoves": 104,
+              "sampleGoalwardMoves": [
+                {
+                  "round": "43",
+                  "id": "338",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "16",
+                  "beforeZ": "20",
+                  "afterX": "15",
+                  "afterZ": "20",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "43",
+                  "id": "340",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "19",
+                  "beforeZ": "25",
+                  "afterX": "18",
+                  "afterZ": "25",
+                  "newTiles": "1",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "43",
+                  "id": "342",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "18",
+                  "beforeZ": "26",
+                  "afterX": "17",
+                  "afterZ": "26",
+                  "newTiles": "2",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "564",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "15",
+                  "beforeZ": "19",
+                  "afterX": "14",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "565",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "23",
+                  "beforeZ": "25",
+                  "afterX": "22",
+                  "afterZ": "25",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "570",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "18",
+                  "beforeZ": "21",
+                  "afterX": "17",
+                  "afterZ": "21",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "69",
+                  "id": "573",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "14",
+                  "beforeZ": "19",
+                  "afterX": "13",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "69",
+                  "id": "579",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "17",
+                  "beforeZ": "21",
+                  "afterX": "16",
+                  "afterZ": "21",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "69",
+                  "id": "580",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "17",
+                  "beforeZ": "19",
+                  "afterX": "16",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "69",
+                  "id": "581",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "16",
+                  "beforeZ": "19",
+                  "afterX": "15",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "70",
+                  "id": "587",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "15",
+                  "beforeZ": "18",
+                  "afterX": "14",
+                  "afterZ": "18",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "71",
+                  "id": "595",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "22",
+                  "beforeZ": "23",
+                  "afterX": "21",
+                  "afterZ": "23",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "71",
+                  "id": "597",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "16",
+                  "beforeZ": "19",
+                  "afterX": "15",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "71",
+                  "id": "600",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "14",
+                  "beforeZ": "19",
+                  "afterX": "13",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "71",
+                  "id": "601",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "14",
+                  "beforeZ": "18",
+                  "afterX": "13",
+                  "afterZ": "18",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "72",
+                  "id": "610",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "17",
+                  "beforeZ": "20",
+                  "afterX": "16",
+                  "afterZ": "20",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "73",
+                  "id": "618",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "16",
+                  "beforeZ": "18",
+                  "afterX": "15",
+                  "afterZ": "18",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "73",
+                  "id": "621",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "9",
+                  "beforeZ": "18",
+                  "afterX": "9",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "74",
+                  "id": "628",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "15",
+                  "beforeZ": "17",
+                  "afterX": "14",
+                  "afterZ": "17",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "74",
+                  "id": "629",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "16",
+                  "beforeZ": "19",
+                  "afterX": "15",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "8",
+                    "23"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                }
+              ],
+              "failureOccupancyContexts": [
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Knight:observed=False;",
+                  "count": 3
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Archer:observed=False;",
+                  "count": 7
+                },
+                {
+                  "visible": "True",
+                  "occupants": "Enemy:Unit:Archer:observed=False;",
+                  "count": 1
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Berserker:observed=False;",
+                  "count": 3
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Scout:observed=False;",
+                  "count": 1
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:DragonKnight:observed=False;",
+                  "count": 8
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:Magic:observed=False;",
+                  "count": 1
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:HeavyWarrior:observed=False;",
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "team": "Enemy",
+              "metrics": {
+                "Team": "Enemy",
+                "OwnerTurns": 200,
+                "Actions": 2072,
+                "SuccessfulActions": 2057,
+                "FailedActions": 15,
+                "Moves": 1275,
+                "Attacks": 595,
+                "Skills": 12,
+                "Builds": 83,
+                "Summons": 76,
+                "ExplorationMoves": 100,
+                "ObjectiveApproachMoves": 485,
+                "ObjectiveDistanceGain": 595,
+                "RevealedCells": 619,
+                "DamageDealt": 11712,
+                "EnemyKills": 54,
+                "ObjectiveAttacks": 53,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 1,
+                "Oscillations": 0,
+                "FailedProgressActions": 584,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 13,
+                "FirstAttackRound": 14,
+                "AttackRatio": 0.28925618529319763,
+                "BuildRatio": 0.04035002365708351,
+                "ExplorationMoveRatio": 0.0784313753247261
+              },
+              "uniqueTurns": 200,
+              "meanHomeDistance": 7.86579448,
+              "territoryOnlyTurns": [
+                32,
+                33,
+                69,
+                70,
+                72,
+                172,
+                175,
+                177,
+                178,
+                180,
+                181,
+                182
+              ],
+              "territoryOnlyActive": 12,
+              "memoryNoContactTurns": 41,
+              "activeGoalTurns": 168,
+              "modes": {
+                "EconomicRecovery": 32,
+                "StrategicAttack": 168
+              },
+              "firstObserved": 18,
+              "maxUnconfirmedAge": 26,
+              "failureReasons": {
+                "move_destination_occupied": 15
+              },
+              "combatRoleGoalwardNoContactMoves": 114,
+              "sampleGoalwardMoves": [
+                {
+                  "round": "27",
+                  "id": "224",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "9",
+                  "beforeZ": "27",
+                  "afterX": "10",
+                  "afterZ": "26",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "27",
+                  "id": "231",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "10",
+                  "beforeZ": "26",
+                  "afterX": "11",
+                  "afterZ": "27",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "27",
+                  "id": "232",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "11",
+                  "beforeZ": "27",
+                  "afterX": "12",
+                  "afterZ": "28",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "28",
+                  "id": "233",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "12",
+                  "beforeZ": "28",
+                  "afterX": "13",
+                  "afterZ": "29",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "28",
+                  "id": "234",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "5",
+                  "beforeZ": "25",
+                  "afterX": "6",
+                  "afterZ": "25",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "30",
+                  "id": "251",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "2",
+                  "beforeZ": "27",
+                  "afterX": "3",
+                  "afterZ": "27",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "30",
+                  "id": "252",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "16",
+                  "beforeZ": "28",
+                  "afterX": "17",
+                  "afterZ": "27",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "30",
+                  "id": "253",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "7",
+                  "beforeZ": "25",
+                  "afterX": "8",
+                  "afterZ": "25",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "31",
+                  "id": "260",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "17",
+                  "beforeZ": "27",
+                  "afterX": "18",
+                  "afterZ": "28",
+                  "newTiles": "2",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "31",
+                  "id": "269",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "3",
+                  "beforeZ": "26",
+                  "afterX": "4",
+                  "afterZ": "26",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "26"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "41",
+                  "id": "359",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "14",
+                  "beforeZ": "27",
+                  "afterX": "15",
+                  "afterZ": "27",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "41",
+                  "id": "362",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "13",
+                  "beforeZ": "27",
+                  "afterX": "14",
+                  "afterZ": "28",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "41",
+                  "id": "364",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "15",
+                  "beforeZ": "27",
+                  "afterX": "16",
+                  "afterZ": "27",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "41",
+                  "id": "366",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "16",
+                  "beforeZ": "26",
+                  "afterX": "17",
+                  "afterZ": "26",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "41",
+                  "id": "367",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "14",
+                  "beforeZ": "28",
+                  "afterX": "15",
+                  "afterZ": "29",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "41",
+                  "id": "368",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "3",
+                  "beforeZ": "25",
+                  "afterX": "4",
+                  "afterZ": "25",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "45",
+                  "id": "411",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "13",
+                  "beforeZ": "27",
+                  "afterX": "14",
+                  "afterZ": "27",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "45",
+                  "id": "412",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "6",
+                  "beforeZ": "24",
+                  "afterX": "7",
+                  "afterZ": "24",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "45",
+                  "id": "413",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "17",
+                  "beforeZ": "26",
+                  "afterX": "18",
+                  "afterZ": "26",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "45",
+                  "id": "414",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "15",
+                  "beforeZ": "27",
+                  "afterX": "16",
+                  "afterZ": "27",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "21",
+                    "24"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                }
+              ],
+              "failureOccupancyContexts": [
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:DragonKnight:observed=False;",
+                  "count": 7
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Scout:observed=False;",
+                  "count": 2
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Berserker:observed=False;",
+                  "count": 3
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Player:Unit:Archer:observed=False;",
+                  "count": 3
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "before-low",
+      "source": "territory-r1-before-low",
+      "completed": true,
+      "matches": [
+        {
+          "MapSeed": 424242,
+          "EnemyAISeed": 81371,
+          "PlayerAISeed": 15015,
+          "ThreatLevel": 1,
+          "EnemyPersonality": "Combat",
+          "Round": 120,
+          "OwnerTurns": 240,
+          "StartedUtc": "2026-10-23T10:38:03.1039788Z",
+          "FinishedUtc": "2026-10-23T10:39:29.2051111Z",
+          "EndCondition": "owner_turn_limit",
+          "Result": "unresolved",
+          "OutcomeReason": "",
+          "ActualPlayerAIModeUsed": true,
+          "Errors": 0,
+          "Exceptions": 0,
+          "Assertions": 0,
+          "Seconds": 88.4725381,
+          "P95FrameMs": 19.954301834106445,
+          "WorstFrameMs": 740.2613525390625,
+          "InitialMemoryMB": 176.7158203125,
+          "FinalMemoryMB": 217.4005126953125,
+          "PeakMemoryMB": 217.4005126953125,
+          "PlayerCommanderHP": 375,
+          "EnemyCommanderHP": 500,
+          "PlayerCrystalHP": 17000,
+          "EnemyCrystalHP": 15000,
+          "sides": [
+            {
+              "team": "Player",
+              "metrics": {
+                "Team": "Player",
+                "OwnerTurns": 120,
+                "Actions": 1139,
+                "SuccessfulActions": 1139,
+                "FailedActions": 0,
+                "Moves": 962,
+                "Attacks": 30,
+                "Skills": 0,
+                "Builds": 93,
+                "Summons": 28,
+                "ExplorationMoves": 94,
+                "ObjectiveApproachMoves": 363,
+                "ObjectiveDistanceGain": 620,
+                "RevealedCells": 695,
+                "DamageDealt": 431,
+                "EnemyKills": 9,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 0,
+                "Oscillations": 0,
+                "FailedProgressActions": 351,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 9,
+                "FirstAttackRound": 20,
+                "AttackRatio": 0.026338893920183182,
+                "BuildRatio": 0.08165057003498077,
+                "ExplorationMoveRatio": 0.09771309792995453
+              },
+              "uniqueTurns": 120,
+              "meanHomeDistance": 5.179907458333333,
+              "territoryOnlyTurns": [],
+              "territoryOnlyActive": 0,
+              "memoryNoContactTurns": 0,
+              "activeGoalTurns": 0,
+              "modes": {
+                "EconomicRecovery": 54,
+                "Exploration": 59,
+                "StrategicAttack": 7
+              },
+              "firstObserved": null,
+              "maxUnconfirmedAge": 0,
+              "failureReasons": {},
+              "combatRoleGoalwardNoContactMoves": 0,
+              "sampleGoalwardMoves": []
+            },
+            {
+              "team": "Enemy",
+              "metrics": {
+                "Team": "Enemy",
+                "OwnerTurns": 120,
+                "Actions": 1153,
+                "SuccessfulActions": 1153,
+                "FailedActions": 0,
+                "Moves": 968,
+                "Attacks": 41,
+                "Skills": 11,
+                "Builds": 87,
+                "Summons": 30,
+                "ExplorationMoves": 126,
+                "ObjectiveApproachMoves": 375,
+                "ObjectiveDistanceGain": 503,
+                "RevealedCells": 1156,
+                "DamageDealt": 399,
+                "EnemyKills": 2,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 5,
+                "Oscillations": 5,
+                "FailedProgressActions": 385,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 33,
+                "FirstAttackRound": 42,
+                "AttackRatio": 0.035559412091970444,
+                "BuildRatio": 0.07545533031225204,
+                "ExplorationMoveRatio": 0.13016529381275177
+              },
+              "uniqueTurns": 120,
+              "meanHomeDistance": 4.50872085,
+              "territoryOnlyTurns": [
+                52
+              ],
+              "territoryOnlyActive": 0,
+              "memoryNoContactTurns": 0,
+              "activeGoalTurns": 0,
+              "modes": {
+                "EconomicRecovery": 53,
+                "Exploration": 54,
+                "StrategicAttack": 13
+              },
+              "firstObserved": null,
+              "maxUnconfirmedAge": 0,
+              "failureReasons": {},
+              "combatRoleGoalwardNoContactMoves": 0,
+              "sampleGoalwardMoves": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "final-low",
+      "source": "territory-r1-acceptance2-low",
+      "completed": true,
+      "matches": [
+        {
+          "MapSeed": 424242,
+          "EnemyAISeed": 81371,
+          "PlayerAISeed": 15015,
+          "ThreatLevel": 1,
+          "EnemyPersonality": "Combat",
+          "Round": 120,
+          "OwnerTurns": 240,
+          "StartedUtc": "2026-10-23T23:05:53.6884398Z",
+          "FinishedUtc": "2026-10-23T23:07:24.0784018Z",
+          "EndCondition": "owner_turn_limit",
+          "Result": "unresolved",
+          "OutcomeReason": "",
+          "ActualPlayerAIModeUsed": true,
+          "Errors": 0,
+          "Exceptions": 0,
+          "Assertions": 0,
+          "Seconds": 92.79968589999999,
+          "P95FrameMs": 19.12169647216797,
+          "WorstFrameMs": 452.32379150390625,
+          "InitialMemoryMB": 179.37393188476562,
+          "FinalMemoryMB": 216.6300811767578,
+          "PeakMemoryMB": 216.7733612060547,
+          "PlayerCommanderHP": 300,
+          "EnemyCommanderHP": 500,
+          "PlayerCrystalHP": 16000,
+          "EnemyCrystalHP": 15000,
+          "sides": [
+            {
+              "team": "Player",
+              "metrics": {
+                "Team": "Player",
+                "OwnerTurns": 120,
+                "Actions": 1101,
+                "SuccessfulActions": 1097,
+                "FailedActions": 4,
+                "Moves": 828,
+                "Attacks": 168,
+                "Skills": 7,
+                "Builds": 53,
+                "Summons": 31,
+                "ExplorationMoves": 136,
+                "ObjectiveApproachMoves": 442,
+                "ObjectiveDistanceGain": 646,
+                "RevealedCells": 1104,
+                "DamageDealt": 2548,
+                "EnemyKills": 22,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 0,
+                "Oscillations": 0,
+                "FailedProgressActions": 248,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 9,
+                "FirstAttackRound": 20,
+                "AttackRatio": 0.1531449407339096,
+                "BuildRatio": 0.04831358417868614,
+                "ExplorationMoveRatio": 0.1642512083053589
+              },
+              "uniqueTurns": 120,
+              "meanHomeDistance": 8.928479766666667,
+              "territoryOnlyTurns": [
+                44,
+                45,
+                49,
+                50
+              ],
+              "territoryOnlyActive": 1,
+              "memoryNoContactTurns": 32,
+              "activeGoalTurns": 57,
+              "modes": {
+                "EconomicRecovery": 41,
+                "Exploration": 22,
+                "StrategicAttack": 57
+              },
+              "firstObserved": 44,
+              "maxUnconfirmedAge": 16,
+              "failureReasons": {
+                "move_destination_occupied": 4
+              },
+              "combatRoleGoalwardNoContactMoves": 98,
+              "sampleGoalwardMoves": [
+                {
+                  "round": "66",
+                  "id": "560",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "27",
+                  "beforeZ": "20",
+                  "afterX": "26",
+                  "afterZ": "21",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "66",
+                  "id": "564",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "21",
+                  "beforeZ": "19",
+                  "afterX": "21",
+                  "afterZ": "20",
+                  "newTiles": "1",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "66",
+                  "id": "565",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "23",
+                  "beforeZ": "18",
+                  "afterX": "23",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "66",
+                  "id": "567",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "23",
+                  "beforeZ": "17",
+                  "afterX": "23",
+                  "afterZ": "18",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "66",
+                  "id": "569",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "24",
+                  "beforeZ": "19",
+                  "afterX": "24",
+                  "afterZ": "20",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "67",
+                  "id": "572",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "26",
+                  "beforeZ": "21",
+                  "afterX": "25",
+                  "afterZ": "22",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "67",
+                  "id": "573",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "21",
+                  "beforeZ": "12",
+                  "afterX": "22",
+                  "afterZ": "13",
+                  "newTiles": "1",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "67",
+                  "id": "578",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "23",
+                  "beforeZ": "18",
+                  "afterX": "23",
+                  "afterZ": "19",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "67",
+                  "id": "579",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "24",
+                  "beforeZ": "20",
+                  "afterX": "24",
+                  "afterZ": "21",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "67",
+                  "id": "580",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "21",
+                  "beforeZ": "20",
+                  "afterX": "21",
+                  "afterZ": "21",
+                  "newTiles": "2",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "67",
+                  "id": "581",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "23",
+                  "beforeZ": "20",
+                  "afterX": "23",
+                  "afterZ": "21",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "67",
+                  "id": "582",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "22",
+                  "beforeZ": "16",
+                  "afterX": "22",
+                  "afterZ": "17",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "583",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "25",
+                  "beforeZ": "22",
+                  "afterX": "24",
+                  "afterZ": "23",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "584",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "23",
+                  "beforeZ": "15",
+                  "afterX": "23",
+                  "afterZ": "16",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "585",
+                  "type": "Move",
+                  "role": "Ranged",
+                  "beforeX": "22",
+                  "beforeZ": "13",
+                  "afterX": "23",
+                  "afterZ": "14",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "587",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "21",
+                  "beforeZ": "21",
+                  "afterX": "21",
+                  "afterZ": "22",
+                  "newTiles": "1",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "588",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "22",
+                  "beforeZ": "19",
+                  "afterX": "22",
+                  "afterZ": "20",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "590",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "24",
+                  "beforeZ": "21",
+                  "afterX": "24",
+                  "afterZ": "22",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "592",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "23",
+                  "beforeZ": "21",
+                  "afterX": "23",
+                  "afterZ": "22",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                },
+                {
+                  "round": "68",
+                  "id": "593",
+                  "type": "Move",
+                  "role": "Infantry",
+                  "beforeX": "22",
+                  "beforeZ": "17",
+                  "afterX": "22",
+                  "afterZ": "18",
+                  "newTiles": "0",
+                  "damageDealt": "0",
+                  "waypoint": [
+                    "20",
+                    "29"
+                  ],
+                  "visibleOpponentTerritory": "0"
+                }
+              ],
+              "failureOccupancyContexts": [
+                {
+                  "visible": "True",
+                  "occupants": "Enemy:Unit:Archer:observed=False;",
+                  "count": 2
+                },
+                {
+                  "visible": "False",
+                  "occupants": "Enemy:Unit:HolyKnight:observed=False;",
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "team": "Enemy",
+              "metrics": {
+                "Team": "Enemy",
+                "OwnerTurns": 120,
+                "Actions": 1139,
+                "SuccessfulActions": 1139,
+                "FailedActions": 0,
+                "Moves": 849,
+                "Attacks": 148,
+                "Skills": 14,
+                "Builds": 76,
+                "Summons": 35,
+                "ExplorationMoves": 55,
+                "ObjectiveApproachMoves": 232,
+                "ObjectiveDistanceGain": 302,
+                "RevealedCells": 517,
+                "DamageDealt": 2240,
+                "EnemyKills": 23,
+                "ObjectiveAttacks": 0,
+                "VictoryObjectiveAttacks": 0,
+                "CommanderTargetAttacks": 0,
+                "MainCrystalTargetAttacks": 0,
+                "RepeatedActions": 2,
+                "Oscillations": 2,
+                "FailedProgressActions": 453,
+                "RecordGaps": 0,
+                "FirstObservedEnemyRound": 44,
+                "FirstAttackRound": 45,
+                "AttackRatio": 0.129938542842865,
+                "BuildRatio": 0.06672519445419312,
+                "ExplorationMoveRatio": 0.06478209793567657
+              },
+              "uniqueTurns": 120,
+              "meanHomeDistance": 4.805731675,
+              "territoryOnlyTurns": [],
+              "territoryOnlyActive": 0,
+              "memoryNoContactTurns": 0,
+              "activeGoalTurns": 0,
+              "modes": {
+                "EconomicRecovery": 36,
+                "Exploration": 37,
+                "StrategicAttack": 47
+              },
+              "firstObserved": null,
+              "maxUnconfirmedAge": 0,
+              "failureReasons": {},
+              "combatRoleGoalwardNoContactMoves": 0,
+              "sampleGoalwardMoves": [],
+              "failureOccupancyContexts": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "nativePassLines": [
+    "[AITerritoryStage] PASS intel",
+    "[AITerritorySafety] ALL PASSED 38",
+    "[AITerritoryStage] PASS safety",
+    "[AITerritoryExecution] ALL PASSED 96 executedMoves=6 (controlled execution, not a full match)",
+    "[AITerritoryStage] PASS executed-movement",
+    "[AITerritoryRecon] ALL PASSED 26 (controlled topology and native board restore)",
+    "[AITerritoryStage] PASS reconnaissance-request",
+    "[AITerritoryCollision] ALL PASSED 27 (controlled public collision outcomes)",
+    "[AITerritoryStage] PASS shared-collision-outcome",
+    "[AITerritoryArrival] ALL PASSED 40 (actual arrival, controlled post-arrival continuation)",
+    "[AITerritoryStage] PASS completed-approach-reconnaissance",
+    "[TerritorySave] ALL PASSED 11",
+    "[AITerritoryStage] PASS persistence",
+    "[AITerritoryStage] PASS save-compatibility",
+    "[AITerritoryLiveValidation] COMPLETE exit=0"
+  ],
+  "sourceHashes": {
+    "Assets\\Script\\Gamesystem\\TurnSystem\\Enemy\\EnemyTerritoryIntel.State.cs": "81f13285e2c085cf4297f46483276a2fdbf328279292ebce371d7eaec04bb025",
+    "Assets\\Script\\Gamesystem\\TurnSystem\\Enemy\\EnemyTerritoryIntel.cs": "bbe6c7b2840fd39d74701537c4d986b94d6aca5f5d8bb649ad1e71a5c332c0d4",
+    "Assets\\Script\\Gamesystem\\TurnSystem\\Enemy\\EnemyTerritoryIntel.Routes.cs": "24fb1306f4e48d57f1a4a38e14bdef143a037b62cac8acd80f47e7f973c3963e",
+    "Assets\\Script\\Gamesystem\\TurnSystem\\Enemy\\EnemyTerritoryIntel.Persistence.cs": "b00740137915ed3f6b0272b5c92dcafff8be5e9df05235eb48b2558eec75e1a5",
+    "Assets\\Script\\Gamesystem\\TurnSystem\\Enemy\\EnemyTerritoryIntel.Recon.cs": "07db381b3ded356b1824cc7c62dfa617d6779b0193e2e8d2a6403a699e618be8",
+    "Assets\\Script\\Gamesystem\\TurnSystem\\Enemy\\AICommander.Reflection.cs": "b9e4af4ce098969b63e6447cbb7113bca20ace991c44f96683595dc20429e174",
+    "Assets\\Script\\Gamesystem\\TurnSystem\\Enemy\\Exploration\\AIExplorationPlanner.Territory.cs": "3b42c5001aa37acd6f76c57b8c963aa3b2cb133bc4b56a5fe4015a1e00602498"
+  },
+  "verification": {
+    "native": {
+      "resultLines": [
+        "[AITerritoryIntel] 112 native memory/fairness/persistence checks passed; output=C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\territory-r1-acceptance2-native",
+        "[AITerritoryStage] PASS intel",
+        "[AITerritorySafety] ALL PASSED 38",
+        "[AITerritoryStage] PASS safety",
+        "[AITerritoryExecution] ALL PASSED 96 executedMoves=6 (controlled execution, not a full match)",
+        "[AITerritoryStage] PASS executed-movement",
+        "[AITerritoryRecon] ALL PASSED 26 (controlled topology and native board restore)",
+        "[AITerritoryStage] PASS reconnaissance-request",
+        "[AITerritoryCollision] ALL PASSED 27 (controlled public collision outcomes)",
+        "[AITerritoryStage] PASS shared-collision-outcome",
+        "[AITerritoryArrival] ALL PASSED 40 (actual arrival, controlled post-arrival continuation)",
+        "[AITerritoryStage] PASS completed-approach-reconnaissance",
+        "[TerritorySave] ALL PASSED 11",
+        "[AITerritoryStage] PASS persistence",
+        "[SaveCompatibility] 136 migration/atomic/recovery/future/schema checks passed",
+        "[AITerritoryStage] PASS save-compatibility",
+        "[AITerritoryLiveValidation] COMPLETE exit=0"
+      ],
+      "editorShutdownJobTempAllocWarnings": 0
+    },
+    "utf": {
+      "resultLines": [
+        "[Barrier] ALL PASSED 74",
+        "[BarrierAI] 116 opt-in barrier/search/forecast checks passed",
+        "[ProtectedTargetAI] 40 observation/protection/candidate checks passed",
+        "[ThreatClear] 40 checks passed",
+        "[BoardVisualTheme] ALL PASSED units=19 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=40 managedIds=26",
+        "[BoardVisualTheme] ALL PASSED units=19 buildings=18 bosses=4 sharedMaterials=3 managedMeshes=40 managedIds=26",
+        "[BoardVisualThemeTests] ALL PASSED checks=262",
+        "[KingdomBuildings] ALL PASSED 36 distinct meshes / 2 shared palette materials / totalTriangles=31144",
+        "[KingdomWorldVisual] ALL PASSED checks=5078",
+        "[R1ProductionTests] 141 checks passed.",
+        "[R1ProductionAI] 239 production recruitment/recipe/mask checks passed",
+        "[R1UnitVisualTests] 133 checks passed.",
+        "[TerrainEnvironmentTests] 91 movement/visibility/hazard/cave/save checks passed",
+        "[SpecialSkillR1AI] 52 observed skill/environment/recovery checks passed",
+        "[SpecialAI] 97 checks passed",
+        "[SpecialSkillR1AI] 52 observed skill/environment/recovery checks passed",
+        "[EnvironmentGenerationTests] 8704 generation/cluster/reservation/save/budget checks passed",
+        "[R1ProductionAI] 288 real both-faction recruitment checks passed",
+        "[R1OwnWall] 42 owned wall/normal building/fog/forced-swap checks passed",
+        "[AIOperationLifetimeTests] 26 destroyed/cached/turn-tail/faction checks passed",
+        "[BoardThemeLive] ALL PASSED 310",
+        "[BoardActorAnimation] ALL PASSED 46",
+        "[BoardFeedbackTests] ALL PASSED 175",
+        "[AIClosing] 48 faction/priority/strategy checks passed",
+        "[AIClosingAdvance] 75 safe army/priority/observation checks passed",
+        "[AICommanderSafety] 429 commander/faction safety checks passed",
+        "[AssassinAbility] 35 replacement-passive checks passed",
+        "[AIClosingObjective] 53 observation/objective checks passed",
+        "[ThreatClearLive] 10 checks passed",
+        "[AITerritoryIntel] 112 native memory/fairness/persistence checks passed; output=C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\territory-r1-acceptance2-utf",
+        "[AITerritorySafety] ALL PASSED 38",
+        "[AITerritoryRecon] ALL PASSED 26 (controlled topology and native board restore)",
+        "[AITerritoryExecution] ALL PASSED 96 executedMoves=6 (controlled execution, not a full match)",
+        "[AITerritoryCollision] ALL PASSED 27 (controlled public collision outcomes)",
+        "[AITerritoryArrival] ALL PASSED 40 (actual arrival, controlled post-arrival continuation)",
+        "[TerritorySave] ALL PASSED 11"
+      ],
+      "editorShutdownJobTempAllocWarnings": 0,
+      "framework": {
+        "id": "2",
+        "testcasecount": "12",
+        "result": "Passed",
+        "total": "12",
+        "passed": "12",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-10-23 23:07:43Z",
+        "end-time": "2026-10-23 23:07:44Z",
+        "duration": "1.2631047"
+      }
+    },
+    "regression": {
+      "resultLines": [
+        "[Barrier] ALL PASSED 74",
+        "[BarrierAI] 116 opt-in barrier/search/forecast checks passed",
+        "[ProtectedTargetAI] 40 observation/protection/candidate checks passed",
+        "[BasicResourceEconomy] ALL PASSED",
+        "[KnownBases] 106 observed-base/opportunity/lifetime/save checks passed",
+        "[AssassinAbility] 35 replacement-passive checks passed",
+        "[R1ProductionAI] 288 real both-faction recruitment checks passed",
+        "[BarrierLiveValidation] ALL PASSED (temporary rule fixture; production activation unchanged)"
+      ],
+      "editorShutdownJobTempAllocWarnings": 0
+    },
+    "build": {
+      "resultLines": [
+        "[ReleaseValidation] result=Succeeded errors=0 warnings=0 seconds=8.1 mode=editor-idle requestedIdleSeconds=3.0",
+        "[ReleaseValidation] idle_completed mode=editor-idle requestedIdleSeconds=3.0 actualIdleSeconds=3.000 editorUpdates=14196"
+      ],
+      "editorShutdownJobTempAllocWarnings": 2
+    }
+  },
+  "mainCloneCodeMismatches": []
+}

@@ -1,0 +1,2 @@
+[ReleaseValidation] result=Succeeded errors=0 warnings=0 seconds=8.1 mode=editor-idle requestedIdleSeconds=3.0
+[ReleaseValidation] idle_completed mode=editor-idle requestedIdleSeconds=3.0 actualIdleSeconds=3.000 editorUpdates=14196

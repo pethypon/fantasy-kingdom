@@ -13,6 +13,7 @@ public sealed partial class EnemyTerritoryIntel
     readonly HashSet<Vector3Int> previousVision = new HashSet<Vector3Int>();
     readonly HashSet<Vector3Int> occupied = new HashSet<Vector3Int>();
     readonly Dictionary<Vector3Int, int> visits = new Dictionary<Vector3Int, int>();
+    readonly HashSet<Vector3Int> completedApproaches = new HashSet<Vector3Int>();
     readonly List<Vector3Int> removalScratch = new List<Vector3Int>();
     readonly List<Vector3Int> candidates = new List<Vector3Int>(CandidateLimit);
     readonly List<Status> leadActors = new List<Status>(4);
@@ -32,6 +33,7 @@ public sealed partial class EnemyTerritoryIntel
     public bool HasUsableTerritory => observedCellCount > 0;
     public int ObservedCellCount => observedCellCount;
     public int RegionCount => regions.Count;
+    public int CompletedApproachCount => completedApproaches.Count;
     public bool HasWaypoint { get; private set; }
     public Vector3Int Waypoint { get; private set; }
     public bool Suspended { get; private set; }
@@ -111,6 +113,14 @@ public sealed partial class EnemyTerritoryIntel
         {
             region.Cells[word] &= ~mask; observedCellCount--;
             if (HasWaypoint && cell == XZ(Waypoint)) { HasWaypoint = false; Reason = "territory_reobserved_removed"; }
+            // Only fresh ownership evidence can make a formerly completed approach
+            // cease to belong to this remembered territory direction.
+            for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++)
+            {
+                var approach = cell + new Vector3Int(dx, 0, dz);
+                if (Inside(approach) && completedApproaches.Contains(approach) && !IsObservedApproach(approach))
+                { completedApproaches.Remove(approach); visits.Remove(approach); }
+            }
         }
     }
 
@@ -140,7 +150,7 @@ public sealed partial class EnemyTerritoryIntel
         pausedTurn = -1;
         if (!HasObservedTerritory) { HasWaypoint = false; Reason = "territory_unobserved"; return; }
         if (!HasUsableTerritory) { HasWaypoint = false; Reason = "territory_reobserved_removed"; return; }
-        bool valid = HasWaypoint && IsObservedApproach(XZ(Waypoint)) && Passable(XZ(Waypoint));
+        bool valid = HasWaypoint && !completedApproaches.Contains(XZ(Waypoint)) && IsObservedApproach(XZ(Waypoint)) && Passable(XZ(Waypoint));
         if (valid && occupied.Contains(XZ(Waypoint))) valid = false;
         int stall = Mathf.Clamp(ExplorationAISettings.Active.StallTurns, 1, 64);
         if (valid && LastProgressTurn >= 0 && board.TurnCount - LastProgressTurn >= stall)
@@ -171,7 +181,7 @@ public sealed partial class EnemyTerritoryIntel
                 leadActors.Add(mobileActors[(leadActorCursor + i) % mobileActors.Count]);
         }
         removalScratch.Clear();
-        foreach (var pair in visits) if (pair.Value <= board.TurnCount) removalScratch.Add(pair.Key);
+        foreach (var pair in visits) if (pair.Value <= board.TurnCount && !completedApproaches.Contains(pair.Key)) removalScratch.Add(pair.Key);
         foreach (var cell in removalScratch) visits.Remove(cell);
         PruneRouteActors(board);
     }
@@ -262,15 +272,24 @@ public sealed partial class EnemyTerritoryIntel
     }
     static int CompareCell(Vector3Int a, Vector3Int b) => a.x != b.x ? a.x.CompareTo(b.x) : a.z.CompareTo(b.z);
     static float Distance(Vector3Int a, Vector3Int b) => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.z - b.z);
-    void Cooldown(Vector3Int cell, int turn)
+    void Cooldown(Vector3Int cell, int turn, bool completed = false)
     {
         if (visits.Count >= MaximumVisits && !visits.ContainsKey(cell))
         {
-            Vector3Int first = default; int earliest = int.MaxValue;
-            foreach (var pair in visits) if (pair.Value < earliest) { first = pair.Key; earliest = pair.Value; }
-            visits.Remove(first);
+            Vector3Int first = default; int earliest = int.MaxValue; bool foundTemporary = false;
+            foreach (var pair in visits)
+            {
+                bool temporary = !completedApproaches.Contains(pair.Key);
+                if (foundTemporary && !temporary) continue;
+                if (temporary && !foundTemporary || pair.Value < earliest)
+                { first = pair.Key; earliest = pair.Value; foundTemporary = temporary; }
+            }
+            // Failed probes must not evict every completed approach and restart a patrol.
+            if (!foundTemporary && !completed) return;
+            visits.Remove(first); completedApproaches.Remove(first);
         }
         visits[cell] = turn + Mathf.Clamp(ExplorationAISettings.Active.LoopCooldownTurns, 1, 64);
+        if (completed) completedApproaches.Add(cell);
     }
 
     public void RecordAction(AIAction action, bool succeeded, AIBoardState board)
@@ -290,8 +309,8 @@ public sealed partial class EnemyTerritoryIntel
             && after + .01f < context.Remaining)
         {
             LastProgressTurn = board.TurnCount; failedMoves = 0;
-            if (GridHelper.ToGridXZ(action.TargetPos) == XZ(Waypoint))
-            { Cooldown(XZ(Waypoint), board.TurnCount); HasWaypoint = false; Reason = "territory_waypoint_reached"; }
+            if (GridHelper.ToGridXZ(action.TargetPos) == XZ(Waypoint) && action.Unit.GridPosition == XZ(Waypoint))
+            { Cooldown(XZ(Waypoint), board.TurnCount, completed: true); HasWaypoint = false; Reason = "territory_waypoint_reached"; }
         }
     }
 }

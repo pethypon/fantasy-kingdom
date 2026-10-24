@@ -32,4 +32,6 @@ public sealed class EnemyTerritoryIntelVisit
 {
     public Vector3Int Cell;
     public int UntilTurn;
+    // Optional in state v1. Older saves retain ordinary expiring cooldown behavior.
+    public bool Completed;
 }

@@ -25,9 +25,10 @@ public class AIActionExecutor
     public int TotalKills { get => _totalKills; set => _totalKills = value; }
     public BuildSystem BuildSystem { get => _buildSystem; set => _buildSystem = value; }
     public SummonSystem SummonSystem { get => _summonSystem; set => _summonSystem = value; }
-    /// <summary>Passive diagnostics for the latest execution; never used to choose or authorize an action.</summary>
+    /// <summary>Latest execution outcome. A blocked move reveals only its attempted cell, never its occupant.</summary>
     public string LastFailureReason { get; private set; }
     public Vector3 LastRequestedDestination { get; private set; }
+    public bool LastMoveWasBlocked => LastFailureReason == "move_destination_occupied";
 
     bool Fail(string reason) { LastFailureReason = reason; return false; }
 

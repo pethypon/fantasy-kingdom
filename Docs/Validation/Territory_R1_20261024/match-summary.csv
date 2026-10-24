@@ -1,0 +1,7 @@
+run,seed,team,Actions,SuccessfulActions,FailedActions,Moves,Attacks,RepeatedActions,Oscillations,FailedProgressActions,VictoryObjectiveAttacks,ObjectiveAttacks,RevealedCells,redundantProbes,fogMemory,fogActiveGoals,maxReconfirmationGap,mainTowardNoContact,mainTowardFogNoContact,pauseResumes
+final3,161803,Player,2305,2220,85,1373,656,8,2,624,0,0,1115,0,96,85,21,45,38,1
+final3,161803,Enemy,2168,2085,83,1256,626,8,1,631,0,0,850,0,120,119,33,64,48,2
+final3,271828,Player,1904,1878,26,1222,482,6,4,572,0,4,834,0,75,74,35,104,73,3
+final3,271828,Enemy,2072,2057,15,1275,595,1,0,584,0,53,619,0,81,73,26,114,66,4
+final3-low,424242,Player,1101,1097,4,828,168,0,0,248,0,0,1104,0,48,39,16,98,98,4
+final3-low,424242,Enemy,1139,1139,0,849,148,2,2,453,0,0,517,0,0,0,,0,0,0

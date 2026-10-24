@@ -30,6 +30,7 @@ MonoBehaviour:
   baseHP: 32
   baseATK: 10
   baseDEF: 13
+  baseBarrier: -1
   hpGrowth: 0.2
   atkGrowth: 0.1
   defGrowth: 0.2
@@ -42,11 +43,11 @@ MonoBehaviour:
   upkeepWater: 0
   upkeepBread: 1
   upkeepMagicScales: 1
-  costWood: 3
-  costStone: 0
-  costIron: 10
-  costMagic: 0
-  costWater: 0
-  costBread: 5
+  costWood: 80
+  costStone: 80
+  costIron: 35
+  costMagic: 15
+  costWater: 80
+  costBread: 35
   costCitizen: 1
-  costAP: 3
+  costAP: 20

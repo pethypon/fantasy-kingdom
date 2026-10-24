@@ -150,9 +150,23 @@ public static class AITerritoryExecutionTests
                 decision = commander.StrategyPlanner.DecideStrategy(board, commander.Personality, commander.ThreatLevel, 82);
                 actions = AIActionEvaluator.EvaluateAll(commander.Personality, board, commander.Learning, decision.Strategy);
                 selected = (AIAction)Select.Invoke(commander, new object[] { actions, new HashSet<string>(), null });
-                Check(label + " the main army resumes a promoted advance after reconnaissance", selected != null && selected.Unit == actor
-                    && selected.ActionType == AIActionType.Move && selected.TargetPos == cells[3] && selected.StrategicPriority == 3
-                    && executor.Execute(selected, board) && actor.transform.position == cells[3]);
+                Debug.Log("[AITerritoryReconResume] " + label + " from=" + actor.transform.position + " expected=" + cells[3]
+                    + " mode=" + governor.Mode + " strategy=" + decision.Strategy + " reason=" + decision.Reason
+                    + " waypoint=" + governor.TerritoryIntel.Waypoint + " intel=" + governor.TerritoryIntel.Reason
+                    + " selected=" + selected + " selectedPriority=" + selected?.StrategicPriority + " AP=" + board.EnemyAP
+                    + " expectedRouteProgress=" + governor.TerritoryIntel.ProgressScore(actor, cells[3], board)
+                    + " candidates=" + string.Join(";", actions.Take(12).Select(a => a + " P=" + a.StrategicPriority + " AP=" + a.APCost + " reject=" + a.StrategicRejectReason)));
+                Debug.Log("[AITerritoryExecution] recon-resume selected=" + selected?.ActionType + " target=" + selected?.TargetPos
+                    + " priority=" + selected?.StrategicPriority + " score=" + selected?.Score + " rejected=" + selected?.StrategicRejectReason
+                    + " expected=" + cells[3] + " mode=" + governor.Mode);
+                bool legalAdvance = selected != null && selected.Unit == actor
+                    && (selected.ActionType == AIActionType.Move || selected.ActionType == AIActionType.Support || selected.ActionType == AIActionType.Surround)
+                    && selected.TargetPos == cells[3] && selected.StrategicPriority == 3
+                    && board.GetValidMoves(actor).Contains(selected.TargetPos) && governor.TerritoryIntel.IsProgress(actor, selected.TargetPos, board);
+                Check(label + " the main army selects a promoted legal advance after reconnaissance", legalAdvance);
+                ap = f.State.GetAP(team); cost = board.CalcMoveCost(actor, selected.TargetPos);
+                Check(label + " resumed advance executes with exact AP and actual waypoint progress", executor.Execute(selected, board)
+                    && actor.transform.position == cells[3] && actor.HasMovedThisTurn && f.State.GetAP(team) == ap - cost);
             }
 
             AIBoardState Board(int ownTurn)

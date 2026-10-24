@@ -43,11 +43,11 @@ MonoBehaviour:
   upkeepWater: 0
   upkeepBread: 1
   upkeepMagicScales: 1
-  costWood: 6
-  costStone: 4
-  costIron: 16
-  costMagic: 0
-  costWater: 0
-  costBread: 8
+  costWood: 20
+  costStone: 40
+  costIron: 35
+  costMagic: 8
+  costWater: 40
+  costBread: 14
   costCitizen: 1
-  costAP: 5
+  costAP: 13

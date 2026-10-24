@@ -1,0 +1,398 @@
+{
+    "Method": "Initialized native Play Mode; both faction perspectives; isolated sustainable faction systems, scripted current/explored sight sets and original map geometry; complete production candidate generation/evaluation, real commander selection and real AIActionExecutor movement/AP consumption. Final approach uses AICommander.ExecuteReflectedAction with enabled isolated reflection to test completion ordering.",
+    "Limits": "Controlled four-own-turn sequence, three actual moves per faction, with one observed economic interruption. Sight sets, turn-start AP/fatigue reset and a temporary post-completion vacancy are fixture inputs; this is not complete commander turn execution, dynamic Fog validation, a full match, or a victory claim. No terrain is edited and no hidden hostile actor or crystal is an AI target.",
+    "Steps": [
+        {
+            "Team": "Player",
+            "Phase": "00-only-territory-executed",
+            "Governor": "StrategicAttack",
+            "Economy": "Healthy",
+            "Strategy": "Balanced",
+            "StrategyReason": "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）",
+            "TerritoryReason": "territory_advance_ready",
+            "Action": "Move",
+            "Rejection": "",
+            "Turn": 60,
+            "CandidateCount": 17,
+            "VisibleOpponentTerritory": 1,
+            "RememberedCells": 1,
+            "APBefore": 40,
+            "APCost": 3,
+            "APAfter": 37,
+            "Priority": 3,
+            "LastProgressTurn": 60,
+            "Before": {
+                "x": 1.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "After": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Destination": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Waypoint": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "GoalDistanceBefore": 3.0,
+            "GoalDistanceAfter": 2.0,
+            "RouteProgress": 14.0,
+            "Suspended": false,
+            "Legal": true,
+            "Executed": true,
+            "NoPrincipalContact": true,
+            "NoCrystalKnowledge": true,
+            "NoScout": true
+        },
+        {
+            "Team": "Player",
+            "Phase": "01-economic-interruption-policy",
+            "Governor": "EconomicRecovery",
+            "Economy": "Collapse",
+            "Strategy": "ScoutSearch",
+            "StrategyReason": "生産を待つ間も探索・領域の確認を継続",
+            "TerritoryReason": "economic_recovery",
+            "Action": "deployment_suspended_no_execution",
+            "Rejection": "",
+            "Turn": 61,
+            "CandidateCount": 3,
+            "VisibleOpponentTerritory": 0,
+            "RememberedCells": 1,
+            "APBefore": 40,
+            "APCost": 0,
+            "APAfter": 40,
+            "Priority": -1,
+            "LastProgressTurn": 60,
+            "Before": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "After": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Destination": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Waypoint": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "GoalDistanceBefore": 2.0,
+            "GoalDistanceAfter": 2.0,
+            "RouteProgress": 0.0,
+            "Suspended": true,
+            "Legal": true,
+            "Executed": false,
+            "NoPrincipalContact": true,
+            "NoCrystalKnowledge": true,
+            "NoScout": true
+        },
+        {
+            "Team": "Player",
+            "Phase": "02-memory-resumed-executed",
+            "Governor": "StrategicAttack",
+            "Economy": "Healthy",
+            "Strategy": "Balanced",
+            "StrategyReason": "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）",
+            "TerritoryReason": "territory_advance_ready",
+            "Action": "Move",
+            "Rejection": "",
+            "Turn": 62,
+            "CandidateCount": 18,
+            "VisibleOpponentTerritory": 0,
+            "RememberedCells": 1,
+            "APBefore": 40,
+            "APCost": 3,
+            "APAfter": 37,
+            "Priority": 3,
+            "LastProgressTurn": 62,
+            "Before": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "After": {
+                "x": 3.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Destination": {
+                "x": 3.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Waypoint": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "GoalDistanceBefore": 2.0,
+            "GoalDistanceAfter": 1.0,
+            "RouteProgress": 14.0,
+            "Suspended": false,
+            "Legal": true,
+            "Executed": true,
+            "NoPrincipalContact": true,
+            "NoCrystalKnowledge": true,
+            "NoScout": true
+        },
+        {
+            "Team": "Player",
+            "Phase": "03-reflected-goal-completion-executed",
+            "Governor": "StrategicAttack",
+            "Economy": "Healthy",
+            "Strategy": "Balanced",
+            "StrategyReason": "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）",
+            "TerritoryReason": "territory_advance_ready",
+            "Action": "Move",
+            "Rejection": "",
+            "Turn": 63,
+            "CandidateCount": 18,
+            "VisibleOpponentTerritory": 0,
+            "RememberedCells": 1,
+            "APBefore": 40,
+            "APCost": 3,
+            "APAfter": 37,
+            "Priority": 3,
+            "LastProgressTurn": 63,
+            "Before": {
+                "x": 3.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "After": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Destination": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Waypoint": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "GoalDistanceBefore": 1.0,
+            "GoalDistanceAfter": 0.0,
+            "RouteProgress": 14.0,
+            "Suspended": false,
+            "Legal": true,
+            "Executed": true,
+            "NoPrincipalContact": true,
+            "NoCrystalKnowledge": true,
+            "NoScout": true
+        },
+        {
+            "Team": "Enemy",
+            "Phase": "00-only-territory-executed",
+            "Governor": "StrategicAttack",
+            "Economy": "Healthy",
+            "Strategy": "Balanced",
+            "StrategyReason": "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）",
+            "TerritoryReason": "territory_advance_ready",
+            "Action": "Move",
+            "Rejection": "",
+            "Turn": 60,
+            "CandidateCount": 17,
+            "VisibleOpponentTerritory": 1,
+            "RememberedCells": 1,
+            "APBefore": 40,
+            "APCost": 3,
+            "APAfter": 37,
+            "Priority": 3,
+            "LastProgressTurn": 60,
+            "Before": {
+                "x": 1.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "After": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Destination": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Waypoint": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "GoalDistanceBefore": 3.0,
+            "GoalDistanceAfter": 2.0,
+            "RouteProgress": 14.0,
+            "Suspended": false,
+            "Legal": true,
+            "Executed": true,
+            "NoPrincipalContact": true,
+            "NoCrystalKnowledge": true,
+            "NoScout": true
+        },
+        {
+            "Team": "Enemy",
+            "Phase": "01-economic-interruption-policy",
+            "Governor": "EconomicRecovery",
+            "Economy": "Collapse",
+            "Strategy": "ScoutSearch",
+            "StrategyReason": "生産を待つ間も探索・領域の確認を継続",
+            "TerritoryReason": "economic_recovery",
+            "Action": "deployment_suspended_no_execution",
+            "Rejection": "",
+            "Turn": 61,
+            "CandidateCount": 3,
+            "VisibleOpponentTerritory": 0,
+            "RememberedCells": 1,
+            "APBefore": 40,
+            "APCost": 0,
+            "APAfter": 40,
+            "Priority": -1,
+            "LastProgressTurn": 60,
+            "Before": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "After": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Destination": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Waypoint": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "GoalDistanceBefore": 2.0,
+            "GoalDistanceAfter": 2.0,
+            "RouteProgress": 0.0,
+            "Suspended": true,
+            "Legal": true,
+            "Executed": false,
+            "NoPrincipalContact": true,
+            "NoCrystalKnowledge": true,
+            "NoScout": true
+        },
+        {
+            "Team": "Enemy",
+            "Phase": "02-memory-resumed-executed",
+            "Governor": "StrategicAttack",
+            "Economy": "Healthy",
+            "Strategy": "Balanced",
+            "StrategyReason": "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）",
+            "TerritoryReason": "territory_advance_ready",
+            "Action": "Move",
+            "Rejection": "",
+            "Turn": 62,
+            "CandidateCount": 18,
+            "VisibleOpponentTerritory": 0,
+            "RememberedCells": 1,
+            "APBefore": 40,
+            "APCost": 3,
+            "APAfter": 37,
+            "Priority": 3,
+            "LastProgressTurn": 62,
+            "Before": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "After": {
+                "x": 3.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Destination": {
+                "x": 3.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Waypoint": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "GoalDistanceBefore": 2.0,
+            "GoalDistanceAfter": 1.0,
+            "RouteProgress": 14.0,
+            "Suspended": false,
+            "Legal": true,
+            "Executed": true,
+            "NoPrincipalContact": true,
+            "NoCrystalKnowledge": true,
+            "NoScout": true
+        },
+        {
+            "Team": "Enemy",
+            "Phase": "03-reflected-goal-completion-executed",
+            "Governor": "StrategicAttack",
+            "Economy": "Healthy",
+            "Strategy": "Balanced",
+            "StrategyReason": "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）",
+            "TerritoryReason": "territory_advance_ready",
+            "Action": "Move",
+            "Rejection": "",
+            "Turn": 63,
+            "CandidateCount": 18,
+            "VisibleOpponentTerritory": 0,
+            "RememberedCells": 1,
+            "APBefore": 40,
+            "APCost": 3,
+            "APAfter": 37,
+            "Priority": 3,
+            "LastProgressTurn": 63,
+            "Before": {
+                "x": 3.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "After": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Destination": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "Waypoint": {
+                "x": 4.0,
+                "y": 2.0,
+                "z": 0.0
+            },
+            "GoalDistanceBefore": 1.0,
+            "GoalDistanceAfter": 0.0,
+            "RouteProgress": 14.0,
+            "Suspended": false,
+            "Legal": true,
+            "Executed": true,
+            "NoPrincipalContact": true,
+            "NoCrystalKnowledge": true,
+            "NoScout": true
+        }
+    ]
+}

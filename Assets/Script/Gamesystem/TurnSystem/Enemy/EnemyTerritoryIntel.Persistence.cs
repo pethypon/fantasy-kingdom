@@ -15,7 +15,7 @@ public sealed partial class EnemyTerritoryIntel
             result.Regions.Add(new EnemyTerritoryIntelRegion { OriginX=item.OriginX,OriginZ=item.OriginZ,
                 FirstObservedTurn=item.FirstObservedTurn,LastConfirmedTurn=item.LastConfirmedTurn,Cells=(int[])item.Cells.Clone() });
         result.Regions.Sort((a,b)=>a.OriginX!=b.OriginX?a.OriginX.CompareTo(b.OriginX):a.OriginZ.CompareTo(b.OriginZ));
-        foreach(var item in visits)result.Visits.Add(new EnemyTerritoryIntelVisit{Cell=item.Key,UntilTurn=item.Value});
+        foreach(var item in visits)result.Visits.Add(new EnemyTerritoryIntelVisit{Cell=item.Key,UntilTurn=item.Value,Completed=completedApproaches.Contains(item.Key)});
         result.Visits.Sort((a,b)=>CompareCell(a.Cell,b.Cell));
         return result;
     }
@@ -36,7 +36,8 @@ public sealed partial class EnemyTerritoryIntel
             regions.Add(new Vector2Int(item.OriginX/RegionSize,item.OriginZ/RegionSize),copy);
             foreach(int word in copy.Cells) { uint bits=(uint)word;while(bits!=0){observedCellCount++;bits&=bits-1;} }
         }
-        if(saved.Visits!=null)foreach(var item in saved.Visits)visits[item.Cell]=item.UntilTurn;
+        if(saved.Visits!=null)foreach(var item in saved.Visits)
+        { visits[item.Cell]=item.UntilTurn; if(item.Completed)completedApproaches.Add(item.Cell); }
     }
 
     public void Reset(Team owner)
@@ -46,7 +47,7 @@ public sealed partial class EnemyTerritoryIntel
         observationTurn=observationGeneration=preparedGeneration=pausedTurn=-1;FirstObservedTurn=LastConfirmedTurn=LastProgressTurn=-1;
         HasWaypoint=Suspended=importedExplored=false;Waypoint=default;Reason="territory_unobserved";
         hasSelectionCursor=false;selectionCursor=default;leadActorCursor=0;
-        regions.Clear();terrain.Clear();terrainBlocked.Clear();previousVision.Clear();occupied.Clear();visits.Clear();
+        regions.Clear();terrain.Clear();terrainBlocked.Clear();previousVision.Clear();occupied.Clear();visits.Clear();completedApproaches.Clear();
         removalScratch.Clear();candidates.Clear();leadActors.Clear();mobileActors.Clear();sourceMap=null;preparedBoard=observationBoard=null;
         LastObservationQueries=0;TotalObservationQueries=0;ClearRoutes();
     }
@@ -102,8 +103,18 @@ public sealed partial class EnemyTerritoryIntel
         }
         var visitKeys=new HashSet<Vector3Int>();
         if(state.Visits!=null)foreach(var visit in state.Visits)
+        {
             if(visit==null||!Inside(visit.Cell)||visit.Cell.y!=0||visit.UntilTurn<0||visit.UntilTurn==int.MaxValue
                 ||!visitKeys.Add(visit.Cell))return false;
+            if(visit.Completed)
+            {
+                if(state.HasWaypoint&&visit.Cell==XZ(state.Waypoint))return false;
+                bool evidence=false;
+                for(int dx=-1;dx<=1;dx++)for(int dz=-1;dz<=1;dz++)
+                    if(Observed(visit.Cell+new Vector3Int(dx,0,dz)))evidence=true;
+                if(!evidence)return false;
+            }
+        }
         return true;
     }
 }

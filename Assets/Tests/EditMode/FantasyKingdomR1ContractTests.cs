@@ -71,7 +71,7 @@ public sealed class FantasyKingdomR1ContractTests
             var turn = UnityEngine.Object.FindFirstObjectByType(Runtime("TurnGenerator"));
             foreach (string suite in new[] { "AITerritoryIntelTests", "AITerritorySafetyTests", "AITerritoryReconTests" })
                 System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems });
-            foreach (string suite in new[] { "AITerritoryExecutionTests", "AITerritoryPersistenceTests" })
+            foreach (string suite in new[] { "AITerritoryExecutionTests", "AITerritoryCollisionTests", "AITerritoryArrivalTests", "AITerritoryPersistenceTests" })
                 System.Type.GetType(suite + ", Assembly-CSharp-Editor", true).GetMethod("Run").Invoke(null, new[] { systems, turn });
         }
         yield return new ExitPlayMode();
