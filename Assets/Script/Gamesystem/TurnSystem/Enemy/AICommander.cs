@@ -76,6 +76,7 @@ public partial class AICommander
 
     // 戦略フォールバック用: 既に試した戦略を記録
     HashSet<TurnStrategy> _triedStrategies = new HashSet<TurnStrategy>();
+    bool _fallbackStrategyPending;
 
     readonly SkillSystem _skillSystem;
     readonly SubCrystalSystem _subCrystalSystem;
@@ -250,6 +251,7 @@ public partial class AICommander
         _actedUnits.Clear();
         turnMovementHistory.Clear();
         _triedStrategies.Clear();
+        _fallbackStrategyPending = false;
         if (_actorTeam == Team.Player) _turnCount = _turnGen.Context.Turn;
         else _turnCount++;
 
@@ -419,9 +421,7 @@ public partial class AICommander
             _governor.Evaluate(_board);
 
             strategyDecision = _strategyPlanner.DecideStrategy(_board, _personality, _threatLevel, _turnCount);
-            _currentStrategy = strategyDecision.Strategy;
-            CurrentStrategyReason = strategyDecision.Reason ?? "";
-            _apBudget = strategyDecision.Budget;
+            ApplyIterationStrategy(strategyDecision);
             _evolution.UpdateObjective(_board);
             if (_threatLevel.UseRoleAssignment) _roleAssigner.AssignRoles(_board, _currentStrategy, _personality);
             // AP予約を再計算（建築/召喚した後は予約を解除）

@@ -36,7 +36,11 @@ public static class AIActionModifiers
                 posAfter = action.Unit.transform.position;
             }
 
-            int counterDmg = board.EstimateCounterDamageAt(posAfter, action.Unit);
+            Status eliminated = action.ActionType == AIActionType.Attack && action.TargetUnit != null
+                && AIActionEvaluator.CanFinishSpecialTarget(action.Unit, action.TargetUnit, board) ? action.TargetUnit : null;
+            float counterDmg = board.Governor != null
+                ? board.Governor.IncomingDamage(board, action.Unit, posAfter, eliminated)
+                : board.EstimateCounterDamageAt(posAfter, action.Unit);
             if (counterDmg <= 0) continue;
 
             float hpRatio = action.Unit.MaxHP > 0 ? (float)action.Unit.HP / action.Unit.MaxHP : 1f;
@@ -51,6 +55,7 @@ public static class AIActionModifiers
                 float bossDist = Vector3.Distance(posAfter, personality.BossUnit.transform.position);
                 if (bossDist < 3f) importanceMult = 1.5f;
             }
+            importanceMult = Mathf.Max(importanceMult, 2f - 1f / Mathf.Max(1, action.Unit.Level));
 
             int alliesNear = board.CountAlliesNear(posAfter, action.Unit, 3f);
             float isolationMult = alliesNear == 0 ? 1.5f : alliesNear == 1 ? 1.2f : 1f;

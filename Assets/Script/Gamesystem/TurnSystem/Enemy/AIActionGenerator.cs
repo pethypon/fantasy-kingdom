@@ -9,6 +9,9 @@ using UnityEngine;
 public static partial class AIActionGenerator
 {
     static readonly List<Status> upgradeBuildings = new List<Status>(32);
+    // GenerateRetreatCandidates is synchronous. This four-entry scratch buffer is shared
+    // just like the existing build buffers and never survives a candidate-generation call.
+    static readonly List<(Vector3 cell, int cost, float value)> retreatAlternatives = new List<(Vector3, int, float)>(4);
     static AIBoardState upgradeBoard;
     static int upgradeGeneration = -1;
     const int MaxAuthoredBuildDefinitions = 16;
@@ -260,31 +263,37 @@ public static partial class AIActionGenerator
             if (d < nearestEnemy) nearestEnemy = d;
         }
 
-        if (hpRatio > 0.4f && nearestEnemy > 3f) return;
+        float Incoming(Vector3 p) => board.Governor != null
+            ? board.Governor.IncomingDamage(board, unit, p, null) : board.EstimateCounterDamageAt(p, unit);
+        float currentRisk = Incoming(unit.transform.position);
+        if (hpRatio > 0.4f && nearestEnemy > 3f && currentRisk < unit.HP) return;
 
         var moves = board.GetValidMoves(unit);
-        Vector3 bestDest = unit.transform.position;
-        float bestDist = Vector3.Distance(unit.transform.position, board.EnemyCrystalPos);
-        int bestCost = 0;
+        // Safety is not synonymous with approaching home. Keep a bounded set of alternatives,
+        // including lateral cover, so the final selector can compare rescue with useful attacks.
+        float homeDistance = Vector3.Distance(unit.transform.position, board.EnemyCrystalPos);
+        var alternatives = retreatAlternatives; alternatives.Clear();
         foreach (var dest in moves)
         {
+            int cost = board.CalcMoveCost(unit, dest);
+            if (cost > board.EnemyAP) continue;
+            float risk = Incoming(dest);
             float dist = Vector3.Distance(dest, board.EnemyCrystalPos);
-            if (dist < bestDist)
-            {
-                int cost = board.CalcMoveCost(unit, dest);
-                if (cost <= board.EnemyAP)
-                {
-                    bestDist = dist; bestDest = dest; bestCost = cost;
-                }
-            }
+            if (risk >= currentRisk && (dist >= homeDistance || risk >= unit.HP)) continue;
+            float value = (currentRisk - risk) / Mathf.Max(1, unit.HP) * 25
+                + (homeDistance - dist) - cost;
+            int index = 0;
+            while (index < alternatives.Count && value <= alternatives[index].value) index++;
+            if (index >= 4) continue;
+            alternatives.Insert(index, (dest, cost, value));
+            if (alternatives.Count > 4) alternatives.RemoveAt(4);
         }
-
-        if (bestDest != unit.transform.position)
+        foreach (var option in alternatives)
         {
             results.Add(new AIAction
             {
                 ActionType = AIActionType.Retreat, Unit = unit,
-                TargetPos = bestDest, APCost = bestCost
+                TargetPos = option.cell, APCost = option.cost
             });
         }
     }

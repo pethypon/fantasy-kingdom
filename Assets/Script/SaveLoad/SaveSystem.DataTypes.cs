@@ -223,6 +223,8 @@ public static partial class SaveSystem
     [Serializable]
     public class AISaveData
     {
+        public AIObservedMemoryState ObservedMemory;
+        public bool HasObservedMemorySnapshot;
         public EnemyTerritoryIntelState TerritoryIntel;
         public bool HasTerritoryIntelSnapshot;
         public AIReflectionBattleState Reflection;

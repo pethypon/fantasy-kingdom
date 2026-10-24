@@ -163,6 +163,8 @@ public partial class AIBoardState
 
     public struct LastKnownInfo
     {
+        public string LifeId;
+        public Team ObservedTeam;
         public Vector3Int Position;
         public int Turn;
         public bool Valid;
@@ -171,6 +173,7 @@ public partial class AIBoardState
         public Direction Direction;
         public int ObservedAttackPower;
         public BoardActionProfile ActionProfile;
+        public AIObservedActionProfile ActionProfileSnapshot;
         public Vector3Int PreviousPosition;
         public int PreviousTurn;
         public bool HasPrevious;
@@ -356,12 +359,27 @@ public partial class AIBoardState
             if (pu == null || !pu.gameObject.activeInHierarchy) continue;
             int id = pu.GetInstanceID();
             _lastKnownPlayerPositions.TryGetValue(id, out var previous);
+            string life = pu.ReflectionLifeId;
+            if (previous.LifeId != life) previous = default;
+            // Restored observations have synthetic runtime keys. Re-observation is
+            // the first point at which a live actor may replace its saved identity.
+            expiredObservations.Clear();
+            foreach (var entry in _lastKnownPlayerPositions)
+                if (entry.Key != id && entry.Key != int.MinValue && entry.Value.LifeId == life)
+                {
+                    if (!previous.Valid || entry.Value.Turn > previous.Turn) previous = entry.Value;
+                    expiredObservations.Add(entry.Key);
+                }
+            foreach (int restoredKey in expiredObservations) _lastKnownPlayerPositions.Remove(restoredKey);
+            var profile = BoardActionProfile.For(pu);
             var position = ToCell(pu.transform.position);
             bool moved = previous.Valid && previous.Position != position;
             _lastKnownPlayerPositions[id] = new LastKnownInfo
             {
                 Position = position,
-                Kind = pu.kind, Type = pu.type, Direction = pu.direction, ObservedAttackPower = Mathf.Max(0, pu.ATK), ActionProfile = BoardActionProfile.For(pu),
+                LifeId = life, ObservedTeam = pu.team,
+                Kind = pu.kind, Type = pu.type, Direction = pu.direction, ObservedAttackPower = Mathf.Max(0, pu.ATK), ActionProfile = profile,
+                ActionProfileSnapshot = AIObservedActionProfile.Capture(profile, previous.ActionProfileSnapshot),
                 WasPrincipalCommander = pu.team == OpponentTeam && MatchObjectiveRules.IsCommander(pu),
                 PreviousPosition = moved ? previous.Position : previous.PreviousPosition,
                 PreviousTurn = moved ? previous.Turn : previous.PreviousTurn,
@@ -374,8 +392,10 @@ public partial class AIBoardState
         // Playerクリスタルを視認したら記録
         if (PlayerCrystalVisible)
         {
+            var observedCrystal = FindCrystal(OpponentCrystalParent);
             _lastKnownPlayerCrystal = new LastKnownInfo
             {
+                LifeId = observedCrystal != null ? observedCrystal.ReflectionLifeId : null, ObservedTeam = OpponentTeam,
                 Position = ToCell(PlayerCrystalPos),
                 Kind = Kind.Crystal, Type = Type.Building,
                 Turn = TurnCount,
@@ -383,6 +403,19 @@ public partial class AIBoardState
             };
             if (_lastKnownPlayerCrystal.Valid) _lastKnownPlayerPositions[int.MinValue] = _lastKnownPlayerCrystal;
             else _lastKnownPlayerPositions.Remove(int.MinValue);
+        }
+        // Bound the short-lived observation table independently of the number of
+        // board refreshes. Keep the fixed objective and recent commander facts first.
+        while (_lastKnownPlayerPositions.Count > AIObservedMemoryState.MaximumEntries)
+        {
+            int oldestKey = int.MinValue; LastKnownInfo oldest = default;
+            foreach (var entry in _lastKnownPlayerPositions)
+                if (entry.Key != int.MinValue && (oldestKey == int.MinValue
+                    || oldest.WasPrincipalCommander && !entry.Value.WasPrincipalCommander
+                    || oldest.WasPrincipalCommander == entry.Value.WasPrincipalCommander && entry.Value.Turn < oldest.Turn))
+                { oldestKey = entry.Key; oldest = entry.Value; }
+            if (oldestKey == int.MinValue) break;
+            _lastKnownPlayerPositions.Remove(oldestKey);
         }
     }
 

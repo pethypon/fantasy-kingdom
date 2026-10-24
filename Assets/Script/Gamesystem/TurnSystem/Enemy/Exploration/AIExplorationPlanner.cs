@@ -241,7 +241,10 @@ public sealed partial class AIExplorationPlanner
             if (region == null || objective.IsIntelRevisit && memory.TryGetValue(XZ(objective.TargetCell), out var intelMemory) && IsFresh(intelMemory.LastSeenTurn)) Finish(objective, ObjectiveState.Completed, "frontier_completed", actor);
             else if (Distance(actor.Cell, objective.TargetCell) <= Mathf.Max(0, settings.CompletionDistance)
                 && (objective.NewlyRevealedSinceStart >= Mathf.Max(1, settings.CompletionRevealCells) || objective.IsIntelRevisit && visible.Contains(XZ(objective.TargetCell))))
-                Finish(objective, ObjectiveState.Completed, "frontier_completed", actor);
+            {
+                if (!TryContinueRegion(actor, objective, history))
+                    Finish(objective, ObjectiveState.Completed, "frontier_completed", actor);
+            }
             else if (observation.CanReach != null && !observation.CanReach(actor.UnitId, objective.TargetCell)) Finish(objective, ObjectiveState.Failed, "unreachable", actor);
             else if (loop)
             {

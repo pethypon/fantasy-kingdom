@@ -55,7 +55,11 @@ public partial class AICommander
             validActions.Add((action, score));
         }
 
-        if (validActions.Count == 0) return null;
+        if (validActions.Count == 0)
+        {
+            AIDecisionObserver.Emit(_board, actions, null, "selected");
+            return null;
+        }
         // Strategic priorities are lexicographic. Tactical scores and deliberate mistakes cannot override survival.
         int highestPriority=4;
         foreach(var entry in validActions)highestPriority=Mathf.Min(highestPriority,entry.action.StrategicPriority);
@@ -77,6 +81,7 @@ public partial class AICommander
             int maxIdx = Mathf.Min(validActions.Count - 1, validActions.Count * 3 / 4);
             int idx = _rng.Range(minIdx, maxIdx + 1);
             RememberSelectionScores(validActions[idx].action, validActions[idx].score);
+            AIDecisionObserver.Emit(_board, actions, validActions[idx].action, "selected");
             return validActions[idx].action;
         }
 
@@ -93,6 +98,7 @@ public partial class AICommander
         }
 
         RememberSelectionScores(best, bestScore);
+        AIDecisionObserver.Emit(_board, actions, best, "selected");
         return best;
     }
 

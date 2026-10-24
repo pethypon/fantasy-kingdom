@@ -70,8 +70,9 @@ public sealed partial class AIStrategicGovernor
             if (cheapest != int.MaxValue) military = cheapest * Mathf.Clamp(config.ShortTermCombatRecruits, 0, 8);
         }
         // Operation needs and ordinary short-term recruitment refer to the same army, not two armies.
-        float futureArmy = Mathf.Max(operationDemand, military);
-        float required = Mathf.Max(plannedBuilding + Mathf.Max(plannedRecruit, futureArmy), otherPlan) + config.FreeTarget;
+        float recruitCapacityStock = HasPreparedRecruitment(board) ? RecruitmentRequiredCitizenStock : plannedRecruit;
+        float futureArmy = Mathf.Max(Mathf.Max(operationDemand, military), recruitCapacityStock);
+        float required = Mathf.Max(plannedBuilding + Mathf.Max(recruitCapacityStock, futureArmy), otherPlan) + config.FreeTarget;
         if (emergency) required = Mathf.Max(required, defender.costCitizen);
         bool blocked = required > capacity + .001f;
         string reason = null;
@@ -84,6 +85,13 @@ public sealed partial class AIStrategicGovernor
             var projected = forecast.SimulateInvestment(board, action, config.Horizon);
             if (projected.BreadPaymentFailed || projected.UpkeepPaymentFailed || projected.ImportantProductionStopped
                 || projected.BreadCoverageTurns < BreadReserveTurns) reason = "housing_build_forecast_unsafe";
+            if (reason == null && RecruitmentCitizenDemand > 0)
+            {
+                var recruitment = ForecastRecruitment(board, action);
+                if (recruitment.Reason != null && recruitment.Reason != "recruit_citizen_growth_pending"
+                    && recruitment.Reason != "recruit_capacity_shortage" && recruitment.Reason != "recruit_resources_pending")
+                    reason = "housing_build_forecast_unsafe";
+            }
         }
         if (reason == null && Mode == StrategicMode.EmergencyDefense && !emergency)
             reason = defenseReject ?? "housing_direct_defense_first";

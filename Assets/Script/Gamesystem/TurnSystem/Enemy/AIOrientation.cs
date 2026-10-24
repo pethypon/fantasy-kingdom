@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>Evaluate alternate facing without mutating the live unit or querying hidden occupants.</summary>
-public static class AIOrientation
+public static partial class AIOrientation
 {
     public static void AppendCandidates(AIBoardState board, List<AIAction> output)
     {
@@ -17,13 +17,13 @@ public static class AIOrientation
             bool attackAffordable = board.CalcAttackCost(unit) <= board.EnemyAP;
             float gain = attackAffordable ? alternate - current : 0;
             if (gain <= 1 && attackAffordable && current > 0) continue;
-            if (gain <= 1 && !MovePatterns.IsDirectionIndependent(unit))
+            if (gain <= 1)
             {
-                gain = MoveUtility(board, unit, other) - MoveUtility(board, unit, unit.direction);
+                if (!MovePatterns.IsDirectionIndependent(unit))
+                    gain = Mathf.Min(12, MoveUtility(board, unit, other) - MoveUtility(board, unit, unit.direction));
+                if (CanPrepareVisibility(board, unit, other)) gain = Mathf.Max(gain, 2);
                 if (gain <= 1) continue;
-                gain = Mathf.Min(gain, 12);
             }
-            else if (gain <= 1) continue;
             output.Add(new AIAction { ActionType = AIActionType.Rotate, Unit = unit,
                 TargetDirection = other, TargetPos = unit.transform.position, APCost = 0,
                 Score = 40 + gain });
@@ -59,14 +59,16 @@ public static class AIOrientation
     {
         if(SpecialSkillRuntime.AttackBlocked(unit)||AISpecialSkillKnowledge.SniperRestrictsTargets(unit))return 0;
         float best = 0;
-        foreach (var target in board.AlivePlayerUnits)
+        foreach (var target in board.SpecialObservedActors)
         {
-            if (target == null || !target.IsAlive || !board.IsVisibleToEnemy(target.transform.position)) continue;
+            if (target == null || !target.IsAlive || !NeutralFactionSystem.AreHostile(unit, target)
+                || !board.IsSpecialActorObserved(target) || !SpecialSkillRuntime.CanNormalAttackTarget(unit, target)) continue;
             Vector3 offset = target.transform.position - unit.transform.position;
             if (!AttackPatterns.CanAttack(unit, facing, offset.x, offset.z)
                 || !board.ReconMap.CanAttackAcrossTerrain(unit, target.transform.position)) continue;
-            int damage = AIActionEvaluator.EstimateEffectiveSpecialDamage(unit,target,board,out var victim);
-            best = Mathf.Max(best, Mathf.Min(damage, victim?.HP??0) + (victim!=null&&damage>=victim.HP ? 60 : 0));
+            int impact = AIActionEvaluator.EstimateEffectiveSpecialImpact(unit,target,board,out var victim);
+            float durability = (victim?.HP ?? 0) + (float)(victim?.Barrier ?? 0);
+            best = Mathf.Max(best, Mathf.Min(impact, durability) + (victim != null && impact >= durability ? 60 : 0));
         }
         return best;
     }

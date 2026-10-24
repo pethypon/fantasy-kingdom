@@ -272,6 +272,8 @@ public static partial class SaveSystem
         dst.TotalSummons = commander.SaveTotalSummons;
         dst.TotalKills = commander.SaveTotalKills;
         dst.AITurnCount = commander.SaveTurnCount;
+        dst.ObservedMemory = commander.CaptureObservedMemory();
+        dst.HasObservedMemorySnapshot = dst.ObservedMemory != null;
         dst.Operation = commander.SavePlan;
         dst.Reflection = commander.CaptureReflectionState();
         dst.Operations = commander.CaptureOperationState();

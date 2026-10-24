@@ -4,6 +4,15 @@ using UnityEngine;
 
 public enum EconomicState { Healthy, Warning, Crisis, Collapse }
 
+public readonly struct RecruitmentForecastResult
+{
+    public readonly EconomyForecastResult Economy;
+    public readonly int Scheduled, FirstRecruitTurn;
+    public readonly string Reason;
+    internal RecruitmentForecastResult(EconomyForecastResult economy, int scheduled, int firstTurn, string reason)
+    { Economy = economy; Scheduled = scheduled; FirstRecruitTurn = firstTurn; Reason = reason; }
+}
+
 public readonly struct EconomyForecastResult
 {
     public readonly EconomicState State;
@@ -48,6 +57,13 @@ public sealed class StrategicEconomyForecast
     int contentRevision = -1;
     Snapshot baseline;
     StrategicProductionDemand growthDemand, recoveryDemand;
+    readonly RecruitmentSchedule recruitmentSchedule = new RecruitmentSchedule();
+    sealed class RecruitmentSchedule
+    {
+        public IReadOnlyList<UnitData> Units;
+        public int Scheduled, FirstTurn, CitizenReserve;
+        public string Reason;
+    }
     public int PreparedCitizenCapacity => citizenCapacity;
     public int PreparedResourceCapacity => FactionState.BaseResourceCap + warehouseBonus;
 
@@ -146,8 +162,26 @@ public sealed class StrategicEconomyForecast
         return Run(board, candidate, false, horizon, recruit, wait);
     }
 
+    /// <summary>At most three ordered purchases, using actual growth, recipes and payment order.
+    /// One purchase per forecast turn permits replenishment; no income from chance bonuses is promised.</summary>
+    public RecruitmentForecastResult SimulateRecruitment(AIBoardState board, IReadOnlyList<UnitData> recruits,
+        AIAction investment = null, int turns = 5, int citizenReserve = 0)
+    {
+        Prepare(board);
+        if (board == null || board.EnemyResources == null || recruits == null) return default;
+        var schedule = recruitmentSchedule;
+        schedule.Units = recruits; schedule.Scheduled = 0; schedule.FirstTurn = -1;
+        schedule.CitizenReserve = Mathf.Max(0, citizenReserve); schedule.Reason = null;
+        var result = Run(board, investment, false, Mathf.Clamp(turns, 1, 8), schedule: schedule);
+        if (result.BreadPaymentFailed) schedule.Reason = "recruit_bread_forecast_fail";
+        else if (result.UpkeepPaymentFailed) schedule.Reason = "recruit_upkeep_forecast_fail";
+        else if (result.ImportantProductionStopped) schedule.Reason = "recruit_production_forecast_fail";
+        else if (result.BreadCoverageTurns < ReserveTurns) schedule.Reason = "recruit_bread_reserve_fail";
+        return new RecruitmentForecastResult(result, schedule.Scheduled, schedule.FirstTurn, schedule.Reason);
+    }
+
     EconomyForecastResult Run(AIBoardState board, AIAction candidate, bool capture, int investmentTurns = 0,
-        UnitData pendingRecruit = null, int recruitWaitTurns = 0)
+        UnitData pendingRecruit = null, int recruitWaitTurns = 0, RecruitmentSchedule schedule = null)
     {
         Read(board.EnemyResources, stock);
         Array.Clear(produced, 0, ResourceCount); Array.Clear(demanded, 0, ResourceCount); Array.Clear(temporaryIncome, 0, ResourceCount); Array.Clear(probableProduction, 0, ResourceCount);
@@ -210,6 +244,21 @@ public sealed class StrategicEconomyForecast
         if (operatingRecipes.Length < recipes.Count) Array.Resize(ref operatingRecipes, Mathf.Max(32, recipes.Count));
         for (int t = 0; t < turns; t++)
         {
+            if (schedule != null && schedule.Scheduled < Mathf.Min(3, schedule.Units.Count))
+            {
+                var recruit = schedule.Units[schedule.Scheduled];
+                var cost = recruit != null ? UnitCost(recruit) : default;
+                int missing = Missing(cost);
+                if (recruit == null) schedule.Reason = "recruit_definition_missing";
+                else if ((long)recruit.costCitizen + schedule.CitizenReserve > capacity) schedule.Reason = "recruit_capacity_shortage";
+                else if (stock[CitizenIndex] - recruit.costCitizen < schedule.CitizenReserve) schedule.Reason = "recruit_citizen_growth_pending";
+                else if (missing != 0) schedule.Reason = "recruit_resources_pending";
+                else
+                {
+                    AddTo(stock, cost, -1); schedule.Scheduled++; schedule.Reason = null;
+                    if (schedule.FirstTurn < 0) schedule.FirstTurn = t;
+                }
+            }
             if (pendingRecruit != null && t == recruitWaitTurns)
             {
                 AddTo(stock, UnitCost(pendingRecruit), -1);
@@ -225,6 +274,8 @@ public sealed class StrategicEconomyForecast
             if (additionalUnit != null) Pay(additionalUnit.GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
             if (pendingRecruit != null && t >= recruitWaitTurns)
                 Pay(pendingRecruit.GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
+            if (schedule != null) for (int r = 0; r < schedule.Scheduled; r++)
+                Pay(schedule.Units[r].GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
             for (int r = 0; r < recipes.Count; r++)
                 operatingRecipes[r] = PayMaintenance(r == replacedRecipe ? additionalRecipe : recipes[r],
                     ref breadFail, ref upkeepFail, ref stopped, ref mandatoryMask);
@@ -439,6 +490,19 @@ public sealed class StrategicEconomyForecast
             float buildWeight = weight * AIEconomySettings.NonNegative(settings.plannedBuildActions);
             AddTo(planned, BuildCost(nextCost), buildWeight / turns);
             buildingCitizens = Mathf.Max(0, nextCost.Citizen) * buildWeight;
+        }
+        if (board.Governor != null && board.Governor.HasPreparedRecruitment(board))
+        {
+            foreach (var need in board.Governor.RecruitmentPlan)
+            {
+                var unit = need.Definition;
+                float recruitWeight = weight * AIEconomySettings.NonNegative(settings.plannedSummonActions)
+                    * (need.Role == "scout" ? Mathf.Clamp01(settings.explorationSummonWeight) : 1);
+                AddTo(planned, UnitCost(unit), recruitWeight / turns);
+                AddTo(planned, unit.GetUpkeep(Mathf.Clamp(settings.plannedUnitLevel, 1, 8)), recruitWeight);
+                recruitCitizens += Mathf.Max(0, unit.costCitizen) * recruitWeight;
+            }
+            return;
         }
         bool exploration = board.AlivePlayerUnits.Count == 0;
         var definition = board.ResolveUnitDefinition(exploration ? Kind.Scout : Kind.Knight);

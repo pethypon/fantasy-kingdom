@@ -155,7 +155,7 @@ public static class AITerritorySafetyTests
         lower = higher = default; return false;
     }
 
-    sealed class Fixture : IDisposable
+    internal sealed class Fixture : IDisposable
     {
         public readonly EconomyR2Tests.Fixture Economy;
         public readonly Status Actor, Foe;

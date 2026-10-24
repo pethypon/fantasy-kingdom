@@ -213,7 +213,8 @@ static class AIBuildEvaluator
             case Kind.Scout:   score += 5f; break;
         }
 
-        return score + ObservedBarrierRecruitmentBonus(action.SummonKind, board);
+        return score + ObservedBarrierRecruitmentBonus(action.SummonKind, board)
+            + (board.Governor?.RecruitmentScore(action, board) ?? 0);
     }
 
     // One bounded preference, using current legal observations and the whole inherited melee role.

@@ -62,7 +62,7 @@ public sealed partial class AIStrategicGovernor
         current=board;generation=board.Generation;reachable.Clear();damageCache.Clear();threatCache.Clear();safest.Clear();buildForecasts.Clear();safeAlternativesPrepared=false;
         recoveryReserveAP = -1;
         losses.Collect(board,critical);defenders.Clear();army.Clear();
-        forecast.Prepare(board);Economy=forecast.Simulate(board);
+        forecast.Prepare(board);PrepareRecruitment(board);Economy=forecast.Simulate(board);
         bool emergency=false;float severity=0;
         foreach(var target in critical)
         {
@@ -272,6 +272,10 @@ public sealed partial class AIStrategicGovernor
     }
     int Priority(AIAction a,AIBoardState board)
     {
+        if (IsDecisiveVictoryAttack(a, board) || IsImmediateRescue(a, board)) return 0;
+        if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
+            && (AIOrientation.IsVisibilityPreparation(a, board) || AIOrientation.IsObservedAttackPreparation(a, board))
+            && IncomingDamage(board, a.Unit, a.Unit.transform.position, null) < a.Unit.HP) return 2;
         if(a.Unit!=null&&MatchObjectiveRules.IsCommander(a.Unit)&&IsMovement(a)&&Risk(a,board)<IncomingDamage(board,a.Unit,a.Unit.transform.position,null))return 0;
         if(a.Unit!=null&&MatchObjectiveRules.IsCommander(a.Unit)&&a.ActionType==AIActionType.Attack
             &&IncomingDamage(board,a.Unit,a.Unit.transform.position,null)>=a.Unit.HP&&Risk(a,board)<a.Unit.HP)return 0;
@@ -301,6 +305,7 @@ public sealed partial class AIStrategicGovernor
         // Without that direction, preserve the existing combat/exploration peer tier.
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             && IsSafeEffectiveBattleAction(a, board)) return HasActiveTerritoryAdvance ? 2 : 3;
+        if (IsSafePlannedRecruit(a, board)) return 3;
         if (IsSafeArmyAdvance(a, board)) return 3;
         if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery && !HasActiveTerritoryAdvance
             &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)

@@ -247,6 +247,15 @@ static class AICombatEvaluator
         float hpRatio = action.Unit.MaxHP > 0 ? (float)action.Unit.HP / action.Unit.MaxHP : 1f;
         score += (1f - hpRatio) * 25f;
         if (hpRatio < 0.2f) score += 15f;
+        if (board.Governor != null)
+        {
+            float before = board.Governor.IncomingDamage(board, action.Unit, action.Unit.transform.position, null);
+            float after = board.Governor.IncomingDamage(board, action.Unit, action.TargetPos, null);
+            // Saved HP has greater replacement value for an experienced actor, without
+            // changing its stats or requiring veterans to withdraw from every fight.
+            float experience = 2f - 1f / Mathf.Max(1, action.Unit.Level);
+            score += Mathf.Clamp((before - after) / Mathf.Max(1, action.Unit.HP), -1, 1) * 25 * experience;
+        }
 
         float dist = Vector3.Distance(action.TargetPos, board.EnemyCrystalPos);
         if (dist < 5f) score += 8f;

@@ -160,7 +160,10 @@ public static class AIClosingPlaytest
                 IsCommanderTarget(report.Team, record.TargetLifeId), IsMainCrystalTarget(report.Team, record.TargetLifeId),
                 record.Before?.ActorAp, record.After?.ActorAp, record.Before?.ActionApCost,
                 observedExecutor?.LastFailureReason ?? "not_recorded", observedExecutor?.LastRequestedDestination.x, observedExecutor?.LastRequestedDestination.z,
-                destinationVisible, occupancy);
+                destinationVisible, occupancy, record.ActorLifeId, record.TargetLifeId,
+                record.Before?.ActorDirection, record.Before?.ActorHeight, record.Before?.ActorHP,
+                record.After?.ActorHP, record.Before?.IncomingDamage, record.Before?.LocalPowerRatio,
+                record.DecisionTrace?.StrategicPriority, record.OperationId);
         }
         public void Dispose() => reflection.ActionCompleted -= Observe;
     }
@@ -298,9 +301,12 @@ public static class AIClosingPlaytest
             PersistentPath = Application.persistentDataPath, InitialTimeScale = Time.timeScale };
         playerCommanderIds.Clear(); enemyCommanderIds.Clear(); playerMainCrystalIds.Clear(); enemyMainCrystalIds.Clear();
         actions = Writer("actions.csv"); turns = Writer("turns.csv");
+        AIR2PlaytestTelemetry.Open(folder);
+        AIR2ObjectiveTelemetry.Open(folder);
         WriteRow(actions, "team", "round", "id", "type", "role", "targetCategory", "succeeded", "failureReason", "moved",
             "newTiles", "objectiveDistanceGain", "damageDealt", "kills", "beforeX", "beforeZ", "afterX", "afterZ", "strategy", "actionKey",
-            "targetsOpposingCommander", "targetsOpposingMainCrystal", "APBefore", "APAfter", "ActionAPCost", "executorFailure", "requestedX", "requestedZ", "failedDestinationVisible", "reportedPhysicalOccupants");
+            "targetsOpposingCommander", "targetsOpposingMainCrystal", "APBefore", "APAfter", "ActionAPCost", "executorFailure", "requestedX", "requestedZ", "failedDestinationVisible", "reportedPhysicalOccupants",
+            "actorLifeId", "targetLifeId", "facing", "height", "hpBefore", "hpAfter", "incomingDamage", "localPowerRatio", "priority", "operationId");
         WriteRow(turns, "seconds", "round", "state", "ownerTurns", "playerMoves", "enemyMoves", "playerAttacks", "enemyAttacks",
             "playerBuilds", "enemyBuilds", "playerSummons", "enemySummons", "playerKingHP", "playerCrystalHP", "enemyKingHP", "enemyCrystalHP",
             "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound",
@@ -384,6 +390,8 @@ public static class AIClosingPlaytest
     }
     static void Snapshot()
     {
+        AIR2PlaytestTelemetry.Capture(player?.Commander);
+        AIR2PlaytestTelemetry.Capture(enemy?.Commander);
         AITerritoryPlaytestTelemetry.Capture(player?.Commander, folder, turn?.Context.Turn ?? 0);
         AITerritoryPlaytestTelemetry.Capture(enemy?.Commander, folder, turn?.Context.Turn ?? 0);
         player?.Snapshot(); enemy?.Snapshot(); match.OwnerTurns = match.Player.OwnerTurns + match.Enemy.OwnerTurns;
@@ -530,6 +538,8 @@ public static class AIClosingPlaytest
     }
     static void Cleanup()
     {
+        AIR2PlaytestTelemetry.Close();
+        AIR2ObjectiveTelemetry.Close();
         SpecialSkillRuntime.HpChangeCommitted -= OnHpChange;
         Application.logMessageReceived -= Log; player?.Dispose(); enemy?.Dispose();
         actions?.Dispose(); turns?.Dispose(); actions = turns = null;

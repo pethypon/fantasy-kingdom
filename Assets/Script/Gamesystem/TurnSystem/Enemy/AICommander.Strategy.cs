@@ -138,6 +138,7 @@ public partial class AICommander
         {
             if (_triedStrategies.Contains(strategy)) continue;
             _currentStrategy = strategy;
+            _fallbackStrategyPending = true;
             _triedStrategies.Add(strategy);
 
             // AP予算を新戦略に合わせて再計画
@@ -151,5 +152,21 @@ public partial class AICommander
             return true;
         }
         return false;
+    }
+
+    // Give the fallback one actual candidate-generation pass. Previously the next
+    // loop overwrote it before evaluation, spending the remaining budget on the same strategy.
+    void ApplyIterationStrategy(TurnStrategyPlanner.StrategyDecision decision)
+    {
+        bool urgent = _board.Governor?.Mode == StrategicMode.EmergencyDefense
+            || _board.Governor?.Mode == StrategicMode.EconomicRecovery;
+        if (!_fallbackStrategyPending || urgent)
+        {
+            _currentStrategy = decision.Strategy;
+            CurrentStrategyReason = decision.Reason ?? "";
+        }
+        else CurrentStrategyReason = "実行可能候補を再検討: " + _currentStrategy;
+        _fallbackStrategyPending = false;
+        _apBudget = decision.Budget;
     }
 }

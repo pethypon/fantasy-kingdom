@@ -23,6 +23,10 @@ public sealed class AIPlanManager
         if(Current!=null)
         {
             Current.TargetId=0;
+            // Legacy reconnaissance saves may contain a generic raid withdrawal.
+            // Confirmation completes the scouting operation; danger still generates ordinary retreat.
+            if (Current.Goal == AIPlanGoal.Reconnaissance && Current.Step == AIPlanStep.Withdraw)
+                Current.Step = AIPlanStep.Complete;
             if(Current.Step==AIPlanStep.ObserveResponse)Current.Step=AIPlanStep.Demonstrate;
         }
         assigned.Clear(); respondents.Clear(); generation = -1; turn = -1;
@@ -150,7 +154,7 @@ public sealed class AIPlanManager
                 : goal == AIPlanGoal.EconomicRaid
                     ? new[] { AIPlanStep.Assemble, AIPlanStep.Flank, AIPlanStep.Strike, AIPlanStep.SupplyDelay, AIPlanStep.MainAssault, AIPlanStep.Withdraw }
                     : new[] { AIPlanStep.Assemble, AIPlanStep.Strike, AIPlanStep.Withdraw },
-            SuccessCondition = "視認済み目標の排除、または偵察先の確認後に帰還",
+            SuccessCondition = "視認済み目標の排除、または偵察先を確認して現位置から探索継続",
             AbortCondition = "自陣危機、戦力半減、目標情報の失効、反応なし、期限切れ"
         };
         respondents.Clear(); assigned.Clear();
@@ -244,7 +248,7 @@ public sealed class AIPlanManager
                 if (Near(Kind.Assassin, Current.FlankPoint, 2) || age >= 2) Step(board, AIPlanStep.Strike);
                 break;
             case AIPlanStep.Strike:
-                if (Current.Goal == AIPlanGoal.Reconnaissance && board.IsVisibleToEnemy(Current.Target)) Step(board, AIPlanStep.Withdraw);
+                if (Current.Goal == AIPlanGoal.Reconnaissance && board.IsVisibleToEnemy(Current.Target)) Finish(board, AIPlanStep.Complete);
                 else if (Current.TargetDestroyedConfirmed) Step(board, Current.Goal == AIPlanGoal.EconomicRaid ? AIPlanStep.SupplyDelay : AIPlanStep.Withdraw);
                 else if (Current.Goal == AIPlanGoal.Ambush && Current.SuccessfulStrikes > 0) Step(board, AIPlanStep.Withdraw);
                 else if (Current.Goal == AIPlanGoal.Ambush && age >= 2) Finish(board, AIPlanStep.Aborted);
@@ -289,6 +293,9 @@ public sealed class AIPlanManager
             if(needed>present)return 35;
         }
         if (action.Unit == null || !assigned.TryGetValue(action.Unit.GetInstanceID(), out var roleKind)) return 0;
+        // Exploration owns scouting waypoints. A reconnaissance summary must not
+        // simultaneously pull its explorer toward a stale target or a home rally point.
+        if (Current.Goal == AIPlanGoal.Reconnaissance) return 0;
         bool moving = action.ActionType == AIActionType.Move || action.ActionType == AIActionType.Retreat || action.ActionType == AIActionType.Support;
         Vector3 goal = Current.Target;
         if (Current.Step == AIPlanStep.Assemble || Current.Step == AIPlanStep.Withdraw || Current.Step == AIPlanStep.SupplyDelay) goal = Current.RallyPoint;

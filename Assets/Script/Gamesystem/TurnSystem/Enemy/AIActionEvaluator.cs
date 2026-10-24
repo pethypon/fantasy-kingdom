@@ -60,8 +60,10 @@ public static partial class AIActionEvaluator
             AIActionGenerator.GenerateAllCandidates(board, actions);
         using (AIPerformanceCounters.Measure(AIPerformanceStage.ActionEvaluation))
         {
+            AIDecisionObserver.Emit(board, actions, null, "generated");
             RemoveIneffectiveProtectedAttacks(actions, board);
             board.Governor?.Filter(actions,board);
+            AIDecisionObserver.Emit(board, actions, null, "governor");
 
             // 各候補にスコア付け
             for (int i = 0; i < actions.Count; i++)

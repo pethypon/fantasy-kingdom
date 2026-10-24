@@ -306,12 +306,25 @@ public sealed class AIBasicResourceEconomy
                 PlannedBuildingCitizens += Mathf.Max(0, chosenCost.Citizen) * Mathf.Clamp01(AIBasicResourceSettings.Active.planWeight);
             }
         }
-        // A single future unit is enough to represent development; never reserve an imagined army.
-        var unit = board.ResolveUnitDefinition(board.AlivePlayerUnits.Count == 0 ? Kind.Scout : Kind.Knight);
-        if (unit != null && !emergency && FoundationState != EconomyFoundationState.ResourceRecovery)
+        // The governor's bounded order replaces the unrelated hypothetical single unit. Costs
+        // remain weighted demand; this never reserves the capital of an unlimited imagined army.
+        if (!emergency && FoundationState != EconomyFoundationState.ResourceRecovery
+            && board.Governor != null && board.Governor.HasPreparedRecruitment(board))
         {
-            plans.Add(new BasicResourcePlan(UnitCost(unit), .75f, .75f));
-            PlannedRecruitCitizens = Mathf.Max(0, unit.costCitizen) * Mathf.Clamp01(AIBasicResourceSettings.Active.planWeight);
+            foreach (var need in board.Governor.RecruitmentPlan)
+            {
+                plans.Add(new BasicResourcePlan(UnitCost(need.Definition), .75f, .75f));
+                PlannedRecruitCitizens += Mathf.Max(0, need.Definition.costCitizen) * Mathf.Clamp01(AIBasicResourceSettings.Active.planWeight);
+            }
+        }
+        else if (board.Governor == null)
+        {
+            var unit = board.ResolveUnitDefinition(board.AlivePlayerUnits.Count == 0 ? Kind.Scout : Kind.Knight);
+            if (unit != null && !emergency && FoundationState != EconomyFoundationState.ResourceRecovery)
+            {
+                plans.Add(new BasicResourcePlan(UnitCost(unit), .75f, .75f));
+                PlannedRecruitCitizens = Mathf.Max(0, unit.costCitizen) * Mathf.Clamp01(AIBasicResourceSettings.Active.planWeight);
+            }
         }
     }
 

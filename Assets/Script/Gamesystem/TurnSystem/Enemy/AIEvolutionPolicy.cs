@@ -20,10 +20,22 @@ public sealed class AIEvolutionPolicy
 
     public void UpdateObjective(AIBoardState board)
     {
-        bool crisis = board.EnemyCrystalMaxHP > 0 && board.EnemyCrystalHP < board.EnemyCrystalMaxHP * .4f;
-        foreach (var enemy in board.AlivePlayerUnits)
-            if (enemy != null && GridHelper.ChebyshevDistance(enemy.transform.position, board.EnemyCrystalPos) <= 3)
-                crisis = true;
+        bool crisis;
+        if (board.Governor != null)
+        {
+            // One authority evaluates actual observed legal danger. Mere proximity
+            // must not cancel an assault that the shared survival rules deem safe.
+            board.Governor.Evaluate(board);
+            crisis = board.Governor.Mode == StrategicMode.EmergencyDefense;
+        }
+        else
+        {
+            // Compatibility for isolated/legacy callers without a governor.
+            crisis = board.EnemyCrystalMaxHP > 0 && board.EnemyCrystalHP < board.EnemyCrystalMaxHP * .4f;
+            foreach (var enemy in board.AlivePlayerUnits)
+                if (enemy != null && GridHelper.ChebyshevDistance(enemy.transform.position, board.EnemyCrystalPos) <= 3)
+                    crisis = true;
+        }
         if (crisis || board.AliveEnemyUnits.Count * 2 < initialArmy)
         { HasObjective = false; return; }
         int duration = board.ReconThreatLevel >= 10 ? 5 : 3;
