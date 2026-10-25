@@ -95,10 +95,14 @@ public static class GameConstants
     // =====================================================================
     //  クリスタル反撃
     // =====================================================================
-    /// <summary>クリスタル反撃: 対象MaxHP比のダメージ</summary>
-    public const float CrystalCounterDamageRatio = 0.30f;
-    /// <summary>クリスタル反撃: シールド発動後の対象数</summary>
-    public const int CrystalCounterTargetsAfterShield = 3;
+    /// <summary>ターン終了時のクリスタル反撃: 対象最大HPの15%</summary>
+    public const float CrystalCounterDamageRatio = 0.15f;
+    /// <summary>1回の反撃の最大対象数</summary>
+    public const int CrystalCounterTargetCount = 3;
+    /// <summary>クリスタルから反撃が届く距離（チェビシェフ距離）</summary>
+    public const int CrystalCounterRange = 3;
+    // Old name kept for compatibility; no shield-dependent target count remains.
+    public const int CrystalCounterTargetsAfterShield = CrystalCounterTargetCount;
 
     // =====================================================================
     //  維持費未払いペナルティ（ATK/DEF低下率）
@@ -109,7 +113,7 @@ public static class GameConstants
     public const int UpkeepPenaltyDefectTurns = 10; // 10ターン以上で離脱
 
     // =====================================================================
-    //  クリスタルシールド
+    //  廃止済みクリスタルシールド（互換性のため旧定数のみ保持）
     // =====================================================================
     /// <summary>シールド発動条件: HP割合がこの値未満</summary>
     public const float CrystalShieldThreshold = 0.5f;
