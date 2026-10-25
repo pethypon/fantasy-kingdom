@@ -28,9 +28,10 @@ MonoBehaviour:
     Citizen: 0
   buildAP: 0
   levels:
-  - HP: 5000
+  - HP: 2000
     DEF: 0
     ATK: 0
+    ProductionIntervalTurns: 0
     Input:
       Wood: 0
       Stone: 0
