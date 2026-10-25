@@ -97,6 +97,16 @@ public static class SupplyReservationTests
                 { MapCreate = systems.MapCreate, ReconThreatLevel = 15, Governor = governor };
             governor.Evaluate(board);
             decision = planner.DecideStrategy(board, f.Personality, new AIThreatLevel(15), 60);
+            Debug.Log("[SupplyReservationContact] team=" + team + " contact=" + board.HasPrincipalOpponentContact
+                + " strategy=" + decision.Strategy + " reason=" + decision.Reason + " reserved=" + decision.Budget.ReservedAP
+                + " mode=" + governor.Mode + " economy=" + governor.Economy.State
+                + " basicCritical=" + governor.BasicResources.HasCriticalDeficit
+                + " plannedRecruits=" + governor.RecruitmentPlan.Count + " development=" + governor.DevelopmentPlan.Count
+                + " visibleUnits=" + board.AlivePlayerUnits.Count + " visionCells=" + visible.Count);
+            foreach (var resource in governor.BasicResources.Resources)
+                if (resource.State <= BasicResourceState.Shortage) Debug.Log("[SupplyReservationContactResource] " + team + " " + resource);
+            foreach (var need in governor.RecruitmentPlan)
+                Debug.Log("[SupplyReservationContactRecruit] " + team + " " + need.Definition.kind + " " + need.Reason);
             Check(team + " principal contact remains actionable during a funded warning",
                 board.HasPrincipalOpponentContact && decision.Strategy == TurnStrategy.ContactEngage
                 && decision.Budget.ReservedAP == 0);

@@ -48,7 +48,9 @@ public static class ExplorationR2IntegrationTests
                 foreach (var cell in cells) seen.Add(GridHelper.ToGridXZ(cell));
                 foreach (string name in new[] { "_playerVisionBox", "_enemyVisionBox", "_playerExplored", "_enemyExplored" })
                     typeof(VisionGenerator).GetField(name, Private).SetValue(vision, new HashSet<Vector3Int>(name.StartsWith(team == Team.Player ? "_player" : "_enemy") ? seen : new HashSet<Vector3Int>()));
-                var scout = f.Unit(); scout.kind = Kind.Scout; scout.transform.position = cells[0];
+                // Start between the two frontier ends: this save fixture must retain an
+                // unfinished destination, rather than a viewpoint it has already reached.
+                var scout = f.Unit(); scout.kind = Kind.Scout; scout.transform.position = cells[1];
                 foreach (var cell in live.MapCreate.SetPos)
                     if (!seen.Contains(GridHelper.ToGridXZ(cell)) && Mathf.Abs(cell.x - cells[0].x) + Mathf.Abs(cell.z - cells[0].z) > 10)
                     { unknown = cell; found = true; break; }
@@ -59,10 +61,10 @@ public static class ExplorationR2IntegrationTests
                 Check(team + " real board creates a persistent exploration objective", original != null && original.State == ObjectiveState.Active);
                 Check(team + " current sight and territory stay separate from unknown", board.AlivePlayerUnits.Count == 0
                     && board.Exploration.Memory.Count == seen.Count && !board.Exploration.Memory.ContainsKey(GridHelper.ToGridXZ(unknown)));
-                float before = board.Recon.ScoreMove(scout, cells[1]); Vector3Int target = original.TargetCell;
+                float before = board.Recon.ScoreMove(scout, cells[2]); Vector3Int target = original.TargetCell;
                 hidden.transform.position = unknown + Vector3.forward; hidden.HP = 1; hidden.ATK = 9999;
                 heights[(int)unknown.x, (int)unknown.z] = oldHeight == 2 ? 0 : 2;
-                var changed = Board(live, f, vision); float after = changed.Recon.ScoreMove(scout, cells[1]);
+                var changed = Board(live, f, vision); float after = changed.Recon.ScoreMove(scout, cells[2]);
                 Check("Exploration_DoesNotUseHiddenEnemyPositions " + team, changed.AlivePlayerUnits.Count == 0
                     && Mathf.Abs(before - after) < .001f && changed.Exploration.GetObjective(scout.GetInstanceID()).TargetCell == target);
                 Check(team + " hidden terrain change cannot alter frontier scoring or stored knowledge", changed.Exploration.Memory.Count == seen.Count
@@ -75,6 +77,7 @@ public static class ExplorationR2IntegrationTests
                 var governor = (AIStrategicGovernor)typeof(AICommander).GetField("_governor", Private).GetValue(commander);
                 board.Governor = governor; governor.Evaluate(board); typeof(AICommander).GetField("_board", Private).SetValue(commander, board);
                 int objectiveId = board.Exploration.GetObjective(scout.GetInstanceID()).ObjectiveId;
+                Check(team + " save fixture has an active frontier not yet reached", !GridHelper.MatchXZ(scout.transform.position, target));
                 var game = SaveSystem.CollectGameState(hub, f.State, null, vision, commander);
                 game = JsonUtility.FromJson<SaveSystem.GameSaveData>(JsonUtility.ToJson(game));
                 Check(team + " actual save collection includes frontier objectives and visits", game.AI.Exploration != null
@@ -94,6 +97,7 @@ public static class ExplorationR2IntegrationTests
                     && restoredGoal.AssignedUnitId == loadedScout.GetInstanceID());
                 Check(team + " reconstruction keeps the same frontier and recon target", restoredBoard.Recon.TryGetAssignedTarget(loadedScout, out var restoredTarget)
                     && GridHelper.MatchXZ(restoredTarget, target));
+                ReachedFrontierReload(restoredBoard, loadedScout, team);
                 f.Crystal.transform.position = cells[0]; f.SetOwnCrystalPosition(cells[0]); f.Crystal.HP = 1;
                 hidden.transform.position = cells[2]; hidden.HP = 100; hidden.ATK = 999;
                 restoredBoard.Refresh(); restoredBoard.Governor.Evaluate(restoredBoard);
@@ -119,6 +123,31 @@ public static class ExplorationR2IntegrationTests
                 UnityEngine.Object.DestroyImmediate(extra);
             }
         }
+    }
+
+    static void ReachedFrontierReload(AIBoardState board, Status scout, Team team)
+    {
+        var source = board.Exploration; var original = source.GetObjective(scout.GetInstanceID());
+        var saved = JsonUtility.FromJson<AIExplorationState>(JsonUtility.ToJson(source.CaptureState()));
+        Vector3 position = scout.transform.position; Vector3Int target = original.TargetCell;
+        try
+        {
+            // Reproduce a save taken after arriving but before the next board observation.
+            // This is a persistence fixture, not a claim that an AI action executed here.
+            scout.transform.position = target;
+            var restored = new AIExplorationPlanner(source.Settings); restored.RestoreState(saved);
+            restored.Update(board, false);
+            bool recorded = false;
+            foreach (var result in restored.Expeditions)
+                if (result.ActorLifeId == scout.ReflectionLifeId && GridHelper.MatchXZ(result.Viewpoint, target) && result.Unproductive)
+                    recorded = true;
+            var next = restored.GetObjective(scout.GetInstanceID());
+            Check(team + " arrived zero-information save records its reached viewpoint", recorded);
+            Check(team + " arrived zero-information save continues to a different known frontier", next != null
+                && next.ActorLifeId == scout.ReflectionLifeId && next.AssignedUnitId == scout.GetInstanceID()
+                && next.ObjectiveId != original.ObjectiveId && next.State == ObjectiveState.Active && !GridHelper.MatchXZ(next.TargetCell, target));
+        }
+        finally { scout.transform.position = position; }
     }
 
     static void RealLargeMapMovement(GameSystems live)

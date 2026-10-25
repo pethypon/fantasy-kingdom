@@ -15,10 +15,16 @@ public static partial class AIActionEvaluator
         AIBoardState board)
     {
         AIActionModifiers.ApplyCounterDangerPenalty(actions, board, personality);
+        AIDecisionObserver.Emit(board, actions, null, "score:Safety_counter");
         AIActionModifiers.ApplyRetreatRegroupBonus(actions, personality, board);
+        AIDecisionObserver.Emit(board, actions, null, "score:Safety_regroup");
         AIActionModifiers.ApplyBossFrontlineConditions(actions, personality, board);
+        AIDecisionObserver.Emit(board, actions, null, "score:Safety_commander");
         AIActionModifiers.ApplyGradualArmyExpansion(actions, board);
+        AIDecisionObserver.Emit(board, actions, null, "score:EconomyFuture_expansion");
         AIActionModifiers.ApplyTerrainAwareness(actions, board);
+        AIDecisionObserver.Emit(board, actions, null, "score:OperationalProgress_terrain");
         AIActionModifiers.ApplyDungeonAwareness(actions, board);
+        AIDecisionObserver.Emit(board, actions, null, "score:OperationalProgress_dungeon");
     }
 }

@@ -268,7 +268,8 @@ public sealed partial class AIStrategicGovernor
         if(Mode==StrategicMode.EmergencyDefense)
         {
             if(action.ActionType==AIActionType.SubCrystal)return "emergency_expansion_suspended";
-            if(IsMovement(action)&&defenders.Contains(action.Unit)&&Distance(action.TargetPos,defensePoint)>Distance(action.Unit.transform.position,defensePoint)+.01f)
+            if(IsMovement(action)&&defenders.Contains(action.Unit)&&Distance(action.TargetPos,defensePoint)>Distance(action.Unit.transform.position,defensePoint)+.01f
+                && !IsImmediateRescue(action, board))
                 return "defender_pursuit_limit";
         }
         return null;

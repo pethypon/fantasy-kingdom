@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -12,15 +13,37 @@ public static class AIR2PlaytestTelemetry
     static StreamWriter decisions, units, nations;
     static int nationRows;
     static readonly List<Status> ownBuildings = new List<Status>(64);
-    static int rows, decisionRows, unitRows, skippedDecisionEvents, skippedSnapshots, droppedRows, skillOverflow;
+    static int rows, decisionRows, unitRows, skippedDecisionEvents, skippedSnapshots, droppedRows, skillOverflow, scoreTraceOverflow;
     static string folder, lastTeam, lastStage;
     static int lastTurn;
     static bool capReached;
     const int MaxRows = 160000;
+    const int DecisionColumns = 43;
     const int DecisionRowLimit = 120000, UnitRowLimit = 40000;
     const int MaxSkillGroups = 2048;
     static readonly FieldInfo BoardField = typeof(AICommander).GetField("_board", BindingFlags.Instance | BindingFlags.NonPublic);
     static readonly FieldInfo AdvancedField = typeof(AICommander).GetField("_advanced", BindingFlags.Instance | BindingFlags.NonPublic);
+    // Optional cached R3 values only: the same observer compiles against the pre-R3
+    // baseline, and never invokes a planner or regenerates an action while reporting.
+    static readonly FieldInfo PreservationCache = typeof(AIStrategicGovernor).GetField("preservationAssessments", BindingFlags.Instance | BindingFlags.NonPublic);
+    static readonly FieldInfo HousingCache = typeof(AIStrategicGovernor).GetField("housingAssessments", BindingFlags.Instance | BindingFlags.NonPublic);
+    static readonly Dictionary<(System.Type, string), MemberInfo> optionalMembers = new Dictionary<(System.Type, string), MemberInfo>();
+    static object Value(object source, string name)
+    {
+        if (source == null) return null;
+        var key = (source.GetType(), name);
+        if (!optionalMembers.TryGetValue(key, out var member))
+        {
+            member = (MemberInfo)key.Item1.GetField(name) ?? key.Item1.GetProperty(name);
+            optionalMembers[key] = member;
+        }
+        return member is FieldInfo field ? field.GetValue(source) : member is PropertyInfo property ? property.GetValue(source) : null;
+    }
+    static object Preservation(AIBoardState board, Status actor)
+    {
+        var cache = board.Governor != null ? PreservationCache?.GetValue(board.Governor) as IDictionary : null;
+        return actor != null && cache != null && cache.Contains(actor) ? cache[actor] : null;
+    }
     static readonly Dictionary<Team, int> snapshots = new Dictionary<Team, int>();
     static readonly Dictionary<string, (int count, AIAction best)> groups = new Dictionary<string, (int, AIAction)>();
     sealed class SkillCount
@@ -38,6 +61,13 @@ public static class AIR2PlaytestTelemetry
         public double ScoreTotal;
     }
     static readonly Dictionary<string, DecisionCount> decisionSummary = new Dictionary<string, DecisionCount>();
+    sealed class ScoreTrace { public float Last; public string Components; }
+    static readonly Dictionary<AIAction, ScoreTrace> scoreTraces = new Dictionary<AIAction, ScoreTrace>();
+    static string Trace(AIAction action)
+    {
+        if (action == null || !scoreTraces.TryGetValue(action, out var trace)) return "";
+        return trace.Components + ";later_delta=" + (action.Score - trace.Last).ToString("R", CultureInfo.InvariantCulture);
+    }
     static int decisionSummaryOverflow;
     [Serializable] sealed class StatusFile
     {
@@ -45,6 +75,7 @@ public static class AIR2PlaytestTelemetry
         public int WrittenDetailRows, DecisionRows, UnitRows, AttemptedRowsAfterCap;
         public int SkippedDecisionEventsAfterCap, SkippedSnapshotsAfterCap, SkillGroupLimit = MaxSkillGroups, SkillGroups, SkillSamplesAfterGroupLimit;
         public bool DetailCapReached, SkillGroupCapReached, Closed;
+        public int ScoreTraceLimit = 8192, ScoreTraceOverflowSamples;
         public string LastTeam, LastStage;
         public int LastOwnTurn;
         public string Scope = "Read-only reporting. The 160000-row detail limit reserves 40000 rows for unit trajectories and 120000 for candidate details, including headers. Skill and decision summaries continue after detail limits. Generated scores precede evaluation. Candidate samples are not distinct opportunities. SkillSelfReady checks owned activation/AP state, not legal target presence.";
@@ -52,14 +83,15 @@ public static class AIR2PlaytestTelemetry
     public static void Open(string outputFolder)
     {
         Close(); folder = outputFolder; rows = decisionRows = unitRows = skippedDecisionEvents = skippedSnapshots = droppedRows = skillOverflow = 0;
-        capReached = false; lastTeam = lastStage = ""; lastTurn = 0; snapshots.Clear(); skills.Clear();
+        capReached = false; scoreTraceOverflow = 0; lastTeam = lastStage = ""; lastTurn = 0; snapshots.Clear(); skills.Clear();
         decisionSummary.Clear(); decisionSummaryOverflow = 0;
+        scoreTraces.Clear();
         decisions = new StreamWriter(Path.Combine(folder, "decisions.csv"));
         units = new StreamWriter(Path.Combine(folder, "units.csv"));
         nations = new StreamWriter(Path.Combine(folder, "nation-economy.csv")); nationRows = 0;
-        NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock");
-        Row(decisions, "team", "round", "generation", "stage", "mode", "AP", "group", "count", "actorLifeId", "action", "target", "score", "priority", "selected", "reason", "visibleEnemies", "affordableKinds", "summonCells", "casterKind", "skillKey", "normalSkillId", "specialAbility", "actionAP", "APAffordable", "chosenAction", "chosenScore", "chosenPriority", "selectionOutcome");
-        Row(units, "team", "round", "lifeId", "kind", "type", "level", "x", "z", "facing", "hp", "maxHP", "barrier", "maxBarrier", "homeDistance", "incoming", "plan", "planStep", "planTargetX", "planTargetZ", "exploreId", "region", "exploreState", "exploreReason", "exploreX", "exploreZ", "newTiles", "houseCapacity", "assignedSkillId", "assignedSkillAP", "skillCooldown", "specialAbility", "specialEnabled", "specialAP", "specialCooldown", "specialSelfReady", "specialSelfReason");
+        NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock", "developmentFightingTarget", "developmentCitizenDemand", "developmentRequiredStock", "housingRequiredCapacity", "housingReasons", "housingRecoveryStarted", "housingRecoveryLastProgress", "housingDeferredTurns", "housingRecoveryStatus");
+        Row(decisions, "team", "round", "generation", "stage", "mode", "AP", "group", "count", "actorLifeId", "action", "target", "score", "priority", "selected", "reason", "visibleEnemies", "affordableKinds", "summonCells", "casterKind", "skillKey", "normalSkillId", "specialAbility", "actionAP", "APAffordable", "chosenAction", "chosenScore", "chosenPriority", "selectionOutcome", "scoreComponents", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "preservationSafety", "recoveryPhase", "refugeX", "refugeZ", "healingPossible", "alliesNear", "saferMoveCount", "patientHP", "patientMaxHP", "chosenActorLifeId", "chosenTargetLifeId");
+        Row(units, "team", "round", "lifeId", "kind", "type", "level", "x", "z", "facing", "hp", "maxHP", "barrier", "maxBarrier", "homeDistance", "incoming", "plan", "planStep", "planTargetX", "planTargetZ", "exploreId", "region", "exploreState", "exploreReason", "exploreX", "exploreZ", "newTiles", "houseCapacity", "assignedSkillId", "assignedSkillAP", "skillCooldown", "specialAbility", "specialEnabled", "specialAP", "specialCooldown", "specialSelfReady", "specialSelfReason", "preservationSafety", "recoveryPhase", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "saferMoveCount", "healingPossible", "alliesNear", "refugeX", "refugeZ", "preservationReason");
         WriteStatus(false);
         AIDecisionObserver.Observed += Observe;
     }
@@ -68,12 +100,34 @@ public static class AIR2PlaytestTelemetry
         AIDecisionObserver.Observed -= Observe;
         if (folder != null) { WriteSkills(); WriteDecisions(); WriteStatus(true); }
         decisions?.Dispose(); units?.Dispose(); decisions = units = null;
-        nations?.Dispose(); nations = null; ownBuildings.Clear();
+        nations?.Dispose(); nations = null; ownBuildings.Clear(); groups.Clear();
+        scoreTraces.Clear();
         folder = null;
     }
     static void Observe(AIBoardState board, List<AIAction> candidates, AIAction chosen, string stage)
     {
         if (decisions == null || board == null) return;
+        if (stage == "generated") scoreTraces.Clear();
+        if (stage.StartsWith("score:", StringComparison.Ordinal))
+        {
+            if (decisionRows >= DecisionRowLimit || rows >= MaxRows) return;
+            // Actual one-pass score differences; never re-evaluate a candidate to report it.
+            foreach (var action in candidates)
+            {
+                if (!scoreTraces.TryGetValue(action, out var trace))
+                {
+                    if (scoreTraces.Count >= 8192) { scoreTraceOverflow++; continue; }
+                    scoreTraces[action] = new ScoreTrace { Last = action.Score,
+                        Components = stage.Substring(6) + "=" + action.Score.ToString("R", CultureInfo.InvariantCulture) };
+                }
+                else
+                {
+                    float delta = action.Score - trace.Last; trace.Last = action.Score;
+                    if (delta != 0) trace.Components += ";" + stage.Substring(6) + "=" + delta.ToString("R", CultureInfo.InvariantCulture);
+                }
+            }
+            return;
+        }
         lastTeam = board.ActorTeam.ToString(); lastTurn = board.TurnCount; lastStage = stage;
         // Aggregate the existing proposals only. Never regenerate a skill or query an unobserved target.
         foreach (var a in candidates) { RecordSkill(a, board, chosen, stage); RecordDecision(a, board, chosen, stage); }
@@ -85,6 +139,23 @@ public static class AIR2PlaytestTelemetry
                 RecordDecision(rejected.Key, board, null, "rejected");
             }
         if (decisionRows >= DecisionRowLimit || rows >= MaxRows) { skippedDecisionEvents++; return; }
+        if (stage == "selected" && board.Governor != null
+            && PreservationCache?.GetValue(board.Governor) is IDictionary patients)
+            foreach (DictionaryEntry pair in patients)
+            {
+                var patient = pair.Key as Status; var assessment = pair.Value;
+                if (patient == null || !patient.IsAlive || patient.team != board.ActorTeam) continue;
+                var refuge = Value(assessment, "Refuge");
+                Row(decisions, board.ActorTeam, board.TurnCount, board.Generation, "preservation", board.Governor.Mode, board.EnemyAP,
+                    "cached:" + Value(assessment, "Safety"), 1, patient.ReflectionLifeId, "assessment", null, null, null, null,
+                    Value(assessment, "Reason"), board.AlivePlayerUnits.Count, null, null, patient.kind, null, null, null, null, null,
+                    chosen?.ActionType, chosen?.Score, chosen?.StrategicPriority, "read_only_cached_assessment", null,
+                    Value(assessment, "IncomingCurrent"), Value(assessment, "RepeatedObservedLoss"), Value(assessment, "HasLegalSaferMove"),
+                    Value(assessment, "Safety"), Value(assessment, "Phase"), refuge is Vector3 point ? (object)point.x : null,
+                    refuge is Vector3 secondPoint ? (object)secondPoint.z : null, Value(assessment, "HealingPossible"),
+                    Value(assessment, "AlliesNear"), Value(assessment, "SaferMoveCount"), patient.HP, patient.MaxHP,
+                    chosen?.Unit?.ReflectionLifeId, chosen?.TargetUnit?.ReflectionLifeId);
+            }
         groups.Clear();
         if (stage == "governor" && board.Governor != null)
             foreach (var rejected in board.Governor.Rejections)
@@ -101,14 +172,14 @@ public static class AIR2PlaytestTelemetry
                 a.Score, a.StrategicPriority, a == chosen, a.StrategicRejectReason, board.AlivePlayerUnits.Count,
                 board.AffordableUnits.Count, board.SummonablePositions.Count, a.Unit?.kind, SkillKey(a), a.Skill?.Id,
                 a.SpecialCommand != null ? SpecialSkillRuntime.Definition(a.Unit)?.ability.ToString() : "", a.APCost, a.APCost >= 0 && a.APCost <= board.EnemyAP,
-                chosen?.ActionType, chosen?.Score, chosen?.StrategicPriority, SelectionOutcome(a, chosen, board, stage));
+                chosen?.ActionType, chosen?.Score, chosen?.StrategicPriority, SelectionOutcome(a, chosen, board, stage), Trace(a));
         }
         if (chosen != null) Row(decisions, board.ActorTeam, board.TurnCount, board.Generation, "chosen", board.Governor?.Mode,
             board.EnemyAP, chosen.ActionType, 1, chosen.Unit?.ReflectionLifeId, chosen.ActionType,
             chosen.TargetUnit?.kind.ToString() ?? chosen.SummonKind.ToString(), chosen.Score, chosen.StrategicPriority, true,
             chosen.StrategicRejectReason, board.AlivePlayerUnits.Count, board.AffordableUnits.Count, board.SummonablePositions.Count,
             chosen.Unit?.kind, SkillKey(chosen), chosen.Skill?.Id, chosen.SpecialCommand != null ? SpecialSkillRuntime.Definition(chosen.Unit)?.ability.ToString() : "",
-            chosen.APCost, chosen.APCost >= 0 && chosen.APCost <= board.EnemyAP, chosen.ActionType, chosen.Score, chosen.StrategicPriority, "chosen");
+            chosen.APCost, chosen.APCost >= 0 && chosen.APCost <= board.EnemyAP, chosen.ActionType, chosen.Score, chosen.StrategicPriority, "chosen", Trace(chosen));
     }
     static void Group(string key, AIAction a)
     {
@@ -133,6 +204,8 @@ public static class AIR2PlaytestTelemetry
             var systems = board.SpecialSystems ?? actor.RuntimeSystems;
             string readyReason = special == null ? "no_definition" : systems == null ? "systems_unavailable" : actor.Special == null ? "self_state_unavailable" : "";
             bool ready = special != null && systems != null && actor.Special != null && SpecialSkillRuntime.CanUse(actor, systems, out readyReason);
+            object preservation = Preservation(board, actor);
+            var refuge = Value(preservation, "Refuge");
             Row(units, board.ActorTeam, board.TurnCount, actor.ReflectionLifeId, actor.kind, actor.type, actor.Level,
                 actor.transform.position.x, actor.transform.position.z, actor.direction, actor.HP, actor.MaxHP,
                 actor.Barrier, actor.MaxBarrier, GridHelper.ChebyshevDistance(actor.transform.position, board.EnemyCrystalPos),
@@ -141,7 +214,11 @@ public static class AIR2PlaytestTelemetry
                 objective?.TargetCell.x, objective?.TargetCell.z, objective?.NewlyRevealedSinceStart,
                 actor.type == Type.Building ? FacilityData.GetLevel(actor, actor.Level).SpecialValue : 0,
                 actor.AssignedSkillId, assigned?.APCost, actor.SkillCooldown, special?.ability, special?.enabledForPlay,
-                special != null && actor.Special != null ? (object)SpecialSkillRuntime.GetAPCost(actor) : null, actor.Special?.cooldown, ready, readyReason);
+                special != null && actor.Special != null ? (object)SpecialSkillRuntime.GetAPCost(actor) : null, actor.Special?.cooldown, ready, readyReason,
+                Value(preservation, "Safety"), Value(preservation, "Phase"), Value(preservation, "IncomingCurrent"),
+                Value(preservation, "RepeatedObservedLoss"), Value(preservation, "HasLegalSaferMove"), Value(preservation, "SaferMoveCount"),
+                Value(preservation, "HealingPossible"), Value(preservation, "AlliesNear"), refuge is Vector3 point ? (object)point.x : null,
+                refuge is Vector3 secondPoint ? (object)secondPoint.z : null, Value(preservation, "Reason"));
         }
         units.Flush(); decisions.Flush();
     }
@@ -165,12 +242,25 @@ public static class AIR2PlaytestTelemetry
         }
         string order = "";
         foreach (var need in governor.RecruitmentPlan) order += need.Role + ":" + need.Definition.kind + ":" + need.Reason + ";";
+        float requiredCapacity = 0;
+        var housingReasons = new HashSet<string>();
+        if (HousingCache?.GetValue(governor) is IDictionary housing)
+            foreach (object assessment in housing.Values)
+            {
+                if (Value(assessment, "RequiredStock") is float needed) requiredCapacity = Mathf.Max(requiredCapacity, needed);
+                string reason = Convert.ToString(Value(assessment, "Reason"), CultureInfo.InvariantCulture);
+                if (!string.IsNullOrEmpty(reason)) housingReasons.Add(reason);
+            }
+        var sortedReasons = new List<string>(housingReasons); sortedReasons.Sort(StringComparer.Ordinal);
         foreach (var resource in governor.ProductionDemand.Resources)
             NationRow(board.ActorTeam, board.TurnCount, governor.Mode, board.NationStarvationCounter, board.EnemyResources?.Citizen,
                 capacity, houses, levels, army, wounded, healers, order, resource.Resource, resource.Stock,
                 resource.MandatoryDemandPerTurn, resource.NetPerTurn, resource.ProjectedStock, resource.SafetyReserve,
                 governor.BasicResources.FoundationState, governor.BasicResources.Get(resource.Resource)?.State,
-                governor.RecruitmentRequiredCitizenStock);
+                governor.RecruitmentRequiredCitizenStock, Value(governor, "DevelopmentFightingTarget"), Value(governor, "DevelopmentCitizenDemand"),
+                Value(governor, "DevelopmentRequiredCitizenStock"), requiredCapacity, string.Join(";", sortedReasons),
+                Value(governor, "HousingRecoveryStartedTurn"), Value(governor, "HousingRecoveryLastProgressTurn"),
+                Value(governor, "HousingRecoveryDeferredTurns"), Value(governor, "HousingRecoveryStatus"));
         nations.Flush(); ownBuildings.Clear();
     }
     static void NationRow(params object[] fields)
@@ -187,10 +277,11 @@ public static class AIR2PlaytestTelemetry
     {
         if (rows >= MaxRows || writer == decisions && decisionRows >= DecisionRowLimit || writer == units && unitRows >= UnitRowLimit)
         { droppedRows++; return; }
-        for (int i = 0; i < fields.Length; i++)
+        int count = writer == decisions ? Math.Max(fields.Length, DecisionColumns) : fields.Length;
+        for (int i = 0; i < count; i++)
         {
             if (i > 0) writer.Write(',');
-            writer.Write('"'); writer.Write((Convert.ToString(fields[i], CultureInfo.InvariantCulture) ?? "").Replace("\"", "\"\"")); writer.Write('"');
+            writer.Write('"'); writer.Write((Convert.ToString(i < fields.Length ? fields[i] : null, CultureInfo.InvariantCulture) ?? "").Replace("\"", "\"\"")); writer.Write('"');
         }
         writer.WriteLine();
         rows++; if (writer == decisions) decisionRows++; else if (writer == units) unitRows++;
@@ -298,7 +389,8 @@ public static class AIR2PlaytestTelemetry
             WrittenDetailRows = rows, DecisionRows = decisionRows, UnitRows = unitRows, AttemptedRowsAfterCap = droppedRows,
             SkippedDecisionEventsAfterCap = skippedDecisionEvents, SkippedSnapshotsAfterCap = skippedSnapshots,
             SkillGroups = skills.Count, SkillSamplesAfterGroupLimit = skillOverflow, DetailCapReached = capReached,
-            SkillGroupCapReached = skillOverflow > 0, Closed = closed, LastTeam = lastTeam, LastOwnTurn = lastTurn, LastStage = lastStage }, true));
+            SkillGroupCapReached = skillOverflow > 0, ScoreTraceOverflowSamples = scoreTraceOverflow,
+            Closed = closed, LastTeam = lastTeam, LastOwnTurn = lastTurn, LastStage = lastStage }, true));
     }
 }
 #endif

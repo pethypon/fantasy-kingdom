@@ -48,16 +48,16 @@ public class TurnGenerator : MonoBehaviour
     public AIUnitPreservationState CapturePlayerPreservation()
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        return _playerAI?.CapturePreservationState() ?? savedPlayerPreservation;
+        return AIUnitPreservationState.CopyForOwner(_playerAI?.CapturePreservationState() ?? savedPlayerPreservation, Team.Player);
 #else
-        return savedPlayerPreservation;
+        return AIUnitPreservationState.CopyForOwner(savedPlayerPreservation, Team.Player);
 #endif
     }
     public void RestorePlayerPreservation(AIUnitPreservationState state)
     {
-        savedPlayerPreservation = state;
+        savedPlayerPreservation = AIUnitPreservationState.CopyForOwner(state, Team.Player);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        _playerAI?.RestorePreservationState(state);
+        _playerAI?.RestorePreservationState(savedPlayerPreservation);
 #endif
     }
     public AIObservedMemoryState CapturePlayerObservedMemory()

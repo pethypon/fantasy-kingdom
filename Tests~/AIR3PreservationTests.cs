@@ -38,6 +38,10 @@ public static class AIR3PreservationTests
                 Case(team + " no fictitious healing", () => NoHealing(live, team));
                 Case(team + " hidden actor invariance", () => HiddenActor(live, team));
                 Case(team + " persistence bounds", () => Persistence(live, team));
+                Case(team + " production save and restore routes", () => SaveRoutes(live, team));
+                Case(team + " emergency defender's unique safe lateral exit", () => EmergencyDefender(live, team));
+                Case(team + " healthy defender pursuit remains constrained", () => HealthyDefender(live, team));
+                Case(team + " legal allied kill saves a lethal base threat", () => BaseSavingKill(live, team));
             }
         Check("tests preserve both live nations and resources", nations == JsonUtility.ToJson(live.FactionState.PlayerNation) + JsonUtility.ToJson(live.FactionState.EnemyNation));
         Check("tests preserve gameplay random state", random.Equals(UnityEngine.Random.state));
@@ -140,6 +144,125 @@ public static class AIR3PreservationTests
         Check(team + " killing the observed threat remains preferable to unnecessary retreat", candidates.Contains(attack)
             && ReferenceEquals(Select(live.AICommander, board, candidates), attack));
     }
+    static void EmergencyDefender(GameSystems live, Team team)
+    {
+        using var f = new Fixture(live, team, 20, 35, 100);
+        var home = f.Origin - Vector3.right;
+        var exit = f.Origin + Vector3.forward * 2;
+        f.Inner.Economy.Crystal.transform.position = home; f.Inner.Economy.SetOwnCrystalPosition(home);
+        f.Actor.GrowthData.actionProfile.movement.cells = 0;
+        f.Actor.GrowthData.actionProfile.movement.SetCell(3, 5, true);
+        foreach (var cell in new[] { home, exit }) { f.Inner.Explored.Add(GridHelper.ToGridXZ(cell)); f.Inner.See(cell); }
+        var board = f.Board(); var governor = board.Governor;
+        float baseIncoming = governor.IncomingDamage(board, f.Inner.Economy.Crystal, home, null);
+        // The observed base threat is severe but NONLETHAL in one exchange. There is
+        // no immediate loss-condition rescue requiring this wounded soldier's sacrifice.
+        f.Inner.Economy.Crystal.HP = Mathf.CeilToInt(baseIncoming / .9f);
+        int moveCost = board.CalcMoveCost(f.Actor, exit);
+        f.Inner.Economy.State.SetAP(team, moveCost); board = f.Board(61);
+        governor = board.Governor; baseIncoming = governor.IncomingDamage(board, f.Inner.Economy.Crystal, home, null);
+        float current = governor.IncomingDamage(board, f.Actor, f.Origin, null);
+        float safe = governor.IncomingDamage(board, f.Actor, exit, null);
+        var legal = board.GetValidMoves(f.Actor);
+        var skills = new List<AIAction>(); AIActionGenerator.GenerateSkillCandidates(f.Actor, board, skills);
+        Debug.Log("[AIR3PreservationDefensePrecondition] side=" + team + " mode=" + governor.Mode
+            + " actorHP=" + f.Actor.HP + " incoming=" + current + " baseHP=" + f.Inner.Economy.Crystal.HP
+            + " baseIncoming=" + baseIncoming + " legalMoveCount=" + legal.Count + " escapeRisk=" + safe
+            + " moveAP=" + moveCost + " availableAP=" + board.EnemyAP);
+        Check(team + " defense fixture has a real severe but nonlethal base threat", board.AlivePlayerUnits.Contains(f.Foe)
+            && governor.Mode == StrategicMode.EmergencyDefense && baseIncoming > 0 && baseIncoming < f.Inner.Economy.Crystal.HP);
+        Check(team + " the wounded actor is genuinely assigned as an emergency defender",
+            ((ICollection<Status>)typeof(AIStrategicGovernor).GetField("defenders", Hidden).GetValue(governor)).Contains(f.Actor));
+        Check(team + " defender fixture offers exactly one legal affordable safe exit from lethal exposure", current >= f.Actor.HP
+            && safe == 0 && legal.Count == 1 && legal[0] == exit && moveCost >= 0 && board.EnemyAP == moveCost);
+        Check(team + " the only escape increases the actual Chebyshev distance from the defended base",
+            GridHelper.ChebyshevDistance(exit, home) > GridHelper.ChebyshevDistance(f.Origin, home));
+        Check(team + " no owned killing or healing action requires retaining the lethal position", board.AliveEnemyUnits.Count == 1
+            && board.GetAttackTargets(f.Actor).Contains(f.Foe) && !AIActionEvaluator.CanFinishSpecialTarget(f.Actor, f.Foe, board)
+            && skills.Count == 0);
+        var options = new List<AIAction>(); AIActionGenerator.GenerateRetreatCandidates(f.Actor, board, options);
+        var retreat = options.Find(action => action.TargetPos == exit); var attack = f.Attack(board);
+        Check(team + " common retreat generation retains the unique emergency exit", retreat != null);
+        retreat.Score = 1; var actions = new List<AIAction> { retreat, attack }; governor.Filter(actions, board);
+        Debug.Log("[AIR3PreservationDefenseEvidence] side=" + team + " retreatPriority=" + retreat.StrategicPriority
+            + " retreatRejected=" + retreat.StrategicRejectReason + " retained=" + actions.Contains(retreat)
+            + " attackPriority=" + attack.StrategicPriority + " targetHP=" + f.Foe.HP);
+        Check(team + " a P0 individual escape survives the emergency defender pursuit gate", retreat.StrategicPriority == 0
+            && actions.Contains(retreat) && retreat.StrategicRejectReason == null);
+        Check(team + " actual selector saves the defender instead of an ineffective lethal hold",
+            ReferenceEquals(Select(live.AICommander, board, actions), retreat));
+    }
+    static void HealthyDefender(GameSystems live, Team team)
+    {
+        using var f = new Fixture(live, team, 20, 35, 100);
+        f.Actor.HP = f.Actor.MaxHP = 1000;
+        var home = f.Origin - Vector3.right; var exit = f.Origin + Vector3.forward * 2;
+        f.Inner.Economy.Crystal.transform.position = home; f.Inner.Economy.SetOwnCrystalPosition(home);
+        f.Actor.GrowthData.actionProfile.movement.cells = 0; f.Actor.GrowthData.actionProfile.movement.SetCell(3, 5, true);
+        f.Inner.Explored.Add(GridHelper.ToGridXZ(exit)); f.Inner.See(exit);
+        var board = f.Board();
+        float threat = board.Governor.IncomingDamage(board, f.Inner.Economy.Crystal, home, null);
+        f.Inner.Economy.Crystal.HP = Mathf.CeilToInt(threat / .9f); board = f.Board(61);
+        var movement = new AIAction { ActionType = AIActionType.Move, Unit = f.Actor, TargetPos = exit,
+            APCost = board.CalcMoveCost(f.Actor, exit) };
+        Check(team + " healthy pursuit guard has no individual emergency", board.Governor.Mode == StrategicMode.EmergencyDefense
+            && board.GetValidMoves(f.Actor).Contains(exit)
+            && board.Governor.AssessPreservation(f.Actor, board).Safety == AIUnitSafetyLevel.HoldPositionOrFight);
+        var actions = new List<AIAction> { movement }; board.Governor.Filter(actions, board);
+        Check(team + " a healthy defender still obeys the emergency pursuit boundary", actions.Count == 0
+            && movement.StrategicRejectReason == "defender_pursuit_limit");
+    }
+    static void BaseSavingKill(GameSystems live, Team team)
+    {
+        using var f = new Fixture(live, team, 20, 35, 100);
+        var allyProfile = ScriptableObject.CreateInstance<BoardActionProfile>();
+        try
+        {
+            var home = f.Origin - Vector3.right; var exit = f.Origin + Vector3.forward * 2;
+            f.Inner.Economy.Crystal.transform.position = home; f.Inner.Economy.SetOwnCrystalPosition(home);
+            f.Inner.Economy.Crystal.HP = 1;
+            f.Actor.GrowthData.actionProfile.movement.cells = 0; f.Actor.GrowthData.actionProfile.movement.SetCell(3, 5, true);
+            allyProfile.actionType = ActorActionType.Stationary; allyProfile.attack.useCustom = true;
+            allyProfile.attack.directionIndependent = true; allyProfile.attack.SetCell(3, 2, true);
+            var ally = f.Inner.Economy.Unit(); ally.GrowthData.actionProfile = allyProfile;
+            ally.transform.position = f.Foe.transform.position + Vector3.forward; ally.ATK = 5000; ally.HP = ally.MaxHP = 1000;
+            ally.VisionCell.Clear(); ally.VisionCell.Add(GridHelper.ToGrid(f.Foe.transform.position));
+            foreach (var cell in new[] { home, exit, ally.transform.position })
+            { f.Inner.Explored.Add(GridHelper.ToGridXZ(cell)); f.Inner.See(cell); }
+            var board = f.Board(); int moveAP = board.CalcMoveCost(f.Actor, exit), attackAP = board.CalcAttackCost(ally);
+            f.Inner.Economy.State.SetAP(team, Mathf.Max(moveAP, attackAP)); board = f.Board(61);
+            var governor = board.Governor;
+            float baseBefore = governor.IncomingDamage(board, f.Inner.Economy.Crystal, home, null);
+            float baseAfterKill = governor.IncomingDamage(board, f.Inner.Economy.Crystal, home, f.Foe);
+            Check(team + " lethal-base fixture has both a real dying defender and a real dying loss condition",
+                governor.Mode == StrategicMode.EmergencyDefense && baseBefore >= f.Inner.Economy.Crystal.HP
+                && governor.IncomingDamage(board, f.Actor, f.Origin, null) >= f.Actor.HP
+                && governor.IncomingDamage(board, f.Actor, exit, null) == 0);
+            Check(team + " a different safe ally has a legal observed lethal attack against the base's attacker",
+                ally != f.Actor && board.IsSpecialActorObserved(f.Foe) && !MatchObjectiveRules.IsDecisive(f.Foe)
+                && board.GetAttackTargets(ally).Contains(f.Foe) && AIActionEvaluator.CanFinishSpecialTarget(ally, f.Foe, board)
+                && governor.IncomingDamage(board, ally, ally.transform.position, null) < ally.HP);
+            Check(team + " eliminating the observed attacker actually removes the base's lethal forecast",
+                baseBefore > 0 && baseAfterKill == 0 && board.AlivePlayerUnits.Count == 1);
+            Check(team + " current AP funds either rescue but cannot fund escape followed by the saving kill",
+                moveAP > 0 && attackAP > 0 && moveAP <= board.EnemyAP && attackAP <= board.EnemyAP
+                && moveAP + attackAP > board.EnemyAP);
+            // Use the complete production score pipeline. No giant artificial float score can
+            // conceal a lower priority, and no new game balance values are adopted by this fixture.
+            var generated = AIActionEvaluator.EvaluateAll(f.Inner.Economy.Personality, board, new AILearning(false), TurnStrategy.CrystalDefense);
+            var kill = generated.Find(a => a.ActionType == AIActionType.Attack && a.Unit == ally && a.TargetUnit == f.Foe);
+            var retreat = generated.Find(a => a.ActionType == AIActionType.Retreat && a.Unit == f.Actor && a.TargetPos == exit);
+            Check(team + " complete production generation retains both base-saving kill and personal escape", kill != null && retreat != null);
+            Debug.Log("[AIR3PreservationBaseRescue] side=" + team + " baseHP=" + f.Inner.Economy.Crystal.HP
+                + " baseBefore=" + baseBefore + " baseAfterKill=" + baseAfterKill + " escapeP=" + retreat.StrategicPriority
+                + " escapeScore=" + retreat.Score + " savingKillP=" + kill.StrategicPriority + " savingKillScore=" + kill.Score
+                + " availableAP=" + board.EnemyAP);
+            Check(team + " a legal base-saving kill remains P0 beside individual escape", kill.StrategicPriority == 0 && retreat.StrategicPriority == 0);
+            Check(team + " actual selector uses the real scored base-saving kill before spending its AP on escape",
+                ReferenceEquals(Select(live.AICommander, board, new List<AIAction> { retreat, kill }), kill));
+        }
+        finally { UnityEngine.Object.DestroyImmediate(allyProfile); }
+    }
     static void Support(GameSystems live, Team team)
     {
         using var f = new Fixture(live, team, 50, 35, 10);
@@ -239,6 +362,106 @@ public static class AIR3PreservationTests
     static bool Execute(GameSystems live, Fixture f, AIAction action, AIBoardState board)
         => action != null && (bool)typeof(AIR2CommandTests).GetMethod("ExecuteMovement", BindingFlags.Static | BindingFlags.NonPublic)
             .Invoke(null, new object[] { live, f.Inner, action, board });
+    static void SaveRoutes(GameSystems live, Team team)
+    {
+        using var f = new Fixture(live, team, 20, 35, 10);
+        var board = f.Board(); var retreat = f.Retreat(board);
+        Check(team + " save-route fixture genuinely retreats before collection", Execute(live, f, retreat, board));
+        board = f.Board(61); var governor = board.Governor;
+        Check(team + " save-route fixture has real recovery state", governor.AssessPreservation(f.Actor, board).Phase == AIUnitRecoveryPhase.Recovering);
+        var state = governor.CapturePreservationState(team); string identity = f.Actor.ReflectionLifeId;
+        var host = new GameObject("R3 isolated production save routes"); host.SetActive(false);
+        DeveloperPlayerAIController controller = null; AICommander enemy = null, restored = null;
+        try
+        {
+            var hub = host.AddComponent<TurnGenerator>(); hub.MarkDeveloperMatch(); hub.Context.Turn = 61;
+            hub.Systems.MapCreate = live.MapCreate; hub.Systems.CrystalSystem = f.Inner.Economy.Crystals;
+            hub.Systems.UnitSetting = f.Inner.Economy.Units; hub.Systems.FactionState = f.Inner.Economy.State;
+            hub.Systems.APSystem = f.Inner.Economy.AP; hub.Systems.BuildSystem = f.Inner.Economy.Builder;
+            hub.Systems.MoveGenerator = live.MoveGenerator; hub.Systems.VisionGenerator = live.VisionGenerator;
+            controller = new DeveloperPlayerAIController(hub);
+            typeof(TurnGenerator).GetField("_playerAI", Hidden).SetValue(hub, controller);
+            enemy = SaveCommander(hub, live, f, Team.Enemy);
+            if (team == Team.Enemy) enemy.RestorePreservationState(state); else hub.RestorePlayerPreservation(state);
+            var collected = SaveSystem.CollectGameState(hub, f.Inner.Economy.State, live.TimerSystem, null, enemy);
+            var collectedState = team == Team.Enemy ? collected.AI.Preservation : collected.PlayerPreservation;
+            Check(team + " production collector includes the correct own-side stable identity", collectedState?.Owner == team
+                && collectedState.Records.Count == 1 && collectedState.Records[0].ActorLifeId == identity
+                && (team == Team.Enemy ? collected.AI.HasPreservationSnapshot : collected.HasPlayerPreservationSnapshot));
+            Check(team + " production unit snapshot and recovery snapshot share the same stable identity",
+                collected.Units.Exists(unit => unit.ReflectionLifeId == identity));
+            Check(team + " player load and collection do not activate developer automation", !hub.DeveloperPlayerAIEnabled);
+            var parse = typeof(SaveSystem).GetMethod("ParseGame", BindingFlags.Static | BindingFlags.NonPublic);
+            var loaded = (SaveSystem.GameSaveData)parse.Invoke(null, new object[] { JsonUtility.ToJson(collected) });
+            var loadedState = team == Team.Enemy ? loaded.AI.Preservation : loaded.PlayerPreservation;
+            Check(team + " real game JSON parser retains optional recovery presence and ownership", loadedState?.Owner == team
+                && loadedState.Records.Count == 1 && loadedState.Records[0].Phase == AIUnitRecoveryPhase.Recovering);
+            restored = SaveCommander(hub, live, f, team);
+            if (team == Team.Enemy) SaveSystem.RestoreAICommander(loaded.AI, restored);
+            else
+            {
+                hub.RestorePlayerPreservation(loaded.HasPlayerPreservationSnapshot ? loaded.PlayerPreservation : null);
+                Check(team + " player recovery survives pending load with automation disabled", !hub.DeveloperPlayerAIEnabled
+                    && hub.CapturePlayerPreservation()?.Records.Count == 1);
+                var pending = hub.CapturePlayerPreservation();
+                typeof(DeveloperPlayerAIController).GetField("commander", Hidden).SetValue(controller, restored);
+                controller.RestorePreservationState(pending);
+            }
+            Check(team + " production commander restore receives its own recovery record", restored.CapturePreservationState().Records.Count == 1
+                && restored.CapturePreservationState().Records[0].ActorLifeId == identity);
+            f.Actor.gameObject.SetActive(false);
+            var replacement = f.Inner.Economy.Unit(); replacement.GrowthData = f.Actor.GrowthData;
+            SaveGameApplier.ApplyStatusFields(replacement, loaded.Units.Find(unit => unit.ReflectionLifeId == identity));
+            board = f.Board(62); board.Governor = restored.StrategicGovernor; board.Governor.Evaluate(board);
+            Check(team + " production status applier reconnects recovery to a different Unity instance", replacement.GetInstanceID() != f.Actor.GetInstanceID()
+                && replacement.ReflectionLifeId == identity
+                && board.Governor.AssessPreservation(replacement, board).Phase == AIUnitRecoveryPhase.Recovering);
+            var legacy = (SaveSystem.GameSaveData)parse.Invoke(null,
+                new object[] { "{\"AI\":{\"Preservation\":{}},\"PlayerPreservation\":{}}" });
+            Check(team + " old absent snapshot flags cannot fabricate either side's recovery", legacy.AI.Preservation == null
+                && legacy.PlayerPreservation == null);
+            if (team == Team.Enemy) SaveSystem.RestoreAICommander(legacy.AI, restored);
+            else hub.RestorePlayerPreservation(legacy.HasPlayerPreservationSnapshot ? legacy.PlayerPreservation : null);
+            Check(team + " production legacy restore clears previous recovery rather than reviving stale state", restored.CapturePreservationState().Records.Count == 0);
+            restored.ReleaseRuntimeReferences();
+            Check(team + " production runtime release removes every recovery reference", restored.StrategicGovernor.TrackedRecoveryUnits == 0);
+            if (team == Team.Player) PendingCopies(hub, controller, state);
+        }
+        finally
+        {
+            controller?.Dispose(); enemy?.ReleaseRuntimeReferences(); restored?.ReleaseRuntimeReferences();
+            UnityEngine.Object.DestroyImmediate(host);
+        }
+    }
+    static AICommander SaveCommander(TurnGenerator hub, GameSystems live, Fixture f, Team owner)
+    {
+        var result = new AICommander(hub, live.MoveGenerator, live.AttackGenerator, live.BattleSystem, live.VisionGenerator,
+            f.Inner.Economy.AP, f.Inner.Economy.Units, f.Inner.Economy.Crystals, live.MapCreate, MajorPersonality.Intellect,
+            f.Inner.Economy.Builder, null, f.Inner.Economy.State, null, null, 1, 251025, owner);
+        result.SaveTurnCount = 61; return result;
+    }
+    static void PendingCopies(TurnGenerator hub, DeveloperPlayerAIController controller, AIUnitPreservationState original)
+    {
+        // Detach the initialized commander to exercise the actual lazy-player storage boundary.
+        typeof(DeveloperPlayerAIController).GetField("commander", Hidden).SetValue(controller, null);
+        var source = AIUnitPreservationState.CopyForOwner(original, Team.Player);
+        hub.RestorePlayerPreservation(source); source.Records.Clear();
+        Check("player pending restore owns a copy instead of the caller's mutable DTO", hub.CapturePlayerPreservation().Records.Count == 1);
+        var captured = hub.CapturePlayerPreservation(); captured.Records.Clear();
+        Check("player pending capture cannot mutate the future resume state", hub.CapturePlayerPreservation().Records.Count == 1);
+        var wrongOwner = AIUnitPreservationState.CopyForOwner(original, Team.Player); wrongOwner.Owner = Team.Enemy;
+        hub.RestorePlayerPreservation(wrongOwner);
+        Check("player pending route rejects a hostile side's recovery snapshot", hub.CapturePlayerPreservation() == null);
+        var oversized = new AIUnitPreservationState { Owner = Team.Player };
+        for (int i = 0; i <= AIUnitPreservationState.MaximumRecords; i++) oversized.Records.Add(original.Records[0].Copy());
+        controller.RestorePreservationState(oversized);
+        Check("player pending storage enforces the same bounded validator as active AI", controller.CapturePreservationState() == null);
+        var detached = AIUnitPreservationState.CopyForOwner(original, Team.Player);
+        controller.RestorePreservationState(detached); detached.Records[0].Refuge = Vector3.zero;
+        Check("controller pending records are deeply detached", controller.CapturePreservationState().Records[0].Refuge == original.Records[0].Refuge);
+        controller.Dispose();
+        Check("controller disposal releases pending recovery payload", controller.CapturePreservationState() == null);
+    }
     static AIAction Select(AICommander commander, AIBoardState board, List<AIAction> candidates)
     {
         var field = typeof(AICommander).GetField("_board", Hidden); var original = field.GetValue(commander);

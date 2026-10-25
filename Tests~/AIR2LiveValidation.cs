@@ -11,7 +11,7 @@ public static class AIR2LiveValidation
 {
     const string Key = "FK.R2LiveValidation";
     static bool clicked;
-    static int frame, failed;
+    static int frame, failed, executedStages;
     static readonly System.Collections.Generic.List<string> results = new System.Collections.Generic.List<string>();
     static AIR2LiveValidation() => EditorApplication.update += Tick;
     public static void Run()
@@ -22,6 +22,9 @@ public static class AIR2LiveValidation
     }
     static void Stage(string name, Action run)
     {
+        string selected = Environment.GetEnvironmentVariable("FK_R2_SINGLE_SUITE");
+        if (!string.IsNullOrEmpty(selected) && selected != name) return;
+        executedStages++;
         try { run(); results.Add("PASS " + name); Debug.Log("[AIR2Stage] PASS " + name); }
         catch (Exception e) { failed++; results.Add("FAIL " + name + " " + (e.InnerException ?? e).Message); Debug.Log("[AIR2Stage] " + results[results.Count - 1]); }
     }
@@ -36,16 +39,13 @@ public static class AIR2LiveValidation
         var t = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
         if (t == null || !(t.CurrentState is PlayerMove) || Time.frameCount - frame < 20) return;
         SessionState.SetBool(Key, false);
-        if (Environment.GetEnvironmentVariable("FK_R2_SINGLE_SUITE") == "housing")
-        {
-            Stage("housing", () => AIHousingTests.Run(t.Systems));
-            Complete(); return;
-        }
         Stage("command", () => AIR2CommandTests.Run(t.Systems, t));
         Stage("orientation", () => AIOrientationReconTests.Run(t.Systems, t));
         foreach (string suite in new[] { "AIR2ObjectiveTests", "AIR2RecruitmentTests", "AIR2ExplorationTests", "AIR2ObservedMemoryTests", "AIR2RecoveryTests",
-            "AIR3CommandAuthorityTests", "AIR2ExpeditionTests", "AIR3PreservationTests", "AIR3HousingDevelopmentTests" })
+            "AIR3CommandAuthorityTests", "AIR2ExpeditionTests", "AIR3PreservationTests", "AIR3HousingDevelopmentTests", "AIR3ScoreObserverTests" })
         {
+            string selected = Environment.GetEnvironmentVariable("FK_R2_SINGLE_SUITE");
+            if (!string.IsNullOrEmpty(selected) && selected != suite) continue;
             var type = System.Type.GetType(suite + ", Assembly-CSharp-Editor");
             if (type == null)
             {
@@ -77,6 +77,7 @@ public static class AIR2LiveValidation
     }
     static void Complete()
     {
+        if (executedStages == 0) { failed++; results.Add("FAIL no requested suite executed"); }
         string output = Environment.GetEnvironmentVariable("FK_R2_TEST_OUTPUT");
         if (!string.IsNullOrEmpty(output)) File.WriteAllLines(output, results);
         Debug.Log("[AIR2LiveValidation] COMPLETE failures=" + failed); EditorApplication.Exit(failed == 0 ? 0 : 1);
