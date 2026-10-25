@@ -42,6 +42,10 @@ public sealed class ExploreObjective
     public int CreatedTurn;
     public int LastProgressTurn;
     public int NewlyRevealedSinceStart;
+    // Optional v3 fields. Old saves rebase at their current cumulative count;
+    // an earlier leg's information must never complete a newly assigned waypoint.
+    public bool HasLegBaseline;
+    public int LegRevealBaseline, LegInformationRevision, LegStartedTurn;
     public ObjectiveState State;
     public float BestDistance;
     public float LastDistance;
@@ -75,9 +79,27 @@ public sealed class ExplorationObservation
     public readonly List<Vector3Int> VisibleCells = new List<Vector3Int>();
     public readonly List<ExplorationActor> Actors = new List<ExplorationActor>();
     public readonly Dictionary<Vector3Int, float> ImportantCells = new Dictionary<Vector3Int, float>();
+    public readonly List<ExplorationObservedContact> ObservedContacts = new List<ExplorationObservedContact>();
     // Delegates must describe only observed/cached evidence, never hidden occupants or terrain.
     public Func<int, Vector3Int, float> EstimateDanger;
     public Func<int, Vector3Int, bool> CanReach;
+}
+
+public struct ExplorationObservedContact
+{
+    public Vector3Int Cell;
+    public int Signature;
+    public ExplorationObservedContact(Vector3Int cell, int signature) { Cell = cell; Signature = signature; }
+}
+
+/// <summary>Bounded factual result at one reached viewpoint, independent of short movement history.</summary>
+[Serializable]
+public sealed class ExplorationExpeditionRecord
+{
+    public string ActorLifeId;
+    public int RegionId, LastArrivalTurn, Visits, TotalReveals, KnownCells, InformationRevision;
+    public Vector3Int Viewpoint;
+    public bool Unproductive;
 }
 
 [Serializable]
@@ -148,6 +170,7 @@ public struct ExplorationRegionState
 {
     public int RegionId;
     public int LastAssignedTurn;
+    public int InformationRevision, ObservedContactSignature;
 }
 
 [Serializable]
@@ -164,4 +187,5 @@ public sealed class AIExplorationState
     public List<ExplorationHistoryRecord> Histories = new List<ExplorationHistoryRecord>();
     public List<ExplorationRegionCooldown> LoopCooldowns = new List<ExplorationRegionCooldown>();
     public List<ExplorationRegionState> Regions = new List<ExplorationRegionState>();
+    public List<ExplorationExpeditionRecord> Expeditions = new List<ExplorationExpeditionRecord>();
 }

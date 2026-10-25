@@ -17,6 +17,7 @@ public static class AIR2PlaytestTelemetry
     static int lastTurn;
     static bool capReached;
     const int MaxRows = 160000;
+    const int DecisionRowLimit = 120000, UnitRowLimit = 40000;
     const int MaxSkillGroups = 2048;
     static readonly FieldInfo BoardField = typeof(AICommander).GetField("_board", BindingFlags.Instance | BindingFlags.NonPublic);
     static readonly FieldInfo AdvancedField = typeof(AICommander).GetField("_advanced", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -30,19 +31,29 @@ public static class AIR2PlaytestTelemetry
         public float BestScore = float.NegativeInfinity;
     }
     static readonly Dictionary<string, SkillCount> skills = new Dictionary<string, SkillCount>();
+    sealed class DecisionCount
+    {
+        public string Team, Stage, Action, Kind, Reason;
+        public int Samples, Chosen, LastTurn = -1, Turns, PriorityLost, ScoreLost;
+        public double ScoreTotal;
+    }
+    static readonly Dictionary<string, DecisionCount> decisionSummary = new Dictionary<string, DecisionCount>();
+    static int decisionSummaryOverflow;
     [Serializable] sealed class StatusFile
     {
-        public int DetailRowLimit = MaxRows, WrittenDetailRows, DecisionRows, UnitRows, AttemptedRowsAfterCap;
+        public int DetailRowLimit = MaxRows, DecisionLimit = DecisionRowLimit, UnitLimit = UnitRowLimit;
+        public int WrittenDetailRows, DecisionRows, UnitRows, AttemptedRowsAfterCap;
         public int SkippedDecisionEventsAfterCap, SkippedSnapshotsAfterCap, SkillGroupLimit = MaxSkillGroups, SkillGroups, SkillSamplesAfterGroupLimit;
         public bool DetailCapReached, SkillGroupCapReached, Closed;
         public string LastTeam, LastStage;
         public int LastOwnTurn;
-        public string Scope = "Read-only reporting. Detail files share a 160000-row cap including headers. Skill summary is separately bounded to 2048 groups and continues after the detail cap. Generated candidates are production proposals, not a counterfactual proof of every legal target. SkillSelfReady checks only owned activation/AP state; it does not prove a legal target exists.";
+        public string Scope = "Read-only reporting. The 160000-row detail limit reserves 40000 rows for unit trajectories and 120000 for candidate details, including headers. Skill and decision summaries continue after detail limits. Generated scores precede evaluation. Candidate samples are not distinct opportunities. SkillSelfReady checks owned activation/AP state, not legal target presence.";
     }
     public static void Open(string outputFolder)
     {
         Close(); folder = outputFolder; rows = decisionRows = unitRows = skippedDecisionEvents = skippedSnapshots = droppedRows = skillOverflow = 0;
         capReached = false; lastTeam = lastStage = ""; lastTurn = 0; snapshots.Clear(); skills.Clear();
+        decisionSummary.Clear(); decisionSummaryOverflow = 0;
         decisions = new StreamWriter(Path.Combine(folder, "decisions.csv"));
         units = new StreamWriter(Path.Combine(folder, "units.csv"));
         nations = new StreamWriter(Path.Combine(folder, "nation-economy.csv")); nationRows = 0;
@@ -55,7 +66,7 @@ public static class AIR2PlaytestTelemetry
     public static void Close()
     {
         AIDecisionObserver.Observed -= Observe;
-        if (folder != null) { WriteSkills(); WriteStatus(true); }
+        if (folder != null) { WriteSkills(); WriteDecisions(); WriteStatus(true); }
         decisions?.Dispose(); units?.Dispose(); decisions = units = null;
         nations?.Dispose(); nations = null; ownBuildings.Clear();
         folder = null;
@@ -65,11 +76,15 @@ public static class AIR2PlaytestTelemetry
         if (decisions == null || board == null) return;
         lastTeam = board.ActorTeam.ToString(); lastTurn = board.TurnCount; lastStage = stage;
         // Aggregate the existing proposals only. Never regenerate a skill or query an unobserved target.
-        foreach (var a in candidates) RecordSkill(a, board, chosen, stage);
+        foreach (var a in candidates) { RecordSkill(a, board, chosen, stage); RecordDecision(a, board, chosen, stage); }
         if (chosen != null) RecordSkill(chosen, board, chosen, "chosen");
         if (stage == "governor" && board.Governor != null)
-            foreach (var rejected in board.Governor.Rejections) RecordSkill(rejected.Key, board, null, "rejected:" + rejected.Value);
-        if (rows >= MaxRows) { skippedDecisionEvents++; return; }
+            foreach (var rejected in board.Governor.Rejections)
+            {
+                RecordSkill(rejected.Key, board, null, "rejected:" + rejected.Value);
+                RecordDecision(rejected.Key, board, null, "rejected");
+            }
+        if (decisionRows >= DecisionRowLimit || rows >= MaxRows) { skippedDecisionEvents++; return; }
         groups.Clear();
         if (stage == "governor" && board.Governor != null)
             foreach (var rejected in board.Governor.Rejections)
@@ -107,7 +122,7 @@ public static class AIR2PlaytestTelemetry
         if (board == null || snapshots.TryGetValue(board.ActorTeam, out int oldTurn) && oldTurn == board.TurnCount) return;
         snapshots[board.ActorTeam] = board.TurnCount;
         CaptureNation(board);
-        if (rows >= MaxRows) { skippedSnapshots++; return; }
+        if (unitRows >= UnitRowLimit || rows >= MaxRows) { skippedSnapshots++; return; }
         var plan = (AdvancedField?.GetValue(commander) as AIAdvancedStrategy)?.Plans.Current;
         foreach (var actor in board.AliveEnemyUnits)
         {
@@ -170,7 +185,8 @@ public static class AIR2PlaytestTelemetry
     }
     static void Row(StreamWriter writer, params object[] fields)
     {
-        if (rows >= MaxRows) { droppedRows++; return; }
+        if (rows >= MaxRows || writer == decisions && decisionRows >= DecisionRowLimit || writer == units && unitRows >= UnitRowLimit)
+        { droppedRows++; return; }
         for (int i = 0; i < fields.Length; i++)
         {
             if (i > 0) writer.Write(',');
@@ -178,7 +194,7 @@ public static class AIR2PlaytestTelemetry
         }
         writer.WriteLine();
         rows++; if (writer == decisions) decisionRows++; else if (writer == units) unitRows++;
-        if (rows == MaxRows)
+        if (!capReached && (rows == MaxRows || decisionRows == DecisionRowLimit || unitRows == UnitRowLimit))
         { capReached = true; decisions?.Flush(); units?.Flush(); WriteSkills(); WriteStatus(false); }
     }
 
@@ -223,6 +239,45 @@ public static class AIR2PlaytestTelemetry
         else if (stage.StartsWith("rejected:", StringComparison.Ordinal) || outcome.StartsWith("rejected:", StringComparison.Ordinal)) count.Rejected++;
         else if (stage == "selected")
         { if (outcome == "priority_lost") count.PriorityLost++; else if (outcome == "score_lost") count.ScoreLost++; else count.OtherSelection++; }
+    }
+    static void RecordDecision(AIAction action, AIBoardState board, AIAction chosen, string stage)
+    {
+        string kind = action.Unit != null ? action.Unit.kind.ToString() : action.ActionType == AIActionType.Summon
+            ? action.SummonKind.ToString() : action.Facility.ToString();
+        string reason = action.StrategicRejectReason ?? "";
+        string key = board.ActorTeam + ":" + stage + ":" + action.ActionType + ":" + kind + ":" + reason;
+        if (!decisionSummary.TryGetValue(key, out var count))
+        {
+            if (decisionSummary.Count >= 4096) { decisionSummaryOverflow++; return; }
+            decisionSummary[key] = count = new DecisionCount { Team = board.ActorTeam.ToString(), Stage = stage,
+                Action = action.ActionType.ToString(), Kind = kind, Reason = reason };
+        }
+        count.Samples++; count.ScoreTotal += action.Score;
+        if (count.LastTurn != board.TurnCount) { count.Turns++; count.LastTurn = board.TurnCount; }
+        if (action == chosen) count.Chosen++;
+        else if (stage == "selected" && chosen != null)
+        {
+            if (action.StrategicPriority > chosen.StrategicPriority) count.PriorityLost++;
+            else if (action.StrategicPriority == chosen.StrategicPriority && action.Score < chosen.Score) count.ScoreLost++;
+        }
+    }
+    static void WriteDecisions()
+    {
+        using var output = new StreamWriter(Path.Combine(folder, "decision-summary.csv"));
+        output.WriteLine("team,stage,action,kind,reason,candidateSamples,ownTurns,chosen,priorityLost,scoreLost,meanScore");
+        foreach (var row in decisionSummary.Values)
+        {
+            var fields = new object[] { row.Team, row.Stage, row.Action, row.Kind, row.Reason, row.Samples,
+                row.Turns, row.Chosen, row.PriorityLost, row.ScoreLost, row.Samples > 0 ? row.ScoreTotal / row.Samples : 0 };
+            for (int i = 0; i < fields.Length; i++)
+            {
+                if (i > 0) output.Write(','); output.Write('"');
+                output.Write(Convert.ToString(fields[i], CultureInfo.InvariantCulture).Replace("\"", "\"\"")); output.Write('"');
+            }
+            output.WriteLine();
+        }
+        File.WriteAllText(Path.Combine(folder, "decision-summary-status.txt"), "groupLimit=4096 groups="
+            + decisionSummary.Count + " samplesAfterLimit=" + decisionSummaryOverflow + "\nCandidate samples include repeated evaluation; generated scores precede evaluation.");
     }
     static void WriteSkills()
     {

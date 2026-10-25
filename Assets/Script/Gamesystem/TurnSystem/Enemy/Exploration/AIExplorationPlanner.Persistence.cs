@@ -18,14 +18,16 @@ public sealed partial class AIExplorationPlanner
         var regionIds = new List<int>(cooldowns.Keys); regionIds.Sort();
         foreach (var id in regionIds) state.LoopCooldowns.Add(new ExplorationRegionCooldown { RegionId = id, UntilTurn = cooldowns[id] });
         regionIds = new List<int>(regions.Keys); regionIds.Sort();
-        foreach (var id in regionIds) state.Regions.Add(new ExplorationRegionState { RegionId = id, LastAssignedTurn = regions[id].LastAssignedTurn });
+        foreach (var id in regionIds) state.Regions.Add(new ExplorationRegionState { RegionId = id, LastAssignedTurn = regions[id].LastAssignedTurn,
+            InformationRevision = regions[id].InformationRevision, ObservedContactSignature = regions[id].ObservedContactSignature });
+        foreach (var record in expeditionRecords) state.Expeditions.Add(CloneExpedition(record));
         return state;
     }
     public void RestoreState(AIExplorationState state)
     {
         ResetKnowledge(); actors.Clear(); sortedActors.Clear(); observation = null;
         ClearBoardCaches();
-        viewVersion = cellVersion = actorVersion = dangerVersion = int.MinValue; lastFrontierRefresh = -1;
+        viewVersion = cellVersion = actorVersion = dangerVersion = informationStamp = int.MinValue; lastFrontierRefresh = -1;
         if (state == null || (state.Version != 2 && state.Version != 3) || state.Width <= 0 || state.Depth <= 0
             || state.Width > Mathf.Clamp(settings.MaxMapDimension, 16, 32768) || state.Depth > Mathf.Clamp(settings.MaxMapDimension, 16, 32768)
             || state.ActorTeam != Team.Player && state.ActorTeam != Team.Enemy)
@@ -58,6 +60,12 @@ public sealed partial class AIExplorationPlanner
             copy.SuspendedTurn = Mathf.Clamp(copy.SuspendedTurn, 0, turn); copy.BestDistance = Mathf.Max(0, copy.BestDistance); copy.LastDistance = Mathf.Max(0, copy.LastDistance);
             copy.FrontierRegionId = RegionId(copy.TargetCell); copy.FailedMoves = Mathf.Clamp(copy.FailedMoves, 0, Mathf.Max(1, settings.FailedMoveLimit));
             copy.NewlyRevealedSinceStart = Mathf.Max(0, copy.NewlyRevealedSinceStart);
+            // Optional v3 fields absent in an old save do not manufacture a fresh leg's reward.
+            if (!copy.HasLegBaseline) { copy.HasLegBaseline = true; copy.LegRevealBaseline = copy.NewlyRevealedSinceStart;
+                copy.LegStartedTurn = turn; }
+            copy.LegRevealBaseline = Mathf.Clamp(copy.LegRevealBaseline, 0, copy.NewlyRevealedSinceStart);
+            copy.LegStartedTurn = Mathf.Clamp(copy.LegStartedTurn, copy.CreatedTurn, turn);
+            copy.LegInformationRevision = Mathf.Max(0, copy.LegInformationRevision);
             if (state.Version == 2) copy.RebaseProgressOnNextObservation = true;
             // Route revisions belong to the discarded runtime cache. A fresh cache may reuse
             // the saved number with different costs; rebind the distance basis without awarding progress.
@@ -92,7 +100,24 @@ public sealed partial class AIExplorationPlanner
         for (int i = 0; i < state.Regions.Count && i < regionLimit; i++)
         {
             var region = state.Regions[i];
-            if (regions.TryGetValue(region.RegionId, out var cache)) cache.LastAssignedTurn = Mathf.Clamp(region.LastAssignedTurn, -1, turn);
+            if (regions.TryGetValue(region.RegionId, out var cache))
+            {
+                cache.LastAssignedTurn = Mathf.Clamp(region.LastAssignedTurn, -1, turn);
+                cache.InformationRevision = Mathf.Max(0, region.InformationRevision); cache.ObservedContactSignature = region.ObservedContactSignature;
+            }
+        }
+        if (state.Expeditions != null)
+        for (int i = 0; i < state.Expeditions.Count && i < MaximumExpeditionRecords; i++)
+        {
+            var record = state.Expeditions[i];
+            if (record == null || !ValidIdentity(record.ActorLifeId) || !Inside(XZ(record.Viewpoint))
+                || record.LastArrivalTurn < 0 || record.LastArrivalTurn > turn || record.InformationRevision < 0
+                || record.KnownCells < 0 || record.Visits < 0 || record.TotalReveals < 0) continue;
+            var copy = CloneExpedition(record); copy.Viewpoint = XZ(copy.Viewpoint); copy.RegionId = RegionId(copy.Viewpoint);
+            copy.Visits = Mathf.Clamp(copy.Visits, 0, ushort.MaxValue); copy.KnownCells = Mathf.Min(copy.KnownCells, RegionSize * RegionSize);
+            var key = (copy.ActorLifeId, copy.RegionId, copy.Viewpoint);
+            if (expeditionIndex.ContainsKey(key)) continue;
+            expeditionRecords.Add(copy); expeditionIndex[key] = copy;
         }
     }
     static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
@@ -102,10 +127,16 @@ public sealed partial class AIExplorationPlanner
         ObjectiveId = source.ObjectiveId, FrontierRegionId = source.FrontierRegionId, TargetCell = source.TargetCell,
         AssignedUnitId = source.AssignedUnitId, ActorLifeId = source.ActorLifeId, CreatedTurn = source.CreatedTurn,
         LastProgressTurn = source.LastProgressTurn, NewlyRevealedSinceStart = source.NewlyRevealedSinceStart, State = source.State,
+        HasLegBaseline = source.HasLegBaseline, LegRevealBaseline = source.LegRevealBaseline,
+        LegInformationRevision = source.LegInformationRevision, LegStartedTurn = source.LegStartedTurn,
         BestDistance = source.BestDistance, LastDistance = source.LastDistance, LastSampleTurn = source.LastSampleTurn,
         LastUnknownCount = source.LastUnknownCount, FailedMoves = source.FailedMoves, SuspendedTurn = source.SuspendedTurn,
         LastReason = source.LastReason, IsIntelRevisit = source.IsIntelRevisit,
         RebaseProgressOnNextObservation = source.RebaseProgressOnNextObservation,
         UsesKnownRouteDistance = source.UsesKnownRouteDistance, RouteMetricRevision = source.RouteMetricRevision, RouteWaypoint = source.RouteWaypoint
     };
+    static ExplorationExpeditionRecord CloneExpedition(ExplorationExpeditionRecord source) => new ExplorationExpeditionRecord
+    { ActorLifeId = source.ActorLifeId, RegionId = source.RegionId, Viewpoint = source.Viewpoint, LastArrivalTurn = source.LastArrivalTurn,
+        Visits = source.Visits, TotalReveals = source.TotalReveals, KnownCells = source.KnownCells,
+        InformationRevision = source.InformationRevision, Unproductive = source.Unproductive };
 }

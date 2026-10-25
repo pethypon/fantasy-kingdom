@@ -52,7 +52,7 @@ public sealed partial class AIStrategicGovernor
                 && !MatchObjectiveRules.IsCommander(actor) && board.IsSpecialActorObserved(actor)
                 && BoardActionProfile.For(actor)?.CanAttack != false) observedFighters++;
         bool expedition = board.HasPrincipalOpponentContact || TerritoryIntel.HasUsableTerritory || board.OperationRequiredCitizenDemand > 0;
-        int fightingTarget = Mathf.Max(2, Mathf.Min(6, observedFighters));
+        int fightingTarget = PrepareArmyDevelopment(board, Mathf.Max(2, Mathf.Min(6, observedFighters)), expedition);
         // Rescue/support a force that already exists before buying another interchangeable fighter.
         if (healers == 0 && fighters >= 3 && (wounded > 0 || expedition))
             if (AddRecruitmentRole(board, "healer", wounded > 0 ? "wounded_army_without_healer" : "expedition_without_healer")) healers++;
@@ -60,6 +60,7 @@ public sealed partial class AIStrategicGovernor
         if (scouts == 0 && (!board.PlayerCrystalVisible && board.GetExplorationRatio() < 1f || TerritoryIntel.HasUsableTerritory && !HasActiveTerritoryAdvance))
             if (AddRecruitmentRole(board, "scout", "reconnaissance_role_missing")) scouts++;
         if (ranged == 0 && fighters >= 2 && AddRecruitmentRole(board, "ranged", "ranged_support_missing")) { ranged++; fighters++; }
+        AddDueDevelopmentRecruits(board);
         while (fighters < fightingTarget && recruitmentPlan.Count < 3)
         {
             string role = frontline <= ranged ? "frontline" : "ranged";
@@ -71,8 +72,10 @@ public sealed partial class AIStrategicGovernor
         {
             RecruitmentCitizenDemand += Mathf.Max(0, need.Definition.costCitizen);
             RecruitmentRequiredCitizenStock = Mathf.Max(RecruitmentRequiredCitizenStock,
-                Mathf.Max(0, need.Definition.costCitizen) + reserve - AIHousingConfig.Active.FreeTarget);
+                (float)System.Math.Min(int.MaxValue, (long)Mathf.Max(0, need.Definition.costCitizen) + reserve) - AIHousingConfig.Active.FreeTarget);
         }
+        RecruitmentRequiredCitizenStock = Mathf.Max(RecruitmentRequiredCitizenStock, DevelopmentRequiredCitizenStock);
+        AppendDevelopmentForecast();
     }
 
     bool AddRecruitmentRole(AIBoardState board, string role, string reason)
@@ -99,10 +102,15 @@ public sealed partial class AIStrategicGovernor
             best = definition; bestCost = investment;
         }
         if (best == null) { recruitmentReasons[role] = capped ? "recruit_kind_cap" : "recruit_definition_missing"; return false; }
-        recruitmentCounts.TryGetValue(best.kind, out int existing); recruitmentCounts[best.kind] = existing + 1;
-        recruitmentPlan.Add(new AIRecruitmentNeed(best, role, reason)); recruitmentForecastUnits.Add(best);
+        AddRecruitmentNeed(best, role, reason);
         recruitmentReasons[role] = reason;
         return true;
+    }
+
+    void AddRecruitmentNeed(UnitData definition, string role, string reason)
+    {
+        recruitmentCounts.TryGetValue(definition.kind, out int existing); recruitmentCounts[definition.kind] = existing + 1;
+        recruitmentPlan.Add(new AIRecruitmentNeed(definition, role, reason)); recruitmentForecastUnits.Add(definition);
     }
 
     static string RecruitmentRole(UnitData definition, Kind kind)
@@ -148,7 +156,16 @@ public sealed partial class AIStrategicGovernor
     {
         if (action == null || action.ActionType != AIActionType.Summon || recruitmentPlan.Count == 0) return false;
         var definition = action.SummonDefinition ?? board.ResolveUnitDefinition(action.SummonKind);
-        return definition == recruitmentPlan[0].Definition;
+        // An impossible first purchase must not turn every other funded role into P4.
+        // Keep the order among executable purchases, while retaining the blocked request for housing/supply.
+        foreach (var need in recruitmentPlan)
+        {
+            if (need.Definition == definition) return RecruitmentBlockReason(action, board) == null;
+            recruitmentProbe.SummonDefinition = need.Definition; recruitmentProbe.SummonKind = need.Definition.kind;
+            recruitmentProbe.APCost = need.Definition.costAP;
+            if (RecruitmentBlockReason(recruitmentProbe, board) == null) return false;
+        }
+        return false;
     }
     bool IsSafePlannedRecruit(AIAction action, AIBoardState board)
         => Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery

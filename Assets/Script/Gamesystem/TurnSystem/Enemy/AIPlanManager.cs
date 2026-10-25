@@ -90,6 +90,13 @@ public sealed class AIPlanManager
 
     public static bool Emergency(AIBoardState board)
     {
+        // The governor evaluates actual observed legal threats. An independent HP/proximity
+        // veto must not silently cancel its operation orders in an otherwise safe state.
+        if (board.Governor != null)
+        {
+            board.Governor.Evaluate(board);
+            return board.Governor.Mode == StrategicMode.EmergencyDefense;
+        }
         if (board.EnemyCrystalMaxHP > 0 && board.EnemyCrystalHP < board.EnemyCrystalMaxHP * .4f) return true;
         foreach (var enemy in board.AlivePlayerUnits)
             if (enemy != null && board.IsVisibleToEnemy(enemy.transform.position)

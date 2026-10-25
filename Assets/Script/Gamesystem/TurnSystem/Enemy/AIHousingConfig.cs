@@ -13,6 +13,16 @@ public sealed class AIHousingConfig : ScriptableObject
     [Min(0)] public int MinimumFreeCitizenTarget = 2;
     [Range(0, 8)] public int ShortTermCombatRecruits = 2;
     [Range(1, 7)] public int EmergencyRecruitWaitTurns = 2;
+    [Header("中長期の軍備計画（軍隊数の上限ではなく補充目標）")]
+    [InspectorName("作戦に応じて中長期の補充目標を増やす")] public bool EnableDevelopmentGrowth = true;
+    [Range(1, 100), InspectorName("先行準備の期間（ターン）"), Tooltip("この期間内に必要になる兵種について、購入に必要な市民容量を先に準備します。費用全額を一括予約しません。")]
+    public int DevelopmentPlanningTurns = 20;
+    [Range(1, 200), InspectorName("軍備拡張を考え始めるターン")] public int DevelopmentGrowthStartTurn = 20;
+    [Range(1, 100), InspectorName("軍備目標を見直す間隔")] public int DevelopmentGrowthIntervalTurns = 20;
+    [Range(0, 8), InspectorName("間隔ごとの追加補充目標")] public int DevelopmentFightersPerInterval = 1;
+    [Range(2, 64), InspectorName("中長期の戦闘員目標（全軍上限ではない）")] public int DevelopmentMaximumFighters = 12;
+    [InspectorName("兵種ごとの将来需要"), Tooltip("必要な兵種・数・必要時期。現存数を差し引き、職種上限と合法な定義を守ります。空なら既存の役割補充を使います。")]
+    public AIArmyDevelopmentTarget[] DevelopmentRoster = System.Array.Empty<AIArmyDevelopmentTarget>();
     [Min(0f)] public float PopulationNeedWeight = 35;
     [Min(0f)] public float FuturePopulationNeedWeight = 65;
     [Min(0f)] public float EconomicStabilityWeight = 15;
@@ -23,7 +33,11 @@ public sealed class AIHousingConfig : ScriptableObject
     [Min(0f)] public float RepeatedHousePenalty = 80;
     public bool EnableDecisionLogs;
     public int Revision { get; private set; }
-    void OnValidate() => Revision = Revision < int.MaxValue ? Revision + 1 : 0;
+    void OnValidate()
+    {
+        Revision = Revision < int.MaxValue ? Revision + 1 : 0;
+        GameContentRevision.NotifyChanged();
+    }
     static AIHousingConfig active;
     public static AIHousingConfig Active
     {
@@ -42,8 +56,17 @@ public sealed class AIHousingConfig : ScriptableObject
     public int Horizon => Mathf.Clamp(ForecastTurns, 1, 8);
     public int EmergencyWait => Mathf.Clamp(EmergencyRecruitWaitTurns, 1, 7);
     public int FreeTarget => Mathf.Clamp(MinimumFreeCitizenTarget, 0, 1000);
+    public int DevelopmentHorizon => Mathf.Clamp(DevelopmentPlanningTurns, 1, 100);
     internal static float Weight(float value) => Mathf.Clamp(Finite(value, 0), 0, 10000);
     static float Finite(float value, float fallback) => float.IsNaN(value) || float.IsInfinity(value) ? fallback : value;
+}
+
+[System.Serializable]
+public sealed class AIArmyDevelopmentTarget
+{
+    [InspectorName("兵種")] public Kind Kind = Kind.Knight;
+    [Range(0, 64), InspectorName("必要な現存数")] public int DesiredCount = 1;
+    [Range(1, 1000), InspectorName("必要になるターン")] public int NeededFromTurn = 20;
 }
 
 public readonly struct AIHousingAssessment

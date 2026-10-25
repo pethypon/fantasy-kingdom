@@ -13,6 +13,7 @@ public sealed partial class AIExplorationPlanner
         public int LastAssignedTurn = -1;
         public int LastVisitedTurn = -1;
         public int VisitCount;
+        public int InformationRevision, ObservedContactSignature;
     }
     static readonly Vector3Int[] neighbours = { Vector3Int.left, Vector3Int.right, new Vector3Int(0, 0, -1), new Vector3Int(0, 0, 1) };
     readonly ExplorationAISettings settings;
@@ -44,6 +45,7 @@ public sealed partial class AIExplorationPlanner
     int width, depth, turn = -1, nextObjectiveId = 1;
     int viewVersion = int.MinValue, cellVersion = int.MinValue, actorVersion = int.MinValue;
     int dangerVersion = int.MinValue;
+    int informationStamp = int.MinValue;
     int lastFrontierRefresh = -1;
     bool emergency;
     Team actorTeam;
@@ -68,8 +70,10 @@ public sealed partial class AIExplorationPlanner
     {
         if (!settings.Enabled || next == null || next.Width <= 0 || next.Depth <= 0) return;
         int incomingActors = ActorStamp(next.Actors);
+        int incomingInformation = ObservedInformationStamp(next);
         if (observation != null && actorTeam == next.ActorTeam && turn == next.Turn && width == next.Width && depth == next.Depth
             && viewVersion == next.ViewVersion && cellVersion == next.CellVersion && dangerVersion == next.DangerVersion && actorVersion == incomingActors && emergency == isEmergency
+            && informationStamp == incomingInformation
             && territoryReconRequested == next.HasTerritoryReconDirection && (!territoryReconRequested || territoryReconDirection == XZ(next.TerritoryReconDirection))) return;
         bool newTurn = turn != next.Turn;
         bool dimensionsChanged = width != next.Width || depth != next.Depth;
@@ -78,6 +82,7 @@ public sealed partial class AIExplorationPlanner
         observation = next; width = next.Width; depth = next.Depth; turn = next.Turn; actorTeam = next.ActorTeam;
         viewVersion = next.ViewVersion; cellVersion = next.CellVersion; actorVersion = incomingActors;
         dangerVersion = next.DangerVersion;
+        informationStamp = incomingInformation;
         bool resume = emergency && !isEmergency;
         emergency = isEmergency;
         bool newTerritoryRecon = next.HasTerritoryReconDirection && (!territoryReconRequested || territoryReconDirection != XZ(next.TerritoryReconDirection));
@@ -123,7 +128,7 @@ public sealed partial class AIExplorationPlanner
             bool changed = added || wasBlocked == observed.Passable || !terrain.TryGetValue(cell, out var previous) || previous.y != observed.Cell.y;
             terrain[cell] = observed.Cell;
             if (observed.Passable) blocked.Remove(cell); else blocked.Add(cell);
-            if (changed) { ObservationCellsProcessed++; MarkDirtyAround(cell); }
+            if (changed) { ObservationCellsProcessed++; AdvanceInformation(GetRegion(RegionId(cell))); MarkDirtyAround(cell); }
         }
         for (int i = 0; i < next.VisibleCells.Count; i++)
         {
@@ -143,9 +148,11 @@ public sealed partial class AIExplorationPlanner
             if (memory.ContainsKey(cell))
             {
                 float value = Mathf.Max(0, important.Value);
-                if (!importance.TryGetValue(cell, out var previous) || previous != value) { importance[cell] = value; dirtyRegions.Add(RegionId(cell)); }
+                if (!importance.TryGetValue(cell, out var previous) || previous != value)
+                { importance[cell] = value; AdvanceInformation(GetRegion(RegionId(cell))); dirtyRegions.Add(RegionId(cell)); }
             }
         }
+        ObserveContacts(next);
     }
 
     static bool CanExplore(ExplorationActor actor) => actor.Kind == Kind.Scout || actor.IsFallbackExplorer;
@@ -226,6 +233,7 @@ public sealed partial class AIExplorationPlanner
         }
         if (objective != null && objective.State == ObjectiveState.Active)
         {
+            if (!objective.HasLegBaseline) BeginLeg(objective);
             float distance = MeasureProgress(actor, objective.TargetCell, out bool hasRoute, out int routeRevision, out var waypoint);
             SynchronizeProgressMetric(objective, history, distance, hasRoute, routeRevision, waypoint);
             int reveals = revealCredit.TryGetValue(actor.UnitId, out var revealed) ? revealed : 0;
@@ -240,10 +248,16 @@ public sealed partial class AIExplorationPlanner
                 && history.RepeatedCellInWindow && history.NewlyRevealedInWindow == 0 && history.DistanceProgressInWindow <= settings.ProgressDistanceThreshold;
             if (region == null || objective.IsIntelRevisit && memory.TryGetValue(XZ(objective.TargetCell), out var intelMemory) && IsFresh(intelMemory.LastSeenTurn)) Finish(objective, ObjectiveState.Completed, "frontier_completed", actor);
             else if (Distance(actor.Cell, objective.TargetCell) <= Mathf.Max(0, settings.CompletionDistance)
-                && (objective.NewlyRevealedSinceStart >= Mathf.Max(1, settings.CompletionRevealCells) || objective.IsIntelRevisit && visible.Contains(XZ(objective.TargetCell))))
+                && (HasLegInformation(objective) || objective.IsIntelRevisit && visible.Contains(XZ(objective.TargetCell))))
             {
+                RecordViewpoint(actor, objective, false);
                 if (!TryContinueRegion(actor, objective, history))
                     Finish(objective, ObjectiveState.Completed, "frontier_completed", actor);
+            }
+            else if (!objective.IsIntelRevisit && Distance(actor.Cell, objective.TargetCell) == 0 && !HasLegInformation(objective))
+            {
+                RecordViewpoint(actor, objective, true);
+                Finish(objective, ObjectiveState.Completed, "viewpoint_information_unchanged", actor);
             }
             else if (observation.CanReach != null && !observation.CanReach(actor.UnitId, objective.TargetCell)) Finish(objective, ObjectiveState.Failed, "unreachable", actor);
             else if (loop)
@@ -271,7 +285,8 @@ public sealed partial class AIExplorationPlanner
         ExplorationFrontierRegion best = null; float bestScore = float.NegativeInfinity;
         var candidates = new List<ExplorationCandidateScore>();
         // Only regions with observed entrances are candidates. No map-wide unknown-cell traversal.
-        var shortlist = new List<ExplorationFrontierRegion>(frontiers);
+        var shortlist = new List<ExplorationFrontierRegion>(frontiers.Count);
+        foreach (var frontier in frontiers) shortlist.Add(CandidateForActor(frontier, actor));
         shortlist.Sort((a, b) =>
         {
             float av = PreliminaryScore(a, actor), bv = PreliminaryScore(b, actor);
@@ -300,6 +315,7 @@ public sealed partial class AIExplorationPlanner
             UsesKnownRouteDistance = hasRoute, RouteMetricRevision = routeRevision, RouteWaypoint = waypoint
         };
         objectives[actor.ActorLifeId] = objective; reservedRegions.Add(best.RegionId);
+        BeginLeg(objective);
         best.LastAssignedTurn = turn; regions[best.RegionId].LastAssignedTurn = turn;
         history.Clear(); history.Add(actor.Cell, turn, 0, objective.BestDistance);
         RecordDecision(actor, objective, history, "objective_assigned", false, candidates);
@@ -331,7 +347,8 @@ public sealed partial class AIExplorationPlanner
         score.LoopArea = cooldowns.ContainsKey(frontier.RegionId) ? settings.LoopAreaPenalty : 0;
         score.Score = score.UnknownGain + score.StaleIntel + score.DirectionDiversity + score.StrategicRoute + score.DistanceFromRecentArea
             - score.TravelCost - score.DangerCost - score.RecentVisit - score.RepeatVisit - score.OtherScout - score.LoopArea;
-        if (!frontier.Reachable) score.RejectReason = "frontier_unreachable";
+        if (IsUnproductiveViewpoint(actor.ActorLifeId, frontier.RegionId, frontier.RepresentativeCell, frontier.IsIntelRevisit)) score.RejectReason = "viewpoint_information_unchanged";
+        else if (!frontier.Reachable) score.RejectReason = "frontier_unreachable";
         else if (frontier.EstimatedDanger >= Mathf.Max(0, settings.MaximumFrontierDangerFraction)) score.RejectReason = "danger_too_high";
         else if (score.OtherScout > 0) score.RejectReason = "frontier_already_assigned";
         else if (score.LoopArea > 0) score.RejectReason = "loop_area_penalty";
@@ -510,6 +527,8 @@ public sealed partial class AIExplorationPlanner
             DistanceToTarget = objective != null ? string.IsNullOrEmpty(actor.ActorLifeId) || objective.State == ObjectiveState.Suspended
                 ? objective.LastDistance : MeasureProgress(actor, objective.TargetCell, out var _, out var _, out var _) : 0,
             NewlyRevealedLast3T = reveals, RecentUniqueCells = history != null ? history.UniqueCellsInWindow : 0,
+            LegReveals = objective != null ? this.LegReveals(objective) : 0,
+            LegStartedTurn = objective != null ? objective.LegStartedTurn : 0, ExpeditionResultCount = expeditionRecords.Count,
             LoopSuspected = loop, Reason = reason, State = objective != null ? objective.State : ObjectiveState.Failed,
             Candidates = candidates ?? new List<ExplorationCandidateScore>()
         });
@@ -558,5 +577,5 @@ public sealed partial class AIExplorationPlanner
     }
     static int StableHash(string value) { unchecked { int hash = 17; if (value != null) for (int i = 0; i < value.Length; i++) hash = hash * 31 + value[i]; return hash; } }
     void ResetKnowledge()
-    { memory.Clear(); terrain.Clear(); blocked.Clear(); visible.Clear(); previousVisible.Clear(); importance.Clear(); regions.Clear(); dirtyRegions.Clear(); frontiers.Clear(); objectives.Clear(); histories.Clear(); cooldowns.Clear(); lastCandidates.Clear(); knownRoute.Clear(); territoryReconRequested = false; territoryReconDirection = default; territoryReconCandidates.Clear(); }
+    { memory.Clear(); terrain.Clear(); blocked.Clear(); visible.Clear(); previousVisible.Clear(); importance.Clear(); regions.Clear(); dirtyRegions.Clear(); frontiers.Clear(); objectives.Clear(); histories.Clear(); cooldowns.Clear(); lastCandidates.Clear(); knownRoute.Clear(); territoryReconRequested = false; territoryReconDirection = default; territoryReconCandidates.Clear(); expeditionRecords.Clear(); expeditionIndex.Clear(); incomingContactSignatures.Clear(); }
 }

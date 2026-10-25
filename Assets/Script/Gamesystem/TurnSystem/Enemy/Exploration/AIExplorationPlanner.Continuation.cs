@@ -12,6 +12,7 @@ public sealed partial class AIExplorationPlanner
         {
             if (cell == XZ(objective.TargetCell) || blocked.Contains(cell) || !terrain.TryGetValue(cell, out var target)
                 || Distance(actor.Cell, target) <= Mathf.Max(0, settings.CompletionDistance)
+                || IsUnproductiveViewpoint(actor.ActorLifeId, objective.FrontierRegionId, target, false)
                 || observation.CanReach != null && !observation.CanReach(actor.UnitId, target)) continue;
             float danger = observation.EstimateDanger != null ? Mathf.Max(0, observation.EstimateDanger(actor.UnitId, target)) : 0;
             if (danger / Mathf.Max(1, actor.HP) >= settings.MaximumFrontierDangerFraction) continue;
@@ -25,7 +26,8 @@ public sealed partial class AIExplorationPlanner
             { found = true; best = score; next = target; }
         }
         if (!found) return false;
-        objective.TargetCell = next; objective.LastProgressTurn = turn; objective.LastReason = "region_exploration_continues";
+        objective.TargetCell = next; objective.LastReason = "region_exploration_continues";
+        BeginLeg(objective);
         objective.BestDistance = objective.LastDistance = MeasureProgress(actor, next, out bool route, out int revision, out var waypoint);
         objective.UsesKnownRouteDistance = route; objective.RouteMetricRevision = revision; objective.RouteWaypoint = waypoint;
         history.RebaseDistances(objective.LastDistance);

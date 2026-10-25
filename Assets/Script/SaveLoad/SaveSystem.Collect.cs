@@ -64,6 +64,8 @@ public static partial class SaveSystem
         data.HasPlayerTerritoryIntelSnapshot = data.PlayerTerritoryIntel != null;
         data.PlayerObservedMemory = turnGen.CapturePlayerObservedMemory();
         data.HasPlayerObservedMemorySnapshot = data.PlayerObservedMemory != null;
+        data.PlayerPreservation = turnGen.CapturePlayerPreservation();
+        data.HasPlayerPreservationSnapshot = data.PlayerPreservation != null;
         data.WildBoss = turnGen.Systems.WildBossSystem?.Capture();
         // ユニット収集
         CollectUnits(data, turnGen.Systems.UnitSetting.PlayerUnit, turnGen.Systems.UnitSetting.EnemyUnit);
@@ -283,6 +285,8 @@ public static partial class SaveSystem
         dst.StrategicObjective=commander.SaveStrategicObjective;
         dst.TerritoryIntel=commander.CaptureTerritoryState();
         dst.HasTerritoryIntelSnapshot = dst.TerritoryIntel != null;
+        dst.Preservation = commander.CapturePreservationState();
+        dst.HasPreservationSnapshot = dst.Preservation != null;
         dst.RngSeed = commander.RandomSeed;
         dst.HasDeterministicSeed = true;
 

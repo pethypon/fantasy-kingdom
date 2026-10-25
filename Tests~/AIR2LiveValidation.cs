@@ -43,10 +43,16 @@ public static class AIR2LiveValidation
         }
         Stage("command", () => AIR2CommandTests.Run(t.Systems, t));
         Stage("orientation", () => AIOrientationReconTests.Run(t.Systems, t));
-        foreach (string suite in new[] { "AIR2ObjectiveTests", "AIR2RecruitmentTests", "AIR2ExplorationTests", "AIR2ObservedMemoryTests", "AIR2RecoveryTests" })
+        foreach (string suite in new[] { "AIR2ObjectiveTests", "AIR2RecruitmentTests", "AIR2ExplorationTests", "AIR2ObservedMemoryTests", "AIR2RecoveryTests",
+            "AIR3CommandAuthorityTests", "AIR2ExpeditionTests", "AIR3PreservationTests", "AIR3HousingDevelopmentTests" })
         {
             var type = System.Type.GetType(suite + ", Assembly-CSharp-Editor");
-            if (type == null) { results.Add("UNVERIFIED " + suite); continue; }
+            if (type == null)
+            {
+                results.Add("UNVERIFIED " + suite);
+                if (Environment.GetEnvironmentVariable("FK_R3_STRICT_SUITE") == "1") failed++;
+                continue;
+            }
             var method = type.GetMethod("Run");
             Stage(suite, () => method.Invoke(null, method.GetParameters().Length == 2 ? new object[] { t.Systems, t } : new object[] { t.Systems }));
         }

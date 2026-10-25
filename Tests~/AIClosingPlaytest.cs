@@ -29,10 +29,12 @@ public static class AIClosingPlaytest
         public int[] Seeds;
         public int OwnerTurnLimit, WallSeconds, ThreatLevel;
         public string Output, Label, RunId, OriginalCompany, OriginalProduct, EnemyPersonality;
+        public string CodeCommit, SourceDigest, AssetDigest, ManifestPath;
     }
     [Serializable] sealed class RunReport
     {
         public string Label, StartedUtc, FinishedUtc;
+        public string CodeCommit, SourceDigest, AssetDigest, ManifestPath, UnityVersion;
         public string MeasurementScope = "Ordinary SampleScene and production roster. Title New Game and developer player AI (fixed intelligence 15). Enemy threat/personality are recorded per match. Fixed map and commander seeds; no AP, resources, timer, timeScale or thinking-budget overrides. Frame scheduling/search limits can still affect exact trajectories. Observer reads authoritative HP/decisive identity for reporting only, never supplies hidden information to AI. CommanderHP follows MatchObjectiveRules.IsCommander, including Kind.Boss primary commanders. Legacy KingHP fields alias CommanderHP. VictoryObjectiveAttacks match actual opposing commander/main-crystal life IDs, not the Reflection role string Boss.";
         public int Resolved, Interrupted, Faulted;
         public List<MatchReport> Matches = new List<MatchReport>();
@@ -163,7 +165,8 @@ public static class AIClosingPlaytest
                 destinationVisible, occupancy, record.ActorLifeId, record.TargetLifeId,
                 record.Before?.ActorDirection, record.Before?.ActorHeight, record.Before?.ActorHP,
                 record.After?.ActorHP, record.Before?.IncomingDamage, record.Before?.LocalPowerRatio,
-                record.DecisionTrace?.StrategicPriority, record.OperationId);
+                record.DecisionTrace?.StrategicPriority, record.OperationId, record.BaseScore,
+                record.LearnedModifier, record.FinalScore);
         }
         public void Dispose() => reflection.ActionCompleted -= Observe;
     }
@@ -174,6 +177,7 @@ public static class AIClosingPlaytest
     static SideObserver player, enemy;
     static StreamWriter actions, turns;
     static bool initialized, clicked, finishing;
+    static bool explorationLoggingChanged, originalExplorationLogging;
     static readonly List<float> frameTimes = new List<float>(12000);
     static int sampledFrame = -1, lastCaptureRound = -1;
     static readonly HashSet<string> heavyLives = new HashSet<string>(), dragonLives = new HashSet<string>();
@@ -252,7 +256,13 @@ public static class AIClosingPlaytest
         if (settings.Seeds.Length == 0) throw new ArgumentException("At least one fixed seed is required.");
         Directory.CreateDirectory(settings.Output);
         if (Environment.GetEnvironmentVariable("FK_CLOSING_PREPARE_VISUALS") == "1") BoardVisualThemeInstaller.RenderPreview();
-        run = new RunReport { Label = settings.Label, StartedUtc = DateTime.UtcNow.ToString("o") };
+        settings.CodeCommit = Environment.GetEnvironmentVariable("FK_CLOSING_CODE_SHA") ?? "unrecorded";
+        settings.SourceDigest = Environment.GetEnvironmentVariable("FK_CLOSING_SOURCE_DIGEST") ?? "unrecorded";
+        settings.AssetDigest = Environment.GetEnvironmentVariable("FK_CLOSING_ASSET_DIGEST") ?? "unrecorded";
+        settings.ManifestPath = Environment.GetEnvironmentVariable("FK_CLOSING_MANIFEST") ?? "unrecorded";
+        run = new RunReport { Label = settings.Label, StartedUtc = DateTime.UtcNow.ToString("o"),
+            CodeCommit = settings.CodeCommit, SourceDigest = settings.SourceDigest, AssetDigest = settings.AssetDigest,
+            ManifestPath = settings.ManifestPath, UnityVersion = Application.unityVersion };
         SessionState.SetString(Key + ".Settings", JsonUtility.ToJson(settings));
         SessionState.SetString(Key + ".Run", JsonUtility.ToJson(run));
         SessionState.SetInt(Key + ".Index", 0); SessionState.SetString(Key + ".Phase", "prepare");
@@ -303,10 +313,14 @@ public static class AIClosingPlaytest
         actions = Writer("actions.csv"); turns = Writer("turns.csv");
         AIR2PlaytestTelemetry.Open(folder);
         AIR2ObjectiveTelemetry.Open(folder);
+        originalExplorationLogging = ExplorationAISettings.Active.EnableJsonlTelemetry;
+        explorationLoggingChanged = Environment.GetEnvironmentVariable("FK_CLOSING_EXPLORATION_JSONL") == "1";
+        if (explorationLoggingChanged) ExplorationAISettings.Active.EnableJsonlTelemetry = true;
         WriteRow(actions, "team", "round", "id", "type", "role", "targetCategory", "succeeded", "failureReason", "moved",
             "newTiles", "objectiveDistanceGain", "damageDealt", "kills", "beforeX", "beforeZ", "afterX", "afterZ", "strategy", "actionKey",
             "targetsOpposingCommander", "targetsOpposingMainCrystal", "APBefore", "APAfter", "ActionAPCost", "executorFailure", "requestedX", "requestedZ", "failedDestinationVisible", "reportedPhysicalOccupants",
-            "actorLifeId", "targetLifeId", "facing", "height", "hpBefore", "hpAfter", "incomingDamage", "localPowerRatio", "priority", "operationId");
+            "actorLifeId", "targetLifeId", "facing", "height", "hpBefore", "hpAfter", "incomingDamage", "localPowerRatio", "priority", "operationId",
+            "baseScoreBeforeLearning", "learnedModifier", "finalSelectedScore");
         WriteRow(turns, "seconds", "round", "state", "ownerTurns", "playerMoves", "enemyMoves", "playerAttacks", "enemyAttacks",
             "playerBuilds", "enemyBuilds", "playerSummons", "enemySummons", "playerKingHP", "playerCrystalHP", "enemyKingHP", "enemyCrystalHP",
             "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound",
@@ -538,6 +552,19 @@ public static class AIClosingPlaytest
     }
     static void Cleanup()
     {
+        if (explorationLoggingChanged)
+        {
+            player?.Commander?.StrategicGovernor?.Exploration.FlushTelemetry();
+            enemy?.Commander?.StrategicGovernor?.Exploration.FlushTelemetry();
+            string logs = Path.Combine(Application.persistentDataPath, "FantasyKingdom", "AI", "Exploration");
+            if (Directory.Exists(logs))
+            {
+                string destination = Path.Combine(folder, "exploration"); Directory.CreateDirectory(destination);
+                foreach (string file in Directory.GetFiles(logs)) File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), true);
+            }
+            ExplorationAISettings.Active.EnableJsonlTelemetry = originalExplorationLogging;
+            explorationLoggingChanged = false;
+        }
         AIR2PlaytestTelemetry.Close();
         AIR2ObjectiveTelemetry.Close();
         SpecialSkillRuntime.HpChangeCommitted -= OnHpChange;

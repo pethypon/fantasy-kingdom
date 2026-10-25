@@ -12,6 +12,13 @@ public sealed class DeveloperPlayerAIController : IDisposable
     AICommander commander;
     EnemyTerritoryIntelState pendingTerritoryIntel;
     AIObservedMemoryState pendingObservedMemory;
+    AIUnitPreservationState pendingPreservation;
+    public AIUnitPreservationState CapturePreservationState() => commander?.CapturePreservationState() ?? pendingPreservation;
+    public void RestorePreservationState(AIUnitPreservationState state)
+    {
+        pendingPreservation = state;
+        if (commander != null) { commander.RestorePreservationState(state); pendingPreservation = null; }
+    }
     public AIObservedMemoryState CaptureObservedMemory() => commander?.CaptureObservedMemory() ?? pendingObservedMemory;
     public void RestoreObservedMemory(AIObservedMemoryState state)
     {
@@ -106,6 +113,8 @@ public sealed class DeveloperPlayerAIController : IDisposable
                 commander.SaveTurnCount = Mathf.Max(0, turn.Context.Turn);
                 commander.RestoreObservedMemory(pendingObservedMemory);
                 pendingObservedMemory = null;
+                commander.RestorePreservationState(pendingPreservation);
+                pendingPreservation = null;
             }
             commander.TurnThinkingBudgetMs = 3000;
             commander.SearchSliceBudgetMs = 3;

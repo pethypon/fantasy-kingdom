@@ -13,6 +13,11 @@ public sealed partial class AIStrategicGovernor
     int housingConfigRevision = -1;
     int housingContentRevision = -1;
     int housingPlanRevision = -1;
+    public int HousingRecoveryStartedTurn { get; private set; } = -1;
+    public int HousingRecoveryLastProgressTurn { get; private set; } = -1;
+    public int HousingRecoveryDeferredTurns { get; private set; }
+    public string HousingRecoveryStatus { get; private set; } = "housing_not_deferred";
+    float recoveryBreadStock, recoveryBreadIncome, recoveryWheatIncome, recoveryWaterIncome;
 
     public AIHousingAssessment HousingAssessment(AIAction action, AIBoardState board)
     {
@@ -90,7 +95,7 @@ public sealed partial class AIStrategicGovernor
             var projected = forecast.SimulateInvestment(board, action, config.Horizon);
             if (projected.BreadPaymentFailed || projected.UpkeepPaymentFailed || projected.ImportantProductionStopped
                 || projected.BreadCoverageTurns < BreadReserveTurns) reason = "housing_build_forecast_unsafe";
-            if (reason == null && RecruitmentCitizenDemand > 0)
+            if (reason == null && (RecruitmentCitizenDemand > 0 || DevelopmentPlan.Count > 0))
             {
                 var recruitment = ForecastRecruitment(board, action);
                 if (recruitment.Reason != null && recruitment.Reason != "recruit_citizen_growth_pending"
@@ -98,6 +103,7 @@ public sealed partial class AIStrategicGovernor
                     reason = "housing_build_forecast_unsafe";
             }
         }
+        TrackHousingRecovery(board, blocked, gain, reason, config);
         float need = Mathf.InverseLerp(config.ConsiderRatio, Mathf.Max(config.ConsiderRatio + .001f, config.UrgentRatio), used);
         // Reward the fraction of the actual shortage this investment resolves, not tiny houses with a huge remaining gap.
         float future = Mathf.Clamp01(gain / Mathf.Max(1, required - capacity));
@@ -117,6 +123,34 @@ public sealed partial class AIStrategicGovernor
         return new AIHousingAssessment(reason == null, reason == null && emergency, blocked, free, capacity, gain,
             used, planned, plannedBuilding, plannedRecruit, otherPlan, operationDemand, military, required, score,
             reason ?? (emergency ? "housing_defense_capacity_blocked" : "housing_planned_capacity_shortfall"));
+    }
+
+    void TrackHousingRecovery(AIBoardState board, bool blocked, int gain, string reason, AIHousingConfig config)
+    {
+        if (!blocked)
+        {
+            HousingRecoveryStartedTurn = HousingRecoveryLastProgressTurn = -1;
+            HousingRecoveryDeferredTurns = 0; HousingRecoveryStatus = "housing_capacity_sufficient"; return;
+        }
+        if (gain <= 0) return;
+        if (reason != "housing_supply_recovery_first")
+        {
+            if (reason == null && HousingRecoveryStartedTurn >= 0) HousingRecoveryStatus = "housing_recovery_resumed";
+            return;
+        }
+        float stock = ProductionDemand.Get(ResourceKind.Bread).Stock;
+        float bread = ProductionDemand.PermanentProduction(ResourceKind.Bread);
+        float wheat = ProductionDemand.PermanentProduction(ResourceKind.Wheat);
+        float water = ProductionDemand.PermanentProduction(ResourceKind.Water);
+        if (HousingRecoveryStartedTurn < 0 || board.TurnCount < HousingRecoveryStartedTurn)
+            HousingRecoveryStartedTurn = HousingRecoveryLastProgressTurn = board.TurnCount;
+        if (stock > recoveryBreadStock || bread > recoveryBreadIncome || wheat > recoveryWheatIncome || water > recoveryWaterIncome)
+            HousingRecoveryLastProgressTurn = board.TurnCount;
+        recoveryBreadStock = stock; recoveryBreadIncome = bread; recoveryWheatIncome = wheat; recoveryWaterIncome = water;
+        HousingRecoveryDeferredTurns = Mathf.Max(0, board.TurnCount - HousingRecoveryStartedTurn);
+        // Expiry is an explicit diagnostic, never permission to build an unsafe house.
+        HousingRecoveryStatus = board.TurnCount - HousingRecoveryLastProgressTurn >= config.Horizon
+            ? "housing_supply_recovery_stalled" : "housing_supply_recovery_in_progress";
     }
 
     bool MaterialSupplyNeedsRecovery()
