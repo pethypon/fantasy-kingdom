@@ -481,6 +481,7 @@ public sealed class AIBasicResourceEconomy
         var cost = ActionCost(action); bool urgentRecovery = IsUrgentRecoveryInvestment(action);
         if (!PreservesMandatoryInvestment(action, cost, out reason)) return false;
         bool foundation = IsFoundationAction(action) || urgentRecovery;
+        bool plannedRecruit = IsPlannedRecruitment(action);
         foreach (var s in snapshots)
         {
             float spent = StrategicEconomyForecast.Amount(cost, (int)s.ResourceType);
@@ -488,6 +489,12 @@ public sealed class AIBasicResourceEconomy
             float remaining = s.CurrentStock - spent;
             if (remaining < 0) { reason = "basic_resource_unaffordable_" + s.ResourceType; return false; }
             float floor = s.ReserveTarget;
+            // The citizen price of this selected purchase is already being paid. Requiring
+            // its half-price capital reserve again would make the capacity prepared by the
+            // housing planner insufficient forever. Keep real obligations and minimum stock;
+            // material/food reserves and every unrelated purchase remain unchanged.
+            if (s.ResourceType == ResourceKind.Citizen && plannedRecruit)
+                floor = Mathf.Max(demand.Get(ResourceKind.Citizen).SafetyReserve, AIBasicResourceSettings.Active.minimumReserve.Citizen);
             if (foundation)
             {
                 // A real supply improvement may invest its reserve. Never promise inputs that remain unavailable.
@@ -500,6 +507,16 @@ public sealed class AIBasicResourceEconomy
             { reason = "basic_resource_reserve_" + s.ResourceType; return false; }
         }
         return true;
+    }
+
+    bool IsPlannedRecruitment(AIAction action)
+    {
+        if (action.ActionType != AIActionType.Summon || board?.Governor == null) return false;
+        var definition = action.SummonDefinition ?? board.ResolveUnitDefinition(action.SummonKind);
+        if (definition == null) return false;
+        foreach (var need in board.Governor.RecruitmentPlan)
+            if (need.Definition == definition) return true;
+        return false;
     }
 
     bool PreservesMandatoryInvestment(AIAction action, FacilityData.ProductionBundle cost, out string reason)
@@ -649,6 +666,20 @@ public sealed class AIBasicResourceEconomy
         // population still respects its existing capacity. Authored direct population output remains distinct.
         citizen.ExpectedIncome = explicitProduction * horizon + Mathf.Min(growthSpace, Mathf.Max(demand.NaturalCitizenGrowthPerTurn, growthRate) * horizon)
             - citizen.MandatoryDemandPerTurn * horizon;
+        // A purchase waiting for safely fed natural replenishment is not a blocked supply
+        // project. Counting every such purchase against today's stock could manufacture a
+        // Critical state and stop the existing army as soon as a third recruit was planned.
+        // Keep total planned cost/reserves for coverage, and retain blocks beyond real
+        // capacity or this forecast's reachable stock. This grants no citizens or extra growth.
+        float reachableStock = Mathf.Clamp(population + citizen.ExpectedIncome, 0, board.CitizenCapacity);
+        citizen.BlockedPlanValue = 0;
+        foreach (var plan in selectedPlans)
+        {
+            float cost = Mathf.Max(0, plan.Cost.Citizen);
+            if (cost > reachableStock)
+                citizen.BlockedPlanValue += plan.StrategicValue * plan.Urgency
+                    * Mathf.Clamp01((cost - reachableStock) / Mathf.Max(1, cost));
+        }
         float required = citizen.PlannedDemand / horizon + Mathf.Max(0, citizen.ReserveTarget - citizen.CurrentStock) / Mathf.Max(1, AIEconomySettings.Active.recoveryWindowTurns);
         citizen.IncomeGap = Mathf.Max(0, required - citizen.IncomePerTurn);
     }

@@ -13,11 +13,12 @@ public sealed class DeveloperPlayerAIController : IDisposable
     EnemyTerritoryIntelState pendingTerritoryIntel;
     AIObservedMemoryState pendingObservedMemory;
     AIUnitPreservationState pendingPreservation;
-    public AIUnitPreservationState CapturePreservationState() => commander?.CapturePreservationState() ?? pendingPreservation;
+    public AIUnitPreservationState CapturePreservationState()
+        => AIUnitPreservationState.CopyForOwner(commander?.CapturePreservationState() ?? pendingPreservation, Team.Player);
     public void RestorePreservationState(AIUnitPreservationState state)
     {
-        pendingPreservation = state;
-        if (commander != null) { commander.RestorePreservationState(state); pendingPreservation = null; }
+        pendingPreservation = AIUnitPreservationState.CopyForOwner(state, Team.Player);
+        if (commander != null) { commander.RestorePreservationState(pendingPreservation); pendingPreservation = null; }
     }
     public AIObservedMemoryState CaptureObservedMemory() => commander?.CaptureObservedMemory() ?? pendingObservedMemory;
     public void RestoreObservedMemory(AIObservedMemoryState state)
@@ -166,6 +167,6 @@ public sealed class DeveloperPlayerAIController : IDisposable
         catch (Exception error) { Debug.LogException(error); }
     }
     public void RestoreUsedFlag(bool used) { WasUsed |= used; turn.MarkDeveloperMatch(used); }
-    public void Dispose() { Enabled = false; Stop(); commander?.ReleaseRuntimeReferences(); }
+    public void Dispose() { Enabled = false; Stop(); commander?.ReleaseRuntimeReferences(); pendingPreservation = null; }
 }
 #endif

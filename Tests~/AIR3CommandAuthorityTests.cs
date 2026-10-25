@@ -20,8 +20,13 @@ public static class AIR3CommandAuthorityTests
             Check(team + " low historical crystal HP alone has no current observed attack", board.Governor.Mode != StrategicMode.EmergencyDefense
                 && board.Governor.IncomingDamage(board, f.Economy.Crystal, f.Economy.Crystal.transform.position, null) == 0);
             Check(team + " legacy operation cannot invent an emergency that cancels the governor's orders", !AIPlanManager.Emergency(board));
+            // The latest crystal prefab starts at 15000 max HP. This case isolates
+            // an actually lethal observed attack, independent of that balance input.
+            f.Economy.Crystal.HP = 1;
             f.Foe.transform.position = f.Cells[1]; f.Foe.ATK = 5000; f.See(f.Cells[1]);
             board = f.Board(61);
+            Check(team + " emergency fixture has an observed legal lethal attack", board.AlivePlayerUnits.Contains(f.Foe)
+                && board.Governor.IncomingDamage(board, f.Economy.Crystal, f.Economy.Crystal.transform.position, null) >= f.Economy.Crystal.HP);
             Check(team + " a real observed lethal base threat still interrupts operations", board.Governor.Mode == StrategicMode.EmergencyDefense
                 && AIPlanManager.Emergency(board));
             // Standalone legacy callers retain their documented conservative fallback.

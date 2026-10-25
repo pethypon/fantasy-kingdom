@@ -28,6 +28,18 @@ public sealed partial class AIStrategicGovernor
             if (healing > 0 && incoming >= patient.HP
                 && incoming < System.Math.Min(patient.MaxHP, (long)patient.HP + healing)) return true;
         }
+        // Saving the loss-condition target is an immediate rescue too. Otherwise
+        // a defender's escape (P0) could eliminate a legal base-saving kill (P1)
+        // before their scores can be compared.
+        if (action.ActionType == AIActionType.Attack && action.TargetUnit != null
+            && board.IsSpecialActorObserved(action.TargetUnit)
+            && board.GetAttackTargets(actor).Contains(action.TargetUnit)
+            && AIActionEvaluator.CanFinishSpecialTarget(actor, action.TargetUnit, board))
+            foreach (var target in critical)
+                if (target != null && target.IsAlive
+                    && IncomingDamage(board, target, target.transform.position, null) >= target.HP
+                    && IncomingDamage(board, target, target.transform.position, action.TargetUnit) < target.HP)
+                    return true;
         float danger = IncomingDamage(board, actor, actor.transform.position, null);
         if (danger < actor.HP) return false;
         if (IsMovement(action)) return !StatusEffectSystem.IsMovementBlocked(actor)

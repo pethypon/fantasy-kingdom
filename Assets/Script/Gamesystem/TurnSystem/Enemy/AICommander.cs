@@ -555,10 +555,13 @@ public partial class AICommander
 
 #endif
             // 振動防止: 直近の位置に戻る移動を減点
+            AIDecisionObserver.Emit(_board, actions, null, "score:planning_role_search");
             ApplyAntiOscillationPenalty(actions);
+            AIDecisionObserver.Emit(_board, actions, null, "score:Repetition");
 
             // AP予約: 移動系アクションがAP予約を食い込む場合は減点
             ApplyAPReservationPenalty(actions, reservedAP);
+            AIDecisionObserver.Emit(_board, actions, null, "score:AP");
 
             AIAction bestAction = SelectBestAction(actions, failedActions, failedActionTypes);
             if (bestAction == null || bestAction.ActionType == AIActionType.Wait)

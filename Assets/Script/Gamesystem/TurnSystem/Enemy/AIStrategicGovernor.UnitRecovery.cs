@@ -163,24 +163,17 @@ public sealed partial class AIStrategicGovernor
     public AIUnitPreservationState CapturePreservationState(Team owner)
     {
         var result = new AIUnitPreservationState { Owner = owner };
-        foreach (var entry in unitRecovery.Values) if (result.Records.Count < 128) result.Records.Add(entry.Copy());
+        foreach (var entry in unitRecovery.Values) if (result.Records.Count < AIUnitPreservationState.MaximumRecords) result.Records.Add(entry.Copy());
         result.Records.Sort((a, b) => string.CompareOrdinal(a.ActorLifeId, b.ActorLifeId));
         return result;
     }
     public void RestorePreservationState(AIUnitPreservationState state, Team owner)
     {
         ReleasePreservationState();
-        if (state == null || state.Version != 1 || state.Owner != owner || state.Records == null || state.Records.Count > 128) return;
-        foreach (var record in state.Records)
-        {
-            if (record == null || string.IsNullOrWhiteSpace(record.ActorLifeId) || record.ActorLifeId.Length > 128
-                || record.LastTurn < 0 || !Enum.IsDefined(typeof(AIUnitRecoveryPhase), record.Phase)
-                || record.Phase == AIUnitRecoveryPhase.Ready || !FiniteRecoveryPoint(record.Refuge)) continue;
-            if (!unitRecovery.ContainsKey(record.ActorLifeId)) unitRecovery.Add(record.ActorLifeId, record.Copy());
-        }
+        var snapshot = AIUnitPreservationState.CopyForOwner(state, owner);
+        if (snapshot == null) return;
+        foreach (var record in snapshot.Records) unitRecovery.Add(record.ActorLifeId, record);
     }
-    static bool FiniteRecoveryPoint(Vector3 point) => !float.IsNaN(point.sqrMagnitude) && !float.IsInfinity(point.sqrMagnitude)
-        && point.x >= 0 && point.x < 32768 && point.z >= 0 && point.z < 32768 && point.y >= -1024 && point.y <= 1024;
     public void ReleasePreservationState()
     {
         unitRecovery.Clear(); preservationAssessments.Clear(); preservationOwnIds.Clear(); staleRecoveryIds.Clear(); repeatedLossCache.Clear();

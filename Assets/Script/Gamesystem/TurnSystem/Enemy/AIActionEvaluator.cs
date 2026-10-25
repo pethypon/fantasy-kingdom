@@ -68,9 +68,11 @@ public static partial class AIActionEvaluator
             // 各候補にスコア付け
             for (int i = 0; i < actions.Count; i++)
                 actions[i].Score = CalcScore(actions[i], personality, board, learning);
+            AIDecisionObserver.Emit(board, actions, null, "score:mixed_base");
 
             // ターン方針ボーナス（AIStrategyBonusに委譲）
             AIStrategyBonus.Apply(actions, strategy, board);
+            AIDecisionObserver.Emit(board, actions, null, "score:OperationalProgress_strategy");
 
             // 事後補正は AIActionModifiers に委譲（Positioning パーシャルに集約）
             ApplyPositioningModifiers(actions, personality, board);
