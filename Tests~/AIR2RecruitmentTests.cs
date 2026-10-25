@@ -125,7 +125,7 @@ public static class AIR2RecruitmentTests
             board.Governor.RecruitmentPlan.Select(p => p.Definition.kind)) == kinds && board.Governor.RecruitmentPlan.Count <= 3);
     }
 
-    sealed class Fixture : IDisposable
+    internal sealed class Fixture : IDisposable
     {
         public readonly EconomyR2Tests.Fixture EconomyFixture;
         readonly GameSystems live;
@@ -186,7 +186,7 @@ public static class AIR2RecruitmentTests
             Executor = new AIActionExecutor(hub, moves, live.AttackGenerator, live.BattleSystem, EconomyFixture.AP,
                 live.SkillSystem, null, EconomyFixture.Builder, Summon, null, team);
         }
-        UnitData AddDefinition(Kind kind, int citizens, int ap)
+        public UnitData AddDefinition(Kind kind, int citizens, int ap)
         {
             var data = EconomyFixture.UnitDefinition(); data.kind = kind; data.baseATK = 10;
             data.costCitizen = citizens; data.costAP = ap; data.costWood = 30; data.costStone = 20; data.costBread = 8;

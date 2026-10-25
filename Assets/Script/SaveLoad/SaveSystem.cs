@@ -113,9 +113,11 @@ public static partial class SaveSystem
             // The explicit snapshot flag distinguishes real evidence from that placeholder.
             if (!data.AI.HasTerritoryIntelSnapshot || !HasJsonField(json, "TerritoryIntel")) data.AI.TerritoryIntel = null;
             if (!data.AI.HasObservedMemorySnapshot || !HasJsonField(json, "ObservedMemory")) data.AI.ObservedMemory = null;
+            if (!data.AI.HasPreservationSnapshot || !HasJsonField(json, "Preservation")) data.AI.Preservation = null;
         }
         if (data != null && (!data.HasPlayerTerritoryIntelSnapshot || !HasJsonField(json, "PlayerTerritoryIntel"))) data.PlayerTerritoryIntel = null;
         if (data != null && (!data.HasPlayerObservedMemorySnapshot || !HasJsonField(json, "PlayerObservedMemory"))) data.PlayerObservedMemory = null;
+        if (data != null && (!data.HasPlayerPreservationSnapshot || !HasJsonField(json, "PlayerPreservation"))) data.PlayerPreservation = null;
         return data;
     }
     static bool HasJsonField(string json, string field)

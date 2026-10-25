@@ -108,6 +108,7 @@ public static partial class SaveSystem
         commander.SaveTurnCount = src.AITurnCount;
         commander.RestoreObservedMemory(src.HasObservedMemorySnapshot ? src.ObservedMemory : null);
         commander.RestorePlan(src.Operation);
+        commander.RestorePreservationState(src.HasPreservationSnapshot ? src.Preservation : null);
         commander.RestoreStrategicObjective(src.StrategicObjective);
         commander.RestoreTerritoryState(src.HasTerritoryIntelSnapshot ? src.TerritoryIntel : null);
 

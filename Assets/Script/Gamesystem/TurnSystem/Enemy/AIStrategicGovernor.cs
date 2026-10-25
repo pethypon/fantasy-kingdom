@@ -60,6 +60,7 @@ public sealed partial class AIStrategicGovernor
         if(current==board&&generation==board.Generation&&contentRevision==GameContentRevision.Revision)return;
         contentRevision=GameContentRevision.Revision;
         current=board;generation=board.Generation;reachable.Clear();damageCache.Clear();threatCache.Clear();safest.Clear();buildForecasts.Clear();safeAlternativesPrepared=false;
+        PrunePreservationState(board);
         recoveryReserveAP = -1;
         losses.Collect(board,critical);defenders.Clear();army.Clear();
         forecast.Prepare(board);PrepareRecruitment(board);Economy=forecast.Simulate(board);
@@ -221,6 +222,8 @@ public sealed partial class AIStrategicGovernor
     }
     string RejectReason(AIAction action,AIBoardState board)
     {
+        string recoveryReason = PreservationRejectReason(action, board);
+        if (recoveryReason != null) return recoveryReason;
         if(action.Unit!=null&&MatchObjectiveRules.IsCommander(action.Unit))
         {
             float risk=Risk(action,board);
@@ -273,6 +276,8 @@ public sealed partial class AIStrategicGovernor
     int Priority(AIAction a,AIBoardState board)
     {
         if (IsDecisiveVictoryAttack(a, board) || IsImmediateRescue(a, board)) return 0;
+        int preservationPriority = PreservationPriority(a, board);
+        if (preservationPriority < 4) return preservationPriority;
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             && (AIOrientation.IsVisibilityPreparation(a, board) || AIOrientation.IsObservedAttackPreparation(a, board))
             && IncomingDamage(board, a.Unit, a.Unit.transform.position, null) < a.Unit.HP) return 2;
@@ -498,8 +503,14 @@ public sealed partial class AIStrategicGovernor
     public float IncomingDamage(AIBoardState board,Status self,Vector3 position,Status eliminated)
     {
         var key=(self,GridHelper.ToGridXZ(position),eliminated);if(damageCache.TryGetValue(key,out var cached))return cached;
-        double total=0;
         var budget=AIObservedDamageBudget.Capture(self);
+        return damageCache[key] = ObservedDamageWave(board, self, position, eliminated, ref budget);
+    }
+    // Reused by individual recovery's bounded repeated-exchange scenario. The protection budget
+    // is a value snapshot; applying another wave never changes a real actor's HP or barrier.
+    float ObservedDamageWave(AIBoardState board, Status self, Vector3 position, Status eliminated, ref AIObservedDamageBudget budget)
+    {
+        double total=0;
         foreach(var opponent in board.AlivePlayerUnits)
         {
             if(opponent==null||!opponent.IsAlive||opponent==eliminated)continue;
@@ -530,7 +541,7 @@ public sealed partial class AIStrategicGovernor
         }
         total+=AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,position,ref budget);
         total+=board.KnownEnvironmentRisk(self,position,ref budget);
-        return damageCache[key]=(float)Math.Min(int.MaxValue,total);
+        return (float)Math.Min(int.MaxValue,total);
     }
     bool CanThreaten(AIBoardState board,Status opponent,Vector3 destination)
         =>ObservedDragonThreat.IsDragon(opponent) ? ObservedDragonThreat.CanBreatheAt(board,opponent,destination)

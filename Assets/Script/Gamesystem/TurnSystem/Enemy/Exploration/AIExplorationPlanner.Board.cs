@@ -31,7 +31,7 @@ public sealed partial class AIExplorationPlanner
             observedBoard = board; boardGeneration = board.Generation;
             boardObservation.Turn = board.TurnCount; boardObservation.Width = map.maxX; boardObservation.Depth = map.maxZ;
             boardObservation.ActorTeam = board.ActorTeam; boardObservation.OwnBase = GridHelper.ToGridXZ(board.EnemyCrystalPos);
-            boardObservation.KnownCells.Clear(); boardObservation.VisibleCells.Clear(); boardObservation.Actors.Clear(); boardObservation.ImportantCells.Clear(); boardActors.Clear();
+            boardObservation.KnownCells.Clear(); boardObservation.VisibleCells.Clear(); boardObservation.Actors.Clear(); boardObservation.ImportantCells.Clear(); boardObservation.ObservedContacts.Clear(); boardActors.Clear();
             if (!initialExploredImported)
             {
                 foreach (var cell in board.OwnExploredCells) ImportObservedTerrain(map, cell);
@@ -73,6 +73,15 @@ public sealed partial class AIExplorationPlanner
             foreach (var entry in board.ObservedHistory)
                 if (entry.Value.Valid && entry.Value.Type != Type.Unit && board.IsTerrainKnown(entry.Value.Position))
                     boardObservation.ImportantCells[GridHelper.ToGridXZ(entry.Value.Position)] = 1f;
+            foreach (var hostile in board.AlivePlayerUnits)
+                if (hostile != null && hostile.IsAlive && board.IsSpecialActorObserved(hostile))
+                {
+                    // Only currently observed opponent facts; an unseen Transform or HP is never read.
+                    int signature;
+                    unchecked { signature = StableHash(hostile.ReflectionLifeId) * 397 ^ (int)hostile.kind * 31
+                        ^ hostile.HP * 17 ^ hostile.Barrier * 13 ^ hostile.ATK * 7 ^ GridHelper.ToGridXZ(hostile.transform.position).GetHashCode(); }
+                    boardObservation.ObservedContacts.Add(new ExplorationObservedContact(GridHelper.ToGridXZ(hostile.transform.position), signature));
+                }
             // A missing army route requests reconnaissance toward remembered territory.
             // The supplied point is observed territory/known adjacent geography, not an inferred base.
             boardObservation.HasTerritoryReconDirection = board.TerritoryIntel.TryGetReconTarget(board, out var territoryRecon);
@@ -190,6 +199,11 @@ public sealed partial class AIExplorationPlanner
         else foreach (var offset in VisionGenerator.BaseVisionOffsets(unit)) moveFootprint.Add(target + GridHelper.ToGridXZ(offset));
         int gain = 0;
         foreach (var cell in moveFootprint) if (Inside(cell) && !memory.ContainsKey(cell) && KnownVisionLineClear(target, cell)) gain++;
+        // A failed information viewpoint is not an impassable tile. It remains usable as a
+        // route step toward another valid goal, but cannot earn its old hypothetical reveal again.
+        if (IsUnproductiveViewpoint(unit.ReflectionLifeId, RegionId(target), target, false))
+            return score - (TryGetAssignedTarget(unit.GetInstanceID(), out var assigned) && GoalProgress(actors[unit.GetInstanceID()], assigned,
+                GridHelper.ToGrid(destination), out _, out _) > 0 ? 0 : Mathf.Max(0, settings.RecentVisitPenalty));
         return score + Mathf.Min(Mathf.Max(0, settings.MaximumLocalRevealBonus), gain * Mathf.Max(0, settings.LocalRevealWeight));
     }
 

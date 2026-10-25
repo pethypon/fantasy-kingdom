@@ -46,6 +46,7 @@ public sealed partial class AIExplorationPlanner
                 LastSampleTurn = turn, IsIntelRevisit = candidate.IsIntelRevisit, LastReason = "territory_recon_assigned",
                 UsesKnownRouteDistance = true, RouteMetricRevision = revision, RouteWaypoint = waypoint };
             objectives[actor.ActorLifeId] = objective; reservedRegions.Add(id);
+            BeginLeg(objective);
             source.LastAssignedTurn = turn; cache.LastAssignedTurn = turn;
             history.Clear(); history.Add(actor.Cell, turn, 0, remaining);
             RecordDecision(actor, objective, history, "territory_recon_assigned", false, new List<ExplorationCandidateScore> { score });

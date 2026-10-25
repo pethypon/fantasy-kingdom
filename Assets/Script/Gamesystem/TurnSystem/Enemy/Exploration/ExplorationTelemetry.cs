@@ -37,6 +37,7 @@ public sealed class ExplorationDecisionRecord
     public float PreviousDistance;
     public float DistanceToTarget;
     public int NewlyRevealedLast3T;
+    public int LegReveals, LegStartedTurn, ExpeditionResultCount;
     public int RecentUniqueCells;
     public bool LoopSuspected;
     public string Reason;

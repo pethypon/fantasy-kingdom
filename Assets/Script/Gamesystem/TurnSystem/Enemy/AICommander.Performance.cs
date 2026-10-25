@@ -110,6 +110,7 @@ public partial class AICommander
     public void ReleaseRuntimeReferences()
     {
         ReleaseObservedMemoryProfiles();
+        _governor.ReleasePreservationState();
         _unitPositionHistory.Clear();
         _actedUnits.Clear();
         turnMovementHistory.Clear();

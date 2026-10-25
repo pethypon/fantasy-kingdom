@@ -252,7 +252,8 @@ public static partial class AIActionGenerator
     // ================================================================
     public static void GenerateRetreatCandidates(Status unit, AIBoardState board, List<AIAction> results)
     {
-        if (StatusEffectSystem.IsMovementBlocked(unit)) return;
+        if (unit == null || board == null || results == null || !unit.IsAlive || StatusEffectSystem.IsStunned(unit)
+            || StatusEffectSystem.IsMovementBlocked(unit) || SpecialSkillRuntime.MovementBlocked(unit)) return;
 
         float hpRatio = unit.MaxHP > 0 ? (float)unit.HP / unit.MaxHP : 1f;
         float nearestEnemy = float.MaxValue;
@@ -266,7 +267,9 @@ public static partial class AIActionGenerator
         float Incoming(Vector3 p) => board.Governor != null
             ? board.Governor.IncomingDamage(board, unit, p, null) : board.EstimateCounterDamageAt(p, unit);
         float currentRisk = Incoming(unit.transform.position);
-        if (hpRatio > 0.4f && nearestEnemy > 3f && currentRisk < unit.HP) return;
+        var preservation = board.Governor?.AssessPreservation(unit, board) ?? default;
+        bool recommended = preservation.Safety != AIUnitSafetyLevel.HoldPositionOrFight && preservation.HasLegalSaferMove;
+        if (!recommended && hpRatio > 0.4f && nearestEnemy > 3f && currentRisk < unit.HP) return;
 
         var moves = board.GetValidMoves(unit);
         // Safety is not synonymous with approaching home. Keep a bounded set of alternatives,
@@ -276,12 +279,16 @@ public static partial class AIActionGenerator
         foreach (var dest in moves)
         {
             int cost = board.CalcMoveCost(unit, dest);
-            if (cost > board.EnemyAP) continue;
+            if (cost > board.EnemyAP || cost < 0) continue;
             float risk = Incoming(dest);
             float dist = Vector3.Distance(dest, board.EnemyCrystalPos);
-            if (risk >= currentRisk && (dist >= homeDistance || risk >= unit.HP)) continue;
+            bool refuge = recommended && GridHelper.MatchXZ(dest, GridHelper.ToGridXZ(preservation.Refuge));
+            if (!refuge && risk >= currentRisk && (dist >= homeDistance || risk >= unit.HP)) continue;
             float value = (currentRisk - risk) / Mathf.Max(1, unit.HP) * 25
                 + (homeDistance - dist) - cost;
+            // Reserve one of the four candidate slots for the assessed refuge. This only ranks
+            // generation; safety/healer/experience are scored once in the existing evaluator.
+            if (refuge) value = float.MaxValue;
             int index = 0;
             while (index < alternatives.Count && value <= alternatives[index].value) index++;
             if (index >= 4) continue;
@@ -434,8 +441,9 @@ public static partial class AIActionGenerator
             int maxAllowed = GetMaxBuildingCount(facility);
             var candidate = new AIAction { ActionType = AIActionType.Build, Facility = facility, APCost = info.APCost };
             var demand = board.ProductionDemand.EvaluateBuild(facility);
+            bool neededHousing = board.Governor?.HousingAssessment(candidate, board).Needed == true;
             if (existing >= maxAllowed && !demand.ImprovesDeficit
-                && board.Governor?.BasicResources.IsFoundationAction(candidate) != true)
+                && board.Governor?.BasicResources.IsFoundationAction(candidate) != true && !neededHousing)
             {
                 { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI Build] {facility}: 上限到達({existing}/{maxAllowed}) → スキップ"); }
                 continue;
@@ -487,6 +495,8 @@ public static partial class AIActionGenerator
             }
             var candidate = new AIAction { ActionType = AIActionType.Build };
             var production = board.ProductionDemand;
+            FacilityDefinitionData necessaryHousing = null;
+            float necessaryHousingScore = float.NegativeInfinity;
             foreach (var definition in catalog.buildings)
             {
                 if (AITurnBudget.Expired) break;
@@ -502,7 +512,9 @@ public static partial class AIActionGenerator
                 var demand = production.EvaluateBuild(facility, definition);
                 var foundation = board.Governor?.BasicResources;
                 bool usefulFoundation = foundation?.IsFoundationAction(candidate) == true;
-                if (board.GetBuildingCount(facility) >= GetMaxBuildingCount(facility) && !demand.ImprovesDeficit && !usefulFoundation) continue;
+                var housing = board.Governor?.HousingAssessment(candidate, board) ?? default;
+                bool usefulHousing = housing.Needed;
+                if (board.GetBuildingCount(facility) >= GetMaxBuildingCount(facility) && !demand.ImprovesDeficit && !usefulFoundation && !usefulHousing) continue;
                 int priority = foundation?.ActionPriority(candidate) ?? 4;
                 if (demand.ImprovesCritical) priority = Mathf.Min(priority, 1);
                 else if (demand.ImprovesDeficit) priority = Mathf.Min(priority, 2);
@@ -515,6 +527,13 @@ public static partial class AIActionGenerator
                     }
                 }
                 float score = demand.FinalScore + (foundation?.ScoreAction(candidate) ?? 0);
+                if (usefulHousing)
+                {
+                    priority = Mathf.Min(priority, 3);
+                    score = housing.Score;
+                    if (score > necessaryHousingScore)
+                    { necessaryHousing = definition; necessaryHousingScore = score; }
+                }
                 if (!demand.ImprovesDeficit && usefulFoundation) score += demand.OverstockPenalty;
                 int insertAt = authoredBuildDefinitions.Count;
                 for (int i = 0; i < authoredBuildDefinitions.Count; i++)
@@ -527,6 +546,17 @@ public static partial class AIActionGenerator
                 authoredBuildDefinitions.Insert(insertAt, (definition, priority, score));
                 if (authoredBuildDefinitions.Count > MaxAuthoredBuildDefinitions)
                     authoredBuildDefinitions.RemoveAt(MaxAuthoredBuildDefinitions);
+            }
+            // Raw producer heuristics may use a different tier from final Governor decisions.
+            // Preserve one proven necessary housing alternative so the standard selector can
+            // actually compare it; the total definition/placement budgets remain unchanged.
+            bool housingRetained = false;
+            foreach (var entry in authoredBuildDefinitions) if (entry.definition == necessaryHousing) { housingRetained = true; break; }
+            if (necessaryHousing != null && !housingRetained)
+            {
+                if (authoredBuildDefinitions.Count >= MaxAuthoredBuildDefinitions)
+                    authoredBuildDefinitions.RemoveAt(authoredBuildDefinitions.Count - 1);
+                authoredBuildDefinitions.Add((necessaryHousing, 3, necessaryHousingScore));
             }
             authoredBuildBoard = board;
             authoredBuildCatalog = catalog;
@@ -574,7 +604,8 @@ public static partial class AIActionGenerator
             };
             // Decorative/stat-only upgrades are not supply paths. Tactical construction remains separate.
             if (EconomyHelper.ImprovesProductionDemand(action, board)
-                || board.Governor?.BasicResources.IsFoundationAction(action) == true)
+                || board.Governor?.BasicResources.IsFoundationAction(action) == true
+                || board.Governor?.HousingAssessment(action, board).Needed == true)
                 results.Add(action);
         }
     }

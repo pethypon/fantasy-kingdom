@@ -44,6 +44,22 @@ public class TurnGenerator : MonoBehaviour
     public bool DeveloperPlayerAIWasUsed => developerMatchUsed;
     EnemyTerritoryIntelState savedPlayerTerritoryIntel;
     AIObservedMemoryState savedPlayerObservedMemory;
+    AIUnitPreservationState savedPlayerPreservation;
+    public AIUnitPreservationState CapturePlayerPreservation()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        return _playerAI?.CapturePreservationState() ?? savedPlayerPreservation;
+#else
+        return savedPlayerPreservation;
+#endif
+    }
+    public void RestorePlayerPreservation(AIUnitPreservationState state)
+    {
+        savedPlayerPreservation = state;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _playerAI?.RestorePreservationState(state);
+#endif
+    }
     public AIObservedMemoryState CapturePlayerObservedMemory()
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

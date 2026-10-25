@@ -111,6 +111,8 @@ public static partial class SaveSystem
         public bool HasPlayerTerritoryIntelSnapshot;
         public AIObservedMemoryState PlayerObservedMemory;
         public bool HasPlayerObservedMemorySnapshot;
+        public AIUnitPreservationState PlayerPreservation;
+        public bool HasPlayerPreservationSnapshot;
 
         // NationState追加データ
         public NationExtraSaveData PlayerNationExtra = new NationExtraSaveData();
@@ -225,6 +227,8 @@ public static partial class SaveSystem
     [Serializable]
     public class AISaveData
     {
+        public AIUnitPreservationState Preservation;
+        public bool HasPreservationSnapshot;
         public AIObservedMemoryState ObservedMemory;
         public bool HasObservedMemorySnapshot;
         public EnemyTerritoryIntelState TerritoryIntel;
