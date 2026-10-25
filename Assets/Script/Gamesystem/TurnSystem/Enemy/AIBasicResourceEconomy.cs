@@ -68,14 +68,20 @@ public sealed class AIBasicResourceEconomy
     readonly bool[] critical = new bool[StrategicEconomyForecast.ResourceCount];
     readonly int[] blockedTurns = new int[StrategicEconomyForecast.ResourceCount];
     readonly List<BasicResourcePlan> plans = new List<BasicResourcePlan>(9);
+    // Concrete, already-selected supply projects; only eight resources, no extra catalog scans.
+    readonly FacilityData.FacilityLevelData[] plannedSupply = new FacilityData.FacilityLevelData[StrategicEconomyForecast.ResourceCount];
+    readonly FacilityData.FacilityLevelData[] previousSupply = new FacilityData.FacilityLevelData[StrategicEconomyForecast.ResourceCount];
+    readonly bool[] hasPlannedSupply = new bool[StrategicEconomyForecast.ResourceCount];
     readonly List<MandatorySupplyInvestment> mandatoryInvestments = new List<MandatorySupplyInvestment>(1);
     readonly struct MandatorySupplyInvestment
     {
         public readonly ResourceKind Resource;
         public readonly FacilityData.ProductionBundle Cost;
+        public readonly FacilityData.FacilityLevelData Recipe, Previous;
         public readonly float FundingTurns, ExhaustionTurns;
-        public MandatorySupplyInvestment(ResourceKind resource, FacilityData.ResourceCost cost, float fundingTurns, float exhaustionTurns)
-        { Resource = resource; Cost = ToBundle(cost); FundingTurns = fundingTurns; ExhaustionTurns = exhaustionTurns; }
+        public MandatorySupplyInvestment(ResourceKind resource, FacilityData.ResourceCost cost, float fundingTurns, float exhaustionTurns,
+            FacilityData.FacilityLevelData recipe, FacilityData.FacilityLevelData previous)
+        { Resource = resource; Cost = ToBundle(cost); FundingTurns = fundingTurns; ExhaustionTurns = exhaustionTurns; Recipe = recipe; Previous = previous; }
     }
     readonly List<Status> buildings = new List<Status>(32);
     readonly HashSet<(FacilityKind, FacilityDefinitionData, Status)> plannedSources = new HashSet<(FacilityKind, FacilityDefinitionData, Status)>();
@@ -123,6 +129,7 @@ public sealed class AIBasicResourceEconomy
         else
         {
             mandatoryInvestments.Clear();
+            Array.Clear(hasPlannedSupply, 0, hasPlannedSupply.Length);
             PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
             foreach (var plan in plannedActions)
                 PlannedUnclassifiedCitizens += Mathf.Max(0, plan.Cost.Citizen) * Mathf.Clamp01(Finite(AIBasicResourceSettings.Active.planWeight));
@@ -166,6 +173,7 @@ public sealed class AIBasicResourceEconomy
         PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
         board = null; demand = null; generation = -1; emergency = essentialDefense; scores.Clear();
         mandatoryInvestments.Clear();
+        Array.Clear(hasPlannedSupply, 0, hasPlannedSupply.Length);
         FeasibleSupplyAP = 0;
         for (int i = 0; i < snapshots.Length; i++)
         {
@@ -247,6 +255,7 @@ public sealed class AIBasicResourceEconomy
     {
         PlannedBuildingCitizens = PlannedRecruitCitizens = PlannedUnclassifiedCitizens = 0;
         plans.Clear(); plannedSources.Clear(); mandatoryInvestments.Clear(); board.CollectOwnBuildings(buildings);
+        Array.Clear(hasPlannedSupply, 0, hasPlannedSupply.Length);
         int paymentFailures = demand.Forecast.MandatoryFailureMask | demand.Forecast.InputFailureMask;
         // Consider only useful economic projects, using their real authored/legacy costs.
         foreach (var resource in resources)
@@ -283,6 +292,14 @@ public sealed class AIBasicResourceEconomy
                 ConsiderPlan(resource, actor.facilityKind, actor.AuthoredFacility, actor, next.UpgradeCost, next, FacilityData.GetLevel(actor, currentLevel),
                     ref best, ref chosenKind, ref chosenDefinition, ref chosenActor, ref chosenCost);
             }
+            if (!float.IsInfinity(best))
+            {
+                int index = (int)resource;
+                hasPlannedSupply[index] = true;
+                plannedSupply[index] = chosenActor != null ? FacilityData.GetLevel(chosenActor, Mathf.Max(1, chosenActor.Level) + 1)
+                    : chosenDefinition != null ? chosenDefinition.GetLevel(1) : FacilityData.GetLevel(chosenKind, 1);
+                previousSupply[index] = chosenActor != null ? FacilityData.GetLevel(chosenActor, Mathf.Max(1, chosenActor.Level)) : default;
+            }
             if (!float.IsInfinity(best) && current.MandatoryDemandPerTurn > .001f && current.NetPerTurn < -.001f
                 && current.ProjectedStock < current.SafetyReserve - .001f)
             {
@@ -297,7 +314,8 @@ public sealed class AIBasicResourceEconomy
                 if (mandatoryInvestments.Count == 0 || exhaustionTurns < mandatoryInvestments[0].ExhaustionTurns)
                 {
                     mandatoryInvestments.Clear();
-                    mandatoryInvestments.Add(new MandatorySupplyInvestment(resource, chosenCost, fundingTurns, exhaustionTurns));
+                    mandatoryInvestments.Add(new MandatorySupplyInvestment(resource, chosenCost, fundingTurns, exhaustionTurns,
+                        plannedSupply[(int)resource], previousSupply[(int)resource]));
                 }
             }
             if (!float.IsInfinity(best) && plannedSources.Add((chosenKind, chosenDefinition, chosenActor)))
@@ -407,6 +425,20 @@ public sealed class AIBasicResourceEconomy
         return FoundationState == EconomyFoundationState.StableGrowth ? 3 : 2;
     }
 
+    /// <summary>Current military/citizen food consumption needs permanent supply, even while stock bridges the forecast.</summary>
+    public bool HasRequiredFoodSupplyGap => AIBasicResourceSettings.Active.enabled && demand != null && hasPlannedSupply[(int)ResourceKind.Bread]
+        && demand.Get(ResourceKind.Bread).MandatoryDemandPerTurn > .001f
+        && demand.PermanentProduction(ResourceKind.Bread) + .001f < demand.Get(ResourceKind.Bread).MandatoryDemandPerTurn;
+
+    /// <summary>Only the concrete bread producer and its currently missing direct inputs may precede expansion.</summary>
+    public bool IsRequiredFoodSupplyAction(AIAction action)
+    {
+        if (!HasRequiredFoodSupplyGap || !TryRecipe(action, out var next, out var previous, out var cost)
+            || OperatingFraction(next, previous, ToBundle(cost)) < .999f) return false;
+        if (NetOutput(next, (int)ResourceKind.Bread) - NetOutput(previous, (int)ResourceKind.Bread) > .001f) return true;
+        return RestoresMissingInput(plannedSupply[(int)ResourceKind.Bread], previousSupply[(int)ResourceKind.Bread], next, previous);
+    }
+
     public float ScoreAction(AIAction action)
     {
         if (action == null || !AIBasicResourceSettings.Active.enabled) return 0;
@@ -482,21 +514,66 @@ public sealed class AIBasicResourceEconomy
                 && resource.ProjectedStock < resource.SafetyReserve - .001f
                 && RecipeGain(action, resource.Resource) > .001f && OperatingFractionFor(action, cost) > .001f) return true;
         foreach (var investment in mandatoryInvestments)
-        for (int i = 0; i < resources.Length; i++)
         {
-            float spent = StrategicEconomyForecast.Amount(cost, i);
-            float required = StrategicEconomyForecast.Amount(investment.Cost, i);
-            if (spent <= .001f || required <= .001f) continue;
-            var supply = demand.Resources[i];
-            float baseline = Mathf.Max(0, supply.Stock + supply.NetPerTurn * investment.FundingTurns);
-            float capitalGain = hasRecipe ? Mathf.Max(0, NetOutput(next, i) - NetOutput(previous, i)) : 0;
-            float projected = baseline - spent + capitalGain * investment.FundingTurns;
-            if (projected + .001f >= Mathf.Min(required, baseline)) continue;
-            reason = "mandatory_supply_capital_" + investment.Resource + "_" + resources[i];
-            return false;
+            // A reserved processor must not lock out the farm feeding it. This is a bounded
+            // deferral only for an operative prerequisite/capital producer that repays all capital
+            // from guaranteed income inside the existing forecast. Unrelated projects still wait.
+            bool recovery = hasRecipe && CanDeferForSupplyRecovery(investment, next, previous, cost);
+            for (int i = 0; i < resources.Length; i++)
+            {
+                float spent = StrategicEconomyForecast.Amount(cost, i);
+                float required = StrategicEconomyForecast.Amount(investment.Cost, i);
+                if (spent <= .001f || required <= .001f) continue;
+                var supply = demand.Resources[i];
+                float baseline = Mathf.Max(0, supply.Stock + supply.NetPerTurn * investment.FundingTurns);
+                float capitalGain = hasRecipe ? Mathf.Max(0, NetOutput(next, i) - NetOutput(previous, i)) : 0;
+                float projected = baseline - spent + capitalGain * investment.FundingTurns;
+                if (projected + .001f >= Mathf.Min(required, baseline) || recovery) continue;
+                reason = "mandatory_supply_capital_" + investment.Resource + "_" + resources[i];
+                return false;
+            }
         }
         return true;
     }
+
+    bool RestoresMissingInput(FacilityData.FacilityLevelData project, FacilityData.FacilityLevelData priorProject,
+        FacilityData.FacilityLevelData candidate, FacilityData.FacilityLevelData priorCandidate)
+    {
+        int horizon = Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8);
+        for (int i = 0; i < resources.Length; i++)
+        {
+            float input = InputPerTurn(project, i) - InputPerTurn(priorProject, i);
+            if (input <= .001f || NetOutput(candidate, i) - NetOutput(priorCandidate, i) <= .001f) continue;
+            var source = demand.Resources[i];
+            if (source.Stock / horizon + source.NetPerTurn + .001f < input) return true;
+        }
+        return false;
+    }
+
+    bool CanDeferForSupplyRecovery(MandatorySupplyInvestment investment, FacilityData.FacilityLevelData next,
+        FacilityData.FacilityLevelData previous, FacilityData.ProductionBundle cost)
+    {
+        if (OperatingFraction(next, previous, cost) < .999f) return false;
+        int horizon = Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8);
+        bool useful = RestoresMissingInput(investment.Recipe, investment.Previous, next, previous);
+        for (int i = 0; i < resources.Length; i++)
+        {
+            float capital = StrategicEconomyForecast.Amount(investment.Cost, i);
+            float gain = NetOutput(next, i) - NetOutput(previous, i);
+            var source = demand.Resources[i];
+            float after = source.Stock - StrategicEconomyForecast.Amount(cost, i);
+            if (after < -.001f) return false;
+            if (capital <= .001f) continue;
+            if (gain > .001f && source.Stock + source.NetPerTurn * horizon < capital) useful = true;
+            // Do not use chance bonuses, future recruits, or the unbuilt downstream processor as income.
+            if (after + (source.NetPerTurn + gain) * horizon + .001f < capital) return false;
+        }
+        return useful;
+    }
+
+    static float InputPerTurn(FacilityData.FacilityLevelData recipe, int resource)
+        => StrategicEconomyForecast.Amount(recipe.Input, resource) / (float)FacilityData.ProductionInterval(recipe)
+            + StrategicEconomyForecast.Amount(recipe.Maintenance, resource);
 
     bool IsUrgentRecoveryInvestment(AIAction action)
     {

@@ -79,7 +79,12 @@ public sealed partial class AIStrategicGovernor
         if (gain <= 0) reason = "housing_no_capacity_gain";
         else if (!blocked) reason = free < required ? "housing_existing_growth_can_recover_stock" : "housing_capacity_sufficient";
         else if (Economy.BreadPaymentFailed || Economy.UpkeepPaymentFailed || Economy.ImportantProductionStopped
-            || Economy.State >= EconomicState.Crisis || MaterialSupplyNeedsRecovery()) reason = "housing_supply_recovery_first";
+            || Economy.State >= EconomicState.Crisis || MaterialSupplyNeedsRecovery()
+            || BasicResources.HasRequiredFoodSupplyGap) reason = "housing_supply_recovery_first";
+        // A normal recruitment forecast must not hide the precise emergency rejection
+        // (cannot wait / cannot maintain this defender / direct defense already available).
+        if (reason == null && Mode == StrategicMode.EmergencyDefense && !emergency)
+            reason = defenseReject ?? "housing_direct_defense_first";
         if (reason == null)
         {
             var projected = forecast.SimulateInvestment(board, action, config.Horizon);
@@ -93,9 +98,6 @@ public sealed partial class AIStrategicGovernor
                     reason = "housing_build_forecast_unsafe";
             }
         }
-        if (reason == null && Mode == StrategicMode.EmergencyDefense && !emergency)
-            reason = defenseReject ?? "housing_direct_defense_first";
-
         float need = Mathf.InverseLerp(config.ConsiderRatio, Mathf.Max(config.ConsiderRatio + .001f, config.UrgentRatio), used);
         // Reward the fraction of the actual shortage this investment resolves, not tiny houses with a huge remaining gap.
         float future = Mathf.Clamp01(gain / Mathf.Max(1, required - capacity));

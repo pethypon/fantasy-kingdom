@@ -78,15 +78,20 @@ public static class ExplorationFallbackTests
                 Check(team + " substitute imports only faction-observed cells", planner.Memory.Count == seen.Count && !planner.Memory.ContainsKey(GridHelper.ToGridXZ(hiddenCell)));
                 heights[(int)hiddenCell.x, (int)hiddenCell.z] = originalHeight;
                 int revision = DangerRevision(planner), builds = planner.KnownRouteBuildCount;
-                first.DEF += 30; board.Refresh(); planner.Update(board, false); planner.GetMoveBonus(first, cells[1], board);
-                Check(team + " substitute defense changes invalidate cached route danger", revision != DangerRevision(planner) && planner.KnownRouteBuildCount > builds);
+                if (DamageCalculator.UsesLegacyDefence) first.DEF += 30;
+                else first.Barrier = Mathf.Max(0, first.Barrier - 1);
+                board.Refresh(); planner.Update(board, false); planner.GetMoveBonus(first, cells[1], board);
+                Check(team + " substitute active damage protection changes invalidate cached route danger", revision != DangerRevision(planner) && planner.KnownRouteBuildCount > builds);
                 revision = DangerRevision(planner); first.ShieldTurns = 1; board.Refresh(); planner.Update(board, false);
                 Check(team + " substitute shield changes update route danger", revision != DangerRevision(planner));
                 var scout = At(f, Kind.Scout, cells[2], "returning-scout"); board.Refresh(); planner.Update(board, false);
                 Check(team + " returning scout takes over and releases both substitutes", planner.IsAssignedUnit(scout) && !planner.IsAssignedUnit(first)
                     && !planner.IsAssignedUnit(second) && planner.GetMoveBonus(first, hiddenCell, board) == 0 && planner.Objectives.Count == 1);
-                revision = DangerRevision(planner); scout.DEF += 30; board.Refresh(); planner.Update(board, false);
-                Check(team + " scout defense changes still update route danger", revision != DangerRevision(planner));
+                revision = DangerRevision(planner);
+                if (DamageCalculator.UsesLegacyDefence) scout.DEF += 30;
+                else scout.Barrier = Mathf.Max(0, scout.Barrier - 1);
+                board.Refresh(); planner.Update(board, false);
+                Check(team + " scout active damage protection changes still update route danger", revision != DangerRevision(planner));
                 scout.gameObject.SetActive(false); board.Refresh(); planner.Update(board, false);
                 Check(team + " lost scout resumes exactly one substitute objective", planner.IsAssignedUnit(first) && !planner.IsAssignedUnit(second) && planner.Objectives.Count == 1);
                 var state = planner.CaptureState(); planner.RestoreState(state);

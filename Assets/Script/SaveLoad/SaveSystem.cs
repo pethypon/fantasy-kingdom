@@ -112,8 +112,10 @@ public static partial class SaveSystem
             // JsonUtility can materialize a default object for a null nested class.
             // The explicit snapshot flag distinguishes real evidence from that placeholder.
             if (!data.AI.HasTerritoryIntelSnapshot || !HasJsonField(json, "TerritoryIntel")) data.AI.TerritoryIntel = null;
+            if (!data.AI.HasObservedMemorySnapshot || !HasJsonField(json, "ObservedMemory")) data.AI.ObservedMemory = null;
         }
         if (data != null && (!data.HasPlayerTerritoryIntelSnapshot || !HasJsonField(json, "PlayerTerritoryIntel"))) data.PlayerTerritoryIntel = null;
+        if (data != null && (!data.HasPlayerObservedMemorySnapshot || !HasJsonField(json, "PlayerObservedMemory"))) data.PlayerObservedMemory = null;
         return data;
     }
     static bool HasJsonField(string json, string field)

@@ -149,6 +149,8 @@ public partial class AIBoardState
     // 最後にPlayerユニットを視認した位置とターン (key=ユニットinstanceID)
     readonly Dictionary<int, LastKnownInfo> _lastKnownPlayerPositions;
     readonly List<int> expiredObservations = new List<int>();
+    // Refreshed from the bounded observation table; avoids a full memory scan for every visible actor.
+    readonly Dictionary<string, int> observedLifeKeys = new Dictionary<string, int>(System.StringComparer.Ordinal);
     readonly List<(Vector3Int pos, float reliability)> rememberedPositions = new List<(Vector3Int, float)>();
     int rememberedGeneration = -1;
     // 最後にPlayerクリスタルを視認した位置とターン
@@ -348,6 +350,11 @@ public partial class AIBoardState
         foreach (var entry in _lastKnownPlayerPositions)
             if (entry.Key != int.MinValue && TurnCount - entry.Value.Turn >= 7) expiredObservations.Add(entry.Key);
         foreach (int id in expiredObservations) _lastKnownPlayerPositions.Remove(id);
+        TrimObservationMemory();
+        observedLifeKeys.Clear();
+        foreach (var entry in _lastKnownPlayerPositions)
+            if (entry.Key != int.MinValue && !string.IsNullOrEmpty(entry.Value.LifeId))
+                observedLifeKeys[entry.Value.LifeId] = entry.Key;
         // 初接敵検知: 前ターンでは見えていなかったのに今ターンで見えた
         bool hasVisiblePlayers = AlivePlayerUnits.Count > 0;
         IsFirstContact = hasVisiblePlayers && !_hadVisiblePlayersLastTurn;
@@ -363,14 +370,13 @@ public partial class AIBoardState
             if (previous.LifeId != life) previous = default;
             // Restored observations have synthetic runtime keys. Re-observation is
             // the first point at which a live actor may replace its saved identity.
-            expiredObservations.Clear();
-            foreach (var entry in _lastKnownPlayerPositions)
-                if (entry.Key != id && entry.Key != int.MinValue && entry.Value.LifeId == life)
-                {
-                    if (!previous.Valid || entry.Value.Turn > previous.Turn) previous = entry.Value;
-                    expiredObservations.Add(entry.Key);
-                }
-            foreach (int restoredKey in expiredObservations) _lastKnownPlayerPositions.Remove(restoredKey);
+            if (observedLifeKeys.TryGetValue(life, out int restoredKey) && restoredKey != id
+                && _lastKnownPlayerPositions.TryGetValue(restoredKey, out var restored))
+            {
+                if (!previous.Valid || restored.Turn > previous.Turn) previous = restored;
+                _lastKnownPlayerPositions.Remove(restoredKey);
+            }
+            observedLifeKeys[life] = id;
             var profile = BoardActionProfile.For(pu);
             var position = ToCell(pu.transform.position);
             bool moved = previous.Valid && previous.Position != position;
@@ -387,6 +393,7 @@ public partial class AIBoardState
                 Turn = TurnCount,
                 Valid = true
             };
+            TrimObservationMemory();
         }
 
         // Playerクリスタルを視認したら記録
@@ -406,6 +413,11 @@ public partial class AIBoardState
         }
         // Bound the short-lived observation table independently of the number of
         // board refreshes. Keep the fixed objective and recent commander facts first.
+        TrimObservationMemory();
+    }
+
+    void TrimObservationMemory()
+    {
         while (_lastKnownPlayerPositions.Count > AIObservedMemoryState.MaximumEntries)
         {
             int oldestKey = int.MinValue; LastKnownInfo oldest = default;
@@ -416,6 +428,8 @@ public partial class AIBoardState
                 { oldestKey = entry.Key; oldest = entry.Value; }
             if (oldestKey == int.MinValue) break;
             _lastKnownPlayerPositions.Remove(oldestKey);
+            if (!string.IsNullOrEmpty(oldest.LifeId) && observedLifeKeys.TryGetValue(oldest.LifeId, out int indexedKey) && indexedKey == oldestKey)
+                observedLifeKeys.Remove(oldest.LifeId);
         }
     }
 

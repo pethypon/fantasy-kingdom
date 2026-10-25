@@ -251,7 +251,7 @@ public static class AIClosingPlaytest
             OriginalCompany = PlayerSettings.companyName, OriginalProduct = PlayerSettings.productName };
         if (settings.Seeds.Length == 0) throw new ArgumentException("At least one fixed seed is required.");
         Directory.CreateDirectory(settings.Output);
-        if (Environment.GetEnvironmentVariable("FK_CLOSING_CAPTURE_VISUALS") == "1") BoardVisualThemeInstaller.RenderPreview();
+        if (Environment.GetEnvironmentVariable("FK_CLOSING_PREPARE_VISUALS") == "1") BoardVisualThemeInstaller.RenderPreview();
         run = new RunReport { Label = settings.Label, StartedUtc = DateTime.UtcNow.ToString("o") };
         SessionState.SetString(Key + ".Settings", JsonUtility.ToJson(settings));
         SessionState.SetString(Key + ".Run", JsonUtility.ToJson(run));

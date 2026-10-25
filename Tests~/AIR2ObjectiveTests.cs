@@ -99,11 +99,31 @@ public static class AIR2ObjectiveTests
             var selected = (AIAction)typeof(AICommander).GetMethod("SelectBestAction", Hidden).Invoke(commander,
                 new object[] { candidates, new HashSet<string>(), null });
             Check(label + " T14 standard selection chooses objective attack over waiting", selected?.ActionType == AIActionType.Attack && selected.TargetUnit == target);
+            var features = new AIActionFeatureExtractor();
+            var reflectedBefore = features.Capture(selected, board, 60, TurnStrategy.Balanced, 15, 0);
+            Check(label + " reflection identifies the legally observed objective even in a separate parent",
+                reflectedBefore.TargetObserved && reflectedBefore.KnownTargetLifeId == target.ReflectionLifeId
+                && (kind != Kind.Crystal || reflectedBefore.TargetCategory == "Crystal"));
             int hp = target.HP, ap = f.State.GetAP(team); string stocks = JsonUtility.ToJson(f.Resources);
             var executor = new AIActionExecutor(hub, live.MoveGenerator, attacks, battle, f.AP, null, null, f.Builder, null, new AILearning(false), team);
-            Check(label + " T14 real executor applies damage and exact attack AP", executor.Execute(selected, board)
-                && target.HP < hp && target.HP > 0 && f.State.GetAP(team) == ap - selected.APCost
-                && JsonUtility.ToJson(f.Resources) == stocks);
+            var reflectionConfig = ScriptableObject.CreateInstance<AIReflectionConfig>();
+            try
+            {
+                reflectionConfig.EnableReflection = true; reflectionConfig.EnableFileDiary = false; reflectionConfig.EnableConsoleDiary = false;
+                var reflection = new AIActionReflectionSystem(team, reflectionConfig, persistent: false);
+                reflection.BeginBattle("R2ObjectiveIdentity_" + label, 15, "Combat");
+                reflection.BeginTurn(60, board, TurnStrategy.Balanced, 15);
+                var token = reflection.BeginAction(selected, board);
+                bool executed = executor.Execute(selected, board);
+                board.Refresh(); reflection.CompleteAction(token, executed, board);
+                Check(label + " T14 real executor applies damage and exact attack AP", executed
+                    && target.HP < hp && target.HP > 0 && f.State.GetAP(team) == ap - selected.APCost
+                    && JsonUtility.ToJson(f.Resources) == stocks);
+                Check(label + " completed real attack record retains objective identity and actual HP loss",
+                    reflection.LastRecord?.TargetLifeId == target.ReflectionLifeId && reflection.LastRecord.ExecutionSucceeded
+                    && reflection.LastRecord.Outcome.DamageDealt == hp - target.HP);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(reflectionConfig); }
             // Zero AP and visibility loss independently remove ordinary target opportunities.
             f.State.SetAP(team, 0); board.Refresh(); candidates.Clear(); AIActionGenerator.GenerateAttackCandidates(actor, board, candidates);
             Check(label + " zero AP never produces a paid objective attack", candidates.Count == 0);

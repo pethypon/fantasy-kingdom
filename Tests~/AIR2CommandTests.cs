@@ -19,6 +19,7 @@ public static class AIR2CommandTests
             Recon(live, team);
             Fallback(live, team);
             Formation(live, team);
+            DestroyedObservation(live, team);
         }
         Debug.Log("[AIR2Command] ALL PASSED " + checks);
     }
@@ -62,12 +63,43 @@ public static class AIR2CommandTests
                 Check(team + " actual selector chooses rescue despite the ordinary attack's huge score", ReferenceEquals(selected, lateral));
             }
             finally { boardField.SetValue(commander, previousBoard); }
-            // Recovery is an observation, not a fixed timer that keeps healed units at home.
-            f.Actor.HP = f.Actor.MaxHP; f.Foe.transform.position = new Vector3(-35000, 0, -36000);
-            board = f.Board(61); choices.Clear(); AIActionGenerator.GenerateRetreatCandidates(f.Actor, board, choices);
+            int ap = f.Economy.State.GetAP(team), cost = board.CalcMoveCost(f.Actor, lateral.TargetPos);
+            Check(team + " selected lateral retreat really executes with exact AP", ExecuteMovement(live, f, lateral, board)
+                && f.Actor.transform.position == lateral.TargetPos && f.Economy.State.GetAP(team) == ap - cost);
+            f.Foe.transform.position = new Vector3(-35000, 0, -36000);
+            // Run the actual owner-turn natural recovery rule; do not assign recovered HP.
+            for (int round = 61; round <= 76; round++) NaturalRecoverySystem.ProcessActor(f.Actor, round);
+            Check(team + " the evacuated veteran recovers through real safe owner turns", f.Actor.HP == f.Actor.MaxHP);
+            f.Actor.HasMovedThisTurn = false;
+            board = f.Board(77); choices.Clear(); AIActionGenerator.GenerateRetreatCandidates(f.Actor, board, choices);
             Check(team + " healthy actor with no observed danger is released from retreat", choices.Count == 0);
+            var rejoin = new AIAction { ActionType = AIActionType.Move, Unit = f.Actor,
+                TargetPos = f.Actor.transform.position + Vector3.right };
+            rejoin.APCost = board.CalcMoveCost(f.Actor, rejoin.TargetPos);
+            Check(team + " recovered veteran can legally redeploy using the actual executor", board.GetValidMoves(f.Actor).Contains(rejoin.TargetPos)
+                && ExecuteMovement(live, f, rejoin, board));
         }
         finally { UnityEngine.Object.DestroyImmediate(enemyProfile); }
+    }
+    static bool ExecuteMovement(GameSystems live, AITerritorySafetyTests.Fixture f, AIAction action, AIBoardState board)
+    {
+        var host = new GameObject("R2 isolated retreat execution"); host.SetActive(false);
+        try
+        {
+            var hub = host.AddComponent<TurnGenerator>(); hub.MarkDeveloperMatch(); hub.Context.Turn = board.TurnCount;
+            var moves = host.AddComponent<MoveGenerator>(); moves.mapcreate = live.MapCreate; moves.turnGenerator = hub; moves.BuildSystemRef = f.Economy.Builder;
+            typeof(MoveGenerator).GetField("crystalsystem", Hidden).SetValue(moves, f.Economy.Crystals);
+            typeof(MoveGenerator).GetField("unitsetting", Hidden).SetValue(moves, f.Economy.Units);
+            typeof(MoveGenerator).GetField("PlayerUnit", Hidden).SetValue(moves, f.Economy.Units.PlayerUnit);
+            typeof(MoveGenerator).GetField("EnemyUnit", Hidden).SetValue(moves, f.Economy.Units.EnemyUnit);
+            hub.Systems.MapCreate = live.MapCreate; hub.Systems.MoveGenerator = moves; hub.Systems.APSystem = f.Economy.AP;
+            hub.Systems.FactionState = f.Economy.State; hub.Systems.UnitSetting = f.Economy.Units;
+            hub.Systems.CrystalSystem = f.Economy.Crystals; hub.Systems.BuildSystem = f.Economy.Builder;
+            var executor = new AIActionExecutor(hub, moves, live.AttackGenerator, live.BattleSystem, f.Economy.AP,
+                live.SkillSystem, null, f.Economy.Builder, null, new AILearning(false), f.Economy.Team);
+            using (BoardActorAnimation.SuppressEffects()) return executor.Execute(action, board);
+        }
+        finally { UnityEngine.Object.DestroyImmediate(host); }
     }
     static void Recon(GameSystems live, Team team)
     {
@@ -143,6 +175,19 @@ public static class AIR2CommandTests
             Check(team + " safe solitary infiltration is not blocked merely for lacking an escort", solo.Score == 100);
         }
         finally { UnityEngine.Object.DestroyImmediate(profile); }
+    }
+    static void DestroyedObservation(GameSystems live, Team team)
+    {
+        using var f = new AITerritorySafetyTests.Fixture(live, team);
+        var transient = f.Economy.Unit(); transient.HP = 1; transient.transform.position = f.Actor.transform.position;
+        var board = f.Board(60);
+        bool cached = false;
+        foreach (var actor in board.SpecialObservedActors) if (actor == transient) cached = true;
+        Check(team + " destruction regression starts with a genuinely cached observed component", cached);
+        UnityEngine.Object.DestroyImmediate(transient.gameObject);
+        var method = typeof(AIActionEvaluator).GetMethod("ObservedMagicianMultiplier", BindingFlags.Static | BindingFlags.NonPublic);
+        float multiplier = (float)method.Invoke(null, new object[] { f.Foe, f.Actor, board });
+        Check(team + " destroyed low-HP component cannot throw or grant a magician multiplier", multiplier == 1);
     }
 }
 #endif

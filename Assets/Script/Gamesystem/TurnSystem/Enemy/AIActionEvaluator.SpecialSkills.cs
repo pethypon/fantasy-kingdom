@@ -58,7 +58,10 @@ public static partial class AIActionEvaluator
     {
         foreach (var nearby in board.SpecialObservedActors)
         {
-            if (nearby == attacker || nearby.type != Type.Unit || nearby.HPRatio > SpecialSkillDefinition.MagicLowHealthThreshold) continue;
+            // An area attack may destroy an observed actor before the board's next refresh.
+            // Unity's destroyed-object null check must precede every component/property access.
+            if (nearby == null || !nearby.IsAlive || nearby == attacker || nearby.type != Type.Unit
+                || nearby.HPRatio > SpecialSkillDefinition.MagicLowHealthThreshold) continue;
             var delta = GridHelper.ToGrid(nearby.transform.position) - GridHelper.ToGrid(attacker.transform.position);
             if (Mathf.Max(Mathf.Abs(delta.x), Mathf.Abs(delta.y), Mathf.Abs(delta.z)) <= 1)
                 return SpecialSkillRuntime.IsStrongTarget(target) ? SpecialSkillDefinition.MagicStrongTargetMultiplier : SpecialSkillDefinition.MagicOrdinaryTargetMultiplier;

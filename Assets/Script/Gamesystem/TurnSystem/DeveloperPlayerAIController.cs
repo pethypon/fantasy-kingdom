@@ -11,6 +11,18 @@ public sealed class DeveloperPlayerAIController : IDisposable
     readonly TurnGenerator turn;
     AICommander commander;
     EnemyTerritoryIntelState pendingTerritoryIntel;
+    AIObservedMemoryState pendingObservedMemory;
+    public AIObservedMemoryState CaptureObservedMemory() => commander?.CaptureObservedMemory() ?? pendingObservedMemory;
+    public void RestoreObservedMemory(AIObservedMemoryState state)
+    {
+        pendingObservedMemory = state;
+        if (commander != null)
+        {
+            commander.SaveTurnCount = Mathf.Max(0, turn.Context.Turn);
+            commander.RestoreObservedMemory(state);
+            pendingObservedMemory = null;
+        }
+    }
     public EnemyTerritoryIntelState CaptureTerritoryState() => commander?.CaptureTerritoryState() ?? pendingTerritoryIntel;
     public void RestoreTerritoryState(EnemyTerritoryIntelState state)
     {
@@ -91,6 +103,9 @@ public sealed class DeveloperPlayerAIController : IDisposable
                     s.SkillSystem, s.SubCrystalSystem, ThreatLevel, 15015, Team.Player);
                 commander.RestoreTerritoryState(pendingTerritoryIntel);
                 pendingTerritoryIntel = null;
+                commander.SaveTurnCount = Mathf.Max(0, turn.Context.Turn);
+                commander.RestoreObservedMemory(pendingObservedMemory);
+                pendingObservedMemory = null;
             }
             commander.TurnThinkingBudgetMs = 3000;
             commander.SearchSliceBudgetMs = 3;
@@ -142,6 +157,6 @@ public sealed class DeveloperPlayerAIController : IDisposable
         catch (Exception error) { Debug.LogException(error); }
     }
     public void RestoreUsedFlag(bool used) { WasUsed |= used; turn.MarkDeveloperMatch(used); }
-    public void Dispose() { Enabled = false; Stop(); }
+    public void Dispose() { Enabled = false; Stop(); commander?.ReleaseRuntimeReferences(); }
 }
 #endif

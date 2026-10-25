@@ -139,6 +139,7 @@ public static class SaveGameApplier
         if (turnGen.Systems.AICommander != null)
             SaveSystem.RestoreAICommander(data.AI, turnGen.Systems.AICommander);
         turnGen.RestorePlayerTerritoryIntel(data.HasPlayerTerritoryIntelSnapshot ? data.PlayerTerritoryIntel : null);
+        turnGen.RestorePlayerObservedMemory(data.HasPlayerObservedMemorySnapshot ? data.PlayerObservedMemory : null);
 
         // 占有セル・視界を再計算（ユニット位置を復元したため dirty を立てて確実に再計算）
         if (moveGenerator != null) moveGenerator.UnitPointCore();

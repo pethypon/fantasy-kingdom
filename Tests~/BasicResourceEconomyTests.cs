@@ -490,14 +490,22 @@ public static class BasicResourceEconomyTests
                 var board = f.Board(1);
                 foreach (var resource in board.Governor.BasicResources.Resources)
                     Debug.Log("[BasicResourceOpening] " + team + " " + resource);
-                Check(team + " initial capital and temporary support do not erase a critical foundation shortage", board.Governor.BasicResources.HasCriticalDeficit);
-                Check(team + " critical foundation reserves supply actions before optional expansion", board.Governor.Mode == StrategicMode.EconomicRecovery
-                    && board.Governor.GetRecoveryReserveAP(board) > 0);
+                // R2 no longer invents an extra Scout when the role is already filled. The old
+                // Critical flag depended on that hypothetical unit's 0.8 citizen demand. Assert
+                // the real invariant: current food obligations need a reachable permanent chain.
+                Check(team + " initial capital and temporary support do not erase real food obligations",
+                    board.Governor.BasicResources.HasRequiredFoodSupplyGap
+                    && board.ProductionDemand.Get(ResourceKind.Bread).MandatoryDemandPerTurn
+                        > board.ProductionDemand.PermanentProduction(ResourceKind.Bread));
                 var actions = new List<AIAction>(); AIActionGenerator.GenerateBuildCandidates(board, actions); board.Governor.Filter(actions, board);
-                bool supplyPriority = false;
+                bool supplyPriority = false, foodPriority = false;
                 foreach (var action in actions)
-                    if (board.Governor.BasicResources.IsFoundationAction(action) && action.StrategicPriority <= 2) supplyPriority = true;
-                Check(team + " a feasible opening producer keeps P1 or P2 even before payment failure", supplyPriority);
+                {
+                    if (board.Governor.BasicResources.IsFoundationAction(action) && action.StrategicPriority <= 3) supplyPriority = true;
+                    if (board.Governor.BasicResources.IsRequiredFoodSupplyAction(action) && action.StrategicPriority <= 3) foodPriority = true;
+                }
+                Check(team + " food supply can compete with movement before optional expansion", foodPriority);
+                Check(team + " a feasible opening producer retains a strategic priority before payment failure", supplyPriority);
             }
             using (var f = new EconomyR2Tests.Fixture(systems, team))
             {

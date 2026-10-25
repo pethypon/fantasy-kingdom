@@ -118,6 +118,8 @@ public partial class AICommander
     public void RestoreObservedMemory(AIObservedMemoryState saved)
     {
         ReleaseObservedMemoryProfiles(); _sharedMemory.Clear();
+        // Clear copied crystal facts and belief caches even when this optional section is absent.
+        _board = null;
         if (saved == null || saved.Version != 1 || saved.Owner != _actorTeam || saved.SavedAtTurn < 0
             || saved.SavedAtTurn > _turnCount || saved.Entries == null) return;
         // Reject oversize payloads as one optional diagnostic section; never allocate from an unbounded count.
@@ -128,14 +130,15 @@ public partial class AICommander
         foreach (var entry in saved.Entries)
         {
             if (entry == null || string.IsNullOrWhiteSpace(entry.LifeId) || entry.LifeId.Length > 128
-                || !identities.Add(entry.LifeId) || entry.IsMainCrystal && crystalRestored) continue;
+                || identities.Contains(entry.LifeId) || entry.IsMainCrystal && crystalRestored) continue;
             var memory = new AIBoardState.LastKnownInfo { LifeId = entry.LifeId, ObservedTeam = entry.ObservedTeam,
                 Position = entry.Position, Kind = entry.Kind, Type = entry.Type, Direction = entry.Direction,
                 ObservedAttackPower = entry.ObservedAttackPower, Turn = entry.Turn, Valid = true,
                 WasPrincipalCommander = entry.WasPrincipalCommander, HasPrevious = entry.HasPrevious,
                 PreviousPosition = entry.PreviousPosition, PreviousTurn = entry.PreviousTurn,
                 ActionProfileSnapshot = entry.ActionProfile?.Copy() };
-            if (!ValidObservation(memory, entry.IsMainCrystal, _turnCount)) continue;
+            if (memory.Turn > saved.SavedAtTurn || !ValidObservation(memory, entry.IsMainCrystal, _turnCount)) continue;
+            identities.Add(entry.LifeId);
             if (memory.HasPrevious && (!InsideObservedPosition(memory.PreviousPosition) || memory.PreviousTurn < 0 || memory.PreviousTurn > memory.Turn))
             { memory.HasPrevious = false; memory.PreviousPosition = default; memory.PreviousTurn = 0; }
             if (memory.ActionProfileSnapshot != null)
@@ -148,7 +151,6 @@ public partial class AICommander
         }
         // Existing transient board caches may still point at a previous loaded snapshot.
         // The next normal board construction will consume this memory and current legitimate visibility.
-        _board = null;
     }
 
     bool ValidObservation(AIBoardState.LastKnownInfo memory, bool mainCrystal, int now)
@@ -159,7 +161,8 @@ public partial class AICommander
             || !Enum.IsDefined(typeof(Direction), memory.Direction) || memory.ObservedAttackPower < 0
             || memory.Turn < 0 || memory.Turn > now || !InsideObservedPosition(memory.Position)
             || memory.ActionProfileSnapshot != null && !memory.ActionProfileSnapshot.IsValid) return false;
-        if (mainCrystal) return memory.Kind == Kind.Crystal && memory.ObservedTeam == (_actorTeam == Team.Player ? Team.Enemy : Team.Player);
+        if (mainCrystal) return memory.Kind == Kind.Crystal && memory.Type == Type.Building
+            && memory.ObservedTeam == (_actorTeam == Team.Player ? Team.Enemy : Team.Player);
         if ((long)now - memory.Turn >= 7) return false;
         return !memory.WasPrincipalCommander || memory.ObservedTeam == (_actorTeam == Team.Player ? Team.Enemy : Team.Player) && memory.Type == Type.Unit;
     }

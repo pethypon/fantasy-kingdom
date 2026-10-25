@@ -242,7 +242,7 @@ public sealed partial class AIStrategicGovernor
             if (housing.IsHousing && !housing.Needed) return housing.Reason;
             var assessment = ProductionDemand.EvaluateBuild(action);
             bool emergencyDefense = IsEmergencyDefenseRequired(action, board);
-            if (IsMilitaryConstruction(action) && ProductionDemand.State >= EconomicState.Crisis && !emergencyDefense)
+            if (IsMilitaryConstruction(action) && (Mode == StrategicMode.EconomicRecovery || ProductionDemand.State >= EconomicState.Crisis) && !emergencyDefense)
                 return "economic_recovery_blocks_military_build";
             var key = (action.ActionType, action.Facility, action.FacilityDefinition,
                 action.ActionType == AIActionType.Upgrade ? action.Unit : null,
@@ -293,6 +293,8 @@ public sealed partial class AIStrategicGovernor
             if (housing.IsHousing && housing.Needed) return housing.EmergencySupply ? 1 : 3;
             var production = ProductionDemand.EvaluateBuild(a);
             if (production.ImprovesCritical) return 1;
+            if (Mode != StrategicMode.EmergencyDefense && BasicResources.IsRequiredFoodSupplyAction(a))
+                return Mode == StrategicMode.EconomicRecovery ? Mathf.Min(2, BasicResources.ActionPriority(a)) : 3;
             if (production.ImprovesDeficit && Mode == StrategicMode.EconomicRecovery) return Mathf.Min(2, BasicResources.ActionPriority(a));
             if (production.ImprovesDeficit) return 4;
             if (a.ActionType == AIActionType.Upgrade && EconomyHelper.ImprovesProductionDemand(a, board))

@@ -210,6 +210,13 @@ public sealed class AIActionFeatureExtractor
                 observedEnemies.Add(unit);
                 if (visibleEnemyLifeIds.Count < config.EventLimit) visibleEnemyLifeIds.Add(unit.ReflectionLifeId);
             }
+        // The main crystal has a separate parent and is deliberately absent from the
+        // hostile troop list. Still record its identity and HP while it is legally observed,
+        // otherwise actual objective attacks disappear from learning and playtest statistics.
+        foreach (var unit in board.SpecialObservedActors)
+            if (unit != null && unit.IsAlive && unit.team == board.OpponentTeam && unit.kind == Kind.Crystal
+                && board.IsSpecialActorObserved(unit) && observedEnemies.Add(unit)
+                && visibleEnemyLifeIds.Count < config.EventLimit) visibleEnemyLifeIds.Add(unit.ReflectionLifeId);
         if (board.EnemyBuildingCounts != null)
             foreach (var count in board.EnemyBuildingCounts.Values) buildings += Mathf.Max(0, count);
     }

@@ -51,6 +51,9 @@ public static class AIHousingTests
     static void Stable(EconomyR2Tests.Fixture f)
     {
         f.Rules.aiEconomy.basicResources.enabled = false;
+        // These contracts isolate housing/explicit operation demand. R2's independent
+        // missing-role recruitment plan is covered by AIR2RecruitmentTests instead.
+        f.Units.UnitDataMap.Clear();
         f.Food(40);
     }
     static void CapacityAndDemand(GameSystems live)
@@ -136,7 +139,19 @@ public static class AIHousingTests
             f.Rules.aiEconomy.plannedBuildActions = f.Rules.aiEconomy.plannedSummonActions = 1;
             var scout = f.UnitDefinition(); scout.kind = Kind.Scout; scout.costCitizen = 3;
             f.Units.UnitDataMap.Clear(); f.Units.UnitDataMap[Kind.Scout] = scout;
-            var board = f.Board(); board.OperationRequiredCitizenDemand = 8;
+            // This test explicitly requests a Scout. Give it a real, empty faction vision;
+            // the generic economy-only board has no VisionGenerator and intentionally
+            // reports exploration as complete, so R2 correctly has no scout requirement there.
+            var holder = new GameObject("Housing combined plan observed knowledge"); holder.SetActive(false);
+            holder.transform.SetParent(f.Crystal.transform);
+            var vision = holder.AddComponent<VisionGenerator>();
+            foreach (string name in new[] { "_playerVisionBox", "_enemyVisionBox", "_playerExplored", "_enemyExplored" })
+                typeof(VisionGenerator).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)
+                    .SetValue(vision, new HashSet<Vector3Int>());
+            var board = new AIBoardState(live.MoveGenerator, live.AttackGenerator, f.AP, f.Units, f.Crystals,
+                vision, f.Builder, null, f.State, null, 20, null, f.Team)
+                { MapCreate = live.MapCreate, ReconThreatLevel = 15, Governor = new AIStrategicGovernor() };
+            board.Governor.Evaluate(board); board.OperationRequiredCitizenDemand = 8;
             var demand = board.ProductionDemand;
             var assessment = board.Governor.HousingAssessment(f.BuildAction(house, board), board);
             Check("future demand uses actual construction and summon definition costs", demand.PlannedBuildingCitizens == 4
@@ -177,7 +192,7 @@ public static class AIHousingTests
             board.Refresh(); board.AlivePlayerUnits.Add(foe); board.Governor = new AIStrategicGovernor(); board.Governor.Evaluate(board);
             var cannotMaintain = board.Governor.HousingAssessment(action, board);
             Check("emergency housing includes the planned defender's real maintenance cost", !cannotMaintain.Needed
-                && cannotMaintain.Reason == "housing_defense_recruit_forecast_unsafe");
+                && cannotMaintain.Reason == "housing_defense_recruit_forecast_unsafe", cannotMaintain.Describe());
             defender.useAuthoredUpkeep = false; defender.upkeepBread = 0; f.Crystal.HP = 10;
             board.Refresh(); board.AlivePlayerUnits.Add(foe); board.Governor = new AIStrategicGovernor(); board.Governor.Evaluate(board);
             var cannotWait = board.Governor.HousingAssessment(action, board);

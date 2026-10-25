@@ -9,7 +9,9 @@ using UnityEngine;
 /// <summary>Bounded, read-only R2 observer. Nothing in this file supplies AI input.</summary>
 public static class AIR2PlaytestTelemetry
 {
-    static StreamWriter decisions, units;
+    static StreamWriter decisions, units, nations;
+    static int nationRows;
+    static readonly List<Status> ownBuildings = new List<Status>(64);
     static int rows, decisionRows, unitRows, skippedDecisionEvents, skippedSnapshots, droppedRows, skillOverflow;
     static string folder, lastTeam, lastStage;
     static int lastTurn;
@@ -43,6 +45,8 @@ public static class AIR2PlaytestTelemetry
         capReached = false; lastTeam = lastStage = ""; lastTurn = 0; snapshots.Clear(); skills.Clear();
         decisions = new StreamWriter(Path.Combine(folder, "decisions.csv"));
         units = new StreamWriter(Path.Combine(folder, "units.csv"));
+        nations = new StreamWriter(Path.Combine(folder, "nation-economy.csv")); nationRows = 0;
+        NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock");
         Row(decisions, "team", "round", "generation", "stage", "mode", "AP", "group", "count", "actorLifeId", "action", "target", "score", "priority", "selected", "reason", "visibleEnemies", "affordableKinds", "summonCells", "casterKind", "skillKey", "normalSkillId", "specialAbility", "actionAP", "APAffordable", "chosenAction", "chosenScore", "chosenPriority", "selectionOutcome");
         Row(units, "team", "round", "lifeId", "kind", "type", "level", "x", "z", "facing", "hp", "maxHP", "barrier", "maxBarrier", "homeDistance", "incoming", "plan", "planStep", "planTargetX", "planTargetZ", "exploreId", "region", "exploreState", "exploreReason", "exploreX", "exploreZ", "newTiles", "houseCapacity", "assignedSkillId", "assignedSkillAP", "skillCooldown", "specialAbility", "specialEnabled", "specialAP", "specialCooldown", "specialSelfReady", "specialSelfReason");
         WriteStatus(false);
@@ -53,6 +57,7 @@ public static class AIR2PlaytestTelemetry
         AIDecisionObserver.Observed -= Observe;
         if (folder != null) { WriteSkills(); WriteStatus(true); }
         decisions?.Dispose(); units?.Dispose(); decisions = units = null;
+        nations?.Dispose(); nations = null; ownBuildings.Clear();
         folder = null;
     }
     static void Observe(AIBoardState board, List<AIAction> candidates, AIAction chosen, string stage)
@@ -98,10 +103,11 @@ public static class AIR2PlaytestTelemetry
     public static void Capture(AICommander commander)
     {
         if (commander == null || units == null) return;
-        if (rows >= MaxRows) { skippedSnapshots++; return; }
         var board = BoardField?.GetValue(commander) as AIBoardState;
         if (board == null || snapshots.TryGetValue(board.ActorTeam, out int oldTurn) && oldTurn == board.TurnCount) return;
         snapshots[board.ActorTeam] = board.TurnCount;
+        CaptureNation(board);
+        if (rows >= MaxRows) { skippedSnapshots++; return; }
         var plan = (AdvancedField?.GetValue(commander) as AIAdvancedStrategy)?.Plans.Current;
         foreach (var actor in board.AliveEnemyUnits)
         {
@@ -123,6 +129,44 @@ public static class AIR2PlaytestTelemetry
                 special != null && actor.Special != null ? (object)SpecialSkillRuntime.GetAPCost(actor) : null, actor.Special?.cooldown, ready, readyReason);
         }
         units.Flush(); decisions.Flush();
+    }
+    static void CaptureNation(AIBoardState board)
+    {
+        var governor = board.Governor;
+        if (governor == null || nations == null || nationRows >= 32768) return;
+        board.CollectOwnBuildings(ownBuildings);
+        int capacity = FactionState.BaseCitizenCap, houses = 0, levels = 0, army = 0, wounded = 0, healers = 0;
+        foreach (var building in ownBuildings)
+        {
+            if (building.facilityKind != FacilityKind.House && building.facilityKind != FacilityKind.LuxuryHouse) continue;
+            houses++; levels += building.Level;
+            capacity += FacilityData.GetLevel(building, building.Level).SpecialValue;
+        }
+        foreach (var actor in board.AliveEnemyUnits)
+        {
+            if (actor == null || !actor.IsAlive || actor.type != Type.Unit || MatchObjectiveRules.IsCommander(actor)) continue;
+            army++; if (actor.HP < actor.MaxHP * .4f) wounded++;
+            if (UnitRoster.IsDedicatedHealer(actor.kind)) healers++;
+        }
+        string order = "";
+        foreach (var need in governor.RecruitmentPlan) order += need.Role + ":" + need.Definition.kind + ":" + need.Reason + ";";
+        foreach (var resource in governor.ProductionDemand.Resources)
+            NationRow(board.ActorTeam, board.TurnCount, governor.Mode, board.NationStarvationCounter, board.EnemyResources?.Citizen,
+                capacity, houses, levels, army, wounded, healers, order, resource.Resource, resource.Stock,
+                resource.MandatoryDemandPerTurn, resource.NetPerTurn, resource.ProjectedStock, resource.SafetyReserve,
+                governor.BasicResources.FoundationState, governor.BasicResources.Get(resource.Resource)?.State,
+                governor.RecruitmentRequiredCitizenStock);
+        nations.Flush(); ownBuildings.Clear();
+    }
+    static void NationRow(params object[] fields)
+    {
+        if (nationRows++ >= 32768) return;
+        for (int i = 0; i < fields.Length; i++)
+        {
+            if (i > 0) nations.Write(',');
+            nations.Write('"'); nations.Write((Convert.ToString(fields[i], CultureInfo.InvariantCulture) ?? "").Replace("\"", "\"\"")); nations.Write('"');
+        }
+        nations.WriteLine();
     }
     static void Row(StreamWriter writer, params object[] fields)
     {

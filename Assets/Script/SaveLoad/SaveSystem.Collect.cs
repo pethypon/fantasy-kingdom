@@ -62,6 +62,8 @@ public static partial class SaveSystem
         data.DeveloperAutoplayUsed = turnGen.DeveloperPlayerAIWasUsed;
         data.PlayerTerritoryIntel = turnGen.CapturePlayerTerritoryIntel();
         data.HasPlayerTerritoryIntelSnapshot = data.PlayerTerritoryIntel != null;
+        data.PlayerObservedMemory = turnGen.CapturePlayerObservedMemory();
+        data.HasPlayerObservedMemorySnapshot = data.PlayerObservedMemory != null;
         data.WildBoss = turnGen.Systems.WildBossSystem?.Capture();
         // ユニット収集
         CollectUnits(data, turnGen.Systems.UnitSetting.PlayerUnit, turnGen.Systems.UnitSetting.EnemyUnit);
