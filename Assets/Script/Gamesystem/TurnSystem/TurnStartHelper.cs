@@ -63,10 +63,8 @@ public static class TurnStartHelper
         if (systems.DungeonSystem != null)
             systems.DungeonSystem.ProcessTurn(team, round);
 
-        // クリスタル反撃: 敵側クリスタル領土に侵入している自軍ユニットへ自動ダメージ
-        BattleSystem.ProcessCrystalCounterAtTurnStart(systems, team);
-
-        // Damage reservations, poison, environment and crystal fire all precede natural recovery.
+        // Crystal retaliation belongs to the attacking owner's end boundary.
+        // Poison and environment damage precede that owner's later recovery.
         systems.MapCreate?.Environment?.OnOwnerTurnStart(team, round, systems);
 
 

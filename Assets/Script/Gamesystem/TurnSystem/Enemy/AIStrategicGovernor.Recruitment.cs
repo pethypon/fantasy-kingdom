@@ -53,6 +53,7 @@ public sealed partial class AIStrategicGovernor
                 && BoardActionProfile.For(actor)?.CanAttack != false) observedFighters++;
         bool expedition = board.HasPrincipalOpponentContact || TerritoryIntel.HasUsableTerritory || board.OperationRequiredCitizenDemand > 0;
         int fightingTarget = PrepareArmyDevelopment(board, Mathf.Max(2, Mathf.Min(6, observedFighters)), expedition);
+        AddOperationSquadRecruits(board, ref frontline, ref ranged, ref healers, ref scouts, ref fighters);
         // Rescue/support a force that already exists before buying another interchangeable fighter.
         if (healers == 0 && fighters >= 3 && (wounded > 0 || expedition))
             if (AddRecruitmentRole(board, "healer", wounded > 0 ? "wounded_army_without_healer" : "expedition_without_healer")) healers++;

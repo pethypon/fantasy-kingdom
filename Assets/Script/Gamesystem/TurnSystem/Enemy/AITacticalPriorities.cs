@@ -14,7 +14,7 @@ public static class AITacticalPriorities
             if (cost > board.EnemyAP || cost >= reserve) continue;
             foreach (var target in board.GetAttackTargets(unit))
             {
-                if (target == null || !target.IsAlive || target.ShieldTurns > 0) continue;
+                if (target == null || !target.IsAlive || target.HasDamageShield) continue;
                 if (!AIActionEvaluator.CanFinishSpecialTarget(unit,target,board)) continue;
                 reserve = cost;
                 break;

@@ -75,9 +75,9 @@ public static partial class AIActionEvaluator
         return .4f*(definition.HasCurve(definition.ninjaChargeCurve)
             ? Mathf.Max(1,definition.ninjaChargeCurve.Evaluate(Mathf.Clamp(attacker.Special?.ninjaCharge??0,0,5))) : 1);
     }
-    static Status ObservedDamageRecipient(AIBoardState board, Status target)
+    public static Status ObservedDamageRecipient(AIBoardState board, Status target)
     {
-        if (target == null || target.ShieldTurns > 0
+        if (target == null || target.HasDamageShield
             || target.Special?.damageNullUnused == true && target.Special.damageNullTurns > 0) return target;
         string partnerId = target.Special?.guardianPartnerId;
         if (string.IsNullOrEmpty(partnerId)) return target;

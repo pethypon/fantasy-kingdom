@@ -173,6 +173,7 @@ public sealed class AIActionRecord
     public float EconomyStableReward;
     public float ImmediateReward, LearningValueChange;
     public long OperationId;
+    public long SquadId;
     public int OperationStepId;
     public float OperationContribution, OperationCreditReward;
     public List<long> OperationCreditsApplied = new List<long>();

@@ -10,7 +10,7 @@ public partial class SimBoardState
     public static int CalcDamage(SimUnit attacker, SimUnit defender)
     {
         if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive
-            || defender.ShieldTurns > 0 || defender.WildBossProtected) return 0;
+            || defender.HasDamageShield || defender.WildBossProtected) return 0;
 
         float atkMod = attacker.GetATKMod();
         float defMod = defender.GetDEFMod();
@@ -32,7 +32,7 @@ public partial class SimBoardState
     public static int CalcSkillDamage(SimUnit caster, SimUnit target, SkillData skill)
     {
         if (skill == null || caster == null || target == null || !caster.IsAlive || !target.IsAlive
-            || target.ShieldTurns > 0 || target.WildBossProtected) return 0;
+            || target.HasDamageShield || target.WildBossProtected) return 0;
 
         float atkMod = caster.GetATKMod();
         float defMod = target.GetDEFMod();
@@ -56,19 +56,11 @@ public partial class SimBoardState
         return DamageCalculator.FinalizeHitDamage(baseDmg, skillMul > 0 && incomingMod > 0);
     }
 
-    /// <summary>クリスタルHPが閾値を下回った際にシールドを1度だけ発動。</summary>
+    /// <summary>Legacy snapshot fields cannot reactivate the abolished main-crystal shield.</summary>
     void CheckCrystalShield(SimUnit target)
     {
         if (target.Kind != Kind.Crystal) return;
-        if (target.ShieldActivated) return;
-        if (target.MaxHP <= 0 || !target.IsAlive) return;
-
-        float hpRatio = (float)target.HP / target.MaxHP;
-        if (hpRatio < GameConstants.CrystalShieldThreshold)
-        {
-            target.ShieldTurns = GameConstants.CrystalShieldDuration;
-            target.ShieldActivated = true;
-        }
+        target.ShieldTurns = 0; target.ShieldActivated = false;
     }
 
     int GetSkillCooldownFromRarity(int skillId)

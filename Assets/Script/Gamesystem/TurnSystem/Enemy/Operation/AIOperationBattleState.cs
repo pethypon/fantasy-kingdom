@@ -16,6 +16,8 @@ public sealed class AIOperationBattleState
     // Hash collisions can suppress a reward, never create information about an undiscovered entity.
     public int[] BaseDiscoveryBits = new int[64];
     public List<AIOperationPlan> ActiveOperations = new List<AIOperationPlan>();
+    public long NextSquadId;
+    public List<AIOperationSquad> Squads = new List<AIOperationSquad>();
     public List<AIOperationPlan> CompletedOperations = new List<AIOperationPlan>();
     public List<long> CompletedOperationIds = new List<long>();
     public List<string> ConfirmedDestroyedLifeIds = new List<string>();

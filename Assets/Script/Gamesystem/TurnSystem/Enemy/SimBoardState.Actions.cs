@@ -54,7 +54,7 @@ public partial class SimBoardState
             || !CanAttack(attacker, target.Position))) return false;
 
         // シールドチェック
-        if (target.ShieldTurns > 0)
+        if (target.HasDamageShield)
         {
             target.RecordNegatedHit();
             attacker.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(attacker.Kind);
@@ -64,6 +64,7 @@ public partial class SimBoardState
 
         int damage = CalcDamage(attacker, target);
         target.ApplyDamage(damage);
+        RegisterCrystalAttack(attacker, target, damage > 0);
         attacker.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(attacker.Kind);
 
         // クリスタルシールドチェック (HPが50%以下に初めて到達した場合)
@@ -115,12 +116,13 @@ public partial class SimBoardState
             if (target != null && target.IsAlive)
             {
                 target.SimulationRound = TurnCount;
-                if (skill.Multiplier > 0 && target.ShieldTurns > 0) target.RecordNegatedHit();
-                if (skill.Multiplier > 0 && target.ShieldTurns <= 0)
+                if (skill.Multiplier > 0 && target.HasDamageShield) target.RecordNegatedHit();
+                if (skill.Multiplier > 0 && !target.HasDamageShield)
                 {
                     // 攻撃スキル
                     int dmg = CalcSkillDamage(unit, target, skill);
                     target.ApplyDamage(dmg);
+                    RegisterCrystalAttack(unit, target, dmg > 0);
 
                     // デバフ付与シミュレーション（確率50%以上なら付与とみなす）
                     if (skill.InflictDebuff != StatusEffectType.None && skill.DebuffChance >= 0.5f)

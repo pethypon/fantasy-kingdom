@@ -52,7 +52,7 @@ public static class AIR3ScoutTerritoryTests
             && f.Governor.Mode != StrategicMode.EconomicRecovery && f.Governor.HasActiveTerritoryAdvance == territoryVisible
             && f.Governor.TerritoryIntel.HasObservedTerritory == territoryVisible);
         Check(label + " scout has a fresh active unfinished frontier", goal != null && goal.State == ObjectiveState.Active
-            && !goal.IsIntelRevisit && !GridHelper.MatchXZ(goal.TargetCell, f.Scout.transform.position)
+            && !goal.IsIntelRevisit && !GridHelper.MatchXZ(goal.TargetCell, GridHelper.ToGridXZ(f.Scout.transform.position))
             && f.Governor.Exploration.Expeditions.Count == 0 && HasUnknownNeighbour(f.Governor.Exploration, goal.TargetCell));
         var raw = new List<AIAction>(); AIActionGenerator.GenerateAllCandidates(board, raw);
         var scout = Move(raw, f.Scout, f.Scout.transform.position + Vector3.right);
@@ -111,7 +111,7 @@ public static class AIR3ScoutTerritoryTests
     }
 
     static AIAction Move(List<AIAction> candidates, Status actor, Vector3 cell)
-        => candidates.FirstOrDefault(a => a.ActionType == AIActionType.Move && a.Unit == actor && GridHelper.MatchXZ(a.TargetPos, cell));
+        => candidates.FirstOrDefault(a => a.ActionType == AIActionType.Move && a.Unit == actor && GridHelper.MatchXZ(a.TargetPos, GridHelper.ToGridXZ(cell)));
     static bool HasUnknownNeighbour(AIExplorationPlanner planner, Vector3Int at)
         => new[] { Vector3Int.left, Vector3Int.right, Vector3Int.forward, Vector3Int.back }
             .Any(offset => !planner.Memory.ContainsKey(GridHelper.ToGridXZ(at + offset)));

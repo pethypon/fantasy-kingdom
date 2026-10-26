@@ -61,7 +61,7 @@ struct AIObservedProtection
         {
             HP=Mathf.Max(0,actor.HP),
             Barrier=!ignoreFiniteBarrier && BarrierSystem.UsesBarrier(actor)?actor.Barrier:0,
-            Shielded=actor.ShieldTurns>0,
+            Shielded=actor.HasDamageShield,
             nullUnused=state?.damageNullUnused==true && state.damageNullTurns>0,
             nextDamageDouble=state?.nextDamageDouble==true,
             holyKnightDouble=state!=null && (state.holyKnightTurns>0 || state.holyKnightRecoveryLock),

@@ -193,6 +193,7 @@ public class TurnGenerator : MonoBehaviour
         AIDiaryUI.Tick();
         if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen)
         {
+            if (CurrentState is EnemyMove enemy) enemy.PauseForMenu();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             _playerAI?.PauseForMenu();
 #endif

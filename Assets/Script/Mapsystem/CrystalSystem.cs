@@ -21,7 +21,7 @@ public class CrystalSystem : MonoBehaviour
     public Vector3 ECP;
 
     /// <summary> クリスタルの基本HP </summary>
-    public const int CrystalHP = 15000;
+    public const int CrystalHP = MainCrystalRules.MaximumHP;
 
     private List<Vector3> _SetPos;
     private int maxx;
@@ -144,6 +144,8 @@ public class CrystalSystem : MonoBehaviour
         status.team = team;
         status.direction = team == Team.Player ? Direction.N : Direction.S;
         status.HP = status.MaxHP = CrystalHP;
+        MainCrystalRules.ClearLegacyShield(status);
+        status.CrystalCounter = new MainCrystalCounterState();
         status.ATK = status.DEF = 0;
         status.Level = 1;
         // A pedestal collider alone does not cover the crystal above it.

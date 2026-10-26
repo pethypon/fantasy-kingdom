@@ -156,7 +156,7 @@ public sealed partial class AIOperationManager
         for (int i = 0; i < Math.Min(3, rankedBases.Count); i++)
         {
             var entry = rankedBases[i]; var position = new Vector3(entry.X, 0, entry.Z);
-            int distance = AIOperationFeatureExtractor.Distance(board.EnemyCrystalPos, position);
+            int distance = BaseDeploymentDistance(board, position);
             float required = RequiredBaseForce(entry);
             Vector3 approach = SelectBaseApproach(board, position, out bool routeConfirmed);
             float score = entry.EstimatedStrategicValue - distance * AIOperationConfig.NonNegative(config.BaseDistancePenalty)
@@ -176,6 +176,8 @@ public sealed partial class AIOperationManager
                 : entry.EstimatedDefense > available / Mathf.Max(1, AIOperationConfig.Finite(config.BaseAggressiveForceRatio, 2)) || turtle
                     ? AIBaseAssaultPattern.FlankAssault : AIBaseAssaultPattern.DirectAssault;
             var second = stale || weak || raid ? first : turtle ? AIBaseAssaultPattern.DiversionAssault : AIBaseAssaultPattern.SiegeAssault;
+            if (board.ReconThreatLevel < Mathf.Max(1, config.MinimumThreatLevel))
+            { first = raid ? AIBaseAssaultPattern.RaidAndWithdraw : stale || weak ? AIBaseAssaultPattern.ScoutThenAssault : AIBaseAssaultPattern.DirectAssault; second = first; }
             for (int pattern = 0; pattern < 2; pattern++)
             {
                 var chosen = pattern == 0 ? first : second;
@@ -211,7 +213,7 @@ public sealed partial class AIOperationManager
     }
     float BaseOpportunityValue(AIKnownEnemyBase entry, AIBoardState board)
         => entry.EstimatedStrategicValue / (1 + entry.EstimatedDefense
-            + AIOperationFeatureExtractor.Distance(board.EnemyCrystalPos, new Vector3(entry.X, 0, entry.Z)) * AIOperationConfig.NonNegative(config.BaseDistancePenalty)
+            + BaseDeploymentDistance(board, new Vector3(entry.X, 0, entry.Z)) * AIOperationConfig.NonNegative(config.BaseDistancePenalty)
             + (1 - entry.IntelConfidence) * AIOperationConfig.NonNegative(config.UnknownBaseIntelPenalty));
     float RequiredBaseForce(AIKnownEnemyBase entry)
         => Mathf.Max(AIOperationConfig.NonNegative(entry.Type == AIEnemyBaseType.MainCrystal ? config.MinimumMainCrystalAssaultForce : config.MinimumBaseAssaultForce),
@@ -239,7 +241,9 @@ public sealed partial class AIOperationManager
             }
         }
         int units = Mathf.Clamp(Mathf.CeilToInt(missingForce / reinforcementPower), 0, Mathf.Clamp(config.MaximumBaseReinforcementUnits, 1, 16));
-        return (int)Math.Min(128L, (long)units * reinforcementCitizens);
+        // Capacity must hold the next single purchase, not the cost of the entire army.
+        // Missing roles/counts are exposed separately through SquadRecruitmentNeeds.
+        return units > 0 ? Mathf.Clamp(reinforcementCitizens, 0, 128) : 0;
     }
     bool RecentBaseSuccess(int turn)
     {
@@ -248,10 +252,22 @@ public sealed partial class AIOperationManager
         return previous.IsBaseAssault && previous.PrimaryGoalAchieved && previous.Status == AIOperationStatus.Success
             && turn >= previous.ActualEndTurn && turn - previous.ActualEndTurn <= Mathf.Clamp(config.BaseIntelFreshTurns, 1, 12);
     }
-    bool ShouldPromoteDiscoveredBase(AIOperationCandidate candidate, AIOperationPlan current)
+    int BaseDeploymentDistance(AIBoardState board, Vector3 target)
+    {
+        int distance = AIOperationFeatureExtractor.Distance(board.EnemyCrystalPos, target);
+        foreach (var actor in ownArmy) if (actor != null && actor.IsAlive)
+            distance = Math.Min(distance, AIOperationFeatureExtractor.Distance(actor.transform.position, target));
+        return distance;
+    }
+    bool ShouldPromoteDiscoveredBase(AIOperationCandidate candidate, AIOperationPlan current, AIBoardState board)
     {
         if (!candidate.Plan.IsBaseAssault || candidate.Priority != current.StrategicPriority
             || current.PrimaryGoal != AIOperationGoal.ScoutRegion && current.PrimaryGoal != AIOperationGoal.LocateEnemyMainForce) return false;
+        if (candidate.Plan.PrimaryGoal == AIOperationGoal.DestroyEnemyCrystal && !SupplyRecoveryRequired(board)
+            && board.Governor?.Mode != StrategicMode.EmergencyDefense
+            && features.TryObserved(candidate.Plan.TargetLifeId, out var target))
+            foreach (var actor in ownArmy)
+                if (actor != null && actor.IsAlive && LegalSquadTargets(actor, board).Contains(target)) return true;
         float scoutingScore = CurrentScoutingBaseScore;
         foreach (var other in candidates)
             if (other.Plan.PrimaryGoal == current.PrimaryGoal && other.Plan.TargetLifeId == current.TargetLifeId)
@@ -438,6 +454,13 @@ public sealed partial class AIOperationManager
         plan.EstimatedBaseDefense = entry.EstimatedDefense; plan.BaseDefenseKnown = entry.DefenseIntelKnown;
         plan.RequiredAssaultForce = RequiredBaseForce(entry);
         float assignedForce = AssignedAssaultForce(plan);
+        bool immediateAttack = false;
+        if (entry.CurrentlyVisible && features.TryObserved(plan.TargetLifeId, out var visibleTarget))
+            foreach (string life in plan.AssignedUnitLifeIds)
+                if (features.TryOwn(life, out var actor) && actor != null && actor.IsAlive
+                    && LegalSquadTargets(actor, board).Contains(visibleTarget)
+                    && (board.Governor?.IncomingDamage(board, actor, actor.transform.position, null) ?? 0) < actor.HP)
+                { immediateAttack = true; break; }
         plan.RequiredAdditionalCitizens = BaseReinforcementCitizenDemand(board, plan.RequiredAssaultForce - assignedForce);
         var approach = SelectBaseApproach(board, new Vector3(plan.TargetX, 0, plan.TargetZ), out bool confirmedRoute);
         plan.BaseRouteConfirmed = confirmedRoute; plan.HasBaseApproachPoint = true;
@@ -447,7 +470,22 @@ public sealed partial class AIOperationManager
             if (CurrentStep(plan)?.Type != AIOperationStepType.Scout) Revise(plan, turn, "拠点の防衛情報が古いため再偵察", true);
             plan.Status = AIOperationStatus.Preparing;
         }
-        if (assignedForce < plan.RequiredAssaultForce && plan.Status != AIOperationStatus.Suspended) plan.Status = AIOperationStatus.Preparing;
+        if (assignedForce < plan.RequiredAssaultForce && !immediateAttack && plan.Status != AIOperationStatus.Suspended) plan.Status = AIOperationStatus.Preparing;
+        if (plan.Status == AIOperationStatus.Preparing && assignedForce > 0 && entry.CurrentlyVisible && confirmedRoute
+            && turn - plan.StartTurn >= Mathf.Clamp(AIOperationSquadConfig.Active.AssemblyGraceTurns, 1, 5))
+        {
+            plan.Status = AIOperationStatus.Active;
+            plan.StrategicReason = "集合猶予後は暫定編成で既知経路を段階接近し、不足役割の補充を継続";
+        }
+        if (immediateAttack && plan.Status != AIOperationStatus.Suspended)
+        {
+            plan.Status = AIOperationStatus.Active;
+            // Already in legal attack positions: do not march the available attackers
+            // back to a rear rally because a reserve force or an unseen flank is missing.
+            while (CurrentStep(plan) != null && (CurrentStep(plan).Type == AIOperationStepType.Scout
+                || CurrentStep(plan).Type == AIOperationStepType.Regroup || CurrentStep(plan).Type == AIOperationStepType.Approach))
+            { var completed = CurrentStep(plan); completed.Completed = true; completed.EndTurn = turn; plan.CurrentStep++; }
+        }
         if (entry.CurrentlyVisible && entry.DefenseIntelKnown && confirmedRoute && CurrentStep(plan)?.Type == AIOperationStepType.Scout)
         { var step = CurrentStep(plan); step.Completed = true; step.EndTurn = turn; plan.CurrentStep++; plan.LastProgressTurn = turn; }
         if (CurrentStep(plan)?.Type == AIOperationStepType.Regroup && assignedForce >= plan.RequiredAssaultForce)

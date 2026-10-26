@@ -6,6 +6,7 @@ public class EnemyMove : TurnState
     private System.Collections.IEnumerator actions;
     private bool finished;
     private bool timeExpired;
+    private bool budgetSynchronized, menuPaused;
     private readonly System.Diagnostics.Stopwatch elapsed = new System.Diagnostics.Stopwatch();
     private double deadlineMs;
 
@@ -13,9 +14,12 @@ public class EnemyMove : TurnState
     {
         finished = false;
         timeExpired = false;
-        double budget = Systems.AICommander?.TurnThinkingBudgetMs ?? 0;
-        if (double.IsNaN(budget) || double.IsInfinity(budget)) budget = 8000;
-        deadlineMs = System.Math.Max(0, budget) + 500; // Allow the final evaluated action to finish.
+        budgetSynchronized = menuPaused = false;
+        // Initialization is bounded too. The first core step commits the observed
+        // category before its first yield; then this becomes that exact decision's deadline.
+        deadlineMs = AIThinkingBudgetConfig.MaximumMilliseconds + AIThinkingBudgetConfig.MaximumCompletionGraceMilliseconds;
+        if (Systems.TimerSystem != null)
+            deadlineMs = System.Math.Min(deadlineMs, Systems.TimerSystem.AvailableAIThinkingMilliseconds(Team.Enemy));
         elapsed.Restart();
         if (Systems.TimerSystem != null)
         {
@@ -29,6 +33,7 @@ public class EnemyMove : TurnState
     public override void Update()
     {
         if (finished || Turn.IsGameOver || Turn.CurrentState != this) return;
+        if (menuPaused) { menuPaused = false; elapsed.Start(); AITurnBudget.ResumeWaitLimit(); }
         if (timeExpired || elapsed.Elapsed.TotalMilliseconds >= deadlineMs)
         {
             if (!timeExpired) Debug.LogWarning("[EnemyMove] AI completion deadline reached; ending the enemy turn.");
@@ -39,11 +44,22 @@ public class EnemyMove : TurnState
         try { AITurnBudget.Resume(); more = actions != null && actions.MoveNext(); }
         catch (System.Exception e) { Debug.LogException(e); }
         finally { AITurnBudget.Pause(); }
+        if (!budgetSynchronized && Systems.AICommander?.HasPreparedThinkingBudget == true)
+        {
+            deadlineMs = Systems.AICommander.ActiveThinkingBudget.CompletionDeadlineMilliseconds;
+            budgetSynchronized = true;
+        }
         if (!more && !Turn.IsGameOver && Turn.CurrentState == this) FinishTurn();
     }
 
     private void Expire() => timeExpired = true;
     private void EndGame(GameResult result) => Turn.ChangeState(new GameEndState(Turn, result));
+
+    public void PauseForMenu()
+    {
+        if (finished || actions == null || menuPaused) return;
+        menuPaused = true; elapsed.Stop(); AITurnBudget.SuspendWaitLimit();
+    }
 
     private void DisposeActions()
     {
@@ -83,6 +99,7 @@ public class EnemyMove : TurnState
     public override void Exit()
     {
         elapsed.Stop();
+        if (menuPaused) { menuPaused = false; AITurnBudget.ResumeWaitLimit(); }
         if (Systems.TimerSystem != null)
         {
             Systems.TimerSystem.OnTurnTimeExpired -= Expire;

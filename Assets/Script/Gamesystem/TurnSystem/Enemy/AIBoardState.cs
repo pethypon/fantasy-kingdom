@@ -59,6 +59,9 @@ public partial class AIBoardState
     public int CitizenCapacity => _factionState?.GetCitizenCap(ActorTeam) ?? 5;
     /// <summary>Read-only strategic input supplied by the existing operation layer; never hidden hostile state.</summary>
     public int OperationRequiredCitizenDemand { get; set; }
+    // Optional operation owner; supplies observed goals and own-unit formation demand only.
+    public AIOperationManager Operations { get; set; }
+    public int RemainingPlannedActionSlots { get; set; } = int.MaxValue;
     public void CollectRecruitDefinitions(List<UnitData> result)
     {
         result.Clear();

@@ -45,6 +45,14 @@ public class TimerSystem : MonoBehaviour
     public float EnemyTimeRemaining => EnemyTotalTime;
     public Team CurrentTeam => currentTeam;
     public bool IsRunning => isRunning;
+    /// <summary>Read-only hard clock boundary for this side's AI. Never extends game time.</summary>
+    public double AvailableAIThinkingMilliseconds(Team team)
+    {
+        if (!isRunning || currentTeam != team) return double.PositiveInfinity;
+        double total = team == Team.Player ? PlayerTotalTime : EnemyTotalTime;
+        if (double.IsNaN(total) || double.IsInfinity(total)) total = 0;
+        return System.Math.Min(SafeSeconds(turnTimeRemaining), System.Math.Max(0, total)) * 1000d;
+    }
     public GameResult? LastTimeUpResult { get; private set; }
     public string TimeUpReasonText { get; private set; } = "";
 

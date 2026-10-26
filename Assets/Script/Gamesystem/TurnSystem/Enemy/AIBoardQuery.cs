@@ -139,6 +139,8 @@ public static class AIBoardQuery
         if(!ignoreFiniteBarrier && board.CounterCache.TryGetValue((pos,self,stateKey),out var cached)) return cached;
         long totalDmg = 0;
         var budget = AIObservedDamageBudget.Capture(self,ignoreFiniteBarrier);
+        totalDmg += AIActionEvaluator.EstimateObservedHitLoss(self, board,
+            MainCrystalRules.ObservedCounterDamage(board, self, pos), HpChangeKind.NormalDamage, ref budget);
         // A dragon can breathe across its fixed territory even when its current position
         // lies beyond the local index radius. Only the board's observed actors are eligible.
         foreach (var opponent in board.AlivePlayerUnits)

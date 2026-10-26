@@ -210,7 +210,7 @@ public class GameManualUI : MonoBehaviour
         sb.AppendLine("<b>■ 特殊駒</b>");
         definitions.TryGetValue(Kind.King, out var king); AppendManualUnit(sb, Kind.King, king);
         definitions.TryGetValue(Kind.Boss, out var boss); AppendManualUnit(sb, Kind.Boss, boss);
-        sb.AppendLine("  <b>クリスタル</b>: 最大HP 15000。破壊されたら敗北。被弾時に反撃を行う");
+        sb.AppendLine($"  <b>クリスタル</b>: 基本最大HP {MainCrystalRules.MaximumHP}。破壊されたら敗北。攻撃側のターン終了時に反撃");
         sb.AppendLine("  <b>異形の王</b>: Lv1ステータスはキング相当だが成長率が大幅に高く、専用パッシブにより");
         sb.AppendLine("    被ダメ-40%・ダメージの20%を吸血・HP50%以下でATK+25%となる");
         sb.AppendLine("  <b>強敵（縄張りボス）</b>: 縄張り外では被弾無効。縄張り内に駒が入ると攻撃可能");
@@ -256,8 +256,8 @@ $"  Lv2に必要なXP: {GameConstants.XPRequiredLv2}、各レベルで ×{GameCo
     + "倒さなくても蓄積し、兵舎ボーナスで+%が乗ります。\n" +
 "  実獲得XP = floor(damage × (1 + BarracksXP%/100))\n\n" +
 "<b>■ クリスタル反撃</b>\n" +
-$"  ターン開始時 / クリスタル被弾時の双方で発動。領土内の敵で最近接1体に MaxHP×{GameConstants.CrystalCounterDamageRatio*100:F0}%ダメージ。\n" +
-$"  完全防御シールド発動後は最大{GameConstants.CrystalCounterTargetsAfterShield}体まで拡大する。バリア優先の固定ダメージ。\n\n" +
+$"  攻撃した陣営のターン終了時に1回だけ発動。晶の領土内にいる攻撃側の駒を最大{MainCrystalRules.MaximumCounterTargets}体まで反撃。\n" +
+$"  各対象自身の最大HP×{MainCrystalRules.CounterFraction*100:F0}%ダメージ。バリア等の通常の防御を適用。クリスタル専用の無敵シールドはありません。\n\n" +
 "<b>■ 指揮官バフ（キング/異形の王）</b>\n" +
 $"  自軍 King または Boss(異形の王) から{GameConstants.KingAuraRange}マス以内の味方は\n" +
 $"  ATK+{(GameConstants.KingAuraATKBonus-1)*100:F0}%。指揮官自身は対象外。\n\n" +
@@ -294,7 +294,7 @@ $"  暫定ダメージ式：{BarrierCombatSettings.Active.provisionalDamageBase:
 "  <b>ウォーバナー</b>: 全ユニット ATK +2\n" +
 "  <b>アイアンイージス</b>: 効果未調整\n" +
 "  <b>マナフォーカス</b>: 毎ターン 魔法鉱石 +3\n" +
-"  <b>フェニックスフェザー</b>: クリスタルシールドを再発動可能にする";
+"  <b>フェニックスフェザー</b>: 効果調整待ち（クリスタル専用シールドは廃止）";
     }
 
     private string BuildTerrainText()

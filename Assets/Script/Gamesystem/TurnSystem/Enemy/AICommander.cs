@@ -223,7 +223,12 @@ public partial class AICommander
     // ================================================================
     //  ExecuteTurn — 1ターン分の全行動を実行
     // ================================================================
-    public float TurnThinkingBudgetMs { get; set; } = 3000f;
+    /// <summary>Setter configures the non-adaptive fallback; an active turn keeps its frozen decision.</summary>
+    public float TurnThinkingBudgetMs
+    {
+        get => HasPreparedThinkingBudget ? (float)ActiveThinkingBudget.Milliseconds : configuredThinkingBudgetMs;
+        set => configuredThinkingBudgetMs = value;
+    }
     public double SearchSliceBudgetMs { get; set; } = 3;
     public double LastSearchMaxSliceMs { get; private set; }
     static bool IsCriticalPosition(List<AIAction> candidates, AIBoardState board)
@@ -247,7 +252,6 @@ public partial class AICommander
 
     System.Collections.IEnumerator ExecuteTurnCoreSteps()
     {
-        AITurnBudget.Begin(TurnThinkingBudgetMs);
         _actedUnits.Clear();
         turnMovementHistory.Clear();
         _triedStrategies.Clear();
@@ -342,6 +346,7 @@ public partial class AICommander
         _evolution.BeginTurn(_board);
         if (CanLearn) _playerModel?.Observe(_board);
         BeginOperationTurn();
+        ResolveTurnThinkingBudget(_board);
         yield return null;
         if (_turnGen.IsGameOver) yield break;
         // 探索エンジンとtopCandidatesリストをループ外で事前確保（GC削減）
@@ -414,6 +419,7 @@ public partial class AICommander
             yield return null;
             if (_turnGen.IsGameOver) yield break;
             iteration++;
+            _board.RemainingPlannedActionSlots = maxIterations - iteration + 1;
 
             if (!boardReadyAfterAction) _board.Refresh();
             boardReadyAfterAction = false;
@@ -427,6 +433,7 @@ public partial class AICommander
             // AP予約を再計算（建築/召喚した後は予約を解除）
             reservedAP = CalcReservedAP();
 
+            RefreshOperationPlanning();
             AIActionEvaluator.EvaluateAllInto(actionsBuffer, _personality, _board, _learning, _currentStrategy);
             using (AIPerformanceCounters.Measure(AIPerformanceStage.CandidateGeneration))
                 AIOrientation.AppendCandidates(_board, actionsBuffer);
@@ -452,7 +459,6 @@ public partial class AICommander
                 }
             }
             finally { (advancedSteps as System.IDisposable)?.Dispose(); }
-            RefreshOperationPlanning();
             var actions = actionsBuffer;
             if (actions.Count == 0)
             {

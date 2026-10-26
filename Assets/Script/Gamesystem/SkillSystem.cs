@@ -16,11 +16,12 @@ public class SkillSystem : MonoBehaviour
 
     private int ApplySkillDamage(Status attacker, Status target, int requested)
     {
-        if (target == null || !target.IsAlive || target.ShieldTurns > 0) return 0;
+        if (target == null || !target.IsAlive || target.HasDamageShield) return 0;
         var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
         if (terrain != null && !terrain.CanAttackAcrossTerrain(attacker, target.transform.position)) return 0;
         var recipient = SpecialSkillRuntime.ResolveDamageRecipient(target, requested, HpChangeKind.NormalDamage);
-        int actual = SpecialSkillRuntime.ApplyHpChange(attacker, target, requested, HpChangeKind.NormalDamage);
+        int actual = SpecialSkillRuntime.ApplyHpChange(attacker, target, requested, HpChangeKind.NormalDamage, cause: HpChangeCause.Skill);
+        if (requested > 0) MainCrystalRules.RegisterAttack(target, attacker.team, turnGenerator?.Context.Turn ?? -1);
         Status.AwardDamageExperience(attacker, recipient, actual, _factionState);
         SpecialSkillRuntime.CompleteSpecialDeath(recipient);
         return actual;
@@ -149,7 +150,7 @@ public class SkillSystem : MonoBehaviour
     private void ExecuteAttackSkill(Status attacker, Status target, SkillData skill)
     {
         // シールド中はダメージ無効
-        if (target.ShieldTurns > 0)
+        if (target.HasDamageShield)
         {
             Debug.Log($"[SkillSystem] {target.kind} はシールド中！ ダメージ無効");
             BarrierSystem.RecordNegatedHit(target);
@@ -378,7 +379,7 @@ public class SkillSystem : MonoBehaviour
             if (t == null || (terrain != null && !terrain.CanAttackAcrossTerrain(attacker, t.transform.position))) continue;
             if (skill.Multiplier > 0)
             {
-                if (t.ShieldTurns > 0)
+                if (t.HasDamageShield)
                 {
                     Debug.Log($"[SkillSystem] {t.kind} はシールド中！ ダメージ無効");
                     continue;

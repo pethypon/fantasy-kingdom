@@ -13,10 +13,12 @@ public partial class SimBoardState
 {
     public void SimulateTurnTransition(Team nextTeam)
     {
+        var outgoingTeam = nextTeam == Team.Enemy ? Team.Player : Team.Enemy;
+        ProcessCrystalCounterAtTurnEnd(outgoingTeam, TurnCount);
+        if (IsTerminal()) return;
         TurnCount++;
         foreach (var unit in Units) unit.SimulationRound = TurnCount;
         // Snapshot support before any isolation death removes another friendly observer.
-        var outgoingTeam = nextTeam == Team.Enemy ? Team.Player : Team.Enemy;
         ProcessAssassinIsolation(outgoingTeam, TurnCount);
         // Recovery sees the actual HP loss, before the incoming faction's DoT.
         for (int i = 0; i < Units.Count; i++)

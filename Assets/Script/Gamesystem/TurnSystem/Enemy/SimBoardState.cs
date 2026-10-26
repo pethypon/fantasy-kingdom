@@ -170,18 +170,18 @@ public partial class SimBoardState
         var eCrystal = FindCrystalStatus(realBoard.OwnCrystalParent);
         if (eCrystal != null && !HasCrystal(state, Team.Enemy))
         {
-            state.Units.Add(CaptureUnit(eCrystal, idCounter++, state.ToSimulationTeam(eCrystal.team),state.TurnCount));
+            state.Units.Add(CaptureUnit(eCrystal, idCounter++, state.ToSimulationTeam(eCrystal.team),state.TurnCount,state.RealActorTeam == Team.Player));
             capturedActors.Add(eCrystal);
         }
 
         var pCrystal = FindCrystalStatus(realBoard.OpponentCrystalParent);
         if (pCrystal != null && realBoard.PlayerCrystalVisible && !HasCrystal(state, Team.Player))
-            state.Units.Add(CaptureUnit(pCrystal, idCounter++, state.ToSimulationTeam(pCrystal.team),state.TurnCount));
+            state.Units.Add(CaptureUnit(pCrystal, idCounter++, state.ToSimulationTeam(pCrystal.team),state.TurnCount,state.RealActorTeam == Team.Player));
 
         // Owned structures also provide friendly vision. Only the board's observed snapshot is read.
         foreach (var observer in realBoard.SpecialObservedActors)
             if (observer.team == realBoard.ActorTeam && observer.type != Type.Unit && capturedActors.Add(observer))
-                state.Units.Add(CaptureUnit(observer, idCounter++, state.ToSimulationTeam(observer.team),state.TurnCount));
+                state.Units.Add(CaptureUnit(observer, idCounter++, state.ToSimulationTeam(observer.team),state.TurnCount,state.RealActorTeam == Team.Player));
 
         // AP
         state.EnemyAPReset = apSystem.GetMaxAP(realBoard.ActorTeam);
@@ -194,6 +194,7 @@ public partial class SimBoardState
         state.EnemyBuildingCounts = new Dictionary<FacilityKind, int>(realBoard.EnemyBuildingCounts);
         state.PlayerBuildingCounts = new Dictionary<FacilityKind, int>();
 
+        state.CaptureCrystalCounterAreas(realBoard);
         state.RebuildOccupied();
         return state;
     }
@@ -206,7 +207,7 @@ public partial class SimBoardState
         return false;
     }
 
-    static SimUnit CaptureUnit(Status s, int id, Team simulationTeam, int round)
+    static SimUnit CaptureUnit(Status s, int id, Team simulationTeam, int round, bool swapCounterTeams = false)
     {
         var su = new SimUnit
         {
@@ -236,8 +237,10 @@ public partial class SimBoardState
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
             Fatigue = s.Fatigue,
-            ShieldTurns = s.ShieldTurns,
-            ShieldActivated = s.ShieldActivated,
+            ShieldTurns = s.kind == Kind.Crystal ? 0 : s.ShieldTurns,
+            ShieldActivated = s.kind != Kind.Crystal && s.ShieldActivated,
+            LifeIdentity = s.ReflectionLifeId,
+            CrystalCounter = s.kind == Kind.Crystal ? s.CrystalCounter?.Copy(swapCounterTeams) : null,
             Passive = s.passiveskill,
             AssassinPassive = SpecialSkillRuntime.HasAssassinPassive(s),
             VisionZeroTurns = s.Special?.visionZeroTurns ?? 0,
@@ -269,7 +272,7 @@ public partial class SimBoardState
 
     static SimUnit CaptureObservedUnit(Status actor,int id,Team simulationTeam,int round,AIBoardState board)
     {
-        var result=CaptureUnit(actor,id,simulationTeam,round);
+        var result=CaptureUnit(actor,id,simulationTeam,round,board.ActorTeam == Team.Player);
         result.WildBossProtected=AIActionEvaluator.IsObservedWildBossProtected(board,actor);
         return result;
     }
@@ -322,6 +325,7 @@ public partial class SimBoardState
             copy.PlayerBuildingCounts[kvp.Key] = kvp.Value;
         copy.Mountains = Mountains; copy.Water = Water;
         copy.MapTiles = MapTiles; // 共有参照 (変更しない)
+        copy.PlayerCrystalCounterArea = PlayerCrystalCounterArea; copy.EnemyCrystalCounterArea = EnemyCrystalCounterArea;
         copy.TurnCount = TurnCount;
         copy.RebuildOccupied();
         return copy;

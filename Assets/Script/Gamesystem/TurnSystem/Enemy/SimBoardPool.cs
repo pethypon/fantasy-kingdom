@@ -38,6 +38,7 @@ public static class SimBoardPool
         board.Water = null;
         board.RecruitmentDefinitions = null;
         board.RecruitmentKinds = null;
+        board.PlayerCrystalCounterArea = null; board.EnemyCrystalCounterArea = null;
         if (_boardPool.Count < 64) _boardPool.Push(board);
     }
 
@@ -58,6 +59,7 @@ public static class SimBoardPool
         unit.Effects.Clear();
         unit.ActionProfile = null;
         unit.CapturedVisionCells = null;
+        unit.LifeIdentity = null; unit.CrystalCounter = null;
         if (_unitPool.Count < 4096) _unitPool.Push(unit);
     }
 
