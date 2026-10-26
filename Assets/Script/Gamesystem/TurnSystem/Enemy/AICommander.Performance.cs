@@ -19,6 +19,7 @@ public partial class AICommander
     /// <summary>Executes the normal decision iterator while excluding cooperative frame waits from CPU/GC samples.</summary>
     public IEnumerator ExecuteTurnSteps()
     {
+        BeginThinkingBudgetSelection();
         var steps = ExecuteTurnCoreSteps();
         int ownTurn = ++runtimeOwnTurns;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

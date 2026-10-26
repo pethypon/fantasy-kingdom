@@ -269,6 +269,13 @@ public static class SaveGameApplier
         s.ShieldTurns = ud.ShieldTurns;
         s.ShieldActivated = ud.ShieldActivated;
         s.ShieldEverActivated = ud.ShieldEverActivated;
+        if (s.kind == Kind.Crystal)
+        {
+            s.HP = MainCrystalRules.NormalizeSavedHP(ud.HP, ud.MaxHP, ud.MainCrystalRuleVersion);
+            s.MaxHP = MainCrystalRules.NormalizeSavedMaximum(ud.MaxHP, ud.MainCrystalRuleVersion);
+            MainCrystalRules.ClearLegacyShield(s);
+            s.CrystalCounter = ud.MainCrystalCounter?.Copy();
+        }
         s.SkillCooldown = ud.SkillCooldown;
         s.HasMovedThisTurn = ud.HasMovedThisTurn;
         s.FirstSkillUsedThisTurn = ud.FirstSkillUsedThisTurn;

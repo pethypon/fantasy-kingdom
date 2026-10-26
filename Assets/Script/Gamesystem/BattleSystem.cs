@@ -2,10 +2,10 @@ using UnityEngine;
 
 public enum GameResult { Win, Lose, TimeUpWin, TimeUpLose, TimeUpDraw }
 
-/// <summary>クリスタル反撃の発動契機（被弾時 / ターン開始時）。ログ・統計識別に使用。</summary>
-public enum CrystalCounterTrigger { OnHit, TurnStart }
+/// <summary>Legacy identifiers are retained; only TurnEnd is an operative crystal-counter event.</summary>
+public enum CrystalCounterTrigger { OnHit, TurnStart, TurnEnd }
 
-public class BattleSystem : MonoBehaviour
+public partial class BattleSystem : MonoBehaviour
 {
     public Status Target { get; private set; }
     public Status Attacker { get; private set; }
@@ -55,7 +55,7 @@ public class BattleSystem : MonoBehaviour
         float lockedDistance = lockedShot ? GridHelper.ChebyshevDistance(Attacker.transform.position, Target.transform.position) : -1;
 
         // シールド中はダメージ無効
-        if (Target.ShieldTurns > 0)
+        if (Target.HasDamageShield)
         {
             BarrierSystem.RecordNegatedHit(Target);
             SpecialSkillRuntime.OnAttackLanded(Attacker);
@@ -125,46 +125,15 @@ public class BattleSystem : MonoBehaviour
     // Knight の視界内軽減/視界外増加は DamageCalculator.GetDefenderPassiveMultiplier で処理
 
     // ═══════════════════════════════════════════════════════════════════
-    //  クリスタルシールド判定: HP50%以下で未発動なら5ターン無敵付与
+    //  旧メインクリスタルシールドの互換値を無効化
     // ═══════════════════════════════════════════════════════════════════
-    private void CheckCrystalShield()
-    {
-        if (Target.kind != Kind.Crystal) return;
-        if (Target.ShieldActivated) return;
-        if (Target.MaxHP <= 0) return;
+    private void CheckCrystalShield() => MainCrystalRules.ClearLegacyShield(Target);
 
-        float hpRatio = (float)Target.HP / Target.MaxHP;
-        if (Target.HP > 0 && hpRatio < GameConstants.CrystalShieldThreshold)
-        {
-            Target.ShieldTurns = GameConstants.CrystalShieldDuration;
-            Target.ShieldActivated = true;
-            Target.ShieldEverActivated = true;
-            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Target.team} のクリスタルが50%を切った！ {GameConstants.CrystalShieldDuration}ターンの無敵シールド発動！"); }
-            string teamLabel = Target.team == Team.Player ? "味方" : "敵";
-            ToastMessageUI.Show($"{teamLabel}クリスタルがシールド発動！（{GameConstants.CrystalShieldDuration}ターン）",
-                ToastMessageUI.MessageType.Info, 4f);
-        }
-    }
-
-    /// <summary>
-    /// 全クリスタルのシールドターンを1減らす（ターン開始時に呼ぶ）
-    /// </summary>
+    /// <summary>Legacy call compatibility: clear the abolished main-crystal shield, never tick or activate it.</summary>
     public static void TickCrystalShields(Transform crystalParent)
     {
         if (crystalParent == null) return;
-        foreach (Status s in crystalParent.GetComponentsInChildren<Status>())
-        {
-            if (s.kind == Kind.Crystal && s.ShieldTurns > 0)
-            {
-                s.ShieldTurns--;
-                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {s.team} クリスタルシールド残り {s.ShieldTurns} ターン"); }
-                if (s.ShieldTurns <= 0)
-                {
-                    s.ShieldActivated = false;
-                    { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {s.team} クリスタルシールド終了 → 再発動可能"); }
-                }
-            }
-        }
+        foreach (var crystal in crystalParent.GetComponentsInChildren<Status>()) MainCrystalRules.ClearLegacyShield(crystal);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -172,6 +141,7 @@ public class BattleSystem : MonoBehaviour
     // ═══════════════════════════════════════════════════════════════════
     private int ApplyDamage(int damage)
     {
+        bool crystalAttackAttempt = damage > 0;
         var damageKind = SpecialSkillRuntime.WouldAssassinate(Attacker, Target) ? HpChangeKind.ExecutionDamage : HpChangeKind.NormalDamage;
         var recipient = SpecialSkillRuntime.ResolveDamageRecipient(Target, damage, damageKind) ?? Target;
         actualRecipient = recipient;
@@ -197,9 +167,9 @@ public class BattleSystem : MonoBehaviour
             if (heal > 0) Attacker.ApplyHeal(heal);
         }
 
-        // クリスタル反撃: クリスタルが攻撃された時、領土内の敵に反撃
-        if (Target.kind == Kind.Crystal && damage > 0 && Attacker != null && Attacker.team != Target.team)
-            ProcessCrystalCounterAttack(Target, Attacker);
+        // 正式な攻撃済み予約だけを記録し、反撃ダメージは攻撃陣営の終了まで遅延。
+        if (crystalAttackAttempt && Target.kind == Kind.Crystal && Attacker != null && Attacker.team != Target.team)
+            MainCrystalRules.RegisterAttack(Target, Attacker.team, turnGenerator?.Context.Turn ?? -1);
 
         bool isKill = !recipient.IsAlive;
         if (damage <= 0) FloatingDamageUI.ShowMiss(Target.transform.position);
@@ -229,97 +199,11 @@ public class BattleSystem : MonoBehaviour
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  クリスタル反撃: 被弾クリスタルの領土内にいる最も近い敵にMaxHP×30%ダメージ
-    //  シールド発動後は3体まで拡大
+    //  旧反撃APIは互換目的のみ。正式な終了時処理は BattleSystem.CrystalCounters に集約
     // ═══════════════════════════════════════════════════════════════════
-    private void ProcessCrystalCounterAttack(Status crystal, Status attacker)
-    {
-        ProcessCrystalCounter(turnGenerator?.Systems, crystal, CrystalCounterTrigger.OnHit);
-    }
-
-    /// <summary>
-    /// クリスタル反撃のコアロジック（被弾時 / ターン開始時の双方から呼ばれる）。
-    /// 領土内の敵候補を最近接順に最大N体（シールド前=1, シールド発動後=3）選び、
-    /// 各々の MaxHP × 30% を DEF 無視固定ダメージとして適用する。
-    /// </summary>
-    public static void ProcessCrystalCounter(GameSystems systems, Status crystal, CrystalCounterTrigger trigger)
-    {
-        if (systems == null || crystal == null) return;
-        if (!crystal.IsAlive || crystal.HP <= 0) return;
-        if (crystal.MaxHP <= 0) return; // 未初期化クリスタル等の防御的ガード
-
-        Team crystalTeam = crystal.team;
-        Team enemyTeam = crystalTeam == Team.Player ? Team.Enemy : Team.Player;
-
-        Transform enemyParent = enemyTeam == Team.Player
-            ? systems.UnitSetting?.PlayerUnit
-            : systems.UnitSetting?.EnemyUnit;
-        if (enemyParent == null) return;
-
-        Vector3Int crystalPos = GridHelper.ToGridXZ(crystal.transform.position);
-        var candidates = new System.Collections.Generic.List<(Status s, int d)>();
-        foreach (Transform child in enemyParent)
-        {
-            var s = child.GetComponent<Status>();
-            if (s == null || !s.IsAlive) continue;
-            var sPos = GridHelper.ToGridXZ(s.transform.position);
-            if (systems.TerritorySystem != null && !systems.TerritorySystem.IsInTerritory(sPos, crystalTeam)) continue;
-            int d = GridHelper.ChebyshevDistance(crystalPos, sPos);
-            candidates.Add((s, d));
-        }
-        if (candidates.Count == 0) return;
-
-        candidates.Sort((a, b) => a.d.CompareTo(b.d));
-        int targetCount = crystal.ShieldEverActivated ? GameConstants.CrystalCounterTargetsAfterShield : 1;
-        int count = Mathf.Min(targetCount, candidates.Count);
-
-        for (int i = 0; i < count; i++)
-        {
-            var t = candidates[i].s;
-            int dmg = Mathf.RoundToInt(t.MaxHP * GameConstants.CrystalCounterDamageRatio);
-
-            // Special Ability: 致死ダメージ耐え（生還本能）— 他のダメージ経路と同様に適用
-            if (SpecialAbilitySystem.TrySurviveLethal(t, dmg))
-            {
-                { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} は生還本能で耐えた  targets={count}"); }
-                continue;
-            }
-
-            int actual = t.ApplyDamage(dmg);
-            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] クリスタル反撃[{trigger}]: {t.kind} に {actual} ダメージ（残HP:{t.HP}）  targets={count}"); }
-
-            // 死亡時は HandleDeathIfDead に一元委譲する。
-            // 旧コードは Unit のみインライン処理しており、King がクリスタル反撃で
-            // 倒れても勝敗判定(TryTriggerGameEndIfDecisive)が走らなかった。
-            // HandleDeathIfDead は占有解除・視界再計算・探索済み保存・勝敗判定を含む。
-            t.HandleDeathIfDead();
-        }
-
-        // 視界再計算は HandleDeathIfDead 内で実施済み（死者がいなければ盤面不変）。
-    }
-
-    /// <summary>
-    /// ターン開始時にクリスタル反撃を発動する。
-    /// 引数 team は「これからターンを開始する側」(=領土侵入されている側ではなく侵入している側)。
-    /// 反撃対象となるのは team の敵側クリスタルの領土に侵入している team のユニット。
-    /// </summary>
-    public static void ProcessCrystalCounterAtTurnStart(GameSystems systems, Team team)
-    {
-        if (systems?.CrystalSystem == null) return;
-        // 侵入される側（敵側）のクリスタルから反撃
-        Team enemyTeam = team == Team.Player ? Team.Enemy : Team.Player;
-        Transform crystalParent = enemyTeam == Team.Player
-            ? systems.CrystalSystem.Playercrystal
-            : systems.CrystalSystem.Enemycrystal;
-        if (crystalParent == null) return;
-
-        foreach (Transform t in crystalParent)
-        {
-            var s = t.GetComponent<Status>();
-            if (s == null || s.kind != Kind.Crystal) continue;
-            ProcessCrystalCounter(systems, s, CrystalCounterTrigger.TurnStart);
-        }
-    }
+    /// <summary>Legacy entry points intentionally cannot fire an on-hit/start-of-turn counter.</summary>
+    public static void ProcessCrystalCounter(GameSystems systems, Status crystal, CrystalCounterTrigger trigger) { }
+    public static void ProcessCrystalCounterAtTurnStart(GameSystems systems, Team team) { }
 
     // ═══════════════════════════════════════════════════════════════════
     //  HP0 判定 → 駒 / ゲーム終了対象 に分岐

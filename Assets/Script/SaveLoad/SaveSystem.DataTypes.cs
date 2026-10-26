@@ -144,6 +144,8 @@ public static partial class SaveSystem
         public int ShieldTurns;
         public bool ShieldActivated;
         public bool ShieldEverActivated;
+        public int MainCrystalRuleVersion;
+        public MainCrystalCounterState MainCrystalCounter;
         public float PosX, PosY, PosZ;
         public string Direction;
         public string PassiveSkill;

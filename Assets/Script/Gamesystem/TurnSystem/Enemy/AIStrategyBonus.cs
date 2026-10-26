@@ -247,7 +247,7 @@ public static class AIEvalHelpers
 
     public static int EstimateRawDamage(Status attacker, Status defender)
     {
-        if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive || defender.ShieldTurns > 0) return 0;
+        if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive || defender.HasDamageShield) return 0;
         if (DamageCalculator.UsesLegacyDefence) return DamageCalculator.EstimateBaseDamage(attacker.ATK, defender.DEF);
         float incoming = StatusEffectSystem.GetIncomingDamageModifier(defender);
         return DamageCalculator.CalcFromValues(attacker.ATK * ObservedAttackModifier(attacker) * (1-attacker.UpkeepPenaltyATKDEF),0,incoming,true);

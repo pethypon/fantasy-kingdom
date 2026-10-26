@@ -56,6 +56,9 @@ public class SimUnit
     public int SkillCooldown;
     public int Fatigue;
     public int ShieldTurns;
+    public bool HasDamageShield => Kind != Kind.Crystal && ShieldTurns > 0;
+    public string LifeIdentity;
+    public MainCrystalCounterState CrystalCounter;
     public bool ShieldActivated;
     public PassiveSkill Passive;
     // Definition-bound identity and vision state needed by the Assassin's end-turn passive.
@@ -94,6 +97,7 @@ public class SimUnit
         c.IsPrimaryCommander = IsPrimaryCommander; c.AssignedSkillId = AssignedSkillId;
         c.SkillCooldown = SkillCooldown; c.Fatigue = Fatigue;
         c.ShieldTurns = ShieldTurns; c.ShieldActivated = ShieldActivated;
+        c.LifeIdentity = LifeIdentity; c.CrystalCounter = CrystalCounter?.Copy();
         c.Passive = Passive;
         c.AssassinPassive = AssassinPassive;
         c.VisionZeroTurns = VisionZeroTurns; c.ScoutVisionPenaltyTurns = ScoutVisionPenaltyTurns;
@@ -112,7 +116,7 @@ public class SimUnit
     public int ApplyDamage(int amount)
     {
         if (amount <= 0 || !IsAlive) return 0;
-        if (ShieldTurns > 0 || WildBossProtected) { RecordNegatedHit(); return 0; }
+        if (HasDamageShield || WildBossProtected) { RecordNegatedHit(); return 0; }
         int beforeBarrier = UsesBarrier ? Barrier : 0;
         if (UsesBarrier) Barrier = BarrierSystem.Absorb(Barrier, amount, out amount);
         int hpLoss = ApplyHpDirectDamage(amount);

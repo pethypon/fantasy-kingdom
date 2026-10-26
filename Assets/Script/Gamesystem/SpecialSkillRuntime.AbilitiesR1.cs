@@ -247,6 +247,8 @@ public static partial class SpecialSkillRuntime
         }
         if (systems?.TurnGenerator?.IsGameOver != true)
         {
+            BattleSystem.ProcessCrystalCounterAtTurnEnd(systems, team, round);
+            if (systems?.TurnGenerator?.IsGameOver == true) return;
             BarrierSystem.ProcessOwnerTurnEnd(team, round);
             NaturalRecoverySystem.ProcessOwnerTurnEnd(systems, team, round);
         }

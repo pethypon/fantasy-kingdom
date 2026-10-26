@@ -45,7 +45,8 @@ public partial class AICommander
         try
         {
             var config = AIOperationConfig.Active;
-            if (!config.Enabled || _threatLevel.Level < Math.Max(1, config.MinimumThreatLevel)) return null;
+            // Difficulty gates advanced planning, never basic legal squads/base attacks.
+            if (!config.Enabled) return null;
             if (operations == null)
             {
                 string profileId = _actorTeam == Team.Enemy ? "EnemyFaction_Default" : "PlayerDeveloper";
@@ -78,6 +79,7 @@ public partial class AICommander
     }
     void OperationFailed(Exception error)
     {
+        if (_board != null) _board.Operations = null;
         operationUnavailable = true; operationActionOpen = false; operationFallbackRecord = null;
         if (operationWarningLogged) return;
         operationWarningLogged = true;
@@ -96,7 +98,9 @@ public partial class AICommander
             _advanced.Plans.Update(_board);
             manager.BeginTurn(_board, _currentStrategy, currentOperationOwnTurn, _advanced.Plans.Current,
                 _personality, _playerModel?.Snapshot);
+            _board.Operations = manager;
             _board.OperationRequiredCitizenDemand = manager.OperationRequiredCitizenDemand;
+            _governor.Evaluate(_board);
             operationTurnStarted = true;
         }
         catch (Exception error) { OperationFailed(error); }
@@ -104,7 +108,7 @@ public partial class AICommander
     void RefreshOperationPlanning()
     {
         if (operations == null || operationUnavailable || !operationTurnStarted) return;
-        try { operations.Refresh(_board, _currentStrategy, _advanced.Plans.Current); _board.OperationRequiredCitizenDemand = operations.OperationRequiredCitizenDemand; }
+        try { operations.Refresh(_board, _currentStrategy, _advanced.Plans.Current); _board.Operations = operations; _board.OperationRequiredCitizenDemand = operations.OperationRequiredCitizenDemand; }
         catch (Exception error) { OperationFailed(error); }
     }
     float OperationActionBonus(AIAction action)

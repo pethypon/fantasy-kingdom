@@ -96,9 +96,9 @@ public static class GameConstants
     //  クリスタル反撃
     // =====================================================================
     /// <summary>クリスタル反撃: 対象MaxHP比のダメージ</summary>
-    public const float CrystalCounterDamageRatio = 0.30f;
-    /// <summary>クリスタル反撃: シールド発動後の対象数</summary>
-    public const int CrystalCounterTargetsAfterShield = 3;
+    public const float CrystalCounterDamageRatio = MainCrystalRules.CounterFraction;
+    /// <summary>Legacy source compatibility; target count no longer depends on shield history.</summary>
+    public const int CrystalCounterTargetsAfterShield = MainCrystalRules.MaximumCounterTargets;
 
     // =====================================================================
     //  維持費未払いペナルティ（ATK/DEF低下率）

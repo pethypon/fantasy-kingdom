@@ -16,7 +16,7 @@ public static partial class SpecialSkillRuntime
     public static Status ResolveDamageRecipient(Status target, int amount, HpChangeKind kind, bool respectShield = true)
     {
         if (target == null || kind == HpChangeKind.DirectHpReduction || kind == HpChangeKind.ForcedDeath
-            || respectShield && target.ShieldTurns > 0 || State(target).damageNullUnused && State(target).damageNullTurns > 0) return target;
+            || respectShield && target.HasDamageShield || State(target).damageNullUnused && State(target).damageNullTurns > 0) return target;
         var partner = FindActor(State(target).guardianPartnerId);
         if (partner == null || State(partner).guardianPartnerId != target.ReflectionLifeId) return target;
         return partner;
@@ -92,6 +92,9 @@ public static partial class SpecialSkillRuntime
     {
         var recipient = redirected ? target : ResolveDamageRecipient(target, amount, kind, respectShield);
         int loss = ApplyHpChangeCore(source, target, amount, kind, redirected, respectShield, deferCleanup, out int hpLoss, out int barrierLoss);
+        if (!redirected && source != null && target != null && source != target && amount > 0
+            && (cause == HpChangeCause.NormalAttack || cause == HpChangeCause.Skill))
+            MainCrystalRules.RegisterAttack(target, source.team, source.RuntimeSystems?.TurnGenerator?.Context.Turn ?? -1);
         LastHpChange = new HpChangeResult(source, recipient, amount, hpLoss, 0, kind, cause, barrierLoss);
         if (CombatRuleTelemetry.Enabled) CombatRuleTelemetry.Record("actual_hp_loss", source, recipient, cause.ToString(), amount, hpLoss);
         if (source != null && source != target && loss > 0) State(source).dealtDamage = true;
@@ -127,7 +130,7 @@ public static partial class SpecialSkillRuntime
             if (target.HP <= 0) { OnSpecialDeath(target); CompleteSpecialDeath(target); }
             return actual;
         }
-        if ((respectShield && target.ShieldTurns > 0) || target.isWildBoss && target.IsWildBossProtected)
+        if ((respectShield && target.HasDamageShield) || target.isWildBoss && target.IsWildBossProtected)
         { BarrierSystem.RecordNegatedHit(target); BoardActionFeedback.Shield(target); return 0; }
         var s = State(target);
         // Nullification protects the intended recipient before any link can intercept.
@@ -186,7 +189,7 @@ public static partial class SpecialSkillRuntime
                     // Counter strips the recipient's current barrier before its damage, never its maximum.
                     var counterRecipient = ResolveDamageRecipient(source, counter, HpChangeKind.IgnoreDefenceDamage);
                     if (counterRecipient != null && PreviewDamage(source, counter, HpChangeKind.IgnoreDefenceDamage) > 0
-                        && counterRecipient.ShieldTurns <= 0 && PreviewDamage(counterRecipient, counter, HpChangeKind.IgnoreDefenceDamage) > 0 && !(counterRecipient.isWildBoss && counterRecipient.IsWildBossProtected))
+                        && !counterRecipient.HasDamageShield && PreviewDamage(counterRecipient, counter, HpChangeKind.IgnoreDefenceDamage) > 0 && !(counterRecipient.isWildBoss && counterRecipient.IsWildBossProtected))
                     {
                         int stripped = counterRecipient.Barrier;
                         counterRecipient.Barrier = 0;

@@ -40,6 +40,8 @@ public sealed class DeveloperPlayerAIController : IDisposable
     IEnumerator steps;
     PlayerMove owner;
     bool stepping, stopPending, menuPaused;
+    bool budgetSynchronized;
+    double completionDeadlineMs;
     float activeSeconds;
     public bool Enabled { get; private set; }
     public bool WasUsed { get; private set; }
@@ -117,14 +119,16 @@ public sealed class DeveloperPlayerAIController : IDisposable
                 commander.RestorePreservationState(pendingPreservation);
                 pendingPreservation = null;
             }
-            commander.TurnThinkingBudgetMs = 3000;
             commander.SearchSliceBudgetMs = 3;
             owner = move;
             activeSeconds = 0;
+            budgetSynchronized = false;
+            completionDeadlineMs = AIThinkingBudgetConfig.MaximumMilliseconds + AIThinkingBudgetConfig.MaximumCompletionGraceMilliseconds;
             steps = commander.ExecuteTurnSteps();
         }
         activeSeconds += Mathf.Clamp(deltaSeconds, 0, 1);
-        bool done = activeSeconds >= 12;
+        bool done = activeSeconds * 1000d >= completionDeadlineMs
+            || budgetSynchronized && AITurnBudget.ElapsedMs >= completionDeadlineMs;
         try
         {
             if (!done)
@@ -132,6 +136,11 @@ public sealed class DeveloperPlayerAIController : IDisposable
                 stepping = true;
                 AITurnBudget.Resume();
                 done = !steps.MoveNext();
+                if (!budgetSynchronized && commander.HasPreparedThinkingBudget)
+                {
+                    completionDeadlineMs = commander.ActiveThinkingBudget.CompletionDeadlineMilliseconds;
+                    budgetSynchronized = true;
+                }
             }
         }
         catch (Exception error)
@@ -163,6 +172,7 @@ public sealed class DeveloperPlayerAIController : IDisposable
         var current = steps;
         steps = null;
         owner = null;
+        budgetSynchronized = false;
         try { (current as IDisposable)?.Dispose(); }
         catch (Exception error) { Debug.LogException(error); }
     }

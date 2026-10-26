@@ -13,7 +13,7 @@ public static class DamageCalculator
     public static bool UsesLegacyDefence => !BarrierCombatSettings.Active.enabledForPlay;
     /// <summary>Live protection for actual combat/UI. AI forecasts must first establish protection from their observed board.</summary>
     public static bool IsFullyProtected(Status target) => target != null
-        && (target.ShieldTurns > 0 || target.isWildBoss && target.IsWildBossProtected);
+        && (target.HasDamageShield || target.isWildBoss && target.IsWildBossProtected);
     /// <summary>Missing/disabled legacy rule assets still guarantee one point per valid hit.</summary>
     public static int MinimumAttackDamage => Mathf.Clamp(GameAuthoringRules.Active?.minimumAttackDamage ?? 1, 1, 100);
 

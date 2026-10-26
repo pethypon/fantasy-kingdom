@@ -175,6 +175,8 @@ public static partial class SaveSystem
             ShieldTurns = s.ShieldTurns,
             ShieldActivated = s.ShieldActivated,
             ShieldEverActivated = s.ShieldEverActivated,
+            MainCrystalRuleVersion = s.kind == Kind.Crystal ? MainCrystalRules.Version : 0,
+            MainCrystalCounter = s.kind == Kind.Crystal ? s.CrystalCounter?.Copy() : null,
             PosX = s.transform.position.x,
             PosY = s.transform.position.y,
             PosZ = s.transform.position.z,

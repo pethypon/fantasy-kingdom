@@ -25,7 +25,7 @@ public static partial class AIActionEvaluator
         => target != null && target.isWildBoss && !HasObservedTerritoryIntruder(board, target);
 
     public static bool IsObservedCompleteProtection(AIBoardState board, Status target)
-        => target != null && (target.ShieldTurns > 0 || IsObservedWildBossProtected(board, target));
+        => target != null && (target.HasDamageShield || IsObservedWildBossProtected(board, target));
 
     // One-use damage nullification is deliberately retained: consuming it can be useful.
     // Pure HP/barrier damage against persistent protection cannot justify spending AP.

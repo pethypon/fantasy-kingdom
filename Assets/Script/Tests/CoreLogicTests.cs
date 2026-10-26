@@ -10,7 +10,7 @@
 //
 //  テスト項目:
 //    1. DamageCalculator: ダメージは 0 未満にクランプされる
-//    2. CrystalShield: HP 50% 未満で発動 / ShieldTurns が 5 になる / リセット
+//    2. CrystalShield: メイン晶の旧無敵廃止 / 他の駒の無敵を保持
 //    3. TimerSystem: 持ち時間切れ時は「クリスタル → 王」の順で勝敗判定される
 // =====================================================================
 #if UNITY_EDITOR
@@ -63,7 +63,7 @@ public static class CoreLogicTests
         SaveSystem.RestoreAP(new SaveSystem.APSaveData { Current = -5 }, restored);
         Assert("Load clamps AP lower bound", restored.Current == 0);
         Assert("R1 independent damage example", Mathf.Abs(DamageCalculator.CalcRawBase(100, 30) - 61f) < 0.001f);
-        Assert("Crystal starts at 15000", CrystalSystem.CrystalHP == 15000);
+        Assert("Crystal starts at formal base HP5000", CrystalSystem.CrystalHP == MainCrystalRules.MaximumHP);
 
         var dungeon = new DungeonSystem.DungeonInfo { ClaimingTeam = Team.Player };
         for (int i = 0; i < 7; i++) Assert("No early reward", !DungeonSystem.AdvanceCycle(dungeon));
@@ -209,30 +209,14 @@ public static class CoreLogicTests
             s.kind = Kind.Crystal;
             s.team = Team.Player;
             s.MaxHP = 100;
-            s.HP = 49; // < 50% → 発動条件
-            s.ShieldTurns = 0;
-            s.ShieldActivated = false;
-
-            // 発動条件を満たした状態で直接フィールドをセット
-            // （BattleSystem.CheckCrystalShield と同じ分岐を模擬）
-            float hpRatio = (float)s.HP / s.MaxHP;
-            if (hpRatio < GameConstants.CrystalShieldThreshold && !s.ShieldActivated)
-            {
-                s.ShieldTurns = GameConstants.CrystalShieldDuration;
-                s.ShieldActivated = true;
-            }
-
-            Assert("Shield activates when HP < 50%", s.ShieldActivated);
-            Assert($"Shield duration = {GameConstants.CrystalShieldDuration}",
-                s.ShieldTurns == GameConstants.CrystalShieldDuration);
-
-            // Tick で減っていき 0 でリセットされること
-            while (s.ShieldTurns > 0)
-            {
-                s.ShieldTurns--;
-                if (s.ShieldTurns <= 0) s.ShieldActivated = false;
-            }
-            Assert("Shield resets ShieldActivated when turns reach 0", !s.ShieldActivated);
+            s.HP = 49;
+            s.ShieldTurns = 5; s.ShieldActivated = s.ShieldEverActivated = true;
+            MainCrystalRules.ClearLegacyShield(s);
+            Assert("Main crystal cannot reactivate an old invulnerability shield", !s.HasDamageShield
+                && s.ShieldTurns == 0 && !s.ShieldActivated && !s.ShieldEverActivated);
+            s.kind = Kind.Knight; s.ShieldTurns = 5;
+            MainCrystalRules.ClearLegacyShield(s);
+            Assert("Ordinary unit shield remains active", s.HasDamageShield && s.ShieldTurns == 5);
         }
         finally
         {

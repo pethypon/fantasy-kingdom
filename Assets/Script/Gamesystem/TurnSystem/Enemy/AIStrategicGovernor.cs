@@ -37,7 +37,7 @@ public sealed partial class AIStrategicGovernor
     readonly List<AIAction> reserveCandidates = new List<AIAction>(64);
     int recoveryReserveAP = -1;
     readonly Dictionary<(int,Kind,Direction),HashSet<Vector2Int>> skillReach=new Dictionary<(int,Kind,Direction),HashSet<Vector2Int>>();
-    AIBoardState current;int generation=-1,contentRevision=-1;
+    AIBoardState current;int generation=-1,contentRevision=-1,operationInputsRevision=-1;
     Vector3 defensePoint;bool safeAlternativesPrepared;
     Status explorer;
     public StrategicMode Mode {get;private set;}
@@ -57,7 +57,10 @@ public sealed partial class AIStrategicGovernor
     public AIStrategicGovernor(ILossConditionProvider provider=null){losses=provider??new DefaultLossConditionProvider();}
     public void Evaluate(AIBoardState board)
     {
-        if(current==board&&generation==board.Generation&&contentRevision==GameContentRevision.Revision)return;
+        int operationRevision = board.Operations?.SquadRevision ?? -1;
+        if(current==board&&generation==board.Generation&&contentRevision==GameContentRevision.Revision
+            && operationInputsRevision == operationRevision)return;
+        operationInputsRevision = operationRevision;
         contentRevision=GameContentRevision.Revision;
         current=board;generation=board.Generation;reachable.Clear();damageCache.Clear();threatCache.Clear();safest.Clear();buildForecasts.Clear();safeAlternativesPrepared=false;
         PrunePreservationState(board);
@@ -277,6 +280,7 @@ public sealed partial class AIStrategicGovernor
     int Priority(AIAction a,AIBoardState board)
     {
         if (IsDecisiveVictoryAttack(a, board) || IsImmediateRescue(a, board)) return 0;
+        if (AllowsWinningOperationSequence(a, board)) return 0;
         int preservationPriority = PreservationPriority(a, board);
         if (preservationPriority < 4) return preservationPriority;
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
@@ -308,6 +312,11 @@ public sealed partial class AIStrategicGovernor
         }
         int foundationPriority = BasicResources.ActionPriority(a);
         if (foundationPriority < 4 && Mode == StrategicMode.EconomicRecovery) return foundationPriority;
+        // A currently observed, effective and survivable main-crystal attack is
+        // a real objective opportunity even before a territory staging order exists.
+        if (IsSafeCrystalSiegeAction(a, board)) return 2;
+        int squadPriority = OperationPriority(a, board);
+        if (squadPriority == 2) return 2;
         // With a confirmed deployment direction, act on current combat opportunities
         // before staging the army; unrelated frontier work follows at the ordinary tier.
         // Without that direction, preserve the existing combat/exploration peer tier.
@@ -315,6 +324,7 @@ public sealed partial class AIStrategicGovernor
             && IsSafeEffectiveBattleAction(a, board)) return HasActiveTerritoryAdvance ? 2 : 3;
         if (IsSafePlannedRecruit(a, board)) return 3;
         if (IsSafeArmyAdvance(a, board)) return 3;
+        if (squadPriority == 3) return 3;
         if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery && !HasActiveTerritoryAdvance
             &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
             &&Exploration.TryGetAssignedTarget(a.Unit,out var frontier)
@@ -335,7 +345,7 @@ public sealed partial class AIStrategicGovernor
             && NeutralFactionSystem.AreHostile(actor, candidate) && board.IsSpecialActorObserved(candidate);
         if (action.ActionType == AIActionType.Attack)
         {
-            if (!ObservedHostile(target) || target.ShieldTurns > 0
+            if (!ObservedHostile(target) || target.HasDamageShield
                 || board.CalcAttackCost(actor) > board.EnemyAP || !SpecialSkillRuntime.CanNormalAttackTarget(actor, target)) return false;
             bool locked = SpecialSkillRuntime.TryGetSniperTarget(actor, out var lockTarget) && lockTarget == target;
             var offset = target.transform.position - actor.transform.position;
@@ -499,6 +509,12 @@ public sealed partial class AIStrategicGovernor
     {
         var unit=action.Unit;if(unit==null)return 0;Status eliminated=null;
         if(action.ActionType==AIActionType.Attack&&AIActionEvaluator.CanFinishSpecialTarget(unit,action.TargetUnit,board))eliminated=action.TargetUnit;
+        if (action.ActionType == AIActionType.Attack && action.TargetUnit != null
+            && action.TargetUnit.kind == Kind.Crystal && eliminated == null)
+        {
+            var budget = AIObservedDamageBudget.Capture(unit);
+            return ObservedDamageWave(board, unit, unit.transform.position, null, ref budget, action.TargetUnit);
+        }
         return IncomingDamage(board,unit,IsMovement(action)?action.TargetPos:unit.transform.position,eliminated);
     }
     public float IncomingDamage(AIBoardState board,Status self,Vector3 position,Status eliminated)
@@ -509,9 +525,14 @@ public sealed partial class AIStrategicGovernor
     }
     // Reused by individual recovery's bounded repeated-exchange scenario. The protection budget
     // is a value snapshot; applying another wave never changes a real actor's HP or barrier.
-    float ObservedDamageWave(AIBoardState board, Status self, Vector3 position, Status eliminated, ref AIObservedDamageBudget budget)
+    float ObservedDamageWave(AIBoardState board, Status self, Vector3 position, Status eliminated, ref AIObservedDamageBudget budget,
+        Status attackedCrystal = null)
     {
         double total=0;
+        // Own-turn crystal retaliation precedes the next observed enemy response.
+        // Use one finite protection budget, rather than restoring barrier for each packet.
+        total += AIActionEvaluator.EstimateObservedHitLoss(self, board,
+            MainCrystalRules.ObservedCounterDamage(board, self, position, attackedCrystal, eliminated), HpChangeKind.NormalDamage, ref budget);
         foreach(var opponent in board.AlivePlayerUnits)
         {
             if(opponent==null||!opponent.IsAlive||opponent==eliminated)continue;

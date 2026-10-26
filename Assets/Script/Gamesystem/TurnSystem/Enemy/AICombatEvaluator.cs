@@ -38,7 +38,7 @@ static class AICombatEvaluator
         if (board.ReconThreatLevel >= 31 && action.TargetUnit.kind == Kind.Scout)
             score += board.ReconThreatLevel >= 51 ? 20f : 12f;
 
-        if (action.TargetUnit.ShieldTurns > 0)
+        if (action.TargetUnit.HasDamageShield)
             score -= 30f;
         if (expectedDmg == 0 && action.TargetUnit.Special?.damageNullUnused == true)
             score -= Mathf.Min(25, AIActionEvaluator.EstimateSpecialAwareAttack(action.Unit, action.TargetUnit, board));
@@ -174,7 +174,7 @@ static class AICombatEvaluator
             if (MatchObjectiveRules.IsCommander(action.TargetUnit))
                 score += 30f;
 
-            if (action.TargetUnit.ShieldTurns > 0)
+            if (action.TargetUnit.HasDamageShield)
                 score -= 25f;
 
             if (action.AreaTargets != null && action.AreaTargets.Count > 1)

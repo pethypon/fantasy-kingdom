@@ -111,7 +111,7 @@ public static class SceneSmoke
             Check("initial enemy squad", systems.UnitSetting.EnemyUnit.GetComponentsInChildren<Status>().Count(s => s.IsAlive) == 4);
             Check("two dungeons", systems.DungeonSystem.Dungeons.Count == 2);
             Check("new map uses passable heights 1/2", systems.MapCreate.SetPos.All(p => p.y == 1 || p.y == 2));
-            Check("crystal HP 15000", systems.CrystalSystem.Playercrystal.GetComponentInChildren<Status>().MaxHP == 15000);
+            Check("formal main crystal HP", systems.CrystalSystem.Playercrystal.GetComponentInChildren<Status>().MaxHP == MainCrystalRules.MaximumHP);
             Check("territory exact boundary hidden", systems.WildBossSystem.TerritoryParent.childCount == 0);
             var viewport = Camera.main.WorldToViewportPoint(systems.CrystalSystem.PCP);
             Check("player base centered on screen", viewport.z > 0 && Mathf.Abs(viewport.x - 0.5f) < 0.01f && Mathf.Abs(viewport.y - 0.5f) < 0.01f);

@@ -388,8 +388,10 @@ public partial class Status : MonoBehaviour
 
     [Header("シールド（無敵バフ）")]
     public int ShieldTurns = 0;
+    public bool HasDamageShield => kind != Kind.Crystal && ShieldTurns > 0;
+    [HideInInspector] public MainCrystalCounterState CrystalCounter;
     [HideInInspector] public bool ShieldActivated = false;
-    /// <summary>シールドが一度でも発動したか（クリスタル反撃の3体拡大判定用・永続）</summary>
+    /// <summary>Legacy save compatibility. Main-crystal counter count no longer depends on this value.</summary>
     [HideInInspector] public bool ShieldEverActivated = false;
     [HideInInspector] public int MaxHP;
 
@@ -645,7 +647,7 @@ public partial class Status : MonoBehaviour
         Experience = 0;
         ATK = GrowthData != null ? GrowthData.baseATK : info.BaseATK;
         DEF = GrowthData != null ? GrowthData.baseDEF : info.BaseDEF;
-        MaxHP = GrowthData != null ? GrowthData.baseHP : info.BaseHP;
+        MaxHP = kind == Kind.Crystal ? MainCrystalRules.MaximumHP : GrowthData != null ? GrowthData.baseHP : info.BaseHP;
         // HP は 0 のまま（撃破直後）。状態異常・シールド・CT も撃破時点で消滅させる
         ActiveEffects.Clear();
         ShieldTurns = 0;

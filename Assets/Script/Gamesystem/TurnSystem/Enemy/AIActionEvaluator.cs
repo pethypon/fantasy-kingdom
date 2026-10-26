@@ -62,6 +62,14 @@ public static partial class AIActionEvaluator
         {
             AIDecisionObserver.Emit(board, actions, null, "generated");
             RemoveIneffectiveProtectedAttacks(actions, board);
+            if (board.Operations != null)
+                try { board.Operations.UpdateTacticalCoordination(actions, board); }
+                catch (System.Exception error)
+                {
+                    board.Operations = null;
+                    if (DevelopmentLog.IsEnabled(AILogLevel.Verbose))
+                        DevelopmentLog.Log("[AI作戦] 連携案を通常判断へ戻しました: " + error.GetType().Name);
+                }
             board.Governor?.Filter(actions,board);
             AIDecisionObserver.Emit(board, actions, null, "governor");
 
