@@ -482,6 +482,7 @@ public sealed partial class AIOperationManager
                 : AIOperationGoal.LocateEnemyMainForce, facts.VisibleEnemyUnits == 0 ? 3 : 4,
                 CurrentScoutingBaseScore, null, personality, player);
         }
+        MergeCognitiveCandidates(board, turn);
         candidates.Sort(AIOperationCandidate.Compare);
         if (config.EnableDebug)
             foreach (var candidate in candidates)

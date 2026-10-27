@@ -68,7 +68,8 @@ public partial class AICommander
         for (int i = 0; i < validActions.Count; i++)
         {
             var entry = validActions[i];
-            validActions[i] = (entry.action, entry.score + LearnedModifier(entry.action) + OperationActionBonus(entry.action));
+            validActions[i] = (entry.action, entry.score + LearnedModifier(entry.action) + OperationActionBonus(entry.action)
+                + CognitiveActionBonus(entry.action));
         }
 
         // ミス率: 一定確率で最善手以外を選択する（チュートリアル〜ノーマル帯）

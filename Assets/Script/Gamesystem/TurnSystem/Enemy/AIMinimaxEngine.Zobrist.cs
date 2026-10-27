@@ -58,6 +58,10 @@ public partial class AIMinimaxEngine
             var u = board.Units[i];
             if (!u.IsAlive) continue;
 
+            // Old independent HP XORs aliased swapped HP between actors; horizontal position
+            // alone also lost height, facing and skill state. Bind semantic state to this actor.
+            h ^= SemanticUnitHash(u);
+
             int x = Mathf.Clamp(u.Position.x, 0, ZobristBoardSize - 1);
             int z = Mathf.Clamp(u.Position.z, 0, ZobristBoardSize - 1);
             int teamIdx = u.Team == Team.Enemy ? 0 : 1;
@@ -92,7 +96,54 @@ public partial class AIMinimaxEngine
         }
         h ^= ZobristAP[Mathf.Clamp(board.EnemyAP, 0, ZobristAPRange - 1)];
         h ^= ZobristAP[Mathf.Clamp(board.PlayerAP, 0, ZobristAPRange - 1)] << 1;
+        h ^= RecoveryHash((ulong)(uint)board.TurnCount ^ ((ulong)(uint)board.RealActorTeam << 32));
+        h ^= RecoveryHash((ulong)(uint)board.EnemyAPReset | (ulong)(uint)board.PlayerAPReset << 32);
         return h;
+    }
+
+    // Side-to-act is a search-node property, not a map property. Keep BoardHash's old
+    // one-argument diagnostic/test API while separating Min and Max transpositions.
+    static long SearchBoardHash(SimBoardState board, Team toAct)
+        => BoardHash(board) ^ RecoveryHash((ulong)(uint)toAct ^ 0xB74EAE936AF46E21UL);
+
+    static void MixSemantic(ref ulong hash, int value)
+    { unchecked { hash = (ulong)RecoveryHash(hash ^ (uint)value); } }
+    static long SemanticUnitHash(SimUnit u)
+    {
+        ulong h = 0xDEADBEEF9312B51FUL;
+        MixSemantic(ref h, u.Id); MixSemantic(ref h, (int)u.Team); MixSemantic(ref h, (int)u.Kind);
+        MixSemantic(ref h, (int)u.Type); MixSemantic(ref h, (int)u.Facility);
+        MixSemantic(ref h, u.Position.x); MixSemantic(ref h, u.Position.y); MixSemantic(ref h, u.Position.z);
+        MixSemantic(ref h, u.HP); MixSemantic(ref h, u.MaxHP); MixSemantic(ref h, u.ATK); MixSemantic(ref h, u.DEF);
+        MixSemantic(ref h, (int)u.Direction); MixSemantic(ref h, u.Barrier); MixSemantic(ref h, u.MaxBarrier);
+        MixSemantic(ref h, u.AssignedSkillId); MixSemantic(ref h, u.SkillCooldown); MixSemantic(ref h, u.Fatigue);
+        MixSemantic(ref h, u.ShieldTurns); MixSemantic(ref h, u.ShieldActivated ? 1 : 0); MixSemantic(ref h, (int)u.Passive);
+        MixSemantic(ref h, u.IsBoss ? 1 : 0); MixSemantic(ref h, u.IsPrimaryCommander ? 1 : 0);
+        MixSemantic(ref h, u.IsWildBoss ? 1 : 0); MixSemantic(ref h, u.WildBossProtected ? 1 : 0);
+        MixSemantic(ref h, u.AssassinPassive ? 1 : 0); MixSemantic(ref h, u.AssassinLastEndRound);
+        MixSemantic(ref h, u.VisionZeroTurns); MixSemantic(ref h, u.ScoutVisionPenaltyTurns); MixSemantic(ref h, u.InnateVisionBonus);
+        long effects = 0;
+        foreach (var effect in u.Effects)
+        {
+            ulong e = (uint)effect.Debuff | (ulong)(uint)effect.Buff << 32;
+            effects = unchecked(effects + RecoveryHash(e ^ (ulong)(uint)effect.RemainingTurns * 0x9E3779B97F4A7C15UL));
+        }
+        h ^= (ulong)effects;
+        if (u.CapturedVisionCells != null)
+            foreach (var cell in u.CapturedVisionCells)
+            {
+                ulong v = 0xA3B54F09112DB57FUL;
+                MixSemantic(ref v, cell.x); MixSemantic(ref v, cell.y); MixSemantic(ref v, cell.z);
+                h ^= v;
+            }
+        if (u.CrystalCounter != null)
+        {
+            MixSemantic(ref h, u.CrystalCounter.PlayerPending); MixSemantic(ref h, u.CrystalCounter.EnemyPending);
+            MixSemantic(ref h, u.CrystalCounter.MonsterPending); MixSemantic(ref h, u.CrystalCounter.IntruderPending);
+            MixSemantic(ref h, u.CrystalCounter.PlayerConsumed); MixSemantic(ref h, u.CrystalCounter.EnemyConsumed);
+            MixSemantic(ref h, u.CrystalCounter.MonsterConsumed); MixSemantic(ref h, u.CrystalCounter.IntruderConsumed);
+        }
+        return RecoveryHash(h);
     }
 
     static long RecoveryHash(ulong value)

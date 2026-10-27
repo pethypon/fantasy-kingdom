@@ -110,6 +110,7 @@ public partial class AICommander
     /// <summary>Releases transient own-unit references after battle learning/diary finalization or scene disposal.</summary>
     public void ReleaseRuntimeReferences()
     {
+        ReleaseCognition();
         ReleaseObservedMemoryProfiles();
         _governor.ReleasePreservationState();
         _unitPositionHistory.Clear();
