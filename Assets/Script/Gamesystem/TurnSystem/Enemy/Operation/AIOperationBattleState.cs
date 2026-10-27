@@ -24,4 +24,6 @@ public sealed class AIOperationBattleState
     public List<string> ObservedEnemyLifeIds = new List<string>();
     public List<string> ArtifactEventIds = new List<string>();
     public AIOperationLearningProfile LearningProfile;
+    // Opaque optional versioned payload: a future R4 version survives an older client's save untouched.
+    public string CognitiveJson;
 }

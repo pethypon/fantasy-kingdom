@@ -112,6 +112,7 @@ public partial class AICommander
             try { _board?.Refresh(); operationRefreshedBoard = _board != null; EndOperationTurn(); }
             catch (Exception error) { OperationFailed(error); }
         }
+        EndCognitiveTurn();
         if (!reflectionTurnStarted || reflectionUnavailable || reflection == null) return;
         reflectionTurnStarted = false;
         try
@@ -135,6 +136,7 @@ public partial class AICommander
         }
         catch (Exception error) { ReflectionFailed(error); }
         BeginOperationAction(action, system, token);
+        BeginCognitiveExecution(action, system?.GetPendingRecord(token) ?? operationFallbackRecord);
         int generation = _board.Generation;
         bool success = false;
         try { success = _actionExecutor.Execute(action, _board); return success; }
@@ -150,7 +152,8 @@ public partial class AICommander
             _governor.TerritoryIntel.RecordAction(action, success, _board);
             bool reflectionPending = token.IsValid && !reflectionUnavailable;
             bool explorationActive = ExplorationAISettings.Active.Enabled;
-            if (reflectionPending || explorationActive || operationActionOpen)
+            if (reflectionPending || explorationActive || operationActionOpen
+                || AICognitiveAIConfig.Active.Enabled && !cognitiveUnavailable)
             {
                 try
                 {
@@ -166,6 +169,8 @@ public partial class AICommander
                 catch (Exception error) { ReflectionFailed(error); }
             }
             CompleteOperationAction(success);
+            if (token.IsValid && system?.LastRecord != null) CompleteCognitiveExecution(system.LastRecord);
+            CompleteCognitiveFallback(action, success);
             if (explorationActive) RecordExplorationAction(action, success);
             if (_turnGen != null && _turnGen.IsGameOver) EndExplorationTurn();
         }
@@ -221,6 +226,7 @@ public partial class AICommander
     public void NotifyActualDamage(int damage, bool dealt, string killedLifeId = null, bool formation = false)
     {
         ObserveOperationDamage(damage, dealt, killedLifeId, formation);
+        ObserveCognitiveFallbackDamage(damage, dealt, killedLifeId);
         try
         {
             var system = EnsureReflection();

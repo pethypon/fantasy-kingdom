@@ -34,7 +34,7 @@ public partial class AIMinimaxEngine
         }
 
         // トランスポジションテーブルルックアップ
-        long hash = BoardHash(board);
+        long hash = SearchBoardHash(board, Team.Player);
         int remainingDepth = maxDepth - depth;
         TTEntry ttEntry;
         if (_transTable.TryGetValue(hash, out ttEntry) && ttEntry.Depth >= remainingDepth)
@@ -174,7 +174,7 @@ public partial class AIMinimaxEngine
         }
 
         // トランスポジションテーブルルックアップ
-        long hash = BoardHash(board);
+        long hash = SearchBoardHash(board, Team.Enemy);
         int remainingDepth = maxDepth - depth;
         TTEntry ttEntry;
         if (_transTable.TryGetValue(hash, out ttEntry) && ttEntry.Depth >= remainingDepth)

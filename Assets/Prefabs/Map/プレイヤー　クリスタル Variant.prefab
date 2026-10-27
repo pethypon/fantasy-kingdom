@@ -185,9 +185,18 @@ MonoBehaviour:
   UpkeepUnpaidTurns: 0
   Experience: 0
   ShieldTurns: 0
+  CrystalCounter:
+    PlayerPending: -1
+    EnemyPending: -1
+    MonsterPending: -1
+    IntruderPending: -1
+    PlayerConsumed: -1
+    EnemyConsumed: -1
+    MonsterConsumed: -1
+    IntruderConsumed: -1
   ShieldActivated: 0
   ShieldEverActivated: 0
-  MaxHP: 15000
+  MaxHP: 5000
   facilityKind: 0
   AuthoredFacility: {fileID: 0}
   authoredFacilityId: 

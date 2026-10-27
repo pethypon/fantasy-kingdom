@@ -440,11 +440,22 @@ public partial class AICommander
             if (_board.EnemyAP <= 0)
                 for (int freeIndex = actionsBuffer.Count - 1; freeIndex >= 0; freeIndex--)
                     if (!AIActionGenerator.IsFreeBattleAction(actionsBuffer[freeIndex])) actionsBuffer.RemoveAt(freeIndex);
+            var cognitiveSteps = PrepareCognitionSteps(actionsBuffer);
+            try
+            {
+                while (cognitiveSteps.MoveNext())
+                {
+                    yield return null;
+                    if (_turnGen.IsGameOver) yield break;
+                }
+            }
+            finally { (cognitiveSteps as System.IDisposable)?.Dispose(); }
             using (AIPerformanceCounters.Measure(AIPerformanceStage.ActionEvaluation))
             {
                 _governor.Filter(actionsBuffer,_board);
                 _evolution.Score(actionsBuffer, _board, _playerModel);
             }
+            ApplyCognitiveSelectionHint(actionsBuffer);
             var advancedSteps = _advanced.ScoreSteps(actionsBuffer, _board);
             try
             {

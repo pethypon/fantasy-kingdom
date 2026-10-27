@@ -194,6 +194,7 @@ public partial class AICommander
         try
         {
             operations.ObserveAction(record, _board);
+            CompleteCognitiveExecution(record);
             operationActionOpen = false; operationFallbackRecord = null;
             DrainOperationCredits();
             FinishRequestedOperationBattle();
@@ -288,7 +289,7 @@ public partial class AICommander
     public AIOperationBattleState CaptureOperationState()
     {
         if (operations == null || operationUnavailable) return null;
-        try { return operations.Snapshot(); }
+        try { var saved = operations.Snapshot(); saved.CognitiveJson = CaptureCognitiveState(); return saved; }
         catch (Exception error) { OperationFailed(error); return null; }
     }
     public void RestoreOperationState(AIOperationBattleState saved)
@@ -299,6 +300,7 @@ public partial class AICommander
         {
             if (saved.Faction != _actorTeam) return;
             manager.Restore(saved);
+            RestoreCognitiveState(saved.CognitiveJson, manager.State.BattleId, Math.Max(0, manager.State.LastStartedOwnTurn));
             currentOperationOwnTurn = manager.State.LastStartedOwnTurn;
             operationTurnStarted = !manager.State.Ended && manager.State.LastStartedOwnTurn > manager.State.LastEndedOwnTurn;
             foreach (var plan in manager.State.ActiveOperations)

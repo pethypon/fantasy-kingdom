@@ -40,6 +40,7 @@ public static class CoreLogicTests
         AIOperationCoreTests.RunAll();
         ExplorationR2CoreTests.RunAll();
         ExplorationR2BoundaryTests.RunAll();
+        AIR4CoreTests.RunAll();
 
         Debug.Log($"[CoreTest] Done: {_pass} passed, {_fail} failed");
         if (_fail > 0) throw new System.Exception($"{_fail} core regression tests failed");

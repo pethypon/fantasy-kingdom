@@ -114,7 +114,7 @@ public sealed partial class AIStrategicGovernor
         recruitmentPlan.Add(new AIRecruitmentNeed(definition, role, reason)); recruitmentForecastUnits.Add(definition);
     }
 
-    static string RecruitmentRole(UnitData definition, Kind kind)
+    public static string RecruitmentRole(UnitData definition, Kind kind)
     {
         if (kind == Kind.Scout) return "scout";
         if (UnitRoster.IsDedicatedHealer(kind)) return "healer";

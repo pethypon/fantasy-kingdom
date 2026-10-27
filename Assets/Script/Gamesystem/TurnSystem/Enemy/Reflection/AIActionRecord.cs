@@ -174,6 +174,8 @@ public sealed class AIActionRecord
     public float ImmediateReward, LearningValueChange;
     public long OperationId;
     public long SquadId;
+    public string CognitivePlanId;
+    public int CognitiveStepId;
     public int OperationStepId;
     public float OperationContribution, OperationCreditReward;
     public List<long> OperationCreditsApplied = new List<long>();
