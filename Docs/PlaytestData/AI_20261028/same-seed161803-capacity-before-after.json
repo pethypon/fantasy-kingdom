@@ -1,0 +1,648 @@
+{
+  "scope": "Same seed161803/threat15 at60R. Includes both capacity and exploration fixes. Not a win-rate test.",
+  "matches": {
+    "before": {
+      "Player": {
+        "actionCounts": {
+          "Build": 55,
+          "Upgrade": 17,
+          "Move": 418,
+          "SubCrystal": 2,
+          "DefenseRepos": 6,
+          "Retreat": 3,
+          "Rotate": 1,
+          "Attack": 7,
+          "Summon": 3
+        },
+        "warehouseBuilds": [],
+        "summons": [
+          {
+            "_line": 678,
+            "round": "44",
+            "id": "353",
+            "actionKey": "Summon:Scout:Scout:",
+            "role": "Scout",
+            "succeeded": "True",
+            "APBefore": "29",
+            "APAfter": "22",
+            "ActionAPCost": "7",
+            "priority": "4"
+          },
+          {
+            "_line": 772,
+            "round": "49",
+            "id": "404",
+            "actionKey": "Summon:Infantry:DragonKnight:r1.unit.dragonknight",
+            "role": "Infantry",
+            "succeeded": "True",
+            "APBefore": "29",
+            "APAfter": "16",
+            "ActionAPCost": "13",
+            "priority": "3"
+          },
+          {
+            "_line": 901,
+            "round": "56",
+            "id": "461",
+            "actionKey": "Summon:Infantry:DragonKnight:r1.unit.dragonknight",
+            "role": "Infantry",
+            "succeeded": "True",
+            "APBefore": "35",
+            "APAfter": "22",
+            "ActionAPCost": "13",
+            "priority": "3"
+          }
+        ],
+        "finalRolesExcludingCommander": {
+          "Knight": 1,
+          "Scout": 2,
+          "DragonKnight": 2
+        },
+        "finalRoleRecord": {
+          "_line": 952,
+          "army": "5",
+          "healers": "0",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;",
+          "stock": "128",
+          "mandatoryPerTurn": "36",
+          "netPerTurn": "40",
+          "safetyReserve": "152"
+        },
+        "capacityMilestones": [
+          {
+            "_line": 2,
+            "round": "1",
+            "state": "PlayerMove",
+            "capacity": "200"
+          }
+        ]
+      },
+      "Enemy": {
+        "actionCounts": {
+          "Build": 61,
+          "Upgrade": 11,
+          "Move": 391,
+          "SubCrystal": 2,
+          "Retreat": 5,
+          "DefenseRepos": 2,
+          "Rotate": 2,
+          "Attack": 11,
+          "Summon": 5
+        },
+        "warehouseBuilds": [],
+        "summons": [
+          {
+            "_line": 600,
+            "round": "39",
+            "id": "285",
+            "actionKey": "Summon:Scout:Scout:",
+            "role": "Scout",
+            "succeeded": "True",
+            "APBefore": "37",
+            "APAfter": "30",
+            "ActionAPCost": "7",
+            "priority": "4"
+          },
+          {
+            "_line": 668,
+            "round": "43",
+            "id": "318",
+            "actionKey": "Summon:Infantry:DragonKnight:r1.unit.dragonknight",
+            "role": "Infantry",
+            "succeeded": "True",
+            "APBefore": "37",
+            "APAfter": "24",
+            "ActionAPCost": "13",
+            "priority": "3"
+          },
+          {
+            "_line": 721,
+            "round": "46",
+            "id": "342",
+            "actionKey": "Summon:Ranged:Archer:",
+            "role": "Ranged",
+            "succeeded": "True",
+            "APBefore": "37",
+            "APAfter": "30",
+            "ActionAPCost": "7",
+            "priority": "3"
+          },
+          {
+            "_line": 799,
+            "round": "50",
+            "id": "381",
+            "actionKey": "Summon:Scout:Scout:",
+            "role": "Scout",
+            "succeeded": "True",
+            "APBefore": "27",
+            "APAfter": "20",
+            "ActionAPCost": "7",
+            "priority": "4"
+          },
+          {
+            "_line": 879,
+            "round": "54",
+            "id": "421",
+            "actionKey": "Summon:Infantry:DragonKnight:r1.unit.dragonknight",
+            "role": "Infantry",
+            "succeeded": "True",
+            "APBefore": "37",
+            "APAfter": "24",
+            "ActionAPCost": "13",
+            "priority": "3"
+          }
+        ],
+        "finalRolesExcludingCommander": {
+          "Scout": 2,
+          "DragonKnight": 2,
+          "Archer": 1
+        },
+        "finalRoleRecord": {
+          "_line": 960,
+          "army": "5",
+          "healers": "0",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;",
+          "stock": "200",
+          "mandatoryPerTurn": "32",
+          "netPerTurn": "47",
+          "safetyReserve": "136"
+        },
+        "capacityMilestones": [
+          {
+            "_line": 2,
+            "round": "1",
+            "state": "PlayerMove",
+            "capacity": "200"
+          }
+        ]
+      }
+    },
+    "after": {
+      "Player": {
+        "actionCounts": {
+          "Build": 63,
+          "Upgrade": 7,
+          "Move": 441,
+          "SubCrystal": 2,
+          "Attack": 18,
+          "Retreat": 4,
+          "DefenseRepos": 7,
+          "Rotate": 2,
+          "Summon": 4
+        },
+        "warehouseBuilds": [
+          {
+            "_line": 712,
+            "round": "44",
+            "id": "355",
+            "actionKey": "Build:Builder:Warehouse:default",
+            "succeeded": "True",
+            "APBefore": "31",
+            "APAfter": "24",
+            "ActionAPCost": "7",
+            "priority": "4"
+          },
+          {
+            "_line": 993,
+            "round": "57",
+            "id": "505",
+            "actionKey": "Build:Builder:Warehouse:default",
+            "succeeded": "True",
+            "APBefore": "34",
+            "APAfter": "27",
+            "ActionAPCost": "7",
+            "priority": "4"
+          }
+        ],
+        "summons": [
+          {
+            "_line": 636,
+            "round": "40",
+            "id": "316",
+            "actionKey": "Summon:Infantry:DragonKnight:r1.unit.dragonknight",
+            "role": "Infantry",
+            "succeeded": "True",
+            "APBefore": "34",
+            "APAfter": "21",
+            "ActionAPCost": "13",
+            "priority": "4"
+          },
+          {
+            "_line": 732,
+            "round": "45",
+            "id": "364",
+            "actionKey": "Summon:Infantry:DragonKnight:r1.unit.dragonknight",
+            "role": "Infantry",
+            "succeeded": "True",
+            "APBefore": "29",
+            "APAfter": "16",
+            "ActionAPCost": "13",
+            "priority": "4"
+          },
+          {
+            "_line": 771,
+            "round": "47",
+            "id": "384",
+            "actionKey": "Summon:Scout:Scout:",
+            "role": "Scout",
+            "succeeded": "True",
+            "APBefore": "31",
+            "APAfter": "24",
+            "ActionAPCost": "7",
+            "priority": "4"
+          },
+          {
+            "_line": 1013,
+            "round": "58",
+            "id": "514",
+            "actionKey": "Summon:Ranged:Archer:",
+            "role": "Ranged",
+            "succeeded": "True",
+            "APBefore": "37",
+            "APAfter": "30",
+            "ActionAPCost": "7",
+            "priority": "3"
+          }
+        ],
+        "finalRolesExcludingCommander": {
+          "Knight": 1,
+          "Scout": 2,
+          "DragonKnight": 2,
+          "Archer": 1
+        },
+        "finalRoleRecord": {
+          "_line": 952,
+          "army": "6",
+          "healers": "0",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;",
+          "stock": "250",
+          "mandatoryPerTurn": "43",
+          "netPerTurn": "46",
+          "safetyReserve": "180"
+        },
+        "capacityMilestones": [
+          {
+            "_line": 2,
+            "round": "1",
+            "state": "PlayerMove",
+            "capacity": "200"
+          },
+          {
+            "_line": 89,
+            "round": "44",
+            "state": "EnemyMove",
+            "capacity": "225"
+          },
+          {
+            "_line": 115,
+            "round": "57",
+            "state": "EnemyMove",
+            "capacity": "250"
+          }
+        ]
+      },
+      "Enemy": {
+        "actionCounts": {
+          "Build": 60,
+          "Upgrade": 8,
+          "Move": 426,
+          "SubCrystal": 2,
+          "Retreat": 5,
+          "DefenseRepos": 2,
+          "Rotate": 2,
+          "Attack": 18,
+          "Surround": 1,
+          "Summon": 5,
+          "SkillUse": 1
+        },
+        "warehouseBuilds": [
+          {
+            "_line": 869,
+            "round": "51",
+            "id": "431",
+            "actionKey": "Build:Builder:Warehouse:default",
+            "succeeded": "True",
+            "APBefore": "11",
+            "APAfter": "4",
+            "ActionAPCost": "7",
+            "priority": "4"
+          },
+          {
+            "_line": 1029,
+            "round": "58",
+            "id": "504",
+            "actionKey": "Build:Builder:Warehouse:default",
+            "succeeded": "True",
+            "APBefore": "28",
+            "APAfter": "21",
+            "ActionAPCost": "7",
+            "priority": "4"
+          }
+        ],
+        "summons": [
+          {
+            "_line": 627,
+            "round": "39",
+            "id": "313",
+            "actionKey": "Summon:Scout:Scout:",
+            "role": "Scout",
+            "succeeded": "True",
+            "APBefore": "34",
+            "APAfter": "27",
+            "ActionAPCost": "7",
+            "priority": "4"
+          },
+          {
+            "_line": 721,
+            "round": "44",
+            "id": "360",
+            "actionKey": "Summon:Ranged:Archer:",
+            "role": "Ranged",
+            "succeeded": "True",
+            "APBefore": "34",
+            "APAfter": "27",
+            "ActionAPCost": "7",
+            "priority": "3"
+          },
+          {
+            "_line": 845,
+            "round": "50",
+            "id": "419",
+            "actionKey": "Summon:Assassin:Assassin:",
+            "role": "Assassin",
+            "succeeded": "True",
+            "APBefore": "30",
+            "APAfter": "20",
+            "ActionAPCost": "10",
+            "priority": "4"
+          },
+          {
+            "_line": 1047,
+            "round": "59",
+            "id": "510",
+            "actionKey": "Summon:Ranged:Archer:",
+            "role": "Ranged",
+            "succeeded": "True",
+            "APBefore": "37",
+            "APAfter": "30",
+            "ActionAPCost": "7",
+            "priority": "3"
+          },
+          {
+            "_line": 1076,
+            "round": "60",
+            "id": "527",
+            "actionKey": "Summon:Assassin:Assassin:",
+            "role": "Assassin",
+            "succeeded": "True",
+            "APBefore": "25",
+            "APAfter": "15",
+            "ActionAPCost": "10",
+            "priority": "4"
+          }
+        ],
+        "finalRolesExcludingCommander": {
+          "Knight": 1,
+          "Scout": 2,
+          "Archer": 2,
+          "Assassin": 2
+        },
+        "finalRoleRecord": {
+          "_line": 960,
+          "army": "7",
+          "healers": "0",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;",
+          "stock": "245",
+          "mandatoryPerTurn": "40",
+          "netPerTurn": "52",
+          "safetyReserve": "168"
+        },
+        "capacityMilestones": [
+          {
+            "_line": 2,
+            "round": "1",
+            "state": "PlayerMove",
+            "capacity": "200"
+          },
+          {
+            "_line": 104,
+            "round": "51",
+            "state": "IndependentFactionState",
+            "capacity": "225"
+          },
+          {
+            "_line": 118,
+            "round": "58",
+            "state": "IndependentFactionState",
+            "capacity": "250"
+          }
+        ]
+      }
+    }
+  },
+  "limitations": [
+    "No per-action resource-before/resource-after columns; resource deltas are turn aggregates.",
+    "Two source changes and changed decision paths, so causal isolation is limited.",
+    "Both matches unresolved at owner_turn_limit; final living units include the commander/main crystal in turns.csv."
+  ],
+  "afterEnemyRound59Resources": {
+    "Wood": [
+      {
+        "_line": 922,
+        "round": "58",
+        "stock": "176",
+        "mandatoryPerTurn": "7",
+        "netPerTurn": "63",
+        "safetyReserve": "68"
+      },
+      {
+        "_line": 938,
+        "round": "59",
+        "stock": "178",
+        "mandatoryPerTurn": "8",
+        "netPerTurn": "62",
+        "safetyReserve": "72"
+      }
+    ],
+    "Stone": [
+      {
+        "_line": 923,
+        "round": "58",
+        "stock": "125",
+        "mandatoryPerTurn": "8",
+        "netPerTurn": "51",
+        "safetyReserve": "72"
+      },
+      {
+        "_line": 939,
+        "round": "59",
+        "stock": "137",
+        "mandatoryPerTurn": "10",
+        "netPerTurn": "49",
+        "safetyReserve": "80"
+      }
+    ],
+    "Iron": [
+      {
+        "_line": 924,
+        "round": "58",
+        "stock": "55",
+        "mandatoryPerTurn": "5",
+        "netPerTurn": "4",
+        "safetyReserve": "23"
+      },
+      {
+        "_line": 940,
+        "round": "59",
+        "stock": "50",
+        "mandatoryPerTurn": "6",
+        "netPerTurn": "3",
+        "safetyReserve": "27"
+      }
+    ],
+    "Water": [
+      {
+        "_line": 928,
+        "round": "58",
+        "stock": "250",
+        "mandatoryPerTurn": "38",
+        "netPerTurn": "54",
+        "safetyReserve": "160"
+      },
+      {
+        "_line": 944,
+        "round": "59",
+        "stock": "233",
+        "mandatoryPerTurn": "39",
+        "netPerTurn": "53",
+        "safetyReserve": "164"
+      }
+    ],
+    "Bread": [
+      {
+        "_line": 927,
+        "round": "58",
+        "stock": "94",
+        "mandatoryPerTurn": "12",
+        "netPerTurn": "4",
+        "safetyReserve": "41"
+      },
+      {
+        "_line": 943,
+        "round": "59",
+        "stock": "88",
+        "mandatoryPerTurn": "13",
+        "netPerTurn": "3",
+        "safetyReserve": "44"
+      }
+    ],
+    "Citizen": [
+      {
+        "_line": 929,
+        "round": "58",
+        "stock": "7",
+        "mandatoryPerTurn": "0",
+        "netPerTurn": "0",
+        "safetyReserve": "3"
+      },
+      {
+        "_line": 945,
+        "round": "59",
+        "stock": "7",
+        "mandatoryPerTurn": "0",
+        "netPerTurn": "0",
+        "safetyReserve": "3"
+      }
+    ]
+  },
+  "afterEnemyRound59Actions": [
+    {
+      "_line": 1047,
+      "id": "510",
+      "type": "Summon",
+      "actionKey": "Summon:Ranged:Archer:",
+      "ActionAPCost": "7",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1048,
+      "id": "511",
+      "type": "Move",
+      "actionKey": "Move:Scout",
+      "ActionAPCost": "0",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1049,
+      "id": "512",
+      "type": "Move",
+      "actionKey": "Move:Scout",
+      "ActionAPCost": "0",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1050,
+      "id": "513",
+      "type": "Move",
+      "actionKey": "Move:Ranged",
+      "ActionAPCost": "3",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1051,
+      "id": "514",
+      "type": "Move",
+      "actionKey": "Move:Infantry",
+      "ActionAPCost": "3",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1052,
+      "id": "515",
+      "type": "Move",
+      "actionKey": "Move:Ranged",
+      "ActionAPCost": "3",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1053,
+      "id": "516",
+      "type": "Move",
+      "actionKey": "Move:Assassin",
+      "ActionAPCost": "3",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1054,
+      "id": "517",
+      "type": "Move",
+      "actionKey": "Move:Scout",
+      "ActionAPCost": "4",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1055,
+      "id": "518",
+      "type": "Move",
+      "actionKey": "Move:Scout",
+      "ActionAPCost": "4",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1056,
+      "id": "519",
+      "type": "Move",
+      "actionKey": "Move:Scout",
+      "ActionAPCost": "7",
+      "succeeded": "True"
+    },
+    {
+      "_line": 1057,
+      "id": "520",
+      "type": "Move",
+      "actionKey": "Move:Assassin",
+      "ActionAPCost": "3",
+      "succeeded": "True"
+    }
+  ]
+}

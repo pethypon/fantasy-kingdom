@@ -1,0 +1,29 @@
+{
+  "SourceLog": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\playtest-20261028\\focused-contracts.log",
+  "Checks": [
+    "[R3MaterialCapacity] PASS purchase-plus-protected-reserve-exceeds-cap",
+    "[R3MaterialCapacity] PASS already-expanded-capacity-does-not-repeat-investment",
+    "[R3MaterialCapacity] PASS sequential-orders-are-not-summed",
+    "[R3MaterialCapacity] PASS unpayable-AP-does-not-justify-storage",
+    "[R3MaterialCapacity] PASS foreign-definition-does-not-justify-storage",
+    "[R3MaterialCapacity] PASS unreachable-authored-cost-does-not-create-endless-investment",
+    "[R3MaterialCapacity] PASS missing-income-needs-supply-not-capacity",
+    "[R3MaterialCapacity] PASS purchase-that-fits-never-requests-expansion",
+    "[R3MaterialCapacity] PASS existing-production-assessment-recognizes-planned-capacity",
+    "[AIPlaytestExploration] PASS EXB01-bounds-limit-corner-information",
+    "[AIPlaytestExploration] PASS EXB02-explored-corner-does-not-invent-outside-information",
+    "[AIPlaytestExploration] PASS EXB04-factions-have-separate-exploration",
+    "[AIPlaytestExploration] PASS EXB03-outside-candidate-(-1.00, 0.00, 0.00)",
+    "[AIPlaytestExploration] PASS EXB03-outside-candidate-(2.00, 0.00, 0.00)",
+    "[AIPlaytestExploration] PASS EXB03-outside-candidate-(0.00, 0.00, -1.00)",
+    "[AIPlaytestExploration] PASS EXB03-outside-candidate-(0.00, 0.00, 2.00)",
+    "[AIPlaytestExploration] PASS EXR02-unsuccessful-information-return-is-retained",
+    "[AIPlaytestExploration] PASS EXR03-observed-information-clears-failed-prediction",
+    "[AIPlaytestExploration] PASS EXR04-explicit-retreat-keeps-return-exception",
+    "[AIPlaytestExploration] PASS EXR06-next-turn-releases-all-state"
+  ],
+  "PassCount": 20,
+  "FailCount": 0,
+  "CompletedMarker": true,
+  "Scope": "Native Unity 6000.3.8f1 Editor focused contracts only; not all R4 acceptance tests"
+}
