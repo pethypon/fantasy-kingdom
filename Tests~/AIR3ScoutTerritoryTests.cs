@@ -42,7 +42,7 @@ public static class AIR3ScoutTerritoryTests
 
     static void FrontierPriority(GameSystems live, Team team, bool territoryVisible)
     {
-        using var f = new Fixture(live, team, territoryVisible);
+        using var f = new Fixture(live, team, territoryVisible, true);
         var board = f.Board(60); var goal = f.Governor.Exploration.GetObjective(f.Scout.GetInstanceID());
         string label = team + (territoryVisible ? " observed territory" : " no territory evidence");
         Check(label + " no hostile units/crystal or commander memory is supplied", board.AlivePlayerUnits.Count == 0
@@ -129,7 +129,7 @@ public static class AIR3ScoutTerritoryTests
         readonly VisionGenerator vision;
         readonly TerritorySystem territory;
         readonly BoardActionProfile profile;
-        public Fixture(GameSystems live, Team team, bool showTerritory)
+        public Fixture(GameSystems live, Team team, bool showTerritory, bool alternateKnownLane = false)
         {
             this.live = live; Economy = new EconomyR2Tests.Fixture(live, team);
             root = new GameObject("R3 scouting and territory observed-input fixture"); root.SetActive(false);
@@ -159,7 +159,10 @@ public static class AIR3ScoutTerritoryTests
                 territory = root.AddComponent<TerritorySystem>(); territory.PTSetPos = new List<Vector3>(); territory.ETSetPos = new List<Vector3>();
                 territory.GetTerritory(team).Add(Economy.Crystal.transform.position);
                 territory.GetTerritory(team == Team.Player ? Team.Enemy : Team.Player).Add(new Vector3(8, 1, 5));
-                var explored = new HashSet<Vector3Int>(); for (int x = 1; x <= 8; x++) explored.Add(new Vector3Int(x, 0, 5));
+                // The coexistence fixture needs a route around the scout. Negative
+                // viewpoint/repeat fixtures retain their original single-lane inputs.
+                var explored = new HashSet<Vector3Int>();
+                for (int x = 1; x <= 8; x++) for (int z = alternateKnownLane ? 4 : 5; z <= 5; z++) explored.Add(new Vector3Int(x, 0, z));
                 var visible = new HashSet<Vector3Int>(explored); if (!showTerritory) visible.Remove(new Vector3Int(8, 0, 5));
                 vision = root.AddComponent<VisionGenerator>();
                 foreach (var field in new[] { "_playerVisionBox", "_enemyVisionBox", "_playerExplored", "_enemyExplored" })

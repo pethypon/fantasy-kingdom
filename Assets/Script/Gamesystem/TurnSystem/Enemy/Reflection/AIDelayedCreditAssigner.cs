@@ -119,7 +119,7 @@ public sealed class AIDelayedCreditAssigner
             || !AIFailureAnalyzer.IsMovement(record.ActionType)) return false;
         bool moved = record.Before.ActorX != record.After.ActorX || record.Before.ActorY != record.After.ActorY
             || record.Before.ActorHeight != record.After.ActorHeight;
-        return moved && (record.Outcome?.DistanceToObjectiveDelta > 0 || record.After.IncomingDamage < record.Before.IncomingDamage
+        return moved && (AIActionOutcome.ObjectiveDistanceChange(record.Before, record.After) > 0 || record.After.IncomingDamage < record.Before.IncomingDamage
             || record.After.LocalPowerRatio > record.Before.LocalPowerRatio
             || record.After.ActorHeight > record.Before.ActorHeight && record.After.CanAttackObservedEnemy);
     }
@@ -133,6 +133,9 @@ public sealed class AIDelayedCreditAssigner
     public void Restore(AIDelayedCreditState saved, IEnumerable<AIActionRecord> recentRecords = null)
     {
         recent.Clear();
+        var records = new Dictionary<long, AIActionRecord>();
+        if (recentRecords != null) foreach (var record in recentRecords)
+            if (record != null) records[record.ActionId] = record;
         if (saved != null && saved.Version == 1 && saved.RecentActions != null)
         {
             var seen = new HashSet<long>();
@@ -146,6 +149,14 @@ public sealed class AIDelayedCreditAssigner
                     DiscoveredLifeIds = Sanitize(evidence.DiscoveredLifeIds, 64, false),
                     SupportedLifeIds = Sanitize(evidence.SupportedLifeIds, 64, false),
                     AppliedEventIds = Sanitize(evidence.AppliedEventIds, config.EventLimit, true) };
+                // Migration may have withdrawn progress whose objective provenance was absent.
+                // Keep its cap and event ledger, while refusing additional causal credit.
+                if (records.TryGetValue(copy.ActionId, out var record))
+                {
+                    copy.MeaningfulPosition = MeaningfulPosition(record);
+                    if (!record.MeaningfulProgress && !record.PreparationCandidate) copy.Preparation = false;
+                }
+                else copy.MeaningfulPosition = false;
                 recent.Add(copy);
             }
             // Saved causal evidence already holds the exact five-action window and event dedupe ledger.

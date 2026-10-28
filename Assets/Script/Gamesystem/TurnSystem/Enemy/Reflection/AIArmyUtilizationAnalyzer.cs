@@ -123,7 +123,7 @@ public sealed class AIArmyUtilizationAnalyzer
             if (record == null || record.Turn != board.TurnCount || !record.ExecutionSucceeded) continue;
             var outcome = record.Outcome;
             bool combat = outcome != null && (outcome.DamageDealt > 0 || outcome.EnemyKills > 0);
-            bool objective = outcome != null && outcome.DistanceToObjectiveDelta > 0;
+            bool objective = outcome != null && AIActionOutcome.ObjectiveDistanceChange(record.Before, record.After) > 0;
             bool scout = outcome != null && (outcome.NewTilesRevealed > 0 || outcome.NewEnemyLifeIds?.Count > 0);
             bool support = outcome != null && (outcome.HealingDone > 0 || outcome.EffectChanged || outcome.ShieldReduced
                 || outcome.ShieldGranted || outcome.ApRecovered > 0);

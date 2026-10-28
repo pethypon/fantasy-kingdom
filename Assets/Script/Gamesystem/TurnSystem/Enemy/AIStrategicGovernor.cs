@@ -17,6 +17,8 @@ public sealed class DefaultLossConditionProvider : ILossConditionProvider
 public sealed class PersistentStrategicObjective
 {
     public int Version=1,StartedTurn,PausedTurn,PausedTurns;
+    // Optional bridge provenance. Zero in older saves cannot prove reflection progress.
+    public int SourceObjectiveId;
     public Vector3 Target;
     public bool Active,Suspended;
 }
@@ -177,7 +179,7 @@ public sealed partial class AIStrategicGovernor
         {
             bridgedExploreObjective = assigned.ObjectiveId;
             Objective = new PersistentStrategicObjective { Active = true, Target = assigned.TargetCell,
-                StartedTurn = assigned.CreatedTurn, Suspended = suspended, PausedTurn = suspended ? board.TurnCount : 0 };
+                SourceObjectiveId = assigned.ObjectiveId, StartedTurn = assigned.CreatedTurn, Suspended = suspended, PausedTurn = suspended ? board.TurnCount : 0 };
             return;
         }
         Objective.Active = true; Objective.Target = assigned.TargetCell;
@@ -325,8 +327,11 @@ public sealed partial class AIStrategicGovernor
         if (IsSafePlannedRecruit(a, board)) return 3;
         if (IsSafeArmyAdvance(a, board)) return 3;
         if (squadPriority == 3) return 3;
-        if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery && !HasActiveTerritoryAdvance
+        // A dedicated scout keeps its assigned frontier role during army deployment.
+        // Existing crisis, first-move, actual-goal-progress and survival checks still apply.
+        if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
+            &&(!HasActiveTerritoryAdvance || a.Unit.kind == Kind.Scout)
             &&Exploration.TryGetAssignedTarget(a.Unit,out var frontier)
             &&Exploration.IsObjectiveProgress(a.Unit,a.TargetPos,board)
             &&IncomingDamage(board,a.Unit,a.TargetPos,null)<a.Unit.HP)return 3;

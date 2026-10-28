@@ -58,15 +58,12 @@ public class AIRoleAssigner
             // The loss-condition actor must never receive an exploration/frontline role.
             if (MatchObjectiveRules.IsCommander(u)) { _assignments[u] = UnitRole.Guardian; continue; }
             if (u.IsBoss) { boss.Add(u); continue; }
+            if (AIHealingCapability.HasHealing(u)) { healers.Add(u); continue; }
 
             switch (u.kind)
             {
                 case Kind.Scout:
                     scouts.Add(u);
-                    break;
-                case Kind.Priest:
-                case Kind.WhiteMage:
-                    healers.Add(u);
                     break;
                 case Kind.Archer:
                 case Kind.Magic:

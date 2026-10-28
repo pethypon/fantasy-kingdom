@@ -11,6 +11,9 @@ public static class AIR3MaterialCapacityTests
     {
         var priest = ScriptableObject.CreateInstance<UnitData>();
         var archer = ScriptableObject.CreateInstance<UnitData>();
+        var healing = ScriptableObject.CreateInstance<SpecialSkillDefinition>();
+        healing.ability = UnitSpecialSkill.PriestPurification; healing.enabledForPlay = true; healing.apCost = 8; healing.cooldown = 0;
+        priest.specialSkill = healing;
         try
         {
             priest.kind = Kind.Priest; priest.baseHP = 28; priest.baseATK = 3;
@@ -45,7 +48,7 @@ public static class AIR3MaterialCapacityTests
             var warehouse = demand.EvaluateBuild(FacilityKind.Warehouse);
             Check("existing-production-assessment-recognizes-planned-capacity", warehouse.IsProduction && warehouse.ImprovesDeficit);
         }
-        finally { UnityEngine.Object.DestroyImmediate(priest); UnityEngine.Object.DestroyImmediate(archer); }
+        finally { UnityEngine.Object.DestroyImmediate(priest); UnityEngine.Object.DestroyImmediate(archer); UnityEngine.Object.DestroyImmediate(healing); }
     }
     static float Required(AIRecruitmentNeed[] needs, ResourceDemandState[] resources, int capacity)
         => StrategicEconomyForecast.RequiredRecruitmentStorageCapacity(needs, resources, capacity, 7, 37, Team.Enemy, 4, 4);

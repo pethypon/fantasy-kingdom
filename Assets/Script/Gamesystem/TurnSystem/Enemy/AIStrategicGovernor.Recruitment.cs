@@ -38,7 +38,7 @@ public sealed partial class AIStrategicGovernor
         {
             if (actor == null || !actor.IsAlive || actor.type != Type.Unit || MatchObjectiveRules.IsCommander(actor)) continue;
             recruitmentCounts.TryGetValue(actor.kind, out int count); recruitmentCounts[actor.kind] = count + 1;
-            string role = RecruitmentRole(actor.GrowthData, actor.kind);
+            string role = AIHealingCapability.HasHealing(actor) ? "healer" : NonHealingRecruitmentRole(actor.GrowthData, actor.kind);
             if (role == "scout") scouts++;
             else if (role == "healer") healers++;
             else if (role == "frontline" || role == "ranged")
@@ -116,8 +116,13 @@ public sealed partial class AIStrategicGovernor
 
     public static string RecruitmentRole(UnitData definition, Kind kind)
     {
+        if (kind == Kind.King || kind == Kind.Boss || kind == Kind.Crystal || kind == Kind.SubCrystal) return null;
+        return AIHealingCapability.HasHealing(definition) ? "healer" : NonHealingRecruitmentRole(definition, kind);
+    }
+
+    static string NonHealingRecruitmentRole(UnitData definition, Kind kind)
+    {
         if (kind == Kind.Scout) return "scout";
-        if (UnitRoster.IsDedicatedHealer(kind)) return "healer";
         if (kind == Kind.King || kind == Kind.Boss || kind == Kind.Crystal || kind == Kind.SubCrystal
             || definition?.actionProfile?.CanAttack == false) return null;
         switch (UnitRoster.EvaluationBaseKind(kind))
@@ -141,6 +146,11 @@ public sealed partial class AIStrategicGovernor
 
     string AssessRecruitmentBlock(AIAction action, AIBoardState board, UnitData definition)
     {
+        int existing = 0;
+        foreach (var actor in board.AliveEnemyUnits)
+            if (actor != null && actor.IsAlive && actor.team == board.ActorTeam && actor.type == Type.Unit
+                && actor.kind == definition.kind) existing++;
+        if (existing >= AIActionGenerator.GetMaxUnitCount(definition.kind)) return "recruit_kind_cap";
         if (board.SummonablePositions.Count == 0) return "recruit_spawn_cell_missing";
         if (action.APCost > board.EnemyAP) return "recruit_ap_shortage";
         if (definition.costCitizen > (board.EnemyResources?.Citizen ?? 0)) return "recruit_citizen_shortage";
@@ -155,16 +165,20 @@ public sealed partial class AIStrategicGovernor
 
     bool IsNextPlannedRecruit(AIAction action, AIBoardState board)
     {
-        if (action == null || action.ActionType != AIActionType.Summon || recruitmentPlan.Count == 0) return false;
+        if (action == null || action.ActionType != AIActionType.Summon || board == null
+            || recruitmentBoard != board || recruitmentPlan.Count == 0) return false;
         var definition = action.SummonDefinition ?? board.ResolveUnitDefinition(action.SummonKind);
-        // An impossible first purchase must not turn every other funded role into P4.
-        // Keep the order among executable purchases, while retaining the blocked request for housing/supply.
+        if (definition == null) return false;
+        string role = RecruitmentRole(definition, definition.kind);
+        // Retain the bounded order and its supply forecast. A different definition may fill
+        // the first blocked role only after its own complete official spend forecast passes.
         foreach (var need in recruitmentPlan)
         {
             if (need.Definition == definition) return RecruitmentBlockReason(action, board) == null;
             recruitmentProbe.SummonDefinition = need.Definition; recruitmentProbe.SummonKind = need.Definition.kind;
             recruitmentProbe.APCost = need.Definition.costAP;
             if (RecruitmentBlockReason(recruitmentProbe, board) == null) return false;
+            if (role != null && need.Role == role && RecruitmentBlockReason(action, board) == null) return true;
         }
         return false;
     }

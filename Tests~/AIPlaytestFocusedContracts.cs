@@ -12,7 +12,9 @@ public static class AIPlaytestFocusedContracts
             throw new InvalidOperationException("Focused playtest regressions require the isolated validation project.");
         AIR3MaterialCapacityTests.Run();
         AIPlaytestExplorationTests.Run();
-        Debug.Log("[AIPlaytestFocusedContracts] PASS material capacity and exploration return contracts");
+        AIReflectionObjectiveDistanceTests.Run();
+        AIHealerRoleRecruitmentTests.Run();
+        Debug.Log("[AIPlaytestFocusedContracts] PASS storage, scouting returns, objective learning and healer recruitment contracts");
     }
 }
 #endif

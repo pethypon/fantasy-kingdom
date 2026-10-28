@@ -54,10 +54,7 @@ public sealed partial class AIOperationManager
     {
         if (actor == null) return AIOperationSquadRole.Frontline;
         var profile = BoardActionProfile.For(actor);
-        var special = SpecialSkillRuntime.Definition(actor);
-        bool healing = SkillData.Table.TryGetValue(actor.AssignedSkillId, out var skill) && skill.FixedHeal > 0
-            || special != null && special.enabledForPlay && (special.ability == UnitSpecialSkill.WhiteMageHeal || special.ability == UnitSpecialSkill.HolyKnightSanctuary);
-        if (healing && profile?.CanUseSkills != false) return AIOperationSquadRole.Healer;
+        if (AIHealingCapability.HasHealing(actor)) return AIOperationSquadRole.Healer;
         if (actor.kind == Kind.Scout) return AIOperationSquadRole.Scout;
         // A passive/support profile is not evidence that the actor can heal.
         if (profile?.attack?.useCustom == true)
