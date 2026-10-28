@@ -24,6 +24,8 @@ public static class AIR4CoreTests
         AIIntegratedR1RecruitmentTests.Run();
         AIR3ScoutContinuityTests.Run();
         AIR3RecoveryEconomyStateTests.Run();
+        AIR3MaterialCapacityTests.Run();
+        AIPlaytestExplorationTests.Run();
         AIAdaptiveThinkingBudgetTests.Run();
         IntegratedCrystalRulesTests.Run(null);
         Debug.Log("[R4契約テスト] 登録済みの単体チェックを終了。実戦・152項目全体の合格を意味しません。");

@@ -370,6 +370,7 @@ public static class AIClosingPlaytest
                 match.EnemyPersonality = major.ToString(); match.InitialTurnTimeLimit = s.TimerSystem.TurnTimeLimit;
                 match.TerrainSeedX = s.MapCreate.SeedX; match.TerrainSeedZ = s.MapCreate.SeedZ;
                 ObserveDecisiveActors();
+                AIPlaytestMapEvidence.CaptureInitial(turn, folder);
                 turn.PlayerAI.SetEnabled(true, false);
                 match.ActualPlayerAIModeUsed = turn.PlayerAI.Enabled;
                 Debug.Log(Prefix + " ACTUAL_AI_MODE_ENABLED mapSeed=" + match.MapSeed + " enemySeed=" + match.EnemyAISeed

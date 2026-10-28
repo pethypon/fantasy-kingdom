@@ -870,8 +870,8 @@ public partial class AIBoardState
     // ================================================================
 
     /// <summary>新規探索マス数の概算 → AIBoardQuery に委譲</summary>
-    public int EstimateNewVisionCells(Vector3 pos)
-        => AIBoardQuery.EstimateNewVisionCells(_visionGen, pos, ActorTeam);
+    public int EstimateNewVisionCells(Vector3 pos, Status observer = null)
+        => AIBoardQuery.EstimateNewVisionCells(_visionGen, pos, ActorTeam, _moveGen?.mapcreate, observer);
 
     /// <summary>探索済み面積の割合 → AIBoardQuery に委譲</summary>
     public float GetExplorationRatio()

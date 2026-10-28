@@ -127,6 +127,7 @@ public partial class AICommander
     {
         var movementActor = action?.Unit;
         var movementOrigin = movementActor != null ? movementActor.transform.position : Vector3.zero;
+        int exploredBefore = _board?.OwnExploredCells?.Count ?? 0;
         var system = EnsureReflection();
         AIActionToken token = default;
         if (system != null && system.Enabled) try
@@ -143,7 +144,8 @@ public partial class AICommander
         finally
         {
             if (movementActor != null)
-                turnMovementHistory.Record(movementActor, movementOrigin, movementActor.transform.position, success);
+                turnMovementHistory.Record(movementActor, movementOrigin, movementActor.transform.position, success,
+                    Mathf.Max(0, (_board?.OwnExploredCells?.Count ?? 0) - exploredBefore));
             if (!success && _actionExecutor.LastMoveWasBlocked)
                 turnMovementHistory.RecordBlockedDestination(_actionExecutor.LastRequestedDestination);
             else if (success && (action.ActionType == AIActionType.Attack || action.ActionType == AIActionType.SkillUse))

@@ -455,6 +455,18 @@ public sealed class StrategicEconomyForecast
             if (i != CitizenIndex && EconomySystem.IsResourceCapacityEnforced(warehouseBonus))
                 bottleneck = Mathf.Max(bottleneck, reserve - FactionState.BaseResourceCap - warehouseBonus);
         }
+        // A funded role can be blocked by storage even though its reserve alone fits.
+        // Compare the next individual purchase plus its post-purchase reserve; never
+        // reserve the sum of the three-item shopping list or relax the spend guard.
+        if (includeGrowthPlans && EconomySystem.IsResourceCapacityEnforced(warehouseBonus)
+            && !result.ImportantProductionStopped && !result.UpkeepPaymentFailed && !result.BreadPaymentFailed
+            && board?.Governor != null && board.Governor.HasPreparedRecruitment(board)
+            && board.SummonablePositions.Count > 0)
+        {
+            float required = RequiredRecruitmentStorageCapacity(board.Governor.RecruitmentPlan, resources,
+                PreparedResourceCapacity, citizenCapacity, board.EnemyAP, board.ActorTeam, turns, ReserveTurns);
+            bottleneck = Mathf.Max(bottleneck, required - PreparedResourceCapacity);
+        }
         bool hasCritical = criticalMask != 0 || result.ImportantProductionStopped || result.UpkeepPaymentFailed || result.BreadPaymentFailed;
         var state = result.State;
         if (hasCritical && state < EconomicState.Crisis) state = EconomicState.Crisis;
@@ -468,6 +480,62 @@ public sealed class StrategicEconomyForecast
             data.NaturalCitizenGrowthPerTurn, plannedBuildingCitizens, plannedRecruitCitizens);
         if (includeGrowthPlans) growthDemand = diagnosis; else recoveryDemand = diagnosis;
         return diagnosis;
+    }
+
+    /// <summary>Bounded storage demand for one near-term recruit. Read-only: no grant, payment, or reserve waiver.</summary>
+    internal static float RequiredRecruitmentStorageCapacity(IReadOnlyList<AIRecruitmentNeed> needs,
+        ResourceDemandState[] resources, int currentCapacity, int populationCapacity, int availableAP,
+        Team owner, int horizon, int breadReserveTurns)
+    {
+        if (needs == null || resources == null || resources.Length != ResourceCount || currentCapacity <= 0
+            || owner != Team.Player && owner != Team.Enemy) return currentCapacity;
+        var policy = AIEconomySettings.Active;
+        var basic = AIBasicResourceSettings.Active;
+        if (!basic.enabled) return currentCapacity;
+        int turns = Mathf.Clamp(horizon, 1, 8);
+        int citizenReserve = Mathf.Max(AIHousingConfig.Active.FreeTarget,
+            Mathf.Max(basic.minimumReserve.Citizen, policy.minimumOperationalBuffer.Citizen));
+        float best = float.PositiveInfinity;
+        for (int p = 0; p < needs.Count && p < 3; p++)
+        {
+            var unit = needs[p].Definition;
+            if (unit == null || !unit.IsValidForAuthoring || !unit.AvailableFor(owner)
+                || AIStrategicGovernor.RecruitmentRole(unit, unit.kind) != needs[p].Role
+                || unit.costAP > availableAP || (long)unit.costCitizen + citizenReserve > populationCapacity) continue;
+            var cost = UnitCost(unit); var upkeep = unit.GetUpkeep(1);
+            double required = currentCapacity;
+            bool attainable = true;
+            for (int i = 0; i < CitizenIndex; i++)
+            {
+                var resource = resources[i];
+                int reserveTurns = i == BreadIndex ? Mathf.Clamp(breadReserveTurns, 1, 8)
+                    : Mathf.Clamp(policy.reserveTurns, 1, 8);
+                double floor = Math.Max(resource.SafetyReserve + Amount(upkeep, i) * reserveTurns,
+                    Amount(basic.minimumReserve, i));
+                // Existing material policy also retains half of a pending plan's real
+                // capital. Use a maximum, never add mutually sequential purchases.
+                for (int n = 0; n < needs.Count && n < 3; n++)
+                {
+                    var planned = needs[n].Definition;
+                    if (planned != null && planned.IsValidForAuthoring && planned.AvailableFor(owner))
+                        floor = Math.Max(floor, Amount(UnitCost(planned), i) * Mathf.Clamp01(basic.reserveCostFraction));
+                }
+                double needed = Amount(cost, i) + floor;
+                // A warehouse cannot create missing materials. Only consider a purchase
+                // reachable from current stock and guaranteed net income inside the same
+                // forecast. No income source, unaffordable AP, or extreme authored cost
+                // must turn into an endless warehouse request.
+                double reachable = resource.Stock + resource.NetPerTurn * turns;
+                if (double.IsNaN(needed) || double.IsInfinity(needed) || needed > int.MaxValue
+                    || double.IsNaN(reachable) || double.IsInfinity(reachable) || reachable + .001 < needed)
+                { attainable = false; break; }
+                required = Math.Max(required, needed);
+            }
+            if (attainable) best = Mathf.Min(best, (float)required);
+        }
+        // Any executable lower-cost requested role may proceed first. Once capacity
+        // suffices, the bottleneck disappears even while stock is replenishing.
+        return float.IsPositiveInfinity(best) ? currentCapacity : best;
     }
 
     void AddGrowthPlans(AIBoardState board, double[] planned, AIEconomySettings settings, int turns,
