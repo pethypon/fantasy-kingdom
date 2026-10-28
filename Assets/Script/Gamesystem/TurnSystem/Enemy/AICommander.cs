@@ -548,6 +548,7 @@ public partial class AICommander
                     {
                         kvp.Key.Score += kvp.Value;
                     }
+                    CompleteCognitiveLookahead(searchEngine, lookaheadScores, actions);
                 }
             }
 

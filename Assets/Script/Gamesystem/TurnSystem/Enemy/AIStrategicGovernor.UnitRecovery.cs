@@ -13,6 +13,8 @@ public sealed partial class AIStrategicGovernor
     readonly Dictionary<(Status actor, Vector3Int cell, Status eliminated), float> repeatedLossCache
         = new Dictionary<(Status, Vector3Int, Status), float>();
     AIBoardState preservationBoard;
+    Team preservationOwner;
+    bool hasPreservationOwner;
     int preservationGeneration = -1, preservationConfigRevision = -1;
     public int TrackedRecoveryUnits => unitRecovery.Count;
 
@@ -24,23 +26,35 @@ public sealed partial class AIStrategicGovernor
 
     void PreparePreservation(AIBoardState board)
     {
+        // A developer-controlled governor can be rebound. A life ID alone cannot transfer
+        // an earlier faction's recovery decision to another faction after capture/restore.
+        if (!hasPreservationOwner || preservationOwner != board.ActorTeam)
+        {
+            ReleasePreservationState();
+            preservationOwner = board.ActorTeam; hasPreservationOwner = true;
+        }
         var config = AIUnitPreservationConfig.Active;
         if (preservationBoard == board && preservationGeneration == board.Generation && preservationConfigRevision == config.Revision) return;
         preservationBoard = board; preservationGeneration = board.Generation; preservationConfigRevision = config.Revision;
         preservationAssessments.Clear(); preservationOwnIds.Clear(); staleRecoveryIds.Clear(); repeatedLossCache.Clear();
         foreach (var actor in board.AliveEnemyUnits)
-            if (actor != null && actor.IsAlive && actor.team == board.ActorTeam && actor.type == Type.Unit)
+            if (IsRecoveryActor(actor, board.ActorTeam))
                 preservationOwnIds.Add(actor.ReflectionLifeId);
         foreach (var pair in unitRecovery)
-            if (!preservationOwnIds.Contains(pair.Key) || pair.Value.LastTurn > board.TurnCount) staleRecoveryIds.Add(pair.Key);
+            if (!preservationOwnIds.Contains(pair.Key) || !AIUnitPreservationState.IsValidRecord(pair.Value)
+                || pair.Value.ActorLifeId != pair.Key || pair.Value.LastTurn > board.TurnCount) staleRecoveryIds.Add(pair.Key);
         foreach (var id in staleRecoveryIds) unitRecovery.Remove(id);
         if (!config.Enabled) unitRecovery.Clear();
     }
 
+    static bool IsRecoveryActor(Status actor, Team owner)
+        => actor != null && actor.IsAlive && actor.team == owner && actor.type == Type.Unit
+            && actor.gameObject.activeInHierarchy
+            && !MatchObjectiveRules.IsCommander(actor) && AIUnitPreservationState.IsValidPoint(actor.transform.position);
+
     public AIUnitPreservationAssessment AssessPreservation(Status actor, AIBoardState board)
     {
-        if (board == null || actor == null || !actor.IsAlive || actor.team != board.ActorTeam || actor.type != Type.Unit
-            || MatchObjectiveRules.IsCommander(actor)) return default;
+        if (board == null || !IsRecoveryActor(actor, board.ActorTeam) || !board.AliveEnemyUnits.Contains(actor)) return default;
         Evaluate(board); PreparePreservation(board);
         if (preservationAssessments.TryGetValue(actor, out var cached)) return cached;
         var config = AIUnitPreservationConfig.Active;
@@ -66,6 +80,7 @@ public sealed partial class AIStrategicGovernor
         {
             foreach (var destination in board.GetValidMoves(actor))
             {
+                if (!AIUnitPreservationState.IsValidPoint(destination)) continue;
                 int cost = board.CalcMoveCost(actor, destination); if (cost > board.EnemyAP || cost < 0) continue;
                 float risk = IncomingDamage(board, actor, destination, null);
                 float later = RepeatedObservedLoss(board, actor, destination, null, config.Waves);
@@ -127,7 +142,7 @@ public sealed partial class AIStrategicGovernor
         {
             foreach (var patient in board.AliveEnemyUnits)
             {
-                if (patient == null || !patient.IsAlive || patient.type != Type.Unit) continue;
+                if (!IsRecoveryActor(patient, board.ActorTeam)) continue;
                 var threatened = AssessPreservation(patient, board);
                 if (threatened.Safety == AIUnitSafetyLevel.HoldPositionOrFight) continue;
                 if (IncomingDamage(board, patient, patient.transform.position, action.TargetUnit) + .001f < threatened.IncomingCurrent
@@ -135,7 +150,8 @@ public sealed partial class AIStrategicGovernor
                         + .001f < threatened.RepeatedObservedLoss) return 1;
             }
         }
-        if (action.ActionType == AIActionType.SkillUse && action.TargetUnit != null && action.TargetUnit.team == board.ActorTeam)
+        if (action.ActionType == AIActionType.SkillUse && IsRecoveryActor(action.TargetUnit, board.ActorTeam)
+            && board.AliveEnemyUnits.Contains(action.TargetUnit))
         {
             var patient = action.TargetUnit; var injured = AssessPreservation(patient, board);
             int healing = action.Skill != null && action.Unit.AssignedSkillId == action.Skill.Id
@@ -153,7 +169,8 @@ public sealed partial class AIStrategicGovernor
 
     public string PreservationRejectReason(AIAction action, AIBoardState board)
     {
-        if (action?.Unit == null || !IsMovement(action) || board == null) return null;
+        if (action?.Unit == null || !IsMovement(action) || board == null
+            || !AIUnitPreservationState.IsValidPoint(action.TargetPos)) return null;
         var recovery = AssessPreservation(action.Unit, board);
         if (recovery.Phase != AIUnitRecoveryPhase.Recovering || !recovery.HealingPossible) return null;
         float after = IncomingDamage(board, action.Unit, action.TargetPos, null);
@@ -163,6 +180,7 @@ public sealed partial class AIStrategicGovernor
     public AIUnitPreservationState CapturePreservationState(Team owner)
     {
         var result = new AIUnitPreservationState { Owner = owner };
+        if (!hasPreservationOwner || preservationOwner != owner) return result;
         foreach (var entry in unitRecovery.Values) if (result.Records.Count < AIUnitPreservationState.MaximumRecords) result.Records.Add(entry.Copy());
         result.Records.Sort((a, b) => string.CompareOrdinal(a.ActorLifeId, b.ActorLifeId));
         return result;
@@ -172,11 +190,13 @@ public sealed partial class AIStrategicGovernor
         ReleasePreservationState();
         var snapshot = AIUnitPreservationState.CopyForOwner(state, owner);
         if (snapshot == null) return;
+        preservationOwner = owner; hasPreservationOwner = true;
         foreach (var record in snapshot.Records) unitRecovery.Add(record.ActorLifeId, record);
     }
     public void ReleasePreservationState()
     {
         unitRecovery.Clear(); preservationAssessments.Clear(); preservationOwnIds.Clear(); staleRecoveryIds.Clear(); repeatedLossCache.Clear();
         preservationBoard = null; preservationGeneration = preservationConfigRevision = -1;
+        preservationOwner = default; hasPreservationOwner = false;
     }
 }

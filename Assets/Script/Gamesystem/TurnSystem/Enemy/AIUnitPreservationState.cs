@@ -46,20 +46,23 @@ public sealed class AIUnitPreservationState
     /// <summary>One bounded validator/copy for active governors and pending developer saves.</summary>
     public static AIUnitPreservationState CopyForOwner(AIUnitPreservationState source, Team owner)
     {
-        if (source == null || source.Version != 1 || source.Owner != owner
+        if (source == null || source.Version != 1 || source.Owner != owner || !Enum.IsDefined(typeof(Team), owner)
             || source.Records == null || source.Records.Count > MaximumRecords) return null;
         var copy = new AIUnitPreservationState { Owner = owner };
         var identities = new HashSet<string>(StringComparer.Ordinal);
         foreach (var record in source.Records)
         {
-            if (record == null || string.IsNullOrWhiteSpace(record.ActorLifeId) || record.ActorLifeId.Length > 128
-                || record.LastTurn < 0 || !Enum.IsDefined(typeof(AIUnitRecoveryPhase), record.Phase)
-                || record.Phase == AIUnitRecoveryPhase.Ready || !FinitePoint(record.Refuge)
+            if (!IsValidRecord(record)
                 || !identities.Add(record.ActorLifeId)) continue;
             copy.Records.Add(record.Copy());
         }
         return copy;
     }
-    static bool FinitePoint(Vector3 point) => !float.IsNaN(point.sqrMagnitude) && !float.IsInfinity(point.sqrMagnitude)
+    internal static bool IsValidRecord(AIUnitPreservationRecord record)
+        => record != null && !string.IsNullOrWhiteSpace(record.ActorLifeId) && record.ActorLifeId.Length <= 128
+            && record.LastTurn >= 0 && Enum.IsDefined(typeof(AIUnitRecoveryPhase), record.Phase)
+            && record.Phase != AIUnitRecoveryPhase.Ready && IsValidPoint(record.Refuge);
+
+    internal static bool IsValidPoint(Vector3 point) => !float.IsNaN(point.sqrMagnitude) && !float.IsInfinity(point.sqrMagnitude)
         && point.x >= 0 && point.x < 32768 && point.z >= 0 && point.z < 32768 && point.y >= -1024 && point.y <= 1024;
 }

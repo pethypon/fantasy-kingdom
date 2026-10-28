@@ -14,6 +14,17 @@ public static class AITurnBudget
     }
     static double Normalize(double milliseconds) => double.IsNaN(milliseconds) || double.IsInfinity(milliseconds)
         ? 0 : System.Math.Max(0, milliseconds);
+    /// <summary>Driver watchdog bound only. It cannot grant time beyond the unchanged formal game clock.</summary>
+    public static double ClampCompletionDeadline(double requestedMilliseconds, double officialRemainingMilliseconds = double.PositiveInfinity)
+    {
+        double requested = double.IsNaN(requestedMilliseconds) || double.IsInfinity(requestedMilliseconds) ? 0
+            : System.Math.Min(AIThinkingBudgetConfig.MaximumMilliseconds + AIThinkingBudgetConfig.MaximumCompletionGraceMilliseconds,
+                System.Math.Max(0, requestedMilliseconds));
+        double available = double.IsPositiveInfinity(officialRemainingMilliseconds) ? double.PositiveInfinity
+            : double.IsNaN(officialRemainingMilliseconds) || double.IsNegativeInfinity(officialRemainingMilliseconds) ? 0
+                : System.Math.Max(0, officialRemainingMilliseconds);
+        return System.Math.Min(requested, available);
+    }
     public static double LimitMs => limit;
     public static double ElapsedMs => clock == null ? 0 : System.Math.Max(clock.Elapsed.TotalMilliseconds,
         wallClock?.Elapsed.TotalMilliseconds ?? 0);

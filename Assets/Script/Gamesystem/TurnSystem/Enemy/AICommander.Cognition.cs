@@ -22,6 +22,9 @@ public partial class AICommander
     AICausalExperienceMemory cognitiveExperience;
     AICausalExperiencePersistence cognitiveRepository;
     bool cognitiveUnavailable, cognitiveWarning, cognitivePending, cognitiveReleaseRequested;
+    bool cognitivePrepared;
+    AIAction cognitivePromotedAction;
+    int cognitiveOriginalPriority, cognitivePromotionValue;
     long cognitiveEventId;
     long cognitiveObservedActionId = -1;
     string cognitiveBattleId;
@@ -54,8 +57,10 @@ public partial class AICommander
         cognitiveWorldBuilder ??= new AIWorldModelBuilder();
         cognitiveProblems ??= new AIProblemDetector(); cognitiveHypotheses ??= new AIHypothesisManager();
         cognitivePlanner ??= new AICognitivePlanner(); cognitiveMatcher ??= new AIStrategyKnowledgeMatcher();
+        cognitivePlanner.DiagnosticsEnabled = config.EnableDecisionDiagnostics;
         cognitiveTraces ??= new AICognitiveTraceBuffer(config.MaxTraceEntries);
-        cognitiveBattleId ??= operations?.State?.BattleId ?? reflection?.BattleId ?? "R4_" + _actorTeam + "_" + RandomSeed;
+        // Receipt identity only; never consumes map/decision RNG or participates in relative plan ordering.
+        cognitiveBattleId ??= operations?.State?.BattleId ?? reflection?.BattleId ?? "R4_" + Guid.NewGuid().ToString("N");
         ApplyRestoredCognition();
         if (cognitiveExperience == null && config.EnableGeneralizedExperience)
         {
@@ -70,9 +75,12 @@ public partial class AICommander
     }
     IEnumerator PrepareCognitionSteps(List<AIAction> actions)
     {
+        RestoreCognitivePromotion();
+        cognitivePrepared = false;
         var config = AICognitiveAIConfig.Active;
         if (!config.Enabled || !config.EnableWorldModel || cognitiveUnavailable || _board == null || AITurnBudget.RemainingMs < 5) yield break;
         IEnumerator work = null;
+        bool completed = false;
         try
         {
             config.Validate(); EnsureCognition(config);
@@ -97,7 +105,7 @@ public partial class AICommander
             cognitiveMatches.Clear();
             if (config.EnableKnowledge)
             {
-                var context = AIKnowledgeContextBuilder.Build(cognitiveWorld, actions, _threatLevel.Level, AssessCognitive);
+                var context = AIKnowledgeContextBuilder.BuildForRetrieval(cognitiveWorld, actions, _threatLevel.Level);
                 cognitiveMatcher.Match(context, cognitiveMatches, config.MaxKnowledgeMatches);
             }
             if (config.EnableAutonomousPlanning)
@@ -114,7 +122,7 @@ public partial class AICommander
                 bool running;
                 try { running = work.MoveNext(); }
                 catch (Exception error) { CognitiveFailed(error); break; }
-                if (!running) break;
+                if (!running) { completed = true; break; }
                 yield return null;
                 if (_turnGen == null || _turnGen.IsGameOver) yield break;
             }
@@ -122,9 +130,13 @@ public partial class AICommander
         finally { (work as IDisposable)?.Dispose(); }
         try
         {
+            cognitivePrepared = completed && !cognitiveUnavailable && cognitiveWorld.IsCurrent(_board)
+                && cognitiveWorld.OwnTurn == _turnCount && cognitivePlanner.BindPreferred(_board.Generation, actions, out _);
             var current = cognitivePlanner?.Current;
             if (current != null)
             {
+                if (cognitivePrepared && config.EnableMultiStepSquadPlanning)
+                    AICognitiveSquadPlanBuilder.Enrich(current, cognitiveWorld, _board, actions, config);
                 foreach (var problem in currentCognitiveProblems)
                     if ((problem.OperationId == 0 || problem.OperationId == current.ParentOperationId)
                         && !current.OriginProblemIds.Contains(problem.ProblemId) && current.OriginProblemIds.Count < 16)
@@ -171,19 +183,56 @@ public partial class AICommander
     }
     void ApplyCognitiveSelectionHint(List<AIAction> actions)
     {
+        RestoreCognitivePromotion();
         var config = AICognitiveAIConfig.Active;
-        if (!config.MayInfluenceActions || cognitiveUnavailable || cognitivePlanner == null || _board == null
+        if (!config.MayInfluenceActions || !cognitivePrepared || cognitiveWorld == null || !cognitiveWorld.IsCurrent(_board)
+            || cognitiveWorld.OwnTurn != _turnCount || cognitiveUnavailable || cognitivePlanner == null || _board == null
             || _governor.Mode == StrategicMode.EmergencyDefense || _governor.Mode == StrategicMode.EconomicRecovery) return;
         if (cognitivePlanner.BindPreferred(_board.Generation, actions, out var action))
         {
             var proof = AssessCognitive(action);
             if (!proof.Legal || !proof.HardSafe || action.StrategicPriority < 2) return;
             // Only ordinary strategy bands are aligned. Safety/economy bands 0/1 remain protected.
-            action.StrategicPriority = Math.Min(action.StrategicPriority, proof.PreparationProven ? 2 : 3);
+            int aligned = Math.Min(action.StrategicPriority, proof.PreparationProven ? 2 : 3);
+            if (aligned != action.StrategicPriority)
+            {
+                cognitivePromotedAction = action; cognitiveOriginalPriority = action.StrategicPriority; cognitivePromotionValue = aligned;
+                action.StrategicPriority = aligned;
+            }
         }
     }
+    void RestoreCognitivePromotion()
+    {
+        if (cognitivePromotedAction != null && cognitivePromotedAction.StrategicPriority == cognitivePromotionValue)
+            cognitivePromotedAction.StrategicPriority = cognitiveOriginalPriority;
+        cognitivePromotedAction = null;
+    }
+    void CompleteCognitiveLookahead(AISearchEngine engine, IReadOnlyDictionary<AIAction, float> scores, List<AIAction> actions)
+    {
+        var config = AICognitiveAIConfig.Active;
+        if (!config.Enabled || !cognitivePrepared || cognitiveUnavailable || cognitivePlanner == null || cognitiveWorld == null
+            || !cognitiveWorld.IsCurrent(_board) || engine.LastResultObservationIdentity != _board.ObservationIdentity
+            || engine.LastResultBoardGeneration != _board.Generation || engine.LastResultActorTeam != _actorTeam) return;
+        try
+        {
+            if (!cognitivePlanner.ObserveCompletedLookahead(cognitiveWorld, scores, engine.LastCompletedDepth, engine.LastResultKind, config)) return;
+            if (config.EnableMultiStepSquadPlanning && cognitivePlanner.Current != null)
+                AICognitiveSquadPlanBuilder.Enrich(cognitivePlanner.Current, cognitiveWorld, _board, actions, config);
+            ApplyCognitiveSelectionHint(actions);
+            var trace = cognitiveTraces?.Latest;
+            if (trace != null)
+            {
+                trace.SelectedPlanId = cognitivePlanner.Current?.PlanId;
+                trace.KnowledgeIds.Clear();
+                if (cognitivePlanner.Current != null) trace.KnowledgeIds.AddRange(cognitivePlanner.Current.KnowledgeIds);
+                trace.MinimaxCompletedDepth = engine.LastCompletedDepth; trace.MinimaxSourceKind = engine.LastResultKind;
+            }
+        }
+        catch (Exception error) { CognitiveFailed(error); }
+    }
     float CognitiveActionBonus(AIAction action)
-        => AICognitiveAIConfig.Active.MayInfluenceActions && !cognitiveUnavailable && cognitivePlanner?.Current != null
+        => AICognitiveAIConfig.Active.MayInfluenceActions && cognitivePrepared && cognitiveWorld != null && cognitiveWorld.IsCurrent(_board)
+            && cognitiveWorld.OwnTurn == _turnCount && !cognitiveUnavailable && cognitivePlanner?.Current != null
             && cognitivePlanner.Current.Status == AICognitivePlanStatus.Active
             && cognitivePlanner.Current.BoardGenerationAtValidation == _board?.Generation
             && cognitivePlanner.Current.NextActionKey == AICognitiveActionKey.For(action) ? .5f : 0;
@@ -310,6 +359,7 @@ public partial class AICommander
         foreach (var hypothesis in currentCognitiveHypotheses) trace.HypothesisIds.Add(hypothesis.HypothesisId);
         if (cognitivePlanner != null) foreach (var candidate in cognitivePlanner.Candidates)
         { trace.CandidatePlanIds.Add(candidate.PlanId); if (candidate.RejectionReason != null) trace.RejectedPlanReasons.Add(candidate.RejectionReason); }
+        if (cognitivePlanner != null) trace.RejectedPlanReasons.AddRange(cognitivePlanner.RejectedReasons);
         cognitiveTraces.Add(trace);
     }
     static string OperatorSignature(AICognitivePlan plan)
@@ -361,6 +411,8 @@ public partial class AICommander
         if (cognitivePending || cognitiveFallbackRecord != null) { cognitiveReleaseRequested = true; return; }
         EndCognitiveTurn(); cognitiveWorldBuilder?.Clear(); cognitiveProblems?.Clear(); cognitiveHypotheses?.Clear();
         cognitivePlanner?.Clear(); cognitiveWorld = null; cognitiveMatches.Clear(); cognitiveAttributions.Clear();
+        RestoreCognitivePromotion();
+        cognitivePrepared = false;
         cognitiveAssessments.Clear(); currentCognitiveProblems = Array.Empty<AIProblem>(); currentCognitiveHypotheses = Array.Empty<AIHypothesis>();
         cognitiveActionKnowledge.Clear();
         pendingCognitivePlan = null; pendingCognitiveAction = null; cognitiveReleaseRequested = false;

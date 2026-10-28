@@ -10,6 +10,9 @@ using UnityEngine;
 // =====================================================================
 public partial class AIBoardState
 {
+    // Provenance only: generations restart on a new per-turn board. Never used for scores, seeds or gameplay rules.
+    static long nextObservationIdentity;
+    public long ObservationIdentity { get; } = System.Threading.Interlocked.Increment(ref nextObservationIdentity);
     internal readonly Dictionary<(Vector3,Status),float> NearestAllyCache = new Dictionary<(Vector3,Status),float>();
     internal readonly Dictionary<(Vector3,Status,float),int> AllyDensityCache = new Dictionary<(Vector3,Status,float),int>();
     internal readonly Dictionary<(Vector3,float),bool> HealerCache = new Dictionary<(Vector3,float),bool>();

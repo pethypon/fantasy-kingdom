@@ -7,6 +7,17 @@ public partial class AICommander
     AICognitiveBattleState restoredCognitiveState;
     string futureCognitiveJson;
     const int MaximumCognitiveJson = 128 * 1024;
+    void ResetCognitionForLoad()
+    {
+        RestoreCognitivePromotion();
+        cognitiveWorldBuilder?.Clear(); cognitivePlanner?.Clear(); cognitiveProblems?.Clear(); cognitiveHypotheses?.Clear();
+        cognitiveWorld = null; cognitivePrepared = false; cognitiveMatches.Clear(); cognitiveAssessments.Clear(); cognitiveActionKnowledge.Clear();
+        cognitiveAttributions.Clear(); currentCognitiveProblems = Array.Empty<AIProblem>(); currentCognitiveHypotheses = Array.Empty<AIHypothesis>();
+        cognitivePending = cognitiveReleaseRequested = cognitiveUnavailable = cognitiveWarning = false;
+        pendingCognitivePlan = null; pendingCognitiveAction = null; cognitiveFallbackRecord = null;
+        cognitiveBattleId = null; cognitiveEventId = 0; cognitiveObservedActionId = -1;
+        restoredCognitiveState = null; futureCognitiveJson = null; cognitiveTraces?.Clear();
+    }
     string CaptureCognitiveState()
     {
         if (futureCognitiveJson != null) return futureCognitiveJson;
@@ -18,7 +29,7 @@ public partial class AICommander
         string json = JsonUtility.ToJson(state);
         return json.Length <= MaximumCognitiveJson ? json : null;
     }
-    void RestoreCognitiveState(string json, string expectedBattle, int ownTurn)
+    void RestoreCognitiveState(string json, string expectedBattle, int ownTurn, int globalTurn)
     {
         if (string.IsNullOrEmpty(json)) return;
         try
@@ -32,7 +43,7 @@ public partial class AICommander
                 futureCognitiveJson = json; cognitiveUnavailable = true;
                 Debug.LogWarning("[R4保存] 新しい版の計画を保持し、通常AIで続行します。"); return;
             }
-            if (!ValidCognitiveState(saved, _actorTeam, expectedBattle, ownTurn))
+            if (!ValidCognitiveState(saved, _actorTeam, expectedBattle, ownTurn, globalTurn))
             { Debug.LogWarning("[R4保存] 不正な計画を破棄し、現在の観測から再計画します。"); return; }
             restoredCognitiveState = saved; cognitiveBattleId = saved.BattleId; cognitiveEventId = saved.NextEventId;
         }
@@ -42,25 +53,27 @@ public partial class AICommander
     {
         if (restoredCognitiveState == null) return;
         cognitivePlanner.RestoreIntent(restoredCognitiveState.ActivePlan);
-        cognitiveHypotheses.Restore(restoredCognitiveState.Hypotheses, cognitiveBattleId, _actorTeam, _turnCount);
+        cognitiveHypotheses.Restore(restoredCognitiveState.Hypotheses, cognitiveBattleId, _actorTeam, _turnCount, _board?.TurnCount ?? int.MaxValue);
         restoredCognitiveState = null;
     }
-    public static bool ValidCognitiveState(AICognitiveBattleState saved, Team owner, string battleId, int ownTurn)
+    public static bool ValidCognitiveState(AICognitiveBattleState saved, Team owner, string battleId, int ownTurn, int globalTurn = int.MaxValue)
     {
         if (saved == null || saved.Version != 1 || saved.Owner != owner || saved.BattleId != battleId
             || !Bounded(saved.BattleId, 256) || saved.NextEventId < 0 || !Bounded(saved.LastReplanReason, 256, true)) return false;
         var plan = saved.ActivePlan;
         if (plan != null)
         {
+            bool intent = plan.Status == AICognitivePlanStatus.Suspended && plan.Steps != null && plan.Steps.Count == 0
+                && plan.LastValidatedTurn == -1 && plan.BoardGenerationAtValidation == -1;
             if (plan.OwnerTeam != owner || plan.BattleId != battleId || !Enum.IsDefined(typeof(AIOperationGoal), plan.Goal)
-                || !Enum.IsDefined(typeof(AICognitivePlanStatus), plan.Status) || !Bounded(plan.PlanId, 128)
-                || !Bounded(plan.Signature, 4096) || !Bounded(plan.ObjectiveRef, 256, true)
-                || !Bounded(plan.TargetObservedId, 128, true) || !Bounded(plan.PrimaryMethod, 64)
-                || plan.CreatedTurn < 0 || plan.CreatedTurn > ownTurn || plan.LastValidatedTurn < 0 || plan.LastValidatedTurn > ownTurn
-                || plan.BoardGenerationAtValidation < 0 || plan.ParentOperationId < 0 || plan.StrategicPriorityBand < 0 || plan.StrategicPriorityBand > 4
+                || plan.Goal == AIOperationGoal.None || !Enum.IsDefined(typeof(AICognitivePlanStatus), plan.Status) || !Bounded(plan.PlanId, 128, intent)
+                || !Bounded(plan.Signature, 4096, intent) || !Bounded(plan.ObjectiveRef, 256)
+                || !Bounded(plan.TargetObservedId, 128, true) || !Bounded(plan.PrimaryMethod, 64, intent)
+                || plan.CreatedTurn < 0 || plan.CreatedTurn > ownTurn || !intent && (plan.LastValidatedTurn < 0 || plan.LastValidatedTurn > ownTurn)
+                || !intent && plan.BoardGenerationAtValidation < 0 || plan.ParentOperationId < 0 || plan.StrategicPriorityBand < 0 || plan.StrategicPriorityBand > 4
                 || plan.KnowledgeIds == null || plan.KnowledgeVersions == null || plan.KnowledgeIds.Count > 12
-                || plan.KnowledgeIds.Count != plan.KnowledgeVersions.Count || !plan.HasValidDependencies()
-                || !FiniteCognitivePlan(plan) || !Bounded(plan.AbandonCondition, 512, true)
+                || plan.KnowledgeIds.Count != plan.KnowledgeVersions.Count || !intent && !plan.HasValidDependencies()
+                || !FiniteCognitivePlan(plan) || !Bounded(plan.SquadSequenceSignature, 2048, true) || !Bounded(plan.AbandonCondition, 512, true)
                 || !Bounded(plan.ReplanTrigger, 512, true) || !Bounded(plan.RejectionReason, 256, true)
                 || !ValidCognitiveStrings(plan.OriginProblemIds, 16, 256) || !ValidCognitiveStrings(plan.HypothesisIds, 32, 256)
                 || !ValidCognitiveStrings(plan.ExplanationEvidenceIds, 64, 256)
@@ -84,7 +97,7 @@ public partial class AICommander
                     || !AIWorldFact.Finite(response.LossLowerBound) || !AIWorldFact.Finite(response.LossUpperBound)
                     || response.LossLowerBound < 0 || response.LossUpperBound < response.LossLowerBound) return false;
         }
-        if (saved.Hypotheses != null && !new AIHypothesisManager().Restore(saved.Hypotheses, battleId, owner, ownTurn)) return false;
+        if (saved.Hypotheses != null && !new AIHypothesisManager().Restore(saved.Hypotheses, battleId, owner, ownTurn, globalTurn)) return false;
         return true;
     }
     static bool Bounded(string value, int length, bool optional = false) => value == null ? optional : value.Length <= length && (optional || value.Length > 0);
@@ -93,10 +106,18 @@ public partial class AICommander
     static bool FiniteCognitivePlan(AICognitivePlan p)
     {
         float[] values = { p.GoalProgress, p.EffectiveDamage, p.EffectiveSupport, p.PredictedIncomingDamage,
-            p.WorstCaseLoss, p.APCost, p.Delay, p.Confidence, p.Uncertainty, p.Utility, p.ExistingActionScore };
+            p.WorstCaseLoss, p.APCost, p.Delay, p.Confidence, p.Uncertainty, p.Utility, p.ExistingActionScore,
+            p.LookaheadDelta, p.LookaheadUtilityAdjustment };
         foreach (float value in values) if (!AIWorldFact.Finite(value)) return false;
         return p.APCost >= 0 && p.APCost <= APSystem.MaximumAP && p.EffectiveDamage >= 0 && p.EffectiveSupport >= 0
             && p.PredictedIncomingDamage >= 0 && p.WorstCaseLoss >= 0 && p.Delay >= 0
-            && p.Confidence >= 0 && p.Confidence <= 1 && p.Uncertainty >= 0 && p.Uncertainty <= 1;
+            && p.Confidence >= 0 && p.Confidence <= 1 && p.Uncertainty >= 0 && p.Uncertainty <= 1
+            && p.LookaheadCompletedDepth >= 0 && p.LookaheadCompletedDepth <= 20
+            && Mathf.Abs(p.LookaheadUtilityAdjustment) <= .15f
+            && (p.LookaheadCompletedDepth == 0 ? string.IsNullOrEmpty(p.LookaheadSourceKind) : p.LookaheadSourceKind == "minimax_completed")
+            && FiniteCognitivePosition(p.StartActorPosition) && FiniteCognitivePosition(p.ExpectedActorPosition);
     }
+    static bool FiniteCognitivePosition(Vector3 value)
+        => AIWorldFact.Finite(value.x) && AIWorldFact.Finite(value.y) && AIWorldFact.Finite(value.z)
+            && value.x >= 0 && value.x < 40 && value.z >= 0 && value.z < 40 && Mathf.Abs(value.y) <= 32768;
 }

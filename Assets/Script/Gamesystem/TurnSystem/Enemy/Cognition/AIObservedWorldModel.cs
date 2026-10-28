@@ -107,6 +107,7 @@ public sealed class AIObservedWorldModel
     public int OwnTurn { get; }
     public int GlobalTurn { get; }
     public int BoardGeneration { get; }
+    public long BoardIdentity { get; }
     public int Width { get; }
     public int Depth { get; }
     public int OwnAP { get; }
@@ -129,10 +130,11 @@ public sealed class AIObservedWorldModel
         AIObservedUnitValue[] own = null, AIObservedUnitValue[] observed = null, AIObservedUnitValue[] past = null,
         AIWorldTerrainValue[] terrain = null, AIWorldBeliefCell[] belief = null,
         AIWorldObjectiveValue[] objectives = null, AIWorldOperationValue[] operations = null,
-        AIWorldFact[] facts = null, bool truncated = false, int globalTurn = -1)
+        AIWorldFact[] facts = null, bool truncated = false, int globalTurn = -1, long boardIdentity = 0)
     {
         BattleId = battleId ?? string.Empty; ActorTeam = actorTeam; OwnTurn = ownTurn; BoardGeneration = generation;
         GlobalTurn = globalTurn >= 0 ? globalTurn : ownTurn;
+        BoardIdentity = boardIdentity;
         Width = Mathf.Clamp(width, 0, 256); Depth = Mathf.Clamp(depth, 0, 256); OwnAP = Mathf.Max(0, ownAp);
         OwnEconomy = economy; Truncated = truncated;
         OwnUnits = Freeze(own); ObservedOpponents = Freeze(observed); LastKnownOpponents = Freeze(past);
@@ -153,5 +155,6 @@ public sealed class AIObservedWorldModel
     public bool TryFact(string id, out AIWorldFact fact)
     { if (id != null) return factIndex.TryGetValue(id, out fact); fact = default; return false; }
     public AITruthValue Fact(string id) => TryFact(id, out var fact) ? fact.Truth : AITruthValue.Unknown;
-    public bool IsCurrent(AIBoardState board) => board != null && board.Generation == BoardGeneration && board.ActorTeam == ActorTeam;
+    public bool IsCurrent(AIBoardState board) => board != null && BoardIdentity != 0 && board.ObservationIdentity == BoardIdentity
+        && board.Generation == BoardGeneration && board.ActorTeam == ActorTeam && board.TurnCount == GlobalTurn;
 }

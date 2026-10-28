@@ -80,7 +80,8 @@ public static class PlayerAutoplayRunner
         var timeout = new FaultIterator();
         ((IDisposable)typeof(DeveloperPlayerAIController).GetField("steps", Private).GetValue(ai)).Dispose();
         typeof(DeveloperPlayerAIController).GetField("steps", Private).SetValue(ai, timeout);
-        typeof(DeveloperPlayerAIController).GetField("activeSeconds", Private).SetValue(ai, 12f);
+        // Force the watchdog boundary; synthetic delta time no longer advances the real elapsed clock.
+        typeof(DeveloperPlayerAIController).GetField("completionDeadlineMs", Private).SetValue(ai, 0d);
         ai.Tick(0);
         Check("timeout ends ordinary player turn once", turn.CurrentState is EnemyMove && timeout.Disposals == 1);
         Check("autoplay stays enabled while enemy acts", ai.Enabled && !ai.Tick(0));

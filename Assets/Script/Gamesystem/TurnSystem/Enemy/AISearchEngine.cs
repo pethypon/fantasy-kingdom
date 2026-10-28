@@ -66,6 +66,7 @@ public class AISearchEngine
         AILearning learning)
     {
         _nodesEvaluated = 0;
+        ResetResultMetadata();
 
         // シミュレーション参照が設定されている場合は完全シミュレーション
         if (_moveGen != null && _unitSet != null && _crystalSystem != null)
@@ -94,13 +95,40 @@ public class AISearchEngine
     AIMinimaxEngine minimax;
     public double LastMaxSliceMs { get; private set; }
     public int LastSliceCount { get; private set; }
+    /// <summary>Only completed Minimax iterations published by the latest finished call. Heuristics/cancelled work report zero.</summary>
+    public int LastCompletedDepth { get; private set; }
+    public string LastResultKind { get; private set; } = "none";
+    public int LastResultBoardGeneration { get; private set; } = -1;
+    public Team LastResultActorTeam { get; private set; } = Team.None;
+    public long LastResultObservationIdentity { get; private set; }
+    void ResetResultMetadata()
+    {
+        LastCompletedDepth = 0; LastResultKind = "none";
+        LastResultBoardGeneration = -1; LastResultActorTeam = Team.None; LastResultObservationIdentity = 0;
+    }
     public System.Collections.IEnumerator EvaluateWithLookaheadSteps(
         List<AIAction> candidates, AIBoardState board, Dictionary<AIAction, float> result,
         double sliceMilliseconds = 3, double decisionMilliseconds = 350)
     {
-        result.Clear();
+        ResetResultMetadata();
         LastMaxSliceMs = 0;
         LastSliceCount = 0;
+        if (candidates == null) throw new System.ArgumentNullException(nameof(candidates));
+        if (board == null) throw new System.ArgumentNullException(nameof(board));
+        if (result == null) throw new System.ArgumentNullException(nameof(result));
+        result.Clear();
+        // Reset at API entry, even if the caller disposes the returned iterator
+        // before its first MoveNext. Old completion metadata must not survive.
+        return EvaluateWithLookaheadCoreSteps(candidates, board, result, sliceMilliseconds, decisionMilliseconds);
+    }
+
+    System.Collections.IEnumerator EvaluateWithLookaheadCoreSteps(
+        List<AIAction> candidates, AIBoardState board, Dictionary<AIAction, float> result,
+        double sliceMilliseconds, double decisionMilliseconds)
+    {
+        int capturedGeneration = board.Generation;
+        Team capturedOwner = board.ActorTeam;
+        long capturedIdentity = board.ObservationIdentity;
         SimBoardState snapshot = null;
         if (_moveGen != null && _unitSet != null && _crystalSystem != null && _apSystem != null)
         {
@@ -116,6 +144,11 @@ public class AISearchEngine
                 result[candidate] = EvaluateActionHeuristic(candidate, board, baseValue, 1);
                 yield return null;
             }
+            if (result.Count > 0)
+            {
+                LastResultKind = "heuristic"; LastResultBoardGeneration = capturedGeneration;
+                LastResultActorTeam = capturedOwner; LastResultObservationIdentity = capturedIdentity;
+            }
             yield break;
         }
 
@@ -127,6 +160,7 @@ public class AISearchEngine
             minimax.ResponseModel = ResponseModel;
             // A single decision must not consume the entire turn and leave no time to act.
             double decisionBudget = System.Math.Min(AITurnBudget.RemainingMs, System.Math.Max(1, decisionMilliseconds));
+            bool completed = false;
             using (var work = minimax.BeginSearch(candidates, snapshot, board, result, (float)decisionBudget))
             {
                 while (true)
@@ -141,9 +175,17 @@ public class AISearchEngine
                     }
                     LastMaxSliceMs = work.MaxSliceMs;
                     LastSliceCount = work.SliceCount;
-                    if (!more) break;
+                    if (!more) { completed = true; break; }
                     yield return null;
                 }
+            }
+            // Do not publish a previous search's depth, an interrupted iterator's
+            // tentative work, or a failed search as a completed result.
+            if (completed && minimax.CompletedDepth > 0 && result.Count > 0)
+            {
+                LastCompletedDepth = minimax.CompletedDepth; LastResultKind = "minimax_completed";
+                LastResultBoardGeneration = capturedGeneration; LastResultActorTeam = capturedOwner;
+                LastResultObservationIdentity = capturedIdentity;
             }
         }
         finally { SimBoardPool.ReturnBoard(snapshot); }
@@ -174,6 +216,11 @@ public class AISearchEngine
         }
 
         _elapsedMs = (Time.realtimeSinceStartup * 1000f) - startTime;
+        if (result.Count > 0)
+        {
+            LastResultKind = "heuristic"; LastResultBoardGeneration = board.Generation;
+            LastResultActorTeam = board.ActorTeam; LastResultObservationIdentity = board.ObservationIdentity;
+        }
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AISearchEngine] フォールバック先読み完了: " +
             $"深さ{_maxDepth} 評価{_nodesEvaluated}ノード {_elapsedMs:F0}ms"); }
 

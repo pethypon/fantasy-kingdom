@@ -55,7 +55,7 @@ public sealed class AIWorldModelBuilder
                 destination.Add(value);
                 facts.Add(new AIWorldFact("actor:" + value.LifeId, AITruthValue.True,
                     AIWorldFactSource.CurrentObservation, observationTurn, 1, value.LifeId, value.Position, true));
-                if (value.IsCrystal)
+                if (value.IsCrystal && (value.Team == board.ActorTeam || value.Team == board.OpponentTeam))
                     objectives.Add(new AIWorldObjectiveValue("crystal:" + value.LifeId, 0,
                         value.Team == board.ActorTeam ? AIOperationGoal.DefendOwnCrystal : AIOperationGoal.DestroyEnemyCrystal,
                         value.LifeId, value.Position, true, AIWorldFactSource.CurrentObservation, observationTurn, 1));
@@ -79,7 +79,7 @@ public sealed class AIWorldModelBuilder
                     AIWorldFactSource.PastObservation, confidence));
                 facts.Add(new AIWorldFact("past:" + life, AITruthValue.Unknown, AIWorldFactSource.PastObservation,
                     memory.Turn, confidence, life, memory.Position, true, expirationPolicy: "observation-memory"));
-                if (memory.Kind == Kind.Crystal)
+                if (memory.Kind == Kind.Crystal && memory.ObservedTeam == board.OpponentTeam)
                     objectives.Add(new AIWorldObjectiveValue("remembered-crystal:" + life, 0,
                         AIOperationGoal.DestroyEnemyCrystal, life, memory.Position, true,
                         AIWorldFactSource.PastObservation, memory.Turn, confidence));
@@ -196,7 +196,8 @@ public sealed class AIWorldModelBuilder
             cachedBoard = board; maxUnitSetting = maxUnits; maxTerrainSetting = maxTerrainCells; BuildCount++;
             return cached = new AIObservedWorldModel(battleId, board.ActorTeam, ownTurn, board.Generation,
                 width, depth, board.EnemyAP, economy, own.ToArray(), observed.ToArray(), past.ToArray(),
-                terrain.ToArray(), belief.ToArray(), objectives.ToArray(), operations.ToArray(), facts.ToArray(), truncated, observationTurn);
+                terrain.ToArray(), belief.ToArray(), objectives.ToArray(), operations.ToArray(), facts.ToArray(), truncated, observationTurn,
+                board.ObservationIdentity);
         }
         finally { actors.Clear(); currentLives.Clear(); cells.Clear(); uniqueCells.Clear(); }
     }

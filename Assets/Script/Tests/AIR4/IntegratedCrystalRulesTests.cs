@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>Development contracts only. Added with R1; not an executed playtest or acceptance result.</summary>
+/// <summary>Registered development contracts. Added with R1; not an executed playtest or acceptance result.</summary>
 public static class IntegratedCrystalRulesTests
 {
     static int checks;

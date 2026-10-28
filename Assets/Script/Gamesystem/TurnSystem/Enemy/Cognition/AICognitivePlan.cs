@@ -37,6 +37,11 @@ public sealed class AICognitivePlan
     public Vector3 StartActorPosition, ExpectedActorPosition;
     public int StartTargetHP = -1, StartTargetBarrier = -1, StartOwnAP, StartOwnUnitCount;
     public string ActualObservationReason;
+    // A completed existing-search hint about the bound first action, not proof of every future Operator.
+    public int LookaheadCompletedDepth;
+    public float LookaheadDelta, LookaheadUtilityAdjustment;
+    public string LookaheadSourceKind;
+    public string SquadSequenceSignature;
     public string AbandonCondition, ReplanTrigger, RejectionReason;
     public string NextActionKey => Steps.Count == 0 ? string.Empty : Steps[0].BoundActionKey ?? string.Empty;
 

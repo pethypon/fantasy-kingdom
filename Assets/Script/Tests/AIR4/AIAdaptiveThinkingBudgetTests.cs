@@ -3,7 +3,7 @@ using System;
 using System.Reflection;
 using UnityEngine;
 
-/// <summary>Small policy/timer contracts. Not a match, performance benchmark or AI-behaviour audit.</summary>
+/// <summary>Registered policy/timer contracts. Not a match, performance benchmark or AI-behaviour audit.</summary>
 public static class AIAdaptiveThinkingBudgetTests
 {
     const BindingFlags PrivateStatic = BindingFlags.Static | BindingFlags.NonPublic;

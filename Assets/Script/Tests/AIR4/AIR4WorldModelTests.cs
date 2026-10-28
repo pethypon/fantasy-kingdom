@@ -73,6 +73,15 @@ public static class AIR4WorldModelTests
         Check("H-low-information-value", AIInformationValueEvaluator.Evaluate(1, .1f, 3, 2, 1, 1, true) < 0);
         Check("H-irrelevant-scout-value", AIInformationValueEvaluator.Evaluate(9999, 1, 0, 0, 0, 0, false) == 0);
         Check("H-nonfinite-information-value", AIInformationValueEvaluator.Evaluate(float.NaN, 1, 0, 0, 0, 0, true) == 0);
+        var distinctClocks = Model(3, operations: new[] { stalled }, globalTurn: 8);
+        var clockManager = new AIHypothesisManager();
+        var clockHypotheses = clockManager.Update(distinctClocks, new AIProblemDetector().Detect(distinctClocks));
+        Check("H-global-clock-event", clockManager.ObserveOutcome("event8", clockHypotheses[0].HypothesisId, AIHypothesisOutcome.Supported, 8));
+        var clockState = clockManager.Snapshot(distinctClocks.BattleId, distinctClocks.ActorTeam);
+        Check("SV-clock-values-roundtrip", clockState.LastOwnTurn == 3 && clockState.LastGlobalTurn == 8
+            && new AIHypothesisManager().Restore(clockState, distinctClocks.BattleId, distinctClocks.ActorTeam, 3, 8));
+        Check("SV-future-global-turn-rejected", !new AIHypothesisManager().Restore(clockState, distinctClocks.BattleId, distinctClocks.ActorTeam, 3, 7));
+        Check("H-future-outcome-rejected", !clockManager.ObserveOutcome("event9", clockHypotheses[0].HypothesisId, AIHypothesisOutcome.Supported, 9));
     }
 
     static AIObservedUnitValue Unit(string life, Team team)

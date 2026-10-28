@@ -5,17 +5,32 @@ using UnityEngine;
 /// <summary>Explicit manual entry point. Importing scripts never executes tests or starts a game.</summary>
 public static class AIR4CoreTests
 {
-    [UnityEditor.MenuItem("Fantasy Kingdom/AI/R4 契約テストを実行")]
+    [UnityEditor.MenuItem("Fantasy Kingdom/AI/R1・R3・R4 契約テストを実行")]
     public static void RunAll()
     {
+        if (!CanRun()) throw new InvalidOperationException("R1・R3・R4の契約テストは、再生を停止してから実行してください。");
         AIR4WorldModelTests.Run();
         AIR4KnowledgeTests.Run();
         AIR4PlannerTests.Run();
         AIR4SearchKeyTests.Run();
         AIR4CausalExperienceTests.Run();
         AIR4SaveTests.Run();
+        AIR4DiagnosticTests.Run();
+        AIR4LookaheadTests.Run();
+        AIR4SquadPlanTests.Run();
+        AIIntegratedR1ConfigTests.Run();
+        AIIntegratedR1TimeTests.Run();
+        AIIntegratedR1SquadTests.Run();
+        AIIntegratedR1RecruitmentTests.Run();
+        AIR3ScoutContinuityTests.Run();
+        AIR3RecoveryEconomyStateTests.Run();
+        AIAdaptiveThinkingBudgetTests.Run();
+        IntegratedCrystalRulesTests.Run(null);
         Debug.Log("[R4契約テスト] 登録済みの単体チェックを終了。実戦・152項目全体の合格を意味しません。");
     }
+    [UnityEditor.MenuItem("Fantasy Kingdom/AI/R1・R3・R4 契約テストを実行", true)]
+    static bool CanRun() => !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode
+        && !UnityEditor.EditorApplication.isCompiling && !UnityEditor.EditorApplication.isUpdating;
 }
 
 public static class AIR4SaveTests
@@ -41,6 +56,8 @@ public static class AIR4SaveTests
         Check("SV02/value-roundtrip", AICommander.ValidCognitiveState(JsonUtility.FromJson<AICognitiveBattleState>(JsonUtility.ToJson(blank)), Team.Enemy, "test", 1));
         var planner = new AICognitivePlanner(); planner.RestoreIntent(blank.ActivePlan);
         Check("SV03/no-reserved-action-replay", planner.Current != null && planner.Current.Steps.Count == 0 && planner.Current.Goal == blank.ActivePlan.Goal);
+        var intent = new AICognitiveBattleState { Owner = Team.Enemy, BattleId = "test", ActivePlan = planner.Current };
+        Check("SV03/restored-intent-can-be-saved-before-replanning", AICommander.ValidCognitiveState(intent, Team.Enemy, "test", 1));
         blank.ActivePlan.Confidence = float.NaN;
         Check("SV06/nonfinite", !AICommander.ValidCognitiveState(blank, Team.Enemy, "test", 1));
         blank.ActivePlan.Confidence = .5f; blank.ActivePlan.KnowledgeIds[0] = "UN-99";

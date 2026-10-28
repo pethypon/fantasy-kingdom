@@ -39,7 +39,7 @@ public sealed partial class AIExplorationPlanner
             if (!string.IsNullOrEmpty(score.RejectReason)) continue;
             float remaining = MeasureProgress(actor, candidate.RepresentativeCell, out bool proved, out int revision, out var waypoint);
             if (!proved || remaining <= 0) continue;
-            var objective = new ExploreObjective { ObjectiveId = nextObjectiveId++, FrontierRegionId = id,
+            var objective = new ExploreObjective { ObjectiveId = AllocateObjectiveId(), FrontierRegionId = id,
                 TargetCell = candidate.RepresentativeCell, AssignedUnitId = actor.UnitId, ActorLifeId = actor.ActorLifeId,
                 CreatedTurn = turn, LastProgressTurn = turn, State = ObjectiveState.Active,
                 BestDistance = remaining, LastDistance = remaining, LastUnknownCount = source.UnknownCellsBehind,
