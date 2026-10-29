@@ -1,0 +1,7 @@
+{
+  "SourceLog": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\playtest-20261028\\reflection-integrated-20261029.log",
+  "IntegratedChecksPassed": 93,
+  "CompletedMarker": true,
+  "NativeProcessReportedExitZero": true,
+  "Scope": "Native integrated reflection suite; includes deliberate fault injection. Nested objective-distance checks overlap focused contracts and are not added to the 93 integrated checks."
+}
