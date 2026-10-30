@@ -198,5 +198,5 @@ public class FactionState : MonoBehaviour
     // ==== 実効上限 ====
     public int GetResourceCap(Team team) => BaseResourceCap + GetNation(team).ResourceCapacity;
     public int GetCitizenCap(Team team) => BaseCitizenCap + GetNation(team).CitizenCapacity;
-    public int GetBarracksXP(Team team) => GetNation(team).BarracksXP;
+    public int GetBarracksXP(Team team) => 0; // Legacy data may be read, never grants experience.
 }

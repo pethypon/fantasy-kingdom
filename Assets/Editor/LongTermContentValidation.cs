@@ -121,7 +121,7 @@ public static class LongTermContentValidation
             var data = entry.data;
             if (!Enum.IsDefined(typeof(Kind), entry.kind) || entry.kind == Kind.None || data.kind != entry.kind)
                 result.Error(at, "基礎役割が能力データと一致しないか、不正です。");
-            if (!data.IsValidForAuthoring) result.Error(at, "HP・成長率・費用・維持費に不正な値があります。");
+            if (!data.IsValidForAuthoring) result.Error(at, "HP・費用・維持費に不正な値があります。");
             if (entry.standaloneDefinition || !string.IsNullOrEmpty(data.definitionId)) AddId(data.definitionId, at, ids, result);
             if (i < catalog.units.Count && !entry.standaloneDefinition && !legacyKinds.Add(entry.kind)) result.Error(at, "既存兵種の上書きが重複しています。");
             ValidatePrefab(data.prefab != null && entry.standaloneDefinition ? data.prefab : entry.prefab, at, result);
@@ -255,10 +255,10 @@ public static class LongTermContentValidation
     {
         if (rules == null || !rules.applyRules) return;
         string at = Location(rules);
-        if (!Finite(rules.turnSeconds) || rules.turnSeconds <= 0 || !Finite(rules.totalSeconds) || rules.totalSeconds <= 0
-            || !Finite(rules.timeBonusSeconds) || rules.timeBonusSeconds < 0 || !Finite(rules.noiseScale) || rules.noiseScale <= 0
+        // Historical clock fields are inert; old zero clocks must not invalidate an R2 rules asset.
+        if (!Finite(rules.noiseScale) || rules.noiseScale <= 0
             || !Finite(rules.riverHalfWidth) || rules.riverHalfWidth < 0 || rules.maximumAP < 3 || rules.maximumAP > GameConstants.MaxAP)
-            result.Error(at, "有効なゲームルールの時間・地形・AP設定が不正です。");
+            result.Error(at, "有効なゲームルールの地形・AP設定が不正です。");
         var teams = new HashSet<Team>();
         if (rules.factions == null) { result.Error(at, "陣営一覧がありません。"); return; }
         foreach (var faction in rules.factions)

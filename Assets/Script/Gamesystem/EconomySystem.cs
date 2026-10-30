@@ -39,7 +39,7 @@ public class EconomySystem : MonoBehaviour
     public static void RecalculateCapacity(BuildSystem buildSystem, FactionState factionState, Team team)
     {
         if (buildSystem == null || factionState == null || (team != Team.Player && team != Team.Enemy)) return;
-        long citizens = 0, storage = 0, training = 0;
+        long citizens = 0, storage = 0;
         var parent = buildSystem.GetBuildingParent(team);
         if (parent != null) foreach (Transform child in parent)
         {
@@ -47,12 +47,11 @@ public class EconomySystem : MonoBehaviour
             var recipe = FacilityData.GetLevel(actor, actor.Level);
             if (actor.facilityKind == FacilityKind.House || actor.facilityKind == FacilityKind.LuxuryHouse) citizens += recipe.SpecialValue;
             if (actor.facilityKind == FacilityKind.Warehouse) storage += recipe.SpecialValue;
-            if (actor.facilityKind == FacilityKind.Barracks) training += recipe.SpecialValue;
         }
         var nation = factionState.GetNation(team);
         nation.CitizenCapacity = (int)System.Math.Min(int.MaxValue - FactionState.BaseCitizenCap, citizens);
         nation.ResourceCapacity = (int)System.Math.Min(int.MaxValue - FactionState.BaseResourceCap, storage);
-        nation.BarracksXP = (int)System.Math.Min(int.MaxValue, training);
+        nation.BarracksXP = 0; // Legacy save field only. Buildings retain their upgrade levels.
     }
 
     /// <summary>
@@ -165,17 +164,16 @@ public class EconomySystem : MonoBehaviour
     private void PrepareBuildings(Team team, FactionState.ResourceData res)
     {
         buildingActors.Clear(); buildingRecipes.Clear();
-        long citizenCapacity = 0, resourceCapacity = 0, barracksXP = 0;
+        long citizenCapacity = 0, resourceCapacity = 0;
         Transform parent = buildSystem.GetBuildingParent(team);
         if (parent != null) foreach (Transform child in parent)
         {
             var actor = child.GetComponent<Status>();
             if (actor == null || !actor.IsAlive) continue;
-            var recipe = FacilityData.GetLevel(actor, actor.Level);
+            var recipe = FacilityData.GetProductionLevel(actor, actor.Level, buildSystem.Territory);
             var kind = actor.facilityKind;
             if (kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse) citizenCapacity += recipe.SpecialValue;
             if (kind == FacilityKind.Warehouse) resourceCapacity += recipe.SpecialValue;
-            if (kind == FacilityKind.Barracks) barracksXP += recipe.SpecialValue;
             actor.BuildingOperationAvailable = true;
             bool special = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse
                 || kind == FacilityKind.Warehouse || kind == FacilityKind.Barracks;
@@ -191,7 +189,7 @@ public class EconomySystem : MonoBehaviour
         var nation = factionState.GetNation(team);
         nation.CitizenCapacity = (int)System.Math.Min(int.MaxValue - FactionState.BaseCitizenCap, citizenCapacity);
         nation.ResourceCapacity = (int)System.Math.Min(int.MaxValue - FactionState.BaseResourceCap, resourceCapacity);
-        nation.BarracksXP = (int)System.Math.Min(int.MaxValue, barracksXP);
+        nation.BarracksXP = 0;
     }
 
     private void ProcessBuildingProduction(Team team, FactionState.ResourceData res)
@@ -219,9 +217,8 @@ public class EconomySystem : MonoBehaviour
     }
 
     // ==================================================================
-    //  2. ユニット維持費（通常駒はLv1から毎ターン資源を消費）
-    //  未払いターン数を Status.UpkeepUnpaidTurns で管理。
-    //    1-3: ATK/DEF -10%, 4-6: -25%, 7-9: -40%, 10+: 離脱
+    //  2. 固定維持費。所有陣営の同じターンには請求/未払い損失を重複しない。
+    //  未払いはHP20%損失（分母などはR2暫定設定）。能力低下・離脱は廃止。
     // ==================================================================
     private void ProcessUnitMaintenance(Team team, FactionState.ResourceData res)
     {
@@ -232,7 +229,8 @@ public class EconomySystem : MonoBehaviour
 
         int paidCount = 0;
         int unpaidCount = 0;
-        int defectCount = 0;
+        int losses = 0;
+        int ownTurn = factionState.GetNation(team).TurnsAlive;
 
         foreach (Transform child in unitParent)
         {
@@ -240,6 +238,8 @@ public class EconomySystem : MonoBehaviour
             if (status == null) continue;
             if (status.type != Type.Unit) continue;
             if (status.HP <= 0) continue;
+            if (status.LastMaintenanceRound == ownTurn) continue;
+            status.LastMaintenanceRound = ownTurn;
 
             UnitData data = status.GrowthData;
             if (data == null) unitSetting.UnitDataMap.TryGetValue(status.kind, out data);
@@ -249,7 +249,7 @@ public class EconomySystem : MonoBehaviour
                 continue;
             }
 
-            var upkeep = data.GetUpkeep(status.Level);
+            var upkeep = data.GetFixedUpkeep();
             if (upkeep.IsEmpty)
             {
                 status.UpkeepUnpaidTurns = 0;
@@ -264,27 +264,18 @@ public class EconomySystem : MonoBehaviour
             }
             else
             {
-                status.UpkeepUnpaidTurns = Mathf.Clamp(status.UpkeepUnpaidTurns, 0, GameConstants.UpkeepPenaltyDefectTurns) + 1;
+                status.UpkeepUnpaidTurns = (int)System.Math.Min(int.MaxValue, (long)Mathf.Max(0, status.UpkeepUnpaidTurns) + 1);
                 unpaidCount++;
-                if (status.UpkeepUnpaidTurns >= GameConstants.UpkeepPenaltyDefectTurns)
-                {
-                    // 10ターン不足 → 離脱（占有セル解除・Lv1リセット込みの共通死亡処理を使う）
-                    { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {status.kind} Lv{status.Level} が維持費不足で離脱"); }
-                    // Defection is an economic removal, not an attack that barriers, shields,
-                    // one-use damage nullification or a life link can absorb or redirect.
-                    SpecialSkillRuntime.ApplyHpChange(null, status, status.HP, HpChangeKind.ForcedDeath, deferCleanup: true);
-                    status.HandleDeathIfDead();
-                    defectCount++;
-                }
-                else
-                {
-                    { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {status.kind} Lv{status.Level} 維持費不足 ({status.UpkeepUnpaidTurns}T)"); }
-                }
+                int damage = R2EconomyRules.UnpaidDamage(status.HP, status.MaxHP);
+                // An economic HP loss has no attacking team, combat reward, barrier, link or shield interception.
+                SpecialSkillRuntime.ApplyHpChange(null, status, damage, HpChangeKind.DirectHpReduction);
+                if (!status.IsAlive) { status.HandleDeathIfDead(); losses++; }
+                if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {status.kind} 維持費不足 ({status.UpkeepUnpaidTurns}T): HP-{damage}");
             }
         }
 
-        if (paidCount > 0 || unpaidCount > 0 || defectCount > 0)
-            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} ユニット維持費: 支払{paidCount}, 不足{unpaidCount}, 離脱{defectCount}"); }
+        if (paidCount > 0 || unpaidCount > 0)
+            { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[EconomySystem] {team} ユニット維持費: 支払{paidCount}, 不足{unpaidCount}, HP損失による死亡{losses}"); }
     }
 
     // ==================================================================

@@ -1,0 +1,5 @@
+{
+  "base": "4897d5e9259cad1e5756526df50a914af729c43d",
+  "changedProtectedFiles": [],
+  "scope": "All map source, Scenes and Prefabs excluded from this patch. Actual generated dimensions remain35x35; the specification40x40 prerequisite is unmet."
+}

@@ -1,0 +1,128 @@
+4897d5e:Assets/Editor/GameDevelopmentStudioWindow.cs:135:            EditorGUILayout.LabelField("最大バリア（Lv1 / 最大Lv）", initial + " / " + BarrierSystem.Maximum(initial, GameConstants.MaxUnitLevel));
+4897d5e:Assets/Editor/GameDevelopmentStudioWindow.cs:136:            EditorGUILayout.HelpBox($"−1は兵種ごとの初期バリアを使用します。最大バリアは毎Lv＋{BarrierSystem.GrowthPerLevel}。ダメージはバリア、HPの順に減少します。", MessageType.Info);
+4897d5e:Assets/Editor/GameDevelopmentStudioWindow.cs:142:            if (usesBarrier) EditorGUILayout.LabelField("バリア成長", "毎Lv＋" + BarrierSystem.GrowthPerLevel);
+4897d5e:Assets/Script/Common/GameConstants.cs:9:    public const int MaxUnitLevel = 100;
+4897d5e:Assets/Script/Common/GameConstants.cs:91:    public const int XPRequiredLv2 = 10;
+4897d5e:Assets/Script/Common/GameConstants.cs:93:    public const float XPLevelMultiplier = 1.15f;
+4897d5e:Assets/Script/Gamesystem/BarrierSystem.cs:19:    public const int GrowthPerLevel = 2, SafeTurnThreshold = 3;
+4897d5e:Assets/Script/Gamesystem/BarrierSystem.cs:29:        (long)Mathf.Max(0, baseValue) + GrowthPerLevel * (long)(Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel) - 1));
+4897d5e:Assets/Script/Gamesystem/BattleSystem.cs:254:        Target.ResetToLv1();
+4897d5e:Assets/Script/Gamesystem/BuildingAttackSystem.cs:296:            if (target.type == Type.Unit) target.ResetToLv1();
+4897d5e:Assets/Script/Gamesystem/EconomySystem.cs:55:        nation.BarracksXP = (int)System.Math.Min(int.MaxValue, training);
+4897d5e:Assets/Script/Gamesystem/EconomySystem.cs:194:        nation.BarracksXP = (int)System.Math.Min(int.MaxValue, barracksXP);
+4897d5e:Assets/Script/Gamesystem/EconomySystem.cs:252:            var upkeep = data.GetUpkeep(status.Level);
+4897d5e:Assets/Script/Gamesystem/ThirdFaction/ThirdFactionDirector.cs:215:        => UnitData.CalcStat(stats.baseATK, stats.atkGrowth, level) * 2
+4897d5e:Assets/Script/Gamesystem/ThirdFaction/ThirdFactionDirector.cs:216:            + UnitData.CalcStat(stats.baseDEF, stats.defGrowth, level)
+4897d5e:Assets/Script/Gamesystem/ThirdFaction/ThirdFactionDirector.cs:217:            + Mathf.Sqrt(Mathf.Max(1, UnitData.CalcStat(stats.baseHP, stats.hpGrowth, level)));
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/AIEvolutionPolicy.cs:135:                if (level >= 3 && a.Unit.Level < GameConstants.MaxUnitLevel
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/AIEvolutionPolicy.cs:136:                    && (long)a.Unit.Experience + Mathf.Min(damage, target.HP) >= Status.XPRequiredForLevel(a.Unit.Level + 1)
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs:98:            var upkeep = definition.GetUpkeep(1);
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/Reflection/AIArmyUtilizationAnalyzer.cs:91:                var upkeep = definition.GetUpkeep(unit.Level);
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs:132:            var upkeep = definition.GetUpkeep(actor.Level);
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs:274:            if (additionalUnit != null) Pay(additionalUnit.GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs:276:                Pay(pendingRecruit.GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs:278:                Pay(schedule.Units[r].GetUpkeep(1), ref breadFail, ref upkeepFail, ref mandatoryMask);
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs:505:            var cost = UnitCost(unit); var upkeep = unit.GetUpkeep(1);
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs:570:                AddTo(planned, unit.GetUpkeep(Mathf.Clamp(settings.plannedUnitLevel, 1, 8)), recruitWeight);
+4897d5e:Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs:581:        AddTo(planned, definition.GetUpkeep(Mathf.Clamp(settings.plannedUnitLevel, 1, 8)), summonWeight);
+4897d5e:Assets/Script/Initialization/SaveGameApplier.cs:265:        s.Level = s.type == Type.Unit ? Mathf.Clamp(ud.Level, 1, GameConstants.MaxUnitLevel) : ud.Level;
+4897d5e:Assets/Script/SaveLoad/SaveSystem.Collect.cs:337:        dst.BarracksXP = nation.BarracksXP;
+4897d5e:Assets/Script/SaveLoad/SaveSystem.DataTypes.cs:302:        public int BarracksXP;
+4897d5e:Assets/Script/SaveLoad/SaveSystem.Restore.cs:72:        nation.BarracksXP = src.BarracksXP;
+4897d5e:Assets/Script/SaveLoad/SaveSystem.Validation.cs:151:        && n.CitizenCapacity >= 0 && n.ResourceCapacity >= 0 && n.BarracksXP >= 0 && n.PendingReturns != null && n.PendingReturns.Count <= 4096;
+4897d5e:Assets/Script/Tests/ReflectionBalanceCoreTests.cs:56:                var upkeep = unit.GetUpkeep(level);
+4897d5e:Assets/Script/Tests/ReflectionBalanceCoreTests.cs:62:            var authored = unit.GetUpkeep(10);
+4897d5e:Assets/Script/Tests/ReflectionBalanceCoreTests.cs:65:            unit.kind = Kind.King; Check("137 king is exempt even with authored cost", unit.GetUpkeep(20).IsEmpty);
+4897d5e:Assets/Script/Tests/ReflectionBalanceCoreTests.cs:66:            unit.kind = Kind.Boss; Check("137 demon lord boss is exempt", unit.GetUpkeep(20).IsEmpty);
+4897d5e:Assets/Script/Tests/ReflectionBalanceCoreTests.cs:68:            Check("137 explicitly authored summoned body is exempt", unit.GetUpkeep(20).IsEmpty);
+4897d5e:Assets/Script/Tests/ReflectionBalanceCoreTests.cs:70:            Check("137 normal production unit is not accidentally summoned-body exempt", !unit.GetUpkeep(1).IsEmpty);
+4897d5e:Assets/Script/UI/BuildSummonUIBuilder.AuthoredUnits.cs:67:            + (data != null && !data.GetUpkeep(1).IsEmpty ? "\n維持/T " + FormatProductionBundle(data.GetUpkeep(1)) : string.Empty)
+4897d5e:Assets/Script/UI/GameManualUI.cs:235:        sb.AppendLine($"  固定成長 HP+{UnitData.CalcGrowthPerLevel(hp, hpGrowth)}"
+4897d5e:Assets/Script/UI/GameManualUI.cs:236:            + (usesBarrier ? $" / バリア+{BarrierSystem.GrowthPerLevel}" : "") + $" / ATK+{UnitData.CalcGrowthPerLevel(atk, atkGrowth)}"
+4897d5e:Assets/Script/UI/GameManualUI.cs:237:            + $" / Lv（最大Lv{GameConstants.MaxUnitLevel}）");
+4897d5e:Assets/Script/UI/GameManualUI.cs:252:$"  Lv2に必要なXP: {GameConstants.XPRequiredLv2}、各レベルで ×{GameConstants.XPLevelMultiplier} 倍ずつ増加。\n" +
+4897d5e:Assets/Script/UI/GameManualUI.cs:257:"  実獲得XP = floor(damage × (1 + BarracksXP%/100))\n\n" +
+4897d5e:Assets/Script/UI/GameManualUI.cs:279:$"  通常駒は先にバリアを消耗し、超過ダメージだけHPから減少します。最大バリアは兵種ごとの初期値＋{BarrierSystem.GrowthPerLevel}×（Lv−1）。\n" +
+4897d5e:Assets/Script/UI/GameManualUI.cs:283:    ? $"増えた最大値の分だけ増加（毎Lv＋{BarrierSystem.GrowthPerLevel}、最大値まで）。\n" : "現在値を維持し、最大値だけ増加。\n") +
+4897d5e:Assets/Script/UI/SpecialSkillPresentation.cs:168:                .Append("。先にバリアを消耗し、超過分だけHPが減少します。最大値は毎Lv＋").Append(BarrierSystem.GrowthPerLevel).Append('。')
+4897d5e:Assets/Script/UI/SummonUnitTooltip.cs:43:        int hp = UnitData.CalcStat(data.baseHP, data.hpGrowth, 1);
+4897d5e:Assets/Script/UI/SummonUnitTooltip.cs:50:        text.Append("\n攻撃力 ").Append(UnitData.CalcStat(data.baseATK, data.atkGrowth, 1));
+4897d5e:Assets/Script/UI/SummonUnitTooltip.cs:52:        var upkeep = data.GetUpkeep(1);
+4897d5e:Assets/Script/UI/UnitPanelUI.cs:467:            levelText.text = currentUnit.Level >= GameConstants.MaxUnitLevel ? $"Lv {GameConstants.MaxUnitLevel}  <size=75%>MAX</size>"
+4897d5e:Assets/Script/Unit&Battle/FactionState.cs:88:    public int PlayerBarracksXP
+4897d5e:Assets/Script/Unit&Battle/FactionState.cs:90:        get => PlayerNation.BarracksXP;
+4897d5e:Assets/Script/Unit&Battle/FactionState.cs:91:        set => PlayerNation.BarracksXP = value;
+4897d5e:Assets/Script/Unit&Battle/FactionState.cs:103:    public int EnemyBarracksXP
+4897d5e:Assets/Script/Unit&Battle/FactionState.cs:105:        get => EnemyNation.BarracksXP;
+4897d5e:Assets/Script/Unit&Battle/FactionState.cs:106:        set => EnemyNation.BarracksXP = value;
+4897d5e:Assets/Script/Unit&Battle/FactionState.cs:201:    public int GetBarracksXP(Team team) => GetNation(team).BarracksXP;
+4897d5e:Assets/Script/Unit&Battle/NationState.cs:24:    public int BarracksXP;
+4897d5e:Assets/Script/Unit&Battle/Status.cs:546:        var thresholds = new int[GameConstants.MaxUnitLevel + 1];
+4897d5e:Assets/Script/Unit&Battle/Status.cs:547:        int required = GameConstants.XPRequiredLv2;
+4897d5e:Assets/Script/Unit&Battle/Status.cs:548:        for (int level = 2; level <= GameConstants.MaxUnitLevel; level++)
+4897d5e:Assets/Script/Unit&Battle/Status.cs:550:            if (level > 2) required = Mathf.CeilToInt(required * GameConstants.XPLevelMultiplier);
+4897d5e:Assets/Script/Unit&Battle/Status.cs:556:    public static int XPRequiredForLevel(int level)
+4897d5e:Assets/Script/Unit&Battle/Status.cs:557:        => LevelXP[Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel)];
+4897d5e:Assets/Script/Unit&Battle/Status.cs:560:    public void GainExperience(int amount)
+4897d5e:Assets/Script/Unit&Battle/Status.cs:566:        Level = Mathf.Clamp(Level, 1, GameConstants.MaxUnitLevel);
+4897d5e:Assets/Script/Unit&Battle/Status.cs:567:        if (Level >= GameConstants.MaxUnitLevel) return;
+4897d5e:Assets/Script/Unit&Battle/Status.cs:571:        int hpGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseHP, GrowthData.hpGrowth)
+4897d5e:Assets/Script/Unit&Battle/Status.cs:572:            : UnitData.CalcGrowthPerLevel(growth.BaseHP, growth.HpGrowth);
+4897d5e:Assets/Script/Unit&Battle/Status.cs:573:        int atkGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseATK, GrowthData.atkGrowth)
+4897d5e:Assets/Script/Unit&Battle/Status.cs:574:            : UnitData.CalcGrowthPerLevel(growth.BaseATK, growth.AtkGrowth);
+4897d5e:Assets/Script/Unit&Battle/Status.cs:575:        int defGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseDEF, GrowthData.defGrowth)
+4897d5e:Assets/Script/Unit&Battle/Status.cs:576:            : UnitData.CalcGrowthPerLevel(growth.BaseDEF, growth.DefGrowth);
+4897d5e:Assets/Script/Unit&Battle/Status.cs:577:        while (Level < GameConstants.MaxUnitLevel && Experience >= XPRequiredForLevel(Level + 1))
+4897d5e:Assets/Script/Unit&Battle/Status.cs:609:            ? factions.GetBarracksXP(attacker.team) : 0;
+4897d5e:Assets/Script/Unit&Battle/Status.cs:610:        if (attacker.type == Type.Unit) attacker.GainExperienceFromDamage(SpecialSkillRuntime.ExperienceDamage(attacker, target, damage), bonus);
+4897d5e:Assets/Script/Unit&Battle/Status.cs:625:    public void GainExperienceFromDamage(int damage, int barracksXPPercent)
+4897d5e:Assets/Script/Unit&Battle/Status.cs:629:        GainExperience(actualXP);
+4897d5e:Assets/Script/Unit&Battle/Status.cs:641:    public void ResetToLv1()
+4897d5e:Assets/Script/Unit&Battle/Status.cs:736:        ResetToLv1();
+4897d5e:Assets/Script/Unit&Battle/StatusBalanceRefresh.cs:21:            maxHP = UnitData.CalcStat(definition.baseHP, definition.hpGrowth, actor.Level);
+4897d5e:Assets/Script/Unit&Battle/StatusBalanceRefresh.cs:22:            atk = UnitData.CalcStat(definition.baseATK, definition.atkGrowth, actor.Level);
+4897d5e:Assets/Script/Unit&Battle/StatusBalanceRefresh.cs:23:            def = UnitData.CalcStat(definition.baseDEF, definition.defGrowth, actor.Level); return true;
+4897d5e:Assets/Script/Unit&Battle/StatusBalanceRefresh.cs:26:        maxHP = UnitData.CalcStat(legacy.BaseHP, legacy.HpGrowth, actor.Level);
+4897d5e:Assets/Script/Unit&Battle/StatusBalanceRefresh.cs:27:        atk = UnitData.CalcStat(legacy.BaseATK, legacy.AtkGrowth, actor.Level);
+4897d5e:Assets/Script/Unit&Battle/StatusBalanceRefresh.cs:28:        def = UnitData.CalcStat(legacy.BaseDEF, legacy.DefGrowth, actor.Level); return true;
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:85:        return 1 + Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel) / 10;
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:91:    public FacilityData.ProductionBundle GetUpkeep(int level)
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:120:    public static int CalcGrowthPerLevel(int baseStat, float growth)
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:128:    public static int CalcStat(int baseStat, float growth, int level)
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:130:        level = Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel);
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:131:        return (int)System.Math.Min(int.MaxValue, (long)baseStat + (long)CalcGrowthPerLevel(baseStat, growth) * (level - 1));
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:146:        level = Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel);
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:150:        status.ATK = CalcStat(baseATK, atkGrowth, level);
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:151:        status.HP = CalcStat(baseHP, hpGrowth, level);
+4897d5e:Assets/Script/Unit&Battle/UnitData.cs:154:        status.DEF = CalcStat(baseDEF, defGrowth, level);
+4897d5e:Tests~/AIClosingPlaytest.cs:52:        public int PlayerMaxUnitLevel, EnemyMaxUnitLevel;
+4897d5e:Tests~/AIClosingPlaytest.cs:332:            "playerResourceCapacity", "enemyResourceCapacity", "playerMaxUnitLevel", "enemyMaxUnitLevel");
+4897d5e:Tests~/AIClosingPlaytest.cs:339:        match.CombatRules = "R1 confirmed table; +"+BarrierSystem.GrowthPerLevel+" per level. "
+4897d5e:Tests~/AIClosingPlaytest.cs:420:            match.PlayerMaxUnitLevel=match.EnemyMaxUnitLevel=0;
+4897d5e:Tests~/AIClosingPlaytest.cs:439:                    if(actor.team==Team.Player)match.PlayerMaxUnitLevel=Mathf.Max(match.PlayerMaxUnitLevel,actor.Level);
+4897d5e:Tests~/AIClosingPlaytest.cs:440:                    if(actor.team==Team.Enemy)match.EnemyMaxUnitLevel=Mathf.Max(match.EnemyMaxUnitLevel,actor.Level);
+4897d5e:Tests~/AIClosingPlaytest.cs:467:            match.PlayerResourceCapacity, match.EnemyResourceCapacity, match.PlayerMaxUnitLevel, match.EnemyMaxUnitLevel);
+4897d5e:Tests~/AIEvolutionTests.cs:101:            u.Experience=Status.XPRequiredForLevel(11)-1;attack.Score=0;scorer.Score(scored,b,learner);
+4897d5e:Tests~/AuthoringUnitsTests.cs:110:            restored.Experience = 0; restored.GainExperience(Status.XPRequiredForLevel(2));
+4897d5e:Tests~/AuthoringUnitsTests.cs:111:            Check("custom unit levels using its own definition", restored.MaxHP == UnitData.CalcStat(a.baseHP, a.hpGrowth, 2));
+4897d5e:Tests~/EconomyBalanceTests.cs:43:            try { Check("royalty remains exempt", king.GetUpkeep(1).Wood == 0); }
+4897d5e:Tests~/HeadHPRegressionTests.cs:26:            status.GainExperience(Status.XPRequiredForLevel(2));typeof(UnitHeadUI).GetMethod("LateUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(ui, null);
+4897d5e:Tests~/InformationGrowthTests.cs:24:                    Check("fixed increments "+pair.Key, new Vector3Int(UnitData.CalcGrowthPerLevel(data.baseHP,data.hpGrowth),UnitData.CalcGrowthPerLevel(data.baseATK,data.atkGrowth),UnitData.CalcGrowthPerLevel(data.baseDEF,data.defGrowth)) == pair.Value);
+4897d5e:Tests~/InformationGrowthTests.cs:27:                    for(int level=2;level<=GameConstants.MaxUnitLevel;level++) {
+4897d5e:Tests~/InformationGrowthTests.cs:28:                        unit.GainExperience(Status.XPRequiredForLevel(level)-unit.Experience);
+4897d5e:Tests~/InformationGrowthTests.cs:29:                        equal &= unit.Level==level && unit.MaxHP==UnitData.CalcStat(data.baseHP,data.hpGrowth,level) && unit.HP==unit.MaxHP-1
+4897d5e:Tests~/InformationGrowthTests.cs:30:                            && unit.ATK==UnitData.CalcStat(data.baseATK,data.atkGrowth,level)+7 && unit.DEF==UnitData.CalcStat(data.baseDEF,data.defGrowth,level);
+4897d5e:Tests~/InformationGrowthTests.cs:33:                    int hp=unit.MaxHP;unit.GainExperience(int.MaxValue);unit.GainExperience(int.MaxValue);
+4897d5e:Tests~/InformationGrowthTests.cs:42:            Check("half rounds upward, minimum 2",UnitData.CalcGrowthPerLevel(10,.25f)==3&&UnitData.CalcGrowthPerLevel(5,.7f)==4&&UnitData.CalcGrowthPerLevel(1,0)==2);
+4897d5e:Tests~/InformationGrowthTests.cs:45:                unit.kind=Kind.None;unit.Experience=0;custom.ApplyToStatus(unit,1);unit.GainExperience(Status.XPRequiredForLevel(2));
+4897d5e:Tests~/InformationGrowthTests.cs:47:                unit.HP=0;unit.ResetToLv1();Check("custom respawn baseline preserved",unit.Level==1&&unit.MaxHP==5&&unit.HP==0&&unit.ATK==2);
+4897d5e:Tests~/InformationGrowthTests.cs:50:            unit.GainExperience(Status.XPRequiredForLevel(2));Check("level up does not revive",unit.HP==0&&unit.Level==2);
+4897d5e:Tests~/PlaytestBalanceRegressionTests.cs:15:            && enemy.GrowthData.baseHP == 500 && UnitData.CalcGrowthPerLevel(500, enemy.GrowthData.hpGrowth) == 25);
+4897d5e:Tests~/RoleBalanceAudit.cs:206:                var ability = SpecialSkillRuntime.Definition(actor); var upkeep = data.GetUpkeep(level);
+4897d5e:Tests~/SpecialSkillUITests.cs:109:            Check("summon hover uses canonical upkeep and fixed ability instead of a legacy random choice", tooltipText.Contains(BuildSummonUIBuilder.FormatProductionBundle(data.GetUpkeep(1)))
+4897d5e:Tests~/StudioSettingTests.cs:249:            Check("upkeep UI formatter shows authored iron and bread instead of legacy defaults", BuildSummonUIBuilder.FormatProductionBundle(definition.GetUpkeep(1)).Contains("鉄4")
+4897d5e:Tests~/StudioSettingTests.cs:250:                && BuildSummonUIBuilder.FormatProductionBundle(definition.GetUpkeep(1)).Contains("パン3"));
+4897d5e:Tests~/StudioSettingTests.cs:309:                    && board.ResolveUnitDefinition(Kind.Knight).GetUpkeep(1).Bread == 8);
+4897d5e:Tests~/StudioSettingTests.cs:341:            actor.GainExperience(Status.XPRequiredForLevel(2));
+4897d5e:Tests~/StudioSettingTests.cs:356:            actor.GainExperience(Status.XPRequiredForLevel(2));
+4897d5e:Tests~/TerrainFinalValidation.log:4064:Status:GainExperience (int) (at Assets/Script/Unit&Battle/Status.cs:513)

@@ -56,6 +56,7 @@ public static class AIClosingPlaytest
         public int PlayerInputBlockedProducers, EnemyInputBlockedProducers, PlayerResourceCapacity, EnemyResourceCapacity;
         public double Seconds;
         public float InitialTimeScale, InitialTurnTimeLimit, TerrainSeedX, TerrainSeedZ;
+        public bool GameplayTimeLimitsEnabled, PlayerEngineerConfigured, EnemyEngineerConfigured;
         public int PlayerKingHP, PlayerCrystalHP, EnemyKingHP, EnemyCrystalHP, Errors, Exceptions, Assertions;
         public int PlayerCommanderHP, EnemyCommanderHP, PlayerCommandersFound, EnemyCommandersFound;
         public string PlayerCommanderKinds, EnemyCommanderKinds;
@@ -336,7 +337,7 @@ public static class AIClosingPlaytest
         frameTimes.Clear(); heavyLives.Clear(); dragonLives.Clear(); sampledFrame = lastCaptureRound = -1;
         match.InitialMemoryMB = match.FinalMemoryMB = match.PeakMemoryMB = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong()/(1024f*1024f);
         match.BarrierEnabled = BarrierCombatSettings.Active.enabledForPlay; match.BarrierRevision = BarrierCombatSettings.Active.specificationRevision;
-        match.CombatRules = "R1 confirmed table; +"+BarrierSystem.GrowthPerLevel+" per level. "
+        match.CombatRules = "R2 fixed unit bases x1.75; upkeep x5; barrier has no level growth. "
             + SpecialSkillPresentation.BarrierRecoveryDescription();
         SpecialSkillRuntime.HpChangeCommitted += OnHpChange;
         initialized = true;
@@ -368,6 +369,12 @@ public static class AIClosingPlaytest
                     s.FactionState, s.SkillSystem, s.SubCrystalSystem, match.ThreatLevel, match.EnemyAISeed, Team.Enemy);
                 enemy = new SideObserver(s.AICommander, match.Enemy);
                 match.EnemyPersonality = major.ToString(); match.InitialTurnTimeLimit = s.TimerSystem.TurnTimeLimit;
+                match.GameplayTimeLimitsEnabled = s.TimerSystem.TimeLimitsEnabled;
+                if (s.UnitSetting.UnitDataMap.TryGetValue(Kind.Engineer, out var engineer))
+                {
+                    match.PlayerEngineerConfigured = engineer != null && engineer.IsValidForAuthoring && engineer.AvailableFor(Team.Player);
+                    match.EnemyEngineerConfigured = engineer != null && engineer.IsValidForAuthoring && engineer.AvailableFor(Team.Enemy);
+                }
                 match.TerrainSeedX = s.MapCreate.SeedX; match.TerrainSeedZ = s.MapCreate.SeedZ;
                 ObserveDecisiveActors();
                 AIPlaytestMapEvidence.CaptureInitial(turn, folder);

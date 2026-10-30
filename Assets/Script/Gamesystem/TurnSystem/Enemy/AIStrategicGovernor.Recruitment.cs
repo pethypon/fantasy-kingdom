@@ -33,13 +33,14 @@ public sealed partial class AIStrategicGovernor
         recruitmentBoard = board; recruitmentPlan.Clear(); recruitmentForecastUnits.Clear(); recruitmentReasons.Clear(); recruitmentCounts.Clear(); recruitmentBlocks.Clear();
         RecruitmentCitizenDemand = RecruitmentRequiredCitizenStock = 0;
         board.CollectRecruitDefinitions(recruitmentDefinitions);
-        int frontline = 0, ranged = 0, healers = 0, scouts = 0, fighters = 0, wounded = 0, observedFighters = 0;
+        int frontline = 0, ranged = 0, healers = 0, scouts = 0, engineers = 0, fighters = 0, wounded = 0, observedFighters = 0;
         foreach (var actor in board.AliveEnemyUnits)
         {
             if (actor == null || !actor.IsAlive || actor.type != Type.Unit || MatchObjectiveRules.IsCommander(actor)) continue;
             recruitmentCounts.TryGetValue(actor.kind, out int count); recruitmentCounts[actor.kind] = count + 1;
             string role = AIHealingCapability.HasHealing(actor) ? "healer" : NonHealingRecruitmentRole(actor.GrowthData, actor.kind);
             if (role == "scout") scouts++;
+            else if (role == "engineer") engineers++;
             else if (role == "healer") healers++;
             else if (role == "frontline" || role == "ranged")
             {
@@ -58,6 +59,8 @@ public sealed partial class AIStrategicGovernor
         if (healers == 0 && fighters >= 3 && (wounded > 0 || expedition))
             if (AddRecruitmentRole(board, "healer", wounded > 0 ? "wounded_army_without_healer" : "expedition_without_healer")) healers++;
         if (frontline == 0 && AddRecruitmentRole(board, "frontline", "frontline_missing")) { frontline++; fighters++; }
+        if (engineers == 0 && fighters > 0 && AIActionGenerator.HasRareOreSupplyGap(board))
+            if (AddRecruitmentRole(board, "engineer", "outside_territory_ore_supply_missing")) engineers++;
         if (scouts == 0 && (!board.PlayerCrystalVisible && board.GetExplorationRatio() < 1f || TerritoryIntel.HasUsableTerritory && !HasActiveTerritoryAdvance))
             if (AddRecruitmentRole(board, "scout", "reconnaissance_role_missing")) scouts++;
         if (ranged == 0 && fighters >= 2 && AddRecruitmentRole(board, "ranged", "ranged_support_missing")) { ranged++; fighters++; }
@@ -95,7 +98,7 @@ public sealed partial class AIStrategicGovernor
             for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++) investment += StrategicEconomyForecast.Amount(cost, i);
             // Compare real costs and upkeep, not maximum ATK. Observed barrier specialists retain
             // the existing bounded preference; a different Kind does not manufacture a new role.
-            var upkeep = definition.GetUpkeep(1);
+            var upkeep = definition.GetFixedUpkeep();
             for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
                 investment += StrategicEconomyForecast.Amount(upkeep, i) * forecast.ForecastTurns;
             investment -= AIBuildEvaluator.ObservedBarrierRecruitmentBonus(definition.kind, board);
@@ -122,6 +125,7 @@ public sealed partial class AIStrategicGovernor
 
     static string NonHealingRecruitmentRole(UnitData definition, Kind kind)
     {
+        if (kind == Kind.Engineer) return definition?.actionProfile?.actionType == ActorActionType.Passive ? null : "engineer";
         if (kind == Kind.Scout) return "scout";
         if (kind == Kind.King || kind == Kind.Boss || kind == Kind.Crystal || kind == Kind.SubCrystal
             || definition?.actionProfile?.CanAttack == false) return null;
@@ -157,7 +161,8 @@ public sealed partial class AIStrategicGovernor
         if (!board.CanSummonDefinition(definition)) return "recruit_resources_or_legality";
         var projected = forecast.Simulate(board, action);
         if (projected.BreadPaymentFailed) return "recruit_bread_forecast_fail";
-        if (projected.UpkeepPaymentFailed) return "recruit_upkeep_forecast_fail";
+        if (projected.UpkeepPaymentFailed && !IsSafeEngineerOreRecoveryRecruit(action, board, projected))
+            return "recruit_upkeep_forecast_fail";
         if (projected.ImportantProductionStopped) return "recruit_production_forecast_fail";
         if (projected.BreadCoverageTurns < BreadReserveTurns) return "recruit_bread_reserve_fail";
         return BasicResources.AllowSpend(action, false, out string reason) ? null : reason;
@@ -182,13 +187,40 @@ public sealed partial class AIStrategicGovernor
         }
         return false;
     }
+    // The engineer is the only way to restore outside-territory ore production. An inherited
+    // ore payment failure must not forbid an affordable remedy that leaves every existing
+    // failure and the complete HP/death forecast no worse, including the new unit's upkeep.
+    bool IsSafeEngineerOreRecoveryRecruit(AIAction action, AIBoardState board, EconomyForecastResult projected)
+    {
+        if (action?.ActionType != AIActionType.Summon || board == null) return false;
+        var definition = action.SummonDefinition ?? board.ResolveUnitDefinition(action.SummonKind);
+        if (definition == null || definition.kind != Kind.Engineer || !definition.IsValidForAuthoring
+            || !definition.AvailableFor(board.ActorTeam) || definition.actionProfile?.actionType == ActorActionType.Passive
+            || board.SummonablePositions.Count == 0 || !board.CanSummonDefinition(definition)
+            || !AIActionGenerator.HasRareOreSupplyGap(board)) return false;
+        var baseline = forecast.Simulate(board);
+        int oreMask = (1 << (int)ResourceKind.Iron) | (1 << (int)ResourceKind.MagicOre);
+        return baseline.UpkeepPaymentFailed && (baseline.MandatoryFailureMask & oreMask) != 0
+            && (baseline.MandatoryFailureMask & ~oreMask) == 0
+            && !projected.BreadPaymentFailed && !projected.ImportantProductionStopped
+            && projected.BreadCoverageTurns >= BreadReserveTurns
+            && (projected.MandatoryFailureMask & ~baseline.MandatoryFailureMask) == 0
+            && (projected.InputFailureMask & ~baseline.InputFailureMask) == 0
+            && (projected.FirstTurnMandatoryFailureMask & ~baseline.FirstTurnMandatoryFailureMask) == 0
+            && (projected.FirstTurnInputFailureMask & ~baseline.FirstTurnInputFailureMask) == 0
+            && projected.ExpectedUnitHPDamage <= baseline.ExpectedUnitHPDamage
+            && projected.ExpectedUnitDeaths <= baseline.ExpectedUnitDeaths;
+    }
+
     bool IsSafePlannedRecruit(AIAction action, AIBoardState board)
-        => Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
-            && IsNextPlannedRecruit(action, board) && RecruitmentBlockReason(action, board) == null;
+        => Mode != StrategicMode.EmergencyDefense && IsNextPlannedRecruit(action, board)
+            && RecruitmentBlockReason(action, board) == null
+            && (Mode != StrategicMode.EconomicRecovery
+                || IsSafeEngineerOreRecoveryRecruit(action, board, forecast.Simulate(board, action)));
 
     public float RecruitmentScore(AIAction action, AIBoardState board)
-        // At P3 this need can compete with staging/exploration. P0/P1 survival and P2 current
-        // battle opportunities still precede it. Other legal summons keep their original scores.
+        // Ordinary needs compete with staging/exploration at P3. A safe ore-recovery engineer
+        // joins supply recovery at P2. Other legal summons keep their original scores.
         => IsSafePlannedRecruit(action, board) ? 30f : 0;
 
     public RecruitmentForecastResult ForecastRecruitment(AIBoardState board, AIAction investment = null)

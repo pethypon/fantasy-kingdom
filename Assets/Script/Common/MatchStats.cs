@@ -102,7 +102,5 @@ public class MatchStats : MonoBehaviour
     }
 
     public void RecordXPGain(Team team, int xp)
-    {
-        if (team == Team.Player) PlayerXPGained += xp;
-    }
+    { } // Legacy statistics API; no new unit experience is recorded.
 }

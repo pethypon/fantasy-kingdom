@@ -50,18 +50,33 @@ public static class ReflectionBalanceCoreTests
             ip.BeginTurn(); Check("135 IP still caps at 50 while AP caps at 60", ip.Current == 50 && GameConstants.MaxAP == 60);
 
             unit.kind = Kind.Knight;
-            foreach (int level in new[] { 1, 9, 10, 19, 20 })
+            foreach (int level in new[] { -1, 1, 9, 10, 19, 20, 100, int.MaxValue })
             {
-                int expected = 1 + level / 10;
                 var upkeep = unit.GetUpkeep(level);
-                Check("136/138 normal Lv" + level + " bread and iron", upkeep.Bread == expected && upkeep.Iron == expected);
-                Check("138 multiplier agrees at Lv" + level, UnitData.UpkeepMultiplier(level) == expected);
+                Check("136/138 fixed bread and iron at legacy Lv" + level, upkeep.Bread == 5 && upkeep.Iron == 5
+                    && upkeep.Wood == 0 && upkeep.Stone == 0 && upkeep.Water == 0 && upkeep.MagicOre == 0
+                    && upkeep.Wheat == 0 && upkeep.Citizen == 0);
+                Check("138 multiplier is fixed at legacy Lv" + level, UnitData.UpkeepMultiplier(level) == 5);
             }
             unit.upkeepWood = 2; unit.upkeepStone = 3; unit.upkeepWater = 4; unit.upkeepMagic = 1;
             unit.upkeepBread = 3; unit.upkeepIron = 2; unit.upkeepMagicScales = false;
-            var authored = unit.GetUpkeep(10);
-            Check("88 authored extra resources remain available and bread/iron follow shared base", authored.Wood == 4 && authored.Stone == 6 && authored.Water == 8
-                && authored.Bread == 2 && authored.Iron == 2 && authored.MagicOre == 1);
+            foreach (int level in new[] { 1, 10, 100 })
+            {
+                var authored = unit.GetUpkeep(level);
+                Check("88 all configured resources use fixed x5 at legacy Lv" + level, authored.Wood == 10 && authored.Stone == 15
+                    && authored.Water == 20 && authored.Bread == 5 && authored.Iron == 5 && authored.MagicOre == 5
+                    && authored.Wheat == 0 && authored.Citizen == 0);
+            }
+            unit.useAuthoredUpkeep = true;
+            rules.unitExtraUpkeep = new FacilityData.ProductionBundle
+                { Wood = 1, Stone = 2, Iron = 3, MagicOre = 4, Water = 5, Bread = 6, Wheat = 7, Citizen = 8 };
+            foreach (int level in new[] { 1, 10, 100 })
+            {
+                var authored = unit.GetUpkeep(level);
+                Check("88 authored bases plus global extras are multiplied once at legacy Lv" + level,
+                    authored.Wood == 15 && authored.Stone == 25 && authored.Iron == 25 && authored.MagicOre == 25
+                    && authored.Water == 45 && authored.Bread == 45 && authored.Wheat == 35 && authored.Citizen == 40);
+            }
             unit.kind = Kind.King; Check("137 king is exempt even with authored cost", unit.GetUpkeep(20).IsEmpty);
             unit.kind = Kind.Boss; Check("137 demon lord boss is exempt", unit.GetUpkeep(20).IsEmpty);
             unit.kind = Kind.Knight; unit.upkeepExempt = true;

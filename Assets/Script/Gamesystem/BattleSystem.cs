@@ -146,11 +146,10 @@ public partial class BattleSystem : MonoBehaviour
         var recipient = SpecialSkillRuntime.ResolveDamageRecipient(Target, damage, damageKind) ?? Target;
         actualRecipient = recipient;
         damage = SpecialSkillRuntime.ApplyHpChange(Attacker, Target, damage, damageKind, cause: HpChangeCause.NormalAttack);
-        int experienceDamage = SpecialSkillRuntime.ExperienceDamage(Attacker, recipient, damage);
         SpecialSkillRuntime.CompleteSpecialDeath(recipient == Target ? null : recipient);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Battle] {Attacker.kind} → {Target.kind}  DMG:{damage}  残HP:{Target.HP}"); }
 
-        // 与ダメージ = 獲得XP（ユニットのみ・自軍同士は除外）。兵舎XP%を乗算
+        // Combat attribution and unique kill rewards remain independent of abolished unit XP.
         if (damage > 0 && Attacker != null && Attacker.team != Target.team)
         {
             Status.AwardDamageExperience(Attacker, recipient, damage, turnGenerator?.Systems?.FactionState);
@@ -189,11 +188,6 @@ public partial class BattleSystem : MonoBehaviour
         {
             MatchStats.Instance.RecordDamage(Attacker != null ? Attacker.team : Team.None,
                 recipient.team, damage, isKill, recipient.isWildBoss);
-            if (damage > 0 && Attacker != null && Attacker.type == Type.Unit
-                && Attacker.team != Target.team)
-            {
-                MatchStats.Instance.RecordXPGain(Attacker.team, experienceDamage);
-            }
         }
         return damage;
     }

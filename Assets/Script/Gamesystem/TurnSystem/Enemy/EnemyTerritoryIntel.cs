@@ -31,6 +31,7 @@ public sealed partial class EnemyTerritoryIntel
 
     public bool HasObservedTerritory => FirstObservedTurn >= 0;
     public bool HasUsableTerritory => observedCellCount > 0;
+    public bool IsRememberedTerritory(Vector3 position) => Contains(XZ(GridHelper.ToGridXZ(position)));
     public int ObservedCellCount => observedCellCount;
     public int RegionCount => regions.Count;
     public int CompletedApproachCount => completedApproaches.Count;

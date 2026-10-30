@@ -1,0 +1,73 @@
+Source: r2-construction-release-candidate.log
+SHA256: df84188727374ee7c21d1e5ffe66efd1b3daecd46a0ab163880c1974495c0e86
+691: [R2ConstructionEconomy] PASS EN08 five resource prices doubled once
+710: [R2ConstructionEconomy] PASS EN09 provisional ordinary AP and citizens preserved
+729: [R2ConstructionEconomy] PASS EN08 saturated integer prices do not overflow
+748: [R2ConstructionEconomy] PASS UP03 maximumHP100 loses20
+767: [R2ConstructionEconomy] PASS UP04 maximumHP175 loses35
+786: [R2ConstructionEconomy] PASS UP05 maximumHP7 rounds up2
+805: [R2ConstructionEconomy] PASS UP05 oneHP losesone without negativeHP
+824: [R2ConstructionEconomy] PASS MN01 own territory suppresses iron and both magic bonuses
+843: [R2ConstructionEconomy] PASS MN02 neutral output and probability preserved
+862: [R2ConstructionEconomy] PASS MN03 opposing nation's own territory uses its own restriction
+881: [R2ConstructionEconomy] PASS MN04 other nation's territory is not confused with own territory
+900: [R2ConstructionEconomy] PASS MN09 territory change is applied without a stale cache
+919: [R2ConstructionEconomy] PASS MN09 removal of territory immediately permits output
+938: [R2ConstructionEconomy] PASS MN10 inputs maintenance interval and other resources preserved
+957: [R2ConstructionEconomy] PASS MN13 custom recipe rare outputs share restrictions
+976: [R2ConstructionEconomy] PASS Player EN04 official individual vision reaches neutral placement
+995: [R2ConstructionEconomy] PASS Player EN11 paid command succeeds once
+1014: [R2ConstructionEconomy] PASS Player EN08 EN09 exact resources citizens and AP charged
+1033: [R2ConstructionEconomy] PASS Player EN12 ownership and provenance belong to engineer
+1052: [R2ConstructionEconomy] PASS Player EN13 MN05 construction creates no territory
+1071: [R2ConstructionEconomy] PASS Player EN10 duplicate placement rejected without payment
+1090: [R2ConstructionEconomy] PASS Player MN02 placed neutral mine retains real recipe
+1109: [R2ConstructionEconomy] PASS Player MN01 MN08 MN09 existing mine survives territorial capture but ore stops
+1128: [R2ConstructionEconomy] PASS Player EN06 enemy territory rejected even while visible
+1147: [R2ConstructionEconomy] PASS Player EN05 unseen territory ownership is not leaked by failure messages
+1166: [R2ConstructionEconomy] PASS Player EN05 shared vision cannot replace individual vision
+1185: [R2ConstructionEconomy] PASS Player EN03 other kinds have no engineer permission
+1204: [R2ConstructionEconomy] PASS Player EN10 insufficient materials fail without AP charge
+1223: [R2ConstructionEconomy] PASS Player EN10 insufficient AP fails without material charge
+1242: [R2ConstructionEconomy] PASS Player EN14 EN15 old mine persists but grants no remote construction
+1261: [R2ConstructionEconomy] PASS Player EN16 returning engineer makes next construction legal
+1280: [R2ConstructionEconomy] PASS Player EN07 engineer mode inside own territory uses doubled quote
+1299: [R2ConstructionEconomy] PASS Player EN03 ordinary build still rejects neutral territory
+1318: [R2ConstructionEconomy] PASS Player EN17 prefab invalidation after preview aborts transaction
+1337: [R2ConstructionEconomy] PASS Player EN10 invalidated prefab leaves no building or costs
+1356: [R2ConstructionEconomy] PASS Player EN18 same formal paid command works for each main faction
+1375: [R2ConstructionEconomy] PASS Player UP02 UP03 unpaid full check loses20 HP and bypasses barrier
+1394: [R2ConstructionEconomy] PASS Player UP11 same owner turn cannot apply damage twice
+1413: [R2ConstructionEconomy] PASS Player UP01 successful payment clears unpaid counter without damage
+1432: [R2ConstructionEconomy] PASS Player UP06 UP07 five unpaid turns kill by HP, no ten-turn defection
+1451: [R2ConstructionEconomy] PASS Player UP08 old unpaid stat reduction is inactive
+1470: [R2ConstructionEconomy] PASS Enemy EN04 official individual vision reaches neutral placement
+1489: [R2ConstructionEconomy] PASS Enemy EN11 paid command succeeds once
+1508: [R2ConstructionEconomy] PASS Enemy EN08 EN09 exact resources citizens and AP charged
+1527: [R2ConstructionEconomy] PASS Enemy EN12 ownership and provenance belong to engineer
+1546: [R2ConstructionEconomy] PASS Enemy EN13 MN05 construction creates no territory
+1565: [R2ConstructionEconomy] PASS Enemy EN10 duplicate placement rejected without payment
+1584: [R2ConstructionEconomy] PASS Enemy MN02 placed neutral mine retains real recipe
+1603: [R2ConstructionEconomy] PASS Enemy MN01 MN08 MN09 existing mine survives territorial capture but ore stops
+1622: [R2ConstructionEconomy] PASS Enemy EN06 enemy territory rejected even while visible
+1641: [R2ConstructionEconomy] PASS Enemy EN05 unseen territory ownership is not leaked by failure messages
+1660: [R2ConstructionEconomy] PASS Enemy EN05 shared vision cannot replace individual vision
+1679: [R2ConstructionEconomy] PASS Enemy EN03 other kinds have no engineer permission
+1698: [R2ConstructionEconomy] PASS Enemy EN10 insufficient materials fail without AP charge
+1717: [R2ConstructionEconomy] PASS Enemy EN10 insufficient AP fails without material charge
+1736: [R2ConstructionEconomy] PASS Enemy EN14 EN15 old mine persists but grants no remote construction
+1755: [R2ConstructionEconomy] PASS Enemy EN16 returning engineer makes next construction legal
+1774: [R2ConstructionEconomy] PASS Enemy EN07 engineer mode inside own territory uses doubled quote
+1793: [R2ConstructionEconomy] PASS Enemy EN03 ordinary build still rejects neutral territory
+1812: [R2ConstructionEconomy] PASS Enemy EN17 prefab invalidation after preview aborts transaction
+1831: [R2ConstructionEconomy] PASS Enemy EN10 invalidated prefab leaves no building or costs
+1850: [R2ConstructionEconomy] PASS Enemy EN18 same formal paid command works for each main faction
+1869: [R2ConstructionEconomy] PASS Enemy UP02 UP03 unpaid full check loses20 HP and bypasses barrier
+1888: [R2ConstructionEconomy] PASS Enemy UP11 same owner turn cannot apply damage twice
+1907: [R2ConstructionEconomy] PASS Enemy UP01 successful payment clears unpaid counter without damage
+1926: [R2ConstructionEconomy] PASS Enemy UP06 UP07 five unpaid turns kill by HP, no ten-turn defection
+1945: [R2ConstructionEconomy] PASS Enemy UP08 old unpaid stat reduction is inactive
+1964: [R2ConstructionEconomy] PASS MN14 map dimensions and generated map are untouched
+1982: [R2ConstructionEconomy] RESULT checks=68
+1999: [AIR2Stage] PASS R2ConstructionEconomyTests
+2012: [AIR2LiveValidation] COMPLETE failures=0

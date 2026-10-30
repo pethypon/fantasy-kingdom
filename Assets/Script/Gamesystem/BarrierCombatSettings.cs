@@ -13,15 +13,14 @@ public sealed class BarrierCombatSettings : ScriptableObject
     [InspectorName("バリア戦闘を有効化")] public bool enabledForPlay;
     [InspectorName("未確定の戦闘細則を調整中")] public bool trialBalance;
     [HideInInspector] public int specificationRevision;
-    [Header("自然回復の暫定動作（R1では細部未確定）")]
+    [Header("自然回復（HP最大到達から所有陣営の3境界後、毎回20%）")]
     [InspectorName("自軍ターン開始時に回復（無効なら終了時）")] public bool recoveryAtOwnerTurnStart;
-    [InspectorName("無傷3回目から回復（無効なら4回目）")] public bool recoverOnThresholdTurn = true;
-    [InspectorName("条件維持中は毎ターン回復")] public bool repeatRecoveryEveryTurn = true;
-    [InspectorName("完全無効の攻撃も回復待ちをリセット")] public bool fullyNegatedHitsResetRecovery;
+    [HideInInspector] public bool recoverOnThresholdTurn = true; // Legacy R1 compatibility; R2 always uses the third boundary.
+    [HideInInspector] public bool repeatRecoveryEveryTurn = true; // Legacy R1 compatibility; R2 repeats while full HP.
+    [HideInInspector] public bool fullyNegatedHitsResetRecovery; // Legacy R1 compatibility; nullified/barrier-only hits do not reset.
     [InspectorName("回復量の端数処理")] public BarrierRecoveryRounding recoveryRounding = BarrierRecoveryRounding.Ceiling;
-    [Header("成長・経験値の暫定動作")]
-    [InspectorName("レベル上昇分を現在バリアにも加算")] public bool growCurrentBarrierOnLevelUp = true;
-    [InspectorName("バリアへのダメージも経験値に含める")] public bool barrierDamageGrantsExperience = true;
+    [HideInInspector] public bool growCurrentBarrierOnLevelUp; // Legacy serialized field; fixed barriers never grow.
+    [HideInInspector] public bool barrierDamageGrantsExperience; // Legacy serialized field; unit XP is abolished.
     [Header("DEF廃止後の仮ダメージ式（最終決定ではありません）")]
     [Min(0), InspectorName("仮の基礎ダメージ")] public float provisionalDamageBase = 1;
     [Min(0), InspectorName("仮のATK係数")] public float provisionalAttackCoefficient = .7f;

@@ -45,6 +45,10 @@ public partial class AICommander
             }
             if (!ValidCognitiveState(saved, _actorTeam, expectedBattle, ownTurn, globalTurn))
             { Debug.LogWarning("[R4保存] 不正な計画を破棄し、現在の観測から再計画します。"); return; }
+            // Unity serializes null inline classes as empty objects. Discard only that exact empty shape,
+            // after scope/version validation; never adopt an unscoped object containing actual data.
+            if (EmptyInlineCognitivePlan(saved.ActivePlan)) saved.ActivePlan = null;
+            if (EmptyInlineHypotheses(saved.Hypotheses)) saved.Hypotheses = null;
             restoredCognitiveState = saved; cognitiveBattleId = saved.BattleId; cognitiveEventId = saved.NextEventId;
         }
         catch (Exception error) { Debug.LogWarning("[R4保存] 計画を読み込めません: " + error.GetType().Name); }
@@ -61,7 +65,7 @@ public partial class AICommander
         if (saved == null || saved.Version != 1 || saved.Owner != owner || saved.BattleId != battleId
             || !Bounded(saved.BattleId, 256) || saved.NextEventId < 0 || !Bounded(saved.LastReplanReason, 256, true)) return false;
         var plan = saved.ActivePlan;
-        if (plan != null)
+        if (plan != null && !EmptyInlineCognitivePlan(plan))
         {
             bool intent = plan.Status == AICognitivePlanStatus.Suspended && plan.Steps != null && plan.Steps.Count == 0
                 && plan.LastValidatedTurn == -1 && plan.BoardGenerationAtValidation == -1;
@@ -97,9 +101,39 @@ public partial class AICommander
                     || !AIWorldFact.Finite(response.LossLowerBound) || !AIWorldFact.Finite(response.LossUpperBound)
                     || response.LossLowerBound < 0 || response.LossUpperBound < response.LossLowerBound) return false;
         }
-        if (saved.Hypotheses != null && !new AIHypothesisManager().Restore(saved.Hypotheses, battleId, owner, ownTurn, globalTurn)) return false;
+        if (saved.Hypotheses != null && !EmptyInlineHypotheses(saved.Hypotheses)
+            && !new AIHypothesisManager().Restore(saved.Hypotheses, battleId, owner, ownTurn, globalTurn)) return false;
         return true;
     }
+    static bool EmptyInlineHypotheses(AIHypothesisBattleState value)
+        => value != null && value.Version == AIHypothesisBattleState.CurrentVersion
+            && string.IsNullOrEmpty(value.BattleId) && value.ActorTeam == default(Team)
+            && value.LastOwnTurn == -1 && value.LastGlobalTurn == -1
+            && EmptyCognitiveList(value.Entries) && EmptyCognitiveList(value.ProcessedEventIds);
+
+    static bool EmptyInlineCognitivePlan(AICognitivePlan value)
+        => value != null && string.IsNullOrEmpty(value.PlanId) && string.IsNullOrEmpty(value.Signature)
+            && string.IsNullOrEmpty(value.ObjectiveRef) && string.IsNullOrEmpty(value.TargetObservedId)
+            && string.IsNullOrEmpty(value.PrimaryMethod) && string.IsNullOrEmpty(value.BattleId)
+            && value.OwnerTeam == default(Team) && value.ParentOperationId == 0 && value.Goal == AIOperationGoal.None
+            && value.CreatedTurn == 0 && value.LastValidatedTurn == 0 && value.BoardGenerationAtValidation == 0
+            && value.StrategicPriorityBand == 0 && value.Status == AICognitivePlanStatus.Proposed
+            && EmptyCognitiveList(value.Steps) && EmptyCognitiveList(value.KnowledgeIds) && EmptyCognitiveList(value.KnowledgeVersions)
+            && EmptyCognitiveList(value.OriginProblemIds) && EmptyCognitiveList(value.HypothesisIds)
+            && EmptyCognitiveList(value.ExplanationEvidenceIds) && EmptyCognitiveList(value.EnemyResponses)
+            && value.GoalProgress == 0 && value.EffectiveDamage == 0 && value.EffectiveSupport == 0
+            && value.PredictedIncomingDamage == 0 && value.WorstCaseLoss == 0 && value.APCost == 0 && value.Delay == 0
+            && value.Confidence == 0 && value.Uncertainty == 0 && value.Utility == 0 && value.ExistingActionScore == 0
+            && !value.ProvenVictory && !value.PreparationProven && !value.HasUnknownContinuationCost
+            && ZeroCognitivePosition(value.StartActorPosition) && ZeroCognitivePosition(value.ExpectedActorPosition)
+            && value.StartTargetHP == -1 && value.StartTargetBarrier == -1 && value.StartOwnAP == 0 && value.StartOwnUnitCount == 0
+            && string.IsNullOrEmpty(value.ActualObservationReason) && value.LookaheadCompletedDepth == 0
+            && value.LookaheadDelta == 0 && value.LookaheadUtilityAdjustment == 0 && string.IsNullOrEmpty(value.LookaheadSourceKind)
+            && string.IsNullOrEmpty(value.SquadSequenceSignature) && string.IsNullOrEmpty(value.AbandonCondition)
+            && string.IsNullOrEmpty(value.ReplanTrigger) && string.IsNullOrEmpty(value.RejectionReason);
+
+    static bool EmptyCognitiveList<T>(List<T> values) => values != null && values.Count == 0;
+    static bool ZeroCognitivePosition(Vector3 value) => value.x == 0 && value.y == 0 && value.z == 0;
     static bool Bounded(string value, int length, bool optional = false) => value == null ? optional : value.Length <= length && (optional || value.Length > 0);
     static bool ValidCognitiveStrings(List<string> values, int count, int length)
     { if (values == null || values.Count > count) return false; foreach (string value in values) if (!Bounded(value, length)) return false; return true; }

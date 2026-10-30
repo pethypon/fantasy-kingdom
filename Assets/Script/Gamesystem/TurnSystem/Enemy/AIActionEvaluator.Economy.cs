@@ -12,8 +12,8 @@ public static partial class AIActionEvaluator
         if (housing.IsHousing) return housing.Score;
         int level = UnityEngine.Mathf.Max(1, building.Level);
         if (level >= FacilityData.GetMaxLevel(building)) return -100f;
-        var current = FacilityData.GetLevel(building, level);
-        var next = FacilityData.GetLevel(building, level + 1);
+        var current = AIConstructionEconomy.ExistingRecipe(building, level, board);
+        var next = AIConstructionEconomy.ExistingRecipe(building, level + 1, board);
         var demand = board.ProductionDemand;
         float score = 0f;
         bool useful = false;
@@ -121,8 +121,8 @@ public static class EconomyHelper
         if (building == null || !building.IsAlive || building.team != board.ActorTeam) return false;
         int level = UnityEngine.Mathf.Max(1, building.Level);
         if (level >= FacilityData.GetMaxLevel(building)) return false;
-        var current = FacilityData.GetLevel(building, level);
-        var next = FacilityData.GetLevel(building, level + 1);
+        var current = AIConstructionEconomy.ExistingRecipe(building, level, board);
+        var next = AIConstructionEconomy.ExistingRecipe(building, level + 1, board);
         var demand = board.ProductionDemand;
         for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
             if (NetProduction(next, i) - NetProduction(current, i) > AIEconomySettings.Active.Epsilon

@@ -28,6 +28,7 @@ public static class KindNameJP
         { Kind.Samurai, "侍" }, { Kind.Ninja, "忍者" },
         { Kind.Berserker, "狂戦士" }, { Kind.Navigator, "航海士" },
         { Kind.HeavyWarrior, "重戦士" }, { Kind.DragonKnight, "竜騎士" },
+        { Kind.Engineer, "工兵" },
     };
 
     public static string Get(Kind kind)

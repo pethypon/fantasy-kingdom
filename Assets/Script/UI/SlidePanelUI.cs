@@ -30,6 +30,7 @@ public class SlidePanelUI : MonoBehaviour
 
     private Vector2 targetPos;
     private bool isOpen;
+    private string buildModeTitle = "通常建築 ・ 領土内";
     public bool IsBuildPanelOpen => isOpen && buildRoot != null && buildRoot.activeSelf;
     // 閉じている時に panel.gameObject ごと非表示にして、画面端への描画漏れを防ぐ。
     // 開閉アニメーション完了後にのみ SetActive を切り替える。
@@ -113,7 +114,7 @@ public class SlidePanelUI : MonoBehaviour
     public void OpenBuildPanel()
     {
         SummonUnitTooltip.HideCurrent();
-        SetTitle("建築 ・ 施設一覧");
+        SetTitle(buildModeTitle);
         if (buildRoot != null) buildRoot.SetActive(true);
         if (unitRoot != null) unitRoot.SetActive(false);
         Open();
@@ -140,6 +141,13 @@ public class SlidePanelUI : MonoBehaviour
         if (unitRoot != null) unitRoot.SetActive(true);
         Open();
         OnUnitPanelOpened?.Invoke();
+    }
+
+    /// <summary>Construction context is explicit; reopening does not silently change engineer costs.</summary>
+    public void SetBuildModeTitle(string title)
+    {
+        buildModeTitle = title;
+        if (IsBuildPanelOpen) SetTitle(title);
     }
 
     // --------------------------------------------------

@@ -1,0 +1,918 @@
+Source: core-existing-r2.log
+SHA256: e7f04487ca78bb11d866f0b69e75940777711cc3ee5e9f4d5b1c5ee26b58440e
+322: [CoreTest] PASS  R1 AP citizens=0
+335: [CoreTest] PASS  UI AP equals turn reset
+348: [CoreTest] PASS  R1 AP citizens=5
+361: [CoreTest] PASS  UI AP equals turn reset
+374: [CoreTest] PASS  R1 AP citizens=10
+387: [CoreTest] PASS  UI AP equals turn reset
+400: [CoreTest] PASS  R1 AP citizens=20
+413: [CoreTest] PASS  UI AP equals turn reset
+426: [CoreTest] PASS  R1 AP citizens=30
+439: [CoreTest] PASS  UI AP equals turn reset
+452: [CoreTest] PASS  R1 AP citizens=100
+465: [CoreTest] PASS  UI AP equals turn reset
+478: [CoreTest] PASS  Load clamps AP to current faction maximum
+491: [CoreTest] PASS  Load clamps AP lower bound
+504: [CoreTest] PASS  R1 independent damage example
+517: [CoreTest] PASS  Crystal starts at formal base HP5000
+530: [CoreTest] PASS  No early reward
+543: [CoreTest] PASS  No early reward
+556: [CoreTest] PASS  No early reward
+569: [CoreTest] PASS  No early reward
+582: [CoreTest] PASS  No early reward
+595: [CoreTest] PASS  No early reward
+608: [CoreTest] PASS  No early reward
+621: [CoreTest] PASS  Uncontrolled dungeon pauses
+634: [CoreTest] PASS  Takeover continues at 8
+647: [CoreTest] PASS  Takeover continues at 9
+660: [CoreTest] PASS  Reward for final controller
+673: [CoreTest] PASS  Dungeon remains for next cycle
+686: [CoreTest] PASS  High ground beats low ground
+699: [CoreTest] PASS  Actual damage excludes overkill
+739: [CoreTest] PASS  Skill still applies actual HP damage
+752: [CoreTest] PASS  Skill damage gives no XP or level growth
+765: [CoreTest] PASS  Skill damage retains combat attribution and victim life identity
+805: [CoreTest] PASS  Shield prevents damage and keeps XP disabled
+845: [CoreTest] PASS  Skill kill preserves reward owner and victim life identity
+858: [CoreTest] PASS  Skill kill gives no XP or level growth
+871: [CoreTest] PASS  Fixed skill is deterministic
+884: [CoreTest] PASS  High mountain blocks both directions
+897: [CoreTest] PASS  Mountain endpoint is visible but not attackable
+910: [CoreTest] PASS  Sight cannot pass beyond mountain
+923: [CoreTest] PASS  Height lookup excludes mountains and out of bounds
+936: [CoreTest] PASS  Height lookup returns standing height
+949: [CoreTest] PASS  Reserved crystal tile is not a placement candidate
+962: [CoreTest] PASS  Clear terrain remains traversable
+988: [CoreTest] PASS  Monster status ticks once
+1001: [CoreTest] PASS  Monster turn does not tick other factions
+1027: [CoreTest] PASS  Intruder status ticks independently
+1040: [CoreTest] PASS  Neutral exploration does not leak to enemy
+1053: [CoreTest] PASS  Neutral clear preserves enemy exploration
+1066: [CoreTest] PASS  Initial camera centers player base
+1079: [CoreTest] PASS  Camera clamp handles small maps
+1092: [CoreTest] PASS  Damage clamped to 0 when DEF overwhelms ATK
+1105: [CoreTest] PASS  Damage is positive when ATK >> DEF
+1118: [CoreTest] PASS  CalcRawBase formula (expected=36.33334, actual=36.33333)
+1131: [CoreTest] PASS  Main crystal cannot reactivate an old invulnerability shield
+1144: [CoreTest] PASS  Ordinary unit shield remains active
+1157: [CoreTest] PASS  Elapsed legacy turn time does not end the turn
+1170: [CoreTest] PASS  Zero saved clocks cannot decide a win, loss or draw
+1183: [CoreTest] PASS  Manual timer lifecycle remains available without a gameplay deadline
+1196: [ReflectionBalance] PASS 133 AP citizens=0
+1209: [ReflectionBalance] PASS 133 AP display maximum matches refill
+1222: [ReflectionBalance] PASS 133 AP citizens=20
+1235: [ReflectionBalance] PASS 133 AP display maximum matches refill
+1248: [ReflectionBalance] PASS 133 AP citizens=30
+1261: [ReflectionBalance] PASS 133 AP display maximum matches refill
+1274: [ReflectionBalance] PASS 133 AP citizens=100
+1287: [ReflectionBalance] PASS 133 AP display maximum matches refill
+1300: [ReflectionBalance] PASS 134 AP refills to 54 instead of adding to remaining 3
+1313: [ReflectionBalance] PASS 80 restored AP cannot exceed own maximum
+1326: [ReflectionBalance] PASS 80 old 50 AP save retains the current amount
+1339: [ReflectionBalance] PASS 73 restored AP cannot be negative
+1352: [ReflectionBalance] PASS 135 IP still recovers exactly five
+1365: [ReflectionBalance] PASS 135 IP still caps at 50 while AP caps at 60
+1378: [ReflectionBalance] PASS 136/138 fixed bread and iron at legacy Lv-1
+1391: [ReflectionBalance] PASS 138 multiplier is fixed at legacy Lv-1
+1404: [ReflectionBalance] PASS 136/138 fixed bread and iron at legacy Lv1
+1417: [ReflectionBalance] PASS 138 multiplier is fixed at legacy Lv1
+1430: [ReflectionBalance] PASS 136/138 fixed bread and iron at legacy Lv9
+1443: [ReflectionBalance] PASS 138 multiplier is fixed at legacy Lv9
+1456: [ReflectionBalance] PASS 136/138 fixed bread and iron at legacy Lv10
+1469: [ReflectionBalance] PASS 138 multiplier is fixed at legacy Lv10
+1482: [ReflectionBalance] PASS 136/138 fixed bread and iron at legacy Lv19
+1495: [ReflectionBalance] PASS 138 multiplier is fixed at legacy Lv19
+1508: [ReflectionBalance] PASS 136/138 fixed bread and iron at legacy Lv20
+1521: [ReflectionBalance] PASS 138 multiplier is fixed at legacy Lv20
+1534: [ReflectionBalance] PASS 136/138 fixed bread and iron at legacy Lv100
+1547: [ReflectionBalance] PASS 138 multiplier is fixed at legacy Lv100
+1560: [ReflectionBalance] PASS 136/138 fixed bread and iron at legacy Lv2147483647
+1573: [ReflectionBalance] PASS 138 multiplier is fixed at legacy Lv2147483647
+1586: [ReflectionBalance] PASS 88 all configured resources use fixed x5 at legacy Lv1
+1599: [ReflectionBalance] PASS 88 all configured resources use fixed x5 at legacy Lv10
+1612: [ReflectionBalance] PASS 88 all configured resources use fixed x5 at legacy Lv100
+1625: [ReflectionBalance] PASS 88 authored bases plus global extras are multiplied once at legacy Lv1
+1638: [ReflectionBalance] PASS 88 authored bases plus global extras are multiplied once at legacy Lv10
+1651: [ReflectionBalance] PASS 88 authored bases plus global extras are multiplied once at legacy Lv100
+1664: [ReflectionBalance] PASS 137 king is exempt even with authored cost
+1677: [ReflectionBalance] PASS 137 demon lord boss is exempt
+1690: [ReflectionBalance] PASS 137 explicitly authored summoned body is exempt
+1703: [ReflectionBalance] PASS 137 normal production unit is not accidentally summoned-body exempt
+1716: [ReflectionBalance] PASS 88 upkeep definition is not modified by the calculation
+1729: [ReflectionBalance] 41 pure rule checks passed
+1741: [AIReflectionTests] PASS 119 authoritative normal kill is exactly +1
+1755: [AIReflectionTests] PASS 104 duplicate completion cannot add reward or a sample
+1769: [AIReflectionTests] PASS 120 normal kill upgraded to formation is +2 rather than +3
+1783: [AIReflectionTests] PASS 120 formation event received first cannot be downgraded or duplicated
+1797: [AIReflectionTests] PASS 13 predicted zero HP without a death event earns no kill reward
+1811: [AIReflectionTests] PASS 102 authoritative damage survives lost target without reading its hidden HP
+1825: [AIReflectionTests] PASS 107 actual counterdamage and snapshot difference are not counted twice
+1839: [AIReflectionTests] PASS 39 base, learned and final selected scores remain separately traceable
+1853: [AIReflectionTests] PASS 121 artifact event is exactly +1 after duplicate notification
+1867: [AIReflectionTests] PASS 105 artifact duplicate after completion is also ignored
+1881: [AIReflectionTests] PASS 123 victory +100 belongs to the battle and is idempotent
+1895: [AIReflectionTests] PASS 19 defeat has no invented negative 100 reward
+1909: [AIReflectionTests] PASS 106 battle end waits for an executing action outcome
+1923: [AIReflectionTests] PASS 106 executing finishing action is recorded before victory diary
+1937: [AIReflectionTests] PASS 122 unrelated stable-economy move receives no stable reward 0
+1951: [AIReflectionTests] PASS 122 unrelated stable-economy move receives no stable reward 1
+1965: [AIReflectionTests] PASS 122 unrelated stable-economy move receives no stable reward 2
+1979: [AIReflectionTests] PASS 122 unrelated stable-economy move receives no stable reward 3
+1993: [AIReflectionTests] PASS 122 unrelated stable-economy move receives no stable reward 4
+2007: [AIReflectionTests] PASS 122 healthy maintenance and duplicate EndTurn never farm reward
+2021: [AIReflectionTests] PASS 122 another healthy own turn remains neutral
+2035: [AIReflectionTests] PASS 17.1 identifiable economic construction receives stable reward once
+2049: [AIReflectionTests] PASS 125 one sample is recorded but not used for selection
+2063: [AIReflectionTests] PASS 125 two samples begin confidence-weighted learning
+2077: [AIReflectionTests] PASS 125 modifier affects the same tier comparison
+2091: [AIReflectionTests] PASS 126 critical defense priority survives a better learned score
+2105: [AIReflectionTests] PASS 108 learning context is independent of runtime ID and absolute map coordinates
+2119: [AIReflectionTests] PASS 149 changed economic context does not reuse unrelated learned preference
+2133: [AIReflectionTests] PASS 116 learn-only mode produces zero selection modifier
+2147: [AIReflectionTests] PASS 124 reflection off supplies zero modifier
+2161: [AIReflectionTests] PASS 124 reflection off performs no action recording
+2175: [AIReflectionTests] PASS 57 knowledge entry capacity is bounded
+2189: [AIReflectionTests] PASS 57 pruning retains repeatedly useful knowledge
+2203: [AIReflectionTests] PASS 34 learned value never grows past config clamp
+2217: [AIReflectionTests] PASS 128 initial A to B is not an oscillation
+2231: [AIReflectionTests] PASS 128 B to A alone is not enough to infer a pointless cycle
+2245: [AIReflectionTests] PASS 128 A B A B no-progress cycle is detected
+2259: [AIReflectionTests] PASS 128 cycle receives configured negative reward
+2273: [AIReflectionTests] PASS 129 repeated damaging attack is meaningful 0
+2287: [AIReflectionTests] PASS 129 repeated damaging attack is meaningful 1
+2301: [AIReflectionTests] PASS 129 repeated damaging attack is meaningful 2
+2315: [AIReflectionTests] PASS 22 shield reduction is meaningful
+2329: [AIReflectionTests] PASS 22 effective healing is meaningful
+2343: [AIReflectionTests] PASS 22 new explored cells prevent meaningless move penalty
+2357: [AIReflectionTests] PASS 22 leaving enemy range is meaningful retreat
+2371: [AIReflectionTests] PASS 107 actor killed by counterattack is included in outcome
+2385: [AIReflectionTests] PASS 103 movement execution success can still be strategic failure
+2399: [AIReflectionTests] PASS 23 repeated quiet defense wait remains neutral 0
+2413: [AIReflectionTests] PASS 23 repeated quiet defense wait remains neutral 1
+2427: [AIReflectionTests] PASS 23 repeated quiet defense wait remains neutral 2
+2441: [AIReflectionTests] PASS 130 diary is absent after 14 own turns
+2455: [AIReflectionTests] PASS 130 turn 15 diary appears once
+2469: [AIReflectionTests] PASS 130 turn 30 generates the second diary
+2483: [AIReflectionTests] PASS 50 diary text files use sanitized filenames
+2497: [AIReflectionTests] PASS 131 early victory writes immediately before turn 15
+2511: [AIReflectionTests] PASS 131 early defeat writes immediately before turn 15
+2525: [AIReflectionTests] PASS 105 reloaded finished battle cannot duplicate cross-battle statistics
+2539: [AIReflectionTests] PASS 58 battle ID and deduplicated events survive save/load
+2553: [AIReflectionTests] PASS 45 restored diary follows 15 own turns rather than global turn 30
+2567: [AIReflectionTests] PASS 104 action tokens continue uniquely after resume
+2581: [AIReflectionTests] PASS 109 absent JSON starts at v2 with zero samples
+2595: [AIReflectionTests] PASS 54 initial atomic save succeeds
+2609: [AIReflectionTests] PASS 54 interrupted temp write leaves valid profile unchanged
+2623: [AIReflectionTests] PASS 54 replacement save retains backup
+2637: [AIReflectionTests] PASS 132 corrupted primary uses an intact previous backup
+2651: [AIReflectionTests] PASS 55 corrupt file is archived
+2680: [AIReflectionTests] PASS 132 corrupt profile without backup returns default and warns
+2709: [AIReflectionTests] PASS 110 deleting learning data preserves empty baseline operation
+2723: [AIReflectionTests] PASS 56 unknown schema cannot overwrite a valid learning file
+2737: [AIReflectionTests] PASS 108 saved experience survives a new learning profile load
+2769: [AIReflectionTests] PASS 60/113 save failure cannot stop the AI battle result
+2783: [AIReflectionTests] 71 pure reflection checks passed
+2795: [AIReflectionIntegrated] PASS T01 Healthy maintenance earns no recovery reward
+2809: [AIReflectionIntegrated] PASS T02 Warning to Healthy rewards one episode exactly once
+2823: [AIReflectionIntegrated] PASS T03 five further Healthy turns add zero
+2837: [AIReflectionIntegrated] PASS T04 single-turn unhealthy oscillation cannot farm recovery
+2851: [AIReflectionIntegrated] PASS T04 sustained deterioration re-arms once across save continuation
+2865: [AIReflectionIntegrated] PASS economic recovery is attributed to a confirmed causal build
+2879: [AIReflectionIntegrated] PASS a later unrelated build cannot claim natural recovery
+2893: [AIReflectionIntegrated] PASS legacy paid stability starts with conservative re-arming
+2907: [AIReflectionIntegrated] PASS T05 first sample is recorded with zero selection modifier
+2921: [AIReflectionIntegrated] PASS T06 second sample enables confidence-scaled learning
+2935: [AIReflectionIntegrated] PASS T07 existing priority comparison preserves Crystal defense
+2949: [AIReflectionIntegrated] PASS experience ranks candidates inside the same priority band
+2963: [AIReflectionIntegrated] PASS T29 generalized context does not contain absolute coordinates
+2977: [AIReflectionIntegrated] PASS T29 cross-battle JSON contains no coordinates or Unity runtime identity
+2991: [AIReflectionIntegrated] PASS T09 authoritative normal kill remains exactly +1
+3005: [AIReflectionIntegrated] PASS T08 formation promotion totals +2 rather than +3
+3019: [AIReflectionIntegrated] PASS T10 duplicate Artifact notification rewards only +1
+3033: [AIReflectionIntegrated] PASS T11 useful high ground rewards observed attack advantage
+3047: [AIReflectionIntegrated] PASS T12 height alone without threat or objective is neutral
+3061: [AIReflectionIntegrated] PASS T13 low-HP retreat to lower risk is successful
+3075: [AIReflectionIntegrated] PASS T14 needless retreat from an objective does not reward movement
+3089: [AIReflectionIntegrated] PASS T15 Scout values genuinely new tiles and enemy identity
+3103: [AIReflectionIntegrated] PASS re-observing a known enemy after save continuation cannot farm Scout reward
+3117: [AIReflectionIntegrated] PASS T16 first known-area move stays neutral
+3131: [AIReflectionIntegrated] PASS T16 repeated known-area oscillation incurs bounded penalty
+3145: [AIReflectionIntegrated] PASS T17 a zero-damage shield buff is preparation rather than NoDamage
+3159: [AIReflectionIntegrated] PASS T18 same-count debuff refresh is meaningful preparation
+3173: [AIReflectionIntegrated] PASS Haste recognizes actual recovered AP after paying its action cost
+3187: [AIReflectionIntegrated] PASS area buff and healing use common observed ally effect evidence
+3201: [AIReflectionIntegrated] PASS T28 a disappearing area target does not imply an effect change
+3215: [AIReflectionIntegrated] PASS T28 unobserved target fields cannot produce inferred damage or effects
+3229: [AIReflectionIntegrated] PASS range advantage carries Position and Survival success evidence
+3243: [AIReflectionIntegrated] PASS local power improvement uses a true power ratio
+3257: [AIReflectionIntegrated] PASS emergency threat relief earns Defense without offensive objective farming
+3271: [AIReflectionIntegrated] PASS T27 a quiet wait is neutral and not a failure
+3285: [AIReflectionObjectiveDistance] PASS same objective and fixed metric earn genuine objective progress
+3300: [AIReflectionObjectiveDistance] PASS reverse movement cannot also report positive progress to the same objective
+3315: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Identity
+3330: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Identity
+3345: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Coordinate
+3360: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Coordinate
+3375: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Height
+3390: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Height
+3405: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Metric
+3420: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Metric
+3435: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Legacy
+3450: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Legacy
+3465: [AIReflectionObjectiveDistance] PASS missing optional save fields remain unverified
+3480: [AIReflectionObjectiveDistance] PASS new objective provenance survives copying and JSON continuation
+3495: [AIReflectionObjectiveDistance] PASS battle-local objective provenance never enters generalized knowledge keys
+3510: [AIReflectionObjectiveDistance] PASS retargeted no-discovery reversals reach the oscillation detector
+3525: [AIReflectionObjectiveDistance] PASS legacy battle remains loadable while unproved objective evidence is withdrawn
+3540: [AIReflectionObjectiveDistance] PASS legacy causal credit preserves caps and dedupe without granting future objective credit
+3555: [AIReflectionObjectiveDistance] PASS legacy objective withdrawal preserves independent damage and discovery
+3570: [AIReflectionObjectiveDistance] PASS independent discovery cannot preserve a legacy false positioning claim
+3585: [AIReflectionObjectiveDistance] 20 objective provenance checks passed
+3598: [AIReflectionIntegrated] PASS T19 discovered enemy and related surround receive decayed credit
+3612: [AIReflectionIntegrated] PASS T19 formation action retains its own exact +2
+3626: [AIReflectionIntegrated] PASS T21 repeated outcome cannot add delayed credit
+3640: [AIReflectionIntegrated] PASS T21 delayed event dedupe survives saving
+3654: [AIReflectionIntegrated] PASS T20 unrelated House never earns preparation credit
+3668: [AIReflectionIntegrated] PASS delayed credit searches only the last five actions
+3682: [AIReflectionIntegrated] PASS delayed credit is capped at +1 per preparation action
+3696: [AIReflectionIntegrated] PASS area buff credit follows the actually supported ally life ID
+3710: [AIReflectionIntegrated] PASS integrated delayed correction changes reward without adding a sample
+3725: [AIReflectionIntegrated] PASS integrated save continuation preserves delayed and kill event dedupe
+3740: [AIReflectionIntegrated] PASS old-period credit is recorded as a correction without a new action
+3755: [AIReflectionIntegrated] PASS delayed-budget fixture uses its complete action budget for immediate Scout information
+3770: [AIReflectionIntegrated] PASS a causal kill with no free action budget does not consume delayed reward capacity
+3785: [AIReflectionIntegrated] PASS a different causal kill uses released capacity after raising the action budget
+3800: [AIReflectionIntegrated] PASS duplicating the applied event preserves helper record and sample consistency
+3815: [AIReflectionIntegrated] PASS T22 rational Reserve is never idle
+3829: [AIReflectionIntegrated] PASS T23 weaker army defending its base is not unnecessary turtle
+3843: [AIReflectionIntegrated] PASS T24 true 140 versus 80 idle army detects missed opportunity
+3857: [AIReflectionIntegrated] PASS same own-turn analysis cannot duplicate the aggregate penalty
+3871: [AIReflectionIntegrated] PASS army clocks persist while ended-turn dedupe survives loading
+3885: [AIReflectionIntegrated] PASS T25 five needed reinforcements against twelve enemies are not overproduction
+3899: [AIReflectionIntegrated] PASS T26 growth plus low utilization upkeep and worsening economy detects excess
+3913: [AIReflectionIntegrated] PASS T26 overproduction requires every causal signal: Growth
+3927: [AIReflectionIntegrated] PASS T26 overproduction requires every causal signal: LowUse
+3941: [AIReflectionIntegrated] PASS T26 overproduction requires every causal signal: Upkeep
+3955: [AIReflectionIntegrated] PASS T26 overproduction requires every causal signal: WorseEconomy
+3969: [AIReflectionIntegrated] PASS T26 overproduction requires every causal signal: NoProgress
+3983: [AIReflectionIntegrated] PASS reasonable army activity or uncertainty blocks idle penalty: Defense
+3997: [AIReflectionIntegrated] PASS reasonable army activity or uncertainty blocks idle penalty: AP
+4011: [AIReflectionIntegrated] PASS reasonable army activity or uncertainty blocks idle penalty: Unknown
+4025: [AIReflectionIntegrated] PASS reasonable army activity or uncertainty blocks idle penalty: Progress
+4039: [AIReflectionIntegrated] PASS T30 diary follows fifteen own turns rather than global thirty
+4053: [AIReflectionIntegrated] PASS T30 duplicate EndTurn does not create a second diary
+4067: [AIReflectionIntegrated] PASS T31 terminal turn fifteen writes one final diary
+4081: [AIReflectionIntegrated] PASS T31 finalizing an already scheduled boundary replaces its entry
+4095: [AIReflectionIntegrated] PASS T32 turn seventeen final diary covers only own turns sixteen to seventeen
+4109: [AIReflectionIntegrated] PASS T33 victory adds +100 to the battle while leaving the last action unchanged
+4123: [AIReflectionIntegrated] PASS T34 a losing battle retains its successful action memory
+4137: [AIReflectionIntegrated] PASS T35 victory does not turn failed actions into positive memory
+4151: [AIReflectionIntegrated] PASS decision trace reports actual intent facts outcome and learning delta
+4165: [AIReflectionIntegrated] PASS same-boundary interval merging preserves action and reward statistics
+4179: [AIReflectionIntegrated] PASS terminal Build recovery flushes one economy reward before EndTurn
+4193: [AIReflectionIntegrated] PASS terminal recovery and the own-turn count cannot flush twice
+4207: [AIReflectionIntegrated] PASS a reward-only late formation correction advances profile sequence without Learn
+4221: [AIReflectionIntegrated] PASS an in-save corrected profile supersedes the older disk profile on resume
+4235: [AIReflectionIntegrated] PASS Turn15 normal to late formation ends with consistent final period statistics
+4249: [AIReflectionIntegrated] PASS Turn15 interval is replaced by one final file after late correction
+4263: [AIReflectionIntegrated] PASS T36 version-one profile loads with knowledge preserved
+4277: [AIReflectionIntegrated] PASS T36 next save writes schema two and preserves the legacy source
+4291: [AIReflectionIntegrated] PASS T37 malformed entries are salvaged without discarding valid knowledge
+4305: [AIReflectionIntegrated] PASS battle schema migration initializes bounded helper continuation states
+4335: [AIReflectionIntegrated] PASS T38 reflection fault disables only its modifier boundary
+4349: [AIReflectionIntegrated] PASS snapshot copies keep discovery support and effect evidence independent
+4363: [AIReflectionIntegrated] PASS T40 final action reward equals the complete breakdown
+4377: [AIReflectionIntegrated] PASS T41 simultaneous positive dimensions stay inside the action clamp
+4391: [AIReflectionIntegrated] PASS T41 simultaneous penalties respect the action floor
+4405: [AIReflectionIntegrated] PASS T42 accumulated experience and doubled influence stay bounded
+4419: [AIReflectionIntegrated] PASS T39 two thousand knowledge entries use a dictionary for bounded lookup
+4433: [AIReflectionIntegratedPerf] entries=2000 queries=100000 ms=14.71
+4446: [AIReflectionIntegrated] 93 integrated checks passed
+4458: [OperationCore] PASS T01 confirmed objective destruction with sound outcomes scores success
+4471: [OperationCore] PASS T02 unrelated kills cannot override the primary goal gate
+4484: [OperationCore] PASS T03 achieved objective with catastrophic losses is never perfect
+4497: [OperationCore] PASS T04 scouting is valuable without any kill
+4510: [OperationCore] PASS T05 kills alone do not complete scouting
+4523: [OperationCore] PASS T06 complete defense can succeed without kills
+4536: [OperationCore] PASS T07 a destroyed own crystal defeats the defense goal
+4549: [OperationCore] PASS T08 verified diversion and opening are scored by their goal
+4562: [OperationCore] PASS T09 rational emergency recall is neutral rather than a major failure
+4575: [OperationCore] PASS T10 failed operation does not rewrite a good action
+4588: [OperationCore] PASS T11 successful operation does not rewrite a bad action
+4601: [OperationCore] PASS T12 cached success flag cannot replace actual goal evidence
+4614: [OperationCore] PASS T13 economic collapse blocks a perfect result
+4627: [OperationCore] PASS T14 excellent multi-dimensional outcome can reach the perfect band
+4640: [OperationCore] PASS T15 one operation sample does not influence selection
+4653: [OperationCore] PASS T16 two samples begin a small confidence-weighted modifier
+4666: [OperationCore] PASS completion receipts prevent duplicate learning
+4679: [OperationCore] PASS provisional results never teach operation memory
+4692: [OperationCore] PASS main-goal failure limits learning independently from points
+4705: [OperationCore] PASS T17 value-only scorer neither mutates context nor sums action reward
+4718: [OperationCore] PASS T18 active plan identity and target survive a value save/load
+4731: [OperationCore] PASS T19 goal revision keeps operation identity
+4744: [OperationCore] PASS T20 operation diary exposes goal, plan, expected, actual, score and lesson
+4757: [OperationCore] PASS operation knowledge saves independently
+4770: [OperationCore] PASS cross-battle knowledge contains no coordinates or unit life identities
+4783: [OperationCore] PASS backup restores valid operation knowledge after a broken primary file
+4796: [OperationCore] PASS operation experience never reverses survival priority
+4809: [OperationCore] PASS causal operation credit is added to an eligible scouting action
+4823: [OperationCore] PASS one operation cannot credit the same action twice
+4837: [OperationCore] PASS a different operation cannot credit an unrelated action
+4851: [OperationCore] PASS operation credit receipts survive action-memory save/load
+4865: [OperationCore] PASS T11 operation success cannot turn a suicidal action positive
+4879: [OperationCore] PASS operation credit respects the shared action budget
+4893: [OperationCore] PASS missing completion identity cannot bypass operation dedupe
+4907: [OperationCore] PASS malformed authored bounds cannot inject a hundred-point modifier
+4921: [OperationCore] PASS operation experience uses bounded indexed lookups
+4948: [OperationCore] PASS scoring leaves independent action-memory values unchanged
+4962: [OperationCore] PASS observed reinforcements prevent falsely claiming an open diversion route
+4976: [OperationCore] PASS T08 a verified withdrawal without replacement really opens the route
+4990: [OperationCore] 39 goal/learning/save/diary checks passed; T01..T20 covered with runtime FoW in SceneSmoke
+5002: [ExplorationR2] PASS Exploration_PrefersUnknownOverRecentlySeen
+5016: [ExplorationR2] PASS Exploration_DoesNotRevisitFreshIntelWithoutReason
+5030: [ExplorationR2] PASS Exploration_StaleImportantAreaCanBeRevisited
+5044: [ExplorationR2] PASS unknown frontier remains preferred over stale-information opportunism
+5058: [ExplorationR2] PASS far frontier exists beyond a fifty-cell move horizon
+5072: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T2
+5086: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T2
+5100: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T3
+5114: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T3
+5128: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T4
+5142: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T4
+5156: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T5
+5170: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T5
+5184: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T6
+5198: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T6
+5212: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T7
+5226: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T7
+5240: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T8
+5254: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T8
+5268: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T9
+5282: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T9
+5296: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T10
+5310: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T10
+5324: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T11
+5338: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T11
+5352: [ExplorationR2] PASS Exploration_KeepsSameFrontierAcrossTurns T12
+5366: [ExplorationR2] PASS Exploration_LongRangeObjectiveProgressesAcrossTurns T12
+5380: [ExplorationR2] PASS known corridor transit receives progress bonus instead of a revisit block
+5394: [ExplorationR2] PASS known threat prevents suicidal shortcut
+5408: [ExplorationR2] PASS saved long-range objective and recent progress survive continuation
+5422: [ExplorationR2] PASS Exploration_ReplansAfterStall
+5436: [ExplorationR2] PASS Exploration_DetectsABABLoop
+5450: [ExplorationR2] PASS Exploration_DetectsSmallAreaCircling
+5464: [ExplorationR2] PASS loop telemetry reports limited unique cells without new reveal
+5478: [ExplorationR2] PASS movement history stays fixed-length with one sample per turn
+5492: [ExplorationR2] PASS Exploration_TwoScoutsChooseDifferentFrontiers
+5506: [ExplorationR2] PASS frontier reservations are consistent with assigned explorer IDs
+5520: [ExplorationR2] PASS high-risk-only frontiers allow hold instead of a suicide mission
+5534: [ExplorationR2] PASS Exploration_EmergencySuspendsAndLaterResumes suspend
+5548: [ExplorationR2] PASS suspended objective contributes no exploration move preference
+5562: [ExplorationR2] PASS Exploration_EmergencySuspendsAndLaterResumes resume
+5576: [ExplorationR2] PASS Exploration_KingNeverAssignedExplorer
+5590: [ExplorationR2] PASS lost explorer releases its frontier and records a reason
+5604: [ExplorationR2] PASS Exploration_SameStateSameFrontier
+5618: [ExplorationR2] PASS frontier scoring queries observed entrances instead of hidden terrain
+5632: [ExplorationR2] PASS fresh intelligence is initially held without unknown gain
+5646: [ExplorationR2] PASS same known important region becomes eligible as intelligence ages
+5660: [ExplorationR2] PASS sight and actual arrival have independent clocks
+5674: [ExplorationR2] PASS same-count same-turn sight changes refresh the knowledge state
+5688: [ExplorationR2] PASS reused runtime ID cannot inherit a previous actor life objective
+5702: [ExplorationR2] PASS unknown future exploration schema falls back without keeping corrupt objectives
+5716: [ExplorationR2] PASS cross-faction observation never inherits another faction's explored memory
+5730: [ExplorationR2] PASS a safe distant-only unknown frontier is not silently cut off by travel cost
+5744: [ExplorationR2] PASS 512-grid stores observed knowledge instead of allocating all unknown cells
+5758: [ExplorationR2] PASS 512-grid far frontier can be assigned without long-horizon combat search
+5772: [ExplorationR2] PASS unchanged same-frame observations never trigger repeated full knowledge scans
+5786: [ExplorationR2] PASS frontier candidate work is bounded independent of unknown map area
+5800: [ExplorationR2] PASS 512-grid cached updates and movement scoring avoid multi-second stalls
+5814: [ExplorationR2Perf] grid=512x512 known=50 scouts=12 cachedUpdates=1000 moveScores=12000 ms=1.34 bytes=0 processedCells=50 regionRebuilds=2
+5827: [ExplorationR2] PASS known wall detour is proved from observed terrain
+5841: [ExplorationR2] PASS safe detour may temporarily move away geometrically T2
+5855: [ExplorationR2] PASS safe detour keeps goal and reduces proved route length T2
+5869: [ExplorationR2] PASS safe detour may temporarily move away geometrically T3
+5883: [ExplorationR2] PASS safe detour keeps goal and reduces proved route length T3
+5897: [ExplorationR2] PASS safe detour may temporarily move away geometrically T4
+5911: [ExplorationR2] PASS safe detour keeps goal and reduces proved route length T4
+5925: [ExplorationR2] PASS safe detour may temporarily move away geometrically T5
+5939: [ExplorationR2] PASS safe detour keeps goal and reduces proved route length T5
+5953: [ExplorationR2] PASS route-cost rebasing cannot extend a stationary objective's progress clock
+5967: [ExplorationR2] PASS changing danger costs do not erase the world-position ABAB loop
+5981: [ExplorationR2] PASS metric rebases retain bounded position samples
+5995: [ExplorationR2] PASS known-route danger evaluation avoids a lethal shortcut
+6009: [ExplorationR2] PASS candidate distance and cached routes do not launch another search
+6023: [ExplorationR2] PASS unknown gaps are unproved rather than invented blocked terrain
+6037: [ExplorationR2] PASS unproved route revision changes preserve the fallback metric
+6051: [ExplorationR2] PASS shrinking route cache enforces the live limit
+6065: [ExplorationR2] PASS known-route node budget caps a long proof attempt
+6092: [ExplorationR2] PASS alternate-route fixture initially proves the straight shortest path
+6106: [ExplorationR2] PASS a proved legal alternate path keeps the same distance-function identity
+6120: [ExplorationR2] PASS progress along an alternate path is measured without rebasing it away
+6134: [ExplorationR2] PASS alternate exploration route begins with a proved northern objective
+6148: [ExplorationR2] PASS alternate exploration step is legal under the actor's movement mask T2
+6162: [ExplorationR2] PASS alternate legal route preserves real progress and avoids a false three-turn stall T2
+6176: [ExplorationR2] PASS alternate exploration step is legal under the actor's movement mask T3
+6190: [ExplorationR2] PASS alternate legal route preserves real progress and avoids a false three-turn stall T3
+6204: [ExplorationR2] PASS alternate exploration step is legal under the actor's movement mask T4
+6218: [ExplorationR2] PASS alternate legal route preserves real progress and avoids a false three-turn stall T4
+6232: [ExplorationR2] PASS alternate exploration step is legal under the actor's movement mask T5
+6246: [ExplorationR2] PASS alternate legal route preserves real progress and avoids a false three-turn stall T5
+6260: [ExplorationR2] PASS alternate exploration step is legal under the actor's movement mask T6
+6274: [ExplorationR2] PASS alternate legal route preserves real progress and avoids a false three-turn stall T6
+6288: [ExplorationR2] PASS small route fixture has safe zero-progress merges beside a proved north2 waypoint
+6302: [ExplorationR2] PASS direction resolves a safe route merge tie without changing the verified progress clock
+6316: [ExplorationR2] PASS zero direction weight restores the tied score and preserves primary route scoring
+6330: [ExplorationR2] PASS even a large authored direction weight remains bounded below a proved route advance
+6344: [ExplorationR2] PASS bounded direction cannot outweigh a lethal destination
+6358: [ExplorationR2] PASS an unsafe merge never receives the route direction tie bonus
+6372: [ExplorationR2] PASS direction-only previews cannot postpone the stationary objective's three-turn stall
+6386: [ExplorationR2] 97 core checks passed; mandatory 13 policies covered
+6398: [ExplorationR2Boundary] PASS clock fixture has an assigned goal
+6412: [ExplorationR2Boundary] PASS saving before the first observation preserves pending old-distance migration
+6426: [ExplorationR2Boundary] PASS old-schema migration rebinds identity without rewarding a stationary explorer
+6440: [ExplorationR2Boundary] PASS old-schema baseline changes do not postpone the three-turn stall
+6454: [ExplorationR2Boundary] PASS old-schema migration retains the original suspension and progress clocks
+6468: [ExplorationR2Boundary] PASS resuming an old suspended objective compensates the paused duration once
+6482: [ExplorationR2Boundary] PASS saved-route fixture begins with the first proved cache revision
+6496: [ExplorationR2Boundary] PASS v3 saved-route fixture retains a stationary clock and two position samples
+6510: [ExplorationR2Boundary] PASS saved cache revision remains invalid until a route is observed: direct load
+6524: [ExplorationR2Boundary] PASS a reused revision with cheaper costs only rebases the distance: direct load
+6538: [ExplorationR2Boundary] PASS distance rebasing retains historical position and reveal evidence: direct load
+6552: [ExplorationR2Boundary] PASS restoring cheaper route costs does not postpone the original stall: direct load
+6566: [ExplorationR2Boundary] PASS saved cache revision remains invalid until a route is observed: save before first observation
+6580: [ExplorationR2Boundary] PASS a reused revision with cheaper costs only rebases the distance: save before first observation
+6594: [ExplorationR2Boundary] PASS distance rebasing retains historical position and reveal evidence: save before first observation
+6608: [ExplorationR2Boundary] PASS restoring cheaper route costs does not postpone the original stall: save before first observation
+6622: [ExplorationR2Boundary] PASS a sparse known frontier retains an unproved-route objective
+6636: [ExplorationR2Boundary] PASS a legal east step advances the shorter axis while Chebyshev distance stays flat T2
+6650: [ExplorationR2Boundary] PASS unknown-route fallback recognizes actual progress without a new reveal T2
+6664: [ExplorationR2Boundary] PASS a legal east step advances the shorter axis while Chebyshev distance stays flat T3
+6678: [ExplorationR2Boundary] PASS unknown-route fallback recognizes actual progress without a new reveal T3
+6692: [ExplorationR2Boundary] PASS a legal east step advances the shorter axis while Chebyshev distance stays flat T4
+6706: [ExplorationR2Boundary] PASS unknown-route fallback recognizes actual progress without a new reveal T4
+6720: [ExplorationR2Boundary] PASS a legal east step advances the shorter axis while Chebyshev distance stays flat T5
+6734: [ExplorationR2Boundary] PASS unknown-route fallback recognizes actual progress without a new reveal T5
+6748: [ExplorationR2Boundary] PASS minor-axis progress alone keeps the goal beyond the stall window
+6762: [ExplorationR2Boundary] PASS a diagonal cannot cut the corner of a known blocked cell
+6776: [ExplorationR2Boundary] PASS opening both known corner cells makes the same diagonal provable
+6790: [ExplorationR2Boundary] PASS an unknown touched corner never becomes an invented safe passage
+6804: [ExplorationR2Boundary] PASS an asymmetric north-facing mask can follow its forward edge
+6818: [ExplorationR2Boundary] PASS the same asymmetric mask cannot invent a backward edge
+6832: [ExplorationR2Boundary] PASS south-facing direction reverses the asymmetric mask
+6846: [ExplorationR2Boundary] PASS an independent authored mask ignores the facing sign
+6860: [ExplorationR2Boundary] 33 boundary checks passed
+6872: [R4World] PASS W-truth-and
+6886: [R4World] PASS W-truth-or
+6900: [R4World] PASS W-nonfinite-confidence
+6914: [R4World] PASS W-caller-array-isolation
+6928: [R4World] PASS W-no-future-observation
+6942: [R4World] PASS W-missing-is-unknown
+6956: [R4World] PASS W-own-and-global-clock-distinct
+6970: [R4World] PASS W-value-field-AIObservedUnitValue.LifeId
+6984: [R4World] PASS W-value-field-AIObservedUnitValue.Kind
+6998: [R4World] PASS W-value-field-AIObservedUnitValue.Team
+7012: [R4World] PASS W-value-field-AIObservedUnitValue.Position
+7026: [R4World] PASS W-value-field-AIObservedUnitValue.HP
+7040: [R4World] PASS W-value-field-AIObservedUnitValue.MaxHP
+7054: [R4World] PASS W-value-field-AIObservedUnitValue.Barrier
+7068: [R4World] PASS W-value-field-AIObservedUnitValue.MaxBarrier
+7082: [R4World] PASS W-value-field-AIObservedUnitValue.ATK
+7096: [R4World] PASS W-value-field-AIObservedUnitValue.AP
+7110: [R4World] PASS W-value-field-AIObservedUnitValue.ObservedTurn
+7124: [R4World] PASS W-value-field-AIObservedUnitValue.IsCommander
+7138: [R4World] PASS W-value-field-AIObservedUnitValue.IsBuilding
+7152: [R4World] PASS W-value-field-AIObservedUnitValue.IsCrystal
+7166: [R4World] PASS W-value-field-AIObservedUnitValue.Source
+7180: [R4World] PASS W-value-field-AIObservedUnitValue.Confidence
+7194: [R4World] PASS W-value-field-AIWorldFact.Id
+7208: [R4World] PASS W-value-field-AIWorldFact.TargetLifeId
+7222: [R4World] PASS W-value-field-AIWorldFact.ExpirationPolicy
+7236: [R4World] PASS W-value-field-AIWorldFact.Source
+7250: [R4World] PASS W-value-field-AIWorldFact.ObservedTurn
+7264: [R4World] PASS W-value-field-AIWorldFact.Confidence
+7278: [R4World] PASS W-value-field-AIWorldFact.Truth
+7292: [R4World] PASS W-value-field-AIWorldFact.Position
+7306: [R4World] PASS W-value-field-AIWorldFact.HasPosition
+7320: [R4World] PASS W-value-field-AIWorldFact.Value
+7334: [R4World] PASS W-value-field-AIWorldTerrainValue.Cell
+7348: [R4World] PASS W-value-field-AIWorldTerrainValue.Walkable
+7362: [R4World] PASS W-value-field-AIWorldTerrainValue.CurrentlyVisible
+7376: [R4World] PASS W-value-field-AIWorldTerrainValue.HasHeight
+7390: [R4World] PASS W-value-field-AIWorldTerrainValue.Height
+7404: [R4World] PASS W-value-field-AIWorldTerrainValue.ObservedTurn
+7418: [R4World] PASS W-value-field-AIWorldTerrainValue.Source
+7432: [R4World] PASS W-value-field-AIWorldObjectiveValue.Id
+7446: [R4World] PASS W-value-field-AIWorldObjectiveValue.TargetLifeId
+7460: [R4World] PASS W-value-field-AIWorldObjectiveValue.OperationId
+7474: [R4World] PASS W-value-field-AIWorldObjectiveValue.Goal
+7488: [R4World] PASS W-value-field-AIWorldObjectiveValue.Position
+7502: [R4World] PASS W-value-field-AIWorldObjectiveValue.HasPosition
+7516: [R4World] PASS W-value-field-AIWorldObjectiveValue.Source
+7530: [R4World] PASS W-value-field-AIWorldObjectiveValue.ObservedTurn
+7544: [R4World] PASS W-value-field-AIWorldObjectiveValue.Confidence
+7558: [R4World] PASS W-value-field-AIWorldBeliefCell.ContactId
+7572: [R4World] PASS W-value-field-AIWorldBeliefCell.Cell
+7586: [R4World] PASS W-value-field-AIWorldBeliefCell.Probability
+7600: [R4World] PASS W-value-field-AIWorldBeliefCell.UnknownProbability
+7614: [R4World] PASS W-value-field-AIWorldBeliefCell.ObservedTurn
+7628: [R4World] PASS H-stall-uses-recorded-progress
+7642: [R4World] PASS H-repeat-deduplicates-problem
+7656: [R4World] PASS H-siege-progress-is-not-stall
+7670: [R4World] PASS H-deliberate-suspension-is-not-stall
+7684: [R4World] PASS H-emergency-hold-is-not-stall
+7698: [R4World] PASS H-unknown-route-is-not-confirmed-block
+7712: [R4World] PASS H-confirmed-block-is-problem
+7726: [R4World] PASS H-retains-alternative-causes
+7740: [R4World] PASS H-records-real-refutation
+7754: [R4World] PASS H-rejects-duplicate-result
+7768: [R4World] PASS H-refutation-survives-unchanged-context
+7782: [R4World] PASS H-save-value-roundtrip
+7796: [R4World] PASS H-save-does-not-share-entry-list
+7810: [R4World] PASS H-future-save-rejected
+7824: [R4World] PASS H-foreign-owner-rejected
+7838: [R4World] PASS H-future-own-turn-rejected
+7852: [R4World] PASS H-malformed-confidence-rejected
+7866: [R4World] PASS H-low-information-value
+7880: [R4World] PASS H-irrelevant-scout-value
+7894: [R4World] PASS H-nonfinite-information-value
+7908: [R4World] PASS H-global-clock-event
+7922: [R4World] PASS SV-clock-values-roundtrip
+7936: [R4World] PASS SV-future-global-turn-rejected
+7950: [R4World] PASS H-future-outcome-rejected
+13316: [R4SearchKey] PASS Z-key-api-available
+13330: [R4SearchKey] PASS Z01-origin-vs-corner
+13344: [R4SearchKey] PASS Z02-distinct-horizontal-boundaries
+13358: [R4SearchKey] PASS Z04-key-only-height-difference
+13372: [R4SearchKey] PASS Z05-swapped-hp-is-bound-to-individual
+13386: [R4SearchKey] PASS Z06-unit-enumeration-order-invariant
+13400: [R4SearchKey] PASS Z07-repeatable-equal-value-board
+13414: [R4SearchKey] PASS Z08-facing
+13429: [R4SearchKey] PASS Z08-skill-cooldown
+13444: [R4SearchKey] PASS Z08-skill-identity
+13459: [R4SearchKey] PASS Z08-fatigue
+13474: [R4SearchKey] PASS Z08-shield-turn
+13489: [R4SearchKey] PASS Z08-shield-history
+13504: [R4SearchKey] PASS Z08-barrier-maximum
+13519: [R4SearchKey] PASS Z08-commander-status
+13534: [R4SearchKey] PASS Z08-vision-disabled
+13549: [R4SearchKey] PASS Z08-buff-future
+13564: [R4SearchKey] PASS Z08-buff-duration
+13578: [R4SearchKey] PASS Z08-debuff-duration
+13592: [R4SearchKey] PASS Z06-effects-enumeration-order-invariant
+13606: [R4SearchKey] PASS Z08-crystal-counter-future
+13620: [R4SearchKey] PASS Z08-full-crystal-hp-not-clamped-key
+13634: [R4SearchKey] PASS Z08-side-to-act
+13648: [R4SearchKey] PASS Z08-own-ap
+13663: [R4SearchKey] PASS Z08-opponent-ap
+13678: [R4SearchKey] PASS Z08-ap-reset
+13693: [R4SearchKey] PASS Z08-global-round
+13708: [R4SearchKey] PASS Z08-normalized-observer
+13723: [R4CausalExperience] PASS L02-first-completion-receipt
+13738: [R4CausalExperience] PASS L02-no-duplicate-credit
+13753: [R4CausalExperience] PASS L-minimum-two-samples
+13768: [R4CausalExperience] PASS L-two-sample-outcome
+13783: [R4CausalExperience] PASS L-caller-cannot-bypass-two-sample-threshold
+13798: [R4CausalExperience] PASS L-minimum-samples-can-be-higher
+13813: [R4CausalExperience] PASS L-calibration-bounded
+13828: [R4CausalExperience] PASS L-negative-calibration-bounded
+13843: [R4CausalExperience] PASS L-prediction-error-reduces-confidence-use
+13858: [R4CausalExperience] PASS L-strategic-abort-is-observation
+13873: [R4CausalExperience] PASS L-strategic-abort-not-automatic-failure
+13888: [R4CausalExperience] PASS L-dirty-after-real-result
+13903: [R4CausalExperience] PASS L-mark-saved-clears-dirty
+13918: [R4CausalExperience] PASS L-private-receipt-accepted
+13933: [R4CausalExperience] PASS L-no-battle-or-actor-id-in-generalized-json
+13948: [R4CausalExperience] PASS L-receipt-dedup-survives-json-roundtrip
+13963: [R4CausalExperience] PASS L-512-generalized-entry-cap
+13978: [R4CausalExperience] PASS L-capped-profile-is-valid
+13993: [R4CausalExperience] PASS L-oldest-context-evicted-under-cap
+14008: [R4CausalExperience] PASS L-rejects-NaN-outcome
+14023: [R4CausalExperience] PASS L-rejects-Infinity-error
+14038: [R4CausalExperience] PASS L-rejects-unknown-knowledge-id
+14053: [R4CausalExperience] PASS L-rejects-unknown-goal
+14068: [R4CausalExperience] PASS L-rejects-oversized-context
+14083: [R4CausalExperience] PASS L-invalid-results-do-not-create-rewards
+14098: [R4CausalExperience] PASS SV-future-causal-schema-rejected
+14113: [R4CausalExperience] PASS SV-foreign-causal-owner-rejected
+14128: [R4CausalExperience] PASS SV-nonfinite-causal-confidence-rejected
+14143: [R4CausalExperience] PASS SV-inconsistent-causal-counts-rejected
+14158: [R4CausalExperience] PASS SV-future-use-sequence-rejected
+14173: [R4CausalExperience] PASS SV-duplicate-causal-context-rejected
+14188: [R4CausalExperience] PASS SV-oversized-causal-list-rejected
+14203: [R4CausalExperience] PASS SV-unbounded-receipt-filter-rejected
+14218: [R4CausalExperience] PASS SV-invalid-restore-preserves-valid-memory
+14233: [R4CausalExperience] PASS R4-default-disabled-and-shadow
+14248: [R4CausalExperience] PASS R4-shadow-prevents-selection-change
+14263: [R4CausalExperience] PASS R4-explicitly-approved-hint-mode
+14278: [R4CausalExperience] PASS R4-no-world-model-no-execution
+14293: [R4CausalExperience] PASS R4-no-planner-no-execution
+14308: [R4CausalExperience] PASS R4-bounded-planner-config
+14323: [R4CausalExperience] PASS R4-finite-learning-and-trace-config
+14338: [R4経験] 読み込みを省略: future_cognitive_schema
+14353: [R4CausalExperience] PASS SV-future-json-is-not-loaded
+14368: [R4CausalExperience] PASS SV-loaded-future-json-is-not-overwritten
+14383: [R4経験] 保存を省略: future_cognitive_schema
+14398: [R4CausalExperience] PASS SV-unloaded-future-json-is-not-overwritten
+14413: [R4Save] PASS SV01/empty-extension
+14427: [R4Save] PASS SV02/null-optional-roundtrip/Player
+14442: [R4Save] PASS SV02/validation-is-read-only/Player
+14457: [R4Save] PASS SV02/empty-inline-extensions-restore-as-absent/Player
+14472: [R4Save] PASS SV02/absent-extensions-survive-resave/Player
+14487: [R4Save] PASS SV02/null-optional-roundtrip/Enemy
+14502: [R4Save] PASS SV02/validation-is-read-only/Enemy
+14517: [R4Save] PASS SV02/empty-inline-extensions-restore-as-absent/Enemy
+14532: [R4Save] PASS SV02/absent-extensions-survive-resave/Enemy
+14547: [R4Save] PASS SV02/scoped-hypothesis-data-is-preserved
+14562: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14580: [R4Save] PASS SV05/foreign-hypothesis-owner-is-not-normalized
+14595: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14613: [R4Save] PASS SV05/foreign-hypothesis-battle-is-not-normalized
+14628: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14647: [R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/Version
+14663: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14682: [R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/BattleId
+14698: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14717: [R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/ActorTeam
+14733: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14752: [R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/LastOwnTurn
+14768: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14787: [R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/LastGlobalTurn
+14803: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14822: [R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/Entries
+14838: [R4Save] PASS SV06/null-optional-collection/AIHypothesisBattleState/Entries
+14854: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14873: [R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/ProcessedEventIds
+14889: [R4Save] PASS SV06/null-optional-collection/AIHypothesisBattleState/ProcessedEventIds
+14905: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14924: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/PlanId
+14940: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14959: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/Signature
+14975: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+14994: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/ObjectiveRef
+15010: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15029: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/TargetObservedId
+15045: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15064: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/PrimaryMethod
+15080: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15099: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/BattleId
+15115: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15134: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/OwnerTeam
+15150: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15169: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/ParentOperationId
+15185: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15204: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/Goal
+15220: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15239: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/CreatedTurn
+15255: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15274: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/LastValidatedTurn
+15290: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15309: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/BoardGenerationAtValidation
+15325: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15344: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/StrategicPriorityBand
+15360: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15379: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/Status
+15395: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15414: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/Steps
+15430: [R4Save] PASS SV06/null-optional-collection/AICognitivePlan/Steps
+15446: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15465: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/KnowledgeIds
+15481: [R4Save] PASS SV06/null-optional-collection/AICognitivePlan/KnowledgeIds
+15497: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15516: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/KnowledgeVersions
+15532: [R4Save] PASS SV06/null-optional-collection/AICognitivePlan/KnowledgeVersions
+15548: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15567: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/OriginProblemIds
+15583: [R4Save] PASS SV06/null-optional-collection/AICognitivePlan/OriginProblemIds
+15599: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15618: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/HypothesisIds
+15634: [R4Save] PASS SV06/null-optional-collection/AICognitivePlan/HypothesisIds
+15650: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15669: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/ExplanationEvidenceIds
+15685: [R4Save] PASS SV06/null-optional-collection/AICognitivePlan/ExplanationEvidenceIds
+15701: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15720: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/EnemyResponses
+15736: [R4Save] PASS SV06/null-optional-collection/AICognitivePlan/EnemyResponses
+15752: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15771: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/GoalProgress
+15787: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15806: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/EffectiveDamage
+15822: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15841: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/EffectiveSupport
+15857: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15876: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/PredictedIncomingDamage
+15892: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15911: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/WorstCaseLoss
+15927: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15946: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/APCost
+15962: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+15981: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/Delay
+15997: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16016: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/Confidence
+16032: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16051: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/Uncertainty
+16067: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16086: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/Utility
+16102: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16121: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/ExistingActionScore
+16137: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16156: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/ProvenVictory
+16172: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16191: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/PreparationProven
+16207: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16226: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/HasUnknownContinuationCost
+16242: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16261: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartActorPosition
+16277: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16296: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/ExpectedActorPosition
+16312: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16331: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartTargetHP
+16347: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16366: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartTargetBarrier
+16382: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16401: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartOwnAP
+16417: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16436: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartOwnUnitCount
+16452: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16471: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/ActualObservationReason
+16487: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16506: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/LookaheadCompletedDepth
+16522: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16541: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/LookaheadDelta
+16557: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16576: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/LookaheadUtilityAdjustment
+16592: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16611: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/LookaheadSourceKind
+16627: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16646: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/SquadSequenceSignature
+16662: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16681: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/AbandonCondition
+16697: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16716: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/ReplanTrigger
+16732: [R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+16751: [R4Save] PASS SV06/unscoped-data/AICognitivePlan/RejectionReason
+16767: [R4保存] 新しい版の計画を保持し、通常AIで続行します。
+16785: [R4Save] PASS SV07/future-json-is-preserved-before-normalization
+16800: [R4Save] PASS SV05/foreign-owner
+16814: [R4Save] PASS SV05/foreign-battle
+16828: [R4Save] PASS SV07/future-state-not-used
+16842: [R4Save] PASS SV06/negative-event
+16856: [R4Save] PASS SV02/pre-roundtrip-valid
+16870: [R4Save] PASS SV02/value-roundtrip
+16884: [R4Save] PASS SV02/active-plan-survives-absent-hypotheses
+16898: [R4Save] PASS SV03/no-reserved-action-replay
+16912: [R4Save] PASS SV03/restored-intent-can-be-saved-before-replanning
+16926: [R4Save] PASS SV06/nonfinite
+16940: [R4Save] PASS SV06/unknown-knowledge
+16954: [R4Save] PASS SV06/null-dependency
+16968: [R4Diagnostic] PASS X20/completed-plan-has-no-rejection
+16982: [R4Diagnostic] PASS X20/insufficient-AP-has-own-reason
+16996: [R4Diagnostic] PASS X20/protected-band-is-not-misreported-as-unsupported
+17010: [R4Diagnostic] PASS X20/illegal-formal-assessment
+17024: [R4Diagnostic] PASS X20/lethal-risk-is-a-safety-rejection
+17038: [R4Diagnostic] PASS X20/nonfinite-prediction-is-distinct
+17052: [R4Diagnostic] PASS X20/unproven-effect-is-not-invented
+17066: [R4Diagnostic] PASS X20/missing-knowledge-evidence
+17080: [R4Diagnostic] PASS X20/rejection-diagnostics-do-not-change-action-score
+17094: [R4Diagnostic] PASS X20/observed-failure-context-is-distinct
+17108: [R4Diagnostic] PASS X20/rejection-records-bounded-with-total-preserved
+17122: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17136: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17150: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17164: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17178: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17192: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17206: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17220: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17234: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17248: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17262: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17276: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17290: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17304: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17318: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17332: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17346: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17360: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17374: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17388: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17402: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17416: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17430: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17444: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17458: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17472: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17486: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17500: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17514: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17528: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17542: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17556: [R4Diagnostic] PASS X20/rejection-value-is-bounded
+17570: [R4Diagnostic] PASS X20/diagnostics-off-retains-only-cheap-total
+17584: [R4Diagnostic] PASS F06/planning-pauses-before-assessment
+17598: [R4Diagnostic] PASS F07/cancelled-generation-does-not-expose-ready-plan
+17612: [R4Diagnostic] PASS I08/callback-failure-invalidates-unfinished-generation
+17626: [R4Diagnostic] PASS X15/zero-budget-is-explicit-and-no-clock-reset
+17640: [R4Diagnostic] PASS X20/reset-drops-battle-local-diagnostics
+17654: [R4Lookahead] PASS F01-source-distinct-means
+17668: [R4Lookahead] PASS F06-depth-zero-rejected
+17682: [R4Lookahead] PASS F06-heuristic-not-minimax
+17696: [R4Lookahead] PASS F06-stale-generation-rejected
+17710: [R4Lookahead] PASS F01-existing-completed-result-used
+17724: [R4Lookahead] PASS F01-no-second-action-score-addition
+17738: [R4Lookahead] PASS F01-no-new-thinking-clock
+17752: [R4Lookahead] PASS F01-bounded-utility-IMPROVE_POSITION
+17766: [R4Lookahead] PASS F01-bounded-utility-ATTACK
+17780: [R4Lookahead] PASS F01-repeated-result-idempotent
+17794: [R4Lookahead] PASS F01-no-whole-plan-parity-claim
+17808: [R4Lookahead] PASS F06-nonfinite-results-ignored
+17822: [R4Lookahead] PASS F06-unbound-result-ignored
+17836: [R4Lookahead] PASS I02-protected-band-not-reclassified
+17850: [R4Lookahead] PASS X19-disabled-handoff-no-op
+17864: [R4Lookahead] PASS F06-lower-depth-does-not-replace-complete-depth
+17878: [R4Lookahead] PASS P04-small-lookahead-difference-retains-progressing-plan
+17892: [R4Lookahead] PASS P04-completed-score-does-not-change-final-objective
+17906: [R4Lookahead] PASS F06-entry-invalidates-old-metadata-before-enumeration
+17920: [R4Squad] PASS value-chain matching current two-actor sequence is admitted
+17934: [R4Squad] PASS S04-value-chain first action stays bound and later action is not executable
+17948: [R4Squad] PASS S06-value-chain temporary mission remains separate from permanent roles
+17962: [R4Squad] PASS value-chain builder does not mutate source plan or reserve AP
+17976: [R4Squad] PASS value-chain copied head owns its evidence list
+17990: [R4Squad] PASS S04-value-chain combined AP is checked
+18004: [R4Squad] PASS value-chain hard configured step limit is checked
+18018: [R4Squad] PASS value-chain remaining turn iteration slots are checked
+18032: [R4Squad] PASS value-chain no new clock is added
+18046: [R4Squad] PASS value-chain invalid time cannot grant a sequence
+18060: [R4Squad] PASS value-chain old-generation proof rejected
+18074: [R4Squad] PASS S10-value-chain unsafe actor does not acquire a new exception
+18088: [R4Squad] PASS value-chain formal validation required for every actor
+18102: [R4Squad] PASS value-chain coordination cannot replace the selected head
+18116: [R4Squad] PASS value-chain one tentative action per actor
+18130: [R4Squad] PASS value-chain same observed target required
+18144: [R4Squad] PASS value-chain past sighting is not current target evidence
+18158: [R4Squad] PASS value-chain dead target does not retain attack reservations
+18172: [R4Squad] PASS value-chain commander cannot be spent by this adapter
+18186: [R4Squad] PASS value-chain finite protection witness must match coordinator
+18200: [R4Squad] PASS value-chain incomplete predicted kill is not certified as coordinator chain
+18214: [R4Squad] PASS S02-value-chain guaranteed control remains an observation dependency
+18228: [R4Squad] PASS S02-value-chain uncertain control not treated as already applied
+18242: [R4Squad] PASS value-chain never exceeds five coordinator actions
+18256: [R4Squad] PASS feature-off does not change an existing plan
+18270: [R4Squad] source-contract checks completed 25; real-board execution is separate.
+20085: [AIReflectionObjectiveDistance] PASS same objective and fixed metric earn genuine objective progress
+20100: [AIReflectionObjectiveDistance] PASS reverse movement cannot also report positive progress to the same objective
+20115: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Identity
+20130: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Identity
+20145: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Coordinate
+20160: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Coordinate
+20175: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Height
+20190: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Height
+20205: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Metric
+20220: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Metric
+20235: [AIReflectionObjectiveDistance] PASS incomparable objective distances are neutral: Legacy
+20250: [AIReflectionObjectiveDistance] PASS old positive outcome cannot manufacture learning evidence: Legacy
+20265: [AIReflectionObjectiveDistance] PASS missing optional save fields remain unverified
+20280: [AIReflectionObjectiveDistance] PASS new objective provenance survives copying and JSON continuation
+20295: [AIReflectionObjectiveDistance] PASS battle-local objective provenance never enters generalized knowledge keys
+20310: [AIReflectionObjectiveDistance] PASS retargeted no-discovery reversals reach the oscillation detector
+20325: [AIReflectionObjectiveDistance] PASS legacy battle remains loadable while unproved objective evidence is withdrawn
+20340: [AIReflectionObjectiveDistance] PASS legacy causal credit preserves caps and dedupe without granting future objective credit
+20355: [AIReflectionObjectiveDistance] PASS legacy objective withdrawal preserves independent damage and discovery
+20370: [AIReflectionObjectiveDistance] PASS independent discovery cannot preserve a legacy false positioning claim
+20385: [AIReflectionObjectiveDistance] 20 objective provenance checks passed
+20818: [AIAdaptiveBudget] PASS Player ordinary context uses the adjustable 2.5-second proposal
+20832: [AIAdaptiveBudget] PASS Player observed combat uses the 5-second proposal
+20846: [AIAdaptiveBudget] PASS Player coordinated combat uses the 6-second proposal
+20860: [AIAdaptiveBudget] PASS Player highest applicable category wins once instead of adding four budgets
+20874: [AIAdaptiveBudget] PASS Player an explicit compatibility deadline remains a hard rule without extension
+20888: [AIAdaptiveBudget] PASS Player an exhausted compatibility deadline cannot receive extra thinking or finishing time
+20902: [AIAdaptiveBudget] PASS Enemy ordinary context uses the adjustable 2.5-second proposal
+20916: [AIAdaptiveBudget] PASS Enemy observed combat uses the 5-second proposal
+20930: [AIAdaptiveBudget] PASS Enemy coordinated combat uses the 6-second proposal
+20944: [AIAdaptiveBudget] PASS Enemy highest applicable category wins once instead of adding four budgets
+20958: [AIAdaptiveBudget] PASS Enemy an explicit compatibility deadline remains a hard rule without extension
+20972: [AIAdaptiveBudget] PASS Enemy an exhausted compatibility deadline cannot receive extra thinking or finishing time
+20986: [AIAdaptiveBudget] PASS adaptive selection reports its active decision
+21001: [AIAdaptiveBudget] PASS disabling adaptation restores configured legacy time rather than the previous adaptive result
+21016: [AIAdaptiveBudget] PASS a preference change does not alter an already-frozen turn
+21031: [AIAdaptiveBudget] PASS an explicit legacy preference applies at the next turn boundary
+21046: [AIAdaptiveBudget] PASS invalid normal/combat settings stay in their required ranges
+21060: [AIAdaptiveBudget] PASS nonfinite coordination/critical settings use finite proposal defaults
+21074: [AIAdaptiveBudget] PASS a malformed official timer never grants unlimited time
+21088: [AIAdaptiveBudget] PASS compatibility budget remains finite and bounded
+21102: [AIAdaptiveBudget] PASS committing the selected budget retains setup CPU/wall clocks
+21116: [AIAdaptiveBudget] PASS an already-exhausted selected budget expires immediately
+21130: [AIAdaptiveBudget] PASS generic budget cannot become unbounded from nonfinite input
+21144: [AIAdaptiveBudget] PASS R2 legacy clock values do not impose a gameplay deadline for either side
+21158: [AIAdaptiveBudget] PASS Player an unlimited gameplay clock retains the finite adaptive technical budget
+21172: [AIAdaptiveBudget] PASS Player selected technical budget remains bounded by the watchdog
+21186: [AIAdaptiveBudget] PASS Player exhausting the technical budget still stops thinking
+21200: [AIAdaptiveBudget] PASS Enemy an unlimited gameplay clock retains the finite adaptive technical budget
+21214: [AIAdaptiveBudget] PASS Enemy selected technical budget remains bounded by the watchdog
+21228: [AIAdaptiveBudget] PASS Enemy exhausting the technical budget still stops thinking
+21242: [AIAdaptiveBudget] PASS elapsed time leaves legacy clock data unchanged and never forces a player turn end
+21256: [AIAdaptiveBudget] PASS zero historical clocks never produce a timeout or time-up result
+21270: [AIAdaptiveBudget] PASS manual timer lifecycle stop remains available without a gameplay deadline
+21284: [AIAdaptiveBudget] ALL PASSED 33
+21310: [R4契約テスト] 登録済みの単体チェックを終了。実戦・152項目全体の合格を意味しません。
+21322: [CoreTest] Done: 59 passed, 0 failed

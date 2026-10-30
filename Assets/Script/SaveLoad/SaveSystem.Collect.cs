@@ -171,7 +171,9 @@ public static partial class SaveSystem
             MaxHP = s.MaxHP,
             ATK = s.ATK,
             DEF = s.DEF,
-            Level = s.Level,
+            Level = s.type == Type.Unit ? 1 : s.Level,
+            FixedStatsRevision = 2, FixedStatsMigrationDeferred = s.FixedStatsMigrationDeferred,
+            LegacyUnitStats = s.LegacyUnitStats?.Copy(),
             ShieldTurns = s.ShieldTurns,
             ShieldActivated = s.ShieldActivated,
             ShieldEverActivated = s.ShieldEverActivated,
@@ -193,13 +195,15 @@ public static partial class SaveSystem
             InterceptUsedThisTurn = s.InterceptUsedThisTurn,
             Fatigue = s.Fatigue,
             UpkeepUnpaidTurns = s.UpkeepUnpaidTurns,
+            LastMaintenanceRound = s.LastMaintenanceRound,
+            BuiltByEngineer = s.BuiltByEngineer,
             BuildingOperationAvailable = s.BuildingOperationAvailable,
-            Experience = s.Experience,
+            Experience = s.type == Type.Unit ? 0 : s.Experience,
             SpecialAbility = StableSaveKeys.Key(s.specialAbility),
             SurvivalInstinctUsed = s.SurvivalInstinctUsed
         };
 
-        if (StatusBalanceRefresh.TryGetDefinitionStats(s, out int definitionHP, out int definitionATK, out int definitionDEF))
+        if (!s.FixedStatsMigrationDeferred && StatusBalanceRefresh.TryGetDefinitionStats(s, out int definitionHP, out int definitionATK, out int definitionDEF))
         {
             d.HasDefinitionStatSnapshot = true;
             d.DefinitionMaxHP = definitionHP;

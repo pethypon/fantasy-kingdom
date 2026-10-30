@@ -70,13 +70,10 @@ public static class SpecialSkillPresentation
     {
         var settings = BarrierCombatSettings.Active;
         string timing = settings.recoveryAtOwnerTurnStart ? "自軍ターン開始時" : "自軍ターン終了時";
-        string first = settings.recoverOnThresholdTurn ? "条件を満たした判定から回復" : "条件達成の次の判定から回復";
-        string repeat = settings.repeatRecoveryEveryTurn ? "以後も条件を満たす毎ターンに回復" : "無被弾が続く間に1回だけ回復";
         string rounding = settings.recoveryRounding == BarrierRecoveryRounding.Floor ? "切り捨て"
             : settings.recoveryRounding == BarrierRecoveryRounding.Nearest ? "最も近い整数に丸め" : "切り上げ";
-        string negated = settings.fullyNegatedHitsResetRecovery ? "完全無効の攻撃でもカウントをリセット" : "完全無効の攻撃ではカウントを維持";
-        return $"HP70%以上・連続{BarrierSystem.SafeTurnThreshold}ターン無被弾で、最大バリア20%を回復。"
-            + $"\n暫定設定：{timing}に判定し、{first}。{repeat}。端数は{rounding}。{negated}。";
+        return $"HPが最大に達してから{BarrierSystem.SafeTurnThreshold}自軍ターン後、毎ターン最大バリア20%を回復。"
+            + $"\n判定：{timing}。端数は{rounding}。HPが最大未満になると待機をやり直します。バリアだけの損失では待機を維持します。";
     }
 
     static string Configured(int value) => value < 0 ? "未設定" : value.ToString();
@@ -165,9 +162,9 @@ public static class SpecialSkillPresentation
         {
             int safe = Mathf.Clamp(actor.BarrierRecovery?.SafeTurns ?? 0, 0, BarrierSystem.SafeTurnThreshold);
             text.Append("\n\n<b>バリア</b>\n現在 ").Append(actor.Barrier).Append(" / ").Append(actor.MaxBarrier)
-                .Append("。先にバリアを消耗し、超過分だけHPが減少します。最大値は毎Lv＋").Append(BarrierSystem.GrowthPerLevel).Append('。')
+                .Append("。先にバリアを消耗し、超過分だけHPが減少します。最大値は兵種ごとの固定値です。")
                 .Append('\n').Append(BarrierRecoveryDescription())
-                .Append("\n無被弾経過：").Append(safe).Append(" / ").Append(BarrierSystem.SafeTurnThreshold)
+                .Append("\nHP最大での待機：").Append(safe).Append(" / ").Append(BarrierSystem.SafeTurnThreshold)
                 .Append("ターン。HP自然回復・完全防御シールド・軽減障壁とは別の効果です。");
         }
         if (actor.ShieldTurns > 0)

@@ -103,13 +103,14 @@ public partial class SimBoardState
     {
         if (!unit.IsAlive || !unit.UsesBarrier || unit.BarrierLastRound == round) return;
         unit.BarrierLastRound = round;
-        if (!unit.BarrierHasOwnTurnBaseline)
+        if (unit.BarrierRuleRevision != BarrierSystem.RecoveryRuleRevision)
         {
-            unit.BarrierHasOwnTurnBaseline = true;
-            if (BarrierCombatSettings.Active.recoveryAtOwnerTurnStart) return;
+            unit.BarrierRuleRevision = BarrierSystem.RecoveryRuleRevision;
+            unit.BarrierSafeTurns = 0; unit.BarrierFullHPObserved = false; unit.BarrierHasRecovered = false;
         }
+        unit.BarrierHasOwnTurnBaseline = true;
         int amount = BarrierSystem.AdvanceRecovery(ref unit.BarrierSafeTurns,ref unit.BarrierDamaged,
-            ref unit.BarrierHasRecovered,unit.HP,unit.MaxHP,unit.MaxBarrier);
+            ref unit.BarrierHasRecovered,ref unit.BarrierFullHPObserved,unit.HP,unit.MaxHP,unit.MaxBarrier);
         if (amount > 0) unit.Barrier = (int)System.Math.Min(unit.MaxBarrier,(long)unit.Barrier+amount);
     }
 

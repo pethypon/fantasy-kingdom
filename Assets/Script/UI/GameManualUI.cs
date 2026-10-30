@@ -211,7 +211,7 @@ public class GameManualUI : MonoBehaviour
         definitions.TryGetValue(Kind.King, out var king); AppendManualUnit(sb, Kind.King, king);
         definitions.TryGetValue(Kind.Boss, out var boss); AppendManualUnit(sb, Kind.Boss, boss);
         sb.AppendLine($"  <b>クリスタル</b>: 基本最大HP {MainCrystalRules.MaximumHP}。破壊されたら敗北。攻撃側のターン終了時に反撃");
-        sb.AppendLine("  <b>異形の王</b>: Lv1ステータスはキング相当だが成長率が大幅に高く、専用パッシブにより");
+        sb.AppendLine("  <b>異形の王</b>: 専用の固定ステータスとパッシブを持ち、");
         sb.AppendLine("    被ダメ-40%・ダメージの20%を吸血・HP50%以下でATK+25%となる");
         sb.AppendLine("  <b>強敵（縄張りボス）</b>: 縄張り外では被弾無効。縄張り内に駒が入ると攻撃可能");
         return sb.ToString();
@@ -223,18 +223,13 @@ public class GameManualUI : MonoBehaviour
         bool hasFallback = UnitStaticData.Table.TryGetValue(kind, out var fallback);
         if (data == null && !hasFallback) return;
         string name = data != null ? data.DisplayName : fallback.DisplayName;
-        int hp = data != null ? data.baseHP : fallback.BaseHP;
-        int atk = data != null ? data.baseATK : fallback.BaseATK;
-        float hpGrowth = data != null ? data.hpGrowth : fallback.HpGrowth;
-        float atkGrowth = data != null ? data.atkGrowth : fallback.AtkGrowth;
+        int hp = data != null ? data.FixedMaxHP : FixedUnitRules.BaseStat(kind, fallback.BaseHP);
+        int atk = data != null ? data.FixedATK : FixedUnitRules.BaseStat(kind, fallback.BaseATK);
         var prefab = data != null && data.prefab != null ? data.prefab.GetComponentInChildren<Status>(true) : null;
         bool usesBarrier = BarrierSystem.UsesBarrier(kind, Type.Unit, prefab != null && prefab.isWildBoss);
         int initialBarrier = data != null && data.baseBarrier >= 0 ? data.baseBarrier : BarrierSystem.Initial(kind);
         sb.AppendLine($"<b>{name}</b>");
-        sb.AppendLine($"  Lv1 HP {hp}" + (usesBarrier ? $" / バリア {initialBarrier}" : "") + $" / ATK {atk}");
-        sb.AppendLine($"  固定成長 HP+{UnitData.CalcGrowthPerLevel(hp, hpGrowth)}"
-            + (usesBarrier ? $" / バリア+{BarrierSystem.GrowthPerLevel}" : "") + $" / ATK+{UnitData.CalcGrowthPerLevel(atk, atkGrowth)}"
-            + $" / Lv（最大Lv{GameConstants.MaxUnitLevel}）");
+        sb.AppendLine($"  HP {hp}" + (usesBarrier ? $" / バリア {initialBarrier}" : "") + $" / ATK {atk}");
         if (data != null && data.specialSkill != null && data.specialSkill.ability != UnitSpecialSkill.None)
             sb.AppendLine("  固有能力：" + SpecialSkillPresentation.Name(data.specialSkill));
         sb.AppendLine();
@@ -248,13 +243,13 @@ public class GameManualUI : MonoBehaviour
 BuildDurabilityRulesText() +
 "<b>■ AP（行動力）</b>\n" +
 $"  市民1人ごとに追加AP{EconomySystem.CitizenAPBonus}を得る。移動{APSystem.BaseMoveCost}・攻撃{APSystem.BaseAttackCost}・建築/召喚でAPを消費する。\n\n" +
-"<b>■ 経験値</b>\n" +
-$"  Lv2に必要なXP: {GameConstants.XPRequiredLv2}、各レベルで ×{GameConstants.XPLevelMultiplier} 倍ずつ増加。\n" +
-"  " + (!BarrierCombatSettings.Active.enabledForPlay ? "HPへの実ダメージをXPとして獲得。"
-    : !BarrierCombatSettings.Active.barrierDamageGrantsExperience ? "HPへの実ダメージをXPとして獲得（暫定設定：バリア損失は含めない）。"
-    : "HPとバリアへの実ダメージをXPとして獲得（バリア分を含めるかは暫定設定）。")
-    + "倒さなくても蓄積し、兵舎ボーナスで+%が乗ります。\n" +
-"  実獲得XP = floor(damage × (1 + BarracksXP%/100))\n\n" +
+"<b>■ 維持費</b>\n" +
+"  兵士の維持費は毎ターン一定です。通常兵の設定基本値の5倍を支払います。王と免除対象は維持費なし。\n" +
+"  未払いの兵士は毎ターンHPを失います（暫定：最大HP20%、切上げ、バリア無視）。\n\n" +
+"<b>■ 工兵と領土外採掘</b>\n" +
+"  自軍の工兵を選択→「建築」から施設と設置先を選びます。工兵自身の視界内のみ建設可能です。紫は本人の視界、橙は配置可能なマスです。\n" +
+"  工兵建築の資源費は通常の2倍。敵領土には建築できません。建物は自軍の所有になりますが、周囲の領土は増えません。追加建築には工兵を再び派遣します。\n" +
+"  鉄・魔石を生産する採掘施設は、自国領土の外でのみ採掘できます。建築前に表示される費用と配置できない理由を確認してください。\n\n" +
 "<b>■ クリスタル反撃</b>\n" +
 $"  攻撃した陣営のターン終了時に1回だけ発動。晶の領土内にいる攻撃側の駒を最大{MainCrystalRules.MaximumCounterTargets}体まで反撃。\n" +
 $"  各対象自身の最大HP×{MainCrystalRules.CounterFraction*100:F0}%ダメージ。バリア等の通常の防御を適用。クリスタル専用の無敵シールドはありません。\n\n" +
@@ -276,11 +271,9 @@ $"  マップに2箇所ランダム生成。サブクリスタルで起動し、
             return "<b>■ HP</b>\n  HPが0になると撃破されます。完全防御シールド中はダメージを無効化します。\n"
                 + "  HPを失わず5ターン経過後、毎自軍ターン終了時に最大HP10%を自然回復します。\n\n";
         return "<b>■ HPとバリア</b>\n" +
-$"  通常駒は先にバリアを消耗し、超過ダメージだけHPから減少します。最大バリアは兵種ごとの初期値＋{BarrierSystem.GrowthPerLevel}×（Lv−1）。\n" +
+"  通常駒は先にバリアを消耗し、超過ダメージだけHPから減少します。最大バリアは兵種ごとの固定値です。\n" +
 "  一部の既存スキル・能力は効果未調整です。\n" +
 "  " + SpecialSkillPresentation.BarrierRecoveryDescription() + "\n" +
-"  レベル上昇時の現在バリア（暫定）：" + (BarrierCombatSettings.Active.growCurrentBarrierOnLevelUp
-    ? $"増えた最大値の分だけ増加（毎Lv＋{BarrierSystem.GrowthPerLevel}、最大値まで）。\n" : "現在値を維持し、最大値だけ増加。\n") +
 $"  暫定ダメージ式：{BarrierCombatSettings.Active.provisionalDamageBase:0.##}＋ATK×{BarrierCombatSettings.Active.provisionalAttackCoefficient:0.###}。各種倍率・最低ダメージは別途適用。最終式は未確定です。\n" +
 "  HP自然回復（HPを失わず5ターンで最大HP10%）は別に判定します。完全防御シールドはダメージを無効化し、軽減障壁は被ダメージを軽減する効果です。\n" +
 "  竜騎士の固有スキルはバリアを貫通します。通常攻撃と通常の攻撃スキルはバリアから先に減らします。バリアを持たない駒や施設はHPでダメージを受けます。\n\n";

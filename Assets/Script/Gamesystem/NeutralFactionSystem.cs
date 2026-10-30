@@ -150,13 +150,7 @@ public class NeutralFactionSystem : MonoBehaviour
     }
 
     int AverageCombatLevel()
-    {
-        int sum = 0, count = 0;
-        foreach (var parent in new[] { systems.UnitSetting.PlayerUnit, systems.UnitSetting.EnemyUnit })
-            foreach (var unit in parent.GetComponentsInChildren<Status>())
-                if (unit.IsAlive && unit.type == Type.Unit) { sum += unit.Level; count++; }
-        return count == 0 ? 1 : Mathf.Max(1, Mathf.RoundToInt((float)sum / count));
-    }
+        => 1; // UnitData now supplies fixed production stats; independent event tiers remain separate.
 
     public void GrantRelic(Status defeated, Team winner)
     {

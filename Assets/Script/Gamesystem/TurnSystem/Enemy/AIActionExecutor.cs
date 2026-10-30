@@ -443,9 +443,14 @@ public class AIActionExecutor
         var pos = AIBoardState.ToCell(action.TargetPos);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AIActionExecutor] ExecuteBuild: {action.Facility} @({pos.x},{pos.y},{pos.z}) AP={_apSystem.GetAP(ActorTeam)}"); }
 
-        bool success = action.FacilityDefinition != null
-            ? _buildSystem.TryPlaceDefinition(pos, action.FacilityDefinition, ActorTeam)
-            : _buildSystem.AIPlaceBuilding(pos, action.Facility, ActorTeam);
+        bool engineerBuild = AIConstructionEconomy.IsEngineer(action);
+        if (action.Unit != null && !engineerBuild) return Fail("build_actor_not_engineer");
+        if (engineerBuild && (!CanAct(action.Unit) || action.Unit.team != ActorTeam)) return Fail("engineer_cannot_act");
+        bool success = engineerBuild
+            ? action.FacilityDefinition != null ? _buildSystem.TryEngineerPlace(action.Unit, pos, action.FacilityDefinition)
+                : _buildSystem.TryEngineerPlace(action.Unit, pos, action.Facility)
+            : action.FacilityDefinition != null ? _buildSystem.TryPlaceDefinition(pos, action.FacilityDefinition, ActorTeam)
+                : _buildSystem.AIPlaceBuilding(pos, action.Facility, ActorTeam);
         if (success)
         {
             board.Refresh();

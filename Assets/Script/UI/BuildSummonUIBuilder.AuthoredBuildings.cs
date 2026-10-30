@@ -32,7 +32,7 @@ public partial class BuildSummonUIBuilder
             label.fontSizeMin = 20; label.fontSizeMax = BrandGuide.FontHudCaption;
             label.gameObject.AddComponent<LayoutElement>().minHeight = 48;
             var captured = definition;
-            button.onClick.AddListener(() => { slidePanel?.ClosePanel(); buildSystem?.StartBuildMode(captured); });
+            button.onClick.AddListener(() => OnAuthoredBuildButtonClicked(captured));
             authoredBuildButtons.Add((button, button.GetComponent<Image>(), label, definition));
         }
     }
@@ -42,13 +42,14 @@ public partial class BuildSummonUIBuilder
         foreach (var row in authoredBuildButtons)
         {
             if (row.button == null || row.definition == null) continue;
-            string reason = buildSystem != null ? buildSystem.GetCostFailure(row.definition, Team.Player) : "建築準備中";
+            string reason = BuildMenuFailure(row.definition);
             row.button.interactable = reason == null;
             row.image.color = reason == null ? BrandGuide.BtnBuildEnabled : BrandGuide.BtnDisabled;
-            string cost = FormatBuildCost(row.definition.GetInfo().BuildCost);
+            string cost = FormatBuildCost(BuildCostForMenu(row.definition));
+            if (engineerMenuRequested) cost = "工兵建築：資源費2倍\n" + cost;
             cost += FormatBuildingDetails(row.definition.behaviourKind, row.definition.GetLevel(1));
             var title = row.button.GetComponentInChildren<TextMeshProUGUI>();
-            if (title != null) title.text = row.definition.displayName + "  AP:" + row.definition.GetInfo().APCost;
+            if (title != null) title.text = row.definition.displayName + "  AP:" + BuildAPForMenu(row.definition);
             if (FacilityData.IsSubCrystal(row.definition.behaviourKind)) cost += " 副晶1消費";
             row.label.text = reason == null ? cost : cost + "\n<color=#FFB7A3>" + reason + "</color>";
         }

@@ -33,7 +33,7 @@ public sealed class ThirdFactionWorldSnapshot
         float reach = u.kind == Kind.Archer || u.kind == Kind.Crossbow || u.kind == Kind.Magicsniper ? 1.2f : 1;
         float role = u.kind == Kind.Bomber || u.kind == Kind.Magic ? 1.15f : u.kind == Kind.Priest ? 1.25f : 1;
         float disabled = StatusEffectSystem.IsStunned(u) ? .4f : 1;
-        return Mathf.Max(1, (u.ATK * 2 + u.DEF + Mathf.Sqrt(Mathf.Max(1, u.MaxHP)) + u.Level * 2)
+        return Mathf.Max(1, (u.ATK * 2f + u.DEF + Mathf.Sqrt(Mathf.Max(1, u.MaxHP)))
             * (.3f + ratio * .7f) * reach * role * disabled * (u.isWildBoss ? 1.5f : 1));
     }
 
@@ -41,7 +41,6 @@ public sealed class ThirdFactionWorldSnapshot
         List<Status> buffer)
     {
         var world = new ThirdFactionWorldSnapshot { Turn = turn, ThreatLevel = threat };
-        int levels = 0, levelCount = 0;
         CombatRegistry.Collect(buffer); // Exactly one full actor collection for Director candidate evaluation.
         foreach (var u in buffer)
         {
@@ -49,15 +48,13 @@ public sealed class ThirdFactionWorldSnapshot
             var a = new Actor { Team = u.team, Kind = u.kind, Type = u.type, Cell = u.GridPosition,
                 Power = UnitPower(u), HPRatio = Mathf.Clamp01((float)u.HP / Mathf.Max(1, u.MaxHP)), Objective = objective, Boss = u.isWildBoss };
             world.Actors.Add(a);
-            if ((u.team == Team.Player || u.team == Team.Enemy) && u.type == Type.Unit)
-            { levels += u.Level; levelCount++; }
             var f = u.team == Team.Player ? world.Player : u.team == Team.Enemy ? world.Enemy : world.Third;
             if (u.type == Type.Unit && u.kind != Kind.Crystal)
             { f.MilitaryPower += a.Power; f.UnitCount++; f.Center += u.transform.position; }
             else if (u.kind != Kind.Crystal) f.Facilities++;
             if (objective) { f.ObjectiveHPRatio = Mathf.Min(f.ObjectiveHPRatio, a.HPRatio); f.ObjectiveHP += u.HP; }
         }
-        world.AverageCombatLevel = levelCount == 0 ? 1 : Mathf.Max(1, Mathf.RoundToInt((float)levels / levelCount));
+        world.AverageCombatLevel = 1; // Legacy encounter parameter, never an estimate of unit experience.
         world.Actors.Sort((a, b) =>
         { int n = a.Team.CompareTo(b.Team); if (n != 0) return n; n = a.Cell.x.CompareTo(b.Cell.x); if (n != 0) return n;
             n = a.Cell.z.CompareTo(b.Cell.z); return n != 0 ? n : a.Kind.CompareTo(b.Kind); });

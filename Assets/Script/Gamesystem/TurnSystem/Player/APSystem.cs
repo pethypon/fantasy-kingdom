@@ -168,6 +168,20 @@ public class APSystem : MonoBehaviour
         FacilityData.Consume(factionState.GetResources(team), info.BuildCost);
     }
 
+    /// <summary>Commit an already revalidated custom build price once. Does not multiply costs.</summary>
+    public bool TryConsumeBuild(Team team, FacilityData.ResourceCost cost, int apCost, FactionState factionState)
+    {
+        if (factionState == null || (team != Team.Player && team != Team.Enemy) || apCost < 0
+            || cost.Wood < 0 || cost.Stone < 0 || cost.Iron < 0 || cost.MagicOre < 0 || cost.Water < 0 || cost.Citizen < 0)
+            return false;
+        var resources = factionState.GetResources(team);
+        if (resources == null || factionState.GetAP(team) < apCost || !FacilityData.CanAfford(resources, cost)) return false;
+        FacilityData.Consume(resources, cost);
+        factionState.ModifyAP(team, -apCost);
+        OnNonMoveAction?.Invoke(team);
+        return true;
+    }
+
     // ---- 建築の AP + リソース消費 ----
     public void ConsumeBuild(Team team, FacilityKind facility, FactionState factionState)
     {

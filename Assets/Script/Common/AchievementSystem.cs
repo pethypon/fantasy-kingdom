@@ -82,6 +82,7 @@ public class AchievementSystem : MonoBehaviour
 
     public void Unlock(AchievementId id)
     {
+        if (id == AchievementId.LvMax) return; // Historical preference key is retained, never re-awarded.
         if (!_definitions.TryGetValue(id, out var info)) return;
         if (IsUnlocked(id)) return;
         PlayerPrefs.SetInt(info.PrefsKey, 1);
@@ -123,14 +124,18 @@ public class AchievementSystem : MonoBehaviour
     }
 
     public void OnLevelUp(int newLevel)
-    {
-        if (newLevel >= 15) Unlock(AchievementId.LvMax);
-    }
+    { } // Legacy callback; unit growth no longer exists.
 
     public void OnCrystalKill(float targetHPRatio)
     {
         if (targetHPRatio <= 0.10f) Unlock(AchievementId.CrystalSniper);
     }
 
-    public IReadOnlyDictionary<AchievementId, AchievementInfo> AllDefinitions => _definitions;
+    static readonly Dictionary<AchievementId, AchievementInfo> activeDefinitions = ActiveDefinitions();
+    static Dictionary<AchievementId, AchievementInfo> ActiveDefinitions()
+    {
+        var active = new Dictionary<AchievementId, AchievementInfo>(_definitions);
+        active.Remove(AchievementId.LvMax); return active;
+    }
+    public IReadOnlyDictionary<AchievementId, AchievementInfo> AllDefinitions => activeDefinitions;
 }

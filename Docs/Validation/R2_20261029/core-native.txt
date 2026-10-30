@@ -1,0 +1,91 @@
+Source: core-post-support.log
+SHA256: 4ecba132ba6409c9c73739d659afcdb9e67880ae5ccca3e2395b6fe4ec505a3b
+316: [R2Fixed] PASS A01
+329: [R2Fixed] PASS A02
+342: [R2Fixed] PASS A03
+355: [R2Fixed] PASS A04
+368: [R2Fixed] PASS A05
+381: [R2Fixed] PASS A06
+394: [R2Fixed] PASS A07
+407: [R2Fixed] PASS A08
+420: [R2Fixed] PASS A10
+433: [R2Fixed] PASS B04
+446: [R2Fixed] PASS UP08
+459: [R2Fixed] PASS C01
+472: [R2Fixed] PASS C03
+485: [R2Fixed] PASS C05
+498: [R2Fixed] PASS C04
+511: [R2Fixed] PASS C02
+525: [R2Fixed] PASS C04-global
+539: [R2Fixed] PASS C06-exempt
+552: [R2Fixed] PASS C06-king
+565: [R2Fixed] PASS C06-boss
+578: [R2Fixed] PASS C08
+591: [R2Fixed] PASS D01
+604: [R2Fixed] PASS D02
+617: [R2Fixed] PASS I03
+630: [R2Fixed] PASS engineer-barrier-requires-configuration
+643: [R2Fixed] PASS engineer-authored-barrier-live-sim
+656: [R2Fixed] PASS A09
+669: [R2Fixed] PASS D08
+682: [R2Fixed] COMPLETE
+713: [R2Save] PASS F01
+726: [R2Save] PASS F02
+739: [R2Save] PASS F03
+752: [R2Save] PASS F04
+765: [R2Save] PASS F05
+778: [R2Save] PASS F06-partial
+791: [R2Save] PASS F07
+804: [R2Save] PASS F08
+817: [R2Save] PASS F09-future
+830: [R2Save] PASS F10-partial
+843: [R2Save] PASS SVR02
+856: [R2Save] PASS SVR08
+869: [R2Save] PASS unknown-bonuses-preserved
+882: [R2Save] PASS SVR10-unit
+915: [R2Save] PASS scene-override-never-guessed-from-static
+929: [R2Save] PASS F02-scene-definition
+943: [R2Save] PASS F07-scene-definition
+957: [R2Save] COMPLETE
+969: [R2Barrier] PASS BR01 70% and 90% HP never regenerate after three or more boundaries
+982: [R2Barrier] PASS BR02 full-HP arrival starts a zero-length waiting interval
+995: [R2Barrier] PASS BR03 first and second own boundaries do not regenerate
+1008: [R2Barrier] PASS BR04 third own boundary restores twenty percent
+1021: [R2Barrier] PASS BR05 later own boundaries continue and clamp at maximum
+1034: [R2Barrier] PASS BR06 barrier-only damage preserves full-HP history
+1047: [R2Barrier] PASS BR07 one HP loss resets immediately; real healing begins a new three-boundary wait
+1060: [R2Barrier] PASS BR08 dead actors cannot regenerate
+1073: [R2Barrier] PASS BR09 initial barrier table is neither level-scaled nor multiplied by 1.75
+1086: [R2Barrier] PASS BR10 roundtrip neither advances nor replays a boundary; legacy safe-hit history grants no full-HP credit
+1099: [R2Barrier] PASS BR11 live, captured simulation and pure forecast agree; cloned clocks are independent
+1112: [R2Barrier] PASS BR12 player direct-heal and enemy natural-heal share the same new full-HP clock
+1125: [R2Barrier] COMPLETE BR01-BR12
+1137: [R2TimerUI] PASS TM01 no forced player turn end after 180 seconds
+1150: [R2TimerUI] PASS TM02 no forced player turn end after 600 seconds
+1163: [R2TimerUI] PASS elapsed time does not deduct legacy totals
+1176: [R2TimerUI] PASS TM03 zero legacy clocks do not end the game
+1189: [R2TimerUI] PASS TM04 no historical timeout callback for either side
+1202: [R2TimerUI] PASS no time-up result or reason is retained
+1215: [R2TimerUI] PASS R2 advertises no gameplay clock limit
+1228: [R2TimerUI] PASS AI receives no gameplay deadline
+1241: [R2TimerUI] PASS TM08 no gameplay timer still keeps the finite technical limit
+1254: [R2TimerUI] PASS manual stop keeps the lifecycle seam and adds no clock bonus
+1267: [R2TimerUI] PASS manual restart retains active team
+1280: [R2TimerUI] PASS invalid elapsed values cannot create a timeout
+1293: [R2TimerUI] PASS restoring invalid historical clock values is finite
+1306: [R2TimerUI] PASS E03 summon tooltip contains no unit growth labels
+1319: [R2TimerUI] PASS E04 summon tooltip uses canonical fixed HP and ATK
+1332: [R2TimerUI] PASS E05 summon upkeep comes from the fixed API
+1345: [R2TimerUI] PASS R2 barrier explanation uses full HP rather than old damage-free threshold
+1358: [R2TimerUI] PASS E02/E09 units hide the shared facility level and close the empty row
+1372: [R2TimerUI] PASS E08/E09 facility selection restores its upgrade row and original HP layout
+1386: [R2TimerUI] PASS E09 repeated facility-to-unit switching never leaves a stale row
+1400: [R2TimerUI] PASS engineer construction menu requires a living owned engineer
+1414: [R2TimerUI] PASS dead engineer never silently switches its menu to normal prices
+1428: [R2TimerUI] PASS ordinary construction context switch is explicit and idempotent
+1442: [R2TimerUI] PASS a null engineer cannot create a new remote construction context
+1456: [R2TimerUI] PASS MN12 own-territory mine explains zero rare output
+1470: [R2TimerUI] PASS MN12 outside mine presents effective recipe and operation state
+1484: [R2TimerUI] PASS E01 no runtime level badge text cache remains
+1497: [R2TimerUI] RESULT checks=27
+1509: [R2CoreContracts] COMPLETE

@@ -209,6 +209,7 @@ public partial class SimBoardState
 
     static SimUnit CaptureUnit(Status s, int id, Team simulationTeam, int round, bool swapCounterTeams = false)
     {
+        var recovery = BarrierSystem.CopyState(s.BarrierRecovery);
         var su = new SimUnit
         {
             Id = id,
@@ -222,13 +223,16 @@ public partial class SimBoardState
             ATK = s.ATK,
             DEF = s.DEF,
             MaxBarrier = s.MaxBarrier,
+            EngineerBarrierConfigured = s.kind == Kind.Engineer && BarrierSystem.UsesBarrier(s),
             Barrier = s.Barrier,
-            BarrierSafeTurns = s.BarrierRecovery?.SafeTurns ?? 0,
-            BarrierLastRound = s.BarrierRecovery?.LastProcessedRound ?? -1,
-            BarrierDamaged = s.BarrierRecovery?.DamageSinceOwnTurn ?? false,
-            BarrierLastDamagedRound = s.BarrierRecovery?.LastDamagedRound ?? -1,
-            BarrierHasRecovered = s.BarrierRecovery?.HasRecovered ?? false,
-            BarrierHasOwnTurnBaseline = s.BarrierRecovery?.HasOwnTurnBaseline ?? false,
+            BarrierSafeTurns = recovery.SafeTurns,
+            BarrierLastRound = recovery.LastProcessedRound,
+            BarrierDamaged = recovery.DamageSinceOwnTurn,
+            BarrierLastDamagedRound = recovery.LastDamagedRound,
+            BarrierHasRecovered = recovery.HasRecovered,
+            BarrierHasOwnTurnBaseline = recovery.HasOwnTurnBaseline,
+            BarrierRuleRevision = recovery.RuleRevision,
+            BarrierFullHPObserved = recovery.FullHPObserved,
             SimulationRound = round,
             Position = GridHelper.ToGridXZ(s.transform.position),
             Direction = s.direction,
@@ -425,13 +429,12 @@ public partial class SimBoardState
         { hp = definition.HP; atk = definition.ATK; def = definition.DEF; }
         else if (UnitStaticData.Table.TryGetValue(kind, out var data))
         {
-            hp = data.BaseHP;
-            atk = data.BaseATK;
-            def = data.BaseDEF;
+            hp = FixedUnitRules.BaseStat(kind, data.BaseHP);
+            atk = FixedUnitRules.BaseStat(kind, data.BaseATK);
+            def = FixedUnitRules.BaseStat(kind, data.BaseDEF);
         }
 
-        int barrier = BarrierSystem.UsesBarrier(kind,Type.Unit)
-            ? authored ? definition.Barrier : BarrierSystem.Initial(kind) : 0;
+        int barrier = authored ? definition.Barrier : BarrierSystem.UsesBarrier(kind,Type.Unit) ? BarrierSystem.Initial(kind) : 0;
         return new SimUnit
         {
             Id = id,
@@ -443,7 +446,10 @@ public partial class SimBoardState
             ATK = atk,
             DEF = def,
             MaxBarrier = barrier,
+            EngineerBarrierConfigured = authored && definition.EngineerBarrierConfigured,
             Barrier = barrier,
+            BarrierRuleRevision = BarrierSystem.RecoveryRuleRevision,
+            BarrierFullHPObserved = hp > 0,
             SimulationRound = TurnCount,
             Position = pos,
             Direction = team == Team.Enemy ? EnemySummonDirection : PlayerSummonDirection,

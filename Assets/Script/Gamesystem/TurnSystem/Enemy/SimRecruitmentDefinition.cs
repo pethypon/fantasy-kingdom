@@ -5,13 +5,15 @@ public readonly struct SimRecruitmentDefinition
 {
     public readonly int HP, ATK, DEF, Barrier, APCost, SkillId;
     public readonly bool AvailableToPlayer, AvailableToEnemy;
+    public readonly bool EngineerBarrierConfigured;
     public readonly PassiveSkill Passive;
     public readonly bool AssassinPassive;
     public readonly BoardActionProfile ActionProfile;
     public SimRecruitmentDefinition(UnitData definition)
     {
-        HP = definition.baseHP; ATK = definition.baseATK; DEF = definition.baseDEF; APCost = definition.costAP;
-        Barrier = BarrierSystem.UsesBarrier(definition.kind,Type.Unit)
+        HP = definition.FixedMaxHP; ATK = definition.FixedATK; DEF = definition.FixedDEF; APCost = definition.costAP;
+        EngineerBarrierConfigured = definition.kind == Kind.Engineer && definition.baseBarrier >= 0;
+        Barrier = BarrierSystem.UsesBarrier(definition,Type.Unit)
             ? BarrierSystem.Maximum(definition.baseBarrier >= 0 ? definition.baseBarrier : BarrierSystem.Initial(definition.kind), 1) : 0;
         AvailableToPlayer = definition.availableToPlayer; AvailableToEnemy = definition.availableToEnemy;
         // Match UnitData.ApplyAbilityIdentity: a fixed special definition replaces legacy abilities.

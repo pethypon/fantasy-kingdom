@@ -33,8 +33,8 @@ public sealed partial class AIStrategicGovernor
     readonly Dictionary<Status,float> safest=new Dictionary<Status,float>();
     readonly Dictionary<(Status,Vector3Int,Status),float> damageCache=new Dictionary<(Status,Vector3Int,Status),float>();
     readonly Dictionary<AIAction,string> rejected=new Dictionary<AIAction,string>();
-    readonly Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int), EconomyForecastResult> buildForecasts
-        = new Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int), EconomyForecastResult>();
+    readonly Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int, Vector3Int), EconomyForecastResult> buildForecasts
+        = new Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int, Vector3Int), EconomyForecastResult>();
     readonly Dictionary<(Status,Vector3Int),float> threatCache=new Dictionary<(Status,Vector3Int),float>();
     readonly List<AIAction> reserveCandidates = new List<AIAction>(64);
     int recoveryReserveAP = -1;
@@ -241,7 +241,7 @@ public sealed partial class AIStrategicGovernor
         {
             var projected=forecast.Simulate(board,action);
             if(projected.BreadPaymentFailed||projected.ImportantProductionStopped)return "bread_forecast_fail";
-            if(projected.UpkeepPaymentFailed)return "upkeep_forecast_fail";
+            if(projected.UpkeepPaymentFailed && !IsSafeEngineerOreRecoveryRecruit(action, board, projected))return "upkeep_forecast_fail";
             if(projected.BreadCoverageTurns<BreadReserveTurns&&Mode!=StrategicMode.EmergencyDefense)return "bread_reserve_fail";
         }
         if (action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade)
@@ -253,8 +253,8 @@ public sealed partial class AIStrategicGovernor
             if (IsMilitaryConstruction(action) && (Mode == StrategicMode.EconomicRecovery || ProductionDemand.State >= EconomicState.Crisis) && !emergencyDefense)
                 return "economic_recovery_blocks_military_build";
             var key = (action.ActionType, action.Facility, action.FacilityDefinition,
-                action.ActionType == AIActionType.Upgrade ? action.Unit : null,
-                action.ActionType == AIActionType.Upgrade && action.Unit != null ? action.Unit.Level : 0);
+                action.Unit,
+                action.ActionType == AIActionType.Upgrade && action.Unit != null ? action.Unit.Level : 0, GridHelper.ToGridXZ(action.TargetPos));
             if (!buildForecasts.TryGetValue(key, out var projected))
                 buildForecasts[key] = projected = forecast.Simulate(board, action);
             // A baseline crisis must not hide a new failure in a different resource.
@@ -291,6 +291,8 @@ public sealed partial class AIStrategicGovernor
         if(a.Unit!=null&&MatchObjectiveRules.IsCommander(a.Unit)&&IsMovement(a)&&Risk(a,board)<IncomingDamage(board,a.Unit,a.Unit.transform.position,null))return 0;
         if(a.Unit!=null&&MatchObjectiveRules.IsCommander(a.Unit)&&a.ActionType==AIActionType.Attack
             &&IncomingDamage(board,a.Unit,a.Unit.transform.position,null)>=a.Unit.HP&&Risk(a,board)<a.Unit.HP)return 0;
+        if (Mode != StrategicMode.EmergencyDefense && AIActionGenerator.IsEngineerSupplyProgress(a, board))
+            return Mode == StrategicMode.EconomicRecovery ? 2 : 3;
         if(Mode==StrategicMode.EmergencyDefense)
         {
             if(a.ActionType==AIActionType.Attack&&a.TargetUnit!=null&&ThreatensCritical(a.TargetUnit,board))return 1;
@@ -324,7 +326,7 @@ public sealed partial class AIStrategicGovernor
         // Without that direction, preserve the existing combat/exploration peer tier.
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             && IsSafeEffectiveBattleAction(a, board)) return HasActiveTerritoryAdvance ? 2 : 3;
-        if (IsSafePlannedRecruit(a, board)) return 3;
+        if (IsSafePlannedRecruit(a, board)) return Mode == StrategicMode.EconomicRecovery ? 2 : 3;
         if (IsSafeArmyAdvance(a, board)) return 3;
         if (squadPriority == 3) return 3;
         // A dedicated scout keeps its assigned frontier role during army deployment.

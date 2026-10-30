@@ -18,19 +18,19 @@ public static class StatusBalanceRefresh
         var definition = actor.GrowthData;
         if (definition != null && definition.IsValidForAuthoring)
         {
-            maxHP = UnitData.CalcStat(definition.baseHP, definition.hpGrowth, actor.Level);
-            atk = UnitData.CalcStat(definition.baseATK, definition.atkGrowth, actor.Level);
-            def = UnitData.CalcStat(definition.baseDEF, definition.defGrowth, actor.Level); return true;
+            maxHP = definition.FixedMaxHP;
+            atk = definition.FixedATK;
+            def = definition.FixedDEF; return true;
         }
         if (!UnitStaticData.Table.TryGetValue(actor.kind, out var legacy)) return false;
-        maxHP = UnitData.CalcStat(legacy.BaseHP, legacy.HpGrowth, actor.Level);
-        atk = UnitData.CalcStat(legacy.BaseATK, legacy.AtkGrowth, actor.Level);
-        def = UnitData.CalcStat(legacy.BaseDEF, legacy.DefGrowth, actor.Level); return true;
+        maxHP = FixedUnitRules.BaseStat(actor.kind, legacy.BaseHP);
+        atk = FixedUnitRules.BaseStat(actor.kind, legacy.BaseATK);
+        def = FixedUnitRules.BaseStat(actor.kind, legacy.BaseDEF); return true;
     }
 
     public static void RecordDefinitionBaseline(Status actor)
     {
-        if (!TryGetDefinitionStats(actor, out var hp, out var atk, out var def)) return;
+        if (actor == null || actor.FixedStatsMigrationDeferred || !TryGetDefinitionStats(actor, out var hp, out var atk, out var def)) return;
         actor.HasDefinitionBalanceBaseline = true;
         actor.DefinitionBalanceMaxHP = hp; actor.DefinitionBalanceATK = atk; actor.DefinitionBalanceDEF = def;
         actor.DefinitionBalanceRevision = GameContentRevision.Revision;
@@ -38,7 +38,7 @@ public static class StatusBalanceRefresh
 
     public static bool ApplyLatestDefinition(Status actor, bool preserveHpRatio = true)
     {
-        if (!TryGetDefinitionStats(actor, out var hp, out var atk, out var def)) return false;
+        if (actor == null || actor.FixedStatsMigrationDeferred || !TryGetDefinitionStats(actor, out var hp, out var atk, out var def)) return false;
         if (!actor.HasDefinitionBalanceBaseline)
         {
             // A domain reload cannot identify historic rewards from total stats alone.

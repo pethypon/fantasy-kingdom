@@ -140,6 +140,9 @@ public static partial class SaveSystem
         // v8 records the formal baseline, so balance edits retain earned stat bonuses on resume.
         public bool HasDefinitionStatSnapshot;
         public int DefinitionMaxHP, DefinitionATK, DefinitionDEF;
+        public int FixedStatsRevision;
+        public bool FixedStatsMigrationDeferred;
+        public LegacyUnitStatSnapshot LegacyUnitStats;
         public int Level;
         public int ShieldTurns;
         public bool ShieldActivated;
@@ -156,6 +159,8 @@ public static partial class SaveSystem
         public bool IsActive;
         public int Fatigue;
         public int UpkeepUnpaidTurns;
+        public int LastMaintenanceRound = -1;
+        public bool BuiltByEngineer;
         public bool BuildingOperationAvailable = true;
         public int Experience;
         public string SpecialAbility;
