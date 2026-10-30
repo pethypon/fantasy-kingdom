@@ -131,11 +131,6 @@ public sealed class AIEvolutionPolicy
                 if (level >= 5 && HasObjective && target.GetInstanceID() == objectiveId) a.Score += 18;
                 if (level >= 8 && target.type != Type.Unit)
                     a.Score += target.facilityKind == FacilityKind.SubCrystal ? 35 : 22;
-                // Small growth preference must never outweigh a finishing blow or lethal retaliation.
-                if (level >= 3 && a.Unit.Level < GameConstants.MaxUnitLevel
-                    && (long)a.Unit.Experience + Mathf.Min(damage, target.HP) >= Status.XPRequiredForLevel(a.Unit.Level + 1)
-                    && board.EstimateCounterDamageAt(a.Unit.transform.position, a.Unit) < a.Unit.HP)
-                    a.Score += 8;
             }
             if (a.ActionType == AIActionType.Move && a.Unit != null && HasObjective && !MatchObjectiveRules.IsCommander(a.Unit))
             {

@@ -42,14 +42,15 @@ public static partial class AIActionEvaluator
         var actor = action?.Unit; var recovery = actor?.BarrierRecovery;
         var settings = BarrierCombatSettings.Active;
         if (board == null || actor == null || !BarrierSystem.UsesBarrier(actor) || actor.Barrier >= actor.MaxBarrier
-            || recovery == null || recovery.DamageSinceOwnTurn || recovery.SafeTurns < 2
+            || recovery == null || recovery.RuleRevision != BarrierSystem.RecoveryRuleRevision || !recovery.FullHPObserved || recovery.SafeTurns < 2
             || !BarrierSystem.CanRegenerate(actor.HP, actor.MaxHP, 3)
             || settings.recoveryAtOwnerTurnStart && !recovery.HasOwnTurnBaseline
             || !settings.recoveryAtOwnerTurnStart && recovery.LastProcessedRound == board.TurnCount
             || StatusEffectSystem.HasDebuff(actor, StatusEffectType.Poison)) return 0;
-        int safeTurns = recovery.SafeTurns; bool damaged = recovery.DamageSinceOwnTurn, hasRecovered = recovery.HasRecovered;
+        int safeTurns = recovery.SafeTurns; bool damaged = recovery.DamageSinceOwnTurn, hasRecovered = recovery.HasRecovered,
+            fullHPObserved = recovery.FullHPObserved;
         int amount = Mathf.Min(actor.MaxBarrier-actor.Barrier,BarrierSystem.AdvanceRecovery(ref safeTurns,
-            ref damaged,ref hasRecovered,actor.HP,actor.MaxHP,actor.MaxBarrier));
+            ref damaged,ref hasRecovered,ref fullHPObserved,actor.HP,actor.MaxHP,actor.MaxBarrier));
         if (amount <= 0) return 0;
         bool moving = IsPositionalAction(action.ActionType);
         if (!moving && action.ActionType != AIActionType.Wait) return 0;
@@ -58,7 +59,7 @@ public static partial class AIActionEvaluator
         if (ThreatAt(board, actor, destination) > 0 || board.EstimateSpecialHazardAt(actor, destination) > 0
             || board.KnownEnvironmentDamage(actor, destination, false) > 0
             || moving && board.KnownEnvironmentDamage(actor, destination, true) > 0) return 0;
-        // Absorbed hits also restart barrier recovery, even when the HP forecast is zero.
+        // Only predicted HP loss breaks the full-HP condition. Barrier-only hits preserve its clock.
         foreach (var opponent in board.SpecialObservedActors)
         {
             if (opponent.team == actor.team || !NeutralFactionSystem.AreHostile(opponent, actor)) continue;
@@ -71,8 +72,7 @@ public static partial class AIActionEvaluator
                 || !SpecialSkillRuntime.CanNormalAttackTarget(opponent, actor)) continue;
             float range = AIBoardQuery.EstimateAttackRange(opponent) + 1.5f;
             if ((destination - opponent.transform.position).sqrMagnitude <= range * range
-                && (settings.fullyNegatedHitsResetRecovery
-                    || SpecialSkillRuntime.PreviewDamage(actor, EstimateSpecialAwareAttack(opponent, actor, board)) > 0)) return 0;
+                && SpecialSkillRuntime.PreviewHpDamage(actor, EstimateSpecialAwareAttack(opponent, actor, board)) > 0) return 0;
         }
         action.PreserveSpecialEvaluation = true;
         return SpecialValue(actor) * amount / Mathf.Max(1f, actor.MaxHP + (float)actor.MaxBarrier)

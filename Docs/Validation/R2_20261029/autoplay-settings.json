@@ -1,0 +1,19 @@
+{
+    "Seeds": [
+        161803,
+        271828
+    ],
+    "OwnerTurnLimit": 80,
+    "WallSeconds": 120,
+    "ThreatLevel": 15,
+    "Output": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\ai-r2-post-support-matches",
+    "Label": "ai-r2-post-support-matches",
+    "RunId": "20261030-063240-99059c3f",
+    "OriginalCompany": "DefaultCompany",
+    "OriginalProduct": "fantasy kingdom",
+    "EnemyPersonality": "",
+    "CodeCommit": "4897d5e9259cad1e5756526df50a914af729c43d",
+    "SourceDigest": "5c8d90a604b79db30cbe0e3b3acf81bf8e0ecd4c8cd8b329de1a060ccf8580b0",
+    "AssetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "ManifestPath": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\ai-r2-post-support-matches-manifest.json"
+}

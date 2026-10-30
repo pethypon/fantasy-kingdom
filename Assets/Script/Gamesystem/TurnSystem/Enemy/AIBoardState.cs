@@ -34,6 +34,7 @@ public partial class AIBoardState
     readonly CrystalSystem _crystalSystem;
     readonly VisionGenerator _visionGen;
     readonly BuildSystem _buildSystem;
+    public BuildSystem BuildSystem => _buildSystem;
     readonly SummonSystem _summonSystem;
     readonly FactionState _factionState;
     readonly SubCrystalSystem _subCrystalSystem;

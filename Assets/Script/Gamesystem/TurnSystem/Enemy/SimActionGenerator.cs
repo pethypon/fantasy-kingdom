@@ -278,6 +278,7 @@ public static class SimActionGenerator
 
         foreach (var fk in priorities)
         {
+            if (fk == FacilityKind.Mine && R2EconomyRules.DisallowNewHomeMines) continue;
             if (!FacilityData.Table.TryGetValue(fk, out var info)) continue;
             if (info.APCost > ap) continue;
 

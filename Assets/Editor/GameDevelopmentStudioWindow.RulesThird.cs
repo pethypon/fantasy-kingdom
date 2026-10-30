@@ -16,10 +16,11 @@ public sealed partial class GameDevelopmentStudioWindow
         }
         var so = new SerializedObject(rules);so.Update();Field(so.FindProperty("applyRules"));
         EditorGUILayout.HelpBox("初期資材・初期AP・時間・地形は、新規ゲームで適用します。消費APやAP上限などの共通ルールは読み込んだゲームにも適用します。陣営の操作方式とターン順は既存のゲームシステムに従います。",MessageType.Info);
-        Heading("時間とAP"); Fields(so,"turnSeconds","totalSeconds","timeBonusSeconds","maximumAP","moveAP","attackAP","heightAP","citizenAP");
+        Heading("行動ポイント（AP）"); Fields(so,"maximumAP","moveAP","attackAP","heightAP","citizenAP");
+        EditorGUILayout.LabelField("対局時間", "制限なし。ターンは手動操作またはAIの行動完了で切り替わります。", EditorStyles.wordWrappedLabel);
         EditorGUILayout.LabelField("毎ターンのAP", "初期AP ＋ 市民による増加 − ペナルティ（AP上限まで）", EditorStyles.wordWrappedMiniLabel);
         Heading("戦闘"); Fields(so,"minimumAttackDamage");
-        EditorGUILayout.LabelField("最低ダメージ", "レベル差が大きくても命中時に適用します。バリアがある間は先にバリアを減らします。シールド・完全無効・攻撃できない相手は除きます。", EditorStyles.wordWrappedMiniLabel);
+        EditorGUILayout.LabelField("最低ダメージ", "命中時に適用します。バリアがある間は先にバリアを減らします。シールド・完全無効・攻撃できない相手は除きます。", EditorStyles.wordWrappedMiniLabel);
         Heading("維持・経済");Fields(so,"breadPerCitizen","starvationGraceTurns","aiBreadReserveTurns");
         EditorGUILayout.PropertyField(so.FindProperty("enforceResourceCapacity"), new GUIContent("倉庫がなくても資源の保管上限を適用"));
         EditorGUILayout.LabelField("保管上限", "基本 " + FactionState.BaseResourceCap + " ＋ 倉庫による増加。上限を超える生産分は保管されません。", EditorStyles.wordWrappedMiniLabel);
@@ -62,7 +63,7 @@ public sealed partial class GameDevelopmentStudioWindow
         EditorGUI.indentLevel++;
         foreach (var name in new[] {
             "enableDecisionLogs", "forecastTurns", "reserveTurns", "recoveryWindowTurns", "breadCoverageMarginTurns",
-            "plannedDemandWeight", "plannedUnitLevel", "plannedBuildActions", "plannedSummonActions", "explorationSummonWeight",
+            "plannedDemandWeight", "plannedBuildActions", "plannedSummonActions", "explorationSummonWeight",
             "needWeight", "coverageWeight", "chainRecoveryWeight", "reserveRecoveryWeight", "overstockPenalty",
             "warningMilitaryPenalty", "localMilitarySaturationPenalty", "uncoveredWallThreatPenalty",
             "emergencyKingDamageFraction", "emergencyCrystalDamageFraction", "criticalReserveFraction",

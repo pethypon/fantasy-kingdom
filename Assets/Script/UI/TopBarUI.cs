@@ -4,14 +4,14 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
-/// InfoBar UI：ターン数 + タイマー情報を表示する
+/// InfoBar UI：ターン数と手動ターン終了。R2は対局の制限時間を持たない。
 /// </summary>
 public class TopBarUI : MonoBehaviour
 {
     [Header("テキスト")]
     [SerializeField] private TextMeshProUGUI turnText;
 
-    [Header("タイマーUI")]
+    // Historical prefab references; R2 hides the old clock rather than displaying an empty frame.
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private Image timerFill;
 
@@ -21,17 +21,18 @@ public class TopBarUI : MonoBehaviour
 
     private Button endTurnButton;
     private int lastTurn = -1;
-    private int lastTimerSecond = -1;
 
     private void Awake()
     {
         if (turnGenerator == null)
             turnGenerator = Object.FindFirstObjectByType<TurnGenerator>();
 
-        if (turnText == null || timerText == null || timerFill == null)
+        if (turnText == null)
         {
             FindUIElements();
         }
+        var legacyClock = transform.Find("RightArea/TimerArea");
+        if (legacyClock != null) legacyClock.gameObject.SetActive(false);
     }
 
     private void FindUIElements()
@@ -58,7 +59,6 @@ public class TopBarUI : MonoBehaviour
         if (endTurnButton != null)
             endTurnButton.interactable = CanEndTurn();
         UpdateTurn();
-        UpdateTimer();
     }
 
     private bool CanEndTurn() => turnGenerator != null
@@ -81,55 +81,4 @@ public class TopBarUI : MonoBehaviour
         turnText.text = "Turn " + current;
     }
 
-    private void UpdateTimer()
-    {
-        if (turnGenerator == null) return;
-
-        var timer = turnGenerator.Systems.TimerSystem;
-        if (timer == null)
-        {
-            lastTimerSecond = -1;
-            if (timerText != null) timerText.text = "";
-            if (timerFill != null) timerFill.fillAmount = 0f;
-            return;
-        }
-
-        // タイマーテキスト: 1ターン残り時間のみ表示
-        int second = Mathf.Max(0, Mathf.CeilToInt(timer.TurnTimeRemaining));
-        if (timerText != null && second != lastTimerSecond)
-        {
-            lastTimerSecond = second;
-            timerText.text = TimerSystem.FormatTime(second);
-        }
-
-        // タイマーバー: 1ターン制限時間の残り割合
-        if (timerFill != null)
-        {
-            float ratio = timer.TurnTimeLimit > 0f
-                ? Mathf.Clamp01(timer.TurnTimeRemaining / timer.TurnTimeLimit)
-                : 0f;
-            timerFill.fillAmount = ratio;
-
-            // 残り時間に応じて色を変更（BrandGuide参照）
-            if (ratio < 0.2f)
-                timerFill.color = BrandGuide.TimerDanger;
-            else if (ratio < 0.5f)
-                timerFill.color = BrandGuide.TimerWarning;
-            else
-                timerFill.color = BrandGuide.TimerNormal;
-
-            if (timerFill.sprite == null)
-            {
-                // Solid gauge: width remains reliable even without any UI asset.
-                timerFill.type = Image.Type.Simple;
-                timerFill.rectTransform.anchorMax = new Vector2(ratio, 1);
-            }
-            else if (timerFill.type != Image.Type.Filled)
-            {
-                timerFill.type = Image.Type.Filled;
-                timerFill.fillMethod = Image.FillMethod.Horizontal;
-                timerFill.fillOrigin = 0;
-            }
-        }
-    }
 }

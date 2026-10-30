@@ -305,7 +305,7 @@ public class GameEndState : TurnState
         if (m == null) return "";
 
         return $"<size=16>ターン数: {m.TurnsPlayed}  /  討伐: <color=#8FDFB0>{m.PlayerKills}</color>  敗北駒: <color=#E08080>{m.PlayerLosses}</color>\n"
-            + $"与ダメ: {m.PlayerDamageDealt}  被ダメ: {m.PlayerDamageTaken}  獲得XP: {m.PlayerXPGained}\n"
+            + $"与ダメ: {m.PlayerDamageDealt}  被ダメ: {m.PlayerDamageTaken}\n"
             + $"召喚: {m.PlayerSummons}  建築: {m.PlayerBuildings}  スキル使用: {m.PlayerSkillsUsed}\n"
             + $"ダンジョン制圧: {m.DungeonsClaimed}  強敵ダメージ: {m.WildBossDamage}</size>";
     }

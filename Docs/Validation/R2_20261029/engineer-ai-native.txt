@@ -1,0 +1,53 @@
+Source: r2-support-recruitment-fixed.log
+SHA256: ba2a1ec90ab52b7f3b671ff685de179385e10103ba02d3008bd1999d7061bc4b
+698: [R2EngineerAI] PASS Player EN19 existing military has an inherited ore payment failure
+717: [R2EngineerAI] PASS Player EN19 affordable engineer adds no unpaid HP damage or deaths
+736: [R2EngineerAI] PASS Player EN19 real governor filter and execution gate admit the recovery engineer
+755: [R2EngineerAI] PASS Player EN19 planning never pays or forgives the military loss
+774: [R2EngineerAI] PASS Player EN20 ordinary recruits retain the unpaid-upkeep veto
+793: [R2EngineerAI] PASS Player EN21 added unaffordable engineer upkeep retains the veto
+812: [R2EngineerAI] PASS Player EN22 reserve probe is affordable and leaves inherited ore losses unchanged baseline=4/80/0 proposed=4/80/0
+831: [R2EngineerAI] PASS Player EN22 engineer recovery retains ordinary material reserves spend=basic_resource_reserve_Water execution=basic_resource_reserve_Water
+850: [R2EngineerAI] PASS Player EN23 engineer recovery cannot bypass AP legality
+869: [R2EngineerAI] PASS Player EN24 engineer recovery cannot bypass citizen legality
+888: [R2EngineerAI] PASS Player EN25 engineer recovery cannot bypass actual ore purchase cost
+907: [R2EngineerAI] PASS Player UP10 forecast predicts20HP unpaid loss without altering live state
+925: [R2EngineerAI] PASS Player D03 fixed maintenance creates a real outside-ore supply gap
+943: [R2EngineerAI] PASS Player D04 EN18 planned engineer price equals the live quote
+961: [R2EngineerAI] PASS Player MN11 neutral personally visible candidate predicts ore
+979: [R2EngineerAI] PASS Player MN11 own territory candidate cannot promise ore
+997: [R2EngineerAI] PASS Player EN05 shared board sight alone cannot promise remote mining
+1015: [R2EngineerAI] PASS Player EN18 legal demanded engineer mine survives real generation
+1033: [R2EngineerAI] PASS Player EN18 generated cells pass the shared placement validator
+1051: [R2EngineerAI] PASS Player EN18 generated cells pass the shared placement validator
+1069: [R2EngineerAI] PASS Player EN18 AI executor pays the same formal command
+1087: [R2EngineerAI] PASS Player MN11 owned outside mine forecast matches actual recipe
+1105: [R2EngineerAI] PASS Player MN09 MN11 owned mine forecast changes with territory
+1142: [R2EngineerAI] PASS Player EN10 duplicate AI command never charges twice
+1160: [R2EngineerAI] PASS Enemy EN19 existing military has an inherited ore payment failure
+1179: [R2EngineerAI] PASS Enemy EN19 affordable engineer adds no unpaid HP damage or deaths
+1198: [R2EngineerAI] PASS Enemy EN19 real governor filter and execution gate admit the recovery engineer
+1217: [R2EngineerAI] PASS Enemy EN19 planning never pays or forgives the military loss
+1236: [R2EngineerAI] PASS Enemy EN20 ordinary recruits retain the unpaid-upkeep veto
+1255: [R2EngineerAI] PASS Enemy EN21 added unaffordable engineer upkeep retains the veto
+1274: [R2EngineerAI] PASS Enemy EN22 reserve probe is affordable and leaves inherited ore losses unchanged baseline=4/80/0 proposed=4/80/0
+1293: [R2EngineerAI] PASS Enemy EN22 engineer recovery retains ordinary material reserves spend=basic_resource_reserve_Water execution=basic_resource_reserve_Water
+1312: [R2EngineerAI] PASS Enemy EN23 engineer recovery cannot bypass AP legality
+1331: [R2EngineerAI] PASS Enemy EN24 engineer recovery cannot bypass citizen legality
+1350: [R2EngineerAI] PASS Enemy EN25 engineer recovery cannot bypass actual ore purchase cost
+1369: [R2EngineerAI] PASS Enemy UP10 forecast predicts20HP unpaid loss without altering live state
+1387: [R2EngineerAI] PASS Enemy D03 fixed maintenance creates a real outside-ore supply gap
+1405: [R2EngineerAI] PASS Enemy D04 EN18 planned engineer price equals the live quote
+1423: [R2EngineerAI] PASS Enemy MN11 neutral personally visible candidate predicts ore
+1441: [R2EngineerAI] PASS Enemy MN11 own territory candidate cannot promise ore
+1459: [R2EngineerAI] PASS Enemy EN05 shared board sight alone cannot promise remote mining
+1477: [R2EngineerAI] PASS Enemy EN18 legal demanded engineer mine survives real generation
+1495: [R2EngineerAI] PASS Enemy EN18 generated cells pass the shared placement validator
+1513: [R2EngineerAI] PASS Enemy EN18 generated cells pass the shared placement validator
+1531: [R2EngineerAI] PASS Enemy EN18 AI executor pays the same formal command
+1549: [R2EngineerAI] PASS Enemy MN11 owned outside mine forecast matches actual recipe
+1567: [R2EngineerAI] PASS Enemy MN09 MN11 owned mine forecast changes with territory
+1604: [R2EngineerAI] PASS Enemy EN10 duplicate AI command never charges twice
+1622: [R2EngineerAI] COMPLETE
+1639: [AIR2Stage] PASS R2EngineerAIContracts
+1652: [AIR2LiveValidation] COMPLETE failures=0

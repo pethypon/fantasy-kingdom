@@ -15,7 +15,7 @@ public partial class Status
     public void ResetBarrier()
     {
         barrierPoints = HP > 0 ? MaxBarrier : 0; barrierInitialized = true;
-        BarrierRecovery = new BarrierRecoveryState();
+        BarrierRecovery = BarrierSystem.CreateState(HP, MaxHP);
     }
     public void RestoreBarrier(bool hasSnapshot, int current, BarrierRecoveryState recovery)
     {

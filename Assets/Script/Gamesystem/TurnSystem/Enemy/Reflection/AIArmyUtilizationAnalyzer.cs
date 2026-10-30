@@ -88,7 +88,7 @@ public sealed class AIArmyUtilizationAnalyzer
             var definition = unit.GrowthData != null ? unit.GrowthData : board.ResolveUnitDefinition(unit.kind);
             if (definition != null)
             {
-                var upkeep = definition.GetUpkeep(unit.Level);
+                var upkeep = definition.GetFixedUpkeep();
                 evidence.Upkeep += (float)Math.Max(0, upkeep.Bread) + Math.Max(0, upkeep.Iron) + Math.Max(0, upkeep.Wood)
                     + Math.Max(0, upkeep.Stone) + Math.Max(0, upkeep.MagicOre) + Math.Max(0, upkeep.Water);
             }

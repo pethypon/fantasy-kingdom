@@ -34,6 +34,9 @@ public partial class BuildSummonUIBuilder
         { Kind.Ninja,       "忍者" },
         { Kind.Berserker,   "狂戦士" },
         { Kind.Navigator,   "航海士" },
+        { Kind.HeavyWarrior,"重戦士" },
+        { Kind.DragonKnight,"竜騎士" },
+        { Kind.Engineer,    "工兵" },
     };
 
     // 建築ボタン管理用
@@ -210,9 +213,17 @@ public partial class BuildSummonUIBuilder
     private void OnBuildButtonClicked(FacilityKind facility)
     {
         if (buildSystem == null) return;
-
-        if (slidePanel != null) slidePanel.ClosePanel();
-        buildSystem.StartBuildMode(facility);
+        if (engineerMenuRequested)
+        {
+            if (!buildSystem.StartEngineerBuildMode(menuEngineer, facility))
+            {
+                ToastMessageUI.Show(BuildMenuFailure(facility) ?? "工兵建築を開始できません", ToastMessageUI.MessageType.Warning);
+                RefreshBuildButtons();
+                return;
+            }
+        }
+        else buildSystem.StartBuildMode(facility);
+        slidePanel?.ClosePanel();
     }
 
     // ==================================================================
@@ -282,24 +293,17 @@ public partial class BuildSummonUIBuilder
         foreach (var (btn, bg, kind) in buildButtons)
         {
             if (btn == null) continue;
-            bool canBuild;
-            if (FacilityData.IsSubCrystal(kind))
-            {
-                canBuild = cachedFactionState.GetSubCrystals(Team.Player) > 0 && cachedAPSystem.CanBuild(Team.Player, kind, cachedFactionState);
-            }
-            else
-            {
-                canBuild = cachedAPSystem.CanBuild(Team.Player, kind, cachedFactionState);
-            }
+            string reason = BuildMenuFailure(kind);
+            bool canBuild = reason == null;
             btn.interactable = canBuild;
             if (buildCostLabels.TryGetValue(kind,out var costLabel) && FacilityData.Table.TryGetValue(kind,out var info))
             {
-                string cost=FacilityData.IsSubCrystal(kind) ? "サブクリスタル1消費 " + FormatBuildCost(info.BuildCost) : FormatBuildCost(info.BuildCost);
+                string cost=FacilityData.IsSubCrystal(kind) ? "サブクリスタル1消費 " + FormatBuildCost(BuildCostForMenu(kind)) : FormatBuildCost(BuildCostForMenu(kind));
+                if (engineerMenuRequested) cost = "工兵建築：資源費2倍\n" + cost;
                 cost += FormatBuildingDetails(kind, FacilityData.GetLevel(kind, 1));
                 if (buildTitles.TryGetValue(kind, out var title) && title != null)
                     title.text = FacilityData.IsSubCrystal(kind) ? info.DisplayName + "  副晶x1" + (info.APCost > 0 ? "  AP:" + info.APCost : string.Empty)
-                        : info.DisplayName + "  AP:" + info.APCost;
-                string reason=BuildValidator.CostFailure(kind,cachedFactionState);
+                        : info.DisplayName + "  AP:" + BuildAPForMenu(kind);
                 costLabel.text=reason==null ? cost : cost+"\n<color=#FFB7A3>"+reason+"</color>";
             }
             if (FacilityData.IsSubCrystal(kind))
@@ -376,7 +380,8 @@ public partial class BuildSummonUIBuilder
         var parts = new List<string>();
         if (kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse) parts.Add("市民上限 +" + recipe.SpecialValue);
         if (kind == FacilityKind.Warehouse) parts.Add("資源容量 +" + recipe.SpecialValue);
-        if (kind == FacilityKind.Barracks) parts.Add("経験値 +" + recipe.SpecialValue + "%");
+        if (kind == FacilityKind.Barracks) parts.Add("現在特殊効果なし");
+        if (FacilityData.HasRareOreOutput(recipe)) parts.Add("鉄・魔石の採掘は領土外のみ");
         if (!recipe.Output.IsEmpty) parts.Add("生産 " + FormatProductionBundle(recipe.Output) + " / " + FacilityData.ProductionInterval(recipe) + "ターン");
         if (recipe.BonusChance1 > 0 && !recipe.BonusOutput1.IsEmpty)
             parts.Add("確率生産 " + FormatProductionBundle(recipe.BonusOutput1) + "（" + (recipe.BonusChance1 * 100).ToString("0.#") + "%）");

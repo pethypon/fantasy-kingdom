@@ -57,6 +57,7 @@ public static partial class AIActionGenerator
         { Kind.Scout,    2 }, { Kind.Priest,   2 }, { Kind.Guardian, 2 },
         { Kind.Knight,   4 }, { Kind.Archer,   3 }, { Kind.Magic,    3 },
         { Kind.Assassin, 2 }, { Kind.Crossbow, 2 },
+        { Kind.Engineer, 1 },
     };
 
     public static int GetMaxBuildingCount(FacilityKind facility)
@@ -416,6 +417,7 @@ public static partial class AIActionGenerator
     // ================================================================
     public static void GenerateBuildCandidates(AIBoardState board, List<AIAction> results)
     {
+        GenerateEngineerBuildCandidates(board, results);
         if (board.BuildablePositions.Count == 0 || board.AffordableBuildings.Count == 0)
         {
             if (board.BuildablePositions.Count == 0)

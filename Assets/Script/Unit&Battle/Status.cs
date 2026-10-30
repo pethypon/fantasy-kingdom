@@ -31,7 +31,7 @@ public enum Kind
     StoneWall,  // フェーズ6で使用
     None,
     WhiteMage, HolyKnight, Samurai, Ninja, Berserker, Navigator,
-    HeavyWarrior = 23, DragonKnight = 24
+    HeavyWarrior = 23, DragonKnight = 24, Engineer = 25
 }
 
 public enum Type
@@ -354,21 +354,22 @@ public partial class Status : MonoBehaviour
         get => hitPoints;
         set
         {
+            int previousHP = hitPoints;
             if (value < hitPoints)
             {
                 (NaturalRecovery ?? (NaturalRecovery = new NaturalRecoveryState())).RecordHpLoss();
-                BarrierSystem.RecordDamage(this);
                 if (value <= 0 && hitPoints > 0)
                 { BoardActionFeedback.Hit(this); BoardActorAnimation.NotifyDeath(this); }
                 else BoardActorAnimation.NotifyHit(this);
             }
             hitPoints = value;
+            BarrierSystem.RecordHpChange(this, previousHP, value);
         }
     }
     [HideInInspector] public NaturalRecoveryState NaturalRecovery = new NaturalRecoveryState();
     public int ATK;
     [HideInInspector] public int DEF; // Save compatibility only while R1 is enabled.
-    [Header("レベル")]
+    [Header("施設強化段階（通常ユニットの互換値は1）")]
     public int Level = 1;
     public UnitData GrowthData;
     public SpecialState Special = new SpecialState();
@@ -381,8 +382,11 @@ public partial class Status : MonoBehaviour
 
     [Header("維持費未払いターン数")]
     public int UpkeepUnpaidTurns = 0;
+    [HideInInspector] public int LastMaintenanceRound = -1;
+    [HideInInspector] public bool FixedStatsMigrationDeferred;
+    [HideInInspector] public LegacyUnitStatSnapshot LegacyUnitStats;
 
-    [Header("累積経験値")]
+    [HideInInspector]
     public int Experience = 0;
     private bool uniqueRewardGranted;
 
@@ -400,6 +404,7 @@ public partial class Status : MonoBehaviour
     public FacilityDefinitionData AuthoredFacility;
     [HideInInspector] public string authoredFacilityId;
     [System.NonSerialized] public bool BuildingOperationAvailable = true;
+    [HideInInspector] public bool BuiltByEngineer;
 
     // =====================================================================
     //  状態異常・バフ・スキル
@@ -520,82 +525,18 @@ public partial class Status : MonoBehaviour
     public UnityEngine.Vector3Int GridPosition => GridHelper.ToGridXZ(transform.position);
 
     /// <summary>
-    /// 維持費未払いターン数に応じた ATK/DEF 低下率（0.0〜0.40）。
-    /// 1-3: -10%、4-6: -25%、7-9: -40%。10以上は離脱処理側が担当。
+    /// 旧APIの互換用低下率。R2では未払いをHP損失として処理するため常に0。
     /// </summary>
-    public float UpkeepPenaltyATKDEF
-    {
-        get
-        {
-            int t = UpkeepUnpaidTurns;
-            if (t <= 0) return 0f;
-            if (t <= 3) return GameConstants.UpkeepPenaltyStage1;
-            if (t <= 6) return GameConstants.UpkeepPenaltyStage2;
-            if (t <= 9) return GameConstants.UpkeepPenaltyStage3;
-            return GameConstants.UpkeepPenaltyStage3;
-        }
-    }
+    public float UpkeepPenaltyATKDEF => 0f; // R2 uses HP loss; no stacked ATK/DEF penalty.
 
     // =====================================================================
     //  経験値・レベルアップ
     // =====================================================================
-    /// <summary>指定レベルに必要な累計XP（Lv1=0、Lv2=10、以後×1.15切り上げ）</summary>
-    static readonly int[] LevelXP = CreateLevelXP();
-    static int[] CreateLevelXP()
-    {
-        var thresholds = new int[GameConstants.MaxUnitLevel + 1];
-        int required = GameConstants.XPRequiredLv2;
-        for (int level = 2; level <= GameConstants.MaxUnitLevel; level++)
-        {
-            if (level > 2) required = Mathf.CeilToInt(required * GameConstants.XPLevelMultiplier);
-            thresholds[level] = (int)System.Math.Min(int.MaxValue, (long)thresholds[level - 1] + required);
-        }
-        return thresholds;
-    }
-
-    public static int XPRequiredForLevel(int level)
-        => LevelXP[Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel)];
-
-    /// <summary>XP is cumulative. Growth preserves damage taken and independently awarded bonuses.</summary>
+    // Legacy public calls remain inert for scripts/old serialized content.
+    public static int XPRequiredForLevel(int level) => 0;
     public void GainExperience(int amount)
-    {
-        if (amount <= 0) return;
-        if (HasDefinitionBalanceBaseline && DefinitionBalanceRevision != GameContentRevision.Revision)
-            StatusBalanceRefresh.ApplyLatestDefinition(this);
-        Experience = (int)System.Math.Min(int.MaxValue, (long)Mathf.Max(0, Experience) + amount);
-        Level = Mathf.Clamp(Level, 1, GameConstants.MaxUnitLevel);
-        if (Level >= GameConstants.MaxUnitLevel) return;
-        bool wasAlive = HP > 0;
-        int oldBarrierMaximum = MaxBarrier, oldBarrier = Barrier;
-        UnitStaticData.Table.TryGetValue(kind, out var growth);
-        int hpGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseHP, GrowthData.hpGrowth)
-            : UnitData.CalcGrowthPerLevel(growth.BaseHP, growth.HpGrowth);
-        int atkGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseATK, GrowthData.atkGrowth)
-            : UnitData.CalcGrowthPerLevel(growth.BaseATK, growth.AtkGrowth);
-        int defGain = GrowthData != null ? UnitData.CalcGrowthPerLevel(GrowthData.baseDEF, GrowthData.defGrowth)
-            : UnitData.CalcGrowthPerLevel(growth.BaseDEF, growth.DefGrowth);
-        while (Level < GameConstants.MaxUnitLevel && Experience >= XPRequiredForLevel(Level + 1))
-        {
-            Level++;
-            ATK = AddGrowth(ATK, atkGain);
-            DEF = AddGrowth(DEF, defGain);
-            int newMax = AddGrowth(MaxHP, hpGain);
-            if (wasAlive) HP = AddGrowth(HP, newMax - MaxHP);
-            MaxHP = newMax;
-            if (team == Team.Player && AchievementSystem.Instance != null)
-                AchievementSystem.Instance.OnLevelUp(Level);
-        }
-        if (wasAlive) Barrier = (int)System.Math.Min(MaxBarrier, (long)oldBarrier
-            + (BarrierCombatSettings.Active.growCurrentBarrierOnLevelUp ? MaxBarrier - oldBarrierMaximum : 0));
-        StatusBalanceRefresh.RecordDefinitionBaseline(this);
-    }
+    { if (type == Type.Unit) { Level = 1; Experience = 0; } }
 
-    static int AddGrowth(int value, int gain) => (int)System.Math.Min(int.MaxValue, (long)value + gain);
-
-    /// <summary>
-    /// 与ダメージから獲得XPを計算して加算する（兵舎XPボーナス込み）。
-    /// 実獲得XP = floor(damage * (1 + barracksXPPercent/100))
-    /// </summary>
     [System.NonSerialized] public Team LastDamageTeam = Team.None;
 
     public static void AwardDamageExperience(Status attacker, Status target, int damage, FactionState factions)
@@ -605,9 +546,6 @@ public partial class Status : MonoBehaviour
         var turn = GetTurnGenerator();
         AIReflectionEvents.RecordDamage(turn, attacker, target, damage);
         if (target.HP <= 0) target.reflectionLifeEnded = true;
-        int bonus = factions != null && (attacker.team == Team.Player || attacker.team == Team.Enemy)
-            ? factions.GetBarracksXP(attacker.team) : 0;
-        if (attacker.type == Type.Unit) attacker.GainExperienceFromDamage(SpecialSkillRuntime.ExperienceDamage(attacker, target, damage), bonus);
         if (!target.IsAlive && !target.uniqueRewardGranted)
         {
             target.uniqueRewardGranted = true;
@@ -622,12 +560,7 @@ public partial class Status : MonoBehaviour
         }
     }
 
-    public void GainExperienceFromDamage(int damage, int barracksXPPercent)
-    {
-        if (damage <= 0) return;
-        int actualXP = UnityEngine.Mathf.FloorToInt(damage * (1f + barracksXPPercent / 100f));
-        GainExperience(actualXP);
-    }
+    public void GainExperienceFromDamage(int damage, int barracksXPPercent) => GainExperience(0);
 
     /// <summary>
     /// レベル・経験値・ATK/DEF/MaxHP を Lv1 の基礎値にリセットする（駒撃破時に呼ばれる）。
@@ -645,15 +578,15 @@ public partial class Status : MonoBehaviour
         if (GrowthData == null && !hasDefaults) return;
         Level = 1;
         Experience = 0;
-        ATK = GrowthData != null ? GrowthData.baseATK : info.BaseATK;
-        DEF = GrowthData != null ? GrowthData.baseDEF : info.BaseDEF;
-        MaxHP = kind == Kind.Crystal ? MainCrystalRules.MaximumHP : GrowthData != null ? GrowthData.baseHP : info.BaseHP;
+        ATK = GrowthData != null ? GrowthData.FixedATK : FixedUnitRules.BaseStat(kind, info.BaseATK);
+        DEF = GrowthData != null ? GrowthData.FixedDEF : FixedUnitRules.BaseStat(kind, info.BaseDEF);
+        MaxHP = kind == Kind.Crystal ? MainCrystalRules.MaximumHP : GrowthData != null ? GrowthData.FixedMaxHP : FixedUnitRules.BaseStat(kind, info.BaseHP);
         // HP は 0 のまま（撃破直後）。状態異常・シールド・CT も撃破時点で消滅させる
         ActiveEffects.Clear();
         ShieldTurns = 0;
         SkillCooldown = 0;
         ResetBarrier();
-        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Status] {kind} を Lv1 にリセット (ATK={ATK} DEF={DEF} MaxHP={MaxHP})"); }
+        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[Status] {kind} の死亡状態を初期化 (ATK={ATK} DEF={DEF} MaxHP={MaxHP})"); }
     }
 
     /// <summary>

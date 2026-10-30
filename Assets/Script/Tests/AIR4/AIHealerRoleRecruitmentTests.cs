@@ -90,7 +90,7 @@ public static class AIHealerRoleRecruitmentTests
         readonly SpecialSkillDefinition heal = ScriptableObject.CreateInstance<SpecialSkillDefinition>();
         public readonly AIBoardState Board = EmptyBoard();
         public readonly FactionState.ResourceData Resources = new FactionState.ResourceData
-            { Wood = 500, Stone = 500, Iron = 500, MagicOre = 500, Water = 120, Wheat = 500, Bread = 500, Citizen = 5 };
+            { Wood = 500, Stone = 500, Iron = 500, MagicOre = 500, Water = 150, Wheat = 500, Bread = 500, Citizen = 5 };
         public Fixture()
         {
             aura.ability = UnitSpecialSkill.PriestPurification; aura.enabledForPlay = true; aura.apCost = 8; aura.cooldown = 0;
@@ -114,7 +114,7 @@ public static class AIHealerRoleRecruitmentTests
             var snapshots = new List<BasicResourceSnapshot>();
             for (int i = 0; i < 8; i++) snapshots.Add(new BasicResourceSnapshot { ResourceType = (ResourceKind)i,
                 CurrentStock = i == (int)ResourceKind.Water ? Resources.Water : i == (int)ResourceKind.Citizen ? Resources.Citizen : 500,
-                ReserveTarget = i == (int)ResourceKind.Water ? 20 : i == (int)ResourceKind.Citizen ? 3 : 0 });
+                ReserveTarget = i == (int)ResourceKind.Water ? 40 : i == (int)ResourceKind.Citizen ? 3 : 0 });
             governor.BasicResources.EvaluateSnapshots(snapshots, 1);
             return governor;
         }
@@ -136,14 +136,16 @@ public static class AIHealerRoleRecruitmentTests
             Property(governor, "Mode", StrategicMode.EmergencyDefense);
             Check("emergency-mode-never-promotes-a-replacement", governor.RecruitmentScore(action, f.Board) == 0);
             Property(governor, "Mode", StrategicMode.Normal);
-            Check("selection-does-not-pay-or-grow-the-order", f.Resources.Water == 120 && f.Resources.Citizen == 5
+            Check("selection-does-not-pay-or-grow-the-order", f.Resources.Water == 150 && f.Resources.Citizen == 5
                 && f.Board.EnemyAP == 37 && governor.RecruitmentPlan.Count == 1);
             Check("no-current-need-means-no-priority-promotion", f.Governor(false).RecruitmentScore(action, f.Board) == 0);
             f.Preferred.costWater = 100; governor = f.Governor();
             Check("executable-preferred-definition-retains-its-order", governor.RecruitmentScore(action, f.Board) == 0
                 && governor.RecruitmentScore(f.Action(f.Preferred), f.Board) == 30);
             f.Preferred.costWater = 150;
-            f.Alternative.costWater = 110; governor = f.Governor();
+            // R2's four-turn Water upkeep consumes20. Leave35: enough to pay it,
+            // but below the explicit40 reserve, so this still isolates the reserve gate.
+            f.Alternative.costWater = 115; governor = f.Governor();
             Check("raw-affordability-cannot-bypass-reserve", governor.RecruitmentBlockReason(f.Action(f.Alternative), f.Board) == "basic_resource_reserve_Water"
                 && governor.RecruitmentScore(f.Action(f.Alternative), f.Board) == 0);
             f.Alternative.costWater = 100; f.Alternative.upkeepMagic = 1000; governor = f.Governor();

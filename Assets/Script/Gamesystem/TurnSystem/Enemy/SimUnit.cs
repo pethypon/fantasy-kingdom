@@ -19,12 +19,13 @@ public class SimUnit
         get => hp;
         set
         {
+            int previous = hp;
             if (value < hp && Type == Type.Unit)
             {
                 NaturalRecoverySafeTurns = 0; NaturalRecoveryHpLost = true;
-                RecordBarrierDamage();
             }
             hp = value;
+            RecordBarrierHpChange(previous, value);
         }
     }
     public int MaxHP;
@@ -37,7 +38,6 @@ public class SimUnit
         set
         {
             int next = Mathf.Clamp(value, 0, Mathf.Max(0, MaxBarrier));
-            if (next < barrier) RecordBarrierDamage();
             barrier = next;
         }
     }
@@ -45,12 +45,17 @@ public class SimUnit
     public int BarrierSafeTurns, BarrierLastRound = -1;
     public int BarrierLastDamagedRound = -1, SimulationRound = -1;
     public bool BarrierDamaged, BarrierHasRecovered, BarrierHasOwnTurnBaseline;
+    public int BarrierRuleRevision;
+    public bool BarrierFullHPObserved;
+    public bool EngineerBarrierConfigured;
     public Vector3Int Position;
     public Direction Direction;
     public bool IsBoss;
     public bool IsWildBoss;
     public bool WildBossProtected;
-    public bool UsesBarrier => !IsPrimaryCommander && BarrierSystem.UsesBarrier(Kind, Type, IsWildBoss);
+    public bool UsesBarrier => !IsPrimaryCommander && (Kind == Kind.Engineer
+        ? BarrierCombatSettings.Active.enabledForPlay && Type == Type.Unit && !IsWildBoss && EngineerBarrierConfigured
+        : BarrierSystem.UsesBarrier(Kind, Type, IsWildBoss));
     public bool IsPrimaryCommander;
     public int AssignedSkillId;
     public int SkillCooldown;
@@ -92,6 +97,8 @@ public class SimUnit
         c.BarrierDamaged = BarrierDamaged;
         c.BarrierLastDamagedRound = BarrierLastDamagedRound; c.SimulationRound = SimulationRound;
         c.BarrierHasRecovered = BarrierHasRecovered; c.BarrierHasOwnTurnBaseline = BarrierHasOwnTurnBaseline;
+        c.BarrierRuleRevision = BarrierRuleRevision; c.BarrierFullHPObserved = BarrierFullHPObserved;
+        c.EngineerBarrierConfigured = EngineerBarrierConfigured;
         c.Position = Position; c.Direction = Direction;
         c.IsBoss = IsBoss; c.IsWildBoss = IsWildBoss; c.WildBossProtected = WildBossProtected;
         c.IsPrimaryCommander = IsPrimaryCommander; c.AssignedSkillId = AssignedSkillId;
@@ -123,17 +130,27 @@ public class SimUnit
         return (int)System.Math.Min(int.MaxValue,(long)hpLoss + beforeBarrier - (UsesBarrier ? Barrier : 0));
     }
 
-    void RecordBarrierDamage()
+    void RecordBarrierHpChange(int previousHP, int nextHP)
     {
         if (!UsesBarrier) return;
-        BarrierSafeTurns = 0; BarrierDamaged = true; BarrierHasRecovered = false;
-        BarrierLastDamagedRound = SimulationRound;
+        if (BarrierRuleRevision != BarrierSystem.RecoveryRuleRevision)
+        {
+            BarrierRuleRevision = BarrierSystem.RecoveryRuleRevision;
+            BarrierSafeTurns = 0; BarrierFullHPObserved = false; BarrierHasRecovered = false;
+        }
+        if (nextHP <= 0 || nextHP != MaxHP)
+        {
+            BarrierSafeTurns = 0; BarrierFullHPObserved = false; BarrierHasRecovered = false;
+            BarrierDamaged = nextHP < previousHP;
+            if (nextHP < previousHP) BarrierLastDamagedRound = SimulationRound;
+        }
+        else if (previousHP != MaxHP || !BarrierFullHPObserved)
+        {
+            BarrierSafeTurns = 0; BarrierFullHPObserved = true; BarrierHasRecovered = false; BarrierDamaged = false;
+        }
     }
 
-    public void RecordNegatedHit()
-    {
-        if (BarrierCombatSettings.Active.fullyNegatedHitsResetRecovery) RecordBarrierDamage();
-    }
+    public void RecordNegatedHit() { }
 
     public int ApplyHpDirectDamage(int amount)
     {

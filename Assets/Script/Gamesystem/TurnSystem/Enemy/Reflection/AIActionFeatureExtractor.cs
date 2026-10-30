@@ -248,6 +248,7 @@ public sealed class AIActionFeatureExtractor
             signature = signature * 31 + (actor.BarrierRecovery?.DamageSinceOwnTurn == true ? 1 : 0);
             signature = signature * 31 + (actor.BarrierRecovery?.HasRecovered == true ? 1 : 0);
             signature = signature * 31 + (actor.BarrierRecovery?.HasOwnTurnBaseline == true ? 1 : 0);
+            signature = signature * 31 + (actor.BarrierRecovery?.FullHPObserved == true ? 1 : 0);
             return signature + SpecialEffectSignature(actor.Special, turn) * 397;
         }
     }

@@ -30,18 +30,17 @@ public class UnitData : ScriptableObject
     [Header("種類")]
     public Kind kind;
 
-    [Header("基礎ステータス（Lv1の値）")]
+    [Header("基礎ステータス（固定倍率適用前）")]
     public int baseHP;
     public int baseATK;
     [HideInInspector] public int baseDEF; // Historical serialized data; unused by R1 combat.
     [Min(-1), InspectorName("初期バリア（-1は職種設定）")] public int baseBarrier = -1;
 
-    [Header("成長率（Lv1基礎値から固定加算・最低+2/Lv）")]
-    public float hpGrowth;
-    public float atkGrowth;
+    [HideInInspector] public float hpGrowth;
+    [HideInInspector] public float atkGrowth;
     [HideInInspector] public float defGrowth;
 
-    [Header("維持費（Lv1から発生・Lv10ごとに増加）")]
+    [Header("基本維持費（実際の毎ターン支払額はこの5倍）")]
     [Tooltip("召喚体など維持費を免除する駒。王・異形の王は常に免除。通常の生産駒は有効にしません。")]
     public bool upkeepExempt;
     [Tooltip("有効時は鉄・パンもこの駒の設定値を使います。無効時は従来の共通維持費を使用。")]
@@ -53,9 +52,7 @@ public class UnitData : ScriptableObject
     public int upkeepWater;
     [HideInInspector] public int upkeepBread; // Legacy serialized data; standard Bread upkeep now uses GetUpkeep.
 
-    [Header("維持費スケーリング")]
-    [Tooltip("falseの場合、魔法鉱石の維持費はLv10ごとに増えない")]
-    public bool upkeepMagicScales = true;
+    [HideInInspector] public bool upkeepMagicScales = true; // Legacy asset compatibility only.
 
     [Header("制作コスト（木/石/鉄/魔/水/パン/市民/AP）")]
     public int costWood;
@@ -68,73 +65,58 @@ public class UnitData : ScriptableObject
     public int costAP;
 
     public bool IsValidForAuthoring => baseHP > 0 && baseATK >= 0 && baseDEF >= 0 && baseBarrier >= -1
-        && ValidGrowth(hpGrowth) && ValidGrowth(atkGrowth) && ValidGrowth(defGrowth)
         && upkeepWood >= 0 && upkeepStone >= 0 && upkeepIron >= 0 && upkeepMagic >= 0 && upkeepWater >= 0 && upkeepBread >= 0
         && costWood >= 0 && costStone >= 0 && costIron >= 0 && costMagic >= 0 && costWater >= 0 && costBread >= 0 && costCitizen >= 0 && costAP >= 0;
-    static bool ValidGrowth(float value) => !float.IsNaN(value) && !float.IsInfinity(value) && value >= 0;
 
     // ─────────────────────────────────────────────────────────────────
-    //  維持費計算（Lv1から、Lv10ごと。ゲーム本体とAI予測の共有API）
+    //  固定維持費（旧基礎値+追加維持費の合計を5倍。本体・UI・AIの共有API）
     // ─────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Lv1〜9=1、Lv10〜19=2、Lv20〜29=3。無効なレベルはゲームの有効範囲へ補正する。
+    /// Legacy caller compatibility. Unit levels never affect upkeep.
     /// </summary>
-    public static int UpkeepMultiplier(int level)
-    {
-        return 1 + Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel) / 10;
-    }
+    public static int UpkeepMultiplier(int level) => FixedUnitRules.UpkeepFactor;
 
     /// <summary>
-    /// 指定レベルでの維持費を ProductionBundle として返す。
+    /// Legacy caller compatibility. Returns the same fixed upkeep for every argument.
     /// </summary>
-    public FacilityData.ProductionBundle GetUpkeep(int level)
+    public FacilityData.ProductionBundle GetUpkeep(int level) => GetFixedUpkeep();
+    public FacilityData.ProductionBundle GetFixedUpkeep()
     {
         if (upkeepExempt || kind == Kind.King || kind == Kind.Boss) return default;
-        int mult = UpkeepMultiplier(level);
         var extra = GameAuthoringRules.Active?.unitExtraUpkeep ?? default;
         return new FacilityData.ProductionBundle
         {
-            Wood     = ScaledUpkeepWithExtra(upkeepWood, extra.Wood, mult),
-            Stone    = ScaledUpkeepWithExtra(upkeepStone, extra.Stone, mult),
-            Iron     = ScaledUpkeepWithExtra(useAuthoredUpkeep ? upkeepIron : 1, extra.Iron, mult),
-            MagicOre = (int)System.Math.Min(int.MaxValue, (long)ScaledUpkeep(upkeepMagic, upkeepMagicScales ? mult : 1) + ScaledUpkeep(extra.MagicOre, mult)),
-            Wheat    = ScaledUpkeep(extra.Wheat, mult),
-            Citizen  = ScaledUpkeep(extra.Citizen, mult),
-            Water    = ScaledUpkeepWithExtra(upkeepWater, extra.Water, mult),
-            Bread    = ScaledUpkeepWithExtra(useAuthoredUpkeep ? upkeepBread : 1, extra.Bread, mult),
+            Wood     = FixedUnitRules.MultiplyUpkeep(upkeepWood, extra.Wood),
+            Stone    = FixedUnitRules.MultiplyUpkeep(upkeepStone, extra.Stone),
+            Iron     = FixedUnitRules.MultiplyUpkeep(useAuthoredUpkeep ? upkeepIron : 1, extra.Iron),
+            MagicOre = FixedUnitRules.MultiplyUpkeep(upkeepMagic, extra.MagicOre),
+            Wheat    = FixedUnitRules.MultiplyUpkeep(extra.Wheat),
+            Citizen  = FixedUnitRules.MultiplyUpkeep(extra.Citizen),
+            Water    = FixedUnitRules.MultiplyUpkeep(upkeepWater, extra.Water),
+            Bread    = FixedUnitRules.MultiplyUpkeep(useAuthoredUpkeep ? upkeepBread : 1, extra.Bread),
         };
     }
-    static int ScaledUpkeepWithExtra(int value, int extra, int multiplier)
-        => (int)System.Math.Min(int.MaxValue, ((long)Mathf.Max(0, value) + Mathf.Max(0, extra)) * multiplier);
-
-    static int ScaledUpkeep(int value, int multiplier)
-        => (int)System.Math.Min(int.MaxValue, (long)Mathf.Max(0, value) * multiplier);
 
     // ─────────────────────────────────────────────────────────────────
-    //  成長計算（GameReference準拠の線形式）
-    //  staticにする理由：UnitDataインスタンスなしでUI等から呼べるようにするため
+    //  旧呼び出し互換（成長は無効。旧保存の読取計算はFixedUnitRulesのみ）
     // ─────────────────────────────────────────────────────────────────
 
-    /// <summary>Round once at Lv1; every subsequent level receives this same gain.</summary>
+    /// <summary>Legacy API: no level growth is applied.</summary>
     public static int CalcGrowthPerLevel(int baseStat, float growth)
-    {
-        if (float.IsNaN(growth) || float.IsInfinity(growth) || growth < 0) growth = 0;
-        float rawGain = baseStat * growth;
-        if (rawGain >= int.MaxValue) return int.MaxValue;
-        return Mathf.Max(2, Mathf.FloorToInt(rawGain + 0.5f));
-    }
+        => 0; // Inert compatibility API; legacy save interpretation lives in FixedUnitRules.
 
     public static int CalcStat(int baseStat, float growth, int level)
-    {
-        level = Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel);
-        return (int)System.Math.Min(int.MaxValue, (long)baseStat + (long)CalcGrowthPerLevel(baseStat, growth) * (level - 1));
-    }
+        => FixedUnitRules.ScaleBaseStat(baseStat);
+
+    public int FixedMaxHP => Mathf.Max(1, FixedUnitRules.BaseStat(kind, baseHP));
+    public int FixedATK => FixedUnitRules.BaseStat(kind, baseATK);
+    public int FixedDEF => FixedUnitRules.BaseStat(kind, baseDEF);
 
     // ─────────────────────────────────────────────────────────────────
     //  Status への一括適用
     //  「自分のデータをStatusにどう適用するか」はUnitData自身が知っているべき
-    //  ゲーム開始時・駒の生成時・レベルアップ後の3タイミングからこのメソッドを呼ぶ
+    //  ゲーム開始時・新規生成時に定義の生値から固定能力を適用する
     // ─────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -143,15 +125,17 @@ public class UnitData : ScriptableObject
     /// </summary>
     public void ApplyToStatus(Status status, int level)
     {
-        level = Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel);
         status.GrowthData = this;
         status.unitDefinitionId = definitionId ?? string.Empty;
-        status.Level = level;
-        status.ATK = CalcStat(baseATK, atkGrowth, level);
-        status.HP = CalcStat(baseHP, hpGrowth, level);
+        status.Level = 1;
+        status.Experience = 0;
+        status.FixedStatsMigrationDeferred = false;
+        status.LegacyUnitStats = null;
+        status.ATK = FixedATK;
+        status.HP = FixedMaxHP;
         status.MaxHP = status.HP;
         status.ResetBarrier();
-        status.DEF = CalcStat(baseDEF, defGrowth, level);
+        status.DEF = FixedDEF;
         StatusBalanceRefresh.RecordDefinitionBaseline(status);
     }
 

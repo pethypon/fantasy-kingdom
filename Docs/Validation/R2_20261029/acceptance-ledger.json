@@ -1,0 +1,2754 @@
+[
+  {
+    "id": "A01",
+    "requirement": "基礎HP100→175、ATK20→35、DEF10→18になる。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 316,
+        "text": "[R2Fixed] PASS A01"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 19,
+        "text": "Check(\"A01\", data.FixedMaxHP == 175 && data.FixedATK == 35 && data.FixedDEF == 18);"
+      }
+    ],
+    "reason": "Native UnitData contract checks exactly HP100->175, ATK20->35, DEF10->18."
+  },
+  {
+    "id": "A02",
+    "requirement": "基礎値0→0。成長率の最低+2を適用しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 329,
+        "text": "[R2Fixed] PASS A02"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 20,
+        "text": "Check(\"A02\", FixedUnitRules.ScaleBaseStat(0) == 0);"
+      }
+    ],
+    "reason": "Native canonical scaling contract checks 0->0."
+  },
+  {
+    "id": "A03",
+    "requirement": "基礎値1→2、2→4、3→5になる（端数四捨五入）。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 342,
+        "text": "[R2Fixed] PASS A03"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 21,
+        "text": "Check(\"A03\", FixedUnitRules.ScaleBaseStat(1) == 2 && FixedUnitRules.ScaleBaseStat(2) == 4 && FixedUnitRules.ScaleBaseStat(3) == 5);"
+      }
+    ],
+    "reason": "Native canonical scaling contract checks 1->2, 2->4, 3->5."
+  },
+  {
+    "id": "A04",
+    "requirement": "正常な大きな数値でintオーバーフロー・負値を起こさない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 355,
+        "text": "[R2Fixed] PASS A04"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 22,
+        "text": "Check(\"A04\", FixedUnitRules.ScaleBaseStat(int.MaxValue) == int.MaxValue && FixedUnitRules.ScaleBaseStat(-1) == 0);"
+      }
+    ],
+    "reason": "Native canonical scaling checks int.MaxValue saturation and negative input clamping without negative result."
+  },
+  {
+    "id": "A05",
+    "requirement": "新規生産ユニットHPが新最大HPと一致する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 368,
+        "text": "[R2Fixed] PASS A05"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 25,
+        "text": "Check(\"A05\", actor.HP == 175 && actor.MaxHP == 175 && actor.Level == 1 && actor.Experience == 0);"
+      }
+    ],
+    "reason": "Native ApplyToStatus contract creates HP=MaxHP=175 and Level1/XP0."
+  },
+  {
+    "id": "A06",
+    "requirement": "二度初期化・再計算しても基礎ステータスが再び1.75倍にならない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 381,
+        "text": "[R2Fixed] PASS A06"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 27,
+        "text": "Check(\"A06\", actor.MaxHP == 175 && actor.ATK == 35 && actor.DEF == 18);"
+      }
+    ],
+    "reason": "Repeated ApplyToStatus and latest-definition refresh preserve 175/35/18."
+  },
+  {
+    "id": "A07",
+    "requirement": "装備由来の加算/倍率がある場合、新基礎値と一度だけ合成される。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 394,
+        "text": "[R2Fixed] PASS A07"
+      }
+    ],
+    "reason": "A07 fixture manually adds flat ATK/MaxHP and checks refresh idempotence; it does not equip real additive/multiplicative equipment or verify both modifier forms."
+  },
+  {
+    "id": "A08",
+    "requirement": "特殊バフ/デバフの効果はレベル廃止後も継続する。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 407,
+        "text": "[R2Fixed] PASS A08"
+      }
+    ],
+    "reason": "A08 fixture verifies only one Weaken debuff. Special buffs and other debuffs are not demonstrated after level removal."
+  },
+  {
+    "id": "A09",
+    "requirement": "静的定義による一般ユニットでも新固定値が使われる。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 656,
+        "text": "[R2Fixed] PASS A09"
+      }
+    ],
+    "reason": "A09 label covers only the private simulation fallback created from UnitStaticData; actual general-unit static-definition creation is not exercised."
+  },
+  {
+    "id": "A10",
+    "requirement": "クリスタル・施設・専用ボスの値が不用意に1.75倍されない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 420,
+        "text": "[R2Fixed] PASS A10"
+      }
+    ],
+    "reason": "A10 checks BaseStat for King/Boss/Crystal only; facility and dedicated-boss integration/stats are not all exercised."
+  },
+  {
+    "id": "B01",
+    "requirement": "通常攻撃によるダメージでXPが増えない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No controlled normal-attack test checks attacker XP before/after damage. Ordinary telemetry does not record the complete dead-actor XP path."
+  },
+  {
+    "id": "B02",
+    "requirement": "スキルダメージ・継続ダメージでXPが増えない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No skill-damage and damage-over-time XP before/after contracts executed."
+  },
+  {
+    "id": "B03",
+    "requirement": "撃破でユニットレベル/基礎値が変化しない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No controlled kill asserts both killer level and base stats unchanged; end-of-match surviving-level telemetry is partial."
+  },
+  {
+    "id": "B04",
+    "requirement": "兵舎の旧XPボーナスを受けてもXPが増えない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 433,
+        "text": "[R2Fixed] PASS B04"
+      }
+    ],
+    "reason": "B04 label calls GainExperience/GainExperienceFromDamage directly; an actual legacy barracks XP-award transaction is not exercised."
+  },
+  {
+    "id": "B05",
+    "requirement": "旧高レベルユニットを新方式に変換してもレベル依存の追加成長を起こさない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 726,
+        "text": "[R2Save] PASS F02"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2SaveMigrationTests.cs",
+        "line": 34,
+        "text": "Check(\"F02\",soldier.Level==1&&soldier.Experience==0&&soldier.MaxHP==expectedMax"
+      }
+    ],
+    "reason": "A legacy Level20 unit migrates to fixed Level1/XP0, and high-level ApplyToStatus does not add level growth."
+  },
+  {
+    "id": "B06",
+    "requirement": "ダメージ時の戦闘記録は引き続き作られる。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No post-damage combat-record contents assertion; ordinary action telemetry alone does not establish the game combat-record path."
+  },
+  {
+    "id": "B07",
+    "requirement": "ボス固有アーティファクトを撃破時に従来どおり獲得できる。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No dedicated boss artifact reward acquisition executed."
+  },
+  {
+    "id": "B08",
+    "requirement": "乱入者レリックを従来どおり獲得できる。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No intruder relic reward acquisition executed."
+  },
+  {
+    "id": "B09",
+    "requirement": "撃破報酬は同じ死亡イベントで重複付与されない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No repeated same-death-event reward test executed."
+  },
+  {
+    "id": "B10",
+    "requirement": "戦死/離脱後の状態異常・CT・バリアのクリーンアップが壊れない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Maintenance death completes, but status ailments, cooldowns and barrier cleanup are not all asserted for death and departure."
+  },
+  {
+    "id": "C01",
+    "requirement": "鉄維持費1→5、パン維持費2→10。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 459,
+        "text": "[R2Fixed] PASS C01"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 46,
+        "text": "Check(\"C01\", upkeep.Iron == FixedUnitRules.MultiplyUpkeep(1,extra.Iron) && upkeep.Bread == FixedUnitRules.MultiplyUpkeep(2,extra.Bread));"
+      }
+    ],
+    "reason": "Authored iron1/bread2 upkeep is read through fixed multiplier API; C02/C04 demonstrate global additions are included before x5."
+  },
+  {
+    "id": "C02",
+    "requirement": "複数資源の各項目に5倍が適用される。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 511,
+        "text": "[R2Fixed] PASS C02"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 90,
+        "text": "Check(\"C02\",actual.Wood==15&&actual.Stone==25&&actual.Iron==25&&actual.MagicOre==40"
+      }
+    ],
+    "reason": "Native contract asserts all eight resource fields against explicit x5 expected values with global extras."
+  },
+  {
+    "id": "C03",
+    "requirement": "旧`upkeepMagicScales=false`の魔法鉱石も固定5倍になる。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 472,
+        "text": "[R2Fixed] PASS C03"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 47,
+        "text": "Check(\"C03\", upkeep.MagicOre == FixedUnitRules.MultiplyUpkeep(3,extra.MagicOre));"
+      }
+    ],
+    "reason": "Authored magic upkeep3 uses fixed multiplier even with upkeepMagicScales=false."
+  },
+  {
+    "id": "C04",
+    "requirement": "グローバル追加維持費を含む旧Lv1基本値の5倍となる。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 498,
+        "text": "[R2Fixed] PASS C04"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 49,
+        "text": "Check(\"C04\", FixedUnitRules.MultiplyUpkeep(2,3) == 25 && FixedUnitRules.MultiplyUpkeep(int.MaxValue,int.MaxValue) == int.MaxValue);"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 525,
+        "text": "[R2Fixed] PASS C04-global"
+      }
+    ],
+    "reason": "Native helper checks (2+3)*5=25, and authored-global contract checks exact iron/bread totals."
+  },
+  {
+    "id": "C05",
+    "requirement": "`GetUpkeep(level)`互換経路が残ってもレベル差で値が変わらない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 485,
+        "text": "[R2Fixed] PASS C05"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 48,
+        "text": "Check(\"C05\", JsonUtility.ToJson(data.GetUpkeep(1)) == JsonUtility.ToJson(data.GetUpkeep(100)));"
+      }
+    ],
+    "reason": "Serialized upkeep bundles returned for level1 and100 are equal."
+  },
+  {
+    "id": "C06",
+    "requirement": "王・ボス・`upkeepExempt`は免除のまま。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 539,
+        "text": "[R2Fixed] PASS C06-exempt"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 51,
+        "text": "data.upkeepExempt = true; Check(\"C06-exempt\", data.GetFixedUpkeep().Iron == 0);"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 539,
+        "text": "[R2Fixed] PASS C06-exempt"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 552,
+        "text": "[R2Fixed] PASS C06-king"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 565,
+        "text": "[R2Fixed] PASS C06-boss"
+      }
+    ],
+    "reason": "Native contracts cover authored upkeepExempt, King and Boss exemptions."
+  },
+  {
+    "id": "C07",
+    "requirement": "建物維持費が5倍にならない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No building-maintenance amount regression test executed in reviewed R2 suites."
+  },
+  {
+    "id": "C08",
+    "requirement": "ユニット生成費用・APが増えない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 578,
+        "text": "[R2Fixed] PASS C08"
+      }
+    ],
+    "reason": "C08 only observes authored costWood7/costAP3 unchanged after ApplyToStatus; a real ordinary-unit summoning payment/AP transaction is not compared."
+  },
+  {
+    "id": "C09",
+    "requirement": "維持費不足で毎ターン最大HPの20%（暫定基準）ダメージが発生し、旧段階的ATK/DEF低下・10ターン離脱が重複適用されない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1432,
+        "text": "[R2ConstructionEconomy] PASS Player UP06 UP07 five unpaid turns kill by HP, no ten-turn defection"
+      }
+    ],
+    "reason": "Fixtures demonstrate20% HP loss and zero old stat penalty, but units die by turn5; a kept-alive ten-unpaid-turn case does not demonstrate absence of the historical departure event."
+  },
+  {
+    "id": "C10",
+    "requirement": "複数ターンで実支払額＝予測額＝UI表示額が一致する。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No multi-turn actual-payment/forecast/rendered-UI three-way comparison executed."
+  },
+  {
+    "id": "D01",
+    "requirement": "敵AIが基礎固定値を正しく読み込める。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 591,
+        "text": "[R2Fixed] PASS D01"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 57,
+        "text": "Check(\"D01\", sim.HP == actor.MaxHP && sim.ATK == actor.ATK && sim.DEF == actor.DEF);"
+      }
+    ],
+    "reason": "SimRecruitmentDefinition HP/ATK/DEF equals fixed live actor in native contract."
+  },
+  {
+    "id": "D02",
+    "requirement": "同種・同装備の旧レベル差が戦力評価に影響しない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 604,
+        "text": "[R2Fixed] PASS D02"
+      }
+    ],
+    "reason": "D02 checks CalcGrowthPerLevel=0 and one actor Level1; it does not compare combat evaluation of otherwise identical units with different legacy levels/equipment."
+  },
+  {
+    "id": "D03",
+    "requirement": "AI募集判断が5倍維持費を比較する。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 925,
+        "text": "[R2EngineerAI] PASS Player D03 fixed maintenance creates a real outside-ore supply gap"
+      }
+    ],
+    "reason": "D03 labels in Engineer AI suite demonstrate an ore supply gap, not an actual recruitment decision comparing x5 recurring upkeep."
+  },
+  {
+    "id": "D04",
+    "requirement": "AIの資源予測とゲーム実決済が一致する。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 943,
+        "text": "[R2EngineerAI] PASS Player D04 EN18 planned engineer price equals the live quote"
+      }
+    ],
+    "reason": "D04 Engineer AI label compares construction quote only; full AI resource projection versus real multi-turn settlements is not compared."
+  },
+  {
+    "id": "D05",
+    "requirement": "5倍維持費で実際に支払えない場合、AIが誤って維持可能と判断しない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No current R2 native recruitment affordability case asserts rejection specifically because x5 upkeep is unaffordable."
+  },
+  {
+    "id": "D06",
+    "requirement": "AIの脅威度の段階変化・設定がそのまま動く。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Current ordinary games use threat15; threshold changes and threat settings are not exercised across stages."
+  },
+  {
+    "id": "D07",
+    "requirement": "R4認知AIと既存作戦AIの起動・フォールバックが壊れない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Ordinary AI starts and acts, but both R4 cognitive and existing operation routes plus fallback activation are not all demonstrated."
+  },
+  {
+    "id": "D08",
+    "requirement": "Minimax/Simで基礎ステータスとバリアが実ゲームと一致する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 669,
+        "text": "[R2Fixed] PASS D08"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 72,
+        "text": "Check(\"D08\",summoned.MaxHP==actor.MaxHP&&summoned.MaxBarrier==6&&summoned.UsesBarrier&&summoned.Clone().EngineerBarrierConfigured);"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 591,
+        "text": "[R2Fixed] PASS D01"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1099,
+        "text": "[R2Barrier] PASS BR11 live, captured simulation and pure forecast agree; cloned clocks are independent"
+      }
+    ],
+    "reason": "Native contracts compare live fixed HP/ATK/DEF to simulation definition, authored barrier to summoned SimUnit, and live/captured-simulation recovery parity."
+  },
+  {
+    "id": "D09",
+    "requirement": "XP稼ぎを目的とする判断が本番経路にない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Docs/Validation/R2_20261029/progression-reference-audit-before.txt",
+        "line": 1,
+        "text": "4897d5e:Assets/Editor/GameDevelopmentStudioWindow.cs:135:            EditorGUILayout.LabelField(\"最大バリア（Lv1 / 最大Lv）\", initial + \" / \" + BarrierSystem.Maximum(initial, GameConstants.MaxUnitLevel));"
+      }
+    ],
+    "reason": "Raw progression-reference list exists, but no complete current production decision-path audit demonstrates absence of XP farming."
+  },
+  {
+    "id": "D10",
+    "requirement": "40×40固定マップと3D視界の正式ルールが変わらない。",
+    "result": "FAIL",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Prefabs/GameSystem/GameGenerator 1.prefab",
+        "line": 1632,
+        "text": "maxX: 35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Prefabs/GameSystem/GameGenerator 1.prefab",
+        "line": 1635,
+        "text": "maxZ: 35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 316,
+        "text": "[R2RealSave] PASS save_0.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1964,
+        "text": "[R2ConstructionEconomy] PASS MN14 map dimensions and generated map are untouched"
+      }
+    ],
+    "reason": "Acceptance precondition mismatch: actual preserved production map is35x35, not the40x40 named by this row. Existing map must remain unchanged. A fixture proving unchanged dimensions is not proof of a40x40 map, unchanged generation output, or complete3D/scene behavior."
+  },
+  {
+    "id": "E01",
+    "requirement": "頭上`LevelBadge`が生成されず、HP/バリアゲージが正常。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1484,
+        "text": "[R2TimerUI] PASS E01 no runtime level badge text cache remains"
+      }
+    ],
+    "reason": "Reflection only proves old lvText/cachedLevel fields absent. No actual head UI generation and working HP/barrier gauge assertion or rendered inspection."
+  },
+  {
+    "id": "E02",
+    "requirement": "通常ユニット情報欄に`Lv`がない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1358,
+        "text": "[R2TimerUI] PASS E02/E09 units hide the shared facility level and close the empty row"
+      }
+    ],
+    "reason": "Native UnitPanelUI fixture hides and clears the shared level field for ordinary unit layout."
+  },
+  {
+    "id": "E03",
+    "requirement": "通常ユニットのツールチップに`XP`や次Lvがない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1306,
+        "text": "[R2TimerUI] PASS E03 summon tooltip contains no unit growth labels"
+      }
+    ],
+    "reason": "E03 label checks SummonUnitTooltip.Description, not every ordinary unit tooltip/next-level UI path."
+  },
+  {
+    "id": "E04",
+    "requirement": "召喚一覧が新HP/ATK/DEFを表示する。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1319,
+        "text": "[R2TimerUI] PASS E04 summon tooltip uses canonical fixed HP and ATK"
+      }
+    ],
+    "reason": "E04 label checks summon-description HP/ATK, but not DEF or actual summoning-list widget values."
+  },
+  {
+    "id": "E05",
+    "requirement": "召喚一覧が固定5倍維持費を表示する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1332,
+        "text": "[R2TimerUI] PASS E05 summon upkeep comes from the fixed API"
+      }
+    ],
+    "reason": "Native summon-description string contains the formatted canonical fixed upkeep bundle; C01-C05 separately verify x5 semantics."
+  },
+  {
+    "id": "E06",
+    "requirement": "`GameManualUI`に経験値ルールが残らない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No executed manual content assertion confirms GameManualUI has no XP rules."
+  },
+  {
+    "id": "E07",
+    "requirement": "マニュアルのバリア説明に「Lv−1」がない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1345,
+        "text": "[R2TimerUI] PASS R2 barrier explanation uses full HP rather than old damage-free threshold"
+      }
+    ],
+    "reason": "A helper barrier explanation is checked for full HP/no70%; GameManualUI text and absence of Lv-1 are not directly checked."
+  },
+  {
+    "id": "E08",
+    "requirement": "建物の強化段階/次段階費用UIが正常。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1372,
+        "text": "[R2TimerUI] PASS E08/E09 facility selection restores its upgrade row and original HP layout"
+      }
+    ],
+    "reason": "Layout-only fixture restores the facility row; upgrade-stage value and next-stage cost UI are not asserted."
+  },
+  {
+    "id": "E09",
+    "requirement": "ユニット⇔建物選択切替でLv残像・空白枠がない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1386,
+        "text": "[R2TimerUI] PASS E09 repeated facility-to-unit switching never leaves a stale row"
+      }
+    ],
+    "reason": "Panel reflow is called directly with false/true/false; actual unit/building selection event flow and rendered stale/empty frames are not demonstrated."
+  },
+  {
+    "id": "E10",
+    "requirement": "兵舎の表示に廃止済みXP効果が残らない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No executed barracks description assertion or rendered inspection checks obsolete XP effect text."
+  },
+  {
+    "id": "F01",
+    "requirement": "V11以前のセーブを新バージョンへ移行できる。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 713,
+        "text": "[R2Save] PASS F01"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2SaveMigrationTests.cs",
+        "line": 33,
+        "text": "Check(\"F01\",data.Version==12&&data.SchemaVersion==12&&SaveSystem.ValidateMigrationChain(out _));"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 316,
+        "text": "[R2RealSave] PASS save_0.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 327,
+        "text": "[R2RealSave] PASS save_1.json version=11->12 units=31 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 338,
+        "text": "[R2RealSave] PASS save_2.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 349,
+        "text": "[R2RealSave] COMPLETE copies=3 temporaryEvidence=C:\\Users\\pethi\\AppData\\Local\\Temp\\FK_R2_SaveCopies_07a3cd8573f548e79ec6106eb2cc6dee"
+      }
+    ],
+    "reason": "Synthetic V11 migration and three protected real V11 save copies load as V12; migration-chain validation passes."
+  },
+  {
+    "id": "F02",
+    "requirement": "移行で通常ユニット能力が新基準に変換される。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 726,
+        "text": "[R2Save] PASS F02"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2SaveMigrationTests.cs",
+        "line": 34,
+        "text": "Check(\"F02\",soldier.Level==1&&soldier.Experience==0&&soldier.MaxHP==expectedMax"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 316,
+        "text": "[R2RealSave] PASS save_0.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 327,
+        "text": "[R2RealSave] PASS save_1.json version=11->12 units=31 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 338,
+        "text": "[R2RealSave] PASS save_2.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 349,
+        "text": "[R2RealSave] COMPLETE copies=3 temporaryEvidence=C:\\Users\\pethi\\AppData\\Local\\Temp\\FK_R2_SaveCopies_07a3cd8573f548e79ec6106eb2cc6dee"
+      }
+    ],
+    "reason": "Legacy definition snapshots and scene-definition override fixtures produce the expected fixed stats; all three real copies report deferred=0."
+  },
+  {
+    "id": "F03",
+    "requirement": "移行前のHP割合（損傷率）を維持する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 739,
+        "text": "[R2Save] PASS F03"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2SaveMigrationTests.cs",
+        "line": 36,
+        "text": "Check(\"F03\",soldier.HP==(int)Math.Round(ratio*expectedMax,MidpointRounding.AwayFromZero));"
+      }
+    ],
+    "reason": "Synthetic V11 fixture asserts the exact rounded pre-migration HP ratio after fixed-stat conversion."
+  },
+  {
+    "id": "F04",
+    "requirement": "旧死亡ユニットがロードで復活しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 752,
+        "text": "[R2Save] PASS F04"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2SaveMigrationTests.cs",
+        "line": 37,
+        "text": "Check(\"F04\",dead.HP==0&&!dead.IsActive);"
+      }
+    ],
+    "reason": "Synthetic dead legacy unit remains HP0 and inactive after migration."
+  },
+  {
+    "id": "F05",
+    "requirement": "旧施設のレベル/強化/費用が変わらない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 765,
+        "text": "[R2Save] PASS F05"
+      }
+    ],
+    "reason": "F05 fixture covers a level3 StoneWall HP/ATK snapshot only; facilities, upgrade state and costs are not all verified."
+  },
+  {
+    "id": "F06",
+    "requirement": "旧保存の装備・バフ・スキル・アーティファクトを維持する。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 778,
+        "text": "[R2Save] PASS F06-partial"
+      }
+    ],
+    "reason": "F06-partial explicitly checks skill id/cooldown/Special non-null only; equipment, buff payloads and artifacts are not asserted."
+  },
+  {
+    "id": "F07",
+    "requirement": "ロード→保存→ロードで1.75倍が二重適用されない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 791,
+        "text": "[R2Save] PASS F07"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2SaveMigrationTests.cs",
+        "line": 40,
+        "text": "string once=JsonUtility.ToJson(data);data=Migrate(data);Check(\"F07\",once==JsonUtility.ToJson(data));"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 316,
+        "text": "[R2RealSave] PASS save_0.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 327,
+        "text": "[R2RealSave] PASS save_1.json version=11->12 units=31 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 338,
+        "text": "[R2RealSave] PASS save_2.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 349,
+        "text": "[R2RealSave] COMPLETE copies=3 temporaryEvidence=C:\\Users\\pethi\\AppData\\Local\\Temp\\FK_R2_SaveCopies_07a3cd8573f548e79ec6106eb2cc6dee"
+      }
+    ],
+    "reason": "Native synthetic migration is idempotent; all three real copies pass load-save-load state equality after writer metadata normalization."
+  },
+  {
+    "id": "F08",
+    "requirement": "セーブバージョンチェーンの長さと番号が一致する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 804,
+        "text": "[R2Save] PASS F08"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2SaveMigrationTests.cs",
+        "line": 41,
+        "text": "Check(\"F08\",SaveSystem.ValidateMigrationChain(out _));"
+      }
+    ],
+    "reason": "Native migration-chain validator succeeds; synthetic save reaches Version/SchemaVersion12."
+  },
+  {
+    "id": "F09",
+    "requirement": "未来バージョンと不正データは安全に拒否する。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 817,
+        "text": "[R2Save] PASS F09-future"
+      }
+    ],
+    "reason": "F09-future proves rejection of Version13 only; malformed/corrupt save-data rejection is not exercised by this suite."
+  },
+  {
+    "id": "F10",
+    "requirement": "AI作戦・探索・視界・資源・マップスナップショットが破損しない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 830,
+        "text": "[R2Save] PASS F10-partial"
+      }
+    ],
+    "reason": "F10-partial checks map width and two resource values only; full AI operation/exploration/vision/map snapshots are not compared."
+  },
+  {
+    "id": "G01",
+    "requirement": "対象ユニットのバリア最大値がレベル依存で増えない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1073,
+        "text": "[R2Barrier] PASS BR09 initial barrier table is neither level-scaled nor multiplied by 1.75"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 68,
+        "text": "foreach (var entry in settings.initialBarriers)"
+      }
+    ],
+    "reason": "Native BR09 iterates every configured initial barrier and levels -10/1/20/100/int.MaxValue, asserting no level growth or x1.75."
+  },
+  {
+    "id": "G02",
+    "requirement": "バリア基本値は未変更。1.75倍しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1073,
+        "text": "[R2Barrier] PASS BR09 initial barrier table is neither level-scaled nor multiplied by 1.75"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 68,
+        "text": "foreach (var entry in settings.initialBarriers)"
+      }
+    ],
+    "reason": "Native BR09 iterates every configured initial barrier and levels -10/1/20/100/int.MaxValue, asserting no level growth or x1.75."
+  },
+  {
+    "id": "G03",
+    "requirement": "HPが100%に達した時点から3ターン後に再生が始まり、最大バリア20%/ターンで回復する。旧HP70%+無被弾条件では回復しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 969,
+        "text": "[R2Barrier] PASS BR01 70% and 90% HP never regenerate after three or more boundaries"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 982,
+        "text": "[R2Barrier] PASS BR02 full-HP arrival starts a zero-length waiting interval"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 995,
+        "text": "[R2Barrier] PASS BR03 first and second own boundaries do not regenerate"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1008,
+        "text": "[R2Barrier] PASS BR04 third own boundary restores twenty percent"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1021,
+        "text": "[R2Barrier] PASS BR05 later own boundaries continue and clamp at maximum"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1034,
+        "text": "[R2Barrier] PASS BR06 barrier-only damage preserves full-HP history"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1047,
+        "text": "[R2Barrier] PASS BR07 one HP loss resets immediately; real healing begins a new three-boundary wait"
+      }
+    ],
+    "reason": "Native BR01-BR07 demonstrate injured HP never regenerates, a new full-HP clock, third own boundary +20%, subsequent clamped recovery, and correct hit/reset behavior."
+  },
+  {
+    "id": "G04",
+    "requirement": "バリア貫通スキルが従来どおり。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No executed barrier-piercing-skill regression."
+  },
+  {
+    "id": "G05",
+    "requirement": "完全防御シールドが従来どおり。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No executed complete-defense-shield regression."
+  },
+  {
+    "id": "G06",
+    "requirement": "主要指揮官の固有ステータスが保持される。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Current commander HP is recorded, but all commander-specific stats are not compared to baseline."
+  },
+  {
+    "id": "G07",
+    "requirement": "ボス固有HP・形態変化が保持される。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No dedicated-boss HP/form-transition regression."
+  },
+  {
+    "id": "G08",
+    "requirement": "クリスタルHP・反撃・敗北条件が保持される。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Crystal HP is recorded, but counterattack and terminal-loss conditions are not exercised."
+  },
+  {
+    "id": "G09",
+    "requirement": "異形の進化段階が削除されない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No aberration evolution-stage regression."
+  },
+  {
+    "id": "G10",
+    "requirement": "壁と建築物の防御力・強化機能が保持される。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No complete wall/building defense and upgrade-function regression."
+  },
+  {
+    "id": "H01",
+    "requirement": "既存のユニット生成テストが通る。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Reviewed current R2 suites do not run existing unit-generation suite; Engineer actors are test-owned."
+  },
+  {
+    "id": "H02",
+    "requirement": "既存の建築・施設アップグレードテストが通る。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Controlled Engineer placement runs, but existing construction/facility-upgrade suites are not shown executed."
+  },
+  {
+    "id": "H03",
+    "requirement": "経済シミュレーションで資源が負にならない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/run.json",
+        "line": 6,
+        "text": "\"SourceDigest\": \"5c8d90a604b79db30cbe0e3b3acf81bf8e0ecd4c8cd8b329de1a060ccf8580b0\","
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/01-161803/turns.csv",
+        "rows": 82,
+        "columns": [
+          "playerWood",
+          "playerStone",
+          "playerIron",
+          "playerMagic",
+          "playerWater",
+          "playerBread",
+          "playerWheat",
+          "playerCitizen",
+          "enemyWood",
+          "enemyStone",
+          "enemyIron",
+          "enemyMagic",
+          "enemyWater",
+          "enemyBread",
+          "enemyWheat",
+          "enemyCitizen"
+        ],
+        "minimum": 0.0
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/02-271828/turns.csv",
+        "rows": 82,
+        "columns": [
+          "playerWood",
+          "playerStone",
+          "playerIron",
+          "playerMagic",
+          "playerWater",
+          "playerBread",
+          "playerWheat",
+          "playerCitizen",
+          "enemyWood",
+          "enemyStone",
+          "enemyIron",
+          "enemyMagic",
+          "enemyWater",
+          "enemyBread",
+          "enemyWheat",
+          "enemyCitizen"
+        ],
+        "minimum": 0.0
+      }
+    ],
+    "reason": "Ordinary game boundary samples had nonnegative stocks, but exhaustive forecast-model resource scenarios were not executed. Actual game samples alone do not certify all economic simulations."
+  },
+  {
+    "id": "H04",
+    "requirement": "ユニットの死亡クリーンアップに例外が出ない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1432,
+        "text": "[R2ConstructionEconomy] PASS Player UP06 UP07 five unpaid turns kill by HP, no ten-turn defection"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1926,
+        "text": "[R2ConstructionEconomy] PASS Enemy UP06 UP07 five unpaid turns kill by HP, no ten-turn defection"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 2012,
+        "text": "[AIR2LiveValidation] COMPLETE failures=0"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/01-161803/match.json",
+        "line": 83,
+        "text": "\"Exceptions\": 0,"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/02-271828/match.json",
+        "line": 83,
+        "text": "\"Exceptions\": 0,"
+      }
+    ],
+    "reason": "Both faction paid-maintenance fixtures cause real HP death and finish without thrown cleanup exception; both ordinary current native runs also report Errors0/Exceptions0/Assertions0."
+  },
+  {
+    "id": "H05",
+    "requirement": "AIターンが終端し、思考時間の上限を超えない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/01-161803/match.json",
+        "line": 13,
+        "text": "\"Result\": \"unresolved\","
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/02-271828/match.json",
+        "line": 13,
+        "text": "\"Result\": \"unresolved\","
+      }
+    ],
+    "reason": "Two games terminate80 owner turns each without fault; per-AI-turn maximum measured thinking duration and exercised stop/fallback bound are not reported."
+  },
+  {
+    "id": "H06",
+    "requirement": "プレイヤーの移動・攻撃・スキルのAPが変わらない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Engineer AP and ordinary AI actions are recorded; player move/attack/skill AP costs are not all compared to the pre-R2 baseline."
+  },
+  {
+    "id": "H07",
+    "requirement": "40×40のマップ生成結果が変わらない。",
+    "result": "FAIL",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Prefabs/GameSystem/GameGenerator 1.prefab",
+        "line": 1632,
+        "text": "maxX: 35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Prefabs/GameSystem/GameGenerator 1.prefab",
+        "line": 1635,
+        "text": "maxZ: 35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 316,
+        "text": "[R2RealSave] PASS save_0.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1964,
+        "text": "[R2ConstructionEconomy] PASS MN14 map dimensions and generated map are untouched"
+      }
+    ],
+    "reason": "Acceptance precondition mismatch: actual preserved production map is35x35, not the40x40 named by this row. Existing map must remain unchanged. A fixture proving unchanged dimensions is not proof of a40x40 map, unchanged generation output, or complete3D/scene behavior."
+  },
+  {
+    "id": "H08",
+    "requirement": "3D高さ/視界/霧/配置の挙動が変わらない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Official terrain vision is used for fixture sites, but unchanged height/vision/fog/placement behavior as a whole is not demonstrated."
+  },
+  {
+    "id": "H09",
+    "requirement": "ダンジョン・アーティファクト・クリスタルの基本勝敗条件は不変。時間切れ勝敗は廃止されている。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/01-161803/match.json",
+        "line": 13,
+        "text": "\"Result\": \"unresolved\","
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/02-271828/match.json",
+        "line": 13,
+        "text": "\"Result\": \"unresolved\","
+      }
+    ],
+    "reason": "Timer callbacks are disabled, but dungeon/artifact/crystal terminal win/loss conditions are not exercised; both current ordinary matches remain unresolved."
+  },
+  {
+    "id": "H10",
+    "requirement": "マップ40×40・地形・既存シーンに意図しない差分がない。工兵の登録・必要なPrefab等の差分は個別に報告する。",
+    "result": "FAIL",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Prefabs/GameSystem/GameGenerator 1.prefab",
+        "line": 1632,
+        "text": "maxX: 35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Prefabs/GameSystem/GameGenerator 1.prefab",
+        "line": 1635,
+        "text": "maxZ: 35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 316,
+        "text": "[R2RealSave] PASS save_0.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1964,
+        "text": "[R2ConstructionEconomy] PASS MN14 map dimensions and generated map are untouched"
+      }
+    ],
+    "reason": "Acceptance precondition mismatch: actual preserved production map is35x35, not the40x40 named by this row. Existing map must remain unchanged. A fixture proving unchanged dimensions is not proof of a40x40 map, unchanged generation output, or complete3D/scene behavior."
+  },
+  {
+    "id": "I01",
+    "requirement": "全C#の`Level/XP`参照監査表を作成した。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Docs/Validation/R2_20261029/progression-reference-audit-before.txt",
+        "line": 1,
+        "text": "4897d5e:Assets/Editor/GameDevelopmentStudioWindow.cs:135:            EditorGUILayout.LabelField(\"最大バリア（Lv1 / 最大Lv）\", initial + \" / \" + BarrierSystem.Maximum(initial, GameConstants.MaxUnitLevel));"
+      }
+    ],
+    "reason": "A raw before-state progression-reference search listing exists. A complete current audit table covering all C# Level/XP references is not present in reviewed artifacts."
+  },
+  {
+    "id": "I02",
+    "requirement": "「消すLv」「残す施設Lv」「残すAI脅威度」を分類している。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Docs/Validation/R2_20261029/progression-reference-audit-before.txt",
+        "line": 1,
+        "text": "4897d5e:Assets/Editor/GameDevelopmentStudioWindow.cs:135:            EditorGUILayout.LabelField(\"最大バリア（Lv1 / 最大Lv）\", initial + \" / \" + BarrierSystem.Maximum(initial, GameConstants.MaxUnitLevel));"
+      }
+    ],
+    "reason": "Raw before-state references lack an explicit per-reference remove-unit-Lv / retain-facility-Lv / retain-AI-threat classification table."
+  },
+  {
+    "id": "I03",
+    "requirement": "定義から実ステータスまで倍率は1箇所だけ。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 617,
+        "text": "[R2Fixed] PASS I03"
+      }
+    ],
+    "reason": "I03 label checks authored raw stats unchanged and valid; it does not audit every definition-to-runtime scaling path for exactly one multiplier."
+  },
+  {
+    "id": "I04",
+    "requirement": "定義から経済予測/支払い/UIまで維持費は1箇所だけ。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Canonical fixed API is tested, but complete prediction/payment/UI callsite uniqueness audit and three-way amounts are not demonstrated."
+  },
+  {
+    "id": "I05",
+    "requirement": "最新HEADからの差分で、関係のないコードを変更していない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No complete latest-HEAD diff scope audit is contained in the reviewed evidence; technical pass labels cannot prove unrelated code untouched."
+  },
+  {
+    "id": "I06",
+    "requirement": "Windows/対象Unityでコンパイルに成功（実行不可なら未実行と記録）。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 4,
+        "text": "OS: 'Windows 11  (10.0.26200) Core' Language: 'ja' Physical Memory: 16094 MB"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 2,
+        "text": "Built from '6000.3/staging' branch; Version is '6000.3.8f1 (1c7db571dde0) revision 1867189'; Using compiler version '194234433'; Build Type 'Release'"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1509,
+        "text": "[R2CoreContracts] COMPLETE"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 2012,
+        "text": "[AIR2LiveValidation] COMPLETE failures=0"
+      }
+    ],
+    "reason": "Windows11 Unity6000.3.8f1 native execution reaches complete contract suites. This proves Editor script compilation for this target; it is not a player-build claim."
+  },
+  {
+    "id": "I07",
+    "requirement": "EditModeテスト結果を保存。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 17,
+        "text": "R2CoreContracts.Run"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1509,
+        "text": "[R2CoreContracts] COMPLETE"
+      }
+    ],
+    "reason": "Native Editor-mode custom contract-harness results are persisted in core-post-support.log. No Unity Test Framework/NUnit XML run is claimed."
+  },
+  {
+    "id": "I08",
+    "requirement": "PlayModeテスト結果を保存。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Tests~/AIR2LiveValidation.cs",
+        "line": 21,
+        "text": "SessionState.SetBool(Key, true); EditorSceneManager.OpenScene(\"Assets/Scenes/SampleScene.unity\"); EditorApplication.EnterPlaymode();"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1982,
+        "text": "[R2ConstructionEconomy] RESULT checks=68"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 2012,
+        "text": "[AIR2LiveValidation] COMPLETE failures=0"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1652,
+        "text": "[AIR2LiveValidation] COMPLETE failures=0"
+      }
+    ],
+    "reason": "Native Play Mode custom harness results are persisted: construction68 checks and AI suite complete, failures0. No Unity Test Framework/NUnit XML run is claimed."
+  },
+  {
+    "id": "I09",
+    "requirement": "旧セーブコピーで移行を検証し、原本を保護。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/save-backup-manifest.json",
+        "line": 8,
+        "text": "\"originalSHA256\": \"60ce37fed52311c17d6e9bd95ecc1a0c08421f726a03dd96d486920bc864ffc1\","
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Tests~/R2ExistingSaveCopies.cs",
+        "line": 20,
+        "text": "var method=typeof(SaveSystem).GetMethod(\"UseTestStorageRoot\",BindingFlags.Static|BindingFlags.NonPublic);"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Tests~/R2ExistingSaveCopies.cs",
+        "line": 40,
+        "text": "throw new InvalidOperationException(\"[R2RealSave] FAIL read-only copy changed\");"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 349,
+        "text": "[R2RealSave] COMPLETE copies=3 temporaryEvidence=C:\\Users\\pethi\\AppData\\Local\\Temp\\FK_R2_SaveCopies_07a3cd8573f548e79ec6106eb2cc6dee"
+      }
+    ],
+    "reason": "SHA256 manifest records original/read-only backup equality; real-copy harness writes only a new OS temporary storage root, verifies copy SHA256 unchanged, and completes three V11 roundtrips."
+  },
+  {
+    "id": "I10",
+    "requirement": "未検証・未対応・あいまいな特殊対象を最終報告で開示。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "Final user-facing disclosure has not been reviewed in this review-only artifact; root must include all unresolved/ambiguous scope in the final report."
+  },
+  {
+    "id": "BR01",
+    "requirement": "HP70%/90%で3ターン経過してもバリア回復しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 969,
+        "text": "[R2Barrier] PASS BR01 70% and 90% HP never regenerate after three or more boundaries"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 37,
+        "text": "Check(\"BR01\", \"70% and 90% HP never regenerate after three or more boundaries\","
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR02",
+    "requirement": "HP最大到達直後はバリアが回復しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 982,
+        "text": "[R2Barrier] PASS BR02 full-HP arrival starts a zero-length waiting interval"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 41,
+        "text": "Check(\"BR02\", \"full-HP arrival starts a zero-length waiting interval\","
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR03",
+    "requirement": "満タン到達後の境界1回/2回では回復しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 995,
+        "text": "[R2Barrier] PASS BR03 first and second own boundaries do not regenerate"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 44,
+        "text": "Check(\"BR03\", \"first and second own boundaries do not regenerate\", full.Barrier == 0 && full.BarrierRecovery.SafeTurns == 2);"
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR04",
+    "requirement": "満タン到達後の境界3回目で最大バリア20%回復する（暫定ターン解釈）。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1008,
+        "text": "[R2Barrier] PASS BR04 third own boundary restores twenty percent"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 46,
+        "text": "Check(\"BR04\", \"third own boundary restores twenty percent\", full.Barrier == 14 && full.BarrierRecovery.SafeTurns == 3);"
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR05",
+    "requirement": "4回目以降も最大値を超えず継続回復する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1021,
+        "text": "[R2Barrier] PASS BR05 later own boundaries continue and clamp at maximum"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 48,
+        "text": "Check(\"BR05\", \"later own boundaries continue and clamp at maximum\", full.Barrier == 70 && full.MaxBarrier == 70);"
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR06",
+    "requirement": "バリアのみ被弾してHP満タンの状態なら、回復待機が不当に初期化されない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1034,
+        "text": "[R2Barrier] PASS BR06 barrier-only damage preserves full-HP history"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 55,
+        "text": "Check(\"BR06\", \"barrier-only damage preserves full-HP history\", preserved && shieldHit.Barrier == 70);"
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR07",
+    "requirement": "HPへ1ダメージ入ったら待機が無効になり、再満タン後に再計測する（暫定細則）。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1047,
+        "text": "[R2Barrier] PASS BR07 one HP loss resets immediately; real healing begins a new three-boundary wait"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 62,
+        "text": "Check(\"BR07\", \"one HP loss resets immediately; real healing begins a new three-boundary wait\", reset && waitedAgain && hpHit.Barrier == 14);"
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR08",
+    "requirement": "死亡時は回復しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1060,
+        "text": "[R2Barrier] PASS BR08 dead actors cannot regenerate"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 65,
+        "text": "Check(\"BR08\", \"dead actors cannot regenerate\", !dead.IsAlive && dead.Barrier == 0);"
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR09",
+    "requirement": "バリア最大値には1.75倍やLv成長が加算されない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1073,
+        "text": "[R2Barrier] PASS BR09 initial barrier table is neither level-scaled nor multiplied by 1.75"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 71,
+        "text": "Check(\"BR09\", \"initial barrier table is neither level-scaled nor multiplied by 1.75\", fixedMaximum"
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR10",
+    "requirement": "セーブ/ロード後に回復時計が勝手に進まない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1086,
+        "text": "[R2Barrier] PASS BR10 roundtrip neither advances nor replays a boundary; legacy safe-hit history grants no full-HP credit"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 81,
+        "text": "Check(\"BR10\", \"roundtrip neither advances nor replays a boundary; legacy safe-hit history grants no full-HP credit\","
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR11",
+    "requirement": "Preview/AIの予測回復と実ゲームが一致する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1099,
+        "text": "[R2Barrier] PASS BR11 live, captured simulation and pure forecast agree; cloned clocks are independent"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2BarrierRecoveryTests.cs",
+        "line": 94,
+        "text": "Check(\"BR11\", \"live, captured simulation and pure forecast agree; cloned clocks are independent\","
+      }
+    ],
+    "reason": "Direct native barrier contract for this boundary/state requirement passed; this is a controlled Editor fixture, not a balance claim."
+  },
+  {
+    "id": "BR12",
+    "requirement": "敵・味方・スキル回復・自然回復で同じ結果になる。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1112,
+        "text": "[R2Barrier] PASS BR12 player direct-heal and enemy natural-heal share the same new full-HP clock"
+      }
+    ],
+    "reason": "BR12 directly compares Player ApplyHeal and Enemy natural recovery only. An actual healing skill execution and all requested side/source combinations are not demonstrated."
+  },
+  {
+    "id": "UP01",
+    "requirement": "維持費全額支払い成功のユニットは未払いダメージ0。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1413,
+        "text": "[R2ConstructionEconomy] PASS Player UP01 successful payment clears unpaid counter without damage"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1907,
+        "text": "[R2ConstructionEconomy] PASS Enemy UP01 successful payment clears unpaid counter without damage"
+      }
+    ],
+    "reason": "For both factions, real EconomySystem full payment costs5 iron and leaves HP unchanged while clearing unpaid counter."
+  },
+  {
+    "id": "UP02",
+    "requirement": "1資源不足なら支払い失敗、HP損失1回。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1375,
+        "text": "[R2ConstructionEconomy] PASS Player UP02 UP03 unpaid full check loses20 HP and bypasses barrier"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1869,
+        "text": "[R2ConstructionEconomy] PASS Enemy UP02 UP03 unpaid full check loses20 HP and bypasses barrier"
+      }
+    ],
+    "reason": "For both factions, iron shortage makes one maintenance transaction lose20 HP exactly once and bypass barrier."
+  },
+  {
+    "id": "UP03",
+    "requirement": "最大HP100は-20/ターン。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 748,
+        "text": "[R2ConstructionEconomy] PASS UP03 maximumHP100 loses20"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1375,
+        "text": "[R2ConstructionEconomy] PASS Player UP02 UP03 unpaid full check loses20 HP and bypasses barrier"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1869,
+        "text": "[R2ConstructionEconomy] PASS Enemy UP02 UP03 unpaid full check loses20 HP and bypasses barrier"
+      }
+    ],
+    "reason": "Canonical loss for maxHP100 is20 and both real faction maintenance fixtures assert HP100->80."
+  },
+  {
+    "id": "UP04",
+    "requirement": "最大HP175は-35/ターン。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 767,
+        "text": "[R2ConstructionEconomy] PASS UP04 maximumHP175 loses35"
+      }
+    ],
+    "reason": "Canonical unpaid-damage function directly asserts maxHP175 loses35."
+  },
+  {
+    "id": "UP05",
+    "requirement": "最大HP7は-2/ターン（暫定）。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 786,
+        "text": "[R2ConstructionEconomy] PASS UP05 maximumHP7 rounds up2"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 805,
+        "text": "[R2ConstructionEconomy] PASS UP05 oneHP losesone without negativeHP"
+      }
+    ],
+    "reason": "Canonical unpaid-damage function directly asserts maxHP7 rounds up to2 and clamps one-HP loss."
+  },
+  {
+    "id": "UP06",
+    "requirement": "5回未払いで100HPユニットは回復なしなら死亡。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1432,
+        "text": "[R2ConstructionEconomy] PASS Player UP06 UP07 five unpaid turns kill by HP, no ten-turn defection"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1926,
+        "text": "[R2ConstructionEconomy] PASS Enemy UP06 UP07 five unpaid turns kill by HP, no ten-turn defection"
+      }
+    ],
+    "reason": "For both factions, five actual unpaid owner turns kill the100HP unit without healing."
+  },
+  {
+    "id": "UP07",
+    "requirement": "旧10ターン離脱を重複発動しない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1432,
+        "text": "[R2ConstructionEconomy] PASS Player UP06 UP07 five unpaid turns kill by HP, no ten-turn defection"
+      }
+    ],
+    "reason": "Fixtures kill at unpaid turn5 and never sustain a living unit through ten unpaid turns; they cannot establish no later historical defection event."
+  },
+  {
+    "id": "UP08",
+    "requirement": "旧ATK/DEF低下を重複発動しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 446,
+        "text": "[R2Fixed] PASS UP08"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2FixedUnitRulesTests.cs",
+        "line": 41,
+        "text": "Check(\"UP08\", actor.UpkeepPenaltyATKDEF == 0);"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1451,
+        "text": "[R2ConstructionEconomy] PASS Player UP08 old unpaid stat reduction is inactive"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1945,
+        "text": "[R2ConstructionEconomy] PASS Enemy UP08 old unpaid stat reduction is inactive"
+      }
+    ],
+    "reason": "Native contract at unpaid counter100 asserts zero old penalty; paid-turn fixture also asserts unchanged ATK/DEF after unpaid turns."
+  },
+  {
+    "id": "UP09",
+    "requirement": "王・ボス等の維持費免除ユニットは無傷。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 552,
+        "text": "[R2Fixed] PASS C06-king"
+      }
+    ],
+    "reason": "API exemption checks exist, but actual shortage maintenance with King/Boss/upkeepExempt actors and unchanged HP is not exercised."
+  },
+  {
+    "id": "UP10",
+    "requirement": "敵AIの経済予測にも未払いによるHP減を反映する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 907,
+        "text": "[R2EngineerAI] PASS Player UP10 forecast predicts20HP unpaid loss without altering live state"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1369,
+        "text": "[R2EngineerAI] PASS Enemy UP10 forecast predicts20HP unpaid loss without altering live state"
+      }
+    ],
+    "reason": "Both faction StrategicEconomyForecast fixtures predict exactly20 HP unpaid damage/zero deaths while leaving live HP/resources unchanged."
+  },
+  {
+    "id": "UP11",
+    "requirement": "セーブ/ロード直後に二重ダメージが発生しない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1394,
+        "text": "[R2ConstructionEconomy] PASS Player UP11 same owner turn cannot apply damage twice"
+      }
+    ],
+    "reason": "UP11 labels repeat ProcessTurn within one owner turn; no save/load is performed between calls. Serialization/restore duplicate-damage behavior remains untested."
+  },
+  {
+    "id": "UP12",
+    "requirement": "建築物の維持費停止・市民パン不足処理を無断で変更しない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 938,
+        "text": "[R2ConstructionEconomy] PASS MN10 inputs maintenance interval and other resources preserved"
+      }
+    ],
+    "reason": "Recipe-field preservation is partial; actual building-maintenance pause and citizen-bread shortage behavior are not fully regressed."
+  },
+  {
+    "id": "TM01",
+    "requirement": "1ターン180秒超過でも自動終了しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1137,
+        "text": "[R2TimerUI] PASS TM01 no forced player turn end after 180 seconds"
+      }
+    ],
+    "reason": "Native TimerSystem advances181 seconds without forced end event and stays running."
+  },
+  {
+    "id": "TM02",
+    "requirement": "1ターン600秒超過でも自動終了しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1150,
+        "text": "[R2TimerUI] PASS TM02 no forced player turn end after 600 seconds"
+      }
+    ],
+    "reason": "Native TimerSystem advances a further601 seconds without forced end event and stays running."
+  },
+  {
+    "id": "TM03",
+    "requirement": "合計持ち時間が0の旧保存を復元しても時間負けしない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1176,
+        "text": "[R2TimerUI] PASS TM03 zero legacy clocks do not end the game"
+      }
+    ],
+    "reason": "Restored zero historical clocks remain zero and do not produce a time-up result after large elapsed time."
+  },
+  {
+    "id": "TM04",
+    "requirement": "旧時間切れ判定のイベントが発火しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1189,
+        "text": "[R2TimerUI] PASS TM04 no historical timeout callback for either side"
+      }
+    ],
+    "reason": "Native TimerSystem registers both timeout callbacks and observes neither for either side after large elapsed time."
+  },
+  {
+    "id": "TM05",
+    "requirement": "クリスタル残HP率が違うだけで時間判定されない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No unequal-crystal-HP test directly invokes the historical timeout adjudication seam."
+  },
+  {
+    "id": "TM06",
+    "requirement": "時間残量のHUD・警告が出ない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No rendered clock HUD/warning check executed."
+  },
+  {
+    "id": "TM07",
+    "requirement": "通常の手動ターン終了は動作する。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1254,
+        "text": "[R2TimerUI] PASS manual stop keeps the lifecycle seam and adds no clock bonus"
+      }
+    ],
+    "reason": "Clock StopTurn/StartTurn seams pass, but a user manual End Turn action and full state transition are not exercised."
+  },
+  {
+    "id": "TM08",
+    "requirement": "AIの思考時間予算による停止/フォールバックは動作する。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1241,
+        "text": "[R2TimerUI] PASS TM08 no gameplay timer still keeps the finite technical limit"
+      }
+    ],
+    "reason": "Configuration returns a finite technical budget and deadline clamp; actual budget expiry stop/fallback activation is not executed in the reviewed R2 suites."
+  },
+  {
+    "id": "TM09",
+    "requirement": "施設生産やバリア3ターンなどのターン数依存処理は正常。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 938,
+        "text": "[R2ConstructionEconomy] PASS MN10 inputs maintenance interval and other resources preserved"
+      }
+    ],
+    "reason": "Barrier own-boundary logic passes and recipe interval is preserved as data; actual facility production-cycle plus barrier behavior over normal turn progression are not all exercised."
+  },
+  {
+    "id": "TM10",
+    "requirement": "無期限対局中も勝敗条件を満たしたときは正しく終わる。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/01-161803/match.json",
+        "line": 13,
+        "text": "\"Result\": \"unresolved\","
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/02-271828/match.json",
+        "line": 13,
+        "text": "\"Result\": \"unresolved\","
+      }
+    ],
+    "reason": "Both current ordinary matches stop unresolved at harness limit40 rounds; no real win/loss under unlimited gameplay time occurs."
+  },
+  {
+    "id": "MN01",
+    "requirement": "自軍領土内の鉱山から鉄0・魔石0。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 824,
+        "text": "[R2ConstructionEconomy] PASS MN01 own territory suppresses iron and both magic bonuses"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1109,
+        "text": "[R2ConstructionEconomy] PASS Player MN01 MN08 MN09 existing mine survives territorial capture but ore stops"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1603,
+        "text": "[R2ConstructionEconomy] PASS Enemy MN01 MN08 MN09 existing mine survives territorial capture but ore stops"
+      }
+    ],
+    "reason": "Own-territory recipe suppresses iron and both magic bonus outputs, including after an existing mine enters own territory for both factions."
+  },
+  {
+    "id": "MN02",
+    "requirement": "領土外の合法鉱山は旧レシピどおり産出。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 843,
+        "text": "[R2ConstructionEconomy] PASS MN02 neutral output and probability preserved"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1090,
+        "text": "[R2ConstructionEconomy] PASS Player MN02 placed neutral mine retains real recipe"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1584,
+        "text": "[R2ConstructionEconomy] PASS Enemy MN02 placed neutral mine retains real recipe"
+      }
+    ],
+    "reason": "Neutral recipe retains old iron/magic outputs and probabilities; actual placed neutral mine returns the raw recipe for both factions."
+  },
+  {
+    "id": "MN03",
+    "requirement": "敵AI所有鉱山も同様に、敵自身の領土外で産出する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 862,
+        "text": "[R2ConstructionEconomy] PASS MN03 opposing nation's own territory uses its own restriction"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1584,
+        "text": "[R2ConstructionEconomy] PASS Enemy MN02 placed neutral mine retains real recipe"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1603,
+        "text": "[R2ConstructionEconomy] PASS Enemy MN01 MN08 MN09 existing mine survives territorial capture but ore stops"
+      }
+    ],
+    "reason": "Enemy own-territory recipe is restricted and enemy placed outside mine retains raw output, matching player behavior."
+  },
+  {
+    "id": "MN04",
+    "requirement": "自陣外の自軍鉱山を「自領土扱い」しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 881,
+        "text": "[R2ConstructionEconomy] PASS MN04 other nation's territory is not confused with own territory"
+      }
+    ],
+    "reason": "Other faction territory is not classified as own territory by the authoritative rare-ore predicate."
+  },
+  {
+    "id": "MN05",
+    "requirement": "工兵が建てた鉱山は、その建物自身によって領土が拡張しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1052,
+        "text": "[R2ConstructionEconomy] PASS Player EN13 MN05 construction creates no territory"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1546,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN13 MN05 construction creates no territory"
+      }
+    ],
+    "reason": "For both factions, a successful Engineer mine placement neither adds territory cells nor places the target into own territory."
+  },
+  {
+    "id": "MN06",
+    "requirement": "施設強化後も生産位置の制限が効く。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1090,
+        "text": "[R2ConstructionEconomy] PASS Player MN02 placed neutral mine retains real recipe"
+      }
+    ],
+    "reason": "Only level1 mine production is queried. No facility upgrade followed by position restriction test."
+  },
+  {
+    "id": "MN07",
+    "requirement": "既存手持ち資源を削除しない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 830,
+        "text": "[R2Save] PASS F10-partial"
+      }
+    ],
+    "reason": "Migration preserves selected resource fields, but introduction of home-mine restriction is not directly tested against an existing complete stock bundle."
+  },
+  {
+    "id": "MN08",
+    "requirement": "旧セーブの自領土内鉱山は保存されるが産出制限が効く。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1109,
+        "text": "[R2ConstructionEconomy] PASS Player MN01 MN08 MN09 existing mine survives territorial capture but ore stops"
+      }
+    ],
+    "reason": "MN08 labels use a freshly built fixture mine after territorial capture, not a restored legacy home-territory mine."
+  },
+  {
+    "id": "MN09",
+    "requirement": "領土変化後の生産可否が更新される。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 900,
+        "text": "[R2ConstructionEconomy] PASS MN09 territory change is applied without a stale cache"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 919,
+        "text": "[R2ConstructionEconomy] PASS MN09 removal of territory immediately permits output"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1109,
+        "text": "[R2ConstructionEconomy] PASS Player MN01 MN08 MN09 existing mine survives territorial capture but ore stops"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1603,
+        "text": "[R2ConstructionEconomy] PASS Enemy MN01 MN08 MN09 existing mine survives territorial capture but ore stops"
+      }
+    ],
+    "reason": "Direct territory addition/removal and existing mine recipe tests update permission without stale cached territory."
+  },
+  {
+    "id": "MN10",
+    "requirement": "設備の通常の投入資源と生産周期が壊れない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 938,
+        "text": "[R2ConstructionEconomy] PASS MN10 inputs maintenance interval and other resources preserved"
+      }
+    ],
+    "reason": "MN10 checks recipe input/maintenance/interval fields unchanged, not actual consumption and production timing over a complete cycle."
+  },
+  {
+    "id": "MN11",
+    "requirement": "AI収入予測と実際の鉱山産出（確率成分は期待値/試行分布で検証）が整合。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1087,
+        "text": "[R2EngineerAI] PASS Player MN11 owned outside mine forecast matches actual recipe"
+      }
+    ],
+    "reason": "AI tests compare deterministic recipe values and territorial filtering only. No actual rare-ore payout probability/expected-value/trial-distribution comparison is run."
+  },
+  {
+    "id": "MN12",
+    "requirement": "プレイヤーの鉱山UIが産出不可の理由を表示する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1456,
+        "text": "[R2TimerUI] PASS MN12 own-territory mine explains zero rare output"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1470,
+        "text": "[R2TimerUI] PASS MN12 outside mine presents effective recipe and operation state"
+      }
+    ],
+    "reason": "Native panel building-effect strings explicitly explain zero iron/magic in own territory and show effective outside-operation output."
+  },
+  {
+    "id": "MN13",
+    "requirement": "追加/カスタムレシピで鉄・魔石を産出する施設を監査。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 957,
+        "text": "[R2ConstructionEconomy] PASS MN13 custom recipe rare outputs share restrictions"
+      }
+    ],
+    "reason": "MN13 demonstrates one synthetic custom recipe is filtered; an audit of every additional/custom recipe producing iron/magic is not supplied."
+  },
+  {
+    "id": "MN14",
+    "requirement": "40×40固定マップの地形生成は未変更。",
+    "result": "FAIL",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Prefabs/GameSystem/GameGenerator 1.prefab",
+        "line": 1632,
+        "text": "maxX: 35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Prefabs/GameSystem/GameGenerator 1.prefab",
+        "line": 1635,
+        "text": "maxZ: 35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/real-saves-post-support.log",
+        "line": 316,
+        "text": "[R2RealSave] PASS save_0.json version=11->12 units=28 deferred=0 map=35x35"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1964,
+        "text": "[R2ConstructionEconomy] PASS MN14 map dimensions and generated map are untouched"
+      }
+    ],
+    "reason": "Acceptance precondition mismatch: actual preserved production map is35x35, not the40x40 named by this row. Existing map must remain unchanged. A fixture proving unchanged dimensions is not proof of a40x40 map, unchanged generation output, or complete3D/scene behavior."
+  },
+  {
+    "id": "EN01",
+    "requirement": "工兵がユニット一覧に登録される（性能数値は定義に基づく）。",
+    "result": "FAIL",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/01-161803/match.json",
+        "line": 76,
+        "text": "\"PlayerEngineerConfigured\": false,"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/02-271828/match.json",
+        "line": 76,
+        "text": "\"PlayerEngineerConfigured\": false,"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/01-161803/match.json",
+        "line": 77,
+        "text": "\"EnemyEngineerConfigured\": false,"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-r2-post-support-matches/02-271828/match.json",
+        "line": 77,
+        "text": "\"EnemyEngineerConfigured\": false,"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2ConstructionEconomyTests.cs",
+        "line": 206,
+        "text": "var data = ScriptableObject.CreateInstance<UnitData>(); assets.Add(data); data.kind = Kind.Engineer; data.baseHP = 100; data.actionProfile = profile;"
+      }
+    ],
+    "reason": "Production Engineer definition/roster registration is intentionally absent pending user-supplied exact values. Both current ordinary games explicitly report EngineerConfigured=false for both factions. Controlled test definitions do not satisfy production registration."
+  },
+  {
+    "id": "EN02",
+    "requirement": "工兵のLv/XPは表示・成長しない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No production Engineer is registered; fixture shared level rules do not demonstrate actual Engineer UI plus no growth across play."
+  },
+  {
+    "id": "EN03",
+    "requirement": "工兵以外に敵領土外の遠隔建築権限がない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1185,
+        "text": "[R2ConstructionEconomy] PASS Player EN03 other kinds have no engineer permission"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1679,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN03 other kinds have no engineer permission"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1299,
+        "text": "[R2ConstructionEconomy] PASS Player EN03 ordinary build still rejects neutral territory"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1793,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN03 ordinary build still rejects neutral territory"
+      }
+    ],
+    "reason": "For both factions, a Scout fails Engineer authorization and ordinary neutral construction is refused."
+  },
+  {
+    "id": "EN04",
+    "requirement": "工兵自身の視界内の中立地帯に建築できる。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 976,
+        "text": "[R2ConstructionEconomy] PASS Player EN04 official individual vision reaches neutral placement"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1470,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN04 official individual vision reaches neutral placement"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 995,
+        "text": "[R2ConstructionEconomy] PASS Player EN11 paid command succeeds once"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1489,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN11 paid command succeeds once"
+      }
+    ],
+    "reason": "For both factions, official individual vision makes the neutral site legal and the formal paid command succeeds."
+  },
+  {
+    "id": "EN05",
+    "requirement": "工兵の視界外は味方の共有視界にあっても建築できない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1166,
+        "text": "[R2ConstructionEconomy] PASS Player EN05 shared vision cannot replace individual vision"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1660,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN05 shared vision cannot replace individual vision"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1147,
+        "text": "[R2ConstructionEconomy] PASS Player EN05 unseen territory ownership is not leaked by failure messages"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1641,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN05 unseen territory ownership is not leaked by failure messages"
+      }
+    ],
+    "reason": "For both factions, shared vision cannot replace Engineer individual vision; unseen enemy territory does not leak through the failure reason."
+  },
+  {
+    "id": "EN06",
+    "requirement": "敵領土内では視界内でも建築不可。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1128,
+        "text": "[R2ConstructionEconomy] PASS Player EN06 enemy territory rejected even while visible"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1622,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN06 enemy territory rejected even while visible"
+      }
+    ],
+    "reason": "For both factions, visible opposing territory is refused by the authoritative Engineer placement validator."
+  },
+  {
+    "id": "EN07",
+    "requirement": "自国領土内では工兵経由建築可、通常経由建築は従来どおり。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1280,
+        "text": "[R2ConstructionEconomy] PASS Player EN07 engineer mode inside own territory uses doubled quote"
+      }
+    ],
+    "reason": "Both fixtures validate Engineer inside own territory at doubled quote; ordinary inside-territory construction behavior is not independently regressed."
+  },
+  {
+    "id": "EN08",
+    "requirement": "建築費（木/石/鉄/魔石/水）が2倍の値で請求される。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 691,
+        "text": "[R2ConstructionEconomy] PASS EN08 five resource prices doubled once"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1014,
+        "text": "[R2ConstructionEconomy] PASS Player EN08 EN09 exact resources citizens and AP charged"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1508,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN08 EN09 exact resources citizens and AP charged"
+      }
+    ],
+    "reason": "Canonical cost explicitly doubles wood/stone/iron/magic/water once; real faction transactions pay the canonical quote once."
+  },
+  {
+    "id": "EN09",
+    "requirement": "APと市民は現状維持（R2暫定の要承認箇所）。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 710,
+        "text": "[R2ConstructionEconomy] PASS EN09 provisional ordinary AP and citizens preserved"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1014,
+        "text": "[R2ConstructionEconomy] PASS Player EN08 EN09 exact resources citizens and AP charged"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1508,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN08 EN09 exact resources citizens and AP charged"
+      }
+    ],
+    "reason": "Canonical and real paid-command contracts preserve ordinary AP and Citizen cost. This remains the provisional rule specified by the ledger."
+  },
+  {
+    "id": "EN10",
+    "requirement": "失敗時に費用はゼロ。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1071,
+        "text": "[R2ConstructionEconomy] PASS Player EN10 duplicate placement rejected without payment"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1565,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN10 duplicate placement rejected without payment"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1204,
+        "text": "[R2ConstructionEconomy] PASS Player EN10 insufficient materials fail without AP charge"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1717,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN10 insufficient AP fails without material charge"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1337,
+        "text": "[R2ConstructionEconomy] PASS Player EN10 invalidated prefab leaves no building or costs"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1831,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN10 invalidated prefab leaves no building or costs"
+      }
+    ],
+    "reason": "Both factions reject duplicate, insufficient-resource/AP and prefab-invalidated placements without retained resource/AP costs."
+  },
+  {
+    "id": "EN11",
+    "requirement": "1件の成功で費用を二重請求しない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 995,
+        "text": "[R2ConstructionEconomy] PASS Player EN11 paid command succeeds once"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1489,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN11 paid command succeeds once"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1014,
+        "text": "[R2ConstructionEconomy] PASS Player EN08 EN09 exact resources citizens and AP charged"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1508,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN08 EN09 exact resources citizens and AP charged"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1071,
+        "text": "[R2ConstructionEconomy] PASS Player EN10 duplicate placement rejected without payment"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1565,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN10 duplicate placement rejected without payment"
+      }
+    ],
+    "reason": "Both faction successful formal transactions pay one quote and duplicate attempts leave the paid stock/AP unchanged."
+  },
+  {
+    "id": "EN12",
+    "requirement": "工兵建築物の所有者が工兵と同じ。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1033,
+        "text": "[R2ConstructionEconomy] PASS Player EN12 ownership and provenance belong to engineer"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1527,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN12 ownership and provenance belong to engineer"
+      }
+    ],
+    "reason": "Both real faction placements assert building team equals Engineer faction and BuiltByEngineer=true."
+  },
+  {
+    "id": "EN13",
+    "requirement": "工兵建築物の配置だけで領土セルが増えない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1052,
+        "text": "[R2ConstructionEconomy] PASS Player EN13 MN05 construction creates no territory"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1546,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN13 MN05 construction creates no territory"
+      }
+    ],
+    "reason": "Both real faction placements assert unchanged territory count and target remains outside own territory."
+  },
+  {
+    "id": "EN14",
+    "requirement": "工兵が去っても建築物は残る。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1242,
+        "text": "[R2ConstructionEconomy] PASS Player EN14 EN15 old mine persists but grants no remote construction"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1736,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN14 EN15 old mine persists but grants no remote construction"
+      }
+    ],
+    "reason": "Moving each faction Engineer away preserves the previously placed living mine."
+  },
+  {
+    "id": "EN15",
+    "requirement": "建築済み建物が遠隔建築の起点にならない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1242,
+        "text": "[R2ConstructionEconomy] PASS Player EN14 EN15 old mine persists but grants no remote construction"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1736,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN14 EN15 old mine persists but grants no remote construction"
+      }
+    ],
+    "reason": "For both factions, the surviving old mine does not authorize the next remote build once the Engineer leaves."
+  },
+  {
+    "id": "EN16",
+    "requirement": "後から新規建築するには現地へ工兵を再派遣する。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1261,
+        "text": "[R2ConstructionEconomy] PASS Player EN16 returning engineer makes next construction legal"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1755,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN16 returning engineer makes next construction legal"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1356,
+        "text": "[R2ConstructionEconomy] PASS Player EN18 same formal paid command works for each main faction"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1850,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN18 same formal paid command works for each main faction"
+      }
+    ],
+    "reason": "For both factions, returning the Engineer restores legal next placement and the subsequent formal command succeeds."
+  },
+  {
+    "id": "EN17",
+    "requirement": "工兵死亡/領土変化/視界喪失直後の建築確定は阻止。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1318,
+        "text": "[R2ConstructionEconomy] PASS Player EN17 prefab invalidation after preview aborts transaction"
+      }
+    ],
+    "reason": "Preview-to-commit fixture kills Engineer during prefab activation only. Territory-change and individual-sight-loss races are not separately exercised."
+  },
+  {
+    "id": "EN18",
+    "requirement": "AIも同じ2倍費用・敵領土建築不可・視界制限に従う。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1015,
+        "text": "[R2EngineerAI] PASS Player EN18 legal demanded engineer mine survives real generation"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1477,
+        "text": "[R2EngineerAI] PASS Enemy EN18 legal demanded engineer mine survives real generation"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1033,
+        "text": "[R2EngineerAI] PASS Player EN18 generated cells pass the shared placement validator"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1495,
+        "text": "[R2EngineerAI] PASS Enemy EN18 generated cells pass the shared placement validator"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1069,
+        "text": "[R2EngineerAI] PASS Player EN18 AI executor pays the same formal command"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1531,
+        "text": "[R2EngineerAI] PASS Enemy EN18 AI executor pays the same formal command"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 997,
+        "text": "[R2EngineerAI] PASS Player EN05 shared board sight alone cannot promise remote mining"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-support-recruitment-fixed.log",
+        "line": 1459,
+        "text": "[R2EngineerAI] PASS Enemy EN05 shared board sight alone cannot promise remote mining"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1128,
+        "text": "[R2ConstructionEconomy] PASS Player EN06 enemy territory rejected even while visible"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1622,
+        "text": "[R2ConstructionEconomy] PASS Enemy EN06 enemy territory rejected even while visible"
+      }
+    ],
+    "reason": "Native AI contracts cover doubled costs, legal build generation/execution, and safe recovery recruitment filters for both factions. Shared placement rejects hostile territory and shared-only sight in controlled construction tests. Direct AI-command hostile/hidden-cell negative cases and complete production-engineer campaign are still unexecuted."
+  },
+  {
+    "id": "SVR01",
+    "requirement": "旧V11等のユニットLv/XPが固定能力へ移行。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 726,
+        "text": "[R2Save] PASS F02"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes/Assets/Script/Tests/R2SaveMigrationTests.cs",
+        "line": 34,
+        "text": "Check(\"F02\",soldier.Level==1&&soldier.Experience==0&&soldier.MaxHP==expectedMax"
+      }
+    ],
+    "reason": "Legacy Level20/XP1000 fixture migrates to Level1/XP0 fixed ability, including resolved scene-definition override."
+  },
+  {
+    "id": "SVR02",
+    "requirement": "旧時間0のセーブで時間切れにならない。",
+    "result": "PASS",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 1176,
+        "text": "[R2TimerUI] PASS TM03 zero legacy clocks do not end the game"
+      },
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 843,
+        "text": "[R2Save] PASS SVR02"
+      }
+    ],
+    "reason": "V11 zero clock migration preserves zero clocks; native TimerSystem restore/resume with zero historical clocks produces no timeout."
+  },
+  {
+    "id": "SVR03",
+    "requirement": "工兵が生産/移動/建築後に保存できる。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No production Engineer production/move/build then actual SaveSystem save roundtrip."
+  },
+  {
+    "id": "SVR04",
+    "requirement": "工兵の独立視界に基づく建築後も復元可能。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No actual SaveSystem restore following individually-visible Engineer construction."
+  },
+  {
+    "id": "SVR05",
+    "requirement": "中立地帯の自軍建物がロードで残る。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No save/load of a friendly building in neutral territory."
+  },
+  {
+    "id": "SVR06",
+    "requirement": "その建物の周りに無断で領土が増えない。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No neutral Engineer building save/load followed by territory-cell comparison."
+  },
+  {
+    "id": "SVR07",
+    "requirement": "建物の所有陣営と稼働判定が元と同じ。",
+    "result": "NOT RUN",
+    "evidence": [],
+    "reason": "No restored Engineer building team/operation-state comparison."
+  },
+  {
+    "id": "SVR08",
+    "requirement": "バリア回復時計とHP変動が保存される。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 856,
+        "text": "[R2Save] PASS SVR08"
+      }
+    ],
+    "reason": "SVR08 label tests legacy clock reset/LastProcessedRound only; BR10 serializes the clock DTO directly. Full current SaveSystem recovery-clock plus HP persistence is not demonstrated."
+  },
+  {
+    "id": "SVR09",
+    "requirement": "維持費による未払いダメージがロード時に重複発火しない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/playtest-20261028/r2-construction-release-candidate.log",
+        "line": 1394,
+        "text": "[R2ConstructionEconomy] PASS Player UP11 same owner turn cannot apply damage twice"
+      }
+    ],
+    "reason": "No save/load between unpaid maintenance transactions; same-turn duplicate guard is only partial evidence."
+  },
+  {
+    "id": "SVR10",
+    "requirement": "バージョン違いの2回目ロードで1.75倍／5倍／2倍を再適用しない。",
+    "result": "NOT RUN",
+    "evidence": [
+      {
+        "path": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/r2-20261029/core-post-support.log",
+        "line": 882,
+        "text": "[R2Save] PASS SVR10-unit"
+      }
+    ],
+    "reason": "SVR10-unit/F07 demonstrate unit fixed-stat idempotence. Cross-version second load covering upkeep x5 and Engineer construction x2 as well is not executed."
+  }
+]

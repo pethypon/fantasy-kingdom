@@ -1,0 +1,70 @@
+Tests~\AIClosingPlaytest.cs:52:        public int PlayerMaxUnitLevel, EnemyMaxUnitLevel;
+Tests~\AIClosingPlaytest.cs:333:            "playerResourceCapacity", "enemyResourceCapacity", "playerMaxUnitLevel", "enemyMaxUnitLevel");
+Tests~\AIClosingPlaytest.cs:427:            match.PlayerMaxUnitLevel=match.EnemyMaxUnitLevel=0;
+Tests~\AIClosingPlaytest.cs:446:                    if(actor.team==Team.Player)match.PlayerMaxUnitLevel=Mathf.Max(match.PlayerMaxUnitLevel,actor.Level);
+Tests~\AIClosingPlaytest.cs:447:                    if(actor.team==Team.Enemy)match.EnemyMaxUnitLevel=Mathf.Max(match.EnemyMaxUnitLevel,actor.Level);
+Tests~\AIClosingPlaytest.cs:474:            match.PlayerResourceCapacity, match.EnemyResourceCapacity, match.PlayerMaxUnitLevel, match.EnemyMaxUnitLevel);
+Tests~\AIEvolutionTests.cs:101:            u.Experience=Status.XPRequiredForLevel(11)-1;attack.Score=0;scorer.Score(scored,b,learner);
+Assets/Script\Common\GameConstants.cs:9:    public const int MaxUnitLevel = 100;
+Assets/Script\Common\GameConstants.cs:91:    public const int XPRequiredLv2 = 10;
+Assets/Script\Common\GameConstants.cs:93:    public const float XPLevelMultiplier = 1.15f;
+Assets/Script\Gamesystem\BarrierSystem.cs:22:    public const int GrowthPerLevel = 0, SafeTurnThreshold = 3, RecoveryRuleRevision = 2;
+Assets/Script\Gamesystem\BattleSystem.cs:248:        Target.ResetToLv1();
+Assets/Script\Gamesystem\BuildingAttackSystem.cs:296:            if (target.type == Type.Unit) target.ResetToLv1();
+Assets/Script\Gamesystem\EconomySystem.cs:54:        nation.BarracksXP = 0; // Legacy save field only. Buildings retain their upgrade levels.
+Assets/Script\Gamesystem\EconomySystem.cs:192:        nation.BarracksXP = 0;
+Tests~\AuthoringUnitsTests.cs:110:            restored.Experience = 0; restored.GainExperience(Status.XPRequiredForLevel(2));
+Tests~\AuthoringUnitsTests.cs:111:            Check("custom unit levels using its own definition", restored.MaxHP == UnitData.CalcStat(a.baseHP, a.hpGrowth, 2));
+Assets/Script\Unit&Battle\FactionState.cs:88:    public int PlayerBarracksXP
+Assets/Script\Unit&Battle\FactionState.cs:90:        get => PlayerNation.BarracksXP;
+Assets/Script\Unit&Battle\FactionState.cs:91:        set => PlayerNation.BarracksXP = value;
+Assets/Script\Unit&Battle\FactionState.cs:103:    public int EnemyBarracksXP
+Assets/Script\Unit&Battle\FactionState.cs:105:        get => EnemyNation.BarracksXP;
+Assets/Script\Unit&Battle\FactionState.cs:106:        set => EnemyNation.BarracksXP = value;
+Assets/Script\Unit&Battle\FactionState.cs:201:    public int GetBarracksXP(Team team) => 0; // Legacy data may be read, never grants experience.
+Assets/Script\Unit&Battle\NationState.cs:24:    public int BarracksXP;
+Assets/Script\SaveLoad\SaveSystem.Collect.cs:341:        dst.BarracksXP = nation.BarracksXP;
+Assets/Script\SaveLoad\SaveSystem.Validation.cs:158:        && n.CitizenCapacity >= 0 && n.ResourceCapacity >= 0 && n.BarracksXP >= 0 && n.PendingReturns != null && n.PendingReturns.Count <= 4096;
+Assets/Script\SaveLoad\SaveSystem.Restore.cs:72:        nation.BarracksXP = src.BarracksXP;
+Assets/Script\SaveLoad\SaveSystem.DataTypes.cs:307:        public int BarracksXP;
+Tests~\EconomyBalanceTests.cs:43:            try { Check("royalty remains exempt", king.GetUpkeep(1).Wood == 0); }
+Assets/Script\SaveLoad\SaveSystem.R2Migration.cs:11:        if (data.PlayerNationExtra != null) data.PlayerNationExtra.BarracksXP = 0;
+Assets/Script\SaveLoad\SaveSystem.R2Migration.cs:12:        if (data.EnemyNationExtra != null) data.EnemyNationExtra.BarracksXP = 0;
+Tests~\HeadHPRegressionTests.cs:26:            status.GainExperience(Status.XPRequiredForLevel(2));typeof(UnitHeadUI).GetMethod("LateUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(ui, null);
+Tests~\InformationGrowthTests.cs:24:                    Check("fixed increments "+pair.Key, new Vector3Int(UnitData.CalcGrowthPerLevel(data.baseHP,data.hpGrowth),UnitData.CalcGrowthPerLevel(data.baseATK,data.atkGrowth),UnitData.CalcGrowthPerLevel(data.baseDEF,data.defGrowth)) == pair.Value);
+Tests~\InformationGrowthTests.cs:27:                    for(int level=2;level<=GameConstants.MaxUnitLevel;level++) {
+Tests~\InformationGrowthTests.cs:28:                        unit.GainExperience(Status.XPRequiredForLevel(level)-unit.Experience);
+Tests~\InformationGrowthTests.cs:29:                        equal &= unit.Level==level && unit.MaxHP==UnitData.CalcStat(data.baseHP,data.hpGrowth,level) && unit.HP==unit.MaxHP-1
+Tests~\InformationGrowthTests.cs:30:                            && unit.ATK==UnitData.CalcStat(data.baseATK,data.atkGrowth,level)+7 && unit.DEF==UnitData.CalcStat(data.baseDEF,data.defGrowth,level);
+Tests~\InformationGrowthTests.cs:33:                    int hp=unit.MaxHP;unit.GainExperience(int.MaxValue);unit.GainExperience(int.MaxValue);
+Tests~\InformationGrowthTests.cs:42:            Check("half rounds upward, minimum 2",UnitData.CalcGrowthPerLevel(10,.25f)==3&&UnitData.CalcGrowthPerLevel(5,.7f)==4&&UnitData.CalcGrowthPerLevel(1,0)==2);
+Tests~\InformationGrowthTests.cs:45:                unit.kind=Kind.None;unit.Experience=0;custom.ApplyToStatus(unit,1);unit.GainExperience(Status.XPRequiredForLevel(2));
+Tests~\InformationGrowthTests.cs:47:                unit.HP=0;unit.ResetToLv1();Check("custom respawn baseline preserved",unit.Level==1&&unit.MaxHP==5&&unit.HP==0&&unit.ATK==2);
+Tests~\InformationGrowthTests.cs:50:            unit.GainExperience(Status.XPRequiredForLevel(2));Check("level up does not revive",unit.HP==0&&unit.Level==2);
+Assets/Script\Unit&Battle\UnitData.cs:83:    public FacilityData.ProductionBundle GetUpkeep(int level) => GetFixedUpkeep();
+Assets/Script\Unit&Battle\UnitData.cs:106:    public static int CalcGrowthPerLevel(int baseStat, float growth)
+Assets/Script\Unit&Battle\UnitData.cs:109:    public static int CalcStat(int baseStat, float growth, int level)
+Assets/Script\Unit&Battle\Status.cs:536:    public static int XPRequiredForLevel(int level) => 0;
+Assets/Script\Unit&Battle\Status.cs:537:    public void GainExperience(int amount)
+Assets/Script\Unit&Battle\Status.cs:563:    public void GainExperienceFromDamage(int damage, int barracksXPPercent) => GainExperience(0);
+Assets/Script\Unit&Battle\Status.cs:574:    public void ResetToLv1()
+Assets/Script\Unit&Battle\Status.cs:669:        ResetToLv1();
+Assets/Script\Tests\R2FixedUnitRulesTests.cs:38:            actor.GainExperience(int.MaxValue); actor.GainExperienceFromDamage(int.MaxValue,100);
+Assets/Script\Tests\R2FixedUnitRulesTests.cs:48:            Check("C05", JsonUtility.ToJson(data.GetUpkeep(1)) == JsonUtility.ToJson(data.GetUpkeep(100)));
+Assets/Script\Tests\R2FixedUnitRulesTests.cs:58:            Check("D02", UnitData.CalcGrowthPerLevel(100, 100) == 0 && actor.Level == 1);
+Tests~\PlaytestBalanceRegressionTests.cs:15:            && enemy.GrowthData.baseHP == 500 && UnitData.CalcGrowthPerLevel(500, enemy.GrowthData.hpGrowth) == 25);
+Assets/Script\Tests\ReflectionBalanceCoreTests.cs:55:                var upkeep = unit.GetUpkeep(level);
+Assets/Script\Tests\ReflectionBalanceCoreTests.cs:65:                var authored = unit.GetUpkeep(level);
+Assets/Script\Tests\ReflectionBalanceCoreTests.cs:75:                var authored = unit.GetUpkeep(level);
+Assets/Script\Tests\ReflectionBalanceCoreTests.cs:80:            unit.kind = Kind.King; Check("137 king is exempt even with authored cost", unit.GetUpkeep(20).IsEmpty);
+Assets/Script\Tests\ReflectionBalanceCoreTests.cs:81:            unit.kind = Kind.Boss; Check("137 demon lord boss is exempt", unit.GetUpkeep(20).IsEmpty);
+Assets/Script\Tests\ReflectionBalanceCoreTests.cs:83:            Check("137 explicitly authored summoned body is exempt", unit.GetUpkeep(20).IsEmpty);
+Assets/Script\Tests\ReflectionBalanceCoreTests.cs:85:            Check("137 normal production unit is not accidentally summoned-body exempt", !unit.GetUpkeep(1).IsEmpty);
+Tests~\RoleBalanceAudit.cs:206:                var ability = SpecialSkillRuntime.Definition(actor); var upkeep = data.GetUpkeep(level);
+Tests~\SpecialSkillUITests.cs:109:            Check("summon hover uses canonical upkeep and fixed ability instead of a legacy random choice", tooltipText.Contains(BuildSummonUIBuilder.FormatProductionBundle(data.GetUpkeep(1)))
+Tests~\StudioSettingTests.cs:249:            Check("upkeep UI formatter shows authored iron and bread instead of legacy defaults", BuildSummonUIBuilder.FormatProductionBundle(definition.GetUpkeep(1)).Contains("鉄4")
+Tests~\StudioSettingTests.cs:250:                && BuildSummonUIBuilder.FormatProductionBundle(definition.GetUpkeep(1)).Contains("パン3"));
+Tests~\StudioSettingTests.cs:309:                    && board.ResolveUnitDefinition(Kind.Knight).GetUpkeep(1).Bread == 8);
+Tests~\StudioSettingTests.cs:341:            actor.GainExperience(Status.XPRequiredForLevel(2));
+Tests~\StudioSettingTests.cs:356:            actor.GainExperience(Status.XPRequiredForLevel(2));
+Tests~\TerrainFinalValidation.log:4064:Status:GainExperience (int) (at Assets/Script/Unit&Battle/Status.cs:513)

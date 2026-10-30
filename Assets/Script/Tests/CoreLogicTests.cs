@@ -11,7 +11,7 @@
 //  テスト項目:
 //    1. DamageCalculator: ダメージは 0 未満にクランプされる
 //    2. CrystalShield: メイン晶の旧無敵廃止 / 他の駒の無敵を保持
-//    3. TimerSystem: 持ち時間切れ時は「クリスタル → 王」の順で勝敗判定される
+//    3. TimerSystem: 旧持ち時間はターン終了や時間切れ勝敗を発火しない
 // =====================================================================
 #if UNITY_EDITOR
 using UnityEngine;
@@ -79,30 +79,44 @@ public static class CoreLogicTests
         var a = new GameObject("R1 attacker");
         var b = new GameObject("R1 defender");
         var engine = new GameObject("R1 skill engine");
+        using var animation = BoardActorAnimation.SuppressEffects();
         try
         {
             var attacker = a.AddComponent<Status>();
             var target = b.AddComponent<Status>();
             attacker.kind = Kind.Knight; attacker.team = Team.Player;
             attacker.type = Type.Unit; attacker.MaxHP = attacker.HP = 100;
-            attacker.ATK = 30; attacker.Level = 10;
+            attacker.ATK = 30; attacker.Level = 1; attacker.Experience = 0;
             target.kind = Kind.Knight; target.team = Team.Enemy;
             target.type = Type.Unit; target.MaxHP = target.HP = 100;
             a.transform.position = new Vector3(0, 2, 0);
             b.transform.position = new Vector3(1, 1, 0);
             Assert("High ground beats low ground", DamageCalculator.GetTerrainMultiplier(attacker, target)
                 > DamageCalculator.GetTerrainMultiplier(target, attacker));
-            target.HP = 5;
+            target.Barrier = 0; target.HP = 5;
             Assert("Actual damage excludes overkill", target.ApplyDamage(999) == 5 && target.HP == 0);
             target.HP = 100;
+            string targetLife = target.ReflectionLifeId;
+            int maximumHP = attacker.MaxHP, attack = attacker.ATK, defence = attacker.DEF;
             var skill = new SkillData { Name = "regression", Area = SkillAreaShape.Single, Multiplier = 1f };
             var skills = engine.AddComponent<SkillSystem>();
+            int requested = SkillSystem.CalcSkillDamage(attacker, target, skill);
             skills.ExecuteSkill(attacker, target, skill);
-            Assert("Skill XP equals actual damage", attacker.Experience == 100 - target.HP && attacker.Experience > 0);
-            int xp = attacker.Experience;
+            Assert("Skill still applies actual HP damage", requested > 0 && 100 - target.HP == Mathf.Min(100, requested));
+            Assert("Skill damage gives no XP or level growth", attacker.Experience == 0 && attacker.Level == 1
+                && attacker.MaxHP == maximumHP && attacker.ATK == attack && attacker.DEF == defence);
+            Assert("Skill damage retains combat attribution and victim life identity", target.LastDamageTeam == Team.Player
+                && target.ReflectionLifeId == targetLife && target.team == Team.Enemy);
+            int hp = target.HP;
             target.ShieldTurns = 2;
             skills.ExecuteSkill(attacker, target, skill);
-            Assert("Shield gives no XP", attacker.Experience == xp);
+            Assert("Shield prevents damage and keeps XP disabled", target.HP == hp && attacker.Experience == 0 && attacker.Level == 1);
+            target.ShieldTurns = 0; target.Barrier = 0; target.HP = 1;
+            skills.ExecuteSkill(attacker, target, skill);
+            Assert("Skill kill preserves reward owner and victim life identity", target.HP == 0 && !target.IsAlive
+                && target.LastDamageTeam == Team.Player && target.ReflectionLifeId == targetLife);
+            Assert("Skill kill gives no XP or level growth", attacker.Experience == 0 && attacker.Level == 1
+                && attacker.MaxHP == maximumHP && attacker.ATK == attack && attacker.DEF == defence);
             SkillData.AssignFixedSkill(attacker);
             int fixedId = attacker.AssignedSkillId;
             for (int i = 0; i < 10; i++) SkillData.AssignFixedSkill(attacker);
@@ -226,38 +240,31 @@ public static class CoreLogicTests
     }
 
     // -----------------------------------------------------------------
-    //  Timer winner determination order (Crystal HP% → King HP%)
+    //  Legacy timer compatibility: elapsed time cannot choose a winner.
     // -----------------------------------------------------------------
     static void TestTimerWinnerDeterminationOrder()
     {
-        // Crystal 比較が先: P クリスタルの方が高ければ King の HP% に関係なく Win
-        float pCrystal = 0.6f;
-        float eCrystal = 0.4f;
-        float pKing = 0.1f;   // King は E の方が高いが無視されるべき
-        float eKing = 0.9f;
-
-        GameResult result = DetermineMock(pCrystal, eCrystal, pKing, eKing);
-        Assert("Crystal HP% takes precedence over King HP%",
-            result == GameResult.TimeUpWin);
-
-        // Crystal 同率 → King で決着
-        result = DetermineMock(0.5f, 0.5f, 0.9f, 0.1f);
-        Assert("When crystals tie, King HP% decides", result == GameResult.TimeUpWin);
-
-        // 全て同率 → Draw
-        result = DetermineMock(0.5f, 0.5f, 0.5f, 0.5f);
-        Assert("All equal = Draw", result == GameResult.TimeUpDraw);
-    }
-
-    // TimerSystem.DetermineTimeUpResult と同じ判定ロジックを再現した検証用モック。
-    static GameResult DetermineMock(float pCrystalRatio, float eCrystalRatio,
-                                    float pKingRatio, float eKingRatio)
-    {
-        if (pCrystalRatio > eCrystalRatio) return GameResult.TimeUpWin;
-        if (eCrystalRatio > pCrystalRatio) return GameResult.TimeUpLose;
-        if (pKingRatio > eKingRatio) return GameResult.TimeUpWin;
-        if (eKingRatio > pKingRatio) return GameResult.TimeUpLose;
-        return GameResult.TimeUpDraw;
+        var root = new GameObject("R2 inert legacy timer"); root.SetActive(false);
+        try
+        {
+            var clock = root.AddComponent<TimerSystem>();
+            int turnExpired = 0, matchExpired = 0;
+            clock.OnTurnTimeExpired += () => turnExpired++;
+            clock.OnTotalTimeExpired += _ => matchExpired++;
+            clock.RestoreTurnTimeRemaining(180); clock.StartTurn(Team.Player);
+            clock.Advance(181); clock.Advance(601);
+            Assert("Elapsed legacy turn time does not end the turn", turnExpired == 0 && clock.IsRunning
+                && clock.CurrentTeam == Team.Player && !clock.TimeLimitsEnabled);
+            clock.PlayerTotalTime = clock.EnemyTotalTime = 0;
+            clock.RestoreTurnTimeRemaining(0); clock.ResumeTurn(Team.Enemy); clock.Advance(1000000);
+            Assert("Zero saved clocks cannot decide a win, loss or draw", matchExpired == 0 && turnExpired == 0
+                && clock.LastTimeUpResult == null && clock.TimeUpReasonText == string.Empty && clock.IsRunning);
+            clock.StopTurn();
+            Assert("Manual timer lifecycle remains available without a gameplay deadline", !clock.IsRunning
+                && double.IsPositiveInfinity(clock.AvailableAIThinkingMilliseconds(Team.Player))
+                && double.IsPositiveInfinity(clock.AvailableAIThinkingMilliseconds(Team.Enemy)));
+        }
+        finally { Object.DestroyImmediate(root); }
     }
 
     // -----------------------------------------------------------------

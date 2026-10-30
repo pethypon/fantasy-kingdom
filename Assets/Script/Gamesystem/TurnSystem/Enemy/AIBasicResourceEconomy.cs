@@ -85,8 +85,8 @@ public sealed class AIBasicResourceEconomy
     }
     readonly List<Status> buildings = new List<Status>(32);
     readonly HashSet<(FacilityKind, FacilityDefinitionData, Status)> plannedSources = new HashSet<(FacilityKind, FacilityDefinitionData, Status)>();
-    readonly Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, Kind, UnitData), float> scores
-        = new Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, Kind, UnitData), float>();
+    readonly Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, Kind, UnitData, Vector3Int), float> scores
+        = new Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, Kind, UnitData, Vector3Int), float>();
     AIBoardState board;
     StrategicProductionDemand demand;
     int generation = -1, lastTurn = -1, stableTurnCount, recoveryStarted = -1;
@@ -275,12 +275,12 @@ public sealed class AIBasicResourceEconomy
             FacilityData.ResourceCost chosenCost = default; float best = float.PositiveInfinity;
             if (board.BuildablePositions.Count > 0) foreach (var entry in FacilityData.Table)
                 if (FacilityData.IsAvailableFor(entry.Key, board.ActorTeam))
-                    ConsiderPlan(resource, entry.Key, null, null, entry.Value.BuildCost, FacilityData.GetLevel(entry.Key, 1), default,
+                    ConsiderPlan(resource, entry.Key, null, null, entry.Value.BuildCost, AIConstructionEconomy.WithoutUnlocatedOre(FacilityData.GetLevel(entry.Key, 1)), default,
                         ref best, ref chosenKind, ref chosenDefinition, ref chosenActor, ref chosenCost);
             var catalog = FacilityAuthoringCatalog.Loaded;
             if (board.BuildablePositions.Count > 0 && catalog?.buildings != null) foreach (var definition in catalog.buildings)
                 if (definition != null && definition.IsAvailable(board.ActorTeam) && catalog.Find(definition.definitionId) == definition)
-                    ConsiderPlan(resource, definition.behaviourKind, definition, null, definition.GetInfo().BuildCost, definition.GetLevel(1), default,
+                    ConsiderPlan(resource, definition.behaviourKind, definition, null, definition.GetInfo().BuildCost, AIConstructionEconomy.WithoutUnlocatedOre(definition.GetLevel(1)), default,
                         ref best, ref chosenKind, ref chosenDefinition, ref chosenActor, ref chosenCost);
             foreach (var actor in buildings)
             {
@@ -288,17 +288,17 @@ public sealed class AIBasicResourceEconomy
                 int maximum = actor.AuthoredFacility != null ? actor.AuthoredFacility.GetInfo().MaxLevel : FacilityData.GetMaxLevel(actor.facilityKind);
                 int currentLevel = Mathf.Max(1, actor.Level);
                 if (currentLevel >= maximum) continue;
-                var next = FacilityData.GetLevel(actor, currentLevel + 1);
-                ConsiderPlan(resource, actor.facilityKind, actor.AuthoredFacility, actor, next.UpgradeCost, next, FacilityData.GetLevel(actor, currentLevel),
+                var next = AIConstructionEconomy.ExistingRecipe(actor, currentLevel + 1, board);
+                ConsiderPlan(resource, actor.facilityKind, actor.AuthoredFacility, actor, next.UpgradeCost, next, AIConstructionEconomy.ExistingRecipe(actor, currentLevel, board),
                     ref best, ref chosenKind, ref chosenDefinition, ref chosenActor, ref chosenCost);
             }
             if (!float.IsInfinity(best))
             {
                 int index = (int)resource;
                 hasPlannedSupply[index] = true;
-                plannedSupply[index] = chosenActor != null ? FacilityData.GetLevel(chosenActor, Mathf.Max(1, chosenActor.Level) + 1)
-                    : chosenDefinition != null ? chosenDefinition.GetLevel(1) : FacilityData.GetLevel(chosenKind, 1);
-                previousSupply[index] = chosenActor != null ? FacilityData.GetLevel(chosenActor, Mathf.Max(1, chosenActor.Level)) : default;
+                plannedSupply[index] = chosenActor != null ? AIConstructionEconomy.ExistingRecipe(chosenActor, Mathf.Max(1, chosenActor.Level) + 1, board)
+                    : AIConstructionEconomy.WithoutUnlocatedOre(chosenDefinition != null ? chosenDefinition.GetLevel(1) : FacilityData.GetLevel(chosenKind, 1));
+                previousSupply[index] = chosenActor != null ? AIConstructionEconomy.ExistingRecipe(chosenActor, Mathf.Max(1, chosenActor.Level), board) : default;
             }
             if (!float.IsInfinity(best) && current.MandatoryDemandPerTurn > .001f && current.NetPerTurn < -.001f
                 && current.ProjectedStock < current.SafetyReserve - .001f)
@@ -373,7 +373,7 @@ public sealed class AIBasicResourceEconomy
             if (actor == null || !actor.IsAlive || actor.team != board.ActorTeam) continue;
             candidate.ActionType = AIActionType.Upgrade; candidate.Unit = actor; candidate.TargetUnit = actor;
             candidate.Facility = actor.facilityKind; candidate.FacilityDefinition = actor.AuthoredFacility;
-            if (TryRecipe(candidate, out var next, out _, out _)) ConsiderFeasibleSupply(candidate, next.UpgradeAP);
+            if (TryScopedRecipe(candidate, out var next, out _, out _)) ConsiderFeasibleSupply(candidate, next.UpgradeAP);
         }
     }
     void ConsiderFeasibleSupply(AIAction action, int ap)
@@ -401,7 +401,7 @@ public sealed class AIBasicResourceEconomy
 
     public bool IsFoundationAction(AIAction action)
     {
-        if (!AIBasicResourceSettings.Active.enabled || !TryRecipe(action, out var next, out var previous, out _)) return false;
+        if (!AIBasicResourceSettings.Active.enabled || !TryScopedRecipe(action, out var next, out var previous, out _)) return false;
         var kind = RecipeKind(action);
         float epsilon = AIEconomySettings.Active.Epsilon;
         foreach (var s in snapshots)
@@ -433,7 +433,7 @@ public sealed class AIBasicResourceEconomy
     /// <summary>Only the concrete bread producer and its currently missing direct inputs may precede expansion.</summary>
     public bool IsRequiredFoodSupplyAction(AIAction action)
     {
-        if (!HasRequiredFoodSupplyGap || !TryRecipe(action, out var next, out var previous, out var cost)
+        if (!HasRequiredFoodSupplyGap || !TryScopedRecipe(action, out var next, out var previous, out var cost)
             || OperatingFraction(next, previous, ToBundle(cost)) < .999f) return false;
         if (NetOutput(next, (int)ResourceKind.Bread) - NetOutput(previous, (int)ResourceKind.Bread) > .001f) return true;
         return RestoresMissingInput(plannedSupply[(int)ResourceKind.Bread], previousSupply[(int)ResourceKind.Bread], next, previous);
@@ -442,12 +442,13 @@ public sealed class AIBasicResourceEconomy
     public float ScoreAction(AIAction action)
     {
         if (action == null || !AIBasicResourceSettings.Active.enabled) return 0;
-        var actor = action.ActionType == AIActionType.Upgrade ? action.Unit ?? action.TargetUnit : null;
-        var key = (action.ActionType, action.Facility, action.FacilityDefinition, actor, action.SummonKind, action.SummonDefinition);
+        var actor = action.ActionType == AIActionType.Upgrade || action.ActionType == AIActionType.Build ? action.Unit ?? action.TargetUnit : null;
+        var key = (action.ActionType, action.Facility, action.FacilityDefinition, actor, action.SummonKind, action.SummonDefinition,
+            action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade ? GridHelper.ToGridXZ(action.TargetPos) : default);
         if (scores.TryGetValue(key, out float cached)) return cached;
         var cost = ActionCost(action); var policy = AIBasicResourceSettings.Active;
         float score = 0, gainTotal = 0, investment = 0;
-        bool recipe = TryRecipe(action, out var next, out var previous, out _);
+        bool recipe = TryScopedRecipe(action, out var next, out var previous, out _);
         float operation = recipe ? OperatingFraction(next, previous, cost) : 0;
         foreach (var s in snapshots)
         {
@@ -523,7 +524,7 @@ public sealed class AIBasicResourceEconomy
     {
         reason = null;
         if (demand == null || mandatoryInvestments.Count == 0) return true;
-        bool hasRecipe = TryRecipe(action, out var next, out var previous, out _);
+        bool hasRecipe = TryScopedRecipe(action, out var next, out var previous, out _);
         // Competing real payment failures remain legal repairs; neither side is forced to save
         // for one producer while knowingly abandoning another mandatory supply chain.
         foreach (var resource in demand.Resources)
@@ -594,7 +595,7 @@ public sealed class AIBasicResourceEconomy
 
     bool IsUrgentRecoveryInvestment(AIAction action)
     {
-        if (demand == null || !TryRecipe(action, out var next, out var previous, out _)) return false;
+        if (demand == null || !TryScopedRecipe(action, out var next, out var previous, out _)) return false;
         if (action.ActionType == AIActionType.Build && demand.EvaluateBuild(action).ImprovesCritical) return true;
         for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
             if (demand.Resources[i].Urgency01 >= .999f && demand.Resources[i].ProductionDeficit > .001f
@@ -614,7 +615,7 @@ public sealed class AIBasicResourceEconomy
     }
 
     float OperatingFractionFor(AIAction action, FacilityData.ProductionBundle cost)
-        => TryRecipe(action, out var next, out var previous, out _) ? OperatingFraction(next, previous, cost) : 0;
+        => TryScopedRecipe(action, out var next, out var previous, out _) ? OperatingFraction(next, previous, cost) : 0;
     float OperatingFraction(FacilityData.FacilityLevelData next, FacilityData.FacilityLevelData previous, FacilityData.ProductionBundle cost)
     {
         if (demand == null) return 1;
@@ -633,7 +634,7 @@ public sealed class AIBasicResourceEconomy
     }
 
     float RecipeGain(AIAction action, ResourceKind resource)
-        => TryRecipe(action, out var next, out var previous, out _) ? ProductionGain(RecipeKind(action), next, previous, resource) : 0;
+        => TryScopedRecipe(action, out var next, out var previous, out _) ? ProductionGain(RecipeKind(action), next, previous, resource) : 0;
     static FacilityKind RecipeKind(AIAction action)
     {
         var actor = action?.ActionType == AIActionType.Upgrade ? action.Unit ?? action.TargetUnit : null;
@@ -701,7 +702,9 @@ public sealed class AIBasicResourceEconomy
             + StrategicEconomyForecast.Amount(recipe.BonusOutput2, resource) * Mathf.Clamp01(recipe.BonusChance2)
             - StrategicEconomyForecast.Amount(recipe.Input, resource)) / FacilityData.ProductionInterval(recipe)
             - StrategicEconomyForecast.Amount(recipe.Maintenance, resource);
-    public static bool TryRecipe(AIAction action, out FacilityData.FacilityLevelData next, out FacilityData.FacilityLevelData previous, out FacilityData.ResourceCost cost)
+    bool TryScopedRecipe(AIAction action, out FacilityData.FacilityLevelData next, out FacilityData.FacilityLevelData previous, out FacilityData.ResourceCost cost)
+        => TryRecipe(action, out next, out previous, out cost, board);
+    public static bool TryRecipe(AIAction action, out FacilityData.FacilityLevelData next, out FacilityData.FacilityLevelData previous, out FacilityData.ResourceCost cost, AIBoardState board = null)
     {
         next = previous = default; cost = default;
         if (action?.ActionType == AIActionType.Build)
@@ -709,6 +712,8 @@ public sealed class AIBasicResourceEconomy
             if (action.FacilityDefinition != null) { next = action.FacilityDefinition.GetLevel(1); cost = action.FacilityDefinition.GetInfo().BuildCost; }
             else if (FacilityData.Table.TryGetValue(action.Facility, out var info)) { next = FacilityData.GetLevel(action.Facility, 1); cost = info.BuildCost; }
             else return false;
+            next = AIConstructionEconomy.BuildRecipe(action, board);
+            cost = AIConstructionEconomy.BuildCost(action);
             return true;
         }
         if (action?.ActionType != AIActionType.Upgrade) return false;
@@ -717,11 +722,12 @@ public sealed class AIBasicResourceEconomy
         int maximum = actor.AuthoredFacility != null ? actor.AuthoredFacility.GetInfo().MaxLevel : FacilityData.GetMaxLevel(actor.facilityKind);
         int currentLevel = Mathf.Max(1, actor.Level);
         if (currentLevel >= maximum) return false;
-        previous = FacilityData.GetLevel(actor, currentLevel); next = FacilityData.GetLevel(actor, currentLevel + 1); cost = next.UpgradeCost; return true;
+        previous = AIConstructionEconomy.ExistingRecipe(actor, currentLevel, board);
+        next = AIConstructionEconomy.ExistingRecipe(actor, currentLevel + 1, board); cost = next.UpgradeCost; return true;
     }
     FacilityData.ProductionBundle ActionCost(AIAction action)
     {
-        if (TryRecipe(action, out _, out _, out var cost)) return ToBundle(cost);
+        if (TryScopedRecipe(action, out _, out _, out var cost)) return ToBundle(cost);
         if (action?.ActionType == AIActionType.SubCrystal && FacilityData.Table.TryGetValue(FacilityKind.SubCrystal, out var info)) return ToBundle(info.BuildCost);
         if (action?.ActionType != AIActionType.Summon) return default;
         var unit = action.SummonDefinition ?? board?.ResolveUnitDefinition(action.SummonKind);
