@@ -6,6 +6,9 @@ using UnityEngine;
 [Serializable]
 public sealed class BarrierRecoveryState
 {
+    // Missing in legacy saves on purpose: their safe-hit history is not full-HP history.
+    public int RuleRevision;
+    public bool FullHPObserved;
     public int SafeTurns;
     public int LastDamagedRound = -1;
     public bool HasRecovered, HasOwnTurnBaseline;
@@ -16,17 +19,21 @@ public sealed class BarrierRecoveryState
 /// <summary>Finite barrier rules shared by live combat, previews and search. Perfect shields remain separate.</summary>
 public static class BarrierSystem
 {
-    public const int GrowthPerLevel = 2, SafeTurnThreshold = 3;
+    public const int GrowthPerLevel = 0, SafeTurnThreshold = 3, RecoveryRuleRevision = 2;
     static readonly List<Status> actors = new List<Status>(64);
     public static bool UsesBarrier(Status actor) => actor != null && !actor.IsPrimaryCommander
-        && UsesBarrier(actor.kind, actor.type, actor.isWildBoss);
+        && (actor.kind == Kind.Engineer ? !actor.isWildBoss && UsesBarrier(actor.GrowthData, actor.type)
+            : UsesBarrier(actor.kind, actor.type, actor.isWildBoss));
+    public static bool UsesBarrier(UnitData definition, Type type)
+        => definition != null && (definition.kind == Kind.Engineer
+            ? BarrierCombatSettings.Active.enabledForPlay && type == Type.Unit && definition.baseBarrier >= 0
+            : UsesBarrier(definition.kind, type));
     public static bool UsesBarrier(Kind kind, Type type, bool wildBoss = false)
         => BarrierCombatSettings.Active.enabledForPlay && type == Type.Unit && !wildBoss
         && IsR1Role(kind);
     public static bool IsR1Role(Kind kind) => kind >= Kind.Knight && kind <= Kind.Bomber || kind >= Kind.WhiteMage && kind <= Kind.DragonKnight;
     public static int Initial(Kind kind) => BarrierCombatSettings.Active.Initial(kind);
-    public static int Maximum(int baseValue, int level) => (int)Math.Min(int.MaxValue,
-        (long)Mathf.Max(0, baseValue) + GrowthPerLevel * (long)(Mathf.Clamp(level, 1, GameConstants.MaxUnitLevel) - 1));
+    public static int Maximum(int baseValue, int level) => Mathf.Max(0, baseValue);
     public static int RegenerationAmount(int maximum)
     {
         long offset = BarrierCombatSettings.Active.recoveryRounding == BarrierRecoveryRounding.Floor ? 0
@@ -34,7 +41,7 @@ public static class BarrierSystem
         return (int)(((long)Mathf.Max(0, maximum) + offset) / 5);
     }
     public static bool CanRegenerate(int hp, int maximumHP, int safeTurns)
-        => hp > 0 && maximumHP > 0 && (long)hp * 10 >= (long)maximumHP * 7 && safeTurns >= SafeTurnThreshold;
+        => hp > 0 && maximumHP > 0 && hp == maximumHP && safeTurns >= SafeTurnThreshold;
     /// <returns>Remaining barrier, with overflow assigned to hpDamage.</returns>
     public static int Absorb(int barrier, int damage, out int hpDamage)
     {
@@ -67,19 +74,40 @@ public static class BarrierSystem
     }
     public static int PreviewNormalHpDamage(Status attacker, Status target, int raw)
         => SpecialSkillRuntime.PreviewHpDamage(target, NormalAttackDamage(attacker, target, raw));
-    public static BarrierRecoveryState CopyState(BarrierRecoveryState value) => value == null ? new BarrierRecoveryState()
-        : new BarrierRecoveryState { SafeTurns = Mathf.Clamp(value.SafeTurns, 0, SafeTurnThreshold + 1),
-            LastDamagedRound = Mathf.Max(-1, value.LastDamagedRound), HasRecovered = value.HasRecovered, HasOwnTurnBaseline = value.HasOwnTurnBaseline,
+    public static BarrierRecoveryState CreateState(int hp, int maximumHP) => new BarrierRecoveryState
+        { RuleRevision = RecoveryRuleRevision, FullHPObserved = hp > 0 && hp == maximumHP };
+    public static BarrierRecoveryState CopyState(BarrierRecoveryState value)
+    {
+        if (value == null || value.RuleRevision != RecoveryRuleRevision)
+            return new BarrierRecoveryState { RuleRevision = RecoveryRuleRevision,
+                LastProcessedRound = Mathf.Max(-1, value?.LastProcessedRound ?? -1) };
+        return new BarrierRecoveryState { RuleRevision = RecoveryRuleRevision, FullHPObserved = value.FullHPObserved,
+            SafeTurns = value.FullHPObserved ? Mathf.Clamp(value.SafeTurns, 0, SafeTurnThreshold) : 0,
+            LastDamagedRound = Mathf.Max(-1, value.LastDamagedRound), HasRecovered = value.FullHPObserved && value.HasRecovered, HasOwnTurnBaseline = value.HasOwnTurnBaseline,
             DamageSinceOwnTurn = value.DamageSinceOwnTurn, LastProcessedRound = Mathf.Max(-1, value.LastProcessedRound) };
-    public static void RecordDamage(Status actor)
+    }
+    /// <summary>Call after assigning HP. Every healing/loss path shares the same full-HP clock.</summary>
+    public static void RecordHpChange(Status actor, int previousHP, int nextHP)
     {
         if (!UsesBarrier(actor)) return;
-        var state = actor.BarrierRecovery ?? (actor.BarrierRecovery = new BarrierRecoveryState());
-        state.SafeTurns = 0; state.DamageSinceOwnTurn = true; state.HasRecovered = false;
-        state.LastDamagedRound = actor.RuntimeSystems?.TurnGenerator?.Context.Turn ?? -1;
+        var state = actor.BarrierRecovery;
+        if (state == null || state.RuleRevision != RecoveryRuleRevision)
+            actor.BarrierRecovery = state = CopyState(state);
+        if (nextHP <= 0 || nextHP != actor.MaxHP)
+        {
+            state.SafeTurns = 0; state.FullHPObserved = false; state.HasRecovered = false;
+            state.DamageSinceOwnTurn = nextHP < previousHP;
+            if (nextHP < previousHP) state.LastDamagedRound = actor.RuntimeSystems?.TurnGenerator?.Context.Turn ?? -1;
+        }
+        else if (previousHP != actor.MaxHP || !state.FullHPObserved)
+        {
+            state.SafeTurns = 0; state.FullHPObserved = true; state.HasRecovered = false;
+            state.DamageSinceOwnTurn = false;
+        }
     }
-    public static void RecordNegatedHit(Status actor)
-    { if (BarrierCombatSettings.Active.fullyNegatedHitsResetRecovery) RecordDamage(actor); }
+    /// <summary>Compatibility callback for absorbed hits/stripping. Barrier loss alone never resets R2 recovery.</summary>
+    public static void RecordDamage(Status actor) { }
+    public static void RecordNegatedHit(Status actor) { }
     public static void ProcessOwnerTurnStart(Team team, int round)
     {
         if (!BarrierCombatSettings.Active.recoveryAtOwnerTurnStart) return;
@@ -103,28 +131,34 @@ public static class BarrierSystem
     static void ProcessActorBoundary(Status actor, int round, bool atStart)
     {
         if (!UsesBarrier(actor) || !actor.IsAlive) return;
-        var state = actor.BarrierRecovery ?? (actor.BarrierRecovery = new BarrierRecoveryState());
+        var state = actor.BarrierRecovery;
+        if (state == null || state.RuleRevision != RecoveryRuleRevision) actor.BarrierRecovery = state = CopyState(state);
         if (state.LastProcessedRound == round) return;
         state.LastProcessedRound = round;
-        if (!state.HasOwnTurnBaseline)
-        {
-            state.HasOwnTurnBaseline = true;
-            if (atStart) return;
-        }
-        int amount = AdvanceRecovery(ref state.SafeTurns, ref state.DamageSinceOwnTurn, ref state.HasRecovered,
+        state.HasOwnTurnBaseline = true;
+        int amount = AdvanceRecovery(ref state.SafeTurns, ref state.DamageSinceOwnTurn, ref state.HasRecovered, ref state.FullHPObserved,
             actor.HP, actor.MaxHP, actor.MaxBarrier);
         int oldBarrier = actor.Barrier;
         actor.Barrier = (int)Math.Min(actor.MaxBarrier, (long)oldBarrier + amount);
         if (actor.Barrier > oldBarrier) FloatingDamageUI.ShowBarrierRecovery(actor, actor.Barrier - oldBarrier);
     }
-    /// <summary>Pure shared state transition; the live/search callers own turn stamps and start baselines.</summary>
+    /// <summary>Legacy source-compatible entry point; new callers also preserve the explicit full-HP baseline.</summary>
     public static int AdvanceRecovery(ref int safeTurns, ref bool damaged, ref bool hasRecovered, int hp, int maximumHP, int maximumBarrier)
     {
-        if (damaged) { damaged = false; safeTurns = 0; hasRecovered = false; return 0; }
-        safeTurns = Mathf.Min(SafeTurnThreshold + 1, safeTurns + 1);
-        int first = BarrierCombatSettings.Active.recoverOnThresholdTurn ? SafeTurnThreshold : SafeTurnThreshold + 1;
-        if (safeTurns < first || !CanRegenerate(hp, maximumHP, safeTurns)
-            || hasRecovered && !BarrierCombatSettings.Active.repeatRecoveryEveryTurn) return 0;
+        bool fullHPObserved = !damaged;
+        return AdvanceRecovery(ref safeTurns, ref damaged, ref hasRecovered, ref fullHPObserved, hp, maximumHP, maximumBarrier);
+    }
+    /// <summary>R2 pure live/search transition. Three owner boundaries after full HP, then 20% every boundary.</summary>
+    public static int AdvanceRecovery(ref int safeTurns, ref bool damaged, ref bool hasRecovered, ref bool fullHPObserved,
+        int hp, int maximumHP, int maximumBarrier)
+    {
+        damaged = false;
+        if (hp <= 0 || maximumHP <= 0 || hp != maximumHP)
+        { safeTurns = 0; fullHPObserved = false; hasRecovered = false; return 0; }
+        if (!fullHPObserved)
+        { safeTurns = 0; fullHPObserved = true; hasRecovered = false; return 0; }
+        safeTurns = Mathf.Min(SafeTurnThreshold, Mathf.Clamp(safeTurns, 0, SafeTurnThreshold) + 1);
+        if (!CanRegenerate(hp, maximumHP, safeTurns)) return 0;
         hasRecovered = true; return RegenerationAmount(maximumBarrier);
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

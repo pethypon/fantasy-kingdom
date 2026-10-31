@@ -24,6 +24,9 @@ public enum AISuccessReason
     CrystalDefense, ObjectiveProgress, ArtifactObtained, GoodArmyUtilization, SuccessfulPreparation
 }
 
+// Zero is intentionally unverified for snapshots written before objective provenance existed.
+public enum AIObjectiveDistanceMetric { Unknown, ChebyshevXZ }
+
 /// <summary>Value-only observed facts; no Unity objects survive into records or JSON.</summary>
 [Serializable]
 public sealed class AIActionContextSnapshot
@@ -41,6 +44,10 @@ public sealed class AIActionContextSnapshot
     public List<AIReflectionEffectObservation> AreaEffects = new List<AIReflectionEffectObservation>();
     public int VisibleEnemyCount, VisibleAllyCount, DistanceToTarget, DistanceToObjective;
     public bool HasObjective, OwnCrystalThreatened;
+    // Battle-local provenance only; these values never enter generalized learning keys.
+    public string ObjectiveIdentity;
+    public int ObjectiveX, ObjectiveY, ObjectiveHeight;
+    public AIObjectiveDistanceMetric ObjectiveDistanceMetric;
     public float OwnCrystalHpRatio;
     public int OwnCrystalHP;
     public EconomicState EconomyState;
@@ -91,6 +98,20 @@ public sealed class AIActionOutcome
     public List<string> KilledLifeIds = new List<string>();
     public List<string> ArtifactEventIds = new List<string>();
 
+    /// <summary>Only comparable, freshly captured distances can establish objective progress.</summary>
+    public static int ObjectiveDistanceChange(AIActionContextSnapshot before, AIActionContextSnapshot after)
+    {
+        if (before == null || after == null || !before.HasObjective || !after.HasObjective
+            || string.IsNullOrEmpty(before.ObjectiveIdentity) || before.ObjectiveIdentity.Length > 128
+            || !string.Equals(before.ObjectiveIdentity, after.ObjectiveIdentity, StringComparison.Ordinal)
+            || before.ObjectiveDistanceMetric != AIObjectiveDistanceMetric.ChebyshevXZ
+            || before.ObjectiveDistanceMetric != after.ObjectiveDistanceMetric
+            || before.ObjectiveX != after.ObjectiveX || before.ObjectiveY != after.ObjectiveY
+            || before.ObjectiveHeight != after.ObjectiveHeight
+            || before.DistanceToObjective < 0 || after.DistanceToObjective < 0) return 0;
+        return before.DistanceToObjective - after.DistanceToObjective;
+    }
+
     public static AIActionOutcome Difference(AIActionContextSnapshot before, AIActionContextSnapshot after)
     {
         var result = new AIActionOutcome();
@@ -117,8 +138,7 @@ public sealed class AIActionOutcome
         result.TerritoryDelta = after.TerritoryCount - before.TerritoryCount;
         result.CrystalHpDelta = after.OwnCrystalHP - before.OwnCrystalHP;
         result.NewTilesRevealed = Math.Max(0, after.ExploredTiles - before.ExploredTiles);
-        result.DistanceToObjectiveDelta = before.HasObjective && after.HasObjective
-            ? before.DistanceToObjective - after.DistanceToObjective : 0;
+        result.DistanceToObjectiveDelta = ObjectiveDistanceChange(before, after);
         result.LocalPowerRatioDelta = after.LocalPowerRatio - before.LocalPowerRatio;
         result.EconomyBefore = before.EconomyState; result.EconomyAfter = after.EconomyState;
         result.WoodDelta = after.Wood - before.Wood; result.StoneDelta = after.Stone - before.Stone;

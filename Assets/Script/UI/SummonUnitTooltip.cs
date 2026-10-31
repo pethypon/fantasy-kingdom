@@ -40,16 +40,16 @@ public sealed class SummonUnitTooltip : MonoBehaviour, IPointerEnterHandler, IPo
         if (data == null) return "駒のデータが未登録です。";
         var prefab = data.prefab != null ? data.prefab.GetComponentInChildren<Status>(true) : null;
         bool usesBarrier = BarrierSystem.UsesBarrier(data.kind, Type.Unit, prefab != null && prefab.isWildBoss);
-        int hp = UnitData.CalcStat(data.baseHP, data.hpGrowth, 1);
-        var text = new StringBuilder("<b>").Append(data.DisplayName).Append("</b>　Lv1\nHP ").Append(hp).Append(" / ").Append(hp);
+        int hp = data.FixedMaxHP;
+        var text = new StringBuilder("<b>").Append(data.DisplayName).Append("</b>\nHP ").Append(hp).Append(" / ").Append(hp);
         if (usesBarrier)
         {
             int barrier = BarrierSystem.Maximum(data.baseBarrier < 0 ? BarrierSystem.Initial(data.kind) : data.baseBarrier, 1);
             text.Append("\nバリア ").Append(barrier).Append(" / ").Append(barrier);
         }
-        text.Append("\n攻撃力 ").Append(UnitData.CalcStat(data.baseATK, data.atkGrowth, 1));
+        text.Append("\n攻撃力 ").Append(data.FixedATK);
         text.Append("\n\n<b>制作費</b>　AP ").Append(data.costAP).Append("\n").Append(BuildSummonUIBuilder.FormatAuthoredUnitCost(data));
-        var upkeep = data.GetUpkeep(1);
+        var upkeep = data.GetFixedUpkeep();
         text.Append("\n<b>維持費 / 毎ターン</b>\n").Append(upkeep.IsEmpty ? "なし" : BuildSummonUIBuilder.FormatProductionBundle(upkeep));
         if (data.specialSkill != null && data.specialSkill.ability != UnitSpecialSkill.None)
         {

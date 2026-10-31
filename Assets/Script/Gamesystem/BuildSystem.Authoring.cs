@@ -14,6 +14,7 @@ public partial class BuildSystem
     public string GetCostFailure(FacilityDefinitionData definition, Team team)
     {
         if (definition == null || !definition.IsAvailable(team) || factionState == null) return "建築不可：この陣営では使えない建物です";
+        if (definition.behaviourKind == FacilityKind.Mine && R2EconomyRules.DisallowNewHomeMines) return "鉄・魔石は領土外でのみ採掘可能です：工兵を派遣してください";
         if (FacilityData.IsSubCrystal(definition.behaviourKind) && factionState.GetSubCrystals(team) <= 0) return "副晶不足";
         var resources = factionState.GetResources(team); var info = definition.GetInfo(); var cost = info.BuildCost;
         if (resources.Wood < cost.Wood) return "木材不足";
@@ -36,7 +37,7 @@ public partial class BuildSystem
         {
             if (subCrystalSystem == null || !subCrystalSystem.CanPlaceSubCrystal(position, team)) return false;
         }
-        else if (!AICheckCanPlace(position, team)) return false;
+        else if (!AICheckCanPlace(position, team, kind)) return false;
 
         var building = InstantiateBuilding(position, kind, team, definition);
         if (building == null) return false;

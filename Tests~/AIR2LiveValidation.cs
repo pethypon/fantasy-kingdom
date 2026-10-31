@@ -42,11 +42,12 @@ public static class AIR2LiveValidation
         Stage("command", () => AIR2CommandTests.Run(t.Systems, t));
         Stage("orientation", () => AIOrientationReconTests.Run(t.Systems, t));
         foreach (string suite in new[] { "AIR2ObjectiveTests", "AIR2RecruitmentTests", "AIR2ExplorationTests", "AIR2ObservedMemoryTests", "AIR2RecoveryTests",
-            "AIR3CommandAuthorityTests", "AIR2ExpeditionTests", "AIR3PreservationTests", "AIR3HousingDevelopmentTests", "AIR3ScoreObserverTests" })
+            "AIR3CommandAuthorityTests", "AIR2ExpeditionTests", "AIR3PreservationTests", "AIR3HousingDevelopmentTests", "AIR3ScoreObserverTests", "AIR3ScoutTerritoryTests", "R2ConstructionEconomyTests", "R2EngineerAIContracts" })
         {
             string selected = Environment.GetEnvironmentVariable("FK_R2_SINGLE_SUITE");
             if (!string.IsNullOrEmpty(selected) && selected != suite) continue;
-            var type = System.Type.GetType(suite + ", Assembly-CSharp-Editor");
+            var type = System.Type.GetType(suite + ", Assembly-CSharp-Editor")
+                ?? System.Type.GetType(suite + ", Assembly-CSharp");
             if (type == null)
             {
                 results.Add("UNVERIFIED " + suite);

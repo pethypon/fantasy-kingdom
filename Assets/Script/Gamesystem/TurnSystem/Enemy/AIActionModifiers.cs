@@ -55,7 +55,6 @@ public static class AIActionModifiers
                 float bossDist = Vector3.Distance(posAfter, personality.BossUnit.transform.position);
                 if (bossDist < 3f) importanceMult = 1.5f;
             }
-            importanceMult = Mathf.Max(importanceMult, 2f - 1f / Mathf.Max(1, action.Unit.Level));
 
             int alliesNear = board.CountAlliesNear(posAfter, action.Unit, 3f);
             float isolationMult = alliesNear == 0 ? 1.5f : alliesNear == 1 ? 1.2f : 1f;

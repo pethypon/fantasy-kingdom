@@ -5,6 +5,8 @@ public partial class AICommander
 {
     public AIThinkingBudgetDecision ActiveThinkingBudget { get; private set; }
     public bool HasPreparedThinkingBudget { get; private set; }
+    // Attempt identity, not a game turn or save counter. Drivers must not adopt a previous attempt's prepared decision.
+    public long ThinkingBudgetSequence { get; private set; }
     float configuredThinkingBudgetMs = 3000f;
     double formalThinkingWindowMs;
 
@@ -14,9 +16,18 @@ public partial class AICommander
     {
         HasPreparedThinkingBudget = false;
         ActiveThinkingBudget = default;
+        ThinkingBudgetSequence = ThinkingBudgetSequence == long.MaxValue ? 1 : ThinkingBudgetSequence + 1;
         var timer = _turnGen?.Systems?.TimerSystem;
         formalThinkingWindowMs = timer != null ? timer.AvailableAIThinkingMilliseconds(_actorTeam) : double.PositiveInfinity;
-        AITurnBudget.Begin(AIThinkingBudgetConfig.MaximumMilliseconds);
+        // Classification and initialization already share the formal side's remaining window.
+        // A zero/invalid formal clock must not grant a fresh eight-second setup allowance.
+        AITurnBudget.Begin(AITurnBudget.ClampCompletionDeadline(AIThinkingBudgetConfig.MaximumMilliseconds, formalThinkingWindowMs));
+    }
+
+    public bool TryGetPreparedThinkingBudget(long previousSequence, Team expectedTeam, out AIThinkingBudgetDecision decision)
+    {
+        decision = ActiveThinkingBudget;
+        return HasPreparedThinkingBudget && ThinkingBudgetSequence != previousSequence && decision.Team == expectedTeam;
     }
 
     void ResolveTurnThinkingBudget(AIBoardState board)

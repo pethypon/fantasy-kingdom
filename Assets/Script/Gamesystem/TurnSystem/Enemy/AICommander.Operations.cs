@@ -294,13 +294,15 @@ public partial class AICommander
     }
     public void RestoreOperationState(AIOperationBattleState saved)
     {
+        ResetCognitionForLoad();
         if (saved == null) return;
         var manager = EnsureOperations(); if (manager == null) return;
         try
         {
             if (saved.Faction != _actorTeam) return;
             manager.Restore(saved);
-            RestoreCognitiveState(saved.CognitiveJson, manager.State.BattleId, Math.Max(0, manager.State.LastStartedOwnTurn));
+            RestoreCognitiveState(saved.CognitiveJson, manager.State.BattleId, Math.Max(0, manager.State.LastStartedOwnTurn),
+                Math.Max(0, manager.State.LastStartedGlobalTurn));
             currentOperationOwnTurn = manager.State.LastStartedOwnTurn;
             operationTurnStarted = !manager.State.Ended && manager.State.LastStartedOwnTurn > manager.State.LastEndedOwnTurn;
             foreach (var plan in manager.State.ActiveOperations)

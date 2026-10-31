@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// ユニットの頭上に Lv・HP と、通常駒のバリアを別々に表示する。
+/// ユニットの頭上にHPと、通常駒のバリアを別々に表示する。
 ///
 /// Screen Space Overlay 上にUIを表示することで、
 /// 3Dユニットより常に手前へ描画する。
@@ -21,7 +21,6 @@ public class UnitHeadUI : MonoBehaviour
 
     private TextMeshProUGUI hpText;
     private Image hpFillImage;
-    private TextMeshProUGUI lvText;
     private TextMeshProUGUI barrierText;
     private Image barrierFillImage;
     private GameObject barrierFrame;
@@ -46,7 +45,6 @@ public class UnitHeadUI : MonoBehaviour
 
     private int cachedHP = -1;
     private int cachedMaxHP = -1;
-    private int cachedLevel = -1;
     private int cachedBarrier = -1;
     private int cachedMaxBarrier = -1;
     private bool cachedUsesBarrier;
@@ -70,12 +68,12 @@ public class UnitHeadUI : MonoBehaviour
     /// この値を基準に、
     /// カメラから見た画面上のサイズを計算する。
     /// </summary>
-    private const float HeadUIWorldWidth = 2.5f;
+    private const float HeadUIWorldWidth = 2.5f * 88f / 124f;
 
     /// <summary>
     /// UIの基準幅。
     /// </summary>
-    private const float BaseUIWidth = 124f;
+    private const float BaseUIWidth = 88f;
 
     /// <summary>
     /// UIの基準高さ。
@@ -223,78 +221,6 @@ public class UnitHeadUI : MonoBehaviour
 
 
         // ========================================================
-        // Lvメダル
-        // ========================================================
-
-        var badge =
-            CreateGraphic(
-                "LevelBadge",
-                headUIObject.transform,
-
-                // 左中央
-                new Vector2(0f, 0.5f),
-
-                // 位置
-                new Vector2(16f, 0f),
-
-                // サイズ
-                new Vector2(32f, 32f),
-
-                theme != null
-                    ? theme.levelBadge
-                    : null
-            );
-
-
-        badge.color =
-            status.team == Team.Player
-                ? new Color(
-                    0.8f,
-                    0.92f,
-                    1f,
-                    1f
-                )
-                : new Color(
-                    1f,
-                    0.65f,
-                    0.55f,
-                    1f
-                );
-
-
-        lvText =
-            CreateText(
-                "LvText",
-                badge.transform,
-                "1",
-                16f
-            );
-
-
-        lvText.enableAutoSizing = true;
-        lvText.fontSizeMin = 7f;
-        lvText.fontSizeMax = 12f;
-
-        lvText.fontStyle =
-            FontStyles.Bold;
-
-        lvText.alignment =
-            TextAlignmentOptions.Center;
-
-        UIFactory.StretchFill(
-            lvText.rectTransform
-        );
-
-        lvText.margin =
-            new Vector4(
-                5f,
-                5f,
-                5f,
-                5f
-            );
-
-
-        // ========================================================
         // HPフレーム
         // ========================================================
 
@@ -303,11 +229,11 @@ public class UnitHeadUI : MonoBehaviour
                 "HPFrame",
                 headUIObject.transform,
 
-                // 右中央
-                new Vector2(1f, 0.5f),
+                // 中央（旧レベル用の余白を残さない）
+                new Vector2(0.5f, 0.5f),
 
                 // 位置
-                new Vector2(-44f, 0f),
+                Vector2.zero,
 
                 // サイズ
                 new Vector2(88f, 18f),
@@ -425,7 +351,7 @@ public class UnitHeadUI : MonoBehaviour
 
         // HPと同じ位置追従・ズーム処理を共有し、消耗量だけを別ゲージで示す。
         var barrierFrameImage = CreateGraphic("BarrierFrame", headUIObject.transform,
-            new Vector2(1, .5f), new Vector2(-44, -10), new Vector2(88, 14),
+            new Vector2(.5f, .5f), new Vector2(0, -10), new Vector2(88, 14),
             theme != null ? theme.healthFrame : null);
         barrierFrame = barrierFrameImage.gameObject;
         var barrierWell = CreateGraphic("BarrierWell", barrierFrame.transform, new Vector2(.5f, .5f),
@@ -584,13 +510,12 @@ public class UnitHeadUI : MonoBehaviour
 
 
         // ========================================================
-        // HP / Lv更新
+        // HP / バリア更新
         // ========================================================
 
         if (
             cachedHP != status.HP ||
             cachedMaxHP != status.MaxHP ||
-            cachedLevel != status.Level ||
             cachedBarrier != status.Barrier ||
             cachedMaxBarrier != status.MaxBarrier ||
             cachedUsesBarrier != BarrierSystem.UsesBarrier(status)
@@ -753,14 +678,12 @@ public class UnitHeadUI : MonoBehaviour
         cachedMaxHP =
             status.MaxHP;
 
-        cachedLevel =
-            status.Level;
         cachedBarrier = status.Barrier;
         cachedMaxBarrier = status.MaxBarrier;
         cachedUsesBarrier = BarrierSystem.UsesBarrier(status);
         if (barrierFrame != null) barrierFrame.SetActive(cachedUsesBarrier);
         if (hpFrameRect != null)
-            hpFrameRect.anchoredPosition = new Vector2(-44, cachedUsesBarrier ? 7 : 0);
+            hpFrameRect.anchoredPosition = new Vector2(0, cachedUsesBarrier ? 7 : 0);
         // The stacked green/cyan gauges identify each value; repeated labels obscure crowded pieces.
         if (barrierText != null) barrierText.text = $"{cachedBarrier}/{cachedMaxBarrier}";
         if (barrierFillImage != null)
@@ -775,17 +698,6 @@ public class UnitHeadUI : MonoBehaviour
         {
             hpText.text =
                 $"{cachedHP}/{Mathf.Max(1, cachedMaxHP)}";
-        }
-
-
-        // ========================================================
-        // Lv
-        // ========================================================
-
-        if (lvText != null)
-        {
-            lvText.text =
-                cachedLevel.ToString();
         }
 
 

@@ -4,6 +4,32 @@ using System.Collections.Generic;
 /// <summary>Formal current evidence only; unsupported tactical predicates remain Unknown.</summary>
 public static class AIKnowledgeContextBuilder
 {
+    /// <summary>Cheap retrieval only. Generated availability is not a safety/combo proof;
+    /// every proposed action is subsequently refined against the formal board in its own work slice.</summary>
+    public static AIKnowledgeContext BuildForRetrieval(AIObservedWorldModel world, IReadOnlyList<AIAction> formalActions, int threatLevel)
+    {
+        var result = Build(world, null, threatLevel);
+        if (formalActions == null) return result;
+        var own = new HashSet<string>(StringComparer.Ordinal);
+        var observed = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var actor in world.OwnUnits)
+            if (actor.HP > 0 && actor.Team == world.ActorTeam && actor.Source == AIWorldFactSource.CurrentObservation
+                && actor.ObservedTurn == world.GlobalTurn) own.Add(actor.LifeId);
+        foreach (var actor in world.ObservedOpponents)
+            if (actor.HP > 0 && actor.Source == AIWorldFactSource.CurrentObservation && actor.ObservedTurn == world.GlobalTurn) observed.Add(actor.LifeId);
+        for (int i = 0; i < formalActions.Count && i < 64 && !AITurnBudget.Expired; i++)
+        {
+            var action = formalActions[i];
+            if (action == null || action.Unit == null || !own.Contains(action.Unit.ReflectionLifeId)
+                || action.APCost < 0 || action.APCost > world.OwnAP || !string.IsNullOrEmpty(action.StrategicRejectReason)) continue;
+            string evidence = "generated-availability:" + AICognitiveActionKey.For(action);
+            if (IsMove(action.ActionType)) result.Set(AIStrategyPredicate.LegalMoveAvailable, AITruthValue.True, evidence);
+            if ((action.ActionType == AIActionType.Attack || action.ActionType == AIActionType.SkillUse)
+                && action.TargetUnit != null && observed.Contains(action.TargetUnit.ReflectionLifeId))
+                result.Set(AIStrategyPredicate.LegalAttackAvailable, AITruthValue.True, evidence);
+        }
+        return result;
+    }
     public static AIKnowledgeContext Build(AIObservedWorldModel world, IReadOnlyList<AIAction> actions,
         int threatLevel, Func<AIAction, AICognitiveActionAssessment> assess = null,
         AIOperationGoal goal = AIOperationGoal.None, int maxActions = 64)

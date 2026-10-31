@@ -8,6 +8,10 @@ public sealed partial class AIExplorationPlanner
     readonly HashSet<Vector3Int> importedTerrain = new HashSet<Vector3Int>();
     readonly HashSet<Vector3Int> moveFootprint = new HashSet<Vector3Int>();
     AIBoardState observedBoard;
+    MapCreate observedMap;
+    object observedMapCells;
+    bool hasMapContext;
+    long observedBoardIdentity;
     int boardGeneration = -1;
     int fallbackExplorerId;
     bool initialExploredImported;
@@ -22,13 +26,18 @@ public sealed partial class AIExplorationPlanner
         if (!settings.Enabled || board == null) return;
         var map = board.MapCreate != null ? board.MapCreate : board.ReconMap;
         if (map == null) return;
-        if (width > 0 && (actorTeam != board.ActorTeam || width != map.maxX || depth != map.maxZ))
+        // Boards are rebuilt every own turn. Their identity invalidates transient caches,
+        // never expedition memory. A different map or regenerated terrain list is a new
+        // battle context. RestoreState deliberately leaves the first map binding open.
+        bool mapChanged = hasMapContext && (!ReferenceEquals(observedMap, map) || !ReferenceEquals(observedMapCells, map.SetPos));
+        if (mapChanged || width > 0 && (actorTeam != board.ActorTeam || width != map.maxX || depth != map.maxZ || board.TurnCount < turn))
         {
             ResetKnowledge(); ClearBoardCaches(); width = depth = 0; observation = null;
         }
-        if (observedBoard != board || boardGeneration != board.Generation || boardObservation.Turn != board.TurnCount)
+        hasMapContext = true; observedMap = map; observedMapCells = map.SetPos;
+        if (observedBoardIdentity != board.ObservationIdentity || boardGeneration != board.Generation || boardObservation.Turn != board.TurnCount)
         {
-            observedBoard = board; boardGeneration = board.Generation;
+            observedBoard = board; observedBoardIdentity = board.ObservationIdentity; boardGeneration = board.Generation;
             boardObservation.Turn = board.TurnCount; boardObservation.Width = map.maxX; boardObservation.Depth = map.maxZ;
             boardObservation.ActorTeam = board.ActorTeam; boardObservation.OwnBase = GridHelper.ToGridXZ(board.EnemyCrystalPos);
             boardObservation.KnownCells.Clear(); boardObservation.VisibleCells.Clear(); boardObservation.Actors.Clear(); boardObservation.ImportantCells.Clear(); boardObservation.ObservedContacts.Clear(); boardActors.Clear();
@@ -171,6 +180,7 @@ public sealed partial class AIExplorationPlanner
     void ClearBoardCaches()
     {
         importedTerrain.Clear(); initialExploredImported = false; observedBoard = null; boardGeneration = -1; fallbackExplorerId = 0;
+        observedBoardIdentity = 0; observedMap = null; observedMapCells = null; hasMapContext = false; boardActors.Clear(); moveFootprint.Clear();
         boardTerrainEvidence.Clear(); previousBoardView.Clear(); boardViewVersion = boardCellVersion = 0;
     }
 

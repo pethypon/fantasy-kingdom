@@ -43,7 +43,7 @@ public sealed partial class AIStrategicGovernor
         for (int i = 0; i < limit; i++)
         {
             var request = roster[i];
-            if (request == null || !Enum.IsDefined(typeof(Kind), request.Kind) || !developmentKinds.Add(request.Kind)) continue;
+            if (request == null || !Enum.IsDefined(typeof(Kind), request.Kind) || developmentKinds.Contains(request.Kind)) continue;
             int fromTurn = Mathf.Clamp(request.NeededFromTurn, 1, 1000);
             if ((long)fromTurn > (long)board.TurnCount + config.DevelopmentHorizon) continue;
             var definition = board.ResolveUnitDefinition(request.Kind);
@@ -54,6 +54,9 @@ public sealed partial class AIStrategicGovernor
             recruitmentCounts.TryGetValue(request.Kind, out int present);
             int missing = Mathf.Max(0, desired - present);
             if (missing == 0) continue;
+            // An out-of-horizon, invalid or already satisfied row must not hide a later
+            // actionable request for this kind. Keep only the first usable requirement.
+            developmentKinds.Add(request.Kind);
             developmentPlan.Add(new AIArmyDevelopmentNeed(definition, desired, missing, fromTurn));
             DevelopmentCitizenDemand += (long)Mathf.Max(0, definition.costCitizen) * missing;
             // Population is a spendable stock. Sequential purchases do not require the sum

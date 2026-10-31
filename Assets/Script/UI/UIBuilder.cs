@@ -50,7 +50,7 @@ public class UIBuilder : MonoBehaviour
         SetAsTMPFallback(defaultFont);
         buildSummonUI = new BuildSummonUIBuilder(defaultFont);
         BuildCanvas();
-        BuildTopBar();        // 1段バー: 資源(左) + ターン(中) + 制限時間・メニュー(右)
+        BuildTopBar();        // 1段バー: 資源(左) + ターン(中) + ターン終了・メニュー(右)
         BuildLeftMenu();
         BuildBottomUnitPanel();
         BuildAPPanel();
@@ -103,7 +103,7 @@ public class UIBuilder : MonoBehaviour
     }
 
     // ==================================================================
-    //  TopBar — 1段バー: 資源(左) | ターン(中央) | 制限時間+メニュー(右)
+    //  TopBar — 1段バー: 資源(左) | ターン(中央) | ターン終了+メニュー(右)
     // ==================================================================
     private void BuildTopBar()
     {
@@ -235,7 +235,7 @@ public class UIBuilder : MonoBehaviour
         sep2RT.offsetMin = new Vector2(-0.5f, 8);
         sep2RT.offsetMax = new Vector2(0.5f, -8);
 
-        // ============ 右: 制限時間 + メニュー (56% ~ 100%) ============
+        // ============ 右: ターン終了 + メニュー ============
         var rightArea = CreatePanel("RightArea", bar,
             new Vector2(0.64f, 0), new Vector2(1, 1), new Vector2(0.5f, 0.5f),
             Vector2.zero);
@@ -254,58 +254,6 @@ public class UIBuilder : MonoBehaviour
         rightHLG.childForceExpandHeight = false;
         rightHLG.childControlWidth = false;
         rightHLG.childControlHeight = false;
-
-        // 制限時間バー
-        var timerArea = new GameObject("TimerArea", typeof(RectTransform));
-        timerArea.transform.SetParent(rightArea, false);
-        var timerAreaRT = timerArea.GetComponent<RectTransform>();
-        timerAreaRT.sizeDelta = new Vector2(240, 84);
-
-        // バー背景
-        var timerBg = new GameObject("TimerBg", typeof(RectTransform));
-        timerBg.transform.SetParent(timerArea.transform, false);
-        var clockFrame = timerBg.AddComponent<Image>();
-        clockFrame.color = BrandGuide.TimerBg;
-        GameUITheme.Current?.StylePlate(clockFrame,new Color(.65f,.73f,.82f));
-        StretchFill(timerBg.GetComponent<RectTransform>());
-
-        // 残量と空き部分を同時に読める専用トラック。装飾テクスチャで色を暗くしない。
-        var trackBorder = new GameObject("TimerTrackBorder", typeof(RectTransform), typeof(Image));
-        trackBorder.transform.SetParent(timerArea.transform, false);
-        var borderRT = trackBorder.GetComponent<RectTransform>();
-        borderRT.anchorMin = new Vector2(0, 0); borderRT.anchorMax = new Vector2(1, 0);
-        borderRT.pivot = new Vector2(.5f, 0); borderRT.sizeDelta = new Vector2(-36, 24);
-        borderRT.anchoredPosition = new Vector2(0, 14);
-        var borderImage = trackBorder.GetComponent<Image>();
-        borderImage.color = new Color(.62f, .69f, .74f, 1); borderImage.raycastTarget = false;
-        var track = new GameObject("TimerTrack", typeof(RectTransform), typeof(Image));
-        track.transform.SetParent(trackBorder.transform, false);
-        var trackRT = track.GetComponent<RectTransform>(); StretchFill(trackRT);
-        trackRT.offsetMin = new Vector2(2, 2); trackRT.offsetMax = new Vector2(-2, -2);
-        var trackImage = track.GetComponent<Image>();
-        trackImage.color = new Color(.015f, .025f, .04f, 1); trackImage.raycastTarget = false;
-
-        // バー本体（無地の幅を更新するため、スプライトの余白や有無に依存しない）
-        var timerFill = new GameObject("TimerFill", typeof(RectTransform));
-        timerFill.transform.SetParent(track.transform, false);
-        var clockFill = timerFill.AddComponent<Image>();
-        clockFill.color = BrandGuide.TimerNormal;
-        clockFill.type = Image.Type.Simple; clockFill.raycastTarget = false;
-        var fillRT = timerFill.GetComponent<RectTransform>();
-        fillRT.anchorMin = Vector2.zero;
-        fillRT.anchorMax = Vector2.one;
-        fillRT.offsetMin = Vector2.zero;
-        fillRT.offsetMax = Vector2.zero;
-
-        // 制限時間テキスト
-        var timerText = CreateTMP("TimerText", timerArea.transform, "制限時間", BrandGuide.FontHud);
-        timerText.fontStyle = FontStyles.Bold;
-        timerText.alignment = TextAlignmentOptions.Center;
-        StretchFill(timerText.GetComponent<RectTransform>());
-        timerText.rectTransform.offsetMin = new Vector2(18, 38);
-        timerText.rectTransform.offsetMax = new Vector2(-18, -8);
-        timerText.color = Color.white;
-        timerText.raycastTarget = false;
 
         var endTurn = CreateButton("EndTurnButton", rightArea, "ターン終了", BrandGuide.FontHudCaption,
             BrandGuide.BtnBuild);
@@ -453,7 +401,7 @@ public class UIBuilder : MonoBehaviour
         buildSummonUI.SetSlidePanel(SlidePanel);
 
         // ---- ボタンイベント接続 ----
-        buildBtn.onClick.AddListener(SlidePanel.ToggleBuildPanel);
+        buildBtn.onClick.AddListener(OpenNormalBuildPanel);
         unitBtn.onClick.AddListener(SlidePanel.ToggleUnitPanel);
         closeBtn.onClick.AddListener(SlidePanel.ClosePanel);
     }
@@ -499,7 +447,9 @@ public class UIBuilder : MonoBehaviour
         nameText.color = BrandGuide.TextPrimary;
         nameText.fontStyle = FontStyles.Bold;
         SetAnchors(nameText, 0, .76f, 1, 1);
-        var levelText = CreateTMP("LevelText", left, "Lv 1", BrandGuide.FontHud);
+        // Reused only when a facility is selected; units never show a level or an empty level row.
+        var levelText = CreateTMP("LevelText", left, string.Empty, BrandGuide.FontHud);
+        levelText.gameObject.SetActive(false);
         levelText.color = BrandGuide.TextSecondary;
         SetAnchors(levelText, 0, .60f, 1, .76f);
         var hpText = CreateTMP("HPText", left, "HP 0", BrandGuide.FontHud);
@@ -626,6 +576,22 @@ public class UIBuilder : MonoBehaviour
     {
         BuildSystem = bs;
         buildSummonUI.InitBuildButtons(bs, ap, fs);
+    }
+
+    public void OpenNormalBuildPanel()
+    {
+        bool changedContext = buildSummonUI.UseNormalConstruction();
+        if (BuildSystem != null && BuildSystem.IsActive) BuildSystem.CancelBuildMode();
+        if (changedContext) SlidePanel.OpenBuildPanel();
+        else SlidePanel.ToggleBuildPanel();
+    }
+
+    public bool OpenEngineerBuildPanel(Status engineer)
+    {
+        if (SlidePanel == null || !buildSummonUI.UseEngineerConstruction(engineer)) return false;
+        if (BuildSystem != null && BuildSystem.IsActive) BuildSystem.CancelBuildMode();
+        SlidePanel.OpenBuildPanel();
+        return true;
     }
 
     /// <summary>召喚ボタン初期化 → BuildSummonUIBuilder に委譲</summary>

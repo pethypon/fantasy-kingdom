@@ -3,7 +3,7 @@ using System;
 using System.Reflection;
 using UnityEngine;
 
-/// <summary>Small policy/timer contracts. Not a match, performance benchmark or AI-behaviour audit.</summary>
+/// <summary>Registered policy/timer contracts. Not a match, performance benchmark or AI-behaviour audit.</summary>
 public static class AIAdaptiveThinkingBudgetTests
 {
     const BindingFlags PrivateStatic = BindingFlags.Static | BindingFlags.NonPublic;
@@ -39,10 +39,10 @@ public static class AIAdaptiveThinkingBudgetTests
                 Check(side + " highest applicable category wins once instead of adding four budgets", critical.Milliseconds == 7500
                     && critical.Category == AIThinkingBudgetCategory.Critical && critical.CompletionDeadlineMilliseconds == 8000);
                 var limited = config.Decide(new AIThinkingBudgetFacts(true, true, true), side, 22, 3000);
-                Check(side + " a shorter official clock remains a hard rule without extension", limited.RequestedMilliseconds == 7500
+                Check(side + " an explicit compatibility deadline remains a hard rule without extension", limited.RequestedMilliseconds == 7500
                     && limited.Milliseconds == 3000 && limited.CompletionDeadlineMilliseconds == 3000 && limited.OfficialTimerLimited);
                 var exhausted = config.Decide(new AIThinkingBudgetFacts(true, false, false), side, 22, 0);
-                Check(side + " an exhausted clock cannot receive a thinking or finishing-time gift", exhausted.Milliseconds == 0
+                Check(side + " an exhausted compatibility deadline cannot receive extra thinking or finishing time", exhausted.Milliseconds == 0
                     && exhausted.CompletionDeadlineMilliseconds == 0 && exhausted.OfficialTimerLimited);
             }
             LegacyPreferenceSurvivesAdaptiveSelection(config);
@@ -73,18 +73,47 @@ public static class AIAdaptiveThinkingBudgetTests
             AITurnBudget.Begin(double.PositiveInfinity);
             Check("generic budget cannot become unbounded from nonfinite input", AITurnBudget.Expired);
 
-            var timer = host.AddComponent<TimerSystem>(); timer.TurnTimeLimit = 180; timer.PlayerTotalTime = 60;
-            timer.StartTurn(Team.Player);
-            Check("timer policy reads the current side without rewriting the formal limit", timer.AvailableAIThinkingMilliseconds(Team.Player) == 60000
-                && timer.TurnTimeLimit == 180 && timer.TurnTimeRemaining == 180
-                && double.IsPositiveInfinity(timer.AvailableAIThinkingMilliseconds(Team.Enemy)));
+            var timer = host.AddComponent<TimerSystem>(); timer.TurnTimeLimit = 180; timer.PlayerTotalTime = 60; timer.EnemyTotalTime = 90;
             timer.RestoreTurnTimeRemaining(2);
-            Check("short remaining player time is not relaxed for automation", timer.AvailableAIThinkingMilliseconds(Team.Player) == 2000
-                && timer.PlayerTimeRemaining == 60 && timer.TurnTimeRemaining == 2);
-            int expirations = 0; timer.OnTurnTimeExpired += () => expirations++;
+            timer.StartTurn(Team.Player);
+            Check("R2 legacy clock values do not impose a gameplay deadline for either side", !timer.TimeLimitsEnabled
+                && timer.IsRunning && timer.CurrentTeam == Team.Player
+                && timer.TurnTimeLimit == 180 && timer.PlayerTimeRemaining == 60 && timer.TurnTimeRemaining == 2
+                && double.IsPositiveInfinity(timer.AvailableAIThinkingMilliseconds(Team.Player))
+                && double.IsPositiveInfinity(timer.AvailableAIThinkingMilliseconds(Team.Enemy)));
+
+            config.Enabled = true;
+            foreach (var side in new[] { Team.Player, Team.Enemy })
+            {
+                var bounded = config.Decide(new AIThinkingBudgetFacts(true, true, true), side, 23,
+                    timer.AvailableAIThinkingMilliseconds(side));
+                Check(side + " an unlimited gameplay clock retains the finite adaptive technical budget", bounded.Milliseconds > 0
+                    && bounded.Milliseconds <= AIThinkingBudgetConfig.MaximumMilliseconds && !bounded.OfficialTimerLimited
+                    && bounded.CompletionDeadlineMilliseconds >= bounded.Milliseconds
+                    && bounded.CompletionDeadlineMilliseconds <= AIThinkingBudgetConfig.MaximumMilliseconds + AIThinkingBudgetConfig.MaximumCompletionGraceMilliseconds);
+                AITurnBudget.Begin(bounded.Milliseconds);
+                Check(side + " selected technical budget remains bounded by the watchdog", AITurnBudget.LimitMs == bounded.Milliseconds
+                    && AITurnBudget.ClampCompletionDeadline(bounded.CompletionDeadlineMilliseconds) == bounded.CompletionDeadlineMilliseconds);
+                AITurnBudget.SetLimitWithoutRestart(0);
+                Check(side + " exhausting the technical budget still stops thinking", AITurnBudget.Expired);
+            }
+
+            int turnExpirations = 0, matchExpirations = 0;
+            timer.OnTurnTimeExpired += () => turnExpirations++;
+            timer.OnTotalTimeExpired += _ => matchExpirations++;
             var advance = typeof(TimerSystem).GetMethod("Advance", BindingFlags.Instance | BindingFlags.NonPublic);
-            advance.Invoke(timer, new object[] { 3f }); advance.Invoke(timer, new object[] { 3f });
-            Check("formal timer completion remains one-shot", expirations == 1 && !timer.IsRunning && timer.TurnTimeRemaining == 0);
+            advance.Invoke(timer, new object[] { 601f }); advance.Invoke(timer, new object[] { 601f });
+            Check("elapsed time leaves legacy clock data unchanged and never forces a player turn end", turnExpirations == 0
+                && matchExpirations == 0 && timer.IsRunning && timer.TurnTimeRemaining == 2
+                && timer.PlayerTimeRemaining == 60 && timer.EnemyTimeRemaining == 90);
+            timer.PlayerTotalTime = timer.EnemyTotalTime = 0; timer.RestoreTurnTimeRemaining(0);
+            timer.ResumeTurn(Team.Enemy); advance.Invoke(timer, new object[] { 1000000f });
+            Check("zero historical clocks never produce a timeout or time-up result", turnExpirations == 0 && matchExpirations == 0
+                && timer.IsRunning && timer.CurrentTeam == Team.Enemy && timer.LastTimeUpResult == null
+                && timer.TimeUpReasonText == string.Empty && double.IsPositiveInfinity(timer.AvailableAIThinkingMilliseconds(Team.Enemy)));
+            timer.StopTurn();
+            Check("manual timer lifecycle stop remains available without a gameplay deadline", !timer.IsRunning
+                && timer.PlayerTimeRemaining == 0 && timer.EnemyTimeRemaining == 0);
         }
         finally
         {

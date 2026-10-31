@@ -7,7 +7,7 @@ using UnityEngine;
 /// Bounded HTN/GOAP proposal layer. It binds only a freshly generated formal first action;
 /// subsequent dependency nodes await the actual result and are never sent to the executor.
 /// </summary>
-public sealed class AICognitivePlanner
+public sealed partial class AICognitivePlanner
 {
     const int MaximumFormalCandidates = 64;
     readonly List<AICognitivePlan> candidates = new List<AICognitivePlan>(8);
@@ -15,6 +15,8 @@ public sealed class AICognitivePlanner
     readonly HashSet<string> signatures = new HashSet<string>(StringComparer.Ordinal);
     readonly Dictionary<string, AICognitivePlan> bestByMethod = new Dictionary<string, AICognitivePlan>(StringComparer.Ordinal);
     readonly AICognitiveReplanner replanner = new AICognitiveReplanner();
+    const int MaximumRejectionRecords = 32;
+    readonly List<string> rejectionReasons = new List<string>(MaximumRejectionRecords);
     string battleId;
     Team team;
     bool initialized;
@@ -23,6 +25,11 @@ public sealed class AICognitivePlanner
     public IReadOnlyList<AICognitivePlan> Candidates => candidates.AsReadOnly();
     public string ReplanReason { get; private set; } = "not_started";
     public bool CandidateScanTruncated { get; private set; }
+    /// <summary>Stable value-only diagnostics for the current planning generation. Total can exceed the bounded retained records.</summary>
+    public IReadOnlyList<string> RejectedReasons => rejectionReasons.AsReadOnly();
+    public int RejectedCount => rejectionReasons.Count;
+    public int RejectedTotalCount { get; private set; }
+    public bool DiagnosticsEnabled { get; set; } = true;
 
     /// <summary>Source-fixture convenience only. Runtime uses RefreshSteps under the existing AISlicedWork budget.</summary>
     public void Refresh(AIObservedWorldModel world, IReadOnlyList<AIAction> formalActions,
@@ -42,68 +49,98 @@ public sealed class AICognitivePlanner
         Func<AIAction, AICognitiveActionAssessment> assessment = null, Func<AICognitivePlan, float> calibration = null,
         Func<AIAction, IReadOnlyList<AIKnowledgeMatch>> actionKnowledge = null)
     {
-        candidates.Clear(); beam.Clear(); signatures.Clear(); bestByMethod.Clear();
+        candidates.Clear(); beam.Clear(); signatures.Clear(); bestByMethod.Clear(); rejectionReasons.Clear(); RejectedTotalCount = 0;
         CandidateScanTruncated = false; validatedGeneration = -1;
-        if (world == null || formalActions == null || limits.MaxPlansTotal <= 0)
-        { Current = null; ReplanReason = "missing_world_or_candidates"; yield break; }
-        if (!initialized || battleId != world.BattleId || team != world.ActorTeam)
-        { replanner.Reset(); Current = null; battleId = world.BattleId; team = world.ActorTeam; initialized = true; }
-        if (emergency || economyRecovery)
+        bool finalized = false;
+        try
         {
-            if (Current != null) Current.Status = AICognitivePlanStatus.Suspended;
-            ReplanReason = emergency ? "protected_emergency_defense" : "protected_economic_recovery"; yield break;
-        }
-        if (!AIObjectiveReasoner.TryChoose(world, Current, false, false, out var objective))
-        { Current = null; ReplanReason = "no_observed_or_remembered_objective"; yield break; }
-        if (AITurnBudget.Expired) { Suspend("budget_exhausted"); yield break; }
-
-        ulong observedFingerprint = AICognitiveReplanner.Fingerprint(world);
-        int count = Math.Min(MaximumFormalCandidates, formalActions.Count);
-        CandidateScanTruncated = formalActions.Count > count;
-        for (int index = 0; index < count; index++)
-        {
-            // One formal-risk/Sim assessment is the largest indivisible unit. Checkpoint every candidate.
-            yield return null;
-            if (AITurnBudget.Expired) break;
-            var action = formalActions[index];
-            if (!BasicLegal(action, world)) continue;
-            AICognitiveActionAssessment assessed = assessment != null ? assessment(action) : ConservativeAssessment(action, world);
-            if (!assessed.Legal || !assessed.HardSafe || !assessed.IsFinite) continue;
-            string method = MethodFor(action, world, objective, assessed);
-            if (method == null) continue;
-            // A per-action proof cannot be replaced by evidence collected for another action.
-            var localMatches = actionKnowledge == null ? matches : actionKnowledge(action) ?? Array.Empty<AIKnowledgeMatch>();
-            var plan = BuildPlan(action, method, world, objective, localMatches, limits, assessed);
-            if (plan == null || !replanner.CanRetry(plan.Signature, observedFingerprint) ||
-                !AICognitivePlanEvaluator.Evaluate(plan, world, limits)) continue;
-            if (calibration != null)
+            if (world == null || formalActions == null || limits.MaxPlansTotal <= 0)
+            { Current = null; ReplanReason = "missing_world_or_candidates"; RejectCandidate(ReplanReason); finalized = true; yield break; }
+            if (!initialized || battleId != world.BattleId || team != world.ActorTeam)
+            { replanner.Reset(); Current = null; battleId = world.BattleId; team = world.ActorTeam; initialized = true; }
+            if (emergency || economyRecovery)
             {
-                float adjustment = calibration(plan);
-                if (AIWorldFact.Finite(adjustment)) plan.Utility += Mathf.Clamp(adjustment, -.1f, .1f);
+                if (Current != null) Current.Status = AICognitivePlanStatus.Suspended;
+                ReplanReason = emergency ? "protected_emergency_defense" : "protected_economic_recovery";
+                RejectCandidate(ReplanReason); finalized = true; yield break;
             }
-            // Keep genuinely different methods, not six copies of the same move with different cells.
-            if (!bestByMethod.TryGetValue(method, out var previous) || AICognitivePlanEvaluator.Compare(plan, previous) < 0)
-                bestByMethod[method] = plan;
-        }
-        // Dictionary traversal never decides order: a total stable comparator is applied before truncation.
-        foreach (var entry in bestByMethod) beam.Add(entry.Value);
-        beam.Sort(AICognitivePlanEvaluator.Compare);
-        while (beam.Count > limits.BeamWidth) beam.RemoveAt(beam.Count - 1);
-        foreach (var plan in beam)
-        {
-            if (candidates.Count >= Math.Min(limits.MaxPlansTotal, limits.MaxPlansPerGoal)) break;
-            if (signatures.Add(plan.Signature)) candidates.Add(plan);
-        }
-        if (candidates.Count == 0) { Suspend(AITurnBudget.Expired ? "budget_exhausted" : "no_evidence_supported_legal_plan"); yield break; }
+            if (!AIObjectiveReasoner.TryChoose(world, Current, false, false, out var objective))
+            { Current = null; ReplanReason = "no_observed_or_remembered_objective"; RejectCandidate(ReplanReason); finalized = true; yield break; }
+            if (AITurnBudget.Expired) { Suspend("budget_exhausted"); RejectCandidate("budget_exhausted"); finalized = true; yield break; }
 
-        AICognitivePlan retained = null;
-        if (Current != null)
-            foreach (var plan in candidates) if (plan.Signature == Current.Signature) { retained = plan; break; }
-        var best = candidates[0];
-        Current = retained != null && !replanner.ShouldSwitch(retained, best, limits.SwitchMargin) ? retained : best;
-        Current.Status = AICognitivePlanStatus.Active;
-        ReplanReason = retained == null ? "first_step_rebound_to_current_formal_candidates" : replanner.Reason;
-        validatedGeneration = world.BoardGeneration;
+            ulong observedFingerprint = AICognitiveReplanner.Fingerprint(world);
+            int count = Math.Min(MaximumFormalCandidates, formalActions.Count);
+            CandidateScanTruncated = formalActions.Count > count;
+            if (CandidateScanTruncated) RejectCandidate("candidate_scan_truncated");
+            for (int index = 0; index < count; index++)
+            {
+                // One formal-risk/Sim assessment is the largest indivisible unit. Checkpoint every candidate.
+                yield return null;
+                if (AITurnBudget.Expired) { RejectCandidate("budget_exhausted"); break; }
+                var action = formalActions[index];
+                if (!BasicLegal(action, world)) { RejectCandidate(BasicRejectionReason(action, world)); continue; }
+                AICognitiveActionAssessment assessed = assessment != null ? assessment(action) : ConservativeAssessment(action, world);
+                if (!assessed.Legal) { RejectCandidate("illegal_action", action); continue; }
+                if (!assessed.HardSafe) { RejectCandidate("dangerous_immediate_loss", action); continue; }
+                if (!assessed.IsFinite) { RejectCandidate("non_finite_prediction", action); continue; }
+                string method = MethodFor(action, world, objective, assessed);
+                if (method == null) { RejectCandidate("unsupported_operator_or_effect_unproven", action); continue; }
+                // A per-action proof cannot be replaced by evidence collected for another action.
+                var localMatches = actionKnowledge == null ? matches : actionKnowledge(action) ?? Array.Empty<AIKnowledgeMatch>();
+                var plan = BuildPlan(action, method, world, objective, localMatches, limits, assessed);
+                if (plan == null) { RejectCandidate("knowledge_not_proven_for_action", action); continue; }
+                if (!replanner.CanRetry(plan.Signature, observedFingerprint))
+                { RejectCandidate("repeated_failure_unchanged_observation", action, plan); continue; }
+                if (!AICognitivePlanEvaluator.Evaluate(plan, world, limits))
+                { RejectCandidate(plan.RejectionReason ?? "plan_validation_failed", action, plan); continue; }
+                if (calibration != null)
+                {
+                    float adjustment = calibration(plan);
+                    if (AIWorldFact.Finite(adjustment)) plan.Utility += Mathf.Clamp(adjustment, -.1f, .1f);
+                }
+                // Keep genuinely different methods, not six copies of the same move with different cells.
+                if (!bestByMethod.TryGetValue(method, out var previous) || AICognitivePlanEvaluator.Compare(plan, previous) < 0)
+                {
+                    if (previous != null) RejectCandidate("same_method_dominated", previous);
+                    bestByMethod[method] = plan;
+                }
+                else RejectCandidate("same_method_dominated", plan);
+            }
+            // Dictionary traversal never decides order: a total stable comparator is applied before truncation.
+            foreach (var entry in bestByMethod) beam.Add(entry.Value);
+            beam.Sort(AICognitivePlanEvaluator.Compare);
+            while (beam.Count > limits.BeamWidth)
+            { RejectCandidate("beam_width_limit", beam[beam.Count - 1]); beam.RemoveAt(beam.Count - 1); }
+            foreach (var plan in beam)
+            {
+                if (candidates.Count >= Math.Min(limits.MaxPlansTotal, limits.MaxPlansPerGoal))
+                { RejectCandidate("plan_count_limit", plan); continue; }
+                if (signatures.Add(plan.Signature)) candidates.Add(plan);
+                else RejectCandidate("duplicate_plan", plan);
+            }
+            if (candidates.Count == 0)
+            { Suspend(AITurnBudget.Expired ? "budget_exhausted" : "no_evidence_supported_legal_plan"); finalized = true; yield break; }
+
+            AICognitivePlan retained = null;
+            if (Current != null)
+                foreach (var plan in candidates) if (plan.Signature == Current.Signature) { retained = plan; break; }
+            var best = candidates[0];
+            Current = retained != null && !replanner.ShouldSwitch(retained, best, limits.SwitchMargin) ? retained : best;
+            Current.Status = AICognitivePlanStatus.Active;
+            ReplanReason = retained == null ? "first_step_rebound_to_current_formal_candidates" : replanner.Reason;
+            validatedGeneration = world.BoardGeneration;
+            finalized = true;
+        }
+        finally
+        {
+            // A coroutine may be disposed between candidates or after a callback throws.
+            // Keep the objective intention, but never expose an unfinished generation as ready.
+            if (!finalized)
+            {
+                validatedGeneration = -1; candidates.Clear(); beam.Clear(); signatures.Clear(); bestByMethod.Clear();
+                Suspend("planning_cancelled_before_finalization"); RejectCandidate("planning_cancelled_before_finalization");
+            }
+        }
     }
 
     public bool BindPreferred(int generation, IReadOnlyList<AIAction> formalActions, out AIAction action)
@@ -153,6 +190,7 @@ public sealed class AICognitivePlanner
     {
         Current = null; initialized = false; battleId = null; validatedGeneration = -1;
         candidates.Clear(); beam.Clear(); signatures.Clear(); bestByMethod.Clear(); replanner.Reset();
+        rejectionReasons.Clear(); RejectedTotalCount = 0;
         ReplanReason = "reset";
     }
     public void Clear() => Reset();
@@ -171,6 +209,29 @@ public sealed class AICognitivePlanner
     }
     void Suspend(string reason)
     { if (Current != null) Current.Status = AICognitivePlanStatus.Suspended; ReplanReason = reason; }
+
+    void RejectCandidate(string reason, AIAction action = null, AICognitivePlan plan = null)
+    {
+        if (RejectedTotalCount < int.MaxValue) RejectedTotalCount++;
+        if (!DiagnosticsEnabled || rejectionReasons.Count >= MaximumRejectionRecords) return;
+        string value = reason ?? "unspecified_rejection";
+        if (plan != null) value += "|plan=" + plan.PlanId;
+        // Only callers that have already accepted current observation/identity legality pass an action.
+        string key = action != null ? AICognitiveActionKey.For(action) : plan?.NextActionKey;
+        if (!string.IsNullOrEmpty(key)) value += "|action=" + key;
+        rejectionReasons.Add(value.Length <= 2048 ? value : value.Substring(0, 2048));
+    }
+    void RejectCandidate(string reason, AICognitivePlan plan) => RejectCandidate(reason, null, plan);
+    static string BasicRejectionReason(AIAction action, AIObservedWorldModel world)
+    {
+        if (action == null) return "missing_action";
+        if (action.APCost < 0) return "invalid_AP_cost";
+        if (action.APCost > world.OwnAP) return "insufficient_AP";
+        if (action.StrategicPriority < 2) return "protected_safety_band";
+        if (!string.IsNullOrEmpty(action.StrategicRejectReason)) return "formal_governor_rejected";
+        if (action.ActionType == AIActionType.Wait || action.ActionType == AIActionType.Rotate) return "unsupported_planner_action";
+        return "illegal_or_stale_action";
+    }
 
     static bool BasicLegal(AIAction a, AIObservedWorldModel world)
     {

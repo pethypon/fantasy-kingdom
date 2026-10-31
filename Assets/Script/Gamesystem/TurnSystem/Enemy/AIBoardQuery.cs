@@ -98,19 +98,10 @@ public static class AIBoardQuery
     public static bool HasHealerInRange(AIBoardState board, Vector3 pos, float range)
     {
         if(board.HealerCache.TryGetValue((pos,range),out var cached)) return cached;
-        float sqrRange = range * range;
         foreach (var u in board.Allies.Near(pos, range))
         {
-            if (!IsActiveUnit(u)) continue;
-            if (!AttackPatterns.CanUseSkills(u)) continue;
-            var definition = SpecialSkillRuntime.Definition(u);
-            if (definition != null && definition.enabledForPlay && definition.ConfigurationError == null
-                && (definition.ability == UnitSpecialSkill.WhiteMageHeal || definition.ability == UnitSpecialSkill.HolyKnightSanctuary)
-                && (pos - u.transform.position).sqrMagnitude <= sqrRange)
-                return board.HealerCache[(pos,range)] = true;
-            if (u.AssignedSkillId < 0) continue;
-            if (!SkillData.Table.TryGetValue(u.AssignedSkillId, out var skill)) continue;
-            if (skill.FixedHeal > 0 && (pos - u.transform.position).sqrMagnitude <= sqrRange)
+            if (!IsActiveUnit(u) || !u.IsAlive) continue;
+            if (AIHealingCapability.CanHealAt(u, pos, range))
                 return board.HealerCache[(pos,range)] = true;
         }
         return board.HealerCache[(pos,range)] = false;
@@ -243,23 +234,35 @@ public static class AIBoardQuery
     /// ある位置に駒を置いた場合、新たに探索されるマス数を概算する。
     /// Scout等の偵察ユニットが未探索エリアへ向かうべきかの判断に使用。
     /// </summary>
-    public static int EstimateNewVisionCells(VisionGenerator visionGen, Vector3 pos, Team actorTeam = Team.Enemy)
+    public static int EstimateNewVisionCells(VisionGenerator visionGen, Vector3 pos, Team actorTeam = Team.Enemy,
+        MapCreate map = null, Status observer = null)
     {
-        if (visionGen == null) return 0;
-
-        int newCells = 0;
+        // Candidate information only: public bounds + this faction's explored cells.
+        // Never query unknown terrain/heights or promise that an untested LoS is clear.
+        if (visionGen == null || map == null || map.maxX <= 0 || map.maxZ <= 0
+            || actorTeam != Team.Player && actorTeam != Team.Enemy
+            || observer != null && (!observer.IsAlive || observer.team != actorTeam)) return 0;
         var c = GridHelper.ToGridXZ(pos);
-        int cx = c.x;
-        int cz = c.z;
-        // Scoutの視界範囲（-2~+2 x -2~+2）を概算チェック
-        for (int dx = -2; dx <= 2; dx++)
+        if (c.x < 0 || c.z < 0 || c.x >= map.maxX || c.z >= map.maxZ) return 0;
+        int newCells = visionGen.IsExplored(actorTeam, c) ? 0 : 1;
+        if (observer != null && observer.Special?.visionZeroTurns > 0) return newCells;
+        if (observer != null && (StatusEffectSystem.HasDebuff(observer, StatusEffectType.Blind)
+            || StatusEffectSystem.HasDebuff(observer, StatusEffectType.NarrowVision)))
         {
-            for (int dz = -2; dz <= 2; dz++)
-            {
-                var cell = new Vector3Int(cx + dx, 0, cz + dz);
-                if (!visionGen.IsExplored(actorTeam, cell))
-                    newCells++;
-            }
+            var front = c + new Vector3Int(0, 0, MovePatterns.DirZ(observer.direction));
+            return newCells + (front.x >= 0 && front.z >= 0 && front.x < map.maxX && front.z < map.maxZ
+                && !visionGen.IsExplored(actorTeam, front) ? 1 : 0);
+        }
+        var offsets = observer != null ? VisionGenerator.BaseVisionOffsets(observer)
+            : VisionGenerator.BaseVisionOffsets(Kind.Scout);
+        foreach (var offset in offsets)
+        {
+            // Legacy masks contain the same XZ at y=-1 and y=0. Count the
+            // horizontal layer once; authored 8x8 profiles also use y=0.
+            if (offset.y != 0 || offset.x == 0 && offset.z == 0) continue;
+            var cell = c + new Vector3Int(offset.x, 0, offset.z);
+            if (cell.x < 0 || cell.z < 0 || cell.x >= map.maxX || cell.z >= map.maxZ) continue;
+            if (!visionGen.IsExplored(actorTeam, cell)) newCells++;
         }
         return newCells;
     }

@@ -9,11 +9,11 @@ public sealed partial class GameDevelopmentStudioWindow
     {
         {"displayName","表示名"},{"category","種類の分類"},{"defaultTeam","初期陣営"},{"kind","基礎役割（AIの判断用）"},
         {"availableToPlayer","プレイヤーが作成できる"},{"availableToEnemy","敵AIが作成できる"},{"prefab","見た目のPrefab"},
-        {"baseHP","最大HP"},{"baseATK","攻撃力"},{"baseBarrier","Lv1の最大バリア（−1は兵種の標準値）"},{"hpGrowth","HP成長率"},{"atkGrowth","攻撃成長率"},
+        {"baseHP","基礎HP（固定倍率の適用前）"},{"baseATK","基礎攻撃力（固定倍率の適用前）"},{"baseBarrier","固定最大バリア（−1は兵種の標準値）"},{"hpGrowth","互換データ：旧HP成長率"},{"atkGrowth","互換データ：旧攻撃成長率"},
         {"costWood","作成費：木材"},{"costStone","作成費：石材"},{"costIron","作成費：鉄"},{"costMagic","作成費：魔石"},
         {"costWater","作成費：水"},{"costBread","作成費：パン"},{"costCitizen","作成費：市民"},{"costAP","作成費：AP"},
         {"upkeepWood","維持費：木材"},{"upkeepStone","維持費：石材"},{"upkeepIron","維持費：鉄"},{"upkeepMagic","維持費：魔石"},
-        {"upkeepWater","維持費：水"},{"upkeepBread","維持費：パン"},{"upkeepMagicScales","魔石の維持費も成長に合わせる"},
+        {"upkeepWater","維持費：水"},{"upkeepBread","維持費：パン"},{"upkeepMagicScales","互換データ：旧魔石維持費スケーリング"},
         {"upkeepExempt","召喚体などの維持費を免除する"},
         {"ProductionIntervalTurns","生産の間隔（ターン）"},
         {"applyAdjustments","建物生産の調整を適用する"},

@@ -33,13 +33,14 @@ public sealed partial class AIStrategicGovernor
         recruitmentBoard = board; recruitmentPlan.Clear(); recruitmentForecastUnits.Clear(); recruitmentReasons.Clear(); recruitmentCounts.Clear(); recruitmentBlocks.Clear();
         RecruitmentCitizenDemand = RecruitmentRequiredCitizenStock = 0;
         board.CollectRecruitDefinitions(recruitmentDefinitions);
-        int frontline = 0, ranged = 0, healers = 0, scouts = 0, fighters = 0, wounded = 0, observedFighters = 0;
+        int frontline = 0, ranged = 0, healers = 0, scouts = 0, engineers = 0, fighters = 0, wounded = 0, observedFighters = 0;
         foreach (var actor in board.AliveEnemyUnits)
         {
             if (actor == null || !actor.IsAlive || actor.type != Type.Unit || MatchObjectiveRules.IsCommander(actor)) continue;
             recruitmentCounts.TryGetValue(actor.kind, out int count); recruitmentCounts[actor.kind] = count + 1;
-            string role = RecruitmentRole(actor.GrowthData, actor.kind);
+            string role = AICapabilityRoles.RecruitmentRole(actor);
             if (role == "scout") scouts++;
+            else if (role == "engineer") engineers++;
             else if (role == "healer") healers++;
             else if (role == "frontline" || role == "ranged")
             {
@@ -68,6 +69,21 @@ public sealed partial class AIStrategicGovernor
             if (!AddRecruitmentRole(board, role, "observed_force_or_core_replacement")) break;
             fighters++; if (role == "frontline") frontline++; else ranged++;
         }
+        // Diagnose after the replacement order is complete. Otherwise losing the last
+        // iron-consuming soldier erases the reason to bootstrap its replacement supply.
+        if (engineers == 0 && AIActionGenerator.HasRareOreSupplyGap(board))
+        {
+            AIRecruitmentNeed deferred = default;
+            bool full = recruitmentPlan.Count >= 3;
+            if (full)
+            {
+                int last = recruitmentPlan.Count - 1; deferred = recruitmentPlan[last];
+                recruitmentPlan.RemoveAt(last); recruitmentForecastUnits.RemoveAt(last);
+                recruitmentCounts[deferred.Definition.kind]--;
+            }
+            if (!AddRecruitmentRole(board, "engineer", "outside_territory_ore_supply_missing") && full)
+                AddRecruitmentNeed(deferred.Definition, deferred.Role, deferred.Reason);
+        }
         int reserve = RecruitmentCitizenReserve;
         foreach (var need in recruitmentPlan)
         {
@@ -95,7 +111,7 @@ public sealed partial class AIStrategicGovernor
             for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++) investment += StrategicEconomyForecast.Amount(cost, i);
             // Compare real costs and upkeep, not maximum ATK. Observed barrier specialists retain
             // the existing bounded preference; a different Kind does not manufacture a new role.
-            var upkeep = definition.GetUpkeep(1);
+            var upkeep = definition.GetFixedUpkeep();
             for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
                 investment += StrategicEconomyForecast.Amount(upkeep, i) * forecast.ForecastTurns;
             investment -= AIBuildEvaluator.ObservedBarrierRecruitmentBonus(definition.kind, board);
@@ -115,18 +131,7 @@ public sealed partial class AIStrategicGovernor
     }
 
     public static string RecruitmentRole(UnitData definition, Kind kind)
-    {
-        if (kind == Kind.Scout) return "scout";
-        if (UnitRoster.IsDedicatedHealer(kind)) return "healer";
-        if (kind == Kind.King || kind == Kind.Boss || kind == Kind.Crystal || kind == Kind.SubCrystal
-            || definition?.actionProfile?.CanAttack == false) return null;
-        switch (UnitRoster.EvaluationBaseKind(kind))
-        {
-            case Kind.Knight: case Kind.Guardian: case Kind.Assassin: return "frontline";
-            case Kind.Archer: case Kind.Magic: case Kind.Crossbow: case Kind.Magicsniper: case Kind.Bomber: return "ranged";
-            default: return null;
-        }
-    }
+        => AICapabilityRoles.RecruitmentRole(definition, kind);
 
     public string RecruitmentBlockReason(AIAction action, AIBoardState board)
     {
@@ -141,13 +146,19 @@ public sealed partial class AIStrategicGovernor
 
     string AssessRecruitmentBlock(AIAction action, AIBoardState board, UnitData definition)
     {
+        int existing = 0;
+        foreach (var actor in board.AliveEnemyUnits)
+            if (actor != null && actor.IsAlive && actor.team == board.ActorTeam && actor.type == Type.Unit
+                && actor.kind == definition.kind) existing++;
+        if (existing >= AIActionGenerator.GetMaxUnitCount(definition.kind)) return "recruit_kind_cap";
         if (board.SummonablePositions.Count == 0) return "recruit_spawn_cell_missing";
         if (action.APCost > board.EnemyAP) return "recruit_ap_shortage";
         if (definition.costCitizen > (board.EnemyResources?.Citizen ?? 0)) return "recruit_citizen_shortage";
         if (!board.CanSummonDefinition(definition)) return "recruit_resources_or_legality";
         var projected = forecast.Simulate(board, action);
         if (projected.BreadPaymentFailed) return "recruit_bread_forecast_fail";
-        if (projected.UpkeepPaymentFailed) return "recruit_upkeep_forecast_fail";
+        if (projected.UpkeepPaymentFailed && !IsSafeEngineerOreRecoveryRecruit(action, board, projected))
+            return "recruit_upkeep_forecast_fail";
         if (projected.ImportantProductionStopped) return "recruit_production_forecast_fail";
         if (projected.BreadCoverageTurns < BreadReserveTurns) return "recruit_bread_reserve_fail";
         return BasicResources.AllowSpend(action, false, out string reason) ? null : reason;
@@ -155,26 +166,57 @@ public sealed partial class AIStrategicGovernor
 
     bool IsNextPlannedRecruit(AIAction action, AIBoardState board)
     {
-        if (action == null || action.ActionType != AIActionType.Summon || recruitmentPlan.Count == 0) return false;
+        if (action == null || action.ActionType != AIActionType.Summon || board == null
+            || recruitmentBoard != board || recruitmentPlan.Count == 0) return false;
         var definition = action.SummonDefinition ?? board.ResolveUnitDefinition(action.SummonKind);
-        // An impossible first purchase must not turn every other funded role into P4.
-        // Keep the order among executable purchases, while retaining the blocked request for housing/supply.
+        if (definition == null) return false;
+        string role = RecruitmentRole(definition, definition.kind);
+        // Retain the bounded order and its supply forecast. A different definition may fill
+        // the first blocked role only after its own complete official spend forecast passes.
         foreach (var need in recruitmentPlan)
         {
             if (need.Definition == definition) return RecruitmentBlockReason(action, board) == null;
             recruitmentProbe.SummonDefinition = need.Definition; recruitmentProbe.SummonKind = need.Definition.kind;
             recruitmentProbe.APCost = need.Definition.costAP;
             if (RecruitmentBlockReason(recruitmentProbe, board) == null) return false;
+            if (role != null && need.Role == role && RecruitmentBlockReason(action, board) == null) return true;
         }
         return false;
     }
+    // Restore outside-territory ore production without making payment failures or losses
+    // worse. A depleted army also needs this route before its first replacement can exist.
+    bool IsSafeEngineerOreRecoveryRecruit(AIAction action, AIBoardState board, EconomyForecastResult projected)
+    {
+        if (action?.ActionType != AIActionType.Summon || board == null) return false;
+        var definition = action.SummonDefinition ?? board.ResolveUnitDefinition(action.SummonKind);
+        if (definition == null || definition.kind != Kind.Engineer || !definition.IsValidForAuthoring
+            || !definition.AvailableFor(board.ActorTeam) || definition.actionProfile?.actionType == ActorActionType.Passive
+            || board.SummonablePositions.Count == 0 || !board.CanSummonDefinition(definition)
+            || !AIActionGenerator.HasRareOreSupplyGap(board)) return false;
+        var baseline = forecast.Simulate(board);
+        int oreMask = (1 << (int)ResourceKind.Iron) | (1 << (int)ResourceKind.MagicOre);
+        bool inheritedOreFailure = baseline.UpkeepPaymentFailed && (baseline.MandatoryFailureMask & oreMask) != 0
+            && (baseline.MandatoryFailureMask & ~oreMask) == 0;
+        return (inheritedOreFailure || !baseline.UpkeepPaymentFailed && !projected.UpkeepPaymentFailed)
+            && !projected.BreadPaymentFailed && !projected.ImportantProductionStopped
+            && projected.BreadCoverageTurns >= BreadReserveTurns
+            && (projected.MandatoryFailureMask & ~baseline.MandatoryFailureMask) == 0
+            && (projected.InputFailureMask & ~baseline.InputFailureMask) == 0
+            && (projected.FirstTurnMandatoryFailureMask & ~baseline.FirstTurnMandatoryFailureMask) == 0
+            && (projected.FirstTurnInputFailureMask & ~baseline.FirstTurnInputFailureMask) == 0
+            && projected.ExpectedUnitHPDamage <= baseline.ExpectedUnitHPDamage
+            && projected.ExpectedUnitDeaths <= baseline.ExpectedUnitDeaths;
+    }
+
     bool IsSafePlannedRecruit(AIAction action, AIBoardState board)
-        => Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
-            && IsNextPlannedRecruit(action, board) && RecruitmentBlockReason(action, board) == null;
+        => Mode != StrategicMode.EmergencyDefense && IsNextPlannedRecruit(action, board)
+            && RecruitmentBlockReason(action, board) == null
+            && (Mode != StrategicMode.EconomicRecovery
+                || IsSafeEngineerOreRecoveryRecruit(action, board, forecast.Simulate(board, action)));
 
     public float RecruitmentScore(AIAction action, AIBoardState board)
-        // At P3 this need can compete with staging/exploration. P0/P1 survival and P2 current
-        // battle opportunities still precede it. Other legal summons keep their original scores.
+        // Ordinary needs compete with staging/exploration at P3. A safe ore-recovery engineer
+        // joins supply recovery at P2. Other legal summons keep their original scores.
         => IsSafePlannedRecruit(action, board) ? 30f : 0;
 
     public RecruitmentForecastResult ForecastRecruitment(AIBoardState board, AIAction investment = null)

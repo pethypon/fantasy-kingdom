@@ -28,7 +28,7 @@ public static class AIClosingPlaytest
     {
         public int[] Seeds;
         public int OwnerTurnLimit, WallSeconds, ThreatLevel;
-        public string Output, Label, RunId, OriginalCompany, OriginalProduct, EnemyPersonality;
+        public string Output, Label, RunId, OriginalCompany, OriginalProduct, EnemyPersonality, R4Mode;
         public string CodeCommit, SourceDigest, AssetDigest, ManifestPath;
     }
     [Serializable] sealed class RunReport
@@ -41,6 +41,8 @@ public static class AIClosingPlaytest
     }
     [Serializable] sealed class MatchReport
     {
+        public string R4RequestedMode;
+        public bool R4Enabled, R4Shadow, R4MayInfluenceActions, R4MultiStepSquadPlanning;
         public int MapSeed, EnemyAISeed, PlayerAISeed, ThreatLevel = 15, Round, OwnerTurns;
         public string EnemyPersonality, PersistentPath, StartedUtc, FinishedUtc, EndCondition, Result = "unresolved", OutcomeReason, Fault;
         public bool ActualPlayerAIModeUsed, GameOver, BarrierEnabled;
@@ -56,6 +58,7 @@ public static class AIClosingPlaytest
         public int PlayerInputBlockedProducers, EnemyInputBlockedProducers, PlayerResourceCapacity, EnemyResourceCapacity;
         public double Seconds;
         public float InitialTimeScale, InitialTurnTimeLimit, TerrainSeedX, TerrainSeedZ;
+        public bool GameplayTimeLimitsEnabled, PlayerEngineerConfigured, EnemyEngineerConfigured;
         public int PlayerKingHP, PlayerCrystalHP, EnemyKingHP, EnemyCrystalHP, Errors, Exceptions, Assertions;
         public int PlayerCommanderHP, EnemyCommanderHP, PlayerCommandersFound, EnemyCommandersFound;
         public string PlayerCommanderKinds, EnemyCommanderKinds;
@@ -249,11 +252,14 @@ public static class AIClosingPlaytest
             WallSeconds = Setting("FK_CLOSING_WALL_SECONDS", 300, 30, 3600),
             ThreatLevel = Setting("FK_CLOSING_THREAT", 15, 1, 100),
             EnemyPersonality = Environment.GetEnvironmentVariable("FK_CLOSING_PERSONALITY") ?? "",
+            R4Mode = Environment.GetEnvironmentVariable("FK_CLOSING_R4_MODE") ?? "default",
             Label = Environment.GetEnvironmentVariable("FK_CLOSING_LABEL") ?? "observation",
             Output = Path.GetFullPath(Environment.GetEnvironmentVariable("FK_CLOSING_OUTPUT")
                 ?? Path.Combine(Application.dataPath, "../../ai-closing-" + id)),
             OriginalCompany = PlayerSettings.companyName, OriginalProduct = PlayerSettings.productName };
         if (settings.Seeds.Length == 0) throw new ArgumentException("At least one fixed seed is required.");
+        if (settings.R4Mode != "default" && settings.R4Mode != "shadow" && settings.R4Mode != "enabled")
+            throw new ArgumentException("Unknown explicit R4 policy mode.");
         Directory.CreateDirectory(settings.Output);
         if (Environment.GetEnvironmentVariable("FK_CLOSING_PREPARE_VISUALS") == "1") BoardVisualThemeInstaller.RenderPreview();
         settings.CodeCommit = Environment.GetEnvironmentVariable("FK_CLOSING_CODE_SHA") ?? "unrecorded";
@@ -336,7 +342,7 @@ public static class AIClosingPlaytest
         frameTimes.Clear(); heavyLives.Clear(); dragonLives.Clear(); sampledFrame = lastCaptureRound = -1;
         match.InitialMemoryMB = match.FinalMemoryMB = match.PeakMemoryMB = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong()/(1024f*1024f);
         match.BarrierEnabled = BarrierCombatSettings.Active.enabledForPlay; match.BarrierRevision = BarrierCombatSettings.Active.specificationRevision;
-        match.CombatRules = "R1 confirmed table; +"+BarrierSystem.GrowthPerLevel+" per level. "
+        match.CombatRules = "R2 fixed unit bases x1.75; upkeep x5; barrier has no level growth. "
             + SpecialSkillPresentation.BarrierRecoveryDescription();
         SpecialSkillRuntime.HpChangeCommitted += OnHpChange;
         initialized = true;
@@ -363,13 +369,32 @@ public static class AIClosingPlaytest
                 var major = AIPersonality.RandomMajor(match.EnemyAISeed);
                 if (!string.IsNullOrEmpty(settings.EnemyPersonality)
                     && !Enum.TryParse(settings.EnemyPersonality, true, out major)) throw new ArgumentException("Unknown enemy personality");
+                // Explicit AI-policy comparison only. No AP/resource/visibility/time budget is changed.
+                var r4 = AICognitiveAIConfig.Active;
+                if (settings.R4Mode == "shadow" || settings.R4Mode == "enabled")
+                {
+                    r4.Enabled = true; r4.ShadowMode = settings.R4Mode == "shadow";
+                    r4.EnablePlanExecutionHints = settings.R4Mode == "enabled";
+                    r4.EnableMultiStepSquadPlanning = settings.R4Mode == "enabled";
+                }
+                match.R4RequestedMode = settings.R4Mode;
+                match.R4Enabled = r4.Enabled; match.R4Shadow = r4.ShadowMode;
+                match.R4MayInfluenceActions = r4.MayInfluenceActions;
+                match.R4MultiStepSquadPlanning = r4.EnableMultiStepSquadPlanning;
                 s.AICommander = new AICommander(turn, s.MoveGenerator, s.AttackGenerator, s.BattleSystem, s.VisionGenerator,
                     s.APSystem, s.UnitSetting, s.CrystalSystem, s.MapCreate, major, s.BuildSystem, s.SummonSystem,
                     s.FactionState, s.SkillSystem, s.SubCrystalSystem, match.ThreatLevel, match.EnemyAISeed, Team.Enemy);
                 enemy = new SideObserver(s.AICommander, match.Enemy);
                 match.EnemyPersonality = major.ToString(); match.InitialTurnTimeLimit = s.TimerSystem.TurnTimeLimit;
+                match.GameplayTimeLimitsEnabled = s.TimerSystem.TimeLimitsEnabled;
+                if (s.UnitSetting.UnitDataMap.TryGetValue(Kind.Engineer, out var engineer))
+                {
+                    match.PlayerEngineerConfigured = engineer != null && engineer.IsValidForAuthoring && engineer.AvailableFor(Team.Player);
+                    match.EnemyEngineerConfigured = engineer != null && engineer.IsValidForAuthoring && engineer.AvailableFor(Team.Enemy);
+                }
                 match.TerrainSeedX = s.MapCreate.SeedX; match.TerrainSeedZ = s.MapCreate.SeedZ;
                 ObserveDecisiveActors();
+                AIPlaytestMapEvidence.CaptureInitial(turn, folder);
                 turn.PlayerAI.SetEnabled(true, false);
                 match.ActualPlayerAIModeUsed = turn.PlayerAI.Enabled;
                 Debug.Log(Prefix + " ACTUAL_AI_MODE_ENABLED mapSeed=" + match.MapSeed + " enemySeed=" + match.EnemyAISeed

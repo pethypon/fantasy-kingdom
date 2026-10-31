@@ -8,11 +8,16 @@ public sealed partial class AIStrategicGovernor
     readonly Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int), AIHousingAssessment> housingAssessments
         = new Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int), AIHousingAssessment>();
     readonly List<UnitData> housingRecruits = new List<UnitData>(32);
+    readonly HashSet<string> housingAPLives = new HashSet<string>();
+    readonly HashSet<Status> housingAPActors = new HashSet<Status>();
+    readonly HashSet<Vector3Int> housingAPMoveCells = new HashSet<Vector3Int>();
     AIBoardState housingBoard;
     int housingGeneration = -1, housingOperationDemand = -1;
     int housingConfigRevision = -1;
     int housingContentRevision = -1;
     int housingPlanRevision = -1;
+    int housingSquadRevision = -1;
+    public AIHousingAPPlan HousingAPPlan { get; private set; }
     public int HousingRecoveryStartedTurn { get; private set; } = -1;
     public int HousingRecoveryLastProgressTurn { get; private set; } = -1;
     public int HousingRecoveryDeferredTurns { get; private set; }
@@ -30,21 +35,26 @@ public sealed partial class AIStrategicGovernor
         int operationDemand = Mathf.Clamp(board.OperationRequiredCitizenDemand, 0, 100000);
         if (housingBoard != board || housingGeneration != board.Generation || housingOperationDemand != operationDemand
             || housingConfigRevision != config.Revision || housingContentRevision != GameContentRevision.Revision
-            || housingPlanRevision != BasicResources.PlanRevision)
+            || housingPlanRevision != BasicResources.PlanRevision || housingSquadRevision != (board.Operations?.SquadRevision ?? -1))
         {
             housingBoard = board; housingGeneration = board.Generation; housingOperationDemand = operationDemand;
             housingConfigRevision = config.Revision;
             housingContentRevision = GameContentRevision.Revision;
             housingPlanRevision = BasicResources.PlanRevision;
+            housingSquadRevision = board.Operations?.SquadRevision ?? -1;
             housingAssessments.Clear(); board.CollectRecruitDefinitions(housingRecruits);
+            HousingAPPlan = PrepareHousingAPPlan(board, config);
         }
         var actor = action.ActionType == AIActionType.Upgrade ? action.Unit ?? action.TargetUnit : null;
         var key = (action.ActionType, kind, action.FacilityDefinition, actor, actor != null ? actor.Level : 0);
         if (housingAssessments.TryGetValue(key, out var cached)) return cached;
         var result = AssessHousing(action, board, config, operationDemand);
         housingAssessments[key] = result;
-        if (config.EnableDecisionLogs && DevelopmentLog.IsEnabled(AILogLevel.Verbose))
-            DevelopmentLog.Log("[AI住宅投資] " + (result.Needed ? "採用候補 " : "却下 ") + result.Describe());
+        if ((config.EnableDecisionLogs || AIEconomySettings.Active.enableDecisionLogs) && DevelopmentLog.IsEnabled(AILogLevel.Verbose))
+            DevelopmentLog.Log($"[AI住宅投資] Turn={board.TurnCount} Team={board.ActorTeam} AP={board.EnemyAP} "
+                + $"GrowthBlocked={ProductionDemand.NaturalCitizenGrowthPerTurn <= 0 && result.FreeCitizens < result.Capacity} "
+                + $"CandidateAssessed=True BuildOrUpgrade={action.ActionType}/{kind} FoodForecast={Economy.NetBreadPerTurn:F1} "
+                + $"UpkeepForecast={!Economy.UpkeepPaymentFailed} " + (result.Needed ? "採用候補 " : "却下 ") + result.Describe());
         return result;
     }
 
@@ -67,17 +77,15 @@ public sealed partial class AIStrategicGovernor
         UnitData defender = CheapestCapacityBlockedDefender(board, action, capacity, gain, cost, config, out string defenseReject);
         bool emergency = Mode == StrategicMode.EmergencyDefense && defender != null;
         float military = 0;
-        if (board.AlivePlayerUnits.Count > 0)
-        {
-            int cheapest = int.MaxValue;
-            foreach (var unit in housingRecruits)
-                if (CombatRecruit(unit) && unit.costCitizen > 0) cheapest = Mathf.Min(cheapest, unit.costCitizen);
-            if (cheapest != int.MaxValue) military = cheapest * Mathf.Clamp(config.ShortTermCombatRecruits, 0, 8);
-        }
+        // These are ordered purchases of real missing roles, not a second speculative army.
+        for (int i = 0; i < Mathf.Min(RecruitmentPlan.Count, Mathf.Clamp(config.ShortTermCombatRecruits, 0, 8)); i++)
+            if (CombatRecruit(RecruitmentPlan[i].Definition) && HousingRecruitCanBeFunded(RecruitmentPlan[i].Definition, board, config))
+                military = Mathf.Max(military, RecruitmentPlan[i].Definition.costCitizen);
         // Operation needs and ordinary short-term recruitment refer to the same army, not two armies.
-        float recruitCapacityStock = HasPreparedRecruitment(board) ? RecruitmentRequiredCitizenStock : plannedRecruit;
+        float recruitCapacityStock = HasPreparedRecruitment(board) ? HousingRecruitCapacityStock(board, config) : plannedRecruit;
         float futureArmy = Mathf.Max(Mathf.Max(operationDemand, military), recruitCapacityStock);
-        float required = Mathf.Max(plannedBuilding + Mathf.Max(recruitCapacityStock, futureArmy), otherPlan) + config.FreeTarget;
+        float required = RequiredHousingStock(plannedBuilding, recruitCapacityStock, operationDemand, military, otherPlan, config.FreeTarget,
+            HousingAPPlan.RequiredCitizens);
         if (emergency) required = Mathf.Max(required, defender.costCitizen);
         bool blocked = required > capacity + .001f;
         string reason = null;
@@ -95,6 +103,9 @@ public sealed partial class AIStrategicGovernor
             var projected = forecast.SimulateInvestment(board, action, config.Horizon);
             if (projected.BreadPaymentFailed || projected.UpkeepPaymentFailed || projected.ImportantProductionStopped
                 || projected.BreadCoverageTurns < BreadReserveTurns) reason = "housing_build_forecast_unsafe";
+            if (reason == null && HousingAPPlan.RequiredCitizens > capacity
+                && !HousingAPFoodReserveSafe(board, HousingAPPlan.RequiredCitizens, config))
+                reason = "housing_ap_food_reserve_unsafe";
             if (reason == null && (RecruitmentCitizenDemand > 0 || DevelopmentPlan.Count > 0))
             {
                 var recruitment = ForecastRecruitment(board, action);
@@ -122,7 +133,174 @@ public sealed partial class AIStrategicGovernor
         if (reason != null) score = -Mathf.Max(AIHousingConfig.Weight(config.ExcessHousingPenalty), Mathf.Abs(score));
         return new AIHousingAssessment(reason == null, reason == null && emergency, blocked, free, capacity, gain,
             used, planned, plannedBuilding, plannedRecruit, otherPlan, operationDemand, military, required, score,
-            reason ?? (emergency ? "housing_defense_capacity_blocked" : "housing_planned_capacity_shortfall"));
+            reason ?? (emergency ? "housing_defense_capacity_blocked" : HousingAPPlan.RequiredCitizens > capacity
+                ? "housing_ap_capacity_shortfall" : "housing_planned_capacity_shortfall"), HousingAPPlan, cost);
+    }
+
+    // Construction, an ordered recruit, external operations and the AP stock use the same
+    // replenish-able pool. Never require the whole shopping list in stock at the same time.
+    internal static float RequiredHousingStock(float building, float recruit, float operation, float military,
+        float other, int reserve, int apCitizens)
+    {
+        float purchase = Mathf.Max(Mathf.Max(Mathf.Max(building, recruit), Mathf.Max(operation, military)), Mathf.Max(0, other));
+        return Mathf.Max(purchase + Mathf.Max(0, reserve), Mathf.Max(0, apCitizens));
+    }
+
+    float HousingRecruitCapacityStock(AIBoardState board, AIHousingConfig config)
+    {
+        float required = 0;
+        foreach (var need in RecruitmentPlan)
+            if (HousingRecruitCanBeFunded(need.Definition, board, config))
+                required = Mathf.Max(required, (float)System.Math.Min(int.MaxValue,
+                    (long)Mathf.Max(0, need.Definition.costCitizen) + RecruitmentCitizenReserve) - config.FreeTarget);
+        foreach (var need in DevelopmentPlan)
+            if (HousingRecruitCanBeFunded(need.Definition, board, config))
+                required = Mathf.Max(required, (float)System.Math.Min(int.MaxValue,
+                    (long)Mathf.Max(0, need.Definition.costCitizen) + RecruitmentCitizenReserve) - config.FreeTarget);
+        return required;
+    }
+
+    bool HousingRecruitCanBeFunded(UnitData definition, AIBoardState board, AIHousingConfig config)
+    {
+        if (definition == null || !definition.IsValidForAuthoring || !definition.AvailableFor(board.ActorTeam)
+            || definition.costAP < 0 || definition.costAP > APSystem.MaximumAP) return false;
+        var cost = AIBasicResourceEconomy.UnitCost(definition); var upkeep = definition.GetFixedUpkeep();
+        for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
+        {
+            if (i == (int)ResourceKind.Citizen) continue;
+            float spent = StrategicEconomyForecast.Amount(cost, i), ongoing = StrategicEconomyForecast.Amount(upkeep, i);
+            if (spent <= 0 && ongoing <= 0) continue;
+            if (EconomySystem.IsResourceCapacityEnforced(forecast.PreparedResourceCapacity - FactionState.BaseResourceCap)
+                && spent > forecast.PreparedResourceCapacity) return false;
+            var resource = ProductionDemand.Get((ResourceKind)i);
+            float net = ProductionDemand.PermanentProduction((ResourceKind)i) - resource.MandatoryDemandPerTurn;
+            float available = resource.Stock + Mathf.Min(0, net) * config.Horizon + Mathf.Max(0, net) * config.DevelopmentHorizon;
+            if (available - spent - ongoing * config.Horizon < resource.SafetyReserve) return false;
+        }
+        return true;
+    }
+
+    /// <summary>Use the formal reset clamp and authored bonus. Never change the live APData.</summary>
+    internal static int HousingAPAtCitizenStock(FactionState.APData source, int citizens)
+    {
+        if (source == null) return 0;
+        return new FactionState.APData { Reset = source.Reset, Minus = source.Minus,
+            Plus = (int)System.Math.Min(GameConstants.MaxAP, (long)Mathf.Max(0, citizens) * EconomySystem.CitizenAPBonus) }.Maximum;
+    }
+
+    internal static int HousingCitizensForAP(FactionState.APData source, int desired)
+    {
+        if (source == null || desired <= HousingAPAtCitizenStock(source, 0)) return 0;
+        desired = Mathf.Clamp(desired, 0, APSystem.MaximumAP);
+        // The actual population bonus saturates at GameConstants.MaxAP, including authored zero bonus.
+        if (HousingAPAtCitizenStock(source, GameConstants.MaxAP) < desired) return 0;
+        int low = 0, high = GameConstants.MaxAP;
+        while (low < high)
+        {
+            int middle = low + (high - low) / 2;
+            if (HousingAPAtCitizenStock(source, middle) >= desired) high = middle;
+            else low = middle + 1;
+        }
+        return low;
+    }
+
+    AIHousingAPPlan PrepareHousingAPPlan(AIBoardState board, AIHousingConfig config)
+    {
+        var ap = board.OwnAPData;
+        int free = Mathf.Max(0, board.EnemyResources?.Citizen ?? 0), capacity = forecast.PreparedCitizenCapacity;
+        int stockAP = HousingAPAtCitizenStock(ap, free), capacityAP = HousingAPAtCitizenStock(ap, capacity);
+        if (!config.EnableAPCapacityPlanning || ap == null)
+            return new AIHousingAPPlan(0, 0, stockAP, capacityAP, 0, 0, "housing_ap_planning_disabled");
+        housingAPLives.Clear(); housingAPActors.Clear(); housingAPMoveCells.Clear();
+        int actions = 0; long demand = 0;
+        PrepareArmyAdvanceTargets(board);
+        foreach (var actor in board.AliveEnemyUnits)
+        {
+            if (actions >= config.APActionLimit || AITurnBudget.Expired) break;
+            if (actor == null || !actor.IsAlive || actor.type != Type.Unit || actor.team != board.ActorTeam
+                || MatchObjectiveRules.IsCommander(actor) || StatusEffectSystem.IsStunned(actor)
+                || !housingAPActors.Add(actor) || !string.IsNullOrEmpty(actor.ReflectionLifeId) && !housingAPLives.Add(actor.ReflectionLifeId)) continue;
+            int cost = -1;
+            if (BoardActionProfile.For(actor)?.CanAttack != false && !SpecialSkillRuntime.AttackBlocked(actor)
+                && board.GetAttackTargets(actor).Count > 0)
+            {
+                // First action after a fatigue reset. The official ability adjustment is reused;
+                // free-action state can only reduce this conservative pending demand.
+                cost = SpecialSkillRuntime.HasFreeAttackAP(actor) ? 0
+                    : Mathf.Max(1, SpecialSkillRuntime.AttackAPAdjustment(actor, APSystem.BaseAttackCost));
+                var ability = SpecialSkillRuntime.Definition(actor);
+                if (cost > 0 && ability?.enabledForPlay == true && ability.ability == UnitSpecialSkill.GuardianLifeLink
+                    && ability.guardianAttackCostReset == AbilityResetScope.OwnerTurn)
+                    cost = Mathf.Max(1, cost - Mathf.Max(0, SpecialSkillRuntime.State(actor).guardianAttackCount));
+            }
+            if (cost < 0) cost = HousingPendingMoveCost(actor, board);
+            if (cost < 0 || cost > APSystem.MaximumAP) continue;
+            demand += cost; actions++;
+        }
+        int desired = (int)System.Math.Min(APSystem.MaximumAP, demand);
+        if (HousingAPAtCitizenStock(ap, GameConstants.MaxAP) < desired)
+            return new AIHousingAPPlan(actions, desired, stockAP, capacityAP, 0, 0, "housing_ap_bonus_cannot_reach_target");
+        int required = HousingCitizensForAP(ap, desired);
+        int wait = Mathf.Max(0, required - free); // EconomySystem grows at most one citizen per paid turn.
+        string reason = required <= capacity ? stockAP < desired ? "housing_ap_existing_growth_can_recover_stock" : "housing_ap_capacity_sufficient"
+            : wait > config.APPreparationHorizon ? "housing_ap_growth_outside_horizon" : "housing_ap_capacity_shortfall";
+        // A large missing stock is a growth delay, not permission to buy arbitrarily distant capacity.
+        if (wait > config.APPreparationHorizon) required = 0;
+        return new AIHousingAPPlan(actions, desired, stockAP, capacityAP, required, wait, reason);
+    }
+
+    int HousingPendingMoveCost(Status actor, AIBoardState board)
+    {
+        if (actor.HP < actor.MaxHP * .6f || BoardActionProfile.For(actor)?.CanMove == false
+            || StatusEffectSystem.IsMovementBlocked(actor) || SpecialSkillRuntime.MovementBlocked(actor)) return -1;
+        bool hasAim = false; Vector3 aim = default;
+        if (board.Operations != null && board.Operations.TryGetSquad(actor.ReflectionLifeId, out var squad))
+        {
+            if (squad.Phase == AIOperationSquadPhase.Suspended) return -1;
+            foreach (var member in squad.Members)
+                if (member.ActorLifeId == actor.ReflectionLifeId)
+                {
+                    if (member.Recovering) return -1;
+                    if (member.HasSlot) { hasAim = true; aim = new Vector3(member.SlotX, 0, member.SlotZ); }
+                    break;
+                }
+            if (!hasAim) { hasAim = true; aim = new Vector3(squad.GoalX, 0, squad.GoalZ); }
+        }
+        var objective = Exploration.GetObjective(actor.GetInstanceID());
+        if (!hasAim && objective != null && objective.State != ObjectiveState.Completed
+            && objective.State != ObjectiveState.Failed && objective.State != ObjectiveState.Suspended)
+        { hasAim = true; aim = objective.TargetCell; }
+        if (!hasAim && armyAdvanceTargets.Count == 0 && !HasActiveTerritoryAdvance) return -1;
+        int best = int.MaxValue; Vector3Int bestCell = default;
+        foreach (var destination in board.GetValidMoves(actor))
+        {
+            var cell = GridHelper.ToGridXZ(destination);
+            if (housingAPMoveCells.Contains(cell) || !board.IsTerrainKnown(destination)) continue;
+            bool progress = hasAim ? Distance(destination, aim) < Distance(actor.transform.position, aim)
+                : ArmyAdvanceMakesProgress(actor.transform.position, destination)
+                    || HasActiveTerritoryAdvance && TerritoryIntel.IsProgress(actor, destination, board);
+            if (!progress || IncomingDamage(board, actor, destination, null) >= actor.HP * .25f) continue;
+            int cost = board.CalcMoveCost(actor, destination);
+            // Formal fixed-price movement excludes fatigue (assassin/cave/free move).
+            bool fixedCost = cost == 0 || SpecialSkillRuntime.HasAssassinPassive(actor)
+                || board.MapCreate != null && board.MapCreate.Environment.IsCaveConnection(actor.transform.position, destination);
+            if (!fixedCost) cost = Mathf.Max(1, cost - Mathf.Max(0, actor.Fatigue));
+            if (cost < best) { best = cost; bestCell = cell; }
+        }
+        if (best == int.MaxValue) return -1;
+        housingAPMoveCells.Add(bestCell); return best;
+    }
+
+    bool HousingAPFoodReserveSafe(AIBoardState board, int citizens, AIHousingConfig config)
+    {
+        var bread = ProductionDemand.Get(ResourceKind.Bread);
+        int current = Mathf.Max(0, board.EnemyResources?.Citizen ?? 0);
+        int turns = Mathf.Max(config.Horizon, Mathf.Min(config.APPreparationHorizon, Mathf.Max(1, citizens - current)));
+        // Forecast already includes existing upkeep, recipes and current population. Protect the
+        // extra food after the AP stock arrives as well; temporary/chance income is not promised.
+        float additionalFood = Mathf.Max(0, citizens - current) * EconomySystem.CitizenBreadCost;
+        float dependableNet = ProductionDemand.PermanentProduction(ResourceKind.Bread) - bread.MandatoryDemandPerTurn - additionalFood;
+        return bread.Stock + Mathf.Min(0, dependableNet) * (turns + BreadReserveTurns) >= bread.SafetyReserve;
     }
 
     void TrackHousingRecovery(AIBoardState board, bool blocked, int gain, string reason, AIHousingConfig config)

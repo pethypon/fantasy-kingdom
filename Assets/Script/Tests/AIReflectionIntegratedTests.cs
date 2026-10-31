@@ -64,6 +64,7 @@ public static class AIReflectionIntegratedTests
             Economy(config);
             LearningAndPriority(config);
             ImmediateOutcomes(config);
+            AIReflectionObjectiveDistanceTests.Run();
             DelayedCredits(config);
             Army(config);
             DiaryAndTerminal(config);
@@ -178,7 +179,8 @@ public static class AIReflectionIntegratedTests
         record = Record(AIActionType.Retreat, before: before, after: after); Evaluate(record, config);
         Check("T13 low-HP retreat to lower risk is successful", record.RewardBreakdown.Survival > 0
             && record.Reward > 0 && record.SuccessReasons.Contains(AISuccessReason.SuccessfulRetreat));
-        before = Facts(); before.LocalAllyPower = 140; before.LocalEnemyPower = 80; before.HasObjective = true; before.DistanceToObjective = 5;
+        before = Facts(); before.LocalAllyPower = 140; before.LocalEnemyPower = 80; before.HasObjective = true; before.ObjectiveIdentity = "Exploration:1";
+        before.ObjectiveX = 5; before.ObjectiveDistanceMetric = AIObjectiveDistanceMetric.ChebyshevXZ; before.DistanceToObjective = 5;
         after = before.Copy(); after.DistanceToObjective = 8; after.ActorX = -1;
         record = Record(AIActionType.Retreat, before: before, after: after); Evaluate(record, config);
         Check("T14 needless retreat from an objective does not reward movement", record.Reward <= 0);
@@ -239,7 +241,8 @@ public static class AIReflectionIntegratedTests
         after = before.Copy(); after.LocalAllyPower = 12;
         record = Record(AIActionType.Support, before: before, after: after); Evaluate(record, config);
         Check("local power improvement uses a true power ratio", record.RewardBreakdown.LocalPower > 0 && Near(record.Outcome.LocalPowerRatioDelta, .5f));
-        before = Facts(); before.OwnCrystalThreatened = before.EmergencyDefense = true; before.HasObjective = true; before.DistanceToObjective = 10;
+        before = Facts(); before.OwnCrystalThreatened = before.EmergencyDefense = true; before.HasObjective = true; before.ObjectiveIdentity = "OwnCrystal";
+        before.ObjectiveX = 10; before.ObjectiveDistanceMetric = AIObjectiveDistanceMetric.ChebyshevXZ; before.DistanceToObjective = 10;
         after = before.Copy(); after.OwnCrystalThreatened = false; after.DistanceToObjective = 5;
         record = Record(AIActionType.DefenseRepos, before: before, after: after); Evaluate(record, config);
         Check("emergency threat relief earns Defense without offensive objective farming", record.RewardBreakdown.Defense > 0

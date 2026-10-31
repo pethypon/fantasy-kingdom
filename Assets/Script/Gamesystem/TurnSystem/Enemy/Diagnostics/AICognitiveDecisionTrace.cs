@@ -16,6 +16,8 @@ public sealed class AICognitiveDecisionTrace
     public double ElapsedMilliseconds, BudgetRemainingMilliseconds;
     // Absence of measurements must never be serialized as a measured zero.
     public string FrameAndGCMeasurement = "NOT_MEASURED", SimulationParity = "NOT_VERIFIED";
+    public int MinimaxCompletedDepth;
+    public string MinimaxSourceKind = "none";
 }
 
 /// <summary>Battle-local bounded diagnostics; no per-frame disk IO and no live actor references.</summary>

@@ -38,7 +38,7 @@ public sealed partial class AIExplorationPlanner
         if (state.Cells != null)
         for (int i = 0; i < state.Cells.Count && i < cellLimit; i++)
         {
-            var entry = state.Cells[i]; if (entry == null || !Inside(XZ(entry.Cell))) continue;
+            var entry = state.Cells[i]; if (entry == null || !Inside(XZ(entry.Cell)) || memory.ContainsKey(XZ(entry.Cell))) continue;
             var cell = XZ(entry.Cell); var value = entry.Memory;
             // Visibility is refreshed from current faction observations after loading.
             value.State = ExplorationKnowledgeState.SeenBefore; value.LastSeenTurn = Mathf.Clamp(value.LastSeenTurn, -1, turn);
@@ -49,13 +49,20 @@ public sealed partial class AIExplorationPlanner
             dirtyRegions.Add(RegionId(cell)); importedTerrain.Add(cell);
         }
         int actorLimit = Mathf.Clamp(settings.MaxSavedActors, 1, 4096);
+        var restoredObjectiveIds = new HashSet<int>();
         if (state.Objectives != null)
         for (int i = 0; i < state.Objectives.Count && i < actorLimit; i++)
         {
             var objective = state.Objectives[i];
-            if (objective == null || !ValidIdentity(objective.ActorLifeId) || !Inside(XZ(objective.TargetCell))
+            if (objective == null || !ValidIdentity(objective.ActorLifeId) || objectives.ContainsKey(objective.ActorLifeId) || !Inside(XZ(objective.TargetCell))
                 || (int)objective.State < 0 || (int)objective.State > (int)ObjectiveState.Failed || !Finite(objective.BestDistance) || !Finite(objective.LastDistance)) continue;
             var copy = CloneObjective(objective); copy.CreatedTurn = Mathf.Clamp(copy.CreatedTurn, 0, turn);
+            if (copy.ObjectiveId <= 0 || copy.ObjectiveId == int.MaxValue || restoredObjectiveIds.Contains(copy.ObjectiveId))
+                copy.ObjectiveId = AllocateObjectiveId();
+            restoredObjectiveIds.Add(copy.ObjectiveId);
+            // A Unity runtime ID cannot survive load. Rebind only by ActorLifeId when the
+            // owning faction supplies its next observation, even after save-before-update.
+            copy.AssignedUnitId = 0;
             copy.LastProgressTurn = Mathf.Clamp(copy.LastProgressTurn, copy.CreatedTurn, turn); copy.LastSampleTurn = Mathf.Clamp(copy.LastSampleTurn, copy.CreatedTurn, turn);
             copy.SuspendedTurn = Mathf.Clamp(copy.SuspendedTurn, 0, turn); copy.BestDistance = Mathf.Max(0, copy.BestDistance); copy.LastDistance = Mathf.Max(0, copy.LastDistance);
             copy.FrontierRegionId = RegionId(copy.TargetCell); copy.FailedMoves = Mathf.Clamp(copy.FailedMoves, 0, Mathf.Max(1, settings.FailedMoveLimit));
@@ -71,11 +78,13 @@ public sealed partial class AIExplorationPlanner
             // the saved number with different costs; rebind the distance basis without awarding progress.
             if (copy.UsesKnownRouteDistance) copy.RouteMetricRevision = -1;
             objectives[copy.ActorLifeId] = copy;
+            if (copy.ObjectiveId >= nextObjectiveId && copy.ObjectiveId < int.MaxValue - 1)
+                nextObjectiveId = copy.ObjectiveId + 1;
         }
         if (state.Histories != null)
         for (int i = 0; i < state.Histories.Count && i < actorLimit; i++)
         {
-            var record = state.Histories[i]; if (record == null || !ValidIdentity(record.ActorLifeId)) continue;
+            var record = state.Histories[i]; if (record == null || !ValidIdentity(record.ActorLifeId) || histories.ContainsKey(record.ActorLifeId)) continue;
             var history = new ExplorationMovementHistory(settings.RecentHistoryTurns);
             if (record.Samples != null)
             for (int s = Mathf.Max(0, record.Samples.Count - Mathf.Clamp(settings.RecentHistoryTurns, 2, 64)); s < record.Samples.Count; s++)
@@ -116,12 +125,21 @@ public sealed partial class AIExplorationPlanner
             var copy = CloneExpedition(record); copy.Viewpoint = XZ(copy.Viewpoint); copy.RegionId = RegionId(copy.Viewpoint);
             copy.Visits = Mathf.Clamp(copy.Visits, 0, ushort.MaxValue); copy.KnownCells = Mathf.Min(copy.KnownCells, RegionSize * RegionSize);
             var key = (copy.ActorLifeId, copy.RegionId, copy.Viewpoint);
-            if (expeditionIndex.ContainsKey(key)) continue;
+            if (expeditionIndex.TryGetValue(key, out var previous))
+            {
+                // Duplicates can occur in migrated saves. Retain the latest observed
+                // result, without summing overlapping rewards or reviving an old ban.
+                if (copy.LastArrivalTurn <= previous.LastArrivalTurn) continue;
+                copy.Visits = Mathf.Max(copy.Visits, previous.Visits);
+                copy.TotalReveals = Mathf.Max(copy.TotalReveals, previous.TotalReveals);
+                expeditionRecords[expeditionRecords.IndexOf(previous)] = copy; expeditionIndex[key] = copy;
+                continue;
+            }
             expeditionRecords.Add(copy); expeditionIndex[key] = copy;
         }
     }
     static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
-    static bool ValidIdentity(string value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 64;
+    static bool ValidIdentity(string value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 128;
     static ExploreObjective CloneObjective(ExploreObjective source) => new ExploreObjective
     {
         ObjectiveId = source.ObjectiveId, FrontierRegionId = source.FrontierRegionId, TargetCell = source.TargetCell,

@@ -25,29 +25,33 @@ public sealed partial class AIOperationManager
     public IReadOnlyList<AIOperationRecruitmentNeed> SquadRecruitmentNeeds => squadRecruitment;
     public bool HasCoordinatedSquad
     {
-        get { foreach (var squad in state.Squads) if (squad.Phase != AIOperationSquadPhase.Suspended && squad.Members.Count >= 3) return true; return false; }
+        get
+        {
+            if (state.Squads == null || squadBoard == null || squadGeneration != squadBoard.Generation || state.Ended) return false;
+            foreach (var squad in state.Squads)
+            {
+                if (squad?.Members == null || squad.Phase == AIOperationSquadPhase.Suspended) continue;
+                int active = 0;
+                foreach (var member in squad.Members)
+                    if (member != null && TryGetSquad(member.ActorLifeId, out var owner) && ReferenceEquals(owner, squad) && ++active >= 3) return true;
+            }
+            return false;
+        }
     }
     public bool TryGetSquad(string actorLifeId, out AIOperationSquad squad)
-    { squad = null; return actorLifeId != null && squadByActor.TryGetValue(actorLifeId, out squad); }
+    {
+        squad = null;
+        if (actorLifeId == null || state.Ended || squadBoard == null || squadGeneration != squadBoard.Generation
+            || !AIOperationSquadConfig.Active.Enabled || !squadByActor.TryGetValue(actorLifeId, out var candidate)
+            || state.Squads == null || !state.Squads.Contains(candidate)
+            || !squadMembers.TryGetValue(actorLifeId, out var member) || !CurrentSquadMembership(candidate, member, actorLifeId)
+            || !Running(FindActive(candidate.OperationId)) || !features.TryOwn(actorLifeId, out var actor)
+            || !LiveSquadActor(actor, squadBoard)) return false;
+        squad = candidate; return true;
+    }
 
     public static AIOperationSquadRole SquadRole(Status actor)
-    {
-        if (actor == null) return AIOperationSquadRole.Frontline;
-        var profile = BoardActionProfile.For(actor);
-        var special = SpecialSkillRuntime.Definition(actor);
-        bool healing = SkillData.Table.TryGetValue(actor.AssignedSkillId, out var skill) && skill.FixedHeal > 0
-            || special != null && special.enabledForPlay && (special.ability == UnitSpecialSkill.WhiteMageHeal || special.ability == UnitSpecialSkill.HolyKnightSanctuary);
-        if (healing && profile?.CanUseSkills != false) return AIOperationSquadRole.Healer;
-        if (actor.kind == Kind.Scout) return AIOperationSquadRole.Scout;
-        // A passive/support profile is not evidence that the actor can heal.
-        if (profile?.attack?.useCustom == true)
-        {
-            foreach (var offset in profile.attack.Offsets) if (Mathf.Max(Mathf.Abs(offset.x), Mathf.Abs(offset.y)) >= 2) return AIOperationSquadRole.Ranged;
-        }
-        else for (int x = -4; x <= 4; x++) for (int z = -4; z <= 4; z++)
-            if (Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) >= 2 && AttackPatterns.CanAttack(actor, actor.direction, x, z)) return AIOperationSquadRole.Ranged;
-        return AIOperationSquadRole.Frontline;
-    }
+        => AICapabilityRoles.For(actor).PrimarySquadRole;
 
     void UpdateSquads(AIBoardState board, int turn)
     {
@@ -57,23 +61,26 @@ public sealed partial class AIOperationManager
         squadByActor.Clear(); squadMembers.Clear(); squadRecruitment.Clear(); squadSlots.Clear(); squadLives.Clear(); squadAttackTargets.Clear();
         squadBoard = board; squadGeneration = board.Generation;
         if (!policy.Enabled || state.Ended) { state.Squads.Clear(); AdvanceSquadRevision(); return; }
-        for (int i = state.Squads.Count - 1; i >= 0; i--)
+        state.Squads.Sort((a, b) => a == null ? b == null ? 0 : 1 : b == null ? -1 : a.SquadId.CompareTo(b.SquadId));
+        for (int i = 0; i < state.Squads.Count;)
         {
-            var squad = state.Squads[i]; var plan = FindActive(squad.OperationId);
-            if (plan == null || !Running(plan)) { state.Squads.RemoveAt(i); continue; }
+            var squad = state.Squads[i]; var plan = squad != null ? FindActive(squad.OperationId) : null;
+            if (squad?.Members == null || squad.Members.Count > 5 || plan == null || !Running(plan)) { state.Squads.RemoveAt(i); continue; }
             squad.Members.RemoveAll(member => member == null || !features.TryOwn(member.ActorLifeId, out var actor)
-                || actor == null || !actor.IsAlive || MatchObjectiveRules.IsCommander(actor)
+                || !LiveSquadActor(actor, board)
                 || !plan.AssignedUnitLifeIds.Contains(member.ActorLifeId)
-                || assignments.TryGetValue(member.ActorLifeId, out var assigned) && assigned != plan);
-            foreach (var member in squad.Members) { member.HasSlot = false; squadLives.Add(member.ActorLifeId); }
-            if (squad.Members.Count == 0) state.Squads.RemoveAt(i);
+                || assignments.TryGetValue(member.ActorLifeId, out var assigned) && assigned != plan
+                || !squadLives.Add(member.ActorLifeId));
+            foreach (var member in squad.Members) member.HasSlot = false;
+            squad.HasApproachWaypoint = false;
+            if (squad.Members.Count == 0) state.Squads.RemoveAt(i); else i++;
         }
         foreach (var plan in state.ActiveOperations)
         {
             if (!Running(plan) || plan.PrimaryGoal == AIOperationGoal.EconomicRecovery) continue;
             foreach (string life in plan.AssignedUnitLifeIds)
             {
-                if (squadLives.Contains(life) || !features.TryOwn(life, out var actor) || actor == null || !actor.IsAlive || MatchObjectiveRules.IsCommander(actor)) continue;
+                if (squadLives.Contains(life) || !features.TryOwn(life, out var actor) || !LiveSquadActor(actor, board)) continue;
                 AIOperationSquad selected = null;
                 foreach (var squad in state.Squads) if (squad.OperationId == plan.OperationId && squad.Members.Count < policy.Size)
                     if (selected == null || squad.Members.Count < selected.Members.Count) selected = squad;
@@ -131,6 +138,7 @@ public sealed partial class AIOperationManager
 
     void AssignSquadRoles(AIOperationPlan plan, int quota, bool recon)
     {
+        PruneOperationSquadAssignees(plan);
         Array.Clear(squadAssignmentCounts, 0, squadAssignmentCounts.Length);
         foreach (string life in plan.AssignedUnitLifeIds)
             if (features.TryOwn(life, out var actor) && actor != null && actor.IsAlive) squadAssignmentCounts[(int)CachedSquadRole(actor)]++;
@@ -172,10 +180,15 @@ public sealed partial class AIOperationManager
         plan.AssignedUnitRoles.Clear();
         foreach (string life in plan.AssignedUnitLifeIds)
             if (features.TryOwn(life, out var actor))
-            { string role = AIActionFeatureExtractor.Role(actor.kind); if (!plan.AssignedUnitRoles.Contains(role)) plan.AssignedUnitRoles.Add(role); }
+            { string role = AICapabilityRoles.RecruitmentRole(actor); if (role != null && !plan.AssignedUnitRoles.Contains(role)) plan.AssignedUnitRoles.Add(role); }
     }
     bool EligibleSquadActor(Status actor)
-    { var profile = BoardActionProfile.For(actor); return !MatchObjectiveRules.IsCommander(actor) && (profile?.CanAttack != false || actor.kind == Kind.Scout || CachedSquadRole(actor) == AIOperationSquadRole.Healer); }
+    {
+        if (actor == null || !actor.IsAlive || actor.type != Type.Unit || actor.team != state.Faction
+            || !actor.gameObject.activeInHierarchy || MatchObjectiveRules.IsCommander(actor)) return false;
+        var capability = AICapabilityRoles.For(actor);
+        return !capability.Engineer && (capability.CanAttack || capability.Reconnaissance || capability.Healing);
+    }
     void PrepareSquadRoleCache(AIBoardState board)
     { if (squadRoleBoard != board || squadRoleGeneration != board.Generation) { squadRoleCache.Clear(); squadRoleBoard = board; squadRoleGeneration = board.Generation; } }
     AIOperationSquadRole CachedSquadRole(Status actor)
@@ -219,8 +232,10 @@ public sealed partial class AIOperationManager
         var side = new Vector3(forward.z, 0, -forward.x);
         int index = squad.Members.IndexOf(member); float lateral = index % 2 == 0 ? -1 : 1;
         bool rear = member.Recovering || actor.HP < actor.MaxHP * AIUnitPreservationConfig.Active.RejoinRatio;
+        var capability = AICapabilityRoles.For(actor);
         float rank = rear ? -2 : member.Role == AIOperationSquadRole.Frontline ? 1
-            : member.Role == AIOperationSquadRole.Scout ? 2 : member.Role == AIOperationSquadRole.Healer ? -2 : -1;
+            : member.Role == AIOperationSquadRole.Scout ? 1 : member.Role == AIOperationSquadRole.Healer ? -2
+            : -Mathf.Clamp(capability.MaximumAttackReach - 1, 1, 4);
         // A moving local anchor, not a hard geometric grid. Only current real legal moves are inspected.
         Vector3 anchor = center;
         if (squad.Phase != AIOperationSquadPhase.Assembling && !rear)
@@ -232,6 +247,9 @@ public sealed partial class AIOperationManager
             {
                 if (partner.HP < partner.MaxHP * AIUnitPreservationConfig.Active.RejoinRatio) continue;
                 int distance = AIOperationFeatureExtractor.Distance(partner.transform.position, Aim(partner));
+                // Keep the firing line anchored on a real healthy shield/front actor
+                // when one is available, instead of following the fastest ranged unit.
+                if (CachedSquadRole(partner) != AIOperationSquadRole.Frontline) distance += 3;
                 if (lead == null || distance < bestDistance
                     || distance == bestDistance && string.CompareOrdinal(partner.ReflectionLifeId, lead.ReflectionLifeId) < 0)
                 { lead = partner; bestDistance = distance; }
@@ -246,6 +264,7 @@ public sealed partial class AIOperationManager
                 || member.Role != AIOperationSquadRole.Scout && !board.IsTerrainKnown(cell)) continue;
             float danger = board.Governor?.IncomingDamage(board, actor, cell, null) ?? board.EstimateCounterDamageAt(cell, actor);
             if (danger >= actor.HP) continue;
+            if (member.Role == AIOperationSquadRole.Ranged && AdjacentObservedHostile(cell, board)) continue;
             float score = -AIOperationFeatureExtractor.Distance(cell, ideal) - danger / Mathf.Max(1, actor.HP) * 4;
             if (!rear) score += Mathf.Clamp(AIOperationFeatureExtractor.Distance(actor.transform.position, Aim(actor))
                 - AIOperationFeatureExtractor.Distance(cell, Aim(actor)), -2, 2);
@@ -257,6 +276,14 @@ public sealed partial class AIOperationManager
         if (found) { member.SlotX = Mathf.RoundToInt(destination.x); member.SlotZ = Mathf.RoundToInt(destination.z); squadSlots.Add(GridHelper.ToGridXZ(destination)); }
     }
     static int CompareCell(Vector3 a, Vector3 b) => a.x != b.x ? a.x.CompareTo(b.x) : a.z != b.z ? a.z.CompareTo(b.z) : a.y.CompareTo(b.y);
+
+    static bool AdjacentObservedHostile(Vector3 cell, AIBoardState board)
+    {
+        foreach (var target in board.AlivePlayerUnits)
+            if (target != null && target.IsAlive && board.IsSpecialActorObserved(target)
+                && GridHelper.ChebyshevDistance(cell, target.transform.position) <= 1) return true;
+        return false;
+    }
 
     void ChooseSquadApproach(AIOperationSquad squad, AIOperationPlan plan, Vector3 center, AIBoardState board)
     {
@@ -309,6 +336,7 @@ public sealed partial class AIOperationManager
     public int SquadActionPriority(AIAction action, AIBoardState board)
     {
         if (!LegalSquadAction(action, board, out var squad, out var member)) return 4;
+        if (coordinationHead == action && CurrentCoordination(board)) return 2;
         if (action.ActionType == AIActionType.Attack && action.TargetUnit != null && board.IsSpecialActorObserved(action.TargetUnit)
             && LegalSquadTargets(action.Unit, board).Contains(action.TargetUnit)
             && AIOperationFeatureExtractor.Distance(action.TargetUnit.transform.position, new Vector3(squad.GoalX, 0, squad.GoalZ)) <= DefenseRadius)
@@ -316,13 +344,12 @@ public sealed partial class AIOperationManager
         if (IsMovement(action.ActionType) && member.HasSlot && !action.Unit.HasMovedThisTurn
             && action.TargetPos.x == member.SlotX && action.TargetPos.z == member.SlotZ
             && board.GetValidMoves(action.Unit).Contains(action.TargetPos)) return 3;
-        if (coordinationHead == action) return 2;
         return 4;
     }
     public float SquadActionBonus(AIAction action, AIBoardState board)
     {
         if (!LegalSquadAction(action, board, out var squad, out var member)) return 0;
-        float bonus = coordinationHead == action ? 1 : 0;
+        float bonus = coordinationHead == action && CurrentCoordination(board) ? 1 : 0;
         if (IsMovement(action.ActionType) && member.HasSlot && action.TargetPos.x == member.SlotX && action.TargetPos.z == member.SlotZ) bonus += 1;
         return Mathf.Min(Mathf.Clamp(AIOperationConfig.Finite(AIOperationSquadConfig.Active.MaximumScoreBonus), 0, 3), bonus);
     }
@@ -333,8 +360,7 @@ public sealed partial class AIOperationManager
             || !action.Unit.IsAlive || MatchObjectiveRules.IsCommander(action.Unit) || action.APCost < 0 || action.APCost > board.EnemyAP
             || StatusEffectSystem.IsStunned(action.Unit)) return false;
         if (squadBoard != board || squadGeneration != board.Generation) return false;
-        if (!squadByActor.TryGetValue(action.Unit.ReflectionLifeId, out squad) || squad.Phase == AIOperationSquadPhase.Suspended
-            || !Running(FindActive(squad.OperationId))
+        if (!TryGetSquad(action.Unit.ReflectionLifeId, out squad)
             || !squadMembers.TryGetValue(action.Unit.ReflectionLifeId, out member)) return false;
         var point = IsMovement(action.ActionType) ? action.TargetPos : action.Unit.transform.position;
         return (board.Governor?.IncomingDamage(board, action.Unit, point, null) ?? board.EstimateCounterDamageAt(point, action.Unit)) < action.Unit.HP
@@ -343,22 +369,7 @@ public sealed partial class AIOperationManager
 
     void SanitizeSquads(AIOperationBattleState restored)
     {
-        var valid = new List<AIOperationSquad>(); var identities = new HashSet<long>(); var members = new HashSet<string>(StringComparer.Ordinal);
-        if (restored.Squads != null && restored.Squads.Count <= 16)
-            foreach (var squad in restored.Squads)
-            {
-                bool owner = false; foreach (var plan in restored.ActiveOperations) if (plan.OperationId == squad?.OperationId) owner = true;
-                if (squad == null || !owner || squad.SquadId < 1 || squad.SquadId == long.MaxValue || !identities.Add(squad.SquadId)
-                    || squad.Members == null || squad.Members.Count > 5 || squad.FormedTurn < 0 || squad.LastProgressTurn < 0
-                    || squad.GoalX < 0 || squad.GoalZ < 0 || squad.GoalX >= 32768 || squad.GoalZ >= 32768
-                    || !Enum.IsDefined(typeof(AIOperationSquadPhase), squad.Phase)) continue;
-                squad.Members.RemoveAll(member => member == null || string.IsNullOrWhiteSpace(member.ActorLifeId) || member.ActorLifeId.Length > 128
-                    || !Enum.IsDefined(typeof(AIOperationSquadRole), member.Role) || !members.Add(member.ActorLifeId));
-                foreach (var member in squad.Members) member.HasSlot = false;
-                if (squad.ApproachX < 0 || squad.ApproachZ < 0 || squad.ApproachX >= 32768 || squad.ApproachZ >= 32768) squad.HasApproachWaypoint = false;
-                if (squad.Members.Count > 0) { valid.Add(squad); restored.NextSquadId = Math.Max(restored.NextSquadId, squad.SquadId); }
-            }
-        restored.Squads = valid; restored.NextSquadId = Math.Max(0, Math.Min(long.MaxValue - 1, restored.NextSquadId));
+        SanitizeSquadState(restored);
         squadByActor.Clear(); squadMembers.Clear(); squadRecruitment.Clear(); squadSlots.Clear(); squadAttackTargets.Clear(); squadBoard = null; squadGeneration = -1;
         squadRoleCache.Clear(); squadRoleBoard = null; squadRoleGeneration = -1;
         ClearCoordination();

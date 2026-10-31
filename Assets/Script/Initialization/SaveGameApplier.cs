@@ -262,8 +262,10 @@ public static class SaveGameApplier
         s.MaxHP = ud.MaxHP > 0 ? ud.MaxHP : ud.HP;
         s.ATK = ud.ATK;
         s.DEF = ud.DEF;
-        s.Level = s.type == Type.Unit ? Mathf.Clamp(ud.Level, 1, GameConstants.MaxUnitLevel) : ud.Level;
-        s.Experience = ud.Experience;
+        s.Level = s.type == Type.Unit ? 1 : ud.Level;
+        s.Experience = s.type == Type.Unit ? 0 : ud.Experience;
+        s.FixedStatsMigrationDeferred = ud.FixedStatsMigrationDeferred;
+        s.LegacyUnitStats = ud.LegacyUnitStats?.Copy();
         ApplyLatestDefinitionStats(s, ud);
         StatusBalanceRefresh.RecordDefinitionBaseline(s);
         s.ShieldTurns = ud.ShieldTurns;
@@ -286,6 +288,8 @@ public static class SaveGameApplier
         else SkillData.AssignFixedSkill(s);
         s.Fatigue = ud.Fatigue;
         s.UpkeepUnpaidTurns = ud.UpkeepUnpaidTurns;
+        s.LastMaintenanceRound = ud.LastMaintenanceRound;
+        s.BuiltByEngineer = ud.BuiltByEngineer;
         s.BuildingOperationAvailable = ud.BuildingOperationAvailable;
         s.SurvivalInstinctUsed = ud.SurvivalInstinctUsed;
 
@@ -322,14 +326,28 @@ public static class SaveGameApplier
     // v0-v7 lack that baseline: preserve their exact stats rather than guessing away earned bonuses.
     static void ApplyLatestDefinitionStats(Status actor, SaveSystem.UnitSaveData saved)
     {
-        if (!saved.HasDefinitionStatSnapshot || !StatusBalanceRefresh.TryGetDefinitionStats(actor,
+        int baselineHP = saved.DefinitionMaxHP, baselineATK = saved.DefinitionATK, baselineDEF = saved.DefinitionDEF;
+        if (saved.FixedStatsMigrationDeferred)
+        {
+            var legacy = saved.LegacyUnitStats;
+            // A scene's id-less definition is only available after its actor is resolved.
+            // The saved formal baseline identifies rewards; unknown history stays deferred.
+            if (legacy == null || !legacy.HasDefinitionBaseline || legacy.DefinitionMaxHP < 1
+                || actor.type != Type.Unit || actor.isWildBoss || actor.IsPrimaryCommander
+                || actor.GrowthData == null || !actor.GrowthData.IsValidForAuthoring
+                || !FixedUnitRules.UsesFixedStats(actor.kind)) return;
+            baselineHP = legacy.DefinitionMaxHP; baselineATK = legacy.DefinitionATK; baselineDEF = legacy.DefinitionDEF;
+        }
+        else if (!saved.HasDefinitionStatSnapshot) return;
+        if (!StatusBalanceRefresh.TryGetDefinitionStats(actor,
             out int definitionHP, out int definitionATK, out int definitionDEF)) return;
         int oldMaxHP = saved.MaxHP > 0 ? saved.MaxHP : saved.HP;
-        actor.MaxHP = AddDefinitionDelta(definitionHP, oldMaxHP, saved.DefinitionMaxHP, 1);
-        actor.ATK = AddDefinitionDelta(definitionATK, saved.ATK, saved.DefinitionATK, 0);
-        actor.DEF = AddDefinitionDelta(definitionDEF, saved.DEF, saved.DefinitionDEF, 0);
+        actor.MaxHP = AddDefinitionDelta(definitionHP, oldMaxHP, baselineHP, 1);
+        actor.ATK = AddDefinitionDelta(definitionATK, saved.ATK, baselineATK, 0);
+        actor.DEF = AddDefinitionDelta(definitionDEF, saved.DEF, baselineDEF, 0);
         actor.HP = saved.HP <= 0 ? 0 : Mathf.Clamp((int)System.Math.Min(int.MaxValue,
             System.Math.Round((double)saved.HP / System.Math.Max(1, oldMaxHP) * actor.MaxHP)), 1, actor.MaxHP);
+        actor.FixedStatsMigrationDeferred = false; actor.LegacyUnitStats = null;
     }
     static int AddDefinitionDelta(int current, int saved, int baseline, int minimum)
         => (int)System.Math.Max(minimum, System.Math.Min(int.MaxValue, (long)current + saved - baseline));

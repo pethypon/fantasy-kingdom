@@ -80,16 +80,18 @@ public sealed class StrategicProductionDemand
     /// <summary>Existing growth-plan costs separated so an operation army does not replace planned construction.</summary>
     public float PlannedBuildingCitizens { get; }
     public float PlannedRecruitCitizens { get; }
-    readonly Dictionary<(FacilityKind, FacilityDefinitionData), ProductionBuildAssessment> assessments
-        = new Dictionary<(FacilityKind, FacilityDefinitionData), ProductionBuildAssessment>();
+    readonly AIBoardState locationBoard;
+    readonly Dictionary<(FacilityKind, FacilityDefinitionData, bool), ProductionBuildAssessment> assessments
+        = new Dictionary<(FacilityKind, FacilityDefinitionData, bool), ProductionBuildAssessment>();
 
     internal StrategicProductionDemand(ResourceDemandState[] resources, EconomyForecastResult forecast, bool critical,
         bool warning, int criticalResources, float[] chainCoverageByResource, float[] chainUrgencyByResource,
         int criticalChainResources, int foodChainResources, int forecastTurns, int capacity, float bottleneck, AIEconomySettings policy,
         float[] permanentProductionByResource = null, int[] productionSources = null, float[] temporaryIncomeByResource = null,
         float[] potentialProductionByResource = null, int[] potentialSources = null, float naturalCitizenGrowthPerTurn = 0,
-        float plannedBuildingCitizens = 0, float plannedRecruitCitizens = 0)
+        float plannedBuildingCitizens = 0, float plannedRecruitCitizens = 0, AIBoardState locationBoard = null)
     {
+        this.locationBoard = locationBoard;
         Resources = resources; Forecast = forecast; HasCriticalDeficit = critical; HasWarningDeficit = warning;
         criticalMask = criticalResources; chainCriticalMask = criticalChainResources;
         foodChainMask = foodChainResources;
@@ -154,7 +156,7 @@ public sealed class StrategicProductionDemand
     public ProductionBuildAssessment EvaluateBuild(AIAction action)
     {
         if (action == null || action.ActionType != AIActionType.Build) return default;
-        return EvaluateBuild(action.Facility, action.FacilityDefinition);
+        return EvaluateBuildCore(action.Facility, action.FacilityDefinition, AIConstructionEconomy.AllowsOre(action, locationBoard));
     }
 
     internal bool ImprovesFoodSupply(AIAction action)
@@ -163,7 +165,7 @@ public sealed class StrategicProductionDemand
             return false;
         var assessment = EvaluateBuild(action);
         if (!assessment.ImprovesDeficit) return false;
-        var recipe = action.FacilityDefinition != null ? action.FacilityDefinition.GetLevel(1) : FacilityData.GetLevel(action.Facility, 1);
+        var recipe = AIConstructionEconomy.BuildRecipe(action, locationBoard);
         if (AIBasicResourceEconomy.NetOutput(recipe, (int)ResourceKind.Bread) > settings.Epsilon)
             return true;
         if (assessment.ChainRecoveryScore <= settings.Epsilon) return false;
@@ -173,10 +175,13 @@ public sealed class StrategicProductionDemand
     }
 
     public ProductionBuildAssessment EvaluateBuild(FacilityKind facility, FacilityDefinitionData definition = null)
+        => EvaluateBuildCore(facility, definition, false);
+    ProductionBuildAssessment EvaluateBuildCore(FacilityKind facility, FacilityDefinitionData definition, bool allowsOre)
     {
-        var key = (facility, definition);
+        var key = (facility, definition, allowsOre);
         if (assessments.TryGetValue(key, out var cached)) return cached;
         var recipe = definition != null ? definition.GetLevel(1) : FacilityData.GetLevel(facility, 1);
+        if (!allowsOre) recipe = AIConstructionEconomy.WithoutUnlocatedOre(recipe);
         // Authored identities may use a compatibility kind whose normal recipe is entirely different.
         var kind = definition != null ? definition.behaviourKind : facility;
         bool house = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse;

@@ -38,27 +38,38 @@ public class APSystem : MonoBehaviour
     public int CalcCost(ActionType action, Status obj,
                         Vector3 from = default, Vector3 to = default)
     {
-        if (action == ActionType.Move && SpecialSkillRuntime.HasAssassinPassive(obj)) return SpecialSkillDefinition.AssassinMoveAP;
-        var environmentMap = mapCreate != null ? mapCreate : obj?.RuntimeSystems?.MapCreate;
-        if (action == ActionType.Move && environmentMap != null && environmentMap.Environment.IsCaveConnection(from, to))
-            return TerrainEnvironmentRuntime.CaveUseAP;
-        int cost = action == ActionType.Move ? BaseMoveCost : action == ActionType.Attack ? BaseAttackCost : BaseCost[action];
+        if (action == ActionType.Move) return CalcMoveCostPreview(obj, from, to, obj.Fatigue, obj.HasMovedThisTurn, true);
+        if (action == ActionType.Attack) return CalcAttackCostPreview(obj, obj.Fatigue, true);
+        int cost = BaseCost[action];
         cost = (int)System.Math.Min(int.MaxValue, (long)cost + Mathf.Max(0, obj.Fatigue));
-        if (action == ActionType.Attack) cost = SpecialSkillRuntime.AttackAPAdjustment(obj, cost);
-        if (action == ActionType.Move)
-        {
-            long movementCost = (long)cost + HeightBonus(obj.kind, from, to);
-            // 鈍足・冷気による移動AP追加コスト
-            movementCost += StatusEffectSystem.GetMoveAPCostBonus(obj);
-            // Special Ability: 迅速体勢（未移動なら移動コスト-1）
-            movementCost -= SpecialAbilitySystem.GetMoveAPReduction(obj);
-            var map = mapCreate != null ? mapCreate : obj?.RuntimeSystems?.MapCreate;
-            if (map != null) movementCost += map.Environment.MoveAPAdjustment(from, to);
-            cost = (int)System.Math.Max(1, System.Math.Min(int.MaxValue, movementCost));
-        }
-        if (action == ActionType.Move && SpecialSkillRuntime.HasFreeMoveAP(obj)
-            || action == ActionType.Attack && SpecialSkillRuntime.HasFreeAttackAP(obj)) return 0;
         return Mathf.Max(1, cost);
+    }
+
+    /// <summary>Formal attack quote at projected fatigue; free action tokens are never consumed by a preview.</summary>
+    public int CalcAttackCostPreview(Status obj, int fatigue, bool allowAvailableFreeAttack = true)
+    {
+        int cost = (int)System.Math.Min(int.MaxValue, (long)BaseAttackCost + Mathf.Max(0, fatigue));
+        cost = SpecialSkillRuntime.AttackAPAdjustment(obj, cost);
+        if (allowAvailableFreeAttack && SpecialSkillRuntime.HasFreeAttackAP(obj)) return 0;
+        return Mathf.Max(1, cost);
+    }
+
+    /// <summary>Same formal move quote with a private projected fatigue/first-move state; never mutates an actor.</summary>
+    public int CalcMoveCostPreview(Status obj, Vector3 from, Vector3 to, int fatigue, bool hasMoved,
+        bool allowAvailableFreeMove = false)
+    {
+        if (SpecialSkillRuntime.HasAssassinPassive(obj)) return SpecialSkillDefinition.AssassinMoveAP;
+        var map = mapCreate != null ? mapCreate : obj?.RuntimeSystems?.MapCreate;
+        if (map != null && map.Environment.IsCaveConnection(from, to)) return TerrainEnvironmentRuntime.CaveUseAP;
+        int cost = (int)System.Math.Min(int.MaxValue, (long)BaseMoveCost + Mathf.Max(0, fatigue));
+        long movementCost = (long)cost + HeightBonus(obj.kind, from, to);
+        movementCost += StatusEffectSystem.GetMoveAPCostBonus(obj);
+        // Swift posture is reset by the real owner-turn boundary, not by each projected step.
+        if (obj.specialAbility == SpecialAbility.SwiftPosture && !hasMoved)
+            movementCost -= (int)SpecialAbilitySystem.SwiftPostureMoveReduction;
+        if (map != null) movementCost += map.Environment.MoveAPAdjustment(from, to);
+        if (allowAvailableFreeMove && SpecialSkillRuntime.HasFreeMoveAP(obj)) return 0;
+        return (int)System.Math.Max(1, System.Math.Min(int.MaxValue, movementCost));
     }
 
     // ==== AP 判定 ====
@@ -166,6 +177,20 @@ public class APSystem : MonoBehaviour
         OnNonMoveAction?.Invoke(team);
         factionState.ModifyAP(team, -info.APCost);
         FacilityData.Consume(factionState.GetResources(team), info.BuildCost);
+    }
+
+    /// <summary>Commit an already revalidated custom build price once. Does not multiply costs.</summary>
+    public bool TryConsumeBuild(Team team, FacilityData.ResourceCost cost, int apCost, FactionState factionState)
+    {
+        if (factionState == null || (team != Team.Player && team != Team.Enemy) || apCost < 0
+            || cost.Wood < 0 || cost.Stone < 0 || cost.Iron < 0 || cost.MagicOre < 0 || cost.Water < 0 || cost.Citizen < 0)
+            return false;
+        var resources = factionState.GetResources(team);
+        if (resources == null || factionState.GetAP(team) < apCost || !FacilityData.CanAfford(resources, cost)) return false;
+        FacilityData.Consume(resources, cost);
+        factionState.ModifyAP(team, -apCost);
+        OnNonMoveAction?.Invoke(team);
+        return true;
     }
 
     // ---- 建築の AP + リソース消費 ----

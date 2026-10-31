@@ -10,6 +10,7 @@ public sealed class AIHypothesisBattleState
     public string BattleId;
     public Team ActorTeam;
     public int LastOwnTurn = -1;
+    public int LastGlobalTurn = -1;
     public List<AIHypothesisSaveEntry> Entries = new List<AIHypothesisSaveEntry>();
     public List<string> ProcessedEventIds = new List<string>();
 }

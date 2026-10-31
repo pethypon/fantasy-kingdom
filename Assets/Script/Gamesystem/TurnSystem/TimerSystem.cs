@@ -1,232 +1,49 @@
 using UnityEngine;
 
 /// <summary>
-/// 時間制限システム:
-/// - 1ターン上限（デフォルト3分）
-/// - 持ち時間（Player/Enemy各600分、最大3600分、設定で変更可）
-/// - ターン制限時間終了で自動ターン切り替え
-/// - 持ち時間終了でクリスタルHP比較による勝敗判定
+/// Legacy clock compatibility for saved games. R2 has no turn or match time limit.
+/// AI search retains its separate technical budgets; these values never end a turn or decide a game.
 /// </summary>
 public class TimerSystem : MonoBehaviour
 {
-    [Header("1ターン上限（秒）")]
-    public float TurnTimeLimit = 180f;
+    // Preserve serialized names so old scenes and saves remain readable. They are inert historical data.
+    [HideInInspector] public float TurnTimeLimit = 180f;
+    [HideInInspector] public float PlayerTotalTime = 36000f;
+    [HideInInspector] public float EnemyTotalTime = 36000f;
+    [HideInInspector] public float MaxTotalTime = 216000f;
+    [HideInInspector] public float TurnTimeBonus = 60f;
 
-    [Header("持ち時間（秒） ※デフォルト600分=36000秒")]
-    public float PlayerTotalTime = 36000f;
-    public float EnemyTotalTime = 36000f;
+    float turnTimeRemaining;
+    bool isRunning;
+    Team currentTeam;
 
-    [Header("最大持ち時間（秒） ※デフォルト3600分=216000秒")]
-    public float MaxTotalTime = 216000f;
-
-    [Header("1ターン待ち時間ボーナス（秒）")]
-    public float TurnTimeBonus = 60f;
-
-    // ---- 現在値 ----
-    private float turnTimeRemaining;
-    private bool isRunning;
-    private Team currentTeam;
-
-    // ---- 警告フラグ（同一ターン内で1回だけ通知） ----
-    private bool warned30s;
-    private bool warned10s;
-
-    // ---- 外部参照 ----
-    private TurnGenerator turnGenerator;
-    private CrystalSystem crystalsystem;
-
-    // ---- コールバック: ターン自動終了 ----
+    // Kept for call-site / save compatibility. No R2 path invokes either callback.
     public System.Action OnTurnTimeExpired;
     public System.Action<GameResult> OnTotalTimeExpired;
-
-    // ---- UI用プロパティ ----
+    public bool TimeLimitsEnabled => false;
     public float TurnTimeRemaining => turnTimeRemaining;
     public float PlayerTimeRemaining => PlayerTotalTime;
     public float EnemyTimeRemaining => EnemyTotalTime;
     public Team CurrentTeam => currentTeam;
     public bool IsRunning => isRunning;
-    /// <summary>Read-only hard clock boundary for this side's AI. Never extends game time.</summary>
-    public double AvailableAIThinkingMilliseconds(Team team)
-    {
-        if (!isRunning || currentTeam != team) return double.PositiveInfinity;
-        double total = team == Team.Player ? PlayerTotalTime : EnemyTotalTime;
-        if (double.IsNaN(total) || double.IsInfinity(total)) total = 0;
-        return System.Math.Min(SafeSeconds(turnTimeRemaining), System.Math.Max(0, total)) * 1000d;
-    }
-    public GameResult? LastTimeUpResult { get; private set; }
-    public string TimeUpReasonText { get; private set; } = "";
+    public GameResult? LastTimeUpResult => null;
+    public string TimeUpReasonText => string.Empty;
 
-    /// <summary>セーブデータからターン残り時間を復元</summary>
-    public void RestoreTurnTimeRemaining(float value) { turnTimeRemaining = SafeSeconds(value); }
+    /// <summary>No gameplay deadline; callers still apply their own search/turn safety budgets.</summary>
+    public double AvailableAIThinkingMilliseconds(Team team) => double.PositiveInfinity;
 
-    public void Init(TurnGenerator turnGenerator, CrystalSystem crystalsystem)
-    {
-        this.turnGenerator = turnGenerator;
-        this.crystalsystem = crystalsystem;
-        LastTimeUpResult = null;
-        TimeUpReasonText = "";
-        GameAuthoringRules.Active?.ApplyTimer(this);
-    }
+    public void RestoreTurnTimeRemaining(float value) => turnTimeRemaining = SafeSeconds(value);
+    public void Init(TurnGenerator turnGenerator, CrystalSystem crystalsystem) { }
+    public void ResumeTurn(Team team) { currentTeam = team; isRunning = true; }
+    public void StartTurn(Team team) { currentTeam = team; isRunning = true; }
+    public void StopTurn() => isRunning = false;
 
-    /// <summary>ターン開始時に呼ぶ</summary>
-    public void ResumeTurn(Team team)
-    {
-        currentTeam = team;
-        isRunning = true;
-        warned30s = turnTimeRemaining <= GameConstants.TimerWarningThreshold;
-        warned10s = turnTimeRemaining <= GameConstants.TimerCriticalThreshold;
-    }
+    /// <summary>Legacy test/caller seam. Advancing elapsed time has no gameplay effect in R2.</summary>
+    internal void Advance(float dt) { }
 
-    public void StartTurn(Team team)
-    {
-        currentTeam = team;
-        turnTimeRemaining = Mathf.Max(1f, SafeSeconds(TurnTimeLimit));
-        isRunning = true;
-        warned30s = false;
-        warned10s = false;
-    }
+    static float SafeSeconds(float value) => float.IsNaN(value) || float.IsInfinity(value) ? 0 : Mathf.Max(0, value);
 
-    /// <summary>ターン終了時に呼ぶ（手動終了時）</summary>
-    public void StopTurn()
-    {
-        if (isRunning && GameAuthoringRules.Active != null)
-        {
-            float bonus = SafeSeconds(TurnTimeBonus);
-            if (currentTeam == Team.Player) PlayerTotalTime = Mathf.Min(MaxTotalTime, SafeSeconds(PlayerTotalTime) + bonus);
-            else if (currentTeam == Team.Enemy) EnemyTotalTime = Mathf.Min(MaxTotalTime, SafeSeconds(EnemyTotalTime) + bonus);
-        }
-        isRunning = false;
-    }
-
-    private void Update()
-    {
-        if (!isRunning || (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen)) return;
-
-        Advance(Time.deltaTime);
-    }
-
-    internal void Advance(float dt)
-    {
-        if (!isRunning || float.IsNaN(dt) || float.IsInfinity(dt) || dt < 0) return;
-
-        // 1ターン制限時間を減算
-        turnTimeRemaining = Mathf.Max(0, SafeSeconds(turnTimeRemaining) - dt);
-
-        // 持ち時間を減算
-        if (currentTeam == Team.Player)
-            PlayerTotalTime = Mathf.Max(0, SafeSeconds(PlayerTotalTime) - dt);
-        else
-            EnemyTotalTime = Mathf.Max(0, SafeSeconds(EnemyTotalTime) - dt);
-
-        // 持ち時間が切れたらゲーム終了
-        if (PlayerTotalTime <= 0f || EnemyTotalTime <= 0f)
-        {
-            isRunning = false;
-            GameResult result = DetermineTimeUpResult();
-            OnTotalTimeExpired?.Invoke(result);
-            return;
-        }
-
-        // プレイヤーターン中の残り時間警告
-        if (currentTeam == Team.Player && turnTimeRemaining > 0)
-        {
-            if (!warned30s && turnTimeRemaining <= GameConstants.TimerWarningThreshold)
-            {
-                warned30s = true;
-                ToastMessageUI.Show($"残り{(int)GameConstants.TimerWarningThreshold}秒", ToastMessageUI.MessageType.Warning);
-            }
-            if (!warned10s && turnTimeRemaining <= GameConstants.TimerCriticalThreshold)
-            {
-                warned10s = true;
-                ToastMessageUI.Show($"残り{(int)GameConstants.TimerCriticalThreshold}秒！", ToastMessageUI.MessageType.Error);
-            }
-        }
-
-        // 1ターン制限時間が切れたら自動ターン終了
-        if (turnTimeRemaining <= 0f)
-        {
-            isRunning = false;
-            OnTurnTimeExpired?.Invoke();
-        }
-    }
-
-    /// <summary>持ち時間切れ時の勝敗判定</summary>
-    private GameResult DetermineTimeUpResult()
-    {
-        // クリスタルのHP比較
-        Status playerCrystal = GetCrystalStatus(crystalsystem != null ? crystalsystem.Playercrystal : null);
-        Status enemyCrystal = GetCrystalStatus(crystalsystem != null ? crystalsystem.Enemycrystal : null);
-
-        if (playerCrystal == null || enemyCrystal == null)
-        {
-            Debug.LogError("[TimerSystem] クリスタルStatus取得失敗");
-            return RecordTimeUpResult(GameResult.TimeUpDraw, "判定に必要なクリスタル情報がなく、引き分けになりました");
-        }
-
-        float playerCrystalRatio = playerCrystal.MaxHP > 0
-            ? (float)playerCrystal.HP / playerCrystal.MaxHP : 0f;
-        float enemyCrystalRatio = enemyCrystal.MaxHP > 0
-            ? (float)enemyCrystal.HP / enemyCrystal.MaxHP : 0f;
-
-        Debug.Log($"[TimerSystem] 時間切れ判定: Pクリスタル={playerCrystalRatio:P1} Eクリスタル={enemyCrystalRatio:P1}");
-
-        int crystalComparison = MatchObjectiveRules.CompareHealthRatios(playerCrystal, enemyCrystal);
-        if (crystalComparison > 0)
-            return RecordTimeUpResult(GameResult.TimeUpWin, "総持ち時間切れ：メインクリスタルの残HP率が敵より高かったため勝利");
-        if (crystalComparison < 0)
-            return RecordTimeUpResult(GameResult.TimeUpLose, "総持ち時間切れ：メインクリスタルの残HP率が敵より低かったため敗北");
-
-        // クリスタル同率 → 王のHP%で比較
-        Status playerKing = FindKing(Team.Player);
-        Status enemyKing = FindKing(Team.Enemy);
-
-        float playerKingRatio = (playerKing != null && playerKing.MaxHP > 0)
-            ? (float)playerKing.HP / playerKing.MaxHP : 0f;
-        float enemyKingRatio = (enemyKing != null && enemyKing.MaxHP > 0)
-            ? (float)enemyKing.HP / enemyKing.MaxHP : 0f;
-
-        Debug.Log($"[TimerSystem] 王HP比較: P王={playerKingRatio:P1} E王={enemyKingRatio:P1}");
-
-        int kingComparison = MatchObjectiveRules.CompareHealthRatios(playerKing, enemyKing);
-        if (kingComparison > 0)
-            return RecordTimeUpResult(GameResult.TimeUpWin, "総持ち時間切れ：クリスタルは同率、王の残HP率が敵より高かったため勝利");
-        if (kingComparison < 0)
-            return RecordTimeUpResult(GameResult.TimeUpLose, "総持ち時間切れ：クリスタルは同率、王の残HP率が敵より低かったため敗北");
-
-        return RecordTimeUpResult(GameResult.TimeUpDraw, "総持ち時間切れ：メインクリスタルと王の残HP率がともに同率のため引き分け");
-    }
-
-    private GameResult RecordTimeUpResult(GameResult result, string reason)
-    {
-        LastTimeUpResult = result;
-        TimeUpReasonText = reason;
-        return result;
-    }
-
-    private Status GetCrystalStatus(Transform crystalParent)
-    {
-        if (crystalParent == null) return null;
-        return crystalParent.GetComponentInChildren<Status>();
-    }
-
-    private Status FindKing(Team team)
-    {
-        if (turnGenerator == null || turnGenerator.Systems.UnitSetting == null) return null;
-        Transform parent = team == Team.Player
-            ? turnGenerator.Systems.UnitSetting.PlayerUnit
-            : turnGenerator.Systems.UnitSetting.EnemyUnit;
-        if (parent == null) return null;
-        foreach (Status s in parent.GetComponentsInChildren<Status>())
-        {
-            if (MatchObjectiveRules.IsCommander(s) && s.gameObject.activeSelf)
-                return s;
-        }
-        return null;
-    }
-
-    /// <summary>表示用: 秒を mm:ss に変換</summary>
-    private static float SafeSeconds(float value) => float.IsNaN(value) || float.IsInfinity(value) ? 0 : Mathf.Max(0,value);
-
+    /// <summary>Utility retained for historical records, never displayed as an active gameplay clock.</summary>
     public static string FormatTime(float seconds)
     {
         seconds = SafeSeconds(seconds);

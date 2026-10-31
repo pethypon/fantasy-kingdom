@@ -1,0 +1,153 @@
+[A1Housing] PASS HS03 formal-reset citizen=0
+[A1Housing] PASS HS03 formal-reset citizen=1
+[A1Housing] PASS HS03 formal-reset citizen=5
+[A1Housing] PASS HS03 formal-reset citizen=20
+[A1Housing] PASS HS03 formal-reset citizen=100
+[A1Housing] PASS HS03 formal-reset citizen=2147483647
+[A1Housing] PASS HS04 current-game maximum is60, no stale15 clamp
+[A1Housing] PASS HS03 penalty is included in required stock
+[A1Housing] PASS HS01 reset already funds target without citizens
+[A1Housing] PASS HS08 AP preview never mutates live state
+[A1Housing] PASS HS04 authored lower AP maximum is honored
+[A1Housing] PASS HS04 zero citizen bonus cannot justify AP housing
+[A1Housing] PASS HS03 authored citizen bonus uses minimum whole citizens
+[A1Housing] PASS HS04 unreachable reset penalty cannot cause endless houses
+[A1Housing] PASS HS01 HS05 enough capacity despite empty stock
+[A1Housing] PASS HS02 one expensive recruit plus reserve
+[A1Housing] PASS HS02 construction and duplicate army demand are not summed
+[A1Housing] PASS HS03 AP stock shares the same citizens
+[A1Housing] PASS HS03 no reserve added twice to AP target
+[A1Housing] RESULT scene-free checks=19
+[A1Coordination] PASS RL02-custom-long-range-Knight-has-real-reach
+[A1Coordination] PASS RL02-same-Kind-melee-mask-changes-role
+[A1Coordination] PASS empty-custom-mask-does-not-fall-back-to-Kind
+[A1Coordination] PASS full-eight-cell-origin-range-is-recognized
+[A1Coordination] PASS support-action-type-disables-a-populated-attack-mask
+[A1Coordination] PASS broad-mobile-ranged-keeps-its-fire-role-without-a-vision-advantage
+[A1Coordination] PASS RL04-custom-broad-mobile-observer-can-scout-without-Scout-Kind
+[A1Coordination] PASS Scout-name-alone-cannot-invent-mobility
+[A1Coordination] PASS RL01-no-healing-Priest-is-not-healer
+[A1Coordination] PASS passive-aura-fixture-has-complete-formal-configuration
+[A1Coordination] PASS RL01-real-passive-aura-remains-healer
+[A1Coordination] PASS passive-action-profile-does-not-invent-an-active-heal
+[A1Coordination] PASS support-profile-retains-a-valid-active-heal
+[A1Coordination] PASS RL08-commander-never-fills-a-disposable-recruitment-role
+[A1Coordination] PASS RL09-save-role-enum-values-remain-stable
+[A1Coordination] PASS baseline-definition-exists-Knight
+[A1Coordination] PASS RL02-baseline-role-Knight
+[A1Coordination] PASS baseline-definition-exists-Assassin
+[A1Coordination] PASS RL02-baseline-role-Assassin
+[A1Coordination] PASS baseline-definition-exists-Guardian
+[A1Coordination] PASS RL02-baseline-role-Guardian
+[A1Coordination] PASS baseline-definition-exists-Archer
+[A1Coordination] PASS RL02-baseline-role-Archer
+[A1Coordination] PASS baseline-definition-exists-Magic
+[A1Coordination] PASS RL02-baseline-role-Magic
+[A1Coordination] PASS baseline-definition-exists-Crossbow
+[A1Coordination] PASS RL02-baseline-role-Crossbow
+[A1Coordination] PASS baseline-definition-exists-Magic Sniper
+[A1Coordination] PASS RL02-baseline-role-Magic Sniper
+[A1Coordination] PASS baseline-definition-exists-Bomber
+[A1Coordination] PASS RL02-baseline-role-Bomber
+[A1Coordination] PASS baseline-definition-exists-Scout
+[A1Coordination] PASS RL02-baseline-role-Scout
+[A1Coordination] PASS RL03-baseline-composition-keeps-distinct-shields-fire-and-recon
+[A1Coordination] PASS production-definition-exists-Ninja
+[A1Coordination] PASS RL02-authored-production-role-Ninja
+[A1Coordination] PASS production-definition-exists-Navigator
+[A1Coordination] PASS RL02-authored-production-role-Navigator
+[A1Coordination] PASS production-definition-exists-Berserker
+[A1Coordination] PASS RL02-authored-production-role-Berserker
+[A1Coordination] PASS production-definition-exists-HeavyWarrior
+[A1Coordination] PASS RL02-authored-production-role-HeavyWarrior
+[A1Coordination] PASS production-definition-exists-DragonKnight
+[A1Coordination] PASS RL02-authored-production-role-DragonKnight
+[A1Coordination] PASS production-definition-exists-Samurai
+[A1Coordination] PASS RL02-authored-production-role-Samurai
+[A1Coordination] PASS CQ02-guaranteed-new-Mark-can-prepare-following-attacks
+[A1Coordination] PASS CQ03-probable-control-is-not-guaranteed
+[A1Coordination] PASS nonfinite-control-chance-is-rejected
+[A1Coordination] PASS CQ03-main-crystal-immunity-prevents-invented-synergy
+[A1Coordination] PASS already-active-debuff-is-not-extra-damage
+[A1Coordination] PASS unused-formal-debuff-nullification-is-respected
+[A1Coordination] PASS spent-nullification-does-not-grant-permanent-immunity
+[A1Coordination] PASS CQ03-poison-is-not-immediate-normal-attack-synergy
+[A1Coordination] PASS R2-no-ordinary-DEF-means-no-ArmorBreak-synergy
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Knight-0
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Knight-0
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Knight-3
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Knight-3
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Knight-12
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Knight-12
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Assassin-0
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Assassin-0
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Assassin-3
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Assassin-3
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Assassin-12
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Assassin-12
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Guardian-0
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Guardian-0
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Guardian-3
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Guardian-3
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Guardian-12
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Guardian-12
+[A1Coordination] PASS CQ01-two-current-formal-attacks-compose-a-bounded-kill
+[A1Coordination] PASS CQ05-real-budget-above-stale-15-is-usable
+[A1Coordination] PASS AT08-other-squad-AP-spend-invalidates-old-sequence
+[A1Coordination] PASS CQ04-target-HP-change-requires-regeneration
+[A1Coordination] PASS changed-finite-protection-requires-regeneration
+[A1Coordination] PASS CQ05-changed-official-action-cost-invalidates-sequence
+[A1Coordination] PASS CQ04-target-movement-requires-new-formal-target-witnesses
+[A1Coordination] PASS CQ06-ally-facing-change-requires-revalidation
+[A1Coordination] PASS CQ10-commander-cannot-become-a-cached-disposable-step
+[A1Coordination] PASS CQ04-target-death-invalidates-old-sequence
+[A1Coordination] PASS CQ09-target-visibility-loss-invalidates-sequence
+[A1Coordination] PASS CQ09-live-hidden-target-reference-cannot-rebuild-a-chain
+[A1Coordination] PASS CQ05-one-actor-cannot-be-counted-twice-at-current-fatigue
+[A1Coordination] PASS stale-advertised-AP-cannot-form-a-legal-chain
+[A1Coordination] PASS CQ04-generation-change-cannot-replay-current-plan
+[A1Retreat] PASS RT01 known two-step path records current and next owner AP
+[A1Retreat] PASS RT06 next-turn AP cannot pay an unaffordable first hop
+[A1Retreat] PASS RT06 insufficient next-turn reset rejects the continuation
+[A1Retreat] PASS RT06 same-turn second step charges increased fatigue
+[A1Retreat] PASS RT06 same-turn fatigue cannot be reset without a funded boundary
+[A1Retreat] PASS RT03 known lethal waiting point is not a safe next-turn path
+[A1Retreat] PASS finite barrier is carried across owner turns instead of refilled per cell
+[A1Retreat] PASS RT02 safety without actual recovery capability is not a regroup endpoint
+[A1Retreat] PASS RT05 separate wounded actors receive distinct first hops
+[A1Retreat] PASS RT07 blocked first hop returns no order so legal fight alternatives remain
+[A1Retreat] PASS configured depth rejects a route beyond its horizon
+[A1Retreat] PASS configured node cap is respected
+[A1Retreat] PASS global thinking budget stops route expansion
+[A1Retreat] PASS RT10 route cycles do not manufacture progress
+[A1Retreat] PASS RL02 RT01 authored direction-dependent mask is used at each origin
+[A1Retreat] PASS RT05 owned occupation blocks a projected step
+[A1Retreat] PASS unexplored terrain is not a certified retreat chain
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=0
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=0
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=2
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=2
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=9
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=9
+[A1Retreat] PASS projected quote leaves live fatigue and first-move flags intact
+[A1Retreat] PASS Assassin quote retains formal early-return precedence
+[A1Retreat] PASS RT08 full HP waits the first two formal owner boundaries
+[A1Retreat] PASS RT08 third full-HP boundary restores formal rounded twenty percent
+[A1Retreat] PASS RT08 forecast equals native recovery transition
+[A1Retreat] PASS RT08 incomplete HP never invents a future healer action
+[A1Retreat] PASS AD04 RT08 unpaid forecast cites formal HP-loss rule and cannot promise barrier regeneration
+[A1Retreat] PASS forecast never advances the live full-HP clock
+[A1Retreat] COMPLETE (native contracts, no match outcome claimed)
+[A1Core] COMPLETE

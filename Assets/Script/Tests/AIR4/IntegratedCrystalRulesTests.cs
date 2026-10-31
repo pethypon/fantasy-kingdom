@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>Development contracts only. Added with R1; not an executed playtest or acceptance result.</summary>
+/// <summary>Registered development contracts. Added with R1; not an executed playtest or acceptance result.</summary>
 public static class IntegratedCrystalRulesTests
 {
     static int checks;
@@ -53,6 +53,9 @@ public static class IntegratedCrystalRulesTests
         go.transform.position = new Vector3(x, 0, 0);
         var actor = go.AddComponent<Status>(); actor.kind = kind; actor.type = Type.Unit; actor.team = side;
         actor.HP = actor.MaxHP = hp; actor.ATK = actor.DEF = 0;
+        // Isolate the counter's HP fraction; automatic initial barriers otherwise absorb it.
+        // Barrier priority itself is covered by the shared damage/barrier contracts.
+        actor.ResetBarrier(); actor.Barrier = 0;
         actor.RestoreReflectionLifeId("r1-" + side + "-" + kind + "-" + x);
         return actor;
     }

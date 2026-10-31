@@ -9,6 +9,7 @@ public class EnemyMove : TurnState
     private bool budgetSynchronized, menuPaused;
     private readonly System.Diagnostics.Stopwatch elapsed = new System.Diagnostics.Stopwatch();
     private double deadlineMs;
+    private long previousBudgetSequence;
 
     public override void Entry()
     {
@@ -17,9 +18,10 @@ public class EnemyMove : TurnState
         budgetSynchronized = menuPaused = false;
         // Initialization is bounded too. The first core step commits the observed
         // category before its first yield; then this becomes that exact decision's deadline.
-        deadlineMs = AIThinkingBudgetConfig.MaximumMilliseconds + AIThinkingBudgetConfig.MaximumCompletionGraceMilliseconds;
-        if (Systems.TimerSystem != null)
-            deadlineMs = System.Math.Min(deadlineMs, Systems.TimerSystem.AvailableAIThinkingMilliseconds(Team.Enemy));
+        deadlineMs = AITurnBudget.ClampCompletionDeadline(
+            AIThinkingBudgetConfig.MaximumMilliseconds + AIThinkingBudgetConfig.MaximumCompletionGraceMilliseconds,
+            Systems.TimerSystem != null ? Systems.TimerSystem.AvailableAIThinkingMilliseconds(Team.Enemy) : double.PositiveInfinity);
+        previousBudgetSequence = Systems.AICommander?.ThinkingBudgetSequence ?? 0;
         elapsed.Restart();
         if (Systems.TimerSystem != null)
         {
@@ -44,9 +46,10 @@ public class EnemyMove : TurnState
         try { AITurnBudget.Resume(); more = actions != null && actions.MoveNext(); }
         catch (System.Exception e) { Debug.LogException(e); }
         finally { AITurnBudget.Pause(); }
-        if (!budgetSynchronized && Systems.AICommander?.HasPreparedThinkingBudget == true)
+        if (!budgetSynchronized && Systems.AICommander != null
+            && Systems.AICommander.TryGetPreparedThinkingBudget(previousBudgetSequence, Team.Enemy, out var decision))
         {
-            deadlineMs = Systems.AICommander.ActiveThinkingBudget.CompletionDeadlineMilliseconds;
+            deadlineMs = AITurnBudget.ClampCompletionDeadline(decision.CompletionDeadlineMilliseconds);
             budgetSynchronized = true;
         }
         if (!more && !Turn.IsGameOver && Turn.CurrentState == this) FinishTurn();

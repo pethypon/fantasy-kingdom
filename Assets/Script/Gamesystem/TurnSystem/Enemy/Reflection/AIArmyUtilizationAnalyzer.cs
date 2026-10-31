@@ -88,7 +88,7 @@ public sealed class AIArmyUtilizationAnalyzer
             var definition = unit.GrowthData != null ? unit.GrowthData : board.ResolveUnitDefinition(unit.kind);
             if (definition != null)
             {
-                var upkeep = definition.GetUpkeep(unit.Level);
+                var upkeep = definition.GetFixedUpkeep();
                 evidence.Upkeep += (float)Math.Max(0, upkeep.Bread) + Math.Max(0, upkeep.Iron) + Math.Max(0, upkeep.Wood)
                     + Math.Max(0, upkeep.Stone) + Math.Max(0, upkeep.MagicOre) + Math.Max(0, upkeep.Water);
             }
@@ -123,7 +123,7 @@ public sealed class AIArmyUtilizationAnalyzer
             if (record == null || record.Turn != board.TurnCount || !record.ExecutionSucceeded) continue;
             var outcome = record.Outcome;
             bool combat = outcome != null && (outcome.DamageDealt > 0 || outcome.EnemyKills > 0);
-            bool objective = outcome != null && outcome.DistanceToObjectiveDelta > 0;
+            bool objective = outcome != null && AIActionOutcome.ObjectiveDistanceChange(record.Before, record.After) > 0;
             bool scout = outcome != null && (outcome.NewTilesRevealed > 0 || outcome.NewEnemyLifeIds?.Count > 0);
             bool support = outcome != null && (outcome.HealingDone > 0 || outcome.EffectChanged || outcome.ShieldReduced
                 || outcome.ShieldGranted || outcome.ApRecovered > 0);

@@ -79,7 +79,10 @@ public partial class AIMinimaxEngine
                 h ^= RecoveryHash(barrierState ^ (slot * 0x9E3779B97F4A7C15UL));
                 ulong barrierRecovery = (ulong)(uint)Mathf.Clamp(u.BarrierSafeTurns, 0, 4)
                     | (u.BarrierDamaged ? 8UL : 0) | (u.BarrierLastRound == board.TurnCount ? 16UL : 0)
-                    | (u.BarrierHasRecovered ? 32UL : 0) | (u.BarrierHasOwnTurnBaseline ? 64UL : 0);
+                    | (u.BarrierHasRecovered ? 32UL : 0) | (u.BarrierHasOwnTurnBaseline ? 64UL : 0)
+                    | (u.BarrierFullHPObserved ? 128UL : 0)
+                    | (u.BarrierRuleRevision == BarrierSystem.RecoveryRuleRevision ? 256UL : 0)
+                    | (u.EngineerBarrierConfigured ? 512UL : 0);
                 ulong damageAge = u.BarrierLastDamagedRound < 0 ? 5UL
                     : (ulong)System.Math.Min(4,System.Math.Max(0,(long)board.TurnCount-u.BarrierLastDamagedRound));
                 h ^= RecoveryHash((slot << 10) ^ (damageAge << 7) ^ barrierRecovery ^ 0xD1B54A32D192ED03UL);

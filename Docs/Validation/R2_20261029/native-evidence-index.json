@@ -1,0 +1,44 @@
+[
+  {
+    "label": "core",
+    "fullLogFilename": "core-post-support.log",
+    "sha256": "4ecba132ba6409c9c73739d659afcdb9e67880ae5ccca3e2395b6fe4ec505a3b",
+    "excerpt": "core-native.txt",
+    "note": "Native custom Editor/Play Mode harness; not Unity Test Framework XML."
+  },
+  {
+    "label": "save-copies",
+    "fullLogFilename": "real-saves-post-support.log",
+    "sha256": "439ee24c60778dfc64771429dffb212606f1c8d3f103d28ebbc1428fbad506c6",
+    "excerpt": "save-copies-native.txt",
+    "note": "Native custom Editor/Play Mode harness; not Unity Test Framework XML."
+  },
+  {
+    "label": "construction",
+    "fullLogFilename": "r2-construction-release-candidate.log",
+    "sha256": "df84188727374ee7c21d1e5ffe66efd1b3daecd46a0ab163880c1974495c0e86",
+    "excerpt": "construction-native.txt",
+    "note": "Native custom Editor/Play Mode harness; not Unity Test Framework XML."
+  },
+  {
+    "label": "engineer-ai",
+    "fullLogFilename": "r2-support-recruitment-fixed.log",
+    "sha256": "ba2a1ec90ab52b7f3b671ff685de179385e10103ba02d3008bd1999d7061bc4b",
+    "excerpt": "engineer-ai-native.txt",
+    "note": "Native custom Editor/Play Mode harness; not Unity Test Framework XML."
+  },
+  {
+    "label": "preservation",
+    "fullLogFilename": "r2-preservation-post-support.log",
+    "sha256": "9ad9c5e03a6c8c4628f2a1fd3b7a27a0558a587e62b2d377ac5130dbd987d9af",
+    "excerpt": "preservation-native.txt",
+    "note": "Native custom Editor/Play Mode harness; not Unity Test Framework XML."
+  },
+  {
+    "label": "core-existing",
+    "fullLogFilename": "core-existing-r2.log",
+    "sha256": "e7f04487ca78bb11d866f0b69e75940777711cc3ee5e9f4d5b1c5ee26b58440e",
+    "excerpt": "core-existing-native.txt",
+    "note": "Native custom Editor/Play Mode harness; not Unity Test Framework XML."
+  }
+]

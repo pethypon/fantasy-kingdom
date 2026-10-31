@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "scope": "実行済み通常対戦の既存ログを照合した読み取り専用調査。追加のUnity実行・ゲームルール変更は行っていない。通常生産施設と壁の通行判定を区別する。全経路の連結性や全種の設置条件を検証したものではない。",
+  "sourceCommit": "065dc5d097c039e81d6c2294535a50ade8dcf5bb",
+  "match": "final-t15-271828",
+  "mapSeed": 271828,
+  "threatLevel": 15,
+  "rawActions": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/ai-play20261029-final-t15-matches/02-271828/actions.csv",
+  "rawActionsSha256": "21c3dc4dec363f7aabce2298c2e25df8c2d5d4123dbf464ac1101148e7eb2779",
+  "runtimeEvidence": [
+    {
+      "cellXZ": [
+        7,
+        30
+      ],
+      "build": {
+        "csvLine": 12,
+        "team": "Enemy",
+        "round": "1",
+        "id": "1",
+        "type": "Build",
+        "targetCategory": "Facility:Field",
+        "succeeded": "True",
+        "requestedX": "7",
+        "requestedZ": "30",
+        "beforeX": "0",
+        "beforeZ": "0",
+        "afterX": "0",
+        "afterZ": "0",
+        "actorLifeId": "",
+        "APBefore": "35",
+        "APAfter": "32",
+        "ActionAPCost": "3"
+      },
+      "laterMove": {
+        "csvLine": 70,
+        "team": "Enemy",
+        "round": "4",
+        "id": "33",
+        "type": "Move",
+        "targetCategory": "Cell",
+        "succeeded": "True",
+        "requestedX": "7",
+        "requestedZ": "30",
+        "beforeX": "8",
+        "beforeZ": "30",
+        "afterX": "7",
+        "afterZ": "30",
+        "actorLifeId": "f782dfe16ea3496e85f61b9bebf7d5e6",
+        "APBefore": "8",
+        "APAfter": "0",
+        "ActionAPCost": "8"
+      }
+    },
+    {
+      "cellXZ": [
+        8,
+        29
+      ],
+      "build": {
+        "csvLine": 13,
+        "team": "Enemy",
+        "round": "1",
+        "id": "2",
+        "type": "Build",
+        "targetCategory": "Facility:Well",
+        "succeeded": "True",
+        "requestedX": "8",
+        "requestedZ": "29",
+        "beforeX": "0",
+        "beforeZ": "0",
+        "afterX": "0",
+        "afterZ": "0",
+        "actorLifeId": "",
+        "APBefore": "32",
+        "APAfter": "29",
+        "ActionAPCost": "3"
+      },
+      "laterMove": {
+        "csvLine": 99,
+        "team": "Enemy",
+        "round": "6",
+        "id": "46",
+        "type": "Move",
+        "targetCategory": "Cell",
+        "succeeded": "True",
+        "requestedX": "8",
+        "requestedZ": "29",
+        "beforeX": "7",
+        "beforeZ": "30",
+        "afterX": "8",
+        "afterZ": "29",
+        "actorLifeId": "f782dfe16ea3496e85f61b9bebf7d5e6",
+        "APBefore": "24",
+        "APAfter": "19",
+        "ActionAPCost": "5"
+      }
+    },
+    {
+      "cellXZ": [
+        6,
+        28
+      ],
+      "build": {
+        "csvLine": 15,
+        "team": "Enemy",
+        "round": "1",
+        "id": "4",
+        "type": "Build",
+        "targetCategory": "Facility:Quarry",
+        "succeeded": "True",
+        "requestedX": "6",
+        "requestedZ": "28",
+        "beforeX": "0",
+        "beforeZ": "0",
+        "afterX": "0",
+        "afterZ": "0",
+        "actorLifeId": "",
+        "APBefore": "26",
+        "APAfter": "22",
+        "ActionAPCost": "4"
+      },
+      "laterMove": {
+        "csvLine": 82,
+        "team": "Enemy",
+        "round": "5",
+        "id": "37",
+        "type": "Move",
+        "targetCategory": "Cell",
+        "succeeded": "True",
+        "requestedX": "6",
+        "requestedZ": "28",
+        "beforeX": "7",
+        "beforeZ": "28",
+        "afterX": "6",
+        "afterZ": "28",
+        "actorLifeId": "f782dfe16ea3496e85f61b9bebf7d5e6",
+        "APBefore": "24",
+        "APAfter": "20",
+        "ActionAPCost": "4"
+      }
+    }
+  ],
+  "sourceEvidence": [
+    {
+      "path": "Assets/Script/Gamesystem/BuildSystem.cs",
+      "line": 325,
+      "url": "https://github.com/pethypon/fantasy-kingdom/blob/065dc5d097c039e81d6c2294535a50ade8dcf5bb/Assets/Script/Gamesystem/BuildSystem.cs#L325",
+      "sha256": "3016346612ccabb5c612058a715b92566772ab99f2484a11c4d051179c7ded26",
+      "fact": "建築時に通行占有へ追加するのはFacilityData.IsWallで判定した壁のみ。"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/MoveGenerator.cs",
+      "line": 130,
+      "url": "https://github.com/pethypon/fantasy-kingdom/blob/065dc5d097c039e81d6c2294535a50ade8dcf5bb/Assets/Script/Gamesystem/MoveGenerator.cs#L130",
+      "sha256": "432873e639fe063c86db643bfd61ac10a591964237a220dfbf9226b9a891404a",
+      "fact": "占有再計算では建物親から生存するType.WallだけをCollectWallPositionsで追加する。通常生産施設は占有障害物にしない。"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+      "line": 504,
+      "url": "https://github.com/pethypon/fantasy-kingdom/blob/065dc5d097c039e81d6c2294535a50ade8dcf5bb/Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs#L504",
+      "sha256": "26c489b575bdb026f15867928c6f473ff794367e5ae2618c1abb3c9a3433b22f",
+      "fact": "AI移動候補は自軍壁・クリスタル・生存ユニットの占有を除外する。自軍通常生産施設を一律に除外する処理はない。"
+    },
+    {
+      "path": "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+      "line": 613,
+      "url": "https://github.com/pethypon/fantasy-kingdom/blob/065dc5d097c039e81d6c2294535a50ade8dcf5bb/Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs#L613",
+      "sha256": "d7a49922db21590fb83743663640641475e779a355e3f70310a04a9aa2188493",
+      "fact": "建築候補位置の選択は本拠地/前線への近さで上位3件を選ぶ。経路保存を保証する実装ではないが、今回のログだけで壁による経路断絶は確定できない。"
+    }
+  ],
+  "conclusion": {
+    "observed": "通常生産施設を建てたセルへの後続の正式移動成功を3件確認した。ソースの通常施設を通行占有へ追加しないルールと一致する。",
+    "limitation": "対照行は同一セルの建築と後続移動の一致であり、建物インスタンスの生存履歴を単独で証明するデータではない。壁・ユニット・地形を含む最終盤面の全経路連結性は未検証。",
+    "walls": "壁は通行を塞ぐ。今回の密集画像を理由に通常生産施設まで障害物と判断してはならない。壁設置後の経路切断は未確認。",
+    "screenshot": "seed271828のR60画面ではモデルの密集・重なりが見える。これは見通し/選択操作性の観察であり、移動経路の閉塞を実証するものではない。",
+    "productionChange": "この照合を根拠とする通行ルールや建築位置の変更は行っていない。"
+  }
+}

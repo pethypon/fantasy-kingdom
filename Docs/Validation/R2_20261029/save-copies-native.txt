@@ -1,0 +1,6 @@
+Source: real-saves-post-support.log
+SHA256: 439ee24c60778dfc64771429dffb212606f1c8d3f103d28ebbc1428fbad506c6
+316: [R2RealSave] PASS save_0.json version=11->12 units=28 deferred=0 map=35x35
+327: [R2RealSave] PASS save_1.json version=11->12 units=31 deferred=0 map=35x35
+338: [R2RealSave] PASS save_2.json version=11->12 units=28 deferred=0 map=35x35
+349: [R2RealSave] COMPLETE copies=3 temporaryEvidence=C:\Users\pethi\AppData\Local\Temp\FK_R2_SaveCopies_07a3cd8573f548e79ec6106eb2cc6dee

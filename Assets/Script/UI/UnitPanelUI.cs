@@ -44,6 +44,7 @@ public partial class UnitPanelUI : MonoBehaviour
     [SerializeField] private TurnGenerator turnGenerator;
     [SerializeField] private APSystem apSystem;
     private FactionState factionState;
+    private UIBuilder actionMenus;
 
     [Header("パネル本体")]
     [SerializeField] private CanvasGroup canvasGroup;
@@ -235,6 +236,7 @@ public partial class UnitPanelUI : MonoBehaviour
 
     private void AutoFindReferences()
     {
+        if (actionMenus == null) actionMenus = Object.FindFirstObjectByType<UIBuilder>();
         if (turnGenerator == null)
             turnGenerator = Object.FindFirstObjectByType<TurnGenerator>();
         if (apSystem == null)
@@ -462,11 +464,7 @@ public partial class UnitPanelUI : MonoBehaviour
             UpdateHPBar(hpRatio);
         }
 
-        if (levelText != null)
-        {
-            levelText.text = currentUnit.Level >= GameConstants.MaxUnitLevel ? $"Lv {GameConstants.MaxUnitLevel}  <size=75%>MAX</size>"
-                : $"Lv {currentUnit.Level}";
-        }
+        SetUnitInformationLayout(false);
         // 中央: ステータス
         if (atkText != null) atkText.text = "攻撃力  <b>" + currentUnit.ATK + "</b>";
         UpdateBarrierBar();
@@ -525,6 +523,30 @@ public partial class UnitPanelUI : MonoBehaviour
         return parts.Count <= 2 ? string.Join("　", parts) : string.Join("　", parts.GetRange(0, 2)) + $"　+{parts.Count - 2}";
     }
 
+    // Unit and facility reuse this panel. Reflow both ways so a hidden unit level
+    // neither leaves an empty row nor leaks the previous building's upgrade text.
+    private void SetUnitInformationLayout(bool building)
+    {
+        if (levelText != null)
+        {
+            levelText.gameObject.SetActive(building);
+            if (!building) levelText.text = string.Empty;
+        }
+        if (nameText != null) UIFactory.SetAnchors(nameText, 0, building ? .76f : .68f, 1, 1);
+        if (hpText != null) UIFactory.SetAnchors(hpText, 0, .30f, 1, building ? .60f : .68f);
+        if (kindText != null)
+        {
+            // Facilities use the otherwise empty ability rows for their compact production explanation.
+            UIFactory.SetAnchors(kindText, 0, building ? 0 : .40f, 1,
+                building && currentUnit != null && currentUnit.ATK <= 0 ? 1 : .70f);
+            kindText.enableAutoSizing = building;
+            kindText.fontSizeMin = 18; kindText.fontSizeMax = BrandGuide.FontHudCaption;
+            if (!building) kindText.fontSize = BrandGuide.FontHudCaption;
+            kindText.alignment = building ? TextAlignmentOptions.TopLeft : TextAlignmentOptions.Center;
+        }
+        if (passiveText != null) passiveText.gameObject.SetActive(!building);
+    }
+
     private void RefreshBuilding()
     {
         var facility = currentUnit.facilityKind;
@@ -532,7 +554,8 @@ public partial class UnitPanelUI : MonoBehaviour
 
         // 左: 基本情報
         if (nameText != null) nameText.text = displayName;
-        if (levelText != null) levelText.text = "Lv " + currentUnit.Level;
+        SetUnitInformationLayout(true);
+        if (levelText != null) levelText.text = "強化段階 " + currentUnit.Level;
         if (hpText != null)
         {
             float hpRatio = currentUnit.MaxHP > 0 ? (float)currentUnit.HP / currentUnit.MaxHP : 1f;
@@ -547,7 +570,8 @@ public partial class UnitPanelUI : MonoBehaviour
 
         // 効果説明
         if (kindText != null)
-            kindText.text = FacilityData.HasAuthoredRecipe(currentUnit) ? AuthoredBuildingEffectText(currentUnit) : GetBuildingEffectText(facility, currentUnit.Level);
+            kindText.text = BuildingEffectText(currentUnit, turnGenerator?.Systems.TerritorySystem
+                ?? turnGenerator?.Systems.BuildSystem?.Territory);
         if (passiveText != null)
             passiveText.text = "";
 
@@ -601,7 +625,16 @@ public partial class UnitPanelUI : MonoBehaviour
             skillButton.interactable = canSkill;
             UpdateButtonLabel(skillButton, turnGenerator != null && turnGenerator.CurrentState is PlayerAttack skillAttack && skillAttack.attackmode == PlayerMove.AttackMode.Skill ? "スキルモード" : "スキル <size=70%>[2]</size>", skillCost, canSkill);
         }
-        if (waitButton != null) waitButton.interactable = true;
+        if (waitButton != null)
+        {
+            bool engineer = currentUnit.kind == Kind.Engineer;
+            waitButton.interactable = !engineer || CanIssueCommand() && !turnGenerator.DeveloperPlayerAIEnabled;
+            UpdateButtonLabel(waitButton, engineer ? "建築\n<size=75%>資源費2倍</size>" : "待機", 0, true);
+            var oldWaitIcon = waitButton.transform.Find("ThemeIcon");
+            if (oldWaitIcon != null) oldWaitIcon.gameObject.SetActive(!engineer);
+            if (buttonLabels.TryGetValue(waitButton, out var waitLabel) && waitLabel != null)
+                waitLabel.rectTransform.offsetMin = new Vector2(engineer ? 0 : oldWaitIcon != null ? 52 : 0, 0);
+        }
     }
 
     /// <summary>ボタンラベルにAP消費量を付加し、不足時は色を変える</summary>
@@ -670,7 +703,7 @@ public partial class UnitPanelUI : MonoBehaviour
     // --------------------------------------------------
     private bool CanIssueCommand()
     {
-        return !previewOnly && !inspectionOnly && currentUnit != null && currentUnit.team == Team.Player
+        return turnGenerator != null && !previewOnly && !inspectionOnly && currentUnit != null && currentUnit.team == Team.Player
             && turnGenerator.Context.SelectUnit == currentUnit
             && (turnGenerator.CurrentState is PlayerMove || turnGenerator.CurrentState is PlayerAttack);
     }
@@ -692,10 +725,31 @@ public partial class UnitPanelUI : MonoBehaviour
     public void OnClickWait()
     {
         if (!CanIssueCommand()) return;
+        if (currentUnit.kind == Kind.Engineer)
+        {
+            OnClickEngineerBuild();
+            return;
+        }
         // Wait = このユニットのアクションを終了して選択解除。右クリック（Cancel）と同等。
         if (turnGenerator != null)
             turnGenerator.Context.QueueUICommand(GameContext.UICommand.Cancel);
         Hide();
+    }
+
+    public void OnClickEngineerBuild()
+    {
+        if (!CanIssueCommand() || currentUnit.kind != Kind.Engineer || !currentUnit.IsAlive
+            || turnGenerator.DeveloperPlayerAIEnabled) return;
+        var engineer = currentUnit;
+        // Use the normal cancellation transition, retaining the selected engineer.
+        if (turnGenerator.CurrentState is PlayerAttack attack)
+        {
+            attack.Reset();
+            turnGenerator.ChangeState(attack.move);
+        }
+        if (actionMenus == null) actionMenus = Object.FindFirstObjectByType<UIBuilder>();
+        if (actionMenus == null || !actionMenus.OpenEngineerBuildPanel(engineer))
+            ToastMessageUI.Show("工兵の建築メニューを開けません", ToastMessageUI.MessageType.Warning);
     }
 
     public void OnClickCancel()
@@ -769,47 +823,27 @@ public partial class UnitPanelUI : MonoBehaviour
         return string.Join(" ", parts);
     }
 
-    private static string GetBuildingEffectText(FacilityKind facility, int level)
+    // The selected building uses the very same position-dependent recipe as production and AI forecasting.
+    private static string BuildingEffectText(Status building, TerritorySystem territory)
     {
-        var data = FacilityData.GetLevel(facility, level);
-        switch (facility)
-        {
-            case FacilityKind.Field:
-                return $"水{data.Input.Water}→小麦+{data.Output.Wheat}";
-            case FacilityKind.Bakery:
-                return $"小麦{data.Input.Wheat}+水{data.Input.Water}→パン{data.Output.Bread}";
-            case FacilityKind.LoggingCamp:
-                return $"木+{data.Output.Wood}";
-            case FacilityKind.Quarry:
-                return $"石+{data.Output.Stone}";
-            case FacilityKind.Mine:
-                return $"鉄+{data.Output.Iron} 魔石(確率)";
-            case FacilityKind.Well:
-                return $"水+{data.Output.Water}";
-            case FacilityKind.Barracks:
-                return $"経験値+{data.SpecialValue}%";
-            case FacilityKind.House:
-            case FacilityKind.LuxuryHouse:
-                return $"収容+{data.SpecialValue}";
-            case FacilityKind.Warehouse:
-                return $"容量+{data.SpecialValue}";
-            case FacilityKind.SubCrystal:
-                return "領地拡張 半径3";
-            default:
-                return "";
-        }
-    }
-
-    private static string AuthoredBuildingEffectText(Status building)
-    {
-        var data = FacilityData.GetLevel(building, building.Level);
+        var original = FacilityData.GetLevel(building, building.Level);
+        var data = FacilityData.GetProductionLevel(building, building.Level, territory);
+        bool rare = FacilityData.HasRareOreOutput(original);
+        bool restricted = rare && !FacilityData.CanProduceRareOre(building.transform.position, building.team, territory);
         var parts = new System.Collections.Generic.List<string>();
+        if (restricted) parts.Add("鉄・魔石は領土外でのみ採掘可能");
+        else if (rare) parts.Add(building.BuildingOperationAvailable ? "領土外採掘：稼働" : "領土外採掘：維持費不足で停止");
         if (!data.Input.IsEmpty) parts.Add("生産時消費: " + FormatProduction(data.Input));
         if (!data.Output.IsEmpty) parts.Add(FacilityData.ProductionInterval(data) + "ターンごと生産: " + FormatProduction(data.Output));
+        if (data.BonusChance1 > 0 && !data.BonusOutput1.IsEmpty)
+            parts.Add("確率生産: " + FormatProduction(data.BonusOutput1) + "（" + (data.BonusChance1 * 100).ToString("0.#") + "%）");
+        if (data.BonusChance2 > 0 && !data.BonusOutput2.IsEmpty)
+            parts.Add("確率生産: " + FormatProduction(data.BonusOutput2) + "（" + (data.BonusChance2 * 100).ToString("0.#") + "%）");
         if (!data.Maintenance.IsEmpty) parts.Add("維持費: " + FormatProduction(data.Maintenance));
         if (building.facilityKind == FacilityKind.House || building.facilityKind == FacilityKind.LuxuryHouse) parts.Add("人口上限 +" + data.SpecialValue);
         else if (building.facilityKind == FacilityKind.Warehouse) parts.Add("資源容量 +" + data.SpecialValue);
-        else if (building.facilityKind == FacilityKind.Barracks) parts.Add("経験値 +" + data.SpecialValue + "%");
+        else if (building.facilityKind == FacilityKind.Barracks) parts.Add("現在特殊効果なし");
+        else if (FacilityData.IsSubCrystal(building.facilityKind)) parts.Add("領地拡張 半径3");
         return string.Join("\n", parts);
     }
 

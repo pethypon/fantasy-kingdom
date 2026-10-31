@@ -17,6 +17,8 @@ public sealed class DefaultLossConditionProvider : ILossConditionProvider
 public sealed class PersistentStrategicObjective
 {
     public int Version=1,StartedTurn,PausedTurn,PausedTurns;
+    // Optional bridge provenance. Zero in older saves cannot prove reflection progress.
+    public int SourceObjectiveId;
     public Vector3 Target;
     public bool Active,Suspended;
 }
@@ -31,8 +33,8 @@ public sealed partial class AIStrategicGovernor
     readonly Dictionary<Status,float> safest=new Dictionary<Status,float>();
     readonly Dictionary<(Status,Vector3Int,Status),float> damageCache=new Dictionary<(Status,Vector3Int,Status),float>();
     readonly Dictionary<AIAction,string> rejected=new Dictionary<AIAction,string>();
-    readonly Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int), EconomyForecastResult> buildForecasts
-        = new Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int), EconomyForecastResult>();
+    readonly Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int, Vector3Int), EconomyForecastResult> buildForecasts
+        = new Dictionary<(AIActionType, FacilityKind, FacilityDefinitionData, Status, int, Vector3Int), EconomyForecastResult>();
     readonly Dictionary<(Status,Vector3Int),float> threatCache=new Dictionary<(Status,Vector3Int),float>();
     readonly List<AIAction> reserveCandidates = new List<AIAction>(64);
     int recoveryReserveAP = -1;
@@ -177,7 +179,7 @@ public sealed partial class AIStrategicGovernor
         {
             bridgedExploreObjective = assigned.ObjectiveId;
             Objective = new PersistentStrategicObjective { Active = true, Target = assigned.TargetCell,
-                StartedTurn = assigned.CreatedTurn, Suspended = suspended, PausedTurn = suspended ? board.TurnCount : 0 };
+                SourceObjectiveId = assigned.ObjectiveId, StartedTurn = assigned.CreatedTurn, Suspended = suspended, PausedTurn = suspended ? board.TurnCount : 0 };
             return;
         }
         Objective.Active = true; Objective.Target = assigned.TargetCell;
@@ -239,7 +241,7 @@ public sealed partial class AIStrategicGovernor
         {
             var projected=forecast.Simulate(board,action);
             if(projected.BreadPaymentFailed||projected.ImportantProductionStopped)return "bread_forecast_fail";
-            if(projected.UpkeepPaymentFailed)return "upkeep_forecast_fail";
+            if(projected.UpkeepPaymentFailed && !IsSafeEngineerOreRecoveryRecruit(action, board, projected))return "upkeep_forecast_fail";
             if(projected.BreadCoverageTurns<BreadReserveTurns&&Mode!=StrategicMode.EmergencyDefense)return "bread_reserve_fail";
         }
         if (action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade)
@@ -251,8 +253,8 @@ public sealed partial class AIStrategicGovernor
             if (IsMilitaryConstruction(action) && (Mode == StrategicMode.EconomicRecovery || ProductionDemand.State >= EconomicState.Crisis) && !emergencyDefense)
                 return "economic_recovery_blocks_military_build";
             var key = (action.ActionType, action.Facility, action.FacilityDefinition,
-                action.ActionType == AIActionType.Upgrade ? action.Unit : null,
-                action.ActionType == AIActionType.Upgrade && action.Unit != null ? action.Unit.Level : 0);
+                action.Unit,
+                action.ActionType == AIActionType.Upgrade && action.Unit != null ? action.Unit.Level : 0, GridHelper.ToGridXZ(action.TargetPos));
             if (!buildForecasts.TryGetValue(key, out var projected))
                 buildForecasts[key] = projected = forecast.Simulate(board, action);
             // A baseline crisis must not hide a new failure in a different resource.
@@ -289,6 +291,8 @@ public sealed partial class AIStrategicGovernor
         if(a.Unit!=null&&MatchObjectiveRules.IsCommander(a.Unit)&&IsMovement(a)&&Risk(a,board)<IncomingDamage(board,a.Unit,a.Unit.transform.position,null))return 0;
         if(a.Unit!=null&&MatchObjectiveRules.IsCommander(a.Unit)&&a.ActionType==AIActionType.Attack
             &&IncomingDamage(board,a.Unit,a.Unit.transform.position,null)>=a.Unit.HP&&Risk(a,board)<a.Unit.HP)return 0;
+        if (Mode != StrategicMode.EmergencyDefense && AIActionGenerator.IsEngineerSupplyProgress(a, board))
+            return Mode == StrategicMode.EconomicRecovery ? 2 : 3;
         if(Mode==StrategicMode.EmergencyDefense)
         {
             if(a.ActionType==AIActionType.Attack&&a.TargetUnit!=null&&ThreatensCritical(a.TargetUnit,board))return 1;
@@ -322,11 +326,14 @@ public sealed partial class AIStrategicGovernor
         // Without that direction, preserve the existing combat/exploration peer tier.
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             && IsSafeEffectiveBattleAction(a, board)) return HasActiveTerritoryAdvance ? 2 : 3;
-        if (IsSafePlannedRecruit(a, board)) return 3;
+        if (IsSafePlannedRecruit(a, board)) return Mode == StrategicMode.EconomicRecovery ? 2 : 3;
         if (IsSafeArmyAdvance(a, board)) return 3;
         if (squadPriority == 3) return 3;
-        if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery && !HasActiveTerritoryAdvance
+        // A dedicated scout keeps its assigned frontier role during army deployment.
+        // Existing crisis, first-move, actual-goal-progress and survival checks still apply.
+        if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
+            &&(!HasActiveTerritoryAdvance || a.Unit.kind == Kind.Scout)
             &&Exploration.TryGetAssignedTarget(a.Unit,out var frontier)
             &&Exploration.IsObjectiveProgress(a.Unit,a.TargetPos,board)
             &&IncomingDamage(board,a.Unit,a.TargetPos,null)<a.Unit.HP)return 3;
@@ -526,7 +533,7 @@ public sealed partial class AIStrategicGovernor
     // Reused by individual recovery's bounded repeated-exchange scenario. The protection budget
     // is a value snapshot; applying another wave never changes a real actor's HP or barrier.
     float ObservedDamageWave(AIBoardState board, Status self, Vector3 position, Status eliminated, ref AIObservedDamageBudget budget,
-        Status attackedCrystal = null)
+        Status attackedCrystal = null, bool environmentEntry = true)
     {
         double total=0;
         // Own-turn crystal retaliation precedes the next observed enemy response.
@@ -562,7 +569,9 @@ public sealed partial class AIStrategicGovernor
             }
         }
         total+=AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,position,ref budget);
-        total+=board.KnownEnvironmentRisk(self,position,ref budget);
+        total += environmentEntry ? board.KnownEnvironmentRisk(self,position,ref budget)
+            : AIActionEvaluator.EstimateObservedHitLoss(self,board,board.KnownEnvironmentDamage(self,position,false),
+                HpChangeKind.IgnoreDefenceDamage,ref budget);
         return (float)Math.Min(int.MaxValue,total);
     }
     bool CanThreaten(AIBoardState board,Status opponent,Vector3 destination)
@@ -619,7 +628,8 @@ public sealed partial class AIStrategicGovernor
             AIHousingAssessment housing = default;
             if (success) action.TryGetHousingExecutionAssessment(this, current, out housing);
             else housing = HousingAssessment(action, current);
-            if (housing.IsHousing) DevelopmentLog.Log("[AI住宅投資] " + (success ? "建築実行 " : "建築中止 ") + housing.Describe());
+            if (housing.IsHousing) DevelopmentLog.Log("[AI住宅投資] " + (success ? "建築実行 " : "建築中止 ") + housing.Describe()
+                + (success ? " actualCapacity=" + current.CitizenCapacity : ""));
         }
         if (success && Mode == StrategicMode.EmergencyDefense) BasicResources.NotifyEssentialSpend(action, true);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI戦略統括] 方針={Mode} 経済={Economy.State} パン収支={Economy.NetBreadPerTurn:F1} 優先=P{action.StrategicPriority} 結果={(success?"実行":"禁止")} 理由={action.StrategicRejectReason??"安全条件を満たす"}"); }

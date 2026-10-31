@@ -136,6 +136,7 @@ public static class AIR2RecruitmentTests
         readonly TurnGenerator hub;
         readonly Team team;
         readonly AIStrategicGovernor governor = new AIStrategicGovernor();
+        readonly SpecialSkillDefinition healerAbility;
         public readonly UnitData Healer;
         public readonly FacilityDefinitionData House;
         public readonly AICommander Commander;
@@ -159,6 +160,12 @@ public static class AIR2RecruitmentTests
             EconomyFixture.Units.UnitDataMap.Clear();
             AddDefinition(Kind.Knight, 1, 7); AddDefinition(Kind.Archer, 1, 7); AddDefinition(Kind.Scout, 1, 7);
             Healer = AddDefinition(Kind.Priest, healerCitizens, 14);
+            // Kind alone is not a healing capability. This isolated paid-recruit fixture
+            // needs the same enabled owner-turn aura as the production Priest.
+            healerAbility = ScriptableObject.CreateInstance<SpecialSkillDefinition>();
+            healerAbility.ability = UnitSpecialSkill.PriestPurification;
+            healerAbility.enabledForPlay = true; healerAbility.apCost = 8; healerAbility.cooldown = 0;
+            Healer.specialSkill = healerAbility;
             for (int i = 0; i < 3; i++)
             {
                 var actor = EconomyFixture.Unit(); actor.kind = i == 2 ? Kind.Archer : Kind.Knight;
@@ -228,6 +235,7 @@ public static class AIR2RecruitmentTests
         {
             Commander?.ReleaseRuntimeReferences();
             UnityEngine.Object.DestroyImmediate(root); EconomyFixture.Dispose();
+            UnityEngine.Object.DestroyImmediate(healerAbility);
         }
     }
     static void Set(object target, string field, object value) => target.GetType().GetField(field, Hidden).SetValue(target, value);

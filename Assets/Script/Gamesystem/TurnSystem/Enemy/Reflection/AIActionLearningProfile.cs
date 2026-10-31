@@ -255,7 +255,7 @@ public static class AIActionRewardEvaluator
             else if (movement && outcome.LocalPowerRatioDelta < -threshold)
                 reward.LocalPower -= AIReflectionConfig.NonNegative(config.LocalPowerPenalty);
         }
-        if (movement && before.HasObjective && after.HasObjective && outcome.DistanceToObjectiveDelta > 0 && safe
+        if (movement && AIActionOutcome.ObjectiveDistanceChange(before, after) > 0 && safe
             && !before.EmergencyDefense && !after.EmergencyDefense && !before.OwnCrystalThreatened && !after.OwnCrystalThreatened)
         {
             reward.Objective += AIReflectionConfig.NonNegative(config.ObjectiveProgressReward);
@@ -315,7 +315,7 @@ public static class AIFailureAnalyzer
         bool safe = SafeAfter(after, config), riskImproved = RiskImproved(before, after, config);
         bool rangedAdvantage = after.IsRangedActor && after.CanAttackObservedEnemy && after.OutsideObservedEnemyRange
             && !(before.CanAttackObservedEnemy && before.OutsideObservedEnemyRange);
-        return riskImproved || IsMovement(record.ActionType) && safe && (outcome.DistanceToObjectiveDelta > 0
+        return riskImproved || IsMovement(record.ActionType) && safe && (AIActionOutcome.ObjectiveDistanceChange(before, after) > 0
             || after.ActorHeight > before.ActorHeight && (after.CanAttackObservedEnemy || rangedAdvantage)
             || rangedAdvantage || outcome.LocalPowerRatioDelta > AIReflectionConfig.NonNegative(config.LocalPowerDeltaThreshold));
     }

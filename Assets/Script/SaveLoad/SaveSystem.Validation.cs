@@ -30,8 +30,7 @@ public static partial class SaveSystem
         if (!ResourcesValid(data.PlayerResources) || !ResourcesValid(data.EnemyResources)) return Invalid("資源量に不正な値があります。", out reason);
         if (!APValid(data.PlayerAP) || !APValid(data.EnemyAP)) return Invalid("行動ポイントに不正な値があります。", out reason);
         if (data.Timer == null || !Seconds(data.Timer.TurnTimeRemaining) || !Seconds(data.Timer.PlayerTotalTime)
-            || !Seconds(data.Timer.EnemyTotalTime) || !Seconds(data.Timer.TurnTimeLimit) || data.Timer.TurnTimeLimit < 1
-            || data.Timer.TurnTimeRemaining > data.Timer.TurnTimeLimit)
+            || !Seconds(data.Timer.EnemyTotalTime) || !Seconds(data.Timer.TurnTimeLimit))
             return Invalid("タイマーの保存値が不正です。", out reason);
         if (!NationValid(data.PlayerNationExtra) || !NationValid(data.EnemyNationExtra)) return Invalid("国の保存値が不正です。", out reason);
         if (data.PlayerSubCrystals < 0 || data.EnemySubCrystals < 0 || data.PlayerSubCrystals > GameConstants.InitialSubCrystals
@@ -104,6 +103,14 @@ public static partial class SaveSystem
             || unit.ATK < 0 || unit.DEF < 0 || unit.Level < 0 || unit.ShieldTurns < 0 || unit.SkillCooldown < 0
             || unit.Fatigue < 0 || unit.Experience < 0 || unit.UpkeepUnpaidTurns < 0) return Invalid("駒の座標または能力値が不正です: " + unit.Kind
                 + " (位置 " + unit.PosX + "," + unit.PosY + "," + unit.PosZ + "; HP " + unit.HP + "/" + unit.MaxHP + ")", out reason);
+        if (unit.FixedStatsRevision < 0 || unit.FixedStatsRevision > 2 || unit.LastMaintenanceRound < -1
+            || type == Type.Unit && (unit.Level != 1 || unit.Experience != 0))
+            return Invalid("固定能力値または維持費処理の保存形式が不正です。", out reason);
+        var legacyStats = unit.LegacyUnitStats;
+        if (legacyStats != null && (legacyStats.Level < 0 || legacyStats.Experience < 0 || legacyStats.HP < 0
+            || legacyStats.MaximumHP < legacyStats.HP || legacyStats.ATK < 0 || legacyStats.DEF < 0
+            || legacyStats.HasDefinitionBaseline && (legacyStats.DefinitionMaxHP < 1 || legacyStats.DefinitionATK < 0 || legacyStats.DefinitionDEF < 0)))
+            return Invalid("旧ユニット能力値の退避データが不正です。", out reason);
         if (!string.IsNullOrEmpty(unit.ReflectionLifeId) && (unit.ReflectionLifeId.Length > 64 || !lifeIds.Add(unit.ReflectionLifeId)))
             return Invalid("駒の永続識別子が重複、または不正です。", out reason);
         if (unit.HasBarrierSnapshot && (unit.Barrier < 0 || unit.MaxBarrier < 0 || unit.Barrier > unit.MaxBarrier)) return Invalid("バリアが不正です", out reason);

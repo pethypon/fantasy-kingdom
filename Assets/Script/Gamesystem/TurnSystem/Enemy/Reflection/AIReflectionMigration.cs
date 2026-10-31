@@ -143,6 +143,16 @@ public static class AIReflectionMigration
         if (legacy || missingBreakdown) record.ImmediateReward = record.Reward;
         if (!Finite(record.RewardBreakdown.Total) || !Finite(record.ImmediateReward) || !Finite(record.LearningValueChange)) return false;
         if (!UpgradeSnapshot(record.Before, config) || !UpgradeSnapshot(record.After, config)) return false;
+        int savedObjectiveDelta = record.Outcome.DistanceToObjectiveDelta;
+        record.Outcome.DistanceToObjectiveDelta = AIActionOutcome.ObjectiveDistanceChange(record.Before, record.After);
+        if (savedObjectiveDelta > 0 && record.Outcome.DistanceToObjectiveDelta <= 0)
+        {
+            // Missing optional provenance in old saves is not proof of objective progress.
+            // Preserve already-booked rewards; prevent them from establishing future evidence.
+            record.MeaningfulProgress = AIFailureAnalyzer.HasMeaningfulProgress(record, config);
+            if (!record.MeaningfulProgress) record.PreparationCandidate = false;
+            record.SuccessReasons.RemoveAll(reason => reason == AISuccessReason.ObjectiveProgress);
+        }
         if (record.DecisionTrace == null) record.DecisionTrace = AIReflectionDecisionTrace.Build(null, record);
         return record.DecisionTrace.DecisionFacts == null || record.DecisionTrace.DecisionFacts.Count <= 32;
     }

@@ -1,0 +1,324 @@
+Source: r2-preservation-post-support.log
+SHA256: 9ad9c5e03a6c8c4628f2a1fd3b7a27a0558a587e62b2d377ac5130dbd987d9af
+692: [AIR3PreservationPrecondition] team=Player level=1 hp=20 actualHP=20 incoming=13 rawATK=17 selfSees=True
+712: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+733: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+754: [AIR3PreservationEvidence] team=Player level=1 hp=20 incoming=13 retreatP=1 attackP=2 mode=StrategicAttack
+774: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+795: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+816: [AIR3PreservationPrecondition] team=Player level=1 hp=35 actualHP=35 incoming=22 rawATK=30 selfSees=True
+836: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+857: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+878: [AIR3PreservationEvidence] team=Player level=1 hp=35 incoming=22 retreatP=1 attackP=2 mode=StrategicAttack
+898: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+919: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+940: [AIR3PreservationPrecondition] team=Player level=1 hp=50 actualHP=50 incoming=31 rawATK=43 selfSees=True
+960: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+981: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1002: [AIR3PreservationEvidence] team=Player level=1 hp=50 incoming=31 retreatP=1 attackP=2 mode=StrategicAttack
+1022: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+1043: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+1064: [AIR3PreservationPrecondition] team=Player level=1 hp=60 actualHP=60 incoming=37 rawATK=51 selfSees=True
+1084: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+1105: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1126: [AIR3PreservationEvidence] team=Player level=1 hp=60 incoming=37 retreatP=1 attackP=2 mode=StrategicAttack
+1146: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+1167: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+1188: [AIR3PreservationPrecondition] team=Player level=20 hp=20 actualHP=20 incoming=13 rawATK=17 selfSees=True
+1208: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+1229: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1250: [AIR3PreservationEvidence] team=Player level=20 hp=20 incoming=13 retreatP=1 attackP=2 mode=StrategicAttack
+1270: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+1291: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+1312: [AIR3PreservationPrecondition] team=Player level=20 hp=35 actualHP=35 incoming=22 rawATK=30 selfSees=True
+1332: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+1353: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1374: [AIR3PreservationEvidence] team=Player level=20 hp=35 incoming=22 retreatP=1 attackP=2 mode=StrategicAttack
+1394: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+1415: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+1436: [AIR3PreservationPrecondition] team=Player level=20 hp=50 actualHP=50 incoming=31 rawATK=43 selfSees=True
+1456: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+1477: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1498: [AIR3PreservationEvidence] team=Player level=20 hp=50 incoming=31 retreatP=1 attackP=2 mode=StrategicAttack
+1518: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+1539: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+1560: [AIR3PreservationPrecondition] team=Player level=20 hp=60 actualHP=60 incoming=37 rawATK=51 selfSees=True
+1580: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+1601: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1622: [AIR3PreservationEvidence] team=Player level=20 hp=60 incoming=37 retreatP=1 attackP=2 mode=StrategicAttack
+1642: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+1663: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+1684: [AIR3PreservationPrecondition] team=Player level=50 hp=20 actualHP=20 incoming=13 rawATK=17 selfSees=True
+1704: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+1725: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1746: [AIR3PreservationEvidence] team=Player level=50 hp=20 incoming=13 retreatP=1 attackP=2 mode=StrategicAttack
+1766: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+1787: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+1808: [AIR3PreservationPrecondition] team=Player level=50 hp=35 actualHP=35 incoming=22 rawATK=30 selfSees=True
+1828: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+1849: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1870: [AIR3PreservationEvidence] team=Player level=50 hp=35 incoming=22 retreatP=1 attackP=2 mode=StrategicAttack
+1890: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+1911: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+1932: [AIR3PreservationPrecondition] team=Player level=50 hp=50 actualHP=50 incoming=31 rawATK=43 selfSees=True
+1952: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+1973: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+1994: [AIR3PreservationEvidence] team=Player level=50 hp=50 incoming=31 retreatP=1 attackP=2 mode=StrategicAttack
+2014: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+2035: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+2056: [AIR3PreservationPrecondition] team=Player level=50 hp=60 actualHP=60 incoming=37 rawATK=51 selfSees=True
+2076: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+2097: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+2118: [AIR3PreservationEvidence] team=Player level=50 hp=60 incoming=37 retreatP=1 attackP=2 mode=StrategicAttack
+2138: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+2159: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+2180: [AIR3PreservationPrecondition] team=Player level=100 hp=20 actualHP=20 incoming=13 rawATK=17 selfSees=True
+2200: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+2221: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+2242: [AIR3PreservationEvidence] team=Player level=100 hp=20 incoming=13 retreatP=1 attackP=2 mode=StrategicAttack
+2262: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+2283: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+2304: [AIR3PreservationPrecondition] team=Player level=100 hp=35 actualHP=35 incoming=22 rawATK=30 selfSees=True
+2324: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+2345: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+2366: [AIR3PreservationEvidence] team=Player level=100 hp=35 incoming=22 retreatP=1 attackP=2 mode=StrategicAttack
+2386: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+2407: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+2428: [AIR3PreservationPrecondition] team=Player level=100 hp=50 actualHP=50 incoming=31 rawATK=43 selfSees=True
+2448: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+2469: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+2490: [AIR3PreservationEvidence] team=Player level=100 hp=50 incoming=31 retreatP=1 attackP=2 mode=StrategicAttack
+2510: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+2531: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+2552: [AIR3PreservationPrecondition] team=Player level=100 hp=60 actualHP=60 incoming=37 rawATK=51 selfSees=True
+2572: [AIR3Preservation] PASS Player moderate observed hit is nonlethal now but dangerous across continued exchange
+2593: [AIR3Preservation] PASS Player lateral escape is actually legal and safe
+2614: [AIR3PreservationEvidence] team=Player level=100 hp=60 incoming=37 retreatP=1 attackP=2 mode=StrategicAttack
+2634: [AIR3Preservation] PASS Player nonlethal attrition rescue survives the strategic priority gate
+2655: [AIR3Preservation] PASS Player actual selector chooses the legal nonlethal retreat
+2676: [AIR3PreservationPrecondition] single team=Player hp=35 incoming=8 ownCount=1
+2696: [AIR3Preservation] PASS Player single wounded case is neither an immediate nor a two-hit death
+2717: [AIR3Preservation] PASS Player a lone wounded survivor can take a safe recovery position without a whole-army retreat
+2738: [AIR3Preservation] PASS Player paid retreat is never invented without AP
+2759: [AIR3Preservation] PASS Player no retreat is invented through Stun
+2780: [AIR3Preservation] PASS Player no retreat is invented through Freeze
+2801: [AIR3Preservation] PASS Player killing the observed threat remains preferable to unnecessary retreat
+2822: [AIR3Preservation] PASS Player healthy support has a real legal killing attack
+2843: [AIR3Preservation] PASS Player removing a wounded ally's observed threat competes with retreat
+2864: [AIR3Preservation] PASS Player nonlethal wound records individual withdrawal without global regroup
+2885: [AIR3Preservation] PASS Player moderate wound retreat executes on the real movement and AP path
+2906: [AIR3Preservation] PASS Player an evacuated injured unit keeps recovery phase in a safe position
+2927: [AIR3Preservation] PASS Player immediate unsafe return is legal movement but prohibited by recovery policy
+2948: [AIR3Preservation] PASS Player stable-life-id JSON roundtrip retains the wounded recovery phase
+2969: [AIR3Preservation] PASS Player actual natural recovery releases the individual recovery record
+2990: [AIR3Preservation] PASS Player recovered unit safely rejoins using the real executor
+3011: [AIR3Preservation] PASS Player sub-ten maximum HP does not invent natural healing
+3032: [AIR3Preservation] PASS Player low-HP escape still uses real legal destinations
+3053: [AIR3Preservation] PASS Player low-HP escape executes without an invented recovery source
+3074: [AIR3Preservation] PASS Player unavailable healing never traps the unit in indefinite recovery
+3095: [AIR3Preservation] PASS Player hidden enemy state changes cannot alter observed individual safety
+3116: [AIR3Preservation] PASS Player recovery saves plain stable identity and bounded live record
+3137: [AIR3Preservation] PASS Player wrong-owner recovery state is rejected
+3158: [AIR3Preservation] PASS Player nonfinite recovery coordinate is rejected
+3179: [AIR3Preservation] PASS Player restored state is bounded by 128 records
+3200: [AIR3Preservation] PASS Player departed stable identities are pruned before the next assessment
+3221: [AIR3Preservation] PASS Player destroyed or disabled actors leave no long-lived recovery record
+3242: [AIR3Preservation] PASS Player explicit battle release clears recovery ownership
+3263: [AIR3Preservation] PASS Player save-route fixture genuinely retreats before collection
+3284: [AIR3Preservation] PASS Player save-route fixture has real recovery state
+3352: [AIR3Preservation] PASS Player production collector includes the correct own-side stable identity
+3373: [AIR3Preservation] PASS Player production unit snapshot and recovery snapshot share the same stable identity
+3394: [AIR3Preservation] PASS Player player load and collection do not activate developer automation
+3415: [AIR3Preservation] PASS Player real game JSON parser retains optional recovery presence and ownership
+3483: [AIR3Preservation] PASS Player player recovery survives pending load with automation disabled
+3504: [AIR3Preservation] PASS Player production commander restore receives its own recovery record
+3525: [AIR3Preservation] PASS Player production status applier reconnects recovery to a different Unity instance
+3546: [AIR3Preservation] PASS Player old absent snapshot flags cannot fabricate either side's recovery
+3567: [AIR3Preservation] PASS Player production legacy restore clears previous recovery rather than reviving stale state
+3588: [AIR3Preservation] PASS Player production runtime release removes every recovery reference
+3609: [AIR3Preservation] PASS player pending restore owns a copy instead of the caller's mutable DTO
+3631: [AIR3Preservation] PASS player pending capture cannot mutate the future resume state
+3653: [AIR3Preservation] PASS player pending route rejects a hostile side's recovery snapshot
+3675: [AIR3Preservation] PASS player pending storage enforces the same bounded validator as active AI
+3697: [AIR3Preservation] PASS controller pending records are deeply detached
+3719: [AIR3Preservation] PASS controller disposal releases pending recovery payload
+3741: [AIR3PreservationDefensePrecondition] side=Player mode=EmergencyDefense actorHP=35 incoming=71 baseHP=79 baseIncoming=71 legalMoveCount=1 escapeRisk=0 moveAP=3 availableAP=3
+3761: [AIR3Preservation] PASS Player defense fixture has a real severe but nonlethal base threat
+3782: [AIR3Preservation] PASS Player the wounded actor is genuinely assigned as an emergency defender
+3803: [AIR3Preservation] PASS Player defender fixture offers exactly one legal affordable safe exit from lethal exposure
+3824: [AIR3Preservation] PASS Player the only escape increases the actual Chebyshev distance from the defended base
+3845: [AIR3Preservation] PASS Player no owned killing or healing action requires retaining the lethal position
+3866: [AIR3Preservation] PASS Player common retreat generation retains the unique emergency exit
+3887: [AIR3PreservationDefenseEvidence] side=Player retreatPriority=0 retreatRejected= retained=True attackPriority=1 targetHP=1000
+3907: [AIR3Preservation] PASS Player a P0 individual escape survives the emergency defender pursuit gate
+3928: [AIR3Preservation] PASS Player actual selector saves the defender instead of an ineffective lethal hold
+3949: [AIR3Preservation] PASS Player healthy pursuit guard has no individual emergency
+3970: [AIR3Preservation] PASS Player a healthy defender still obeys the emergency pursuit boundary
+3991: [AIR3Preservation] PASS Player lethal-base fixture has both a real dying defender and a real dying loss condition
+4012: [AIR3Preservation] PASS Player a different safe ally has a legal observed lethal attack against the base's attacker
+4033: [AIR3Preservation] PASS Player eliminating the observed attacker actually removes the base's lethal forecast
+4054: [AIR3Preservation] PASS Player current AP funds either rescue but cannot fund escape followed by the saving kill
+4075: [AIR3Preservation] PASS Player complete production generation retains both base-saving kill and personal escape
+4096: [AIR3PreservationBaseRescue] side=Player baseHP=1 baseBefore=71 baseAfterKill=0 escapeP=0 escapeScore=59.39667 savingKillP=0 savingKillScore=88.8 availableAP=3
+4116: [AIR3Preservation] PASS Player a legal base-saving kill remains P0 beside individual escape
+4137: [AIR3Preservation] PASS Player actual selector uses the real scored base-saving kill before spending its AP on escape
+4158: [AIR3PreservationPrecondition] team=Enemy level=1 hp=20 actualHP=20 incoming=13 rawATK=17 selfSees=True
+4178: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+4199: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+4220: [AIR3PreservationEvidence] team=Enemy level=1 hp=20 incoming=13 retreatP=1 attackP=2 mode=StrategicAttack
+4240: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+4261: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+4282: [AIR3PreservationPrecondition] team=Enemy level=1 hp=35 actualHP=35 incoming=22 rawATK=30 selfSees=True
+4302: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+4323: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+4344: [AIR3PreservationEvidence] team=Enemy level=1 hp=35 incoming=22 retreatP=1 attackP=2 mode=StrategicAttack
+4364: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+4385: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+4406: [AIR3PreservationPrecondition] team=Enemy level=1 hp=50 actualHP=50 incoming=31 rawATK=43 selfSees=True
+4426: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+4447: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+4468: [AIR3PreservationEvidence] team=Enemy level=1 hp=50 incoming=31 retreatP=1 attackP=2 mode=StrategicAttack
+4488: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+4509: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+4530: [AIR3PreservationPrecondition] team=Enemy level=1 hp=60 actualHP=60 incoming=37 rawATK=51 selfSees=True
+4550: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+4571: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+4592: [AIR3PreservationEvidence] team=Enemy level=1 hp=60 incoming=37 retreatP=1 attackP=2 mode=StrategicAttack
+4612: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+4633: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+4654: [AIR3PreservationPrecondition] team=Enemy level=20 hp=20 actualHP=20 incoming=13 rawATK=17 selfSees=True
+4674: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+4695: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+4716: [AIR3PreservationEvidence] team=Enemy level=20 hp=20 incoming=13 retreatP=1 attackP=2 mode=StrategicAttack
+4736: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+4757: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+4778: [AIR3PreservationPrecondition] team=Enemy level=20 hp=35 actualHP=35 incoming=22 rawATK=30 selfSees=True
+4798: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+4819: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+4840: [AIR3PreservationEvidence] team=Enemy level=20 hp=35 incoming=22 retreatP=1 attackP=2 mode=StrategicAttack
+4860: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+4881: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+4902: [AIR3PreservationPrecondition] team=Enemy level=20 hp=50 actualHP=50 incoming=31 rawATK=43 selfSees=True
+4922: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+4943: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+4964: [AIR3PreservationEvidence] team=Enemy level=20 hp=50 incoming=31 retreatP=1 attackP=2 mode=StrategicAttack
+4984: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5005: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+5026: [AIR3PreservationPrecondition] team=Enemy level=20 hp=60 actualHP=60 incoming=37 rawATK=51 selfSees=True
+5046: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+5067: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+5088: [AIR3PreservationEvidence] team=Enemy level=20 hp=60 incoming=37 retreatP=1 attackP=2 mode=StrategicAttack
+5108: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5129: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+5150: [AIR3PreservationPrecondition] team=Enemy level=50 hp=20 actualHP=20 incoming=13 rawATK=17 selfSees=True
+5170: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+5191: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+5212: [AIR3PreservationEvidence] team=Enemy level=50 hp=20 incoming=13 retreatP=1 attackP=2 mode=StrategicAttack
+5232: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5253: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+5274: [AIR3PreservationPrecondition] team=Enemy level=50 hp=35 actualHP=35 incoming=22 rawATK=30 selfSees=True
+5294: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+5315: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+5336: [AIR3PreservationEvidence] team=Enemy level=50 hp=35 incoming=22 retreatP=1 attackP=2 mode=StrategicAttack
+5356: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5377: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+5398: [AIR3PreservationPrecondition] team=Enemy level=50 hp=50 actualHP=50 incoming=31 rawATK=43 selfSees=True
+5418: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+5439: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+5460: [AIR3PreservationEvidence] team=Enemy level=50 hp=50 incoming=31 retreatP=1 attackP=2 mode=StrategicAttack
+5480: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5501: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+5522: [AIR3PreservationPrecondition] team=Enemy level=50 hp=60 actualHP=60 incoming=37 rawATK=51 selfSees=True
+5542: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+5563: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+5584: [AIR3PreservationEvidence] team=Enemy level=50 hp=60 incoming=37 retreatP=1 attackP=2 mode=StrategicAttack
+5604: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5625: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+5646: [AIR3PreservationPrecondition] team=Enemy level=100 hp=20 actualHP=20 incoming=13 rawATK=17 selfSees=True
+5666: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+5687: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+5708: [AIR3PreservationEvidence] team=Enemy level=100 hp=20 incoming=13 retreatP=1 attackP=2 mode=StrategicAttack
+5728: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5749: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+5770: [AIR3PreservationPrecondition] team=Enemy level=100 hp=35 actualHP=35 incoming=22 rawATK=30 selfSees=True
+5790: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+5811: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+5832: [AIR3PreservationEvidence] team=Enemy level=100 hp=35 incoming=22 retreatP=1 attackP=2 mode=StrategicAttack
+5852: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5873: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+5894: [AIR3PreservationPrecondition] team=Enemy level=100 hp=50 actualHP=50 incoming=31 rawATK=43 selfSees=True
+5914: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+5935: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+5956: [AIR3PreservationEvidence] team=Enemy level=100 hp=50 incoming=31 retreatP=1 attackP=2 mode=StrategicAttack
+5976: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+5997: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+6018: [AIR3PreservationPrecondition] team=Enemy level=100 hp=60 actualHP=60 incoming=37 rawATK=51 selfSees=True
+6038: [AIR3Preservation] PASS Enemy moderate observed hit is nonlethal now but dangerous across continued exchange
+6059: [AIR3Preservation] PASS Enemy lateral escape is actually legal and safe
+6080: [AIR3PreservationEvidence] team=Enemy level=100 hp=60 incoming=37 retreatP=1 attackP=2 mode=StrategicAttack
+6100: [AIR3Preservation] PASS Enemy nonlethal attrition rescue survives the strategic priority gate
+6121: [AIR3Preservation] PASS Enemy actual selector chooses the legal nonlethal retreat
+6142: [AIR3PreservationPrecondition] single team=Enemy hp=35 incoming=8 ownCount=1
+6162: [AIR3Preservation] PASS Enemy single wounded case is neither an immediate nor a two-hit death
+6183: [AIR3Preservation] PASS Enemy a lone wounded survivor can take a safe recovery position without a whole-army retreat
+6204: [AIR3Preservation] PASS Enemy paid retreat is never invented without AP
+6225: [AIR3Preservation] PASS Enemy no retreat is invented through Stun
+6246: [AIR3Preservation] PASS Enemy no retreat is invented through Freeze
+6267: [AIR3Preservation] PASS Enemy killing the observed threat remains preferable to unnecessary retreat
+6288: [AIR3Preservation] PASS Enemy healthy support has a real legal killing attack
+6309: [AIR3Preservation] PASS Enemy removing a wounded ally's observed threat competes with retreat
+6330: [AIR3Preservation] PASS Enemy nonlethal wound records individual withdrawal without global regroup
+6351: [AIR3Preservation] PASS Enemy moderate wound retreat executes on the real movement and AP path
+6372: [AIR3Preservation] PASS Enemy an evacuated injured unit keeps recovery phase in a safe position
+6393: [AIR3Preservation] PASS Enemy immediate unsafe return is legal movement but prohibited by recovery policy
+6414: [AIR3Preservation] PASS Enemy stable-life-id JSON roundtrip retains the wounded recovery phase
+6435: [AIR3Preservation] PASS Enemy actual natural recovery releases the individual recovery record
+6456: [AIR3Preservation] PASS Enemy recovered unit safely rejoins using the real executor
+6477: [AIR3Preservation] PASS Enemy sub-ten maximum HP does not invent natural healing
+6498: [AIR3Preservation] PASS Enemy low-HP escape still uses real legal destinations
+6519: [AIR3Preservation] PASS Enemy low-HP escape executes without an invented recovery source
+6540: [AIR3Preservation] PASS Enemy unavailable healing never traps the unit in indefinite recovery
+6561: [AIR3Preservation] PASS Enemy hidden enemy state changes cannot alter observed individual safety
+6582: [AIR3Preservation] PASS Enemy recovery saves plain stable identity and bounded live record
+6603: [AIR3Preservation] PASS Enemy wrong-owner recovery state is rejected
+6624: [AIR3Preservation] PASS Enemy nonfinite recovery coordinate is rejected
+6645: [AIR3Preservation] PASS Enemy restored state is bounded by 128 records
+6666: [AIR3Preservation] PASS Enemy departed stable identities are pruned before the next assessment
+6687: [AIR3Preservation] PASS Enemy destroyed or disabled actors leave no long-lived recovery record
+6708: [AIR3Preservation] PASS Enemy explicit battle release clears recovery ownership
+6729: [AIR3Preservation] PASS Enemy save-route fixture genuinely retreats before collection
+6750: [AIR3Preservation] PASS Enemy save-route fixture has real recovery state
+6818: [AIR3Preservation] PASS Enemy production collector includes the correct own-side stable identity
+6839: [AIR3Preservation] PASS Enemy production unit snapshot and recovery snapshot share the same stable identity
+6860: [AIR3Preservation] PASS Enemy player load and collection do not activate developer automation
+6881: [AIR3Preservation] PASS Enemy real game JSON parser retains optional recovery presence and ownership
+6949: [AIR3Preservation] PASS Enemy production commander restore receives its own recovery record
+6970: [AIR3Preservation] PASS Enemy production status applier reconnects recovery to a different Unity instance
+6991: [AIR3Preservation] PASS Enemy old absent snapshot flags cannot fabricate either side's recovery
+7012: [AIR3Preservation] PASS Enemy production legacy restore clears previous recovery rather than reviving stale state
+7033: [AIR3Preservation] PASS Enemy production runtime release removes every recovery reference
+7054: [AIR3PreservationDefensePrecondition] side=Enemy mode=EmergencyDefense actorHP=35 incoming=71 baseHP=79 baseIncoming=71 legalMoveCount=1 escapeRisk=0 moveAP=3 availableAP=3
+7074: [AIR3Preservation] PASS Enemy defense fixture has a real severe but nonlethal base threat
+7095: [AIR3Preservation] PASS Enemy the wounded actor is genuinely assigned as an emergency defender
+7116: [AIR3Preservation] PASS Enemy defender fixture offers exactly one legal affordable safe exit from lethal exposure
+7137: [AIR3Preservation] PASS Enemy the only escape increases the actual Chebyshev distance from the defended base
+7158: [AIR3Preservation] PASS Enemy no owned killing or healing action requires retaining the lethal position
+7179: [AIR3Preservation] PASS Enemy common retreat generation retains the unique emergency exit
+7200: [AIR3PreservationDefenseEvidence] side=Enemy retreatPriority=0 retreatRejected= retained=True attackPriority=1 targetHP=1000
+7220: [AIR3Preservation] PASS Enemy a P0 individual escape survives the emergency defender pursuit gate
+7241: [AIR3Preservation] PASS Enemy actual selector saves the defender instead of an ineffective lethal hold
+7262: [AIR3Preservation] PASS Enemy healthy pursuit guard has no individual emergency
+7283: [AIR3Preservation] PASS Enemy a healthy defender still obeys the emergency pursuit boundary
+7304: [AIR3Preservation] PASS Enemy lethal-base fixture has both a real dying defender and a real dying loss condition
+7325: [AIR3Preservation] PASS Enemy a different safe ally has a legal observed lethal attack against the base's attacker
+7346: [AIR3Preservation] PASS Enemy eliminating the observed attacker actually removes the base's lethal forecast
+7367: [AIR3Preservation] PASS Enemy current AP funds either rescue but cannot fund escape followed by the saving kill
+7388: [AIR3Preservation] PASS Enemy complete production generation retains both base-saving kill and personal escape
+7409: [AIR3PreservationBaseRescue] side=Enemy baseHP=1 baseBefore=71 baseAfterKill=0 escapeP=0 escapeScore=59.39667 savingKillP=0 savingKillScore=88.8 availableAP=3
+7429: [AIR3Preservation] PASS Enemy a legal base-saving kill remains P0 beside individual escape
+7450: [AIR3Preservation] PASS Enemy actual selector uses the real scored base-saving kill before spending its AP on escape
+7471: [AIR3Preservation] PASS tests preserve both live nations and resources
+7489: [AIR3Preservation] PASS tests preserve gameplay random state
+7507: [AIR3Preservation] RESULT checks=247 failedCases=0
+7524: [AIR2Stage] PASS AIR3PreservationTests
+7537: [AIR2LiveValidation] COMPLETE failures=0

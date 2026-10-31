@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public partial class BuildSystem : MonoBehaviour
 {
-    private void OnDestroy() => cursor?.Destroy();
+    private void OnDestroy() { cursor?.Destroy(); DestroyEngineerRange(); }
     // ---- 外部参照（Init で注入） ----
     private TurnGenerator turnGenerator;
     private TerritorySystem territorysystem;
@@ -126,6 +126,9 @@ public partial class BuildSystem : MonoBehaviour
 
         SelectedFacility = facility;
         SelectedDefinition = null;
+        EngineerBuilder = null;
+        engineerMode = false;
+        HideEngineerRange();
         hasPlacementFeedback = false;
         IsActive = true;
         canPlace = false;
@@ -137,6 +140,9 @@ public partial class BuildSystem : MonoBehaviour
     public void CancelBuildMode()
     {
         IsActive = false;
+        EngineerBuilder = null;
+        engineerMode = false;
+        HideEngineerRange();
         PlacementFailureReason = null;
         turnGenerator?.Systems.InputHintUI?.SetHints(InputHintUI.Hints.PlayerMove);
         cursor.Destroy();
@@ -149,6 +155,7 @@ public partial class BuildSystem : MonoBehaviour
     public void UpdateCursor()
     {
         if (!IsActive) return;
+        if (IsEngineerBuild) RefreshEngineerRange();
 
         if (!cursor.TryGetGridPosition(out Vector3Int gridPos))
         {
@@ -167,15 +174,19 @@ public partial class BuildSystem : MonoBehaviour
 
     public string PlacementFailureReason { get; private set; }
     bool hasPlacementFeedback;
-    public string GetPlacementFailure(Vector3Int position) => (SelectedDefinition != null ? GetCostFailure(SelectedDefinition, Team.Player) : BuildValidator.CostFailure(SelectedFacility,factionState))
-        ?? validator.PlacementFailure(position,SelectedFacility,subCrystalSystem,turnGenerator.Systems.CrystalSystem);
+    public string GetPlacementFailure(Vector3Int position)
+    {
+        if (IsEngineerBuild) return EngineerPlacementFailure(EngineerBuilder, position, SelectedFacility, SelectedDefinition, false);
+        return (SelectedDefinition != null ? GetCostFailure(SelectedDefinition, Team.Player) : BuildValidator.CostFailure(SelectedFacility,factionState))
+            ?? validator.PlacementFailure(position,SelectedFacility,subCrystalSystem,turnGenerator.Systems.CrystalSystem);
+    }
 
     void SetPlacementFeedback(string reason)
     {
         if (hasPlacementFeedback && PlacementFailureReason==reason) return;
         hasPlacementFeedback=true;
         PlacementFailureReason=reason;
-        turnGenerator?.Systems.InputHintUI?.SetHints(InputHintUI.Hints.BuildMode + "\n" +
+        turnGenerator?.Systems.InputHintUI?.SetHints((IsEngineerBuild ? "工兵建築：資源費2倍　[右クリック]取消" : InputHintUI.Hints.BuildMode) + "\n" +
             (reason==null ? "<color=#A9E5B1>建築可能</color>" : "<color=#FFB7A3>"+reason+"</color>"));
     }
 
@@ -187,6 +198,16 @@ public partial class BuildSystem : MonoBehaviour
         if (!IsActive) return false;
         string reason=cursor.IsVisible ? GetPlacementFailure(cursor.LastPosition) : "配置不可：マップ上のマスを選択してください";
         if (reason!=null) {SetPlacementFeedback(reason);ToastMessageUI.Show(reason,ToastMessageUI.MessageType.Warning);return false;}
+
+        if (IsEngineerBuild)
+        {
+            bool placed = SelectedDefinition != null ? TryEngineerPlace(EngineerBuilder, cursor.LastPosition, SelectedDefinition)
+                : TryEngineerPlace(EngineerBuilder, cursor.LastPosition, SelectedFacility);
+            if (!placed) return false;
+            NotifyMLObservation(cursor.LastPosition);
+            CancelBuildMode();
+            return true;
+        }
 
         if (SelectedDefinition != null)
         {
@@ -478,7 +499,7 @@ public partial class BuildSystem : MonoBehaviour
         }
         else
         {
-            if (!AICheckCanPlace(pos, team)) return false;
+            if (!AICheckCanPlace(pos, team, facility)) return false;
         }
 
         // 建築物を配置（共通処理）
@@ -512,8 +533,9 @@ public partial class BuildSystem : MonoBehaviour
     }
 
     /// <summary>AI用: 設置可否チェック（任意チーム対応）</summary>
-    private bool AICheckCanPlace(Vector3Int pos, Team team)
+    private bool AICheckCanPlace(Vector3Int pos, Team team, FacilityKind? facility = null)
     {
+        if (mapcreate == null || !mapcreate.HasTileAt(pos.x, pos.z)) return false;
         if (mapcreate.Environment.BlocksMovement(pos.x, pos.z)) return false;
         // 領地チェック
         if (!territorysystem.IsInTerritory(pos, team))
@@ -521,6 +543,7 @@ public partial class BuildSystem : MonoBehaviour
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[BuildSystem] AICheckCanPlace: ({pos.x},{pos.z}) は領地外"); }
             return false;
         }
+        if (facility == FacilityKind.Mine && R2EconomyRules.DisallowNewHomeMines) return false; // Provisional R2 home-mine prevention.
 
         // クリスタル位置チェック
         if (IsCrystalPosition(pos))

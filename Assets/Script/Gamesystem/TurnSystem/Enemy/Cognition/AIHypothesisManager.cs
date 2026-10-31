@@ -13,13 +13,15 @@ public sealed class AIHypothesisManager
     string battle;
     Team team;
     int lastOwnTurn = -1;
-    public void Clear() { hypotheses.Clear(); eventIds.Clear(); eventOrder.Clear(); current.Clear(); removals.Clear(); battle = null; lastOwnTurn = -1; }
+    int lastGlobalTurn = -1;
+    public void Clear() { hypotheses.Clear(); eventIds.Clear(); eventOrder.Clear(); current.Clear(); removals.Clear(); battle = null; lastOwnTurn = lastGlobalTurn = -1; }
 
     public IReadOnlyList<AIHypothesis> Update(AIObservedWorldModel world, IReadOnlyList<AIProblem> problems, int maxHypotheses = 32)
     {
         if (world == null) return Array.Empty<AIHypothesis>();
         if (battle != world.BattleId || team != world.ActorTeam) { Clear(); battle = world.BattleId; team = world.ActorTeam; }
         lastOwnTurn = world.OwnTurn;
+        lastGlobalTurn = world.GlobalTurn;
         maxHypotheses = Mathf.Clamp(maxHypotheses, 1, 64); current.Clear();
         if (problems != null) foreach (var problem in problems)
         {
@@ -66,7 +68,7 @@ public sealed class AIHypothesisManager
 
     public bool ObserveOutcome(string eventId, string hypothesisId, AIHypothesisOutcome outcome, int turn, string evidenceId = null)
     {
-        if (!ValidText(eventId, 256) || !ValidText(hypothesisId, 128) || turn < 0 || lastOwnTurn >= 0 && turn > lastOwnTurn
+        if (!ValidText(eventId, 256) || !ValidText(hypothesisId, 128) || turn < 0 || lastGlobalTurn >= 0 && turn > lastGlobalTurn
             || evidenceId != null && !ValidText(evidenceId, 256)
             || !Enum.IsDefined(typeof(AIHypothesisOutcome), outcome) || outcome == AIHypothesisOutcome.Untested
             || !hypotheses.TryGetValue(hypothesisId, out var hypothesis)) return false;
@@ -85,6 +87,7 @@ public sealed class AIHypothesisManager
         var state = new AIHypothesisBattleState { BattleId = battleId, ActorTeam = actorTeam };
         if (battle != battleId || team != actorTeam) return state;
         state.LastOwnTurn = lastOwnTurn;
+        state.LastGlobalTurn = lastGlobalTurn;
         var ordered = new List<AIHypothesis>(hypotheses.Values);
         ordered.Sort((a, b) => string.CompareOrdinal(a.HypothesisId, b.HypothesisId));
         foreach (var hypothesis in ordered)
@@ -102,7 +105,8 @@ public sealed class AIHypothesisManager
     }
 
     /// <summary>Corrupt/future/foreign payloads fall back to an empty table. Pass the restored own turn to reject future observations.</summary>
-    public bool Restore(AIHypothesisBattleState state, string battleId, Team actorTeam, int currentOwnTurn = int.MaxValue)
+    public bool Restore(AIHypothesisBattleState state, string battleId, Team actorTeam, int currentOwnTurn = int.MaxValue,
+        int currentGlobalTurn = int.MaxValue)
     {
         Clear(); battle = battleId; team = actorTeam;
         if (state == null) return true; // Legacy saves carry no R4 table.
@@ -111,7 +115,9 @@ public sealed class AIHypothesisManager
             || actorTeam != Team.Player && actorTeam != Team.Enemy || state.LastOwnTurn < -1 || state.LastOwnTurn > currentOwnTurn
             || state.Entries == null || state.Entries.Count > 32 || state.ProcessedEventIds == null || state.ProcessedEventIds.Count > 128)
             return false;
-        if (state.Entries.Count > 0 && state.LastOwnTurn < 0) return false;
+        int savedGlobalTurn = state.LastGlobalTurn >= 0 ? state.LastGlobalTurn : state.LastOwnTurn;
+        if (savedGlobalTurn > currentGlobalTurn || savedGlobalTurn < state.LastOwnTurn
+            || state.Entries.Count > 0 && state.LastOwnTurn < 0) return false;
         var restored = new Dictionary<string, AIHypothesis>(StringComparer.Ordinal);
         foreach (var entry in state.Entries)
         {
@@ -120,7 +126,7 @@ public sealed class AIHypothesisManager
                 || !Enum.IsDefined(typeof(AIHypothesisCause), entry.CauseCode) || !Enum.IsDefined(typeof(AIHypothesisOutcome), entry.Outcome)
                 || !AIWorldFact.Finite(entry.Confidence) || entry.Confidence < 0 || entry.Confidence > 1
                 || !AIWorldFact.Finite(entry.ExpectedInformationGain) || entry.ExpectedInformationGain < 0
-                || entry.ExpectedInformationGain > 1000 || entry.TestedTurn < -1 || entry.TestedTurn > state.LastOwnTurn
+                || entry.ExpectedInformationGain > 1000 || entry.TestedTurn < -1 || entry.TestedTurn > savedGlobalTurn
                 || entry.Outcome != AIHypothesisOutcome.Untested && entry.TestedTurn < 0
                 || !ValidEvidence(entry.SupportingEvidenceIds) || !ValidEvidence(entry.Contradictions)
                 || restored.ContainsKey(entry.HypothesisId)) return false;
@@ -135,6 +141,7 @@ public sealed class AIHypothesisManager
         foreach (var id in state.ProcessedEventIds)
             if (!ValidText(id, 512) || !restoredEvents.Add(id)) return false;
         lastOwnTurn = state.LastOwnTurn;
+        lastGlobalTurn = savedGlobalTurn;
         foreach (var pair in restored) hypotheses.Add(pair.Key, pair.Value);
         foreach (var id in state.ProcessedEventIds) { eventIds.Add(id); eventOrder.Enqueue(id); }
         return true;

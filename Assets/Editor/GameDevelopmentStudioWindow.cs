@@ -21,7 +21,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
     Vector2 listScroll, detailScroll;
     int tab;
     string search = "", notice = "";
-    bool costFold, growthFold, abilityFold, upkeepFold;
+    bool costFold, abilityFold, upkeepFold;
     static readonly string[] Tabs = { "駒づくり", "建物づくり", "陣営・ゲームルール", "第三陣営のイベント" };
 
     [MenuItem("Fantasy Kingdom/開発スタジオ（日本語）", priority = 0)]
@@ -132,15 +132,13 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             Field(so.FindProperty("baseBarrier"));
             int authored = so.FindProperty("baseBarrier").intValue;
             int initial = authored < 0 ? BarrierSystem.Initial(editedKind) : authored;
-            EditorGUILayout.LabelField("最大バリア（Lv1 / 最大Lv）", initial + " / " + BarrierSystem.Maximum(initial, GameConstants.MaxUnitLevel));
-            EditorGUILayout.HelpBox($"−1は兵種ごとの初期バリアを使用します。最大バリアは毎Lv＋{BarrierSystem.GrowthPerLevel}。ダメージはバリア、HPの順に減少します。", MessageType.Info);
+            EditorGUILayout.LabelField("固定最大バリア", initial.ToString());
+            EditorGUILayout.HelpBox("−1は兵種ごとの初期バリアを使用します。バリアにレベル成長はありません。ダメージはバリア、HPの順に減少します。", MessageType.Info);
         }
-        growthFold = EditorGUILayout.Foldout(growthFold,"レベルごとの成長",true);
-        if (growthFold)
-        {
-            Fields(so,"hpGrowth","atkGrowth");
-            if (usesBarrier) EditorGUILayout.LabelField("バリア成長", "毎Lv＋" + BarrierSystem.GrowthPerLevel);
-        }
+        EditorGUILayout.LabelField("生成時の固定HP / 攻撃力",
+            FixedUnitRules.BaseStat(editedKind, so.FindProperty("baseHP").intValue) + " / "
+            + FixedUnitRules.BaseStat(editedKind, so.FindProperty("baseATK").intValue));
+        EditorGUILayout.HelpBox("通常兵は入力した基礎能力の1.75倍を固定値として使用します。王・ボスなどは専用値を使用します。試合中のレベル成長はありません。", MessageType.None);
         costFold = EditorGUILayout.Foldout(costFold,"作成に必要な資材・AP",true);
         if (costFold) Fields(so,"costWood","costStone","costIron","costMagic","costWater","costBread","costCitizen","costAP");
         upkeepFold = EditorGUILayout.Foldout(upkeepFold,"毎ターンの維持費",true);
@@ -150,11 +148,11 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             Field(so.FindProperty("useAuthoredUpkeep"));
             bool exempt = so.FindProperty("upkeepExempt").boolValue || selectedUnit.kind == Kind.King || selectedUnit.kind == Kind.Boss;
             EditorGUILayout.HelpBox(exempt ? "この駒の維持費はありません。王・異形の王は常に免除されます。"
-                : so.FindProperty("useAuthoredUpkeep").boolValue ? "鉄・パンを含め、以下の設定値をLv1の維持費として使います。Lv10ごとに増加します。"
-                : "従来の共通維持費を使います。鉄・パンも変更する場合は「この駒専用の鉄・パン維持費を使う」を有効にしてください。", MessageType.Info);
+                : so.FindProperty("useAuthoredUpkeep").boolValue ? "以下は倍率適用前の基本維持費です。ルールの追加分と合算した5倍を毎ターン支払い、試合中は増加しません。"
+                : "共通の鉄・パン基本維持費を含め、ルールの追加分との合計を5倍して支払います。専用の鉄・パンを使う場合は下の設定を有効にしてください。", MessageType.Info);
             using (new EditorGUI.DisabledScope(exempt))
             {
-                Fields(so,"upkeepWood","upkeepStone","upkeepMagic","upkeepWater","upkeepMagicScales");
+                Fields(so,"upkeepWood","upkeepStone","upkeepMagic","upkeepWater");
                 if (so.FindProperty("useAuthoredUpkeep").boolValue) Fields(so,"upkeepIron","upkeepBread");
             }
         }
@@ -169,7 +167,8 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         so.ApplyModifiedProperties();
         DrawVisual(selectedUnit, null);
         DrawProfile(selectedUnit.actionProfile, selectedUnit.kind, p => selectedUnit.actionProfile = p, selectedUnit);
-        if (!selectedUnit.IsValidForAuthoring) EditorGUILayout.HelpBox("能力値・成長率・費用が不正です。HPを1以上、ほかの数値を0以上にしてください。",MessageType.Error);
+        if (upkeepFold) EditorGUILayout.LabelField("実際の毎ターン維持費", BuildSummonUIBuilder.FormatProductionBundle(selectedUnit.GetFixedUpkeep()), EditorStyles.wordWrappedLabel);
+        if (!selectedUnit.IsValidForAuthoring) EditorGUILayout.HelpBox("能力値・費用が不正です。HPを1以上、ほかの数値を0以上にしてください。",MessageType.Error);
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("この駒をゲームに登録",GUILayout.Height(30))) TryAction(() => RegisterUnit(selectedUnit));
         if (GUILayout.Button("データをProjectで表示")) { Selection.activeObject = selectedUnit; EditorGUIUtility.PingObject(selectedUnit); }

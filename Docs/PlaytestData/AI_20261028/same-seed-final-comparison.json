@@ -1,0 +1,707 @@
+{
+  "Caution": "Same map/AI seeds and gameplay inputs, but changed code, life IDs, frame budget and self-play trajectories do not permit causal or win-rate conclusions. A no-reveal reversal can be a valid rescue/combat move. Goal-gain pairs are not necessarily the same goal; old logs lack provenance.",
+  "Cases": [
+    {
+      "Label": "t15",
+      "Seed": 161803,
+      "Teams": {
+        "Player": {
+          "Moves": 426,
+          "NewTilesFromMoves": 845,
+          "UnrevealingImmediateGeometricReturns": 126,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 12,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "97",
+              "101"
+            ],
+            [
+              "101",
+              "102"
+            ],
+            [
+              "161",
+              "162"
+            ],
+            [
+              "166",
+              "168"
+            ],
+            [
+              "168",
+              "169"
+            ],
+            [
+              "175",
+              "177"
+            ],
+            [
+              "177",
+              "178"
+            ],
+            [
+              "180",
+              "184"
+            ],
+            [
+              "184",
+              "186"
+            ],
+            [
+              "196",
+              "198"
+            ],
+            [
+              "201",
+              "202"
+            ],
+            [
+              "206",
+              "207"
+            ],
+            [
+              "214",
+              "216"
+            ],
+            [
+              "219",
+              "221"
+            ],
+            [
+              "225",
+              "226"
+            ],
+            [
+              "230",
+              "232"
+            ],
+            [
+              "233",
+              "234"
+            ],
+            [
+              "239",
+              "240"
+            ],
+            [
+              "280",
+              "289"
+            ],
+            [
+              "289",
+              "295"
+            ],
+            [
+              "390",
+              "394"
+            ],
+            [
+              "452",
+              "453"
+            ],
+            [
+              "463",
+              "472"
+            ],
+            [
+              "485",
+              "489"
+            ],
+            [
+              "490",
+              "491"
+            ],
+            [
+              "496",
+              "499"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Player",
+            "boardTurn": "60",
+            "generation": "14",
+            "AP": "0",
+            "mode": "Exploration",
+            "strategy": "Balanced",
+            "visibleOpponentTerritory": "0",
+            "rememberedCells": "0",
+            "waypointActive": "False",
+            "targetX": "0",
+            "targetZ": "0",
+            "suspended": "False",
+            "reason": "territory_unobserved",
+            "armyCount": "3",
+            "meanHomeDistance": "3.666667",
+            "meanTargetDistance": "20.33333",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "Reconnaissance",
+            "planStep": "Complete",
+            "rejections": "0",
+            "firstObservedTurn": "-1",
+            "lastConfirmedTurn": "-1",
+            "lastProgressTurn": "-1",
+            "strategyReason": "中盤・敵未視認 → バランス"
+          }
+        },
+        "Enemy": {
+          "Moves": 398,
+          "NewTilesFromMoves": 742,
+          "UnrevealingImmediateGeometricReturns": 32,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 1,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "75",
+              "79"
+            ],
+            [
+              "147",
+              "148"
+            ],
+            [
+              "417",
+              "423"
+            ],
+            [
+              "486",
+              "490"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Enemy",
+            "boardTurn": "60",
+            "generation": "19",
+            "AP": "1",
+            "mode": "Exploration",
+            "strategy": "CrystalDefense",
+            "visibleOpponentTerritory": "0",
+            "rememberedCells": "0",
+            "waypointActive": "False",
+            "targetX": "0",
+            "targetZ": "0",
+            "suspended": "False",
+            "reason": "territory_unobserved",
+            "armyCount": "3",
+            "meanHomeDistance": "2.666667",
+            "meanTargetDistance": "8",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "Reconnaissance",
+            "planStep": "Complete",
+            "rejections": "0",
+            "firstObservedTurn": "-1",
+            "lastConfirmedTurn": "-1",
+            "lastProgressTurn": "-1",
+            "strategyReason": "実行可能候補を再検討: CrystalDefense"
+          }
+        }
+      }
+    },
+    {
+      "Label": "t15",
+      "Seed": 271828,
+      "Teams": {
+        "Player": {
+          "Moves": 384,
+          "NewTilesFromMoves": 650,
+          "UnrevealingImmediateGeometricReturns": 53,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "159",
+              "165"
+            ],
+            [
+              "186",
+              "192"
+            ],
+            [
+              "216",
+              "221"
+            ],
+            [
+              "227",
+              "234"
+            ],
+            [
+              "300",
+              "303"
+            ],
+            [
+              "453",
+              "458"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Player",
+            "boardTurn": "60",
+            "generation": "21",
+            "AP": "1",
+            "mode": "StrategicAttack",
+            "strategy": "CrystalDefense",
+            "visibleOpponentTerritory": "0",
+            "rememberedCells": "35",
+            "waypointActive": "True",
+            "targetX": "15",
+            "targetZ": "29",
+            "suspended": "False",
+            "reason": "territory_advance_ready",
+            "armyCount": "3",
+            "meanHomeDistance": "6",
+            "meanTargetDistance": "7.333333",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "CrystalStrike",
+            "planStep": "Assemble",
+            "rejections": "0",
+            "firstObservedTurn": "34",
+            "lastConfirmedTurn": "60",
+            "lastProgressTurn": "60",
+            "strategyReason": "実行可能候補を再検討: CrystalDefense"
+          }
+        },
+        "Enemy": {
+          "Moves": 406,
+          "NewTilesFromMoves": 377,
+          "UnrevealingImmediateGeometricReturns": 79,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 4,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "238",
+              "246"
+            ],
+            [
+              "271",
+              "279"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Enemy",
+            "boardTurn": "60",
+            "generation": "20",
+            "AP": "1",
+            "mode": "StrategicAttack",
+            "strategy": "CrystalDefense",
+            "visibleOpponentTerritory": "0",
+            "rememberedCells": "1",
+            "waypointActive": "True",
+            "targetX": "20",
+            "targetZ": "26",
+            "suspended": "False",
+            "reason": "territory_advance_ready",
+            "armyCount": "2",
+            "meanHomeDistance": "8.5",
+            "meanTargetDistance": "4.5",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "Reconnaissance",
+            "planStep": "Complete",
+            "rejections": "0",
+            "firstObservedTurn": "56",
+            "lastConfirmedTurn": "56",
+            "lastProgressTurn": "60",
+            "strategyReason": "実行可能候補を再検討: CrystalDefense"
+          }
+        }
+      }
+    },
+    {
+      "Label": "fixed-t15",
+      "Seed": 161803,
+      "Teams": {
+        "Player": {
+          "Moves": 452,
+          "NewTilesFromMoves": 834,
+          "UnrevealingImmediateGeometricReturns": 90,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "97",
+              "101"
+            ],
+            [
+              "101",
+              "102"
+            ],
+            [
+              "142",
+              "146"
+            ],
+            [
+              "185",
+              "189"
+            ],
+            [
+              "280",
+              "282"
+            ],
+            [
+              "441",
+              "453"
+            ],
+            [
+              "524",
+              "530"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Player",
+            "boardTurn": "60",
+            "generation": "15",
+            "AP": "0",
+            "mode": "Exploration",
+            "strategy": "Balanced",
+            "visibleOpponentTerritory": "0",
+            "rememberedCells": "0",
+            "waypointActive": "False",
+            "targetX": "0",
+            "targetZ": "0",
+            "suspended": "False",
+            "reason": "territory_unobserved",
+            "armyCount": "4",
+            "meanHomeDistance": "3.25",
+            "meanTargetDistance": "20.25",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "Reconnaissance",
+            "planStep": "Complete",
+            "rejections": "0",
+            "firstObservedTurn": "-1",
+            "lastConfirmedTurn": "-1",
+            "lastProgressTurn": "-1",
+            "strategyReason": "中盤・敵未視認 → バランス"
+          }
+        },
+        "Enemy": {
+          "Moves": 433,
+          "NewTilesFromMoves": 796,
+          "UnrevealingImmediateGeometricReturns": 33,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "75",
+              "79"
+            ],
+            [
+              "150",
+              "152"
+            ],
+            [
+              "311",
+              "315"
+            ],
+            [
+              "375",
+              "379"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Enemy",
+            "boardTurn": "60",
+            "generation": "13",
+            "AP": "0",
+            "mode": "Exploration",
+            "strategy": "Balanced",
+            "visibleOpponentTerritory": "0",
+            "rememberedCells": "0",
+            "waypointActive": "False",
+            "targetX": "0",
+            "targetZ": "0",
+            "suspended": "False",
+            "reason": "territory_unobserved",
+            "armyCount": "5",
+            "meanHomeDistance": "7.6",
+            "meanTargetDistance": "14.2",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "Reconnaissance",
+            "planStep": "Complete",
+            "rejections": "0",
+            "firstObservedTurn": "-1",
+            "lastConfirmedTurn": "-1",
+            "lastProgressTurn": "-1",
+            "strategyReason": "中盤・敵未視認 → バランス"
+          }
+        }
+      }
+    },
+    {
+      "Label": "fixed-t15",
+      "Seed": 271828,
+      "Teams": {
+        "Player": {
+          "Moves": 355,
+          "NewTilesFromMoves": 664,
+          "UnrevealingImmediateGeometricReturns": 54,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "167",
+              "172"
+            ],
+            [
+              "195",
+              "198"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Player",
+            "boardTurn": "60",
+            "generation": "11",
+            "AP": "0",
+            "mode": "StrategicAttack",
+            "strategy": "Balanced",
+            "visibleOpponentTerritory": "0",
+            "rememberedCells": "50",
+            "waypointActive": "True",
+            "targetX": "9",
+            "targetZ": "26",
+            "suspended": "False",
+            "reason": "territory_advance_ready",
+            "armyCount": "1",
+            "meanHomeDistance": "9",
+            "meanTargetDistance": "5",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "CrystalStrike",
+            "planStep": "Assemble",
+            "rejections": "0",
+            "firstObservedTurn": "35",
+            "lastConfirmedTurn": "60",
+            "lastProgressTurn": "60",
+            "strategyReason": "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）"
+          }
+        },
+        "Enemy": {
+          "Moves": 421,
+          "NewTilesFromMoves": 422,
+          "UnrevealingImmediateGeometricReturns": 82,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "295",
+              "296"
+            ],
+            [
+              "547",
+              "552"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Enemy",
+            "boardTurn": "60",
+            "generation": "20",
+            "AP": "1",
+            "mode": "StrategicAttack",
+            "strategy": "CrystalDefense",
+            "visibleOpponentTerritory": "7",
+            "rememberedCells": "7",
+            "waypointActive": "True",
+            "targetX": "19",
+            "targetZ": "25",
+            "suspended": "False",
+            "reason": "territory_advance_ready",
+            "armyCount": "4",
+            "meanHomeDistance": "5.75",
+            "meanTargetDistance": "7.75",
+            "principalContact": "True",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "Reconnaissance",
+            "planStep": "Complete",
+            "rejections": "0",
+            "firstObservedTurn": "40",
+            "lastConfirmedTurn": "60",
+            "lastProgressTurn": "60",
+            "strategyReason": "実行可能候補を再検討: CrystalDefense"
+          }
+        }
+      }
+    },
+    {
+      "Label": "final-t15",
+      "Seed": 161803,
+      "Teams": {
+        "Player": {
+          "Moves": 439,
+          "NewTilesFromMoves": 818,
+          "UnrevealingImmediateGeometricReturns": 103,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "485",
+              "495"
+            ],
+            [
+              "484",
+              "498"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Player",
+            "boardTurn": "60",
+            "generation": "22",
+            "AP": "1",
+            "mode": "Exploration",
+            "strategy": "CrystalDefense",
+            "visibleOpponentTerritory": "0",
+            "rememberedCells": "0",
+            "waypointActive": "False",
+            "targetX": "0",
+            "targetZ": "0",
+            "suspended": "False",
+            "reason": "territory_unobserved",
+            "armyCount": "6",
+            "meanHomeDistance": "3.333333",
+            "meanTargetDistance": "18.5",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "Reconnaissance",
+            "planStep": "Complete",
+            "rejections": "0",
+            "firstObservedTurn": "-1",
+            "lastConfirmedTurn": "-1",
+            "lastProgressTurn": "-1",
+            "strategyReason": "実行可能候補を再検討: CrystalDefense"
+          }
+        },
+        "Enemy": {
+          "Moves": 443,
+          "NewTilesFromMoves": 855,
+          "UnrevealingImmediateGeometricReturns": 44,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [
+            [
+              "311",
+              "315"
+            ]
+          ],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Enemy",
+            "boardTurn": "60",
+            "generation": "16",
+            "AP": "0",
+            "mode": "StrategicAttack",
+            "strategy": "Balanced",
+            "visibleOpponentTerritory": "6",
+            "rememberedCells": "3",
+            "waypointActive": "True",
+            "targetX": "13",
+            "targetZ": "26",
+            "suspended": "False",
+            "reason": "territory_advance_ready",
+            "armyCount": "5",
+            "meanHomeDistance": "3",
+            "meanTargetDistance": "18.4",
+            "principalContact": "False",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "Reconnaissance",
+            "planStep": "Complete",
+            "rejections": "0",
+            "firstObservedTurn": "59",
+            "lastConfirmedTurn": "60",
+            "lastProgressTurn": "60",
+            "strategyReason": "発見済みの敵領土へ進軍・再偵察（敵兵・拠点は未確認）"
+          }
+        }
+      }
+    },
+    {
+      "Label": "final-t15",
+      "Seed": 271828,
+      "Teams": {
+        "Player": {
+          "Moves": 332,
+          "NewTilesFromMoves": 622,
+          "UnrevealingImmediateGeometricReturns": 59,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Player",
+            "boardTurn": "60",
+            "generation": "12",
+            "AP": "0",
+            "mode": "StrategicAttack",
+            "strategy": "ContactEngage",
+            "visibleOpponentTerritory": "30",
+            "rememberedCells": "47",
+            "waypointActive": "True",
+            "targetX": "15",
+            "targetZ": "27",
+            "suspended": "False",
+            "reason": "territory_advance_ready",
+            "armyCount": "2",
+            "meanHomeDistance": "11.5",
+            "meanTargetDistance": "3",
+            "principalContact": "True",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "CrystalStrike",
+            "planStep": "Assemble",
+            "rejections": "0",
+            "firstObservedTurn": "35",
+            "lastConfirmedTurn": "60",
+            "lastProgressTurn": "60",
+            "strategyReason": "敵部隊または生存拠点を視認: 経済の完成を待たず交戦"
+          }
+        },
+        "Enemy": {
+          "Moves": 369,
+          "NewTilesFromMoves": 409,
+          "UnrevealingImmediateGeometricReturns": 64,
+          "ThirdOrLaterSameRoundDestinationNoReveal": 0,
+          "ReversalPairsBothPositiveGoalGain": [],
+          "EndTerritory": {
+            "round": "60",
+            "team": "Enemy",
+            "boardTurn": "60",
+            "generation": "13",
+            "AP": "0",
+            "mode": "StrategicAttack",
+            "strategy": "ContactEngage",
+            "visibleOpponentTerritory": "1",
+            "rememberedCells": "7",
+            "waypointActive": "True",
+            "targetX": "19",
+            "targetZ": "27",
+            "suspended": "False",
+            "reason": "territory_advance_ready",
+            "armyCount": "5",
+            "meanHomeDistance": "7",
+            "meanTargetDistance": "5.8",
+            "principalContact": "True",
+            "crystalVisible": "False",
+            "crystalRemembered": "False",
+            "planGoal": "CrystalStrike",
+            "planStep": "Assemble",
+            "rejections": "0",
+            "firstObservedTurn": "40",
+            "lastConfirmedTurn": "60",
+            "lastProgressTurn": "60",
+            "strategyReason": "敵部隊または生存拠点を視認: 経済の完成を待たず交戦"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -126,20 +126,14 @@ public sealed class AIActionFeatureExtractor
             var objective = board.Governor?.Objective;
             if (board.Exploration.TryGetAssignedTarget(actor, out var ownGoal))
             {
-                snapshot.HasObjective = true;
-                snapshot.DistanceToObjective = Mathf.CeilToInt(board.Exploration.GetObjective(actor.GetInstanceID())?.LastDistance
-                    ?? Distance(position, ownGoal));
+                var assigned = board.Exploration.GetObjective(actor.GetInstanceID());
+                CaptureObjective(snapshot, position, ownGoal, assigned != null ? "Exploration:" + assigned.ObjectiveId : null);
             }
             else if (objective != null && objective.Active && !objective.Suspended)
-            {
-                snapshot.HasObjective = true;
-                snapshot.DistanceToObjective = Distance(position, objective.Target);
-            }
+                CaptureObjective(snapshot, position, objective.Target,
+                    objective.SourceObjectiveId > 0 ? "Strategic:" + objective.SourceObjectiveId : null);
             else if (action.ActionType == AIActionType.DefenseRepos || action.ActionType == AIActionType.Retreat)
-            {
-                snapshot.HasObjective = true;
-                snapshot.DistanceToObjective = Distance(position, board.EnemyCrystalPos);
-            }
+                CaptureObjective(snapshot, position, board.EnemyCrystalPos, "OwnCrystal");
             snapshot.DistanceToTarget = Distance(position, action.TargetPos);
         }
         else snapshot.ActorRole = action.ActionType == AIActionType.Summon ? Role(action.SummonKind) : "Builder";
@@ -196,6 +190,18 @@ public sealed class AIActionFeatureExtractor
         return snapshot;
     }
 
+    static void CaptureObjective(AIActionContextSnapshot snapshot, Vector3 position, Vector3 target, string identity)
+    {
+        snapshot.HasObjective = true;
+        snapshot.ObjectiveIdentity = identity;
+        snapshot.ObjectiveX = Mathf.RoundToInt(target.x); snapshot.ObjectiveY = Mathf.RoundToInt(target.z);
+        snapshot.ObjectiveHeight = Mathf.RoundToInt(target.y);
+        // Reflection uses one fixed geometric metric from the actor's current transform.
+        // Planner LastDistance may be stale, rebased, or measured on a different known route.
+        snapshot.ObjectiveDistanceMetric = AIObjectiveDistanceMetric.ChebyshevXZ;
+        snapshot.DistanceToObjective = Distance(position, target);
+    }
+
     void Prepare(AIBoardState board)
     {
         if (cachedBoard == board && generation == board.Generation) return;
@@ -242,6 +248,7 @@ public sealed class AIActionFeatureExtractor
             signature = signature * 31 + (actor.BarrierRecovery?.DamageSinceOwnTurn == true ? 1 : 0);
             signature = signature * 31 + (actor.BarrierRecovery?.HasRecovered == true ? 1 : 0);
             signature = signature * 31 + (actor.BarrierRecovery?.HasOwnTurnBaseline == true ? 1 : 0);
+            signature = signature * 31 + (actor.BarrierRecovery?.FullHPObserved == true ? 1 : 0);
             return signature + SpecialEffectSignature(actor.Special, turn) * 397;
         }
     }

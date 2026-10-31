@@ -1,0 +1,26 @@
+[
+  {
+    "SourceLog": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\playtest-20261028\\exploration-save-final.log",
+    "Suite": "ExplorationR2Integration",
+    "PassCount": 287,
+    "FailCount": 0,
+    "CompletedMarker": true,
+    "Scope": "Native Play Mode regression fixture; not an additional ordinary match."
+  },
+  {
+    "SourceLog": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\playtest-20261028\\preservation-final.log",
+    "Suite": "AIR3Preservation",
+    "PassCount": 247,
+    "FailCount": 0,
+    "CompletedMarker": true,
+    "Scope": "Native Play Mode regression fixture; not an additional ordinary match."
+  },
+  {
+    "SourceLog": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\playtest-20261028\\recruitment-fixture-final.log",
+    "Suite": "AIR2Recruitment",
+    "PassCount": 60,
+    "FailCount": 0,
+    "CompletedMarker": true,
+    "Scope": "Native Play Mode regression fixture; not an additional ordinary match."
+  }
+]

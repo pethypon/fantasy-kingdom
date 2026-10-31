@@ -1,0 +1,11 @@
+{
+  "Scope": "Controlled counterfactual in isolated clone only: remove dedicated-Scout exception while preserving the corrected two-lane coexistence fixture. Not a normal match.",
+  "FixedGovernorSHA256": "a95121bd926daa3d791f1b9f336b348f435b781dd57472aa74b2d0d880d4e179",
+  "CounterfactualGovernorSHA256": "49b9d151f002931cd8ff7f59e477afe2dbd245e477c45c2ac176caecfa5c9f5b",
+  "ExitCode": 1,
+  "RestoredOriginalBytes": true,
+  "FixedFixtureCompletedMarker": true,
+  "FixedFixtureLog": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\playtest-20261028\\scout-priority-final-green.txt",
+  "CounterfactualLog": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\playtest-20261028\\scout-priority-counterfactual-red.txt",
+  "Caution": "Earlier scout-priority-red/green and lanes-green attempts had fixture precondition errors and are not direct proof. Use only this corrected two-lane fixture and dedicated-exception counterfactual."
+}

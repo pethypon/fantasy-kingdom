@@ -42,7 +42,9 @@ public sealed class DeveloperPlayerAIController : IDisposable
     bool stepping, stopPending, menuPaused;
     bool budgetSynchronized;
     double completionDeadlineMs;
-    float activeSeconds;
+    long previousBudgetSequence;
+    // Real elapsed active time: a malformed/synthetic deltaSeconds cannot poison or refund the watchdog.
+    readonly System.Diagnostics.Stopwatch elapsed = new System.Diagnostics.Stopwatch();
     public bool Enabled { get; private set; }
     public bool WasUsed { get; private set; }
     public AICommander Commander => commander;
@@ -90,6 +92,7 @@ public sealed class DeveloperPlayerAIController : IDisposable
     {
         if (steps == null || menuPaused) return;
         menuPaused = true;
+        elapsed.Stop();
         AITurnBudget.SuspendWaitLimit();
     }
 
@@ -97,12 +100,13 @@ public sealed class DeveloperPlayerAIController : IDisposable
     {
         if (!Enabled || turn.IsGameOver) { Stop(); return false; }
         if (!(turn.CurrentState is PlayerMove move)) { Stop(); return false; }
-        if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen) return true;
-        if (menuPaused) { menuPaused = false; AITurnBudget.ResumeWaitLimit(); }
+        if (GameMenuUI.Instance != null && GameMenuUI.Instance.IsOpen) { PauseForMenu(); return true; }
+        if (menuPaused) { menuPaused = false; elapsed.Start(); AITurnBudget.ResumeWaitLimit(); }
         turn.Context.ConsumeUICommand();
         turn.Systems.InputHintUI?.SetHints(Hints);
         if (steps == null)
         {
+            elapsed.Restart();
             ClearInteraction();
             var s = turn.Systems;
             if (commander == null)
@@ -121,13 +125,14 @@ public sealed class DeveloperPlayerAIController : IDisposable
             }
             commander.SearchSliceBudgetMs = 3;
             owner = move;
-            activeSeconds = 0;
             budgetSynchronized = false;
-            completionDeadlineMs = AIThinkingBudgetConfig.MaximumMilliseconds + AIThinkingBudgetConfig.MaximumCompletionGraceMilliseconds;
+            previousBudgetSequence = commander.ThinkingBudgetSequence;
+            completionDeadlineMs = AITurnBudget.ClampCompletionDeadline(
+                AIThinkingBudgetConfig.MaximumMilliseconds + AIThinkingBudgetConfig.MaximumCompletionGraceMilliseconds,
+                s.TimerSystem != null ? s.TimerSystem.AvailableAIThinkingMilliseconds(Team.Player) : double.PositiveInfinity);
             steps = commander.ExecuteTurnSteps();
         }
-        activeSeconds += Mathf.Clamp(deltaSeconds, 0, 1);
-        bool done = activeSeconds * 1000d >= completionDeadlineMs
+        bool done = elapsed.Elapsed.TotalMilliseconds >= completionDeadlineMs
             || budgetSynchronized && AITurnBudget.ElapsedMs >= completionDeadlineMs;
         try
         {
@@ -136,9 +141,9 @@ public sealed class DeveloperPlayerAIController : IDisposable
                 stepping = true;
                 AITurnBudget.Resume();
                 done = !steps.MoveNext();
-                if (!budgetSynchronized && commander.HasPreparedThinkingBudget)
+                if (!budgetSynchronized && commander.TryGetPreparedThinkingBudget(previousBudgetSequence, Team.Player, out var decision))
                 {
-                    completionDeadlineMs = commander.ActiveThinkingBudget.CompletionDeadlineMilliseconds;
+                    completionDeadlineMs = AITurnBudget.ClampCompletionDeadline(decision.CompletionDeadlineMilliseconds);
                     budgetSynchronized = true;
                 }
             }
@@ -168,6 +173,7 @@ public sealed class DeveloperPlayerAIController : IDisposable
     {
         if (stepping) { stopPending = true; return; }
         stopPending = false;
+        elapsed.Stop();
         if (menuPaused) { menuPaused = false; AITurnBudget.ResumeWaitLimit(); }
         var current = steps;
         steps = null;

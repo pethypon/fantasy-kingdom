@@ -44,6 +44,7 @@ public class BuildValidator
             return subCrystalSystem != null && subCrystalSystem.CanPlaceSubCrystal(pos,Team.Player)
                 ? null : "配置不可：視界内・領地から離れた空き地が必要です";
         if (territorysystem == null || !territorysystem.IsInTerritory(pos,Team.Player)) return "領地外：自分の領地に建築してください";
+        if (facility == FacilityKind.Mine && R2EconomyRules.DisallowNewHomeMines) return "鉄・魔石は領土外でのみ採掘可能です：工兵を派遣してください";
         if (crystalsystem != null && (GridHelper.ToGrid(crystalsystem.PCP)==pos || GridHelper.ToGrid(crystalsystem.ECP)==pos))
             return "配置不可：クリスタルのあるマスです";
         if (buildingPositions.Contains(pos)) return "配置不可：建物があるマスです";
@@ -54,6 +55,7 @@ public class BuildValidator
     {
         if (faction == null || !FacilityData.Table.TryGetValue(facility,out var info)) return "配置不可：建築情報がありません";
         if (!FacilityData.IsAvailableFor(facility, Team.Player)) return "建築不可：この陣営では使えない建物です";
+        if (facility == FacilityKind.Mine && R2EconomyRules.DisallowNewHomeMines) return "鉄・魔石は領土外でのみ採掘可能です：工兵を派遣してください";
         if (FacilityData.IsSubCrystal(facility) && faction.GetSubCrystals(Team.Player) <= 0) return "副晶不足";
         var r=faction.PlayerResources; var c=info.BuildCost;
         if (r.Wood<c.Wood) return "木材不足";

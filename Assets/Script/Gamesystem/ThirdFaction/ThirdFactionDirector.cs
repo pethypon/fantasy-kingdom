@@ -212,9 +212,7 @@ public sealed class ThirdFactionDirector
         return a;
     }
     static float EstimatedSpawnPower(UnitData stats, int level)
-        => UnitData.CalcStat(stats.baseATK, stats.atkGrowth, level) * 2
-            + UnitData.CalcStat(stats.baseDEF, stats.defGrowth, level)
-            + Mathf.Sqrt(Mathf.Max(1, UnitData.CalcStat(stats.baseHP, stats.hpGrowth, level)));
+        => (float)stats.FixedATK * 2 + stats.FixedDEF + Mathf.Sqrt(Mathf.Max(1, stats.FixedMaxHP));
     public static R1ContentCatalog.Encounter ResolveEncounter(ThirdFactionEventDefinition d, R1ContentCatalog catalog)
     {
         if (!string.IsNullOrWhiteSpace(d.EncounterId) && catalog != null)

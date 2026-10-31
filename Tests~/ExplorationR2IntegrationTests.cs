@@ -34,6 +34,38 @@ public static class ExplorationR2IntegrationTests
         RealLargeMapMovement(systems);
         Debug.Log("[ExplorationR2Integration] " + passed + " observed board/persistence/safety checks passed");
     }
+    static void ReflectionObjectiveDistance(AIBoardState board, Status actor, Vector3 next, ExploreObjective objective, Team team)
+    {
+        var position = actor.transform.position; float lastDistance = objective.LastDistance;
+        bool route = objective.UsesKnownRouteDistance; int revision = objective.RouteMetricRevision;
+        try
+        {
+            var action = new AIAction { ActionType = AIActionType.Move, Unit = actor, TargetPos = next };
+            var extractor = new AIActionFeatureExtractor();
+            objective.LastDistance = 9999;
+            var before = extractor.Capture(action, board, 20, TurnStrategy.ScoutSearch, 15, 0);
+            int expectedBefore = Mathf.RoundToInt(GridHelper.ChebyshevDistance(position, objective.TargetCell));
+            Check(team + " reflection captures current actor distance rather than planner cache", before.DistanceToObjective == expectedBefore
+                && before.ObjectiveIdentity == "Exploration:" + objective.ObjectiveId
+                && before.ObjectiveDistanceMetric == AIObjectiveDistanceMetric.ChebyshevXZ);
+            objective.LastDistance = 1; objective.UsesKnownRouteDistance = !route; objective.RouteMetricRevision++;
+            var unchanged = extractor.Capture(action, board, 20, TurnStrategy.ScoutSearch, 15, 0);
+            Check(team + " planner cache rebases do not manufacture reflection progress",
+                AIActionOutcome.Difference(before, unchanged).DistanceToObjectiveDelta == 0);
+            actor.transform.position = next;
+            var after = extractor.Capture(action, board, 20, TurnStrategy.ScoutSearch, 15, 0);
+            int expectedAfter = Mathf.RoundToInt(GridHelper.ChebyshevDistance(next, objective.TargetCell));
+            Check(team + " reflection movement uses the same current-position metric on both sides",
+                after.DistanceToObjective == expectedAfter
+                && AIActionOutcome.Difference(before, after).DistanceToObjectiveDelta == expectedBefore - expectedAfter);
+        }
+        finally
+        {
+            actor.transform.position = position; objective.LastDistance = lastDistance;
+            objective.UsesKnownRouteDistance = route; objective.RouteMetricRevision = revision;
+        }
+    }
+
     static void TestFaction(GameSystems live, Team team)
     {
         using (var f = new EconomyR2Tests.Fixture(live, team))
@@ -59,6 +91,7 @@ public static class ExplorationR2IntegrationTests
                 var hidden = f.Opponent(unknown, 999); var board = Board(live, f, vision);
                 var original = board.Exploration.GetObjective(scout.GetInstanceID());
                 Check(team + " real board creates a persistent exploration objective", original != null && original.State == ObjectiveState.Active);
+                ReflectionObjectiveDistance(board, scout, cells[0], original, team);
                 Check(team + " current sight and territory stay separate from unknown", board.AlivePlayerUnits.Count == 0
                     && board.Exploration.Memory.Count == seen.Count && !board.Exploration.Memory.ContainsKey(GridHelper.ToGridXZ(unknown)));
                 float before = board.Recon.ScoreMove(scout, cells[2]); Vector3Int target = original.TargetCell;

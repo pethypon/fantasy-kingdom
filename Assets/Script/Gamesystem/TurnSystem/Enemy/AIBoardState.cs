@@ -10,6 +10,9 @@ using UnityEngine;
 // =====================================================================
 public partial class AIBoardState
 {
+    // Provenance only: generations restart on a new per-turn board. Never used for scores, seeds or gameplay rules.
+    static long nextObservationIdentity;
+    public long ObservationIdentity { get; } = System.Threading.Interlocked.Increment(ref nextObservationIdentity);
     internal readonly Dictionary<(Vector3,Status),float> NearestAllyCache = new Dictionary<(Vector3,Status),float>();
     internal readonly Dictionary<(Vector3,Status,float),int> AllyDensityCache = new Dictionary<(Vector3,Status,float),int>();
     internal readonly Dictionary<(Vector3,float),bool> HealerCache = new Dictionary<(Vector3,float),bool>();
@@ -31,6 +34,7 @@ public partial class AIBoardState
     readonly CrystalSystem _crystalSystem;
     readonly VisionGenerator _visionGen;
     readonly BuildSystem _buildSystem;
+    public BuildSystem BuildSystem => _buildSystem;
     readonly SummonSystem _summonSystem;
     readonly FactionState _factionState;
     readonly SubCrystalSystem _subCrystalSystem;
@@ -57,6 +61,8 @@ public partial class AIBoardState
     public int NationStarvationCounter => _factionState?.GetNation(ActorTeam)?.StarvationCounter ?? 0;
     public int NationTurnsAlive => _factionState?.GetNation(ActorTeam)?.TurnsAlive ?? TurnCount;
     public int CitizenCapacity => _factionState?.GetCitizenCap(ActorTeam) ?? 5;
+    // Own-side formal AP settings. Planning callers read/copy these; never modify live AP through this view.
+    public FactionState.APData OwnAPData => _factionState?.GetAPData(ActorTeam);
     /// <summary>Read-only strategic input supplied by the existing operation layer; never hidden hostile state.</summary>
     public int OperationRequiredCitizenDemand { get; set; }
     // Optional operation owner; supplies observed goals and own-unit formation demand only.
@@ -85,7 +91,6 @@ public partial class AIBoardState
     public IReadOnlyCollection<Vector3Int> OwnExploredCells => _visionGen == null ? Array.Empty<Vector3Int>()
         : ActorTeam == Team.Player ? _visionGen.PlayerExplored : _visionGen.EnemyExplored;
     Vector3 OwnCrystalPosition => ActorTeam == Team.Player ? _crystalSystem.PCP : _crystalSystem.ECP;
-    Vector3 OpponentCrystalPosition => ActorTeam == Team.Player ? _crystalSystem.ECP : _crystalSystem.PCP;
 
     // ---- 盤面データ ----
     // Live board-owned views, updated in place by Refresh. Copy explicitly when a snapshot is needed.
@@ -99,6 +104,12 @@ public partial class AIBoardState
     public int EnemyCrystalMaxHP { get; private set; }
     public int PlayerCrystalHP { get; private set; }
     public bool PlayerCrystalVisible { get; private set; }
+    Status observedMainCrystal;
+    AIBaseKnowledgeStage mainCrystalDisposition;
+    public AIBaseKnowledgeStage MainCrystalKnowledge => PlayerCrystalVisible ? AIBaseKnowledgeStage.Observed
+        : _lastKnownPlayerCrystal.Valid ? AIBaseKnowledgeStage.LastKnown
+        : mainCrystalDisposition == AIBaseKnowledgeStage.Disproved || mainCrystalDisposition == AIBaseKnowledgeStage.Destroyed
+            ? mainCrystalDisposition : TerritoryIntel.HasUsableTerritory ? AIBaseKnowledgeStage.TerritoryLead : AIBaseKnowledgeStage.Unknown;
 
     // ---- 建築/召喚用データ ----
     public List<Vector3Int> BuildablePositions { get; private set; }
@@ -245,17 +256,7 @@ public partial class AIBoardState
         EnemyCrystalHP = eCrystal != null ? eCrystal.HP : 0;
         EnemyCrystalMaxHP = eCrystal != null ? eCrystal.MaxHP : 1;
 
-        PlayerCrystalVisible = IsCellInEnemyVision(OpponentCrystalPosition);
-        if (PlayerCrystalVisible)
-        {
-            PlayerCrystalPos = OpponentCrystalPosition;
-            var pCrystal = FindCrystal(OpponentCrystalParent);
-            PlayerCrystalHP = pCrystal != null ? pCrystal.HP : 0;
-        }
-        else
-        {
-            PlayerCrystalHP = -1;
-        }
+        RefreshMainCrystalObservation();
 
         // 索敵データの更新（Last Known Position）
         RefreshLastKnownData();
@@ -402,7 +403,7 @@ public partial class AIBoardState
         // Playerクリスタルを視認したら記録
         if (PlayerCrystalVisible)
         {
-            var observedCrystal = FindCrystal(OpponentCrystalParent);
+            var observedCrystal = observedMainCrystal;
             _lastKnownPlayerCrystal = new LastKnownInfo
             {
                 LifeId = observedCrystal != null ? observedCrystal.ReflectionLifeId : null, ObservedTeam = OpponentTeam,
@@ -555,7 +556,7 @@ public partial class AIBoardState
                 var pcpCell = _moveGen.Cell(PlayerCrystalPos);
                 if (pcpCell == cell)
                 {
-                    var crystal = FindCrystal(OpponentCrystalParent);
+                    var crystal = observedMainCrystal;
                     if (crystal != null && crystal.HP > 0 && !AIActionEvaluator.IsObservedCompleteProtection(this, crystal)
                         && SpecialSkillRuntime.CanNormalAttackTarget(unit, crystal))
                         targets.Add(crystal);
@@ -867,8 +868,8 @@ public partial class AIBoardState
     // ================================================================
 
     /// <summary>新規探索マス数の概算 → AIBoardQuery に委譲</summary>
-    public int EstimateNewVisionCells(Vector3 pos)
-        => AIBoardQuery.EstimateNewVisionCells(_visionGen, pos, ActorTeam);
+    public int EstimateNewVisionCells(Vector3 pos, Status observer = null)
+        => AIBoardQuery.EstimateNewVisionCells(_visionGen, pos, ActorTeam, _moveGen?.mapcreate, observer);
 
     /// <summary>探索済み面積の割合 → AIBoardQuery に委譲</summary>
     public float GetExplorationRatio()

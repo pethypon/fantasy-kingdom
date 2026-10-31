@@ -32,6 +32,7 @@ public static class AIR3HousingDevelopmentTests
                 Case(team + " RecruitmentFollowsHousing", () => PaidChain(live, turn, team, config));
                 Case(team + " HousingDevelopment80EconomyTurns", () => LongEconomyChain(live, turn, team, config));
                 Case(team + " FundedCitizenGrowthDoesNotHaltArmy", () => CitizenGrowthPlans(live, team));
+                Case(team + " DuplicateRosterDoesNotHideDueDemand", () => DuplicateRoster(live, turn, team, config));
             }
         }
         finally { active.SetValue(null, previous); UnityEngine.Object.DestroyImmediate(config); }
@@ -62,6 +63,27 @@ public static class AIR3HousingDevelopmentTests
             Debug.Log("[AIR3HousingDemand] " + team + " T=" + ownTurn + " " + housing.Describe());
             Check(team + " future capacity requirement survives outside a three-purchase window at " + ownTurn,
                 housing.Needed && housing.CapacityBlocked && housing.RequiredStock >= 13);
+        }
+    }
+    // Source only / NOT RUN for the 2026-10-28 follow-up. Uses the existing isolated
+    // fixture and the production governor, rather than duplicating the roster algorithm.
+    static void DuplicateRoster(GameSystems live, TurnGenerator turn, Team team, AIHousingConfig config)
+    {
+        foreach (int earlierCount in new[] { 0, 1 })
+        {
+            Configure(config, 20);
+            using var f = new AIR2RecruitmentTests.Fixture(live, turn, team, 1);
+            var wanted = Prepare(f, 10);
+            config.DevelopmentRoster = new[]
+            {
+                new AIArmyDevelopmentTarget { Kind = wanted.kind, DesiredCount = earlierCount, NeededFromTurn = earlierCount == 0 ? 20 : 200 },
+                new AIArmyDevelopmentTarget { Kind = wanted.kind, DesiredCount = 1, NeededFromTurn = 20 }
+            };
+            GameContentRevision.NotifyChanged();
+            var board = f.Board(40);
+            board.Governor.Evaluate(board);
+            Check(team + " unusable earlier row cannot suppress due same-kind purchase " + earlierCount,
+                board.Governor.DevelopmentPlan.Any(need => need.Definition == wanted && need.MissingCount == 1 && need.NeededFromTurn == 20));
         }
     }
     static void NoDemand(GameSystems live, TurnGenerator turn, Team team, AIHousingConfig config)

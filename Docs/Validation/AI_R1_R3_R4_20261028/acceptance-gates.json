@@ -1,0 +1,110 @@
+[
+  {
+    "Id": "G01",
+    "Result": "PASS_DIFF_SCOPE_ONLY",
+    "Evidence": "Code commit diff has no MapCreate/map-system/Scene/Prefab/settings changes; runtime terrain check not run",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G02",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G03",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G04",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G05",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G06",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G07",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G08",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G09",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G10",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G11",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G12",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G13",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G14",
+    "Result": "NOT RUN",
+    "Evidence": "正式な実行条件での検証を行っていない",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G15",
+    "Result": "NOT MEASURED",
+    "Evidence": "No wall-time/frame/GC/memory measurement",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G16",
+    "Result": "STATIC_COMPILE_PASS / UNITY_EDITOR_NOT_RUN",
+    "Evidence": "Three static configurations exit 0 with cached assembly references; no fresh Editor compilation",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G17",
+    "Result": "RECORDED_NOT_RUN",
+    "Evidence": "152 / 120 / 40 separate ledgers; no historical PASS reused",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  },
+  {
+    "Id": "G18",
+    "Result": "SOURCE_SCOPE_ONLY",
+    "Evidence": "Added source has no emotion model, LLM or network dependency; formal runtime gate not run",
+    "CodeCommit": "64c913a5a702ad69a1c21365f74be77e50790c28"
+  }
+]

@@ -68,7 +68,8 @@ public sealed partial class AIExplorationPlanner
 
     public void Update(ExplorationObservation next, bool isEmergency)
     {
-        if (!settings.Enabled || next == null || next.Width <= 0 || next.Depth <= 0) return;
+        if (!settings.Enabled || next == null || next.Width <= 0 || next.Depth <= 0 || next.Turn < 0
+            || next.ActorTeam != Team.Player && next.ActorTeam != Team.Enemy) return;
         int incomingActors = ActorStamp(next.Actors);
         int incomingInformation = ObservedInformationStamp(next);
         if (observation != null && actorTeam == next.ActorTeam && turn == next.Turn && width == next.Width && depth == next.Depth
@@ -77,15 +78,19 @@ public sealed partial class AIExplorationPlanner
             && territoryReconRequested == next.HasTerritoryReconDirection && (!territoryReconRequested || territoryReconDirection == XZ(next.TerritoryReconDirection))) return;
         bool newTurn = turn != next.Turn;
         bool dimensionsChanged = width != next.Width || depth != next.Depth;
-        bool factionChanged = memory.Count > 0 && actorTeam != next.ActorTeam;
-        if ((dimensionsChanged || factionChanged) && memory.Count > 0) ResetKnowledge();
+        bool factionChanged = width > 0 && actorTeam != next.ActorTeam;
+        // A sparse save can contain objectives/expeditions without terrain. Its owner and
+        // clock still delimit a battle; memory.Count is not an ownership guard.
+        if (dimensionsChanged || factionChanged || next.Turn < turn) ResetKnowledge();
         observation = next; width = next.Width; depth = next.Depth; turn = next.Turn; actorTeam = next.ActorTeam;
         viewVersion = next.ViewVersion; cellVersion = next.CellVersion; actorVersion = incomingActors;
         dangerVersion = next.DangerVersion;
         informationStamp = incomingInformation;
         bool resume = emergency && !isEmergency;
         emergency = isEmergency;
-        bool newTerritoryRecon = next.HasTerritoryReconDirection && (!territoryReconRequested || territoryReconDirection != XZ(next.TerritoryReconDirection));
+        // A changing focus direction refines the next assignment; it must not cancel a
+        // still-progressing objective every time a scout or the army changes position.
+        bool newTerritoryRecon = next.HasTerritoryReconDirection && !territoryReconRequested;
         territoryReconRequested = next.HasTerritoryReconDirection;
         territoryReconDirection = XZ(next.TerritoryReconDirection);
         Observe(next);
@@ -165,7 +170,17 @@ public sealed partial class AIExplorationPlanner
             var actor = next.Actors[i];
             if (!CanExplore(actor) || actor.HP <= 0 || !Inside(XZ(actor.Cell))) continue;
             if (string.IsNullOrEmpty(actor.ActorLifeId)) actor.ActorLifeId = actor.UnitId.ToString();
-            actors[actor.UnitId] = actor; sortedActors.Add(actor); liveLifeIds.Add(actor.ActorLifeId);
+            if (ValidIdentity(actor.ActorLifeId)) sortedActors.Add(actor);
+        }
+        sortedActors.Sort((a, b) => { int result = StringComparer.Ordinal.Compare(a.ActorLifeId, b.ActorLifeId); return result != 0 ? result : a.UnitId.CompareTo(b.UnitId); });
+        for (int i = 0; i < sortedActors.Count; i++)
+        {
+            var actor = sortedActors[i];
+            // A duplicated observation must not maintain one life twice or credit a leg
+            // twice. Stable ordering also makes malformed duplicate input deterministic.
+            if (actors.ContainsKey(actor.UnitId) || !liveLifeIds.Add(actor.ActorLifeId))
+            { sortedActors.RemoveAt(i--); continue; }
+            actors.Add(actor.UnitId, actor);
             if (!histories.ContainsKey(actor.ActorLifeId)) histories[actor.ActorLifeId] = new ExplorationMovementHistory(settings.RecentHistoryTurns);
             int reveals = 0; int radius = Mathf.Clamp(settings.RevealCreditRadius, 1, 128);
             int minX = Mathf.Max(0, actor.Cell.x - radius) / RegionSize, maxX = Mathf.Min(width - 1, actor.Cell.x + radius) / RegionSize;
@@ -181,7 +196,6 @@ public sealed partial class AIExplorationPlanner
                 var region = GetRegion(RegionId(cell)); region.LastVisitedTurn = turn; region.VisitCount = Mathf.Min(ushort.MaxValue, region.VisitCount + 1);
             }
         }
-        sortedActors.Sort((a, b) => { int result = StringComparer.Ordinal.Compare(a.ActorLifeId, b.ActorLifeId); return result != 0 ? result : a.UnitId.CompareTo(b.UnitId); });
         removedLifeIds.Clear();
         foreach (var pair in objectives)
             if (!liveLifeIds.Contains(pair.Key))
@@ -225,7 +239,7 @@ public sealed partial class AIExplorationPlanner
             return;
         }
         if (newTerritoryRecon && objective != null && objective.State != ObjectiveState.Completed && objective.State != ObjectiveState.Failed)
-            Finish(objective, ObjectiveState.Completed, "territory_recon_requested", actor);
+            Finish(objective, ObjectiveState.Failed, "territory_recon_replanned", actor);
         if (objective != null && objective.State == ObjectiveState.Suspended)
         {
             objective.LastProgressTurn += Mathf.Max(0, turn - objective.SuspendedTurn);
@@ -237,7 +251,7 @@ public sealed partial class AIExplorationPlanner
             float distance = MeasureProgress(actor, objective.TargetCell, out bool hasRoute, out int routeRevision, out var waypoint);
             SynchronizeProgressMetric(objective, history, distance, hasRoute, routeRevision, waypoint);
             int reveals = revealCredit.TryGetValue(actor.UnitId, out var revealed) ? revealed : 0;
-            objective.NewlyRevealedSinceStart += reveals;
+            objective.NewlyRevealedSinceStart = (int)Math.Min(int.MaxValue, (long)objective.NewlyRevealedSinceStart + reveals);
             var region = FindFrontier(objective.FrontierRegionId);
             int unknown = region != null ? region.UnknownCellsBehind : 0;
             if (reveals > 0 || distance < objective.BestDistance - settings.ProgressDistanceThreshold || unknown < objective.LastUnknownCount)
@@ -308,7 +322,7 @@ public sealed partial class AIExplorationPlanner
         float initialDistance = MeasureProgress(actor, best.RepresentativeCell, out bool hasRoute, out int routeRevision, out var waypoint);
         var objective = new ExploreObjective
         {
-            ObjectiveId = nextObjectiveId++, FrontierRegionId = best.RegionId, TargetCell = best.RepresentativeCell,
+            ObjectiveId = AllocateObjectiveId(), FrontierRegionId = best.RegionId, TargetCell = best.RepresentativeCell,
             AssignedUnitId = actor.UnitId, ActorLifeId = actor.ActorLifeId, CreatedTurn = turn, LastProgressTurn = turn,
             State = ObjectiveState.Active, BestDistance = initialDistance, LastDistance = initialDistance,
             LastUnknownCount = best.UnknownCellsBehind, LastSampleTurn = turn, IsIntelRevisit = best.IsIntelRevisit, LastReason = "objective_assigned",
@@ -576,6 +590,24 @@ public sealed partial class AIExplorationPlanner
         }
     }
     static int StableHash(string value) { unchecked { int hash = 17; if (value != null) for (int i = 0; i < value.Length; i++) hash = hash * 31 + value[i]; return hash; } }
+    int AllocateObjectiveId()
+    {
+        // Saves and long-running sessions can reach the integer boundary. Reuse only an
+        // unassigned ID; active, suspended and completed records retain their identity.
+        for (int attempt = 0; attempt <= objectives.Count; attempt++)
+        {
+            int candidate = Mathf.Clamp(nextObjectiveId, 1, int.MaxValue - 1);
+            nextObjectiveId = candidate == int.MaxValue - 1 ? 1 : candidate + 1;
+            bool used = false;
+            foreach (var objective in objectives.Values) if (objective.ObjectiveId == candidate) { used = true; break; }
+            if (!used) return candidate;
+        }
+        throw new InvalidOperationException("Exploration objective identity space is exhausted.");
+    }
     void ResetKnowledge()
-    { memory.Clear(); terrain.Clear(); blocked.Clear(); visible.Clear(); previousVisible.Clear(); importance.Clear(); regions.Clear(); dirtyRegions.Clear(); frontiers.Clear(); objectives.Clear(); histories.Clear(); cooldowns.Clear(); lastCandidates.Clear(); knownRoute.Clear(); territoryReconRequested = false; territoryReconDirection = default; territoryReconCandidates.Clear(); expeditionRecords.Clear(); expeditionIndex.Clear(); incomingContactSignatures.Clear(); }
+    {
+        memory.Clear(); terrain.Clear(); blocked.Clear(); visible.Clear(); previousVisible.Clear(); importance.Clear(); regions.Clear(); dirtyRegions.Clear(); frontiers.Clear(); objectives.Clear(); histories.Clear(); cooldowns.Clear(); lastCandidates.Clear(); knownRoute.Clear(); territoryReconRequested = false; territoryReconDirection = default; territoryReconCandidates.Clear(); expeditionRecords.Clear(); expeditionIndex.Clear(); incomingContactSignatures.Clear();
+        actors.Clear(); sortedActors.Clear(); liveLifeIds.Clear(); reservedRegions.Clear(); revealCredit.Clear(); newlyRevealedSet.Clear(); newlyRevealedByRegion.Clear();
+        lastFrontierRefresh = -1; emergency = false;
+    }
 }
