@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef312c44f7cc45629b229fe40a78bb2c, type: 3}
+  m_Name: ActionTiles
+  m_EditorClassIdentifier: Assembly-CSharp::BoardActionProfile
+  displayName: "\u5DE5\u5175\uFF08\u79FB\u52D5\u30FB\u5EFA\u7BC9\u652F\u63F4\uFF09"
+  actionType: 2
+  movement:
+    useCustom: 1
+    cells: 120596463616
+    originX: 3
+    originZ: 3
+    directionIndependent: 1
+  attack:
+    useCustom: 1
+    cells: 0
+    originX: 3
+    originZ: 3
+    directionIndependent: 1
+  vision:
+    useCustom: 1
+    cells: 68437053160960
+    originX: 3
+    originZ: 3
+    directionIndependent: 1

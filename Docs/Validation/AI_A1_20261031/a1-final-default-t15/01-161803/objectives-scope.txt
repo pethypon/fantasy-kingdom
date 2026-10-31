@@ -1,0 +1,8 @@
+Read-only AIDecisionObserver aggregation by faction and own round. Limit=4096; records=227; ignored events after record limit=0; observer errors=0.
+Generated/governor/selection counts are candidate samples across existing decision events, not unique legal opportunities. Counts from different stages must not be summed as distinct actions.
+In the R2 revised producer, 'generated' is emitted before the first governor filter and 'governor' immediately after it. These are generated proposals, not a counterfactual proof of every possible legal action. Older baseline telemetry was post-filter and cannot supply the same rejected-candidate census.
+An observed target means a legally visible principal commander or living main crystal; memory means an existing board observation snapshot. Hidden live coordinates/HP are never inspected.
+Chosen counts are selections, not successful attacks or damage. The R2 revised selector emits for empty and mistake branches too. If a producer has no selection event, selection_not_observed remains unknown rather than a rejection.
+Emergency/recovery event counts record observed modes. A mixed-mode turn does not prove that its earlier crisis caused a later missed attack.
+A round with no target in one decision is not classified as unseen for the whole round if any later decision observed it. Non-emitting turns are absent rather than fabricated as zero.
+No paths, counterfactual ranges, reserves, or candidate sets are generated. Route/range/AP explanations remain Unknown unless represented by the existing decision evidence.

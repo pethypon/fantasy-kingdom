@@ -60,23 +60,12 @@ public class AIRoleAssigner
             if (u.IsBoss) { boss.Add(u); continue; }
             if (AIHealingCapability.HasHealing(u)) { healers.Add(u); continue; }
 
-            switch (u.kind)
-            {
-                case Kind.Scout:
-                    scouts.Add(u);
-                    break;
-                case Kind.Archer:
-                case Kind.Magic:
-                case Kind.Crossbow:
-                case Kind.Magicsniper:
-                case Kind.Bomber:
-                case Kind.Ninja:
-                    ranged.Add(u);
-                    break;
-                default:
-                    melee.Add(u);
-                    break;
-            }
+            var capability = AICapabilityRoles.For(u);
+            if (capability.Engineer) { _assignments[u] = UnitRole.EconomyGuard; continue; }
+            if (capability.Reconnaissance) scouts.Add(u);
+            else if (capability.MaximumAttackReach >= 2) ranged.Add(u);
+            else if (capability.CanAttack) melee.Add(u);
+            else _assignments[u] = UnitRole.Support;
         }
 
         // --- Scout → 偵察ロール（常に） ---

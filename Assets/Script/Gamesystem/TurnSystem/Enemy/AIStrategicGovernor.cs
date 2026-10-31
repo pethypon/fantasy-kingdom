@@ -533,7 +533,7 @@ public sealed partial class AIStrategicGovernor
     // Reused by individual recovery's bounded repeated-exchange scenario. The protection budget
     // is a value snapshot; applying another wave never changes a real actor's HP or barrier.
     float ObservedDamageWave(AIBoardState board, Status self, Vector3 position, Status eliminated, ref AIObservedDamageBudget budget,
-        Status attackedCrystal = null)
+        Status attackedCrystal = null, bool environmentEntry = true)
     {
         double total=0;
         // Own-turn crystal retaliation precedes the next observed enemy response.
@@ -569,7 +569,9 @@ public sealed partial class AIStrategicGovernor
             }
         }
         total+=AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,position,ref budget);
-        total+=board.KnownEnvironmentRisk(self,position,ref budget);
+        total += environmentEntry ? board.KnownEnvironmentRisk(self,position,ref budget)
+            : AIActionEvaluator.EstimateObservedHitLoss(self,board,board.KnownEnvironmentDamage(self,position,false),
+                HpChangeKind.IgnoreDefenceDamage,ref budget);
         return (float)Math.Min(int.MaxValue,total);
     }
     bool CanThreaten(AIBoardState board,Status opponent,Vector3 destination)
@@ -626,7 +628,8 @@ public sealed partial class AIStrategicGovernor
             AIHousingAssessment housing = default;
             if (success) action.TryGetHousingExecutionAssessment(this, current, out housing);
             else housing = HousingAssessment(action, current);
-            if (housing.IsHousing) DevelopmentLog.Log("[AI住宅投資] " + (success ? "建築実行 " : "建築中止 ") + housing.Describe());
+            if (housing.IsHousing) DevelopmentLog.Log("[AI住宅投資] " + (success ? "建築実行 " : "建築中止 ") + housing.Describe()
+                + (success ? " actualCapacity=" + current.CitizenCapacity : ""));
         }
         if (success && Mode == StrategicMode.EmergencyDefense) BasicResources.NotifyEssentialSpend(action, true);
         { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[AI戦略統括] 方針={Mode} 経済={Economy.State} パン収支={Economy.NetBreadPerTurn:F1} 優先=P{action.StrategicPriority} 結果={(success?"実行":"禁止")} 理由={action.StrategicRejectReason??"安全条件を満たす"}"); }

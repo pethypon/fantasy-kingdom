@@ -13,6 +13,12 @@ public sealed class AIHousingConfig : ScriptableObject
     [Min(0)] public int MinimumFreeCitizenTarget = 2;
     [Range(0, 8)] public int ShortTermCombatRecruits = 2;
     [Range(1, 7)] public int EmergencyRecruitWaitTurns = 2;
+    [Header("実行予定の行動と市民AP（ゲーム側のAP上限・計算を使用）")]
+    public bool EnableAPCapacityPlanning = true;
+    [Range(1, 64), Tooltip("現在合法な予定行動を、同じ駒は一手だけ数えます。住宅のために常時最大APを要求しません。")]
+    public int APPlanningActionLimit = 32;
+    [Range(1, 40), Tooltip("市民が実際に回復するまで待てる期間。この期間で到達できないAP容量を先行投資しません。")]
+    public int APPreparationTurns = 10;
     [Header("中長期の軍備計画（軍隊数の上限ではなく補充目標）")]
     [InspectorName("作戦に応じて中長期の補充目標を増やす")] public bool EnableDevelopmentGrowth = true;
     [Range(1, 100), InspectorName("先行準備の期間（ターン）"), Tooltip("この期間内に必要になる兵種について、購入に必要な市民容量を先に準備します。費用全額を一括予約しません。")]
@@ -57,6 +63,8 @@ public sealed class AIHousingConfig : ScriptableObject
     public int EmergencyWait => Mathf.Clamp(EmergencyRecruitWaitTurns, 1, 7);
     public int FreeTarget => Mathf.Clamp(MinimumFreeCitizenTarget, 0, 1000);
     public int DevelopmentHorizon => Mathf.Clamp(DevelopmentPlanningTurns, 1, 100);
+    public int APActionLimit => Mathf.Clamp(APPlanningActionLimit, 1, 64);
+    public int APPreparationHorizon => Mathf.Clamp(APPreparationTurns, 1, 40);
     internal static float Weight(float value) => Mathf.Clamp(Finite(value, 0), 0, 10000);
     static float Finite(float value, float fallback) => float.IsNaN(value) || float.IsInfinity(value) ? fallback : value;
 }
@@ -76,9 +84,12 @@ public readonly struct AIHousingAssessment
     public readonly float UsedSlotRatio, PlannedCitizens, PlannedBuildingCitizens, PlannedRecruitCitizens, PlannedOtherCitizens;
     public readonly float OperationCitizens, MilitaryCitizens, RequiredStock, Score;
     public readonly string Reason;
+    public readonly AIHousingAPPlan APPlan;
+    public readonly FacilityData.ResourceCost Cost;
     internal AIHousingAssessment(bool needed, bool emergency, bool blocked, int free, int capacity, int gain,
         float used, float planned, float buildingCitizens, float recruitCitizens, float otherCitizens,
-        float operations, float military, float required, float score, string reason)
+        float operations, float military, float required, float score, string reason, AIHousingAPPlan apPlan = default,
+        FacilityData.ResourceCost cost = default)
     {
         IsHousing = true; Needed = needed; EmergencySupply = emergency; CapacityBlocked = blocked;
         FreeCitizens = free; Capacity = capacity; CapacityGain = gain; UsedSlotRatio = used;
@@ -86,10 +97,13 @@ public readonly struct AIHousingAssessment
         PlannedBuildingCitizens = buildingCitizens; PlannedRecruitCitizens = recruitCitizens;
         PlannedOtherCitizens = otherCitizens;
         RequiredStock = required; Score = score; Reason = reason;
+        APPlan = apPlan;
+        Cost = cost;
     }
     public string Describe() => $"空き市民 {FreeCitizens}/{Capacity} / 使用済枠 {UsedSlotRatio:P0} / 容量増加 +{CapacityGain} / "
         + $"予定需要 {PlannedCitizens:F1} (建築 {PlannedBuildingCitizens:F1}・召喚 {PlannedRecruitCitizens:F1}・外部計画 {PlannedOtherCitizens:F1}) / 作戦需要 {OperationCitizens:F1} / 軍備需要 {MilitaryCitizens:F1} / "
-        + $"必要な空き市民 {RequiredStock:F1} / 防衛補充 {EmergencySupply} / 評価 {Score:F1} / 理由 {ReasonText} ({Reason})";
+        + $"必要な空き市民 {RequiredStock:F1} / {APPlan.Describe()} / 費用 木{Cost.Wood} 石{Cost.Stone} 鉄{Cost.Iron} 魔石{Cost.MagicOre} 水{Cost.Water} 市民{Cost.Citizen} / "
+        + $"防衛補充 {EmergencySupply} / 評価 {Score:F1} / 理由 {ReasonText} ({Reason})";
     public string ReasonText => Reason switch
     {
         "housing_capacity_sufficient" => "既存容量で計画を満たせる",
@@ -102,6 +116,18 @@ public readonly struct AIHousingAssessment
         "housing_defense_capacity_blocked" => "防衛用の駒が市民容量不足で作れない",
         "housing_planned_capacity_shortfall" => "作戦・拡張予定が現在の容量を超える",
         "housing_no_capacity_gain" => "正式データの容量増加がない",
+        "housing_ap_capacity_shortfall" => "合法な予定行動のAPが現在の市民容量で届かない",
+        "housing_ap_food_reserve_unsafe" => "AP用の市民が回復した後の食糧留保が不足する",
         _ => "未評価"
     };
+}
+
+/// <summary>Conditional next-turn demand over current legal geometry, never an executable reservation or extra AP.</summary>
+public readonly struct AIHousingAPPlan
+{
+    public readonly int PlannedActions, DesiredAP, StockAP, CapacityAP, RequiredCitizens, GrowthWaitTurns;
+    public readonly string Reason;
+    internal AIHousingAPPlan(int actions, int desired, int stockAP, int capacityAP, int required, int wait, string reason)
+    { PlannedActions = actions; DesiredAP = desired; StockAP = stockAP; CapacityAP = capacityAP; RequiredCitizens = required; GrowthWaitTurns = wait; Reason = reason; }
+    public string Describe() => $"次ターン予定 {PlannedActions}手 / AP {StockAP}・目標 {DesiredAP}・容量時 {CapacityAP} / AP用市民 {RequiredCitizens}・回復待ち {GrowthWaitTurns}T ({Reason})";
 }

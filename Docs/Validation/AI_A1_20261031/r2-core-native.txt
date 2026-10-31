@@ -1,0 +1,89 @@
+[R2Fixed] PASS A01
+[R2Fixed] PASS A02
+[R2Fixed] PASS A03
+[R2Fixed] PASS A04
+[R2Fixed] PASS A05
+[R2Fixed] PASS A06
+[R2Fixed] PASS A07
+[R2Fixed] PASS A08
+[R2Fixed] PASS A10
+[R2Fixed] PASS B04
+[R2Fixed] PASS UP08
+[R2Fixed] PASS C01
+[R2Fixed] PASS C03
+[R2Fixed] PASS C05
+[R2Fixed] PASS C04
+[R2Fixed] PASS C02
+[R2Fixed] PASS C04-global
+[R2Fixed] PASS C06-exempt
+[R2Fixed] PASS C06-king
+[R2Fixed] PASS C06-boss
+[R2Fixed] PASS C08
+[R2Fixed] PASS D01
+[R2Fixed] PASS D02
+[R2Fixed] PASS I03
+[R2Fixed] PASS engineer-barrier-requires-configuration
+[R2Fixed] PASS engineer-authored-barrier-live-sim
+[R2Fixed] PASS A09
+[R2Fixed] PASS D08
+[R2Fixed] COMPLETE
+[R2Save] PASS F01
+[R2Save] PASS F02
+[R2Save] PASS F03
+[R2Save] PASS F04
+[R2Save] PASS F05
+[R2Save] PASS F06-partial
+[R2Save] PASS F07
+[R2Save] PASS F08
+[R2Save] PASS F09-future
+[R2Save] PASS F10-partial
+[R2Save] PASS SVR02
+[R2Save] PASS SVR08
+[R2Save] PASS unknown-bonuses-preserved
+[R2Save] PASS SVR10-unit
+[R2Save] PASS scene-override-never-guessed-from-static
+[R2Save] PASS F02-scene-definition
+[R2Save] PASS F07-scene-definition
+[R2Save] COMPLETE
+[R2Barrier] PASS BR01 70% and 90% HP never regenerate after three or more boundaries
+[R2Barrier] PASS BR02 full-HP arrival starts a zero-length waiting interval
+[R2Barrier] PASS BR03 first and second own boundaries do not regenerate
+[R2Barrier] PASS BR04 third own boundary restores twenty percent
+[R2Barrier] PASS BR05 later own boundaries continue and clamp at maximum
+[R2Barrier] PASS BR06 barrier-only damage preserves full-HP history
+[R2Barrier] PASS BR07 one HP loss resets immediately; real healing begins a new three-boundary wait
+[R2Barrier] PASS BR08 dead actors cannot regenerate
+[R2Barrier] PASS BR09 initial barrier table is neither level-scaled nor multiplied by 1.75
+[R2Barrier] PASS BR10 roundtrip neither advances nor replays a boundary; legacy safe-hit history grants no full-HP credit
+[R2Barrier] PASS BR11 live, captured simulation and pure forecast agree; cloned clocks are independent
+[R2Barrier] PASS BR12 player direct-heal and enemy natural-heal share the same new full-HP clock
+[R2Barrier] COMPLETE BR01-BR12
+[R2TimerUI] PASS TM01 no forced player turn end after 180 seconds
+[R2TimerUI] PASS TM02 no forced player turn end after 600 seconds
+[R2TimerUI] PASS elapsed time does not deduct legacy totals
+[R2TimerUI] PASS TM03 zero legacy clocks do not end the game
+[R2TimerUI] PASS TM04 no historical timeout callback for either side
+[R2TimerUI] PASS no time-up result or reason is retained
+[R2TimerUI] PASS R2 advertises no gameplay clock limit
+[R2TimerUI] PASS AI receives no gameplay deadline
+[R2TimerUI] PASS TM08 no gameplay timer still keeps the finite technical limit
+[R2TimerUI] PASS manual stop keeps the lifecycle seam and adds no clock bonus
+[R2TimerUI] PASS manual restart retains active team
+[R2TimerUI] PASS invalid elapsed values cannot create a timeout
+[R2TimerUI] PASS restoring invalid historical clock values is finite
+[R2TimerUI] PASS E03 summon tooltip contains no unit growth labels
+[R2TimerUI] PASS E04 summon tooltip uses canonical fixed HP and ATK
+[R2TimerUI] PASS E05 summon upkeep comes from the fixed API
+[R2TimerUI] PASS R2 barrier explanation uses full HP rather than old damage-free threshold
+[R2TimerUI] PASS E02/E09 units hide the shared facility level and close the empty row
+[R2TimerUI] PASS E08/E09 facility selection restores its upgrade row and original HP layout
+[R2TimerUI] PASS E09 repeated facility-to-unit switching never leaves a stale row
+[R2TimerUI] PASS engineer construction menu requires a living owned engineer
+[R2TimerUI] PASS dead engineer never silently switches its menu to normal prices
+[R2TimerUI] PASS ordinary construction context switch is explicit and idempotent
+[R2TimerUI] PASS a null engineer cannot create a new remote construction context
+[R2TimerUI] PASS MN12 own-territory mine explains zero rare output
+[R2TimerUI] PASS MN12 outside mine presents effective recipe and operation state
+[R2TimerUI] PASS E01 no runtime level badge text cache remains
+[R2TimerUI] RESULT checks=27
+[R2CoreContracts] COMPLETE

@@ -28,7 +28,7 @@ public static class AIClosingPlaytest
     {
         public int[] Seeds;
         public int OwnerTurnLimit, WallSeconds, ThreatLevel;
-        public string Output, Label, RunId, OriginalCompany, OriginalProduct, EnemyPersonality;
+        public string Output, Label, RunId, OriginalCompany, OriginalProduct, EnemyPersonality, R4Mode;
         public string CodeCommit, SourceDigest, AssetDigest, ManifestPath;
     }
     [Serializable] sealed class RunReport
@@ -41,6 +41,8 @@ public static class AIClosingPlaytest
     }
     [Serializable] sealed class MatchReport
     {
+        public string R4RequestedMode;
+        public bool R4Enabled, R4Shadow, R4MayInfluenceActions, R4MultiStepSquadPlanning;
         public int MapSeed, EnemyAISeed, PlayerAISeed, ThreatLevel = 15, Round, OwnerTurns;
         public string EnemyPersonality, PersistentPath, StartedUtc, FinishedUtc, EndCondition, Result = "unresolved", OutcomeReason, Fault;
         public bool ActualPlayerAIModeUsed, GameOver, BarrierEnabled;
@@ -250,11 +252,14 @@ public static class AIClosingPlaytest
             WallSeconds = Setting("FK_CLOSING_WALL_SECONDS", 300, 30, 3600),
             ThreatLevel = Setting("FK_CLOSING_THREAT", 15, 1, 100),
             EnemyPersonality = Environment.GetEnvironmentVariable("FK_CLOSING_PERSONALITY") ?? "",
+            R4Mode = Environment.GetEnvironmentVariable("FK_CLOSING_R4_MODE") ?? "default",
             Label = Environment.GetEnvironmentVariable("FK_CLOSING_LABEL") ?? "observation",
             Output = Path.GetFullPath(Environment.GetEnvironmentVariable("FK_CLOSING_OUTPUT")
                 ?? Path.Combine(Application.dataPath, "../../ai-closing-" + id)),
             OriginalCompany = PlayerSettings.companyName, OriginalProduct = PlayerSettings.productName };
         if (settings.Seeds.Length == 0) throw new ArgumentException("At least one fixed seed is required.");
+        if (settings.R4Mode != "default" && settings.R4Mode != "shadow" && settings.R4Mode != "enabled")
+            throw new ArgumentException("Unknown explicit R4 policy mode.");
         Directory.CreateDirectory(settings.Output);
         if (Environment.GetEnvironmentVariable("FK_CLOSING_PREPARE_VISUALS") == "1") BoardVisualThemeInstaller.RenderPreview();
         settings.CodeCommit = Environment.GetEnvironmentVariable("FK_CLOSING_CODE_SHA") ?? "unrecorded";
@@ -364,6 +369,18 @@ public static class AIClosingPlaytest
                 var major = AIPersonality.RandomMajor(match.EnemyAISeed);
                 if (!string.IsNullOrEmpty(settings.EnemyPersonality)
                     && !Enum.TryParse(settings.EnemyPersonality, true, out major)) throw new ArgumentException("Unknown enemy personality");
+                // Explicit AI-policy comparison only. No AP/resource/visibility/time budget is changed.
+                var r4 = AICognitiveAIConfig.Active;
+                if (settings.R4Mode == "shadow" || settings.R4Mode == "enabled")
+                {
+                    r4.Enabled = true; r4.ShadowMode = settings.R4Mode == "shadow";
+                    r4.EnablePlanExecutionHints = settings.R4Mode == "enabled";
+                    r4.EnableMultiStepSquadPlanning = settings.R4Mode == "enabled";
+                }
+                match.R4RequestedMode = settings.R4Mode;
+                match.R4Enabled = r4.Enabled; match.R4Shadow = r4.ShadowMode;
+                match.R4MayInfluenceActions = r4.MayInfluenceActions;
+                match.R4MultiStepSquadPlanning = r4.EnableMultiStepSquadPlanning;
                 s.AICommander = new AICommander(turn, s.MoveGenerator, s.AttackGenerator, s.BattleSystem, s.VisionGenerator,
                     s.APSystem, s.UnitSetting, s.CrystalSystem, s.MapCreate, major, s.BuildSystem, s.SummonSystem,
                     s.FactionState, s.SkillSystem, s.SubCrystalSystem, match.ThreatLevel, match.EnemyAISeed, Team.Enemy);

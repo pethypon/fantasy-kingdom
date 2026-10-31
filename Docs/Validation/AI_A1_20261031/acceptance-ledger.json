@@ -1,0 +1,2268 @@
+{
+  "generated_at": "2026-10-31T09:15:20.719597+09:00",
+  "repository": "C:/Users/pethi/Documents/Codex/2026-09-19/ko/work/AIPlaytestFixes",
+  "branch": "codex/ai-a1-strategy-coordination",
+  "baseline": "c24862e277399e05036b81ca25c122c780a1f418 (merged R2 tree)",
+  "policy": "Whole acceptance requirement only: PASS requires direct native/test evidence of the entire row; partial coverage remains NOT RUN; FAIL identifies demonstrated blockers. Static audit is not native execution evidence.",
+  "authoritative_constraints": [
+    "Formal AP maximum remains60 (HS04 wording15 is inconsistent).",
+    "Production map remains35x35; no silent resize.",
+    "User authorized provisional Engineer authoring and native play tuning on2026-10-31.",
+    "Controlled contracts and ordinary-match outcomes are reported separately; no natural victory is inferred."
+  ],
+  "summary": {
+    "total": 80,
+    "PASS": 27,
+    "NOT RUN": 53
+  },
+  "rows": [
+    {
+      "id": "CR01",
+      "requirement": "敵領土未発見ならメインクリスタル位置を知らない。`OpponentCrystalPosition`等の真の位置が戦略へ漏れない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "Both observation adapters hide unknown objective coordinate/HP/attack target."
+      ],
+      "required_evidence": "Both actor teams: hidden main objective cannot publish true coordinate, HP, memory or strategic target; inspect observation and downstream consumers."
+    },
+    {
+      "id": "CR02",
+      "requirement": "敵領土の最初の合法な観測で `TerritoryLead` へ遷移し、重点探索方針を保持する。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "First formal territory observation transitions to TerritoryLead and survives subsequent generations without forgetting focused exploration intent."
+    },
+    {
+      "id": "CR03",
+      "requirement": "サブクリスタル・遠隔採掘施設を主クリスタルと誤認しない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Observed subcrystal and remote mining facility do not create main-crystal observation or main-crystal memory."
+    },
+    {
+      "id": "CR04",
+      "requirement": "既知領土外周の未探索セルを優先し、同じ無発見セルを無意味に巡回し続けない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Repeated no-discovery frontier run chooses useful new cells or replans; no indefinite same-cell patrol; record progression."
+    },
+    {
+      "id": "CR05",
+      "requirement": "斥候と主力の行動が分担され、主力が未知の敵クリスタル座標を直接目指さない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Native decision/execution traces show scout reconnaissance and army escort/frontline roles without unknown-main coordinate targeting."
+    },
+    {
+      "id": "CR06",
+      "requirement": "可視範囲にメインクリスタルが入った時に初めて`Observed`になる。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "Observed stage requires official sight for each main faction."
+      ],
+      "required_evidence": "Both actor teams: main objective reaches Observed only after formal cell and actor visibility."
+    },
+    {
+      "id": "CR07",
+      "requirement": "メインクリスタルを見失った時は記憶に留め、現在HPや位置の透視を行わない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "Hidden live relocation/HP changes cannot refresh last-known facts."
+      ],
+      "required_evidence": "After sight loss, remembered old coordinate remains while unseen current coordinate and HP are absent; no hidden attack target."
+    },
+    {
+      "id": "CR08",
+      "requirement": "再観測で旧位置に目標がいなければ記憶を適切に失効。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "Official reobservation of the empty old cell invalidates the memory."
+      ],
+      "required_evidence": "Reobserve empty old cell and destruction cases; memory expires and stale attack target is absent."
+    },
+    {
+      "id": "CR09",
+      "requirement": "経済回復と偵察任務が衝突した場合、危機回避と任務継続の優先が一貫。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Economic crisis and recon compete through actual governor/action selection, preserving both crisis avoidance and resumable intent."
+    },
+    {
+      "id": "CR10",
+      "requirement": "複数マップSeed・視界障害・高低差でも、探索手順がルールを破らず進行する。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.MainCrystal.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/EnemyTerritoryIntel.Recon.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Exploration.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Exploration/AIExplorationPlanner.cs"
+      ],
+      "owner": "AIBoardState observation adapter + AIStrategicGovernor territory intelligence + existing exploration owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Multiple seeds, sight blockers and terrain height cases exercise lawful reconnaissance progress."
+    },
+    {
+      "id": "AT01",
+      "requirement": "メインクリスタル不可視時にそのオブジェクトへの攻撃候補を生成しない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "A hidden live main crystal reference cannot become an attack target."
+      ],
+      "required_evidence": "Hidden main objective never appears in generated attack candidates, both actor teams."
+    },
+    {
+      "id": "AT02",
+      "requirement": "可視・射程内・AP足りる・攻撃許可のとき正規攻撃候補が生成される。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Formally visible, in range, affordable, attack-permitted main objective produces ordinary AIAction attack candidate through generator."
+    },
+    {
+      "id": "AT03",
+      "requirement": "可視でも射程外/高低差/遮蔽/向き不適合/移動障害などで不合法なら攻撃しない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Visible objective rejected across range, height, occlusion, facing, movement obstruction constraints; execution never attacks illegally."
+    },
+    {
+      "id": "AT04",
+      "requirement": "生成候補が棄却された場合、判定段階と拒否理由を記録できる。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "match-metrics.json"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "Full native decisions.csv and rejection summaries are packaged for every final case."
+      ],
+      "required_evidence": "Known generated-candidate rejection emits stage and reason in actual selection/execution diagnostics."
+    },
+    {
+      "id": "AT05",
+      "requirement": "緊急防衛と確定勝利攻撃が競合する場合、既存優先度・生存例外を破らず評価。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Controlled emergency defense and decisive victory conflict evaluates with existing priority and survival exceptions preserved."
+    },
+    {
+      "id": "AT06",
+      "requirement": "敵本陣へ向けた主力の前進が、戦闘のない数ターンでも合理的に継続する。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Several no-combat turns show sustained rational army progress toward confirmed or legitimately remembered main objective."
+    },
+    {
+      "id": "AT07",
+      "requirement": "主目標に阻害する敵がいる場合、脅威排除・迂回・増援の複数候補を比較。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Blocking enemies produce compared threat removal, detour and reinforcement alternatives with rationale."
+    },
+    {
+      "id": "AT08",
+      "requirement": "別部隊がAPを消費し予測攻撃が不可能になった場合、再計画する。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "Coordinator invalidates its sequence after shared AP changes; does not spend future AP."
+      ],
+      "required_evidence": "Another squad spends shared AP; cached predicted attack is invalidated and the next action replans using remaining formal AP."
+    },
+    {
+      "id": "AT09",
+      "requirement": "クリスタルの保護/バリア/固有反撃の予測が実際の戦闘に一致。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Main objective protection/barrier/counter prediction agrees with actual native combat damage and retaliation."
+    },
+    {
+      "id": "AT10",
+      "requirement": "主王・メインクリスタルへの攻撃および勝利を決める統合対戦ケースを少なくとも一件検証。",
+      "status": "PASS",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "victory-controlled-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs"
+      ],
+      "owner": "AIActionGenerator/AIBoardState candidate generation + governor priority + AIActionExecutor",
+      "notes": [
+        "Controlled native finishing position only: actual Player AI normal selection/executor/end-state. Ordinary natural-match victory remains unverified."
+      ],
+      "required_evidence": "At least one integrated native match attacks the primary commander/main crystal and resolves an actual victory condition."
+    },
+    {
+      "id": "HS01",
+      "requirement": "市民が少なくても容量に余裕があれば、住宅を無意味に増設しない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "Both factions: empty citizen stock with adequate capacity rejects extra housing."
+      ],
+      "required_evidence": "Low citizen stock with surplus capacity rejects unnecessary housing through normal assessment/action route."
+    },
+    {
+      "id": "HS02",
+      "requirement": "市民費の高い必要兵種が既存容量で購入不能なら、合法かつ維持可能な住宅を投資候補にする。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "Both factions: genuine expensive recruit capacity shortage produces a paid housing candidate."
+      ],
+      "required_evidence": "Needed expensive legal recruit blocked by capacity requests a legally fundable, sustainable house/upgrade."
+    },
+    {
+      "id": "HS03",
+      "requirement": "AP目標が既存の市民容量では達成不能なら、住宅の必要性を検討する。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "Actual legal pending actions and formal reset inversion determine bounded desiredAP/citizens."
+      ],
+      "required_evidence": "Real intended action AP demand above capacity-derived AP triggers sustainable capacity investment using formal AP reset formula."
+    },
+    {
+      "id": "HS04",
+      "requirement": "AP最大15を超える住宅投資効果を架空に見積もらない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "NOT RUN as literally written:15 conflicts with authoritative60. Actual60/authored lower caps and zero bonus are tested in core-native.txt."
+      ],
+      "required_evidence": "Actual authored AP maximum 60 is respected, including lower authored cap/zero bonus/unreachable target; preserve AP15 spec inconsistency."
+    },
+    {
+      "id": "HS05",
+      "requirement": "市民の回復が遅いだけの状態で、住宅容量不足と誤判定しない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "Slow stock replenishment is separated from capacity; growth horizon defers unnecessary capacity."
+      ],
+      "required_evidence": "Slow/empty citizen growth with sufficient capacity is diagnosed as stock recovery, not housing capacity shortage."
+    },
+    {
+      "id": "HS06",
+      "requirement": "食糧・維持費・原料が危機状態なら、何を先に回復するか予測して選ぶ。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Food, upkeep and raw material crises select predicted prerequisite recovery before housing."
+    },
+    {
+      "id": "HS07",
+      "requirement": "住宅の通常建築候補・先行建築・フォールバック・改築・高級住宅で、必要性判断が整合する。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Normal, prebuild, direct fallback, upgrade and luxury routes use consistent necessity decisions."
+    },
+    {
+      "id": "HS08",
+      "requirement": "正規の住宅建築費/AP/合法位置/建物個数/領土制限を迂回しない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Actual construction/upgrade obeys formal cost, AP, placement, building count and territory restrictions with atomic failed payment."
+    },
+    {
+      "id": "HS09",
+      "requirement": "住宅建築または強化直後に、容量が実際に増えたことを確認して計画を更新。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "Formal paid house/upgrade increases actual capacity and refreshed planner suppresses redundant capacity."
+      ],
+      "required_evidence": "Actual paid build and upgrade recalculate capacity immediately and invalidate the old housing plan."
+    },
+    {
+      "id": "HS10",
+      "requirement": "住宅を作らなかった理由がログに出て、誤った永久待機・住宅無限建築を防げる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Housing.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHousingConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBuildPlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs"
+      ],
+      "owner": "AIStrategicGovernor housing/economy assessment; AIBuildPlanner routes",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Decision logs show no-build reason and repeated turns demonstrate no permanent wait or infinite house construction."
+    },
+    {
+      "id": "RL01",
+      "requirement": "回復能力のないPriestを回復役として誤認しない。受動回復は正式能力なら認識する。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "No-heal Priest is not a healer; valid passive aura and active support healing remain recognized."
+      ],
+      "required_evidence": "Priest without a formal healing capability is not a healer; formal passive healing is recognized."
+    },
+    {
+      "id": "RL02",
+      "requirement": "異なる移動・攻撃パターンを持つ兵種を同じ固定ポジションへ無理に押し込まない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Distinct authored movement/attack masks produce role-appropriate legal formation slots, avoiding forced identical positions."
+    },
+    {
+      "id": "RL03",
+      "requirement": "前衛と遠距離の組合せで、遠距離が不必要に敵の隣へ突っ込まない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Executed frontline/ranged composition keeps ranged actors out of unnecessary adjacent-hostile moves."
+    },
+    {
+      "id": "RL04",
+      "requirement": "斥候が偵察を進め、主力が護衛/前線進行の役割を持てる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Executed scout reconnaissance with main-force escort/frontline assignment."
+    },
+    {
+      "id": "RL05",
+      "requirement": "兵種欠員を検知し、正規の生産・費用・種別上限が許す場合だけ補充する。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Real missing-role detection recruits only with formal cost, availability and kind-limit approval."
+    },
+    {
+      "id": "RL06",
+      "requirement": "兵種不足時に全行動が停止せず、既存戦力で可能な代替作戦を選べる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Missing composition role does not freeze all actions; an executable substitute operation is selected."
+    },
+    {
+      "id": "RL07",
+      "requirement": "同じLifeIDの駒が複数部隊へ重複所属しない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Native multiple-operation/squad case shows each LifeID occurs in at most one squad before and after lifecycle changes."
+    },
+    {
+      "id": "RL08",
+      "requirement": "王・クリスタルの敗北条件保全を通常の前衛編成より優先できる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Commander/main-crystal defeat-condition preservation wins over ordinary frontline staffing/action."
+    },
+    {
+      "id": "RL09",
+      "requirement": "役割評価が通常ユニットLv/XPに依存しない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Runtime role/composition decisions depend on capability and cost, without ordinary unit level/XP."
+    },
+    {
+      "id": "RL10",
+      "requirement": "R2工兵が完成後、個別視界・建築2倍・中立建築・敵領土禁止・護衛の任務を連携できる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICapabilityRoles.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIHealingCapability.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRoleAssigner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Recruitment.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Squads.cs"
+      ],
+      "owner": "AICapabilityRoles capability adapter + existing recruitment/squad ownership",
+      "notes": [
+        "Dedicated engineer escort and shield/rear-line handoff are still not implemented/certified. Construction legality alone does not pass this row."
+      ],
+      "required_evidence": "Configured production engineer coordinates individual-sight, doubled-cost neutral construction, enemy-territory rejection and escort missions."
+    },
+    {
+      "id": "CQ01",
+      "requirement": "単発の最大ダメージと、後続合法攻撃の確定撃破を比較して後者を選べる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Actual action selection compares largest immediate damage with a legal follow-up kill and selects the latter in at least one case."
+    },
+    {
+      "id": "CQ02",
+      "requirement": "有効なデバフ→味方の通常攻撃を、AP予算内で正しく並べられる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Actual legal guaranteed effective debuff then allied normal attacks are ordered and executed within shared AP."
+    },
+    {
+      "id": "CQ03",
+      "requirement": "実際に無効なスキルやバフは、連携効果として過大評価しない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "Guaranteed effective setup only; immunity, already applied effects, nullification, nonfinite/probabilistic control and obsolete DEF-break excluded."
+      ],
+      "required_evidence": "Invalid/immune/redundant/non-immediate skills and buffs do not create overstated coordination benefit."
+    },
+    {
+      "id": "CQ04",
+      "requirement": "ターゲット死亡・消滅・視界消失時は、古い行動列を実行しない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "Death, movement, HP/protection, generation and visibility changes invalidate the cached chain."
+      ],
+      "required_evidence": "Target death, destruction or sight loss invalidates old sequence and the executor does not replay it."
+    },
+    {
+      "id": "CQ05",
+      "requirement": "同じターン内の疲労増加・連続行動のAP増加を正しく計算。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "Official fatigue/AP preview parity, duplicate-actor exclusion, follow-up and return costs."
+      ],
+      "required_evidence": "Same-turn fatigue and repeated-action AP quotes match formal execution costs across chain steps."
+    },
+    {
+      "id": "CQ06",
+      "requirement": "味方の移動が別の味方の射線・合法セルを塞ぐ場合、その行動順を再評価。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Ally movement blocks another ally firing line/legal cell; chain order is re-evaluated under updated occupancy."
+    },
+    {
+      "id": "CQ07",
+      "requirement": "勝利対象を攻撃できる局面では、不要な局地戦に引っ張られない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Native choice with victory-target attack available avoids diversion into unnecessary local combat."
+    },
+    {
+      "id": "CQ08",
+      "requirement": "作戦進捗のある準備移動を選ぶケースがあり、単発攻撃に常に負けない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Native selection executes useful operation-progress preparation over a competing immediate single attack."
+    },
+    {
+      "id": "CQ09",
+      "requirement": "知らない敵の真の座標・HP・技能を戦術評価へ混入しない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Hidden enemy current coordinate/HP/skill never enters tactical chain evaluation or rebuilding after sight loss."
+    },
+    {
+      "id": "CQ10",
+      "requirement": "緊急防衛・王保全・正規AP支払い・命中/ダメージ・既存行動実行経路をすべて保持。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.Preparation.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIBoardState.Coordination.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.OperationPriority.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs"
+      ],
+      "owner": "Existing AIOperationManager tactical coordination; governor/executor final validation",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Emergency/commander protection and formal AP/hit/damage/executor path remain intact in actual coordinated native execution."
+    },
+    {
+      "id": "RT01",
+      "requirement": "撤退候補は一歩だけでなく、その先の合法な安全経路も評価する。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "Bounded current/next-owner AP route and real-map authored-movement adapter contracts."
+      ],
+      "required_evidence": "Governor evaluates a current formal first hop plus legal continuation and AP over at least two steps; execution revalidates first hop."
+    },
+    {
+      "id": "RT02",
+      "requirement": "本陣以外の安全な遮蔽/高台/回復地点へ合法に退却できる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Native actor retreats legally to non-home safe cover, height or healing location."
+    },
+    {
+      "id": "RT03",
+      "requirement": "致命的な敵反撃が分かっている時、成果のない単独突撃を抑止できる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Known lethal enemy retaliation suppresses an unproductive solo advance through actual selection."
+    },
+    {
+      "id": "RT04",
+      "requirement": "盾役が撤退する際、後衛への攻撃危険を考慮し支援行動を選択できる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "Dedicated engineer escort and shield/rear-line handoff are still not implemented/certified. Construction legality alone does not pass this row."
+      ],
+      "required_evidence": "Frontline withdrawal evaluates exposed rear actor danger and selects a supporting action."
+    },
+    {
+      "id": "RT05",
+      "requirement": "負傷者が同じ退路マスを重複予約して衝突しない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "Distinct first-hop reservations and occupied projected cells are tested."
+      ],
+      "required_evidence": "Multiple wounded actors receive distinct legal reserved first hops; no actual occupancy collision."
+    },
+    {
+      "id": "RT06",
+      "requirement": "撤退のためのAPが足りない場合は虚偽の安全経路と判断しない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "Unaffordable first hop or continuation cannot be certified by future AP."
+      ],
+      "required_evidence": "Insufficient current/next AP or fatigue increase cannot yield a falsely safe retreat route."
+    },
+    {
+      "id": "RT07",
+      "requirement": "撤退不能時は合法な防衛/脅威排除/攻撃などの代替行動を選ぶ。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "No route available leads to an actual legal defense/threat-removal/attack substitute."
+    },
+    {
+      "id": "RT08",
+      "requirement": "HPが満タンへ回復した後、R2の3ターン待機とバリア再生予測が一致。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "Formal full-HP wait and rounded20% barrier transition match actual recovery helper without mutating clock."
+      ],
+      "required_evidence": "HP recovery to full, three formal owner boundaries and rounded barrier regeneration forecast match native transitions."
+    },
+    {
+      "id": "RT09",
+      "requirement": "回復後に状況が改善したら同じまたは別の作戦へ再出撃できる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Native wounded actor retreats, recovers, then re-enters same or alternative operation when conditions improve."
+    },
+    {
+      "id": "RT10",
+      "requirement": "成果のない往復運動を学習上の正の進捗と誤算しない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIRetreatRoutePlanner.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.UnitRecovery.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationConfig.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIUnitPreservationState.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor preservation/recovery owner; bounded route proposal",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "No-result oscillation is not recorded as positive learning progress; inspect actual operation/exploration reflection updates."
+    },
+    {
+      "id": "AD01",
+      "requirement": "敵領土発見を機に、敵主クリスタル捜索を中長期目標に設定。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "First observed enemy territory creates and sustains a medium/long-term main-base reconnaissance goal through actual operations."
+    },
+    {
+      "id": "AD02",
+      "requirement": "サブクリスタルをメインと誤認せず、新たな探索地域を選ぶ。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Observed subcrystal remains distinct from main objective and causes a new exploration-region choice."
+    },
+    {
+      "id": "AD03",
+      "requirement": "敵の攻勢により自国の王/主クリスタルが危険なら優先して緊急防衛。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Observed home commander/main crystal lethal danger triggers emergency defense above normal offense."
+    },
+    {
+      "id": "AD04",
+      "requirement": "経済破綻時は維持費未払いHP20%の損傷リスクを予測。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": "Invoke A1CoreContracts.Run in isolated UnityValidation clone; source Tests~/A1Validation.cs",
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "Official unpaid HP-loss and prospective HP/death forecast; no fictitious barrier-funded maintenance."
+      ],
+      "required_evidence": "Economic failure forecast uses formal unpaid-upkeep 20-percent HP rule and affects crisis decision."
+    },
+    {
+      "id": "AD05",
+      "requirement": "鉄/魔石が足りなければ、既知の合法な領土外採掘を検討。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "live-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "Both factions: actual paid outside mining, formal recipes, current and planned ore gaps; final ordinary games record supply bootstrap."
+      ],
+      "required_evidence": "Iron/magic shortage considers known legal outside-territory mining, with formal resource/site constraints."
+    },
+    {
+      "id": "AD06",
+      "requirement": "敵工兵や鉱山を視認した場合にだけ襲撃候補を作る。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Enemy engineer/mine raid candidates occur only when currently observed, including fog-loss negative case."
+    },
+    {
+      "id": "AD07",
+      "requirement": "作戦停滞が続いたら、経路・編成・攻撃対象を見直し同じ無意味な往復を減らす。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Repeated stagnation changes path/composition/target and reduces no-result oscillation in native turns."
+    },
+    {
+      "id": "AD08",
+      "requirement": "危機解除後に一時停止した部隊計画へ戻れる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Crisis suspension/resumption preserves legitimate active squad plan and revalidates current legality."
+    },
+    {
+      "id": "AD09",
+      "requirement": "時間制限がないため残り時間勝ちを目標にしない。AI内部の安全予算は残る。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "r2-core-native.txt"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "R2 timer rules stay disabled while bounded AI thinking and route node limits remain."
+      ],
+      "required_evidence": "No remaining-clock victory objective remains; internal turn/search exception and execution budget retained."
+    },
+    {
+      "id": "AD10",
+      "requirement": "R4 Shadow/有効で、Fog・合法性・経済・作戦目的の整合を保持。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIStrategicGovernor.Advance.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationManager.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionGenerator.Engineer.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/StrategicEconomyForecast.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Cognition.cs"
+      ],
+      "owner": "Existing AIStrategicGovernor + AIOperationManager, backed by observed game economy",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Same fog/legal/economy/operation invariants exercised under both R4 Shadow and Enabled."
+    },
+    {
+      "id": "IT01",
+      "requirement": "PR #175の修正前後で重複機能を実装せず、作戦/斥候/回復認識の回帰を確認。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Adopted #175/base commit comparison plus native regressions for operation/scout/healing avoid duplicate owner/features."
+    },
+    {
+      "id": "IT02",
+      "requirement": "旧セーブからロードしても作戦ID・ユニットLifeID・部隊が合法に復元される。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Old-save native load preserves operation ID, unit LifeID and unique legal squads, revalidated under current state."
+    },
+    {
+      "id": "IT03",
+      "requirement": "40×40目標環境でマップの設定食い違いを検出し、ユーザー指定のマップ仕様を勝手に変更せず報告。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "match-metrics.json"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "Read-only connectivity artifacts report actual35x35; project map/scene dimensions unchanged."
+      ],
+      "required_evidence": "Record actual production 35x35 versus specified 40x40 target discrepancy; preserve user map and report it."
+    },
+    {
+      "id": "IT04",
+      "requirement": "低脅威・中脅威・高脅威で、防衛・攻勢・偵察・住宅の基本判断が破綻しない。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Low, medium and high threat native cases cover defense, offense, reconnaissance and housing decisions."
+    },
+    {
+      "id": "IT05",
+      "requirement": "少数兵・多兵・高低差・Fog・障害物・工兵採掘拠点で正規の移動・攻撃制限を守る。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Native sparse/dense actors, height, fog, obstacle and engineer mine cases obey formal movement/attack rules."
+    },
+    {
+      "id": "IT06",
+      "requirement": "長時間・複数Seed・同一条件の比較で、王/主クリスタルに攻撃が届く試合と届かない原因を記録。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Long multi-seed same-condition old/new comparison records primary-target attacks and causes when attacks do not arrive."
+    },
+    {
+      "id": "IT07",
+      "requirement": "住宅の建築成功数と失敗理由、市民/容量/AP推移が同じ対戦記録で追跡可能。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "match-metrics.json"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "Same native match tracks housing reasons/counts and citizen/capacity/desiredAP/currentAP/food/stock series."
+      ],
+      "required_evidence": "One native match trace correlates successful/failed house construction, reason, citizen stock/capacity and AP over time."
+    },
+    {
+      "id": "IT08",
+      "requirement": "作戦連携、退路、進捗学習、損失・再編・再出撃を記録できる。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Native diagnostics capture coordination, retreat route, progress learning, losses, regroup and redeployment."
+    },
+    {
+      "id": "IT09",
+      "requirement": "AI計算・ログのメモリ/フレーム・思考予算を無制限に増やさず回帰性能を測る。",
+      "status": "NOT RUN",
+      "environment": "Partial native evidence or full scenario not yet demonstrated",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "A named helper check alone does not certify a broader full integration scenario."
+      ],
+      "required_evidence": "Measured memory/frame/thinking budget regression under representative native workload, with bounded logs/search."
+    },
+    {
+      "id": "IT10",
+      "requirement": "Unity EditMode/PlayMode/ネイティブ対戦の結果を各件PASS/FAIL/NOT RUNで明記し、非実行を合格と偽らない。",
+      "status": "PASS",
+      "environment": "Native Unity6000.3.8f1 controlled contracts; ordinary evidence separately identified",
+      "commit": "c24862e baseline plus A1 source identified by input manifests",
+      "scene": "Assets/Scenes/SampleScene.unity",
+      "reproduction": null,
+      "seed": [
+        161803,
+        271828
+      ],
+      "evidence": [
+        "acceptance-ledger.json"
+      ],
+      "related_files": [
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.Operations.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/Operation/AIOperationPersistence.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.CognitionSave.cs",
+        "Assets/Script/Gamesystem/TurnSystem/Enemy/AICommander.ThinkingBudget.cs"
+      ],
+      "owner": "Existing AICommander integration/persistence; native validation/report owner",
+      "notes": [
+        "This complete80-row ledger distinguishes native contracts, ordinary matches and NOT RUN."
+      ],
+      "required_evidence": "Every EditMode/PlayMode/native execution attempt is reported explicitly PASS/FAIL/NOT RUN with raw logs and no unexecuted acceptance claims."
+    }
+  ],
+  "static_audit": {
+    "scope": "Read-only audit of current new/modified Enemy runtime paths; recursive Enemy C# searches for ordinary .Level/.XP, legacy growth references, AI-only7/4 or1.75 stat scaling, and repeated five-times upkeep scaling",
+    "findings": [],
+    "observations": [
+      "All Enemy .Level field accesses reviewed resolve to facility level or AIThreatLevel. AIEconomySettings.plannedUnitLevel exists but has no runtime consumer in Assets/Script.",
+      "Fixed prospective stats/upkeep use definition.FixedMaxHP/GetFixedUpkeep. No duplicate1.75 or five-times upkeep multiplier was found in Enemy runtime.",
+      "New main-crystal observation adapter reads current enemy main objective facts only after formal cell visibility and actor visibility gates. The raw OpponentCrystalPosition property remains an unused declaration.",
+      "New tactical target collection and chain revalidation require current board.IsSpecialActorObserved; retreat occupancy uses observed enemy unit lists and visible main objective only."
+    ],
+    "limits": [
+      "Static review alone does not establish native match discovery, targeting, combat, production economy balance, R4 behavior or save compatibility.",
+      "Initial native core import failed due omitted A1HousingTests in isolated clone; second reached housing contracts and failed invalid passive-aura fixture configuration. Final reruns will be tracked separately."
+    ]
+  },
+  "execution_attempts": [
+    {
+      "name": "core first import",
+      "status": "FAIL",
+      "log": "core-first-import-failure.log",
+      "reason": "A1HousingTests absent from isolated clone during editor assembly import; no fixture execution",
+      "resolved_by": "Complete source synchronization and native rerun"
+    },
+    {
+      "name": "core second fixture",
+      "status": "FAIL",
+      "log": "core-second-fixture-failure.log",
+      "reason": "PriestPurification fixture omitted cooldown; formally invalid special correctly rejected",
+      "resolved_by": "Valid fixture cooldown and explicit configuration assertion; native rerun"
+    },
+    {
+      "name": "core final",
+      "status": "PASS",
+      "log": "core.log",
+      "completion": "[A1Core] COMPLETE; native return code0",
+      "scope": "Scene-free callable Editor contracts; no match outcome asserted"
+    },
+    {
+      "name": "Unity Test Runner EditMode",
+      "status": "NOT RUN",
+      "scope": "No test-runner result XML was produced by A1CoreContracts.Run"
+    },
+    {
+      "name": "PlayMode live fixtures",
+      "status": "NOT RUN",
+      "scope": "A1LiveValidation evidence pending"
+    },
+    {
+      "name": "ordinary long multi-seed same-condition old/new comparison",
+      "status": "NOT RUN",
+      "scope": "Controlled fixtures do not establish normal-match discovery, wins, housing balance or production engineer missions"
+    }
+  ],
+  "baseline_evidence": {
+    "scope": "Archived ordinary production baseline; these are prior R2 results, not an A1 native rerun",
+    "adopted_baseline_commit": "61fdf74",
+    "archived_harness_CodeCommit": "4897d5e9259cad1e5756526df50a914af729c43d",
+    "SourceDigest": "5c8d90a604b79db30cbe0e3b3acf81bf8e0ecd4c8cd8b329de1a060ccf8580b0",
+    "AssetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "source": "Docs/Validation/R2_20261029/autoplay-run.json",
+    "settings": "Docs/Validation/R2_20261029/autoplay-settings.json",
+    "manifest": "Docs/Validation/R2_20261029/autoplay-input-manifest.json",
+    "measurementScope": "Ordinary SampleScene and production roster. Title New Game and developer player AI (fixed intelligence 15). Enemy threat/personality are recorded per match. Fixed map and commander seeds; no AP, resources, timer, timeScale or thinking-budget overrides. Frame scheduling/search limits can still affect exact trajectories. Observer reads authoritative HP/decisive identity for reporting only, never supplies hidden information to AI. CommanderHP follows MatchObjectiveRules.IsCommander, including Kind.Boss primary commanders. Legacy KingHP fields alias CommanderHP. VictoryObjectiveAttacks match actual opposing commander/main-crystal life IDs, not the Reflection role string Boss.",
+    "matches": [
+      {
+        "seed": 161803,
+        "enemyAISeed": 343266,
+        "playerAISeed": 15015,
+        "threat": 15,
+        "personality": "Adaptive",
+        "round": 40,
+        "result": "unresolved",
+        "endCondition": "owner_turn_limit",
+        "gameOver": false,
+        "playerSummons": 0,
+        "enemySummons": 0,
+        "playerVictoryObjectiveAttacks": 0,
+        "enemyVictoryObjectiveAttacks": 0,
+        "playerIron": 0,
+        "enemyIron": 0,
+        "playerEngineerConfigured": false,
+        "enemyEngineerConfigured": false
+      },
+      {
+        "seed": 271828,
+        "enemyAISeed": 221501,
+        "playerAISeed": 15015,
+        "threat": 15,
+        "personality": "Intellect",
+        "round": 40,
+        "result": "unresolved",
+        "endCondition": "owner_turn_limit",
+        "gameOver": false,
+        "playerSummons": 0,
+        "enemySummons": 0,
+        "playerVictoryObjectiveAttacks": 0,
+        "enemyVictoryObjectiveAttacks": 0,
+        "playerIron": 0,
+        "enemyIron": 0,
+        "playerEngineerConfigured": false,
+        "enemyEngineerConfigured": false
+      }
+    ]
+  },
+  "native_match_metrics": "match-metrics.json"
+}

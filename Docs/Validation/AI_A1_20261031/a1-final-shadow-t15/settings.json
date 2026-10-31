@@ -1,0 +1,20 @@
+{
+    "Seeds": [
+        161803,
+        271828
+    ],
+    "OwnerTurnLimit": 120,
+    "WallSeconds": 90,
+    "ThreatLevel": 15,
+    "Output": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\ai-a1-final-shadow-t15-matches",
+    "Label": "ai-a1-final-shadow-t15-matches",
+    "RunId": "20261030-235851-0cec3e73",
+    "OriginalCompany": "DefaultCompany",
+    "OriginalProduct": "fantasy kingdom",
+    "EnemyPersonality": "",
+    "R4Mode": "shadow",
+    "CodeCommit": "c24862e277399e05036b81ca25c122c780a1f418",
+    "SourceDigest": "8fa8ab4324d5e2988b7f3487ca525a09ff6ae50d7cab68172f007a7017e53ddd",
+    "AssetDigest": "8dc72e3f5a113c7563c88acdbe04ea44a26feaed4081e94ca986d88e5d2297a4",
+    "ManifestPath": "C:\\Users\\pethi\\Documents\\Codex\\2026-09-19\\ko\\work\\ai-a1-final-shadow-t15-matches-manifest.json"
+}

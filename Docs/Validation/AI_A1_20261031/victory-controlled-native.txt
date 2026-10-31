@@ -1,0 +1,21 @@
+[AICommander] 初期化完了
+[A1Victory] PREPARED actual Player AI enabled; attacker=Knight AP=35
+[AICommander] 初期化完了
+BattleSystem:ProcessDamage (TurnGenerator) (at Assets/Script/Gamesystem/BattleSystem.cs:96)
+AIActionExecutor:ExecuteAttack (AIAction,AIBoardState) (at Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs:229)
+BattleSystem:ProcessDamage (TurnGenerator) (at Assets/Script/Gamesystem/BattleSystem.cs:96)
+AIActionExecutor:ExecuteAttack (AIAction,AIBoardState) (at Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs:229)
+[GameEnd] ゲーム終了 結果: Win
+BattleSystem:ProcessDamage (TurnGenerator) (at Assets/Script/Gamesystem/BattleSystem.cs:120)
+AIActionExecutor:ExecuteAttack (AIAction,AIBoardState) (at Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs:229)
+BattleSystem:ProcessDamage (TurnGenerator) (at Assets/Script/Gamesystem/BattleSystem.cs:120)
+AIActionExecutor:ExecuteAttack (AIAction,AIBoardState) (at Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs:229)
+[GameEnd] 勝利！ 脅威度+1 → 2
+BattleSystem:ProcessDamage (TurnGenerator) (at Assets/Script/Gamesystem/BattleSystem.cs:120)
+AIActionExecutor:ExecuteAttack (AIAction,AIBoardState) (at Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs:229)
+BattleSystem:ProcessDamage (TurnGenerator) (at Assets/Script/Gamesystem/BattleSystem.cs:120)
+AIActionExecutor:ExecuteAttack (AIAction,AIBoardState) (at Assets/Script/Gamesystem/TurnSystem/Enemy/AIActionExecutor.cs:229)
+[A1Victory] PASS actual Player AI chose and executed the observed finishing attack; 勝利理由：敵のメインクリスタルを破壊しました
+[A1Victory] PASS exact AP payment 35 -> 35 quote=0
+[A1Victory] SCOPE controlled setup: a starting combat unit relocated to a legal attack lane, opposing main crystal HP=1/barrier=0. Normal damage/AP/Fog/selection/executor/end-state rules unchanged. This is not natural-match victory evidence.
+[A1Victory] COMPLETE
