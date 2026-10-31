@@ -89,6 +89,17 @@ public static class A1CoordinationTests
 
     static void DefaultRoleContracts()
     {
+        var desired = typeof(AIOperationManager).GetMethod("DesiredRoleCount", Private | BindingFlags.Static);
+        Check("squad-role-budget-contract-is-available", desired != null);
+        for (int quota = 1; quota <= 16; quota++)
+        {
+            int total = 0;
+            foreach (AIOperationSquadRole role in Enum.GetValues(typeof(AIOperationSquadRole)))
+                total += (int)desired.Invoke(null, new object[] { role, quota, false });
+            Check("squad-role-budget-accounts-for-each-slot-" + quota, total == quota);
+            if (quota >= 5) Check("partial-second-squad-retains-healing-role-" + quota,
+                (int)desired.Invoke(null, new object[] { AIOperationSquadRole.Healer, quota, false }) >= 1);
+        }
         var baseline = new[]
         {
             ("Knight", "frontline"), ("Assassin", "frontline"), ("Guardian", "frontline"),

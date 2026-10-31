@@ -132,6 +132,21 @@ public static class SquadMarchValidation
             board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
             Check(prefix + "resume-retains-original-plan-and-member", plan.Status == AIOperationStatus.Active
                 && manager.TryGetSquad(actor.ReflectionLifeId, out var originalSquad) && originalSquad.OperationId == plan.OperationId);
+            for (int index = 0; index < 2; index++)
+            {
+                var go = new GameObject("controlled-reinforcement-" + index); go.SetActive(false);
+                go.transform.SetParent(actor.transform.parent); go.transform.position = f.Sites[index + 2];
+                var reinforcement = go.AddComponent<Status>(); reinforcement.kind = Kind.Knight; reinforcement.type = Type.Unit;
+                reinforcement.team = side; reinforcement.GrowthData = actor.GrowthData;
+                reinforcement.HP = reinforcement.MaxHP = 100; reinforcement.ATK = 20;
+                reinforcement.RestoreReflectionLifeId(Guid.NewGuid().ToString("N")); go.SetActive(true);
+            }
+            for (int refresh = 0; refresh < 2; refresh++)
+            {
+                AITurnBudget.Begin(5000); board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
+                Check(prefix + "reinforcement-reassignment-counts-distinct-actors-" + refresh,
+                    plan.AssignedUnitLifeIds.Count == 3 && new HashSet<string>(plan.AssignedUnitLifeIds).Count == 3);
+            }
         }
         finally { UnityEngine.Object.DestroyImmediate(config); }
     }

@@ -89,7 +89,7 @@ public sealed partial class AIOperationManager
         marchBlocked.Clear(); marchBlocked.UnionWith(marchObstacles); marchBlocked.Remove(start);
         marchGoals.Clear();
         Status firingTarget = null;
-        if (!string.IsNullOrEmpty(plan.TargetLifeId) && features.TryObserved(plan.TargetLifeId, out var observed)
+        if (member.Role != AIOperationSquadRole.Healer && !string.IsNullOrEmpty(plan.TargetLifeId) && features.TryObserved(plan.TargetLifeId, out var observed)
             && board.IsSpecialActorObserved(observed)) firingTarget = observed;
         var oppositeFacing = actor.direction == Direction.N ? Direction.S : Direction.N;
         int reach = AICapabilityRoles.For(actor).MaximumAttackReach;
@@ -189,7 +189,8 @@ public sealed partial class AIOperationManager
         if (action?.Unit == null || board == null || !IsMovement(action.ActionType) || !action.Unit.HasMovedThisTurn
             || board.Governor?.Mode == StrategicMode.EmergencyDefense
             || !TryGetSquad(action.Unit.ReflectionLifeId, out var squad)
-            || !squadMembers.TryGetValue(action.Unit.ReflectionLifeId, out var member) || member.Recovering) return false;
+            || !squadMembers.TryGetValue(action.Unit.ReflectionLifeId, out var member) || member.Recovering
+            || member.Role == AIOperationSquadRole.Healer) return false;
         var actor = action.Unit; var plan = FindActive(squad.OperationId);
         if (plan == null || !plan.HasTargetPosition || plan.Status != AIOperationStatus.Active
             || actor.HP < actor.MaxHP * AIUnitPreservationConfig.Active.RejoinRatio) return false;

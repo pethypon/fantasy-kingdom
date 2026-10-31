@@ -139,6 +139,10 @@ public sealed partial class AIOperationManager
     void AssignSquadRoles(AIOperationPlan plan, int quota, bool recon)
     {
         PruneOperationSquadAssignees(plan);
+        // Reassignment clears the ownership index. Reclaim retained members
+        // before searching for reinforcements, otherwise a retained actor can
+        // be selected again and falsely counted as several units of force.
+        foreach (string life in plan.AssignedUnitLifeIds) assignments[life] = plan;
         Array.Clear(squadAssignmentCounts, 0, squadAssignmentCounts.Length);
         foreach (string life in plan.AssignedUnitLifeIds)
             if (features.TryOwn(life, out var actor) && actor != null && actor.IsAlive) squadAssignmentCounts[(int)CachedSquadRole(actor)]++;
@@ -163,6 +167,7 @@ public sealed partial class AIOperationManager
             foreach (var actor in ownArmy)
             {
                 if (actor == null || !actor.IsAlive || assignments.ContainsKey(actor.ReflectionLifeId)
+                    || plan.AssignedUnitLifeIds.Contains(actor.ReflectionLifeId)
                     || actor.HP < actor.MaxHP * .4f || !EligibleSquadActor(actor)) continue;
                 var role = CachedSquadRole(actor); int desired = DesiredRoleCount(role, quota, recon);
                 float shortage = desired > 0 ? Mathf.Max(0, desired - squadAssignmentCounts[(int)role]) / (float)desired : 0;
@@ -201,7 +206,7 @@ public sealed partial class AIOperationManager
         if (quota <= 0) return 0;
         if (recon) return role == AIOperationSquadRole.Scout ? 1 : role == AIOperationSquadRole.Frontline ? quota >= 2 ? 1 : 0
             : role == AIOperationSquadRole.Ranged ? quota >= 3 ? 1 : 0 : 0;
-        int groups = (quota + 4) / 5, healers = quota >= groups * 5 ? groups : 0;
+        int groups = (quota + 4) / 5, healers = quota / 5;
         int ranged = Mathf.Min(groups * 2, Mathf.Max(0, (quota - healers) / 2));
         return role == AIOperationSquadRole.Healer ? healers : role == AIOperationSquadRole.Ranged ? ranged
             : role == AIOperationSquadRole.Frontline ? quota - ranged - healers : 0;
@@ -261,7 +266,7 @@ public sealed partial class AIOperationManager
         // initially lead sideways/backwards around terrain, rather than orbiting
         // the lead actor or walking back to an unreachable geometric slot.
         if (!rear && squad.Phase != AIOperationSquadPhase.Assembling
-            && TryPickMarchSlot(plan, member, actor, Aim(actor), ideal, board)) return;
+            && TryPickMarchSlot(plan, member, actor, member.Role == AIOperationSquadRole.Healer ? ideal : Aim(actor), ideal, board)) return;
         float best = float.NegativeInfinity; Vector3 destination = actor.transform.position; bool found = false;
         foreach (var cell in board.GetValidMoves(actor))
         {
