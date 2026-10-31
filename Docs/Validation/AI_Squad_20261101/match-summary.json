@@ -1,0 +1,555 @@
+[
+  {
+    "label": "squad-release-t15",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 100,
+    "result": "unresolved",
+    "condition": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "duplicateSamples": 0,
+    "p95FrameMs": 10.116199493408203,
+    "worstFrameMs": 972.9780883789062,
+    "initialMemoryMB": 178.7047119140625,
+    "finalMemoryMB": 217.52230834960938,
+    "seconds": 67.6764424,
+    "sides": {
+      "Player": {
+        "Moves": 463,
+        "Attacks": 7,
+        "Skills": 0,
+        "Builds": 91,
+        "Summons": 6,
+        "ObjectiveAttacks": 0,
+        "VictoryObjectiveAttacks": 0,
+        "CommanderTargetAttacks": 0,
+        "MainCrystalTargetAttacks": 0,
+        "EnemyKills": 2,
+        "FailedActions": 0,
+        "FailedProgressActions": 158,
+        "modeDecisionCounts": {
+          "EconomicRecovery": 374,
+          "Exploration": 354
+        },
+        "operatedActionCount": 276,
+        "maxOperationMembers": 3,
+        "coordinatedSelectionSamples": 0,
+        "observedMainRounds": 0,
+        "economySnapshots": [
+          {
+            "round": "20",
+            "mode": "EconomicRecovery",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "40",
+            "mode": "Exploration",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "60",
+            "mode": "Exploration",
+            "army": "2",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;"
+          },
+          {
+            "round": "80",
+            "mode": "Exploration",
+            "army": "4",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:wounded_army_without_healer;"
+          },
+          {
+            "round": "100",
+            "mode": "Exploration",
+            "army": "5",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": ""
+          }
+        ]
+      },
+      "Enemy": {
+        "Moves": 427,
+        "Attacks": 21,
+        "Skills": 0,
+        "Builds": 93,
+        "Summons": 8,
+        "ObjectiveAttacks": 0,
+        "VictoryObjectiveAttacks": 0,
+        "CommanderTargetAttacks": 0,
+        "MainCrystalTargetAttacks": 0,
+        "EnemyKills": 5,
+        "FailedActions": 0,
+        "FailedProgressActions": 200,
+        "modeDecisionCounts": {
+          "EconomicRecovery": 355,
+          "Exploration": 91
+        },
+        "operatedActionCount": 113,
+        "maxOperationMembers": 3,
+        "coordinatedSelectionSamples": 0,
+        "observedMainRounds": 0,
+        "economySnapshots": [
+          {
+            "round": "20",
+            "mode": "EconomicRecovery",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "40",
+            "mode": "Exploration",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "60",
+            "mode": "Exploration",
+            "army": "1",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "80",
+            "mode": "Exploration",
+            "army": "3",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:wounded_army_without_healer;scout:Scout:reconnaissance_role_missing;ranged:Bomber:ranged_support_missing;"
+          },
+          {
+            "round": "100",
+            "mode": "Exploration",
+            "army": "4",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "label": "squad-release-t15",
+    "seed": 271828,
+    "threat": 15,
+    "rounds": 100,
+    "result": "unresolved",
+    "condition": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "duplicateSamples": 0,
+    "p95FrameMs": 6.317998886108398,
+    "worstFrameMs": 313.14251708984375,
+    "initialMemoryMB": 189.50637817382812,
+    "finalMemoryMB": 199.94271850585938,
+    "seconds": 108.58048959999999,
+    "sides": {
+      "Player": {
+        "Moves": 195,
+        "Attacks": 300,
+        "Skills": 3,
+        "Builds": 65,
+        "Summons": 8,
+        "ObjectiveAttacks": 141,
+        "VictoryObjectiveAttacks": 0,
+        "CommanderTargetAttacks": 0,
+        "MainCrystalTargetAttacks": 0,
+        "EnemyKills": 4,
+        "FailedActions": 2,
+        "FailedProgressActions": 70,
+        "modeDecisionCounts": {
+          "EconomicRecovery": 348,
+          "Exploration": 77,
+          "StrategicAttack": 529
+        },
+        "operatedActionCount": 503,
+        "maxOperationMembers": 3,
+        "coordinatedSelectionSamples": 0,
+        "observedMainRounds": 0,
+        "economySnapshots": [
+          {
+            "round": "20",
+            "mode": "EconomicRecovery",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "3",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "40",
+            "mode": "Exploration",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "4",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "60",
+            "mode": "StrategicAttack",
+            "army": "2",
+            "healers": "0",
+            "developmentFightingTarget": "5",
+            "plannedRecruitRoles": "scout:Scout:operation_squad_role_missing;frontline:DragonKnight:observed_force_or_core_replacement;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "80",
+            "mode": "StrategicAttack",
+            "army": "3",
+            "healers": "0",
+            "developmentFightingTarget": "6",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;"
+          },
+          {
+            "round": "100",
+            "mode": "StrategicAttack",
+            "army": "2",
+            "healers": "0",
+            "developmentFightingTarget": "7",
+            "plannedRecruitRoles": "scout:Scout:operation_squad_role_missing;frontline:DragonKnight:observed_force_or_core_replacement;ranged:Bomber:observed_force_or_core_replacement;"
+          }
+        ]
+      },
+      "Enemy": {
+        "Moves": 128,
+        "Attacks": 306,
+        "Skills": 0,
+        "Builds": 83,
+        "Summons": 6,
+        "ObjectiveAttacks": 270,
+        "VictoryObjectiveAttacks": 0,
+        "CommanderTargetAttacks": 0,
+        "MainCrystalTargetAttacks": 0,
+        "EnemyKills": 5,
+        "FailedActions": 0,
+        "FailedProgressActions": 62,
+        "modeDecisionCounts": {
+          "EconomicRecovery": 260,
+          "StrategicAttack": 526,
+          "Exploration": 1
+        },
+        "operatedActionCount": 420,
+        "maxOperationMembers": 3,
+        "coordinatedSelectionSamples": 0,
+        "observedMainRounds": 0,
+        "economySnapshots": [
+          {
+            "round": "20",
+            "mode": "Exploration",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "40",
+            "mode": "Exploration",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "60",
+            "mode": "StrategicAttack",
+            "army": "1",
+            "healers": "0",
+            "developmentFightingTarget": "5",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;"
+          },
+          {
+            "round": "80",
+            "mode": "StrategicAttack",
+            "army": "2",
+            "healers": "0",
+            "developmentFightingTarget": "6",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;"
+          },
+          {
+            "round": "100",
+            "mode": "StrategicAttack",
+            "army": "1",
+            "healers": "0",
+            "developmentFightingTarget": "7",
+            "plannedRecruitRoles": "ranged:Bomber:operation_squad_role_missing;scout:Scout:operation_squad_role_missing;frontline:DragonKnight:observed_force_or_core_replacement;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "label": "squad-release-t3",
+    "seed": 141421,
+    "threat": 3,
+    "rounds": 80,
+    "result": "unresolved",
+    "condition": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "duplicateSamples": 0,
+    "p95FrameMs": 16.74020004272461,
+    "worstFrameMs": 360.63519287109375,
+    "initialMemoryMB": 180.7281494140625,
+    "finalMemoryMB": 216.82342529296875,
+    "seconds": 25.800232599999998,
+    "sides": {
+      "Player": {
+        "Moves": 302,
+        "Attacks": 4,
+        "Skills": 0,
+        "Builds": 68,
+        "Summons": 2,
+        "ObjectiveAttacks": 0,
+        "VictoryObjectiveAttacks": 0,
+        "CommanderTargetAttacks": 0,
+        "MainCrystalTargetAttacks": 0,
+        "EnemyKills": 1,
+        "FailedActions": 0,
+        "FailedProgressActions": 145,
+        "modeDecisionCounts": {
+          "EconomicRecovery": 257
+        },
+        "operatedActionCount": 39,
+        "maxOperationMembers": 3,
+        "coordinatedSelectionSamples": 0,
+        "observedMainRounds": 0,
+        "economySnapshots": [
+          {
+            "round": "20",
+            "mode": "EconomicRecovery",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "40",
+            "mode": "Exploration",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "60",
+            "mode": "Exploration",
+            "army": "2",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;ranged:Bomber:ranged_support_missing;"
+          },
+          {
+            "round": "80",
+            "mode": "Exploration",
+            "army": "2",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;ranged:Bomber:ranged_support_missing;"
+          }
+        ]
+      },
+      "Enemy": {
+        "Moves": 281,
+        "Attacks": 15,
+        "Skills": 0,
+        "Builds": 76,
+        "Summons": 3,
+        "ObjectiveAttacks": 0,
+        "VictoryObjectiveAttacks": 0,
+        "CommanderTargetAttacks": 0,
+        "MainCrystalTargetAttacks": 0,
+        "EnemyKills": 3,
+        "FailedActions": 0,
+        "FailedProgressActions": 192,
+        "modeDecisionCounts": {
+          "EconomicRecovery": 273,
+          "Exploration": 524
+        },
+        "operatedActionCount": 280,
+        "maxOperationMembers": 3,
+        "coordinatedSelectionSamples": 0,
+        "observedMainRounds": 0,
+        "economySnapshots": [
+          {
+            "round": "20",
+            "mode": "EconomicRecovery",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "40",
+            "mode": "Exploration",
+            "army": "1",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;"
+          },
+          {
+            "round": "60",
+            "mode": "Exploration",
+            "army": "2",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;"
+          },
+          {
+            "round": "80",
+            "mode": "Exploration",
+            "army": "3",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;scout:Scout:reconnaissance_role_missing;"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "label": "squad-release-t35",
+    "seed": 141421,
+    "threat": 35,
+    "rounds": 80,
+    "result": "unresolved",
+    "condition": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "duplicateSamples": 0,
+    "p95FrameMs": 6.623100757598877,
+    "worstFrameMs": 423.4189147949219,
+    "initialMemoryMB": 178.7701873779297,
+    "finalMemoryMB": 216.93971252441406,
+    "seconds": 97.88399229999999,
+    "sides": {
+      "Player": {
+        "Moves": 324,
+        "Attacks": 11,
+        "Skills": 0,
+        "Builds": 79,
+        "Summons": 5,
+        "ObjectiveAttacks": 0,
+        "VictoryObjectiveAttacks": 0,
+        "CommanderTargetAttacks": 0,
+        "MainCrystalTargetAttacks": 0,
+        "EnemyKills": 3,
+        "FailedActions": 0,
+        "FailedProgressActions": 134,
+        "modeDecisionCounts": {
+          "EconomicRecovery": 321,
+          "Exploration": 120
+        },
+        "operatedActionCount": 119,
+        "maxOperationMembers": 3,
+        "coordinatedSelectionSamples": 0,
+        "observedMainRounds": 0,
+        "economySnapshots": [
+          {
+            "round": "20",
+            "mode": "EconomicRecovery",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "40",
+            "mode": "Exploration",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "60",
+            "mode": "Exploration",
+            "army": "3",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:wounded_army_without_healer;scout:Scout:reconnaissance_role_missing;ranged:Bomber:ranged_support_missing;"
+          },
+          {
+            "round": "80",
+            "mode": "Exploration",
+            "army": "3",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "ranged:Bomber:operation_squad_role_missing;healer:Priest:wounded_army_without_healer;"
+          }
+        ]
+      },
+      "Enemy": {
+        "Moves": 283,
+        "Attacks": 16,
+        "Skills": 0,
+        "Builds": 78,
+        "Summons": 4,
+        "ObjectiveAttacks": 0,
+        "VictoryObjectiveAttacks": 0,
+        "CommanderTargetAttacks": 0,
+        "MainCrystalTargetAttacks": 0,
+        "EnemyKills": 3,
+        "FailedActions": 1,
+        "FailedProgressActions": 141,
+        "modeDecisionCounts": {
+          "EconomicRecovery": 240,
+          "Exploration": 500
+        },
+        "operatedActionCount": 279,
+        "maxOperationMembers": 3,
+        "coordinatedSelectionSamples": 0,
+        "observedMainRounds": 0,
+        "economySnapshots": [
+          {
+            "round": "20",
+            "mode": "EconomicRecovery",
+            "army": "0",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+          },
+          {
+            "round": "40",
+            "mode": "Exploration",
+            "army": "1",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;"
+          },
+          {
+            "round": "60",
+            "mode": "Exploration",
+            "army": "2",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;"
+          },
+          {
+            "round": "80",
+            "mode": "Exploration",
+            "army": "4",
+            "healers": "0",
+            "developmentFightingTarget": "2",
+            "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;scout:Scout:reconnaissance_role_missing;"
+          }
+        ]
+      }
+    }
+  }
+]

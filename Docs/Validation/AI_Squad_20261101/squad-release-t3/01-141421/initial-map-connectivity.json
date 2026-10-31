@@ -1,0 +1,25 @@
+{
+    "Width": 35,
+    "Depth": 35,
+    "TraversableCells": 1020,
+    "PlayerComponentCells": 1020,
+    "EnemyComponentCells": 1020,
+    "TerrainRouteSteps": 27,
+    "PlayerBase": {
+        "x": 27.0,
+        "y": 2.0,
+        "z": 20.0
+    },
+    "EnemyBase": {
+        "x": 6.0,
+        "y": 2.0,
+        "z": 6.0
+    },
+    "BasesConnected": true,
+    "PlayerBaseInTerrainList": false,
+    "EnemyBaseInTerrainList": false,
+    "R4Enabled": false,
+    "R4Shadow": true,
+    "R4MayInfluenceActions": false,
+    "Scope": "Read-only official CanTraverse over adjacent terrain cells at new-game start. Bases can be removed from SetPos, so reachability starts/ends on their legal adjacent deployment cells. Excludes occupancy, unit move patterns, AP and later construction. Diagnostic truth is not AI input."
+}
