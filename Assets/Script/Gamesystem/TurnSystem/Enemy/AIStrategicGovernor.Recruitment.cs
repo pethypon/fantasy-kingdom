@@ -38,7 +38,7 @@ public sealed partial class AIStrategicGovernor
         {
             if (actor == null || !actor.IsAlive || actor.type != Type.Unit || MatchObjectiveRules.IsCommander(actor)) continue;
             recruitmentCounts.TryGetValue(actor.kind, out int count); recruitmentCounts[actor.kind] = count + 1;
-            string role = AIHealingCapability.HasHealing(actor) ? "healer" : NonHealingRecruitmentRole(actor.GrowthData, actor.kind);
+            string role = AICapabilityRoles.RecruitmentRole(actor);
             if (role == "scout") scouts++;
             else if (role == "engineer") engineers++;
             else if (role == "healer") healers++;
@@ -59,8 +59,6 @@ public sealed partial class AIStrategicGovernor
         if (healers == 0 && fighters >= 3 && (wounded > 0 || expedition))
             if (AddRecruitmentRole(board, "healer", wounded > 0 ? "wounded_army_without_healer" : "expedition_without_healer")) healers++;
         if (frontline == 0 && AddRecruitmentRole(board, "frontline", "frontline_missing")) { frontline++; fighters++; }
-        if (engineers == 0 && fighters > 0 && AIActionGenerator.HasRareOreSupplyGap(board))
-            if (AddRecruitmentRole(board, "engineer", "outside_territory_ore_supply_missing")) engineers++;
         if (scouts == 0 && (!board.PlayerCrystalVisible && board.GetExplorationRatio() < 1f || TerritoryIntel.HasUsableTerritory && !HasActiveTerritoryAdvance))
             if (AddRecruitmentRole(board, "scout", "reconnaissance_role_missing")) scouts++;
         if (ranged == 0 && fighters >= 2 && AddRecruitmentRole(board, "ranged", "ranged_support_missing")) { ranged++; fighters++; }
@@ -70,6 +68,21 @@ public sealed partial class AIStrategicGovernor
             string role = frontline <= ranged ? "frontline" : "ranged";
             if (!AddRecruitmentRole(board, role, "observed_force_or_core_replacement")) break;
             fighters++; if (role == "frontline") frontline++; else ranged++;
+        }
+        // Diagnose after the replacement order is complete. Otherwise losing the last
+        // iron-consuming soldier erases the reason to bootstrap its replacement supply.
+        if (engineers == 0 && AIActionGenerator.HasRareOreSupplyGap(board))
+        {
+            AIRecruitmentNeed deferred = default;
+            bool full = recruitmentPlan.Count >= 3;
+            if (full)
+            {
+                int last = recruitmentPlan.Count - 1; deferred = recruitmentPlan[last];
+                recruitmentPlan.RemoveAt(last); recruitmentForecastUnits.RemoveAt(last);
+                recruitmentCounts[deferred.Definition.kind]--;
+            }
+            if (!AddRecruitmentRole(board, "engineer", "outside_territory_ore_supply_missing") && full)
+                AddRecruitmentNeed(deferred.Definition, deferred.Role, deferred.Reason);
         }
         int reserve = RecruitmentCitizenReserve;
         foreach (var need in recruitmentPlan)
@@ -118,24 +131,7 @@ public sealed partial class AIStrategicGovernor
     }
 
     public static string RecruitmentRole(UnitData definition, Kind kind)
-    {
-        if (kind == Kind.King || kind == Kind.Boss || kind == Kind.Crystal || kind == Kind.SubCrystal) return null;
-        return AIHealingCapability.HasHealing(definition) ? "healer" : NonHealingRecruitmentRole(definition, kind);
-    }
-
-    static string NonHealingRecruitmentRole(UnitData definition, Kind kind)
-    {
-        if (kind == Kind.Engineer) return definition?.actionProfile?.actionType == ActorActionType.Passive ? null : "engineer";
-        if (kind == Kind.Scout) return "scout";
-        if (kind == Kind.King || kind == Kind.Boss || kind == Kind.Crystal || kind == Kind.SubCrystal
-            || definition?.actionProfile?.CanAttack == false) return null;
-        switch (UnitRoster.EvaluationBaseKind(kind))
-        {
-            case Kind.Knight: case Kind.Guardian: case Kind.Assassin: return "frontline";
-            case Kind.Archer: case Kind.Magic: case Kind.Crossbow: case Kind.Magicsniper: case Kind.Bomber: return "ranged";
-            default: return null;
-        }
-    }
+        => AICapabilityRoles.RecruitmentRole(definition, kind);
 
     public string RecruitmentBlockReason(AIAction action, AIBoardState board)
     {
@@ -187,9 +183,8 @@ public sealed partial class AIStrategicGovernor
         }
         return false;
     }
-    // The engineer is the only way to restore outside-territory ore production. An inherited
-    // ore payment failure must not forbid an affordable remedy that leaves every existing
-    // failure and the complete HP/death forecast no worse, including the new unit's upkeep.
+    // Restore outside-territory ore production without making payment failures or losses
+    // worse. A depleted army also needs this route before its first replacement can exist.
     bool IsSafeEngineerOreRecoveryRecruit(AIAction action, AIBoardState board, EconomyForecastResult projected)
     {
         if (action?.ActionType != AIActionType.Summon || board == null) return false;
@@ -200,8 +195,9 @@ public sealed partial class AIStrategicGovernor
             || !AIActionGenerator.HasRareOreSupplyGap(board)) return false;
         var baseline = forecast.Simulate(board);
         int oreMask = (1 << (int)ResourceKind.Iron) | (1 << (int)ResourceKind.MagicOre);
-        return baseline.UpkeepPaymentFailed && (baseline.MandatoryFailureMask & oreMask) != 0
-            && (baseline.MandatoryFailureMask & ~oreMask) == 0
+        bool inheritedOreFailure = baseline.UpkeepPaymentFailed && (baseline.MandatoryFailureMask & oreMask) != 0
+            && (baseline.MandatoryFailureMask & ~oreMask) == 0;
+        return (inheritedOreFailure || !baseline.UpkeepPaymentFailed && !projected.UpkeepPaymentFailed)
             && !projected.BreadPaymentFailed && !projected.ImportantProductionStopped
             && projected.BreadCoverageTurns >= BreadReserveTurns
             && (projected.MandatoryFailureMask & ~baseline.MandatoryFailureMask) == 0

@@ -358,46 +358,7 @@ public static partial class AIActionGenerator
     // ================================================================
     public static void GenerateSurroundCandidates(Status unit, AIBoardState board, List<AIAction> results)
     {
-        if (StatusEffectSystem.IsMovementBlocked(unit)) return;
-        if (board.AlivePlayerUnits.Count == 0) return;
-
-        Status nearestPlayer = null;
-        float nearestDist = float.MaxValue;
-        foreach (var pu in board.AlivePlayerUnits)
-        {
-            if (pu == null || !pu.gameObject.activeInHierarchy) continue;
-            float d = Vector3.Distance(unit.transform.position, pu.transform.position);
-            if (d < nearestDist) { nearestDist = d; nearestPlayer = pu; }
-        }
-
-        if (nearestPlayer == null || nearestDist > 6f) return;
-
-        var enemyPos = nearestPlayer.transform.position;
-        Vector3[] flankOffsets = {
-            new Vector3(1, 0, 0), new Vector3(-1, 0, 0), new Vector3(0, 0, -1),
-        };
-
-        var moves = board.GetValidMoves(unit);
-        foreach (var offset in flankOffsets)
-        {
-            Vector3 flankPos = enemyPos + offset;
-            foreach (var dest in moves)
-            {
-                if (Vector3.Distance(dest, flankPos) < 1.5f)
-                {
-                    int cost = board.CalcMoveCost(unit, dest);
-                    if (cost <= board.EnemyAP)
-                    {
-                        results.Add(new AIAction
-                        {
-                            ActionType = AIActionType.Surround, Unit = unit,
-                            TargetPos = dest, TargetUnit = nearestPlayer, APCost = cost
-                        });
-                        break;
-                    }
-                }
-            }
-        }
+        board?.Operations?.AppendSurroundCandidates(unit, board, results);
     }
 
     // ================================================================

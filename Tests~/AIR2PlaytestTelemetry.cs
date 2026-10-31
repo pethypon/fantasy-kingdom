@@ -89,7 +89,7 @@ public static class AIR2PlaytestTelemetry
         decisions = new StreamWriter(Path.Combine(folder, "decisions.csv"));
         units = new StreamWriter(Path.Combine(folder, "units.csv"));
         nations = new StreamWriter(Path.Combine(folder, "nation-economy.csv")); nationRows = 0;
-        NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock", "developmentFightingTarget", "developmentCitizenDemand", "developmentRequiredStock", "housingRequiredCapacity", "housingReasons", "housingRecoveryStarted", "housingRecoveryLastProgress", "housingDeferredTurns", "housingRecoveryStatus");
+        NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock", "developmentFightingTarget", "developmentCitizenDemand", "developmentRequiredStock", "housingRequiredCapacity", "housingReasons", "housingRecoveryStarted", "housingRecoveryLastProgress", "housingDeferredTurns", "housingRecoveryStatus", "plannedAP", "currentMaxAP", "mainCrystalKnowledge");
         Row(decisions, "team", "round", "generation", "stage", "mode", "AP", "group", "count", "actorLifeId", "action", "target", "score", "priority", "selected", "reason", "visibleEnemies", "affordableKinds", "summonCells", "casterKind", "skillKey", "normalSkillId", "specialAbility", "actionAP", "APAffordable", "chosenAction", "chosenScore", "chosenPriority", "selectionOutcome", "scoreComponents", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "preservationSafety", "recoveryPhase", "refugeX", "refugeZ", "healingPossible", "alliesNear", "saferMoveCount", "patientHP", "patientMaxHP", "chosenActorLifeId", "chosenTargetLifeId");
         Row(units, "team", "round", "lifeId", "kind", "type", "level", "x", "z", "facing", "hp", "maxHP", "barrier", "maxBarrier", "homeDistance", "incoming", "plan", "planStep", "planTargetX", "planTargetZ", "exploreId", "region", "exploreState", "exploreReason", "exploreX", "exploreZ", "newTiles", "houseCapacity", "assignedSkillId", "assignedSkillAP", "skillCooldown", "specialAbility", "specialEnabled", "specialAP", "specialCooldown", "specialSelfReady", "specialSelfReason", "preservationSafety", "recoveryPhase", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "saferMoveCount", "healingPossible", "alliesNear", "refugeX", "refugeZ", "preservationReason");
         WriteStatus(false);
@@ -238,16 +238,17 @@ public static class AIR2PlaytestTelemetry
         {
             if (actor == null || !actor.IsAlive || actor.type != Type.Unit || MatchObjectiveRules.IsCommander(actor)) continue;
             army++; if (actor.HP < actor.MaxHP * .4f) wounded++;
-            if (UnitRoster.IsDedicatedHealer(actor.kind)) healers++;
+            if (AIHealingCapability.HasHealing(actor)) healers++;
         }
         string order = "";
         foreach (var need in governor.RecruitmentPlan) order += need.Role + ":" + need.Definition.kind + ":" + need.Reason + ";";
-        float requiredCapacity = 0;
+        float requiredCapacity = 0; int desiredAP = 0;
         var housingReasons = new HashSet<string>();
         if (HousingCache?.GetValue(governor) is IDictionary housing)
             foreach (object assessment in housing.Values)
             {
                 if (Value(assessment, "RequiredStock") is float needed) requiredCapacity = Mathf.Max(requiredCapacity, needed);
+                if (Value(Value(assessment, "APPlan"), "DesiredAP") is int plannedAP) desiredAP = Mathf.Max(desiredAP, plannedAP);
                 string reason = Convert.ToString(Value(assessment, "Reason"), CultureInfo.InvariantCulture);
                 if (!string.IsNullOrEmpty(reason)) housingReasons.Add(reason);
             }
@@ -260,7 +261,7 @@ public static class AIR2PlaytestTelemetry
                 governor.RecruitmentRequiredCitizenStock, Value(governor, "DevelopmentFightingTarget"), Value(governor, "DevelopmentCitizenDemand"),
                 Value(governor, "DevelopmentRequiredCitizenStock"), requiredCapacity, string.Join(";", sortedReasons),
                 Value(governor, "HousingRecoveryStartedTurn"), Value(governor, "HousingRecoveryLastProgressTurn"),
-                Value(governor, "HousingRecoveryDeferredTurns"), Value(governor, "HousingRecoveryStatus"));
+                Value(governor, "HousingRecoveryDeferredTurns"), Value(governor, "HousingRecoveryStatus"), desiredAP, board.OwnAPData?.Maximum, Value(board,"MainCrystalKnowledge"));
         nations.Flush(); ownBuildings.Clear();
     }
     static void NationRow(params object[] fields)

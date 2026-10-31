@@ -13,7 +13,6 @@ public class AIBuildPlanner
     readonly AIPersonality _personality;
     readonly AILearning _learning;
     readonly List<AIAction> buildActions = new List<AIAction>(64);
-    readonly List<Status> housingBuildings = new List<Status>(32);
 
     public AIBuildPlanner(
         APSystem apSystem, FactionState factionState,
@@ -150,7 +149,8 @@ public class AIBuildPlanner
         foreach (var action in actions)
         {
             bool improves = EconomyHelper.ImprovesProductionDemand(action, board)
-                || board.Governor.BasicResources.IsFoundationAction(action);
+                || board.Governor.BasicResources.IsFoundationAction(action)
+                || board.Governor.HousingAssessment(action, board).Needed;
             if (strategy == TurnStrategy.EconomyBuild)
             {
                 if (improves) action.Score += 30f;
@@ -228,8 +228,7 @@ public class AIBuildPlanner
                 if (AITurnBudget.Expired) return built;
                 var action = buildActions[i];
                 // A fallback fills diagnosed supply/capacity gaps; it is never a reason to buy surplus production.
-                if (!EconomyHelper.ImprovesProductionDemand(action, board)
-                    && !governor.BasicResources.IsFoundationAction(action)) continue;
+                if (!IsFallbackInvestment(action, board, governor)) continue;
                 action.Score = AIActionEvaluator.CalcBuildScorePublic(action, _personality, board, _learning);
                 buildActions[output++] = action;
             }
@@ -274,35 +273,20 @@ public class AIBuildPlanner
     {
         if (!AIHousingConfig.Active.Enabled) return false;
         var governor = PrepareGovernor(board);
-        if (board.BuildablePositions.Count > 0)
-        {
-            foreach (var kind in board.AffordableBuildings)
-            {
-                if (kind != FacilityKind.House && kind != FacilityKind.LuxuryHouse || !FacilityData.Table.TryGetValue(kind, out var info)) continue;
-                var action = new AIAction { ActionType = AIActionType.Build, Facility = kind, APCost = info.APCost, TargetPos = board.BuildablePositions[0] };
-                if (governor.HousingAssessment(action, board).Needed && governor.AllowExecution(action, board)) return true;
-            }
-            var catalog = FacilityAuthoringCatalog.Loaded;
-            if (catalog?.buildings != null) foreach (var definition in catalog.buildings)
-            {
-                if (definition == null || definition.behaviourKind != FacilityKind.House && definition.behaviourKind != FacilityKind.LuxuryHouse
-                    || !definition.IsAvailable(board.ActorTeam) || !board.CanBuildDefinition(definition)) continue;
-                var action = new AIAction { ActionType = AIActionType.Build, Facility = definition.behaviourKind,
-                    FacilityDefinition = definition, APCost = definition.GetInfo().APCost, TargetPos = board.BuildablePositions[0] };
-                if (governor.HousingAssessment(action, board).Needed && governor.AllowExecution(action, board)) return true;
-            }
-        }
-        board.CollectOwnBuildings(housingBuildings);
-        foreach (var actor in housingBuildings)
-        {
-            if (actor == null || !actor.IsAlive || actor.Level >= FacilityData.GetMaxLevel(actor)
-                || actor.facilityKind != FacilityKind.House && actor.facilityKind != FacilityKind.LuxuryHouse) continue;
-            var action = new AIAction { ActionType = AIActionType.Upgrade, Facility = actor.facilityKind, FacilityDefinition = actor.AuthoredFacility,
-                Unit = actor, TargetUnit = actor, APCost = FacilityData.GetLevel(actor, actor.Level + 1).UpgradeAP };
+        // Share the ordinary generator's authored recipes, upgrade eligibility and legal positions.
+        buildActions.Clear();
+        AIActionGenerator.GenerateBuildCandidates(board, buildActions);
+        AIActionGenerator.GenerateUpgradeCandidates(board, buildActions);
+        foreach (var action in buildActions)
             if (governor.HousingAssessment(action, board).Needed && governor.AllowExecution(action, board)) return true;
-        }
         return false;
     }
+
+    internal static bool IsFallbackInvestment(AIAction action, AIBoardState board, AIStrategicGovernor governor)
+        => action != null && board != null && governor != null
+            && (EconomyHelper.ImprovesProductionDemand(action, board)
+                || governor.BasicResources.IsFoundationAction(action)
+                || governor.HousingAssessment(action, board).Needed);
 
     static void LogRejectedBuilds(AIStrategicGovernor governor)
     {

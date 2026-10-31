@@ -55,7 +55,7 @@ public sealed partial class AIStrategicGovernor
 
         var crystal = board.GetLastKnownPlayerCrystal();
         int age = board.TurnCount - crystal.Turn;
-        if (board.ReconThreatLevel >= 4 && !board.PlayerCrystalVisible && crystal.Valid && age >= 0 && age < 5
+        if (board.ReconThreatLevel >= 4 && !board.PlayerCrystalVisible && crystal.Valid && age >= 0
             && !board.IsVisibleToEnemy(crystal.Position))
             armyAdvanceTargets.Add(crystal.Position);
         // This existing snapshot API enforces age, threat-level and visible-empty

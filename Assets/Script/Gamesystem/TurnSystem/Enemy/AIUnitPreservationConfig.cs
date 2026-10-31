@@ -9,6 +9,13 @@ public sealed class AIUnitPreservationConfig : ScriptableObject
     [Range(.35f, 1f)] public float RejoinHpRatio = .60f;
     [Range(1, 2)] public int ObservedExchangeWaves = 2;
     [Range(1, 128)] public int MaximumTrackedUnits = 128;
+    [Header("Bounded retreat policy (AI tuning only)")]
+    [Range(1, 6)] public int RetreatMaximumSteps = 4;
+    [Range(16, 256)] public int RetreatMaximumNodes = 96;
+    [Range(0, 1)] public int RetreatFutureOwnTurns = 1;
+    [Range(0, .5f)] public float RefugeMaximumHpRiskRatio = .10f;
+    [Range(0, 1)] public float RejoinBarrierRatio = .40f;
+    [Range(1, 12)] public int MaximumRecoveryIdleTurns = 8;
     public int Revision { get; private set; }
     void OnValidate() => Revision = Revision < int.MaxValue ? Revision + 1 : 0;
     static AIUnitPreservationConfig active;
@@ -34,5 +41,11 @@ public sealed class AIUnitPreservationConfig : ScriptableObject
     public float RejoinRatio => Mathf.Clamp(Finite(RejoinHpRatio, .6f), WoundedRatio + .05f, 1);
     public int Waves => Mathf.Clamp(ObservedExchangeWaves, 1, 2);
     public int Limit => Mathf.Clamp(MaximumTrackedUnits, 1, 128);
+    public int RouteDepth => Mathf.Clamp(RetreatMaximumSteps, 1, 6);
+    public int RouteNodes => Mathf.Clamp(RetreatMaximumNodes, 16, 256);
+    public int RouteFutureTurns => Mathf.Clamp(RetreatFutureOwnTurns, 0, 1);
+    public float RefugeRiskRatio => Mathf.Clamp(Finite(RefugeMaximumHpRiskRatio, .1f), 0, .5f);
+    public float BarrierRejoinRatio => Mathf.Clamp01(Finite(RejoinBarrierRatio, .4f));
+    public int RecoveryIdleTurns => Mathf.Clamp(MaximumRecoveryIdleTurns, 1, 12);
     static float Finite(float value, float fallback) => float.IsNaN(value) || float.IsInfinity(value) ? fallback : value;
 }

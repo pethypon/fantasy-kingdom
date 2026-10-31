@@ -14,6 +14,7 @@ public static class R2EngineerAIContracts
         using var effects=BoardActorAnimation.SuppressEffects();
         foreach(var team in new[]{Team.Player,Team.Enemy})
         {
+            EngineerReplacementDemand(live, team);
             EngineerRecruitmentBootstrap(live, team);
             using var f=new R2ConstructionEconomyTests.Fixture(live,team);
             f.Resources.Iron=0;f.Resources.MagicOre=10;
@@ -57,6 +58,35 @@ public static class R2EngineerAIContracts
             Check(label+"EN10 duplicate AI command never charges twice",!executor.Execute(action,board)&&f.Resources.Wood==wood-140);
         }
         Debug.Log("[R2EngineerAI] COMPLETE");
+    }
+
+    static void EngineerReplacementDemand(GameSystems live, Team team)
+    {
+        using var f = new R2ConstructionEconomyTests.Fixture(live, team);
+        var replacement = RecruitDefinition(Kind.Archer);
+        try
+        {
+            f.Engineer.GrowthData.useAuthoredUpkeep = true;
+            f.Resources.Iron = f.Resources.MagicOre = 0;
+            var board = f.Board();
+            board.Governor = new AIStrategicGovernor();
+            int initialAP = f.State.GetAP(team);
+            string initialStock = JsonUtility.ToJson(f.Resources);
+            var plan = (List<AIRecruitmentNeed>)typeof(AIStrategicGovernor)
+                .GetField("recruitmentPlan", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(board.Governor);
+            Check(team + " EN26 no current or planned ore demand needs no expedition", !AIActionGenerator.HasRareOreSupplyGap(board));
+            replacement.costIron = 1;
+            plan.Add(new AIRecruitmentNeed(replacement, "ranged", "army_replacement"));
+            Check(team + " EN26 blocked replacement purchase creates supply demand in the same generation", AIActionGenerator.HasRareOreSupplyGap(board));
+            plan.Clear();
+            Check(team + " EN26 removing the plan invalidates cached supply demand", !AIActionGenerator.HasRareOreSupplyGap(board));
+            replacement.costIron = 0; replacement.upkeepMagic = 1;
+            plan.Add(new AIRecruitmentNeed(replacement, "ranged", "army_replacement"));
+            Check(team + " EN26 planned fixed ore upkeep creates supply demand before deployment", AIActionGenerator.HasRareOreSupplyGap(board));
+            Check(team + " EN26 demand analysis neither charges stock nor changes AP",
+                initialStock == JsonUtility.ToJson(f.Resources) && f.State.GetAP(team) == initialAP);
+        }
+        finally { UnityEngine.Object.DestroyImmediate(replacement); }
     }
 
     static void EngineerRecruitmentBootstrap(GameSystems live, Team team)
@@ -160,6 +190,30 @@ public static class R2EngineerAIContracts
             Check(label + "EN25 engineer recovery cannot bypass actual ore purchase cost",
                 !board.CanSummonDefinition(engineer) && !governor.AllowExecution(action, board)
                 && governor.RecruitmentBlockReason(action, board) == "recruit_resources_or_legality");
+
+            engineer.costIron = 0; engineer.costWater = 10;
+            f.Resources.Water = 5000;
+            military.GrowthData.costIron = 1;
+            ordinary.costIron = 1;
+            military.gameObject.SetActive(false);
+            board.Refresh(); governor = NewGovernor(board);
+            bool plannedEngineer = false;
+            foreach (var need in governor.RecruitmentPlan) plannedEngineer |= need.Definition == engineer;
+            Check(label + "EN27 last soldier lost still schedules replacement ore supply",
+                !new StrategicEconomyForecast().Simulate(board).UpkeepPaymentFailed
+                && AIActionGenerator.HasRareOreSupplyGap(board) && plannedEngineer && governor.RecruitmentPlan.Count <= 3);
+            action = RecruitAction(engineer, f.Sites[1]);
+            // A foundation shortage can pause expansion even though no surviving army
+            // currently incurs unpaid HP damage. It must still permit a funded remedy.
+            typeof(AIStrategicGovernor).GetField("<Mode>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(governor, StrategicMode.EconomicRecovery);
+            candidates = new List<AIAction> { action }; governor.Filter(candidates, board);
+            Check(label + "EN27 affordable engineer can restart an empty army economy"
+                + " candidates=" + candidates.Count + " priority=" + action.StrategicPriority
+                + " rejection=" + action.StrategicRejectReason + " recruit=" + governor.RecruitmentBlockReason(action, board)
+                + " score=" + governor.RecruitmentScore(action, board),
+                candidates.Count == 1 && action.StrategicPriority == 2 && governor.AllowExecution(action, board)
+                && governor.RecruitmentBlockReason(action, board) == null && governor.RecruitmentScore(action, board) == 30);
         }
         finally { UnityEngine.Object.DestroyImmediate(engineer); UnityEngine.Object.DestroyImmediate(ordinary); }
     }

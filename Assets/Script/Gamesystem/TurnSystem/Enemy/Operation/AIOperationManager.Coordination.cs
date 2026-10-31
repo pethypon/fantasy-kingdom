@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>Bounded present-position focus-fire proposals. The normal executor remains the only execution path.</summary>
+/// <summary>Bounded observed focus fire and preparation. The normal executor remains the only execution path.</summary>
 public sealed partial class AIOperationManager
 {
     readonly List<AIAction> chainCandidates = new List<AIAction>(64);
@@ -10,7 +10,13 @@ public sealed partial class AIOperationManager
     readonly List<Status> chainTargets = new List<Status>(8);
     readonly HashSet<string> chainActors = new HashSet<string>(StringComparer.Ordinal);
     readonly List<AIOperationCoordinationStep> coordinationSteps = new List<AIOperationCoordinationStep>(5);
+    readonly List<AIAction> coordinatedActions = new List<AIAction>(5);
+    readonly List<Vector3> coordinationOrigins = new List<Vector3>(5);
+    readonly List<Direction> coordinationFacings = new List<Direction>(5);
     AIAction coordinationHead;
+    Status coordinationTarget;
+    Vector3 coordinationTargetPosition;
+    int coordinationAP, coordinationHP, coordinationBarrier;
     bool coordinationWinsObjective, coordinationHasSafeAlternative;
     AIBoardState coordinationBoard;
     int coordinationGeneration = -1;
@@ -26,11 +32,18 @@ public sealed partial class AIOperationManager
         int targetLimit = Mathf.Clamp(policy.MaximumChainTargets, 1, 8);
         foreach (var action in actions)
         {
+            if (action == null) continue;
             var target = action.TargetUnit;
             if (action.ActionType != AIActionType.Attack || action.Unit == null || target == null || !board.IsSpecialActorObserved(target)
                 || !target.IsAlive || !squadByActor.ContainsKey(action.Unit.ReflectionLifeId)
-                || action.APCost < 0 || action.APCost > board.EnemyAP || !board.GetAttackTargets(action.Unit).Contains(target)) continue;
-            if (!chainTargets.Contains(target) && chainTargets.Count < targetLimit) chainTargets.Add(target);
+                || action.APCost < 0 || action.APCost > board.EnemyAP || !LegalSquadTargets(action.Unit, board).Contains(target)) continue;
+            if (!chainTargets.Contains(target))
+            {
+                if (chainTargets.Count < targetLimit) chainTargets.Add(target);
+                else if (IsVictoryTarget(target))
+                    for (int i = chainTargets.Count - 1; i >= 0; i--)
+                        if (!IsVictoryTarget(chainTargets[i])) { chainTargets[i] = target; break; }
+            }
         }
         chainTargets.Sort((a, b) =>
         {
@@ -40,15 +53,17 @@ public sealed partial class AIOperationManager
         float best = float.NegativeInfinity;
         foreach (var target in chainTargets)
         {
+            if (AITurnBudget.Expired) break;
             // A linked recipient can lose its own HP while this target remains alive.
             // Conservatively omit compound-kill claims until the link has actually ended.
             if (!string.IsNullOrEmpty(target.Special?.guardianPartnerId)) continue;
             chainCandidates.Clear();
             foreach (var action in actions)
-                if (action.ActionType == AIActionType.Attack && action.TargetUnit == target && action.Unit != null && action.Unit.IsAlive
+                if (action != null && action.ActionType == AIActionType.Attack && action.TargetUnit == target && action.Unit != null && action.Unit.IsAlive
                     && action.Unit.team == board.ActorTeam && !MatchObjectiveRules.IsCommander(action.Unit)
                     && !StatusEffectSystem.IsStunned(action.Unit) && action.APCost >= 0 && action.APCost <= board.EnemyAP
-                    && squadByActor.ContainsKey(action.Unit.ReflectionLifeId) && board.GetAttackTargets(action.Unit).Contains(target))
+                    && squadByActor.ContainsKey(action.Unit.ReflectionLifeId) && board.CalcAttackCost(action.Unit) == action.APCost
+                    && !HasAPDependentAttack(action.Unit) && LegalSquadTargets(action.Unit, board).Contains(target))
                 { if (chainCandidates.Count < 64) chainCandidates.Add(action); }
             chainCandidates.Sort((a, b) =>
             {
@@ -60,11 +75,13 @@ public sealed partial class AIOperationManager
             });
             var protection = AIObservedDamageBudget.Capture(target);
             currentChain.Clear(); chainActors.Clear(); int spent = 0, damage = 0; float loss = 0;
+            long operation = chainCandidates.Count > 0 ? squadByActor[chainCandidates[0].Unit.ReflectionLifeId].OperationId : 0;
             foreach (var attack in chainCandidates)
             {
                 int chainLimit = board.ReconThreatLevel < Mathf.Max(1, config.MinimumThreatLevel) ? 2 : Mathf.Clamp(policy.MaximumChainActions, 2, 5);
                 if (currentChain.Count >= chainLimit || damage >= target.HP) break;
-                if (spent + (long)attack.APCost > board.EnemyAP || !chainActors.Add(attack.Unit.ReflectionLifeId)) continue;
+                if (spent + (long)attack.APCost > board.EnemyAP
+                    || squadByActor[attack.Unit.ReflectionLifeId].OperationId != operation || !chainActors.Add(attack.Unit.ReflectionLifeId)) continue;
                 int raw = BarrierSystem.NormalAttackDamage(attack.Unit.kind, protection.Barrier,
                     AIActionEvaluator.EstimateSpecialAwareAttack(attack.Unit, target, board));
                 int hpLoss = Mathf.Min(target.HP - damage,
@@ -73,18 +90,47 @@ public sealed partial class AIOperationManager
                 loss += board.Governor?.IncomingDamage(board, attack.Unit, attack.Unit.transform.position, null) ?? 0;
             }
             bool victory = IsVictoryTarget(target) && damage >= target.HP;
-            if (currentChain.Count < 2 || !victory && damage < target.HP) continue;
+            bool kill = damage >= target.HP;
+            AIAction preparation = null;
+            // Never delay an already affordable kill with a redundant setup. A new,
+            // guaranteed effective damage debuff may lead an otherwise incomplete chain.
+            if (!kill && board.ReconThreatLevel >= Mathf.Max(1, config.MinimumThreatLevel))
+                foreach (var candidate in actions)
+                {
+                    if (currentChain.Count >= Mathf.Clamp(policy.MaximumChainActions, 2, 5)
+                        || !UsefulCoordinationDebuff(candidate, target) || candidate.Unit == null
+                        || chainActors.Contains(candidate.Unit.ReflectionLifeId)
+                        || !TryGetSquad(candidate.Unit.ReflectionLifeId, out var owner) || owner.OperationId != operation
+                        || (long)spent + candidate.APCost > board.EnemyAP || !SafeCoordinationActor(candidate.Unit, board)
+                        || board.CalcSkillCost(candidate.Unit, candidate.Skill) != candidate.APCost
+                        || !board.GetSkillTargets(candidate.Unit, candidate.Skill).Contains(target)) continue;
+                    if (preparation == null || candidate.APCost < preparation.APCost
+                        || candidate.APCost == preparation.APCost && string.CompareOrdinal(candidate.Unit.ReflectionLifeId, preparation.Unit.ReflectionLifeId) < 0)
+                        preparation = candidate;
+                }
+            if (currentChain.Count < 2 || !kill && preparation == null) continue;
             bool safeAlternative = false;
             foreach (var candidate in chainCandidates)
                 if (candidate.Unit != currentChain[0].Unit && AIActionEvaluator.CanFinishSpecialTarget(candidate.Unit, target, board)
                     && (board.Governor?.IncomingDamage(board, candidate.Unit, candidate.Unit.transform.position, null) ?? 0) < candidate.Unit.HP)
                     safeAlternative = true;
-            float value = (victory ? 100 : 20) + Mathf.Min(target.HP, damage) / (float)Mathf.Max(1, spent) - loss * .02f;
+            float value = (victory ? 100 : kill ? 20 : 0) + Mathf.Min(target.HP, damage) / (float)Mathf.Max(1, spent + (preparation?.APCost ?? 0)) - loss * .02f;
             if (value <= best) continue;
-            best = value; coordinationHead = currentChain[0]; coordinationWinsObjective = victory; coordinationHasSafeAlternative = safeAlternative;
-            coordinationSteps.Clear(); protection = AIObservedDamageBudget.Capture(target); int remainingHp = target.HP;
+            best = value; coordinationHead = preparation ?? currentChain[0]; coordinationTarget = target;
+            coordinationWinsObjective = victory; coordinationHasSafeAlternative = safeAlternative;
+            coordinationSteps.Clear(); coordinatedActions.Clear(); coordinationOrigins.Clear(); coordinationFacings.Clear();
+            if (preparation != null)
+            {
+                coordinatedActions.Add(preparation);
+                coordinationOrigins.Add(preparation.Unit.transform.position); coordinationFacings.Add(preparation.Unit.direction);
+                coordinationSteps.Add(new AIOperationCoordinationStep { ActorLifeId = preparation.Unit.ReflectionLifeId,
+                    TargetLifeId = target.ReflectionLifeId, ActionType = preparation.ActionType, APCost = preparation.APCost });
+            }
+            protection = AIObservedDamageBudget.Capture(target); int remainingHp = target.HP;
             foreach (var step in currentChain)
             {
+                coordinatedActions.Add(step);
+                coordinationOrigins.Add(step.Unit.transform.position); coordinationFacings.Add(step.Unit.direction);
                 int raw = BarrierSystem.NormalAttackDamage(step.Unit.kind, protection.Barrier,
                     AIActionEvaluator.EstimateSpecialAwareAttack(step.Unit, target, board));
                 int actual = Mathf.Min(remainingHp,
@@ -94,32 +140,42 @@ public sealed partial class AIOperationManager
                     ActionType = step.ActionType, APCost = step.APCost, ExpectedHpLoss = actual });
             }
         }
-        // Guaranteed, currently legal control effects may open the already proposed attacks.
-        // This is a hint only: no unexecuted debuff is applied to the damage estimate.
-        if (coordinationHead != null)
-            foreach (var action in actions)
-                if (action.ActionType == AIActionType.SkillUse && action.Skill != null && action.Skill.InflictDebuff != StatusEffectType.None
-                    && action.Skill.DebuffChance >= 1 && action.TargetUnit == coordinationHead.TargetUnit && action.Unit != null
-                    && action.Unit != coordinationHead.Unit && action.Unit.team == board.ActorTeam && action.APCost >= 0
-                    && squadByActor.ContainsKey(action.Unit.ReflectionLifeId) && (long)action.APCost + coordinationHead.APCost <= board.EnemyAP
-                    && action.SpecialCommand == null && board.GetSkillTargets(action.Unit, action.Skill).Contains(action.TargetUnit))
-                {
-                    // Adding preparation must still leave the entire observed kill sequence affordable.
-                    if (coordinationSteps.Count >= Mathf.Clamp(policy.MaximumChainActions, 2, 5)
-                        || board.ReconThreatLevel < Mathf.Max(1, config.MinimumThreatLevel)) continue;
-                    long needed = action.APCost; foreach (var step in coordinationSteps) needed += step.APCost;
-                    if (needed > board.EnemyAP) continue;
-                    coordinationHead = action; coordinationWinsObjective = false;
-                    coordinationSteps.Insert(0, new AIOperationCoordinationStep { ActorLifeId = action.Unit.ReflectionLifeId,
-                        TargetLifeId = action.TargetUnit.ReflectionLifeId, ActionType = action.ActionType, APCost = action.APCost });
-                    break;
-                }
+        if (coordinationHead == null) SelectTacticalPreparation(actions, board);
+        coordinationAP = board.EnemyAP;
+        coordinationHP = coordinationTarget != null ? coordinationTarget.HP : 0;
+        coordinationBarrier = coordinationTarget != null ? coordinationTarget.Barrier : 0;
+        coordinationTargetPosition = coordinationTarget != null ? coordinationTarget.transform.position : Vector3.zero;
+    }
+
+    static bool HasAPDependentAttack(Status actor)
+    {
+        var special = SpecialSkillRuntime.Definition(actor);
+        return special?.enabledForPlay == true && special.ability == UnitSpecialSkill.NavigatorPull;
+    }
+    static bool SafeCoordinationActor(Status actor, AIBoardState board)
+        => actor != null && actor.IsAlive && actor.team == board.ActorTeam && !MatchObjectiveRules.IsCommander(actor)
+            && !StatusEffectSystem.IsStunned(actor)
+            && (board.Governor?.IncomingDamage(board, actor, actor.transform.position, null)
+                ?? board.EstimateCounterDamageAt(actor.transform.position, actor)) < actor.HP;
+
+    internal static bool UsefulCoordinationDebuff(AIAction action, Status target)
+    {
+        if (action?.ActionType != AIActionType.SkillUse || action.Skill == null || action.SpecialCommand != null
+            || action.TargetUnit != target || target == null || !target.IsAlive || action.APCost < 0
+            || float.IsNaN(action.Skill.DebuffChance) || float.IsInfinity(action.Skill.DebuffChance) || action.Skill.DebuffChance < 1
+            || StatusEffectSystem.IsImmune(target, action.Skill.InflictDebuff)
+            || StatusEffectSystem.HasDebuff(target, action.Skill.InflictDebuff)
+            || target.specialAbility == SpecialAbility.IndomitableWill && !target.DebuffNullifiedThisTurn) return false;
+        // R2 has no ordinary DEF. ArmorBreak must not manufacture a synergy there.
+        return action.Skill.InflictDebuff == StatusEffectType.Mark && GameConstants.MarkIncomingDamageIncrease > 0
+            || action.Skill.InflictDebuff == StatusEffectType.Freeze && GameConstants.FreezeIncomingDamageIncrease > 0
+            || action.Skill.InflictDebuff == StatusEffectType.ArmorBreak && DamageCalculator.UsesLegacyDefence && target.DEF > 0;
     }
 
     /// <summary>Seven conservative gates: only a currently observed, affordable multi-actor winning objective sequence may spend a non-commander.</summary>
     public bool AllowsObjectiveSacrifice(AIAction action, AIBoardState board)
     {
-        if (action == null || action != coordinationHead || coordinationBoard != board || coordinationGeneration != board.Generation
+        if (action == null || action != coordinationHead || !CurrentCoordination(board)
             || !coordinationWinsObjective || coordinationHasSafeAlternative || action.Unit == null || MatchObjectiveRules.IsCommander(action.Unit)
             || action.TargetUnit == null || !IsVictoryTarget(action.TargetUnit) || !board.IsSpecialActorObserved(action.TargetUnit)
             || !squadByActor.TryGetValue(action.Unit.ReflectionLifeId, out var squad) || FindActive(squad.OperationId)?.TargetLifeId != action.TargetUnit.ReflectionLifeId
@@ -133,8 +189,10 @@ public sealed partial class AIOperationManager
     static bool IsVictoryTarget(Status target) => target != null && (target.kind == Kind.Crystal || MatchObjectiveRules.IsCommander(target));
     void ClearCoordination()
     {
-        coordinationHead = null; coordinationWinsObjective = coordinationHasSafeAlternative = false;
+        coordinationHead = null; coordinationTarget = null; coordinationWinsObjective = coordinationHasSafeAlternative = false;
         coordinationBoard = null; coordinationGeneration = -1;
-        chainCandidates.Clear(); chainTargets.Clear(); currentChain.Clear(); chainActors.Clear(); coordinationSteps.Clear();
+        chainCandidates.Clear(); chainTargets.Clear(); currentChain.Clear(); chainActors.Clear(); coordinationSteps.Clear(); coordinatedActions.Clear();
+        coordinationOrigins.Clear(); coordinationFacings.Clear();
+        tacticalTargets.Clear(); tacticalTargetBoard = null; tacticalTargetGeneration = -1;
     }
 }

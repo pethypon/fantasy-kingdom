@@ -12,6 +12,8 @@ public sealed partial class AIStrategicGovernor
     readonly List<string> staleRecoveryIds = new List<string>();
     readonly Dictionary<(Status actor, Vector3Int cell, Status eliminated), float> repeatedLossCache
         = new Dictionary<(Status, Vector3Int, Status), float>();
+    readonly Dictionary<Vector3Int, string> retreatFirstHopReservations = new Dictionary<Vector3Int, string>();
+    readonly Dictionary<Status, AIRetreatRoutePlan> retreatRoutes = new Dictionary<Status, AIRetreatRoutePlan>();
     AIBoardState preservationBoard;
     Team preservationOwner;
     bool hasPreservationOwner;
@@ -37,6 +39,7 @@ public sealed partial class AIStrategicGovernor
         if (preservationBoard == board && preservationGeneration == board.Generation && preservationConfigRevision == config.Revision) return;
         preservationBoard = board; preservationGeneration = board.Generation; preservationConfigRevision = config.Revision;
         preservationAssessments.Clear(); preservationOwnIds.Clear(); staleRecoveryIds.Clear(); repeatedLossCache.Clear();
+        retreatFirstHopReservations.Clear(); retreatRoutes.Clear();
         foreach (var actor in board.AliveEnemyUnits)
             if (IsRecoveryActor(actor, board.ActorTeam))
                 preservationOwnIds.Add(actor.ReflectionLifeId);
@@ -67,31 +70,34 @@ public sealed partial class AIStrategicGovernor
         bool healing = NaturalRecoverySystem.HealAmount(actor.MaxHP) > 0 || board.KnownEnvironmentHeal(actor, origin) > 0
             || board.HasHealerInRange(origin, 4);
         unitRecovery.TryGetValue(actor.ReflectionLifeId, out var prior);
-        bool ongoing = prior != null && prior.Phase != AIUnitRecoveryPhase.Ready && ratio < config.RejoinRatio && healing;
+        bool upkeepRisk = Economy.UpkeepPaymentFailed && Economy.ExpectedUnitHPDamage > 0;
+        var recoveryForecast = AIUnitRecoveryForecast.Project(actor, BarrierSystem.SafeTurnThreshold, upkeepRisk);
+        bool barrierReady = !BarrierSystem.UsesBarrier(actor) || actor.MaxBarrier <= 0
+            || actor.Barrier >= actor.MaxBarrier * config.BarrierRejoinRatio;
+        bool recovered = ratio >= config.RejoinRatio && barrierReady;
+        int lastProgress = prior != null && prior.HasRecoveryBaseline ? prior.LastProgressTurn : board.TurnCount;
+        if (prior != null && (actor.HP > prior.LastHP || actor.Barrier > prior.LastBarrier)) lastProgress = board.TurnCount;
+        bool ongoing = prior != null && prior.Phase != AIUnitRecoveryPhase.Ready && !recovered && healing
+            && !upkeepRisk && board.TurnCount - lastProgress < config.RecoveryIdleTurns;
         bool lethal = incoming >= actor.HP;
         bool attrition = ratio <= config.RejoinRatio && repeated >= actor.HP;
         bool wounded = ratio <= config.WoundedRatio && incoming > 0 && healing;
         bool considerEscape = lethal || attrition || wounded || ongoing && incoming > 0;
         bool escape = false; int options = 0; Vector3 refuge = origin;
-        float bestRisk = incoming, bestRepeated = repeated; bool refugeHasHealer = false; int bestCost = int.MaxValue;
+        float bestRisk = incoming;
+        AIRetreatRoutePlan route = null;
         if (considerEscape && !StatusEffectSystem.IsStunned(actor) && !StatusEffectSystem.IsMovementBlocked(actor)
             && !SpecialSkillRuntime.MovementBlocked(actor)
             && BoardActionProfile.For(actor)?.CanMove != false)
         {
-            foreach (var destination in board.GetValidMoves(actor))
+            var context = new GovernorRetreatContext(this, actor, board, prior, incoming, config.RefugeRiskRatio, upkeepRisk);
+            route = AIRetreatRoutePlanner.Find(context, config.RouteDepth, config.RouteNodes, config.RouteFutureTurns);
+            retreatRoutes[actor] = route;
+            if (route.Found)
             {
-                if (!AIUnitPreservationState.IsValidPoint(destination)) continue;
-                int cost = board.CalcMoveCost(actor, destination); if (cost > board.EnemyAP || cost < 0) continue;
-                float risk = IncomingDamage(board, actor, destination, null);
-                float later = RepeatedObservedLoss(board, actor, destination, null, config.Waves);
-                if (risk >= incoming - .001f && later >= repeated - .001f) continue;
-                options++;
-                bool healer = board.HasHealerInRange(destination, 4);
-                bool retainedRefuge = prior != null && GridHelper.MatchXZ(destination, GridHelper.ToGridXZ(prior.Refuge));
-                bool sameRisk = Mathf.Abs(risk - bestRisk) <= .001f && Mathf.Abs(later - bestRepeated) <= .001f;
-                if (!escape || risk < bestRisk - .001f || Mathf.Abs(risk - bestRisk) <= .001f && later < bestRepeated - .001f
-                    || sameRisk && (healer && !refugeHasHealer || healer == refugeHasHealer && (retainedRefuge || cost < bestCost)))
-                { escape = true; refuge = destination; bestRisk = risk; bestRepeated = later; refugeHasHealer = healer; bestCost = cost; }
+                escape = true; refuge = route.FirstHop; options = route.FirstHopOptions;
+                bestRisk = IncomingDamage(board, actor, refuge, null);
+                retreatFirstHopReservations[GridHelper.ToGridXZ(refuge)] = actor.ReflectionLifeId;
             }
         }
         var safety = lethal ? AIUnitSafetyLevel.Emergency
@@ -101,16 +107,74 @@ public sealed partial class AIStrategicGovernor
             : ongoing ? AIUnitRecoveryPhase.Recovering : AIUnitRecoveryPhase.Ready;
         string reason = lethal ? (escape ? "observed_lethal_escape" : "observed_lethal_no_escape")
             : safety == AIUnitSafetyLevel.WithdrawalRecommended ? (attrition ? "observed_repeated_exchange_risk" : "wounded_unit_safe_recovery")
-            : phase == AIUnitRecoveryPhase.Recovering ? "recovering_without_observed_exposure" : "fight_or_progress_remains_reasonable";
+            : phase == AIUnitRecoveryPhase.Recovering ? (actor.HP == actor.MaxHP && !barrierReady
+                ? "recovering_formal_full_hp_barrier_clock" : "recovering_without_observed_exposure")
+            : upkeepRisk ? "recovery_supply_unpaid_risk" : "fight_or_progress_remains_reasonable";
         if (phase != AIUnitRecoveryPhase.Ready)
         {
             if (prior != null || unitRecovery.Count < config.Limit)
                 unitRecovery[actor.ReflectionLifeId] = new AIUnitPreservationRecord { ActorLifeId = actor.ReflectionLifeId,
-                    Phase = phase, LastTurn = board.TurnCount, Refuge = escape ? refuge : origin };
+                    Phase = phase, LastTurn = board.TurnCount, Refuge = escape ? route.Destination : origin,
+                    HasRecoveryBaseline = true, LastProgressTurn = lastProgress, LastHP = actor.HP, LastBarrier = actor.Barrier };
         }
         else unitRecovery.Remove(actor.ReflectionLifeId);
-        var result = new AIUnitPreservationAssessment(safety, phase, incoming, repeated, bestRisk, escape, healing, options, allies, refuge, reason);
+        var result = new AIUnitPreservationAssessment(safety, phase, incoming, repeated, bestRisk, escape, healing, options, allies, refuge, reason,
+            route, recoveryForecast);
         preservationAssessments[actor] = result; return result;
+    }
+
+    /// <summary>Generation-bound diagnostics only; the executor still accepts ordinary current actions.</summary>
+    internal bool TryGetRetreatRoute(Status actor, AIBoardState board, out AIRetreatRoutePlan route)
+    {
+        route = null;
+        if (board == null || !IsRecoveryActor(actor, board.ActorTeam)) return false;
+        AssessPreservation(actor, board);
+        return retreatRoutes.TryGetValue(actor, out route) && route.Found;
+    }
+
+    sealed class GovernorRetreatContext : AIRetreatRouteContext
+    {
+        readonly AIStrategicGovernor governor;
+        readonly Status actor;
+        readonly AIBoardState board;
+        readonly bool unpaid;
+        readonly HashSet<Vector3Int> occupied = new HashSet<Vector3Int>();
+        internal GovernorRetreatContext(AIStrategicGovernor governor, Status actor, AIBoardState board,
+            AIUnitPreservationRecord previous, float incoming, float riskRatio, bool unpaid)
+        {
+            this.governor = governor; this.actor = actor; this.board = board; this.unpaid = unpaid;
+            Origin = actor.transform.position; RetainedRefuge = previous?.Refuge ?? Origin;
+            HP = actor.HP; CurrentAP = board.EnemyAP; NextAP = board.OwnAPData?.Maximum ?? 0;
+            // When the nation's paid population bonus is uncertain, use only the
+            // already-authored base reset/penalty rather than promising citizen growth.
+            if ((unpaid || governor.Economy.BreadPaymentFailed) && board.OwnAPData != null)
+                NextAP = Mathf.Min(NextAP, new FactionState.APData { Reset = board.OwnAPData.Reset, Minus = board.OwnAPData.Minus }.Maximum);
+            Fatigue = Mathf.Max(0, actor.Fatigue); HasMoved = actor.HasMovedThisTurn;
+            ExtraFatigue = GameConstants.GetExtraFatiguePerAction(actor.kind);
+            CurrentRisk = incoming; RefugeRiskLimit = actor.HP * riskRatio;
+            InitialProtection = AIObservedDamageBudget.Capture(actor);
+            board.CollectRetreatOccupancy(actor, occupied);
+        }
+        internal override void CollectSteps(Vector3 from, List<Vector3> result)
+            => board.CollectKnownRetreatSteps(actor, from, occupied, result);
+        internal override int MoveCost(Vector3 from, Vector3 to, int fatigue, bool moved, bool freeAvailable)
+            => board.RetreatMoveQuote(actor, from, to, fatigue, moved, freeAvailable);
+        internal override bool ReservedFirstHop(Vector3 destination)
+            => governor.retreatFirstHopReservations.TryGetValue(GridHelper.ToGridXZ(destination), out string owner)
+                && owner != actor.ReflectionLifeId;
+        internal override float EntryLoss(Vector3 destination, ref AIObservedDamageBudget protection)
+            => AIActionEvaluator.EstimateObservedHitLoss(actor, board, board.KnownEnvironmentDamage(actor, destination, true),
+                HpChangeKind.IgnoreDefenceDamage, ref protection);
+        internal override float Exposure(Vector3 destination, ref AIObservedDamageBudget protection)
+        {
+            float loss = governor.ObservedDamageWave(board, actor, destination, null, ref protection, null, false);
+            if (unpaid) loss += AIActionEvaluator.EstimateObservedHitLoss(actor, board,
+                R2EconomyRules.UnpaidDamage(actor.HP, actor.MaxHP), HpChangeKind.DirectHpReduction, ref protection);
+            return loss;
+        }
+        internal override bool CanRecoverAt(Vector3 position, float observedHpRisk)
+            => observedHpRisk <= .001f && NaturalRecoverySystem.HealAmount(actor.MaxHP) > 0 || board.KnownEnvironmentHeal(actor, position) > 0
+                || board.HasHealerInRange(position, 4);
     }
 
     float RepeatedObservedLoss(AIBoardState board, Status actor, Vector3 position, Status eliminated, int waves)
@@ -129,12 +193,10 @@ public sealed partial class AIStrategicGovernor
             || action.APCost < 0 || action.APCost > board.EnemyAP
             || StatusEffectSystem.IsStunned(action.Unit)) return 4;
         var assessment = AssessPreservation(action.Unit, board);
-        if (assessment.Safety == AIUnitSafetyLevel.WithdrawalRecommended && IsMovement(action)
+        if (assessment.Safety != AIUnitSafetyLevel.HoldPositionOrFight && IsMovement(action)
             && !StatusEffectSystem.IsMovementBlocked(action.Unit) && !SpecialSkillRuntime.MovementBlocked(action.Unit)
             && board.GetValidMoves(action.Unit).Contains(action.TargetPos)
-            && (IncomingDamage(board, action.Unit, action.TargetPos, null) + .001f < assessment.IncomingCurrent
-                || RepeatedObservedLoss(board, action.Unit, action.TargetPos, null, AIUnitPreservationConfig.Active.Waves)
-                    + .001f < assessment.RepeatedObservedLoss)) return 1;
+            && assessment.HasLegalSaferMove && GridHelper.MatchXZ(action.TargetPos, GridHelper.ToGridXZ(assessment.Refuge))) return 1;
         // A useful observed kill may remove the very threat that motivated withdrawal.
         if (action.ActionType == AIActionType.Attack && action.TargetUnit != null && board.IsSpecialActorObserved(action.TargetUnit)
             && board.GetAttackTargets(action.Unit).Contains(action.TargetUnit)
@@ -171,9 +233,15 @@ public sealed partial class AIStrategicGovernor
     {
         if (action?.Unit == null || !IsMovement(action) || board == null
             || !AIUnitPreservationState.IsValidPoint(action.TargetPos)) return null;
+        // Existing emergency/base rescue and observed decisive-victory orders keep ownership.
+        if (Mode == StrategicMode.EmergencyDefense || MatchObjectiveRules.IsCommander(action.Unit)
+            || IsImmediateRescue(action, board)) return null;
         var recovery = AssessPreservation(action.Unit, board);
-        if (recovery.Phase != AIUnitRecoveryPhase.Recovering || !recovery.HealingPossible) return null;
+        if (retreatFirstHopReservations.TryGetValue(GridHelper.ToGridXZ(action.TargetPos), out var reserved)
+            && reserved != action.Unit.ReflectionLifeId) return "unit_retreat_first_hop_reserved";
         float after = IncomingDamage(board, action.Unit, action.TargetPos, null);
+        if (recovery.HasLegalSaferMove && after >= action.Unit.HP) return "unit_observed_lethal_advance";
+        if (recovery.Phase != AIUnitRecoveryPhase.Recovering || !recovery.HealingPossible) return null;
         return after > recovery.IncomingCurrent + .001f ? "unit_recovery_unsafe_reentry" : null;
     }
 
@@ -196,6 +264,7 @@ public sealed partial class AIStrategicGovernor
     public void ReleasePreservationState()
     {
         unitRecovery.Clear(); preservationAssessments.Clear(); preservationOwnIds.Clear(); staleRecoveryIds.Clear(); repeatedLossCache.Clear();
+        retreatFirstHopReservations.Clear(); retreatRoutes.Clear();
         preservationBoard = null; preservationGeneration = preservationConfigRevision = -1;
         preservationOwner = default; hasPreservationOwner = false;
     }

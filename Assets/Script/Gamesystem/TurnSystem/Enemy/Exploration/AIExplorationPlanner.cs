@@ -88,7 +88,9 @@ public sealed partial class AIExplorationPlanner
         informationStamp = incomingInformation;
         bool resume = emergency && !isEmergency;
         emergency = isEmergency;
-        bool newTerritoryRecon = next.HasTerritoryReconDirection && (!territoryReconRequested || territoryReconDirection != XZ(next.TerritoryReconDirection));
+        // A changing focus direction refines the next assignment; it must not cancel a
+        // still-progressing objective every time a scout or the army changes position.
+        bool newTerritoryRecon = next.HasTerritoryReconDirection && !territoryReconRequested;
         territoryReconRequested = next.HasTerritoryReconDirection;
         territoryReconDirection = XZ(next.TerritoryReconDirection);
         Observe(next);
@@ -237,7 +239,7 @@ public sealed partial class AIExplorationPlanner
             return;
         }
         if (newTerritoryRecon && objective != null && objective.State != ObjectiveState.Completed && objective.State != ObjectiveState.Failed)
-            Finish(objective, ObjectiveState.Completed, "territory_recon_requested", actor);
+            Finish(objective, ObjectiveState.Failed, "territory_recon_replanned", actor);
         if (objective != null && objective.State == ObjectiveState.Suspended)
         {
             objective.LastProgressTurn += Mathf.Max(0, turn - objective.SuspendedTurn);

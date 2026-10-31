@@ -5,6 +5,11 @@ using UnityEngine;
 public sealed class ExplorationAISettings : ScriptableObject
 {
     public bool Enabled = true;
+    [Header("主拠点の重点索敵（AI方針・暫定値）")]
+    public bool FocusObservedEnemyTerritory = true;
+    public int MainBaseReconWorkLimit = 2048;
+    public float MainBaseFocusDistanceWeight = 2f;
+    public float MainBaseFocusTravelWeight = .25f;
     public int RecentHistoryTurns = 8;
     public int StallTurns = 3;
     public int FreshIntelTurns = 5;

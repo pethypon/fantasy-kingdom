@@ -301,7 +301,13 @@ public static class AIR3PreservationTests
         governor.ReleasePreservationState(); governor.RestorePreservationState(snapshot, team); board = f.Board(62);
         Check(team + " stable-life-id JSON roundtrip retains the wounded recovery phase", governor.AssessPreservation(f.Actor, board).Phase == AIUnitRecoveryPhase.Recovering);
         // The actual rule includes its damage reset and five safe owner-turn delay.
-        for (int round = 62; round <= 78; round++) NaturalRecoverySystem.ProcessActor(f.Actor, round);
+        for (int round = 62; round <= 78; round++)
+        {
+            NaturalRecoverySystem.ProcessActor(f.Actor, round);
+            // A1 regroup policy now also waits for the formal R2 barrier process;
+            // natural healing alone must not manufacture recovered protection.
+            BarrierSystem.ProcessActorEnd(f.Actor, round);
+        }
         board = f.Board(79); assessment = governor.AssessPreservation(f.Actor, board);
         Check(team + " actual natural recovery releases the individual recovery record", f.Actor.HP == f.Actor.MaxHP
             && assessment.Phase == AIUnitRecoveryPhase.Ready && governor.TrackedRecoveryUnits == 0);

@@ -12,6 +12,7 @@ public static partial class AIActionGenerator
     static AIBoardState engineerBoard;
     static int engineerGeneration = -1, engineerContentRevision = -1;
     static bool engineerOreGap;
+    static int plannedIronUpkeep, plannedMagicUpkeep, plannedIronPurchase, plannedMagicPurchase;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetEngineerPlanning()
@@ -22,8 +23,28 @@ public static partial class AIActionGenerator
     public static bool HasRareOreSupplyGap(AIBoardState board)
     {
         if (board == null || board.EnemyResources == null) return false;
-        if (engineerBoard == board && engineerGeneration == board.Generation && engineerContentRevision == GameContentRevision.Revision) return engineerOreGap;
+        // Read the already prepared bounded shopping order. Calling ProductionDemand here
+        // would recursively prepare the governor while it is constructing that same order.
+        int ironUpkeep = 0, magicUpkeep = 0, ironPurchase = 0, magicPurchase = 0;
+        var plan = board.Governor?.RecruitmentPlan;
+        if (plan != null)
+            for (int i = 0; i < plan.Count && i < 3; i++)
+            {
+                var definition = plan[i].Definition;
+                if (definition == null || definition.kind == Kind.Engineer) continue;
+                var upkeep = definition.GetFixedUpkeep();
+                // Capacity for the next purchase, not three imaginary armies at once.
+                ironUpkeep = Mathf.Max(ironUpkeep, upkeep.Iron);
+                magicUpkeep = Mathf.Max(magicUpkeep, upkeep.MagicOre);
+                ironPurchase = Mathf.Max(ironPurchase, definition.costIron);
+                magicPurchase = Mathf.Max(magicPurchase, definition.costMagic);
+            }
+        if (engineerBoard == board && engineerGeneration == board.Generation && engineerContentRevision == GameContentRevision.Revision
+            && plannedIronUpkeep == ironUpkeep && plannedMagicUpkeep == magicUpkeep
+            && plannedIronPurchase == ironPurchase && plannedMagicPurchase == magicPurchase) return engineerOreGap;
         engineerBoard = board; engineerGeneration = board.Generation; engineerContentRevision = GameContentRevision.Revision;
+        plannedIronUpkeep = ironUpkeep; plannedMagicUpkeep = magicUpkeep;
+        plannedIronPurchase = ironPurchase; plannedMagicPurchase = magicPurchase;
         engineerSupplyGoals.Clear(); engineerObservedCells.Clear();
         foreach (var cell in board.OwnVisionCells) engineerObservedCells.Add(GridHelper.ToGridXZ(cell));
         double ironDemand = 0, magicDemand = 0, ironIncome = 0, magicIncome = 0;
@@ -43,7 +64,9 @@ public static partial class AIActionGenerator
             ironIncome += AIBasicResourceEconomy.NetOutput(recipe, (int)ResourceKind.Iron);
             magicIncome += AIBasicResourceEconomy.NetOutput(recipe, (int)ResourceKind.MagicOre);
         }
-        engineerOreGap = ironDemand > ironIncome + .001 || magicDemand > magicIncome + .001;
+        engineerOreGap = ironDemand + ironUpkeep > ironIncome + .001 || magicDemand + magicUpkeep > magicIncome + .001
+            || ironPurchase > board.EnemyResources.Iron && ironIncome <= .001
+            || magicPurchase > board.EnemyResources.MagicOre && magicIncome <= .001;
         return engineerOreGap;
     }
     public static void GenerateEngineerBuildCandidates(AIBoardState board, List<AIAction> results)
