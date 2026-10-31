@@ -223,8 +223,11 @@ public sealed partial class AIStrategicGovernor
             if (action.SpecialCommand != null && SpecialSkillRuntime.Definition(action.Unit)?.ability == UnitSpecialSkill.WhiteMageHeal
                 && AIActionEvaluator.CalcSpecialSkillScore(action, board) > 0)
                 healing = SpecialSkillRuntime.FractionOfMaximum(patient, SpecialSkillDefinition.WhiteMageHealFraction);
+            bool usefulSquadSupport = healing > 0 && Mode != StrategicMode.EconomicRecovery
+                && board.Operations?.SupportsSquadPatient(action.Unit, patient) == true
+                && patient.MaxHP - patient.HP >= Mathf.Max(1, healing / 2);
             if (healing > 0 && patient.HP < patient.MaxHP && (injured.Safety != AIUnitSafetyLevel.HoldPositionOrFight
-                || injured.Phase == AIUnitRecoveryPhase.Recovering)) return 1;
+                || injured.Phase == AIUnitRecoveryPhase.Recovering || usefulSquadSupport)) return 1;
         }
         return 4;
     }

@@ -22,6 +22,19 @@ public sealed partial class AIOperationManager
     int coordinationGeneration = -1;
     public IReadOnlyList<AIOperationCoordinationStep> CoordinationSteps => coordinationSteps;
 
+    public bool IsCoordinatedKillHead(AIAction action, AIBoardState board)
+    {
+        if (action == null || action != coordinationHead || action.ActionType != AIActionType.Attack
+            || board.ReconThreatLevel < Mathf.Max(1, config.MinimumThreatLevel)
+            || !CurrentCoordination(board) || coordinationSteps.Count < 2) return false;
+        long hpLoss = 0;
+        foreach (var step in coordinationSteps) hpLoss += Mathf.Max(0, step.ExpectedHpLoss);
+        if (hpLoss < coordinationTarget.HP) return false;
+        foreach (var candidate in coordinatedActions)
+            if (!SafeCoordinationActor(candidate.Unit, board)) return false;
+        return true;
+    }
+
     public void UpdateTacticalCoordination(List<AIAction> actions, AIBoardState board)
     {
         ClearCoordination();

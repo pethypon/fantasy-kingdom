@@ -36,7 +36,7 @@ public sealed class UnitWorkshopWindow : EditorWindow
         {
             unitName = EditorGUILayout.TextField("名前 / 保存フォルダ", unitName);
             model = (GameObject)EditorGUILayout.ObjectField("モデル / 元Prefab（任意）", model, typeof(GameObject), false);
-            var next = (Kind)EditorGUILayout.EnumPopup("行動タイプ", kind);
+            var next = (Kind)GameDevelopmentStudioWindow.KindPopup((int)kind, "行動タイプ");
             if (next != kind) { kind = next; ResetDraft(); }
             register = EditorGUILayout.Toggle("ゲームに登録", register);
             EditorGUILayout.HelpBox("この旧工房は既存兵種の差し替え用です。複数の駒を追加したり行動マスを設定する場合は、新しい開発スタジオを使ってください。", MessageType.None);

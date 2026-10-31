@@ -56,7 +56,8 @@ public static class AIIntegratedR1ConfigTests
         var type = typeof(AIOperationSquadConfig);
         const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic;
         var active = type.GetField("active", flags); var owns = type.GetField("ownsActive", flags);
-        var reset = type.GetMethod("Reset", flags);
+        var reset = type.GetMethod("ResetRuntimeCache", flags);
+        Check("SQ-runtime-cache-reset-exists-without-Unity-Reset-collision", reset != null);
         var oldActive = (AIOperationSquadConfig)active.GetValue(null); bool oldOwns = (bool)owns.GetValue(null);
         AIOperationSquadConfig generated = null, externallyOwned = null;
         try

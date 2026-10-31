@@ -197,6 +197,7 @@ public sealed class AIActionRecord
     public string CognitivePlanId;
     public int CognitiveStepId;
     public int OperationStepId;
+    public bool OperationMarchOrdered;
     public float OperationContribution, OperationCreditReward;
     public List<long> OperationCreditsApplied = new List<long>();
     public AIRewardBreakdown RewardBreakdown;

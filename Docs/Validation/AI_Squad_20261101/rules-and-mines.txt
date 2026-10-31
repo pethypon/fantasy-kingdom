@@ -1,0 +1,194 @@
+[A1Recon] PASS Player CR01 unknown objective publishes no true coordinate or HP
+[A1Recon] PASS Player CR03 observed subcrystal is not a main crystal
+[A1Recon] PASS Player CR02 observed territory produces a lead without invented base
+[A1Recon] PASS Player CR05 reconnaissance coexists with an army waypoint
+[A1Recon] PASS Player CR09 economic interruption retains recon intent without performing actions
+[A1Recon] PASS Player IT02 observed territory survives scoped save roundtrip
+[A1Recon] PASS Player AT01 hidden main crystal never becomes an attack target
+[A1Recon] PASS Player CR06 main crystal becomes observed only in official sight
+[A1Recon] PASS Player AT02 observed target within authored pattern generates an attack
+[A1Recon] PASS Player AT03 incompatible authored firing mask cannot attack a visible objective
+[A1Recon] PASS Player CR07 unseen relocation and HP stay absent from remembered facts
+[A1Recon] PASS Player CR08 observing the empty old cell disproves memory
+[A1Recon] PASS Player CR08 observed destruction cannot create a live attack target
+[A1Recon] PASS Enemy CR01 unknown objective publishes no true coordinate or HP
+[A1Recon] PASS Enemy CR03 observed subcrystal is not a main crystal
+[A1Recon] PASS Enemy CR02 observed territory produces a lead without invented base
+[A1Recon] PASS Enemy CR05 reconnaissance coexists with an army waypoint
+[A1Recon] PASS Enemy CR09 economic interruption retains recon intent without performing actions
+[A1Recon] PASS Enemy IT02 observed territory survives scoped save roundtrip
+[A1Recon] PASS Enemy AT01 hidden main crystal never becomes an attack target
+[A1Recon] PASS Enemy CR06 main crystal becomes observed only in official sight
+[A1Recon] PASS Enemy AT02 observed target within authored pattern generates an attack
+[A1Recon] PASS Enemy AT03 incompatible authored firing mask cannot attack a visible objective
+[A1Recon] PASS Enemy CR07 unseen relocation and HP stay absent from remembered facts
+[A1Recon] PASS Enemy CR08 observing the empty old cell disproves memory
+[A1Recon] PASS Enemy CR08 observed destruction cannot create a live attack target
+[A1Recon] RESULT checks=26
+[A1Live] PASS recon
+[A1Housing] PASS HS03 formal-reset citizen=0
+[A1Housing] PASS HS03 formal-reset citizen=1
+[A1Housing] PASS HS03 formal-reset citizen=5
+[A1Housing] PASS HS03 formal-reset citizen=20
+[A1Housing] PASS HS03 formal-reset citizen=100
+[A1Housing] PASS HS03 formal-reset citizen=2147483647
+[A1Housing] PASS HS04 current-game maximum is60, no stale15 clamp
+[A1Housing] PASS HS03 penalty is included in required stock
+[A1Housing] PASS HS01 reset already funds target without citizens
+[A1Housing] PASS HS08 AP preview never mutates live state
+[A1Housing] PASS HS04 authored lower AP maximum is honored
+[A1Housing] PASS HS04 zero citizen bonus cannot justify AP housing
+[A1Housing] PASS HS03 authored citizen bonus uses minimum whole citizens
+[A1Housing] PASS HS04 unreachable reset penalty cannot cause endless houses
+[A1Housing] PASS HS01 HS05 enough capacity despite empty stock
+[A1Housing] PASS HS02 one expensive recruit plus reserve
+[A1Housing] PASS HS02 construction and duplicate army demand are not summed
+[A1Housing] PASS HS03 AP stock shares the same citizens
+[A1Housing] PASS HS03 no reserve added twice to AP target
+[A1Housing] RESULT scene-free checks=19
+[A1Housing] PASS Player HS01 surplus capacity rejects custom house
+[A1Housing] PASS Player HS05 empty citizen stock is growth, not capacity
+[A1Housing] PASS Player HS02 a real purchase above capacity requests housing
+[A1Housing] PASS Player HS07 direct fallback retains housing-only demand
+[A1Housing] PASS Player HS07 ordinary custom luxury agree on capacity need
+[A1Housing] PASS Player HS06 no food means supply recovery first
+[A1Housing] PASS Player HS08 outside territory cannot construct
+[A1Housing] PASS Player HS08 failed placement leaves payment intact
+[A1Housing] PASS Player HS08 formal paid house succeeds
+[A1Housing] PASS Player HS08 exact formal payment
+[A1Housing] PASS Player HS09 capacity recalculates immediately
+[A1Housing] PASS Player HS09 satisfied capacity stops repeated builds
+[A1Housing] PASS Player HS07 upgrade shares need and actual delta
+[A1Housing] PASS Player HS09 paid upgrade updates capacity
+[A1Housing] PASS Player HS10 upgrade capacity suppresses further housing
+[A1Housing] PASS Player HS10 unrelated actions are not housing
+[A1Housing] PASS Player HS03 planned legal attack creates bounded AP target
+[A1Housing] PASS Player HS03 distant citizen recovery is deferred by policy
+[A1Housing] PASS Player HS03 actual reset inversion sets required stock
+[A1Housing] PASS Player HS03 same life is counted once
+[A1Housing] PASS Player HS01 cheap real plan does not request maximum AP
+[A1Housing] PASS Enemy HS01 surplus capacity rejects custom house
+[A1Housing] PASS Enemy HS05 empty citizen stock is growth, not capacity
+[A1Housing] PASS Enemy HS02 a real purchase above capacity requests housing
+[A1Housing] PASS Enemy HS07 direct fallback retains housing-only demand
+[A1Housing] PASS Enemy HS07 ordinary custom luxury agree on capacity need
+[A1Housing] PASS Enemy HS06 no food means supply recovery first
+[A1Housing] PASS Enemy HS08 outside territory cannot construct
+[A1Housing] PASS Enemy HS08 failed placement leaves payment intact
+[A1Housing] PASS Enemy HS08 formal paid house succeeds
+[A1Housing] PASS Enemy HS08 exact formal payment
+[A1Housing] PASS Enemy HS09 capacity recalculates immediately
+[A1Housing] PASS Enemy HS09 satisfied capacity stops repeated builds
+[A1Housing] PASS Enemy HS07 upgrade shares need and actual delta
+[A1Housing] PASS Enemy HS09 paid upgrade updates capacity
+[A1Housing] PASS Enemy HS10 upgrade capacity suppresses further housing
+[A1Housing] PASS Enemy HS10 unrelated actions are not housing
+[A1Housing] PASS Enemy HS03 planned legal attack creates bounded AP target
+[A1Housing] PASS Enemy HS03 distant citizen recovery is deferred by policy
+[A1Housing] PASS Enemy HS03 actual reset inversion sets required stock
+[A1Housing] PASS Enemy HS03 same life is counted once
+[A1Housing] PASS Enemy HS01 cheap real plan does not request maximum AP
+[A1Housing] RESULT native checks=61
+[A1Live] PASS housing
+[A1Retreat] PASS RT01 known two-step path records current and next owner AP
+[A1Retreat] PASS RT06 next-turn AP cannot pay an unaffordable first hop
+[A1Retreat] PASS RT06 insufficient next-turn reset rejects the continuation
+[A1Retreat] PASS RT06 same-turn second step charges increased fatigue
+[A1Retreat] PASS RT06 same-turn fatigue cannot be reset without a funded boundary
+[A1Retreat] PASS RT03 known lethal waiting point is not a safe next-turn path
+[A1Retreat] PASS finite barrier is carried across owner turns instead of refilled per cell
+[A1Retreat] PASS RT02 safety without actual recovery capability is not a regroup endpoint
+[A1Retreat] PASS RT05 separate wounded actors receive distinct first hops
+[A1Retreat] PASS RT07 blocked first hop returns no order so legal fight alternatives remain
+[A1Retreat] PASS configured depth rejects a route beyond its horizon
+[A1Retreat] PASS configured node cap is respected
+[A1Retreat] PASS global thinking budget stops route expansion
+[A1Retreat] PASS RT10 route cycles do not manufacture progress
+[A1Retreat] PASS RL02 RT01 authored direction-dependent mask is used at each origin
+[A1Retreat] PASS RT05 owned occupation blocks a projected step
+[A1Retreat] PASS unexplored terrain is not a certified retreat chain
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=0
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=0
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=2
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=2
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=9
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=9
+[A1Retreat] PASS projected quote leaves live fatigue and first-move flags intact
+[A1Retreat] PASS Assassin quote retains formal early-return precedence
+[A1Retreat] PASS RT08 full HP waits the first two formal owner boundaries
+[A1Retreat] PASS RT08 third full-HP boundary restores formal rounded twenty percent
+[A1Retreat] PASS RT08 forecast equals native recovery transition
+[A1Retreat] PASS RT08 incomplete HP never invents a future healer action
+[A1Retreat] PASS AD04 RT08 unpaid forecast cites formal HP-loss rule and cannot promise barrier regeneration
+[A1Retreat] PASS forecast never advances the live full-HP clock
+[A1Retreat] COMPLETE (native contracts, no match outcome claimed)
+[A1Live] PASS retreat
+[R2ConstructionEconomy] PASS construction costs are ordinary after engineer retirement
+[R2ConstructionEconomy] PASS EN09 provisional ordinary AP and citizens preserved
+[R2ConstructionEconomy] PASS EN08 saturated integer prices do not overflow
+[R2ConstructionEconomy] PASS UP03 maximumHP100 loses20
+[R2ConstructionEconomy] PASS UP04 maximumHP175 loses35
+[R2ConstructionEconomy] PASS UP05 maximumHP7 rounds up2
+[R2ConstructionEconomy] PASS UP05 oneHP losesone without negativeHP
+[R2ConstructionEconomy] PASS MN01 own territory preserves authored ore
+[R2ConstructionEconomy] PASS MN02 neutral output and probability preserved
+[R2ConstructionEconomy] PASS MN03 both factions use ordinary production
+[R2ConstructionEconomy] PASS MN04 other nation's territory is not confused with own territory
+[R2ConstructionEconomy] PASS MN09 territory change is applied without a stale cache
+[R2ConstructionEconomy] PASS MN09 removal of territory immediately permits output
+[R2ConstructionEconomy] PASS MN10 inputs maintenance interval and other resources preserved
+[R2ConstructionEconomy] PASS MN13 custom recipe probabilities and outputs remain intact
+[R2ConstructionEconomy] PASS Player retired engineer cannot place a building
+[R2ConstructionEconomy] PASS Player retired command spends nothing
+[R2ConstructionEconomy] PASS Player UP02 UP03 unpaid full check loses20 HP and bypasses barrier
+[R2ConstructionEconomy] PASS Player UP11 same owner turn cannot apply damage twice
+[R2ConstructionEconomy] PASS Player UP01 successful payment clears unpaid counter without damage
+[R2ConstructionEconomy] PASS Player UP06 UP07 five unpaid turns kill by HP, no ten-turn defection
+[R2ConstructionEconomy] PASS Player UP08 old unpaid stat reduction is inactive
+[R2ConstructionEconomy] PASS Enemy retired engineer cannot place a building
+[R2ConstructionEconomy] PASS Enemy retired command spends nothing
+[R2ConstructionEconomy] PASS Enemy UP02 UP03 unpaid full check loses20 HP and bypasses barrier
+[R2ConstructionEconomy] PASS Enemy UP11 same owner turn cannot apply damage twice
+[R2ConstructionEconomy] PASS Enemy UP01 successful payment clears unpaid counter without damage
+[R2ConstructionEconomy] PASS Enemy UP06 UP07 five unpaid turns kill by HP, no ten-turn defection
+[R2ConstructionEconomy] PASS Enemy UP08 old unpaid stat reduction is inactive
+[R2ConstructionEconomy] PASS MN14 map dimensions and generated map are untouched
+[R2ConstructionEconomy] RESULT checks=30
+[OrdinaryMine] PASS engineer-absent-from-production-roster
+[OrdinaryMine] PASS home-mine-permitted-regardless-of-legacy-setting
+[OrdinaryMine] PASS retired-definition-not-in-shared-catalog
+[OrdinaryMine] PASS Player engineer-definition-unavailable
+[OrdinaryMine] PASS Player old-engineer-order-rejected-without-payment
+[OrdinaryMine] PASS Player old-engineer-cannot-be-respawned
+[OrdinaryMine] PASS Player ordinary-home-mine-paid-placement
+[OrdinaryMine] PASS Player normal-material-and-AP-cost
+[OrdinaryMine] PASS Player home-iron-and-magic-recipe-preserved
+[OrdinaryMine] PASS Player AI-planned-production-matches-actual
+[OrdinaryMine] PASS Player actual-economic-turn-produces-home-iron
+[OrdinaryMine] PASS Player existing-mine-retained-after-territory-change
+[OrdinaryMine] PASS Player no-engineer-AI-construction-or-recruitment
+[OrdinaryMine] PASS Enemy engineer-definition-unavailable
+[OrdinaryMine] PASS Enemy old-engineer-order-rejected-without-payment
+[OrdinaryMine] PASS Enemy old-engineer-cannot-be-respawned
+[OrdinaryMine] PASS Enemy ordinary-home-mine-paid-placement
+[OrdinaryMine] PASS Enemy normal-material-and-AP-cost
+[OrdinaryMine] PASS Enemy home-iron-and-magic-recipe-preserved
+[OrdinaryMine] PASS Enemy AI-planned-production-matches-actual
+[OrdinaryMine] PASS Enemy actual-economic-turn-produces-home-iron
+[OrdinaryMine] PASS Enemy existing-mine-retained-after-territory-change
+[OrdinaryMine] PASS Enemy no-engineer-AI-construction-or-recruitment
+[OrdinaryMine] COMPLETE
+[A1Live] PASS ordinary-mine-restored
+[A1Live] COMPLETE failures=0

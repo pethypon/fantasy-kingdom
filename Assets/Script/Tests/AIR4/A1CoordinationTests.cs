@@ -18,7 +18,7 @@ public static class A1CoordinationTests
     static void Property(object target, string name, object value) => Field(target, "<" + name + ">k__BackingField", value);
     public static void Run()
     {
-        CapabilityContracts(); DefaultRoleContracts(); DebuffContracts(); FormalCostContracts(); CoordinatorContracts();
+        CapabilityContracts(); DefaultRoleContracts(); DebuffContracts(); FormalCostContracts(); CoordinatorContracts(); SupportAssignmentContracts();
     }
 
     static void CapabilityContracts()
@@ -89,6 +89,17 @@ public static class A1CoordinationTests
 
     static void DefaultRoleContracts()
     {
+        var desired = typeof(AIOperationManager).GetMethod("DesiredRoleCount", Private | BindingFlags.Static);
+        Check("squad-role-budget-contract-is-available", desired != null);
+        for (int quota = 1; quota <= 16; quota++)
+        {
+            int total = 0;
+            foreach (AIOperationSquadRole role in Enum.GetValues(typeof(AIOperationSquadRole)))
+                total += (int)desired.Invoke(null, new object[] { role, quota, false });
+            Check("squad-role-budget-accounts-for-each-slot-" + quota, total == quota);
+            if (quota >= 5) Check("partial-second-squad-retains-healing-role-" + quota,
+                (int)desired.Invoke(null, new object[] { AIOperationSquadRole.Healer, quota, false }) >= 1);
+        }
         var baseline = new[]
         {
             ("Knight", "frontline"), ("Assassin", "frontline"), ("Guardian", "frontline"),
@@ -235,9 +246,16 @@ public static class A1CoordinationTests
         AITurnBudget.Begin(5000);
         using (var f = new Fixture())
         {
+            f.Board.ReconThreatLevel = 15;
             f.Manager.UpdateTacticalCoordination(f.Actions, f.Board);
+            Check("CQ11-complete-safe-kill-chain-has-an-executable-head", f.Manager.IsCoordinatedKillHead(f.Actions[0], f.Board)
+                || f.Manager.IsCoordinatedKillHead(f.Actions[1], f.Board));
             Check("CQ01-two-current-formal-attacks-compose-a-bounded-kill", f.Manager.CoordinationSteps.Count == 2 && f.Current);
             Check("CQ05-real-budget-above-stale-15-is-usable", f.Board.EnemyAP > 15 && f.Board.EnemyAP <= APSystem.MaximumAP);
+            f.Board.ReconThreatLevel = 1;
+            Check("CQ11-low-threat-keeps-normal-selection", !f.Manager.IsCoordinatedKillHead(f.Actions[0], f.Board)
+                && !f.Manager.IsCoordinatedKillHead(f.Actions[1], f.Board));
+            f.Board.ReconThreatLevel = 15;
             int ap = f.Board.EnemyAP; Property(f.Board, "EnemyAP", ap - 1);
             Check("AT08-other-squad-AP-spend-invalidates-old-sequence", !f.Current); Property(f.Board, "EnemyAP", ap);
             f.Target.HP--;
@@ -271,6 +289,49 @@ public static class A1CoordinationTests
             f.Manager.UpdateTacticalCoordination(f.Actions, f.Board); Property(f.Board, "Generation", 2);
             Check("CQ04-generation-change-cannot-replay-current-plan", !f.Current);
         }
+    }
+
+    static void SupportAssignmentContracts()
+    {
+        using var f = new Fixture();
+        var definition = ScriptableObject.CreateInstance<UnitData>();
+        var aura = ScriptableObject.CreateInstance<SpecialSkillDefinition>();
+        try
+        {
+            aura.ability = UnitSpecialSkill.PriestPurification; aura.enabledForPlay = true; aura.apCost = 8; aura.cooldown = 0;
+            definition.kind = Kind.Priest; definition.baseHP = 100; definition.specialSkill = aura;
+            var own = Read<Dictionary<string, Status>>(Read<AIOperationFeatureExtractor>(f.Manager, "features"), "own");
+            Status Actor(string id, Vector3 position, bool healer = false)
+            {
+                var go = new GameObject(id); go.transform.SetParent(f.Root.transform); go.transform.position = position;
+                var actor = go.AddComponent<Status>(); actor.kind = healer ? Kind.Priest : Kind.Knight;
+                actor.type = Type.Unit; actor.team = Team.Enemy; actor.HP = actor.MaxHP = 100; actor.RestoreReflectionLifeId(id);
+                if (healer) actor.GrowthData = definition; own[id] = actor; return actor;
+            }
+            var lead = Actor("lead", new Vector3(9, 0, 9)); var guard = Actor("guard", new Vector3(8, 0, 9));
+            var flank = Actor("flank", new Vector3(9, 0, 8)); var healer = Actor("healer", Vector3.zero, true);
+            var rear = Actor("rear", new Vector3(0, 0, 1)); var rear2 = Actor("rear2", new Vector3(1, 0, 0));
+            var plan = f.Manager.State.ActiveOperations[0]; plan.HasTargetPosition = true; plan.TargetX = plan.TargetZ = 10;
+            AIOperationSquad Squad(long id, params Status[] actors)
+            {
+                var squad = new AIOperationSquad { SquadId = id, OperationId = plan.OperationId };
+                foreach (var actor in actors) squad.Members.Add(new AIOperationSquadMember { ActorLifeId = actor.ReflectionLifeId });
+                return squad;
+            }
+            var forward = Squad(1, lead, guard, flank); var back = Squad(2, healer, rear, rear2);
+            f.Manager.State.Squads.Clear(); f.Manager.State.Squads.Add(forward); f.Manager.State.Squads.Add(back);
+            for (int iteration = 0; iteration < 2; iteration++)
+            {
+                typeof(AIOperationManager).GetMethod("AlignSquadSupport", Private).Invoke(f.Manager, null);
+                var distinct = new HashSet<string>();
+                foreach (var squad in f.Manager.State.Squads) foreach (var member in squad.Members) distinct.Add(member.ActorLifeId);
+                Check("support-follows-leading-frontline-without-oscillation-" + iteration,
+                    forward.Members.Exists(member => member.ActorLifeId == healer.ReflectionLifeId));
+                Check("support-swap-preserves-squad-sizes-and-unique-ownership-" + iteration,
+                    forward.Members.Count == 3 && back.Members.Count == 3 && distinct.Count == 6);
+            }
+        }
+        finally { UnityEngine.Object.DestroyImmediate(aura); UnityEngine.Object.DestroyImmediate(definition); }
     }
 }
 #endif

@@ -50,8 +50,7 @@ public static class A1LiveValidation
         Stage("recon",()=>A1ReconTests.Run(turn.Systems));
         Stage("housing",()=>A1HousingTests.Run(turn.Systems));
         Stage("retreat",()=>A1RetreatTests.PlayMode(turn.Systems));
-        Stage("engineer-production",EngineerProductionAuthoring.ValidateInstalled);
-        Stage("engineer-AI",()=>R2EngineerAIContracts.Run(turn.Systems));
+        Stage("ordinary-mine-restored",()=>OrdinaryMineValidation.Run(turn.Systems));
         Debug.Log("[A1Live] COMPLETE failures=" + failures); EditorApplication.Exit(failures == 0 ? 0 : 1);
     }
 }

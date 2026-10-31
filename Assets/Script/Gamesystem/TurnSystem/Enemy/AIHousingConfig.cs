@@ -56,7 +56,7 @@ public sealed class AIHousingConfig : ScriptableObject
         }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    static void Reset() => active = null;
+    static void ResetRuntimeCache() => active = null;
     public float ConsiderRatio => Mathf.Clamp01(Finite(ConsiderCitizenRatio, .75f));
     public float UrgentRatio => Mathf.Clamp(Finite(UrgentCitizenRatio, .90f), ConsiderRatio, 1f);
     public int Horizon => Mathf.Clamp(ForecastTurns, 1, 8);

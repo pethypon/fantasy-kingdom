@@ -37,7 +37,7 @@ public static class R2ConstructionEconomyTests
     static void CostsAndProduction()
     {
         var cost = R2EconomyRules.EngineerCost(new FacilityData.ResourceCost(70, 110, 3, 5, 7, 1));
-        Check("EN08 five resource prices doubled once", cost.Wood == 140 && cost.Stone == 220 && cost.Iron == 6 && cost.MagicOre == 10 && cost.Water == 14);
+        Check("construction costs are ordinary after engineer retirement", cost.Wood == 70 && cost.Stone == 110 && cost.Iron == 3 && cost.MagicOre == 5 && cost.Water == 7);
         Check("EN09 provisional ordinary AP and citizens preserved", cost.Citizen == 1 && R2EconomyRules.EngineerAP(3) == 3);
         Check("EN08 saturated integer prices do not overflow", R2EconomyRules.DoubleNonNegative(int.MaxValue) == int.MaxValue);
         Check("UP03 maximumHP100 loses20", R2EconomyRules.UnpaidDamage(100, 100) == 20);
@@ -59,83 +59,29 @@ public static class R2ConstructionEconomyTests
             var inside = FacilityData.RestrictProductionAt(recipe, new Vector3(2.1f, -100, 3.1f), Team.Player, territory);
             var outside = FacilityData.RestrictProductionAt(recipe, new Vector3(9, 0, 9), Team.Player, territory);
             var enemy = FacilityData.RestrictProductionAt(recipe, new Vector3(4, 30, 5), Team.Enemy, territory);
-            Check("MN01 own territory suppresses iron and both magic bonuses", inside.Output.Iron == 0 && inside.BonusOutput1.MagicOre == 0 && inside.BonusOutput2.MagicOre == 0);
+            Check("MN01 own territory preserves authored ore", inside.Output.Iron == 3 && inside.BonusOutput1.MagicOre == 1 && inside.BonusOutput2.MagicOre == 2);
             Check("MN02 neutral output and probability preserved", outside.Output.Iron == 3 && outside.BonusOutput1.MagicOre == 1 && outside.BonusChance1 == .35f && outside.BonusChance2 == .7f);
-            Check("MN03 opposing nation's own territory uses its own restriction", enemy.Output.Iron == 0 && enemy.BonusOutput1.MagicOre == 0);
+            Check("MN03 both factions use ordinary production", enemy.Output.Iron == 3 && enemy.BonusOutput1.MagicOre == 1);
             Check("MN04 other nation's territory is not confused with own territory", FacilityData.CanProduceRareOre(new Vector3(4, 0, 5), Team.Player, territory));
-            Check("MN09 territory change is applied without a stale cache", !FacilityData.CanProduceRareOre(new Vector3(2, 0, 3), Team.Player, territory));
+            Check("MN09 territory change is applied without a stale cache", FacilityData.CanProduceRareOre(new Vector3(2, 0, 3), Team.Player, territory));
             territory.PTSetPos.Clear();
             Check("MN09 removal of territory immediately permits output", FacilityData.CanProduceRareOre(new Vector3(2, 0, 3), Team.Player, territory));
             Check("MN10 inputs maintenance interval and other resources preserved", inside.Input.Water == 3 && inside.Maintenance.Bread == 2 && inside.ProductionIntervalTurns == 3 && inside.Output.Wood == 7 && inside.BonusOutput1.Stone == 2 && inside.BonusChance1 == .35f);
-            Check("MN13 custom recipe rare outputs share restrictions", inside.BonusChance2 == 0 && inside.Output.Iron == 0 && recipe.Output.Iron == 3);
+            Check("MN13 custom recipe probabilities and outputs remain intact", inside.BonusChance2 == .7f && inside.Output.Iron == 3 && recipe.Output.Iron == 3);
         }
         finally { UnityEngine.Object.DestroyImmediate(host); }
     }
     static void EngineerCommands(Fixture f)
     {
-        string label = f.Team + " ";
-        var builder = f.Builder; var actor = f.Engineer; var position = f.Sites[1];
-        Check(label + "EN04 official individual vision reaches neutral placement", builder.GetEngineerPlacementFailure(actor, position, f.Mine) == null);
-        var cost = builder.GetEngineerBuildCost(f.Mine); int ap = f.State.GetAP(f.Team), wood = f.Resources.Wood, stone = f.Resources.Stone, citizens = f.Resources.Citizen;
-        int territoryCount = f.Territory.GetTerritory(f.Team).Count;
-        Check(label + "EN11 paid command succeeds once", builder.TryEngineerPlace(actor, position, f.Mine));
-        var building = builder.GetLastPlacedBuilding()?.GetComponent<Status>();
-        Check(label + "EN08 EN09 exact resources citizens and AP charged", f.Resources.Wood == wood - cost.Wood && f.Resources.Stone == stone - cost.Stone
-            && f.Resources.Citizen == citizens - cost.Citizen && f.State.GetAP(f.Team) == ap - builder.GetEngineerBuildAP(f.Mine));
-        Check(label + "EN12 ownership and provenance belong to engineer", building != null && building.team == f.Team && building.BuiltByEngineer);
-        Check(label + "EN13 MN05 construction creates no territory", f.Territory.GetTerritory(f.Team).Count == territoryCount && !f.Territory.IsInTerritory(position, f.Team));
-        string stock = JsonUtility.ToJson(f.Resources); ap = f.State.GetAP(f.Team);
-        Check(label + "EN10 duplicate placement rejected without payment", !builder.TryEngineerPlace(actor, position, f.Mine) && stock == JsonUtility.ToJson(f.Resources) && ap == f.State.GetAP(f.Team));
-        var recipe = FacilityData.GetProductionLevel(building, 1, f.Territory); var raw = f.Mine.GetLevel(1);
-        Check(label + "MN02 placed neutral mine retains real recipe", recipe.Output.Iron == raw.Output.Iron && recipe.BonusOutput1.MagicOre == raw.BonusOutput1.MagicOre);
-        f.Territory.GetTerritory(f.Team).Add(position);
-        Check(label + "MN01 MN08 MN09 existing mine survives territorial capture but ore stops", building.IsAlive && FacilityData.GetProductionLevel(building, 1, f.Territory).Output.Iron == 0);
-        f.Territory.GetTerritory(f.Team).Clear();
-        var opponent = f.Team == Team.Player ? Team.Enemy : Team.Player;
-        var second = f.Sites[2]; f.Territory.GetTerritory(opponent).Add(second);
-        Check(label + "EN06 enemy territory rejected even while visible", builder.GetEngineerPlacementFailure(actor, second, f.Mine)?.Contains("敵領土") == true);
-        for(int x=0;x<8;x++)for(int z=0;z<8;z++)actor.GrowthData.actionProfile.vision.SetCell(x,z,false);
-        Check(label + "EN05 unseen territory ownership is not leaked by failure messages",
-            builder.GetEngineerPlacementFailure(actor, second, f.Mine)?.Contains("視界外") == true);
-        actor.GrowthData.actionProfile.vision.SetCell(4,3,true);
-        actor.GrowthData.actionProfile.vision.SetCell(3,4,true);
-        actor.GrowthData.actionProfile.vision.SetCell(2,3,true);
-        f.Territory.GetTerritory(opponent).Clear();
-        SpecialSkillRuntime.State(actor).visionZeroTurns = 1;
-        Set(f.Vision, f.Team == Team.Player ? "_playerVisionBox" : "_enemyVisionBox", new HashSet<Vector3Int> { second });
-        Check(label + "EN05 shared vision cannot replace individual vision", builder.GetEngineerPlacementFailure(actor, second, f.Mine)?.Contains("視界外") == true);
-        SpecialSkillRuntime.State(actor).visionZeroTurns = 0;
-        actor.kind = Kind.Scout;
-        Check(label + "EN03 other kinds have no engineer permission", builder.GetEngineerBuildCostFailure(actor, f.Mine) != null && !builder.TryEngineerPlace(actor, second, f.Mine));
-        actor.kind = Kind.Engineer;
-        f.Resources.Wood = 0;
-        Check(label + "EN10 insufficient materials fail without AP charge", !builder.TryEngineerPlace(actor, second, f.Mine) && f.State.GetAP(f.Team) == ap);
-        f.Resources.Wood = 5000;
-        f.State.SetAP(f.Team, 0);
-        Check(label + "EN10 insufficient AP fails without material charge", !builder.TryEngineerPlace(actor, second, f.Mine) && f.Resources.Wood == 5000);
-        f.State.SetAP(f.Team, 40);
-        actor.transform.position = f.Sites[0] + Vector3.left * 20;
-        Check(label + "EN14 EN15 old mine persists but grants no remote construction", building.IsAlive && !builder.TryEngineerPlace(actor, second, f.Mine));
-        actor.transform.position = f.Sites[0];
-        Check(label + "EN16 returning engineer makes next construction legal", builder.GetEngineerPlacementFailure(actor, second, f.Mine) == null);
-        var normal = f.Supply;
-        f.Territory.GetTerritory(f.Team).Add(second);
-        Check(label + "EN07 engineer mode inside own territory uses doubled quote", builder.GetEngineerPlacementFailure(actor, second, normal) == null && builder.GetEngineerBuildCost(normal).Wood == normal.GetInfo().BuildCost.Wood * 2);
-        f.Territory.GetTerritory(f.Team).Clear();
-        Check(label + "EN03 ordinary build still rejects neutral territory", !builder.TryPlaceDefinition(second, normal, f.Team));
-        stock = JsonUtility.ToJson(f.Resources); ap = f.State.GetAP(f.Team);
-        f.Mine.prefab = f.InvalidatingPrefab;
-        Check(label + "EN17 prefab invalidation after preview aborts transaction", !builder.TryEngineerPlace(actor, second, f.Mine));
-        Check(label + "EN10 invalidated prefab leaves no building or costs", !builder.HasBuildingAt(second) && stock == JsonUtility.ToJson(f.Resources) && ap == f.State.GetAP(f.Team));
-        f.Mine.prefab = null; actor.HP = actor.MaxHP;
-        actor.transform.position = f.Sites[0];
-        Check(label + "EN18 same formal paid command works for each main faction", builder.TryEngineerPlace(actor, second, f.Mine));
+        string before = JsonUtility.ToJson(f.Resources); int ap = f.State.GetAP(f.Team);
+        Check(f.Team + " retired engineer cannot place a building", !f.Builder.TryEngineerPlace(f.Engineer, f.Sites[1], f.Mine));
+        Check(f.Team + " retired command spends nothing", before == JsonUtility.ToJson(f.Resources) && f.State.GetAP(f.Team) == ap);
     }
     static void UnpaidMaintenance(Fixture f)
     {
         // Isolate the maintenance transaction from the real mines built in the preceding contracts.
         f.Mine.levels = new[] { new FacilityData.FacilityLevelData { HP = 100 } };
-        var unit = f.Engineer; unit.kind = Kind.Knight; unit.HP = unit.MaxHP = 100; unit.Barrier = 20;
+        var unit = f.Engineer; unit.kind = Kind.Knight; unit.GrowthData.kind = Kind.Knight; unit.HP = unit.MaxHP = 100; unit.Barrier = 20;
         unit.GrowthData.upkeepExempt = false; unit.GrowthData.useAuthoredUpkeep = true;
         unit.GrowthData.upkeepIron = 1; unit.GrowthData.upkeepBread = 0;
         f.Resources.Iron = 0; f.Resources.Citizen = 0;

@@ -27,7 +27,7 @@ public sealed partial class AIOperationManager
         cognitiveProposals.Clear(); cognitiveProposalGeneration = -1;
         if (board == null || state.Ended || !config.Enabled || !AICognitiveAIConfig.Active.MayInfluenceActions ||
             board.Governor?.Mode == StrategicMode.EmergencyDefense || board.Governor?.Mode == StrategicMode.EconomicRecovery ||
-            strategy == TurnStrategy.CrystalDefense || plans == null || state.Faction != board.ActorTeam) return;
+            plans == null || state.Faction != board.ActorTeam) return;
         if (cognitiveBattle != state.BattleId)
         { cognitiveBattle = state.BattleId; cognitiveOperationIds.Clear(); cognitiveMappingOrder.Clear(); }
         for (int i = 0; i < plans.Count && cognitiveProposals.Count < CognitiveProposalLimit; i++)

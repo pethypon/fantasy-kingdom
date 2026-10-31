@@ -1,0 +1,20 @@
+{
+  "core": {
+    "source": "squad-support-final-core.log",
+    "passLines": 327,
+    "failLines": 0,
+    "scope": "Native Unity assertion lines only, not a full ordinary match result."
+  },
+  "rules-and-mines": {
+    "source": "a1-20261030/squad-support-final-current-rules.log",
+    "passLines": 187,
+    "failLines": 0,
+    "scope": "Native Unity assertion lines only, not a full ordinary match result."
+  },
+  "formal-squad-playmode": {
+    "source": "a1-20261030/squad-support-final-formal.log",
+    "passLines": 92,
+    "failLines": 0,
+    "scope": "Native Unity assertion lines only, not a full ordinary match result."
+  }
+}

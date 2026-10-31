@@ -17,11 +17,7 @@ public partial class BuildSummonUIBuilder
 
     public bool UseEngineerConstruction(Status engineer)
     {
-        if (engineer == null || !engineer.IsAlive || engineer.type != Type.Unit
-            || engineer.kind != Kind.Engineer || engineer.team != Team.Player) return false;
-        menuEngineer = engineer; engineerMenuRequested = true;
-        slidePanel?.SetBuildModeTitle("工兵建築 ・ 資源費2倍");
-        return true;
+        return false;
     }
 
     string BuildMenuFailure(FacilityKind kind)

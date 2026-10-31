@@ -829,10 +829,8 @@ public partial class UnitPanelUI : MonoBehaviour
         var original = FacilityData.GetLevel(building, building.Level);
         var data = FacilityData.GetProductionLevel(building, building.Level, territory);
         bool rare = FacilityData.HasRareOreOutput(original);
-        bool restricted = rare && !FacilityData.CanProduceRareOre(building.transform.position, building.team, territory);
         var parts = new System.Collections.Generic.List<string>();
-        if (restricted) parts.Add("鉄・魔石は領土外でのみ採掘可能");
-        else if (rare) parts.Add(building.BuildingOperationAvailable ? "領土外採掘：稼働" : "領土外採掘：維持費不足で停止");
+        if (rare) parts.Add(building.BuildingOperationAvailable ? "採掘：稼働" : "採掘：維持費不足で停止");
         if (!data.Input.IsEmpty) parts.Add("生産時消費: " + FormatProduction(data.Input));
         if (!data.Output.IsEmpty) parts.Add(FacilityData.ProductionInterval(data) + "ターンごと生産: " + FormatProduction(data.Output));
         if (data.BonusChance1 > 0 && !data.BonusOutput1.IsEmpty)

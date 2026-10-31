@@ -110,7 +110,7 @@ public sealed partial class AIOperationManager
         else if (main == null) PromoteExisting();
         AddAuxiliaryScout(board, ownTurn);
         EnsureOnePrimary();
-        foreach (var plan in state.ActiveOperations) Assign(plan, board, ownTurn);
+        AssignOperations(board, ownTurn);
         UpdateSquads(board, ownTurn);
         refreshedBoard = board; refreshedGeneration = board.Generation;
     }
@@ -150,7 +150,7 @@ public sealed partial class AIOperationManager
             Start(candidate.Plan, board, turn, true);
         }
         EnsureOnePrimary();
-        foreach (var plan in state.ActiveOperations) Assign(plan, board, turn);
+        AssignOperations(board, turn);
         UpdateSquads(board, turn);
         refreshedBoard = board; refreshedGeneration = board.Generation;
     }
@@ -210,6 +210,7 @@ public sealed partial class AIOperationManager
         if (action.Unit != null && TryGetSquad(action.Unit.ReflectionLifeId, out var squad)) record.SquadId = squad.SquadId;
         record.OperationId = plan.OperationId;
         record.OperationStepId = CurrentStep(plan)?.StepId ?? 0;
+        record.OperationMarchOrdered = IsPlannedMarch(action, squadBoard);
         record.OperationContribution = 0;
     }
 
@@ -278,7 +279,8 @@ public sealed partial class AIOperationManager
             record.OperationContribution = Contribution(record, plan);
             if (record.OperationContribution > 0 && record.PreparationCandidate)
                 context.PreparationContribution = Mathf.Clamp01(context.PreparationContribution + record.OperationContribution * .25f);
-            if (outcome.DistanceToObjectiveDelta > 0 || outcome.NewTilesRevealed > 0 || outcome.DamageDealt > 0
+            if (RealPlannedMarch(record) || OwnOperationDistanceGain(record, plan) > 0 || outcome.NewTilesRevealed > 0
+                || outcome.DamageDealt > 0 && DamageAdvancesOperation(record, plan)
                 || outcome.ArtifactsAcquired > 0 || outcome.OwnBuildingDelta > 0
                 || outcome.EconomyAfter < outcome.EconomyBefore || outcome.EnemyKills > 0)
                 plan.LastProgressTurn = ownTurn;
@@ -320,7 +322,7 @@ public sealed partial class AIOperationManager
             plan.CurrentContext = features.Capture(board, plan, turn);
             Complete(plan, board, turn, AIOperationAbortReason.None);
         }
-        RemoveFinished(); state.Ended = true; ClearCoordination();
+        RemoveFinished(); state.Ended = true; ClearCoordination(); ClearMarch();
     }
 
     public List<AIOperationActionCredit> DrainCredits()
@@ -423,7 +425,8 @@ public sealed partial class AIOperationManager
     void GenerateCandidates(AIBoardState board, int turn, AIPersonality personality, AIPlayerModel.Profile player)
     {
         candidates.Clear(); OperationRequiredCitizenDemand = 0; var facts = features.Capture(board, null, turn);
-        bool emergency = facts.OwnCrystalThreatened || strategy == TurnStrategy.CrystalDefense;
+        bool emergency = facts.OwnCrystalThreatened
+            || board.Governor == null && strategy == TurnStrategy.CrystalDefense;
         if (emergency)
         {
             var ownCrystal = board.OwnCrystalParent?.GetComponentInChildren<Status>();
@@ -476,6 +479,7 @@ public sealed partial class AIOperationManager
                 }
             }
         }
+        GenerateTerritoryMarch(board, turn, personality, player);
         if (HasScout())
         {
             AddCandidate(board, turn, facts.VisibleEnemyUnits == 0 ? AIOperationGoal.ScoutRegion
@@ -610,8 +614,21 @@ public sealed partial class AIOperationManager
             && (!plan.IsBaseAssault || AssignedAssaultForce(plan) >= plan.RequiredAssaultForce)) plan.Status = AIOperationStatus.Active;
     }
 
+    void AssignOperations(AIBoardState board, int turn)
+    {
+        // Suspended/finished owners must release their claims in this generation,
+        // not next turn. Allocate the primary emergency before auxiliary scouts;
+        // retained memberships are preserved where they do not conflict.
+        assignments.Clear();
+        state.ActiveOperations.Sort((a, b) => a.StrategicPriority != b.StrategicPriority
+            ? a.StrategicPriority.CompareTo(b.StrategicPriority) : a.IsPrimary != b.IsPrimary
+                ? a.IsPrimary ? -1 : 1 : a.OperationId.CompareTo(b.OperationId));
+        foreach (var active in state.ActiveOperations) Assign(active, board, turn);
+    }
+
     void Reevaluate(AIOperationPlan plan, AIBoardState board, int turn)
     {
+        if (RefreshMarchTarget(plan, board, turn)) plan.CurrentContext = features.Capture(board, plan, turn);
         var facts = plan.CurrentContext;
         ReevaluateBaseAssault(plan, board, turn);
         if (!Running(plan)) return;
@@ -620,7 +637,17 @@ public sealed partial class AIOperationManager
         var evaluation = scorer.Evaluate(plan, plan.StartContext, facts, plan.ActionEvidence, true);
         plan.ProvisionalScore = evaluation.Breakdown;
         if (evaluation.PrimaryGoalAchieved && !BaseWithdrawalPending(plan, turn)) { Complete(plan, board, turn, AIOperationAbortReason.None); return; }
-        bool emergency = facts.OwnCrystalThreatened || strategy == TurnStrategy.CrystalDefense;
+        bool emergency = facts.OwnCrystalThreatened
+            || board.Governor == null && strategy == TurnStrategy.CrystalDefense;
+        if (!emergency && (plan.PrimaryGoal == AIOperationGoal.DefendOwnCrystal || plan.PrimaryGoal == AIOperationGoal.DefendSubCrystal)
+            && !facts.OwnCrystalDestroyed && turn - plan.StartTurn >= Mathf.Max(2, config.ReplanAfterStalledTurns))
+        {
+            // An unseen attacker is not a confirmed kill. Retire this temporary
+            // allocation without victory credit once current defense gates clear;
+            // normal risk checks and the commander's protection remain in force.
+            Complete(plan, board, turn, AIOperationAbortReason.StrategicPriorityChanged);
+            return;
+        }
         if (emergency && plan.StrategicPriority > 1)
         {
             Suspend(plan, turn, AIOperationAbortReason.CrystalEmergency);
@@ -805,7 +832,7 @@ public sealed partial class AIOperationManager
             return AIOperationConfig.Unit(config.ScoutContribution);
         if (outcome.EffectChanged || outcome.ShieldGranted || outcome.HealingDone > 0 || outcome.ApRecovered > 0)
             return AIOperationConfig.Unit(config.SupportContribution);
-        if (outcome.DistanceToObjectiveDelta > 0) return AIOperationConfig.Unit(config.PreparationContribution);
+        if (OwnOperationDistanceGain(record, plan) > 0) return AIOperationConfig.Unit(config.PreparationContribution);
         if (plan.PrimaryGoal == AIOperationGoal.EconomicRecovery
             && outcome.EconomyBefore != EconomicState.Healthy && outcome.EconomyAfter == EconomicState.Healthy
             && (record.ActionType == AIActionType.Build || record.ActionType == AIActionType.Upgrade))
@@ -819,7 +846,8 @@ public sealed partial class AIOperationManager
         var result = record.Outcome;
         bool done = step.Type == AIOperationStepType.Scout && (!plan.IsBaseAssault || plan.BaseRouteConfirmed && FindKnownBase(plan.TargetLifeId)?.DefenseIntelKnown == true)
                 && (result.NewTilesRevealed > 0 || result.NewEnemyLifeIds?.Count > 0)
-            || step.Type == AIOperationStepType.Approach && result.DistanceToObjectiveDelta > 0
+            || step.Type == AIOperationStepType.Approach && (RealPlannedMarch(record) || OwnOperationDistanceGain(record, plan) > 0)
+                && OperationApproachReached(plan)
             || step.Type == AIOperationStepType.Support && (result.EffectChanged || result.HealingDone > 0 || result.ShieldGranted)
             || step.Type == AIOperationStepType.Attack && (result.DamageDealt > 0 || result.EnemyKills > 0)
             || step.Type == AIOperationStepType.DestroyObjective && result.KilledLifeIds?.Contains(plan.TargetLifeId ?? "") == true
