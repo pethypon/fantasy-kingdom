@@ -41,7 +41,7 @@ public static class SquadMarchValidation
             var turn = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
             if (turn == null || Time.frameCount - frame < 20) return;
             SessionState.SetBool(Key, false);
-            foreach (var side in new[] { Team.Player, Team.Enemy }) March(turn.Systems, side);
+            foreach (var side in new[] { Team.Player, Team.Enemy }) { March(turn.Systems, side); FocusFire(turn.Systems, side); }
             Debug.Log("[SquadMarch] COMPLETE real Play Mode frames=" + (Time.frameCount - frame)); EditorApplication.Exit(0);
         }
         catch (Exception e) { SessionState.SetBool(Key, false); Debug.LogException(e); EditorApplication.Exit(1); }
@@ -147,6 +147,14 @@ public static class SquadMarchValidation
                 Check(prefix + "reinforcement-reassignment-counts-distinct-actors-" + refresh,
                     plan.AssignedUnitLifeIds.Count == 3 && new HashSet<string>(plan.AssignedUnitLifeIds).Count == 3);
             }
+            Status healer = null;
+            foreach (var candidate in (side == Team.Player ? f.Units.PlayerUnit : f.Units.EnemyUnit).GetComponentsInChildren<Status>())
+                if (candidate != actor && candidate.team == side && candidate.type == Type.Unit) { healer = candidate; break; }
+            Check(prefix + "production-white-mage-definition-exists", live.UnitSetting.UnitDataMap.TryGetValue(Kind.WhiteMage, out var healerData));
+            healer.GrowthData = healerData; healer.kind = Kind.WhiteMage; healerData.ApplyToStatus(healer, 1);
+            board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
+            Check(prefix + "healer-recognizes-its-operation-patient", manager.SupportsSquadPatient(healer, actor));
+            Check(prefix + "non-healer-cannot-claim-support-priority", !manager.SupportsSquadPatient(actor, healer));
         }
         finally { UnityEngine.Object.DestroyImmediate(config); }
     }
@@ -174,6 +182,104 @@ public static class SquadMarchValidation
             }
         }
         throw new InvalidOperationException("Controlled march requires a legal seven-step corridor in the real map");
+    }
+
+    static void FocusFire(GameSystems live, Team side)
+    {
+        using var effects = BoardActorAnimation.SuppressEffects();
+        using var f = new R2ConstructionEconomyTests.Fixture(live, side);
+        string prefix = side + " focus-fire ";
+        var actors = new List<Status> { f.Engineer };
+        for (int index = 0; index < 2; index++)
+        {
+            var go = new GameObject("controlled-fire-partner"); go.SetActive(false); go.transform.SetParent(f.Engineer.transform.parent);
+            var actor = go.AddComponent<Status>(); actor.team = side; actor.type = Type.Unit;
+            actor.RestoreReflectionLifeId(Guid.NewGuid().ToString("N")); actors.Add(actor);
+        }
+        for (int index = 0; index < actors.Count; index++)
+        {
+            var actor = actors[index]; actor.kind = index < 2 ? Kind.Knight : Kind.Archer;
+            var definition = live.UnitSetting.UnitDataMap[actor.kind]; actor.GrowthData = definition;
+            definition.ApplyToStatus(actor, 1); actor.HP = actor.MaxHP;
+            actor.gameObject.SetActive(true);
+        }
+        Vector3Int targetCell = default; bool positioned = false;
+        foreach (var point in live.MapCreate.SetPos)
+        {
+            if (live.MapCreate.IsRiver(Mathf.RoundToInt(point.x), Mathf.RoundToInt(point.z))
+                || live.MapCreate.IsHighMountain(Mathf.RoundToInt(point.x), Mathf.RoundToInt(point.z))
+                || live.MapCreate.Environment.BlocksMovement(Mathf.RoundToInt(point.x), Mathf.RoundToInt(point.z))) continue;
+            var reserved = new HashSet<Vector3Int>(); bool complete = true;
+            foreach (var actor in actors)
+            {
+                bool found = false; int reach = Mathf.Clamp(AICapabilityRoles.For(actor).MaximumAttackReach, 1, 7);
+                for (int dx = -reach; dx <= reach && !found; dx++) for (int dz = -reach; dz <= reach && !found; dz++)
+                {
+                    int x = Mathf.RoundToInt(point.x) + dx, z = Mathf.RoundToInt(point.z) + dz;
+                    var key = new Vector3Int(x, 0, z);
+                    if (dx == 0 && dz == 0 || reserved.Contains(key) || !live.MapCreate.TryGetHeight(x, z, out float height)
+                        || live.MapCreate.IsRiver(x, z) || live.MapCreate.IsHighMountain(x, z)
+                        || live.MapCreate.Environment.BlocksMovement(x, z)) continue;
+                    actor.transform.position = new Vector3(x, height, z); actor.direction = point.z >= z ? Direction.N : Direction.S;
+                    if (!AttackPatterns.CanAttack(actor, actor.direction, point.x - x, point.z - z)
+                        || !live.MapCreate.CanAttackAcrossTerrain(actor, point)) continue;
+                    reserved.Add(key); found = true;
+                }
+                if (!found) { complete = false; break; }
+            }
+            if (complete) { targetCell = GridHelper.ToGrid(point); positioned = true; break; }
+        }
+        Check(prefix + "three-distinct-real-firing-positions-exist", positioned);
+        var opponent = side == Team.Player ? Team.Enemy : Team.Player;
+        f.Territory.GetTerritory(opponent).Add(targetCell);
+        var target = f.Builder.PlaceBuildingForLoad(targetCell, FacilityKind.Mine, opponent);
+        // Authored full-health 30HP target for two production Knights and an
+        // Archer. This tests coordination, not a campaign finishing position.
+        f.Mine.levels[0].HP = 30; target.AuthoredFacility = f.Mine;
+        target.HP = target.MaxHP = 30; target.Barrier = 0;
+        f.Turn.Systems.APSystem = f.AP; f.Turn.Systems.MoveGenerator = f.Moves;
+        f.Turn.Systems.UnitSetting = f.Units; f.Turn.Systems.BuildSystem = f.Builder;
+        f.Turn.Systems.BattleSystem = live.BattleSystem; f.Turn.Systems.AttackGenerator = live.AttackGenerator;
+        f.Units.UnitDataMap[Kind.Knight] = live.UnitSetting.UnitDataMap[Kind.Knight];
+        f.Units.UnitDataMap[Kind.Archer] = live.UnitSetting.UnitDataMap[Kind.Archer];
+        var board = f.Board(); board.ReconThreatLevel = 15; board.SpecialSystems = f.Turn.Systems;
+        f.Vision.MarkVisionDirty(); f.Vision.VisionPoint(live.MapCreate, f.Moves, f.Crystals); board.Refresh();
+        var manager = new AIOperationManager(); manager.BeginBattle(side, "formal-fire-" + side); board.Operations = manager;
+        // This contract gives the tactical layer an already issued, observed
+        // attack order. Strategic target discovery is tested separately; no
+        // target witness or attack-range cache is injected here.
+        var order = new AIOperationPlan { OperationId = 1, PrimaryGoal = AIOperationGoal.BreakEnemyDefense,
+            OriginalGoal = AIOperationGoal.BreakEnemyDefense, Status = AIOperationStatus.Active, IsPrimary = true,
+            StrategicPriority = 3, StartTurn = 1, LastProgressTurn = 1, ExpectedEndTurn = 8, MaximumEndTurn = 15,
+            TargetLifeId = target.ReflectionLifeId, TargetCategory = "Building", HasTargetPosition = true,
+            TargetX = targetCell.x, TargetZ = targetCell.z,
+            Steps = new List<AIOperationStep> { new AIOperationStep { StepId = 1, Type = AIOperationStepType.Attack } } };
+        foreach (var actor in actors) { order.AssignedUnitLifeIds.Add(actor.ReflectionLifeId); order.OriginalAssignedUnitLifeIds.Add(actor.ReflectionLifeId); }
+        manager.State.NextOperationId = 1; manager.State.ActiveOperations.Add(order);
+        board.RemainingPlannedActionSlots = 8; AITurnBudget.Begin(5000); manager.BeginTurn(board, TurnStrategy.ContactEngage, 1);
+        Check(prefix + "attack-order-has-three-distinct-live-members", order.AssignedUnitLifeIds.Count == 3
+            && new HashSet<string>(order.AssignedUnitLifeIds).Count == 3 && manager.Squads.Count > 0);
+        var executor = new AIActionExecutor(f.Turn, f.Moves, live.AttackGenerator, live.BattleSystem,
+            f.AP, null, null, f.Builder, null, new AILearning(false), side);
+        var candidates = new List<AIAction>(); var participants = new HashSet<string>(); bool planned = false;
+        for (int step = 0; step < 5 && target.IsAlive; step++)
+        {
+            AITurnBudget.Begin(5000); board.Refresh(); manager.Refresh(board, TurnStrategy.ContactEngage); candidates.Clear();
+            foreach (var actor in actors) AIActionGenerator.GenerateAttackCandidates(actor, board, candidates);
+            candidates.RemoveAll(action => action.TargetUnit != target);
+            Check(prefix + "official-observed-target-candidates-" + step, candidates.Count > 0);
+            if (step == 0) Check(prefix + "all-three-normal-units-have-formal-attack-candidates", candidates.Count == 3);
+            manager.UpdateTacticalCoordination(candidates, board);
+            AIAction selected = candidates.Find(action => manager.IsCoordinatedKillHead(action, board));
+            if (selected != null) planned = true;
+            else foreach (var action in candidates) if (selected == null || action.APCost < selected.APCost) selected = action;
+            int before = f.State.GetAP(side), hp = target.HP;
+            Check(prefix + "official-executor-" + step, executor.Execute(selected, board));
+            Check(prefix + "exact-AP-and-real-damage-" + step, f.State.GetAP(side) == before - selected.APCost && target.HP < hp);
+            participants.Add(selected.Unit.ReflectionLifeId);
+        }
+        Check(prefix + "coordinator-formed-an-affordable-multi-actor-kill", planned);
+        Check(prefix + "real-multi-actor-kill-without-target-witness-injection", !target.IsAlive && participants.Count >= 2);
     }
 }
 #endif

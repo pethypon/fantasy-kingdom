@@ -95,6 +95,7 @@ public sealed partial class AIOperationManager
             }
         }
         BalanceSmallSquads(policy.Size);
+        AlignSquadSupport();
         state.Squads.Sort((a, b) => a.SquadId.CompareTo(b.SquadId));
         foreach (var squad in state.Squads)
         {
@@ -225,6 +226,63 @@ public sealed partial class AIOperationManager
                 small.Members.Add(donor.Members[donor.Members.Count - 1]); donor.Members.RemoveAt(donor.Members.Count - 1);
             }
     }
+
+    void AlignSquadSupport()
+    {
+        // A partial second squad must not strand the only healer with the rear
+        // group while the leading frontline fights unsupported. Swap memberships,
+        // preserving counts, unique ownership and the retained operation identity.
+        foreach (var source in state.Squads)
+        {
+            var plan = FindActive(source.OperationId);
+            if (plan == null || !plan.HasTargetPosition || plan.Status != AIOperationStatus.Active) continue;
+            int healerIndex = -1;
+            for (int i = 0; i < source.Members.Count; i++)
+                if (features.TryOwn(source.Members[i].ActorLifeId, out var actor) && CachedSquadRole(actor) == AIOperationSquadRole.Healer)
+                { healerIndex = i; break; }
+            if (healerIndex < 0) continue;
+            int FrontDistance(AIOperationSquad squad)
+            {
+                int distance = int.MaxValue / 2;
+                foreach (var member in squad.Members)
+                    if (features.TryOwn(member.ActorLifeId, out var actor) && actor.IsAlive
+                        && CachedSquadRole(actor) == AIOperationSquadRole.Frontline)
+                        distance = Math.Min(distance, AIOperationFeatureExtractor.Distance(actor.transform.position, new Vector3(plan.TargetX, 0, plan.TargetZ)));
+                return distance;
+            }
+            var destination = source; int best = FrontDistance(source);
+            foreach (var candidate in state.Squads)
+            {
+                if (candidate == source || candidate.OperationId != source.OperationId) continue;
+                bool hasHealer = false;
+                foreach (var member in candidate.Members)
+                    if (features.TryOwn(member.ActorLifeId, out var actor) && CachedSquadRole(actor) == AIOperationSquadRole.Healer) hasHealer = true;
+                int distance = FrontDistance(candidate);
+                if (!hasHealer && distance + 2 < best) { destination = candidate; best = distance; }
+            }
+            if (destination == source) continue;
+            int exchange = -1, furthest = -1, frontliners = 0;
+            foreach (var member in destination.Members)
+                if (features.TryOwn(member.ActorLifeId, out var actor) && CachedSquadRole(actor) == AIOperationSquadRole.Frontline) frontliners++;
+            for (int i = 0; i < destination.Members.Count; i++)
+            {
+                if (!features.TryOwn(destination.Members[i].ActorLifeId, out var actor) || !actor.IsAlive
+                    || CachedSquadRole(actor) == AIOperationSquadRole.Healer
+                    || frontliners <= 1 && CachedSquadRole(actor) == AIOperationSquadRole.Frontline) continue;
+                int distance = AIOperationFeatureExtractor.Distance(actor.transform.position, new Vector3(plan.TargetX, 0, plan.TargetZ));
+                if (distance > furthest) { exchange = i; furthest = distance; }
+            }
+            if (exchange < 0) continue;
+            var healer = source.Members[healerIndex]; source.Members[healerIndex] = destination.Members[exchange];
+            destination.Members[exchange] = healer;
+        }
+    }
+
+    public bool SupportsSquadPatient(Status healer, Status patient)
+        => healer != null && patient != null && healer != patient && healer.IsAlive && patient.IsAlive
+            && AIHealingCapability.HasHealing(healer)
+            && TryGetSquad(healer.ReflectionLifeId, out var owner) && TryGetSquad(patient.ReflectionLifeId, out var recipient)
+            && owner.OperationId == recipient.OperationId;
 
     void PickFormationSlot(AIOperationSquad squad, AIOperationSquadMember member, Status actor,
         AIOperationPlan plan, Vector3 center, AIBoardState board)
