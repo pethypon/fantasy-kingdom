@@ -101,7 +101,7 @@ public sealed partial class GameDevelopmentStudioWindow
         string label = Labels.TryGetValue(p.name,out var translated) ? translated : p.displayName;
         if (p.propertyType == SerializedPropertyType.Enum)
         {
-            if (p.name == "kind") { p.intValue = EnumPopup(p.intValue,label,typeof(Kind),v => KindNameJP.Get((Kind)v)); return; }
+            if (p.name == "kind") { p.intValue = KindPopup(p.intValue, label); return; }
             if (p.name == "defaultTeam") { p.intValue = EnumPopup(p.intValue,label,typeof(Team),v => TeamLabel((Team)v)); return; }
             if (p.name == "behaviourKind" || p.name == "buildingType") { p.intValue = EnumPopup(p.intValue,label,typeof(FacilityKind),v => FacilityData.Table.TryGetValue((FacilityKind)v,out var info) ? info.DisplayName : "未設定"); return; }
             if (p.name == "authoredPassive")
@@ -110,6 +110,23 @@ public sealed partial class GameDevelopmentStudioWindow
             { p.intValue = EnumPopup(p.intValue,label,typeof(SpecialAbility),v => SpecialAbilityData.Table.TryGetValue((SpecialAbility)v,out var info) ? info.NameJP : "なし"); return; }
         }
         EditorGUILayout.PropertyField(p,new GUIContent(label),true);
+    }
+    static string[] kindNames;
+    static int[] kindValues;
+    internal static int KindPopup(int current, string label)
+    {
+        if (kindValues == null)
+        {
+            var names = new List<string>(); var values = new List<int>();
+            foreach (Kind kind in Enum.GetValues(typeof(Kind)))
+            {
+                // Keep the serialized value reserved for old saves, not new authoring.
+                if (kind == Kind.Engineer) continue;
+                names.Add(KindNameJP.Get(kind)); values.Add((int)kind);
+            }
+            kindNames = names.ToArray(); kindValues = values.ToArray();
+        }
+        return EditorGUILayout.IntPopup(label, current, kindNames, kindValues);
     }
     static int EnumPopup(int current,string label,System.Type type,Func<object,string> translate)
     {
