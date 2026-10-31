@@ -35,6 +35,7 @@ public partial class AICommander
             if (action.ActionType == AIActionType.Wait) continue;
             if (AIActionEvaluator.IsIneffectiveProtectedAttack(action, _board)) continue;
             if (turnMovementHistory.ShouldReject(action, _board)) continue;
+            if (_board.Operations?.ReversesHealthyMarch(action, _board) == true) continue;
             if (action.SpecialCommand != null && action.Score <= 0) continue;
             if (AIActionEvaluator.ShouldPreserveStationary(action, actions, _board)) continue;
             if (action.APCost > _board.EnemyAP) continue;
@@ -71,6 +72,19 @@ public partial class AICommander
             validActions[i] = (entry.action, entry.score + LearnedModifier(entry.action) + OperationActionBonus(entry.action)
                 + CognitiveActionBonus(entry.action));
         }
+
+        // Honor a currently affordable multi-actor kill inside the surviving
+        // strategic tier. Otherwise an unrelated high-scoring action can spend
+        // the AP reserved by the coordination estimate and the chain never starts.
+        // Emergency/resupply priorities above this tier have already won; each
+        // subsequent command is regenerated from its real result as usual.
+        foreach (var entry in validActions)
+            if (_board.Operations?.IsCoordinatedKillHead(entry.action, _board) == true)
+            {
+                RememberSelectionScores(entry.action, entry.score);
+                AIDecisionObserver.Emit(_board, actions, entry.action, "selected");
+                return entry.action;
+            }
 
         // ミス率: 一定確率で最善手以外を選択する（チュートリアル〜ノーマル帯）
         float mistakeRate = _threatLevel.MistakeRate;
@@ -119,6 +133,7 @@ public partial class AICommander
         foreach (var action in actions)
         {
             if (action.Unit == null) continue;
+            if (_board.Operations?.IsPlannedMarch(action, _board) == true) continue;
             if (action.ActionType != AIActionType.Move
                 && action.ActionType != AIActionType.Retreat
                 && action.ActionType != AIActionType.Support

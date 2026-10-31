@@ -69,21 +69,6 @@ public sealed partial class AIStrategicGovernor
             if (!AddRecruitmentRole(board, role, "observed_force_or_core_replacement")) break;
             fighters++; if (role == "frontline") frontline++; else ranged++;
         }
-        // Diagnose after the replacement order is complete. Otherwise losing the last
-        // iron-consuming soldier erases the reason to bootstrap its replacement supply.
-        if (engineers == 0 && AIActionGenerator.HasRareOreSupplyGap(board))
-        {
-            AIRecruitmentNeed deferred = default;
-            bool full = recruitmentPlan.Count >= 3;
-            if (full)
-            {
-                int last = recruitmentPlan.Count - 1; deferred = recruitmentPlan[last];
-                recruitmentPlan.RemoveAt(last); recruitmentForecastUnits.RemoveAt(last);
-                recruitmentCounts[deferred.Definition.kind]--;
-            }
-            if (!AddRecruitmentRole(board, "engineer", "outside_territory_ore_supply_missing") && full)
-                AddRecruitmentNeed(deferred.Definition, deferred.Role, deferred.Reason);
-        }
         int reserve = RecruitmentCitizenReserve;
         foreach (var need in recruitmentPlan)
         {

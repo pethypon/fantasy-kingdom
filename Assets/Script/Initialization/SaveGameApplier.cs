@@ -371,6 +371,9 @@ public static class SaveGameApplier
             if (!StableSaveKeys.TryParse<Team>(ud.Team, out var team)) continue;
             if (team != Team.Player && team != Team.Enemy) continue;
             if (!StableSaveKeys.TryParse<Kind>(ud.Kind, out var kind)) continue;
+            // Keep the enum number readable for old saves, without resurrecting
+            // the removed unit or silently converting it into another profession.
+            if (kind == Kind.Engineer || ud.DefinitionId == "r2.unit.engineer") continue;
 
             // クリスタルは CrystalSystem.CrystalCore で復元済みのはず
             if (kind == Kind.Crystal)

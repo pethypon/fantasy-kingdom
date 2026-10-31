@@ -235,9 +235,16 @@ public static class A1CoordinationTests
         AITurnBudget.Begin(5000);
         using (var f = new Fixture())
         {
+            f.Board.ReconThreatLevel = 15;
             f.Manager.UpdateTacticalCoordination(f.Actions, f.Board);
+            Check("CQ11-complete-safe-kill-chain-has-an-executable-head", f.Manager.IsCoordinatedKillHead(f.Actions[0], f.Board)
+                || f.Manager.IsCoordinatedKillHead(f.Actions[1], f.Board));
             Check("CQ01-two-current-formal-attacks-compose-a-bounded-kill", f.Manager.CoordinationSteps.Count == 2 && f.Current);
             Check("CQ05-real-budget-above-stale-15-is-usable", f.Board.EnemyAP > 15 && f.Board.EnemyAP <= APSystem.MaximumAP);
+            f.Board.ReconThreatLevel = 1;
+            Check("CQ11-low-threat-keeps-normal-selection", !f.Manager.IsCoordinatedKillHead(f.Actions[0], f.Board)
+                && !f.Manager.IsCoordinatedKillHead(f.Actions[1], f.Board));
+            f.Board.ReconThreatLevel = 15;
             int ap = f.Board.EnemyAP; Property(f.Board, "EnemyAP", ap - 1);
             Check("AT08-other-squad-AP-spend-invalidates-old-sequence", !f.Current); Property(f.Board, "EnemyAP", ap);
             f.Target.HP--;

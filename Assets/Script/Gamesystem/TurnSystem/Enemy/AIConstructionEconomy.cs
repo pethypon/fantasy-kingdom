@@ -5,24 +5,18 @@ public static class AIConstructionEconomy
 {
     public static TerritorySystem Territory(AIBoardState board) => board?.TerritorySystem ?? board?.BuildSystem?.Territory
         ?? board?.MapCreate?.GetComponent<TerritorySystem>();
-    public static bool IsEngineer(AIAction action) => action?.ActionType == AIActionType.Build
-        && action.Unit != null && action.Unit.kind == Kind.Engineer && action.Unit.type == Type.Unit;
+    public static bool IsEngineer(AIAction action) => false;
     public static FacilityData.ResourceCost BuildCost(AIAction action)
     {
         var cost = action?.FacilityDefinition != null ? action.FacilityDefinition.GetInfo().BuildCost
             : action != null && FacilityData.Table.TryGetValue(action.Facility, out var info) ? info.BuildCost : default;
-        return IsEngineer(action) ? R2EconomyRules.EngineerCost(cost) : cost;
+        return cost;
     }
     public static FacilityData.FacilityLevelData WithoutUnlocatedOre(FacilityData.FacilityLevelData recipe)
-        => FacilityData.RestrictProductionAt(recipe, default, Team.None, null);
+        => recipe;
     public static bool AllowsOre(AIAction action, AIBoardState board)
     {
-        if (board == null || !IsEngineer(action) || !action.Unit.IsAlive || action.Unit.team != board.ActorTeam
-            || action.Unit.VisionCell == null || !action.Unit.VisionCell.Contains(GridHelper.ToGrid(action.TargetPos))) return false;
-        var territory = Territory(board);
-        // Opponent ownership is inspected only at an individually visible placement, never at a hidden goal.
-        return FacilityData.CanProduceRareOre(action.TargetPos, action.Unit.team, territory)
-            && !territory.IsInTerritory(GridHelper.ToGridXZ(action.TargetPos), board.OpponentTeam);
+        return true;
     }
     public static FacilityData.FacilityLevelData BuildRecipe(AIAction action, AIBoardState board)
     {

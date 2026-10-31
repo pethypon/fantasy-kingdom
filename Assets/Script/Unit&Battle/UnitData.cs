@@ -24,8 +24,8 @@ public class UnitData : ScriptableObject
     public CombatAttackTags attackTags;
 
     public string DisplayName => !string.IsNullOrWhiteSpace(displayName) ? displayName : KindNameJP.Get(kind);
-    public bool AvailableFor(Team team) => team == Team.Player ? availableToPlayer
-        : team == Team.Enemy ? availableToEnemy : team == defaultTeam;
+    public bool AvailableFor(Team team) => kind != Kind.Engineer && (team == Team.Player ? availableToPlayer
+        : team == Team.Enemy ? availableToEnemy : team == defaultTeam);
 
     [Header("種類")]
     public Kind kind;
@@ -64,7 +64,7 @@ public class UnitData : ScriptableObject
     public int costCitizen;
     public int costAP;
 
-    public bool IsValidForAuthoring => baseHP > 0 && baseATK >= 0 && baseDEF >= 0 && baseBarrier >= -1
+    public bool IsValidForAuthoring => kind != Kind.Engineer && baseHP > 0 && baseATK >= 0 && baseDEF >= 0 && baseBarrier >= -1
         && upkeepWood >= 0 && upkeepStone >= 0 && upkeepIron >= 0 && upkeepMagic >= 0 && upkeepWater >= 0 && upkeepBread >= 0
         && costWood >= 0 && costStone >= 0 && costIron >= 0 && costMagic >= 0 && costWater >= 0 && costBread >= 0 && costCitizen >= 0 && costAP >= 0;
 

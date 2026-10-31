@@ -10,7 +10,8 @@ using UnityEngine;
 /// <summary>Bounded, read-only R2 observer. Nothing in this file supplies AI input.</summary>
 public static class AIR2PlaytestTelemetry
 {
-    static StreamWriter decisions, units, nations;
+    static StreamWriter decisions, units, nations, operations;
+    static int operationRows;
     static int nationRows;
     static readonly List<Status> ownBuildings = new List<Status>(64);
     static int rows, decisionRows, unitRows, skippedDecisionEvents, skippedSnapshots, droppedRows, skillOverflow, scoreTraceOverflow;
@@ -89,9 +90,11 @@ public static class AIR2PlaytestTelemetry
         decisions = new StreamWriter(Path.Combine(folder, "decisions.csv"));
         units = new StreamWriter(Path.Combine(folder, "units.csv"));
         nations = new StreamWriter(Path.Combine(folder, "nation-economy.csv")); nationRows = 0;
+        operations = new StreamWriter(Path.Combine(folder, "operation-orders.csv")); operationRows = 0;
+        operations.WriteLine("team,round,generation,mode,AP,operationId,goal,status,step,targetX,targetZ,assigned,lastProgress,squadId,squadPhase,chosenActor,chosenType,chosenTarget,chosenOperation,actorX,actorZ,destinationX,destinationZ,operationMembers,squadMembers,coordinationSteps");
         NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock", "developmentFightingTarget", "developmentCitizenDemand", "developmentRequiredStock", "housingRequiredCapacity", "housingReasons", "housingRecoveryStarted", "housingRecoveryLastProgress", "housingDeferredTurns", "housingRecoveryStatus", "plannedAP", "currentMaxAP", "mainCrystalKnowledge");
         Row(decisions, "team", "round", "generation", "stage", "mode", "AP", "group", "count", "actorLifeId", "action", "target", "score", "priority", "selected", "reason", "visibleEnemies", "affordableKinds", "summonCells", "casterKind", "skillKey", "normalSkillId", "specialAbility", "actionAP", "APAffordable", "chosenAction", "chosenScore", "chosenPriority", "selectionOutcome", "scoreComponents", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "preservationSafety", "recoveryPhase", "refugeX", "refugeZ", "healingPossible", "alliesNear", "saferMoveCount", "patientHP", "patientMaxHP", "chosenActorLifeId", "chosenTargetLifeId");
-        Row(units, "team", "round", "lifeId", "kind", "type", "level", "x", "z", "facing", "hp", "maxHP", "barrier", "maxBarrier", "homeDistance", "incoming", "plan", "planStep", "planTargetX", "planTargetZ", "exploreId", "region", "exploreState", "exploreReason", "exploreX", "exploreZ", "newTiles", "houseCapacity", "assignedSkillId", "assignedSkillAP", "skillCooldown", "specialAbility", "specialEnabled", "specialAP", "specialCooldown", "specialSelfReady", "specialSelfReason", "preservationSafety", "recoveryPhase", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "saferMoveCount", "healingPossible", "alliesNear", "refugeX", "refugeZ", "preservationReason");
+        Row(units, "team", "round", "lifeId", "kind", "type", "level", "x", "z", "facing", "hp", "maxHP", "barrier", "maxBarrier", "homeDistance", "incoming", "plan", "planStep", "planTargetX", "planTargetZ", "exploreId", "region", "exploreState", "exploreReason", "exploreX", "exploreZ", "newTiles", "houseCapacity", "assignedSkillId", "assignedSkillAP", "skillCooldown", "specialAbility", "specialEnabled", "specialAP", "specialCooldown", "specialSelfReady", "specialSelfReason", "preservationSafety", "recoveryPhase", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "saferMoveCount", "healingPossible", "alliesNear", "refugeX", "refugeZ", "preservationReason", "operationId", "operationGoal", "operationStatus", "operationStep", "operationX", "operationZ", "operationProgressTurn", "squadId", "squadPhase", "squadReason");
         WriteStatus(false);
         AIDecisionObserver.Observed += Observe;
     }
@@ -101,12 +104,35 @@ public static class AIR2PlaytestTelemetry
         if (folder != null) { WriteSkills(); WriteDecisions(); WriteStatus(true); }
         decisions?.Dispose(); units?.Dispose(); decisions = units = null;
         nations?.Dispose(); nations = null; ownBuildings.Clear(); groups.Clear();
+        operations?.Dispose(); operations = null;
         scoreTraces.Clear();
         folder = null;
     }
     static void Observe(AIBoardState board, List<AIAction> candidates, AIAction chosen, string stage)
     {
         if (decisions == null || board == null) return;
+        if (stage == "selected" && operations != null && operationRows < 12000 && board.Operations != null)
+        {
+            AIOperationSquad chosenSquad = null;
+            if (chosen?.Unit != null) board.Operations.TryGetSquad(chosen.Unit.ReflectionLifeId, out chosenSquad);
+            foreach (var plan in board.Operations.State.ActiveOperations)
+            {
+                if (operationRows++ >= 12000) break;
+                var fields = new object[] { board.ActorTeam, board.TurnCount, board.Generation, board.Governor?.Mode,
+                    board.EnemyAP, plan.OperationId, plan.PrimaryGoal, plan.Status, plan.CurrentStep, plan.TargetX, plan.TargetZ,
+                    plan.AssignedUnitLifeIds.Count, plan.LastProgressTurn, chosenSquad?.SquadId, chosenSquad?.Phase,
+                    chosen?.Unit?.ReflectionLifeId, chosen?.ActionType, chosen?.TargetUnit?.ReflectionLifeId, chosenSquad?.OperationId,
+                    chosen?.Unit?.transform.position.x, chosen?.Unit?.transform.position.z, chosen?.TargetPos.x, chosen?.TargetPos.z,
+                    string.Join(";", plan.AssignedUnitLifeIds), chosenSquad != null ? string.Join(";", chosenSquad.Members.ConvertAll(member => member.ActorLifeId)) : "",
+                    board.Operations.CoordinationSteps.Count };
+                for (int i = 0; i < fields.Length; i++)
+                {
+                    if (i > 0) operations.Write(','); operations.Write('"');
+                    operations.Write((Convert.ToString(fields[i], CultureInfo.InvariantCulture) ?? "").Replace("\"", "\"\"")); operations.Write('"');
+                }
+                operations.WriteLine();
+            }
+        }
         if (stage == "generated") scoreTraces.Clear();
         if (stage.StartsWith("score:", StringComparison.Ordinal))
         {
@@ -206,6 +232,12 @@ public static class AIR2PlaytestTelemetry
             bool ready = special != null && systems != null && actor.Special != null && SpecialSkillRuntime.CanUse(actor, systems, out readyReason);
             object preservation = Preservation(board, actor);
             var refuge = Value(preservation, "Refuge");
+            AIOperationSquad squad = null;
+            board.Operations?.TryGetSquad(actor.ReflectionLifeId, out squad);
+            AIOperationPlan operation = null;
+            if (squad != null && board.Operations != null)
+                foreach (var candidate in board.Operations.State.ActiveOperations)
+                    if (candidate.OperationId == squad.OperationId) { operation = candidate; break; }
             Row(units, board.ActorTeam, board.TurnCount, actor.ReflectionLifeId, actor.kind, actor.type, actor.Level,
                 actor.transform.position.x, actor.transform.position.z, actor.direction, actor.HP, actor.MaxHP,
                 actor.Barrier, actor.MaxBarrier, GridHelper.ChebyshevDistance(actor.transform.position, board.EnemyCrystalPos),
@@ -218,7 +250,10 @@ public static class AIR2PlaytestTelemetry
                 Value(preservation, "Safety"), Value(preservation, "Phase"), Value(preservation, "IncomingCurrent"),
                 Value(preservation, "RepeatedObservedLoss"), Value(preservation, "HasLegalSaferMove"), Value(preservation, "SaferMoveCount"),
                 Value(preservation, "HealingPossible"), Value(preservation, "AlliesNear"), refuge is Vector3 point ? (object)point.x : null,
-                refuge is Vector3 secondPoint ? (object)secondPoint.z : null, Value(preservation, "Reason"));
+                refuge is Vector3 secondPoint ? (object)secondPoint.z : null, Value(preservation, "Reason"),
+                operation?.OperationId, operation?.PrimaryGoal, operation?.Status, operation?.CurrentStep,
+                operation?.TargetX, operation?.TargetZ, operation?.LastProgressTurn,
+                squad?.SquadId, squad?.Phase, squad?.LastReason);
         }
         units.Flush(); decisions.Flush();
     }

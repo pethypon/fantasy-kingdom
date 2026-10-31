@@ -24,6 +24,7 @@ public sealed class AIOperationSquadMember
     public string ActorLifeId;
     public AIOperationSquadRole Role;
     public bool Recovering, HasSlot;
+    [NonSerialized] public bool MarchSlot;
     public int SlotX, SlotZ;
 }
 

@@ -137,6 +137,11 @@ public partial class AICommander
         foreach (var strategy in fallbackOrder)
         {
             if (_triedStrategies.Contains(strategy)) continue;
+            // Trying another scoring policy is not evidence of a new emergency.
+            // A fallback defense used to suspend a real march merely because the
+            // current turn had exhausted its useful commands.
+            if (strategy == TurnStrategy.CrystalDefense
+                && _board.Governor?.Mode != StrategicMode.EmergencyDefense) continue;
             _currentStrategy = strategy;
             _fallbackStrategyPending = true;
             _triedStrategies.Add(strategy);

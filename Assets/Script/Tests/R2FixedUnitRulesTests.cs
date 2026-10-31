@@ -57,19 +57,17 @@ public static class R2FixedUnitRulesTests
             Check("D01", sim.HP == actor.MaxHP && sim.ATK == actor.ATK && sim.DEF == actor.DEF);
             Check("D02", UnitData.CalcGrowthPerLevel(100, 100) == 0 && actor.Level == 1);
             Check("I03", data.baseHP == 100 && data.baseATK == 20 && data.baseDEF == 10 && data.IsValidForAuthoring);
-            data.kind=Kind.Engineer;actor.kind=Kind.Engineer;data.baseBarrier=-1;
-            Check("engineer-barrier-requires-configuration",!BarrierSystem.UsesBarrier(actor));
-            data.baseBarrier=6;data.ApplyToStatus(actor,100);
-            Check("engineer-authored-barrier-live-sim",actor.MaxBarrier==6&&new SimRecruitmentDefinition(data).Barrier==6
-                &&new SimUnit{Kind=Kind.Engineer,Type=Type.Unit,MaxBarrier=6,EngineerBarrierConfigured=true}.UsesBarrier);
+            data.kind = Kind.Engineer;
+            Check("retired-engineer-is-not-authorable-or-recruitable", !data.IsValidForAuthoring && !data.AvailableFor(Team.Player) && !data.AvailableFor(Team.Enemy));
+            data.kind = Kind.Knight; actor.kind = Kind.Knight; data.baseBarrier = 6; data.ApplyToStatus(actor, 100);
             var create=typeof(SimBoardState).GetMethod("CreateSimUnitFromKind",BindingFlags.Instance|BindingFlags.NonPublic);
             var simulation=new SimBoardState();
             var fallback=(SimUnit)create.Invoke(simulation,new object[]{Kind.Knight,Team.Enemy,Vector3Int.zero,1});
             Check("A09",fallback.MaxHP==FixedUnitRules.BaseStat(Kind.Knight,UnitStaticData.Table[Kind.Knight].BaseHP));
             simulation.RecruitmentDefinitions=new System.Collections.Generic.Dictionary<Kind,SimRecruitmentDefinition>
-                {{Kind.Engineer,new SimRecruitmentDefinition(data)}};
-            var summoned=(SimUnit)create.Invoke(simulation,new object[]{Kind.Engineer,Team.Enemy,Vector3Int.zero,2});
-            Check("D08",summoned.MaxHP==actor.MaxHP&&summoned.MaxBarrier==6&&summoned.UsesBarrier&&summoned.Clone().EngineerBarrierConfigured);
+                {{Kind.Knight,new SimRecruitmentDefinition(data)}};
+            var summoned=(SimUnit)create.Invoke(simulation,new object[]{Kind.Knight,Team.Enemy,Vector3Int.zero,2});
+            Check("D08",summoned.MaxHP==actor.MaxHP&&summoned.MaxBarrier==6&&summoned.UsesBarrier&&summoned.Clone().MaxBarrier == 6);
         }
         finally { UnityEngine.Object.DestroyImmediate(obj); UnityEngine.Object.DestroyImmediate(data); }
         Debug.Log("[R2Fixed] COMPLETE");

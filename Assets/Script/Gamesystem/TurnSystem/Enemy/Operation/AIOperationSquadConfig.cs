@@ -33,7 +33,7 @@ public sealed class AIOperationSquadConfig : ScriptableObject
         }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    static void Reset()
+    static void ResetRuntimeCache()
     {
         // Loaded assets belong to Unity/the user. Only dispose our generated fallback,
         // including when domain reload is disabled for repeated Play Mode sessions.

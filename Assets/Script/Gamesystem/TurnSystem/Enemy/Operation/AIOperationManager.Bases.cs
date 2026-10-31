@@ -363,9 +363,12 @@ public sealed partial class AIOperationManager
         if (plan.CurrentContext?.ConfirmedTargetDestroyed == true || CurrentStep(plan)?.Type == AIOperationStepType.Retreat)
             return new Vector3(plan.RallyX, 0, plan.RallyZ);
         var step = CurrentStep(plan)?.Type;
-        if (step == AIOperationStepType.Regroup || actor.kind != Kind.Scout && (plan.Status == AIOperationStatus.Preparing
-            || entry == null || !entry.CurrentlyVisible && !CanAdvanceUsingFreshBaseMemory(plan, entry)
-            || step == AIOperationStepType.Scout))
+        // A missing full defense survey is a reason to probe cautiously, not a
+        // command for every combat unit to return home indefinitely. Each actual
+        // hop still needs known terrain, legal movement and observed survival.
+        bool assembling = state.LastStartedOwnTurn - plan.StartTurn
+            < Mathf.Clamp(AIOperationSquadConfig.Active.AssemblyGraceTurns, 1, 5);
+        if (entry == null || step == AIOperationStepType.Regroup && assembling)
             return new Vector3(plan.RallyX, 0, plan.RallyZ);
         if (plan.BaseAssaultPattern == AIBaseAssaultPattern.DiversionAssault && step == AIOperationStepType.Diversion && actor.kind == Kind.Scout)
         {
@@ -388,16 +391,6 @@ public sealed partial class AIOperationManager
         return new Vector3(plan.TargetX, 0, plan.TargetZ);
     }
 
-    bool CanAdvanceUsingFreshBaseMemory(AIOperationPlan plan, AIKnownEnemyBase entry)
-    {
-        // Movement may follow a recent legal observation over an already verified route.
-        // Attack permission still requires current visibility in BaseAttackBonus/execution.
-        return entry != null && !entry.ConfirmedDestroyed && plan.Status == AIOperationStatus.Active
-            && plan.BaseRouteConfirmed && plan.BaseDefenseKnown && entry.DefenseIntelKnown
-            && plan.TargetX == entry.X && plan.TargetZ == entry.Z
-            && Math.Max(0, state.LastStartedOwnTurn - entry.LastSeenTurn) <= Mathf.Clamp(config.BaseIntelFreshTurns, 1, 12)
-            && AssignedAssaultForce(plan) >= plan.RequiredAssaultForce;
-    }
     static uint LifeHash(string life)
     { uint hash = 2166136261; if (life != null) foreach (char character in life) hash = unchecked((hash ^ character) * 16777619); return hash; }
     static string BasePatternLabel(AIBaseAssaultPattern pattern) => pattern == AIBaseAssaultPattern.DirectAssault ? "正面攻略"
@@ -471,11 +464,11 @@ public sealed partial class AIOperationManager
             plan.Status = AIOperationStatus.Preparing;
         }
         if (assignedForce < plan.RequiredAssaultForce && !immediateAttack && plan.Status != AIOperationStatus.Suspended) plan.Status = AIOperationStatus.Preparing;
-        if (plan.Status == AIOperationStatus.Preparing && assignedForce > 0 && entry.CurrentlyVisible && confirmedRoute
+        if (plan.Status == AIOperationStatus.Preparing && assignedForce > 0
             && turn - plan.StartTurn >= Mathf.Clamp(AIOperationSquadConfig.Active.AssemblyGraceTurns, 1, 5))
         {
             plan.Status = AIOperationStatus.Active;
-            plan.StrategicReason = "集合猶予後は暫定編成で既知経路を段階接近し、不足役割の補充を継続";
+            plan.StrategicReason = "集合猶予後は観測済み領域を段階接近。未知の防衛や経路は安全と断定せず各行動で再確認";
         }
         if (immediateAttack && plan.Status != AIOperationStatus.Suspended)
         {
@@ -488,12 +481,15 @@ public sealed partial class AIOperationManager
         }
         if (entry.CurrentlyVisible && entry.DefenseIntelKnown && confirmedRoute && CurrentStep(plan)?.Type == AIOperationStepType.Scout)
         { var step = CurrentStep(plan); step.Completed = true; step.EndTurn = turn; plan.CurrentStep++; plan.LastProgressTurn = turn; }
-        if (CurrentStep(plan)?.Type == AIOperationStepType.Regroup && assignedForce >= plan.RequiredAssaultForce)
+        if (CurrentStep(plan)?.Type == AIOperationStepType.Regroup && assignedForce > 0
+            && (assignedForce >= plan.RequiredAssaultForce || turn - plan.StartTurn >= Mathf.Clamp(AIOperationSquadConfig.Active.AssemblyGraceTurns, 1, 5)))
         {
             bool gathered = plan.AssignedUnitLifeIds.Count > 0;
             foreach (string life in plan.AssignedUnitLifeIds)
                 if (!features.TryOwn(life, out var actor) || AIOperationFeatureExtractor.Distance(actor.transform.position, new Vector3(plan.RallyX, 0, plan.RallyZ)) > RallyRadius) gathered = false;
-            if (gathered) { var step = CurrentStep(plan); step.Completed = true; step.EndTurn = turn; plan.CurrentStep++; plan.LastProgressTurn = turn; }
+            if (gathered || turn - plan.StartTurn >= Mathf.Clamp(AIOperationSquadConfig.Active.AssemblyGraceTurns, 1, 5)
+                && OperationAssembled(plan))
+            { var step = CurrentStep(plan); step.Completed = true; step.EndTurn = turn; plan.CurrentStep++; }
         }
     }
     bool BaseWithdrawalPending(AIOperationPlan plan, int turn)

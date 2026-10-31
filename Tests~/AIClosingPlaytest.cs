@@ -42,6 +42,8 @@ public static class AIClosingPlaytest
     [Serializable] sealed class MatchReport
     {
         public string R4RequestedMode;
+        public bool ControlledSquadScenario;
+        public string ScenarioScope = "ordinary NewGame with developer Player AI";
         public bool R4Enabled, R4Shadow, R4MayInfluenceActions, R4MultiStepSquadPlanning;
         public int MapSeed, EnemyAISeed, PlayerAISeed, ThreatLevel = 15, Round, OwnerTurns;
         public string EnemyPersonality, PersistentPath, StartedUtc, FinishedUtc, EndCondition, Result = "unresolved", OutcomeReason, Fault;
@@ -393,6 +395,8 @@ public static class AIClosingPlaytest
                     match.EnemyEngineerConfigured = engineer != null && engineer.IsValidForAuthoring && engineer.AvailableFor(Team.Enemy);
                 }
                 match.TerrainSeedX = s.MapCreate.SeedX; match.TerrainSeedZ = s.MapCreate.SeedZ;
+                match.ControlledSquadScenario = SquadAssaultSetup.Apply(turn);
+                if (match.ControlledSquadScenario) match.ScenarioScope = "CONTROLLED superior-force fixture: eight extra normal-stat Player troops at seven-step staging; Player material stocks 5000 and resource-cap enforcement disabled only here; full-health objective; official AP/damage/Fog/executor rules. Not ordinary-game victory evidence.";
                 ObserveDecisiveActors();
                 AIPlaytestMapEvidence.CaptureInitial(turn, folder);
                 turn.PlayerAI.SetEnabled(true, false);

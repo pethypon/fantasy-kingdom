@@ -342,6 +342,7 @@ public class SummonSystem : MonoBehaviour
     /// </summary>
     public Status SpawnUnitForLoad(Kind kind, Team team, Vector3 worldPos, string definitionId = null)
     {
+        if (kind == Kind.Engineer || string.Equals(definitionId, "r2.unit.engineer", System.StringComparison.Ordinal)) return null;
         Transform parent = team == Team.Player ? unitset.PlayerUnit : unitset.EnemyUnit;
         Direction dir = team == Team.Player ? Direction.N : Direction.S;
 

@@ -127,7 +127,6 @@ public partial class BuildSystem : MonoBehaviour
         SelectedFacility = facility;
         SelectedDefinition = null;
         EngineerBuilder = null;
-        engineerMode = false;
         HideEngineerRange();
         hasPlacementFeedback = false;
         IsActive = true;
@@ -141,7 +140,6 @@ public partial class BuildSystem : MonoBehaviour
     {
         IsActive = false;
         EngineerBuilder = null;
-        engineerMode = false;
         HideEngineerRange();
         PlacementFailureReason = null;
         turnGenerator?.Systems.InputHintUI?.SetHints(InputHintUI.Hints.PlayerMove);
@@ -176,7 +174,6 @@ public partial class BuildSystem : MonoBehaviour
     bool hasPlacementFeedback;
     public string GetPlacementFailure(Vector3Int position)
     {
-        if (IsEngineerBuild) return EngineerPlacementFailure(EngineerBuilder, position, SelectedFacility, SelectedDefinition, false);
         return (SelectedDefinition != null ? GetCostFailure(SelectedDefinition, Team.Player) : BuildValidator.CostFailure(SelectedFacility,factionState))
             ?? validator.PlacementFailure(position,SelectedFacility,subCrystalSystem,turnGenerator.Systems.CrystalSystem);
     }

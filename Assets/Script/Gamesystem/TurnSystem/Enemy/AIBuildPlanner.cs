@@ -43,7 +43,7 @@ public class AIBuildPlanner
             return 0;
         }
 
-        if (strategy == TurnStrategy.CrystalDefense && governor.Mode != StrategicMode.EconomicRecovery)
+        if (strategy == TurnStrategy.CrystalDefense && governor.Mode == StrategicMode.EmergencyDefense)
         {
             { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log("[AIBuildPlanner] クリスタル防衛中 → 先行建築スキップ"); }
             return 0;

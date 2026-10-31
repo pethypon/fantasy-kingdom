@@ -120,9 +120,9 @@ public static class R2TimerUIRulesTests
         try
         {
             actorObject.SetActive(true);
-            Check("engineer construction menu requires a living owned engineer", menu.UseEngineerConstruction(actor));
+            Check("retired engineer cannot open a construction menu", !menu.UseEngineerConstruction(actor));
             UnityEngine.Object.DestroyImmediate(actorObject);
-            Check("dead engineer never silently switches its menu to normal prices", menu.UseNormalConstruction());
+            Check("ordinary construction context remains active after rejected engineer request", !menu.UseNormalConstruction());
             Check("ordinary construction context switch is explicit and idempotent", !menu.UseNormalConstruction());
             Check("a null engineer cannot create a new remote construction context", !menu.UseEngineerConstruction(null));
         }
@@ -140,10 +140,11 @@ public static class R2TimerUIRulesTests
         var method = typeof(UnitPanelUI).GetMethod("BuildingEffectText", BindingFlags.Static | BindingFlags.NonPublic);
         mine.transform.position = new Vector3(2, 0, 2);
         string inside = (string)method.Invoke(null, new object[] { mine, territory });
-        Check("MN12 own-territory mine explains zero rare output", inside.Contains("鉄・魔石は領土外でのみ採掘可能"));
+        Check("MN12 own-territory mine shows ordinary production", inside.Contains("採掘：稼働")
+            && inside.Contains(FormatExpectedMineOutput(mine, territory)) && !inside.Contains("領土外"));
         mine.transform.position = new Vector3(3, 0, 2);
         string outside = (string)method.Invoke(null, new object[] { mine, territory });
-        Check("MN12 outside mine presents effective recipe and operation state", outside.Contains("領土外採掘：稼働")
+        Check("MN12 existing mine presents effective recipe and operation state", outside.Contains("採掘：稼働")
             && outside.Contains(FormatExpectedMineOutput(mine, territory)) && !outside.Contains("領土外でのみ採掘可能"));
     }
 

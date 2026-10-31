@@ -71,7 +71,7 @@ public sealed partial class AIOperationManager
                 || !plan.AssignedUnitLifeIds.Contains(member.ActorLifeId)
                 || assignments.TryGetValue(member.ActorLifeId, out var assigned) && assigned != plan
                 || !squadLives.Add(member.ActorLifeId));
-            foreach (var member in squad.Members) member.HasSlot = false;
+            foreach (var member in squad.Members) { member.HasSlot = false; member.MarchSlot = false; }
             squad.HasApproachWaypoint = false;
             if (squad.Members.Count == 0) state.Squads.RemoveAt(i); else i++;
         }
@@ -257,6 +257,11 @@ public sealed partial class AIOperationManager
             anchor = (lead != null ? lead.transform.position : center) + forward;
         }
         Vector3 ideal = anchor + forward * rank + side * lateral;
+        // Formation is subordinate to the retained operation. A legal route may
+        // initially lead sideways/backwards around terrain, rather than orbiting
+        // the lead actor or walking back to an unreachable geometric slot.
+        if (!rear && squad.Phase != AIOperationSquadPhase.Assembling
+            && TryPickMarchSlot(plan, member, actor, Aim(actor), ideal, board)) return;
         float best = float.NegativeInfinity; Vector3 destination = actor.transform.position; bool found = false;
         foreach (var cell in board.GetValidMoves(actor))
         {
@@ -373,6 +378,7 @@ public sealed partial class AIOperationManager
         squadByActor.Clear(); squadMembers.Clear(); squadRecruitment.Clear(); squadSlots.Clear(); squadAttackTargets.Clear(); squadBoard = null; squadGeneration = -1;
         squadRoleCache.Clear(); squadRoleBoard = null; squadRoleGeneration = -1;
         ClearCoordination();
+        ClearMarch();
     }
     List<Status> LegalSquadTargets(Status actor, AIBoardState board)
     {

@@ -45,10 +45,6 @@ MonoBehaviour:
     prefab: {fileID: 7250053681619698131, guid: 5372fc675098139499dc77290d4b8811, type: 3}
     data: {fileID: 11400000, guid: b525ba277bb94d847b45c96be592ade2, type: 2}
     standaloneDefinition: 0
-  - kind: 25
-    prefab: {fileID: 5262881611718164221, guid: 382c5885cf6605f43a17004dc2c338ce, type: 3}
-    data: {fileID: 11400000, guid: 890c36d4bc471d44e9ed405b894a0a65, type: 2}
-    standaloneDefinition: 0
   retiredUnits:
   - kind: 2
     prefab: {fileID: 8561302351369880905, guid: a617b6e4c9419a9409214eb65b89a13c, type: 3}
