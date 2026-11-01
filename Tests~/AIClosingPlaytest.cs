@@ -181,8 +181,8 @@ public static class AIClosingPlaytest
     static MatchReport match;
     static TurnGenerator turn;
     static SideObserver player, enemy;
-    static StreamWriter actions, turns, crystalChanges;
-    static int crystalRows;
+    static StreamWriter actions, turns, crystalChanges, healingEvents;
+    static int crystalRows, healingRows;
     static readonly Dictionary<string, (int hp, int maximum)> crystalSnapshots = new Dictionary<string, (int, int)>();
     static bool initialized, clicked, finishing;
     static bool explorationLoggingChanged, originalExplorationLogging;
@@ -199,18 +199,29 @@ public static class AIClosingPlaytest
         if (result.ActualBarrierLoss > 0 && result.ActualHpLoss == 0) match.BarrierOnlyHits++;
         if (result.Kind == HpChangeKind.BarrierBypassDamage && result.ActualHpLoss > 0) match.BypassHits++;
         if (result.Source != null && result.Source.kind == Kind.HeavyWarrior && result.Cause == HpChangeCause.Skill) match.HeavySkills++;
-        if (result.ActualHeal > 0 && result.Target != null
-            && (result.Target.kind == Kind.Crystal || result.Target.kind == Kind.SubCrystal))
+        if (result.ActualHeal > 0 && result.Target != null && crystalRows < 20000)
         {
+            bool crystal = result.Target.kind == Kind.Crystal || result.Target.kind == Kind.SubCrystal;
+            if (!crystal && healingRows >= 20000) return;
             var callers = new List<string>();
             foreach (var frame in new System.Diagnostics.StackTrace(false).GetFrames())
             {
                 var method = frame.GetMethod(); var owner = method?.DeclaringType;
                 if (owner != null && (owner == typeof(DungeonSystem) || owner == typeof(UniqueRewardSystem)
-                    || owner == typeof(SpecialSkillRuntime) || owner == typeof(SaveGameApplier)))
+                    || owner == typeof(SpecialSkillRuntime) || owner == typeof(SaveGameApplier)
+                    || owner == typeof(NaturalRecoverySystem) || owner == typeof(SkillSystem)))
                     callers.Add(owner.Name + "." + method.Name);
             }
-            CrystalRow(result.Target, "heal", result.ActualHeal, string.Join(";", callers));
+            string caller = string.Join(";", callers);
+            if (crystal)
+                CrystalRow(result.Target, "heal", result.ActualHeal, caller);
+            else if (healingEvents != null)
+            {
+                healingRows++;
+                WriteRow(healingEvents, turn?.Context.Turn ?? 0, Time.frameCount, result.Target.team,
+                    result.Target.kind, result.Target.ReflectionLifeId, result.ActualHeal, result.Target.HP,
+                    result.Target.MaxHP, result.Source?.ReflectionLifeId, caller);
+            }
         }
     }
     static void CrystalRow(Status actor, string reason, int actualHeal = 0, string caller = "")
@@ -345,6 +356,8 @@ public static class AIClosingPlaytest
         actions = Writer("actions.csv"); turns = Writer("turns.csv");
         crystalChanges = Writer("crystal-hp.csv"); crystalRows = 0; crystalSnapshots.Clear();
         WriteRow(crystalChanges, "round", "frame", "event", "team", "kind", "lifeId", "HP", "maximumHP", "previousHP", "previousMaximumHP", "actualHeal", "caller");
+        healingEvents = Writer("healing-events.csv"); healingRows = 0;
+        WriteRow(healingEvents, "round", "frame", "team", "kind", "lifeId", "actualHeal", "HP", "maximumHP", "sourceLifeId", "caller");
         AIR2PlaytestTelemetry.Open(folder);
         AIR2ObjectiveTelemetry.Open(folder);
         originalExplorationLogging = ExplorationAISettings.Active.EnableJsonlTelemetry;
@@ -521,7 +534,7 @@ public static class AIClosingPlaytest
             match.PlayerUnpaidUnits, match.EnemyUnpaidUnits, match.PlayerMaxUnpaidTurns, match.EnemyMaxUnpaidTurns,
             match.PlayerUnavailableBuildings, match.EnemyUnavailableBuildings, match.PlayerInputBlockedProducers, match.EnemyInputBlockedProducers,
             match.PlayerResourceCapacity, match.EnemyResourceCapacity, match.PlayerMaxUnitLevel, match.EnemyMaxUnitLevel);
-        turns.Flush(); actions.Flush(); crystalChanges?.Flush(); File.WriteAllText(Path.Combine(folder, "match.json"), JsonUtility.ToJson(match, true), new UTF8Encoding(false));
+        turns.Flush(); actions.Flush(); crystalChanges?.Flush(); healingEvents?.Flush(); File.WriteAllText(Path.Combine(folder, "match.json"), JsonUtility.ToJson(match, true), new UTF8Encoding(false));
     }
     static void ObserveBuildingEconomy(Status actor,FactionState factions)
     {
@@ -626,7 +639,7 @@ public static class AIClosingPlaytest
         AIR2ObjectiveTelemetry.Close();
         SpecialSkillRuntime.HpChangeCommitted -= OnHpChange;
         Application.logMessageReceived -= Log; player?.Dispose(); enemy?.Dispose();
-        actions?.Dispose(); turns?.Dispose(); crystalChanges?.Dispose(); actions = turns = crystalChanges = null; crystalSnapshots.Clear();
+        actions?.Dispose(); turns?.Dispose(); crystalChanges?.Dispose(); healingEvents?.Dispose(); actions = turns = crystalChanges = healingEvents = null; crystalSnapshots.Clear();
     }
     static void Complete()
     {

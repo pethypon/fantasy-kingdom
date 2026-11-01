@@ -156,6 +156,43 @@ public static class SquadMarchValidation
             board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
             Check(prefix + "healer-recognizes-its-operation-patient", manager.SupportsSquadPatient(healer, actor));
             Check(prefix + "non-healer-cannot-claim-support-priority", !manager.SupportsSquadPatient(actor, healer));
+            // Controlled four-member deployment. The whole generated map is
+            // explicitly known in this fixture; it is not a Fog/campaign result.
+            var fourthGo = new GameObject("controlled-fourth-member"); fourthGo.SetActive(false);
+            fourthGo.transform.SetParent(actor.transform.parent); fourthGo.transform.position = path[0];
+            var fourth = fourthGo.AddComponent<Status>(); fourth.kind = Kind.Knight; fourth.type = Type.Unit;
+            fourth.team = side; fourth.GrowthData = actor.GrowthData; fourth.HP = fourth.MaxHP = 100;
+            fourth.ATK = 20; fourth.RestoreReflectionLifeId(Guid.NewGuid().ToString("N")); fourthGo.SetActive(true);
+            plan.AssignedUnitLifeIds.Add(fourth.ReflectionLifeId); plan.OriginalAssignedUnitLifeIds.Add(fourth.ReflectionLifeId);
+            healer.transform.position = path[2]; actor.HP = 60;
+            f.Turn.Systems.UnitSetting = f.Units; f.Turn.Systems.APSystem = f.AP; f.Turn.Systems.MoveGenerator = f.Moves;
+            f.Turn.Systems.BattleSystem = live.BattleSystem; f.Turn.Systems.AttackGenerator = live.AttackGenerator;
+            board.SpecialSystems = f.Turn.Systems;
+            foreach (var member in actor.transform.parent.GetComponentsInChildren<Status>()) member.HasMovedThisTurn = false;
+            f.State.SetAP(side, 40); f.Vision.MarkVisionDirty(); f.Vision.VisionPoint(live.MapCreate, f.Moves, f.Crystals);
+            known.Clear(); foreach (var cell in live.MapCreate.SetPos) known.Add(GridHelper.ToGrid(cell));
+            RestoreKnowledge(); AITurnBudget.Begin(5000); board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
+            var support = new List<AIAction>(); AIActionGenerator.GenerateSpecialSkillCandidates(healer, board, support);
+            var healAction = support.Find(a => a.TargetUnit == actor);
+            Check(prefix + "four-member-order-generates-real-heal", healAction != null && plan.AssignedUnitLifeIds.Count == 4);
+            var supportExecutor = new AIActionExecutor(f.Turn, f.Moves, live.AttackGenerator, live.BattleSystem,
+                f.AP, null, null, f.Builder, null, new AILearning(false), side);
+            int beforeHP = actor.HP, supportAP = f.State.GetAP(side);
+            Check(prefix + "support-heal-executes-with-real-AP", supportExecutor.Execute(healAction, board)
+                && actor.HP > beforeHP && f.State.GetAP(side) == supportAP - healAction.APCost);
+            int membersMoved = 0;
+            foreach (var member in actor.transform.parent.GetComponentsInChildren<Status>())
+            {
+                AITurnBudget.Begin(5000); board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
+                var commands = new List<AIAction>(); AIActionGenerator.GenerateMoveCandidates(member, board, commands);
+                var move = commands.Find(a => manager.IsPlannedMarch(a, board));
+                if (move == null) continue;
+                var from = member.transform.position; supportAP = f.State.GetAP(side);
+                Check(prefix + "four-member-real-command-" + membersMoved, supportExecutor.Execute(move, board)
+                    && member.transform.position != from && f.State.GetAP(side) == supportAP - move.APCost);
+                membersMoved++;
+            }
+            Check(prefix + "at-least-three-members-execute-shared-deployment", membersMoved >= 3);
         }
         finally { UnityEngine.Object.DestroyImmediate(config); }
     }
