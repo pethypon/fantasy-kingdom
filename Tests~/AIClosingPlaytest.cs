@@ -439,6 +439,7 @@ public static class AIClosingPlaytest
                 if (match.ControlledSquadScenario) match.ScenarioScope = "CONTROLLED superior-force fixture: eight extra normal-stat Player troops at seven-step staging; Player material stocks 5000 and resource-cap enforcement disabled only here; full-health objective; official AP/damage/Fog/executor rules. Not ordinary-game victory evidence.";
                 ObserveDecisiveActors();
                 AIPlaytestMapEvidence.CaptureInitial(turn, folder);
+                EconomyBalanceEvidence.Write(s, folder);
                 turn.PlayerAI.SetEnabled(true, false);
                 match.ActualPlayerAIModeUsed = turn.PlayerAI.Enabled;
                 Debug.Log(Prefix + " ACTUAL_AI_MODE_ENABLED mapSeed=" + match.MapSeed + " enemySeed=" + match.EnemyAISeed
