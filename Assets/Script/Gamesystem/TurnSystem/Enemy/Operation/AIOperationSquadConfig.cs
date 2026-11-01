@@ -6,7 +6,7 @@ public sealed class AIOperationSquadConfig : ScriptableObject
     public const string ResourcePath = "AI/OperationSquadConfig";
     [InspectorName("部隊編成を有効化")] public bool Enabled = true;
     [Header("AI運用の提案初期値（ゲームルールを変更しない）")]
-    [Range(3, 5), InspectorName("標準部隊人数")] public int StandardSize = 5;
+    [Range(3, 5), InspectorName("標準部隊人数")] public int StandardSize = 4;
     [Range(1, 16), InspectorName("保存する最大部隊数")] public int MaximumSquads = 16;
     [Range(2, 8), InspectorName("連携距離の目安")] public int CohesionRadius = 4;
     [Range(1, 5), InspectorName("集合を待つ自軍ターン数")] public int AssemblyGraceTurns = 2;

@@ -1,0 +1,2 @@
+groupLimit=4096 groups=732 samplesAfterLimit=0
+Candidate samples include repeated evaluation; generated scores precede evaluation.

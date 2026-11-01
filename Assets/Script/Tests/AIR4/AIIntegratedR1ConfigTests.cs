@@ -18,7 +18,7 @@ public static class AIIntegratedR1ConfigTests
         var config = ScriptableObject.CreateInstance<AIOperationSquadConfig>();
         try
         {
-            Check("SQ-default-policy", config.Enabled && config.Size == 5 && config.Limit == 16
+            Check("SQ-default-policy", config.Enabled && config.Size == 4 && config.Limit == 16
                 && config.CohesionRadius == 4 && config.AssemblyGraceTurns == 2
                 && config.MaximumChainActions == 5 && config.MaximumChainTargets == 8
                 && config.MinimumChainStepBudgetMs == 50 && config.MaximumScoreBonus == 2);

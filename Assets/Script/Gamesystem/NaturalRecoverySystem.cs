@@ -9,6 +9,10 @@ public static class NaturalRecoverySystem
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void Reset() => turnActors.Clear();
     public static int HealAmount(int maximumHP) => Mathf.Max(0, maximumHP) / 10;
+    // Main crystals use the legacy Unit component type in shipped prefabs.
+    // They are objectives, not units eligible for the five-safe-turn recovery.
+    static bool Eligible(Status actor) => actor != null && actor.IsAlive && actor.type == Type.Unit
+        && actor.kind != Kind.Crystal && actor.kind != Kind.SubCrystal && actor.MaxHP > 0;
 
     public static NaturalRecoveryState CopyState(NaturalRecoveryState source)
         => source == null ? new NaturalRecoveryState() : new NaturalRecoveryState
@@ -43,7 +47,7 @@ public static class NaturalRecoverySystem
 
     public static void ProcessActorEnd(Status actor, int round)
     {
-        if (actor == null || !actor.IsAlive || actor.type != Type.Unit || actor.MaxHP <= 0) return;
+        if (!Eligible(actor)) return;
         var state = actor.NaturalRecovery ?? (actor.NaturalRecovery = new NaturalRecoveryState());
         if (state.LastProcessedRound == round) return;
         state.LastProcessedRound = round; state.HasTurnBaseline = true;
@@ -62,7 +66,7 @@ public static class NaturalRecoverySystem
 
     public static void ProcessActor(Status actor, int round)
     {
-        if (actor == null || !actor.IsAlive || actor.type != Type.Unit || actor.MaxHP <= 0) return;
+        if (!Eligible(actor)) return;
         var state = actor.NaturalRecovery ?? (actor.NaturalRecovery = new NaturalRecoveryState());
         if (state.LastProcessedRound == round) return;
         state.LastProcessedRound = round;

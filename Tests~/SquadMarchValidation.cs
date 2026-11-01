@@ -42,6 +42,7 @@ public static class SquadMarchValidation
             if (turn == null || Time.frameCount - frame < 20) return;
             SessionState.SetBool(Key, false);
             foreach (var side in new[] { Team.Player, Team.Enemy }) { March(turn.Systems, side); FocusFire(turn.Systems, side); }
+            CrystalGrowthValidation.Run(turn.Systems);
             Debug.Log("[SquadMarch] COMPLETE real Play Mode frames=" + (Time.frameCount - frame)); EditorApplication.Exit(0);
         }
         catch (Exception e) { SessionState.SetBool(Key, false); Debug.LogException(e); EditorApplication.Exit(1); }
@@ -155,6 +156,43 @@ public static class SquadMarchValidation
             board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
             Check(prefix + "healer-recognizes-its-operation-patient", manager.SupportsSquadPatient(healer, actor));
             Check(prefix + "non-healer-cannot-claim-support-priority", !manager.SupportsSquadPatient(actor, healer));
+            // Controlled four-member deployment. The whole generated map is
+            // explicitly known in this fixture; it is not a Fog/campaign result.
+            var fourthGo = new GameObject("controlled-fourth-member"); fourthGo.SetActive(false);
+            fourthGo.transform.SetParent(actor.transform.parent); fourthGo.transform.position = path[0];
+            var fourth = fourthGo.AddComponent<Status>(); fourth.kind = Kind.Knight; fourth.type = Type.Unit;
+            fourth.team = side; fourth.GrowthData = actor.GrowthData; fourth.HP = fourth.MaxHP = 100;
+            fourth.ATK = 20; fourth.RestoreReflectionLifeId(Guid.NewGuid().ToString("N")); fourthGo.SetActive(true);
+            plan.AssignedUnitLifeIds.Add(fourth.ReflectionLifeId); plan.OriginalAssignedUnitLifeIds.Add(fourth.ReflectionLifeId);
+            healer.transform.position = path[2]; actor.HP = 60;
+            f.Turn.Systems.UnitSetting = f.Units; f.Turn.Systems.APSystem = f.AP; f.Turn.Systems.MoveGenerator = f.Moves;
+            f.Turn.Systems.BattleSystem = live.BattleSystem; f.Turn.Systems.AttackGenerator = live.AttackGenerator;
+            board.SpecialSystems = f.Turn.Systems;
+            foreach (var member in actor.transform.parent.GetComponentsInChildren<Status>()) member.HasMovedThisTurn = false;
+            f.State.SetAP(side, 40); f.Vision.MarkVisionDirty(); f.Vision.VisionPoint(live.MapCreate, f.Moves, f.Crystals);
+            known.Clear(); foreach (var cell in live.MapCreate.SetPos) known.Add(GridHelper.ToGrid(cell));
+            RestoreKnowledge(); AITurnBudget.Begin(5000); board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
+            var support = new List<AIAction>(); AIActionGenerator.GenerateSpecialSkillCandidates(healer, board, support);
+            var healAction = support.Find(a => a.TargetUnit == actor);
+            Check(prefix + "four-member-order-generates-real-heal", healAction != null && plan.AssignedUnitLifeIds.Count == 4);
+            var supportExecutor = new AIActionExecutor(f.Turn, f.Moves, live.AttackGenerator, live.BattleSystem,
+                f.AP, null, null, f.Builder, null, new AILearning(false), side);
+            int beforeHP = actor.HP, supportAP = f.State.GetAP(side);
+            Check(prefix + "support-heal-executes-with-real-AP", supportExecutor.Execute(healAction, board)
+                && actor.HP > beforeHP && f.State.GetAP(side) == supportAP - healAction.APCost);
+            int membersMoved = 0;
+            foreach (var member in actor.transform.parent.GetComponentsInChildren<Status>())
+            {
+                AITurnBudget.Begin(5000); board.Refresh(); manager.Refresh(board, TurnStrategy.Balanced);
+                var commands = new List<AIAction>(); AIActionGenerator.GenerateMoveCandidates(member, board, commands);
+                var move = commands.Find(a => manager.IsPlannedMarch(a, board));
+                if (move == null) continue;
+                var from = member.transform.position; supportAP = f.State.GetAP(side);
+                Check(prefix + "four-member-real-command-" + membersMoved, supportExecutor.Execute(move, board)
+                    && member.transform.position != from && f.State.GetAP(side) == supportAP - move.APCost);
+                membersMoved++;
+            }
+            Check(prefix + "at-least-three-members-execute-shared-deployment", membersMoved >= 3);
         }
         finally { UnityEngine.Object.DestroyImmediate(config); }
     }
@@ -256,7 +294,42 @@ public static class SquadMarchValidation
             Steps = new List<AIOperationStep> { new AIOperationStep { StepId = 1, Type = AIOperationStepType.Attack } } };
         foreach (var actor in actors) { order.AssignedUnitLifeIds.Add(actor.ReflectionLifeId); order.OriginalAssignedUnitLifeIds.Add(actor.ReflectionLifeId); }
         manager.State.NextOperationId = 1; manager.State.ActiveOperations.Add(order);
-        board.RemainingPlannedActionSlots = 8; AITurnBudget.Begin(5000); manager.BeginTurn(board, TurnStrategy.ContactEngage, 1);
+        board.RemainingPlannedActionSlots = 8; AITurnBudget.Begin(5000);
+        // A full-health durable, unarmed facility cannot grant every chip a
+        // battle-only tier forever while a paid recruitment/deployment order waits.
+        f.Mine.levels[0].HP = target.HP = target.MaxHP = 1000;
+        board.Refresh(); manager.BeginTurn(board, TurnStrategy.ContactEngage, 1);
+        var pressure = new List<AIAction>(); AIActionGenerator.GenerateAttackCandidates(actors[0], board, pressure);
+        var pressureAttack = pressure.Find(a => a.TargetUnit == target && a.Unit == actors[0]);
+        Check(prefix + "durable-facility-has-an-official-attack", pressureAttack != null);
+        Check(prefix + "nonfinishing-passive-pressure-shares-recruitment-tier",
+            AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board)
+            && manager.SquadActionPriority(pressureAttack, board) == 3);
+        var governor = new AIStrategicGovernor();
+        Set(governor.TerritoryIntel, "<HasWaypoint>k__BackingField", true);
+        Set(governor, "<Mode>k__BackingField", StrategicMode.StrategicAttack);
+        var priority = typeof(AIStrategicGovernor).GetMethod("Priority", Hidden);
+        board.Governor = governor; board.Operations = null;
+        Check(prefix + "generic-territory-battle-gate-also-preserves-recruitment-tier",
+            governor.HasActiveTerritoryAdvance && (int)priority.Invoke(governor, new object[] { pressureAttack, board }) == 3);
+        board.Governor = null; board.Operations = manager;
+        target.ATK = 20;
+        Check(prefix + "armed-defense-retains-battle-priority",
+            !AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board)
+            && manager.SquadActionPriority(pressureAttack, board) == 2);
+        var originalKind = target.kind;
+        target.ATK = 0; target.kind = Kind.Crystal;
+        Check(prefix + "main-crystal-retains-existing-priority",
+            !AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board));
+        target.kind = Kind.SubCrystal;
+        Check(prefix + "durable-subcrystal-is-not-a-permanent-urgent-battle",
+            AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board));
+        target.kind = Kind.Knight; target.type = Type.Unit;
+        Check(prefix + "hostile-unit-is-never-a-passive-structure",
+            !AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board));
+        target.kind = originalKind; target.type = Type.Building;
+        f.Mine.levels[0].HP = target.HP = target.MaxHP = 30;
+        board.Refresh(); manager.Refresh(board, TurnStrategy.ContactEngage);
         Check(prefix + "attack-order-has-three-distinct-live-members", order.AssignedUnitLifeIds.Count == 3
             && new HashSet<string>(order.AssignedUnitLifeIds).Count == 3 && manager.Squads.Count > 0);
         var executor = new AIActionExecutor(f.Turn, f.Moves, live.AttackGenerator, live.BattleSystem,

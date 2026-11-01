@@ -596,15 +596,25 @@ public sealed class StrategicEconomyForecast
         }
         if (board.Governor != null && board.Governor.HasPreparedRecruitment(board))
         {
+            var plannedUpkeep = new double[ResourceCount];
+            UnitData nextRecruit = null;
             foreach (var need in board.Governor.RecruitmentPlan)
             {
                 var unit = need.Definition;
                 float recruitWeight = weight * AIEconomySettings.NonNegative(settings.plannedSummonActions)
                     * (need.Role == "scout" ? Mathf.Clamp01(settings.explorationSummonWeight) : 1);
                 AddTo(planned, UnitCost(unit), recruitWeight / turns);
-                AddTo(planned, unit.GetFixedUpkeep(), recruitWeight);
+                AddTo(plannedUpkeep, unit.GetFixedUpkeep(), recruitWeight);
+                if (nextRecruit == null) nextRecruit = unit;
                 recruitCitizens += Mathf.Max(0, unit.costCitizen) * recruitWeight;
             }
+            // One concrete next purchase must be supportable at its real upkeep.
+            // Discounting a healer's recurring cost to 35% leaves the army shopping
+            // for it indefinitely without preparing the required income. This is
+            // production demand only: no payment/reserve/maintenance rule is waived.
+            var nextUpkeep = nextRecruit != null ? nextRecruit.GetFixedUpkeep() : default;
+            for (int i = 0; i < ResourceCount; i++)
+                planned[i] += Math.Max(plannedUpkeep[i], weight > settings.Epsilon ? Amount(nextUpkeep, i) : 0);
             return;
         }
         bool exploration = board.AlivePlayerUnits.Count == 0;

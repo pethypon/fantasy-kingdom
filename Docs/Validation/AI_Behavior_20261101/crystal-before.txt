@@ -1,0 +1,113 @@
+[SquadMarch] PASS Player retained-operation-turn-1
+[SquadMarch] PASS Player formation-owned-by-operation-turn-1
+[SquadMarch] PASS Player route-produces-slot-turn-1
+[SquadMarch] PASS Player existing-legal-command-turn-1
+[SquadMarch] PASS Player official-executor-turn-1
+[SquadMarch] PASS Player exact-AP-payment-turn-1
+[SquadMarch] PASS Player old-slot-invalid-after-generation-turn-1
+[SquadMarch] PASS Player healthy-march-not-undone-by-later-fallback-turn-1
+[SquadMarch] PASS Player retained-operation-turn-2
+[SquadMarch] PASS Player formation-owned-by-operation-turn-2
+[SquadMarch] PASS Player route-produces-slot-turn-2
+[SquadMarch] PASS Player existing-legal-command-turn-2
+[SquadMarch] PASS Player official-executor-turn-2
+[SquadMarch] PASS Player exact-AP-payment-turn-2
+[SquadMarch] PASS Player old-slot-invalid-after-generation-turn-2
+[SquadMarch] PASS Player healthy-march-not-undone-by-later-fallback-turn-2
+[SquadMarch] PASS Player retained-operation-turn-3
+[SquadMarch] PASS Player formation-owned-by-operation-turn-3
+[SquadMarch] PASS Player route-produces-slot-turn-3
+[SquadMarch] PASS Player existing-legal-command-turn-3
+[SquadMarch] PASS Player official-executor-turn-3
+[SquadMarch] PASS Player exact-AP-payment-turn-3
+[SquadMarch] PASS Player old-slot-invalid-after-generation-turn-3
+[SquadMarch] PASS Player healthy-march-not-undone-by-later-fallback-turn-3
+[SquadMarch] PASS Player multi-turn-real-displacement
+[SquadMarch] PASS Player operation-and-squad-survive-save
+[SquadMarch] PASS Player fallback-label-does-not-invent-defense-emergency
+[SquadMarch] PASS Player emergency-suspends-retained-operation
+[SquadMarch] PASS Player same-turn-emergency-releases-and-reassigns-actor
+[SquadMarch] PASS Player resume-retains-original-plan-and-member
+[SquadMarch] PASS Player reinforcement-reassignment-counts-distinct-actors-0
+[SquadMarch] PASS Player reinforcement-reassignment-counts-distinct-actors-1
+[SquadMarch] PASS Player production-white-mage-definition-exists
+[SquadMarch] PASS Player healer-recognizes-its-operation-patient
+[SquadMarch] PASS Player non-healer-cannot-claim-support-priority
+[SquadMarch] PASS Player focus-fire three-distinct-real-firing-positions-exist
+[SquadMarch] PASS Player focus-fire durable-facility-has-an-official-attack
+[SquadMarch] PASS Player focus-fire nonfinishing-passive-pressure-shares-recruitment-tier
+[SquadMarch] PASS Player focus-fire generic-territory-battle-gate-also-preserves-recruitment-tier
+[SquadMarch] PASS Player focus-fire armed-defense-retains-battle-priority
+[SquadMarch] PASS Player focus-fire main-crystal-retains-existing-priority
+[SquadMarch] PASS Player focus-fire durable-subcrystal-is-not-a-permanent-urgent-battle
+[SquadMarch] PASS Player focus-fire hostile-unit-is-never-a-passive-structure
+[SquadMarch] PASS Player focus-fire attack-order-has-three-distinct-live-members
+[SquadMarch] PASS Player focus-fire official-observed-target-candidates-0
+[SquadMarch] PASS Player focus-fire all-three-normal-units-have-formal-attack-candidates
+[SquadMarch] PASS Player focus-fire official-executor-0
+[SquadMarch] PASS Player focus-fire exact-AP-and-real-damage-0
+[SquadMarch] PASS Player focus-fire official-observed-target-candidates-1
+[SquadMarch] PASS Player focus-fire official-executor-1
+[SquadMarch] PASS Player focus-fire exact-AP-and-real-damage-1
+[SquadMarch] PASS Player focus-fire coordinator-formed-an-affordable-multi-actor-kill
+[SquadMarch] PASS Player focus-fire real-multi-actor-kill-without-target-witness-injection
+[SquadMarch] PASS Enemy retained-operation-turn-1
+[SquadMarch] PASS Enemy formation-owned-by-operation-turn-1
+[SquadMarch] PASS Enemy route-produces-slot-turn-1
+[SquadMarch] PASS Enemy existing-legal-command-turn-1
+[SquadMarch] PASS Enemy official-executor-turn-1
+[SquadMarch] PASS Enemy exact-AP-payment-turn-1
+[SquadMarch] PASS Enemy old-slot-invalid-after-generation-turn-1
+[SquadMarch] PASS Enemy healthy-march-not-undone-by-later-fallback-turn-1
+[SquadMarch] PASS Enemy retained-operation-turn-2
+[SquadMarch] PASS Enemy formation-owned-by-operation-turn-2
+[SquadMarch] PASS Enemy route-produces-slot-turn-2
+[SquadMarch] PASS Enemy existing-legal-command-turn-2
+[SquadMarch] PASS Enemy official-executor-turn-2
+[SquadMarch] PASS Enemy exact-AP-payment-turn-2
+[SquadMarch] PASS Enemy old-slot-invalid-after-generation-turn-2
+[SquadMarch] PASS Enemy healthy-march-not-undone-by-later-fallback-turn-2
+[SquadMarch] PASS Enemy retained-operation-turn-3
+[SquadMarch] PASS Enemy formation-owned-by-operation-turn-3
+[SquadMarch] PASS Enemy route-produces-slot-turn-3
+[SquadMarch] PASS Enemy existing-legal-command-turn-3
+[SquadMarch] PASS Enemy official-executor-turn-3
+[SquadMarch] PASS Enemy exact-AP-payment-turn-3
+[SquadMarch] PASS Enemy old-slot-invalid-after-generation-turn-3
+[SquadMarch] PASS Enemy healthy-march-not-undone-by-later-fallback-turn-3
+[SquadMarch] PASS Enemy multi-turn-real-displacement
+[SquadMarch] PASS Enemy operation-and-squad-survive-save
+[SquadMarch] PASS Enemy fallback-label-does-not-invent-defense-emergency
+[SquadMarch] PASS Enemy emergency-suspends-retained-operation
+[SquadMarch] PASS Enemy same-turn-emergency-releases-and-reassigns-actor
+[SquadMarch] PASS Enemy resume-retains-original-plan-and-member
+[SquadMarch] PASS Enemy reinforcement-reassignment-counts-distinct-actors-0
+[SquadMarch] PASS Enemy reinforcement-reassignment-counts-distinct-actors-1
+[SquadMarch] PASS Enemy production-white-mage-definition-exists
+[SquadMarch] PASS Enemy healer-recognizes-its-operation-patient
+[SquadMarch] PASS Enemy non-healer-cannot-claim-support-priority
+[SquadMarch] PASS Enemy focus-fire three-distinct-real-firing-positions-exist
+[SquadMarch] PASS Enemy focus-fire durable-facility-has-an-official-attack
+[SquadMarch] PASS Enemy focus-fire nonfinishing-passive-pressure-shares-recruitment-tier
+[SquadMarch] PASS Enemy focus-fire generic-territory-battle-gate-also-preserves-recruitment-tier
+[SquadMarch] PASS Enemy focus-fire armed-defense-retains-battle-priority
+[SquadMarch] PASS Enemy focus-fire main-crystal-retains-existing-priority
+[SquadMarch] PASS Enemy focus-fire durable-subcrystal-is-not-a-permanent-urgent-battle
+[SquadMarch] PASS Enemy focus-fire hostile-unit-is-never-a-passive-structure
+[SquadMarch] PASS Enemy focus-fire attack-order-has-three-distinct-live-members
+[SquadMarch] PASS Enemy focus-fire official-observed-target-candidates-0
+[SquadMarch] PASS Enemy focus-fire all-three-normal-units-have-formal-attack-candidates
+[SquadMarch] PASS Enemy focus-fire official-executor-0
+[SquadMarch] PASS Enemy focus-fire exact-AP-and-real-damage-0
+[SquadMarch] PASS Enemy focus-fire official-observed-target-candidates-1
+[SquadMarch] PASS Enemy focus-fire official-executor-1
+[SquadMarch] PASS Enemy focus-fire exact-AP-and-real-damage-1
+[SquadMarch] PASS Enemy focus-fire coordinator-formed-an-affordable-multi-actor-kill
+[SquadMarch] PASS Enemy focus-fire real-multi-actor-kill-without-target-witness-injection
+[CrystalGrowth] PASS Player actual-production-main-crystal-found
+[CrystalGrowth] OBSERVED Player productionType=Unit woundedHP=4500 afterSevenOwnerEnds=5000 maximum=5000
+[CrystalGrowth] PASS Player baseline-reproduces-unintended-natural-heal
+[CrystalGrowth] PASS Enemy actual-production-main-crystal-found
+[CrystalGrowth] OBSERVED Enemy productionType=Unit woundedHP=4500 afterSevenOwnerEnds=5000 maximum=5000
+[CrystalGrowth] PASS Enemy baseline-reproduces-unintended-natural-heal
+[SquadMarch] COMPLETE real Play Mode frames=20

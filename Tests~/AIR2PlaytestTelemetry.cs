@@ -91,7 +91,7 @@ public static class AIR2PlaytestTelemetry
         units = new StreamWriter(Path.Combine(folder, "units.csv"));
         nations = new StreamWriter(Path.Combine(folder, "nation-economy.csv")); nationRows = 0;
         operations = new StreamWriter(Path.Combine(folder, "operation-orders.csv")); operationRows = 0;
-        operations.WriteLine("team,round,generation,mode,AP,operationId,goal,status,step,targetX,targetZ,assigned,lastProgress,squadId,squadPhase,chosenActor,chosenType,chosenTarget,chosenOperation,actorX,actorZ,destinationX,destinationZ,operationMembers,squadMembers,coordinationSteps");
+        operations.WriteLine("team,round,generation,mode,AP,operationId,goal,status,step,targetX,targetZ,assigned,lastProgress,squadId,squadPhase,chosenActor,chosenType,chosenTarget,chosenOperation,actorX,actorZ,destinationX,destinationZ,operationMembers,squadMembers,coordinationSteps,liveSquadSize,squadSpan,squadHealers");
         NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock", "developmentFightingTarget", "developmentCitizenDemand", "developmentRequiredStock", "housingRequiredCapacity", "housingReasons", "housingRecoveryStarted", "housingRecoveryLastProgress", "housingDeferredTurns", "housingRecoveryStatus", "plannedAP", "currentMaxAP", "mainCrystalKnowledge");
         Row(decisions, "team", "round", "generation", "stage", "mode", "AP", "group", "count", "actorLifeId", "action", "target", "score", "priority", "selected", "reason", "visibleEnemies", "affordableKinds", "summonCells", "casterKind", "skillKey", "normalSkillId", "specialAbility", "actionAP", "APAffordable", "chosenAction", "chosenScore", "chosenPriority", "selectionOutcome", "scoreComponents", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "preservationSafety", "recoveryPhase", "refugeX", "refugeZ", "healingPossible", "alliesNear", "saferMoveCount", "patientHP", "patientMaxHP", "chosenActorLifeId", "chosenTargetLifeId");
         Row(units, "team", "round", "lifeId", "kind", "type", "level", "x", "z", "facing", "hp", "maxHP", "barrier", "maxBarrier", "homeDistance", "incoming", "plan", "planStep", "planTargetX", "planTargetZ", "exploreId", "region", "exploreState", "exploreReason", "exploreX", "exploreZ", "newTiles", "houseCapacity", "assignedSkillId", "assignedSkillAP", "skillCooldown", "specialAbility", "specialEnabled", "specialAP", "specialCooldown", "specialSelfReady", "specialSelfReason", "preservationSafety", "recoveryPhase", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "saferMoveCount", "healingPossible", "alliesNear", "refugeX", "refugeZ", "preservationReason", "operationId", "operationGoal", "operationStatus", "operationStep", "operationX", "operationZ", "operationProgressTurn", "squadId", "squadPhase", "squadReason");
@@ -115,6 +115,16 @@ public static class AIR2PlaytestTelemetry
         {
             AIOperationSquad chosenSquad = null;
             if (chosen?.Unit != null) board.Operations.TryGetSquad(chosen.Unit.ReflectionLifeId, out chosenSquad);
+            int liveMembers = 0, liveHealers = 0;
+            float minX = float.PositiveInfinity, maxX = float.NegativeInfinity, minZ = minX, maxZ = maxX;
+            if (chosenSquad != null) foreach (var member in chosenSquad.Members)
+                foreach (var actor in board.AliveEnemyUnits)
+                    if (actor != null && actor.IsAlive && actor.ReflectionLifeId == member.ActorLifeId)
+                    {
+                        liveMembers++; if (member.Role == AIOperationSquadRole.Healer) liveHealers++;
+                        var p = actor.transform.position; minX = Mathf.Min(minX, p.x); maxX = Mathf.Max(maxX, p.x);
+                        minZ = Mathf.Min(minZ, p.z); maxZ = Mathf.Max(maxZ, p.z); break;
+                    }
             foreach (var plan in board.Operations.State.ActiveOperations)
             {
                 if (operationRows++ >= 12000) break;
@@ -124,7 +134,8 @@ public static class AIR2PlaytestTelemetry
                     chosen?.Unit?.ReflectionLifeId, chosen?.ActionType, chosen?.TargetUnit?.ReflectionLifeId, chosenSquad?.OperationId,
                     chosen?.Unit?.transform.position.x, chosen?.Unit?.transform.position.z, chosen?.TargetPos.x, chosen?.TargetPos.z,
                     string.Join(";", plan.AssignedUnitLifeIds), chosenSquad != null ? string.Join(";", chosenSquad.Members.ConvertAll(member => member.ActorLifeId)) : "",
-                    board.Operations.CoordinationSteps.Count };
+                    board.Operations.CoordinationSteps.Count, liveMembers,
+                    liveMembers > 0 ? Mathf.Max(maxX - minX, maxZ - minZ) : 0, liveHealers };
                 for (int i = 0; i < fields.Length; i++)
                 {
                     if (i > 0) operations.Write(','); operations.Write('"');

@@ -325,7 +325,8 @@ public sealed partial class AIStrategicGovernor
         // before staging the army; unrelated frontier work follows at the ordinary tier.
         // Without that direction, preserve the existing combat/exploration peer tier.
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
-            && IsSafeEffectiveBattleAction(a, board)) return HasActiveTerritoryAdvance ? 2 : 3;
+            && IsSafeEffectiveBattleAction(a, board)) return HasActiveTerritoryAdvance
+                && !AIActionEvaluator.IsNonFinishingPassiveStructureAttack(a, board) ? 2 : 3;
         if (IsSafePlannedRecruit(a, board)) return Mode == StrategicMode.EconomicRecovery ? 2 : 3;
         if (IsSafeArmyAdvance(a, board)) return 3;
         if (squadPriority == 3) return 3;

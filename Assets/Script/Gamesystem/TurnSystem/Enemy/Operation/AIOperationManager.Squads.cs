@@ -207,8 +207,9 @@ public sealed partial class AIOperationManager
         if (quota <= 0) return 0;
         if (recon) return role == AIOperationSquadRole.Scout ? 1 : role == AIOperationSquadRole.Frontline ? quota >= 2 ? 1 : 0
             : role == AIOperationSquadRole.Ranged ? quota >= 3 ? 1 : 0 : 0;
-        int groups = (quota + 4) / 5, healers = quota / 5;
-        int ranged = Mathf.Min(groups * 2, Mathf.Max(0, (quota - healers) / 2));
+        int size = AIOperationSquadConfig.Active.Size;
+        int groups = (quota + size - 1) / size, healers = Mathf.Min(groups, quota / 3);
+        int ranged = Mathf.Min(groups * (size >= 5 ? 2 : 1), Mathf.Max(0, (quota - healers) / 2));
         return role == AIOperationSquadRole.Healer ? healers : role == AIOperationSquadRole.Ranged ? ranged
             : role == AIOperationSquadRole.Frontline ? quota - ranged - healers : 0;
     }
@@ -395,10 +396,10 @@ public sealed partial class AIOperationManager
             switch (member.Role) { case AIOperationSquadRole.Frontline: front++; break; case AIOperationSquadRole.Ranged: ranged++; break; case AIOperationSquadRole.Healer: healers++; break; case AIOperationSquadRole.Scout: scouts++; break; }
         bool recon = plan.PrimaryGoal == AIOperationGoal.ScoutRegion || plan.PrimaryGoal == AIOperationGoal.LocateEnemyMainForce;
         void Need(string role, int amount) { if (amount > 0 && squadRecruitment.Count < 48) squadRecruitment.Add(new AIOperationRecruitmentNeed(role, amount, turn, plan.OperationId)); }
-        Need("frontline", Mathf.Max(0, (recon ? 1 : size >= 4 ? 2 : 1) - front));
-        Need("ranged", Mathf.Max(0, (recon ? 1 : size >= 5 ? 2 : 1) - ranged));
-        if (recon) Need("scout", Mathf.Max(0, 1 - scouts));
-        else if (size >= 5) Need("healer", Mathf.Max(0, 1 - healers));
+        Need("frontline", Mathf.Max(0, DesiredRoleCount(AIOperationSquadRole.Frontline, size, recon) - front));
+        Need("ranged", Mathf.Max(0, DesiredRoleCount(AIOperationSquadRole.Ranged, size, recon) - ranged));
+        Need("scout", Mathf.Max(0, DesiredRoleCount(AIOperationSquadRole.Scout, size, recon) - scouts));
+        Need("healer", Mathf.Max(0, DesiredRoleCount(AIOperationSquadRole.Healer, size, recon) - healers));
     }
 
     public int SquadActionPriority(AIAction action, AIBoardState board)
@@ -408,7 +409,7 @@ public sealed partial class AIOperationManager
         if (action.ActionType == AIActionType.Attack && action.TargetUnit != null && board.IsSpecialActorObserved(action.TargetUnit)
             && LegalSquadTargets(action.Unit, board).Contains(action.TargetUnit)
             && AIOperationFeatureExtractor.Distance(action.TargetUnit.transform.position, new Vector3(squad.GoalX, 0, squad.GoalZ)) <= DefenseRadius)
-            return 2;
+            return AIActionEvaluator.IsNonFinishingPassiveStructureAttack(action, board) ? 3 : 2;
         if (IsMovement(action.ActionType) && member.HasSlot && !action.Unit.HasMovedThisTurn
             && action.TargetPos.x == member.SlotX && action.TargetPos.z == member.SlotZ
             && board.GetValidMoves(action.Unit).Contains(action.TargetPos)) return 3;
