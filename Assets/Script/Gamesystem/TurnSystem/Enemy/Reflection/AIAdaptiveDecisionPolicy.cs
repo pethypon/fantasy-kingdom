@@ -72,7 +72,7 @@ public sealed class AIAdaptiveDecisionPolicy
             case AIActionType.SkillUse:
                 return action.TargetUnit != null && action.Unit != null && action.TargetUnit.team != action.Unit.team
                     ? AIAdaptiveRule.Combat : AIAdaptiveRule.Support;
-            case AIActionType.Retreat: case AIActionType.Support: return AIAdaptiveRule.Support;
+            case AIActionType.Retreat: case AIActionType.DefenseRepos: case AIActionType.Support: return AIAdaptiveRule.Support;
             default: return action.Unit != null && action.Unit.kind == Kind.Scout ? AIAdaptiveRule.Recon : AIAdaptiveRule.Advance;
         }
     }
@@ -140,14 +140,14 @@ public sealed class AIAdaptiveDecisionPolicy
 
     public void ApplyPriorities(List<AIAction> actions, AIBoardState board)
     {
-        if (!config.EnableAdaptivePolicy || state.StalledTurns < 3 || board?.Governor == null
+        if (!config.EnableAdaptivePolicy || actions == null || state.StalledTurns < 3 || board?.Governor == null
             || board.ReconThreatLevel < config.AdaptiveMinimumThreat
             || board.Governor.Mode == StrategicMode.EmergencyDefense || board.Governor.Mode == StrategicMode.EconomicRecovery) return;
         foreach (var action in actions)
         {
             var actor = action.Unit;
             if (action.StrategicPriority != 4 || action.ActionType != AIActionType.Move || actor == null
-                || !actor.IsAlive || actor.HasMovedThisTurn || MatchObjectiveRules.IsCommander(actor)
+                || !actor.IsAlive || actor.team != board.ActorTeam || actor.HasMovedThisTurn || MatchObjectiveRules.IsCommander(actor)
                 || action.APCost < 0 || action.APCost > board.EnemyAP
                 || board.EstimateCounterDamageAt(action.TargetPos, actor) >= actor.HP) continue;
             // Only an existing observation-derived objective can be promoted. No invented hidden goal.

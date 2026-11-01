@@ -63,9 +63,9 @@ public static class BasicResourceEconomyTests
             Check(team + " competing foundation spending preserves the mine's actual stone capital",
                 !policy.AllowSpend(purchase, false, out string reason)
                 && reason == "mandatory_supply_capital_Iron_Stone");
-            Check(team + " urgent producer and relevant emergency spending remain legal",
-                policy.AllowSpend(f.BuildAction(quarry, board), false, out _)
-                && policy.AllowSpend(purchase, true, out _));
+            Check(team + " existing funded income cannot be reinvested forever before the payment deadline",
+                !policy.AllowSpend(f.BuildAction(quarry, board), false, out _));
+            Check(team + " relevant emergency spending remains legal", policy.AllowSpend(purchase, true, out _));
             Check(team + " reservation checks never manufacture resources or spend AP",
                 stock == JsonUtility.ToJson(f.Resources) && ap == f.State.GetAP(team));
             f.Resources.Iron = 20; board.Refresh(); board.Governor.Evaluate(board);

@@ -561,8 +561,12 @@ public sealed class AIBasicResourceEconomy
                 float required = StrategicEconomyForecast.Amount(investment.Cost, i);
                 if (spent <= .001f || required <= .001f) continue;
                 var supply = demand.Resources[i];
-                float baseline = Mathf.Max(0, supply.Stock + supply.NetPerTurn * investment.FundingTurns);
-                float capitalGain = hasRecipe ? Mathf.Max(0, NetOutput(next, i) - NetOutput(previous, i)) : 0;
+                bool paymentDue = investment.ExhaustionTurns <= MandatoryPreparationHorizon;
+                // A rolling future-income promise used to reinvest the same capital every turn.
+                // Near a real deadline, retain cash already accumulated; wait for existing income.
+                // Only a necessary, fully operating prerequisite may use the bounded deferral above.
+                float baseline = Mathf.Max(0, supply.Stock + (paymentDue ? 0 : supply.NetPerTurn * investment.FundingTurns));
+                float capitalGain = hasRecipe && !paymentDue ? Mathf.Max(0, NetOutput(next, i) - NetOutput(previous, i)) : 0;
                 float projected = baseline - spent + capitalGain * investment.FundingTurns;
                 if (projected + .001f >= Mathf.Min(required, baseline) || recovery) continue;
                 reason = "mandatory_supply_capital_" + investment.Resource + "_" + resources[i];
