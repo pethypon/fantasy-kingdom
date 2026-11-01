@@ -48,7 +48,7 @@ MonoBehaviour:
       MagicOre: 0
       Wheat: 0
       Bread: 0
-      Water: 6
+      Water: 8
       Citizen: 0
     BonusOutput1:
       Wood: 0
@@ -108,7 +108,7 @@ MonoBehaviour:
       MagicOre: 0
       Wheat: 0
       Bread: 0
-      Water: 10
+      Water: 12
       Citizen: 0
     BonusOutput1:
       Wood: 0
@@ -168,7 +168,7 @@ MonoBehaviour:
       MagicOre: 0
       Wheat: 0
       Bread: 0
-      Water: 15
+      Water: 17
       Citizen: 0
     BonusOutput1:
       Wood: 0

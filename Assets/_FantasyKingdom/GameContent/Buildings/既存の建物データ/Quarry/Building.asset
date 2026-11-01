@@ -43,7 +43,7 @@ MonoBehaviour:
       Citizen: 0
     Output:
       Wood: 0
-      Stone: 6
+      Stone: 8
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -103,7 +103,7 @@ MonoBehaviour:
       Citizen: 0
     Output:
       Wood: 0
-      Stone: 10
+      Stone: 12
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -141,7 +141,7 @@ MonoBehaviour:
       Citizen: 0
     UpgradeCost:
       Wood: 30
-      Stone: 25
+      Stone: 20
       Iron: 0
       MagicOre: 0
       Water: 10
@@ -163,7 +163,7 @@ MonoBehaviour:
       Citizen: 0
     Output:
       Wood: 0
-      Stone: 15
+      Stone: 17
       Iron: 0
       MagicOre: 0
       Wheat: 0

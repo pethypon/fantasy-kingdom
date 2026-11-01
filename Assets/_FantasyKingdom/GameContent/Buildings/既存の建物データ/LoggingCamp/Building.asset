@@ -42,7 +42,7 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     Output:
-      Wood: 6
+      Wood: 8
       Stone: 0
       Iron: 0
       MagicOre: 0
@@ -102,7 +102,7 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     Output:
-      Wood: 10
+      Wood: 12
       Stone: 0
       Iron: 0
       MagicOre: 0
@@ -162,7 +162,7 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     Output:
-      Wood: 15
+      Wood: 17
       Stone: 0
       Iron: 0
       MagicOre: 0
