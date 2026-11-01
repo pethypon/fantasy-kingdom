@@ -97,7 +97,7 @@ public static class A1CoordinationTests
             foreach (AIOperationSquadRole role in Enum.GetValues(typeof(AIOperationSquadRole)))
                 total += (int)desired.Invoke(null, new object[] { role, quota, false });
             Check("squad-role-budget-accounts-for-each-slot-" + quota, total == quota);
-            if (quota >= 5) Check("partial-second-squad-retains-healing-role-" + quota,
+            if (quota >= 3) Check("combat-group-retains-healing-role-" + quota,
                 (int)desired.Invoke(null, new object[] { AIOperationSquadRole.Healer, quota, false }) >= 1);
         }
         var baseline = new[]

@@ -42,6 +42,7 @@ public static class SquadMarchValidation
             if (turn == null || Time.frameCount - frame < 20) return;
             SessionState.SetBool(Key, false);
             foreach (var side in new[] { Team.Player, Team.Enemy }) { March(turn.Systems, side); FocusFire(turn.Systems, side); }
+            CrystalGrowthValidation.Run(turn.Systems);
             Debug.Log("[SquadMarch] COMPLETE real Play Mode frames=" + (Time.frameCount - frame)); EditorApplication.Exit(0);
         }
         catch (Exception e) { SessionState.SetBool(Key, false); Debug.LogException(e); EditorApplication.Exit(1); }

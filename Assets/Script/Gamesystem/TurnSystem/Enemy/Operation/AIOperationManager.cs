@@ -591,9 +591,13 @@ public sealed partial class AIOperationManager
         // Standard operation squads contain 3..5 units; scarce opening forces may form
         // a temporary pair. Larger allocations are partitioned into bounded squads.
         bool scout = plan.PrimaryGoal == AIOperationGoal.ScoutRegion || plan.PrimaryGoal == AIOperationGoal.LocateEnemyMainForce;
+        // A normal four-member expedition may form once a separate reserve exists.
+        // The existing emergency reassignment and force-fraction rules still apply.
+        int minimumGroup = Mathf.Max(Mathf.Min(3, ownArmy.Count),
+            Mathf.Min(AIOperationSquadConfig.Active.Size, Mathf.Max(0, ownArmy.Count - 1)));
         int quota = plan.PrimaryGoal == AIOperationGoal.EconomicRecovery ? 0
             : scout ? Mathf.Min(3, ownArmy.Count)
-            : Mathf.Min(config.AssignmentLimit, Mathf.Min(ownArmy.Count, Mathf.Max(Mathf.Min(3, ownArmy.Count),
+            : Mathf.Min(config.AssignmentLimit, Mathf.Min(ownArmy.Count, Mathf.Max(minimumGroup,
                 plan.IsBaseAssault ? Mathf.CeilToInt(ownArmy.Count * AvailableForceFraction) : (ownArmy.Count + 1) / 2)));
         for (int i = plan.AssignedUnitLifeIds.Count - 1; i >= 0; i--)
             if (!features.TryOwn(plan.AssignedUnitLifeIds[i], out var current) || current == null || !current.IsAlive

@@ -28,6 +28,7 @@ public static class AIHealerRoleRecruitmentTests
     {
         HealingIdentityAndRange();
         OrderedPaidRecruitment();
+        NextRecruitIncome();
     }
     static void HealingIdentityAndRange()
     {
@@ -168,6 +169,20 @@ public static class AIHealerRoleRecruitmentTests
             Check("same-role-replacement-still-respects-kind-cap", governor.RecruitmentBlockReason(f.Action(f.Alternative), f.Board) == "recruit_kind_cap"
                 && governor.RecruitmentScore(f.Action(f.Alternative), f.Board) == 0);
         }
+    }
+    static void NextRecruitIncome()
+    {
+        using var f = new Fixture();
+        f.Preferred.upkeepMagic = 2;
+        var governor = f.Governor(); f.Board.Governor = governor;
+        var forecast = new StrategicEconomyForecast();
+        var demand = forecast.Diagnose(f.Board);
+        Check("income-plan-funds-next-real-healer-upkeep-before-purchase",
+            demand.Get(ResourceKind.MagicOre).TargetProductionPerTurn >= f.Preferred.GetFixedUpkeep().MagicOre);
+        Check("income-plan-does-not-book-a-fictional-live-unit",
+            demand.Get(ResourceKind.MagicOre).MandatoryDemandPerTurn == 0 && f.Board.AliveEnemyUnits.Count == 0);
+        Check("forecast-never-spends-the-healer-reserve",
+            f.Resources.MagicOre == 500 && f.Board.EnemyAP == 37);
     }
 }
 #endif
