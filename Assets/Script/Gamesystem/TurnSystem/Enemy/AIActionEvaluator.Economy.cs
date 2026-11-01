@@ -12,28 +12,10 @@ public static partial class AIActionEvaluator
         if (housing.IsHousing) return housing.Score;
         int level = UnityEngine.Mathf.Max(1, building.Level);
         if (level >= FacilityData.GetMaxLevel(building)) return -100f;
-        var current = AIConstructionEconomy.ExistingRecipe(building, level, board);
-        var next = AIConstructionEconomy.ExistingRecipe(building, level + 1, board);
-        var demand = board.ProductionDemand;
-        float score = 0f;
-        bool useful = false;
-        for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
-        {
-            var resource = demand.Get((ResourceKind)i);
-            float gain = EconomyHelper.NetProduction(next, i) - EconomyHelper.NetProduction(current, i);
-            if (gain > AIEconomySettings.Active.Epsilon && resource.ProductionDeficit > AIEconomySettings.Active.Epsilon)
-            {
-                useful = true;
-                float coverage = UnityEngine.Mathf.Clamp01(gain / resource.ProductionDeficit);
-                score += AIEconomySettings.Active.needWeight * coverage
-                    * UnityEngine.Mathf.Max(0.2f, resource.Urgency01);
-            }
-            else if (gain < 0 && resource.ProductionDeficit > AIEconomySettings.Active.Epsilon)
-                score -= AIEconomySettings.Active.needWeight * UnityEngine.Mathf.Clamp01(-gain / resource.ProductionDeficit);
-        }
-        if (!useful && board.Governor?.BasicResources.IsFoundationAction(action) != true) return -100f;
+        var assessment = board.ProductionDemand.EvaluateBuild(action);
+        if (!assessment.ImprovesDeficit && board.Governor?.BasicResources.IsFoundationAction(action) != true) return -100f;
         // Pressure, investment cost and payback are applied once by the Governor to every action path.
-        return 15f + score;
+        return 15f + assessment.FinalScore;
     }
 
     /// <summary>基礎経済施設5種(Well,LoggingCamp,Quarry,Field,House)の設置済み種類数</summary>
@@ -115,19 +97,8 @@ public static class EconomyHelper
     {
         if (action == null || board == null) return false;
         if (board.Governor?.HousingAssessment(action, board).Needed == true) return true;
-        if (action.ActionType == AIActionType.Build) return AssessProductionBuild(action, board).ImprovesDeficit;
-        if (action.ActionType != AIActionType.Upgrade) return false;
-        var building = action.Unit != null ? action.Unit : action.TargetUnit;
-        if (building == null || !building.IsAlive || building.team != board.ActorTeam) return false;
-        int level = UnityEngine.Mathf.Max(1, building.Level);
-        if (level >= FacilityData.GetMaxLevel(building)) return false;
-        var current = AIConstructionEconomy.ExistingRecipe(building, level, board);
-        var next = AIConstructionEconomy.ExistingRecipe(building, level + 1, board);
-        var demand = board.ProductionDemand;
-        for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
-            if (NetProduction(next, i) - NetProduction(current, i) > AIEconomySettings.Active.Epsilon
-                && demand.Get((ResourceKind)i).ProductionDeficit > AIEconomySettings.Active.Epsilon) return true;
-        return false;
+        return (action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade)
+            && AssessProductionBuild(action, board).ImprovesDeficit;
     }
 
     internal static float NetProduction(FacilityData.FacilityLevelData recipe, int resource)

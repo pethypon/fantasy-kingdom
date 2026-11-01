@@ -15,6 +15,10 @@ static class AICombatEvaluator
         float score = 30f;
 
         int expectedDmg = AIActionEvaluator.EstimateEffectiveSpecialDamage(action.Unit, action.TargetUnit, board, out var actualVictim);
+        // Rank legal attacks by actual HP progress per paid AP as well as
+        // objective importance. Previously 2- and 35-damage chips had the same
+        // base score against a healthy crystal. No combat/AP rule is changed.
+        score += AttackEfficiency(expectedDmg, action.APCost);
         if (actualVictim == action.TargetUnit && BarrierSystem.UsesBarrier(actualVictim))
         {
             int raw = AIActionEvaluator.EstimateObservedNormalPacket(action.Unit, actualVictim,board,
@@ -45,6 +49,9 @@ static class AICombatEvaluator
 
         return score;
     }
+
+    internal static float AttackEfficiency(int hpDamage, int ap)
+        => Mathf.Clamp(hpDamage / (float)Mathf.Max(1, ap), 0, 10) * 2;
 
     internal static float CalcMoveBaseScore(AIAction action, AIBoardState board)
     {
