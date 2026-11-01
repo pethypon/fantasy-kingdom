@@ -19,6 +19,7 @@ public sealed class AIHousingConfig : ScriptableObject
     public int APPlanningActionLimit = 32;
     [Range(1, 40), Tooltip("市民が実際に回復するまで待てる期間。この期間で到達できないAP容量を先行投資しません。")]
     public int APPreparationTurns = 10;
+    [InspectorName("部隊行動と同時に行う増援のAPも準備する")] public bool EnableRecruitmentAPPlanning;
     [InspectorName("連続攻撃のAPも準備する")] public bool EnableRepeatAttackAPPlanning = true;
     [InspectorName("届く市民数まで段階的に住宅を準備する")] public bool EnableIncrementalAPPreparation;
     [Header("中長期の軍備計画（軍隊数の上限ではなく補充目標）")]

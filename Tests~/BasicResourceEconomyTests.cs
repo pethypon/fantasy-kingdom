@@ -72,6 +72,11 @@ public static class BasicResourceEconomyTests
             Check(team + " prepare supply before short cash forecast becomes critical",
                 board.Governor.ProductionDemand.Get(ResourceKind.Iron).ProjectedStock >= 3
                 && policy.IsPaymentDeadlineRecovery(repair));
+            f.State.GetNation(team).TurnsAlive = 1; board.Refresh(); board.Governor.Evaluate(board);
+            Check(team + " temporary opening support cannot hide a missing mandatory producer",
+                board.Governor.ProductionDemand.TemporaryIncome(ResourceKind.Iron) > 0
+                && policy.IsPaymentDeadlineRecovery(repair));
+            f.State.GetNation(team).TurnsAlive = 20;
             f.Resources.Iron = 8; board.Refresh(); board.Governor.Evaluate(board);
             policy.Evaluate(board, board.Governor.ProductionDemand, false, Array.Empty<BasicResourcePlan>());
             policy.AllowSpend(purchase, false, out string manualPlanReason);

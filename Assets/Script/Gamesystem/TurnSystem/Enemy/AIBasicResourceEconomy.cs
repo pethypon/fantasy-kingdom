@@ -301,14 +301,18 @@ public sealed class AIBasicResourceEconomy
                     : AIConstructionEconomy.WithoutUnlocatedOre(chosenDefinition != null ? chosenDefinition.GetLevel(1) : FacilityData.GetLevel(chosenKind, 1));
                 previousSupply[index] = chosenActor != null ? AIConstructionEconomy.ExistingRecipe(chosenActor, Mathf.Max(1, chosenActor.Level), board) : default;
             }
-            if (!float.IsInfinity(best) && current.MandatoryDemandPerTurn > .001f && current.NetPerTurn < -.001f
-                && (current.ProjectedStock < current.SafetyReserve - .001f
-                    || current.Stock / -current.NetPerTurn <= MandatoryPreparationHorizon))
+            // Opening crystal support expires. A short forecast's temporary income must
+            // not postpone the capital for an already-required permanent producer.
+            float obligationDeficit = Mathf.Max(-current.NetPerTurn,
+                current.MandatoryDemandPerTurn - demand.PermanentProduction(resource));
+            float supplyDeadline = obligationDeficit > .001f ? current.Stock / obligationDeficit : float.PositiveInfinity;
+            if (!float.IsInfinity(best) && current.MandatoryDemandPerTurn > .001f && obligationDeficit > .001f
+                && (current.ProjectedStock < current.SafetyReserve - .001f || supplyDeadline <= MandatoryPreparationHorizon))
             {
                 // Reserve the actual producer's capital before ongoing obligations exhaust stock.
                 // Other foundation projects used to repeatedly spend this same stone/water reserve,
                 // leaving a missing producer unaffordable even while its upkeep was going unpaid.
-                float exhaustionTurns = current.Stock / -current.NetPerTurn;
+                float exhaustionTurns = supplyDeadline;
                 float fundingTurns = Mathf.Clamp(Mathf.Floor(exhaustionTurns), 0,
                     Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8));
                 // Keep one concrete project, for the obligation that will fail first. Reserving

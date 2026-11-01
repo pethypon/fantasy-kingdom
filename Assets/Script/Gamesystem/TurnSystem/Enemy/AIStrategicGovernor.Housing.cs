@@ -252,6 +252,12 @@ public sealed partial class AIStrategicGovernor
             if (repeatCost >= 0 && repeatCost <= APSystem.MaximumAP && actions < config.APActionLimit)
             { demand += repeatCost; actions++; }
         }
+        // One real, maintainable pending recruit shares the same AP pool with the army.
+        // This is neither a permanent maximum-AP target nor an extra/free summon.
+        if (config.EnableRecruitmentAPPlanning && actions > 0 && actions < config.APActionLimit)
+            foreach (var need in RecruitmentPlan)
+                if (HousingRecruitCanBeFunded(need.Definition, board, config))
+                { demand += need.Definition.costAP; actions++; break; }
         int desired = (int)System.Math.Min(APSystem.MaximumAP, demand);
         if (HousingAPAtCitizenStock(ap, GameConstants.MaxAP) < desired)
             return new AIHousingAPPlan(actions, desired, stockAP, capacityAP, 0, 0, "housing_ap_bonus_cannot_reach_target");
