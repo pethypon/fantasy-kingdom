@@ -52,6 +52,7 @@ public static class A1LiveValidation
         Stage("retreat",()=>A1RetreatTests.PlayMode(turn.Systems));
         Stage("ordinary-mine-restored",()=>OrdinaryMineValidation.Run(turn.Systems));
         Stage("basic-resources",()=>BasicResourceEconomyTests.PlayMode(turn.Systems));
+        Stage("standing-army",()=>AIStandingArmyTests.Run(turn.Systems, turn));
         Debug.Log("[A1Live] COMPLETE failures=" + failures); EditorApplication.Exit(failures == 0 ? 0 : 1);
     }
 }

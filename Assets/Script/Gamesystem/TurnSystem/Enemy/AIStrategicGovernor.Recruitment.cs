@@ -54,6 +54,17 @@ public sealed partial class AIStrategicGovernor
                 && BoardActionProfile.For(actor)?.CanAttack != false) observedFighters++;
         bool expedition = board.HasPrincipalOpponentContact || TerritoryIntel.HasUsableTerritory || board.OperationRequiredCitizenDemand > 0;
         int fightingTarget = PrepareArmyDevelopment(board, Mathf.Max(2, Mathf.Min(6, observedFighters)), expedition);
+        var composition = AIHousingConfig.Active;
+        if (composition.EnableStandingSupport && board.TurnCount >= Mathf.Clamp(composition.SupportPreparationStartTurn, 1, 100))
+        {
+            // Buy support before the three-entry shopping list is filled by interchangeable fighters.
+            // Definitions are selected by actual healing/sight capability, then use normal payment forecasts.
+            int healerTarget = fighters >= 2 ? Mathf.Min(Mathf.Clamp(composition.MaximumStandingHealers, 1, 6),
+                Mathf.Max(1, (fighters + Mathf.Clamp(composition.FightersPerHealer, 2, 12) - 1) / Mathf.Clamp(composition.FightersPerHealer, 2, 12))) : 0;
+            if (healers < healerTarget && AddRecruitmentRole(board, "healer", "standing_army_healing_support")) healers++;
+            int scoutTarget = !board.PlayerCrystalVisible && board.GetExplorationRatio() < .95f ? fighters >= 8 ? 2 : 1 : 0;
+            if (scouts < scoutTarget && AddRecruitmentRole(board, "scout", "standing_army_reconnaissance")) scouts++;
+        }
         AddOperationSquadRecruits(board, ref frontline, ref ranged, ref healers, ref scouts, ref fighters);
         // Rescue/support a force that already exists before buying another interchangeable fighter.
         if (healers == 0 && fighters >= 3 && (wounded > 0 || expedition))

@@ -86,6 +86,8 @@ public sealed partial class AIStrategicGovernor
         float futureArmy = Mathf.Max(Mathf.Max(operationDemand, military), recruitCapacityStock);
         float required = RequiredHousingStock(plannedBuilding, recruitCapacityStock, operationDemand, military, otherPlan, config.FreeTarget,
             HousingAPPlan.RequiredCitizens);
+        if (board.TurnCount >= Mathf.Clamp(config.CitizenReserveStartTurn, 1, 100))
+            required = Mathf.Max(required, Mathf.Clamp(config.CitizenReserveTarget, 0, 30));
         if (emergency) required = Mathf.Max(required, defender.costCitizen);
         bool blocked = required > capacity + .001f;
         string reason = null;
@@ -103,8 +105,8 @@ public sealed partial class AIStrategicGovernor
             var projected = forecast.SimulateInvestment(board, action, config.Horizon);
             if (projected.BreadPaymentFailed || projected.UpkeepPaymentFailed || projected.ImportantProductionStopped
                 || projected.BreadCoverageTurns < BreadReserveTurns) reason = "housing_build_forecast_unsafe";
-            if (reason == null && HousingAPPlan.RequiredCitizens > capacity
-                && !HousingAPFoodReserveSafe(board, HousingAPPlan.RequiredCitizens, config))
+            if (reason == null && required > capacity
+                && !HousingAPFoodReserveSafe(board, Mathf.CeilToInt(required), config))
                 reason = "housing_ap_food_reserve_unsafe";
             if (reason == null && (RecruitmentCitizenDemand > 0 || DevelopmentPlan.Count > 0))
             {

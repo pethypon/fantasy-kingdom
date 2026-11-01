@@ -133,9 +133,9 @@ MonoBehaviour:
     initialResources:
       Wood: 140
       Stone: 140
-      Water: 60
+      Water: 80
       MagicOre: 12
-      Iron: 36
+      Iron: 60
       Wheat: 0
       Bread: 100
       Citizen: 5
@@ -148,9 +148,9 @@ MonoBehaviour:
     initialResources:
       Wood: 140
       Stone: 140
-      Water: 60
+      Water: 80
       MagicOre: 12
-      Iron: 36
+      Iron: 60
       Wheat: 0
       Bread: 100
       Citizen: 5

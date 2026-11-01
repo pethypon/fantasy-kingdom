@@ -22,6 +22,13 @@ public sealed class AIHousingConfig : ScriptableObject
     [InspectorName("部隊行動と同時に行う増援のAPも準備する")] public bool EnableRecruitmentAPPlanning;
     [InspectorName("連続攻撃のAPも準備する")] public bool EnableRepeatAttackAPPlanning = true;
     [InspectorName("届く市民数まで段階的に住宅を準備する")] public bool EnableIncrementalAPPreparation;
+    [Header("序盤の支援編成と市民の予備")]
+    [InspectorName("常備軍に回復役と偵察役を準備")] public bool EnableStandingSupport;
+    [Range(1, 100), InspectorName("支援編成を始めるターン")] public int SupportPreparationStartTurn = 6;
+    [Range(2, 12), InspectorName("回復役１体あたりの戦闘員数")] public int FightersPerHealer = 4;
+    [Range(1, 6), InspectorName("常備回復役の目標上限")] public int MaximumStandingHealers = 3;
+    [Range(0, 30), InspectorName("経済整備後の市民予備目標（０は無効）")] public int CitizenReserveTarget;
+    [Range(1, 100), InspectorName("市民予備を準備し始めるターン")] public int CitizenReserveStartTurn = 12;
     [Header("中長期の軍備計画（軍隊数の上限ではなく補充目標）")]
     [InspectorName("作戦に応じて中長期の補充目標を増やす")] public bool EnableDevelopmentGrowth = true;
     [Range(1, 100), InspectorName("先行準備の期間（ターン）"), Tooltip("この期間内に必要になる兵種について、購入に必要な市民容量を先に準備します。費用全額を一括予約しません。")]

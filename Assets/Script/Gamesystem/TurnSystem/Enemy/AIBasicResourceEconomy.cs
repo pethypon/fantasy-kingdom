@@ -438,19 +438,8 @@ public sealed class AIBasicResourceEconomy
     {
         if (demand == null || !TryScopedRecipe(action, out var next, out var previous, out _)) return false;
         foreach (var investment in mandatoryInvestments)
-        {
-            if (investment.ExhaustionTurns > MandatoryPreparationHorizon + .001f) continue;
-            bool missingFoundation = false;
-            foreach (var resource in resources)
-            {
-                if (!IsOpeningResource(resource) || StrategicEconomyForecast.Amount(investment.Cost, (int)resource) <= 0
-                    || demand.Get(resource).MandatoryDemandPerTurn <= .001f || demand.ProducerCount(resource) > 0) continue;
-                missingFoundation = true;
-                if (ProductionGain(RecipeKind(action), next, previous, resource) > .001f) return true;
-            }
-            // Spending all capital on the processor before its first quarry/well can strand the economy.
-            if (!missingFoundation && ProductionGain(RecipeKind(action), next, previous, investment.Resource) > .001f) return true;
-        }
+            if (investment.ExhaustionTurns <= MandatoryPreparationHorizon + .001f
+                && ProductionGain(RecipeKind(action), next, previous, investment.Resource) > .001f) return true;
         return false;
     }
 
@@ -572,12 +561,8 @@ public sealed class AIBasicResourceEconomy
                 float required = StrategicEconomyForecast.Amount(investment.Cost, i);
                 if (spent <= .001f || required <= .001f) continue;
                 var supply = demand.Resources[i];
-                bool paymentDue = investment.ExhaustionTurns <= MandatoryPreparationHorizon;
-                // A rolling future-income promise used to reinvest the same capital every turn.
-                // Near a real deadline, retain cash already accumulated; wait for existing income.
-                // Only a necessary, fully operating prerequisite may use the bounded deferral above.
-                float baseline = Mathf.Max(0, supply.Stock + (paymentDue ? 0 : supply.NetPerTurn * investment.FundingTurns));
-                float capitalGain = hasRecipe && !paymentDue ? Mathf.Max(0, NetOutput(next, i) - NetOutput(previous, i)) : 0;
+                float baseline = Mathf.Max(0, supply.Stock + supply.NetPerTurn * investment.FundingTurns);
+                float capitalGain = hasRecipe ? Mathf.Max(0, NetOutput(next, i) - NetOutput(previous, i)) : 0;
                 float projected = baseline - spent + capitalGain * investment.FundingTurns;
                 if (projected + .001f >= Mathf.Min(required, baseline) || recovery) continue;
                 reason = "mandatory_supply_capital_" + investment.Resource + "_" + resources[i];
@@ -605,7 +590,7 @@ public sealed class AIBasicResourceEconomy
         FacilityData.FacilityLevelData previous, FacilityData.ProductionBundle cost)
     {
         if (OperatingFraction(next, previous, cost) < .999f) return false;
-        int horizon = MandatoryPreparationHorizon;
+        int horizon = Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8);
         bool useful = RestoresMissingInput(investment.Recipe, investment.Previous, next, previous);
         for (int i = 0; i < resources.Length; i++)
         {
