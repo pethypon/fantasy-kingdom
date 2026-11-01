@@ -1,0 +1,23 @@
+{
+    "DetailRowLimit": 160000,
+    "DecisionLimit": 120000,
+    "UnitLimit": 40000,
+    "WrittenDetailRows": 121356,
+    "DecisionRows": 120000,
+    "UnitRows": 1356,
+    "AttemptedRowsAfterCap": 10,
+    "SkippedDecisionEventsAfterCap": 2456,
+    "SkippedSnapshotsAfterCap": 0,
+    "SkillGroupLimit": 2048,
+    "SkillGroups": 51,
+    "SkillSamplesAfterGroupLimit": 0,
+    "DetailCapReached": true,
+    "SkillGroupCapReached": false,
+    "Closed": true,
+    "ScoreTraceLimit": 8192,
+    "ScoreTraceOverflowSamples": 0,
+    "LastTeam": "Enemy",
+    "LastStage": "selected",
+    "LastOwnTurn": 160,
+    "Scope": "Read-only reporting. The 160000-row detail limit reserves 40000 rows for unit trajectories and 120000 for candidate details, including headers. Skill and decision summaries continue after detail limits. Generated scores precede evaluation. Candidate samples are not distinct opportunities. SkillSelfReady checks owned activation/AP state, not legal target presence."
+}

@@ -1,0 +1,1636 @@
+[
+  {
+    "label": "army-siege-before",
+    "folder": "01-314159",
+    "code": "bf630697aa8bbefa86e74971ab772aa56414adc5",
+    "sourceDigest": "b35e522026d247c525fdd0ef8db2cc77aaf5cf581d5067f8d14faf78210c9024",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 314159,
+    "threat": 15,
+    "personality": "Combat",
+    "rounds": 160,
+    "ownerTurns": 320,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 168.6505376,
+    "p95FrameMs": 15.370195388793945,
+    "worstFrameMs": 975.1785888671875,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 3,
+        "lastObservedArmy": 1,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 6,
+            "levelSum": 6
+          },
+          "Cannon": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "Field": {
+            "count": 6,
+            "levelSum": 6
+          },
+          "LoggingCamp": {
+            "count": 7,
+            "levelSum": 8
+          },
+          "Mine": {
+            "count": 6,
+            "levelSum": 18
+          },
+          "Quarry": {
+            "count": 5,
+            "levelSum": 10
+          },
+          "RestraintTrap": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "SpikeTrap": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "StoneWall": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Well": {
+            "count": 11,
+            "levelSum": 24
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 11,
+        "summonMix": {
+          "DragonKnight": 4,
+          "Scout": 4,
+          "Assassin": 2,
+          "Crossbow": 1
+        },
+        "builds": 93,
+        "upgrades": 40,
+        "failedActions": 2,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 1,
+        "mainCrystalObservedRounds": 1,
+        "knownTerritoryRounds": 101,
+        "unpaidRounds": 5,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;",
+        "sieges": [
+          {
+            "target": "7037d3cc75124e6dbce814d07cb477a7",
+            "category": "SubCrystal",
+            "firstRound": 75,
+            "lastAttackRound": 75,
+            "firstObservedHp": 5000,
+            "attacks": 1,
+            "hpDamage": 14,
+            "AP": 4,
+            "killRound": null,
+            "activeAttackRounds": 1,
+            "attackers": 1,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          }
+        ]
+      },
+      "Enemy": {
+        "peakObservedArmy": 8,
+        "lastObservedArmy": 8,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 15,
+            "levelSum": 16
+          },
+          "Field": {
+            "count": 15,
+            "levelSum": 15
+          },
+          "LoggingCamp": {
+            "count": 13,
+            "levelSum": 17
+          },
+          "Mine": {
+            "count": 13,
+            "levelSum": 20
+          },
+          "Quarry": {
+            "count": 11,
+            "levelSum": 16
+          },
+          "SpikeTrap": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "StoneWall": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 14,
+            "levelSum": 14
+          },
+          "Well": {
+            "count": 30,
+            "levelSum": 37
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 11,
+        "summonMix": {
+          "DragonKnight": 3,
+          "Assassin": 4,
+          "Scout": 1,
+          "Bomber": 1,
+          "Crossbow": 2
+        },
+        "builds": 124,
+        "upgrades": 24,
+        "failedActions": 1,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 2,
+        "knownTerritoryRounds": 35,
+        "unpaidRounds": 6,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;healer:Priest:operation_squad_role_missing;frontline:Samurai:operation_squad_role_missing;",
+        "sieges": []
+      }
+    }
+  },
+  {
+    "label": "army-siege-after",
+    "folder": "01-314159",
+    "code": "da43e27b48180664dbab2950f01769f64ecbf5d6",
+    "sourceDigest": "8773ccbf86ed85caceac4abcdd25a1850307fe4576fcbb6b635909c68caf91ad",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 314159,
+    "threat": 15,
+    "personality": "Combat",
+    "rounds": 160,
+    "ownerTurns": 320,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 127.35012379999999,
+    "p95FrameMs": 17.938804626464844,
+    "worstFrameMs": 557.8211059570312,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 3,
+        "lastObservedArmy": 3,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 7,
+            "levelSum": 8
+          },
+          "Field": {
+            "count": 7,
+            "levelSum": 8
+          },
+          "LoggingCamp": {
+            "count": 9,
+            "levelSum": 15
+          },
+          "Mine": {
+            "count": 4,
+            "levelSum": 6
+          },
+          "Quarry": {
+            "count": 5,
+            "levelSum": 8
+          },
+          "StoneWall": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "Well": {
+            "count": 10,
+            "levelSum": 22
+          },
+          "WoodWall": {
+            "count": 7,
+            "levelSum": 7
+          }
+        },
+        "summons": 4,
+        "summonMix": {
+          "DragonKnight": 2,
+          "Scout": 1,
+          "Crossbow": 1
+        },
+        "builds": 106,
+        "upgrades": 32,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 0,
+        "unpaidRounds": 5,
+        "lastRecruitment": "scout:Scout:reconnaissance_role_missing;",
+        "sieges": []
+      },
+      "Enemy": {
+        "peakObservedArmy": 6,
+        "lastObservedArmy": 5,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 10,
+            "levelSum": 16
+          },
+          "Field": {
+            "count": 10,
+            "levelSum": 11
+          },
+          "LoggingCamp": {
+            "count": 12,
+            "levelSum": 15
+          },
+          "Mine": {
+            "count": 9,
+            "levelSum": 18
+          },
+          "Quarry": {
+            "count": 9,
+            "levelSum": 13
+          },
+          "RestraintTrap": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "SpikeTrap": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "StoneWall": {
+            "count": 7,
+            "levelSum": 7
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 4,
+            "levelSum": 7
+          },
+          "Well": {
+            "count": 18,
+            "levelSum": 34
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 11,
+        "summonMix": {
+          "DragonKnight": 5,
+          "Assassin": 1,
+          "Scout": 2,
+          "Crossbow": 3
+        },
+        "builds": 90,
+        "upgrades": 42,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 10,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 45,
+        "unpaidRounds": 6,
+        "lastRecruitment": "scout:Scout:operation_squad_role_missing;healer:Priest:expedition_without_healer;ranged:Bomber:observed_force_or_core_replacement;",
+        "sieges": []
+      }
+    }
+  },
+  {
+    "label": "army-siege-after",
+    "folder": "02-271828",
+    "code": "da43e27b48180664dbab2950f01769f64ecbf5d6",
+    "sourceDigest": "8773ccbf86ed85caceac4abcdd25a1850307fe4576fcbb6b635909c68caf91ad",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 271828,
+    "threat": 15,
+    "personality": "Combat",
+    "rounds": 160,
+    "ownerTurns": 320,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 107.0641282,
+    "p95FrameMs": 14.705002784729004,
+    "worstFrameMs": 401.9933166503906,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 3,
+        "lastObservedArmy": 1,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 6,
+            "levelSum": 8
+          },
+          "Cannon": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "Field": {
+            "count": 6,
+            "levelSum": 6
+          },
+          "LoggingCamp": {
+            "count": 9,
+            "levelSum": 10
+          },
+          "Mine": {
+            "count": 25,
+            "levelSum": 32
+          },
+          "Quarry": {
+            "count": 6,
+            "levelSum": 7
+          },
+          "RestraintTrap": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "SpikeTrap": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "StoneWall": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "SubCrystal": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "Well": {
+            "count": 15,
+            "levelSum": 20
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 3,
+        "summonMix": {
+          "DragonKnight": 2,
+          "Crossbow": 1
+        },
+        "builds": 95,
+        "upgrades": 16,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 0,
+        "unpaidRounds": 5,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;",
+        "sieges": []
+      },
+      "Enemy": {
+        "peakObservedArmy": 7,
+        "lastObservedArmy": 7,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 8,
+            "levelSum": 21
+          },
+          "Field": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "LoggingCamp": {
+            "count": 13,
+            "levelSum": 18
+          },
+          "Mine": {
+            "count": 8,
+            "levelSum": 16
+          },
+          "Quarry": {
+            "count": 10,
+            "levelSum": 10
+          },
+          "RestraintTrap": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "StoneWall": {
+            "count": 5,
+            "levelSum": 5
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 2,
+            "levelSum": 5
+          },
+          "Well": {
+            "count": 15,
+            "levelSum": 27
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 28,
+        "summonMix": {
+          "DragonKnight": 10,
+          "Scout": 7,
+          "Bomber": 6,
+          "Assassin": 2,
+          "Knight": 1,
+          "Priest": 1,
+          "Crossbow": 1
+        },
+        "builds": 80,
+        "upgrades": 43,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 98,
+        "unpaidRounds": 6,
+        "lastRecruitment": "healer:Priest:wounded_army_without_healer;ranged:Bomber:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;",
+        "sieges": [
+          {
+            "target": "cee2b39cfa024f78b91ea31485c0fa74",
+            "category": "SubCrystal",
+            "firstRound": 65,
+            "lastAttackRound": 65,
+            "firstObservedHp": 5000,
+            "attacks": 1,
+            "hpDamage": 10,
+            "AP": 0,
+            "killRound": null,
+            "activeAttackRounds": 1,
+            "attackers": 1,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          },
+          {
+            "target": "acf2139f67f5402cb7175e570f913d64",
+            "category": "SubCrystal",
+            "firstRound": 71,
+            "lastAttackRound": 148,
+            "firstObservedHp": 4856,
+            "attacks": 335,
+            "hpDamage": 4716,
+            "AP": 1574,
+            "killRound": 148,
+            "activeAttackRounds": 56,
+            "attackers": 12,
+            "elapsedRoundsToKill": 78,
+            "censored": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "label": "army-siege-release",
+    "folder": "01-314159",
+    "code": "3dc47215a2666bcc05fe7f84abe45f0c031ff041",
+    "sourceDigest": "cf760679db484323482c51848725e413fcb007c65eba06bcbcc035db4f39669d",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 314159,
+    "threat": 15,
+    "personality": "Combat",
+    "rounds": 160,
+    "ownerTurns": 320,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 151.96185999999997,
+    "p95FrameMs": 22.2544002532959,
+    "worstFrameMs": 994.3038940429688,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 5,
+        "lastObservedArmy": 4,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 9,
+            "levelSum": 14
+          },
+          "Field": {
+            "count": 6,
+            "levelSum": 9
+          },
+          "LoggingCamp": {
+            "count": 10,
+            "levelSum": 13
+          },
+          "Mine": {
+            "count": 8,
+            "levelSum": 12
+          },
+          "Quarry": {
+            "count": 6,
+            "levelSum": 10
+          },
+          "RestraintTrap": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "StoneWall": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Well": {
+            "count": 14,
+            "levelSum": 23
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 17,
+        "summonMix": {
+          "DragonKnight": 8,
+          "Scout": 2,
+          "Assassin": 5,
+          "Crossbow": 2
+        },
+        "builds": 94,
+        "upgrades": 29,
+        "failedActions": 2,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 97,
+        "unpaidRounds": 5,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;frontline:DragonKnight:observed_force_or_core_replacement;",
+        "sieges": [
+          {
+            "target": "f956bb9366bf48879b79a4a41769a32a",
+            "category": "SubCrystal",
+            "firstRound": 68,
+            "lastAttackRound": 70,
+            "firstObservedHp": 5000,
+            "attacks": 11,
+            "hpDamage": 154,
+            "AP": 55,
+            "killRound": null,
+            "activeAttackRounds": 3,
+            "attackers": 1,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          },
+          {
+            "target": "76178331303c4910bca857d48319d506",
+            "category": "SubCrystal",
+            "firstRound": 82,
+            "lastAttackRound": 160,
+            "firstObservedHp": 5000,
+            "attacks": 220,
+            "hpDamage": 3363,
+            "AP": 1086,
+            "killRound": null,
+            "activeAttackRounds": 39,
+            "attackers": 6,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          }
+        ]
+      },
+      "Enemy": {
+        "peakObservedArmy": 7,
+        "lastObservedArmy": 6,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 9,
+            "levelSum": 19
+          },
+          "Field": {
+            "count": 9,
+            "levelSum": 10
+          },
+          "LoggingCamp": {
+            "count": 12,
+            "levelSum": 17
+          },
+          "Mine": {
+            "count": 8,
+            "levelSum": 17
+          },
+          "Quarry": {
+            "count": 9,
+            "levelSum": 19
+          },
+          "StoneWall": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 4,
+            "levelSum": 7
+          },
+          "Well": {
+            "count": 15,
+            "levelSum": 30
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 24,
+        "summonMix": {
+          "DragonKnight": 5,
+          "Crossbow": 6,
+          "Scout": 7,
+          "Assassin": 5,
+          "Archer": 1
+        },
+        "builds": 83,
+        "upgrades": 53,
+        "failedActions": 2,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 3,
+        "knownTerritoryRounds": 83,
+        "unpaidRounds": 6,
+        "lastRecruitment": "healer:Priest:wounded_army_without_healer;ranged:Bomber:observed_force_or_core_replacement;ranged:Bomber:observed_force_or_core_replacement;",
+        "sieges": [
+          {
+            "target": "ee7f09aba1e74b9492dd13901683da56",
+            "category": "SubCrystal",
+            "firstRound": 93,
+            "lastAttackRound": 95,
+            "firstObservedHp": 3524,
+            "attacks": 16,
+            "hpDamage": 192,
+            "AP": 74,
+            "killRound": null,
+            "activeAttackRounds": 3,
+            "attackers": 1,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "label": "army-siege-release",
+    "folder": "02-271828",
+    "code": "3dc47215a2666bcc05fe7f84abe45f0c031ff041",
+    "sourceDigest": "cf760679db484323482c51848725e413fcb007c65eba06bcbcc035db4f39669d",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 271828,
+    "threat": 15,
+    "personality": "Combat",
+    "rounds": 160,
+    "ownerTurns": 320,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 112.7126255,
+    "p95FrameMs": 12.0711030960083,
+    "worstFrameMs": 385.3056945800781,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 3,
+        "lastObservedArmy": 1,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 6,
+            "levelSum": 7
+          },
+          "Cannon": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "Field": {
+            "count": 6,
+            "levelSum": 6
+          },
+          "LoggingCamp": {
+            "count": 7,
+            "levelSum": 8
+          },
+          "Mine": {
+            "count": 12,
+            "levelSum": 12
+          },
+          "Quarry": {
+            "count": 6,
+            "levelSum": 7
+          },
+          "RestraintTrap": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "SpikeTrap": {
+            "count": 3,
+            "levelSum": 3
+          },
+          "StoneWall": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Well": {
+            "count": 13,
+            "levelSum": 17
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 23,
+        "summonMix": {
+          "DragonKnight": 8,
+          "Assassin": 5,
+          "Scout": 2,
+          "Crossbow": 8
+        },
+        "builds": 83,
+        "upgrades": 7,
+        "failedActions": 5,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 116,
+        "unpaidRounds": 5,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;",
+        "sieges": [
+          {
+            "target": "02478c0ac3234325affcce98c6ddd206",
+            "category": "SubCrystal",
+            "firstRound": 51,
+            "lastAttackRound": 102,
+            "firstObservedHp": 5000,
+            "attacks": 59,
+            "hpDamage": 1019,
+            "AP": 286,
+            "killRound": null,
+            "activeAttackRounds": 16,
+            "attackers": 7,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          },
+          {
+            "target": "cca6a92ad68b4a4ba795102fa561cfe6",
+            "category": "SubCrystal",
+            "firstRound": 99,
+            "lastAttackRound": 99,
+            "firstObservedHp": 5000,
+            "attacks": 1,
+            "hpDamage": 17,
+            "AP": 0,
+            "killRound": null,
+            "activeAttackRounds": 1,
+            "attackers": 1,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          }
+        ]
+      },
+      "Enemy": {
+        "peakObservedArmy": 4,
+        "lastObservedArmy": 4,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 8,
+            "levelSum": 11
+          },
+          "Field": {
+            "count": 8,
+            "levelSum": 9
+          },
+          "LoggingCamp": {
+            "count": 10,
+            "levelSum": 11
+          },
+          "Mine": {
+            "count": 9,
+            "levelSum": 15
+          },
+          "Quarry": {
+            "count": 9,
+            "levelSum": 9
+          },
+          "RestraintTrap": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "SpikeTrap": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "StoneWall": {
+            "count": 7,
+            "levelSum": 7
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "Well": {
+            "count": 15,
+            "levelSum": 26
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 32,
+        "summonMix": {
+          "DragonKnight": 13,
+          "Assassin": 6,
+          "Scout": 8,
+          "Bomber": 2,
+          "Crossbow": 3
+        },
+        "builds": 83,
+        "upgrades": 23,
+        "failedActions": 2,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 118,
+        "unpaidRounds": 6,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;",
+        "sieges": [
+          {
+            "target": "ebf5e12b5a1c472999896687234a8389",
+            "category": "SubCrystal",
+            "firstRound": 45,
+            "lastAttackRound": 145,
+            "firstObservedHp": 4640,
+            "attacks": 331,
+            "hpDamage": 4640,
+            "AP": 1471,
+            "killRound": 145,
+            "activeAttackRounds": 53,
+            "attackers": 15,
+            "elapsedRoundsToKill": 101,
+            "censored": false
+          },
+          {
+            "target": "4647d4aca8284e15ae3ac0917cfe6094",
+            "category": "SubCrystal",
+            "firstRound": 151,
+            "lastAttackRound": 151,
+            "firstObservedHp": 5000,
+            "attacks": 4,
+            "hpDamage": 56,
+            "AP": 12,
+            "killRound": null,
+            "activeAttackRounds": 1,
+            "attackers": 1,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "label": "army-siege-high",
+    "folder": "01-141421",
+    "code": "3dc47215a2666bcc05fe7f84abe45f0c031ff041",
+    "sourceDigest": "cf760679db484323482c51848725e413fcb007c65eba06bcbcc035db4f39669d",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 141421,
+    "threat": 35,
+    "personality": "Combat",
+    "rounds": 80,
+    "ownerTurns": 160,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 90.4361769,
+    "p95FrameMs": 6.867899417877197,
+    "worstFrameMs": 560.8115234375,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 3,
+        "lastObservedArmy": 2,
+        "lastCensusRound": 80,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 6,
+            "levelSum": 7
+          },
+          "Field": {
+            "count": 6,
+            "levelSum": 7
+          },
+          "LoggingCamp": {
+            "count": 8,
+            "levelSum": 9
+          },
+          "Mine": {
+            "count": 5,
+            "levelSum": 7
+          },
+          "Quarry": {
+            "count": 7,
+            "levelSum": 8
+          },
+          "RestraintTrap": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "StoneWall": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Well": {
+            "count": 11,
+            "levelSum": 14
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 3,
+        "summonMix": {
+          "DragonKnight": 1,
+          "Scout": 1,
+          "Assassin": 1
+        },
+        "builds": 67,
+        "upgrades": 9,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 0,
+        "unpaidRounds": 5,
+        "lastRecruitment": "ranged:Bomber:operation_squad_role_missing;",
+        "sieges": []
+      },
+      "Enemy": {
+        "peakObservedArmy": 4,
+        "lastObservedArmy": 4,
+        "lastCensusRound": 80,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 6,
+            "levelSum": 13
+          },
+          "Field": {
+            "count": 7,
+            "levelSum": 7
+          },
+          "LoggingCamp": {
+            "count": 10,
+            "levelSum": 12
+          },
+          "Mine": {
+            "count": 6,
+            "levelSum": 10
+          },
+          "Quarry": {
+            "count": 9,
+            "levelSum": 12
+          },
+          "StoneWall": {
+            "count": 3,
+            "levelSum": 3
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 1,
+            "levelSum": 2
+          },
+          "Well": {
+            "count": 12,
+            "levelSum": 20
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 5,
+        "summonMix": {
+          "Assassin": 1,
+          "DragonKnight": 2,
+          "Scout": 1,
+          "Crossbow": 1
+        },
+        "builds": 62,
+        "upgrades": 25,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 0,
+        "unpaidRounds": 6,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;",
+        "sieges": []
+      }
+    }
+  },
+  {
+    "label": "army-siege-completion",
+    "folder": "01-314159",
+    "code": "6ff319142e12f89ad9b714c11582024d49b129e9",
+    "sourceDigest": "5f9abef161414538ac7f94e0d12b2fd4e77bce86ea7d4cbd565d930faa4f36c6",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 314159,
+    "threat": 15,
+    "personality": "Combat",
+    "rounds": 160,
+    "ownerTurns": 320,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 152.1619935,
+    "p95FrameMs": 20.611896514892578,
+    "worstFrameMs": 534.706298828125,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 7,
+        "lastObservedArmy": 7,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 10,
+            "levelSum": 22
+          },
+          "Field": {
+            "count": 8,
+            "levelSum": 11
+          },
+          "LoggingCamp": {
+            "count": 14,
+            "levelSum": 17
+          },
+          "Mine": {
+            "count": 11,
+            "levelSum": 22
+          },
+          "Quarry": {
+            "count": 11,
+            "levelSum": 17
+          },
+          "SpikeTrap": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "StoneWall": {
+            "count": 6,
+            "levelSum": 6
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 4,
+            "levelSum": 8
+          },
+          "Well": {
+            "count": 16,
+            "levelSum": 33
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 37,
+        "summonMix": {
+          "DragonKnight": 11,
+          "Scout": 9,
+          "Assassin": 7,
+          "Crossbow": 3,
+          "Priest": 2,
+          "Bomber": 4,
+          "Archer": 1
+        },
+        "builds": 90,
+        "upgrades": 56,
+        "failedActions": 1,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 97,
+        "unpaidRounds": 5,
+        "lastRecruitment": "healer:Priest:expedition_without_healer;ranged:Bomber:observed_force_or_core_replacement;ranged:Bomber:observed_force_or_core_replacement;",
+        "sieges": [
+          {
+            "target": "9b9787def71440488ebdfc5bf421d4dc",
+            "category": "SubCrystal",
+            "firstRound": 68,
+            "lastAttackRound": 149,
+            "firstObservedHp": 5000,
+            "attacks": 82,
+            "hpDamage": 1292,
+            "AP": 329,
+            "killRound": null,
+            "activeAttackRounds": 14,
+            "attackers": 3,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          },
+          {
+            "target": "c97abe4751d44f6e9418f6b7767eb8ba",
+            "category": "SubCrystal",
+            "firstRound": 78,
+            "lastAttackRound": 134,
+            "firstObservedHp": 5000,
+            "attacks": 58,
+            "hpDamage": 834,
+            "AP": 265,
+            "killRound": null,
+            "activeAttackRounds": 14,
+            "attackers": 7,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          }
+        ]
+      },
+      "Enemy": {
+        "peakObservedArmy": 9,
+        "lastObservedArmy": 5,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 10,
+            "levelSum": 26
+          },
+          "Field": {
+            "count": 9,
+            "levelSum": 11
+          },
+          "LoggingCamp": {
+            "count": 14,
+            "levelSum": 20
+          },
+          "Mine": {
+            "count": 11,
+            "levelSum": 24
+          },
+          "Quarry": {
+            "count": 11,
+            "levelSum": 16
+          },
+          "SpikeTrap": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "StoneWall": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 3,
+            "levelSum": 9
+          },
+          "Well": {
+            "count": 19,
+            "levelSum": 32
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 29,
+        "summonMix": {
+          "DragonKnight": 7,
+          "Crossbow": 4,
+          "Scout": 6,
+          "Assassin": 5,
+          "Bomber": 4,
+          "HolyKnight": 2,
+          "Samurai": 1
+        },
+        "builds": 94,
+        "upgrades": 61,
+        "failedActions": 2,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 16,
+        "unpaidRounds": 6,
+        "lastRecruitment": "ranged:Bomber:observed_force_or_core_replacement;frontline:DragonKnight:observed_force_or_core_replacement;ranged:Bomber:observed_force_or_core_replacement;",
+        "sieges": []
+      }
+    }
+  },
+  {
+    "label": "army-siege-completion",
+    "folder": "02-271828",
+    "code": "6ff319142e12f89ad9b714c11582024d49b129e9",
+    "sourceDigest": "5f9abef161414538ac7f94e0d12b2fd4e77bce86ea7d4cbd565d930faa4f36c6",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 271828,
+    "threat": 15,
+    "personality": "Combat",
+    "rounds": 160,
+    "ownerTurns": 320,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 122.78337760000002,
+    "p95FrameMs": 13.796796798706055,
+    "worstFrameMs": 979.8485107421875,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 3,
+        "lastObservedArmy": 1,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 7,
+            "levelSum": 9
+          },
+          "Cannon": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Field": {
+            "count": 8,
+            "levelSum": 9
+          },
+          "LoggingCamp": {
+            "count": 9,
+            "levelSum": 10
+          },
+          "Mine": {
+            "count": 28,
+            "levelSum": 33
+          },
+          "Quarry": {
+            "count": 6,
+            "levelSum": 7
+          },
+          "RestraintTrap": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "SpikeTrap": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "StoneWall": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "SubCrystal": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "Warehouse": {
+            "count": 1,
+            "levelSum": 1
+          },
+          "Well": {
+            "count": 19,
+            "levelSum": 24
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 3,
+        "summonMix": {
+          "DragonKnight": 2,
+          "Crossbow": 1
+        },
+        "builds": 109,
+        "upgrades": 15,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 0,
+        "unpaidRounds": 5,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;frontline:DragonKnight:operation_squad_role_missing;",
+        "sieges": []
+      },
+      "Enemy": {
+        "peakObservedArmy": 6,
+        "lastObservedArmy": 6,
+        "lastCensusRound": 160,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 7,
+            "levelSum": 21
+          },
+          "Field": {
+            "count": 8,
+            "levelSum": 8
+          },
+          "LoggingCamp": {
+            "count": 15,
+            "levelSum": 18
+          },
+          "Mine": {
+            "count": 7,
+            "levelSum": 15
+          },
+          "Quarry": {
+            "count": 11,
+            "levelSum": 12
+          },
+          "StoneWall": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 4,
+            "levelSum": 4
+          },
+          "Well": {
+            "count": 16,
+            "levelSum": 27
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 21,
+        "summonMix": {
+          "DragonKnight": 11,
+          "Scout": 3,
+          "Crossbow": 5,
+          "Assassin": 2
+        },
+        "builds": 80,
+        "upgrades": 37,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 98,
+        "unpaidRounds": 6,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;scout:Scout:operation_squad_role_missing;ranged:Bomber:observed_force_or_core_replacement;",
+        "sieges": [
+          {
+            "target": "32d388b7671146f89e8c30ee4a6e626b",
+            "category": "SubCrystal",
+            "firstRound": 65,
+            "lastAttackRound": 65,
+            "firstObservedHp": 5000,
+            "attacks": 1,
+            "hpDamage": 10,
+            "AP": 0,
+            "killRound": null,
+            "activeAttackRounds": 1,
+            "attackers": 1,
+            "elapsedRoundsToKill": null,
+            "censored": true
+          },
+          {
+            "target": "8bd562eb09dc4a87a8553c8e5b433660",
+            "category": "SubCrystal",
+            "firstRound": 71,
+            "lastAttackRound": 140,
+            "firstObservedHp": 4856,
+            "attacks": 297,
+            "hpDamage": 4856,
+            "AP": 1382,
+            "killRound": 140,
+            "activeAttackRounds": 51,
+            "attackers": 13,
+            "elapsedRoundsToKill": 70,
+            "censored": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "label": "army-siege-final-high",
+    "folder": "01-141421",
+    "code": "6ff319142e12f89ad9b714c11582024d49b129e9",
+    "sourceDigest": "5f9abef161414538ac7f94e0d12b2fd4e77bce86ea7d4cbd565d930faa4f36c6",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "seed": 141421,
+    "threat": 35,
+    "personality": "Combat",
+    "rounds": 80,
+    "ownerTurns": 160,
+    "result": "unresolved",
+    "end": "owner_turn_limit",
+    "errors": 0,
+    "exceptions": 0,
+    "seconds": 80.9067391,
+    "p95FrameMs": 6.862797737121582,
+    "worstFrameMs": 629.851806640625,
+    "teams": {
+      "Player": {
+        "peakObservedArmy": 3,
+        "lastObservedArmy": 1,
+        "lastCensusRound": 80,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 6,
+            "levelSum": 7
+          },
+          "Field": {
+            "count": 7,
+            "levelSum": 7
+          },
+          "LoggingCamp": {
+            "count": 6,
+            "levelSum": 7
+          },
+          "Mine": {
+            "count": 9,
+            "levelSum": 9
+          },
+          "Quarry": {
+            "count": 5,
+            "levelSum": 6
+          },
+          "RestraintTrap": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "StoneWall": {
+            "count": 6,
+            "levelSum": 6
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Well": {
+            "count": 11,
+            "levelSum": 19
+          },
+          "WoodWall": {
+            "count": 8,
+            "levelSum": 8
+          }
+        },
+        "summons": 2,
+        "summonMix": {
+          "DragonKnight": 1,
+          "Crossbow": 1
+        },
+        "builds": 65,
+        "upgrades": 11,
+        "failedActions": 6,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 0,
+        "unpaidRounds": 5,
+        "lastRecruitment": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;",
+        "sieges": []
+      },
+      "Enemy": {
+        "peakObservedArmy": 3,
+        "lastObservedArmy": 3,
+        "lastCensusRound": 80,
+        "liveFacilities": {
+          "Bakery": {
+            "count": 7,
+            "levelSum": 10
+          },
+          "Field": {
+            "count": 7,
+            "levelSum": 8
+          },
+          "LoggingCamp": {
+            "count": 9,
+            "levelSum": 11
+          },
+          "Mine": {
+            "count": 6,
+            "levelSum": 9
+          },
+          "Quarry": {
+            "count": 10,
+            "levelSum": 13
+          },
+          "StoneWall": {
+            "count": 3,
+            "levelSum": 3
+          },
+          "SubCrystal": {
+            "count": 2,
+            "levelSum": 2
+          },
+          "Warehouse": {
+            "count": 3,
+            "levelSum": 3
+          },
+          "Well": {
+            "count": 13,
+            "levelSum": 22
+          },
+          "WoodWall": {
+            "count": 6,
+            "levelSum": 6
+          }
+        },
+        "summons": 4,
+        "summonMix": {
+          "Assassin": 1,
+          "DragonKnight": 2,
+          "Scout": 1
+        },
+        "builds": 64,
+        "upgrades": 21,
+        "failedActions": 0,
+        "objectiveAttacks": 0,
+        "commanderObservedRounds": 0,
+        "mainCrystalObservedRounds": 0,
+        "knownTerritoryRounds": 39,
+        "unpaidRounds": 6,
+        "lastRecruitment": "healer:Priest:operation_squad_role_missing;ranged:Bomber:operation_squad_role_missing;ranged:Bomber:observed_force_or_core_replacement;",
+        "sieges": []
+      }
+    }
+  }
+]

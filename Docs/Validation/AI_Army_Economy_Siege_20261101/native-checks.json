@@ -1,0 +1,12 @@
+{
+  "core": {
+    "source": "army-siege-final-core.log",
+    "passLines": 348,
+    "failLines": 0
+  },
+  "formal-playmode": {
+    "source": "a1-20261030/army-siege-release-formal.log",
+    "passLines": 145,
+    "failLines": 0
+  }
+}
