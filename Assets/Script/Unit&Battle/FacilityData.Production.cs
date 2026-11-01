@@ -241,24 +241,24 @@ public static partial class FacilityData
             new FacilityLevelData
             {
                 HP = 100, DEF = 0, ATK = 0,
-                SpecialValue = 2,
-            },
-            new FacilityLevelData
-            {
-                HP = 100, DEF = 0, ATK = 0,
                 SpecialValue = 3,
-                UpgradeCost = new ResourceCost(wood: 85, stone: 85, iron: 30, water: 10),
-                UpgradeAP = 8,
             },
             new FacilityLevelData
             {
                 HP = 100, DEF = 0, ATK = 0,
-                SpecialValue = 4,
-                UpgradeCost = new ResourceCost(wood: 85, stone: 85, iron: 40, water: 10),
-                UpgradeAP = 10,
+                SpecialValue = 5,
+                UpgradeCost = new ResourceCost(wood: 70, stone: 60, iron: 10, water: 10),
+                UpgradeAP = 6,
+            },
+            new FacilityLevelData
+            {
+                HP = 100, DEF = 0, ATK = 0,
+                SpecialValue = 8,
+                UpgradeCost = new ResourceCost(wood: 90, stone: 75, iron: 20, water: 10),
+                UpgradeAP = 7,
             },
         };
-        Register(kind, "家", 7, new ResourceCost(wood: 85, stone: 85, water: 10), 3, levels);
+        Register(kind, "家", 5, new ResourceCost(wood: 55, stone: 55, water: 10), 3, levels);
     }
 
     // ---- 高級住宅 ----

@@ -1,0 +1,5854 @@
+[
+  {
+    "label": "economy-balance-before",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 30,
+    "ownerTurns": 60,
+    "seconds": 10.3444193,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "5f9abef161414538ac7f94e0d12b2fd4e77bce86ea7d4cbd565d930faa4f36c6",
+    "assetDigest": "fe434f82ea69ac044e842d85bc8eebbb41eef07ba3235c8ebeaa77eeedb73d82",
+    "codeCommit": "496448d8a55e994dcc3e5c0361f688ba40729f61",
+    "Player": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "openingUnpaidRounds": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "firstMine": 26,
+      "attacks": 0,
+      "summons": 0,
+      "skills": 0,
+      "actions": 85,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=3:3;Field=4:4;LoggingCamp=4:5;Mine=1:1;Quarry=4:7;SubCrystal=2:2;Well=9:9",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    },
+    "Enemy": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "openingUnpaidRounds": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "firstMine": 8,
+      "attacks": 0,
+      "summons": 0,
+      "skills": 0,
+      "actions": 92,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=3:3;Field=3:3;LoggingCamp=6:6;Mine=2:2;Quarry=5:7;StoneWall=1:1;Well=7:7;WoodWall=4:4",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:DragonKnight:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Bomber:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "economy-balance-trial",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 145.20971620000003,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "62678267997f3c91d73020ffe636ee867c65ec0ecd82612d260f60206f98e486",
+    "assetDigest": "0c5263cc463d8bb70aad4984b65bfade68b7ee86a153d5a3598f2a8e6ecd05a2",
+    "codeCommit": "98ae2d4ad11be3f56b55b596c8a28f09e74c040f",
+    "Player": {
+      "finalArmy": 5,
+      "peakArmy": 7,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "openingUnpaidRounds": [
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "firstMine": 33,
+      "attacks": 232,
+      "summons": 42,
+      "skills": 22,
+      "actions": 974,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=3:6;Field=1:3;LoggingCamp=8:9;Mine=2:5;Quarry=4:5;StoneWall=2:2;SubCrystal=2:2;Well=3:6;WoodWall=8:8",
+      "firstSummon": 37,
+      "firstHealer": 55,
+      "scoutSummons": 11,
+      "peakHealers": 1,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "5",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:observed_force_or_core_replacement;frontline:Knight:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 10,
+      "priestAuraHealEvents": 6
+    },
+    "Enemy": {
+      "finalArmy": 10,
+      "peakArmy": 11,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "openingUnpaidRounds": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "firstMine": 29,
+      "attacks": 327,
+      "summons": 49,
+      "skills": 18,
+      "actions": 1144,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=4:8;Field=2:3;LoggingCamp=10:10;Mine=4:10;Quarry=8:8;StoneWall=3:3;SubCrystal=2:2;Well=6:7;WoodWall=8:8",
+      "firstSummon": 45,
+      "firstHealer": 49,
+      "scoutSummons": 7,
+      "peakHealers": 2,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "7",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        }
+      },
+      "priestAuraHPReceived": 46,
+      "priestAuraHealEvents": 26
+    }
+  },
+  {
+    "label": "economy-balance-trial",
+    "folder": "02-271828",
+    "seed": 271828,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 128.76802259999997,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "62678267997f3c91d73020ffe636ee867c65ec0ecd82612d260f60206f98e486",
+    "assetDigest": "0c5263cc463d8bb70aad4984b65bfade68b7ee86a153d5a3598f2a8e6ecd05a2",
+    "codeCommit": "98ae2d4ad11be3f56b55b596c8a28f09e74c040f",
+    "Player": {
+      "finalArmy": 12,
+      "peakArmy": 12,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "openingUnpaidRounds": [
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "firstMine": 27,
+      "attacks": 206,
+      "summons": 44,
+      "skills": 11,
+      "actions": 1079,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=3:8;Field=2:3;LoggingCamp=11:11;Mine=5:10;Quarry=9:9;RestraintTrap=1:1;SpikeTrap=2:2;StoneWall=3:3;SubCrystal=2:2;Well=6:8;WoodWall=8:8",
+      "firstSummon": 37,
+      "firstHealer": 57,
+      "scoutSummons": 19,
+      "peakHealers": 1,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Knight:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 20,
+      "priestAuraHealEvents": 20
+    },
+    "Enemy": {
+      "finalArmy": 12,
+      "peakArmy": 13,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "openingUnpaidRounds": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "firstMine": 34,
+      "attacks": 172,
+      "summons": 33,
+      "skills": 8,
+      "actions": 1165,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=5:10;Field=2:4;LoggingCamp=11:12;Mine=4:10;Quarry=8:8;StoneWall=2:2;SubCrystal=2:2;Well=6:8;WoodWall=8:8",
+      "firstSummon": 44,
+      "firstHealer": 61,
+      "scoutSummons": 6,
+      "peakHealers": 3,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        },
+        "30": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        },
+        "60": {
+          "army": "6",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 11,
+      "priestAuraHealEvents": 11
+    }
+  },
+  {
+    "label": "economy-balance-final",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 123.57470129999999,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "62678267997f3c91d73020ffe636ee867c65ec0ecd82612d260f60206f98e486",
+    "assetDigest": "7a1a0d5235b8306cba8b78345c50b3ad2d1ffef0fe7e78883a2bd0fbf4749d16",
+    "codeCommit": "3aaa6215f496e32498822189a5cf3e918ee55bce",
+    "Player": {
+      "finalArmy": 3,
+      "peakArmy": 6,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        12
+      ],
+      "openingUnpaidRounds": [
+        12
+      ],
+      "firstMine": 12,
+      "attacks": 419,
+      "summons": 58,
+      "skills": 21,
+      "actions": 1089,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=2:5;Field=2:3;LoggingCamp=5:5;Mine=3:6;Quarry=4:4;RestraintTrap=1:1;SpikeTrap=1:1;StoneWall=4:4;SubCrystal=2:2;Well=2:2;WoodWall=8:8",
+      "firstSummon": 20,
+      "firstHealer": 35,
+      "scoutSummons": 10,
+      "peakHealers": 1,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "30": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;healer:Priest:wounded_army_without_healer;"
+        },
+        "60": {
+          "army": "4",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:expedition_without_healer;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 43,
+      "priestAuraHealEvents": 28
+    },
+    "Enemy": {
+      "finalArmy": 7,
+      "peakArmy": 9,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "firstMine": 13,
+      "attacks": 418,
+      "summons": 61,
+      "skills": 24,
+      "actions": 1287,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=4:7;Field=2:3;LoggingCamp=6:6;Mine=4:10;Quarry=5:5;RestraintTrap=1:1;SpikeTrap=1:1;SubCrystal=2:2;Well=5:5;WoodWall=8:8",
+      "firstSummon": 26,
+      "firstHealer": 32,
+      "scoutSummons": 11,
+      "peakHealers": 3,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;healer:Priest:wounded_army_without_healer;"
+        },
+        "30": {
+          "army": "4",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;healer:Priest:wounded_army_without_healer;"
+        },
+        "60": {
+          "army": "7",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:wounded_army_without_healer;"
+        }
+      },
+      "priestAuraHPReceived": 39,
+      "priestAuraHealEvents": 24
+    }
+  },
+  {
+    "label": "economy-balance-final",
+    "folder": "02-271828",
+    "seed": 271828,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 118.5859117,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "62678267997f3c91d73020ffe636ee867c65ec0ecd82612d260f60206f98e486",
+    "assetDigest": "7a1a0d5235b8306cba8b78345c50b3ad2d1ffef0fe7e78883a2bd0fbf4749d16",
+    "codeCommit": "3aaa6215f496e32498822189a5cf3e918ee55bce",
+    "Player": {
+      "finalArmy": 6,
+      "peakArmy": 7,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        12,
+        13
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13
+      ],
+      "firstMine": 13,
+      "attacks": 349,
+      "summons": 70,
+      "skills": 28,
+      "actions": 1173,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=3:7;Field=2:3;LoggingCamp=6:6;Mine=3:7;Quarry=5:5;RestraintTrap=1:1;StoneWall=2:2;SubCrystal=2:2;Well=4:4;WoodWall=8:8",
+      "firstSummon": 19,
+      "firstHealer": 30,
+      "scoutSummons": 18,
+      "peakHealers": 1,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "3",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "30": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;"
+        },
+        "60": {
+          "army": "5",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 89,
+      "priestAuraHealEvents": 49
+    },
+    "Enemy": {
+      "finalArmy": 8,
+      "peakArmy": 11,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "firstMine": 12,
+      "attacks": 435,
+      "summons": 54,
+      "skills": 29,
+      "actions": 1288,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=5:6;Field=3:4;LoggingCamp=5:5;Mine=4:7;Quarry=4:4;StoneWall=2:2;SubCrystal=2:2;Well=5:6;WoodWall=8:8",
+      "firstSummon": 23,
+      "firstHealer": 33,
+      "scoutSummons": 16,
+      "peakHealers": 2,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "30": {
+          "army": "5",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;"
+        },
+        "60": {
+          "army": "8",
+          "healers": "2",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:WhiteMage:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 116,
+      "priestAuraHealEvents": 71
+    }
+  },
+  {
+    "label": "economy-balance-final",
+    "folder": "03-161803",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 76.35342570000003,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "62678267997f3c91d73020ffe636ee867c65ec0ecd82612d260f60206f98e486",
+    "assetDigest": "7a1a0d5235b8306cba8b78345c50b3ad2d1ffef0fe7e78883a2bd0fbf4749d16",
+    "codeCommit": "3aaa6215f496e32498822189a5cf3e918ee55bce",
+    "Player": {
+      "finalArmy": 16,
+      "peakArmy": 16,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 37,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "firstMine": 24,
+      "attacks": 303,
+      "summons": 18,
+      "skills": 2,
+      "actions": 1198,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=7:11;Field=5:5;House=1:1;LoggingCamp=4:4;Mine=16:22;Quarry=3:6;SubCrystal=2:2;Well=5:7;WoodWall=8:8",
+      "firstSummon": 26,
+      "firstHealer": 47,
+      "scoutSummons": 1,
+      "peakHealers": 3,
+      "peakCitizens": 7.0,
+      "finalCitizens": 7.0,
+      "finalCapacity": 7,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        },
+        "30": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        },
+        "60": {
+          "army": "10",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 5,
+      "priestAuraHealEvents": 5
+    },
+    "Enemy": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "firstMine": null,
+      "attacks": 59,
+      "summons": 0,
+      "skills": 0,
+      "actions": 287,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Field=1:1;SubCrystal=1:1;Well=1:1",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "economy-army-deadline-probe",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 30,
+    "ownerTurns": 60,
+    "seconds": 23.0869498,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "6dcd3d3f7eeea9c99a2d6d6e63c557ad5ccd0c93e89b81da41b42075c9c4f08c",
+    "assetDigest": "bf96a89cb220d40f946339dce0e59c84418aa0eaa4f0b28261982d18a6bbf5c0",
+    "codeCommit": "7ec8d58eba699c7270fb8e26cd6fae2024635458",
+    "Player": {
+      "finalArmy": 4,
+      "peakArmy": 4,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        12
+      ],
+      "openingUnpaidRounds": [
+        12
+      ],
+      "firstMine": 12,
+      "attacks": 16,
+      "summons": 4,
+      "skills": 0,
+      "actions": 189,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=4:4;Field=2:3;LoggingCamp=6:6;Mine=4:4;Quarry=6:6;SpikeTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=6:6;WoodWall=1:1",
+      "firstSummon": 26,
+      "firstHealer": 29,
+      "scoutSummons": 0,
+      "peakHealers": 1,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        },
+        "20": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;frontline:Knight:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 2,
+      "priestAuraHealEvents": 1
+    },
+    "Enemy": {
+      "finalArmy": 6,
+      "peakArmy": 6,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "firstMine": 12,
+      "attacks": 24,
+      "summons": 4,
+      "skills": 1,
+      "actions": 269,
+      "adaptiveSelections": 0,
+      "adaptiveMin": 0,
+      "adaptiveMax": 0,
+      "adaptivePolicy": null,
+      "finalFacilities": "Bakery=3:4;Field=2:3;LoggingCamp=7:7;Mine=3:5;Quarry=5:5;SubCrystal=2:2;Well=5:6;WoodWall=1:1",
+      "firstSummon": 27,
+      "firstHealer": 30,
+      "scoutSummons": 1,
+      "peakHealers": 1,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "economy-adaptive-release",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 156.8660082,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "10aa3a0d044ab73b1ca380eaffd5e2f7742892dd7887fa53d3608915167a70f6",
+    "assetDigest": "18c5de8d6dc94542f7a93b988ff6668a20c3b74c0fc0f5ba6784de27b2f8bc06",
+    "codeCommit": "92e471b064fc88c279f6ac1f555203d90856c679",
+    "Player": {
+      "finalArmy": 9,
+      "peakArmy": 13,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        12,
+        14
+      ],
+      "openingUnpaidRounds": [
+        12,
+        14
+      ],
+      "firstMine": 12,
+      "attacks": 333,
+      "summons": 48,
+      "skills": 9,
+      "actions": 1143,
+      "adaptiveSelections": 677,
+      "adaptiveMin": -4.876904,
+      "adaptiveMax": 10.07665,
+      "adaptivePolicy": {
+        "Values": [
+          0.16580915451049805,
+          0.011441145092248917,
+          0.3797028958797455,
+          0.0,
+          0.13699257373809814,
+          0.011865234933793545,
+          0.0
+        ],
+        "Samples": [
+          61,
+          108,
+          80,
+          0,
+          59,
+          42,
+          54
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 119,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:8;Field=2:4;LoggingCamp=6:6;Mine=4:11;Quarry=6:6;SpikeTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=7:7;WoodWall=8:8",
+      "firstSummon": 28,
+      "firstHealer": 29,
+      "scoutSummons": 7,
+      "peakHealers": 3,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        },
+        "30": {
+          "army": "2",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;scout:Scout:reconnaissance_role_missing;"
+        },
+        "60": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 153,
+      "priestAuraHealEvents": 79
+    },
+    "Enemy": {
+      "finalArmy": 9,
+      "peakArmy": 10,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "firstMine": 12,
+      "attacks": 378,
+      "summons": 59,
+      "skills": 9,
+      "actions": 1161,
+      "adaptiveSelections": 523,
+      "adaptiveMin": -3.155173,
+      "adaptiveMax": 8.483852,
+      "adaptivePolicy": {
+        "Values": [
+          0.0972740426659584,
+          -0.08080431818962097,
+          0.4543057382106781,
+          0.0,
+          0.17948774993419647,
+          1.4372157863817847e-07,
+          0.0
+        ],
+        "Samples": [
+          105,
+          95,
+          64,
+          35,
+          45,
+          53,
+          41
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 119,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=3:8;Field=1:3;LoggingCamp=6:6;Mine=4:11;Quarry=5:5;RestraintTrap=1:1;StoneWall=2:2;SubCrystal=2:2;Well=4:6;WoodWall=8:8",
+      "firstSummon": 22,
+      "firstHealer": 28,
+      "scoutSummons": 8,
+      "peakHealers": 3,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "5",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "7",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 70,
+      "priestAuraHealEvents": 44
+    }
+  },
+  {
+    "label": "economy-adaptive-release",
+    "folder": "02-271828",
+    "seed": 271828,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 151.85000910000002,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "10aa3a0d044ab73b1ca380eaffd5e2f7742892dd7887fa53d3608915167a70f6",
+    "assetDigest": "18c5de8d6dc94542f7a93b988ff6668a20c3b74c0fc0f5ba6784de27b2f8bc06",
+    "codeCommit": "92e471b064fc88c279f6ac1f555203d90856c679",
+    "Player": {
+      "finalArmy": 11,
+      "peakArmy": 13,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        12,
+        14
+      ],
+      "openingUnpaidRounds": [
+        12,
+        14
+      ],
+      "firstMine": 12,
+      "attacks": 386,
+      "summons": 59,
+      "skills": 14,
+      "actions": 1237,
+      "adaptiveSelections": 868,
+      "adaptiveMin": -6.621093,
+      "adaptiveMax": 11.24865,
+      "adaptivePolicy": {
+        "Values": [
+          0.09476742893457413,
+          -0.19172096252441406,
+          0.16582266986370087,
+          0.0,
+          -0.046840280294418335,
+          5.022621280659223e-06,
+          0.0
+        ],
+        "Samples": [
+          106,
+          96,
+          81,
+          0,
+          57,
+          53,
+          45
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 119,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=5:9;Field=2:4;LoggingCamp=7:7;Mine=5:12;Quarry=6:6;SpikeTrap=1:1;SubCrystal=2:2;Well=8:9;WoodWall=8:8",
+      "firstSummon": 28,
+      "firstHealer": 35,
+      "scoutSummons": 8,
+      "peakHealers": 2,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Knight:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "11",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        }
+      },
+      "priestAuraHPReceived": 107,
+      "priestAuraHealEvents": 62
+    },
+    "Enemy": {
+      "finalArmy": 14,
+      "peakArmy": 14,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "firstMine": 12,
+      "attacks": 232,
+      "summons": 56,
+      "skills": 18,
+      "actions": 1297,
+      "adaptiveSelections": 769,
+      "adaptiveMin": -5.57572,
+      "adaptiveMax": 6.226601,
+      "adaptivePolicy": {
+        "Values": [
+          0.11031404137611389,
+          0.025134889408946037,
+          0.27252209186553955,
+          0.0,
+          0.10955478250980377,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          110,
+          113,
+          53,
+          0,
+          48,
+          47,
+          47
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 120,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:9;Field=2:3;LoggingCamp=8:8;Mine=5:14;Quarry=6:6;RestraintTrap=1:1;SpikeTrap=1:1;SubCrystal=2:2;Well=7:7;WoodWall=8:8",
+      "firstSummon": 29,
+      "firstHealer": 44,
+      "scoutSummons": 9,
+      "peakHealers": 3,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "5",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "11",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        }
+      },
+      "priestAuraHPReceived": 36,
+      "priestAuraHealEvents": 19
+    }
+  },
+  {
+    "label": "economy-adaptive-release",
+    "folder": "03-161803",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 76.91170490000002,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "10aa3a0d044ab73b1ca380eaffd5e2f7742892dd7887fa53d3608915167a70f6",
+    "assetDigest": "18c5de8d6dc94542f7a93b988ff6668a20c3b74c0fc0f5ba6784de27b2f8bc06",
+    "codeCommit": "92e471b064fc88c279f6ac1f555203d90856c679",
+    "Player": {
+      "finalArmy": 17,
+      "peakArmy": 17,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 37,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "firstMine": 24,
+      "attacks": 134,
+      "summons": 25,
+      "skills": 2,
+      "actions": 1168,
+      "adaptiveSelections": 953,
+      "adaptiveMin": -2.603823,
+      "adaptiveMax": 5.493745,
+      "adaptivePolicy": {
+        "Values": [
+          0.08542109280824661,
+          0.037842586636543274,
+          0.2405553162097931,
+          0.0,
+          0.03872894123196602,
+          -0.15271201729774475,
+          0.0
+        ],
+        "Samples": [
+          120,
+          95,
+          17,
+          14,
+          28,
+          25,
+          48
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 120,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=8:13;Field=5:5;LoggingCamp=5:5;LuxuryHouse=1:1;Mine=16:23;Quarry=4:7;SubCrystal=2:2;Well=7:8;WoodWall=8:8",
+      "firstSummon": 26,
+      "firstHealer": 49,
+      "scoutSummons": 1,
+      "peakHealers": 3,
+      "peakCitizens": 8.0,
+      "finalCitizens": 7.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "11",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    },
+    "Enemy": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "firstMine": null,
+      "attacks": 17,
+      "summons": 0,
+      "skills": 0,
+      "actions": 153,
+      "adaptiveSelections": 62,
+      "adaptiveMin": 3.419,
+      "adaptiveMax": 5.266898,
+      "adaptivePolicy": {
+        "Values": [
+          0.1612083464860916,
+          0.0,
+          0.3443196713924408,
+          0.0,
+          0.026718752458691597,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          15,
+          18,
+          6,
+          0,
+          3,
+          0,
+          5
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 23,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Field=1:1;SubCrystal=1:1;Well=1:1",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "economy-adaptive-completion",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 185.8386256,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "6940d96232ba664e502237a482c881b61ea2c081b27f02090d7ea47d0971cee0",
+    "assetDigest": "099e62355d70720ad61549ed51b1f1ad451803db1d202525970598556a15936b",
+    "codeCommit": "9a7627da8ef2a6fa8d14d64cc0f7145db8e60293",
+    "Player": {
+      "finalArmy": 10,
+      "peakArmy": 13,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        12,
+        14
+      ],
+      "openingUnpaidRounds": [
+        12,
+        14
+      ],
+      "firstMine": 12,
+      "attacks": 289,
+      "summons": 57,
+      "skills": 7,
+      "actions": 1073,
+      "adaptiveSelections": 837,
+      "adaptiveMin": -6.042343,
+      "adaptiveMax": 10.78583,
+      "adaptivePolicy": {
+        "Values": [
+          0.14558199048042297,
+          -0.04814253747463226,
+          0.31854143738746643,
+          0.0,
+          0.08981692790985107,
+          4.107289441890316e-07,
+          0.0
+        ],
+        "Samples": [
+          66,
+          107,
+          65,
+          0,
+          51,
+          53,
+          46
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 110,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:8;Field=1:3;LoggingCamp=6:6;Mine=6:10;Quarry=5:5;RestraintTrap=1:1;SpikeTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=6:7;WoodWall=8:8",
+      "firstSummon": 35,
+      "firstHealer": 35,
+      "scoutSummons": 8,
+      "peakHealers": 4,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;"
+        },
+        "30": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;"
+        },
+        "60": {
+          "army": "11",
+          "healers": "2",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": ""
+        }
+      },
+      "priestAuraHPReceived": 42,
+      "priestAuraHealEvents": 22
+    },
+    "Enemy": {
+      "finalArmy": 11,
+      "peakArmy": 14,
+      "finalHouses": 2,
+      "peakHouses": 2,
+      "finalHouseLevels": 3,
+      "finalAP": 43,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "firstMine": 12,
+      "attacks": 344,
+      "summons": 54,
+      "skills": 13,
+      "actions": 1489,
+      "adaptiveSelections": 872,
+      "adaptiveMin": -4.778787,
+      "adaptiveMax": 6.970697,
+      "adaptivePolicy": {
+        "Values": [
+          0.07991113513708115,
+          -0.16171059012413025,
+          0.1730118691921234,
+          0.0,
+          0.1418788582086563,
+          5.303277248458471e-07,
+          0.0
+        ],
+        "Samples": [
+          119,
+          112,
+          56,
+          19,
+          63,
+          45,
+          50
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 119,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=6:11;Field=3:4;House=2:3;LoggingCamp=7:7;Mine=4:11;Quarry=6:6;RestraintTrap=1:1;SpikeTrap=1:1;SubCrystal=2:2;Well=8:8;WoodWall=8:8",
+      "firstSummon": 28,
+      "firstHealer": 34,
+      "scoutSummons": 5,
+      "peakHealers": 3,
+      "peakCitizens": 13.0,
+      "finalCitizens": 13.0,
+      "finalCapacity": 13,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;healer:Priest:wounded_army_without_healer;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "5",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:operation_squad_role_missing;healer:Priest:wounded_army_without_healer;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "12",
+          "healers": "3",
+          "houses": "2",
+          "citizen": "8",
+          "capacity": "11",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 8,
+      "priestAuraHealEvents": 8
+    }
+  },
+  {
+    "label": "economy-adaptive-completion",
+    "folder": "02-271828",
+    "seed": 271828,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 179.26248109999997,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "6940d96232ba664e502237a482c881b61ea2c081b27f02090d7ea47d0971cee0",
+    "assetDigest": "099e62355d70720ad61549ed51b1f1ad451803db1d202525970598556a15936b",
+    "codeCommit": "9a7627da8ef2a6fa8d14d64cc0f7145db8e60293",
+    "Player": {
+      "finalArmy": 9,
+      "peakArmy": 12,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 36,
+      "unpaidRounds": [
+        12,
+        14
+      ],
+      "openingUnpaidRounds": [
+        12,
+        14
+      ],
+      "firstMine": 12,
+      "attacks": 343,
+      "summons": 62,
+      "skills": 16,
+      "actions": 1112,
+      "adaptiveSelections": 603,
+      "adaptiveMin": -4.922318,
+      "adaptiveMax": 10.09965,
+      "adaptivePolicy": {
+        "Values": [
+          0.25706422328948975,
+          -0.044722944498062134,
+          0.2937299311161041,
+          0.0,
+          0.2481735348701477,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          119,
+          82,
+          73,
+          4,
+          58,
+          55,
+          46
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 119,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=5:7;Field=3:4;House=1:1;LoggingCamp=7:7;Mine=6:13;Quarry=6:6;SpikeTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=7:8;WoodWall=8:8",
+      "firstSummon": 28,
+      "firstHealer": 35,
+      "scoutSummons": 2,
+      "peakHealers": 4,
+      "peakCitizens": 6.0,
+      "finalCitizens": 6.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Knight:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "10",
+          "healers": "2",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Knight:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 122,
+      "priestAuraHealEvents": 67
+    },
+    "Enemy": {
+      "finalArmy": 14,
+      "peakArmy": 15,
+      "finalHouses": 4,
+      "peakHouses": 4,
+      "finalHouseLevels": 4,
+      "finalAP": 47,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "firstMine": 12,
+      "attacks": 256,
+      "summons": 38,
+      "skills": 13,
+      "actions": 1483,
+      "adaptiveSelections": 957,
+      "adaptiveMin": -2.110395,
+      "adaptiveMax": 6.226601,
+      "adaptivePolicy": {
+        "Values": [
+          0.08193855732679367,
+          0.015661220997571945,
+          0.19604435563087463,
+          0.0,
+          0.10549774020910263,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          116,
+          116,
+          50,
+          4,
+          48,
+          37,
+          55
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 120,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=6:12;Field=3:4;House=4:4;LoggingCamp=7:7;Mine=5:13;Quarry=6:6;SpikeTrap=2:2;StoneWall=1:1;SubCrystal=2:2;Well=8:8;WoodWall=8:8",
+      "firstSummon": 29,
+      "firstHealer": 40,
+      "scoutSummons": 4,
+      "peakHealers": 2,
+      "peakCitizens": 17.0,
+      "finalCitizens": 17.0,
+      "finalCapacity": 17,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "5",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "11",
+          "healers": "2",
+          "houses": "2",
+          "citizen": "8",
+          "capacity": "11",
+          "plannedRecruitRoles": "healer:WhiteMage:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 58,
+      "priestAuraHealEvents": 42
+    }
+  },
+  {
+    "label": "economy-adaptive-completion",
+    "folder": "03-161803",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 130.30177989999999,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "6940d96232ba664e502237a482c881b61ea2c081b27f02090d7ea47d0971cee0",
+    "assetDigest": "099e62355d70720ad61549ed51b1f1ad451803db1d202525970598556a15936b",
+    "codeCommit": "9a7627da8ef2a6fa8d14d64cc0f7145db8e60293",
+    "Player": {
+      "finalArmy": 6,
+      "peakArmy": 11,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "firstMine": 25,
+      "attacks": 363,
+      "summons": 57,
+      "skills": 11,
+      "actions": 1209,
+      "adaptiveSelections": 620,
+      "adaptiveMin": -6.111292,
+      "adaptiveMax": 5.618064,
+      "adaptivePolicy": {
+        "Values": [
+          0.10826438665390015,
+          -0.02832896262407303,
+          0.35960742831230164,
+          0.0,
+          0.07051194459199905,
+          0.0029765507206320763,
+          0.0
+        ],
+        "Samples": [
+          113,
+          97,
+          62,
+          23,
+          44,
+          49,
+          41
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 120,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=5:8;Field=3:3;LoggingCamp=5:5;Mine=13:18;Quarry=4:6;SpikeTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=4:6;WoodWall=8:8",
+      "firstSummon": 27,
+      "firstHealer": 49,
+      "scoutSummons": 16,
+      "peakHealers": 2,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "9",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 33,
+      "priestAuraHealEvents": 19
+    },
+    "Enemy": {
+      "finalArmy": 7,
+      "peakArmy": 12,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "firstMine": 12,
+      "attacks": 297,
+      "summons": 54,
+      "skills": 10,
+      "actions": 1245,
+      "adaptiveSelections": 725,
+      "adaptiveMin": -6.541484,
+      "adaptiveMax": 6.262992,
+      "adaptivePolicy": {
+        "Values": [
+          0.06414346396923065,
+          -0.1322222799062729,
+          0.14035888016223907,
+          -0.01483154296875,
+          0.14786368608474731,
+          -0.0010492757428437471,
+          0.0
+        ],
+        "Samples": [
+          107,
+          109,
+          62,
+          6,
+          61,
+          46,
+          43
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 120,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=6:8;Field=4:4;LoggingCamp=4:4;Mine=14:23;Quarry=3:5;StoneWall=2:2;SubCrystal=2:2;Well=5:7;WoodWall=8:8",
+      "firstSummon": 26,
+      "firstHealer": 32,
+      "scoutSummons": 5,
+      "peakHealers": 3,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "4",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "10",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Magic:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 53,
+      "priestAuraHealEvents": 35
+    }
+  },
+  {
+    "label": "economy-adaptive-funded",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 18.5405067,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "1f3a77d00a4d5c7693175853ad98fc82ce83d2d6b4e2e7dbfac57f0ff5064124",
+    "assetDigest": "099e62355d70720ad61549ed51b1f1ad451803db1d202525970598556a15936b",
+    "codeCommit": "3f12e6905074b77240b1b6a6755dd2666d2c347b",
+    "Player": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 30,
+      "unpaidRounds": [
+        22,
+        23,
+        24,
+        25
+      ],
+      "openingUnpaidRounds": [
+        22,
+        23,
+        24,
+        25
+      ],
+      "firstMine": 4,
+      "attacks": 4,
+      "summons": 0,
+      "skills": 1,
+      "actions": 186,
+      "adaptiveSelections": 116,
+      "adaptiveMin": -1.926341,
+      "adaptiveMax": 6.107953,
+      "adaptivePolicy": {
+        "Values": [
+          0.16027353703975677,
+          -0.0240548737347126,
+          0.11875000596046448,
+          0.0,
+          0.06851807236671448,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          15,
+          25,
+          1,
+          0,
+          6,
+          0,
+          5
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 25,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=1:1;Field=1:2;LoggingCamp=2:2;Mine=1:1;SubCrystal=1:1;Well=1:1",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 0.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    },
+    "Enemy": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 30,
+      "unpaidRounds": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "openingUnpaidRounds": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "firstMine": 4,
+      "attacks": 0,
+      "summons": 0,
+      "skills": 0,
+      "actions": 205,
+      "adaptiveSelections": 155,
+      "adaptiveMin": -0.5625,
+      "adaptiveMax": 6.188706,
+      "adaptivePolicy": {
+        "Values": [
+          0.19263380765914917,
+          0.026235051453113556,
+          0.0,
+          0.0,
+          0.08136160671710968,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          21,
+          25,
+          0,
+          0,
+          3,
+          0,
+          5
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 26,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=1:1;Field=1:2;LoggingCamp=2:2;Mine=1:1;SubCrystal=2:2;Well=1:1",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 0.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "economy-adaptive-funded",
+    "folder": "02-161803",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 74,
+    "ownerTurns": 148,
+    "seconds": 17.695570900000003,
+    "end": "game_over",
+    "result": "Win",
+    "gameOver": true,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "1f3a77d00a4d5c7693175853ad98fc82ce83d2d6b4e2e7dbfac57f0ff5064124",
+    "assetDigest": "099e62355d70720ad61549ed51b1f1ad451803db1d202525970598556a15936b",
+    "codeCommit": "3f12e6905074b77240b1b6a6755dd2666d2c347b",
+    "Player": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 30,
+      "unpaidRounds": [
+        17,
+        18,
+        19,
+        20,
+        22,
+        23,
+        24,
+        25
+      ],
+      "openingUnpaidRounds": [
+        17,
+        18,
+        19,
+        20,
+        22,
+        23,
+        24,
+        25
+      ],
+      "firstMine": 4,
+      "attacks": 0,
+      "summons": 0,
+      "skills": 0,
+      "actions": 185,
+      "adaptiveSelections": 113,
+      "adaptiveMin": 0.16875,
+      "adaptiveMax": 6.388519,
+      "adaptivePolicy": {
+        "Values": [
+          0.07954186946153641,
+          0.007031250279396772,
+          0.0,
+          0.0,
+          0.042500000447034836,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          21,
+          25,
+          0,
+          0,
+          3,
+          0,
+          4
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 25,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=1:1;Field=1:2;LoggingCamp=2:2;Mine=1:1;SubCrystal=2:2;Well=1:1",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 0.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    },
+    "Enemy": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 30,
+      "unpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "openingUnpaidRounds": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "firstMine": null,
+      "attacks": 6,
+      "summons": 0,
+      "skills": 0,
+      "actions": 157,
+      "adaptiveSelections": 79,
+      "adaptiveMin": 0.06407227,
+      "adaptiveMax": 3.402016,
+      "adaptivePolicy": {
+        "Values": [
+          0.1273910105228424,
+          0.002669678069651127,
+          0.0,
+          0.0,
+          0.1201171875,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          16,
+          15,
+          1,
+          0,
+          6,
+          0,
+          10
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 19,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Field=1:1;LoggingCamp=2:2;Well=2:2",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 0.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "economy-adaptive-funded-high",
+    "folder": "01-271828",
+    "seed": 271828,
+    "threat": 35,
+    "rounds": 120,
+    "ownerTurns": 240,
+    "seconds": 19.0533813,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "1f3a77d00a4d5c7693175853ad98fc82ce83d2d6b4e2e7dbfac57f0ff5064124",
+    "assetDigest": "099e62355d70720ad61549ed51b1f1ad451803db1d202525970598556a15936b",
+    "codeCommit": "3f12e6905074b77240b1b6a6755dd2666d2c347b",
+    "Player": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 30,
+      "unpaidRounds": [
+        17,
+        18,
+        19,
+        20
+      ],
+      "openingUnpaidRounds": [
+        17,
+        18,
+        19,
+        20
+      ],
+      "firstMine": 4,
+      "attacks": 1,
+      "summons": 0,
+      "skills": 2,
+      "actions": 156,
+      "adaptiveSelections": 93,
+      "adaptiveMin": 1.85625,
+      "adaptiveMax": 5.364668,
+      "adaptivePolicy": {
+        "Values": [
+          0.14361703395843506,
+          0.0,
+          0.25,
+          0.0,
+          0.12363281100988388,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          20,
+          16,
+          1,
+          0,
+          5,
+          0,
+          5
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 19,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=1:1;Field=1:2;LoggingCamp=2:2;Mine=1:1;SubCrystal=2:2;Well=1:1",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 0.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    },
+    "Enemy": {
+      "finalArmy": 0,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 30,
+      "unpaidRounds": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "openingUnpaidRounds": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "firstMine": 4,
+      "attacks": 4,
+      "summons": 0,
+      "skills": 0,
+      "actions": 207,
+      "adaptiveSelections": 102,
+      "adaptiveMin": -0.9803227,
+      "adaptiveMax": 3.825,
+      "adaptivePolicy": {
+        "Values": [
+          -0.042510081082582474,
+          0.002966308733448386,
+          0.18958333134651184,
+          0.0,
+          0.030000001192092896,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          21,
+          26,
+          2,
+          0,
+          1,
+          0,
+          5
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 26,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=1:1;Field=1:2;LoggingCamp=2:2;Mine=1:1;SubCrystal=1:1;Well=1:1",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 0.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "0",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "0",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:frontline_missing;scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "economy-foundation-proof",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 30,
+    "ownerTurns": 60,
+    "seconds": 14.587115300000002,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "e11f042847ea54255ddff2e82fe30f1df79bf544ea2ca2d6ed1949fdb663a50f",
+    "assetDigest": "099e62355d70720ad61549ed51b1f1ad451803db1d202525970598556a15936b",
+    "codeCommit": "a49c2ef6cdfd340099665b0334d6930b320d7879",
+    "Player": {
+      "finalArmy": 1,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 34,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 10,
+      "attacks": 0,
+      "summons": 0,
+      "skills": 0,
+      "actions": 213,
+      "adaptiveSelections": 143,
+      "adaptiveMin": 0.1607143,
+      "adaptiveMax": 4.918974,
+      "adaptivePolicy": {
+        "Values": [
+          0.12465257197618484,
+          0.0601804256439209,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          14,
+          30,
+          0,
+          0,
+          0,
+          0,
+          13
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 28,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=2:2;Field=2:2;LoggingCamp=5:6;Mine=1:1;Quarry=3:3;SubCrystal=1:1;Well=3:3",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:reconnaissance_role_missing;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    },
+    "Enemy": {
+      "finalArmy": 2,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "openingUnpaidRounds": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "firstMine": 10,
+      "attacks": 1,
+      "summons": 0,
+      "skills": 0,
+      "actions": 249,
+      "adaptiveSelections": 158,
+      "adaptiveMin": -1.4625,
+      "adaptiveMax": 6.727648,
+      "adaptivePolicy": {
+        "Values": [
+          0.09578607976436615,
+          -0.008134174160659313,
+          0.0,
+          0.0,
+          0.10762939602136612,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          30,
+          27,
+          1,
+          0,
+          6,
+          0,
+          6
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 30,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=2:2;Field=2:2;LoggingCamp=1:1;Mine=1:1;Quarry=1:1;SubCrystal=2:2;Well=2:2",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "economy-foundation-proof",
+    "folder": "02-161803",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 30,
+    "ownerTurns": 60,
+    "seconds": 10.854401599999996,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "e11f042847ea54255ddff2e82fe30f1df79bf544ea2ca2d6ed1949fdb663a50f",
+    "assetDigest": "099e62355d70720ad61549ed51b1f1ad451803db1d202525970598556a15936b",
+    "codeCommit": "a49c2ef6cdfd340099665b0334d6930b320d7879",
+    "Player": {
+      "finalArmy": 2,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        16,
+        18,
+        20,
+        22
+      ],
+      "openingUnpaidRounds": [
+        16,
+        18,
+        20,
+        22
+      ],
+      "firstMine": 10,
+      "attacks": 0,
+      "summons": 0,
+      "skills": 0,
+      "actions": 223,
+      "adaptiveSelections": 153,
+      "adaptiveMin": 0.8740746,
+      "adaptiveMax": 6.423602,
+      "adaptivePolicy": {
+        "Values": [
+          0.06079862266778946,
+          0.0,
+          0.0,
+          0.0,
+          0.08671875298023224,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          30,
+          27,
+          0,
+          0,
+          3,
+          0,
+          6
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 28,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=2:2;Field=2:2;LoggingCamp=1:1;Mine=1:1;Quarry=1:1;SubCrystal=2:2;Well=2:2",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    },
+    "Enemy": {
+      "finalArmy": 1,
+      "peakArmy": 3,
+      "finalHouses": 0,
+      "peakHouses": 0,
+      "finalHouseLevels": 0,
+      "finalAP": 35,
+      "unpaidRounds": [
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "openingUnpaidRounds": [
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "firstMine": 10,
+      "attacks": 9,
+      "summons": 0,
+      "skills": 1,
+      "actions": 231,
+      "adaptiveSelections": 163,
+      "adaptiveMin": 0.06757622,
+      "adaptiveMax": 5.5125,
+      "adaptivePolicy": {
+        "Values": [
+          0.0439496673643589,
+          0.0028156759217381477,
+          0.22968751192092896,
+          0.0,
+          0.04076538234949112,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          29,
+          17,
+          4,
+          0,
+          6,
+          0,
+          17
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 29,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=2:2;Field=2:2;LoggingCamp=5:5;Mine=1:1;Quarry=5:5;SubCrystal=1:1;Well=4:4",
+      "firstSummon": null,
+      "firstHealer": null,
+      "scoutSummons": 0,
+      "peakHealers": 0,
+      "peakCitizens": 5.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 5,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "1",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    }
+  },
+  {
+    "label": "standing-army-release",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 60,
+    "ownerTurns": 120,
+    "seconds": 52.6082839,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "84a4512bd068bbd9877ef0217604b06349f1ead28869cd3bb5ad49316f6dc75a",
+    "assetDigest": "47592ee2779981ca437b17565416b3a3c49b7e8b89c36b561527c8239683ff5d",
+    "codeCommit": "cf8af7cee565c9bcb20a713505bf0f49463f968d",
+    "Player": {
+      "finalArmy": 12,
+      "peakArmy": 12,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 38,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 16,
+      "attacks": 63,
+      "summons": 13,
+      "skills": 3,
+      "actions": 596,
+      "adaptiveSelections": 436,
+      "adaptiveMin": -1.137861,
+      "adaptiveMax": 6.967226,
+      "adaptivePolicy": {
+        "Values": [
+          0.23920536041259766,
+          0.0065222736448049545,
+          0.2753213047981262,
+          0.0,
+          0.08880715072154999,
+          -0.03515625,
+          0.0
+        ],
+        "Samples": [
+          46,
+          58,
+          12,
+          0,
+          17,
+          12,
+          38
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:9;Field=3:3;House=1:1;LoggingCamp=7:7;Mine=4:8;Quarry=6:6;StoneWall=1:1;SubCrystal=2:2;Well=8:8;WoodWall=3:3",
+      "firstSummon": 29,
+      "firstHealer": 29,
+      "scoutSummons": 2,
+      "peakHealers": 4,
+      "peakCitizens": 8.0,
+      "finalCitizens": 8.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "2",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;scout:Scout:standing_army_reconnaissance;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "3",
+          "healers": "1",
+          "houses": "1",
+          "citizen": "8",
+          "capacity": "8",
+          "plannedRecruitRoles": "scout:Scout:standing_army_reconnaissance;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "12",
+          "healers": "3",
+          "houses": "1",
+          "citizen": "8",
+          "capacity": "8",
+          "plannedRecruitRoles": "ranged:Magic:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 3,
+      "priestAuraHealEvents": 2
+    },
+    "Enemy": {
+      "finalArmy": 7,
+      "peakArmy": 8,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 38,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 16,
+      "attacks": 55,
+      "summons": 15,
+      "skills": 8,
+      "actions": 575,
+      "adaptiveSelections": 344,
+      "adaptiveMin": 0.03577081,
+      "adaptiveMax": 5.636757,
+      "adaptivePolicy": {
+        "Values": [
+          0.08417611569166183,
+          0.05389842018485069,
+          0.2890634536743164,
+          0.0,
+          0.12043662369251251,
+          0.003959544003009796,
+          0.0
+        ],
+        "Samples": [
+          58,
+          57,
+          10,
+          10,
+          19,
+          13,
+          33
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 58,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:7;Field=2:3;House=1:1;LoggingCamp=5:5;Mine=3:8;Quarry=5:5;RestraintTrap=1:1;StoneWall=2:2;SubCrystal=2:2;Well=6:6;WoodWall=3:3",
+      "firstSummon": 25,
+      "firstHealer": 36,
+      "scoutSummons": 2,
+      "peakHealers": 3,
+      "peakCitizens": 8.0,
+      "finalCitizens": 8.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "4",
+          "healers": "0",
+          "houses": "1",
+          "citizen": "8",
+          "capacity": "8",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "7",
+          "healers": "3",
+          "houses": "1",
+          "citizen": "8",
+          "capacity": "8",
+          "plannedRecruitRoles": "healer:WhiteMage:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 4,
+      "priestAuraHealEvents": 4
+    }
+  },
+  {
+    "label": "standing-army-release",
+    "folder": "02-161803",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 60,
+    "ownerTurns": 120,
+    "seconds": 57.45237889999999,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "84a4512bd068bbd9877ef0217604b06349f1ead28869cd3bb5ad49316f6dc75a",
+    "assetDigest": "47592ee2779981ca437b17565416b3a3c49b7e8b89c36b561527c8239683ff5d",
+    "codeCommit": "cf8af7cee565c9bcb20a713505bf0f49463f968d",
+    "Player": {
+      "finalArmy": 7,
+      "peakArmy": 8,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 35,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 16,
+      "attacks": 117,
+      "summons": 27,
+      "skills": 3,
+      "actions": 545,
+      "adaptiveSelections": 302,
+      "adaptiveMin": -5.32169,
+      "adaptiveMax": 6.647231,
+      "adaptivePolicy": {
+        "Values": [
+          0.1065705195069313,
+          -0.15150228142738342,
+          0.3056178390979767,
+          0.0,
+          0.058173324912786484,
+          0.036909397691488266,
+          0.0
+        ],
+        "Samples": [
+          49,
+          54,
+          23,
+          1,
+          20,
+          22,
+          31
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:6;Field=3:3;House=1:1;LoggingCamp=6:6;Mine=4:6;Quarry=6:6;SpikeTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=6:7;WoodWall=3:3",
+      "firstSummon": 34,
+      "firstHealer": 35,
+      "scoutSummons": 7,
+      "peakHealers": 2,
+      "peakCitizens": 8.0,
+      "finalCitizens": 5.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "3",
+          "healers": "0",
+          "houses": "1",
+          "citizen": "6",
+          "capacity": "8",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:operation_squad_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "7",
+          "healers": "1",
+          "houses": "1",
+          "citizen": "5",
+          "capacity": "8",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;ranged:Archer:observed_force_or_core_replacement;frontline:Knight:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 14,
+      "priestAuraHealEvents": 10
+    },
+    "Enemy": {
+      "finalArmy": 10,
+      "peakArmy": 11,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 34,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 14,
+      "attacks": 158,
+      "summons": 24,
+      "skills": 6,
+      "actions": 606,
+      "adaptiveSelections": 286,
+      "adaptiveMin": -3.928063,
+      "adaptiveMax": 7.017668,
+      "adaptivePolicy": {
+        "Values": [
+          0.3005521297454834,
+          -0.17616930603981018,
+          0.4738379716873169,
+          0.001582031138241291,
+          0.09136121720075607,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          59,
+          56,
+          27,
+          6,
+          27,
+          15,
+          32
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:8;Field=2:2;House=1:1;LoggingCamp=6:6;Mine=5:7;Quarry=5:5;StoneWall=2:2;SubCrystal=2:2;Well=5:7;WoodWall=3:3",
+      "firstSummon": 29,
+      "firstHealer": 29,
+      "scoutSummons": 2,
+      "peakHealers": 3,
+      "peakCitizens": 8.0,
+      "finalCitizens": 4.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "5",
+          "healers": "1",
+          "houses": "1",
+          "citizen": "6",
+          "capacity": "8",
+          "plannedRecruitRoles": "ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "10",
+          "healers": "2",
+          "houses": "1",
+          "citizen": "4",
+          "capacity": "8",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Magic:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 43,
+      "priestAuraHealEvents": 25
+    }
+  },
+  {
+    "label": "standing-army-funded-core",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 60,
+    "ownerTurns": 120,
+    "seconds": 69.9349074,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "40f53923dc71974bd125873972701875f61080841649bb4c6ef97c89893c6d9e",
+    "assetDigest": "47592ee2779981ca437b17565416b3a3c49b7e8b89c36b561527c8239683ff5d",
+    "codeCommit": "40bed7920d4e70cd377d4609573a66c2b712c462",
+    "Player": {
+      "finalArmy": 8,
+      "peakArmy": 8,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 38,
+      "unpaidRounds": [
+        17
+      ],
+      "openingUnpaidRounds": [
+        17
+      ],
+      "firstMine": 17,
+      "attacks": 93,
+      "summons": 21,
+      "skills": 4,
+      "actions": 600,
+      "adaptiveSelections": 380,
+      "adaptiveMin": -2.334252,
+      "adaptiveMax": 9.478134,
+      "adaptivePolicy": {
+        "Values": [
+          0.06900250911712646,
+          0.03008309192955494,
+          0.16273918747901917,
+          0.0,
+          0.21000924706459045,
+          -0.0035156237427145243,
+          0.0
+        ],
+        "Samples": [
+          57,
+          56,
+          18,
+          0,
+          19,
+          19,
+          40
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:6;Field=3:3;House=1:1;LoggingCamp=8:8;Mine=7:9;Quarry=5:5;SubCrystal=2:2;Well=7:8;WoodWall=1:1",
+      "firstSummon": 11,
+      "firstHealer": 11,
+      "scoutSummons": 4,
+      "peakHealers": 3,
+      "peakCitizens": 8.0,
+      "finalCitizens": 8.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Knight:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "8",
+          "healers": "3",
+          "houses": "1",
+          "citizen": "8",
+          "capacity": "8",
+          "plannedRecruitRoles": "healer:WhiteMage:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 6,
+      "priestAuraHealEvents": 5
+    },
+    "Enemy": {
+      "finalArmy": 10,
+      "peakArmy": 10,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 38,
+      "unpaidRounds": [
+        17,
+        18,
+        19,
+        20
+      ],
+      "openingUnpaidRounds": [
+        17,
+        18,
+        19,
+        20
+      ],
+      "firstMine": 17,
+      "attacks": 121,
+      "summons": 17,
+      "skills": 9,
+      "actions": 625,
+      "adaptiveSelections": 280,
+      "adaptiveMin": -4.189532,
+      "adaptiveMax": 4.793601,
+      "adaptivePolicy": {
+        "Values": [
+          0.1750945895910263,
+          -0.0011782292276620865,
+          0.1847829669713974,
+          0.0,
+          -0.0402311272919178,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          55,
+          57,
+          19,
+          15,
+          25,
+          16,
+          40
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:8;Field=3:3;House=1:1;LoggingCamp=7:7;Mine=4:7;Quarry=5:5;SubCrystal=2:2;Well=7:8;WoodWall=7:7",
+      "firstSummon": 11,
+      "firstHealer": 11,
+      "scoutSummons": 3,
+      "peakHealers": 3,
+      "peakCitizens": 8.0,
+      "finalCitizens": 8.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;scout:Scout:operation_squad_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "10",
+          "healers": "3",
+          "houses": "1",
+          "citizen": "8",
+          "capacity": "8",
+          "plannedRecruitRoles": "frontline:Knight:observed_force_or_core_replacement;ranged:Magic:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 20,
+      "priestAuraHealEvents": 12
+    }
+  },
+  {
+    "label": "standing-army-funded-core",
+    "folder": "02-161803",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 60,
+    "ownerTurns": 120,
+    "seconds": 55.84188350000001,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "40f53923dc71974bd125873972701875f61080841649bb4c6ef97c89893c6d9e",
+    "assetDigest": "47592ee2779981ca437b17565416b3a3c49b7e8b89c36b561527c8239683ff5d",
+    "codeCommit": "40bed7920d4e70cd377d4609573a66c2b712c462",
+    "Player": {
+      "finalArmy": 6,
+      "peakArmy": 7,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 36,
+      "unpaidRounds": [
+        17,
+        19
+      ],
+      "openingUnpaidRounds": [
+        17,
+        19
+      ],
+      "firstMine": 17,
+      "attacks": 75,
+      "summons": 25,
+      "skills": 7,
+      "actions": 574,
+      "adaptiveSelections": 340,
+      "adaptiveMin": -5.767752,
+      "adaptiveMax": 6.419037,
+      "adaptivePolicy": {
+        "Values": [
+          0.0488160103559494,
+          -0.40282300114631653,
+          0.18719466030597687,
+          -0.0472005195915699,
+          0.06463557481765747,
+          0.06459274888038635,
+          0.0
+        ],
+        "Samples": [
+          55,
+          50,
+          17,
+          4,
+          17,
+          18,
+          38
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=6:6;Field=4:4;House=1:1;LoggingCamp=8:8;Mine=5:6;Quarry=6:6;SubCrystal=2:2;Well=8:9;WoodWall=6:6",
+      "firstSummon": 11,
+      "firstHealer": 11,
+      "scoutSummons": 5,
+      "peakHealers": 1,
+      "peakCitizens": 8.0,
+      "finalCitizens": 6.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "6",
+          "healers": "1",
+          "houses": "1",
+          "citizen": "6",
+          "capacity": "8",
+          "plannedRecruitRoles": "frontline:Knight:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 11,
+      "priestAuraHealEvents": 6
+    },
+    "Enemy": {
+      "finalArmy": 10,
+      "peakArmy": 10,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 38,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 14,
+      "attacks": 159,
+      "summons": 19,
+      "skills": 5,
+      "actions": 628,
+      "adaptiveSelections": 342,
+      "adaptiveMin": -4.48748,
+      "adaptiveMax": 7.970438,
+      "adaptivePolicy": {
+        "Values": [
+          0.2040807008743286,
+          0.07912974059581757,
+          0.3209511935710907,
+          0.0,
+          0.03923946991562843,
+          0.03164062649011612,
+          0.0
+        ],
+        "Samples": [
+          57,
+          52,
+          33,
+          3,
+          25,
+          17,
+          41
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:8;Field=2:3;House=1:1;LoggingCamp=6:7;Mine=5:7;Quarry=6:6;StoneWall=1:1;SubCrystal=2:2;Well=5:7;WoodWall=7:7",
+      "firstSummon": 12,
+      "firstHealer": 12,
+      "scoutSummons": 3,
+      "peakHealers": 2,
+      "peakCitizens": 8.0,
+      "finalCitizens": 8.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:operation_squad_role_missing;scout:Scout:operation_squad_role_missing;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "10",
+          "healers": "1",
+          "houses": "1",
+          "citizen": "8",
+          "capacity": "8",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;ranged:Magic:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 4,
+      "priestAuraHealEvents": 2
+    }
+  },
+  {
+    "label": "standing-army-final",
+    "folder": "01-314159",
+    "seed": 314159,
+    "threat": 15,
+    "rounds": 60,
+    "ownerTurns": 120,
+    "seconds": 65.0161894,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "dd90e2ffe1f4e4b6034b8db7b7d853ef41ef0e953607cb871a2f248b7203badf",
+    "assetDigest": "1870ba8394e430163984fb7f4a5d6601a042abb401f1bd488debe082a4ce20e2",
+    "codeCommit": "e661321e01516147fe37ae71e74f3e3f83c21089",
+    "Player": {
+      "finalArmy": 10,
+      "peakArmy": 10,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 38,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 14,
+      "attacks": 111,
+      "summons": 22,
+      "skills": 3,
+      "actions": 604,
+      "adaptiveSelections": 362,
+      "adaptiveMin": -0.430409,
+      "adaptiveMax": 6.269966,
+      "adaptivePolicy": {
+        "Values": [
+          0.07039442658424377,
+          0.036733806133270264,
+          0.4164738953113556,
+          0.0,
+          0.06392556428909302,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          57,
+          57,
+          22,
+          7,
+          22,
+          21,
+          36
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=6:7;Field=4:4;House=1:1;LoggingCamp=7:7;Mine=5:6;Quarry=6:6;StoneWall=1:1;SubCrystal=2:2;Well=8:8;WoodWall=1:1",
+      "firstSummon": 11,
+      "firstHealer": 11,
+      "scoutSummons": 2,
+      "peakHealers": 2,
+      "peakCitizens": 8.0,
+      "finalCitizens": 8.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "5",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "10",
+          "healers": "2",
+          "houses": "1",
+          "citizen": "8",
+          "capacity": "8",
+          "plannedRecruitRoles": "frontline:Knight:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 42,
+      "priestAuraHealEvents": 22
+    },
+    "Enemy": {
+      "finalArmy": 9,
+      "peakArmy": 9,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 37,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 14,
+      "attacks": 85,
+      "summons": 25,
+      "skills": 2,
+      "actions": 642,
+      "adaptiveSelections": 403,
+      "adaptiveMin": -1.304995,
+      "adaptiveMax": 9.384961,
+      "adaptivePolicy": {
+        "Values": [
+          0.07152034342288971,
+          0.1407957375049591,
+          0.22833581268787384,
+          0.0,
+          0.0048914416693151,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          59,
+          55,
+          23,
+          0,
+          26,
+          21,
+          39
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=5:8;Field=3:3;House=1:1;LoggingCamp=8:8;Mine=3:6;Quarry=6:7;RestraintTrap=1:1;SubCrystal=2:2;Well=7:8;WoodWall=7:7",
+      "firstSummon": 11,
+      "firstHealer": 11,
+      "scoutSummons": 5,
+      "peakHealers": 2,
+      "peakCitizens": 8.0,
+      "finalCitizens": 7.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "5",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:operation_squad_role_missing;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "9",
+          "healers": "2",
+          "houses": "1",
+          "citizen": "7",
+          "capacity": "8",
+          "plannedRecruitRoles": "frontline:Knight:observed_force_or_core_replacement;ranged:Magic:observed_force_or_core_replacement;frontline:Knight:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 16,
+      "priestAuraHealEvents": 11
+    }
+  },
+  {
+    "label": "standing-army-final",
+    "folder": "02-161803",
+    "seed": 161803,
+    "threat": 15,
+    "rounds": 60,
+    "ownerTurns": 120,
+    "seconds": 66.3255141,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "dd90e2ffe1f4e4b6034b8db7b7d853ef41ef0e953607cb871a2f248b7203badf",
+    "assetDigest": "1870ba8394e430163984fb7f4a5d6601a042abb401f1bd488debe082a4ce20e2",
+    "codeCommit": "e661321e01516147fe37ae71e74f3e3f83c21089",
+    "Player": {
+      "finalArmy": 8,
+      "peakArmy": 10,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 36,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 14,
+      "attacks": 98,
+      "summons": 25,
+      "skills": 10,
+      "actions": 587,
+      "adaptiveSelections": 355,
+      "adaptiveMin": -5.658346,
+      "adaptiveMax": 6.8004,
+      "adaptivePolicy": {
+        "Values": [
+          0.18212276697158813,
+          -0.07722373306751251,
+          0.3677579164505005,
+          0.0,
+          0.06072450801730156,
+          0.014833217486739159,
+          0.0
+        ],
+        "Samples": [
+          58,
+          54,
+          21,
+          1,
+          17,
+          20,
+          37
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=6:8;Field=4:4;House=1:1;LoggingCamp=7:7;Mine=7:7;Quarry=6:6;StoneWall=1:1;SubCrystal=2:2;Well=7:9;WoodWall=2:2",
+      "firstSummon": 11,
+      "firstHealer": 11,
+      "scoutSummons": 9,
+      "peakHealers": 2,
+      "peakCitizens": 8.0,
+      "finalCitizens": 6.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "5",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "8",
+          "healers": "2",
+          "houses": "1",
+          "citizen": "6",
+          "capacity": "8",
+          "plannedRecruitRoles": "healer:WhiteMage:operation_squad_role_missing;frontline:Assassin:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 0,
+      "priestAuraHealEvents": 0
+    },
+    "Enemy": {
+      "finalArmy": 6,
+      "peakArmy": 7,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 37,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 12,
+      "attacks": 119,
+      "summons": 26,
+      "skills": 8,
+      "actions": 614,
+      "adaptiveSelections": 336,
+      "adaptiveMin": -3.536114,
+      "adaptiveMax": 5.726953,
+      "adaptivePolicy": {
+        "Values": [
+          0.09505831450223923,
+          0.010736789554357529,
+          0.1200275644659996,
+          0.0,
+          0.07071720063686371,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          57,
+          51,
+          29,
+          0,
+          28,
+          22,
+          37
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=4:8;Field=3:3;House=1:1;LoggingCamp=7:7;Mine=3:5;Quarry=6:6;StoneWall=1:1;SubCrystal=2:2;Well=6:7;WoodWall=7:7",
+      "firstSummon": 17,
+      "firstHealer": 17,
+      "scoutSummons": 6,
+      "peakHealers": 1,
+      "peakCitizens": 8.0,
+      "finalCitizens": 7.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;scout:Scout:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "6",
+          "healers": "1",
+          "houses": "1",
+          "citizen": "7",
+          "capacity": "8",
+          "plannedRecruitRoles": "frontline:Knight:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Knight:observed_force_or_core_replacement;"
+        }
+      },
+      "priestAuraHPReceived": 2,
+      "priestAuraHealEvents": 2
+    }
+  },
+  {
+    "label": "standing-army-final-high",
+    "folder": "01-271828",
+    "seed": 271828,
+    "threat": 35,
+    "rounds": 60,
+    "ownerTurns": 120,
+    "seconds": 83.48159220000001,
+    "end": "owner_turn_limit",
+    "result": "unresolved",
+    "gameOver": false,
+    "errors": 0,
+    "exceptions": 0,
+    "fault": "",
+    "sourceDigest": "dd90e2ffe1f4e4b6034b8db7b7d853ef41ef0e953607cb871a2f248b7203badf",
+    "assetDigest": "1870ba8394e430163984fb7f4a5d6601a042abb401f1bd488debe082a4ce20e2",
+    "codeCommit": "e661321e01516147fe37ae71e74f3e3f83c21089",
+    "Player": {
+      "finalArmy": 13,
+      "peakArmy": 13,
+      "finalHouses": 1,
+      "peakHouses": 1,
+      "finalHouseLevels": 1,
+      "finalAP": 37,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 14,
+      "attacks": 95,
+      "summons": 18,
+      "skills": 5,
+      "actions": 628,
+      "adaptiveSelections": 422,
+      "adaptiveMin": -1.609877,
+      "adaptiveMax": 6.289416,
+      "adaptivePolicy": {
+        "Values": [
+          0.14066101610660553,
+          -0.08959434926509857,
+          0.16326861083507538,
+          0.0,
+          0.036694228649139404,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          59,
+          52,
+          21,
+          0,
+          28,
+          18,
+          33
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=5:9;Field=3:3;House=1:1;LoggingCamp=6:6;Mine=5:7;Quarry=5:5;SubCrystal=2:2;Well=8:8;WoodWall=1:1",
+      "firstSummon": 11,
+      "firstHealer": 11,
+      "scoutSummons": 3,
+      "peakHealers": 2,
+      "peakCitizens": 8.0,
+      "finalCitizens": 7.0,
+      "finalCapacity": 8,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "ranged:Archer:operation_squad_role_missing;frontline:Assassin:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "13",
+          "healers": "2",
+          "houses": "1",
+          "citizen": "7",
+          "capacity": "8",
+          "plannedRecruitRoles": "healer:WhiteMage:standing_army_healing_support;"
+        }
+      },
+      "priestAuraHPReceived": 25,
+      "priestAuraHealEvents": 16
+    },
+    "Enemy": {
+      "finalArmy": 11,
+      "peakArmy": 11,
+      "finalHouses": 2,
+      "peakHouses": 2,
+      "finalHouseLevels": 2,
+      "finalAP": 41,
+      "unpaidRounds": [],
+      "openingUnpaidRounds": [],
+      "firstMine": 16,
+      "attacks": 51,
+      "summons": 15,
+      "skills": 4,
+      "actions": 631,
+      "adaptiveSelections": 439,
+      "adaptiveMin": -1.279687,
+      "adaptiveMax": 6.169663,
+      "adaptivePolicy": {
+        "Values": [
+          0.10267119109630585,
+          -0.09488467872142792,
+          0.3082719147205353,
+          0.0,
+          0.16499751806259155,
+          0.0,
+          0.0
+        ],
+        "Samples": [
+          59,
+          59,
+          14,
+          1,
+          19,
+          15,
+          40
+        ],
+        "TurnRewards": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "TurnSamples": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "TurnProgress": false,
+        "StalledTurns": 0,
+        "Revision": 60,
+        "LastReason": "実行結果から探索・進軍・戦闘・支援・補充・投資の重みを更新"
+      },
+      "finalFacilities": "Bakery=6:9;Field=4:4;House=2:2;LoggingCamp=8:8;Mine=4:6;Quarry=6:6;StoneWall=1:1;SubCrystal=2:2;Well=8:9;WoodWall=3:3",
+      "firstSummon": 11,
+      "firstHealer": 11,
+      "scoutSummons": 3,
+      "peakHealers": 3,
+      "peakCitizens": 11.0,
+      "finalCitizens": 11.0,
+      "finalCapacity": 11,
+      "checkpoints": {
+        "10": {
+          "army": "3",
+          "healers": "0",
+          "houses": "0",
+          "citizen": "4",
+          "capacity": "5",
+          "plannedRecruitRoles": "healer:Priest:standing_army_healing_support;frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;"
+        },
+        "15": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "20": {
+          "army": "4",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "5",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;ranged:Archer:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "30": {
+          "army": "6",
+          "healers": "1",
+          "houses": "0",
+          "citizen": "3",
+          "capacity": "5",
+          "plannedRecruitRoles": "frontline:Assassin:observed_force_or_core_replacement;frontline:Assassin:observed_force_or_core_replacement;"
+        },
+        "60": {
+          "army": "11",
+          "healers": "3",
+          "houses": "2",
+          "citizen": "11",
+          "capacity": "11",
+          "plannedRecruitRoles": "frontline:Knight:operation_squad_role_missing;frontline:Knight:operation_squad_role_missing;"
+        }
+      },
+      "priestAuraHPReceived": 6,
+      "priestAuraHealEvents": 5
+    }
+  }
+]

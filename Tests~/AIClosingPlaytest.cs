@@ -70,6 +70,8 @@ public static class AIClosingPlaytest
     [Serializable] sealed class SideReport
     {
         public string Team;
+        public AIAdaptivePolicyState AdaptivePolicy;
+        public int AdaptiveSelections;
         public int OwnerTurns, Actions, SuccessfulActions, FailedActions, Moves, Attacks, Skills, Builds, Summons;
         public int ExplorationMoves, ObjectiveApproachMoves, ObjectiveDistanceGain, RevealedCells, DamageDealt, EnemyKills;
         public int ObjectiveAttacks, VictoryObjectiveAttacks, CommanderTargetAttacks, MainCrystalTargetAttacks;
@@ -100,6 +102,7 @@ public static class AIClosingPlaytest
         public void Snapshot()
         {
             report.OwnerTurns = reflection.OwnTurns;
+            report.AdaptivePolicy = reflection.CaptureAdaptivePolicy();
             report.AttackRatio = Ratio(report.Attacks, report.SuccessfulActions);
             report.BuildRatio = Ratio(report.Builds, report.SuccessfulActions);
             report.ExplorationMoveRatio = Ratio(report.ExplorationMoves, report.Moves);
@@ -109,6 +112,7 @@ public static class AIClosingPlaytest
             if (record == null || record.ActionId <= lastId) return;
             if (record.ActionId > lastId + 1) report.RecordGaps += (int)(record.ActionId - lastId - 1);
             lastId = record.ActionId; report.Actions++;
+            if (Mathf.Abs(record.AdaptiveModifier) > .001f) report.AdaptiveSelections++;
             bool moved = record.Before != null && record.After != null
                 && (record.Before.ActorX != record.After.ActorX || record.Before.ActorY != record.After.ActorY);
             var outcome = record.Outcome;
@@ -172,7 +176,7 @@ public static class AIClosingPlaytest
                 record.After?.ActorHP, record.Before?.IncomingDamage, record.Before?.LocalPowerRatio,
                 record.DecisionTrace?.StrategicPriority, record.OperationId, record.BaseScore,
                 record.LearnedModifier, record.FinalScore, record.Before?.TargetHP, record.After?.TargetHP,
-                record.Before?.TargetObserved, record.After?.TargetObserved, outcome?.HealingDone ?? 0);
+                record.Before?.TargetObserved, record.After?.TargetObserved, outcome?.HealingDone ?? 0, record.AdaptiveRule, record.AdaptiveModifier);
         }
         public void Dispose() => reflection.ActionCompleted -= Observe;
     }
@@ -368,7 +372,7 @@ public static class AIClosingPlaytest
             "targetsOpposingCommander", "targetsOpposingMainCrystal", "APBefore", "APAfter", "ActionAPCost", "executorFailure", "requestedX", "requestedZ", "failedDestinationVisible", "reportedPhysicalOccupants",
             "actorLifeId", "targetLifeId", "facing", "height", "hpBefore", "hpAfter", "incomingDamage", "localPowerRatio", "priority", "operationId",
             "baseScoreBeforeLearning", "learnedModifier", "finalSelectedScore", "observedTargetHpBefore", "observedTargetHpAfter",
-            "targetObservedBefore", "targetObservedAfter", "actualHealingDone");
+            "targetObservedBefore", "targetObservedAfter", "actualHealingDone", "adaptiveRule", "adaptiveModifier");
         WriteRow(turns, "seconds", "round", "state", "ownerTurns", "playerMoves", "enemyMoves", "playerAttacks", "enemyAttacks",
             "playerBuilds", "enemyBuilds", "playerSummons", "enemySummons", "playerKingHP", "playerCrystalHP", "enemyKingHP", "enemyCrystalHP",
             "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound",
@@ -439,6 +443,7 @@ public static class AIClosingPlaytest
                 if (match.ControlledSquadScenario) match.ScenarioScope = "CONTROLLED superior-force fixture: eight extra normal-stat Player troops at seven-step staging; Player material stocks 5000 and resource-cap enforcement disabled only here; full-health objective; official AP/damage/Fog/executor rules. Not ordinary-game victory evidence.";
                 ObserveDecisiveActors();
                 AIPlaytestMapEvidence.CaptureInitial(turn, folder);
+                EconomyBalanceEvidence.Write(s, folder);
                 turn.PlayerAI.SetEnabled(true, false);
                 match.ActualPlayerAIModeUsed = turn.PlayerAI.Enabled;
                 Debug.Log(Prefix + " ACTUAL_AI_MODE_ENABLED mapSeed=" + match.MapSeed + " enemySeed=" + match.EnemyAISeed

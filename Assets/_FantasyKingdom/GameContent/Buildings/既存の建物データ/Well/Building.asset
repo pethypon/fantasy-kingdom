@@ -21,7 +21,7 @@ MonoBehaviour:
   defaultTeam: 0
   buildCost:
     Wood: 20
-    Stone: 30
+    Stone: 25
     Iron: 0
     MagicOre: 0
     Water: 0
@@ -31,7 +31,7 @@ MonoBehaviour:
   - HP: 100
     DEF: 0
     ATK: 0
-    ProductionIntervalTurns: 0
+    ProductionIntervalTurns: 1
     Input:
       Wood: 0
       Stone: 0
@@ -48,7 +48,7 @@ MonoBehaviour:
       MagicOre: 0
       Wheat: 0
       Bread: 0
-      Water: 5
+      Water: 6
       Citizen: 0
     BonusOutput1:
       Wood: 0
@@ -72,7 +72,7 @@ MonoBehaviour:
     BonusChance2: 0
     Maintenance:
       Wood: 0
-      Stone: 0
+      Stone: 1
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -91,67 +91,7 @@ MonoBehaviour:
   - HP: 100
     DEF: 0
     ATK: 0
-    ProductionIntervalTurns: 0
-    Input:
-      Wood: 0
-      Stone: 0
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    Output:
-      Wood: 0
-      Stone: 0
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 7
-      Citizen: 0
-    BonusOutput1:
-      Wood: 0
-      Stone: 0
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    BonusChance1: 0
-    BonusOutput2:
-      Wood: 0
-      Stone: 0
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    BonusChance2: 0
-    Maintenance:
-      Wood: 0
-      Stone: 0
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    UpgradeCost:
-      Wood: 20
-      Stone: 30
-      Iron: 0
-      MagicOre: 0
-      Water: 0
-      Citizen: 0
-    UpgradeAP: 4
-    SpecialValue: 0
-  - HP: 100
-    DEF: 0
-    ATK: 0
-    ProductionIntervalTurns: 0
+    ProductionIntervalTurns: 1
     Input:
       Wood: 0
       Stone: 0
@@ -192,7 +132,7 @@ MonoBehaviour:
     BonusChance2: 0
     Maintenance:
       Wood: 0
-      Stone: 0
+      Stone: 1
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -200,9 +140,69 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     UpgradeCost:
-      Wood: 30
-      Stone: 50
-      Iron: 10
+      Wood: 25
+      Stone: 30
+      Iron: 0
+      MagicOre: 0
+      Water: 0
+      Citizen: 0
+    UpgradeAP: 4
+    SpecialValue: 0
+  - HP: 100
+    DEF: 0
+    ATK: 0
+    ProductionIntervalTurns: 1
+    Input:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    Output:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 15
+      Citizen: 0
+    BonusOutput1:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance1: 0
+    BonusOutput2:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance2: 0
+    Maintenance:
+      Wood: 0
+      Stone: 1
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    UpgradeCost:
+      Wood: 40
+      Stone: 45
+      Iron: 5
       MagicOre: 0
       Water: 0
       Citizen: 0

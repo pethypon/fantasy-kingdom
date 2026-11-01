@@ -148,8 +148,8 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             Field(so.FindProperty("useAuthoredUpkeep"));
             bool exempt = so.FindProperty("upkeepExempt").boolValue || selectedUnit.kind == Kind.King || selectedUnit.kind == Kind.Boss;
             EditorGUILayout.HelpBox(exempt ? "この駒の維持費はありません。王・異形の王は常に免除されます。"
-                : so.FindProperty("useAuthoredUpkeep").boolValue ? "以下は倍率適用前の基本維持費です。ルールの追加分と合算した5倍を毎ターン支払い、試合中は増加しません。"
-                : "共通の鉄・パン基本維持費を含め、ルールの追加分との合計を5倍して支払います。専用の鉄・パンを使う場合は下の設定を有効にしてください。", MessageType.Info);
+                : so.FindProperty("useAuthoredUpkeep").boolValue ? $"以下は倍率適用前の基本維持費です。ルールの追加分と合算した{FixedUnitRules.UpkeepFactor}倍を毎ターン支払い、レベルでは増加しません。"
+                : $"共通の鉄・パン基本維持費を含め、ルールの追加分との合計を{FixedUnitRules.UpkeepFactor}倍して支払います。専用の鉄・パンを使う場合は下の設定を有効にしてください。", MessageType.Info);
             using (new EditorGUI.DisabledScope(exempt))
             {
                 Fields(so,"upkeepWood","upkeepStone","upkeepMagic","upkeepWater");

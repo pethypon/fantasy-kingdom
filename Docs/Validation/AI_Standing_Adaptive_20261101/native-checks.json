@@ -1,0 +1,12 @@
+{
+  "native-core": {
+    "source": "standing-release-core.log",
+    "passLines": 766,
+    "failLines": 0
+  },
+  "native-playmode": {
+    "source": "standing-release-contracts.log",
+    "passLines": 370,
+    "failLines": 0
+  }
+}

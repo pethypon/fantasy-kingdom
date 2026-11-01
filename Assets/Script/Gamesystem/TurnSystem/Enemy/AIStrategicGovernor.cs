@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -268,7 +268,7 @@ public sealed partial class AIStrategicGovernor
             if (action.ActionType == AIActionType.Upgrade && !EconomyHelper.ImprovesProductionDemand(action, board)
                 && !housing.Needed && !BasicResources.IsFoundationAction(action) && !emergencyDefense) return "upgrade_not_needed";
         }
-        if (!BasicResources.AllowSpend(action, IsEssentialDefenseSpend(action, board), out string spendReason))
+        if (!BasicResources.AllowSpend(action, IsEssentialDefenseSpend(action, board), out string spendReason, IsStandingCoreRecruit(action, board)))
             return spendReason;
         if(Mode==StrategicMode.EmergencyDefense)
         {
@@ -303,6 +303,9 @@ public sealed partial class AIStrategicGovernor
         if (a.ActionType == AIActionType.Build || a.ActionType == AIActionType.Upgrade)
         {
             if (IsEmergencyDefenseRequired(a, board)) return 0;
+            // A concrete own payment deadline precedes general capital expansion.
+            // Legality and full payment forecasts have already filtered the action.
+            if (Mode != StrategicMode.EmergencyDefense && BasicResources.IsPaymentDeadlineRecovery(a)) return 0;
             var housing = HousingAssessment(a, board);
             if (housing.IsHousing && housing.Needed) return housing.EmergencySupply ? 1 : 3;
             var production = ProductionDemand.EvaluateBuild(a);
@@ -328,7 +331,7 @@ public sealed partial class AIStrategicGovernor
         if (Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             && IsSafeEffectiveBattleAction(a, board)) return HasActiveTerritoryAdvance
                 && !AIActionEvaluator.IsNonFinishingPassiveStructureAttack(a, board) ? 2 : 3;
-        if (IsSafePlannedRecruit(a, board)) return Mode == StrategicMode.EconomicRecovery ? 2 : 3;
+        if (IsSafePlannedRecruit(a, board)) return IsStandingCoreRecruit(a, board) ? 1 : Mode == StrategicMode.EconomicRecovery ? 2 : 3;
         if (IsSafeArmyAdvance(a, board)) return 3;
         if (squadPriority == 3) return 3;
         // A dedicated scout keeps its assigned frontier role during army deployment.

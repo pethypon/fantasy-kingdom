@@ -12,6 +12,7 @@ public sealed partial class AIActionReflectionSystem
 
     void RestoreEvaluationState()
     {
+        adaptivePolicy.Restore(state.AdaptivePolicy);
         observedEnemyLifeIds.Clear();
         if (state.ObservedEnemyLifeIds != null)
             foreach (string id in state.ObservedEnemyLifeIds) RememberContact(id);
@@ -25,6 +26,7 @@ public sealed partial class AIActionReflectionSystem
 
     void CaptureEvaluationState()
     {
+        state.AdaptivePolicy = adaptivePolicy.Capture();
         state.EconomyRewardState = economyRewards.Capture();
         state.DelayedCreditState = delayedCredits.Capture();
         state.ArmyUtilizationState = armyUtilization.Capture();
@@ -131,6 +133,7 @@ public sealed partial class AIActionReflectionSystem
                 AIActionLearningProfile.CountFailure(state.BattleSummary.Failures, reason);
             }
         }
+        adaptivePolicy.EndTurn(state.LastSnapshot, evidence?.HasObjective);
         if (!terminalTurn && state.OwnTurns % Math.Max(1, config.DiaryIntervalOwnTurns) == 0)
             OutputDiary("INTERVAL");
     }

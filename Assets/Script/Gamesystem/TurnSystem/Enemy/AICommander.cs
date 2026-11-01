@@ -453,6 +453,7 @@ public partial class AICommander
             using (AIPerformanceCounters.Measure(AIPerformanceStage.ActionEvaluation))
             {
                 _governor.Filter(actionsBuffer,_board);
+                if (!reflectionUnavailable) reflection?.ApplyAdaptivePriorities(actionsBuffer, _board);
                 _evolution.Score(actionsBuffer, _board, _playerModel);
             }
             ApplyCognitiveSelectionHint(actionsBuffer);

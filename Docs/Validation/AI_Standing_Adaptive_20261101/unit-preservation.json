@@ -1,0 +1,110 @@
+[
+  {
+    "path": "Assets/Data/Unit/Archer.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "b3d810dcc7dd6e5c509c29547899e56a3f7fd42e64301865307994fc1043d833",
+    "finalSha256": "fd1ae8a4b503e988cd3362323b3d9d7a577e0db4a8999515a092b1f456e2f513"
+  },
+  {
+    "path": "Assets/Data/Unit/Assassin.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "2cc8011faa37e26cfa98ca98ec7c320efa6d316bf346b29ec6311c13ac029cb5",
+    "finalSha256": "a12e06818c853142252bd25b119560a55aef86534ecf7f431f6a2876b329c6b4"
+  },
+  {
+    "path": "Assets/Data/Unit/Bomber.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "0be27128a94d5ea8686aa7946d0e168782770fab2f4030894507820101e6df24",
+    "finalSha256": "3fe01e7539139a06ccb54d4b85f4322ed5d31feed78331e79f4f9e235fc5d779"
+  },
+  {
+    "path": "Assets/Data/Unit/Crossbow.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "a872010918214d4ba90f33c4fdd8891cc3670a4d3f378cb6b1b069d0c729c926",
+    "finalSha256": "55f316a9e07c99d5899e42f528524f11c83c9f26bae969c123e88c1f404bacbf"
+  },
+  {
+    "path": "Assets/Data/Unit/Guardian.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "876cacf238ecac133c3386b2fa3b5803985526362806ae03d2d19b3471cdbc3a",
+    "finalSha256": "c747bcce1e863ee044f731844ea85818dcb60401be25394a5854375e2b3c715d"
+  },
+  {
+    "path": "Assets/Data/Unit/Knight.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "04c24bbb95687086bdbb84d8f8c7b9f1c4eba858a2ebd1ab3b914470f92865f2",
+    "finalSha256": "a5ecfb09f040ac7af5663384064402607809eaf4d2eef9a7551e2650b73110fd"
+  },
+  {
+    "path": "Assets/Data/Unit/Magic Sniper.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "6158fdbf2d3e30c84b734b96b7172c573e5ba1df11b4cceb3fae428e02fec6e5",
+    "finalSha256": "791f20b6c50fc1625f0518a848539012df4454bfadb00b56f933efca9aafc2f3"
+  },
+  {
+    "path": "Assets/Data/Unit/Magic.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "d3d73c00e5f88fc46dbdeaccf19d29ab540dc026f2193c48bce46c1a87b8fd2e",
+    "finalSha256": "55919de91b06b5e98ceaea4b9885e3ad3ebbdd2ac8319f536b652cfe6806723f"
+  },
+  {
+    "path": "Assets/Data/Unit/Priest.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "62d5316399b7a1c6d44dd3ce294390a1fdd7564745975332f8a3ca0013a29303",
+    "finalSha256": "c3370ed171a45344b220fad14d153e08387052e2cc590936c83634d8515a40a9"
+  },
+  {
+    "path": "Assets/Data/Unit/Scout.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "ac69ff00fbcc7300c17d2104b362d843f3d0d93f173bf908ba0018205c5c22ad",
+    "finalSha256": "8b5a3ce28221d45764b397612765b0e4d4bbf02ac26ea4e86a40cedc8e274b0e"
+  },
+  {
+    "path": "Assets/_FantasyKingdom/GameContent/R1Production/Units/Berserker/Stats.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "8429c2468cded718bd8e2662d36996e7e8f8df1e86f186a666b5b2f9a96e3dc4",
+    "finalSha256": "2c4be5dce4cb46230d82f7a371317ab2c3b543cd8c10ba973fc4685b112497a8"
+  },
+  {
+    "path": "Assets/_FantasyKingdom/GameContent/R1Production/Units/DragonKnight/Stats.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "9f4b107b5f78390fda9c1e81cfb59e475b12465158f24b43b9576fb93c89b015",
+    "finalSha256": "e39def509214d6aece851eb1c34150d56b2d2170c55a85719a2d2c59902cfafc"
+  },
+  {
+    "path": "Assets/_FantasyKingdom/GameContent/R1Production/Units/HeavyWarrior/Stats.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "af5d8e5979e329843f995d6ab7e18828e7556c8bb703f28a81b4e6d47b7165cf",
+    "finalSha256": "f22a9aa66293cf8c8ccdcfdda88fea72bc24414b5b0597019402ead1d5a9816b"
+  },
+  {
+    "path": "Assets/_FantasyKingdom/GameContent/R1Production/Units/HolyKnight/Stats.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "9ef4bca761942f8c49b29ee285823471370a279f82854c3d4d0e563e62aeb915",
+    "finalSha256": "2b1c2b4c2f64dc4765abd3798a405d16e871e3fe44e203aa305bc360f95abba5"
+  },
+  {
+    "path": "Assets/_FantasyKingdom/GameContent/R1Production/Units/Navigator/Stats.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "056a00858e3e0e19d399aec1085a6c3071442ce4946e13a0e50078716e8be029",
+    "finalSha256": "77573edfec623e0f11641038592e8852fa71fa0ac376e28335b781b8be354b97"
+  },
+  {
+    "path": "Assets/_FantasyKingdom/GameContent/R1Production/Units/Ninja/Stats.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "bdc4ac0aadd12b4c59dee4c311ac678a79d09b662afa11939118e26907767e47",
+    "finalSha256": "bd6d227982fd51a6f793af9ecc56e2cf37f604840c5e31bb011919356d290bd4"
+  },
+  {
+    "path": "Assets/_FantasyKingdom/GameContent/R1Production/Units/Samurai/Stats.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "7204120a3846d1ee7371a5c0c57b737a9992b501169f806436d5b00d6694cd8c",
+    "finalSha256": "3bfd95f9454b6d79463ee06a2d869c97486c58785fad7bbd647f6447ccd72515"
+  },
+  {
+    "path": "Assets/_FantasyKingdom/GameContent/R1Production/Units/WhiteMage/Stats.asset",
+    "combatAndIdentityPreserved": true,
+    "beforeSha256": "12e5f0ca55cd93510e2e1569864ba01ba064db314e5c530e85f34b0e07e9c884",
+    "finalSha256": "a9d490c8f698c6941f40c20904f4c7913f041c01aa3288a3ca87c46f7c718a22"
+  }
+]

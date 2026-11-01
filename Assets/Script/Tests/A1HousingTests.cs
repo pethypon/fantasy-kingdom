@@ -171,6 +171,26 @@ public static class A1HousingTests
             Check(f.Team + " HS03 same life is counted once", governor.HousingAPPlan.PlannedActions == 1 && governor.HousingAPPlan.DesiredAP == 20);
             settings.Rules.attackAP = 2; board.Refresh(); GameContentRevision.NotifyChanged(); governor.HousingAssessment(house, board);
             Check(f.Team + " HS01 cheap real plan does not request maximum AP", governor.HousingAPPlan.DesiredAP == 2 && governor.HousingAPPlan.RequiredCitizens == 0);
+            f.Turn.Systems.APSystem = f.AP; board.SpecialSystems = f.Turn.Systems;
+            settings.Housing.EnableRepeatAttackAPPlanning = true;
+            board.Refresh(); GameContentRevision.NotifyChanged(); governor.HousingAssessment(house, board);
+            Check(f.Team + " HS04 fatigue-aware-repeat-is-a-real-bounded-AP-plan", governor.HousingAPPlan.PlannedActions == 2
+                && governor.HousingAPPlan.DesiredAP == 5);
+            targetData.costAP = 6; targetData.costWood = targetData.costStone = targetData.costIron = 0;
+            targetData.costMagic = targetData.costBread = targetData.costWater = 0;
+            var recruits = (System.Collections.Generic.List<AIRecruitmentNeed>)governor.RecruitmentPlan;
+            recruits.Clear(); recruits.Add(new AIRecruitmentNeed(targetData, "frontline", "controlled_pending_recruit"));
+            settings.Housing.EnableRecruitmentAPPlanning = true;
+            var pending = (AIHousingAPPlan)typeof(AIStrategicGovernor).GetMethod("PrepareHousingAPPlan", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(governor, new object[] { board, settings.Housing });
+            Check(f.Team + " HS04 pending-paid-reinforcement-shares-army-AP", pending.PlannedActions == 3 && pending.DesiredAP == 11);
+            settings.Housing.EnableRecruitmentAPPlanning = false; recruits.Clear();
+            board.SpecialSystems = null; settings.Rules.attackAP = 20; settings.Housing.APPreparationTurns = 10;
+            settings.Housing.EnableIncrementalAPPreparation = true;
+            board.Refresh(); GameContentRevision.NotifyChanged(); governor.HousingAssessment(house, board);
+            Check(f.Team + " HS04 reachable-partial-capacity-is-prepared-instead-of-discarding-all", governor.HousingAPPlan.RequiredCitizens == 15
+                && governor.HousingAPPlan.DesiredAP == 18);
+            settings.Housing.EnableIncrementalAPPreparation = false;
             settings.Rules.attackAP = 2; settings.Housing.APPreparationTurns = 10;
         }
         finally { UnityEngine.Object.DestroyImmediate(host); UnityEngine.Object.DestroyImmediate(targetData); }

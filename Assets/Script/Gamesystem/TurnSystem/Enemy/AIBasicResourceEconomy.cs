@@ -27,6 +27,7 @@ public sealed class AIBasicResourceSettings
     [Range(0, 1)] public float reserveCostFraction = .5f;
     [Range(0, 1)] public float foundationReserveFraction = .25f;
     [Min(1)] public float paybackWindowTurns = 8f;
+    [InspectorName("維持費の生産設備を準備する猶予ターン"), Range(1, 20)] public int mandatorySupplyPreparationTurns = 8;
     [Min(0)] public float constructionPressureWeight = 30f;
     [Min(0)] public float recoverySpendPenalty = 60f;
     public FacilityData.ProductionBundle minimumReserve = new FacilityData.ProductionBundle { Wood = 30, Stone = 30, Iron = 3, MagicOre = 2, Wheat = 3, Bread = 5, Water = 20, Citizen = 3 };
@@ -300,13 +301,18 @@ public sealed class AIBasicResourceEconomy
                     : AIConstructionEconomy.WithoutUnlocatedOre(chosenDefinition != null ? chosenDefinition.GetLevel(1) : FacilityData.GetLevel(chosenKind, 1));
                 previousSupply[index] = chosenActor != null ? AIConstructionEconomy.ExistingRecipe(chosenActor, Mathf.Max(1, chosenActor.Level), board) : default;
             }
-            if (!float.IsInfinity(best) && current.MandatoryDemandPerTurn > .001f && current.NetPerTurn < -.001f
-                && current.ProjectedStock < current.SafetyReserve - .001f)
+            // Opening crystal support expires. A short forecast's temporary income must
+            // not postpone the capital for an already-required permanent producer.
+            float obligationDeficit = Mathf.Max(-current.NetPerTurn,
+                current.MandatoryDemandPerTurn - demand.PermanentProduction(resource));
+            float supplyDeadline = obligationDeficit > .001f ? current.Stock / obligationDeficit : float.PositiveInfinity;
+            if (!float.IsInfinity(best) && current.MandatoryDemandPerTurn > .001f && obligationDeficit > .001f
+                && (current.ProjectedStock < current.SafetyReserve - .001f || supplyDeadline <= MandatoryPreparationHorizon))
             {
                 // Reserve the actual producer's capital before ongoing obligations exhaust stock.
                 // Other foundation projects used to repeatedly spend this same stone/water reserve,
                 // leaving a missing producer unaffordable even while its upkeep was going unpaid.
-                float exhaustionTurns = current.Stock / -current.NetPerTurn;
+                float exhaustionTurns = supplyDeadline;
                 float fundingTurns = Mathf.Clamp(Mathf.Floor(exhaustionTurns), 0,
                     Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8));
                 // Keep one concrete project, for the obligation that will fail first. Reserving
@@ -425,6 +431,18 @@ public sealed class AIBasicResourceEconomy
         return FoundationState == EconomyFoundationState.StableGrowth ? 3 : 2;
     }
 
+    int MandatoryPreparationHorizon => Mathf.Max(demand?.ForecastTurns ?? 1,
+        Mathf.Clamp(AIBasicResourceSettings.Active.mandatorySupplyPreparationTurns, 1, 20));
+
+    public bool IsPaymentDeadlineRecovery(AIAction action)
+    {
+        if (demand == null || !TryScopedRecipe(action, out var next, out var previous, out _)) return false;
+        foreach (var investment in mandatoryInvestments)
+            if (investment.ExhaustionTurns <= MandatoryPreparationHorizon + .001f
+                && ProductionGain(RecipeKind(action), next, previous, investment.Resource) > .001f) return true;
+        return false;
+    }
+
     /// <summary>Current military/citizen food consumption needs permanent supply, even while stock bridges the forecast.</summary>
     public bool HasRequiredFoodSupplyGap => AIBasicResourceSettings.Active.enabled && demand != null && hasPlannedSupply[(int)ResourceKind.Bread]
         && demand.Get(ResourceKind.Bread).MandatoryDemandPerTurn > .001f
@@ -475,7 +493,7 @@ public sealed class AIBasicResourceEconomy
         scores[key] = score; return score;
     }
 
-    public bool AllowSpend(AIAction action, bool essentialDefense, out string reason)
+    public bool AllowSpend(AIAction action, bool essentialDefense, out string reason, bool fundedCoreRecruit = false)
     {
         reason = null;
         if (action == null || essentialDefense || !AIBasicResourceSettings.Active.enabled) return true;
@@ -495,7 +513,16 @@ public sealed class AIBasicResourceEconomy
             // housing planner insufficient forever. Keep real obligations and minimum stock;
             // material/food reserves and every unrelated purchase remain unchanged.
             if (s.ResourceType == ResourceKind.Citizen && plannedRecruit)
-                floor = Mathf.Max(demand.Get(ResourceKind.Citizen).SafetyReserve, AIBasicResourceSettings.Active.minimumReserve.Citizen);
+                floor = fundedCoreRecruit ? AIHousingConfig.Active.FreeTarget
+                    : Mathf.Max(demand.Get(ResourceKind.Citizen).SafetyReserve, AIBasicResourceSettings.Active.minimumReserve.Citizen);
+            if (fundedCoreRecruit && plannedRecruit && action.ActionType == AIActionType.Summon && s.ResourceType != ResourceKind.Citizen)
+            {
+                // Formal per-recruit upkeep/input forecasts run in the governor first. Reserve
+                // real obligations, rather than also banking every hypothetical building project.
+                var actual = demand.Get(s.ResourceType);
+                floor = Mathf.Max(0, Mathf.Max(actual.SafetyReserve, StrategicEconomyForecast.Amount(AIBasicResourceSettings.Active.minimumReserve, (int)s.ResourceType))
+                    - Mathf.Max(0, actual.NetPerTurn) * demand.ForecastTurns);
+            }
             if (foundation)
             {
                 // A real supply improvement may invest its reserve. Never promise inputs that remain unavailable.

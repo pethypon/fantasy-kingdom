@@ -19,6 +19,7 @@ public sealed partial class AIActionReflectionSystem
         public readonly List<string> ArtifactEventIds = new List<string>();
     }
     readonly AIReflectionConfig config;
+    readonly AIAdaptiveDecisionPolicy adaptivePolicy;
     readonly AIReflectionSaveRepository repository;
     readonly AIDiaryWriter diary;
     readonly AIActionFeatureExtractor extractor;
@@ -51,6 +52,9 @@ public sealed partial class AIActionReflectionSystem
     public bool HasPendingActions => pending.Count > 0;
     public bool Enabled => config.EnableReflection;
     public int OwnTurns => state?.OwnTurns ?? 0;
+    public AIAdaptivePolicyState CaptureAdaptivePolicy() => adaptivePolicy.Capture();
+    public void ApplyAdaptivePriorities(List<AIAction> actions, AIBoardState board)
+    { if (Enabled && config.ApplyLearningToSelection) adaptivePolicy.ApplyPriorities(actions, board); }
     public event Action<AIActionRecord> ActionCompleted;
     public event Action<string> BeforeDiary;
     public string LatestDiaryText => diary.LastText;
@@ -69,6 +73,7 @@ public sealed partial class AIActionReflectionSystem
         Faction = team;
         this.config = config != null ? config : AIReflectionConfig.Active;
         extractor = new AIActionFeatureExtractor(this.config);
+        adaptivePolicy = new AIAdaptiveDecisionPolicy(this.config);
         economyRewards = new AIEconomyRewardTracker(this.config);
         delayedCredits = new AIDelayedCreditAssigner(this.config);
         armyUtilization = new AIArmyUtilizationAnalyzer(this.config);
@@ -163,6 +168,8 @@ public sealed partial class AIActionReflectionSystem
         var record = new AIActionRecord { ActionId = id, BattleId = state.BattleId, Turn = before.Turn,
             ActionType = action.ActionType, ActorRole = before.ActorRole, TargetCategory = before.TargetCategory,
             Before = before, ContextKey = context, ActionKey = actionKey,
+            AdaptiveRule = (int)AIAdaptiveDecisionPolicy.Classify(action),
+            AdaptiveModifier = config.ApplyLearningToSelection ? adaptivePolicy.Modifier(action, before.CurrentThreatLevel) : 0,
             BaseScore = action.Score, LearnedModifier = modifier, FinalScore = action.Score + modifier,
             ActorRuntimeId = action.Unit != null ? action.Unit.GetInstanceID() : 0,
             ActorLifeId = action.Unit != null ? action.Unit.ReflectionLifeId : null,
@@ -220,6 +227,7 @@ public sealed partial class AIActionReflectionSystem
         record.Reward = AIActionRewardEvaluator.Evaluate(record, config);
         economyRewards.ObserveAction(record, state.OwnTurns + 1);
         float change = Profile.Learn(record, config);
+        adaptivePolicy.Observe(record);
         record.LearningValueChange = change;
         AIReflectionDecisionTrace.UpdateOutcome(record);
         state.BattleReward += record.Reward; state.TotalOwnLosses += record.Outcome.OwnLosses;
@@ -237,16 +245,17 @@ public sealed partial class AIActionReflectionSystem
     public float GetLearnedModifier(AIAction action, AIBoardState board)
     {
         using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Reflection);
-        if (!Enabled || !config.ApplyLearningToSelection || action == null || Profile.Entries.Count == 0) return 0;
+        if (!Enabled || !config.ApplyLearningToSelection || action == null) return 0;
         extractor.GetSelectionKeys(action, board, state?.LastStartedTurn ?? board?.TurnCount ?? 0, strategy,
             state?.ThreatLevel ?? board?.ReconThreatLevel ?? 1, state?.TotalArtifacts ?? 0, out var context, out var key);
-        return LearnedModifier(action, context, key);
+        return LearnedModifier(action, context, key) + adaptivePolicy.Modifier(action, board?.ReconThreatLevel ?? state?.ThreatLevel ?? 1);
     }
     public float GetLearnedModifier(AIAction action, AIActionContextSnapshot context)
     {
         using var performanceScope = AIPerformanceCounters.Measure(AIPerformanceStage.Reflection);
         if (!Enabled || !config.ApplyLearningToSelection || action == null || context == null) return 0;
-        return LearnedModifier(action, AIActionFeatureExtractor.ContextKey(context), AIActionFeatureExtractor.ActionKey(action, context));
+        return LearnedModifier(action, AIActionFeatureExtractor.ContextKey(context), AIActionFeatureExtractor.ActionKey(action, context))
+            + adaptivePolicy.Modifier(action, context.CurrentThreatLevel);
     }
     float LearnedModifier(AIAction action, string context, string key)
     {

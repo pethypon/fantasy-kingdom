@@ -68,6 +68,16 @@ public static class BasicResourceEconomyTests
                 && policy.AllowSpend(purchase, true, out _));
             Check(team + " reservation checks never manufacture resources or spend AP",
                 stock == JsonUtility.ToJson(f.Resources) && ap == f.State.GetAP(team));
+            f.Resources.Iron = 20; board.Refresh(); board.Governor.Evaluate(board);
+            Check(team + " prepare supply before short cash forecast becomes critical",
+                board.Governor.ProductionDemand.Get(ResourceKind.Iron).ProjectedStock >= 3
+                && policy.IsPaymentDeadlineRecovery(repair));
+            f.State.GetNation(team).TurnsAlive = 1; board.Refresh(); board.Governor.Evaluate(board);
+            Check(team + " temporary opening support cannot hide a missing mandatory producer",
+                board.Governor.ProductionDemand.TemporaryIncome(ResourceKind.Iron) > 0
+                && policy.IsPaymentDeadlineRecovery(repair));
+            f.State.GetNation(team).TurnsAlive = 20;
+            f.Resources.Iron = 8; board.Refresh(); board.Governor.Evaluate(board);
             policy.Evaluate(board, board.Governor.ProductionDemand, false, Array.Empty<BasicResourcePlan>());
             policy.AllowSpend(purchase, false, out string manualPlanReason);
             Check(team + " explicit replacement plans clear the old mandatory investment cache",
@@ -84,7 +94,7 @@ public static class BasicResourceEconomyTests
                 f.Resources.Stone == 45 && f.Resources.Iron == 5 && consumer.UpkeepUnpaidTurns == 0
                 && board.Governor.AllowExecution(repair, board)
                 && f.Builder.TryPlaceDefinition(Vector3Int.RoundToInt(repair.TargetPos), mine, team));
-            for (int i = 0; i < 3; i++) f.Economy.ProcessTurn(team);
+            for (int i = 0; i < 3; i++) { f.State.GetNation(team).TurnsAlive++; f.Economy.ProcessTurn(team); }
             Check(team + " producer investment sustains the actual army's upkeep",
                 consumer.UpkeepUnpaidTurns == 0 && consumer.IsAlive && f.Resources.Iron == 5);
         }

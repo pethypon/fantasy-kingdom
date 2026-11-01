@@ -24,14 +24,14 @@ MonoBehaviour:
     Stone: 20
     Iron: 0
     MagicOre: 0
-    Water: 15
+    Water: 10
     Citizen: 1
   buildAP: 4
   levels:
   - HP: 100
     DEF: 0
     ATK: 0
-    ProductionIntervalTurns: 0
+    ProductionIntervalTurns: 1
     Input:
       Wood: 0
       Stone: 0
@@ -43,7 +43,67 @@ MonoBehaviour:
       Citizen: 0
     Output:
       Wood: 0
-      Stone: 7
+      Stone: 8
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusOutput1:
+      Wood: 0
+      Stone: 1
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance1: 0.15
+    BonusOutput2:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    BonusChance2: 0
+    Maintenance:
+      Wood: 1
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    UpgradeCost:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Water: 0
+      Citizen: 0
+    UpgradeAP: 0
+    SpecialValue: 0
+  - HP: 100
+    DEF: 0
+    ATK: 0
+    ProductionIntervalTurns: 1
+    Input:
+      Wood: 0
+      Stone: 0
+      Iron: 0
+      MagicOre: 0
+      Wheat: 0
+      Bread: 0
+      Water: 0
+      Citizen: 0
+    Output:
+      Wood: 0
+      Stone: 12
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -71,7 +131,7 @@ MonoBehaviour:
       Citizen: 0
     BonusChance2: 0
     Maintenance:
-      Wood: 0
+      Wood: 1
       Stone: 0
       Iron: 0
       MagicOre: 0
@@ -80,18 +140,18 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     UpgradeCost:
-      Wood: 0
-      Stone: 0
+      Wood: 30
+      Stone: 20
       Iron: 0
       MagicOre: 0
-      Water: 0
+      Water: 10
       Citizen: 0
-    UpgradeAP: 0
+    UpgradeAP: 4
     SpecialValue: 0
   - HP: 100
     DEF: 0
     ATK: 0
-    ProductionIntervalTurns: 0
+    ProductionIntervalTurns: 1
     Input:
       Wood: 0
       Stone: 0
@@ -103,7 +163,7 @@ MonoBehaviour:
       Citizen: 0
     Output:
       Wood: 0
-      Stone: 9
+      Stone: 17
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -119,7 +179,7 @@ MonoBehaviour:
       Bread: 0
       Water: 0
       Citizen: 0
-    BonusChance1: 0.3
+    BonusChance1: 0.25
     BonusOutput2:
       Wood: 0
       Stone: 0
@@ -131,7 +191,7 @@ MonoBehaviour:
       Citizen: 0
     BonusChance2: 0
     Maintenance:
-      Wood: 0
+      Wood: 1
       Stone: 0
       Iron: 0
       MagicOre: 0
@@ -140,73 +200,13 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     UpgradeCost:
-      Wood: 20
-      Stone: 20
-      Iron: 0
-      MagicOre: 0
-      Water: 0
-      Citizen: 0
-    UpgradeAP: 6
-    SpecialValue: 0
-  - HP: 100
-    DEF: 0
-    ATK: 0
-    ProductionIntervalTurns: 0
-    Input:
-      Wood: 0
-      Stone: 0
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    Output:
-      Wood: 0
-      Stone: 12
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    BonusOutput1:
-      Wood: 0
-      Stone: 4
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    BonusChance1: 0.3
-    BonusOutput2:
-      Wood: 0
-      Stone: 0
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    BonusChance2: 0
-    Maintenance:
-      Wood: 0
-      Stone: 0
-      Iron: 0
-      MagicOre: 0
-      Wheat: 0
-      Bread: 0
-      Water: 0
-      Citizen: 0
-    UpgradeCost:
-      Wood: 60
-      Stone: 60
+      Wood: 45
+      Stone: 35
       Iron: 5
       MagicOre: 0
-      Water: 0
+      Water: 10
       Citizen: 0
-    UpgradeAP: 7
+    UpgradeAP: 5
     SpecialValue: 0
   availableToPlayer: 1
   availableToEnemy: 1

@@ -346,6 +346,8 @@ public static class EconomyR2Tests
             {
                 Catalog = ScriptableObject.CreateInstance<FacilityAuthoringCatalog>(); owned.Add(Catalog);
                 Rules = ScriptableObject.CreateInstance<GameAuthoringRules>(); owned.Add(Rules); Rules.applyRules = true;
+                // Fixture recipes below express absolute per-turn budgets, independent of the shipped balance multiplier.
+                Rules.unitUpkeepMultiplier = 1;
                 StaticField(typeof(FacilityAuthoringCatalog), "loaded").SetValue(null, Catalog); StaticField(typeof(FacilityAuthoringCatalog), "didLoad").SetValue(null, true);
                 StaticField(typeof(GameAuthoringRules), "loaded").SetValue(null, Rules); StaticField(typeof(GameAuthoringRules), "didLoad").SetValue(null, true);
                 GameContentRevision.NotifyChanged();

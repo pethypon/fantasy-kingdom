@@ -27,7 +27,7 @@ public sealed partial class GameDevelopmentStudioWindow
         {"applyRules","このルールで新規ゲームを始める"},{"aiBreadReserveTurns","AIが確保するパンの予備ターン数"},{"turnSeconds","１ターンの制限時間（秒）"},{"totalSeconds","各軍の持ち時間（秒）"},
         {"timeBonusSeconds","手動でターン終了した時の加算秒数"},{"maximumAP","行動ポイントの上限（AP）"},{"moveAP","基本移動AP"},{"attackAP","基本攻撃AP"},{"heightAP","高さ差１段の追加AP"},
         {"minimumAttackDamage","命中した攻撃の最低ダメージ"},
-        {"citizenAP","市民１人によるAP増加"},{"breadPerCitizen","市民１人が消費するパン"},{"starvationGraceTurns","飢餓の猶予ターン数"},
+        {"unitUpkeepMultiplier","基本維持費の倍率"},{"citizenAP","市民１人によるAP増加"},{"breadPerCitizen","市民１人が消費するパン"},{"starvationGraceTurns","飢餓の猶予ターン数"},
         {"mapWidth","マップの横幅（マス）"},{"mapDepth","マップの奥行き（マス）"},{"noiseScale","地形の細かさ"},{"riverHalfWidth","川の半幅"},
         {"color","陣営の表示色"},{"initialAP","初期AP"},
         {"InitialIP","初期介入ポイント（IP）"},{"HistoryTurns","戦況履歴の保存ターン数"},{"PredictionTurns","戦況を予測するターン数"},

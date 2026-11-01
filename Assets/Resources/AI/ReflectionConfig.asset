@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d781cd0a9bb43a6ad9b34ece7e9569d, type: 3}
   m_Name: ReflectionConfig
   m_EditorClassIdentifier: 
+  EnableAdaptivePolicy: 1
+  AdaptiveMinimumThreat: 10
+  AdaptiveLearningRate: 0.25
+  AdaptiveMinimumSamples: 3
+  AdaptiveMaximumScore: 18
   EnableReflection: 1
   ApplyLearningToSelection: 1
   EnableConsoleDiary: 1

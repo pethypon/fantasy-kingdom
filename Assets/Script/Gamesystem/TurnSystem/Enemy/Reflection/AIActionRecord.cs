@@ -185,6 +185,8 @@ public sealed class AIActionRecord
 {
     public long ActionId;
     public string BattleId, ActorRole, TargetCategory, ContextKey, ActionKey;
+    public int AdaptiveRule = -1;
+    public float AdaptiveModifier;
     public int Turn;
     public AIActionType ActionType;
     public AIActionContextSnapshot Before, After;
@@ -261,6 +263,7 @@ public sealed class AIReflectionBattleState
     public AIEconomyRewardState EconomyRewardState;
     public AIDelayedCreditState DelayedCreditState;
     public AIArmyUtilizationState ArmyUtilizationState;
+    public AIAdaptivePolicyState AdaptivePolicy;
     public List<string> ObservedEnemyLifeIds = new List<string>();
     public AIReflectionInterval Interval = new AIReflectionInterval();
     public AIReflectionInterval BattleSummary = new AIReflectionInterval();

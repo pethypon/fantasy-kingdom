@@ -40,7 +40,7 @@ public class UnitData : ScriptableObject
     [HideInInspector] public float atkGrowth;
     [HideInInspector] public float defGrowth;
 
-    [Header("基本維持費（実際の毎ターン支払額はこの5倍）")]
+    [Header("基本維持費（ゲームルールの固定倍率を適用）")]
     [Tooltip("召喚体など維持費を免除する駒。王・異形の王は常に免除。通常の生産駒は有効にしません。")]
     public bool upkeepExempt;
     [Tooltip("有効時は鉄・パンもこの駒の設定値を使います。無効時は従来の共通維持費を使用。")]
@@ -69,7 +69,7 @@ public class UnitData : ScriptableObject
         && costWood >= 0 && costStone >= 0 && costIron >= 0 && costMagic >= 0 && costWater >= 0 && costBread >= 0 && costCitizen >= 0 && costAP >= 0;
 
     // ─────────────────────────────────────────────────────────────────
-    //  固定維持費（旧基礎値+追加維持費の合計を5倍。本体・UI・AIの共有API）
+    //  固定維持費（基本値+追加分に設定倍率を適用。本体・UI・AIの共有API）
     // ─────────────────────────────────────────────────────────────────
 
     /// <summary>
