@@ -92,7 +92,7 @@ public static class AIR2PlaytestTelemetry
         nations = new StreamWriter(Path.Combine(folder, "nation-economy.csv")); nationRows = 0;
         operations = new StreamWriter(Path.Combine(folder, "operation-orders.csv")); operationRows = 0;
         operations.WriteLine("team,round,generation,mode,AP,operationId,goal,status,step,targetX,targetZ,assigned,lastProgress,squadId,squadPhase,chosenActor,chosenType,chosenTarget,chosenOperation,actorX,actorZ,destinationX,destinationZ,operationMembers,squadMembers,coordinationSteps,liveSquadSize,squadSpan,squadHealers");
-        NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock", "developmentFightingTarget", "developmentCitizenDemand", "developmentRequiredStock", "housingRequiredCapacity", "housingReasons", "housingRecoveryStarted", "housingRecoveryLastProgress", "housingDeferredTurns", "housingRecoveryStatus", "plannedAP", "currentMaxAP", "mainCrystalKnowledge");
+        NationRow("team", "round", "mode", "starvation", "citizen", "capacity", "houses", "houseLevels", "army", "wounded", "healers", "plannedRecruitRoles", "resource", "stock", "mandatoryPerTurn", "netPerTurn", "projectedStock", "safetyReserve", "foundationState", "basicResourceState", "requiredCitizenStock", "developmentFightingTarget", "developmentCitizenDemand", "developmentRequiredStock", "housingRequiredCapacity", "housingReasons", "housingRecoveryStarted", "housingRecoveryLastProgress", "housingDeferredTurns", "housingRecoveryStatus", "plannedAP", "currentMaxAP", "mainCrystalKnowledge", "facilityCounts", "productionPerTurn", "plannedPerTurn", "productionDeficit");
         Row(decisions, "team", "round", "generation", "stage", "mode", "AP", "group", "count", "actorLifeId", "action", "target", "score", "priority", "selected", "reason", "visibleEnemies", "affordableKinds", "summonCells", "casterKind", "skillKey", "normalSkillId", "specialAbility", "actionAP", "APAffordable", "chosenAction", "chosenScore", "chosenPriority", "selectionOutcome", "scoreComponents", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "preservationSafety", "recoveryPhase", "refugeX", "refugeZ", "healingPossible", "alliesNear", "saferMoveCount", "patientHP", "patientMaxHP", "chosenActorLifeId", "chosenTargetLifeId");
         Row(units, "team", "round", "lifeId", "kind", "type", "level", "x", "z", "facing", "hp", "maxHP", "barrier", "maxBarrier", "homeDistance", "incoming", "plan", "planStep", "planTargetX", "planTargetZ", "exploreId", "region", "exploreState", "exploreReason", "exploreX", "exploreZ", "newTiles", "houseCapacity", "assignedSkillId", "assignedSkillAP", "skillCooldown", "specialAbility", "specialEnabled", "specialAP", "specialCooldown", "specialSelfReady", "specialSelfReason", "preservationSafety", "recoveryPhase", "observedIncoming", "twoExchangeLoss", "legalSaferMove", "saferMoveCount", "healingPossible", "alliesNear", "refugeX", "refugeZ", "preservationReason", "operationId", "operationGoal", "operationStatus", "operationStep", "operationX", "operationZ", "operationProgressTurn", "squadId", "squadPhase", "squadReason");
         WriteStatus(false);
@@ -274,8 +274,13 @@ public static class AIR2PlaytestTelemetry
         if (governor == null || nations == null || nationRows >= 32768) return;
         board.CollectOwnBuildings(ownBuildings);
         int capacity = FactionState.BaseCitizenCap, houses = 0, levels = 0, army = 0, wounded = 0, healers = 0;
+        var census = new SortedDictionary<string, (int count, int levels)>(StringComparer.Ordinal);
         foreach (var building in ownBuildings)
         {
+            if (building == null || !building.IsAlive) continue;
+            string identity = building.AuthoredFacility != null ? building.AuthoredFacility.definitionId : building.facilityKind.ToString();
+            census.TryGetValue(identity, out var present);
+            census[identity] = (present.count + 1, present.levels + building.Level);
             if (building.facilityKind != FacilityKind.House && building.facilityKind != FacilityKind.LuxuryHouse) continue;
             houses++; levels += building.Level;
             capacity += FacilityData.GetLevel(building, building.Level).SpecialValue;
@@ -299,6 +304,8 @@ public static class AIR2PlaytestTelemetry
                 if (!string.IsNullOrEmpty(reason)) housingReasons.Add(reason);
             }
         var sortedReasons = new List<string>(housingReasons); sortedReasons.Sort(StringComparer.Ordinal);
+        var facilityCounts = new List<string>();
+        foreach (var entry in census) facilityCounts.Add(entry.Key + "=" + entry.Value.count + ":" + entry.Value.levels);
         foreach (var resource in governor.ProductionDemand.Resources)
             NationRow(board.ActorTeam, board.TurnCount, governor.Mode, board.NationStarvationCounter, board.EnemyResources?.Citizen,
                 capacity, houses, levels, army, wounded, healers, order, resource.Resource, resource.Stock,
@@ -307,7 +314,8 @@ public static class AIR2PlaytestTelemetry
                 governor.RecruitmentRequiredCitizenStock, Value(governor, "DevelopmentFightingTarget"), Value(governor, "DevelopmentCitizenDemand"),
                 Value(governor, "DevelopmentRequiredCitizenStock"), requiredCapacity, string.Join(";", sortedReasons),
                 Value(governor, "HousingRecoveryStartedTurn"), Value(governor, "HousingRecoveryLastProgressTurn"),
-                Value(governor, "HousingRecoveryDeferredTurns"), Value(governor, "HousingRecoveryStatus"), desiredAP, board.OwnAPData?.Maximum, Value(board,"MainCrystalKnowledge"));
+                Value(governor, "HousingRecoveryDeferredTurns"), Value(governor, "HousingRecoveryStatus"), desiredAP, board.OwnAPData?.Maximum, Value(board,"MainCrystalKnowledge"),
+                string.Join(";", facilityCounts), resource.ProductionPerTurn, resource.PlannedDemandPerTurn, resource.ProductionDeficit);
         nations.Flush(); ownBuildings.Clear();
     }
     static void NationRow(params object[] fields)

@@ -316,9 +316,10 @@ public sealed partial class AIStrategicGovernor
         }
         int foundationPriority = BasicResources.ActionPriority(a);
         if (foundationPriority < 4 && Mode == StrategicMode.EconomicRecovery) return foundationPriority;
-        // A currently observed, effective and survivable main-crystal attack is
-        // a real objective opportunity even before a territory staging order exists.
-        if (IsSafeCrystalSiegeAction(a, board)) return 2;
+        // Either observed victory target is a real opportunity before a territory
+        // staging order exists. A safe commander attack must not be a tier below
+        // an equally legal but much longer main-crystal siege.
+        if (IsSafeVictoryAttack(a, board)) return 2;
         int squadPriority = OperationPriority(a, board);
         if (squadPriority == 2) return 2;
         // With a confirmed deployment direction, act on current combat opportunities

@@ -48,6 +48,11 @@ static class AIBuildEvaluator
         {
             float phase = assessment.ImprovesDeficit ? ProductionPhaseScore(facility, turn) : 0f;
             score += assessment.FinalScore + phase;
+            // The count is a soft footprint preference, never a production cap.
+            // A real shortage may still justify expansion; equally useful upgrades
+            // no longer lose automatically to another level-one copy.
+            score -= Mathf.Min(40, Mathf.Max(0, board.GetBuildingCount(facility)
+                - AIActionGenerator.GetMaxBuildingCount(facility)) * 3);
             // The reserve/plan policy also values real probabilistic and capacity supply paths.
             // Guaranteed-upkeep forecasting cannot label those useful investments as surplus.
             if (!assessment.ImprovesDeficit && board.Governor?.BasicResources.IsFoundationAction(action) == true)

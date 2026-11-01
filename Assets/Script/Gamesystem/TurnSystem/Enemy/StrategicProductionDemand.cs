@@ -83,6 +83,8 @@ public sealed class StrategicProductionDemand
     readonly AIBoardState locationBoard;
     readonly Dictionary<(FacilityKind, FacilityDefinitionData, bool), ProductionBuildAssessment> assessments
         = new Dictionary<(FacilityKind, FacilityDefinitionData, bool), ProductionBuildAssessment>();
+    readonly Dictionary<(Status, int), ProductionBuildAssessment> upgradeAssessments
+        = new Dictionary<(Status, int), ProductionBuildAssessment>();
 
     internal StrategicProductionDemand(ResourceDemandState[] resources, EconomyForecastResult forecast, bool critical,
         bool warning, int criticalResources, float[] chainCoverageByResource, float[] chainUrgencyByResource,
@@ -155,6 +157,19 @@ public sealed class StrategicProductionDemand
 
     public ProductionBuildAssessment EvaluateBuild(AIAction action)
     {
+        if (action?.ActionType == AIActionType.Upgrade)
+        {
+            var actor = action.Unit ?? action.TargetUnit;
+            if (actor == null || !actor.IsAlive || locationBoard != null && actor.team != locationBoard.ActorTeam
+                || actor.Level >= FacilityData.GetMaxLevel(actor)) return default;
+            var key = (actor, Mathf.Max(1, actor.Level));
+            if (upgradeAssessments.TryGetValue(key, out var upgrade)) return upgrade;
+            var before = AIConstructionEconomy.ExistingRecipe(actor, key.Item2, locationBoard);
+            var after = AIConstructionEconomy.ExistingRecipe(actor, key.Item2 + 1, locationBoard);
+            upgrade = EvaluateSupplyChange(actor.facilityKind, after, before);
+            upgradeAssessments[key] = upgrade;
+            return upgrade;
+        }
         if (action == null || action.ActionType != AIActionType.Build) return default;
         return EvaluateBuildCore(action.Facility, action.FacilityDefinition, AIConstructionEconomy.AllowsOre(action, locationBoard));
     }
@@ -184,10 +199,18 @@ public sealed class StrategicProductionDemand
         if (!allowsOre) recipe = AIConstructionEconomy.WithoutUnlocatedOre(recipe);
         // Authored identities may use a compatibility kind whose normal recipe is entirely different.
         var kind = definition != null ? definition.behaviourKind : facility;
+        var result = EvaluateSupplyChange(kind, recipe, default);
+        assessments[key] = result;
+        return result;
+    }
+
+    ProductionBuildAssessment EvaluateSupplyChange(FacilityKind kind, FacilityData.FacilityLevelData recipe,
+        FacilityData.FacilityLevelData previous)
+    {
         bool house = kind == FacilityKind.House || kind == FacilityKind.LuxuryHouse;
         bool warehouse = kind == FacilityKind.Warehouse;
-        bool production = recipe.HasProduction || house || warehouse;
-        if (!production) { assessments[key] = default; return default; }
+        bool production = recipe.HasProduction || previous.HasProduction || house || warehouse;
+        if (!production) return default;
 
         float operation = 1f;
         for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
@@ -198,7 +221,12 @@ public sealed class StrategicProductionDemand
             var resource = Resources[i];
             // Existing obligations get the first claim. Stocks can bridge the forecast window,
             // but the new facility cannot promise production from inputs that do not exist.
-            float available = Mathf.Max(0, resource.Stock / turns + resource.NetPerTurn);
+            // Net already includes the old facility's obligations. Release exactly
+            // that claim when considering its replacement, then fund the complete
+            // new recipe. An upgrade cannot run on nonexistent unchanged inputs.
+            float oldClaim = StrategicEconomyForecast.Amount(previous.Input, i) / (float)FacilityData.ProductionInterval(previous)
+                + StrategicEconomyForecast.Amount(previous.Maintenance, i);
+            float available = Mathf.Max(0, resource.Stock / turns + resource.NetPerTurn + oldClaim);
             operation = Mathf.Min(operation, available / (input + maintenance));
         }
         operation = Mathf.Clamp01(operation);
@@ -209,16 +237,19 @@ public sealed class StrategicProductionDemand
         for (int i = 0; i < StrategicEconomyForecast.ResourceCount; i++)
         {
             var resource = Resources[i];
-            float output = StrategicEconomyForecast.GuaranteedOutputPerTurn(recipe, i) * operation;
-            float extra = output - StrategicEconomyForecast.Amount(recipe.Input, i) * operation / FacilityData.ProductionInterval(recipe)
-                - StrategicEconomyForecast.Amount(recipe.Maintenance, i);
-            if (house && i == (int)ResourceKind.Citizen && recipe.SpecialValue > 0)
+            float output = (StrategicEconomyForecast.GuaranteedOutputPerTurn(recipe, i)
+                - StrategicEconomyForecast.GuaranteedOutputPerTurn(previous, i)) * operation;
+            float extra = output - (StrategicEconomyForecast.Amount(recipe.Input, i) / (float)FacilityData.ProductionInterval(recipe)
+                - StrategicEconomyForecast.Amount(previous.Input, i) / (float)FacilityData.ProductionInterval(previous)) * operation
+                - (StrategicEconomyForecast.Amount(recipe.Maintenance, i) - StrategicEconomyForecast.Amount(previous.Maintenance, i));
+            int capacityGain = Mathf.Max(0, recipe.SpecialValue - previous.SpecialValue);
+            if (house && i == (int)ResourceKind.Citizen && capacityGain > 0)
             {
                 var bread = Get(ResourceKind.Bread);
                 float breadAvailable = bread.Stock / turns + bread.NetPerTurn;
                 bool canFeedGrowth = breadAvailable >= 1 + EconomySystem.CitizenBreadCost;
                 if (canFeedGrowth && resource.Stock >= citizenCapacity && resource.ProductionDeficit > settings.Epsilon)
-                    extra += Mathf.Min(1, recipe.SpecialValue);
+                    extra += Mathf.Min(1, capacityGain);
             }
             if (extra < -settings.Epsilon && resource.ProductionDeficit > settings.Epsilon)
                 pressure += Mathf.Clamp01(-extra / resource.ProductionDeficit) * resource.Urgency01;
@@ -249,10 +280,11 @@ public sealed class StrategicProductionDemand
             }
         }
 
-        if (warehouse && recipe.SpecialValue > 0 && storageBottleneck > settings.Epsilon)
+        int storageGain = Mathf.Max(0, recipe.SpecialValue - previous.SpecialValue);
+        if (warehouse && storageGain > 0 && storageBottleneck > settings.Epsilon)
         {
             improves = true;
-            coverage = Mathf.Max(coverage, Mathf.Clamp01(recipe.SpecialValue / storageBottleneck));
+            coverage = Mathf.Max(coverage, Mathf.Clamp01(storageGain / storageBottleneck));
             urgency = Mathf.Max(urgency, Mathf.Clamp01(settings.sustainedDeficitUrgency));
         }
         float overstock = !improves ? AIEconomySettings.NonNegative(settings.overstockPenalty)
@@ -262,7 +294,6 @@ public sealed class StrategicProductionDemand
             chain * AIEconomySettings.NonNegative(settings.chainRecoveryWeight),
             reserve * AIEconomySettings.NonNegative(settings.reserveRecoveryWeight), overstock, coverage,
             Mathf.Clamp01(pressure) * AIEconomySettings.NonNegative(settings.coverageWeight));
-        assessments[key] = assessment;
         return assessment;
     }
 

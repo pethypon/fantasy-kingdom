@@ -15,6 +15,10 @@ static class AICombatEvaluator
         float score = 30f;
 
         int expectedDmg = AIActionEvaluator.EstimateEffectiveSpecialDamage(action.Unit, action.TargetUnit, board, out var actualVictim);
+        // Rank legal attacks by actual HP progress per paid AP as well as
+        // objective importance. Previously 2- and 35-damage chips had the same
+        // base score against a healthy crystal. No combat/AP rule is changed.
+        score += AttackEfficiency(expectedDmg, action.APCost);
         if (actualVictim == action.TargetUnit && BarrierSystem.UsesBarrier(actualVictim))
         {
             int raw = AIActionEvaluator.EstimateObservedNormalPacket(action.Unit, actualVictim,board,
@@ -31,10 +35,19 @@ static class AICombatEvaluator
             score += (1f - hpRatio) * 15f;
         }
 
-        if (action.TargetUnit.kind == Kind.Crystal)
-            score += 50f;
-        if (MatchObjectiveRules.IsCommander(action.TargetUnit))
-            score += 35f;
+        bool decisive = MatchObjectiveRules.IsDecisive(action.TargetUnit);
+        bool passivePressure = AIActionEvaluator.IsNonFinishingPassiveStructureAttack(action, board);
+        if (decisive || passivePressure)
+        {
+            // Both decisive identities win the same match. Prefer the smaller
+            // observed workload instead of an unconditional crystal-over-king
+            // premium. This is a bounded ranking heuristic, not a turn forecast:
+            // future fatigue, healing and reinforcement still need simulation.
+            int impact = AIActionEvaluator.EstimateEffectiveSpecialImpact(action.Unit, action.TargetUnit, board, out var recipient);
+            long durability = recipient != null ? (long)recipient.HP + recipient.Barrier : action.TargetUnit.HP;
+            if (decisive) score += 50 + VictoryPressure(durability, impact, action.APCost);
+            else score -= PassiveSiegeWorkload(durability, impact, action.APCost);
+        }
         if (board.ReconThreatLevel >= 31 && action.TargetUnit.kind == Kind.Scout)
             score += board.ReconThreatLevel >= 51 ? 20f : 12f;
 
@@ -45,6 +58,20 @@ static class AICombatEvaluator
 
         return score;
     }
+
+    internal static float AttackEfficiency(int hpDamage, int ap)
+        => Mathf.Clamp(hpDamage / (float)Mathf.Max(1, ap), 0, 10) * 2;
+
+    internal static float VictoryPressure(long durability, int impact, int ap)
+        => impact <= 0 ? 0 : (float)(30d / (1 + System.Math.Max(0, durability)
+            * (double)Mathf.Max(1, ap) / impact / Mathf.Max(1, APSystem.MaximumAP)));
+
+    // A nonlethal chip on a passive outpost is not worth the full flat attack
+    // bonus when it needs several faction AP budgets. Finishing hits, armed
+    // defenses and decisive targets never enter this opportunity-cost branch.
+    internal static float PassiveSiegeWorkload(long durability, int impact, int ap)
+        => impact <= 0 ? 30 : 30 * Mathf.Clamp01((float)((System.Math.Max(0, durability)
+            * (double)Mathf.Max(1, ap) / impact / Mathf.Max(1, APSystem.MaximumAP) - 1) / 4));
 
     internal static float CalcMoveBaseScore(AIAction action, AIBoardState board)
     {

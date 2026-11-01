@@ -312,6 +312,13 @@ public static class SquadMarchValidation
         board.Governor = governor; board.Operations = null;
         Check(prefix + "generic-territory-battle-gate-also-preserves-recruitment-tier",
             governor.HasActiveTerritoryAdvance && (int)priority.Invoke(governor, new object[] { pressureAttack, board }) == 3);
+        var actualFacilityKind = target.kind;
+        target.kind = Kind.King; target.type = Type.Unit;
+        Set(governor.TerritoryIntel, "<HasWaypoint>k__BackingField", false);
+        Check(prefix + "observed-safe-commander-attack-does-not-require-a-territory-waypoint",
+            (int)priority.Invoke(governor, new object[] { pressureAttack, board }) == 2);
+        target.kind = actualFacilityKind; target.type = Type.Building;
+        Set(governor.TerritoryIntel, "<HasWaypoint>k__BackingField", true);
         board.Governor = null; board.Operations = manager;
         target.ATK = 20;
         Check(prefix + "armed-defense-retains-battle-priority",
@@ -353,6 +360,53 @@ public static class SquadMarchValidation
         }
         Check(prefix + "coordinator-formed-an-affordable-multi-actor-kill", planned);
         Check(prefix + "real-multi-actor-kill-without-target-witness-injection", !target.IsAlive && participants.Count >= 2);
+        SubCrystalSiege(live, f, actors, targetCell, board, executor, side);
+    }
+
+    // A controlled AP-cycle benchmark, not an ordinary match or full owner-turn
+    // economy simulation. Production stats/HP, terrain, visibility and attack
+    // executor are real. No enemy movement, reinforcements or healing are added.
+    static void SubCrystalSiege(GameSystems live, R2ConstructionEconomyTests.Fixture f, List<Status> actors,
+        Vector3Int targetCell, AIBoardState board, AIActionExecutor executor, Team side)
+    {
+        var target = f.Builder.PlaceBuildingForLoad(targetCell, FacilityKind.SubCrystal,
+            side == Team.Player ? Team.Enemy : Team.Player);
+        Check(side + " siege-uses-full-production-subcrystal-hp", target != null
+            && target.HP == FacilityData.GetLevel(FacilityKind.SubCrystal, 1).HP && target.HP == 5000);
+        board.Operations = null; board.Governor = null;
+        f.Vision.MarkVisionDirty(); f.Vision.VisionPoint(live.MapCreate, f.Moves, f.Crystals);
+        var personality = new AIPersonality(MajorPersonality.Combat, 123);
+        var options = new List<AIAction>(); int attacks = 0, cycles = 0, spent = 0;
+        bool executionValid = true, paymentValid = true;
+        while (target.IsAlive && cycles < 120)
+        {
+            cycles++; AITurnBudget.Begin(5000);
+            f.AP.ResetFatigue(actors[0].transform.parent);
+            f.State.SetAP(side, 35); board.Refresh(); int cycleAttacks = 0;
+            for (int step = 0; step < 35 && target.IsAlive; step++)
+            {
+                options.Clear(); board.Refresh();
+                foreach (var actor in actors) AIActionGenerator.GenerateAttackCandidates(actor, board, options);
+                AIAction best = null;
+                foreach (var action in options)
+                {
+                    if (action.TargetUnit != target || action.APCost <= 0) continue;
+                    action.Score = AIActionEvaluator.CalcBuildScorePublic(action, personality, board, null);
+                    if (best == null || action.Score > best.Score) best = action;
+                }
+                if (best == null) break;
+                int ap = f.State.GetAP(side), hp = target.HP;
+                if (!executor.Execute(best, board)) { executionValid = false; break; }
+                paymentValid &= f.State.GetAP(side) == ap - best.APCost;
+                executionValid &= target.HP < hp;
+                attacks++; cycleAttacks++; spent += best.APCost;
+            }
+            if (!executionValid || cycleAttacks == 0) break;
+        }
+        Check(side + " siege-official-hits-and-ap-payments-remain-valid", executionValid && paymentValid && attacks > 0);
+        Debug.Log("[SiegeBenchmark] " + side + " productionHP=5000 roster=Knight;Knight;Archer budgetPerCycle=35 attacks="
+            + attacks + " apCycles=" + cycles + " totalAP=" + spent + " remainingHP=" + target.HP + " scope=controlled-attacks-only-no-full-turn-economy");
+        Check(side + " siege-full-health-subcrystal-can-be-destroyed", !target.IsAlive);
     }
 }
 #endif
