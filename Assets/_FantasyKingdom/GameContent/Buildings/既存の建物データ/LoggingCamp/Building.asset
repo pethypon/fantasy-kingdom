@@ -24,14 +24,14 @@ MonoBehaviour:
     Stone: 10
     Iron: 0
     MagicOre: 0
-    Water: 15
+    Water: 10
     Citizen: 1
   buildAP: 4
   levels:
   - HP: 100
     DEF: 0
     ATK: 0
-    ProductionIntervalTurns: 0
+    ProductionIntervalTurns: 1
     Input:
       Wood: 0
       Stone: 0
@@ -42,7 +42,7 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     Output:
-      Wood: 7
+      Wood: 6
       Stone: 0
       Iron: 0
       MagicOre: 0
@@ -72,7 +72,7 @@ MonoBehaviour:
     BonusChance2: 0
     Maintenance:
       Wood: 0
-      Stone: 0
+      Stone: 1
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -91,7 +91,7 @@ MonoBehaviour:
   - HP: 100
     DEF: 0
     ATK: 0
-    ProductionIntervalTurns: 0
+    ProductionIntervalTurns: 1
     Input:
       Wood: 0
       Stone: 0
@@ -102,7 +102,7 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     Output:
-      Wood: 9
+      Wood: 10
       Stone: 0
       Iron: 0
       MagicOre: 0
@@ -132,7 +132,7 @@ MonoBehaviour:
     BonusChance2: 0
     Maintenance:
       Wood: 0
-      Stone: 0
+      Stone: 1
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -140,18 +140,18 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     UpgradeCost:
-      Wood: 35
-      Stone: 0
+      Wood: 30
+      Stone: 20
       Iron: 0
       MagicOre: 0
-      Water: 40
+      Water: 10
       Citizen: 0
-    UpgradeAP: 5
+    UpgradeAP: 4
     SpecialValue: 0
   - HP: 100
     DEF: 0
     ATK: 0
-    ProductionIntervalTurns: 0
+    ProductionIntervalTurns: 1
     Input:
       Wood: 0
       Stone: 0
@@ -162,7 +162,7 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     Output:
-      Wood: 12
+      Wood: 15
       Stone: 0
       Iron: 0
       MagicOre: 0
@@ -192,7 +192,7 @@ MonoBehaviour:
     BonusChance2: 0
     Maintenance:
       Wood: 0
-      Stone: 0
+      Stone: 1
       Iron: 0
       MagicOre: 0
       Wheat: 0
@@ -200,13 +200,13 @@ MonoBehaviour:
       Water: 0
       Citizen: 0
     UpgradeCost:
-      Wood: 35
-      Stone: 0
+      Wood: 45
+      Stone: 30
       Iron: 5
       MagicOre: 0
-      Water: 60
+      Water: 10
       Citizen: 0
-    UpgradeAP: 6
+    UpgradeAP: 5
     SpecialValue: 0
   availableToPlayer: 1
   availableToEnemy: 1

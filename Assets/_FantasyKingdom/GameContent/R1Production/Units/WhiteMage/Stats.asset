@@ -35,19 +35,19 @@ MonoBehaviour:
   atkGrowth: 0.2
   defGrowth: 0.1
   upkeepExempt: 0
-  useAuthoredUpkeep: 0
+  useAuthoredUpkeep: 1
   upkeepWood: 0
   upkeepStone: 0
-  upkeepIron: 1
-  upkeepMagic: 2
-  upkeepWater: 0
-  upkeepBread: 2
+  upkeepIron: 0
+  upkeepMagic: 1
+  upkeepWater: 1
+  upkeepBread: 1
   upkeepMagicScales: 1
-  costWood: 70
-  costStone: 70
-  costIron: 10
-  costMagic: 30
-  costWater: 80
-  costBread: 10
+  costWood: 20
+  costStone: 15
+  costIron: 4
+  costMagic: 16
+  costWater: 15
+  costBread: 8
   costCitizen: 1
-  costAP: 14
+  costAP: 10

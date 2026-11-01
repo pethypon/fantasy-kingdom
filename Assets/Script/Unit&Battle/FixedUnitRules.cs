@@ -13,7 +13,8 @@ public sealed class LegacyUnitStatSnapshot
 /// <summary>R2 production-unit rules. Authored bases stay unscaled on disk.</summary>
 public static class FixedUnitRules
 {
-    public const int UpkeepFactor = 5;
+    public const int LegacyUpkeepFactor = 5;
+    public static int UpkeepFactor => Math.Max(1, Math.Min(10, GameAuthoringRules.Active?.unitUpkeepMultiplier ?? LegacyUpkeepFactor));
     public static int ScaleBaseStat(int value)
         => value <= 0 ? 0 : (int)Math.Min(int.MaxValue, ((long)value * 7 + 2) / 4);
     public static bool UsesFixedStats(Kind kind) => kind != Kind.King && kind != Kind.Boss

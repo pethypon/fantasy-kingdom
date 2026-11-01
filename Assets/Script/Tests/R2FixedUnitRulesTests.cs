@@ -46,7 +46,7 @@ public static class R2FixedUnitRulesTests
             Check("C01", upkeep.Iron == FixedUnitRules.MultiplyUpkeep(1,extra.Iron) && upkeep.Bread == FixedUnitRules.MultiplyUpkeep(2,extra.Bread));
             Check("C03", upkeep.MagicOre == FixedUnitRules.MultiplyUpkeep(3,extra.MagicOre));
             Check("C05", JsonUtility.ToJson(data.GetUpkeep(1)) == JsonUtility.ToJson(data.GetUpkeep(100)));
-            Check("C04", FixedUnitRules.MultiplyUpkeep(2,3) == 25 && FixedUnitRules.MultiplyUpkeep(int.MaxValue,int.MaxValue) == int.MaxValue);
+            Check("C04", FixedUnitRules.MultiplyUpkeep(2,3) == 5 * FixedUnitRules.UpkeepFactor && FixedUnitRules.MultiplyUpkeep(int.MaxValue,int.MaxValue) == int.MaxValue);
             AuthoredExtraUpkeep(data);
             data.upkeepExempt = true; Check("C06-exempt", data.GetFixedUpkeep().Iron == 0);
             data.upkeepExempt = false; data.kind = Kind.King; Check("C06-king", data.GetFixedUpkeep().Iron == 0);
@@ -88,6 +88,15 @@ public static class R2FixedUnitRulesTests
             Check("C02",actual.Wood==15&&actual.Stone==25&&actual.Iron==25&&actual.MagicOre==40
                 &&actual.Water==40&&actual.Bread==45&&actual.Wheat==40&&actual.Citizen==45);
             Check("C04-global",actual.Iron==25&&actual.Bread==45);
+            rules.unitUpkeepMultiplier = 2;
+            var tuned = data.GetFixedUpkeep();
+            Check("balance-multiplier-applies-once-to-base-and-extras", tuned.Wood == 6 && tuned.Stone == 10
+                && tuned.Iron == 10 && tuned.MagicOre == 16 && tuned.Bread == 18);
+            Check("balance-multiplier-does-not-reintroduce-level-growth", JsonUtility.ToJson(data.GetUpkeep(1)) == JsonUtility.ToJson(data.GetUpkeep(100)));
+            rules.unitUpkeepMultiplier = 0;
+            Check("invalid-low-upkeep-multiplier-is-bounded", FixedUnitRules.UpkeepFactor == 1);
+            rules.unitUpkeepMultiplier = int.MaxValue;
+            Check("invalid-high-upkeep-multiplier-is-bounded", FixedUnitRules.UpkeepFactor == 10);
         }
         finally { field.SetValue(null,previous);ready.SetValue(null,wasReady);UnityEngine.Object.DestroyImmediate(rules); }
     }

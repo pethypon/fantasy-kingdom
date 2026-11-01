@@ -31,10 +31,12 @@ public sealed class GameAuthoringRules : ScriptableObject
     [Tooltip("倉庫がないときも基本保管上限を適用します。倉庫の増加量を加算し、余剰生産は保管されません。")]
     public bool enforceResourceCapacity;
     [Header("序盤支援と軍の維持費")]
+    [Range(1, 10), Tooltip("駒の基本維持費と共通追加分に適用する固定倍率。レベルによる増加はありません。")]
+    public int unitUpkeepMultiplier = 5;
     [Range(1, 30)] public int crystalIncomeTurns = 10;
     public FacilityData.ProductionBundle crystalStartIncome = new FacilityData.ProductionBundle
     { Wood = 20, Stone = 20, Water = 10, Bread = 10, Iron = 5 };
-    [Tooltip("王・維持費免除の駒を除く軍に追加。Lv10ごとに増加します。")]
+    [Tooltip("王・維持費免除の駒を除く軍に追加し、基本維持費の倍率を適用します。")]
     public FacilityData.ProductionBundle unitExtraUpkeep;
     [Tooltip("有効な攻撃が命中した時の最低ダメージ。レベル差や防御力による0ダメージを防ぎます。シールドや完全無効は除きます。")]
     [Range(1, 100)] public int minimumAttackDamage = 1;

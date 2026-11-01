@@ -21,7 +21,7 @@ public sealed partial class GameDevelopmentStudioWindow
         EditorGUILayout.LabelField("毎ターンのAP", "初期AP ＋ 市民による増加 − ペナルティ（AP上限まで）", EditorStyles.wordWrappedMiniLabel);
         Heading("戦闘"); Fields(so,"minimumAttackDamage");
         EditorGUILayout.LabelField("最低ダメージ", "命中時に適用します。バリアがある間は先にバリアを減らします。シールド・完全無効・攻撃できない相手は除きます。", EditorStyles.wordWrappedMiniLabel);
-        Heading("維持・経済");Fields(so,"breadPerCitizen","starvationGraceTurns","aiBreadReserveTurns");
+        Heading("維持・経済");Fields(so,"unitUpkeepMultiplier","breadPerCitizen","starvationGraceTurns","aiBreadReserveTurns");
         EditorGUILayout.PropertyField(so.FindProperty("enforceResourceCapacity"), new GUIContent("倉庫がなくても資源の保管上限を適用"));
         EditorGUILayout.LabelField("保管上限", "基本 " + FactionState.BaseResourceCap + " ＋ 倉庫による増加。上限を超える生産分は保管されません。", EditorStyles.wordWrappedMiniLabel);
         EditorGUILayout.PropertyField(so.FindProperty("crystalIncomeTurns"), new GUIContent("序盤クリスタル支援のターン数"));
