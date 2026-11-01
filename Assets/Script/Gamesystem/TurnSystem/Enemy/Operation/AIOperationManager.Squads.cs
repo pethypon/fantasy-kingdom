@@ -408,7 +408,7 @@ public sealed partial class AIOperationManager
         if (action.ActionType == AIActionType.Attack && action.TargetUnit != null && board.IsSpecialActorObserved(action.TargetUnit)
             && LegalSquadTargets(action.Unit, board).Contains(action.TargetUnit)
             && AIOperationFeatureExtractor.Distance(action.TargetUnit.transform.position, new Vector3(squad.GoalX, 0, squad.GoalZ)) <= DefenseRadius)
-            return 2;
+            return AIActionEvaluator.IsNonFinishingPassiveStructureAttack(action, board) ? 3 : 2;
         if (IsMovement(action.ActionType) && member.HasSlot && !action.Unit.HasMovedThisTurn
             && action.TargetPos.x == member.SlotX && action.TargetPos.z == member.SlotZ
             && board.GetValidMoves(action.Unit).Contains(action.TargetPos)) return 3;

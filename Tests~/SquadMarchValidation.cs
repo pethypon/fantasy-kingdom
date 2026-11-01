@@ -256,7 +256,42 @@ public static class SquadMarchValidation
             Steps = new List<AIOperationStep> { new AIOperationStep { StepId = 1, Type = AIOperationStepType.Attack } } };
         foreach (var actor in actors) { order.AssignedUnitLifeIds.Add(actor.ReflectionLifeId); order.OriginalAssignedUnitLifeIds.Add(actor.ReflectionLifeId); }
         manager.State.NextOperationId = 1; manager.State.ActiveOperations.Add(order);
-        board.RemainingPlannedActionSlots = 8; AITurnBudget.Begin(5000); manager.BeginTurn(board, TurnStrategy.ContactEngage, 1);
+        board.RemainingPlannedActionSlots = 8; AITurnBudget.Begin(5000);
+        // A full-health durable, unarmed facility cannot grant every chip a
+        // battle-only tier forever while a paid recruitment/deployment order waits.
+        f.Mine.levels[0].HP = target.HP = target.MaxHP = 1000;
+        board.Refresh(); manager.BeginTurn(board, TurnStrategy.ContactEngage, 1);
+        var pressure = new List<AIAction>(); AIActionGenerator.GenerateAttackCandidates(actors[0], board, pressure);
+        var pressureAttack = pressure.Find(a => a.TargetUnit == target && a.Unit == actors[0]);
+        Check(prefix + "durable-facility-has-an-official-attack", pressureAttack != null);
+        Check(prefix + "nonfinishing-passive-pressure-shares-recruitment-tier",
+            AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board)
+            && manager.SquadActionPriority(pressureAttack, board) == 3);
+        var governor = new AIStrategicGovernor();
+        Set(governor.TerritoryIntel, "<HasWaypoint>k__BackingField", true);
+        Set(governor, "<Mode>k__BackingField", StrategicMode.StrategicAttack);
+        var priority = typeof(AIStrategicGovernor).GetMethod("Priority", Hidden);
+        board.Governor = governor; board.Operations = null;
+        Check(prefix + "generic-territory-battle-gate-also-preserves-recruitment-tier",
+            governor.HasActiveTerritoryAdvance && (int)priority.Invoke(governor, new object[] { pressureAttack, board }) == 3);
+        board.Governor = null; board.Operations = manager;
+        target.ATK = 20;
+        Check(prefix + "armed-defense-retains-battle-priority",
+            !AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board)
+            && manager.SquadActionPriority(pressureAttack, board) == 2);
+        var originalKind = target.kind;
+        target.ATK = 0; target.kind = Kind.Crystal;
+        Check(prefix + "main-crystal-retains-existing-priority",
+            !AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board));
+        target.kind = Kind.SubCrystal;
+        Check(prefix + "durable-subcrystal-is-not-a-permanent-urgent-battle",
+            AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board));
+        target.kind = Kind.Knight; target.type = Type.Unit;
+        Check(prefix + "hostile-unit-is-never-a-passive-structure",
+            !AIActionEvaluator.IsNonFinishingPassiveStructureAttack(pressureAttack, board));
+        target.kind = originalKind; target.type = Type.Building;
+        f.Mine.levels[0].HP = target.HP = target.MaxHP = 30;
+        board.Refresh(); manager.Refresh(board, TurnStrategy.ContactEngage);
         Check(prefix + "attack-order-has-three-distinct-live-members", order.AssignedUnitLifeIds.Count == 3
             && new HashSet<string>(order.AssignedUnitLifeIds).Count == 3 && manager.Squads.Count > 0);
         var executor = new AIActionExecutor(f.Turn, f.Moves, live.AttackGenerator, live.BattleSystem,

@@ -171,7 +171,8 @@ public static class AIClosingPlaytest
                 record.Before?.ActorDirection, record.Before?.ActorHeight, record.Before?.ActorHP,
                 record.After?.ActorHP, record.Before?.IncomingDamage, record.Before?.LocalPowerRatio,
                 record.DecisionTrace?.StrategicPriority, record.OperationId, record.BaseScore,
-                record.LearnedModifier, record.FinalScore);
+                record.LearnedModifier, record.FinalScore, record.Before?.TargetHP, record.After?.TargetHP,
+                record.Before?.TargetObserved, record.After?.TargetObserved);
         }
         public void Dispose() => reflection.ActionCompleted -= Observe;
     }
@@ -328,7 +329,8 @@ public static class AIClosingPlaytest
             "newTiles", "objectiveDistanceGain", "damageDealt", "kills", "beforeX", "beforeZ", "afterX", "afterZ", "strategy", "actionKey",
             "targetsOpposingCommander", "targetsOpposingMainCrystal", "APBefore", "APAfter", "ActionAPCost", "executorFailure", "requestedX", "requestedZ", "failedDestinationVisible", "reportedPhysicalOccupants",
             "actorLifeId", "targetLifeId", "facing", "height", "hpBefore", "hpAfter", "incomingDamage", "localPowerRatio", "priority", "operationId",
-            "baseScoreBeforeLearning", "learnedModifier", "finalSelectedScore");
+            "baseScoreBeforeLearning", "learnedModifier", "finalSelectedScore", "observedTargetHpBefore", "observedTargetHpAfter",
+            "targetObservedBefore", "targetObservedAfter");
         WriteRow(turns, "seconds", "round", "state", "ownerTurns", "playerMoves", "enemyMoves", "playerAttacks", "enemyAttacks",
             "playerBuilds", "enemyBuilds", "playerSummons", "enemySummons", "playerKingHP", "playerCrystalHP", "enemyKingHP", "enemyCrystalHP",
             "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound",
