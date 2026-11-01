@@ -20,6 +20,7 @@ public static class BasicResourceEconomyTests
         FundedPlanDoesNotNeedSurplusProduction(systems);
         ProjectedReserveDoesNotCreateProducerDemand(systems);
         MandatoryProducerCapital(systems);
+        MissingCapitalFoundation(systems);
         TemporaryIncome(systems);
         ReserveAndEmergency(systems);
         RecoveryHysteresis(systems);
@@ -97,6 +98,31 @@ public static class BasicResourceEconomyTests
             for (int i = 0; i < 3; i++) { f.State.GetNation(team).TurnsAlive++; f.Economy.ProcessTurn(team); }
             Check(team + " producer investment sustains the actual army's upkeep",
                 consumer.UpkeepUnpaidTurns == 0 && consumer.IsAlive && f.Resources.Iron == 5);
+        }
+    }
+
+    static void MissingCapitalFoundation(GameSystems systems)
+    {
+        foreach (var team in new[] { Team.Player, Team.Enemy })
+        using (var f = new EconomyR2Tests.Fixture(systems, team))
+        {
+            f.Units.UnitDataMap.Clear(); f.Rules.aiEconomy.plannedDemandWeight = 0;
+            f.Rules.aiEconomy.forecastTurns = 4;
+            f.Food(20); f.Building(f.Definition(FacilityKind.LoggingCamp, wood: 20));
+            var quarry = f.Definition(FacilityKind.Quarry, stone: 8);
+            quarry.buildCost = new FacilityData.ResourceCost(wood: 20, stone: 20);
+            var mine = f.Definition(FacilityKind.Mine, iron: 3);
+            mine.buildCost = new FacilityData.ResourceCost(wood: 40, stone: 40, water: 15);
+            var consumer = f.Unit(); consumer.GrowthData.useAuthoredUpkeep = true;
+            consumer.GrowthData.upkeepIron = consumer.GrowthData.upkeepStone = 4;
+            f.Resources.Wood = f.Resources.Bread = 100; f.Resources.Water = 60;
+            f.Resources.Stone = 28; f.Resources.Iron = 20;
+            var board = f.Board(20); var policy = board.Governor.BasicResources;
+            var foundation = f.BuildAction(quarry, board); var processor = f.BuildAction(mine, board);
+            Check(team + " first missing capital producer precedes downstream upkeep processor",
+                policy.IsPaymentDeadlineRecovery(foundation) && !policy.IsPaymentDeadlineRecovery(processor));
+            Check(team + " necessary quarry can repay reserved stone within the bounded preparation horizon",
+                policy.AllowSpend(foundation, false, out _));
         }
     }
 

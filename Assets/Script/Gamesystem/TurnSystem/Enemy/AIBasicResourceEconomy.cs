@@ -438,8 +438,19 @@ public sealed class AIBasicResourceEconomy
     {
         if (demand == null || !TryScopedRecipe(action, out var next, out var previous, out _)) return false;
         foreach (var investment in mandatoryInvestments)
-            if (investment.ExhaustionTurns <= MandatoryPreparationHorizon + .001f
-                && ProductionGain(RecipeKind(action), next, previous, investment.Resource) > .001f) return true;
+        {
+            if (investment.ExhaustionTurns > MandatoryPreparationHorizon + .001f) continue;
+            bool missingFoundation = false;
+            foreach (var resource in resources)
+            {
+                if (!IsOpeningResource(resource) || StrategicEconomyForecast.Amount(investment.Cost, (int)resource) <= 0
+                    || demand.Get(resource).MandatoryDemandPerTurn <= .001f || demand.ProducerCount(resource) > 0) continue;
+                missingFoundation = true;
+                if (ProductionGain(RecipeKind(action), next, previous, resource) > .001f) return true;
+            }
+            // Spending all capital on the processor before its first quarry/well can strand the economy.
+            if (!missingFoundation && ProductionGain(RecipeKind(action), next, previous, investment.Resource) > .001f) return true;
+        }
         return false;
     }
 
@@ -594,7 +605,7 @@ public sealed class AIBasicResourceEconomy
         FacilityData.FacilityLevelData previous, FacilityData.ProductionBundle cost)
     {
         if (OperatingFraction(next, previous, cost) < .999f) return false;
-        int horizon = Mathf.Clamp(AIEconomySettings.Active.forecastTurns, 1, 8);
+        int horizon = MandatoryPreparationHorizon;
         bool useful = RestoresMissingInput(investment.Recipe, investment.Previous, next, previous);
         for (int i = 0; i < resources.Length; i++)
         {
