@@ -1,3 +1,4 @@
 # Preserve native evidence bytes; generated raw logs are not source whitespace.
 Docs/Validation/AI_A1_20261031/** -text -whitespace
 Docs/Validation/AI_Squad_20261101/** -text -whitespace
+Docs/Validation/AI_Behavior_20261101/** -text -whitespace

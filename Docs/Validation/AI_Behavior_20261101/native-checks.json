@@ -1,0 +1,20 @@
+{
+  "crystal-before": {
+    "source": "a1-20261030/behavior-crystal-before.log",
+    "passLines": 110,
+    "failLines": 0,
+    "scope": "Native Unity assertions; controlled fixtures, not autonomous match victories."
+  },
+  "formal-playmode-final": {
+    "source": "a1-20261030/behavior-release-formal.log",
+    "passLines": 137,
+    "failLines": 0,
+    "scope": "Native Unity assertions; controlled fixtures, not autonomous match victories."
+  },
+  "core-final": {
+    "source": "behavior-release-core.log",
+    "passLines": 329,
+    "failLines": 0,
+    "scope": "Native Unity assertions; controlled fixtures, not autonomous match victories."
+  }
+}
