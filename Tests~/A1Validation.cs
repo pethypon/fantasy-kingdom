@@ -51,6 +51,7 @@ public static class A1LiveValidation
         Stage("housing",()=>A1HousingTests.Run(turn.Systems));
         Stage("retreat",()=>A1RetreatTests.PlayMode(turn.Systems));
         Stage("ordinary-mine-restored",()=>OrdinaryMineValidation.Run(turn.Systems));
+        Stage("basic-resources",()=>BasicResourceEconomyTests.PlayMode(turn.Systems));
         Debug.Log("[A1Live] COMPLETE failures=" + failures); EditorApplication.Exit(failures == 0 ? 0 : 1);
     }
 }

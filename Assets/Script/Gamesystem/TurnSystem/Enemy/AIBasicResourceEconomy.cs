@@ -27,6 +27,7 @@ public sealed class AIBasicResourceSettings
     [Range(0, 1)] public float reserveCostFraction = .5f;
     [Range(0, 1)] public float foundationReserveFraction = .25f;
     [Min(1)] public float paybackWindowTurns = 8f;
+    [InspectorName("維持費の生産設備を準備する猶予ターン"), Range(1, 20)] public int mandatorySupplyPreparationTurns = 8;
     [Min(0)] public float constructionPressureWeight = 30f;
     [Min(0)] public float recoverySpendPenalty = 60f;
     public FacilityData.ProductionBundle minimumReserve = new FacilityData.ProductionBundle { Wood = 30, Stone = 30, Iron = 3, MagicOre = 2, Wheat = 3, Bread = 5, Water = 20, Citizen = 3 };
@@ -301,7 +302,8 @@ public sealed class AIBasicResourceEconomy
                 previousSupply[index] = chosenActor != null ? AIConstructionEconomy.ExistingRecipe(chosenActor, Mathf.Max(1, chosenActor.Level), board) : default;
             }
             if (!float.IsInfinity(best) && current.MandatoryDemandPerTurn > .001f && current.NetPerTurn < -.001f
-                && current.ProjectedStock < current.SafetyReserve - .001f)
+                && (current.ProjectedStock < current.SafetyReserve - .001f
+                    || current.Stock / -current.NetPerTurn <= MandatoryPreparationHorizon))
             {
                 // Reserve the actual producer's capital before ongoing obligations exhaust stock.
                 // Other foundation projects used to repeatedly spend this same stone/water reserve,
@@ -425,11 +427,14 @@ public sealed class AIBasicResourceEconomy
         return FoundationState == EconomyFoundationState.StableGrowth ? 3 : 2;
     }
 
+    int MandatoryPreparationHorizon => Mathf.Max(demand?.ForecastTurns ?? 1,
+        Mathf.Clamp(AIBasicResourceSettings.Active.mandatorySupplyPreparationTurns, 1, 20));
+
     public bool IsPaymentDeadlineRecovery(AIAction action)
     {
         if (demand == null || !TryScopedRecipe(action, out var next, out var previous, out _)) return false;
         foreach (var investment in mandatoryInvestments)
-            if (investment.ExhaustionTurns <= demand.ForecastTurns + .001f
+            if (investment.ExhaustionTurns <= MandatoryPreparationHorizon + .001f
                 && ProductionGain(RecipeKind(action), next, previous, investment.Resource) > .001f) return true;
         return false;
     }
