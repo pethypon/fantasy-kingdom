@@ -1,6 +1,6 @@
 using UnityEngine;
 
-/// <summary>Optional, bounded experience layer. It never changes game rules or strategic priority.</summary>
+/// <summary>Optional, bounded experience and ordinary-priority adaptation. Game rules and survival tiers remain authoritative.</summary>
 [CreateAssetMenu(menuName = "Fantasy Kingdom/AI/自己評価・日記設定", fileName = "ReflectionConfig")]
 public sealed class AIReflectionConfig : ScriptableObject
 {

@@ -1,0 +1,4736 @@
+{
+    "scope": "Resolved New Game definitions and actual initial troops; read-only, no AI input or state edits.",
+    "units": [
+        {
+            "kind": "Knight",
+            "definitionId": "",
+            "baseHP": 32,
+            "baseATK": 10,
+            "fixedHP": 56,
+            "fixedATK": 18,
+            "AP": 6,
+            "cost": {
+                "Wood": 20,
+                "Stone": 15,
+                "Iron": 18,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 10,
+                "Water": 12,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 2,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 0,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Archer",
+            "definitionId": "",
+            "baseHP": 24,
+            "baseATK": 15,
+            "fixedHP": 42,
+            "fixedATK": 26,
+            "AP": 6,
+            "cost": {
+                "Wood": 30,
+                "Stone": 10,
+                "Iron": 10,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 10,
+                "Water": 10,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 2,
+                "Stone": 0,
+                "Iron": 2,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 0,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Magic",
+            "definitionId": "",
+            "baseHP": 22,
+            "baseATK": 11,
+            "fixedHP": 39,
+            "fixedATK": 19,
+            "AP": 9,
+            "cost": {
+                "Wood": 20,
+                "Stone": 15,
+                "Iron": 8,
+                "MagicOre": 12,
+                "Wheat": 0,
+                "Bread": 8,
+                "Water": 12,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 0,
+                "MagicOre": 2,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Assassin",
+            "definitionId": "",
+            "baseHP": 16,
+            "baseATK": 15,
+            "fixedHP": 28,
+            "fixedATK": 26,
+            "AP": 8,
+            "cost": {
+                "Wood": 15,
+                "Stone": 10,
+                "Iron": 12,
+                "MagicOre": 5,
+                "Wheat": 0,
+                "Bread": 12,
+                "Water": 8,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 2,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Scout",
+            "definitionId": "",
+            "baseHP": 20,
+            "baseATK": 6,
+            "fixedHP": 35,
+            "fixedATK": 11,
+            "AP": 5,
+            "cost": {
+                "Wood": 15,
+                "Stone": 5,
+                "Iron": 4,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 8,
+                "Water": 8,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Priest",
+            "definitionId": "",
+            "baseHP": 28,
+            "baseATK": 3,
+            "fixedHP": 49,
+            "fixedATK": 5,
+            "AP": 10,
+            "cost": {
+                "Wood": 20,
+                "Stone": 10,
+                "Iron": 4,
+                "MagicOre": 8,
+                "Wheat": 0,
+                "Bread": 8,
+                "Water": 15,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Guardian",
+            "definitionId": "",
+            "baseHP": 42,
+            "baseATK": 14,
+            "fixedHP": 74,
+            "fixedATK": 25,
+            "AP": 12,
+            "cost": {
+                "Wood": 15,
+                "Stone": 35,
+                "Iron": 25,
+                "MagicOre": 8,
+                "Wheat": 0,
+                "Bread": 15,
+                "Water": 18,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 2,
+                "Iron": 4,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 4,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Crossbow",
+            "definitionId": "",
+            "baseHP": 17,
+            "baseATK": 13,
+            "fixedHP": 30,
+            "fixedATK": 23,
+            "AP": 10,
+            "cost": {
+                "Wood": 40,
+                "Stone": 15,
+                "Iron": 28,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 12,
+                "Water": 12,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 2,
+                "Stone": 0,
+                "Iron": 2,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 0,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Magicsniper",
+            "definitionId": "",
+            "baseHP": 14,
+            "baseATK": 20,
+            "fixedHP": 25,
+            "fixedATK": 35,
+            "AP": 12,
+            "cost": {
+                "Wood": 30,
+                "Stone": 20,
+                "Iron": 18,
+                "MagicOre": 22,
+                "Wheat": 0,
+                "Bread": 10,
+                "Water": 15,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 2,
+                "MagicOre": 4,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 0,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Bomber",
+            "definitionId": "",
+            "baseHP": 20,
+            "baseATK": 12,
+            "fixedHP": 35,
+            "fixedATK": 21,
+            "AP": 10,
+            "cost": {
+                "Wood": 25,
+                "Stone": 20,
+                "Iron": 30,
+                "MagicOre": 6,
+                "Wheat": 0,
+                "Bread": 15,
+                "Water": 12,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 4,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "WhiteMage",
+            "definitionId": "r1.unit.whitemage",
+            "baseHP": 28,
+            "baseATK": 3,
+            "fixedHP": 49,
+            "fixedATK": 5,
+            "AP": 10,
+            "cost": {
+                "Wood": 20,
+                "Stone": 15,
+                "Iron": 4,
+                "MagicOre": 16,
+                "Wheat": 0,
+                "Bread": 8,
+                "Water": 15,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 0,
+                "MagicOre": 2,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "HolyKnight",
+            "definitionId": "r1.unit.holyknight",
+            "baseHP": 32,
+            "baseATK": 10,
+            "fixedHP": 56,
+            "fixedATK": 18,
+            "AP": 13,
+            "cost": {
+                "Wood": 25,
+                "Stone": 30,
+                "Iron": 28,
+                "MagicOre": 10,
+                "Wheat": 0,
+                "Bread": 18,
+                "Water": 20,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 4,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 4,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Samurai",
+            "definitionId": "r1.unit.samurai",
+            "baseHP": 32,
+            "baseATK": 10,
+            "fixedHP": 56,
+            "fixedATK": 18,
+            "AP": 9,
+            "cost": {
+                "Wood": 20,
+                "Stone": 15,
+                "Iron": 25,
+                "MagicOre": 3,
+                "Wheat": 0,
+                "Bread": 12,
+                "Water": 12,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 4,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 0,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Ninja",
+            "definitionId": "r1.unit.ninja",
+            "baseHP": 16,
+            "baseATK": 15,
+            "fixedHP": 28,
+            "fixedATK": 26,
+            "AP": 11,
+            "cost": {
+                "Wood": 25,
+                "Stone": 10,
+                "Iron": 15,
+                "MagicOre": 8,
+                "Wheat": 0,
+                "Bread": 10,
+                "Water": 15,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 2,
+                "MagicOre": 2,
+                "Wheat": 0,
+                "Bread": 2,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Berserker",
+            "definitionId": "r1.unit.berserker",
+            "baseHP": 32,
+            "baseATK": 10,
+            "fixedHP": 56,
+            "fixedATK": 18,
+            "AP": 10,
+            "cost": {
+                "Wood": 20,
+                "Stone": 10,
+                "Iron": 24,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 18,
+                "Water": 20,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 4,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 4,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "Navigator",
+            "definitionId": "r1.unit.navigator",
+            "baseHP": 42,
+            "baseATK": 14,
+            "fixedHP": 74,
+            "fixedATK": 25,
+            "AP": 12,
+            "cost": {
+                "Wood": 35,
+                "Stone": 20,
+                "Iron": 25,
+                "MagicOre": 6,
+                "Wheat": 0,
+                "Bread": 20,
+                "Water": 20,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 2,
+                "Stone": 0,
+                "Iron": 2,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 4,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "HeavyWarrior",
+            "definitionId": "r1.unit.heavywarrior",
+            "baseHP": 44,
+            "baseATK": 12,
+            "fixedHP": 77,
+            "fixedATK": 21,
+            "AP": 14,
+            "cost": {
+                "Wood": 20,
+                "Stone": 35,
+                "Iron": 40,
+                "MagicOre": 4,
+                "Wheat": 0,
+                "Bread": 20,
+                "Water": 20,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 2,
+                "Iron": 6,
+                "MagicOre": 0,
+                "Wheat": 0,
+                "Bread": 4,
+                "Water": 2,
+                "Citizen": 0
+            }
+        },
+        {
+            "kind": "DragonKnight",
+            "definitionId": "r1.unit.dragonknight",
+            "baseHP": 36,
+            "baseATK": 11,
+            "fixedHP": 63,
+            "fixedATK": 19,
+            "AP": 12,
+            "cost": {
+                "Wood": 25,
+                "Stone": 25,
+                "Iron": 32,
+                "MagicOre": 10,
+                "Wheat": 0,
+                "Bread": 16,
+                "Water": 18,
+                "Citizen": 1
+            },
+            "upkeep": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 4,
+                "MagicOre": 2,
+                "Wheat": 0,
+                "Bread": 4,
+                "Water": 2,
+                "Citizen": 0
+            }
+        }
+    ],
+    "facilities": [
+        {
+            "kind": "Field",
+            "AP": 3,
+            "cost": {
+                "Wood": 25,
+                "Stone": 0,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 10,
+                "Citizen": 1
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 2,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 5,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 2,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 8,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 25,
+                        "Stone": 15,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 4,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 2,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 12,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 35,
+                        "Stone": 25,
+                        "Iron": 5,
+                        "MagicOre": 0,
+                        "Water": 15,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "Bakery",
+            "AP": 5,
+            "cost": {
+                "Wood": 35,
+                "Stone": 25,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 5,
+                "Citizen": 1
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 3,
+                        "Bread": 0,
+                        "Water": 3,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 5,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 3,
+                        "Bread": 0,
+                        "Water": 3,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 8,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 40,
+                        "Stone": 25,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 3,
+                        "Bread": 0,
+                        "Water": 2,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 12,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 55,
+                        "Stone": 35,
+                        "Iron": 10,
+                        "MagicOre": 0,
+                        "Water": 15,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 6,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "LoggingCamp",
+            "AP": 4,
+            "cost": {
+                "Wood": 20,
+                "Stone": 10,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 10,
+                "Citizen": 1
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 8,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 12,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 30,
+                        "Stone": 20,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 4,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 17,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 45,
+                        "Stone": 30,
+                        "Iron": 5,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "Quarry",
+            "AP": 4,
+            "cost": {
+                "Wood": 20,
+                "Stone": 20,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 10,
+                "Citizen": 1
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 8,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.15000000596046449,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 12,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 2,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.20000000298023225,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 30,
+                        "Stone": 20,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 4,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 17,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 3,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.25,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 45,
+                        "Stone": 35,
+                        "Iron": 5,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "Mine",
+            "AP": 5,
+            "cost": {
+                "Wood": 40,
+                "Stone": 40,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 15,
+                "Citizen": 1
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 3,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 1,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.25,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 1,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 6,
+                        "MagicOre": 1,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 1,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.3499999940395355,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 1,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 40,
+                        "Stone": 35,
+                        "Iron": 8,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 10,
+                        "MagicOre": 2,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 1,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.5,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 1,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 1,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 55,
+                        "Stone": 45,
+                        "Iron": 15,
+                        "MagicOre": 0,
+                        "Water": 15,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 6,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "Well",
+            "AP": 3,
+            "cost": {
+                "Wood": 20,
+                "Stone": 25,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 0,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 6,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 25,
+                        "Stone": 30,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 4,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 15,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 1,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 40,
+                        "Stone": 45,
+                        "Iron": 5,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "Barracks",
+            "AP": 10,
+            "cost": {
+                "Wood": 140,
+                "Stone": 140,
+                "Iron": 30,
+                "MagicOre": 0,
+                "Water": 50,
+                "Citizen": 3
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 5
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 140,
+                        "Stone": 140,
+                        "Iron": 40,
+                        "MagicOre": 0,
+                        "Water": 50,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 12,
+                    "SpecialValue": 8
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 140,
+                        "Stone": 140,
+                        "Iron": 50,
+                        "MagicOre": 0,
+                        "Water": 50,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 15,
+                    "SpecialValue": 10
+                }
+            ]
+        },
+        {
+            "kind": "House",
+            "AP": 5,
+            "cost": {
+                "Wood": 55,
+                "Stone": 55,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 10,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 3
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 70,
+                        "Stone": 60,
+                        "Iron": 10,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 6,
+                    "SpecialValue": 5
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 90,
+                        "Stone": 75,
+                        "Iron": 20,
+                        "MagicOre": 0,
+                        "Water": 10,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 7,
+                    "SpecialValue": 8
+                }
+            ]
+        },
+        {
+            "kind": "LuxuryHouse",
+            "AP": 10,
+            "cost": {
+                "Wood": 140,
+                "Stone": 140,
+                "Iron": 20,
+                "MagicOre": 0,
+                "Water": 20,
+                "Citizen": 2
+            },
+            "levels": [
+                {
+                    "HP": 120,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 3
+                },
+                {
+                    "HP": 120,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 120,
+                        "Stone": 120,
+                        "Iron": 40,
+                        "MagicOre": 0,
+                        "Water": 20,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 10,
+                    "SpecialValue": 4
+                },
+                {
+                    "HP": 120,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 120,
+                        "Stone": 120,
+                        "Iron": 60,
+                        "MagicOre": 5,
+                        "Water": 20,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 12,
+                    "SpecialValue": 6
+                }
+            ]
+        },
+        {
+            "kind": "Warehouse",
+            "AP": 7,
+            "cost": {
+                "Wood": 60,
+                "Stone": 60,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 0,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 25
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 60,
+                        "Stone": 60,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 8,
+                    "SpecialValue": 50
+                },
+                {
+                    "HP": 100,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 60,
+                        "Stone": 60,
+                        "Iron": 20,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 10,
+                    "SpecialValue": 100
+                }
+            ]
+        },
+        {
+            "kind": "WoodWall",
+            "AP": 2,
+            "cost": {
+                "Wood": 25,
+                "Stone": 0,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 0,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 250,
+                    "DEF": 5,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 420,
+                    "DEF": 9,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 35,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 3,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 650,
+                    "DEF": 14,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 50,
+                        "Stone": 15,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 4,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "StoneWall",
+            "AP": 3,
+            "cost": {
+                "Wood": 0,
+                "Stone": 40,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 0,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 550,
+                    "DEF": 12,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 900,
+                    "DEF": 18,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 60,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 4,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 1400,
+                    "DEF": 26,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 5,
+                        "Stone": 85,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "SubCrystal",
+            "AP": 0,
+            "cost": {
+                "Wood": 0,
+                "Stone": 0,
+                "Iron": 0,
+                "MagicOre": 0,
+                "Water": 0,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 5000,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "Mortar",
+            "AP": 10,
+            "cost": {
+                "Wood": 70,
+                "Stone": 170,
+                "Iron": 20,
+                "MagicOre": 0,
+                "Water": 20,
+                "Citizen": 1
+            },
+            "levels": [
+                {
+                    "HP": 220,
+                    "DEF": 0,
+                    "ATK": 30,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 2,
+                        "Iron": 2,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 1,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 280,
+                    "DEF": 0,
+                    "ATK": 40,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 3,
+                        "Iron": 3,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 1,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 60,
+                        "Stone": 140,
+                        "Iron": 25,
+                        "MagicOre": 0,
+                        "Water": 20,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 8,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 360,
+                    "DEF": 0,
+                    "ATK": 55,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 4,
+                        "Iron": 4,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 2,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 80,
+                        "Stone": 180,
+                        "Iron": 35,
+                        "MagicOre": 5,
+                        "Water": 25,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 9,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 460,
+                    "DEF": 0,
+                    "ATK": 70,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 5,
+                        "Iron": 5,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 2,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 110,
+                        "Stone": 230,
+                        "Iron": 45,
+                        "MagicOre": 10,
+                        "Water": 30,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 10,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 600,
+                    "DEF": 0,
+                    "ATK": 90,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 7,
+                        "Iron": 7,
+                        "MagicOre": 1,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 3,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 160,
+                        "Stone": 300,
+                        "Iron": 60,
+                        "MagicOre": 20,
+                        "Water": 40,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 12,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "Cannon",
+            "AP": 10,
+            "cost": {
+                "Wood": 50,
+                "Stone": 140,
+                "Iron": 60,
+                "MagicOre": 0,
+                "Water": 10,
+                "Citizen": 1
+            },
+            "levels": [
+                {
+                    "HP": 240,
+                    "DEF": 0,
+                    "ATK": 45,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 1,
+                        "Iron": 4,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 1,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 310,
+                    "DEF": 0,
+                    "ATK": 60,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 2,
+                        "Iron": 5,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 1,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 90,
+                        "Stone": 170,
+                        "Iron": 70,
+                        "MagicOre": 0,
+                        "Water": 15,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 9,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 400,
+                    "DEF": 0,
+                    "ATK": 75,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 3,
+                        "Iron": 7,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 2,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 115,
+                        "Stone": 220,
+                        "Iron": 90,
+                        "MagicOre": 5,
+                        "Water": 20,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 10,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 520,
+                    "DEF": 0,
+                    "ATK": 90,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 4,
+                        "Iron": 9,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 2,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 150,
+                        "Stone": 280,
+                        "Iron": 110,
+                        "MagicOre": 10,
+                        "Water": 25,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 12,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 700,
+                    "DEF": 0,
+                    "ATK": 100,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 6,
+                        "Iron": 12,
+                        "MagicOre": 1,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 3,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 200,
+                        "Stone": 360,
+                        "Iron": 140,
+                        "MagicOre": 20,
+                        "Water": 35,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 15,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "RestraintTrap",
+            "AP": 5,
+            "cost": {
+                "Wood": 50,
+                "Stone": 50,
+                "Iron": 10,
+                "MagicOre": 5,
+                "Water": 0,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 120,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 1,
+                        "MagicOre": 1,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 160,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 1,
+                        "MagicOre": 2,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 20,
+                        "Stone": 50,
+                        "Iron": 15,
+                        "MagicOre": 5,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 210,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 2,
+                        "MagicOre": 2,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 30,
+                        "Stone": 80,
+                        "Iron": 20,
+                        "MagicOre": 10,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 6,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 270,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 2,
+                        "MagicOre": 3,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 40,
+                        "Stone": 120,
+                        "Iron": 25,
+                        "MagicOre": 15,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 7,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 340,
+                    "DEF": 0,
+                    "ATK": 0,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 3,
+                        "MagicOre": 4,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 50,
+                        "Stone": 160,
+                        "Iron": 35,
+                        "MagicOre": 20,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 8,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "SpikeTrap",
+            "AP": 5,
+            "cost": {
+                "Wood": 50,
+                "Stone": 50,
+                "Iron": 20,
+                "MagicOre": 0,
+                "Water": 0,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 120,
+                    "DEF": 0,
+                    "ATK": 20,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 1,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 130,
+                    "DEF": 0,
+                    "ATK": 35,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 2,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 30,
+                        "Stone": 45,
+                        "Iron": 25,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 5,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 150,
+                    "DEF": 0,
+                    "ATK": 50,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 2,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 40,
+                        "Stone": 60,
+                        "Iron": 30,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 6,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 170,
+                    "DEF": 0,
+                    "ATK": 60,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 3,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 50,
+                        "Stone": 75,
+                        "Iron": 40,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 7,
+                    "SpecialValue": 0
+                },
+                {
+                    "HP": 200,
+                    "DEF": 0,
+                    "ATK": 80,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 4,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 60,
+                        "Stone": 90,
+                        "Iron": 55,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 8,
+                    "SpecialValue": 0
+                }
+            ]
+        },
+        {
+            "kind": "HeroSword",
+            "AP": 12,
+            "cost": {
+                "Wood": 100,
+                "Stone": 100,
+                "Iron": 200,
+                "MagicOre": 80,
+                "Water": 0,
+                "Citizen": 0
+            },
+            "levels": [
+                {
+                    "HP": 1,
+                    "DEF": 0,
+                    "ATK": 200,
+                    "ProductionIntervalTurns": 1,
+                    "Input": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "Output": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusOutput1": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance1": 0.0,
+                    "BonusOutput2": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "BonusChance2": 0.0,
+                    "Maintenance": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Wheat": 0,
+                        "Bread": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeCost": {
+                        "Wood": 0,
+                        "Stone": 0,
+                        "Iron": 0,
+                        "MagicOre": 0,
+                        "Water": 0,
+                        "Citizen": 0
+                    },
+                    "UpgradeAP": 0,
+                    "SpecialValue": 0
+                }
+            ]
+        }
+    ],
+    "initialTroops": [
+        "Player:King",
+        "Player:Knight",
+        "Player:Archer",
+        "Player:Scout",
+        "Enemy:Boss",
+        "Enemy:Knight",
+        "Enemy:Archer",
+        "Enemy:Scout"
+    ],
+    "rules": "{\"applyRules\":true,\"aiBreadReserveTurns\":3,\"aiEconomy\":{\"forecastTurns\":4,\"reserveTurns\":4,\"recoveryWindowTurns\":4,\"breadCoverageMarginTurns\":1,\"plannedDemandWeight\":0.3499999940395355,\"needWeight\":90.0,\"coverageWeight\":60.0,\"chainRecoveryWeight\":65.0,\"reserveRecoveryWeight\":25.0,\"overstockPenalty\":100.0,\"warningMilitaryPenalty\":40.0,\"localMilitarySaturationPenalty\":15.0,\"uncoveredWallThreatPenalty\":20.0,\"emergencyKingDamageFraction\":0.4000000059604645,\"emergencyCrystalDamageFraction\":0.75,\"criticalReserveFraction\":0.25,\"minimumChanceReserveSources\":3,\"chanceReserveCredit\":0.5,\"enableDecisionLogs\":false,\"basicResources\":{\"enabled\":true,\"criticalCoverage\":0.6499999761581421,\"recoveryCoverage\":0.8999999761581421,\"stableCoverage\":1.0,\"surplusCoverage\":1.600000023841858,\"stableTurns\":2,\"minimumRecoveryTurns\":2,\"switchPressureRatio\":1.2999999523162842,\"deficitWeight\":70.0,\"blockedPlanWeight\":55.0,\"incomeGapWeight\":45.0,\"zeroProducerWeight\":65.0,\"openingWeight\":30.0,\"surplusPenaltyWeight\":75.0,\"planWeight\":0.75,\"reserveCostFraction\":0.5,\"foundationReserveFraction\":0.25,\"paybackWindowTurns\":8.0,\"mandatorySupplyPreparationTurns\":8,\"constructionPressureWeight\":30.0,\"recoverySpendPenalty\":60.0,\"minimumReserve\":{\"Wood\":30,\"Stone\":30,\"Iron\":3,\"MagicOre\":2,\"Wheat\":3,\"Bread\":5,\"Water\":20,\"Citizen\":3}},\"sustainedDeficitUrgency\":0.3499999940395355,\"deficitEpsilon\":0.009999999776482582,\"plannedUnitLevel\":6,\"plannedBuildActions\":1.0,\"plannedSummonActions\":1.0,\"explorationSummonWeight\":0.5,\"minimumOperationalBuffer\":{\"Wood\":40,\"Stone\":40,\"Iron\":3,\"MagicOre\":0,\"Wheat\":3,\"Bread\":5,\"Water\":8,\"Citizen\":3},\"plannedBuildCost\":{\"Wood\":40,\"Stone\":30,\"Iron\":0,\"MagicOre\":0,\"Wheat\":0,\"Bread\":0,\"Water\":10,\"Citizen\":1}},\"turnSeconds\":180.0,\"totalSeconds\":36000.0,\"timeBonusSeconds\":60.0,\"maximumAP\":60,\"buildingProduction\":{\"applyAdjustments\":true,\"adjustments\":[]},\"enforceResourceCapacity\":true,\"unitUpkeepMultiplier\":2,\"crystalIncomeTurns\":10,\"crystalStartIncome\":{\"Wood\":12,\"Stone\":10,\"Iron\":2,\"MagicOre\":0,\"Wheat\":0,\"Bread\":12,\"Water\":6,\"Citizen\":0},\"unitExtraUpkeep\":{\"Wood\":0,\"Stone\":0,\"Iron\":0,\"MagicOre\":0,\"Wheat\":0,\"Bread\":0,\"Water\":0,\"Citizen\":0},\"minimumAttackDamage\":1,\"moveAP\":3,\"attackAP\":2,\"heightAP\":2,\"citizenAP\":1,\"breadPerCitizen\":1,\"starvationGraceTurns\":10,\"mapWidth\":35,\"mapDepth\":35,\"noiseScale\":0.10000000149011612,\"riverHalfWidth\":0.699999988079071,\"factions\":[{\"team\":0,\"displayName\":\"プレイヤー\",\"color\":{\"r\":0.18000000715255738,\"g\":0.7200000286102295,\"b\":1.0,\"a\":1.0},\"initialAP\":30,\"initialResources\":{\"Wood\":140,\"Stone\":140,\"Water\":80,\"MagicOre\":12,\"Iron\":60,\"Wheat\":0,\"Bread\":100,\"Citizen\":5},\"controllerDescription\":\"手動操作（開発用 F8 AI 切替）\"},{\"team\":1,\"displayName\":\"敵軍\",\"color\":{\"r\":1.0,\"g\":0.25,\"b\":0.23000000417232514,\"a\":1.0},\"initialAP\":30,\"initialResources\":{\"Wood\":140,\"Stone\":140,\"Water\":80,\"MagicOre\":12,\"Iron\":60,\"Wheat\":0,\"Bread\":100,\"Citizen\":5},\"controllerDescription\":\"敵 AI\"},{\"team\":4,\"displayName\":\"魔物\",\"color\":{\"r\":0.699999988079071,\"g\":0.41999998688697817,\"b\":0.8999999761581421,\"a\":1.0},\"initialAP\":30,\"initialResources\":{\"Wood\":200,\"Stone\":200,\"Water\":50,\"MagicOre\":15,\"Iron\":30,\"Wheat\":0,\"Bread\":100,\"Citizen\":5},\"controllerDescription\":\"第三陣営 AI（敵の行動後）\"},{\"team\":5,\"displayName\":\"乱入者\",\"color\":{\"r\":1.0,\"g\":0.6399999856948853,\"b\":0.2199999988079071,\"a\":1.0},\"initialAP\":30,\"initialResources\":{\"Wood\":200,\"Stone\":200,\"Water\":50,\"MagicOre\":15,\"Iron\":30,\"Wheat\":0,\"Bread\":100,\"Citizen\":5},\"controllerDescription\":\"第三陣営 AI（敵の行動後）\"},{\"team\":2,\"displayName\":\"強敵\",\"color\":{\"r\":0.8999999761581421,\"g\":0.75,\"b\":0.3499999940395355,\"a\":1.0},\"initialAP\":30,\"initialResources\":{\"Wood\":200,\"Stone\":200,\"Water\":50,\"MagicOre\":15,\"Iron\":30,\"Wheat\":0,\"Bread\":100,\"Citizen\":5},\"controllerDescription\":\"強敵 AI（第三陣営の行動後）\"}]}"
+}

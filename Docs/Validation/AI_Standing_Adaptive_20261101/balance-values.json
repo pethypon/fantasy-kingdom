@@ -1,0 +1,639 @@
+{
+  "units": {
+    "Knight": [
+      [
+        20,
+        15,
+        18,
+        0,
+        10,
+        12,
+        6
+      ],
+      {
+        "Iron": 1,
+        "Bread": 1
+      }
+    ],
+    "Archer": [
+      [
+        30,
+        10,
+        10,
+        0,
+        10,
+        10,
+        6
+      ],
+      {
+        "Wood": 1,
+        "Iron": 1,
+        "Bread": 1
+      }
+    ],
+    "Magic": [
+      [
+        20,
+        15,
+        8,
+        12,
+        8,
+        12,
+        9
+      ],
+      {
+        "Magic": 1,
+        "Bread": 1,
+        "Water": 1
+      }
+    ],
+    "Assassin": [
+      [
+        15,
+        10,
+        12,
+        5,
+        12,
+        8,
+        8
+      ],
+      {
+        "Iron": 1,
+        "Bread": 1,
+        "Water": 1
+      }
+    ],
+    "Scout": [
+      [
+        15,
+        5,
+        4,
+        0,
+        8,
+        8,
+        5
+      ],
+      {
+        "Bread": 1,
+        "Water": 1
+      }
+    ],
+    "Priest": [
+      [
+        20,
+        10,
+        4,
+        8,
+        8,
+        15,
+        10
+      ],
+      {
+        "Bread": 1,
+        "Water": 1
+      }
+    ],
+    "Guardian": [
+      [
+        15,
+        35,
+        25,
+        8,
+        15,
+        18,
+        12
+      ],
+      {
+        "Stone": 1,
+        "Iron": 2,
+        "Bread": 2,
+        "Water": 1
+      }
+    ],
+    "Crossbow": [
+      [
+        40,
+        15,
+        28,
+        0,
+        12,
+        12,
+        10
+      ],
+      {
+        "Wood": 1,
+        "Iron": 1,
+        "Bread": 1
+      }
+    ],
+    "Magicsniper": [
+      [
+        30,
+        20,
+        18,
+        22,
+        10,
+        15,
+        12
+      ],
+      {
+        "Iron": 1,
+        "Magic": 2,
+        "Bread": 1
+      }
+    ],
+    "Bomber": [
+      [
+        25,
+        20,
+        30,
+        6,
+        15,
+        12,
+        10
+      ],
+      {
+        "Iron": 2,
+        "Bread": 1,
+        "Water": 1
+      }
+    ],
+    "WhiteMage": [
+      [
+        20,
+        15,
+        4,
+        16,
+        8,
+        15,
+        10
+      ],
+      {
+        "Magic": 1,
+        "Bread": 1,
+        "Water": 1
+      }
+    ],
+    "HolyKnight": [
+      [
+        25,
+        30,
+        28,
+        10,
+        18,
+        20,
+        13
+      ],
+      {
+        "Iron": 2,
+        "Bread": 2,
+        "Water": 1
+      }
+    ],
+    "Samurai": [
+      [
+        20,
+        15,
+        25,
+        3,
+        12,
+        12,
+        9
+      ],
+      {
+        "Iron": 2,
+        "Bread": 1
+      }
+    ],
+    "Ninja": [
+      [
+        25,
+        10,
+        15,
+        8,
+        10,
+        15,
+        11
+      ],
+      {
+        "Iron": 1,
+        "Magic": 1,
+        "Bread": 1,
+        "Water": 1
+      }
+    ],
+    "Berserker": [
+      [
+        20,
+        10,
+        24,
+        0,
+        18,
+        20,
+        10
+      ],
+      {
+        "Iron": 2,
+        "Bread": 2,
+        "Water": 1
+      }
+    ],
+    "Navigator": [
+      [
+        35,
+        20,
+        25,
+        6,
+        20,
+        20,
+        12
+      ],
+      {
+        "Wood": 1,
+        "Iron": 1,
+        "Bread": 2,
+        "Water": 1
+      }
+    ],
+    "HeavyWarrior": [
+      [
+        20,
+        35,
+        40,
+        4,
+        20,
+        20,
+        14
+      ],
+      {
+        "Stone": 1,
+        "Iron": 3,
+        "Bread": 2,
+        "Water": 1
+      }
+    ],
+    "DragonKnight": [
+      [
+        25,
+        25,
+        32,
+        10,
+        16,
+        18,
+        12
+      ],
+      {
+        "Iron": 2,
+        "Magic": 1,
+        "Bread": 2,
+        "Water": 1
+      }
+    ]
+  },
+  "facilities": {
+    "Field": {
+      "cost": {
+        "Wood": 25,
+        "Water": 10,
+        "Citizen": 1
+      },
+      "ap": 3,
+      "output": [
+        {
+          "Wheat": 5
+        },
+        {
+          "Wheat": 8
+        },
+        {
+          "Wheat": 12
+        }
+      ],
+      "input": [
+        {
+          "Water": 2
+        },
+        {
+          "Water": 2
+        },
+        {
+          "Water": 2
+        }
+      ],
+      "maint": {
+        "Wood": 1
+      },
+      "upgrade": [
+        {
+          "Wood": 25,
+          "Stone": 15,
+          "Water": 10
+        },
+        {
+          "Wood": 35,
+          "Stone": 25,
+          "Iron": 5,
+          "Water": 15
+        }
+      ],
+      "uap": [
+        4,
+        5
+      ]
+    },
+    "Bakery": {
+      "cost": {
+        "Wood": 35,
+        "Stone": 25,
+        "Water": 5,
+        "Citizen": 1
+      },
+      "ap": 5,
+      "output": [
+        {
+          "Bread": 5
+        },
+        {
+          "Bread": 8
+        },
+        {
+          "Bread": 12
+        }
+      ],
+      "input": [
+        {
+          "Wheat": 3,
+          "Water": 3
+        },
+        {
+          "Wheat": 3,
+          "Water": 3
+        },
+        {
+          "Wheat": 3,
+          "Water": 2
+        }
+      ],
+      "maint": {
+        "Wood": 1,
+        "Stone": 1
+      },
+      "upgrade": [
+        {
+          "Wood": 40,
+          "Stone": 25,
+          "Water": 10
+        },
+        {
+          "Wood": 55,
+          "Stone": 35,
+          "Iron": 10,
+          "Water": 15
+        }
+      ],
+      "uap": [
+        5,
+        6
+      ]
+    },
+    "LoggingCamp": {
+      "cost": {
+        "Wood": 20,
+        "Stone": 10,
+        "Water": 10,
+        "Citizen": 1
+      },
+      "ap": 4,
+      "output": [
+        {
+          "Wood": 8
+        },
+        {
+          "Wood": 12
+        },
+        {
+          "Wood": 17
+        }
+      ],
+      "input": [
+        {},
+        {},
+        {}
+      ],
+      "maint": {
+        "Stone": 1
+      },
+      "upgrade": [
+        {
+          "Wood": 30,
+          "Stone": 20,
+          "Water": 10
+        },
+        {
+          "Wood": 45,
+          "Stone": 30,
+          "Iron": 5,
+          "Water": 10
+        }
+      ],
+      "uap": [
+        4,
+        5
+      ]
+    },
+    "Quarry": {
+      "cost": {
+        "Wood": 20,
+        "Stone": 20,
+        "Water": 10,
+        "Citizen": 1
+      },
+      "ap": 4,
+      "output": [
+        {
+          "Stone": 8
+        },
+        {
+          "Stone": 12
+        },
+        {
+          "Stone": 17
+        }
+      ],
+      "input": [
+        {},
+        {},
+        {}
+      ],
+      "maint": {
+        "Wood": 1
+      },
+      "bonus": [
+        {
+          "Stone": 1
+        },
+        {
+          "Stone": 2
+        },
+        {
+          "Stone": 3
+        }
+      ],
+      "chance": [
+        0.15,
+        0.2,
+        0.25
+      ],
+      "upgrade": [
+        {
+          "Wood": 30,
+          "Stone": 20,
+          "Water": 10
+        },
+        {
+          "Wood": 45,
+          "Stone": 35,
+          "Iron": 5,
+          "Water": 10
+        }
+      ],
+      "uap": [
+        4,
+        5
+      ]
+    },
+    "Mine": {
+      "cost": {
+        "Wood": 30,
+        "Stone": 30,
+        "Water": 15,
+        "Citizen": 1
+      },
+      "ap": 5,
+      "output": [
+        {
+          "Iron": 4
+        },
+        {
+          "Iron": 7,
+          "MagicOre": 1
+        },
+        {
+          "Iron": 11,
+          "MagicOre": 2
+        }
+      ],
+      "input": [
+        {},
+        {},
+        {}
+      ],
+      "maint": {
+        "Wood": 1,
+        "Water": 1
+      },
+      "bonus": [
+        {
+          "MagicOre": 1
+        },
+        {
+          "MagicOre": 1
+        },
+        {
+          "MagicOre": 1
+        }
+      ],
+      "chance": [
+        0.25,
+        0.35,
+        0.5
+      ],
+      "upgrade": [
+        {
+          "Wood": 40,
+          "Stone": 35,
+          "Iron": 8,
+          "Water": 10
+        },
+        {
+          "Wood": 55,
+          "Stone": 45,
+          "Iron": 15,
+          "Water": 15
+        }
+      ],
+      "uap": [
+        5,
+        6
+      ]
+    },
+    "Well": {
+      "cost": {
+        "Wood": 20,
+        "Stone": 25
+      },
+      "ap": 3,
+      "output": [
+        {
+          "Water": 6
+        },
+        {
+          "Water": 10
+        },
+        {
+          "Water": 15
+        }
+      ],
+      "input": [
+        {},
+        {},
+        {}
+      ],
+      "maint": {
+        "Stone": 1
+      },
+      "upgrade": [
+        {
+          "Wood": 25,
+          "Stone": 30
+        },
+        {
+          "Wood": 40,
+          "Stone": 45,
+          "Iron": 5
+        }
+      ],
+      "uap": [
+        4,
+        5
+      ]
+    }
+  },
+  "editedAssets": [
+    "Assets/Data/Unit/Knight.asset",
+    "Assets/Data/Unit/Archer.asset",
+    "Assets/Data/Unit/Magic.asset",
+    "Assets/Data/Unit/Assassin.asset",
+    "Assets/Data/Unit/Scout.asset",
+    "Assets/Data/Unit/Priest.asset",
+    "Assets/Data/Unit/Guardian.asset",
+    "Assets/Data/Unit/Crossbow.asset",
+    "Assets/Data/Unit/Magic Sniper.asset",
+    "Assets/Data/Unit/Bomber.asset",
+    "Assets/_FantasyKingdom/GameContent/R1Production/Units/WhiteMage/Stats.asset",
+    "Assets/_FantasyKingdom/GameContent/R1Production/Units/HolyKnight/Stats.asset",
+    "Assets/_FantasyKingdom/GameContent/R1Production/Units/Samurai/Stats.asset",
+    "Assets/_FantasyKingdom/GameContent/R1Production/Units/Ninja/Stats.asset",
+    "Assets/_FantasyKingdom/GameContent/R1Production/Units/Berserker/Stats.asset",
+    "Assets/_FantasyKingdom/GameContent/R1Production/Units/Navigator/Stats.asset",
+    "Assets/_FantasyKingdom/GameContent/R1Production/Units/HeavyWarrior/Stats.asset",
+    "Assets/_FantasyKingdom/GameContent/R1Production/Units/DragonKnight/Stats.asset",
+    "Assets/_FantasyKingdom/GameContent/Buildings/\u65e2\u5b58\u306e\u5efa\u7269\u30c7\u30fc\u30bf/Field/Building.asset",
+    "Assets/_FantasyKingdom/GameContent/Buildings/\u65e2\u5b58\u306e\u5efa\u7269\u30c7\u30fc\u30bf/Bakery/Building.asset",
+    "Assets/_FantasyKingdom/GameContent/Buildings/\u65e2\u5b58\u306e\u5efa\u7269\u30c7\u30fc\u30bf/LoggingCamp/Building.asset",
+    "Assets/_FantasyKingdom/GameContent/Buildings/\u65e2\u5b58\u306e\u5efa\u7269\u30c7\u30fc\u30bf/Quarry/Building.asset",
+    "Assets/_FantasyKingdom/GameContent/Buildings/\u65e2\u5b58\u306e\u5efa\u7269\u30c7\u30fc\u30bf/Well/Building.asset",
+    "Assets/_FantasyKingdom/GameContent/Buildings/\u65e2\u5b58\u306e\u5efa\u7269\u30c7\u30fc\u30bf/Mine/Building.asset",
+    "Assets/Resources/GameContent/Rules.asset"
+  ]
+}

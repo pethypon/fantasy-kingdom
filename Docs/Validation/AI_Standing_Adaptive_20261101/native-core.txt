@@ -1,0 +1,842 @@
+[A1Housing] PASS HS03 formal-reset citizen=0
+[A1Housing] PASS HS03 formal-reset citizen=1
+[A1Housing] PASS HS03 formal-reset citizen=5
+[A1Housing] PASS HS03 formal-reset citizen=20
+[A1Housing] PASS HS03 formal-reset citizen=100
+[A1Housing] PASS HS03 formal-reset citizen=2147483647
+[A1Housing] PASS HS04 current-game maximum is60, no stale15 clamp
+[A1Housing] PASS HS03 penalty is included in required stock
+[A1Housing] PASS HS01 reset already funds target without citizens
+[A1Housing] PASS HS08 AP preview never mutates live state
+[A1Housing] PASS HS04 authored lower AP maximum is honored
+[A1Housing] PASS HS04 zero citizen bonus cannot justify AP housing
+[A1Housing] PASS HS03 authored citizen bonus uses minimum whole citizens
+[A1Housing] PASS HS04 unreachable reset penalty cannot cause endless houses
+[A1Housing] PASS HS01 HS05 enough capacity despite empty stock
+[A1Housing] PASS HS02 one expensive recruit plus reserve
+[A1Housing] PASS HS02 construction and duplicate army demand are not summed
+[A1Housing] PASS HS03 AP stock shares the same citizens
+[A1Housing] PASS HS03 no reserve added twice to AP target
+[A1Housing] RESULT scene-free checks=19
+[A1Coordination] PASS RL02-custom-long-range-Knight-has-real-reach
+[A1Coordination] PASS RL02-same-Kind-melee-mask-changes-role
+[A1Coordination] PASS empty-custom-mask-does-not-fall-back-to-Kind
+[A1Coordination] PASS full-eight-cell-origin-range-is-recognized
+[A1Coordination] PASS support-action-type-disables-a-populated-attack-mask
+[A1Coordination] PASS broad-mobile-ranged-keeps-its-fire-role-without-a-vision-advantage
+[A1Coordination] PASS RL04-custom-broad-mobile-observer-can-scout-without-Scout-Kind
+[A1Coordination] PASS Scout-name-alone-cannot-invent-mobility
+[A1Coordination] PASS RL01-no-healing-Priest-is-not-healer
+[A1Coordination] PASS passive-aura-fixture-has-complete-formal-configuration
+[A1Coordination] PASS RL01-real-passive-aura-remains-healer
+[A1Coordination] PASS passive-action-profile-does-not-invent-an-active-heal
+[A1Coordination] PASS support-profile-retains-a-valid-active-heal
+[A1Coordination] PASS RL08-commander-never-fills-a-disposable-recruitment-role
+[A1Coordination] PASS RL09-save-role-enum-values-remain-stable
+[A1Coordination] PASS squad-role-budget-contract-is-available
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-1
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-2
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-3
+[A1Coordination] PASS combat-group-retains-healing-role-3
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-4
+[A1Coordination] PASS combat-group-retains-healing-role-4
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-5
+[A1Coordination] PASS combat-group-retains-healing-role-5
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-6
+[A1Coordination] PASS combat-group-retains-healing-role-6
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-7
+[A1Coordination] PASS combat-group-retains-healing-role-7
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-8
+[A1Coordination] PASS combat-group-retains-healing-role-8
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-9
+[A1Coordination] PASS combat-group-retains-healing-role-9
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-10
+[A1Coordination] PASS combat-group-retains-healing-role-10
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-11
+[A1Coordination] PASS combat-group-retains-healing-role-11
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-12
+[A1Coordination] PASS combat-group-retains-healing-role-12
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-13
+[A1Coordination] PASS combat-group-retains-healing-role-13
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-14
+[A1Coordination] PASS combat-group-retains-healing-role-14
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-15
+[A1Coordination] PASS combat-group-retains-healing-role-15
+[A1Coordination] PASS squad-role-budget-accounts-for-each-slot-16
+[A1Coordination] PASS combat-group-retains-healing-role-16
+[A1Coordination] PASS baseline-definition-exists-Knight
+[A1Coordination] PASS RL02-baseline-role-Knight
+[A1Coordination] PASS baseline-definition-exists-Assassin
+[A1Coordination] PASS RL02-baseline-role-Assassin
+[A1Coordination] PASS baseline-definition-exists-Guardian
+[A1Coordination] PASS RL02-baseline-role-Guardian
+[A1Coordination] PASS baseline-definition-exists-Archer
+[A1Coordination] PASS RL02-baseline-role-Archer
+[A1Coordination] PASS baseline-definition-exists-Magic
+[A1Coordination] PASS RL02-baseline-role-Magic
+[A1Coordination] PASS baseline-definition-exists-Crossbow
+[A1Coordination] PASS RL02-baseline-role-Crossbow
+[A1Coordination] PASS baseline-definition-exists-Magic Sniper
+[A1Coordination] PASS RL02-baseline-role-Magic Sniper
+[A1Coordination] PASS baseline-definition-exists-Bomber
+[A1Coordination] PASS RL02-baseline-role-Bomber
+[A1Coordination] PASS baseline-definition-exists-Scout
+[A1Coordination] PASS RL02-baseline-role-Scout
+[A1Coordination] PASS RL03-baseline-composition-keeps-distinct-shields-fire-and-recon
+[A1Coordination] PASS production-definition-exists-Ninja
+[A1Coordination] PASS RL02-authored-production-role-Ninja
+[A1Coordination] PASS production-definition-exists-Navigator
+[A1Coordination] PASS RL02-authored-production-role-Navigator
+[A1Coordination] PASS production-definition-exists-Berserker
+[A1Coordination] PASS RL02-authored-production-role-Berserker
+[A1Coordination] PASS production-definition-exists-HeavyWarrior
+[A1Coordination] PASS RL02-authored-production-role-HeavyWarrior
+[A1Coordination] PASS production-definition-exists-DragonKnight
+[A1Coordination] PASS RL02-authored-production-role-DragonKnight
+[A1Coordination] PASS production-definition-exists-Samurai
+[A1Coordination] PASS RL02-authored-production-role-Samurai
+[A1Coordination] PASS CQ02-guaranteed-new-Mark-can-prepare-following-attacks
+[A1Coordination] PASS CQ03-probable-control-is-not-guaranteed
+[A1Coordination] PASS nonfinite-control-chance-is-rejected
+[A1Coordination] PASS CQ03-main-crystal-immunity-prevents-invented-synergy
+[A1Coordination] PASS already-active-debuff-is-not-extra-damage
+[A1Coordination] PASS unused-formal-debuff-nullification-is-respected
+[A1Coordination] PASS spent-nullification-does-not-grant-permanent-immunity
+[A1Coordination] PASS CQ03-poison-is-not-immediate-normal-attack-synergy
+[A1Coordination] PASS R2-no-ordinary-DEF-means-no-ArmorBreak-synergy
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Knight-0
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Knight-0
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Knight-3
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Knight-3
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Knight-12
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Knight-12
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Assassin-0
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Assassin-0
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Assassin-3
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Assassin-3
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Assassin-12
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Assassin-12
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Guardian-0
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Guardian-0
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Guardian-3
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Guardian-3
+[A1Coordination] PASS CQ05-follow-up-matches-formal-fatigue-quote-Guardian-12
+[A1Coordination] PASS preview-does-not-spend-AP-or-mutate-fatigue-Guardian-12
+[A1Coordination] PASS CQ11-complete-safe-kill-chain-has-an-executable-head
+[A1Coordination] PASS CQ01-two-current-formal-attacks-compose-a-bounded-kill
+[A1Coordination] PASS CQ05-real-budget-above-stale-15-is-usable
+[A1Coordination] PASS CQ11-low-threat-keeps-normal-selection
+[A1Coordination] PASS AT08-other-squad-AP-spend-invalidates-old-sequence
+[A1Coordination] PASS CQ04-target-HP-change-requires-regeneration
+[A1Coordination] PASS changed-finite-protection-requires-regeneration
+[A1Coordination] PASS CQ05-changed-official-action-cost-invalidates-sequence
+[A1Coordination] PASS CQ04-target-movement-requires-new-formal-target-witnesses
+[A1Coordination] PASS CQ06-ally-facing-change-requires-revalidation
+[A1Coordination] PASS CQ10-commander-cannot-become-a-cached-disposable-step
+[A1Coordination] PASS CQ04-target-death-invalidates-old-sequence
+[A1Coordination] PASS CQ09-target-visibility-loss-invalidates-sequence
+[A1Coordination] PASS CQ09-live-hidden-target-reference-cannot-rebuild-a-chain
+[A1Coordination] PASS CQ05-one-actor-cannot-be-counted-twice-at-current-fatigue
+[A1Coordination] PASS stale-advertised-AP-cannot-form-a-legal-chain
+[A1Coordination] PASS CQ04-generation-change-cannot-replay-current-plan
+[A1Coordination] PASS support-follows-leading-frontline-without-oscillation-0
+[A1Coordination] PASS support-swap-preserves-squad-sizes-and-unique-ownership-0
+[A1Coordination] PASS support-follows-leading-frontline-without-oscillation-1
+[A1Coordination] PASS support-swap-preserves-squad-sizes-and-unique-ownership-1
+[A1Retreat] PASS RT01 known two-step path records current and next owner AP
+[A1Retreat] PASS RT06 next-turn AP cannot pay an unaffordable first hop
+[A1Retreat] PASS RT06 insufficient next-turn reset rejects the continuation
+[A1Retreat] PASS RT06 same-turn second step charges increased fatigue
+[A1Retreat] PASS RT06 same-turn fatigue cannot be reset without a funded boundary
+[A1Retreat] PASS RT03 known lethal waiting point is not a safe next-turn path
+[A1Retreat] PASS finite barrier is carried across owner turns instead of refilled per cell
+[A1Retreat] PASS RT02 safety without actual recovery capability is not a regroup endpoint
+[A1Retreat] PASS RT05 separate wounded actors receive distinct first hops
+[A1Retreat] PASS RT07 blocked first hop returns no order so legal fight alternatives remain
+[A1Retreat] PASS configured depth rejects a route beyond its horizon
+[A1Retreat] PASS configured node cap is respected
+[A1Retreat] PASS global thinking budget stops route expansion
+[A1Retreat] PASS RT10 route cycles do not manufacture progress
+[A1Retreat] PASS RL02 RT01 authored direction-dependent mask is used at each origin
+[A1Retreat] PASS RT05 owned occupation blocks a projected step
+[A1Retreat] PASS unexplored terrain is not a certified retreat chain
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=0
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=0 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=0
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=2
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=2 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=2
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=False height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=False height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=9
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=True height=1
+[A1Retreat] PASS formal current move-preview parity fatigue=9 moved=True height=2
+[A1Retreat] PASS formal current attack-preview parity fatigue=9
+[A1Retreat] PASS projected quote leaves live fatigue and first-move flags intact
+[A1Retreat] PASS Assassin quote retains formal early-return precedence
+[A1Retreat] PASS RT08 full HP waits the first two formal owner boundaries
+[A1Retreat] PASS RT08 third full-HP boundary restores formal rounded twenty percent
+[A1Retreat] PASS RT08 forecast equals native recovery transition
+[A1Retreat] PASS RT08 incomplete HP never invents a future healer action
+[A1Retreat] PASS AD04 RT08 unpaid forecast cites formal HP-loss rule and cannot promise barrier regeneration
+[A1Retreat] PASS forecast never advances the live full-HP clock
+[A1Retreat] COMPLETE (native contracts, no match outcome claimed)
+[A1Core] COMPLETE
+[R2Fixed] PASS A01
+[R2Fixed] PASS A02
+[R2Fixed] PASS A03
+[R2Fixed] PASS A04
+[R2Fixed] PASS A05
+[R2Fixed] PASS A06
+[R2Fixed] PASS A07
+[R2Fixed] PASS A08
+[R2Fixed] PASS A10
+[R2Fixed] PASS B04
+[R2Fixed] PASS UP08
+[R2Fixed] PASS C01
+[R2Fixed] PASS C03
+[R2Fixed] PASS C05
+[R2Fixed] PASS C04
+[R2Fixed] PASS C02
+[R2Fixed] PASS C04-global
+[R2Fixed] PASS balance-multiplier-applies-once-to-base-and-extras
+[R2Fixed] PASS balance-multiplier-does-not-reintroduce-level-growth
+[R2Fixed] PASS invalid-low-upkeep-multiplier-is-bounded
+[R2Fixed] PASS invalid-high-upkeep-multiplier-is-bounded
+[R2Fixed] PASS C06-exempt
+[R2Fixed] PASS C06-king
+[R2Fixed] PASS C06-boss
+[R2Fixed] PASS C08
+[R2Fixed] PASS D01
+[R2Fixed] PASS D02
+[R2Fixed] PASS I03
+[R2Fixed] PASS retired-engineer-is-not-authorable-or-recruitable
+[R2Fixed] PASS A09
+[R2Fixed] PASS D08
+[R2Fixed] COMPLETE
+[R2Save] PASS F01
+[R2Save] PASS F02
+[R2Save] PASS F03
+[R2Save] PASS F04
+[R2Save] PASS F05
+[R2Save] PASS F06-partial
+[R2Save] PASS F07
+[R2Save] PASS F08
+[R2Save] PASS F09-future
+[R2Save] PASS F10-partial
+[R2Save] PASS SVR02
+[R2Save] PASS SVR08
+[R2Save] PASS unknown-bonuses-preserved
+[R2Save] PASS SVR10-unit
+[R2Save] PASS scene-override-never-guessed-from-static
+[R2Save] PASS F02-scene-definition
+[R2Save] PASS F07-scene-definition
+[R2Save] COMPLETE
+[R2Barrier] PASS BR01 70% and 90% HP never regenerate after three or more boundaries
+[R2Barrier] PASS BR02 full-HP arrival starts a zero-length waiting interval
+[R2Barrier] PASS BR03 first and second own boundaries do not regenerate
+[R2Barrier] PASS BR04 third own boundary restores twenty percent
+[R2Barrier] PASS BR05 later own boundaries continue and clamp at maximum
+[R2Barrier] PASS BR06 barrier-only damage preserves full-HP history
+[R2Barrier] PASS BR07 one HP loss resets immediately; real healing begins a new three-boundary wait
+[R2Barrier] PASS BR08 dead actors cannot regenerate
+[R2Barrier] PASS BR09 initial barrier table is neither level-scaled nor multiplied by 1.75
+[R2Barrier] PASS BR10 roundtrip neither advances nor replays a boundary; legacy safe-hit history grants no full-HP credit
+[R2Barrier] PASS BR11 live, captured simulation and pure forecast agree; cloned clocks are independent
+[R2Barrier] PASS BR12 player direct-heal and enemy natural-heal share the same new full-HP clock
+[R2Barrier] COMPLETE BR01-BR12
+[R2TimerUI] PASS TM01 no forced player turn end after 180 seconds
+[R2TimerUI] PASS TM02 no forced player turn end after 600 seconds
+[R2TimerUI] PASS elapsed time does not deduct legacy totals
+[R2TimerUI] PASS TM03 zero legacy clocks do not end the game
+[R2TimerUI] PASS TM04 no historical timeout callback for either side
+[R2TimerUI] PASS no time-up result or reason is retained
+[R2TimerUI] PASS R2 advertises no gameplay clock limit
+[R2TimerUI] PASS AI receives no gameplay deadline
+[R2TimerUI] PASS TM08 no gameplay timer still keeps the finite technical limit
+[R2TimerUI] PASS manual stop keeps the lifecycle seam and adds no clock bonus
+[R2TimerUI] PASS manual restart retains active team
+[R2TimerUI] PASS invalid elapsed values cannot create a timeout
+[R2TimerUI] PASS restoring invalid historical clock values is finite
+[R2TimerUI] PASS E03 summon tooltip contains no unit growth labels
+[R2TimerUI] PASS E04 summon tooltip uses canonical fixed HP and ATK
+[R2TimerUI] PASS E05 summon upkeep comes from the fixed API
+[R2TimerUI] PASS R2 barrier explanation uses full HP rather than old damage-free threshold
+[R2TimerUI] PASS E02/E09 units hide the shared facility level and close the empty row
+[R2TimerUI] PASS E08/E09 facility selection restores its upgrade row and original HP layout
+[R2TimerUI] PASS E09 repeated facility-to-unit switching never leaves a stale row
+[R2TimerUI] PASS retired engineer cannot open a construction menu
+[R2TimerUI] PASS ordinary construction context remains active after rejected engineer request
+[R2TimerUI] PASS ordinary construction context switch is explicit and idempotent
+[R2TimerUI] PASS a null engineer cannot create a new remote construction context
+[R2TimerUI] PASS MN12 own-territory mine shows ordinary production
+[R2TimerUI] PASS MN12 existing mine presents effective recipe and operation state
+[R2TimerUI] PASS E01 no runtime level badge text cache remains
+[R2TimerUI] RESULT checks=27
+[R2CoreContracts] COMPLETE
+[CoreTest] PASS  R1 AP citizens=0
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=5
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=10
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=20
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=30
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=100
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  Load clamps AP to current faction maximum
+[CoreTest] PASS  Load clamps AP lower bound
+[CoreTest] PASS  R1 independent damage example
+[CoreTest] PASS  Crystal starts at formal base HP5000
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  Uncontrolled dungeon pauses
+[CoreTest] PASS  Takeover continues at 8
+[CoreTest] PASS  Takeover continues at 9
+[CoreTest] PASS  Reward for final controller
+[CoreTest] PASS  Dungeon remains for next cycle
+[CoreTest] PASS  High ground beats low ground
+[CoreTest] PASS  Actual damage excludes overkill
+[CoreTest] PASS  Skill still applies actual HP damage
+[CoreTest] PASS  Skill damage gives no XP or level growth
+[CoreTest] PASS  Skill damage retains combat attribution and victim life identity
+[CoreTest] PASS  Shield prevents damage and keeps XP disabled
+[CoreTest] PASS  Skill kill preserves reward owner and victim life identity
+[CoreTest] PASS  Skill kill gives no XP or level growth
+[CoreTest] PASS  Fixed skill is deterministic
+[CoreTest] PASS  High mountain blocks both directions
+[CoreTest] PASS  Mountain endpoint is visible but not attackable
+[CoreTest] PASS  Sight cannot pass beyond mountain
+[CoreTest] PASS  Height lookup excludes mountains and out of bounds
+[CoreTest] PASS  Height lookup returns standing height
+[CoreTest] PASS  Reserved crystal tile is not a placement candidate
+[CoreTest] PASS  Clear terrain remains traversable
+[CoreTest] PASS  Monster status ticks once
+[CoreTest] PASS  Monster turn does not tick other factions
+[CoreTest] PASS  Intruder status ticks independently
+[CoreTest] PASS  Neutral exploration does not leak to enemy
+[CoreTest] PASS  Neutral clear preserves enemy exploration
+[CoreTest] PASS  Initial camera centers player base
+[CoreTest] PASS  Camera clamp handles small maps
+[CoreTest] PASS  Damage clamped to 0 when DEF overwhelms ATK
+[CoreTest] PASS  Damage is positive when ATK >> DEF
+[CoreTest] PASS  CalcRawBase formula (expected=36.33334, actual=36.33333)
+[CoreTest] PASS  Main crystal cannot reactivate an old invulnerability shield
+[CoreTest] PASS  Ordinary unit shield remains active
+[CoreTest] PASS  Elapsed legacy turn time does not end the turn
+[CoreTest] PASS  Zero saved clocks cannot decide a win, loss or draw
+[CoreTest] PASS  Manual timer lifecycle remains available without a gameplay deadline
+[R4World] PASS W-truth-and
+[R4World] PASS W-truth-or
+[R4World] PASS W-nonfinite-confidence
+[R4World] PASS W-caller-array-isolation
+[R4World] PASS W-no-future-observation
+[R4World] PASS W-missing-is-unknown
+[R4World] PASS W-own-and-global-clock-distinct
+[R4World] PASS W-value-field-AIObservedUnitValue.LifeId
+[R4World] PASS W-value-field-AIObservedUnitValue.Kind
+[R4World] PASS W-value-field-AIObservedUnitValue.Team
+[R4World] PASS W-value-field-AIObservedUnitValue.Position
+[R4World] PASS W-value-field-AIObservedUnitValue.HP
+[R4World] PASS W-value-field-AIObservedUnitValue.MaxHP
+[R4World] PASS W-value-field-AIObservedUnitValue.Barrier
+[R4World] PASS W-value-field-AIObservedUnitValue.MaxBarrier
+[R4World] PASS W-value-field-AIObservedUnitValue.ATK
+[R4World] PASS W-value-field-AIObservedUnitValue.AP
+[R4World] PASS W-value-field-AIObservedUnitValue.ObservedTurn
+[R4World] PASS W-value-field-AIObservedUnitValue.IsCommander
+[R4World] PASS W-value-field-AIObservedUnitValue.IsBuilding
+[R4World] PASS W-value-field-AIObservedUnitValue.IsCrystal
+[R4World] PASS W-value-field-AIObservedUnitValue.Source
+[R4World] PASS W-value-field-AIObservedUnitValue.Confidence
+[R4World] PASS W-value-field-AIWorldFact.Id
+[R4World] PASS W-value-field-AIWorldFact.TargetLifeId
+[R4World] PASS W-value-field-AIWorldFact.ExpirationPolicy
+[R4World] PASS W-value-field-AIWorldFact.Source
+[R4World] PASS W-value-field-AIWorldFact.ObservedTurn
+[R4World] PASS W-value-field-AIWorldFact.Confidence
+[R4World] PASS W-value-field-AIWorldFact.Truth
+[R4World] PASS W-value-field-AIWorldFact.Position
+[R4World] PASS W-value-field-AIWorldFact.HasPosition
+[R4World] PASS W-value-field-AIWorldFact.Value
+[R4World] PASS W-value-field-AIWorldTerrainValue.Cell
+[R4World] PASS W-value-field-AIWorldTerrainValue.Walkable
+[R4World] PASS W-value-field-AIWorldTerrainValue.CurrentlyVisible
+[R4World] PASS W-value-field-AIWorldTerrainValue.HasHeight
+[R4World] PASS W-value-field-AIWorldTerrainValue.Height
+[R4World] PASS W-value-field-AIWorldTerrainValue.ObservedTurn
+[R4World] PASS W-value-field-AIWorldTerrainValue.Source
+[R4World] PASS W-value-field-AIWorldObjectiveValue.Id
+[R4World] PASS W-value-field-AIWorldObjectiveValue.TargetLifeId
+[R4World] PASS W-value-field-AIWorldObjectiveValue.OperationId
+[R4World] PASS W-value-field-AIWorldObjectiveValue.Goal
+[R4World] PASS W-value-field-AIWorldObjectiveValue.Position
+[R4World] PASS W-value-field-AIWorldObjectiveValue.HasPosition
+[R4World] PASS W-value-field-AIWorldObjectiveValue.Source
+[R4World] PASS W-value-field-AIWorldObjectiveValue.ObservedTurn
+[R4World] PASS W-value-field-AIWorldObjectiveValue.Confidence
+[R4World] PASS W-value-field-AIWorldBeliefCell.ContactId
+[R4World] PASS W-value-field-AIWorldBeliefCell.Cell
+[R4World] PASS W-value-field-AIWorldBeliefCell.Probability
+[R4World] PASS W-value-field-AIWorldBeliefCell.UnknownProbability
+[R4World] PASS W-value-field-AIWorldBeliefCell.ObservedTurn
+[R4World] PASS H-stall-uses-recorded-progress
+[R4World] PASS H-repeat-deduplicates-problem
+[R4World] PASS H-siege-progress-is-not-stall
+[R4World] PASS H-deliberate-suspension-is-not-stall
+[R4World] PASS H-emergency-hold-is-not-stall
+[R4World] PASS H-unknown-route-is-not-confirmed-block
+[R4World] PASS H-confirmed-block-is-problem
+[R4World] PASS H-retains-alternative-causes
+[R4World] PASS H-records-real-refutation
+[R4World] PASS H-rejects-duplicate-result
+[R4World] PASS H-refutation-survives-unchanged-context
+[R4World] PASS H-save-value-roundtrip
+[R4World] PASS H-save-does-not-share-entry-list
+[R4World] PASS H-future-save-rejected
+[R4World] PASS H-foreign-owner-rejected
+[R4World] PASS H-future-own-turn-rejected
+[R4World] PASS H-malformed-confidence-rejected
+[R4World] PASS H-low-information-value
+[R4World] PASS H-irrelevant-scout-value
+[R4World] PASS H-nonfinite-information-value
+[R4World] PASS H-global-clock-event
+[R4World] PASS SV-clock-values-roundtrip
+[R4World] PASS SV-future-global-turn-rejected
+[R4World] PASS H-future-outcome-rejected
+[R4SearchKey] PASS Z-key-api-available
+[R4SearchKey] PASS Z01-origin-vs-corner
+[R4SearchKey] PASS Z02-distinct-horizontal-boundaries
+[R4SearchKey] PASS Z04-key-only-height-difference
+[R4SearchKey] PASS Z05-swapped-hp-is-bound-to-individual
+[R4SearchKey] PASS Z06-unit-enumeration-order-invariant
+[R4SearchKey] PASS Z07-repeatable-equal-value-board
+[R4SearchKey] PASS Z08-facing
+[R4SearchKey] PASS Z08-skill-cooldown
+[R4SearchKey] PASS Z08-skill-identity
+[R4SearchKey] PASS Z08-fatigue
+[R4SearchKey] PASS Z08-shield-turn
+[R4SearchKey] PASS Z08-shield-history
+[R4SearchKey] PASS Z08-barrier-maximum
+[R4SearchKey] PASS Z08-commander-status
+[R4SearchKey] PASS Z08-vision-disabled
+[R4SearchKey] PASS Z08-buff-future
+[R4SearchKey] PASS Z08-buff-duration
+[R4SearchKey] PASS Z08-debuff-duration
+[R4SearchKey] PASS Z06-effects-enumeration-order-invariant
+[R4SearchKey] PASS Z08-crystal-counter-future
+[R4SearchKey] PASS Z08-full-crystal-hp-not-clamped-key
+[R4SearchKey] PASS Z08-side-to-act
+[R4SearchKey] PASS Z08-own-ap
+[R4SearchKey] PASS Z08-opponent-ap
+[R4SearchKey] PASS Z08-ap-reset
+[R4SearchKey] PASS Z08-global-round
+[R4SearchKey] PASS Z08-normalized-observer
+[R4CausalExperience] PASS L02-first-completion-receipt
+[R4CausalExperience] PASS L02-no-duplicate-credit
+[R4CausalExperience] PASS L-minimum-two-samples
+[R4CausalExperience] PASS L-two-sample-outcome
+[R4CausalExperience] PASS L-caller-cannot-bypass-two-sample-threshold
+[R4CausalExperience] PASS L-minimum-samples-can-be-higher
+[R4CausalExperience] PASS L-calibration-bounded
+[R4CausalExperience] PASS L-negative-calibration-bounded
+[R4CausalExperience] PASS L-prediction-error-reduces-confidence-use
+[R4CausalExperience] PASS L-strategic-abort-is-observation
+[R4CausalExperience] PASS L-strategic-abort-not-automatic-failure
+[R4CausalExperience] PASS L-dirty-after-real-result
+[R4CausalExperience] PASS L-mark-saved-clears-dirty
+[R4CausalExperience] PASS L-private-receipt-accepted
+[R4CausalExperience] PASS L-no-battle-or-actor-id-in-generalized-json
+[R4CausalExperience] PASS L-receipt-dedup-survives-json-roundtrip
+[R4CausalExperience] PASS L-512-generalized-entry-cap
+[R4CausalExperience] PASS L-capped-profile-is-valid
+[R4CausalExperience] PASS L-oldest-context-evicted-under-cap
+[R4CausalExperience] PASS L-rejects-NaN-outcome
+[R4CausalExperience] PASS L-rejects-Infinity-error
+[R4CausalExperience] PASS L-rejects-unknown-knowledge-id
+[R4CausalExperience] PASS L-rejects-unknown-goal
+[R4CausalExperience] PASS L-rejects-oversized-context
+[R4CausalExperience] PASS L-invalid-results-do-not-create-rewards
+[R4CausalExperience] PASS SV-future-causal-schema-rejected
+[R4CausalExperience] PASS SV-foreign-causal-owner-rejected
+[R4CausalExperience] PASS SV-nonfinite-causal-confidence-rejected
+[R4CausalExperience] PASS SV-inconsistent-causal-counts-rejected
+[R4CausalExperience] PASS SV-future-use-sequence-rejected
+[R4CausalExperience] PASS SV-duplicate-causal-context-rejected
+[R4CausalExperience] PASS SV-oversized-causal-list-rejected
+[R4CausalExperience] PASS SV-unbounded-receipt-filter-rejected
+[R4CausalExperience] PASS SV-invalid-restore-preserves-valid-memory
+[R4CausalExperience] PASS R4-default-disabled-and-shadow
+[R4CausalExperience] PASS R4-shadow-prevents-selection-change
+[R4CausalExperience] PASS R4-explicitly-approved-hint-mode
+[R4CausalExperience] PASS R4-no-world-model-no-execution
+[R4CausalExperience] PASS R4-no-planner-no-execution
+[R4CausalExperience] PASS R4-bounded-planner-config
+[R4CausalExperience] PASS R4-finite-learning-and-trace-config
+[R4経験] 読み込みを省略: future_cognitive_schema
+[R4CausalExperience] PASS SV-future-json-is-not-loaded
+[R4CausalExperience] PASS SV-loaded-future-json-is-not-overwritten
+[R4経験] 保存を省略: future_cognitive_schema
+[R4CausalExperience] PASS SV-unloaded-future-json-is-not-overwritten
+[R4Save] PASS SV01/empty-extension
+[R4Save] PASS SV02/null-optional-roundtrip/Player
+[R4Save] PASS SV02/validation-is-read-only/Player
+[R4Save] PASS SV02/empty-inline-extensions-restore-as-absent/Player
+[R4Save] PASS SV02/absent-extensions-survive-resave/Player
+[R4Save] PASS SV02/null-optional-roundtrip/Enemy
+[R4Save] PASS SV02/validation-is-read-only/Enemy
+[R4Save] PASS SV02/empty-inline-extensions-restore-as-absent/Enemy
+[R4Save] PASS SV02/absent-extensions-survive-resave/Enemy
+[R4Save] PASS SV02/scoped-hypothesis-data-is-preserved
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV05/foreign-hypothesis-owner-is-not-normalized
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV05/foreign-hypothesis-battle-is-not-normalized
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/Version
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/BattleId
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/ActorTeam
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/LastOwnTurn
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/LastGlobalTurn
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/Entries
+[R4Save] PASS SV06/null-optional-collection/AIHypothesisBattleState/Entries
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AIHypothesisBattleState/ProcessedEventIds
+[R4Save] PASS SV06/null-optional-collection/AIHypothesisBattleState/ProcessedEventIds
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/PlanId
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/Signature
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/ObjectiveRef
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/TargetObservedId
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/PrimaryMethod
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/BattleId
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/OwnerTeam
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/ParentOperationId
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/Goal
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/CreatedTurn
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/LastValidatedTurn
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/BoardGenerationAtValidation
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/StrategicPriorityBand
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/Status
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/Steps
+[R4Save] PASS SV06/null-optional-collection/AICognitivePlan/Steps
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/KnowledgeIds
+[R4Save] PASS SV06/null-optional-collection/AICognitivePlan/KnowledgeIds
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/KnowledgeVersions
+[R4Save] PASS SV06/null-optional-collection/AICognitivePlan/KnowledgeVersions
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/OriginProblemIds
+[R4Save] PASS SV06/null-optional-collection/AICognitivePlan/OriginProblemIds
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/HypothesisIds
+[R4Save] PASS SV06/null-optional-collection/AICognitivePlan/HypothesisIds
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/ExplanationEvidenceIds
+[R4Save] PASS SV06/null-optional-collection/AICognitivePlan/ExplanationEvidenceIds
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/EnemyResponses
+[R4Save] PASS SV06/null-optional-collection/AICognitivePlan/EnemyResponses
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/GoalProgress
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/EffectiveDamage
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/EffectiveSupport
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/PredictedIncomingDamage
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/WorstCaseLoss
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/APCost
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/Delay
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/Confidence
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/Uncertainty
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/Utility
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/ExistingActionScore
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/ProvenVictory
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/PreparationProven
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/HasUnknownContinuationCost
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartActorPosition
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/ExpectedActorPosition
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartTargetHP
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartTargetBarrier
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartOwnAP
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/StartOwnUnitCount
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/ActualObservationReason
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/LookaheadCompletedDepth
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/LookaheadDelta
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/LookaheadUtilityAdjustment
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/LookaheadSourceKind
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/SquadSequenceSignature
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/AbandonCondition
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/ReplanTrigger
+[R4保存] 不正な計画を破棄し、現在の観測から再計画します。
+[R4Save] PASS SV06/unscoped-data/AICognitivePlan/RejectionReason
+[R4保存] 新しい版の計画を保持し、通常AIで続行します。
+[R4Save] PASS SV07/future-json-is-preserved-before-normalization
+[R4Save] PASS SV05/foreign-owner
+[R4Save] PASS SV05/foreign-battle
+[R4Save] PASS SV07/future-state-not-used
+[R4Save] PASS SV06/negative-event
+[R4Save] PASS SV02/pre-roundtrip-valid
+[R4Save] PASS SV02/value-roundtrip
+[R4Save] PASS SV02/active-plan-survives-absent-hypotheses
+[R4Save] PASS SV03/no-reserved-action-replay
+[R4Save] PASS SV03/restored-intent-can-be-saved-before-replanning
+[R4Save] PASS SV06/nonfinite
+[R4Save] PASS SV06/unknown-knowledge
+[R4Save] PASS SV06/null-dependency
+[R4Diagnostic] PASS X20/completed-plan-has-no-rejection
+[R4Diagnostic] PASS X20/insufficient-AP-has-own-reason
+[R4Diagnostic] PASS X20/protected-band-is-not-misreported-as-unsupported
+[R4Diagnostic] PASS X20/illegal-formal-assessment
+[R4Diagnostic] PASS X20/lethal-risk-is-a-safety-rejection
+[R4Diagnostic] PASS X20/nonfinite-prediction-is-distinct
+[R4Diagnostic] PASS X20/unproven-effect-is-not-invented
+[R4Diagnostic] PASS X20/missing-knowledge-evidence
+[R4Diagnostic] PASS X20/rejection-diagnostics-do-not-change-action-score
+[R4Diagnostic] PASS X20/observed-failure-context-is-distinct
+[R4Diagnostic] PASS X20/rejection-records-bounded-with-total-preserved
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/rejection-value-is-bounded
+[R4Diagnostic] PASS X20/diagnostics-off-retains-only-cheap-total
+[R4Diagnostic] PASS F06/planning-pauses-before-assessment
+[R4Diagnostic] PASS F07/cancelled-generation-does-not-expose-ready-plan
+[R4Diagnostic] PASS I08/callback-failure-invalidates-unfinished-generation
+[R4Diagnostic] PASS X15/zero-budget-is-explicit-and-no-clock-reset
+[R4Diagnostic] PASS X20/reset-drops-battle-local-diagnostics
+[R4Lookahead] PASS F01-source-distinct-means
+[R4Lookahead] PASS F06-depth-zero-rejected
+[R4Lookahead] PASS F06-heuristic-not-minimax
+[R4Lookahead] PASS F06-stale-generation-rejected
+[R4Lookahead] PASS F01-existing-completed-result-used
+[R4Lookahead] PASS F01-no-second-action-score-addition
+[R4Lookahead] PASS F01-no-new-thinking-clock
+[R4Lookahead] PASS F01-bounded-utility-IMPROVE_POSITION
+[R4Lookahead] PASS F01-bounded-utility-ATTACK
+[R4Lookahead] PASS F01-repeated-result-idempotent
+[R4Lookahead] PASS F01-no-whole-plan-parity-claim
+[R4Lookahead] PASS F06-nonfinite-results-ignored
+[R4Lookahead] PASS F06-unbound-result-ignored
+[R4Lookahead] PASS I02-protected-band-not-reclassified
+[R4Lookahead] PASS X19-disabled-handoff-no-op
+[R4Lookahead] PASS F06-lower-depth-does-not-replace-complete-depth
+[R4Lookahead] PASS P04-small-lookahead-difference-retains-progressing-plan
+[R4Lookahead] PASS P04-completed-score-does-not-change-final-objective
+[R4Lookahead] PASS F06-entry-invalidates-old-metadata-before-enumeration
+[R4Squad] PASS value-chain matching current two-actor sequence is admitted
+[R4Squad] PASS S04-value-chain first action stays bound and later action is not executable
+[R4Squad] PASS S06-value-chain temporary mission remains separate from permanent roles
+[R4Squad] PASS value-chain builder does not mutate source plan or reserve AP
+[R4Squad] PASS value-chain copied head owns its evidence list
+[R4Squad] PASS S04-value-chain combined AP is checked
+[R4Squad] PASS value-chain hard configured step limit is checked
+[R4Squad] PASS value-chain remaining turn iteration slots are checked
+[R4Squad] PASS value-chain no new clock is added
+[R4Squad] PASS value-chain invalid time cannot grant a sequence
+[R4Squad] PASS value-chain old-generation proof rejected
+[R4Squad] PASS S10-value-chain unsafe actor does not acquire a new exception
+[R4Squad] PASS value-chain formal validation required for every actor
+[R4Squad] PASS value-chain coordination cannot replace the selected head
+[R4Squad] PASS value-chain one tentative action per actor
+[R4Squad] PASS value-chain same observed target required
+[R4Squad] PASS value-chain past sighting is not current target evidence
+[R4Squad] PASS value-chain dead target does not retain attack reservations
+[R4Squad] PASS value-chain commander cannot be spent by this adapter
+[R4Squad] PASS value-chain finite protection witness must match coordinator
+[R4Squad] PASS value-chain incomplete predicted kill is not certified as coordinator chain
+[R4Squad] PASS S02-value-chain guaranteed control remains an observation dependency
+[R4Squad] PASS S02-value-chain uncertain control not treated as already applied
+[R4Squad] PASS value-chain never exceeds five coordinator actions
+[R4Squad] PASS feature-off does not change an existing plan
+[R4Squad] source-contract checks completed 25; real-board execution is separate.
+[R3ScoutContinuity] PASS empty-terrain-owner-map-clock-boundary-0
+[R3ScoutContinuity] PASS empty-terrain-owner-map-clock-boundary-1
+[R3ScoutContinuity] PASS empty-terrain-owner-map-clock-boundary-2
+[R3ScoutContinuity] PASS loaded-runtime-id-is-not-reused
+[R3ScoutContinuity] PASS legacy-leg-does-not-reuse-previous-reveals
+[R3ScoutContinuity] PASS stable-life-rebind-keeps-mission-and-paused-clock
+[R3ScoutContinuity] PASS recycled-runtime-id-cannot-inherit-mission
+[R3ScoutContinuity] PASS duplicate-life-reveal-is-credited-once
+[R3ScoutContinuity] PASS objective-update-does-not-erase-expedition-evidence
+[R3ScoutContinuity] PASS completed-viewpoint-roundtrip-keeps-result
+[R3ScoutContinuity] PASS elapsed-time-alone-does-not-invent-new-information
+[R3ScoutContinuity] PASS new-observed-contact-allows-legitimate-revisit
+[R3ScoutContinuity] PASS duplicate-save-record-retains-latest-observed-result
+[R3ScoutContinuity] PASS older-duplicate-cannot-revive-stale-viewpoint-result
+[R3ScoutContinuity] PASS counter-wrap-skips-retained-objective-identities
+[R3RecoveryState] PASS Player/restore-does-not-retain-input-reference
+[R3RecoveryState] PASS Player/capture-is-detached
+[R3RecoveryState] PASS Player/capture-cannot-relabel-foreign-records
+[R3RecoveryState] PASS Player/roundtrip-retains-life-phase-and-turn
+[R3RecoveryState] PASS Player/foreign-restore-clears-old-state
+[R3RecoveryState] PASS Player/release-clears-records-and-owner
+[R3RecoveryState] PASS Enemy/restore-does-not-retain-input-reference
+[R3RecoveryState] PASS Enemy/capture-is-detached
+[R3RecoveryState] PASS Enemy/capture-cannot-relabel-foreign-records
+[R3RecoveryState] PASS Enemy/roundtrip-retains-life-phase-and-turn
+[R3RecoveryState] PASS Enemy/foreign-restore-clears-old-state
+[R3RecoveryState] PASS Enemy/release-clears-records-and-owner
+[R3RecoveryState] PASS malformed-records-do-not-duplicate-or-revive-state
+[R3RecoveryState] PASS unknown-owner-rejected
+[R3RecoveryState] PASS unknown-version-not-interpreted
+[R3RecoveryState] PASS oversized-save-is-bounded
+[R3MaterialCapacity] PASS purchase-plus-protected-reserve-exceeds-cap
+[R3MaterialCapacity] PASS already-expanded-capacity-does-not-repeat-investment
+[R3MaterialCapacity] PASS sequential-orders-are-not-summed
+[R3MaterialCapacity] PASS unpayable-AP-does-not-justify-storage
+[R3MaterialCapacity] PASS foreign-definition-does-not-justify-storage
+[R3MaterialCapacity] PASS unreachable-authored-cost-does-not-create-endless-investment
+[R3MaterialCapacity] PASS missing-income-needs-supply-not-capacity
+[R3MaterialCapacity] PASS purchase-that-fits-never-requests-expansion
+[R3MaterialCapacity] PASS existing-production-assessment-recognizes-planned-capacity
+[R3MaterialCapacity] PASS equal-marginal-supply-has-equal-critical-coverage
+[R3MaterialCapacity] PASS warehouse-upgrade-counts-added-capacity-only
+[R3MaterialCapacity] PASS upgrade-cannot-promise-output-without-existing-inputs
+[R3MaterialCapacity] PASS maximum-level-upgrade-is-not-an-investment
+[R3MaterialCapacity] PASS siege-ranks-real-hp-progress-per-ap
+[R3MaterialCapacity] PASS siege-efficiency-zero-and-extreme-values-remain-bounded
+[R3MaterialCapacity] PASS equally-winning-targets-prefer-less-observed-work
+[R3MaterialCapacity] PASS victory-pressure-handles-zero-impact-and-int32-barrier-sums
+[R3MaterialCapacity] PASS long-passive-siege-competes-with-deployment
+[R3MaterialCapacity] PASS passive-workload-remains-finite-for-zero-impact
+[AIAdaptiveBudget] PASS Player ordinary context uses the adjustable 2.5-second proposal
+[AIAdaptiveBudget] PASS Player observed combat uses the 5-second proposal
+[AIAdaptiveBudget] PASS Player coordinated combat uses the 6-second proposal
+[AIAdaptiveBudget] PASS Player highest applicable category wins once instead of adding four budgets
+[AIAdaptiveBudget] PASS Player an explicit compatibility deadline remains a hard rule without extension
+[AIAdaptiveBudget] PASS Player an exhausted compatibility deadline cannot receive extra thinking or finishing time
+[AIAdaptiveBudget] PASS Enemy ordinary context uses the adjustable 2.5-second proposal
+[AIAdaptiveBudget] PASS Enemy observed combat uses the 5-second proposal
+[AIAdaptiveBudget] PASS Enemy coordinated combat uses the 6-second proposal
+[AIAdaptiveBudget] PASS Enemy highest applicable category wins once instead of adding four budgets
+[AIAdaptiveBudget] PASS Enemy an explicit compatibility deadline remains a hard rule without extension
+[AIAdaptiveBudget] PASS Enemy an exhausted compatibility deadline cannot receive extra thinking or finishing time
+[AIAdaptiveBudget] PASS adaptive selection reports its active decision
+[AIAdaptiveBudget] PASS disabling adaptation restores configured legacy time rather than the previous adaptive result
+[AIAdaptiveBudget] PASS a preference change does not alter an already-frozen turn
+[AIAdaptiveBudget] PASS an explicit legacy preference applies at the next turn boundary
+[AIAdaptiveBudget] PASS invalid normal/combat settings stay in their required ranges
+[AIAdaptiveBudget] PASS nonfinite coordination/critical settings use finite proposal defaults
+[AIAdaptiveBudget] PASS a malformed official timer never grants unlimited time
+[AIAdaptiveBudget] PASS compatibility budget remains finite and bounded
+[AIAdaptiveBudget] PASS committing the selected budget retains setup CPU/wall clocks
+[AIAdaptiveBudget] PASS an already-exhausted selected budget expires immediately
+[AIAdaptiveBudget] PASS generic budget cannot become unbounded from nonfinite input
+[AIAdaptiveBudget] PASS R2 legacy clock values do not impose a gameplay deadline for either side
+[AIAdaptiveBudget] PASS Player an unlimited gameplay clock retains the finite adaptive technical budget
+[AIAdaptiveBudget] PASS Player selected technical budget remains bounded by the watchdog
+[AIAdaptiveBudget] PASS Player exhausting the technical budget still stops thinking
+[AIAdaptiveBudget] PASS Enemy an unlimited gameplay clock retains the finite adaptive technical budget
+[AIAdaptiveBudget] PASS Enemy selected technical budget remains bounded by the watchdog
+[AIAdaptiveBudget] PASS Enemy exhausting the technical budget still stops thinking
+[AIAdaptiveBudget] PASS elapsed time leaves legacy clock data unchanged and never forces a player turn end
+[AIAdaptiveBudget] PASS zero historical clocks never produce a timeout or time-up result
+[AIAdaptiveBudget] PASS manual timer lifecycle stop remains available without a gameplay deadline
+[AIAdaptiveBudget] ALL PASSED 33
+[R4契約テスト] 登録済みの単体チェックを終了。実戦・152項目全体の合格を意味しません。
+[CoreTest] Done: 59 passed, 0 failed
+[AIAdaptive] PASS successful-advance-learned
+[AIAdaptive] PASS unproductive-combat-deprioritized
+[AIAdaptive] PASS ordinary-candidate-order-changes
+[AIAdaptive] PASS score-cap
+[AIAdaptive] PASS survival-and-essential-tiers-immutable
+[AIAdaptive] PASS low-difficulty-unchanged
+[AIAdaptive] PASS disable-is-neutral
+[AIAdaptive] PASS faction-state-isolated
+[AIAdaptive] PASS corrupt-values-bounded
+[AIAdaptive] PASS save-copy-isolated
+[AIAdaptive] PASS mid-turn-save-resume-preserves-outcome
+[AIAdaptive] PASS known-objective-stall-adapts
+[AIAdaptive] PASS emergency-cancels-stall-pressure
+[AIAdaptive] PASS no-hidden-goal-manufactured
+[AIAdaptive] PASS reflection-execution-updates-policy
+[AIAdaptive] PASS reflection-battle-save-resume
+[AIAdaptive] RESULT checks=16
+[SquadCore] COMPLETE
