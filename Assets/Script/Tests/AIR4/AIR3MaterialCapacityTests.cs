@@ -56,6 +56,9 @@ public static class AIR3MaterialCapacityTests
                 > AICombatEvaluator.VictoryPressure(5000, 20, 2));
             Check("victory-pressure-handles-zero-impact-and-int32-barrier-sums", AICombatEvaluator.VictoryPressure(5000, 0, 2) == 0
                 && AICombatEvaluator.VictoryPressure(2L * int.MaxValue, 1, int.MaxValue) >= 0);
+            Check("long-passive-siege-competes-with-deployment", AICombatEvaluator.PassiveSiegeWorkload(5000, 14, 2) > 20
+                && AICombatEvaluator.PassiveSiegeWorkload(100, 14, 2) == 0);
+            Check("passive-workload-remains-finite-for-zero-impact", AICombatEvaluator.PassiveSiegeWorkload(5000, 0, 0) == 30);
         }
         finally { UnityEngine.Object.DestroyImmediate(priest); UnityEngine.Object.DestroyImmediate(archer); UnityEngine.Object.DestroyImmediate(healing); }
     }

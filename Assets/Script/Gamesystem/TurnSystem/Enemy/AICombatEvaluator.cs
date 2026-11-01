@@ -35,7 +35,9 @@ static class AICombatEvaluator
             score += (1f - hpRatio) * 15f;
         }
 
-        if (MatchObjectiveRules.IsDecisive(action.TargetUnit))
+        bool decisive = MatchObjectiveRules.IsDecisive(action.TargetUnit);
+        bool passivePressure = AIActionEvaluator.IsNonFinishingPassiveStructureAttack(action, board);
+        if (decisive || passivePressure)
         {
             // Both decisive identities win the same match. Prefer the smaller
             // observed workload instead of an unconditional crystal-over-king
@@ -43,7 +45,8 @@ static class AICombatEvaluator
             // future fatigue, healing and reinforcement still need simulation.
             int impact = AIActionEvaluator.EstimateEffectiveSpecialImpact(action.Unit, action.TargetUnit, board, out var recipient);
             long durability = recipient != null ? (long)recipient.HP + recipient.Barrier : action.TargetUnit.HP;
-            score += 50 + VictoryPressure(durability, impact, action.APCost);
+            if (decisive) score += 50 + VictoryPressure(durability, impact, action.APCost);
+            else score -= PassiveSiegeWorkload(durability, impact, action.APCost);
         }
         if (board.ReconThreatLevel >= 31 && action.TargetUnit.kind == Kind.Scout)
             score += board.ReconThreatLevel >= 51 ? 20f : 12f;
@@ -62,6 +65,13 @@ static class AICombatEvaluator
     internal static float VictoryPressure(long durability, int impact, int ap)
         => impact <= 0 ? 0 : (float)(30d / (1 + System.Math.Max(0, durability)
             * (double)Mathf.Max(1, ap) / impact / Mathf.Max(1, APSystem.MaximumAP)));
+
+    // A nonlethal chip on a passive outpost is not worth the full flat attack
+    // bonus when it needs several faction AP budgets. Finishing hits, armed
+    // defenses and decisive targets never enter this opportunity-cost branch.
+    internal static float PassiveSiegeWorkload(long durability, int impact, int ap)
+        => impact <= 0 ? 30 : 30 * Mathf.Clamp01((float)((System.Math.Max(0, durability)
+            * (double)Mathf.Max(1, ap) / impact / Mathf.Max(1, APSystem.MaximumAP) - 1) / 4));
 
     internal static float CalcMoveBaseScore(AIAction action, AIBoardState board)
     {
