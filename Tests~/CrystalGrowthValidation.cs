@@ -62,7 +62,12 @@ public static class CrystalGrowthValidation
         dungeon.Init(live.MapCreate, f.Crystals, f.Territory, f.State, f.Units, f.Builder, f.Turn);
         var list = (List<DungeonSystem.DungeonInfo>)typeof(DungeonSystem).GetField("_dungeons", Hidden).GetValue(dungeon);
         list.Add(new DungeonSystem.DungeonInfo { Position = f.Sites[0], SharedRemainingTurns = 1, Reward = DungeonSystem.Artifact.CrystalShard });
-        dungeon.ProcessTurn(Team.Player, 1);
+        int observedHealing = 0;
+        Action<HpChangeResult> observe = result => { if (result.Target == own) observedHealing += result.ActualHeal; };
+        SpecialSkillRuntime.HpChangeCommitted += observe;
+        try { dungeon.ProcessTurn(Team.Player, 1); }
+        finally { SpecialSkillRuntime.HpChangeCommitted -= observe; }
+        Check(side + "diagnostic-stream-reports-the-real-heal-once", observedHealing == 1000);
         Check(side + " real-shard-reward-adds-exactly-1000", own.HP == MainCrystalRules.MaximumHP + 1000 && own.MaxHP == MainCrystalRules.MaximumHP + 1000);
         Check(side + " shard-does-not-grow-sub-or-opposing-crystal", sub.HP == subHP && sub.MaxHP == subMax && other.MaxHP == MainCrystalRules.MaximumHP);
         dungeon.ProcessTurn(Team.Player, 1); dungeon.ProcessTurn(Team.Enemy, 2); dungeon.ProcessTurn(Team.Player, 2);

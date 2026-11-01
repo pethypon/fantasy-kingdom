@@ -112,7 +112,14 @@ public static partial class SpecialSkillRuntime
         return result.Source == source && result.Target == target ? Mathf.Max(0, result.ActualHpLoss) : Mathf.Max(0, totalDamage);
     }
     public static void RecordHeal(Status target, int requested, int actual)
-        => LastHpChange = new HpChangeResult(null, target, requested, 0, actual, HpChangeKind.NormalDamage);
+    {
+        LastHpChange = new HpChangeResult(null, target, requested, 0, actual, HpChangeKind.NormalDamage);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // The diagnostic HP stream must include committed healing as well as
+        // damage. An empty observer file previously could not prove no healing.
+        HpChangeCommitted?.Invoke(LastHpChange);
+#endif
+    }
     static int ApplyHpChangeCore(Status source, Status target, int amount, HpChangeKind kind, bool redirected, bool respectShield, bool deferCleanup, out int hpLoss, out int barrierLoss)
     {
         hpLoss = barrierLoss = 0;
