@@ -493,7 +493,7 @@ public sealed class AIBasicResourceEconomy
         scores[key] = score; return score;
     }
 
-    public bool AllowSpend(AIAction action, bool essentialDefense, out string reason)
+    public bool AllowSpend(AIAction action, bool essentialDefense, out string reason, bool fundedCoreRecruit = false)
     {
         reason = null;
         if (action == null || essentialDefense || !AIBasicResourceSettings.Active.enabled) return true;
@@ -514,6 +514,14 @@ public sealed class AIBasicResourceEconomy
             // material/food reserves and every unrelated purchase remain unchanged.
             if (s.ResourceType == ResourceKind.Citizen && plannedRecruit)
                 floor = Mathf.Max(demand.Get(ResourceKind.Citizen).SafetyReserve, AIBasicResourceSettings.Active.minimumReserve.Citizen);
+            if (fundedCoreRecruit && plannedRecruit && action.ActionType == AIActionType.Summon && s.ResourceType != ResourceKind.Citizen)
+            {
+                // Formal per-recruit upkeep/input forecasts run in the governor first. Reserve
+                // real obligations, rather than also banking every hypothetical building project.
+                var actual = demand.Get(s.ResourceType);
+                floor = Mathf.Max(0, Mathf.Max(actual.SafetyReserve, StrategicEconomyForecast.Amount(AIBasicResourceSettings.Active.minimumReserve, (int)s.ResourceType))
+                    - Mathf.Max(0, actual.NetPerTurn) * demand.ForecastTurns);
+            }
             if (foundation)
             {
                 // A real supply improvement may invest its reserve. Never promise inputs that remain unavailable.

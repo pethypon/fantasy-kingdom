@@ -20,6 +20,7 @@ public sealed partial class AIStrategicGovernor
     readonly Dictionary<Kind, int> recruitmentCounts = new Dictionary<Kind, int>();
     readonly Dictionary<UnitData, string> recruitmentBlocks = new Dictionary<UnitData, string>();
     AIBoardState recruitmentBoard;
+    int standingFighters, standingHealers, standingScouts;
     public IReadOnlyList<AIRecruitmentNeed> RecruitmentPlan => recruitmentPlan;
     public IReadOnlyDictionary<string, string> RecruitmentReasons => recruitmentReasons;
     public float RecruitmentCitizenDemand { get; private set; }
@@ -52,6 +53,7 @@ public sealed partial class AIStrategicGovernor
             if (actor != null && actor.IsAlive && actor.team == board.OpponentTeam && actor.type == Type.Unit
                 && !MatchObjectiveRules.IsCommander(actor) && board.IsSpecialActorObserved(actor)
                 && BoardActionProfile.For(actor)?.CanAttack != false) observedFighters++;
+        standingFighters = fighters; standingHealers = healers; standingScouts = scouts;
         bool expedition = board.HasPrincipalOpponentContact || TerritoryIntel.HasUsableTerritory || board.OperationRequiredCitizenDemand > 0;
         int fightingTarget = PrepareArmyDevelopment(board, Mathf.Max(2, Mathf.Min(6, observedFighters)), expedition);
         var composition = AIHousingConfig.Active;
@@ -157,7 +159,7 @@ public sealed partial class AIStrategicGovernor
             return "recruit_upkeep_forecast_fail";
         if (projected.ImportantProductionStopped) return "recruit_production_forecast_fail";
         if (projected.BreadCoverageTurns < BreadReserveTurns) return "recruit_bread_reserve_fail";
-        return BasicResources.AllowSpend(action, false, out string reason) ? null : reason;
+        return BasicResources.AllowSpend(action, false, out string reason, IsStandingCoreRecruit(action, board)) ? null : reason;
     }
 
     bool IsNextPlannedRecruit(AIAction action, AIBoardState board)
@@ -204,10 +206,25 @@ public sealed partial class AIStrategicGovernor
             && projected.ExpectedUnitDeaths <= baseline.ExpectedUnitDeaths;
     }
 
+    bool IsStandingCoreRecruit(AIAction action, AIBoardState board)
+    {
+        var config = AIHousingConfig.Active;
+        if (!config.EnableStandingSupport || action?.ActionType != AIActionType.Summon || board == null
+            || recruitmentBoard != board || Mode == StrategicMode.EmergencyDefense
+            || board.TurnCount < Mathf.Clamp(config.StandingArmyStartTurn, 1, 100)) return false;
+        var definition = action.SummonDefinition ?? board.ResolveUnitDefinition(action.SummonKind);
+        string role = RecruitmentRole(definition, definition != null ? definition.kind : action.SummonKind);
+        if (role == "frontline" || role == "ranged") return standingFighters < Mathf.Clamp(config.MinimumStandingFighters, 2, 12);
+        if (board.TurnCount < Mathf.Clamp(config.SupportPreparationStartTurn, 1, 100)) return false;
+        return role == "healer" && standingHealers == 0 && standingFighters >= 2
+            || role == "scout" && standingScouts == 0 && board.GetExplorationRatio() < .95f;
+    }
+
     bool IsSafePlannedRecruit(AIAction action, AIBoardState board)
         => Mode != StrategicMode.EmergencyDefense && IsNextPlannedRecruit(action, board)
             && RecruitmentBlockReason(action, board) == null
             && (Mode != StrategicMode.EconomicRecovery
+                || IsStandingCoreRecruit(action, board)
                 || IsSafeEngineerOreRecoveryRecruit(action, board, forecast.Simulate(board, action)));
 
     public float RecruitmentScore(AIAction action, AIBoardState board)

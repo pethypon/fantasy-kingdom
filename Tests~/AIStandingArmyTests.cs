@@ -29,7 +29,7 @@ public static class AIStandingArmyTests
                     board.Governor.RecruitmentPlan.Any(x => x.Role == "healer" && x.Reason == "standing_army_healing_support"));
                 var candidates = AIActionEvaluator.EvaluateAll(f.Commander.Personality, board, null, TurnStrategy.Balanced);
                 var healer = candidates.FirstOrDefault(x => x.ActionType == AIActionType.Summon && x.SummonDefinition == f.Healer);
-                Check(team + " planned healer is a legal paid candidate", healer != null && healer.StrategicPriority == 3);
+                Check(team + " planned healer is a legal paid candidate", healer != null && healer.StrategicPriority == 1);
                 int citizens = f.Resources.Citizen, count = f.OwnActors().Count;
                 var chosen = f.Select(board, new List<AIAction> { healer });
                 Check(team + " official selection and executor train the support unit",
