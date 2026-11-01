@@ -20,8 +20,8 @@ MonoBehaviour:
   actionProfile: {fileID: 11400000, guid: 8988bcb7726c4ea40860c6b7069bfd3d, type: 2}
   defaultTeam: 0
   buildCost:
-    Wood: 40
-    Stone: 40
+    Wood: 30
+    Stone: 30
     Iron: 0
     MagicOre: 0
     Water: 15
@@ -44,7 +44,7 @@ MonoBehaviour:
     Output:
       Wood: 0
       Stone: 0
-      Iron: 3
+      Iron: 4
       MagicOre: 0
       Wheat: 0
       Bread: 0
@@ -104,7 +104,7 @@ MonoBehaviour:
     Output:
       Wood: 0
       Stone: 0
-      Iron: 6
+      Iron: 7
       MagicOre: 1
       Wheat: 0
       Bread: 0
@@ -164,7 +164,7 @@ MonoBehaviour:
     Output:
       Wood: 0
       Stone: 0
-      Iron: 10
+      Iron: 11
       MagicOre: 2
       Wheat: 0
       Bread: 0

@@ -24,6 +24,7 @@ public static class AIStandingArmyTests
             using (var f = new AIR2RecruitmentTests.Fixture(live, turn, team, 1))
             {
                 foreach (var actor in f.OwnActors()) actor.HP = actor.MaxHP;
+                f.Resources.Citizen = 3; // One paid core recruit plus the authored two-citizen free reserve.
                 var board = f.Board(8);
                 Check(team + " healthy early army plans healing before casualties",
                     board.Governor.RecruitmentPlan.Any(x => x.Role == "healer" && x.Reason == "standing_army_healing_support"));

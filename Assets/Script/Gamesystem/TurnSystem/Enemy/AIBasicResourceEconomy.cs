@@ -513,7 +513,8 @@ public sealed class AIBasicResourceEconomy
             // housing planner insufficient forever. Keep real obligations and minimum stock;
             // material/food reserves and every unrelated purchase remain unchanged.
             if (s.ResourceType == ResourceKind.Citizen && plannedRecruit)
-                floor = Mathf.Max(demand.Get(ResourceKind.Citizen).SafetyReserve, AIBasicResourceSettings.Active.minimumReserve.Citizen);
+                floor = fundedCoreRecruit ? AIHousingConfig.Active.FreeTarget
+                    : Mathf.Max(demand.Get(ResourceKind.Citizen).SafetyReserve, AIBasicResourceSettings.Active.minimumReserve.Citizen);
             if (fundedCoreRecruit && plannedRecruit && action.ActionType == AIActionType.Summon && s.ResourceType != ResourceKind.Citizen)
             {
                 // Formal per-recruit upkeep/input forecasts run in the governor first. Reserve
