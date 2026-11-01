@@ -28,13 +28,15 @@ public sealed partial class AIStrategicGovernor
         developmentPlan.Clear(); developmentKinds.Clear();
         DevelopmentCitizenDemand = DevelopmentRequiredCitizenStock = 0;
         int target = shortTermTarget;
-        if (config.EnableDevelopmentGrowth && operation)
+        if (board.TurnCount >= Mathf.Clamp(config.StandingArmyStartTurn, 1, 100))
+            target = Mathf.Max(target, Mathf.Clamp(config.MinimumStandingFighters, 2, 12));
+        if (config.EnableDevelopmentGrowth && (operation || board.TurnCount >= Mathf.Clamp(config.StandingArmyStartTurn, 1, 100)))
         {
             long planningTurn = (long)Mathf.Max(0, board.TurnCount) + config.DevelopmentHorizon;
             long elapsed = Math.Max(0, planningTurn - Mathf.Clamp(config.DevelopmentGrowthStartTurn, 1, 200));
             long extra = elapsed / Mathf.Clamp(config.DevelopmentGrowthIntervalTurns, 1, 100)
                 * Mathf.Clamp(config.DevelopmentFightersPerInterval, 0, 8);
-            target = (int)Math.Min(Mathf.Clamp(config.DevelopmentMaximumFighters, 2, 64), (long)shortTermTarget + extra);
+            target = (int)Math.Min(Mathf.Clamp(config.DevelopmentMaximumFighters, 2, 64), (long)target + extra);
             target = Mathf.Max(shortTermTarget, target);
         }
         DevelopmentFightingTarget = target;

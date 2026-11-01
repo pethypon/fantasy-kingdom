@@ -28,3 +28,10 @@ MonoBehaviour:
   ExcessHousingPenalty: 120
   RepeatedHousePenalty: 80
   EnableDecisionLogs: 0
+  EnableRepeatAttackAPPlanning: 1
+  EnableIncrementalAPPreparation: 1
+  MinimumStandingFighters: 4
+  StandingArmyStartTurn: 10
+  DevelopmentGrowthStartTurn: 10
+  DevelopmentGrowthIntervalTurns: 15
+  DevelopmentMaximumFighters: 16

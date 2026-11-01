@@ -303,6 +303,9 @@ public sealed partial class AIStrategicGovernor
         if (a.ActionType == AIActionType.Build || a.ActionType == AIActionType.Upgrade)
         {
             if (IsEmergencyDefenseRequired(a, board)) return 0;
+            // A concrete own payment deadline precedes general capital expansion.
+            // Legality and full payment forecasts have already filtered the action.
+            if (Mode != StrategicMode.EmergencyDefense && BasicResources.IsPaymentDeadlineRecovery(a)) return 0;
             var housing = HousingAssessment(a, board);
             if (housing.IsHousing && housing.Needed) return housing.EmergencySupply ? 1 : 3;
             var production = ProductionDemand.EvaluateBuild(a);

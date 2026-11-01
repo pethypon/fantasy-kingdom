@@ -221,6 +221,7 @@ public sealed partial class AIStrategicGovernor
                 || MatchObjectiveRules.IsCommander(actor) || StatusEffectSystem.IsStunned(actor)
                 || !housingAPActors.Add(actor) || !string.IsNullOrEmpty(actor.ReflectionLifeId) && !housingAPLives.Add(actor.ReflectionLifeId)) continue;
             int cost = -1;
+            int repeatCost = -1;
             if (BoardActionProfile.For(actor)?.CanAttack != false && !SpecialSkillRuntime.AttackBlocked(actor)
                 && board.GetAttackTargets(actor).Count > 0)
             {
@@ -232,14 +233,30 @@ public sealed partial class AIStrategicGovernor
                 if (cost > 0 && ability?.enabledForPlay == true && ability.ability == UnitSpecialSkill.GuardianLifeLink
                     && ability.guardianAttackCostReset == AbilityResetScope.OwnerTurn)
                     cost = Mathf.Max(1, cost - Mathf.Max(0, SpecialSkillRuntime.State(actor).guardianAttackCount));
+                var apSystem = board.SpecialSystems?.APSystem;
+                if (config.EnableRepeatAttackAPPlanning && apSystem != null && !AIHealingCapability.HasHealing(actor))
+                    foreach (var target in board.GetAttackTargets(actor))
+                        if (!AIActionEvaluator.CanFinishSpecialTarget(actor, target, board)
+                            && AIActionEvaluator.EstimateEffectiveSpecialImpact(actor, target, board, out _) > 0)
+                        {
+                            repeatCost = apSystem.CalcAttackCostPreview(actor, 1 + GameConstants.GetExtraFatiguePerAction(actor.kind), false);
+                            if (ability?.enabledForPlay == true && ability.ability == UnitSpecialSkill.GuardianLifeLink
+                                && ability.guardianAttackCostReset == AbilityResetScope.OwnerTurn)
+                                repeatCost = Mathf.Max(1, repeatCost - Mathf.Max(0, SpecialSkillRuntime.State(actor).guardianAttackCount) + 1);
+                            break;
+                        }
             }
             if (cost < 0) cost = HousingPendingMoveCost(actor, board);
             if (cost < 0 || cost > APSystem.MaximumAP) continue;
             demand += cost; actions++;
+            if (repeatCost >= 0 && repeatCost <= APSystem.MaximumAP && actions < config.APActionLimit)
+            { demand += repeatCost; actions++; }
         }
         int desired = (int)System.Math.Min(APSystem.MaximumAP, demand);
         if (HousingAPAtCitizenStock(ap, GameConstants.MaxAP) < desired)
             return new AIHousingAPPlan(actions, desired, stockAP, capacityAP, 0, 0, "housing_ap_bonus_cannot_reach_target");
+        if (config.EnableIncrementalAPPreparation && desired > capacityAP)
+            desired = Mathf.Min(desired, HousingAPAtCitizenStock(ap, Mathf.Min(GameConstants.MaxAP, free + config.APPreparationHorizon)));
         int required = HousingCitizensForAP(ap, desired);
         int wait = Mathf.Max(0, required - free); // EconomySystem grows at most one citizen per paid turn.
         string reason = required <= capacity ? stockAP < desired ? "housing_ap_existing_growth_can_recover_stock" : "housing_ap_capacity_sufficient"

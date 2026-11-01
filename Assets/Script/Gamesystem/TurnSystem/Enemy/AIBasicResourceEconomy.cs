@@ -425,6 +425,15 @@ public sealed class AIBasicResourceEconomy
         return FoundationState == EconomyFoundationState.StableGrowth ? 3 : 2;
     }
 
+    public bool IsPaymentDeadlineRecovery(AIAction action)
+    {
+        if (demand == null || !TryScopedRecipe(action, out var next, out var previous, out _)) return false;
+        foreach (var investment in mandatoryInvestments)
+            if (investment.ExhaustionTurns <= demand.ForecastTurns + .001f
+                && ProductionGain(RecipeKind(action), next, previous, investment.Resource) > .001f) return true;
+        return false;
+    }
+
     /// <summary>Current military/citizen food consumption needs permanent supply, even while stock bridges the forecast.</summary>
     public bool HasRequiredFoodSupplyGap => AIBasicResourceSettings.Active.enabled && demand != null && hasPlannedSupply[(int)ResourceKind.Bread]
         && demand.Get(ResourceKind.Bread).MandatoryDemandPerTurn > .001f
