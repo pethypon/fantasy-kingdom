@@ -92,7 +92,7 @@ public static class R2ConstructionEconomyTests
         Check(f.Team + " UP11 same owner turn cannot apply damage twice", unit.HP == 80 && unit.UpkeepUnpaidTurns == 1);
         f.Resources.Iron = 100; f.State.GetNation(f.Team).TurnsAlive++;
         f.Economy.ProcessTurn(f.Team);
-        Check(f.Team + " UP01 successful payment clears unpaid counter without damage", unit.HP == 80 && unit.UpkeepUnpaidTurns == 0 && f.Resources.Iron == 95);
+        Check(f.Team + " UP01 successful payment clears unpaid counter without damage", unit.HP == 80 && unit.UpkeepUnpaidTurns == 0 && f.Resources.Iron == 100 - unit.GrowthData.GetFixedUpkeep().Iron);
         int attack = unit.ATK, defence = unit.DEF;
         unit.HP = 100; f.Resources.Iron = 0;
         for (int i = 0; i < 5; i++) { f.State.GetNation(f.Team).TurnsAlive++; f.Economy.ProcessTurn(f.Team); }

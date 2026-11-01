@@ -12,6 +12,7 @@ public static class SquadCoreValidation
         A1CoreContracts.Run();
         R2CoreContracts.Run();
         CoreLogicTests.RunAll();
+        AIAdaptivePolicyTests.Run();
         Debug.Log("[SquadCore] COMPLETE");
     }
 }

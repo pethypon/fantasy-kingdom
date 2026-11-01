@@ -4,6 +4,12 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Fantasy Kingdom/AI/自己評価・日記設定", fileName = "ReflectionConfig")]
 public sealed class AIReflectionConfig : ScriptableObject
 {
+    [Header("自律的な判断方針の調整（共通ルールは変更しない）")]
+    [InspectorName("戦況に応じて判断方針を調整")] public bool EnableAdaptivePolicy = true;
+    [InspectorName("調整を始める脅威度"), Range(1, 100)] public int AdaptiveMinimumThreat = 10;
+    [InspectorName("方針の更新速度"), Range(.01f, .5f)] public float AdaptiveLearningRate = .25f;
+    [InspectorName("調整に必要な試行ターン数"), Range(2, 20)] public int AdaptiveMinimumSamples = 3;
+    [InspectorName("判断点数の最大補正"), Range(0, 30)] public float AdaptiveMaximumScore = 18;
     public bool EnableReflection = true;
     public bool ApplyLearningToSelection = true;
     public bool EnableConsoleDiary = true;
