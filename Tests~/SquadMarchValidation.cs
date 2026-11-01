@@ -312,6 +312,13 @@ public static class SquadMarchValidation
         board.Governor = governor; board.Operations = null;
         Check(prefix + "generic-territory-battle-gate-also-preserves-recruitment-tier",
             governor.HasActiveTerritoryAdvance && (int)priority.Invoke(governor, new object[] { pressureAttack, board }) == 3);
+        var actualFacilityKind = target.kind;
+        target.kind = Kind.King; target.type = Type.Unit;
+        Set(governor.TerritoryIntel, "<HasWaypoint>k__BackingField", false);
+        Check(prefix + "observed-safe-commander-attack-does-not-require-a-territory-waypoint",
+            (int)priority.Invoke(governor, new object[] { pressureAttack, board }) == 2);
+        target.kind = actualFacilityKind; target.type = Type.Building;
+        Set(governor.TerritoryIntel, "<HasWaypoint>k__BackingField", true);
         board.Governor = null; board.Operations = manager;
         target.ATK = 20;
         Check(prefix + "armed-defense-retains-battle-priority",
@@ -373,7 +380,9 @@ public static class SquadMarchValidation
         bool executionValid = true, paymentValid = true;
         while (target.IsAlive && cycles < 120)
         {
-            cycles++; f.State.SetAP(side, 35); board.Refresh(); int cycleAttacks = 0;
+            cycles++; AITurnBudget.Begin(5000);
+            f.AP.ResetFatigue(actors[0].transform.parent);
+            f.State.SetAP(side, 35); board.Refresh(); int cycleAttacks = 0;
             for (int step = 0; step < 35 && target.IsAlive; step++)
             {
                 options.Clear(); board.Refresh();
@@ -395,9 +404,9 @@ public static class SquadMarchValidation
             if (!executionValid || cycleAttacks == 0) break;
         }
         Check(side + " siege-official-hits-and-ap-payments-remain-valid", executionValid && paymentValid && attacks > 0);
-        Check(side + " siege-full-health-subcrystal-can-be-destroyed", !target.IsAlive);
         Debug.Log("[SiegeBenchmark] " + side + " productionHP=5000 roster=Knight;Knight;Archer budgetPerCycle=35 attacks="
-            + attacks + " apCycles=" + cycles + " totalAP=" + spent + " scope=controlled-attacks-only-no-full-turn-economy");
+            + attacks + " apCycles=" + cycles + " totalAP=" + spent + " remainingHP=" + target.HP + " scope=controlled-attacks-only-no-full-turn-economy");
+        Check(side + " siege-full-health-subcrystal-can-be-destroyed", !target.IsAlive);
     }
 }
 #endif

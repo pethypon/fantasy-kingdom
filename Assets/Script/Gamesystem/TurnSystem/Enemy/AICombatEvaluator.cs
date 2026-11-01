@@ -35,10 +35,16 @@ static class AICombatEvaluator
             score += (1f - hpRatio) * 15f;
         }
 
-        if (action.TargetUnit.kind == Kind.Crystal)
-            score += 50f;
-        if (MatchObjectiveRules.IsCommander(action.TargetUnit))
-            score += 35f;
+        if (MatchObjectiveRules.IsDecisive(action.TargetUnit))
+        {
+            // Both decisive identities win the same match. Prefer the smaller
+            // observed workload instead of an unconditional crystal-over-king
+            // premium. This is a bounded ranking heuristic, not a turn forecast:
+            // future fatigue, healing and reinforcement still need simulation.
+            int impact = AIActionEvaluator.EstimateEffectiveSpecialImpact(action.Unit, action.TargetUnit, board, out var recipient);
+            long durability = recipient != null ? (long)recipient.HP + recipient.Barrier : action.TargetUnit.HP;
+            score += 50 + VictoryPressure(durability, impact, action.APCost);
+        }
         if (board.ReconThreatLevel >= 31 && action.TargetUnit.kind == Kind.Scout)
             score += board.ReconThreatLevel >= 51 ? 20f : 12f;
 
@@ -52,6 +58,10 @@ static class AICombatEvaluator
 
     internal static float AttackEfficiency(int hpDamage, int ap)
         => Mathf.Clamp(hpDamage / (float)Mathf.Max(1, ap), 0, 10) * 2;
+
+    internal static float VictoryPressure(long durability, int impact, int ap)
+        => impact <= 0 ? 0 : (float)(30d / (1 + System.Math.Max(0, durability)
+            * (double)Mathf.Max(1, ap) / impact / Mathf.Max(1, APSystem.MaximumAP)));
 
     internal static float CalcMoveBaseScore(AIAction action, AIBoardState board)
     {
