@@ -281,7 +281,8 @@ public class AIActionExecutor
         }
         var unit = action.Unit;
         var skill = action.Skill;
-        if (!CanAct(unit) || !AttackPatterns.CanUseSkills(unit) || skill == null || _skillSystem == null || unit.SkillCooldown > 0
+        if (!CanAct(unit) || !AttackPatterns.CanUseSkills(unit) || skill == null || SummonTurnRules.SkillBlocked(unit, skill)
+            || _skillSystem == null || unit.SkillCooldown > 0
             || StatusEffectSystem.HasDebuff(unit, StatusEffectType.Seal)) return false;
         if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var assigned) || assigned != skill) return false;
         if (!_apSystem.CanUseSkill(ActorTeam, board.CalcSkillCost(unit, skill))) return false;

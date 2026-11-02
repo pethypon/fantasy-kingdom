@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -124,6 +124,7 @@ public static class SimActionGenerator
         Team enemyTeam, int ap, SimActionBuffer results)
     {
 
+        if (unit.SummonAttackLocked) return;
         int cost = board.CalcAttackCost(unit);
         if (cost > ap) return;
 
@@ -156,7 +157,8 @@ public static class SimActionGenerator
     {
         if (!AttackPatterns.CanUseSkills(unit) || unit.AssignedSkillId < 0) return;
         if (unit.SkillCooldown > 0) return;
-        if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
+        if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)
+            || unit.SummonAttackLocked && SummonTurnRules.IsAttackSkill(skill)) return;
         int skillCost = Mathf.Clamp(skill.APCost, 1, APSystem.MaximumSkillAP);
         if (skillCost > ap) return;
 
@@ -303,8 +305,7 @@ public static class SimActionGenerator
     static void GenerateSummonActions(SimBoardState board, Team team, int ap,
         SimActionBuffer results)
     {
-
-
+        if (board.SummonsThisTurn(team) >= SummonTurnRules.Limit) return;
         var crystalPos = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
         // Every candidate is evaluated against the same board; do not rescan 25 cells per kind.
         Vector3Int spawnPos = FindSpawnPosition(board, crystalPos);

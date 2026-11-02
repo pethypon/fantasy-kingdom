@@ -38,6 +38,12 @@ public class SummonSystem : MonoBehaviour
     // ---- カーソル（BuildCursorController に委譲） ----
     private BuildCursorController _cursor;
     private bool canPlace;
+    readonly SummonTurnRules turnRules = new SummonTurnRules();
+    public int SummonsThisTurn(Team team) => turnRules.Used(team);
+    public int RemainingSummons(Team team) => turnRules.Remaining(team);
+    public void BeginOwnerTurn(Team team) => turnRules.BeginOwnerTurn(team);
+    public SummonTurnRules.Snapshot CaptureTurnRules() => turnRules.Capture();
+    public void RestoreTurnRules(SummonTurnRules.Snapshot saved) => turnRules.Restore(saved);
 
     // ==================================================================
     //  初期化
@@ -47,6 +53,7 @@ public class SummonSystem : MonoBehaviour
                      MoveGenerator moveGenerator, MapCreate mapcreate,
                      UnitSetting unitset, VisionGenerator visionGenerator)
     {
+        turnRules.Restore(null);
         this.turnGenerator = turnGenerator;
         this.territorysystem = territorysystem;
         this.apsystem = apsystem;
@@ -89,6 +96,8 @@ public class SummonSystem : MonoBehaviour
     {
         if (turnGenerator != null && turnGenerator.DeveloperPlayerAIEnabled) return;
         if (data == null || !data.IsValidForAuthoring || !data.availableToPlayer) return;
+        if (RemainingSummons(Team.Player) == 0)
+        { ToastMessageUI.Show(SummonTurnRules.LimitReason, ToastMessageUI.MessageType.Warning); return; }
         if (IsActive) CancelSummonMode();
 
         SelectedDefinition = data;
@@ -134,7 +143,7 @@ public class SummonSystem : MonoBehaviour
             snapped = clamped;
         }
 
-        canPlace = CheckCanPlace(snapped);
+        canPlace = RemainingSummons(Team.Player) > 0 && CheckCanPlace(snapped);
         _cursor.UpdatePosition(snapped, canPlace);
     }
 
@@ -152,8 +161,7 @@ public class SummonSystem : MonoBehaviour
         }
 
         Vector3Int pos = _cursor.LastPosition;
-        if (InstantiateUnit(pos, SelectedKind, Team.Player, SelectedDefinition) == null) return false;
-        ConsumeSummonResources(Team.Player, SelectedDefinition);
+        if (!TrySummonAt(pos, SelectedDefinition, Team.Player)) return false;
 
         // ML観測: プレイヤーの召喚をMLシステムに記録
         NotifyMLObservation(pos);
@@ -175,7 +183,7 @@ public class SummonSystem : MonoBehaviour
     {
         if ((team != Team.Player && team != Team.Enemy) || data == null || !data.IsValidForAuthoring
             || !data.AvailableFor(team) || factionState == null) return false;
-        if (factionState.GetAP(team) < data.costAP) return false;
+        if (RemainingSummons(team) == 0 || factionState.GetAP(team) < data.costAP) return false;
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
         return res.Wood     >= data.costWood
@@ -280,6 +288,7 @@ public class SummonSystem : MonoBehaviour
         }
 
         if (spawnedStatus == null) return null;
+        spawnedStatus.SummonAttackLocked = true;
 
         // プレイヤー召喚時はスキル3択UIで上書き
         if (team == Team.Player && (spawnedStatus.GrowthData == null || !spawnedStatus.GrowthData.useAuthoredAbilities))
@@ -401,23 +410,25 @@ public class SummonSystem : MonoBehaviour
     /// <summary>AI用: 指定位置にユニットを召喚する（カーソル・UI不要）</summary>
     public bool AISummonUnit(Vector3Int pos, Kind kind, Team team)
     {
-        if (!CanSummon(team, kind)) return false;
-        if (!CheckCanPlaceForTeam(pos, team)) return false;
-
-        if (InstantiateUnit(pos, kind, team) == null) return false;
-        ConsumeSummonResources(team, kind);
-
-        { if (DevelopmentLog.IsEnabled(AILogLevel.Verbose)) DevelopmentLog.Log($"[SummonSystem] AI({team}) {kind} を ({pos.x},{pos.y},{pos.z}) に召喚"); }
-        return true;
+        if (unitset?.UnitDataMap == null || !unitset.UnitDataMap.TryGetValue(kind, out var data)) return false;
+        return TrySummonAt(pos, data, team);
     }
 
-    /// <summary>Authoring tools and AI may summon a specific ID without changing role defaults.</summary>
-    public bool AISummonUnit(Vector3Int pos, UnitData data, Team team)
+    /// <summary>Authoring tools and AI use the same faction quota and placement rules as player clicks.</summary>
+    public bool AISummonUnit(Vector3Int pos, UnitData data, Team team) => TrySummonAt(pos, data, team);
+
+    bool TrySummonAt(Vector3Int pos, UnitData data, Team team)
     {
-        if (!CanSummon(team, data) || !CheckCanPlaceForTeam(pos, team)) return false;
-        if (InstantiateUnit(pos, data.kind, team, data) == null) return false;
-        ConsumeSummonResources(team, data);
-        return true;
+        if (!CanSummon(team, data) || !CheckCanPlaceForTeam(pos, team) || !turnRules.TryReserve(team)) return false;
+        bool completed = false;
+        try
+        {
+            if (InstantiateUnit(pos, data.kind, team, data) == null) return false;
+            ConsumeSummonResources(team, data);
+            completed = true;
+            return true;
+        }
+        finally { if (!completed) turnRules.ReleaseFailedSummon(team); }
     }
 
     /// <summary>AI用: 指定チームの領地内で召喚可能な位置一覧を返す</summary>
@@ -433,6 +444,7 @@ public class SummonSystem : MonoBehaviour
     {
         if (result == null) throw new System.ArgumentNullException(nameof(result));
         result.Clear();
+        if (RemainingSummons(team) == 0) return;
         var territory = territorysystem.GetTerritory(team);
         if (territory == null) return;
 

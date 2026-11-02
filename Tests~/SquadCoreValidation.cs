@@ -13,6 +13,7 @@ public static class SquadCoreValidation
         R2CoreContracts.Run();
         CoreLogicTests.RunAll();
         AIAdaptivePolicyTests.Run();
+        SummonTurnRulesTests.Core();
         Debug.Log("[SquadCore] COMPLETE");
     }
 }

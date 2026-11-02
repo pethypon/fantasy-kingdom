@@ -17,6 +17,7 @@ public static partial class SaveSystem
         var data = new GameSaveData
         {
             Turn = turnGen.Context.Turn,
+            SummonTurn = turnGen.Systems.SummonSystem?.CaptureTurnRules(),
             MatchId = turnGen.MatchId,
             ThreatLevel = aiCommander?.ThreatLevel.Level ?? LoadProfile().ThreatLevel,
             Checkpoint = "player_turn",
@@ -190,6 +191,7 @@ public static partial class SaveSystem
             AuthoredFacilityId = s.AuthoredFacility != null ? s.AuthoredFacility.definitionId : s.authoredFacilityId,
             IsActive = s.gameObject.activeSelf,
             HasMovedThisTurn = s.HasMovedThisTurn,
+            SummonAttackLocked = s.SummonAttackLocked,
             FirstSkillUsedThisTurn = s.FirstSkillUsedThisTurn,
             DebuffNullifiedThisTurn = s.DebuffNullifiedThisTurn,
             InterceptUsedThisTurn = s.InterceptUsedThisTurn,

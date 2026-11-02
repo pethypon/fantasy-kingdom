@@ -58,6 +58,8 @@ public static partial class SpecialSkillRuntime
         reason = definition == null ? "駒固有能力が未設定です" : definition.ConfigurationError;
         if (reason != null) return false;
         if (caster == null || !caster.IsAlive || caster.type != Type.Unit) { reason = "駒が行動できません"; return false; }
+        if (SummonTurnRules.AttackLocked(caster) && SummonTurnRules.IsAttackSkill(definition.ability))
+        { reason = SummonTurnRules.AttackReason; return false; }
         if (definition.IsPassive) { reason = "常時能力です"; return false; }
         if (caster.RuntimeSystems?.MapCreate?.Environment?.IsInCaveTransit(caster) == true) { reason = "洞窟を移動中です"; return false; }
         if (StatusEffectSystem.IsStunned(caster) || !AttackPatterns.CanUseSkills(caster) || StatusEffectSystem.HasDebuff(caster, StatusEffectType.Seal)) { reason = "スキルを使用できない状態です"; return false; }
@@ -156,7 +158,8 @@ public static partial class SpecialSkillRuntime
     public static bool CanNormalAttackTarget(Status attacker, Status target)
     {
         if (attacker == null || !attacker.IsAlive || target == null || !target.IsAlive || StatusEffectSystem.IsStunned(attacker)
-            || BoardActionProfile.For(attacker)?.CanAttack == false || AttackBlocked(attacker) || !CrossbowCanFire(attacker)) return false;
+            || BoardActionProfile.For(attacker)?.CanAttack == false || SummonTurnRules.AttackLocked(attacker)
+            || AttackBlocked(attacker) || !CrossbowCanFire(attacker)) return false;
         if (!NeutralFactionSystem.AreHostile(attacker, target) && !IsAssassinAllyTarget(attacker, target)) return false;
         var taunt = State(attacker);
         var challenger = FindActor(taunt.tauntedById);

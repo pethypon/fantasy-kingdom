@@ -243,6 +243,9 @@ public class GameManualUI : MonoBehaviour
 BuildDurabilityRulesText() +
 "<b>■ AP（行動力）</b>\n" +
 $"  市民1人ごとに追加AP{EconomySystem.CitizenAPBonus}を得る。移動{APSystem.BaseMoveCost}・攻撃{APSystem.BaseAttackCost}・建築/召喚でAPを消費する。\n\n" +
+"<b>■ 召喚</b>\n" +
+$"  自軍領地内へ1ターン合計{SummonTurnRules.Limit}体まで。兵種・メイン／サブクリスタルで上限を共有。\n" +
+"  召喚した駒は移動・回復・味方支援が可能。通常攻撃と攻撃スキルは次の自軍ターンから使用できます。\n\n" +
 "<b>■ 維持費</b>\n" +
 "  兵士の維持費は毎ターン一定です。基本値とゲームルールの設定倍率から決まります。王と免除対象は維持費なし。\n" +
 "  未払いの兵士は毎ターンHPを失います（暫定：最大HP20%、切上げ、バリア無視）。\n\n" +

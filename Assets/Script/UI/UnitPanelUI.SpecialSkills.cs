@@ -65,6 +65,7 @@ public partial class UnitPanelUI
                 : usable ? definition.ability == UnitSpecialSkill.BerserkerRage
                     ? $"\n<size=75%>[2] 次{(currentUnit.Special?.berserkerStage ?? 0) + 1}段階　AP {SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
                     : $"\n<size=75%>[2] AP {SpecialSkillRuntime.GetAPCost(currentUnit)}</size>"
+                    : SummonTurnRules.ModeBlocked(currentUnit, true) ? "\n<size=75%>次ターンから使用可</size>"
                     : "\n<size=75%>準備待ち</size>";
             specialSkillButton.GetComponentInChildren<TextMeshProUGUI>().text = label;
         }

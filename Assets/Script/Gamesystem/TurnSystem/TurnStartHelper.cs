@@ -12,6 +12,7 @@ public static class TurnStartHelper
     /// </summary>
     public static void ProcessTurnStart(GameSystems systems, Team team, int round)
     {
+        systems.SummonSystem?.BeginOwnerTurn(team);
         // チームに対応するクリスタル・ユニット親を取得
         Transform crystal = (team == Team.Player)
             ? systems.CrystalSystem?.Playercrystal

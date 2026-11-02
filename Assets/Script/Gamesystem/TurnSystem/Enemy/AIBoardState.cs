@@ -57,6 +57,7 @@ public partial class AIBoardState
         }
     }
     public UnitData ResolveUnitDefinition(Kind kind) => _unitSet != null && _unitSet.UnitDataMap.TryGetValue(kind,out var data) ? data : null;
+    public int SummonsThisTurn => _summonSystem?.SummonsThisTurn(ActorTeam) ?? 0;
     public bool CanSummonDefinition(UnitData data) => _summonSystem != null && _summonSystem.CanSummon(ActorTeam,data);
     public int NationStarvationCounter => _factionState?.GetNation(ActorTeam)?.StarvationCounter ?? 0;
     public int NationTurnsAlive => _factionState?.GetNation(ActorTeam)?.TurnsAlive ?? TurnCount;
@@ -524,7 +525,7 @@ public partial class AIBoardState
     // ---- 攻撃対象（視界内のみ） ----
     public List<Status> GetAttackTargets(Status unit)
     {
-        if (unit == null || SpecialSkillRuntime.AttackBlocked(unit)) return new List<Status>();
+        if (unit == null || SummonTurnRules.AttackLocked(unit) || SpecialSkillRuntime.AttackBlocked(unit)) return new List<Status>();
         if (SpecialSkillRuntime.TryGetSniperTarget(unit, out var lockedTarget))
             return lockedTarget != null && !AIActionEvaluator.IsObservedCompleteProtection(this, lockedTarget)
                 ? new List<Status> { lockedTarget } : new List<Status>();
@@ -572,7 +573,7 @@ public partial class AIBoardState
     public List<Status> GetSkillTargets(Status unit, SkillData skill)
     {
         var targets = new List<Status>();
-        if (skill == null || !AttackPatterns.CanUseSkills(unit) || unit.AssignedSkillId < 0) return targets;
+        if (skill == null || !AttackPatterns.CanUseSkills(unit) || SummonTurnRules.SkillBlocked(unit, skill) || unit.AssignedSkillId < 0) return targets;
 
         var unitPos = unit.transform.position;
         int dirZ = unit.direction == Direction.S ? -1 : 1;

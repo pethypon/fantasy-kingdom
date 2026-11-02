@@ -47,7 +47,7 @@ public partial class SimBoardState
         var target = GetUnit(action.TargetUnitId);
         if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive)
             return false;
-        if (attacker.IsStunned) return false;
+        if (attacker.IsStunned || attacker.SummonAttackLocked) return false;
         attacker.SimulationRound = target.SimulationRound = TurnCount;
         if (attacker.ActionProfile != null && (!AttackPatterns.CanAttack(attacker, attacker.Direction,
             target.Position.x - attacker.Position.x, target.Position.z - attacker.Position.z)
@@ -90,10 +90,12 @@ public partial class SimBoardState
 
     bool ApplySummon(SimAction action)
     {
-        if (IsOccupied(action.TargetPos)) return false;
+        if (SummonsThisTurn(action.ActorTeam) >= SummonTurnRules.Limit || IsOccupied(action.TargetPos)) return false;
 
         int newId = NextUnitId();
         var newUnit = CreateSimUnitFromKind(action.SummonKind, action.ActorTeam, action.TargetPos, newId);
+        newUnit.SummonAttackLocked = true;
+        if (action.ActorTeam == Team.Enemy) EnemySummons++; else PlayerSummons++;
         Units.Add(newUnit);
         _occupiedCells.Add(action.TargetPos);
 
@@ -107,7 +109,8 @@ public partial class SimBoardState
         if (unit == null || !unit.IsAlive) return false;
         if (unit.IsStunned || !AttackPatterns.CanUseSkills(unit)) return false;
 
-        if (!SkillData.Table.TryGetValue(action.SkillId, out var skill))
+        if (!SkillData.Table.TryGetValue(action.SkillId, out var skill)
+            || unit.SummonAttackLocked && SummonTurnRules.IsAttackSkill(skill))
             return false;
 
         if (action.TargetUnitId >= 0)

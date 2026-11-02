@@ -100,6 +100,7 @@ public partial class BuildSummonUIBuilder
     {
         if (data == null) return "召喚データ未登録";
         if (cachedFactionState == null) return "準備中";
+        if (summonSystem != null && summonSystem.RemainingSummons(Team.Player) == 0) return SummonTurnRules.LimitReason;
         if (!data.AvailableFor(Team.Player)) return "この陣営では召喚不可";
         if (cachedFactionState.GetAP(Team.Player) < data.costAP) return "行動ポイント不足";
         var resources = cachedFactionState.PlayerResources;

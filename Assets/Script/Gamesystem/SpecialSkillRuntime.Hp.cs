@@ -25,7 +25,7 @@ public static partial class SpecialSkillRuntime
     {
         // Direct offensive skills and counters are attacks; buffs, healing,
         // sacrifices and delayed terrain/bomb damage do not animate the caster.
-        if (source != null && target != null && source != target && amount > 0
+        if (source != null && target != null && source != target && amount > 0 && !SummonTurnRules.DamageBlocked(source, target, cause)
             && (cause == HpChangeCause.Skill || cause == HpChangeCause.Counter)
             && (kind == HpChangeKind.NormalDamage || kind == HpChangeKind.IgnoreDefenceDamage || kind == HpChangeKind.ExecutionDamage || kind == HpChangeKind.BarrierBypassDamage))
             BoardActorAnimation.NotifyAttack(source, target.transform.position);
@@ -90,6 +90,8 @@ public static partial class SpecialSkillRuntime
     }
     public static int ApplyHpChange(Status source, Status target, int amount, HpChangeKind kind, bool redirected = false, bool respectShield = true, bool deferCleanup = false, HpChangeCause cause = HpChangeCause.Unknown)
     {
+        if (SummonTurnRules.DamageBlocked(source, target, cause))
+        { LastHpChange = new HpChangeResult(source, target, amount, 0, 0, kind, cause); return 0; }
         var recipient = redirected ? target : ResolveDamageRecipient(target, amount, kind, respectShield);
         int loss = ApplyHpChangeCore(source, target, amount, kind, redirected, respectShield, deferCleanup, out int hpLoss, out int barrierLoss);
         if (!redirected && source != null && target != null && source != target && amount > 0
@@ -184,7 +186,7 @@ public static partial class SpecialSkillRuntime
             s.nextDamageDouble = false;
             var definition = Definition(target);
             if (definition != null && definition.holyKnightInterruptOnDamage && definition.holyKnightInterruptionConfigured) { s.holyKnightTurns = 0; s.holyKnightRecoveryLock = false; }
-            if (source != null && source != target && counterDepth == 0 && target.IsAlive && source.IsAlive
+            if (source != null && source != target && counterDepth == 0 && target.IsAlive && source.IsAlive && !SummonTurnRules.AttackLocked(target)
                 && definition != null && definition.enabledForPlay && definition.ability == UnitSpecialSkill.SamuraiCounter
                 && (definition.samuraiGaugeMax > 0 && s.samuraiGauge >= definition.samuraiGaugeMax && s.samuraiMaxTurns > 0
                     || State(source).tauntTurns > 0 && State(source).tauntedById == target.ReflectionLifeId))

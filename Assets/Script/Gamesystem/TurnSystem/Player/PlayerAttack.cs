@@ -64,6 +64,8 @@ public partial class PlayerAttack : TurnState
 
         if (Context.SelectNormalDown || Context.SelectSkillDown)
         {
+            if (SummonTurnRules.ModeBlocked(move.SelectedUnit, Context.SelectSkillDown))
+            { ToastMessageUI.Show(SummonTurnRules.AttackReason, ToastMessageUI.MessageType.Warning); return; }
             var profile = BoardActionProfile.For(move.SelectedUnit);
             if (profile != null && (Context.SelectSkillDown ? !profile.CanUseSkills : !profile.CanAttack))
             { ToastMessageUI.Show("この駒の行動設定では使用できません", ToastMessageUI.MessageType.Warning); return; }

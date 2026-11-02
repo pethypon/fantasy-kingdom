@@ -59,6 +59,7 @@ public class SimUnit
     public bool IsPrimaryCommander;
     public int AssignedSkillId;
     public int SkillCooldown;
+    public bool SummonAttackLocked;
     public int Fatigue;
     public int ShieldTurns;
     public bool HasDamageShield => Kind != Kind.Crystal && ShieldTurns > 0;
@@ -103,6 +104,7 @@ public class SimUnit
         c.IsBoss = IsBoss; c.IsWildBoss = IsWildBoss; c.WildBossProtected = WildBossProtected;
         c.IsPrimaryCommander = IsPrimaryCommander; c.AssignedSkillId = AssignedSkillId;
         c.SkillCooldown = SkillCooldown; c.Fatigue = Fatigue;
+        c.SummonAttackLocked = SummonAttackLocked;
         c.ShieldTurns = ShieldTurns; c.ShieldActivated = ShieldActivated;
         c.LifeIdentity = LifeIdentity; c.CrystalCounter = CrystalCounter?.Copy();
         c.Passive = Passive;
