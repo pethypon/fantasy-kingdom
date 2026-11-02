@@ -47,6 +47,8 @@ public partial class SimBoardState
     // ---- AP ----
     public int EnemyAP;
     public int PlayerAP;
+    public int EnemySummons, PlayerSummons;
+    public int SummonsThisTurn(Team team) => team == Team.Enemy ? EnemySummons : team == Team.Player ? PlayerSummons : SummonTurnRules.Limit;
 
     // ---- AP基礎値（ターン開始リセット用） ----
     public int EnemyAPReset;
@@ -107,6 +109,7 @@ public partial class SimBoardState
         state.Units = new List<SimUnit>();
         state.TurnCount = realBoard.TurnCount;
         state.RealActorTeam = realBoard.ActorTeam;
+        state.EnemySummons = realBoard.SummonsThisTurn;
         if (unitSet?.UnitDataMap != null)
         {
             state.RecruitmentDefinitions = new Dictionary<Kind, SimRecruitmentDefinition>(unitSet.UnitDataMap.Count);
@@ -240,6 +243,7 @@ public partial class SimBoardState
             IsPrimaryCommander = s.IsPrimaryCommander,
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
+            SummonAttackLocked = s.SummonAttackLocked,
             Fatigue = s.Fatigue,
             ShieldTurns = s.kind == Kind.Crystal ? 0 : s.ShieldTurns,
             ShieldActivated = s.kind != Kind.Crystal && s.ShieldActivated,
@@ -316,6 +320,7 @@ public partial class SimBoardState
             copy.Units.Add(Units[i].Clone());
         copy.EnemyAP = EnemyAP;
         copy.PlayerAP = PlayerAP;
+        copy.EnemySummons = EnemySummons; copy.PlayerSummons = PlayerSummons;
         copy.EnemyAPReset = EnemyAPReset;
         copy.PlayerAPReset = PlayerAPReset;
         copy.EnemyCrystalPos = EnemyCrystalPos;

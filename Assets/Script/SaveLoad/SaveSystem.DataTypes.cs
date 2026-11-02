@@ -55,6 +55,7 @@ public static partial class SaveSystem
         public string SaveDate;
         public int Turn;
         public int ThreatLevel;
+        public SummonTurnRules.Snapshot SummonTurn;
 
         // ユニット
         public List<UnitSaveData> Units = new List<UnitSaveData>();
@@ -166,6 +167,7 @@ public static partial class SaveSystem
         public string SpecialAbility;
         public bool SurvivalInstinctUsed;
         public bool HasMovedThisTurn;
+        public bool SummonAttackLocked;
         public bool FirstSkillUsedThisTurn, DebuffNullifiedThisTurn, InterceptUsedThisTurn;
 
         // 状態異常

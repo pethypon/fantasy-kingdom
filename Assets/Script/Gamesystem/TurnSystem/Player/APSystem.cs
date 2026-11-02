@@ -75,7 +75,8 @@ public class APSystem : MonoBehaviour
     // ==== AP 判定 ====
     public bool CanAct(Team team, ActionType action, Status obj,
                        Vector3 from = default, Vector3 to = default)
-        => _factionState.GetAP(team) >= CalcCost(action, obj, from, to);
+        => !(action == ActionType.Attack && SummonTurnRules.AttackLocked(obj))
+            && _factionState.GetAP(team) >= CalcCost(action, obj, from, to);
 
     // ==== AP 消費 + 疲労更新 ====
     public void Consume(Team team, ActionType action, Status obj,

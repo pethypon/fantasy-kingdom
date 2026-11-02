@@ -30,7 +30,7 @@ public static class R2SaveMigrationTests
         double ratio=(double)soldier.HP/soldier.MaxHP;
         data=Migrate(data);
         int expectedMax=FixedUnitRules.BaseStat(Kind.Knight,legacy.BaseHP)+12;
-        Check("F01",data.Version==12&&data.SchemaVersion==12&&SaveSystem.ValidateMigrationChain(out _));
+        Check("F01",data.Version==SaveSystem.CurrentSaveVersion&&data.SchemaVersion==SaveSystem.CurrentSaveVersion&&SaveSystem.ValidateMigrationChain(out _));
         Check("F02",soldier.Level==1&&soldier.Experience==0&&soldier.MaxHP==expectedMax
             &&soldier.ATK==FixedUnitRules.BaseStat(Kind.Knight,legacy.BaseATK)+7);
         Check("F03",soldier.HP==(int)Math.Round(ratio*expectedMax,MidpointRounding.AwayFromZero));
@@ -39,7 +39,8 @@ public static class R2SaveMigrationTests
         Check("F06-partial",soldier.AssignedSkillId==2&&soldier.SkillCooldown==3&&soldier.Special!=null);
         string once=JsonUtility.ToJson(data);data=Migrate(data);Check("F07",once==JsonUtility.ToJson(data));
         Check("F08",SaveSystem.ValidateMigrationChain(out _));
-        var future=new SaveSystem.GameSaveData{Version=13,SchemaVersion=13};Check("F09-future",Migrate(future)==null&&future.Version==13);
+        int futureVersion = SaveSystem.CurrentSaveVersion + 1;
+        var future=new SaveSystem.GameSaveData{Version=futureVersion,SchemaVersion=futureVersion};Check("F09-future",Migrate(future)==null&&future.Version==futureVersion);
         Check("F10-partial",data.MapWidth==35&&data.PlayerResources.Iron==123&&data.EnemyResources.MagicOre==99);
         Check("SVR02",data.Timer.PlayerTotalTime==0&&data.Timer.EnemyTotalTime==0);
         Check("SVR08",soldier.BarrierRecovery.SafeTurns==0&&soldier.BarrierRecovery.LastProcessedRound==7);

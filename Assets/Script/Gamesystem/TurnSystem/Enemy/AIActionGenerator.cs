@@ -145,7 +145,7 @@ public static partial class AIActionGenerator
     {
         GenerateSpecialSkillCandidates(unit, board, results);
         if (!AttackPatterns.CanUseSkills(unit) || unit.AssignedSkillId < 0) return;
-        if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill)) return;
+        if (!SkillData.Table.TryGetValue(unit.AssignedSkillId, out var skill) || SummonTurnRules.SkillBlocked(unit, skill)) return;
         int skillCost = board.CalcSkillCost(unit, skill);
         if (skillCost > board.EnemyAP) return;
         if (StatusEffectSystem.HasDebuff(unit, StatusEffectType.Seal)) return;

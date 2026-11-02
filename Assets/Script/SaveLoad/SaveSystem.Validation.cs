@@ -27,6 +27,7 @@ public static partial class SaveSystem
             return Invalid("地形の高さ設定が対応範囲外です。", out reason);
         if (!Position(data.PCPx, data.PCPy, data.PCPz, data) || !Position(data.ECPx, data.ECPy, data.ECPz, data))
             return Invalid("クリスタルの座標がマップの範囲外です。", out reason);
+        if (!SummonTurnRules.Valid(data.SummonTurn)) return Invalid("召喚回数の保存値が不正です。", out reason);
         if (!ResourcesValid(data.PlayerResources) || !ResourcesValid(data.EnemyResources)) return Invalid("資源量に不正な値があります。", out reason);
         if (!APValid(data.PlayerAP) || !APValid(data.EnemyAP)) return Invalid("行動ポイントに不正な値があります。", out reason);
         if (data.Timer == null || !Seconds(data.Timer.TurnTimeRemaining) || !Seconds(data.Timer.PlayerTotalTime)

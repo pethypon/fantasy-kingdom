@@ -304,7 +304,7 @@ public static class StatusEffectSystem
     // =====================================================================
     public static int ProcessReflect(Status target, Status attacker)
     {
-        if (!HasBuff(target, BuffType.Reflect)) return 0;
+        if (!HasBuff(target, BuffType.Reflect) || SummonTurnRules.AttackLocked(target)) return 0;
         if (attacker == null) return 0;
         int reflectDmg = Random.Range(5, 11); // 5〜10
         attacker.ApplyDamage(reflectDmg);

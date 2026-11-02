@@ -176,6 +176,8 @@ public class UnitClick : MonoBehaviour
     private void HandleSkillClick(RaycastHit hit)
     {
         SkillData skill = SkillData.Table[playermove.SelectedUnit.AssignedSkillId];
+        if (SummonTurnRules.SkillBlocked(playermove.SelectedUnit, skill))
+        { ToastMessageUI.Show(SummonTurnRules.AttackReason, ToastMessageUI.MessageType.Warning); return; }
 
         // APチェック
         if (!turnGenerator.Systems.APSystem.CanUseSkill(Team.Player, skill.APCost))

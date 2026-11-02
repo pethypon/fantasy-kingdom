@@ -55,7 +55,8 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteSkill(Status attacker, Status target, SkillData skill)
     {
-        if (attacker == null || skill == null || !AttackPatterns.CanUseSkills(attacker) || SpecialSkillRuntime.AttackBlocked(attacker)) return;
+        if (attacker == null || skill == null || !AttackPatterns.CanUseSkills(attacker)
+            || SummonTurnRules.SkillBlocked(attacker, skill) || SpecialSkillRuntime.AttackBlocked(attacker)) return;
         if (SpecialSkillRuntime.Definition(attacker)?.ability > UnitSpecialSkill.None) return;
         var terrain = moveGenerator != null ? moveGenerator.mapcreate : null;
         if (target != null && target != attacker && terrain != null
@@ -365,7 +366,7 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteAreaSkill(Status attacker, SkillData skill, List<Status> targets)
     {
-        if (skill == null || targets == null || !AttackPatterns.CanUseSkills(attacker)) return;
+        if (skill == null || targets == null || !AttackPatterns.CanUseSkills(attacker) || SummonTurnRules.SkillBlocked(attacker, skill)) return;
 
         // Special Ability: 迫撃適応の対象数カウント
         int enemyHitCount = 0;
@@ -433,7 +434,7 @@ public class SkillSystem : MonoBehaviour
     // =====================================================================
     public void ExecuteAreaSupportSkill(Status caster, SkillData skill, List<Status> allies)
     {
-        if (skill == null || allies == null || !AttackPatterns.CanUseSkills(caster)) return;
+        if (skill == null || allies == null || !AttackPatterns.CanUseSkills(caster) || SummonTurnRules.SkillBlocked(caster, skill)) return;
 
         foreach (Status ally in allies)
         {

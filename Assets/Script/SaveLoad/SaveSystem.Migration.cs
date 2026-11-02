@@ -25,7 +25,7 @@ public static partial class SaveSystem
     {
         Migrate_V0_to_V1, Migrate_V1_to_V2, Migrate_V2_to_V3, Migrate_V3_to_V4,
         Migrate_V4_to_V5, Migrate_V5_to_V6, Migrate_V6_to_V7, Migrate_V7_to_V8, Migrate_V8_to_V9, Migrate_V9_to_V10,
-        Migrate_V10_to_V11, Migrate_V11_to_V12
+        Migrate_V10_to_V11, Migrate_V11_to_V12, Migrate_V12_to_V13
     };
     public static bool ValidateMigrationChain(out string reason)
     {
@@ -48,6 +48,11 @@ public static partial class SaveSystem
         return data;
     }
 
+    static void Migrate_V12_to_V13(GameSaveData data)
+    {
+        data.SummonTurn = new SummonTurnRules.Snapshot();
+        if (data.Units != null) foreach (var unit in data.Units) if (unit != null) unit.SummonAttackLocked = false;
+    }
     static void Migrate_V2_to_V3(GameSaveData data)
     {
         if (data.Units == null) return;

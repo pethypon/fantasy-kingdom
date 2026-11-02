@@ -234,6 +234,8 @@ public class PlayerMove : TurnState
     // ---- 攻撃ステートへ遷移 ----
     private void StartAttack(AttackMode mode)
     {
+        if (SummonTurnRules.ModeBlocked(SelectedUnit, mode == AttackMode.Skill))
+        { ToastMessageUI.Show(SummonTurnRules.AttackReason, ToastMessageUI.MessageType.Warning); return; }
         var profile = BoardActionProfile.For(SelectedUnit);
         if (profile != null && (mode == AttackMode.Skill ? !profile.CanUseSkills : !profile.CanAttack))
         { ToastMessageUI.Show("この駒の行動設定では使用できません", ToastMessageUI.MessageType.Warning); return; }

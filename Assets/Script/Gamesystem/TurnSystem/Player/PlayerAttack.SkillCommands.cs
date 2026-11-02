@@ -17,6 +17,7 @@ public partial class PlayerAttack
         bool legacyImmediate = !fixedSkill && SkillData.Table.TryGetValue(caster.AssignedSkillId, out legacy)
             && (legacy.Target == SkillTarget.Self || legacy.Target == SkillTarget.SelfArea);
         if (!fixedSkill && !legacyImmediate) return false;
+        if (SummonTurnRules.ModeBlocked(caster, true)) return RejectSkillCommand(SummonTurnRules.AttackReason);
         var profile = BoardActionProfile.For(caster);
         if (profile != null && !profile.CanUseSkills) return RejectSkillCommand("この駒の行動設定では使用できません");
         if (legacyImmediate) return UseAutomaticLegacySkill(caster, legacy, systems, move);
@@ -59,6 +60,7 @@ public partial class PlayerAttack
 
     static bool UseAutomaticLegacySkill(Status caster, SkillData skill, GameSystems systems, PlayerMove move)
     {
+        if (SummonTurnRules.SkillBlocked(caster, skill)) return RejectSkillCommand(SummonTurnRules.AttackReason);
         if (systems.SkillSystem == null || systems.APSystem == null || !AttackPatterns.CanUseSkills(caster)
             || SpecialSkillRuntime.AttackBlocked(caster) || StatusEffectSystem.IsStunned(caster)
             || StatusEffectSystem.HasDebuff(caster, StatusEffectType.Seal)) return RejectSkillCommand("スキルを使用できない状態です");

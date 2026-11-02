@@ -610,7 +610,7 @@ public partial class UnitPanelUI : MonoBehaviour
         if (attackButton != null)
         {
             attackButton.interactable = canAttack;
-            UpdateButtonLabel(attackButton, turnGenerator != null && turnGenerator.CurrentState is PlayerAttack attack && attack.attackmode == PlayerMove.AttackMode.Normal ? "攻撃モード" : "攻撃 <size=70%>[1]</size>", apSystem != null ? apSystem.CalcCost(APSystem.ActionType.Attack,currentUnit) : APSystem.BaseAttackCost, canAttack);
+            UpdateButtonLabel(attackButton, SummonTurnRules.AttackLocked(currentUnit) ? "次ターンから攻撃" : turnGenerator != null && turnGenerator.CurrentState is PlayerAttack attack && attack.attackmode == PlayerMove.AttackMode.Normal ? "攻撃モード" : "攻撃 <size=70%>[1]</size>", apSystem != null ? apSystem.CalcCost(APSystem.ActionType.Attack,currentUnit) : APSystem.BaseAttackCost, canAttack);
         }
         if (skillButton != null)
         {
@@ -620,7 +620,7 @@ public partial class UnitPanelUI : MonoBehaviour
             if (hasSkill && SkillData.Table.TryGetValue(currentUnit.AssignedSkillId, out var skill))
             {
                 skillCost = skill.APCost;
-                canSkill = !StatusEffectSystem.IsStunned(currentUnit) && apSystem != null && apSystem.CanUseSkill(Team.Player, skillCost);
+                canSkill = !SummonTurnRules.SkillBlocked(currentUnit, skill) && !StatusEffectSystem.IsStunned(currentUnit) && apSystem != null && apSystem.CanUseSkill(Team.Player, skillCost);
             }
             skillButton.interactable = canSkill;
             UpdateButtonLabel(skillButton, turnGenerator != null && turnGenerator.CurrentState is PlayerAttack skillAttack && skillAttack.attackmode == PlayerMove.AttackMode.Skill ? "スキルモード" : "スキル <size=70%>[2]</size>", skillCost, canSkill);

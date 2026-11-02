@@ -101,6 +101,7 @@ public partial class AIMinimaxEngine
         h ^= ZobristAP[Mathf.Clamp(board.PlayerAP, 0, ZobristAPRange - 1)] << 1;
         h ^= RecoveryHash((ulong)(uint)board.TurnCount ^ ((ulong)(uint)board.RealActorTeam << 32));
         h ^= RecoveryHash((ulong)(uint)board.EnemyAPReset | (ulong)(uint)board.PlayerAPReset << 32);
+        h ^= RecoveryHash(((ulong)(uint)board.EnemySummons | (ulong)(uint)board.PlayerSummons << 32) ^ 0x7C8B51D0F926AE43UL);
         return h;
     }
 
@@ -120,6 +121,7 @@ public partial class AIMinimaxEngine
         MixSemantic(ref h, u.HP); MixSemantic(ref h, u.MaxHP); MixSemantic(ref h, u.ATK); MixSemantic(ref h, u.DEF);
         MixSemantic(ref h, (int)u.Direction); MixSemantic(ref h, u.Barrier); MixSemantic(ref h, u.MaxBarrier);
         MixSemantic(ref h, u.AssignedSkillId); MixSemantic(ref h, u.SkillCooldown); MixSemantic(ref h, u.Fatigue);
+        MixSemantic(ref h, u.SummonAttackLocked ? 1 : 0);
         MixSemantic(ref h, u.ShieldTurns); MixSemantic(ref h, u.ShieldActivated ? 1 : 0); MixSemantic(ref h, (int)u.Passive);
         MixSemantic(ref h, u.IsBoss ? 1 : 0); MixSemantic(ref h, u.IsPrimaryCommander ? 1 : 0);
         MixSemantic(ref h, u.IsWildBoss ? 1 : 0); MixSemantic(ref h, u.WildBossProtected ? 1 : 0);

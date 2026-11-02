@@ -429,6 +429,8 @@ public partial class Status : MonoBehaviour
 
     // ---- Special Ability 用トラッキングフラグ ----
     [HideInInspector] public bool HasMovedThisTurn = false;
+    // Persisted separately from movement: only the next real owner-turn start releases this lock.
+    [HideInInspector] public bool SummonAttackLocked;
     [HideInInspector] public bool SurvivalInstinctUsed = false;
     [HideInInspector] public bool FirstSkillUsedThisTurn = false;
     [HideInInspector] public bool DebuffNullifiedThisTurn = false;
@@ -445,6 +447,7 @@ public partial class Status : MonoBehaviour
     public void ResetTurnFlags()
     {
         HasMovedThisTurn = false;
+        SummonAttackLocked = false;
         FirstSkillUsedThisTurn = false;
         DebuffNullifiedThisTurn = false;
         InterceptUsedThisTurn = false;

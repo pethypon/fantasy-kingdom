@@ -28,12 +28,14 @@ public partial class SimBoardState
                 ProcessNaturalRecovery(Units[i], TurnCount);
             }
         ResetAP(nextTeam);
+        if (nextTeam == Team.Enemy) EnemySummons = 0; else if (nextTeam == Team.Player) PlayerSummons = 0;
 
         for (int i = 0; i < Units.Count; i++)
         {
             var u = Units[i];
             if (!u.IsAlive || u.Team != nextTeam) continue;
 
+            u.SummonAttackLocked = false;
             u.Fatigue = 0;
             if (u.VisionZeroTurns > 0) u.VisionZeroTurns--;
             if (u.ScoutVisionPenaltyTurns > 0) u.ScoutVisionPenaltyTurns--;

@@ -63,6 +63,7 @@ public static class SaveGameApplier
         // ターン数復元（PlayerStart.Entry()でTurn++されるので1引く）
         turnGen.Context.Turn = data.Turn - 1;
         turnGen.Context.ResumeSavedPlayerTurn = true;
+        (summonSystem != null ? summonSystem : turnGen.Systems.SummonSystem)?.RestoreTurnRules(data.SummonTurn);
 
         // 資源復元
         SaveSystem.RestoreResources(data.PlayerResources, factionState.PlayerResources);
@@ -280,6 +281,7 @@ public static class SaveGameApplier
         }
         s.SkillCooldown = ud.SkillCooldown;
         s.HasMovedThisTurn = ud.HasMovedThisTurn;
+        s.SummonAttackLocked = ud.SummonAttackLocked;
         s.FirstSkillUsedThisTurn = ud.FirstSkillUsedThisTurn;
         s.DebuffNullifiedThisTurn = ud.DebuffNullifiedThisTurn;
         s.InterceptUsedThisTurn = ud.InterceptUsedThisTurn;
