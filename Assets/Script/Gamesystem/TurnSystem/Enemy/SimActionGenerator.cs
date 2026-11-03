@@ -124,7 +124,7 @@ public static class SimActionGenerator
         Team enemyTeam, int ap, SimActionBuffer results)
     {
 
-        if (unit.SummonAttackLocked) return;
+        if (unit.SummonAttackLocked || unit.Type == Type.Unit && unit.NormalAttacksThisTurn >= NormalAttackTurnRules.Limit) return;
         int cost = board.CalcAttackCost(unit);
         if (cost > ap) return;
 

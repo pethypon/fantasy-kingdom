@@ -102,6 +102,7 @@ public static partial class SaveSystem
             return Invalid("表示専用のマスは駒として保存できません。", out reason);
         if (!Position(unit.PosX, unit.PosY, unit.PosZ, data) || unit.HP < 0 || unit.MaxHP < 0 || unit.HP > unit.MaxHP
             || unit.ATK < 0 || unit.DEF < 0 || unit.Level < 0 || unit.ShieldTurns < 0 || unit.SkillCooldown < 0
+            || unit.NormalAttacksThisTurn < 0 || unit.NormalAttacksThisTurn > 16
             || unit.Fatigue < 0 || unit.Experience < 0 || unit.UpkeepUnpaidTurns < 0) return Invalid("駒の座標または能力値が不正です: " + unit.Kind
                 + " (位置 " + unit.PosX + "," + unit.PosY + "," + unit.PosZ + "; HP " + unit.HP + "/" + unit.MaxHP + ")", out reason);
         if (unit.FixedStatsRevision < 0 || unit.FixedStatsRevision > 2 || unit.LastMaintenanceRound < -1

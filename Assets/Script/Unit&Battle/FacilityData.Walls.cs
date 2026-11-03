@@ -50,7 +50,7 @@ public static partial class FacilityData
     }
 
     // ---- サブクリスタル ----
-    public const int SubCrystalMaximumHP = 1000;
+    public static int SubCrystalMaximumHP => UnityEngine.Mathf.Max(1, GameplayTuning.Active?.subCrystalHP ?? 500);
     private static void BuildSubCrystal()
     {
         var kind = FacilityKind.SubCrystal;

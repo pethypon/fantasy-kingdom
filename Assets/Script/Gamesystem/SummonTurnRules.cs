@@ -4,8 +4,11 @@ using UnityEngine;
 /// <summary>One quota per faction, shared by every summon origin. Only a real owner-turn start resets it.</summary>
 public sealed class SummonTurnRules
 {
-    public const int Limit = 2;
-    public const string LimitReason = "召喚上限：1ターン合計2体までです";
+    public static int Limit => Mathf.Clamp(GameplayTuning.Active?.summonsPerTurn ?? 1, 1, 16);
+    // Preserve saves made with any supported authoring quota, even after lowering it.
+    // Restore clamps the spent count; it never grants another slot.
+    const int MaximumSavedLimit = 16;
+    public static string LimitReason => $"召喚上限：1ターン合計{Limit}体までです";
     public const string AttackReason = "召喚したターンは攻撃不可（次の自軍ターンから）";
 
     [Serializable]
@@ -38,7 +41,7 @@ public sealed class SummonTurnRules
         enemy = Mathf.Clamp(saved?.Enemy ?? 0, 0, Limit);
     }
     public static bool Valid(Snapshot saved) => saved == null
-        || saved.Player >= 0 && saved.Player <= Limit && saved.Enemy >= 0 && saved.Enemy <= Limit;
+        || saved.Player >= 0 && saved.Player <= MaximumSavedLimit && saved.Enemy >= 0 && saved.Enemy <= MaximumSavedLimit;
 
     public static bool AttackLocked(Status actor) => actor != null && actor.type == Type.Unit && actor.SummonAttackLocked;
     public static bool SkillBlocked(Status actor, SkillData skill) => AttackLocked(actor) && IsAttackSkill(skill);

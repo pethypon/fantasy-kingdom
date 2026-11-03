@@ -609,7 +609,7 @@ public partial class UnitPanelUI : MonoBehaviour
         if (attackButton != null)
         {
             attackButton.interactable = canAttack;
-            UpdateButtonLabel(attackButton, SummonTurnRules.AttackLocked(currentUnit) ? "次ターンから攻撃" : turnGenerator != null && turnGenerator.CurrentState is PlayerAttack attack && attack.attackmode == PlayerMove.AttackMode.Normal ? "攻撃モード" : "攻撃 <size=70%>[1]</size>", apSystem != null ? apSystem.CalcCost(APSystem.ActionType.Attack,currentUnit) : APSystem.BaseAttackCost, canAttack);
+            UpdateButtonLabel(attackButton, SummonTurnRules.AttackLocked(currentUnit) ? "次ターンから攻撃" : NormalAttackTurnRules.Exhausted(currentUnit) ? "通常攻撃済み" : turnGenerator != null && turnGenerator.CurrentState is PlayerAttack attack && attack.attackmode == PlayerMove.AttackMode.Normal ? "攻撃モード" : "攻撃 <size=70%>[1]</size>", apSystem != null ? apSystem.CalcCost(APSystem.ActionType.Attack,currentUnit) : APSystem.BaseAttackCost, canAttack);
         }
         if (skillButton != null)
         {

@@ -20,7 +20,7 @@ public static class AIStallTelemetry
     {
         Close();choiceRows=scoutRows=0;
         choices=new StreamWriter(Path.Combine(folder,"stall-choices.csv"));scouts=new StreamWriter(Path.Combine(folder,"stall-scouts.csv"));
-        Row(choices,"team","round","generation","mode","AP","actor","kind","action","targetTeam","targetKind","score","priority","x","z","destX","destZ","hp","maxHP","hasMoved","goalId","goalState","goalReason","goalX","goalZ","beforeGoalCheby","afterGoalCheby","knownRoute","waypointX","waypointZ","bestSameActorCloserScore","bestSameActorCloserPriority","bestSameActorCloserX","bestSameActorCloserZ","visibleHostiles","visiblePrincipal","visibleThird","mainKnowledge","squadCount","squadPolicyEnabled","squadCacheGeneration","squadBoardMatches");
+        Row(choices,"team","round","generation","mode","AP","actor","kind","action","targetTeam","targetKind","score","priority","x","z","destX","destZ","hp","maxHP","hasMoved","goalId","goalState","goalReason","goalX","goalZ","beforeGoalCheby","afterGoalCheby","knownRoute","waypointX","waypointZ","bestSameActorCloserScore","bestSameActorCloserPriority","bestSameActorCloserX","bestSameActorCloserZ","visibleHostiles","visiblePrincipal","visibleThird","mainKnowledge","squadCount","squadPolicyEnabled","squadCacheGeneration","squadBoardMatches","reconSource","hypothesisConfidence","knownRouteRisks","ownRouteLosses");
         Row(scouts,"team","round","generation","lifeId","hp","x","z","stunned","movementBlocked","effects","goalId","goalState","goalReason","goalX","goalZ","route","waypointX","waypointZ");
         AIDecisionObserver.Observed+=Observe;
     }
@@ -56,7 +56,8 @@ public static class AIStallTelemetry
             objective?.ObjectiveId,objective?.State,objective?.LastReason,objective?.TargetCell.x,objective?.TargetCell.z,before,after,objective?.UsesKnownRouteDistance,objective?.RouteWaypoint.x,objective?.RouteWaypoint.z,
             closer?.Score,closer?.StrategicPriority,closer?.TargetPos.x,closer?.TargetPos.z,board.AlivePlayerUnits.Count,principal,third,board.MainCrystalKnowledge,
             board.Operations?.State.Squads?.Count,AIOperationSquadConfig.Active.Enabled,board.Operations!=null?SquadGeneration?.GetValue(board.Operations):null,
-            board.Operations!=null&&ReferenceEquals(SquadBoard?.GetValue(board.Operations),board));choiceRows++;
+            board.Operations!=null&&ReferenceEquals(SquadBoard?.GetValue(board.Operations),board),board.TerritoryIntel.ReconSource,
+            board.TerritoryIntel.SearchHypothesisConfidence,board.TerritoryIntel.RememberedRouteRisks,board.TerritoryIntel.RecordedRouteLosses);choiceRows++;
     }
     static void Row(StreamWriter writer,params object[] fields)
     {

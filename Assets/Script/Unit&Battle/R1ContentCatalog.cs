@@ -73,6 +73,8 @@ public static class UniqueRewardSystem
         var crystals = owner == Team.Player ? systems.CrystalSystem.Playercrystal : systems.CrystalSystem.Enemycrystal;
         foreach (var crystal in crystals.GetComponentsInChildren<Status>())
         {
+            if (crystal.kind == Kind.Crystal && reward.CrystalHPBonus > 0)
+            { MainCrystalRules.ApplyMaximumHPBonus(crystal, reward.CrystalHPBonus); continue; }
             crystal.MaxHP += reward.CrystalHPBonus;
             crystal.ApplyHeal(reward.CrystalHPBonus);
         }

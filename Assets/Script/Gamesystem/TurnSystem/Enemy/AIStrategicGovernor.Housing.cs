@@ -236,7 +236,7 @@ public sealed partial class AIStrategicGovernor
                     && ability.guardianAttackCostReset == AbilityResetScope.OwnerTurn)
                     cost = Mathf.Max(1, cost - Mathf.Max(0, SpecialSkillRuntime.State(actor).guardianAttackCount));
                 var apSystem = board.SpecialSystems?.APSystem;
-                if (config.EnableRepeatAttackAPPlanning && apSystem != null && !AIHealingCapability.HasHealing(actor))
+                if (NormalAttackTurnRules.Limit > 1 && config.EnableRepeatAttackAPPlanning && apSystem != null && !AIHealingCapability.HasHealing(actor))
                     foreach (var target in board.GetAttackTargets(actor))
                         if (!AIActionEvaluator.CanFinishSpecialTarget(actor, target, board)
                             && AIActionEvaluator.EstimateEffectiveSpecialImpact(actor, target, board, out _) > 0)

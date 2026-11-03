@@ -5,7 +5,7 @@ public partial class AIBoardState
 {
     internal int CoordinationAttackCost(Status actor, bool afterMove)
     {
-        if (actor == null || _apSystem == null) return int.MaxValue;
+        if (actor == null || _apSystem == null || NormalAttackTurnRules.Exhausted(actor)) return int.MaxValue;
         long fatigue = Mathf.Max(0, actor.Fatigue);
         if (afterMove) fatigue += 1L + GameConstants.GetExtraFatiguePerAction(actor.kind);
         return _apSystem.CalcAttackCostPreview(actor, (int)Math.Min(int.MaxValue, fatigue));

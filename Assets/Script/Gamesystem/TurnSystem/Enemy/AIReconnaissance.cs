@@ -21,6 +21,32 @@ public sealed class AIReconnaissance
 
     public AIReconnaissance(AIBoardState board) { this.board = board; }
 
+    /// <summary>Keep the last healthy scout observing a found main base; safety orders can still retreat.</summary>
+    public bool WouldAbandonObservedMainCrystal(AIAction action)
+    {
+        var actor = action?.Unit;
+        if (actor == null || actor.kind != Kind.Scout || action.StrategicPriority <= 2 || !board.PlayerCrystalVisible
+            || action.ActionType != AIActionType.Move && action.ActionType != AIActionType.Support && action.ActionType != AIActionType.Surround
+            || !CanObserveFrom(actor, actor.transform.position, board.PlayerCrystalPos)
+            || CanObserveFrom(actor, action.TargetPos, board.PlayerCrystalPos)) return false;
+        if (board.EstimateCounterDamageAt(action.TargetPos, actor) < board.EstimateCounterDamageAt(actor.transform.position, actor)) return false;
+        foreach (var ally in board.AliveEnemyUnits)
+            if (ally != null && ally != actor && ally.IsAlive && CanObserveFrom(ally, ally.transform.position, board.PlayerCrystalPos)) return false;
+        return true;
+    }
+
+    bool CanObserveFrom(Status actor, Vector3 origin, Vector3 point)
+    {
+        var from = GridHelper.ToGridXZ(origin); var target = GridHelper.ToGridXZ(point);
+        bool covered = target == from;
+        if (actor.Special?.visionZeroTurns > 0) return covered;
+        if (StatusEffectSystem.HasDebuff(actor, StatusEffectType.Blind) || StatusEffectSystem.HasDebuff(actor, StatusEffectType.NarrowVision))
+            covered |= target == from + new Vector3Int(0, 0, MovePatterns.DirZ(actor.direction));
+        else foreach (var offset in VisionGenerator.BaseVisionOffsets(actor))
+            if (target == from + GridHelper.ToGridXZ(offset)) { covered = true; break; }
+        return covered && KnownLineClear(from, target, false);
+    }
+
     void Prepare()
     {
         if (generation == board.Generation && threat == board.ReconThreatLevel) return;

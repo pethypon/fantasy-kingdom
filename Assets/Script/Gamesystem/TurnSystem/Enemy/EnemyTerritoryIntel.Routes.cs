@@ -8,7 +8,7 @@ public sealed partial class EnemyTerritoryIntel
     sealed class RouteContext
     {
         public AIBoardState Board;
-        public int Generation = -1, TerrainRevision = -1, OccupancyRevision;
+        public int Generation = -1, TerrainRevision = -1, OccupancyRevision, RiskRevision = -1;
         public Vector3Int Target, Start;
         public float Remaining;
         public bool Proved;
@@ -82,16 +82,16 @@ public sealed partial class EnemyTerritoryIntel
         }
         var start=XZ(actor.GridPosition);
         if(context.Board==board&&context.Generation==board.Generation&&context.Target==target&&context.Start==start
-            &&context.TerrainRevision==terrainRevision)return context.Proved;
+            &&context.TerrainRevision==terrainRevision&&context.RiskRevision==RouteRiskRevision)return context.Proved;
         occupancyScratch.Clear();
         foreach(var cell in occupied)if(cell!=start)occupancyScratch.Add(cell);
         if(!context.Occupants.SetEquals(occupancyScratch))
         { context.Occupants.Clear();context.Occupants.UnionWith(occupancyScratch);context.OccupancyRevision++; }
-        context.Board=board;context.Generation=board.Generation;context.Target=target;context.Start=start;context.TerrainRevision=terrainRevision;
+        context.Board=board;context.Generation=board.Generation;context.Target=target;context.Start=start;context.TerrainRevision=terrainRevision;context.RiskRevision=RouteRiskRevision;
         if(routes==null)routes=new ExplorationKnownRoute();
         var snapshot=new ExplorationActor(id,GridHelper.ToGrid(actor.transform.position),actor.kind,actor.HP,true,actor.ReflectionLifeId);
         int evidence;
-        unchecked { evidence=board.BeliefEvidenceStamp*397^context.OccupancyRevision; }
+        unchecked { evidence=board.BeliefEvidenceStamp*397^context.OccupancyRevision^RouteRiskRevision; }
         context.Proved=routes.TryMeasure(snapshot,target,terrain,context.Blocked,MovePatterns.Offsets(actor),
             !MovePatterns.IsDirectionIndependent(actor),MovePatterns.DirZ(actor.direction),terrainRevision,
             board.TurnCount,evidence,EstimateDanger,out float remaining,out _,width,depth,requireEnabled:false);
@@ -101,7 +101,7 @@ public sealed partial class EnemyTerritoryIntel
 
     float EstimateDanger(int id,Vector3Int cell)
         => preparedBoard!=null&&routeActors.TryGetValue(id,out var actor)
-            ? preparedBoard.EstimateCounterDamageAt(cell,actor) : 0;
+            ? preparedBoard.EstimateCounterDamageAt(cell,actor) + RoutePlanningRisk(actor.HP,cell) : 0;
 
     public bool IsProgress(Status actor,Vector3 destination,AIBoardState board)
         => ProgressScore(actor,destination,board)>0;

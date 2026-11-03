@@ -75,7 +75,8 @@ public sealed partial class AIExplorationPlanner
         if (observation != null && actorTeam == next.ActorTeam && turn == next.Turn && width == next.Width && depth == next.Depth
             && viewVersion == next.ViewVersion && cellVersion == next.CellVersion && dangerVersion == next.DangerVersion && actorVersion == incomingActors && emergency == isEmergency
             && informationStamp == incomingInformation
-            && territoryReconRequested == next.HasTerritoryReconDirection && (!territoryReconRequested || territoryReconDirection == XZ(next.TerritoryReconDirection))) return;
+            && territoryReconRequested == next.HasTerritoryReconDirection && territoryReconIsRevisit == next.TerritoryReconIsRevisit
+            && (!territoryReconRequested || territoryReconDirection == XZ(next.TerritoryReconDirection))) return;
         bool newTurn = turn != next.Turn;
         bool dimensionsChanged = width != next.Width || depth != next.Depth;
         bool factionChanged = width > 0 && actorTeam != next.ActorTeam;
@@ -90,8 +91,10 @@ public sealed partial class AIExplorationPlanner
         emergency = isEmergency;
         // A changing focus direction refines the next assignment; it must not cancel a
         // still-progressing objective every time a scout or the army changes position.
-        bool newTerritoryRecon = next.HasTerritoryReconDirection && !territoryReconRequested;
+        bool newTerritoryRecon = next.HasTerritoryReconDirection && (!territoryReconRequested
+            || next.TerritoryReconIsRevisit && !territoryReconIsRevisit);
         territoryReconRequested = next.HasTerritoryReconDirection;
+        territoryReconIsRevisit = next.TerritoryReconIsRevisit;
         territoryReconDirection = XZ(next.TerritoryReconDirection);
         Observe(next);
         PrepareActors(next);
@@ -245,6 +248,14 @@ public sealed partial class AIExplorationPlanner
         }
         if (newTerritoryRecon && objective != null && objective.State != ObjectiveState.Completed && objective.State != ObjectiveState.Failed)
             Finish(objective, ObjectiveState.Failed, "territory_recon_replanned", actor);
+        // Observation is the mission's result. While it is available, hold overwatch
+        // instead of rebuilding a known-vantage route after every other unit's action.
+        if (territoryReconRequested && territoryReconIsRevisit && visible.Contains(territoryReconDirection))
+        {
+            if (objective?.HasRequiredObservation == true && (objective.State == ObjectiveState.Active || objective.State == ObjectiveState.Suspended))
+                Finish(objective, ObjectiveState.Completed, "main_crystal_reconfirmed", actor);
+            return;
+        }
         if (objective != null && objective.State == ObjectiveState.Suspended)
         {
             objective.LastProgressTurn += Mathf.Max(0, turn - objective.SuspendedTurn);
@@ -265,8 +276,16 @@ public sealed partial class AIExplorationPlanner
             history.Add(actor.Cell, turn, reveals, distance);
             bool loop = history.Count >= Mathf.Max(4, settings.LoopMinimumSamples) && history.UniqueCellsInWindow <= Mathf.Max(1, settings.LoopUniqueCellLimit)
                 && history.RepeatedCellInWindow && history.NewlyRevealedInWindow == 0 && history.DistanceProgressInWindow <= settings.ProgressDistanceThreshold;
-            if (region == null || objective.IsIntelRevisit && memory.TryGetValue(XZ(objective.TargetCell), out var intelMemory) && IsFresh(intelMemory.LastSeenTurn)) Finish(objective, ObjectiveState.Completed, "frontier_completed", actor);
-            else if (Distance(actor.Cell, objective.TargetCell) <= Mathf.Max(0, settings.CompletionDistance)
+            if (objective.HasRequiredObservation && visible.Contains(XZ(objective.RequiredObservationCell)))
+                Finish(objective, ObjectiveState.Completed, "main_crystal_reconfirmed", actor);
+            else if (objective.HasRequiredObservation && Distance(actor.Cell, objective.TargetCell) == 0)
+            {
+                RecordViewpoint(actor, objective, true);
+                Finish(objective, ObjectiveState.Failed, "reconfirmation_viewpoint_blocked", actor);
+            }
+            else if (!objective.HasRequiredObservation && (region == null || objective.IsIntelRevisit
+                && memory.TryGetValue(XZ(objective.TargetCell), out var intelMemory) && IsFresh(intelMemory.LastSeenTurn))) Finish(objective, ObjectiveState.Completed, "frontier_completed", actor);
+            else if (!objective.HasRequiredObservation && Distance(actor.Cell, objective.TargetCell) <= Mathf.Max(0, settings.CompletionDistance)
                 && (HasLegInformation(objective) || objective.IsIntelRevisit && visible.Contains(XZ(objective.TargetCell))))
             {
                 RecordViewpoint(actor, objective, false);
@@ -344,7 +363,7 @@ public sealed partial class AIExplorationPlanner
         => settings.UnknownGainWeight * Mathf.Sqrt(frontier.UnknownCellsBehind) + IntelValue(frontier) - Distance(actor.Cell, frontier.RepresentativeCell) * settings.TravelCostWeight
             - (reservedRegions.Contains(frontier.RegionId) ? settings.OtherScoutPenalty : 0) - (cooldowns.ContainsKey(frontier.RegionId) ? settings.LoopAreaPenalty : 0);
 
-    ExplorationCandidateScore ScoreFrontier(ExplorationFrontierRegion frontier, ExplorationActor actor, ExplorationMovementHistory history)
+    ExplorationCandidateScore ScoreFrontier(ExplorationFrontierRegion frontier, ExplorationActor actor, ExplorationMovementHistory history, bool requiredObservation = false)
     {
         var score = new ExplorationCandidateScore { RegionId = frontier.RegionId };
         float damage = observation.EstimateDanger != null ? Mathf.Max(0, observation.EstimateDanger(actor.UnitId, frontier.RepresentativeCell)) : 0;
@@ -371,8 +390,8 @@ public sealed partial class AIExplorationPlanner
         else if (frontier.EstimatedDanger >= Mathf.Max(0, settings.MaximumFrontierDangerFraction)) score.RejectReason = "danger_too_high";
         else if (score.OtherScout > 0) score.RejectReason = "frontier_already_assigned";
         else if (score.LoopArea > 0) score.RejectReason = "loop_area_penalty";
-        else if (frontier.IsIntelRevisit && IsFresh(frontier.OldestSeenTurn)) score.RejectReason = "recently_explored";
-        else if (score.UnknownGain <= 0 && score.StaleIntel <= 0) score.RejectReason = "no_unknown_gain";
+        else if (!requiredObservation && frontier.IsIntelRevisit && IsFresh(frontier.OldestSeenTurn)) score.RejectReason = "recently_explored";
+        else if (!requiredObservation && score.UnknownGain <= 0 && score.StaleIntel <= 0) score.RejectReason = "no_unknown_gain";
         return score;
     }
 
@@ -611,7 +630,7 @@ public sealed partial class AIExplorationPlanner
     }
     void ResetKnowledge()
     {
-        memory.Clear(); terrain.Clear(); blocked.Clear(); visible.Clear(); previousVisible.Clear(); importance.Clear(); regions.Clear(); dirtyRegions.Clear(); frontiers.Clear(); objectives.Clear(); histories.Clear(); cooldowns.Clear(); lastCandidates.Clear(); knownRoute.Clear(); territoryReconRequested = false; territoryReconDirection = default; territoryReconCandidates.Clear(); expeditionRecords.Clear(); expeditionIndex.Clear(); incomingContactSignatures.Clear();
+        memory.Clear(); terrain.Clear(); blocked.Clear(); visible.Clear(); previousVisible.Clear(); importance.Clear(); regions.Clear(); dirtyRegions.Clear(); frontiers.Clear(); objectives.Clear(); histories.Clear(); cooldowns.Clear(); lastCandidates.Clear(); knownRoute.Clear(); territoryReconRequested = territoryReconIsRevisit = false; territoryReconDirection = default; territoryReconCandidates.Clear(); expeditionRecords.Clear(); expeditionIndex.Clear(); incomingContactSignatures.Clear();
         actors.Clear(); sortedActors.Clear(); liveLifeIds.Clear(); reservedRegions.Clear(); revealCredit.Clear(); newlyRevealedSet.Clear(); newlyRevealedByRegion.Clear();
         lastFrontierRefresh = -1; emergency = false;
     }

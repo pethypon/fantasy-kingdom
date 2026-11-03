@@ -1,0 +1,6 @@
+﻿variant,summonLimit,seed,team,operationId,firstRound,lastRound,samples,statuses,stepIndices,maximumLiveSquad
+route_trial,2,314159,Enemy,23,55,120,1114,Active;Suspended,0,4
+route_trial,2,271828,Player,27,59,120,947,Active;Suspended,0,4
+attack_quota_trial,1,314159,Enemy,17,41,120,1355,Active;Preparing;Suspended,0,4
+attack_quota_trial,1,271828,Enemy,16,17,120,1702,Active;Preparing;Suspended,0,4
+final,1,271828,Enemy,16,17,120,1906,Active;Preparing;Suspended,0;1;2;3;4,4

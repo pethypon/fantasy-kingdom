@@ -281,11 +281,18 @@ public class DungeonSystem : MonoBehaviour
     {
         if (factionState == null || !ArtifactPresentation.Available(art)) return;
         var res = factionState.GetResources(team);
+        string rewardName = ArtifactPresentation.Name(art);
 
         switch (art)
         {
             case Artifact.CrystalShard:
-                BuffCrystal(team, 1000);
+                int granted = BuffCrystal(team, MainCrystalRules.ShardHPBonus);
+                if (granted >= 0)
+                {
+                    int ore = MainCrystalRules.OverflowMagicOre(granted);
+                    res.MagicOre = (int)System.Math.Min(int.MaxValue, (long)res.MagicOre + ore);
+                    if (ore > 0) rewardName += "（上限分を魔石" + ore + "に変換）";
+                }
                 break;
             case Artifact.WarBanner:
                 BuffAllUnits(team, atkDelta: 2);
@@ -301,19 +308,19 @@ public class DungeonSystem : MonoBehaviour
                 break;
         }
         UniqueRewardSystem.Records.Add(new RewardRecord { Category = RewardCategory.DungeonRandomArtifact,
-            Owner = team, Id = "dungeon:" + art, DisplayName = ArtifactPresentation.Name(art) });
-        if (team == Team.Player) ToastMessageUI.Show(ArtifactPresentation.Name(art) + "獲得", ToastMessageUI.MessageType.Info);
+            Owner = team, Id = "dungeon:" + art, DisplayName = rewardName });
+        if (team == Team.Player) ToastMessageUI.Show(rewardName + "獲得", ToastMessageUI.MessageType.Info);
     }
 
-    private void BuffCrystal(Team team, int hpBonus)
+    private int BuffCrystal(Team team, int hpBonus)
     {
-        if (crystalsystem == null) return;
+        if (crystalsystem == null) return -1;
         Transform parent = team == Team.Player ? crystalsystem.Playercrystal : crystalsystem.Enemycrystal;
-        if (parent == null || parent.childCount == 0) return;
-        var s = parent.GetChild(0).GetComponent<Status>();
-        if (s == null) return;
-        s.MaxHP += hpBonus;
-        s.ApplyHeal(hpBonus);
+        if (parent == null) return -1;
+        foreach (var s in parent.GetComponentsInChildren<Status>())
+            if (s.kind == Kind.Crystal && s.team == team && s.IsAlive)
+                return MainCrystalRules.ApplyMaximumHPBonus(s, hpBonus);
+        return -1;
     }
 
     private void BuffAllUnits(Team team, int atkDelta = 0, int defDelta = 0)

@@ -234,6 +234,8 @@ public class PlayerMove : TurnState
     // ---- 攻撃ステートへ遷移 ----
     private void StartAttack(AttackMode mode)
     {
+        if (!(mode == AttackMode.Skill) && NormalAttackTurnRules.Exhausted(SelectedUnit))
+            { ToastMessageUI.Show(NormalAttackTurnRules.ExhaustedReason, ToastMessageUI.MessageType.Warning); return; }
         if (SummonTurnRules.ModeBlocked(SelectedUnit, mode == AttackMode.Skill))
         { ToastMessageUI.Show(SummonTurnRules.AttackReason, ToastMessageUI.MessageType.Warning); return; }
         var profile = BoardActionProfile.For(SelectedUnit);

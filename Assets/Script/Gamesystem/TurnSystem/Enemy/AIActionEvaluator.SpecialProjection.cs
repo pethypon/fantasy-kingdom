@@ -69,7 +69,7 @@ public static partial class AIActionEvaluator
                 || !string.IsNullOrEmpty(state.bombCasterId) && state.bombDueRound <= board.TurnCount + 1
                     && GridHelper.ChebyshevDistance(destination, opponent.transform.position) <= state.bombRadius)) return 0;
             if (StatusEffectSystem.IsStunned(opponent) || SpecialSkillRuntime.AttackBlocked(opponent)
-                || !SpecialSkillRuntime.CanNormalAttackTarget(opponent, actor)) continue;
+                || !SpecialSkillRuntime.CanNormalAttackTarget(opponent, actor, nextOwnerTurn: true)) continue;
             float range = AIBoardQuery.EstimateAttackRange(opponent) + 1.5f;
             if ((destination - opponent.transform.position).sqrMagnitude <= range * range
                 && SpecialSkillRuntime.PreviewHpDamage(actor, EstimateSpecialAwareAttack(opponent, actor, board)) > 0) return 0;
@@ -114,7 +114,7 @@ public static partial class AIActionEvaluator
     static bool ObservedCouldAttack(AIBoardState board, Status source, Vector3 destination, Status target)
     {
         if (source == null || target == null || !board.IsSpecialActorObserved(source)
-            || !SpecialSkillRuntime.CanNormalAttackTarget(source, target) || StatusEffectSystem.IsStunned(source)
+            || !SpecialSkillRuntime.CanNormalAttackTarget(source, target, nextOwnerTurn: source.team != board.ActorTeam) || StatusEffectSystem.IsStunned(source)
             || BoardActionProfile.For(source)?.CanAttack == false) return false;
         Vector3 difference = destination - source.transform.position;
         if (AttackPatterns.CanAttack(source, source.direction, difference.x, difference.z)) return true;

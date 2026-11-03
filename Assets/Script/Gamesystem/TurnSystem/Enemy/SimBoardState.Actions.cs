@@ -47,11 +47,13 @@ public partial class SimBoardState
         var target = GetUnit(action.TargetUnitId);
         if (attacker == null || target == null || !attacker.IsAlive || !target.IsAlive)
             return false;
-        if (attacker.IsStunned || attacker.SummonAttackLocked) return false;
+        if (attacker.IsStunned || attacker.SummonAttackLocked || attacker.Type == Type.Unit && attacker.NormalAttacksThisTurn >= NormalAttackTurnRules.Limit) return false;
         attacker.SimulationRound = target.SimulationRound = TurnCount;
         if (attacker.ActionProfile != null && (!AttackPatterns.CanAttack(attacker, attacker.Direction,
             target.Position.x - attacker.Position.x, target.Position.z - attacker.Position.z)
             || !CanAttack(attacker, target.Position))) return false;
+
+        if (attacker.Type == Type.Unit) attacker.NormalAttacksThisTurn++;
 
         // シールドチェック
         if (target.HasDamageShield)

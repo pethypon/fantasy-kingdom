@@ -143,7 +143,7 @@ public static class AIBoardQuery
         foreach (var pu in board.Enemies.Near(pos, 12f))
         {
             if (!IsActiveUnit(pu) || ObservedDragonThreat.IsDragon(pu) || BoardActionProfile.For(pu)?.CanAttack == false
-                || !SpecialSkillRuntime.CanNormalAttackTarget(pu, self)||pu.Special?.sniperActive==true) continue;
+                || !SpecialSkillRuntime.CanNormalAttackTarget(pu, self, nextOwnerTurn: true)||pu.Special?.sniperActive==true) continue;
             int knownMoveCost = board.KnownEnvironmentMoveCost(pu.transform.position, pos);
             float movementMargin = knownMoveCost > 0 ? 1.5f / (1 + knownMoveCost) : 1.5f;
             float maxRange = EstimateAttackRange(pu) + movementMargin;

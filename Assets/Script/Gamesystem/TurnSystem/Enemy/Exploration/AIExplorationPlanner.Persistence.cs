@@ -55,6 +55,7 @@ public sealed partial class AIExplorationPlanner
         {
             var objective = state.Objectives[i];
             if (objective == null || !ValidIdentity(objective.ActorLifeId) || objectives.ContainsKey(objective.ActorLifeId) || !Inside(XZ(objective.TargetCell))
+                || objective.HasRequiredObservation && !Inside(XZ(objective.RequiredObservationCell))
                 || (int)objective.State < 0 || (int)objective.State > (int)ObjectiveState.Failed || !Finite(objective.BestDistance) || !Finite(objective.LastDistance)) continue;
             var copy = CloneObjective(objective); copy.CreatedTurn = Mathf.Clamp(copy.CreatedTurn, 0, turn);
             if (copy.ObjectiveId <= 0 || copy.ObjectiveId == int.MaxValue || restoredObjectiveIds.Contains(copy.ObjectiveId))
@@ -150,6 +151,7 @@ public sealed partial class AIExplorationPlanner
         BestDistance = source.BestDistance, LastDistance = source.LastDistance, LastSampleTurn = source.LastSampleTurn,
         LastUnknownCount = source.LastUnknownCount, FailedMoves = source.FailedMoves, SuspendedTurn = source.SuspendedTurn,
         LastReason = source.LastReason, IsIntelRevisit = source.IsIntelRevisit,
+        HasRequiredObservation = source.HasRequiredObservation, RequiredObservationCell = source.RequiredObservationCell,
         RebaseProgressOnNextObservation = source.RebaseProgressOnNextObservation,
         UsesKnownRouteDistance = source.UsesKnownRouteDistance, RouteMetricRevision = source.RouteMetricRevision, RouteWaypoint = source.RouteWaypoint
     };

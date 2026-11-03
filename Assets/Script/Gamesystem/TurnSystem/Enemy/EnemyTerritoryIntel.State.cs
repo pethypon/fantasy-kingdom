@@ -17,6 +17,14 @@ public sealed class EnemyTerritoryIntelState
     public int PausedTurn = -1;
     public List<EnemyTerritoryIntelRegion> Regions = new List<EnemyTerritoryIntelRegion>();
     public List<EnemyTerritoryIntelVisit> Visits = new List<EnemyTerritoryIntelVisit>();
+    // Optional v1 extension: battle-local reconnaissance itinerary, independent of army staging.
+    public bool HasReconWaypoint;
+    public Vector3Int ReconWaypoint;
+    public int ReconSelectedTurn = -1;
+    public List<EnemyTerritoryIntelVisit> ReconVisits = new List<EnemyTerritoryIntelVisit>();
+    public List<AIRouteRiskRecord> RouteRisks = new List<AIRouteRiskRecord>();
+    public List<string> RouteLossIdentities = new List<string>();
+    public int RecordedRouteLosses;
 }
 
 [Serializable]

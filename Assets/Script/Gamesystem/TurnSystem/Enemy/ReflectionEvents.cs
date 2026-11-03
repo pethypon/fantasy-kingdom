@@ -19,6 +19,7 @@ public static class AIReflectionEvents
         string killed = target.HP <= 0 && target.type == Type.Unit ? target.ReflectionLifeId : null;
         Commander(turn, attacker.team)?.NotifyActualDamage(damage, true, killed, formationKill);
         Commander(turn, target.team)?.NotifyActualDamage(damage, false);
+        if (target.HP <= 0 && target.type == Type.Unit) Commander(turn, target.team)?.NotifyOwnUnitCombatLoss(target);
         if (target.HP <= 0 && target.type != Type.Unit) RecordBaseDestruction(turn, target, attacker.team);
     }
     public static void RecordBaseDestruction(TurnGenerator turn, Status target, Team source = Team.None)

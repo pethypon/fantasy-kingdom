@@ -168,6 +168,7 @@ public static partial class SaveSystem
         public bool SurvivalInstinctUsed;
         public bool HasMovedThisTurn;
         public bool SummonAttackLocked;
+        public int NormalAttacksThisTurn;
         public bool FirstSkillUsedThisTurn, DebuffNullifiedThisTurn, InterceptUsedThisTurn;
 
         // 状態異常

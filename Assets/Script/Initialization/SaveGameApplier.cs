@@ -282,6 +282,7 @@ public static class SaveGameApplier
         s.SkillCooldown = ud.SkillCooldown;
         s.HasMovedThisTurn = ud.HasMovedThisTurn;
         s.SummonAttackLocked = ud.SummonAttackLocked;
+        s.NormalAttacksThisTurn = Mathf.Clamp(ud.NormalAttacksThisTurn, 0, 16);
         s.FirstSkillUsedThisTurn = ud.FirstSkillUsedThisTurn;
         s.DebuffNullifiedThisTurn = ud.DebuffNullifiedThisTurn;
         s.InterceptUsedThisTurn = ud.InterceptUsedThisTurn;

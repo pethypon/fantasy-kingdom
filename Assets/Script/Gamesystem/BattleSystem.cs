@@ -50,6 +50,7 @@ public partial class BattleSystem : MonoBehaviour
         }
 
         if (!SpecialSkillRuntime.TryBeginNormalShot(Attacker, out var firedRound)) return;
+        NormalAttackTurnRules.Record(Attacker);
         BoardActorAnimation.NotifyAttack(Attacker, Target.transform.position);
         SpecialSkillRuntime.BeginNormalAttack(Attacker);
         float lockedDistance = lockedShot ? GridHelper.ChebyshevDistance(Attacker.transform.position, Target.transform.position) : -1;

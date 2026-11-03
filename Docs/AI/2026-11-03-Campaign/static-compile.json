@@ -1,0 +1,23 @@
+{
+  "startedUtc": "2026-11-03T11:44:37.551805+00:00",
+  "finishedUtc": "2026-11-03T11:44:44.402852+00:00",
+  "scope": "Static C# compilation only; no Editor Play Mode, no game execution, no tests executed. Uses the Unity 6000.3.8f1 compiler and cached project assembly references.",
+  "baseCommit": "c0bbcc012607ad525f0617dda1b4b4b71991d223",
+  "stages": [
+    {
+      "name": "Assembly-CSharp",
+      "exitCode": 0,
+      "sourceCount": 515
+    },
+    {
+      "name": "Assembly-CSharp-Editor",
+      "exitCode": 0,
+      "sourceCount": 235
+    },
+    {
+      "name": "Assembly-CSharp-Release",
+      "exitCode": 0,
+      "sourceCount": 515
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+﻿variant,summonLimit,seed,team,recordedOwnCombatLosses,maximumRiskRecords,sourceSamples,maximumHypothesisConfidence
+route_trial,2,314159,Player,28,25,"{""none"": 29, ""coverage_hypothesis"": 1317, ""observed_enemy_territory"": 153}",0.3774286
+route_trial,2,314159,Enemy,32,28,"{""none"": 27, ""coverage_hypothesis"": 27, ""observed_enemy_territory"": 470, ""observed_main_base_memory"": 890}",0.2562857
+route_trial,2,271828,Player,21,26,"{""none"": 27, ""coverage_hypothesis"": 507, ""observed_enemy_territory"": 61, ""observed_main_base_memory"": 788}",0.338
+route_trial,2,271828,Enemy,18,23,"{""none"": 27, ""coverage_hypothesis"": 38, ""observed_enemy_territory"": 1377}",0.2565714
+staging_trial,2,314159,Player,35,36,"{""none"": 29, ""coverage_hypothesis"": 590, ""observed_enemy_territory"": 801}",0.3142857
+staging_trial,2,314159,Enemy,33,26,"{""none"": 27, ""coverage_hypothesis"": 808, ""observed_enemy_territory"": 480}",0.3411429
+staging_trial,2,271828,Player,17,22,"{""none"": 26, ""coverage_hypothesis"": 469, ""observed_enemy_territory"": 858}",0.316
+staging_trial,2,271828,Enemy,40,43,"{""none"": 27, ""coverage_hypothesis"": 20, ""observed_enemy_territory"": 1404}",0.2488571
+reinforcement_trial,2,314159,Player,25,22,"{""none"": 29, ""coverage_hypothesis"": 303, ""observed_enemy_territory"": 969}",0.3034286
+reinforcement_trial,2,314159,Enemy,39,35,"{""none"": 27, ""coverage_hypothesis"": 27, ""observed_enemy_territory"": 1257}",0.256
+reinforcement_trial,2,271828,Player,25,38,"{""none"": 26, ""coverage_hypothesis"": 396, ""observed_enemy_territory"": 959}",0.3042857
+reinforcement_trial,2,271828,Enemy,27,38,"{""none"": 27, ""coverage_hypothesis"": 20, ""observed_enemy_territory"": 1413}",0.2488571
+quota_one_trial,1,314159,Player,23,20,"{""none"": 29, ""coverage_hypothesis"": 291, ""observed_enemy_territory"": 948}",0.2628571
+quota_one_trial,1,314159,Enemy,30,25,"{""none"": 27, ""coverage_hypothesis"": 27, ""observed_enemy_territory"": 1228}",0.256
+quota_one_trial,1,271828,Player,17,27,"{""none"": 26, ""coverage_hypothesis"": 143, ""observed_enemy_territory"": 1181}",0.3131429
+quota_one_trial,1,271828,Enemy,19,32,"{""none"": 27, ""coverage_hypothesis"": 20, ""observed_enemy_territory"": 1439}",0.2488571
+attack_quota_trial,1,314159,Player,16,15,"{""none"": 29, ""coverage_hypothesis"": 331, ""observed_enemy_territory"": 1206}",0.2745714
+attack_quota_trial,1,314159,Enemy,19,16,"{""none"": 27, ""coverage_hypothesis"": 27, ""observed_enemy_territory"": 347, ""observed_main_base_memory"": 1122}",0.256
+attack_quota_trial,1,271828,Player,13,22,"{""none"": 26, ""coverage_hypothesis"": 32, ""observed_enemy_territory"": 1521}",0.2622857
+attack_quota_trial,1,271828,Enemy,25,33,"{""none"": 27, ""coverage_hypothesis"": 20, ""observed_enemy_territory"": 92, ""observed_main_base_memory"": 1372}",0.2488571
+final,1,314159,Player,20,20,"{""none"": 29, ""coverage_hypothesis"": 207, ""observed_enemy_territory"": 1300}",0.2917143
+final,1,314159,Enemy,11,10,"{""none"": 27, ""coverage_hypothesis"": 27, ""observed_enemy_territory"": 1437}",0.256
+final,1,271828,Player,13,26,"{""none"": 26, ""coverage_hypothesis"": 32, ""observed_enemy_territory"": 1556}",0.2622857
+final,1,271828,Enemy,18,29,"{""none"": 27, ""coverage_hypothesis"": 20, ""observed_enemy_territory"": 92, ""observed_main_base_memory"": 1594}",0.2488571

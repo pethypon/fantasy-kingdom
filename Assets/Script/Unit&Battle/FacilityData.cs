@@ -123,6 +123,7 @@ public static partial class FacilityData
                 var definition = catalog.FindStandard(pair.Key);
                 if (definition != null) next[pair.Key] = definition.GetInfo();
             }
+            var sub = next[FacilityKind.SubCrystal]; sub.HP = SubCrystalMaximumHP; next[FacilityKind.SubCrystal] = sub;
             // Replace the view rather than mutating a dictionary that a caller is enumerating.
             resolvedTable = next; resolvedRevision = GameContentRevision.Revision; return next;
         }
@@ -143,7 +144,8 @@ public static partial class FacilityData
         if (definition != null) return definition.GetLevel(level);
         if (!_levels.TryGetValue(kind, out var arr)) return default;
         int idx = Mathf.Clamp(level - 1, 0, arr.Length - 1);
-        return BuildingProductionBalance.Resolve(kind, null, idx + 1, arr[idx]);
+        var recipe = arr[idx]; if (kind == FacilityKind.SubCrystal) recipe.HP = SubCrystalMaximumHP;
+        return BuildingProductionBalance.Resolve(kind, null, idx + 1, recipe);
     }
 
     /// <summary>

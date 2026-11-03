@@ -245,8 +245,10 @@ public class GameManualUI : MonoBehaviour
 "  ターン制のチェス風戦略ゲーム。相手の王、またはメインクリスタルのどちらかを倒すと勝利。自軍の王、またはメインクリスタルのどちらかを失うと敗北。サブクリスタルは敗北条件に含みません。\n\n" +
 BuildDurabilityRulesText() +
 "<b>■ AP（行動力）</b>\n" +
-$"  市民1人ごとに追加AP{EconomySystem.CitizenAPBonus}を得る。移動{APSystem.BaseMoveCost}・攻撃{APSystem.BaseAttackCost}・建築/召喚でAPを消費する。\n\n" +
+$"  市民1人でAP＋{EconomySystem.CitizenAPBonus}。基本AP：移動{APSystem.BaseMoveCost}・通常攻撃{APSystem.BaseAttackCost}。建築・召喚にもAPを使用。\n" +
+"  移動・通常攻撃で疲労が増え、必要APも増加。自軍ターン開始で疲労リセット。\n\n" +
 "<b>■ 召喚</b>\n" +
+$"  通常攻撃は各駒、自軍ターンに{NormalAttackTurnRules.Limit}回まで（スキル・反撃は別枠）。\n" +
 $"  自軍領地内へ1ターン合計{SummonTurnRules.Limit}体まで。兵種・メイン／サブクリスタルで上限を共有。\n" +
 "  召喚した駒は移動・回復・味方支援が可能。通常攻撃と攻撃スキルは次の自軍ターンから使用できます。\n\n" +
 "<b>■ 維持費</b>\n" +

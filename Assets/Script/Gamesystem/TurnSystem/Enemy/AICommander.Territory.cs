@@ -9,4 +9,9 @@ public partial class AICommander
         return state != null && state.Width > 0 && state.Depth > 0 ? state : null;
     }
     public void RestoreTerritoryState(EnemyTerritoryIntelState state) => TerritoryIntel.RestoreState(state, _actorTeam);
+    public void NotifyOwnUnitCombatLoss(Status unit)
+    {
+        if (unit == null || unit.team != _actorTeam || unit.type != Type.Unit || unit.HP > 0) return;
+        TerritoryIntel.RecordOwnCombatLoss(unit.ReflectionLifeId, unit.transform.position, System.Math.Max(0, _turnGen?.Context.Turn ?? _turnCount));
+    }
 }
