@@ -165,7 +165,7 @@ public partial class AICommander
         if (unansweredRoute && assessment.HardSafe && action.Unit != null && action.Unit.kind == Kind.Scout
             && action.ActionType == AIActionType.Move)
         {
-            int expectedNew = _board.EstimateNewVisionCells(action.TargetPos);
+            int expectedNew = _board.EstimateNewVisionCells(action.TargetPos,action.Unit);
             assessment.ExpectedInformationGain = Mathf.Max(0, AIInformationValueEvaluator.Evaluate(
                 expectedNew, .5f, action.APCost, assessment.PredictedIncomingDamage, 1, 0, expectedNew > 0));
         }

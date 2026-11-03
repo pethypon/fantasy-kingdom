@@ -1,0 +1,13 @@
+﻿version,seed,team,rounds,result,errors,exceptions,assertions,Moves,Attacks,Skills,Summons,Builds,RevealedCells,VictoryObjectiveAttacks,MainCrystalTargetAttacks,ObjectiveApproachMoves,Oscillations,FailedActions
+baseline,314159,Player,120,unresolved,0,0,0,954,327,18,52,47,985,0,0,393,7,3
+baseline,314159,Enemy,120,unresolved,0,0,0,895,257,14,61,46,802,0,0,371,1,6
+baseline,271828,Player,120,unresolved,0,0,0,599,493,32,69,40,579,2,2,249,0,17
+baseline,271828,Enemy,120,unresolved,0,0,0,810,344,22,54,50,551,0,0,346,1,14
+after,314159,Player,120,unresolved,0,0,0,1286,80,9,30,54,1150,0,0,517,12,0
+after,314159,Enemy,120,unresolved,0,0,0,1394,118,2,21,51,717,0,0,580,14,2
+after,271828,Player,120,unresolved,0,0,0,638,403,32,86,38,606,0,0,279,0,19
+after,271828,Enemy,120,unresolved,0,0,0,951,378,38,46,45,583,0,0,307,4,6
+final,314159,Player,120,unresolved,0,0,0,846,417,13,38,50,955,0,0,346,0,0
+final,314159,Enemy,120,unresolved,0,0,0,821,241,18,74,41,682,0,0,355,0,6
+final,271828,Player,120,unresolved,0,0,0,766,337,11,54,46,774,0,0,341,1,8
+final,271828,Enemy,120,unresolved,0,0,0,1011,229,13,47,48,849,0,0,396,4,2

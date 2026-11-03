@@ -139,7 +139,9 @@ public sealed class AIReconnaissance
     bool KnownBlocked(int x, int z, bool movement)
     {
         if (!board.IsTerrainKnown(new Vector3(x, 0, z))) return false;
-        return board.ReconMap.IsHighMountain(x, z) || (movement && board.ReconMap.IsRiver(x, z));
+        var definition = board.KnownEnvironmentDefinition(new Vector3(x,0,z));
+        return board.ReconMap.IsHighMountain(x, z) || (movement && board.ReconMap.IsRiver(x, z))
+            || definition != null && (movement ? definition.blocksMovement : definition.blocksVision);
     }
 
     public float ScoreMove(Status unit, Vector3 destination)
@@ -152,7 +154,8 @@ public sealed class AIReconnaissance
         bool explorer = scout || board.Exploration.IsAssignedUnit(unit);
         footprint.Clear();
         bool blind = StatusEffectSystem.HasDebuff(unit, StatusEffectType.Blind) || StatusEffectSystem.HasDebuff(unit, StatusEffectType.NarrowVision);
-        if (blind) footprint.Add(target + new Vector3Int(0, 0, MovePatterns.DirZ(unit.direction)));
+        if (unit.Special?.visionZeroTurns > 0) footprint.Add(target);
+        else if (blind) footprint.Add(target + new Vector3Int(0, 0, MovePatterns.DirZ(unit.direction)));
         else foreach (var offset in VisionGenerator.BaseVisionOffsets(unit)) footprint.Add(target + GridHelper.ToGridXZ(offset));
         float information = 0, ranged = 0, warning = 0;
         int fresh = 0;

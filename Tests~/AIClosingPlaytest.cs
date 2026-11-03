@@ -364,6 +364,7 @@ public static class AIClosingPlaytest
         healingEvents = Writer("healing-events.csv"); healingRows = 0;
         WriteRow(healingEvents, "round", "frame", "team", "kind", "lifeId", "actualHeal", "HP", "maximumHP", "sourceLifeId", "caller");
         AIR2PlaytestTelemetry.Open(folder);
+        AIStallTelemetry.Open(folder);
         AIR2ObjectiveTelemetry.Open(folder);
         originalExplorationLogging = ExplorationAISettings.Active.EnableJsonlTelemetry;
         explorationLoggingChanged = Environment.GetEnvironmentVariable("FK_CLOSING_EXPLORATION_JSONL") == "1";
@@ -642,6 +643,7 @@ public static class AIClosingPlaytest
             explorationLoggingChanged = false;
         }
         AIR2PlaytestTelemetry.Close();
+        AIStallTelemetry.Close();
         AIR2ObjectiveTelemetry.Close();
         SpecialSkillRuntime.HpChangeCommitted -= OnHpChange;
         Application.logMessageReceived -= Log; player?.Dispose(); enemy?.Dispose();

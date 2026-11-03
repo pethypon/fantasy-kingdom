@@ -1,0 +1,13 @@
+﻿version,seed,team,ownerRounds,mainCrystalObservedAnyRounds,knownEnemyTerritoryAnyRounds,rememberedMainCrystalAnyRounds,generatedObjectiveCandidateSamples,chosenObjectiveAttacks,priorityLostSamples,scoreLostSamples,StrategicAttackSnapshots,EmergencyDefenseSnapshots,EconomicRecoverySnapshots,ExplorationSnapshots,final_armyCount,final_meanHomeDistance,final_meanTargetDistance,final_rememberedCells,final_reason,final_planGoal
+baseline,314159,Player,120,0,79,0,0,0,0,0,165,0,30,46,10,6.1,9.6,14,territory_advance_ready,Ambush
+baseline,314159,Enemy,120,0,87,0,0,0,0,0,174,0,42,24,8,9,7.75,30,territory_advance_ready,Ambush
+baseline,271828,Player,120,9,102,72,3,2,1,0,197,0,44,0,4,10.25,4.75,58,territory_advance_ready,EconomicRaid
+baseline,271828,Enemy,120,0,104,0,0,0,0,0,188,0,52,0,6,4.833333,5.5,6,territory_advance_ready,EasternFeint
+after,314159,Player,120,0,5,0,0,0,0,0,51,0,44,146,8,5.125,12.25,5,territory_advance_ready,Ambush
+after,314159,Enemy,120,0,38,0,0,0,0,0,76,0,42,122,10,7.7,3.8,7,territory_advance_ready,EasternFeint
+after,271828,Player,120,1,113,70,0,0,0,0,203,0,38,0,3,9.333333,6,57,territory_advance_ready,CrystalStrike
+after,271828,Enemy,120,0,98,0,0,0,0,0,194,0,44,2,7,8.285714,5.714286,15,territory_advance_ready,CrystalStrike
+final,314159,Player,120,0,103,0,0,0,0,0,187,0,26,28,7,9.142858,3.714286,11,territory_advance_ready,Ambush
+final,314159,Enemy,120,0,84,0,0,0,0,0,192,0,42,6,6,9.5,7.5,34,territory_advance_ready,Reconnaissance
+final,271828,Player,120,2,106,80,0,0,0,0,203,0,36,2,6,4.5,7.166667,46,territory_advance_ready,Reconnaissance
+final,271828,Enemy,120,0,4,0,0,0,0,0,130,0,42,68,10,7.9,7.3,8,territory_advance_ready,CrystalStrike

@@ -155,7 +155,7 @@ static class AIPersonalityScoring
                     bonus -= p.CautionRate * 10f;
                 if (action.Unit.kind == Kind.Scout)
                 {
-                    int newCells = board.EstimateNewVisionCells(action.TargetPos);
+                    int newCells = board.EstimateNewVisionCells(action.TargetPos, action.Unit);
                     if (newCells > 0)
                         bonus += p.TacticsRate * Mathf.Min(newCells * 2f, 20f);
                 }

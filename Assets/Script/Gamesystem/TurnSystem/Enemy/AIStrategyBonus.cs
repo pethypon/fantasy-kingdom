@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 // =====================================================================
@@ -62,7 +62,7 @@ public static class AIStrategyBonus
         {
             if (a.Unit.kind == Kind.Scout)
             {
-                int scoutNewCells = board.EstimateNewVisionCells(a.TargetPos);
+                int scoutNewCells = board.EstimateNewVisionCells(a.TargetPos, a.Unit);
                 if (scoutNewCells > 3) b += 15f;
             }
             else
@@ -131,7 +131,7 @@ public static class AIStrategyBonus
         float b = 0f;
         if (a.ActionType == AIActionType.Move && a.Unit != null)
         {
-            int newCells = board.EstimateNewVisionCells(a.TargetPos);
+            int newCells = board.EstimateNewVisionCells(a.TargetPos, a.Unit);
             if (newCells > 0)  b += Mathf.Min(newCells * 4f, 35f);
             if (a.Unit.kind == Kind.Scout) b += 20f;
             float allyDist = AIEvalHelpers.GetNearestAllyDist(a.TargetPos, a.Unit, board);
