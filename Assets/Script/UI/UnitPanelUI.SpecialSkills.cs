@@ -75,7 +75,8 @@ public partial class UnitPanelUI
             if (waitButton != null) UIFactory.SetAnchors(waitButton.GetComponent<RectTransform>(), 0, 0, .5f, .5f);
         }
         string state = SpecialSkillPresentation.Summary(currentUnit);
-        if (!string.IsNullOrEmpty(state) && passiveText != null && string.IsNullOrEmpty(passiveText.text)) passiveText.text = state;
+        if (!string.IsNullOrEmpty(state) && passiveText != null && string.IsNullOrEmpty(passiveText.text)
+            && (effectIcons == null || !effectIcons.HasEffects)) passiveText.text = state;
     }
 
     public void OnClickSpecialSkill()

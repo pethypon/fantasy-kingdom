@@ -104,6 +104,7 @@ public partial class AIBoardState
     public int EnemyCrystalHP { get; private set; }
     public int EnemyCrystalMaxHP { get; private set; }
     public int PlayerCrystalHP { get; private set; }
+    public int PlayerCrystalMaxHP { get; private set; } = -1;
     public bool PlayerCrystalVisible { get; private set; }
     Status observedMainCrystal;
     AIBaseKnowledgeStage mainCrystalDisposition;

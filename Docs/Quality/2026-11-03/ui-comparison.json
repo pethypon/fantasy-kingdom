@@ -1,0 +1,300 @@
+[
+  {
+    "state": "01-default",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 220,
+    "afterGlyphs": 168,
+    "beforeLabels": 25,
+    "afterLabels": 25,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "02-ally-selected",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 284,
+    "afterGlyphs": 232,
+    "beforeLabels": 35,
+    "afterLabels": 35,
+    "beforeOverflowCandidates": [
+      "BottomUnitPanel/RightCommands/AttackBtn/Label",
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": [
+      "BottomUnitPanel/RightCommands/AttackBtn/Label"
+    ]
+  },
+  {
+    "state": "03-ally-details",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 650,
+    "afterGlyphs": 598,
+    "beforeLabels": 38,
+    "afterLabels": 38,
+    "beforeOverflowCandidates": [
+      "BottomUnitPanel/RightCommands/AttackBtn/Label",
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": [
+      "BottomUnitPanel/RightCommands/AttackBtn/Label"
+    ]
+  },
+  {
+    "state": "06-building-list",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 364,
+    "afterGlyphs": 312,
+    "beforeLabels": 35,
+    "afterLabels": 35,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "07-summon-list",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 410,
+    "afterGlyphs": 349,
+    "beforeLabels": 36,
+    "afterLabels": 37,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "08-summon-hover",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 578,
+    "afterGlyphs": 509,
+    "beforeLabels": 37,
+    "afterLabels": 38,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "08b-summon-reopen",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 578,
+    "afterGlyphs": 509,
+    "beforeLabels": 37,
+    "afterLabels": 38,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "09-menu",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 313,
+    "afterGlyphs": 261,
+    "beforeLabels": 34,
+    "afterLabels": 34,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "10-manual-pieces",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 468,
+    "afterGlyphs": 411,
+    "beforeLabels": 42,
+    "afterLabels": 42,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "11-manual-rules",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 802,
+    "afterGlyphs": 745,
+    "beforeLabels": 42,
+    "afterLabels": 42,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "12-manual-rules-bottom",
+    "width": 1280,
+    "height": 720,
+    "beforeGlyphs": 709,
+    "afterGlyphs": 652,
+    "beforeLabels": 42,
+    "afterLabels": 42,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "01-default",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 220,
+    "afterGlyphs": 168,
+    "beforeLabels": 25,
+    "afterLabels": 25,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "02-ally-selected",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 284,
+    "afterGlyphs": 232,
+    "beforeLabels": 35,
+    "afterLabels": 35,
+    "beforeOverflowCandidates": [
+      "BottomUnitPanel/RightCommands/AttackBtn/Label",
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": [
+      "BottomUnitPanel/RightCommands/AttackBtn/Label"
+    ]
+  },
+  {
+    "state": "03-ally-details",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 657,
+    "afterGlyphs": 605,
+    "beforeLabels": 38,
+    "afterLabels": 38,
+    "beforeOverflowCandidates": [
+      "BottomUnitPanel/RightCommands/AttackBtn/Label",
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": [
+      "BottomUnitPanel/RightCommands/AttackBtn/Label"
+    ]
+  },
+  {
+    "state": "06-building-list",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 379,
+    "afterGlyphs": 327,
+    "beforeLabels": 35,
+    "afterLabels": 35,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "07-summon-list",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 416,
+    "afterGlyphs": 359,
+    "beforeLabels": 37,
+    "afterLabels": 38,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "08-summon-hover",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 584,
+    "afterGlyphs": 519,
+    "beforeLabels": 38,
+    "afterLabels": 39,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "08b-summon-reopen",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 584,
+    "afterGlyphs": 519,
+    "beforeLabels": 38,
+    "afterLabels": 39,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "09-menu",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 313,
+    "afterGlyphs": 261,
+    "beforeLabels": 34,
+    "afterLabels": 34,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "10-manual-pieces",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 468,
+    "afterGlyphs": 411,
+    "beforeLabels": 42,
+    "afterLabels": 42,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "11-manual-rules",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 802,
+    "afterGlyphs": 745,
+    "beforeLabels": 42,
+    "afterLabels": 42,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  },
+  {
+    "state": "12-manual-rules-bottom",
+    "width": 960,
+    "height": 600,
+    "beforeGlyphs": 717,
+    "afterGlyphs": 660,
+    "beforeLabels": 42,
+    "afterLabels": 42,
+    "beforeOverflowCandidates": [
+      "APPanel/APLabel"
+    ],
+    "afterOverflowCandidates": []
+  }
+]

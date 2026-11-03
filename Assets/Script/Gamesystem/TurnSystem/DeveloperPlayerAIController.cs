@@ -7,7 +7,7 @@ using UnityEngine;
 public sealed class DeveloperPlayerAIController : IDisposable
 {
     public const int ThreatLevel = 30;
-    const string Hints = "開発者: プレイヤーAI 脅威度15　[F8]手動に戻す　[中ボタンドラッグ]カメラ移動";
+    static string Hints => $"自動操作・脅威度{ThreatLevel}　[F8] 手動へ　[中ドラッグ] カメラ";
     readonly TurnGenerator turn;
     AICommander commander;
     EnemyTerritoryIntelState pendingTerritoryIntel;

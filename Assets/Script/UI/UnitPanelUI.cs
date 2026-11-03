@@ -483,12 +483,10 @@ public partial class UnitPanelUI : MonoBehaviour
         }
         if (passiveText != null)
         {
-            // 状態異常・バフの表示
-            string effectStr = BuildEffectString(currentUnit);
-            if (!string.IsNullOrEmpty(effectStr))
-                passiveText.text = effectStr;
-            else
-                passiveText.text = "";
+            if (effectIcons == null && GameIconCatalog.Get("debuff.Poison") != null)
+                effectIcons = EffectIconStrip.Create(passiveText);
+            if (effectIcons != null) effectIcons.Refresh(currentUnit);
+            passiveText.text = effectIcons != null && effectIcons.HasEffects ? "" : BuildEffectString(currentUnit);
         }
 
         // Hover previews never activate command controls, even for a single refresh.
@@ -508,6 +506,7 @@ public partial class UnitPanelUI : MonoBehaviour
         if (isPlayer) UpdateUnitButtons();
     }
 
+    private EffectIconStrip effectIcons;
     private static string BuildEffectString(Status unit)
     {
         var parts = new System.Collections.Generic.List<string>();

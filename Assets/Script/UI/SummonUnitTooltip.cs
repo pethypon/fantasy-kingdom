@@ -41,16 +41,16 @@ public sealed class SummonUnitTooltip : MonoBehaviour, IPointerEnterHandler, IPo
         var prefab = data.prefab != null ? data.prefab.GetComponentInChildren<Status>(true) : null;
         bool usesBarrier = BarrierSystem.UsesBarrier(data.kind, Type.Unit, prefab != null && prefab.isWildBoss);
         int hp = data.FixedMaxHP;
-        var text = new StringBuilder("<b>").Append(data.DisplayName).Append("</b>\nHP ").Append(hp).Append(" / ").Append(hp);
+        var text = new StringBuilder("<b>").Append(data.DisplayName).Append("</b>\nHP ").Append(hp);
         if (usesBarrier)
         {
             int barrier = BarrierSystem.Maximum(data.baseBarrier < 0 ? BarrierSystem.Initial(data.kind) : data.baseBarrier, 1);
-            text.Append("\nバリア ").Append(barrier).Append(" / ").Append(barrier);
+            text.Append("　バリア ").Append(barrier);
         }
-        text.Append("\n攻撃力 ").Append(data.FixedATK);
-        text.Append("\n\n<b>制作費</b>　AP ").Append(data.costAP).Append("\n").Append(BuildSummonUIBuilder.FormatAuthoredUnitCost(data));
+        text.Append("　攻撃 ").Append(data.FixedATK);
+        text.Append("\n<b>制作費</b> AP ").Append(data.costAP).Append("　").Append(BuildSummonUIBuilder.FormatAuthoredUnitCost(data));
         var upkeep = data.GetFixedUpkeep();
-        text.Append("\n<b>維持費 / 毎ターン</b>\n").Append(upkeep.IsEmpty ? "なし" : BuildSummonUIBuilder.FormatProductionBundle(upkeep));
+        text.Append("\n<b>維持費/ターン</b>　").Append(upkeep.IsEmpty ? "なし" : BuildSummonUIBuilder.FormatProductionBundle(upkeep));
         if (data.specialSkill != null && data.specialSkill.ability != UnitSpecialSkill.None)
         {
             text.Append("\n\n<b>スキル</b>　").Append(data.specialSkill.IsPassive ? "なし" : SpecialSkillPresentation.Name(data.specialSkill));

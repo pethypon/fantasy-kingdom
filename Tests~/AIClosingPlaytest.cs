@@ -35,7 +35,7 @@ public static class AIClosingPlaytest
     {
         public string Label, StartedUtc, FinishedUtc;
         public string CodeCommit, SourceDigest, AssetDigest, ManifestPath, UnityVersion;
-        public string MeasurementScope = "Ordinary SampleScene and production roster. Title New Game and developer player AI (fixed intelligence 15). Enemy threat/personality are recorded per match. Fixed map and commander seeds; no AP, resources, timer, timeScale or thinking-budget overrides. Frame scheduling/search limits can still affect exact trajectories. Observer reads authoritative HP/decisive identity for reporting only, never supplies hidden information to AI. CommanderHP follows MatchObjectiveRules.IsCommander, including Kind.Boss primary commanders. Legacy KingHP fields alias CommanderHP. VictoryObjectiveAttacks match actual opposing commander/main-crystal life IDs, not the Reflection role string Boss.";
+        public string MeasurementScope = "Ordinary SampleScene and production roster. Title New Game and developer player AI. Both player and enemy threat levels and enemy personality are recorded per match. Fixed map and commander seeds; no AP, resources, timer, timeScale or thinking-budget overrides. Frame scheduling/search limits can still affect exact trajectories. Observer reads authoritative HP/decisive identity for reporting only, never supplies hidden information to AI. CommanderHP follows MatchObjectiveRules.IsCommander, including Kind.Boss primary commanders. Legacy KingHP fields alias CommanderHP. VictoryObjectiveAttacks match actual opposing commander/main-crystal life IDs, not the Reflection role string Boss.";
         public int Resolved, Interrupted, Faulted;
         public List<MatchReport> Matches = new List<MatchReport>();
     }
@@ -46,6 +46,7 @@ public static class AIClosingPlaytest
         public string ScenarioScope = "ordinary NewGame with developer Player AI";
         public bool R4Enabled, R4Shadow, R4MayInfluenceActions, R4MultiStepSquadPlanning;
         public int MapSeed, EnemyAISeed, PlayerAISeed, ThreatLevel = 15, Round, OwnerTurns;
+        public int PlayerThreatLevel = DeveloperPlayerAIController.ThreatLevel;
         public string EnemyPersonality, PersistentPath, StartedUtc, FinishedUtc, EndCondition, Result = "unresolved", OutcomeReason, Fault;
         public bool ActualPlayerAIModeUsed, GameOver, BarrierEnabled;
         public int BarrierRevision, FrameSamples, HpDamage, BarrierDamage, BarrierOnlyHits, BypassHits, HeavySkills;

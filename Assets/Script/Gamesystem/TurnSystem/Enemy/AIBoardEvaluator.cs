@@ -128,7 +128,8 @@ public static class AIBoardEvaluator
         // 相手クリスタルHP（視認済みの場合のみ）
         if (board.PlayerCrystalVisible && board.PlayerCrystalHP >= 0)
         {
-            float pCrystalRatio = board.PlayerCrystalHP / 100f; // 概算
+            float pCrystalRatio = board.PlayerCrystalMaxHP > 0
+                ? Mathf.Clamp01((float)board.PlayerCrystalHP / board.PlayerCrystalMaxHP) : 0f;
             score -= pCrystalRatio * 40f;
         }
 
