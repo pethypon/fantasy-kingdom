@@ -291,6 +291,12 @@ public class UIBuilder : MonoBehaviour
         le.minWidth = 0;
         le.preferredWidth = 0; // Equal cells do not grow with text length.
 
+        var icon = GameIconCatalog.Create(cell.transform, "resource." + name, 28);
+        if (icon != null)
+        {
+            icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = new Vector2(0, .5f);
+            icon.rectTransform.anchoredPosition = new Vector2(25, 0);
+        }
         var tmp = CreateTMP(name, cell.transform, name + ": 0", BrandGuide.FontHud);
         tmp.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
         tmp.overflowMode = TextOverflowModes.Ellipsis;
@@ -301,7 +307,7 @@ public class UIBuilder : MonoBehaviour
         tmp.color = BrandGuide.TextPrimary;
         var tmpRT = tmp.GetComponent<RectTransform>();
         StretchFill(tmpRT);
-        tmpRT.offsetMin = new Vector2(14, 0);
+        tmpRT.offsetMin = new Vector2(icon != null ? 44 : 14, 0);
         tmpRT.offsetMax = new Vector2(-10, 0);
         tmp.alignment = TextAlignmentOptions.MidlineLeft;
     }

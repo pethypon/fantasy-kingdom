@@ -70,6 +70,9 @@ public static class UIQualityAudit
             CloseLayers(systems, slide);
             yield return new WaitForSecondsRealtime(.7f);
             yield return Capture(canvas, "01-default", size, output, report);
+            systems.InputHintUI.ToggleDetails();
+            yield return Capture(canvas, "01b-expanded-controls", size, output, report);
+            systems.InputHintUI.ToggleDetails();
             if (ally != null)
             {
                 systems.UnitPanelUI.Show(ally);
@@ -80,6 +83,16 @@ public static class UIQualityAudit
                     SpecialSkillSelectionUI.CloseCurrent();
                     yield return null;
                 }
+                var originalEffects = new List<ActiveEffect>(ally.ActiveEffects);
+                try
+                {
+                    ally.ActiveEffects.Clear();
+                    ally.ActiveEffects.Add(new ActiveEffect(StatusEffectType.Poison,2));
+                    ally.ActiveEffects.Add(new ActiveEffect(StatusEffectType.Freeze,1));
+                    ally.ActiveEffects.Add(new ActiveEffect(BuffType.Offensive,3));
+                    yield return Capture(canvas,"03b-controlled-status-icons",size,output,report);
+                }
+                finally { ally.ActiveEffects.Clear(); ally.ActiveEffects.AddRange(originalEffects); }
             }
             else report.Unverified.Add(size + " friendly selection: no living unit available.");
             if (enemy != null)
@@ -183,6 +196,13 @@ public static class UIQualityAudit
                         yield return Capture(canvas, "12-manual-rules-bottom", size, output, report,
                             () => manualScroll.verticalNormalizedPosition = 0);
                     }
+                    var rewardsTab=canvas.GetComponentsInChildren<Button>()
+                        .FirstOrDefault(b=>b.GetComponentInChildren<TMP_Text>()?.text=="獲得品");
+                    if(rewardsTab!=null)
+                    {
+                        rewardsTab.onClick.Invoke();
+                        yield return Capture(canvas,"13-artifact-cards",size,output,report);
+                    }
                     GameManualUI.Instance?.Close();
                     yield return null;
                 }
@@ -219,6 +239,9 @@ public static class UIQualityAudit
     {
         var camera = Camera.main;
         var oldMode = canvas.renderMode; var oldCamera = canvas.worldCamera; var oldPlane = canvas.planeDistance;
+        var extraCanvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+            .Where(c => c != canvas && c.isRootCanvas && c.renderMode == RenderMode.ScreenSpaceOverlay)
+            .Select(c => (canvas: c, mode: c.renderMode, camera: c.worldCamera, plane: c.planeDistance)).ToList();
         var oldRT = camera.targetTexture; var active = RenderTexture.active;
         var target = new RenderTexture(size.x, size.y, 24);
         var headPositions = new List<KeyValuePair<RectTransform, Vector3>>();
@@ -227,6 +250,9 @@ public static class UIQualityAudit
         {
             camera.targetTexture = target;
             canvas.renderMode = RenderMode.ScreenSpaceCamera; canvas.worldCamera = camera; canvas.planeDistance = 1;
+            foreach (var entry in extraCanvases)
+            { entry.canvas.renderMode = RenderMode.ScreenSpaceCamera; entry.canvas.worldCamera = camera; entry.canvas.planeDistance = 1; }
+            yield return new WaitForSecondsRealtime(.15f); // Let throttled head labels settle at the requested output size.
             yield return null;
             Canvas.ForceUpdateCanvases();
             foreach (var text in canvas.GetComponentsInChildren<TMP_Text>()) text.ForceMeshUpdate();
@@ -252,12 +278,23 @@ public static class UIQualityAudit
             var filename = state + "-" + size.x + "x" + size.y + ".png";
             File.WriteAllBytes(Path.Combine(output, filename), pixels.EncodeToPNG());
             afterRender?.Invoke();
-            report.Screens.Add(Observe(canvas, state, filename, size));
+            var observation = Observe(canvas, state, filename, size);
+            foreach (var entry in extraCanvases)
+            {
+                var extra = Observe(entry.canvas, state, filename, size);
+                observation.VisibleLabels += extra.VisibleLabels; observation.VisibleGlyphs += extra.VisibleGlyphs;
+                observation.VisibleButtons += extra.VisibleButtons; observation.TextAreaFraction += extra.TextAreaFraction;
+                observation.Labels.AddRange(extra.Labels);
+                observation.OverflowCandidates.AddRange(extra.OverflowCandidates.Select(x => entry.canvas.name + "/" + x));
+            }
+            report.Screens.Add(observation);
         }
         finally
         {
             foreach (var head in headPositions) if (head.Key != null) head.Key.position = head.Value;
             canvas.renderMode = oldMode; canvas.worldCamera = oldCamera; canvas.planeDistance = oldPlane;
+            foreach (var entry in extraCanvases) if (entry.canvas != null)
+            { entry.canvas.renderMode = entry.mode; entry.canvas.worldCamera = entry.camera; entry.canvas.planeDistance = entry.plane; }
             camera.targetTexture = oldRT; RenderTexture.active = active;
             if (pixels != null) UnityEngine.Object.Destroy(pixels);
             target.Release(); UnityEngine.Object.Destroy(target);

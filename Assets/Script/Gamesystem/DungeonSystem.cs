@@ -14,7 +14,7 @@ public class DungeonSystem : MonoBehaviour
         CrystalShard,  // クリスタル最大HP+1000
         WarBanner,     // 全ユニット ATK+2
         IronAegis,     // 全ユニット DEF+2
-        ManaFocus,     // 毎ターンMagicOre+3
+        ManaFocus,     // MagicOre+30 once
         PhoenixFeather // クリスタルシールド再発動可
     }
 
@@ -171,7 +171,7 @@ public class DungeonSystem : MonoBehaviour
     {
         var values = (Artifact[])System.Enum.GetValues(typeof(Artifact));
         var pool = new List<Artifact>(values.Length);
-        foreach (var a in values) if (a != Artifact.None) pool.Add(a);
+        foreach (var a in values) if (ArtifactPresentation.Available(a)) pool.Add(a);
         return pool.ToArray();
     }
 
@@ -208,6 +208,8 @@ public class DungeonSystem : MonoBehaviour
         {
             RefreshController(d);
             if (!AdvanceCycle(d)) continue;
+            // Old saves may contain rewards for mechanics which have since been removed.
+            if (!ArtifactPresentation.Available(d.Reward)) d.Reward = RollArtifact();
             GrantArtifact(d.ClaimingTeam, d.Reward);
             if (d.Reward != Artifact.None && factionState != null)
                 AIReflectionEvents.RecordArtifact(turnGenerator,
@@ -277,7 +279,7 @@ public class DungeonSystem : MonoBehaviour
     // ==================================================================
     private void GrantArtifact(Team team, Artifact art)
     {
-        if (factionState == null) return;
+        if (factionState == null || !ArtifactPresentation.Available(art)) return;
         var res = factionState.GetResources(team);
 
         switch (art)
@@ -298,6 +300,9 @@ public class DungeonSystem : MonoBehaviour
                 ResetCrystalShield(team);
                 break;
         }
+        UniqueRewardSystem.Records.Add(new RewardRecord { Category = RewardCategory.DungeonRandomArtifact,
+            Owner = team, Id = "dungeon:" + art, DisplayName = ArtifactPresentation.Name(art) });
+        if (team == Team.Player) ToastMessageUI.Show(ArtifactPresentation.Name(art) + "獲得", ToastMessageUI.MessageType.Info);
     }
 
     private void BuffCrystal(Team team, int hpBonus)

@@ -23,6 +23,7 @@ public static class QualityAuditSession
     public static void Run()
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new InvalidOperationException("Isolated validation clone required");
+        GameIconInstaller.Connect();
         SessionState.SetString(Key + ".Company", PlayerSettings.companyName);
         SessionState.SetString(Key + ".Product", PlayerSettings.productName);
         PlayerSettings.companyName = "CodexValidation";
@@ -65,6 +66,8 @@ public static class QualityAuditSession
                 return;
             }
             RoleBalanceAudit.Run(observedSystems, Path.Combine(outputDirectory, "roles"));
+            A1ReconTests.Run(observedSystems);
+            QualityGameplayChecks.Run(observedSystems);
             Finish(0);
         }
         catch (Exception error) { Debug.LogException(error); Finish(1); }

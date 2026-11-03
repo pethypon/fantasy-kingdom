@@ -37,7 +37,7 @@ public static class A1ReconTests
             See(f,f.Sites[0]); board.Refresh();
             Check(label + "CR01 unknown objective publishes no true coordinate or HP",
                 board.MainCrystalKnowledge == AIBaseKnowledgeStage.Unknown && !board.PlayerCrystalVisible
-                && board.PlayerCrystalPos == Vector3.zero && board.PlayerCrystalHP == -1 && !board.GetLastKnownPlayerCrystal().Valid);
+                && board.PlayerCrystalPos == Vector3.zero && board.PlayerCrystalHP == -1 && board.PlayerCrystalMaxHP == -1 && !board.GetLastKnownPlayerCrystal().Valid);
             See(f,f.Sites[0],f.Sites[1],f.Sites[2],f.Sites[3]); board.Refresh();
             Check(label + "CR03 observed subcrystal is not a main crystal", !board.PlayerCrystalVisible && !board.GetLastKnownPlayerCrystal().Valid);
             var governor = new AIStrategicGovernor(); board.Governor = governor;
@@ -64,12 +64,20 @@ public static class A1ReconTests
             Check(label + "CR06 main crystal becomes observed only in official sight", board.MainCrystalKnowledge == AIBaseKnowledgeStage.Observed
                 && board.PlayerCrystalVisible && board.PlayerCrystalPos == (Vector3)f.Sites[1] && board.PlayerCrystalHP == 5000);
             Check(label + "AT02 observed target within authored pattern generates an attack", board.GetAttackTargets(actor).Contains(objective));
+            var evaluate = typeof(AIBoardEvaluator).GetMethod("EvalCrystalSafety", BindingFlags.Static | BindingFlags.NonPublic);
+            float fullScore = (float)evaluate.Invoke(null,new object[]{board});
+            objective.MaxHP = objective.HP = 10000; board.Refresh();
+            Check(label + "crystal safety is a ratio independent of maximum HP", board.PlayerCrystalMaxHP == 10000
+                && Mathf.Approximately(fullScore,(float)evaluate.Invoke(null,new object[]{board})));
+            objective.HP=2500;board.Refresh();
+            Check(label + "observed quarter HP changes the opponent term by 30",Mathf.Approximately(fullScore+30,(float)evaluate.Invoke(null,new object[]{board})));
+            objective.MaxHP=objective.HP=5000;board.Refresh();
             profile.attack.SetCell(4,3,false); board.Refresh();
             Check(label + "AT03 incompatible authored firing mask cannot attack a visible objective", !board.GetAttackTargets(actor).Contains(objective));
             profile.attack.SetCell(4,3,true);
             See(f,f.Sites[0]); objective.HP = 4321; objective.transform.position = f.Sites[2]; board.Refresh();
             Check(label + "CR07 unseen relocation and HP stay absent from remembered facts", board.MainCrystalKnowledge == AIBaseKnowledgeStage.LastKnown
-                && board.PlayerCrystalPos == (Vector3)f.Sites[1] && board.PlayerCrystalHP == -1
+                && board.PlayerCrystalPos == (Vector3)f.Sites[1] && board.PlayerCrystalHP == -1 && board.PlayerCrystalMaxHP == -1
                 && !board.GetAttackTargets(actor).Contains(objective));
             See(f,f.Sites[0],f.Sites[1]); board.Refresh();
             Check(label + "CR08 observing the empty old cell disproves memory", board.MainCrystalKnowledge == AIBaseKnowledgeStage.Disproved

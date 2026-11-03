@@ -21,7 +21,7 @@ public partial class BuildSummonUIBuilder
         var row = new GameObject(rowName, typeof(RectTransform));
         row.transform.SetParent(content, false);
         // 資源の折り返しや不足理由に合わせて行を広げる。固定高で文字を切らない。
-        row.AddComponent<LayoutElement>().minHeight = 104;
+        row.AddComponent<LayoutElement>().minHeight = 96;
         var layout = row.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 4;
         layout.padding = new RectOffset(0, 0, 0, 6);
@@ -64,7 +64,6 @@ public partial class BuildSummonUIBuilder
         title.text = SummonTitle(displayName, data);
         string reason = allowed ? null : AuthoredUnitCostFailure(data);
         cost.text = FormatAuthoredUnitCost(data)
-            + (data != null && !data.GetFixedUpkeep().IsEmpty ? "\n維持/T " + FormatProductionBundle(data.GetFixedUpkeep()) : string.Empty)
             + (reason == null ? string.Empty : "\n<color=#FFB7A3>" + reason + "</color>");
     }
 

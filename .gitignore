@@ -14,3 +14,9 @@
 *.pidb
 *.booproj
 *.svd
+
+# Locally installed purchased artwork and its generated references.
+/Assets/Admurin's Pixel Items/
+/Assets/Admurin's Pixel Items.meta
+/Assets/Resources/GeneratedUI/
+/Assets/Resources/GeneratedUI.meta

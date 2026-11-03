@@ -17,6 +17,7 @@ public class GameManualUI : MonoBehaviour
     private GameObject overlay;
     private TextMeshProUGUI bodyText;
     private ScrollRect bodyScroll;
+    private GameObject artifactRows;
 
     private enum Tab { Pieces, Rules, Artifacts, Terrain, WildBoss }
     private Tab currentTab = Tab.Pieces;
@@ -100,7 +101,7 @@ public class GameManualUI : MonoBehaviour
 
         AddTabButton(tabRow.transform, "駒", Tab.Pieces);
         AddTabButton(tabRow.transform, "ルール", Tab.Rules);
-        AddTabButton(tabRow.transform, "アーティファクト", Tab.Artifacts);
+        AddTabButton(tabRow.transform, "獲得品", Tab.Artifacts);
         AddTabButton(tabRow.transform, "地形・戦闘", Tab.Terrain);
         AddTabButton(tabRow.transform, "強敵", Tab.WildBoss);
 
@@ -167,11 +168,13 @@ public class GameManualUI : MonoBehaviour
     private void RefreshBody()
     {
         if (bodyText == null) return;
+        bodyText.gameObject.SetActive(currentTab != Tab.Artifacts);
+        if (artifactRows != null) artifactRows.SetActive(currentTab == Tab.Artifacts);
         switch (currentTab)
         {
             case Tab.Pieces:    bodyText.text = BuildPiecesText(); break;
             case Tab.Rules:     bodyText.text = BuildRulesText(); break;
-            case Tab.Artifacts: bodyText.text = BuildArtifactsText(); break;
+            case Tab.Artifacts: BuildArtifactCards(); break;
             case Tab.Terrain:   bodyText.text = BuildTerrainText(); break;
             case Tab.WildBoss:  bodyText.text = BuildWildBossText(); break;
         }
@@ -282,15 +285,40 @@ $"  暫定ダメージ式：{BarrierCombatSettings.Active.provisionalDamageBase:
 "  竜騎士の固有スキルはバリアを貫通します。通常攻撃と通常の攻撃スキルはバリアから先に減らします。バリアを持たない駒や施設はHPでダメージを受けます。\n\n";
     }
 
-    private string BuildArtifactsText()
+    private void BuildArtifactCards()
     {
-        return
-"<b>■ アーティファクト（ダンジョン報酬）</b>\n\n" +
-"  <b>クリスタルシャード</b>: 自軍クリスタル最大HP +1000\n" +
-"  <b>ウォーバナー</b>: 全ユニット ATK +2\n" +
-"  <b>アイアンイージス</b>: 効果未調整\n" +
-"  <b>マナフォーカス</b>: 毎ターン 魔法鉱石 +3\n" +
-"  <b>フェニックスフェザー</b>: 効果調整待ち（クリスタル専用シールドは廃止）";
+        if (artifactRows != null) { artifactRows.SetActive(true); return; }
+        artifactRows = new GameObject("ArtifactCards", typeof(RectTransform));
+        artifactRows.transform.SetParent(bodyScroll.content, false);
+        var layout = artifactRows.AddComponent<VerticalLayoutGroup>(); layout.spacing = 10;
+        layout.childControlWidth = layout.childControlHeight = true; layout.childForceExpandHeight = false;
+        AddArtifactCard("ダンジョン報酬", "サブクリスタルで支配を維持すると獲得。効果は獲得時に適用されます。", null);
+        foreach (DungeonSystem.Artifact artifact in System.Enum.GetValues(typeof(DungeonSystem.Artifact)))
+        {
+            if (artifact == DungeonSystem.Artifact.None) continue;
+            int count = UniqueRewardSystem.Records.FindAll(r => r != null && r.Owner == Team.Player
+                && r.Category == RewardCategory.DungeonRandomArtifact && r.Id == "dungeon:" + artifact).Count;
+            AddArtifactCard(ArtifactPresentation.Name(artifact) + (count > 0 ? "　獲得 " + count : ""),
+                ArtifactPresentation.Description(artifact), "artifact." + artifact);
+        }
+        bool any = false;
+        foreach (var reward in UniqueRewardSystem.Records)
+        {
+            if (reward == null || reward.Owner != Team.Player || reward.Category == RewardCategory.DungeonRandomArtifact) continue;
+            if (!any) { AddArtifactCard("その他の獲得品", "強敵・侵入者から獲得した報酬", null); any = true; }
+            AddArtifactCard(reward.DisplayName, reward.Category == RewardCategory.IntruderRelic ? "固有レリック" : "固有アーティファクト", "item.Relic");
+        }
+    }
+    private void AddArtifactCard(string title, string description, string key)
+    {
+        var row = new GameObject("RewardCard", typeof(RectTransform), typeof(Image)); row.transform.SetParent(artifactRows.transform, false);
+        row.GetComponent<Image>().color = new Color(.07f, .09f, .13f, .9f);
+        var height = row.AddComponent<LayoutElement>(); height.preferredHeight = 114;
+        var icon = GameIconCatalog.Create(row.transform, key, 54);
+        if (icon != null) { icon.rectTransform.anchorMin=icon.rectTransform.anchorMax=new Vector2(0,.5f); icon.rectTransform.anchoredPosition=new Vector2(42,0); }
+        var text = CreateTMP("Reward",row.transform,"<b>"+title+"</b>\n"+description,24,BrandGuide.TextPrimary);
+        UIFactory.StretchFill(text.rectTransform); text.rectTransform.offsetMin=new Vector2(icon != null ? 84 : 16,10); text.rectTransform.offsetMax=new Vector2(-16,-10);
+        text.raycastTarget=false; text.alignment=TextAlignmentOptions.MidlineLeft;
     }
 
     private string BuildTerrainText()

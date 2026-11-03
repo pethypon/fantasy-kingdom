@@ -26,10 +26,12 @@ public sealed class ResourceValueTooltip : MonoBehaviour, IPointerEnterHandler, 
             label.raycastTarget=false;label.enableAutoSizing=true;label.fontSizeMin=18;label.fontSizeMax=24;
         }
         label.text=Value;
+        popup.sizeDelta = new Vector2(420, Mathf.Clamp(label.GetPreferredValues(Value, 388, 0).y + 20, 58, 200));
         var root=(RectTransform)canvas.transform;
         var corners=new Vector3[4];((RectTransform)transform).GetWorldCorners(corners);
         var point=(Vector2)root.InverseTransformPoint(corners[0]);
-        popup.anchoredPosition=new Vector2(Mathf.Clamp(point.x,root.rect.xMin,root.rect.xMax-popup.rect.width),point.y-4);
+        popup.anchoredPosition=new Vector2(Mathf.Clamp(point.x,root.rect.xMin,root.rect.xMax-popup.rect.width),
+            Mathf.Clamp(point.y-4,root.rect.yMin+popup.rect.height,root.rect.yMax));
         popup.SetAsLastSibling();popup.gameObject.SetActive(true);
     }
     public void OnPointerExit(PointerEventData data) { if(popup!=null) popup.gameObject.SetActive(false); }

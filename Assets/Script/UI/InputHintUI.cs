@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 画面下部にキーバインドのヒントを表示するUI。
@@ -16,6 +17,7 @@ public class InputHintUI : MonoBehaviour
     private CanvasGroup _group;
 
     private string _currentHints = "";
+    private bool expanded;
     private float _fadeTarget = 1f;
     private const float FadeSpeed = 4f;
 
@@ -129,9 +131,24 @@ public class InputHintUI : MonoBehaviour
         }
         else
         {
-            _hintText.text = hints;
+            RefreshHints();
             _fadeTarget = 1f;
         }
+    }
+
+    public void ToggleDetails()
+    {
+        expanded = !expanded;
+        RefreshHints();
+    }
+
+    private void RefreshHints()
+    {
+        string text = _currentHints;
+        if (text == Hints.PlayerMove)
+            text = expanded ? text + "  [H] 閉じる"
+                : "[左クリック] 選択・移動　[1] 攻撃　[2] スキル　[Enter] ターン終了\n[中ドラッグ] カメラ　[H] 操作一覧";
+        _hintText.text = text;
     }
 
     /// <summary>非表示にする</summary>
@@ -143,6 +160,11 @@ public class InputHintUI : MonoBehaviour
     private void Update()
     {
         if (_group == null) return;
+        if (_fadeTarget > 0 && _currentHints == Hints.PlayerMove && Keyboard.current?.hKey.wasPressedThisFrame == true)
+        {
+            var selected = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+            if (selected == null || selected.GetComponent<TMP_InputField>() == null) ToggleDetails();
+        }
 
         // スムーズフェード
         if (!Mathf.Approximately(_group.alpha, _fadeTarget))

@@ -8,7 +8,7 @@ public partial class AIBoardState
     void RefreshMainCrystalObservation()
     {
         observedMainCrystal = null;
-        PlayerCrystalVisible = false; PlayerCrystalHP = -1;
+        PlayerCrystalVisible = false; PlayerCrystalHP = PlayerCrystalMaxHP = -1;
         if (OpponentCrystalParent != null)
         {
             OpponentCrystalParent.GetComponentsInChildren(true, _crystalCompBuffer);
@@ -27,6 +27,7 @@ public partial class AIBoardState
                 if (_visionGen != null && !_visionGen.IsActorVisibleTo(ActorTeam, candidate)) continue;
                 observedMainCrystal = candidate; PlayerCrystalVisible = true;
                 PlayerCrystalPos = candidate.transform.position; PlayerCrystalHP = candidate.HP;
+                PlayerCrystalMaxHP = candidate.MaxHP;
                 mainCrystalDisposition = AIBaseKnowledgeStage.Observed;
                 return;
             }
@@ -40,7 +41,7 @@ public partial class AIBoardState
     {
         _lastKnownPlayerCrystal = default;
         _lastKnownPlayerPositions.Remove(int.MinValue);
-        PlayerCrystalPos = Vector3.zero; PlayerCrystalHP = -1;
+        PlayerCrystalPos = Vector3.zero; PlayerCrystalHP = PlayerCrystalMaxHP = -1;
         mainCrystalDisposition = reason;
     }
 }
