@@ -544,7 +544,7 @@ public class UIBuilder : MonoBehaviour
         apLabelRT.anchorMin = new Vector2(0, 0.55f);
         apLabelRT.anchorMax = new Vector2(1, 1);
         apLabelRT.offsetMin = new Vector2(16, 0);
-        apLabelRT.offsetMax = new Vector2(-16, -14);
+        apLabelRT.offsetMax = new Vector2(-16, -8);
 
         var apText = CreateTMP("APText", panel, "0 / 0", 30);
         apText.fontStyle = FontStyles.Bold;

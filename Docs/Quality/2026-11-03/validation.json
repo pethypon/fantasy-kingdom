@@ -1,0 +1,63 @@
+{
+  "unity": "6000.3.8f1",
+  "normalizedRuntimeSourceDigest": "440bc3972fb268bee6ec230de5d4eb5ed06fea79a34aa49c2b01ac0c22738674",
+  "canonicalEqualsNativeCloneIgnoringLineEndings": true,
+  "nativeUI": {
+    "screens": 28,
+    "tooltipChecks": [
+      {
+        "Width": 1280,
+        "Height": 720,
+        "FirstPopupHeight": 433.44000244140625,
+        "ReopenPopupHeight": 433.44000244140625,
+        "FirstTextHeight": 405.44000244140625,
+        "PreferredTextHeight": 405.44000244140625,
+        "ColdTextFits": true,
+        "ReopenMatchesCold": true
+      },
+      {
+        "Width": 960,
+        "Height": 600,
+        "FirstPopupHeight": 433.44000244140625,
+        "ReopenPopupHeight": 433.44000244140625,
+        "FirstTextHeight": 405.44000244140625,
+        "PreferredTextHeight": 405.44000244140625,
+        "ColdTextFits": true,
+        "ReopenMatchesCold": true
+      }
+    ],
+    "unverified": [
+      "(1280, 720) enemy selection: no enemy in legitimate player vision at this audit moment.",
+      "(1280, 720) building selection: no existing friendly building at this audit moment.",
+      "(960, 600) enemy selection: no enemy in legitimate player vision at this audit moment.",
+      "(960, 600) building selection: no existing friendly building at this audit moment."
+    ],
+    "A1ReconChecks": 30,
+    "qualityGameplayChecks": 23,
+    "connectedIcons": 32
+  },
+  "nativeCore": {
+    "CoreLogicPassed": 59,
+    "CoreLogicFailed": 0,
+    "adaptiveChecks": 16,
+    "completed": true
+  },
+  "staticCompile": [
+    {
+      "name": "Assembly-CSharp",
+      "exitCode": 0,
+      "sourceCount": 512
+    },
+    {
+      "name": "Assembly-CSharp-Editor",
+      "exitCode": 0,
+      "sourceCount": 227
+    },
+    {
+      "name": "Assembly-CSharp-Release",
+      "exitCode": 0,
+      "sourceCount": 512
+    }
+  ],
+  "scope": "Native match manifests hash actual per-run sources/assets. Initial baseline preceded user commit 11d2140 (which committed the existing local artwork/AI threat30 changes); final production changes are based on that upstream commit. Matched after runs precede final AP padding/name-only edits and the final existing text-contract update. The hard after run includes AP padding/names. The final Core run includes the text-contract update. Current clone and canonical runtime sources are identical after line-ending normalization. No claim that one binary ran every historical trial."
+}

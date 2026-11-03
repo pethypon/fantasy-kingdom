@@ -51,7 +51,7 @@ public partial class BuildSummonUIBuilder
     }
 
     static string SummonTitle(string displayName, UnitData data)
-        => data != null ? displayName + "  AP:" + data.costAP : displayName;
+        => data != null ? data.DisplayName + "  AP:" + data.costAP : displayName;
 
     void RefreshSummonRow(Button button, Image background, TextMeshProUGUI title,
         TextMeshProUGUI cost, UnitData data, string displayName)

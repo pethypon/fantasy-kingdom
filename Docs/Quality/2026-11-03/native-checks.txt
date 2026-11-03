@@ -1,0 +1,60 @@
+[GameIcons] Connected 32 icons; bread sprite=True
+[A1Recon] PASS Player CR01 unknown objective publishes no true coordinate or HP
+[A1Recon] PASS Player CR03 observed subcrystal is not a main crystal
+[A1Recon] PASS Player CR02 observed territory produces a lead without invented base
+[A1Recon] PASS Player CR05 reconnaissance coexists with an army waypoint
+[A1Recon] PASS Player CR09 economic interruption retains recon intent without performing actions
+[A1Recon] PASS Player IT02 observed territory survives scoped save roundtrip
+[A1Recon] PASS Player AT01 hidden main crystal never becomes an attack target
+[A1Recon] PASS Player CR06 main crystal becomes observed only in official sight
+[A1Recon] PASS Player AT02 observed target within authored pattern generates an attack
+[A1Recon] PASS Player crystal safety is a ratio independent of maximum HP
+[A1Recon] PASS Player observed quarter HP changes the opponent term by 30
+[A1Recon] PASS Player AT03 incompatible authored firing mask cannot attack a visible objective
+[A1Recon] PASS Player CR07 unseen relocation and HP stay absent from remembered facts
+[A1Recon] PASS Player CR08 observing the empty old cell disproves memory
+[A1Recon] PASS Player CR08 observed destruction cannot create a live attack target
+[A1Recon] PASS Enemy CR01 unknown objective publishes no true coordinate or HP
+[A1Recon] PASS Enemy CR03 observed subcrystal is not a main crystal
+[A1Recon] PASS Enemy CR02 observed territory produces a lead without invented base
+[A1Recon] PASS Enemy CR05 reconnaissance coexists with an army waypoint
+[A1Recon] PASS Enemy CR09 economic interruption retains recon intent without performing actions
+[A1Recon] PASS Enemy IT02 observed territory survives scoped save roundtrip
+[A1Recon] PASS Enemy AT01 hidden main crystal never becomes an attack target
+[A1Recon] PASS Enemy CR06 main crystal becomes observed only in official sight
+[A1Recon] PASS Enemy AT02 observed target within authored pattern generates an attack
+[A1Recon] PASS Enemy crystal safety is a ratio independent of maximum HP
+[A1Recon] PASS Enemy observed quarter HP changes the opponent term by 30
+[A1Recon] PASS Enemy AT03 incompatible authored firing mask cannot attack a visible objective
+[A1Recon] PASS Enemy CR07 unseen relocation and HP stay absent from remembered facts
+[A1Recon] PASS Enemy CR08 observing the empty old cell disproves memory
+[A1Recon] PASS Enemy CR08 observed destruction cannot create a live attack target
+[A1Recon] RESULT checks=30
+[QualityGameplay] PASS archer active skill name describes its actual active effect
+[QualityGameplay] PASS no removed DEF or shield mechanic is rolled
+[QualityGameplay] PASS Player mana reward is 30 once and has an owned save record
+[QualityGameplay] PASS Player banner applies the documented current-unit bonus
+[QualityGameplay] PASS Player shard applies maximum and current HP bonus
+[QualityGameplay] PASS Player removed rewards cannot masquerade as acquired items
+[QualityGameplay] PASS Enemy mana reward is 30 once and has an owned save record
+[QualityGameplay] PASS Enemy banner applies the documented current-unit bonus
+[QualityGameplay] PASS Enemy shard applies maximum and current HP bonus
+[QualityGameplay] PASS Enemy removed rewards cannot masquerade as acquired items
+[QualityGameplay] PASS optional missing icon is safe
+[QualityGameplay] PASS generated bread is a runtime sprite
+[QualityGameplay] PASS installed artwork connected: resource.Wood
+[QualityGameplay] PASS installed artwork connected: resource.Stone
+[QualityGameplay] PASS installed artwork connected: resource.Iron
+[QualityGameplay] PASS installed artwork connected: resource.MagicOre
+[QualityGameplay] PASS installed artwork connected: resource.Wheat
+[QualityGameplay] PASS installed artwork connected: resource.Water
+[QualityGameplay] PASS installed artwork connected: resource.Citizen
+[QualityGameplay] PASS installed artwork connected: resource.SubCrystal
+[QualityGameplay] PASS installed artwork connected: debuff.Poison
+[QualityGameplay] PASS installed artwork connected: artifact.WarBanner
+[QualityGameplay] PASS installed artwork connected: item.Relic
+[QualityGameplay] RESULT checks=23
+[QualityAuditSession] COMPLETE exit=0
+[CoreTest] Done: 59 passed, 0 failed
+[AIAdaptive] RESULT checks=16
+[SquadCore] COMPLETE

@@ -18,6 +18,8 @@ public static class QualityGameplayChecks
         using var effects=BoardActorAnimation.SuppressEffects();
         try
         {
+            Check("archer active skill name describes its actual active effect",live.UnitSetting.UnitDataMap.TryGetValue(Kind.Archer,out var archer)
+                && archer.specialSkill != null && SpecialSkillPresentation.Name(archer.specialSkill)=="毒霧の退避");
             var pool=(DungeonSystem.Artifact[])typeof(DungeonSystem).GetMethod("BuildArtifactPool",BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,null);
             Check("no removed DEF or shield mechanic is rolled",pool.Length==3 && Array.TrueForAll(pool,ArtifactPresentation.Available));
             foreach(var team in new[]{Team.Player,Team.Enemy})

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpecialSkillDefinition
   crossbowInitialAmmo: -1
   ability: 2
-  displayName: "\u672A\u79FB\u52D5\u5F37\u5316"
+  displayName: "\u6BD2\u9727\u306E\u9000\u907F"
   enabledForPlay: 1
   apCost: 10
   cooldown: 3

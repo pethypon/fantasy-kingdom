@@ -1,0 +1,1272 @@
+[
+  {
+    "MapSeed": 314159,
+    "ThreatLevel": 30,
+    "PlayerThreatLevel": 30,
+    "EnemyPersonality": "Combat",
+    "Round": 120,
+    "OwnerTurns": 240,
+    "EndCondition": "owner_turn_limit",
+    "Result": "unresolved",
+    "Errors": 0,
+    "Exceptions": 0,
+    "Assertions": 0,
+    "P95FrameMs": 22.265993118286133,
+    "WorstFrameMs": 1329.5142822265625,
+    "InitialMemoryMB": 204.58724975585938,
+    "FinalMemoryMB": 257.9232177734375,
+    "Seconds": 141.5207424,
+    "R4Enabled": false,
+    "R4Shadow": true,
+    "run": "before",
+    "localEvidenceFolder": "ai-quality-20261103-before-matches/01-314159",
+    "sides": {
+      "Player": {
+        "Actions": 1407,
+        "SuccessfulActions": 1406,
+        "FailedActions": 1,
+        "Moves": 1205,
+        "Attacks": 70,
+        "Skills": 16,
+        "Builds": 55,
+        "Summons": 30,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 157,
+        "RevealedCells": 1194,
+        "Oscillations": 14,
+        "FailedProgressActions": 470,
+        "FirstObservedEnemyRound": 19,
+        "FirstAttackRound": 19,
+        "maxArmy": 19,
+        "maxHealers": 3,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 120
+        },
+        "lastFacilities": "Bakery=7:13;Field=5:5;House=1:1;LoggingCamp=7:7;Mine=6:13;Quarry=6:6;RestraintTrap=1:1;SpikeTrap=1:1;SubCrystal=2:2;Warehouse=2:2;Well=10:11;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "250",
+            "netPerTurn": "24",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "250",
+            "netPerTurn": "10",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "96",
+            "netPerTurn": "-2",
+            "deficit": "2"
+          },
+          "Wheat": {
+            "stock": "250",
+            "netPerTurn": "4",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "209",
+            "netPerTurn": "4",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "250",
+            "netPerTurn": "8",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            159.0,
+            250.0
+          ],
+          "Stone": [
+            165.0,
+            250.0
+          ],
+          "Iron": [
+            200.0,
+            250.0
+          ],
+          "MagicOre": [
+            59.0,
+            118.0
+          ],
+          "Wheat": [
+            200.0,
+            250.0
+          ],
+          "Bread": [
+            147.0,
+            209.0
+          ],
+          "Water": [
+            200.0,
+            250.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 1
+        }
+      },
+      "Enemy": {
+        "Actions": 1344,
+        "SuccessfulActions": 1344,
+        "FailedActions": 0,
+        "Moves": 1239,
+        "Attacks": 22,
+        "Skills": 2,
+        "Builds": 53,
+        "Summons": 13,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 160,
+        "RevealedCells": 1123,
+        "Oscillations": 3,
+        "FailedProgressActions": 469,
+        "FirstObservedEnemyRound": 69,
+        "FirstAttackRound": 70,
+        "maxArmy": 15,
+        "maxHealers": 3,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 110,
+          "TerritoryLead": 10
+        },
+        "lastFacilities": "Bakery=7:9;Field=5:5;House=1:1;LoggingCamp=9:9;Mine=4:9;Quarry=7:7;RestraintTrap=1:1;SpikeTrap=1:1;SubCrystal=2:2;Well=10:10;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "200",
+            "netPerTurn": "30",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "200",
+            "netPerTurn": "12",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "108",
+            "netPerTurn": "0",
+            "deficit": "4.1"
+          },
+          "Wheat": {
+            "stock": "200",
+            "netPerTurn": "4",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "200",
+            "netPerTurn": "6",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "200",
+            "netPerTurn": "12",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            200.0,
+            200.0
+          ],
+          "Stone": [
+            200.0,
+            200.0
+          ],
+          "Iron": [
+            200.0,
+            200.0
+          ],
+          "MagicOre": [
+            40.0,
+            108.0
+          ],
+          "Wheat": [
+            200.0,
+            200.0
+          ],
+          "Bread": [
+            162.0,
+            200.0
+          ],
+          "Water": [
+            200.0,
+            200.0
+          ]
+        },
+        "executedMoveFailures": {}
+      }
+    },
+    "maintenanceColumns": {
+      "playerStarvation": 0.0,
+      "enemyStarvation": 0.0,
+      "playerUnpaidUnits": 0.0,
+      "enemyUnpaidUnits": 0.0,
+      "playerMaxUnpaidTurns": 0.0,
+      "enemyMaxUnpaidTurns": 0.0
+    }
+  },
+  {
+    "MapSeed": 271828,
+    "ThreatLevel": 30,
+    "PlayerThreatLevel": 30,
+    "EnemyPersonality": "Combat",
+    "Round": 120,
+    "OwnerTurns": 240,
+    "EndCondition": "owner_turn_limit",
+    "Result": "unresolved",
+    "Errors": 0,
+    "Exceptions": 0,
+    "Assertions": 0,
+    "P95FrameMs": 9.572101593017578,
+    "WorstFrameMs": 830.77685546875,
+    "InitialMemoryMB": 226.95777893066406,
+    "FinalMemoryMB": 238.38551330566406,
+    "Seconds": 211.864855,
+    "R4Enabled": false,
+    "R4Shadow": true,
+    "run": "before",
+    "localEvidenceFolder": "ai-quality-20261103-before-matches/02-271828",
+    "sides": {
+      "Player": {
+        "Actions": 1206,
+        "SuccessfulActions": 1201,
+        "FailedActions": 5,
+        "Moves": 629,
+        "Attacks": 381,
+        "Skills": 32,
+        "Builds": 39,
+        "Summons": 81,
+        "VictoryObjectiveAttacks": 11,
+        "ExplorationMoves": 77,
+        "RevealedCells": 649,
+        "Oscillations": 0,
+        "FailedProgressActions": 230,
+        "FirstObservedEnemyRound": 5,
+        "FirstAttackRound": 22,
+        "maxArmy": 9,
+        "maxHealers": 2,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 17,
+          "TerritoryLead": 24,
+          "Observed": 14,
+          "LastKnown": 65
+        },
+        "lastFacilities": "Bakery=4:8;Field=3:3;House=1:1;LoggingCamp=7:7;Mine=4:5;Quarry=5:5;SubCrystal=2:2;Well=7:7;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "197",
+            "netPerTurn": "22",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "46",
+            "netPerTurn": "9",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "8",
+            "netPerTurn": "1",
+            "deficit": "0"
+          },
+          "Wheat": {
+            "stock": "200",
+            "netPerTurn": "3",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "176",
+            "netPerTurn": "9.75",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "192",
+            "netPerTurn": "12",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            182.0,
+            200.0
+          ],
+          "Stone": [
+            196.0,
+            200.0
+          ],
+          "Iron": [
+            20.0,
+            72.0
+          ],
+          "MagicOre": [
+            2.0,
+            14.0
+          ],
+          "Wheat": [
+            200.0,
+            200.0
+          ],
+          "Bread": [
+            62.0,
+            188.0
+          ],
+          "Water": [
+            162.0,
+            200.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 5
+        }
+      },
+      "Enemy": {
+        "Actions": 1322,
+        "SuccessfulActions": 1315,
+        "FailedActions": 7,
+        "Moves": 769,
+        "Attacks": 379,
+        "Skills": 30,
+        "Builds": 45,
+        "Summons": 38,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 73,
+        "RevealedCells": 526,
+        "Oscillations": 0,
+        "FailedProgressActions": 303,
+        "FirstObservedEnemyRound": 21,
+        "FirstAttackRound": 23,
+        "maxArmy": 12,
+        "maxHealers": 3,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 22,
+          "TerritoryLead": 98
+        },
+        "lastFacilities": "Bakery=4:9;Field=3:3;House=1:1;LoggingCamp=6:6;Mine=2:6;Quarry=5:5;SubCrystal=2:2;Well=6:6;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "200",
+            "netPerTurn": "22",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "200",
+            "netPerTurn": "6",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "192",
+            "netPerTurn": "2",
+            "deficit": "0"
+          },
+          "Wheat": {
+            "stock": "200",
+            "netPerTurn": "3",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "109",
+            "netPerTurn": "7",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "166",
+            "netPerTurn": "6",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            160.0,
+            200.0
+          ],
+          "Stone": [
+            164.0,
+            200.0
+          ],
+          "Iron": [
+            122.0,
+            200.0
+          ],
+          "MagicOre": [
+            138.0,
+            200.0
+          ],
+          "Wheat": [
+            200.0,
+            200.0
+          ],
+          "Bread": [
+            91.0,
+            117.0
+          ],
+          "Water": [
+            160.0,
+            187.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 7
+        }
+      }
+    },
+    "maintenanceColumns": {
+      "playerStarvation": 0.0,
+      "enemyStarvation": 0.0,
+      "playerUnpaidUnits": 1.0,
+      "enemyUnpaidUnits": 0.0,
+      "playerMaxUnpaidTurns": 1.0,
+      "enemyMaxUnpaidTurns": 0.0
+    }
+  },
+  {
+    "MapSeed": 161803,
+    "ThreatLevel": 45,
+    "PlayerThreatLevel": 30,
+    "EnemyPersonality": "Growth",
+    "Round": 80,
+    "OwnerTurns": 160,
+    "EndCondition": "owner_turn_limit",
+    "Result": "unresolved",
+    "Errors": 0,
+    "Exceptions": 0,
+    "Assertions": 0,
+    "P95FrameMs": 16.30569839477539,
+    "WorstFrameMs": 1075.0391845703125,
+    "InitialMemoryMB": 202.97509765625,
+    "FinalMemoryMB": 255.22787475585938,
+    "Seconds": 114.11468649999999,
+    "R4Enabled": false,
+    "R4Shadow": true,
+    "run": "before-hard",
+    "localEvidenceFolder": "ai-quality-20261103-before-hard-matches/01-161803",
+    "sides": {
+      "Player": {
+        "Actions": 796,
+        "SuccessfulActions": 791,
+        "FailedActions": 5,
+        "Moves": 482,
+        "Attacks": 179,
+        "Skills": 8,
+        "Builds": 43,
+        "Summons": 41,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 115,
+        "RevealedCells": 918,
+        "Oscillations": 2,
+        "FailedProgressActions": 176,
+        "FirstObservedEnemyRound": 34,
+        "FirstAttackRound": 35,
+        "maxArmy": 10,
+        "maxHealers": 3,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 34,
+          "TerritoryLead": 46
+        },
+        "lastFacilities": "Bakery=5:8;Field=3:3;House=1:1;LoggingCamp=7:7;Mine=4:6;Quarry=7:7;StoneWall=1:1;SubCrystal=2:2;Well=8:8;WoodWall=7:7",
+        "lastResources": {
+          "Stone": {
+            "stock": "200",
+            "netPerTurn": "36",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "123",
+            "netPerTurn": "13",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "15",
+            "netPerTurn": "2",
+            "deficit": "0"
+          },
+          "Wheat": {
+            "stock": "130",
+            "netPerTurn": "0",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "128",
+            "netPerTurn": "12",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "200",
+            "netPerTurn": "15",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            200.0,
+            200.0
+          ],
+          "Stone": [
+            200.0,
+            200.0
+          ],
+          "Iron": [
+            123.0,
+            123.0
+          ],
+          "MagicOre": [
+            15.0,
+            15.0
+          ],
+          "Wheat": [
+            130.0,
+            130.0
+          ],
+          "Bread": [
+            128.0,
+            128.0
+          ],
+          "Water": [
+            200.0,
+            200.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 5
+        }
+      },
+      "Enemy": {
+        "Actions": 868,
+        "SuccessfulActions": 867,
+        "FailedActions": 1,
+        "Moves": 534,
+        "Attacks": 220,
+        "Skills": 6,
+        "Builds": 47,
+        "Summons": 23,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 72,
+        "RevealedCells": 515,
+        "Oscillations": 1,
+        "FailedProgressActions": 259,
+        "FirstObservedEnemyRound": 8,
+        "FirstAttackRound": 10,
+        "maxArmy": 10,
+        "maxHealers": 3,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 22,
+          "TerritoryLead": 58
+        },
+        "lastFacilities": "Bakery=6:7;Field=4:4;House=1:1;LoggingCamp=8:8;Mine=4:6;Quarry=7:7;SubCrystal=2:2;Well=7:8;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "200",
+            "netPerTurn": "35",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "169",
+            "netPerTurn": "12",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "17",
+            "netPerTurn": "0",
+            "deficit": "3.8375"
+          },
+          "Wheat": {
+            "stock": "200",
+            "netPerTurn": "2",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "107",
+            "netPerTurn": "7",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "185",
+            "netPerTurn": "6",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            200.0,
+            200.0
+          ],
+          "Stone": [
+            200.0,
+            200.0
+          ],
+          "Iron": [
+            169.0,
+            169.0
+          ],
+          "MagicOre": [
+            17.0,
+            17.0
+          ],
+          "Wheat": [
+            200.0,
+            200.0
+          ],
+          "Bread": [
+            107.0,
+            107.0
+          ],
+          "Water": [
+            185.0,
+            185.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 1
+        }
+      }
+    },
+    "maintenanceColumns": {
+      "playerStarvation": 0.0,
+      "enemyStarvation": 0.0,
+      "playerUnpaidUnits": 0.0,
+      "enemyUnpaidUnits": 0.0,
+      "playerMaxUnpaidTurns": 0.0,
+      "enemyMaxUnpaidTurns": 0.0
+    }
+  },
+  {
+    "MapSeed": 314159,
+    "ThreatLevel": 30,
+    "PlayerThreatLevel": 30,
+    "EnemyPersonality": "Combat",
+    "Round": 120,
+    "OwnerTurns": 240,
+    "EndCondition": "owner_turn_limit",
+    "Result": "unresolved",
+    "Errors": 0,
+    "Exceptions": 0,
+    "Assertions": 0,
+    "P95FrameMs": 26.0458984375,
+    "WorstFrameMs": 539.6906127929688,
+    "InitialMemoryMB": 203.6995849609375,
+    "FinalMemoryMB": 258.93316650390625,
+    "Seconds": 207.3044286,
+    "R4Enabled": false,
+    "R4Shadow": true,
+    "run": "after",
+    "localEvidenceFolder": "ai-quality-20261103-after-matches/01-314159",
+    "sides": {
+      "Player": {
+        "Actions": 1577,
+        "SuccessfulActions": 1577,
+        "FailedActions": 0,
+        "Moves": 1210,
+        "Attacks": 220,
+        "Skills": 8,
+        "Builds": 54,
+        "Summons": 41,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 174,
+        "RevealedCells": 1341,
+        "Oscillations": 7,
+        "FailedProgressActions": 434,
+        "FirstObservedEnemyRound": 26,
+        "FirstAttackRound": 34,
+        "maxArmy": 16,
+        "maxHealers": 3,
+        "maxHouses": 3,
+        "knowledge": {
+          "Unknown": 114,
+          "TerritoryLead": 6
+        },
+        "lastFacilities": "Bakery=6:14;Field=3:4;House=3:3;LoggingCamp=7:7;Mine=4:11;Quarry=6:6;SpikeTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=10:10;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "166",
+            "netPerTurn": "23",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "200",
+            "netPerTurn": "19",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "26",
+            "netPerTurn": "1",
+            "deficit": "2.925"
+          },
+          "Wheat": {
+            "stock": "143",
+            "netPerTurn": "0",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "171",
+            "netPerTurn": "10",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "200",
+            "netPerTurn": "16",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            96.0,
+            200.0
+          ],
+          "Stone": [
+            125.0,
+            200.0
+          ],
+          "Iron": [
+            172.0,
+            200.0
+          ],
+          "MagicOre": [
+            19.0,
+            40.0
+          ],
+          "Wheat": [
+            143.0,
+            143.0
+          ],
+          "Bread": [
+            127.0,
+            171.0
+          ],
+          "Water": [
+            166.0,
+            200.0
+          ]
+        },
+        "executedMoveFailures": {}
+      },
+      "Enemy": {
+        "Actions": 1385,
+        "SuccessfulActions": 1383,
+        "FailedActions": 2,
+        "Moves": 1044,
+        "Attacks": 201,
+        "Skills": 7,
+        "Builds": 49,
+        "Summons": 55,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 122,
+        "RevealedCells": 839,
+        "Oscillations": 3,
+        "FailedProgressActions": 313,
+        "FirstObservedEnemyRound": 13,
+        "FirstAttackRound": 13,
+        "maxArmy": 12,
+        "maxHealers": 2,
+        "maxHouses": 2,
+        "knowledge": {
+          "Unknown": 47,
+          "TerritoryLead": 73
+        },
+        "lastFacilities": "Bakery=7:10;Field=5:5;House=2:2;LoggingCamp=7:7;Mine=4:7;Quarry=6:6;SubCrystal=2:2;Well=10:10;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "200",
+            "netPerTurn": "22",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "194",
+            "netPerTurn": "11",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "34",
+            "netPerTurn": "3",
+            "deficit": "0"
+          },
+          "Wheat": {
+            "stock": "200",
+            "netPerTurn": "4",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "200",
+            "netPerTurn": "16.75",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "200",
+            "netPerTurn": "15",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            158.0,
+            200.0
+          ],
+          "Stone": [
+            179.0,
+            200.0
+          ],
+          "Iron": [
+            165.0,
+            200.0
+          ],
+          "MagicOre": [
+            8.0,
+            38.0
+          ],
+          "Wheat": [
+            200.0,
+            200.0
+          ],
+          "Bread": [
+            192.0,
+            200.0
+          ],
+          "Water": [
+            192.0,
+            200.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 2
+        }
+      }
+    },
+    "maintenanceColumns": {
+      "playerStarvation": 0.0,
+      "enemyStarvation": 0.0,
+      "playerUnpaidUnits": 0.0,
+      "enemyUnpaidUnits": 0.0,
+      "playerMaxUnpaidTurns": 0.0,
+      "enemyMaxUnpaidTurns": 0.0
+    }
+  },
+  {
+    "MapSeed": 271828,
+    "ThreatLevel": 30,
+    "PlayerThreatLevel": 30,
+    "EnemyPersonality": "Combat",
+    "Round": 120,
+    "OwnerTurns": 240,
+    "EndCondition": "owner_turn_limit",
+    "Result": "unresolved",
+    "Errors": 0,
+    "Exceptions": 0,
+    "Assertions": 0,
+    "P95FrameMs": 14.579903602600098,
+    "WorstFrameMs": 423.1145935058594,
+    "InitialMemoryMB": 225.30670166015625,
+    "FinalMemoryMB": 236.90037536621094,
+    "Seconds": 197.269662,
+    "R4Enabled": false,
+    "R4Shadow": true,
+    "run": "after",
+    "localEvidenceFolder": "ai-quality-20261103-after-matches/02-271828",
+    "sides": {
+      "Player": {
+        "Actions": 1246,
+        "SuccessfulActions": 1234,
+        "FailedActions": 12,
+        "Moves": 653,
+        "Attacks": 376,
+        "Skills": 33,
+        "Builds": 41,
+        "Summons": 72,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 72,
+        "RevealedCells": 752,
+        "Oscillations": 0,
+        "FailedProgressActions": 258,
+        "FirstObservedEnemyRound": 5,
+        "FirstAttackRound": 11,
+        "maxArmy": 9,
+        "maxHealers": 4,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 40,
+          "TerritoryLead": 16,
+          "LastKnown": 64
+        },
+        "lastFacilities": "Bakery=5:8;Field=3:3;House=1:1;LoggingCamp=6:6;Mine=4:8;Quarry=6:6;RestraintTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=6:8;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "192",
+            "netPerTurn": "31",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "200",
+            "netPerTurn": "17",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "57",
+            "netPerTurn": "1",
+            "deficit": "0"
+          },
+          "Wheat": {
+            "stock": "200",
+            "netPerTurn": "0",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "85",
+            "netPerTurn": "9",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "183",
+            "netPerTurn": "9",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            97.0,
+            200.0
+          ],
+          "Stone": [
+            149.0,
+            200.0
+          ],
+          "Iron": [
+            192.0,
+            200.0
+          ],
+          "MagicOre": [
+            11.0,
+            71.0
+          ],
+          "Wheat": [
+            200.0,
+            200.0
+          ],
+          "Bread": [
+            74.0,
+            133.0
+          ],
+          "Water": [
+            148.0,
+            200.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 12
+        }
+      },
+      "Enemy": {
+        "Actions": 1439,
+        "SuccessfulActions": 1420,
+        "FailedActions": 19,
+        "Moves": 785,
+        "Attacks": 432,
+        "Skills": 16,
+        "Builds": 50,
+        "Summons": 56,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 80,
+        "RevealedCells": 583,
+        "Oscillations": 1,
+        "FailedProgressActions": 358,
+        "FirstObservedEnemyRound": 18,
+        "FirstAttackRound": 19,
+        "maxArmy": 14,
+        "maxHealers": 3,
+        "maxHouses": 2,
+        "knowledge": {
+          "Unknown": 25,
+          "TerritoryLead": 95
+        },
+        "lastFacilities": "Bakery=7:11;Field=4:4;House=2:2;LoggingCamp=7:7;Mine=3:7;Quarry=7:7;StoneWall=1:1;SubCrystal=2:2;Well=8:10;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "200",
+            "netPerTurn": "34",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "194",
+            "netPerTurn": "11",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "64",
+            "netPerTurn": "-2",
+            "deficit": "2"
+          },
+          "Wheat": {
+            "stock": "198",
+            "netPerTurn": "-1",
+            "deficit": "1"
+          },
+          "Bread": {
+            "stock": "132",
+            "netPerTurn": "8",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "195",
+            "netPerTurn": "8",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            83.0,
+            200.0
+          ],
+          "Stone": [
+            157.0,
+            200.0
+          ],
+          "Iron": [
+            39.0,
+            194.0
+          ],
+          "MagicOre": [
+            39.0,
+            93.0
+          ],
+          "Wheat": [
+            198.0,
+            200.0
+          ],
+          "Bread": [
+            93.0,
+            135.0
+          ],
+          "Water": [
+            163.0,
+            200.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 19
+        }
+      }
+    },
+    "maintenanceColumns": {
+      "playerStarvation": 0.0,
+      "enemyStarvation": 0.0,
+      "playerUnpaidUnits": 0.0,
+      "enemyUnpaidUnits": 0.0,
+      "playerMaxUnpaidTurns": 0.0,
+      "enemyMaxUnpaidTurns": 0.0
+    }
+  },
+  {
+    "MapSeed": 161803,
+    "ThreatLevel": 45,
+    "PlayerThreatLevel": 30,
+    "EnemyPersonality": "Growth",
+    "Round": 80,
+    "OwnerTurns": 160,
+    "EndCondition": "owner_turn_limit",
+    "Result": "unresolved",
+    "Errors": 0,
+    "Exceptions": 0,
+    "Assertions": 0,
+    "P95FrameMs": 19.59600257873535,
+    "WorstFrameMs": 534.4010009765625,
+    "InitialMemoryMB": 203.7782440185547,
+    "FinalMemoryMB": 258.30413818359375,
+    "Seconds": 101.8640221,
+    "R4Enabled": false,
+    "R4Shadow": true,
+    "run": "after-hard",
+    "localEvidenceFolder": "ai-quality-20261103-after-hard-matches/01-161803",
+    "sides": {
+      "Player": {
+        "Actions": 876,
+        "SuccessfulActions": 874,
+        "FailedActions": 2,
+        "Moves": 709,
+        "Attacks": 64,
+        "Skills": 0,
+        "Builds": 47,
+        "Summons": 23,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 148,
+        "RevealedCells": 1199,
+        "Oscillations": 2,
+        "FailedProgressActions": 240,
+        "FirstObservedEnemyRound": 45,
+        "FirstAttackRound": 47,
+        "maxArmy": 14,
+        "maxHealers": 3,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 53,
+          "TerritoryLead": 27
+        },
+        "lastFacilities": "Bakery=6:10;Field=4:4;House=1:1;LoggingCamp=8:8;Mine=5:13;Quarry=6:6;RestraintTrap=1:1;SpikeTrap=1:1;StoneWall=1:1;SubCrystal=2:2;Well=7:10;WoodWall=7:7",
+        "lastResources": {
+          "Stone": {
+            "stock": "194",
+            "netPerTurn": "27",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "200",
+            "netPerTurn": "29",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "30",
+            "netPerTurn": "3",
+            "deficit": "1.45"
+          },
+          "Wheat": {
+            "stock": "200",
+            "netPerTurn": "2",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "154",
+            "netPerTurn": "11",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "194",
+            "netPerTurn": "13",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            190.0,
+            190.0
+          ],
+          "Stone": [
+            194.0,
+            194.0
+          ],
+          "Iron": [
+            200.0,
+            200.0
+          ],
+          "MagicOre": [
+            30.0,
+            30.0
+          ],
+          "Wheat": [
+            200.0,
+            200.0
+          ],
+          "Bread": [
+            154.0,
+            154.0
+          ],
+          "Water": [
+            194.0,
+            194.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 2
+        }
+      },
+      "Enemy": {
+        "Actions": 888,
+        "SuccessfulActions": 885,
+        "FailedActions": 3,
+        "Moves": 657,
+        "Attacks": 113,
+        "Skills": 7,
+        "Builds": 51,
+        "Summons": 24,
+        "VictoryObjectiveAttacks": 0,
+        "ExplorationMoves": 98,
+        "RevealedCells": 670,
+        "Oscillations": 0,
+        "FailedProgressActions": 235,
+        "FirstObservedEnemyRound": 8,
+        "FirstAttackRound": 10,
+        "maxArmy": 14,
+        "maxHealers": 3,
+        "maxHouses": 1,
+        "knowledge": {
+          "Unknown": 52,
+          "TerritoryLead": 28
+        },
+        "lastFacilities": "Bakery=6:9;Field=3:4;House=1:1;LoggingCamp=9:9;Mine=4:9;Quarry=6:6;RestraintTrap=1:1;SpikeTrap=1:1;StoneWall=2:2;SubCrystal=2:2;Well=8:8;WoodWall=8:8",
+        "lastResources": {
+          "Stone": {
+            "stock": "200",
+            "netPerTurn": "25",
+            "deficit": "0"
+          },
+          "Iron": {
+            "stock": "200",
+            "netPerTurn": "12",
+            "deficit": "0"
+          },
+          "MagicOre": {
+            "stock": "28",
+            "netPerTurn": "0",
+            "deficit": "3.05"
+          },
+          "Wheat": {
+            "stock": "130",
+            "netPerTurn": "0",
+            "deficit": "0"
+          },
+          "Bread": {
+            "stock": "122",
+            "netPerTurn": "3",
+            "deficit": "0"
+          },
+          "Water": {
+            "stock": "200",
+            "netPerTurn": "8",
+            "deficit": "0"
+          }
+        },
+        "lateResourceRanges": {
+          "Wood": [
+            200.0,
+            200.0
+          ],
+          "Stone": [
+            200.0,
+            200.0
+          ],
+          "Iron": [
+            200.0,
+            200.0
+          ],
+          "MagicOre": [
+            28.0,
+            28.0
+          ],
+          "Wheat": [
+            130.0,
+            130.0
+          ],
+          "Bread": [
+            122.0,
+            122.0
+          ],
+          "Water": [
+            200.0,
+            200.0
+          ]
+        },
+        "executedMoveFailures": {
+          "move_destination_occupied": 3
+        }
+      }
+    },
+    "maintenanceColumns": {
+      "playerStarvation": 0.0,
+      "enemyStarvation": 0.0,
+      "playerUnpaidUnits": 0.0,
+      "enemyUnpaidUnits": 0.0,
+      "playerMaxUnpaidTurns": 0.0,
+      "enemyMaxUnpaidTurns": 0.0
+    }
+  }
+]

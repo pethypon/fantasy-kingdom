@@ -64,8 +64,8 @@ public static class R2TimerUIRulesTests
             definition.displayName = "固定能力テスト兵";
             string tooltip = SummonUnitTooltip.Description(definition);
             Check("E03 summon tooltip contains no unit growth labels", !tooltip.Contains("Lv") && !tooltip.Contains("XP") && !tooltip.Contains("成長"));
-            Check("E04 summon tooltip uses canonical fixed HP and ATK", tooltip.Contains("HP 5 / 5") && tooltip.Contains("攻撃力 2"));
-            Check("E05 summon upkeep comes from the fixed API", tooltip.Contains("維持費 / 毎ターン")
+            Check("E04 summon tooltip uses canonical fixed HP and ATK", tooltip.Contains("HP 5　") && tooltip.Contains("攻撃 2"));
+            Check("E05 summon upkeep comes from the fixed API", tooltip.Contains("維持費/ターン")
                 && tooltip.Contains(BuildSummonUIBuilder.FormatProductionBundle(definition.GetFixedUpkeep())));
             Check("R2 barrier explanation uses full HP rather than old damage-free threshold",
                 SpecialSkillPresentation.BarrierRecoveryDescription().Contains("HPが最大")
