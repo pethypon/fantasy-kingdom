@@ -13,14 +13,18 @@ public static class IntegratedCrystalRulesTests
     public static void Run(GameSystems unused)
     {
         checks = 0;
-        Check("one formal main-crystal HP", CrystalSystem.CrystalHP == 5000 && MainCrystalRules.MaximumHP == 5000);
-        Check("old 15000 health ratio is retained", MainCrystalRules.NormalizeSavedHP(7500, 15000, 0) == 2500);
+        Check("one formal main-crystal HP", CrystalSystem.CrystalHP == 3000 && MainCrystalRules.MaximumHP == 3000);
+        Check("old 15000 health ratio is retained", MainCrystalRules.NormalizeSavedHP(7500, 15000, 0) == 1500);
         Check("dead saves are never revived", MainCrystalRules.NormalizeSavedHP(0, 15000, 0) == 0);
-        Check("current-rule saves retain exact HP", MainCrystalRules.NormalizeSavedHP(1234, 5000, MainCrystalRules.Version) == 1234);
-        Check("legacy CrystalShard max-HP gain survives migration", MainCrystalRules.NormalizeSavedMaximum(16000, 0) == 6000
-            && MainCrystalRules.NormalizeSavedHP(8000, 16000, 0) == 3000);
-        Check("new-rule artifact gain is not migrated twice", MainCrystalRules.NormalizeSavedMaximum(6000, MainCrystalRules.Version) == 6000
-            && MainCrystalRules.NormalizeSavedHP(4321, 6000, MainCrystalRules.Version) == 4321);
+        Check("previous 5000 rule scales exactly once", MainCrystalRules.NormalizeSavedHP(2500, 5000, 1) == 1500
+            && MainCrystalRules.NormalizeSavedMaximum(5000, 1) == 3000);
+        Check("current-rule saves retain exact HP", MainCrystalRules.NormalizeSavedHP(1234, 3000, MainCrystalRules.Version) == 1234);
+        Check("legacy CrystalShard max-HP gain survives migration", MainCrystalRules.NormalizeSavedMaximum(16000, 0) == 4000
+            && MainCrystalRules.NormalizeSavedHP(8000, 16000, 0) == 2000);
+        Check("previous-rule earned maximum survives", MainCrystalRules.NormalizeSavedMaximum(6000, 1) == 4000
+            && MainCrystalRules.NormalizeSavedHP(3000, 6000, 1) == 2000);
+        Check("new-rule artifact gain is not migrated twice", MainCrystalRules.NormalizeSavedMaximum(4000, MainCrystalRules.Version) == 4000
+            && MainCrystalRules.NormalizeSavedHP(2321, 4000, MainCrystalRules.Version) == 2321);
         Check("counter uses target maximum HP and existing rounding", MainCrystalRules.CounterDamage(101) == Mathf.RoundToInt(101 * .15f));
         foreach (var side in new[] { Team.Player, Team.Enemy })
         {

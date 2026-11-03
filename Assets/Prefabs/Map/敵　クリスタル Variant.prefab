@@ -181,6 +181,8 @@ MonoBehaviour:
   barrierPoints: 0
   barrierInitialized: 0
   BarrierRecovery:
+    RuleRevision: 0
+    FullHPObserved: 0
     SafeTurns: 0
     LastDamagedRound: -1
     HasRecovered: 0
@@ -205,7 +207,7 @@ MonoBehaviour:
   wildBossAtkBuffTurns: 0
   wildBossPhase2Active: 0
   wildBossCurrentThreat: 25
-  hitPoints: 5000
+  hitPoints: 3000
   NaturalRecovery:
     ConsecutiveSafeTurns: 0
     LastProcessedRound: -1
@@ -277,6 +279,19 @@ MonoBehaviour:
   unitDefinitionId: 
   Fatigue: 0
   UpkeepUnpaidTurns: 0
+  LastMaintenanceRound: -1
+  FixedStatsMigrationDeferred: 0
+  LegacyUnitStats:
+    Level: 0
+    Experience: 0
+    HP: 0
+    MaximumHP: 0
+    ATK: 0
+    DEF: 0
+    HasDefinitionBaseline: 0
+    DefinitionMaxHP: 0
+    DefinitionATK: 0
+    DefinitionDEF: 0
   Experience: 0
   ShieldTurns: 0
   CrystalCounter:
@@ -290,15 +305,17 @@ MonoBehaviour:
     IntruderConsumed: -1
   ShieldActivated: 0
   ShieldEverActivated: 0
-  MaxHP: 5000
+  MaxHP: 3000
   facilityKind: 0
   AuthoredFacility: {fileID: 0}
   authoredFacilityId: 
+  BuiltByEngineer: 0
   ActiveEffects: []
   AssignedSkillId: -1
   SkillCooldown: 0
   specialAbility: 0
   HasMovedThisTurn: 0
+  SummonAttackLocked: 0
   SurvivalInstinctUsed: 0
   FirstSkillUsedThisTurn: 0
   DebuffNullifiedThisTurn: 0

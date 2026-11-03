@@ -1,0 +1,43 @@
+{
+  "unity": "6000.3.8f1",
+  "scope": "Native core contracts and actual SampleScene Play Mode; not balance matches.",
+  "runs": {
+    "core": {
+      "newHPChecks": 13,
+      "rawLogSHA256": "4d6b85c904c10461be056d3bc7cb1958fb89d2aa0a03476b27c96dd4b12cc15c",
+      "completed": true
+    },
+    "playmode": {
+      "newHPChecks": 7,
+      "rawLogSHA256": "2a86988113ce20bb9114ba70675096856d0e7aff009b61938b883d9fe090cdcf",
+      "completed": true
+    }
+  },
+  "sourceHashes": {
+    "Assets/Script/Gamesystem/MainCrystalRules.cs": "27f547ff5a67a462b1d6d95b1e2d7a2ddc2f4d0bcc5a8a3289e24bff52171fe1",
+    "Assets/Script/Initialization/SaveGameApplier.cs": "1086f8ba46446a52d5340d198f6c4ae1fa3e280da8d3e942334d213f7edfc79b",
+    "Assets/Script/Tests/AIR4/IntegratedCrystalRulesTests.cs": "87a8985ac1eb79b04527e24ece9f1b787ec420a5d9949d4c9131ce901753190d",
+    "Assets/Script/Tests/CoreLogicTests.cs": "083b4e9a55721afe39821f1f15267c60a3aada298398500cc289f3dceb06d3cd",
+    "Assets/Script/Unit&Battle/FacilityData.Walls.cs": "fc787cc3b47032bed236eb282edf12199b029b653898896401a973130e72e41a",
+    "Tests~/A1Validation.cs": "53d9c0f4e85265af40fd5ff5689382ea5a434e9379b9c7293a4106b7f5f30055",
+    "Tests~/SquadCoreValidation.cs": "879e269de243641fc2e4e74d76f28c5c504aae9bf5ca0358cf85b26c07d339ba",
+    "Tests~/CrystalHPTests.cs": "cfd6f194d91e4af77502a5db0d41a4977dee90d80099523febaed979a36fe0ee"
+  },
+  "compile": [
+    {
+      "name": "Assembly-CSharp",
+      "exitCode": 0,
+      "sourceCount": 508
+    },
+    {
+      "name": "Assembly-CSharp-Editor",
+      "exitCode": 0,
+      "sourceCount": 225
+    },
+    {
+      "name": "Assembly-CSharp-Release",
+      "exitCode": 0,
+      "sourceCount": 508
+    }
+  ]
+}

@@ -50,6 +50,7 @@ public static partial class FacilityData
     }
 
     // ---- サブクリスタル ----
+    public const int SubCrystalMaximumHP = 1000;
     private static void BuildSubCrystal()
     {
         var kind = FacilityKind.SubCrystal;
@@ -57,7 +58,7 @@ public static partial class FacilityData
         {
             new FacilityLevelData
             {
-                HP = 5000, DEF = 0, ATK = 0,
+                HP = SubCrystalMaximumHP, DEF = 0, ATK = 0,
             },
         };
         Register(kind, "サブクリスタル", 0, new ResourceCost(), 1, levels);

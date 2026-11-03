@@ -4,8 +4,9 @@ using UnityEngine;
 /// <summary>Main-crystal-only rules. Territory area and RoundToInt retain the existing formal counter rules.</summary>
 public static class MainCrystalRules
 {
-    public const int Version = 1;
-    public const int MaximumHP = 5000;
+    public const int Version = 2;
+    public const int MaximumHP = 3000;
+    public const int PreviousBaseMaximumHP = 5000;
     public const int LegacyBaseMaximumHP = 15000;
     public const int MaximumCounterTargets = 3;
     public const float CounterFraction = .15f;
@@ -23,7 +24,8 @@ public static class MainCrystalRules
     /// <summary>Preserve CrystalShard/earned max-HP additions without reapplying the old base on every load.</summary>
     public static int NormalizeSavedMaximum(int maximum, int savedRuleVersion)
         => savedRuleVersion >= Version ? Mathf.Max(1, maximum)
-            : (int)Math.Min(int.MaxValue, (long)MaximumHP + Math.Max(0, (long)maximum - LegacyBaseMaximumHP));
+            : (int)Math.Min(int.MaxValue, (long)MaximumHP + Math.Max(0, (long)maximum
+                - (savedRuleVersion >= 1 ? PreviousBaseMaximumHP : LegacyBaseMaximumHP)));
 
     public static void ClearLegacyShield(Status actor)
     {
