@@ -235,7 +235,12 @@ public sealed partial class AIExplorationPlanner
         }
         if (!actor.CanAct)
         {
-            if (objective != null && (objective.State == ObjectiveState.Active || objective.State == ObjectiveState.Suspended)) Finish(objective, ObjectiveState.Failed, "unit_lost", actor);
+            if (objective != null && objective.State == ObjectiveState.Active)
+            {
+                objective.State = ObjectiveState.Suspended; objective.SuspendedTurn = turn;
+                objective.LastReason = "movement_unavailable";
+                RecordDecision(actor, objective, history, "movement_unavailable", false, null);
+            }
             return;
         }
         if (newTerritoryRecon && objective != null && objective.State != ObjectiveState.Completed && objective.State != ObjectiveState.Failed)

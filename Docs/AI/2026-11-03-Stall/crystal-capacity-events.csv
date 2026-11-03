@@ -1,0 +1,4 @@
+﻿round,frame,event,team,kind,lifeId,HP,maximumHP,previousHP,previousMaximumHP,actualHeal,caller
+38,13877,heal,Enemy,Crystal,a7578524beb54655943732c42f623977,4000,4000,3000,3000,1000,SpecialSkillRuntime.RecordHeal;DungeonSystem.BuffCrystal;DungeonSystem.GrantArtifact;DungeonSystem.ProcessTurn
+48,18829,heal,Enemy,Crystal,a7578524beb54655943732c42f623977,5000,5000,4000,4000,1000,SpecialSkillRuntime.RecordHeal;DungeonSystem.BuffCrystal;DungeonSystem.GrantArtifact;DungeonSystem.ProcessTurn
+58,21026,heal,Enemy,Crystal,a7578524beb54655943732c42f623977,5962,6000,4962,5000,1000,SpecialSkillRuntime.RecordHeal;DungeonSystem.BuffCrystal;DungeonSystem.GrantArtifact;DungeonSystem.ProcessTurn

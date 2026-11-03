@@ -1,0 +1,26 @@
+[AIStall] PASS initial scout has a persistent frontier
+[AIStall] PASS temporary inability suspends without losing the actor or target
+[AIStall] PASS movement resumes after save and emergency with the same goal
+[AIStall] PASS pause compensates the stall clock once
+[AIStall] PASS an actually absent actor still releases its objective
+[AIStall] PASS Player live scout gets a goal
+[AIStall] PASS Player a live frozen scout is suspended rather than removed
+[AIStall] PASS Player thawed scout retains its expedition
+[AIStall] PASS Player null-observer scout mask would promise unseen cells
+[AIStall] PASS Player this actor with zero vision forecasts no reveal
+[AIStall] PASS Player the search strategy respects the actor's zero vision
+[AIStall] PASS Player unobserved environment is not read through terrain knowledge
+[AIStall] PASS Player observed rocks cannot be a known walking route
+[AIStall] PASS Player forest vision obstruction remains walkable
+[AIStall] PASS Player observed forest blocks repeated hypothetical reveal
+[AIStall] PASS Enemy live scout gets a goal
+[AIStall] PASS Enemy a live frozen scout is suspended rather than removed
+[AIStall] PASS Enemy thawed scout retains its expedition
+[AIStall] PASS Enemy null-observer scout mask would promise unseen cells
+[AIStall] PASS Enemy this actor with zero vision forecasts no reveal
+[AIStall] PASS Enemy the search strategy respects the actor's zero vision
+[AIStall] PASS Enemy unobserved environment is not read through terrain knowledge
+[AIStall] PASS Enemy observed rocks cannot be a known walking route
+[AIStall] PASS Enemy forest vision obstruction remains walkable
+[AIStall] PASS Enemy observed forest blocks repeated hypothetical reveal
+[AIStall] RESULT checks=25

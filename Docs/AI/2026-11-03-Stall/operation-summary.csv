@@ -1,0 +1,13 @@
+﻿version,seed,team,rows,maxLiveSquad,maxCoordinationSteps,selectedSquadRows
+baseline,314159,Player,2552,4,1,1238
+baseline,314159,Enemy,2301,4,1,1119
+baseline,271828,Player,2394,4,2,1402
+baseline,271828,Enemy,2165,4,1,929
+after,314159,Player,3094,4,1,1315
+after,314159,Enemy,2978,4,1,1308
+after,271828,Player,2424,4,1,1405
+after,271828,Enemy,2955,4,2,1669
+final,314159,Player,3350,4,2,2251
+final,314159,Enemy,2135,4,2,969
+final,271828,Player,2768,4,2,1583
+final,271828,Enemy,2891,4,1,1561

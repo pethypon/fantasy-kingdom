@@ -261,7 +261,7 @@ public class AIRoleAssigner
             case UnitRole.Scout_Role:
                 if (action.ActionType == AIActionType.Move)
                 {
-                    int newCells = board.EstimateNewVisionCells(action.TargetPos);
+                    int newCells = board.EstimateNewVisionCells(action.TargetPos, unit);
                     bonus += Mathf.Min(newCells * 4f, 35f);
                 }
                 if (action.ActionType == AIActionType.Retreat) bonus -= 5f;

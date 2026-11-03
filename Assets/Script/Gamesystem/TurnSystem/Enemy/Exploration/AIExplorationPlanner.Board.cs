@@ -7,6 +7,7 @@ public sealed partial class AIExplorationPlanner
     readonly Dictionary<int, Status> boardActors = new Dictionary<int, Status>();
     readonly HashSet<Vector3Int> importedTerrain = new HashSet<Vector3Int>();
     readonly HashSet<Vector3Int> moveFootprint = new HashSet<Vector3Int>();
+    readonly HashSet<Vector3Int> knownVisionObstructions = new HashSet<Vector3Int>();
     AIBoardState observedBoard;
     MapCreate observedMap;
     object observedMapCells;
@@ -66,7 +67,8 @@ public sealed partial class AIExplorationPlanner
                 if (!ExplorerEligible(unit, board) || unit.kind != Kind.Scout && unit.GetInstanceID() != fallbackExplorerId) continue;
                 int id = unit.GetInstanceID(); boardActors[id] = unit;
                 boardObservation.Actors.Add(new ExplorationActor(id, GridHelper.ToGrid(unit.transform.position), unit.kind, unit.HP,
-                    !StatusEffectSystem.IsStunned(unit) && !StatusEffectSystem.IsMovementBlocked(unit) && BoardActionProfile.For(unit)?.CanMove != false, unit.ReflectionLifeId)
+                    !StatusEffectSystem.IsStunned(unit) && !StatusEffectSystem.IsMovementBlocked(unit)
+                        && !SpecialSkillRuntime.MovementBlocked(unit) && BoardActionProfile.For(unit)?.CanMove != false, unit.ReflectionLifeId)
                 {
                     IsFallbackExplorer = unit.kind != Kind.Scout,
                     MovementOffsets = MovePatterns.Offsets(unit), MovementDirectionIndependent = MovePatterns.IsDirectionIndependent(unit), Direction = unit.direction
@@ -106,7 +108,6 @@ public sealed partial class AIExplorationPlanner
     static bool ExplorerEligible(Status unit, AIBoardState board)
         => unit != null && unit.IsAlive && unit.type == Type.Unit && unit.team == board.ActorTeam
             && !MatchObjectiveRules.IsCommander(unit) && unit.kind != Kind.Priest
-            && !StatusEffectSystem.IsStunned(unit) && !StatusEffectSystem.IsMovementBlocked(unit)
             && BoardActionProfile.For(unit)?.CanMove != false;
 
     void SelectFallbackExplorer(AIBoardState board)
@@ -130,10 +131,14 @@ public sealed partial class AIExplorationPlanner
         if (!refresh && importedTerrain.Contains(xz)) return;
         // This method is called only for own explored/visible cells. TryGetHeight is forbidden for unknown cells.
         bool hasHeight = map.TryGetHeight(xz.x, xz.z, out float height);
-        bool passable = hasHeight && !map.IsRiver(xz.x, xz.z) && !map.IsHighMountain(xz.x, xz.z);
+        var environment = map.Environment.KnownDefinitionAt(boardObservation.ActorTeam, cell);
+        bool passable = hasHeight && !map.IsRiver(xz.x, xz.z) && !map.IsHighMountain(xz.x, xz.z)
+            && (environment == null || !environment.blocksMovement);
+        bool blocksVision = map.IsHighMountain(xz.x,xz.z) || environment != null && environment.blocksVision;
+        bool visionChanged = blocksVision ? knownVisionObstructions.Add(xz) : knownVisionObstructions.Remove(xz);
         var evidence = new ExplorationObservedCell(new Vector3Int(xz.x, passable ? Mathf.RoundToInt(height) : cell.y, xz.z), passable);
         boardObservation.KnownCells.Add(evidence);
-        if (!boardTerrainEvidence.TryGetValue(xz, out var previous) || previous.Cell != evidence.Cell || previous.Passable != evidence.Passable)
+        if (!boardTerrainEvidence.TryGetValue(xz, out var previous) || previous.Cell != evidence.Cell || previous.Passable != evidence.Passable || visionChanged)
         { boardCellVersion++; boardTerrainEvidence[xz] = evidence; }
         importedTerrain.Add(xz);
     }
@@ -179,7 +184,7 @@ public sealed partial class AIExplorationPlanner
     }
     void ClearBoardCaches()
     {
-        importedTerrain.Clear(); initialExploredImported = false; observedBoard = null; boardGeneration = -1; fallbackExplorerId = 0;
+        importedTerrain.Clear(); knownVisionObstructions.Clear(); initialExploredImported = false; observedBoard = null; boardGeneration = -1; fallbackExplorerId = 0;
         observedBoardIdentity = 0; observedMap = null; observedMapCells = null; hasMapContext = false; boardActors.Clear(); moveFootprint.Clear();
         boardTerrainEvidence.Clear(); previousBoardView.Clear(); boardViewVersion = boardCellVersion = 0;
     }
@@ -205,7 +210,8 @@ public sealed partial class AIExplorationPlanner
         if (emergency) return score;
         moveFootprint.Clear(); var target = GridHelper.ToGridXZ(destination);
         bool blind = StatusEffectSystem.HasDebuff(unit, StatusEffectType.Blind) || StatusEffectSystem.HasDebuff(unit, StatusEffectType.NarrowVision);
-        if (blind) moveFootprint.Add(target + new Vector3Int(0, 0, MovePatterns.DirZ(unit.direction)));
+        if (unit.Special?.visionZeroTurns > 0) moveFootprint.Add(target);
+        else if (blind) moveFootprint.Add(target + new Vector3Int(0, 0, MovePatterns.DirZ(unit.direction)));
         else foreach (var offset in VisionGenerator.BaseVisionOffsets(unit)) moveFootprint.Add(target + GridHelper.ToGridXZ(offset));
         int gain = 0;
         foreach (var cell in moveFootprint) if (Inside(cell) && !memory.ContainsKey(cell) && KnownVisionLineClear(target, cell)) gain++;
@@ -223,12 +229,17 @@ public sealed partial class AIExplorationPlanner
         while (ix < dx || iz < dz)
         {
             int decision = (1 + 2 * ix) * dz - (1 + 2 * iz) * dx;
-            if (decision == 0) { x += sx; z += sz; ix++; iz++; }
+            if (decision == 0)
+            {
+                if (knownVisionObstructions.Contains(new Vector3Int(x+sx,0,z))
+                    || knownVisionObstructions.Contains(new Vector3Int(x,0,z+sz))) return false;
+                x += sx; z += sz; ix++; iz++;
+            }
             else if (decision < 0) { x += sx; ix++; }
             else { z += sz; iz++; }
             if (x == to.x && z == to.z) break;
             var cell = new Vector3Int(x, 0, z);
-            if (blocked.Contains(cell)) return false;
+            if (knownVisionObstructions.Contains(cell)) return false;
         }
         return true;
     }

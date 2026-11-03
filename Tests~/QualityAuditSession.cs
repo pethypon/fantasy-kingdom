@@ -53,6 +53,10 @@ public static class QualityAuditSession
                     ?? Path.Combine(Application.dataPath, "../../quality-audit-20261023"));
                 Directory.CreateDirectory(outputDirectory);
                 observedSystems = turn.Systems;
+                if (Environment.GetEnvironmentVariable("FK_AI_STALL_CONTRACTS") == "1")
+                {
+                    AIStallContracts.Core(); AIStallContracts.Live(observedSystems); Finish(0); return;
+                }
                 pending.Push(UIQualityAudit.Run(turn.Systems, Path.Combine(outputDirectory, "ui")));
                 started = true;
             }

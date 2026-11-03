@@ -49,7 +49,7 @@ public static partial class AIOrientation
                 if (enemy != null && GridHelper.MatchXZ(enemy.transform.position, GridHelper.ToGridXZ(destination))) { occupied = true; break; }
             if (occupied) continue;
             float value = contact ? (GridHelper.ChebyshevDistance(origin, objective) - GridHelper.ChebyshevDistance(destination, objective)) * 5
-                : Mathf.Min(10, board.EstimateNewVisionCells(destination));
+                : Mathf.Min(10, board.EstimateNewVisionCells(destination,unit));
             best = Mathf.Max(best, value);
         }
         return best;
