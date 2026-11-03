@@ -18,4 +18,4 @@ MonoBehaviour:
   shardHP: 1000
   shardMagicOre: 30
   summonsPerTurn: 1
-  normalAttacksPerTurn: 1
+  normalAttacksPerTurn: 2

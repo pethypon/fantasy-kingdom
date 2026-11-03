@@ -23,6 +23,11 @@ public static class QualityAuditSession
     public static void Run()
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new InvalidOperationException("Isolated validation clone required");
+        if (Environment.GetEnvironmentVariable("FK_NORMAL_ATTACK_CONTRACTS") == "1")
+        {
+            if (Environment.GetEnvironmentVariable("FK_INSTALL_TWO_ATTACK_DEFAULTS") == "1") NormalAttackTurnTests.InstallTwoAttackDefault();
+            StudioAllSettingsTests.Run();
+        }
         if (Environment.GetEnvironmentVariable("FK_AI_CAMPAIGN_CONTRACTS") == "1") StudioAllSettingsTests.Run();
         GameIconInstaller.Connect();
         SessionState.SetString(Key + ".Company", PlayerSettings.companyName);
@@ -54,6 +59,8 @@ public static class QualityAuditSession
                     ?? Path.Combine(Application.dataPath, "../../quality-audit-20261023"));
                 Directory.CreateDirectory(outputDirectory);
                 observedSystems = turn.Systems;
+                if (Environment.GetEnvironmentVariable("FK_NORMAL_ATTACK_CONTRACTS") == "1")
+                { NormalAttackTurnTests.Run(observedSystems,turn); Finish(0); return; }
                 if (Environment.GetEnvironmentVariable("FK_AI_CAMPAIGN_CONTRACTS") == "1")
                 {
                     AICampaignContracts.Run(observedSystems); AIRouteStrategyContracts.Run(observedSystems);
