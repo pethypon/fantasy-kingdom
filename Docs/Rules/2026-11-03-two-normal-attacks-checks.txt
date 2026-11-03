@@ -1,0 +1,39 @@
+[StudioSettings] PASS one persistent Resources asset
+[StudioSettings] PASS edited crystal data reaches the live formal rule
+[StudioSettings] PASS edited sub-crystal reaches both recipes and menu data
+[StudioSettings] PASS edited quotas reach player and AI shared rules
+[StudioSettings] PASS serialized changes support Undo without deleting the asset
+[StudioSettings] PASS settings discovery includes gameplay, AI and terrain
+[StudioSettings] PASS saved defaults retain the requested balance
+[StudioSettings] RESULT checks=7
+[NormalAttackTurn] PASS Player fresh unit can attack
+[NormalAttackTurn] PASS Player first native attack deals damage and leaves another attack
+[NormalAttackTurn] PASS Player second native attack deals damage and exhausts the quota
+[NormalAttackTurn] PASS Player third direct battle call causes no damage
+[NormalAttackTurn] PASS Player AP eligibility rejects the spent normal attack
+[NormalAttackTurn] PASS Player live AI offers no normal attack after use
+[NormalAttackTurn] PASS Player save and restore cannot grant an extra attack
+[NormalAttackTurn] PASS Player offensive skill is not blocked by normal attack use
+[NormalAttackTurn] PASS Player offensive skill damage retains its separate slot
+[NormalAttackTurn] PASS Player future opponent threat still includes this unit
+[NormalAttackTurn] PASS Player own turn boundary restores normal attack
+[NormalAttackTurn] PASS Enemy fresh unit can attack
+[NormalAttackTurn] PASS Enemy first native attack deals damage and leaves another attack
+[NormalAttackTurn] PASS Enemy second native attack deals damage and exhausts the quota
+[NormalAttackTurn] PASS Enemy third direct battle call causes no damage
+[NormalAttackTurn] PASS Enemy AP eligibility rejects the spent normal attack
+[NormalAttackTurn] PASS Enemy live AI offers no normal attack after use
+[NormalAttackTurn] PASS Enemy save and restore cannot grant an extra attack
+[NormalAttackTurn] PASS Enemy offensive skill is not blocked by normal attack use
+[NormalAttackTurn] PASS Enemy offensive skill damage retains its separate slot
+[NormalAttackTurn] PASS Enemy future opponent threat still includes this unit
+[NormalAttackTurn] PASS Enemy own turn boundary restores normal attack
+[NormalAttackTurn] PASS simulation accepts the first normal attack
+[NormalAttackTurn] PASS AI generates the second attack with its fatigued AP quote
+[NormalAttackTurn] PASS simulation accepts the second normal attack
+[NormalAttackTurn] PASS simulation rejects a stale third attack without payment
+[NormalAttackTurn] PASS simulation candidate generation honors the quota
+[NormalAttackTurn] PASS simulation copies preserve the used attacks
+[NormalAttackTurn] PASS opponent turn does not reset the unit
+[NormalAttackTurn] PASS next own simulated turn resets the unit
+[NormalAttackTurn] RESULT checks=30

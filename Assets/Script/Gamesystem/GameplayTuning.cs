@@ -13,7 +13,7 @@ public sealed class GameplayTuning : ScriptableObject
     [InspectorName("上限時の欠片の魔石報酬"), Min(0)] public int shardMagicOre = 30;
     [Header("各陣営の自軍ターンごとにリセット")]
     [InspectorName("１ターンの召喚上限（全兵種・拠点で共有）"), Range(1, 16)] public int summonsPerTurn = 1;
-    [InspectorName("駒１体の通常攻撃回数（スキル・反撃は別枠）"), Range(1, 16)] public int normalAttacksPerTurn = 1;
+    [InspectorName("駒１体の通常攻撃回数（スキル・反撃は別枠）"), Range(1, 16)] public int normalAttacksPerTurn = 2;
     static GameplayTuning cached;
     static bool loaded;
     public static GameplayTuning Active { get { if (!loaded) { cached = Resources.Load<GameplayTuning>(ResourcePath); loaded = true; } return cached; } }
