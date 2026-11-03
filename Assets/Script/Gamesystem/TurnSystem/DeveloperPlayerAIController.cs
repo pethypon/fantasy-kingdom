@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>Editor/development-only driver. Uses the ordinary player turn and legal AI actions.</summary>
 public sealed class DeveloperPlayerAIController : IDisposable
 {
-    public const int ThreatLevel = 15;
+    public const int ThreatLevel = 30;
     const string Hints = "開発者: プレイヤーAI 脅威度15　[F8]手動に戻す　[中ボタンドラッグ]カメラ移動";
     readonly TurnGenerator turn;
     AICommander commander;
