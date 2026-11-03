@@ -1,0 +1,16 @@
+[CrystalHP] PASS Player actual new-game main crystal is 3000/3000
+[CrystalHP] PASS Player actual build system creates sub 1000/1000
+[CrystalHP] PASS Enemy actual new-game main crystal is 3000/3000
+[CrystalHP] PASS Enemy actual build system creates sub 1000/1000
+[CrystalHP] PASS existing authored sub definition is also 1000
+[CrystalHP] PASS Editor prefab matches 3000: Assets/Prefabs/Map/プレイヤー　クリスタル Variant.prefab
+[CrystalHP] PASS Editor prefab matches 3000: Assets/Prefabs/Map/敵　クリスタル Variant.prefab
+[A1Live] PASS crystal-hp
+[A1Live] PASS recon
+[A1Live] PASS housing
+[A1Live] PASS retreat
+[A1Live] PASS ordinary-mine-restored
+[A1Live] PASS basic-resources
+[A1Live] PASS standing-army
+[A1Live] PASS summon-turn-rules
+[A1Live] COMPLETE failures=0

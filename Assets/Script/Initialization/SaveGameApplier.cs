@@ -340,7 +340,18 @@ public static class SaveGameApplier
                 || !FixedUnitRules.UsesFixedStats(actor.kind)) return;
             baselineHP = legacy.DefinitionMaxHP; baselineATK = legacy.DefinitionATK; baselineDEF = legacy.DefinitionDEF;
         }
-        else if (!saved.HasDefinitionStatSnapshot) return;
+        else if (!saved.HasDefinitionStatSnapshot)
+        {
+            // Historical sub-crystals lacked a building baseline. Apply today's HP recipe once,
+            // retaining health ratio/death and leaving unrelated ATK/DEF history unchanged.
+            if (actor.kind == Kind.SubCrystal && StatusBalanceRefresh.TryGetDefinitionStats(actor, out int hp, out _, out _))
+            {
+                int oldMax = saved.MaxHP > 0 ? saved.MaxHP : saved.HP;
+                actor.MaxHP = hp;
+                actor.HP = saved.HP <= 0 ? 0 : Mathf.Clamp((int)System.Math.Round((double)saved.HP / System.Math.Max(1, oldMax) * hp), 1, hp);
+            }
+            return;
+        }
         if (!StatusBalanceRefresh.TryGetDefinitionStats(actor,
             out int definitionHP, out int definitionATK, out int definitionDEF)) return;
         int oldMaxHP = saved.MaxHP > 0 ? saved.MaxHP : saved.HP;

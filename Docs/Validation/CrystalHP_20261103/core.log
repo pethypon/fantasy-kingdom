@@ -1,0 +1,75 @@
+[CoreTest] PASS  R1 AP citizens=0
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=5
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=10
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=20
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=30
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  R1 AP citizens=100
+[CoreTest] PASS  UI AP equals turn reset
+[CoreTest] PASS  Load clamps AP to current faction maximum
+[CoreTest] PASS  Load clamps AP lower bound
+[CoreTest] PASS  R1 independent damage example
+[CoreTest] PASS  Crystal starts at formal base HP3000
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  No early reward
+[CoreTest] PASS  Uncontrolled dungeon pauses
+[CoreTest] PASS  Takeover continues at 8
+[CoreTest] PASS  Takeover continues at 9
+[CoreTest] PASS  Reward for final controller
+[CoreTest] PASS  Dungeon remains for next cycle
+[CoreTest] PASS  High ground beats low ground
+[CoreTest] PASS  Actual damage excludes overkill
+[CoreTest] PASS  Skill still applies actual HP damage
+[CoreTest] PASS  Skill damage gives no XP or level growth
+[CoreTest] PASS  Skill damage retains combat attribution and victim life identity
+[CoreTest] PASS  Shield prevents damage and keeps XP disabled
+[CoreTest] PASS  Skill kill preserves reward owner and victim life identity
+[CoreTest] PASS  Skill kill gives no XP or level growth
+[CoreTest] PASS  Fixed skill is deterministic
+[CoreTest] PASS  High mountain blocks both directions
+[CoreTest] PASS  Mountain endpoint is visible but not attackable
+[CoreTest] PASS  Sight cannot pass beyond mountain
+[CoreTest] PASS  Height lookup excludes mountains and out of bounds
+[CoreTest] PASS  Height lookup returns standing height
+[CoreTest] PASS  Reserved crystal tile is not a placement candidate
+[CoreTest] PASS  Clear terrain remains traversable
+[CoreTest] PASS  Monster status ticks once
+[CoreTest] PASS  Monster turn does not tick other factions
+[CoreTest] PASS  Intruder status ticks independently
+[CoreTest] PASS  Neutral exploration does not leak to enemy
+[CoreTest] PASS  Neutral clear preserves enemy exploration
+[CoreTest] PASS  Initial camera centers player base
+[CoreTest] PASS  Camera clamp handles small maps
+[CoreTest] PASS  Damage clamped to 0 when DEF overwhelms ATK
+[CoreTest] PASS  Damage is positive when ATK >> DEF
+[CoreTest] PASS  CalcRawBase formula (expected=36.33334, actual=36.33333)
+[CoreTest] PASS  Main crystal cannot reactivate an old invulnerability shield
+[CoreTest] PASS  Ordinary unit shield remains active
+[CoreTest] PASS  Elapsed legacy turn time does not end the turn
+[CoreTest] PASS  Zero saved clocks cannot decide a win, loss or draw
+[CoreTest] PASS  Manual timer lifecycle remains available without a gameplay deadline
+[IntegratedCrystalRules] PASS checks=45
+[CoreTest] Done: 59 passed, 0 failed
+[CrystalHP] PASS main 3000 and standard sub 1000
+[CrystalHP] PASS legacy sub 2000 preserves half health and unrelated stats
+[CrystalHP] PASS sub 2000 migration does not repeat
+[CrystalHP] PASS dead sub 2000 stays dead
+[CrystalHP] PASS legacy sub 5000 preserves half health and unrelated stats
+[CrystalHP] PASS sub 5000 migration does not repeat
+[CrystalHP] PASS dead sub 5000 stays dead
+[CrystalHP] PASS legacy sub 1000 preserves half health and unrelated stats
+[CrystalHP] PASS sub 1000 migration does not repeat
+[CrystalHP] PASS dead sub 1000 stays dead
+[CrystalHP] PASS actual main restore keeps earned 1000 and half health
+[CrystalHP] PASS main save stamps new HP-rule version
+[CrystalHP] PASS main HP migration does not repeat
+[SquadCore] COMPLETE

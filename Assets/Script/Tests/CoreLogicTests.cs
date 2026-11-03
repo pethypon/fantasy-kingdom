@@ -64,7 +64,7 @@ public static class CoreLogicTests
         SaveSystem.RestoreAP(new SaveSystem.APSaveData { Current = -5 }, restored);
         Assert("Load clamps AP lower bound", restored.Current == 0);
         Assert("R1 independent damage example", Mathf.Abs(DamageCalculator.CalcRawBase(100, 30) - 61f) < 0.001f);
-        Assert("Crystal starts at formal base HP5000", CrystalSystem.CrystalHP == MainCrystalRules.MaximumHP);
+        Assert("Crystal starts at formal base HP3000", CrystalSystem.CrystalHP == 3000 && CrystalSystem.CrystalHP == MainCrystalRules.MaximumHP);
 
         var dungeon = new DungeonSystem.DungeonInfo { ClaimingTeam = Team.Player };
         for (int i = 0; i < 7; i++) Assert("No early reward", !DungeonSystem.AdvanceCycle(dungeon));

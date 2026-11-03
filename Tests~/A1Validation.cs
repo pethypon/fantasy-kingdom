@@ -28,6 +28,7 @@ public static class A1LiveValidation
     {
         if (new DirectoryInfo(Path.GetDirectoryName(Application.dataPath)).Name != "UnityValidation") throw new InvalidOperationException("Isolated clone required");
         PlayerSettings.companyName = "CodexValidation"; PlayerSettings.productName = "A1_" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        CrystalPrefabEditor.ApplyMainCrystalRules();
         SessionState.SetBool(Key,true); EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity"); EditorApplication.EnterPlaymode();
     }
     static void Stage(string name, Action run)
@@ -47,6 +48,7 @@ public static class A1LiveValidation
         var turn = UnityEngine.Object.FindFirstObjectByType<TurnGenerator>();
         if (turn == null || !(turn.CurrentState is PlayerMove) || Time.frameCount - frame < 20) return;
         SessionState.SetBool(Key,false);
+        Stage("crystal-hp",()=>CrystalHPTests.PlayMode(turn.Systems));
         Stage("recon",()=>A1ReconTests.Run(turn.Systems));
         Stage("housing",()=>A1HousingTests.Run(turn.Systems));
         Stage("retreat",()=>A1RetreatTests.PlayMode(turn.Systems));

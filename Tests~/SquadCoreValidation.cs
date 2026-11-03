@@ -14,6 +14,7 @@ public static class SquadCoreValidation
         CoreLogicTests.RunAll();
         AIAdaptivePolicyTests.Run();
         SummonTurnRulesTests.Core();
+        CrystalHPTests.Core();
         Debug.Log("[SquadCore] COMPLETE");
     }
 }
