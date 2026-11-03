@@ -207,7 +207,7 @@ MonoBehaviour:
   wildBossAtkBuffTurns: 0
   wildBossPhase2Active: 0
   wildBossCurrentThreat: 25
-  hitPoints: 3000
+  hitPoints: 1000
   NaturalRecovery:
     ConsecutiveSafeTurns: 0
     LastProcessedRound: -1
@@ -305,7 +305,7 @@ MonoBehaviour:
     IntruderConsumed: -1
   ShieldActivated: 0
   ShieldEverActivated: 0
-  MaxHP: 3000
+  MaxHP: 1000
   facilityKind: 0
   AuthoredFacility: {fileID: 0}
   authoredFacilityId: 
@@ -316,6 +316,7 @@ MonoBehaviour:
   specialAbility: 0
   HasMovedThisTurn: 0
   SummonAttackLocked: 0
+  NormalAttacksThisTurn: 0
   SurvivalInstinctUsed: 0
   FirstSkillUsedThisTurn: 0
   DebuffNullifiedThisTurn: 0

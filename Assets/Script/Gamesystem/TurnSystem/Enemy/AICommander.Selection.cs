@@ -35,6 +35,8 @@ public partial class AICommander
             if (action.ActionType == AIActionType.Wait) continue;
             if (AIActionEvaluator.IsIneffectiveProtectedAttack(action, _board)) continue;
             if (turnMovementHistory.ShouldReject(action, _board)) continue;
+            if (_board.Recon.WouldAbandonObservedMainCrystal(action)) continue;
+            if (_board.TerritoryIntel.WouldRepeatDangerousRoute(action)) continue;
             if (_board.Operations?.ReversesHealthyMarch(action, _board) == true) continue;
             if (action.SpecialCommand != null && action.Score <= 0) continue;
             if (AIActionEvaluator.ShouldPreserveStationary(action, actions, _board)) continue;
@@ -73,6 +75,15 @@ public partial class AICommander
                 + CognitiveActionBonus(entry.action));
         }
 
+        var siegeStrike = ReservedMainCrystalStrike(validActions);
+        if (siegeStrike != null)
+        {
+            foreach (var entry in validActions)
+                if (entry.action == siegeStrike) { RememberSelectionScores(siegeStrike, entry.score); break; }
+            AIDecisionObserver.Emit(_board, actions, siegeStrike, "selected");
+            return siegeStrike;
+        }
+
         // Honor a currently affordable multi-actor kill inside the surviving
         // strategic tier. Otherwise an unrelated high-scoring action can spend
         // the AP reserved by the coordination estimate and the chain never starts.
@@ -85,6 +96,15 @@ public partial class AICommander
                 AIDecisionObserver.Emit(_board, actions, entry.action, "selected");
                 return entry.action;
             }
+
+        var reconMove = ReservedMainBaseReconMove(validActions);
+        if (reconMove != null)
+        {
+            foreach (var entry in validActions)
+                if (entry.action == reconMove) { RememberSelectionScores(reconMove, entry.score); break; }
+            AIDecisionObserver.Emit(_board, actions, reconMove, "selected");
+            return reconMove;
+        }
 
         // ミス率: 一定確率で最善手以外を選択する（チュートリアル〜ノーマル帯）
         float mistakeRate = _threatLevel.MistakeRate;

@@ -1,0 +1,275 @@
+[StudioSettings] PASS one persistent Resources asset
+[StudioSettings] PASS edited crystal data reaches the live formal rule
+[StudioSettings] PASS edited sub-crystal reaches both recipes and menu data
+[StudioSettings] PASS edited quotas reach player and AI shared rules
+[StudioSettings] PASS serialized changes support Undo without deleting the asset
+[StudioSettings] PASS settings discovery includes gameplay, AI and terrain
+[StudioSettings] PASS saved defaults retain the requested balance
+[StudioSettings] RESULT checks=7
+[Campaign] PASS a fully explored but hidden base gets a reconfirmation goal
+[Campaign] PASS seeing a staging tile does not complete base reconfirmation
+[Campaign] PASS required observation survives save
+[Campaign] PASS an unsuccessful arrival selects another viewpoint
+[Campaign] PASS actual base observation completes the reconfirmation task
+[Campaign] PASS visible-base overwatch does not rebuild routes every turn
+[Campaign] PASS Player first shard grants 2000
+[Campaign] PASS Player second shard stays capped at 2000
+[Campaign] PASS Player capped reward cannot heal for free
+[Campaign] PASS Player actual capped dungeon reward converts to 30 magic
+[Campaign] PASS Player old version 0 preserves half HP at capped maximum
+[Campaign] PASS Player capped save version 0 is idempotent
+[Campaign] PASS Player capped dead version 0 stays dead
+[Campaign] PASS Player old version 1 preserves half HP at capped maximum
+[Campaign] PASS Player capped save version 1 is idempotent
+[Campaign] PASS Player capped dead version 1 stays dead
+[Campaign] PASS Player old version 2 preserves half HP at capped maximum
+[Campaign] PASS Player capped save version 2 is idempotent
+[Campaign] PASS Player capped dead version 2 stays dead
+[Campaign] PASS Player old version 3 preserves half HP at capped maximum
+[Campaign] PASS Player capped save version 3 is idempotent
+[Campaign] PASS Player capped dead version 3 stays dead
+[Campaign] PASS Player shard rule does not alter subcrystals
+[Campaign] PASS Player territory-only evidence creates a frontier itinerary
+[Campaign] PASS Player cached request keeps its selected frontier
+[Campaign] PASS Player a generated safe scout advance receives one AP opportunity
+[Campaign] PASS Player reconnaissance reservation is once per own round
+[Campaign] PASS Player vision-zero actor cannot falsely finish a survey
+[Campaign] PASS Player reached frontier is not immediately selected again
+[Campaign] PASS Player survey retry cooldown is bounded and saved
+[Campaign] PASS Player survey cooldown survives save
+[Campaign] PASS Player overwatch scenario actually observes the main base
+[Campaign] PASS Player healthy last scout does not abandon base sight
+[Campaign] PASS Player urgent survival order can leave overwatch
+[Campaign] PASS Player an actual retreat can leave overwatch
+[Campaign] PASS Player observed main base starts the primary campaign
+[Campaign] PASS Player siege reservation uses a generated legal attack
+[Campaign] PASS Player one siege strike wins before unrelated spending
+[Campaign] PASS Player emergency defense releases siege AP
+[Campaign] PASS Player necessary supply recovery releases siege AP
+[Campaign] PASS Player reservation is consumed only after success and once per own round
+[Campaign] PASS Player partial base sight does not falsely certify full defense intelligence
+[Campaign] PASS Player actual main-base reconfirmation advances beyond Scout without a legal immediate attack
+[Campaign] PASS Player squad loss and timeout preserve the same main objective
+[Campaign] PASS Player hidden live state cannot rewrite remembered coordinates or confirm destruction
+[Campaign] PASS Player repeated recovery retains DestroyObjective within the step bound
+[Campaign] PASS Player active retained siege still requests military reinforcements
+[Campaign] PASS Player reinforcements join the retained mission
+[Campaign] PASS Player the normal four-member squad remains supported
+[Campaign] PASS Player danger suspends without deleting the objective
+[Campaign] PASS Player recovery resumes the same objective
+[Campaign] PASS Player campaign identity and memory survive save
+[Campaign] PASS Player an unobserved death event cannot finish the mission
+[Campaign] PASS Player observed destruction finally releases the mission
+[Campaign] PASS Enemy first shard grants 2000
+[Campaign] PASS Enemy second shard stays capped at 2000
+[Campaign] PASS Enemy capped reward cannot heal for free
+[Campaign] PASS Enemy actual capped dungeon reward converts to 30 magic
+[Campaign] PASS Enemy old version 0 preserves half HP at capped maximum
+[Campaign] PASS Enemy capped save version 0 is idempotent
+[Campaign] PASS Enemy capped dead version 0 stays dead
+[Campaign] PASS Enemy old version 1 preserves half HP at capped maximum
+[Campaign] PASS Enemy capped save version 1 is idempotent
+[Campaign] PASS Enemy capped dead version 1 stays dead
+[Campaign] PASS Enemy old version 2 preserves half HP at capped maximum
+[Campaign] PASS Enemy capped save version 2 is idempotent
+[Campaign] PASS Enemy capped dead version 2 stays dead
+[Campaign] PASS Enemy old version 3 preserves half HP at capped maximum
+[Campaign] PASS Enemy capped save version 3 is idempotent
+[Campaign] PASS Enemy capped dead version 3 stays dead
+[Campaign] PASS Enemy shard rule does not alter subcrystals
+[Campaign] PASS Enemy territory-only evidence creates a frontier itinerary
+[Campaign] PASS Enemy cached request keeps its selected frontier
+[Campaign] PASS Enemy a generated safe scout advance receives one AP opportunity
+[Campaign] PASS Enemy reconnaissance reservation is once per own round
+[Campaign] PASS Enemy vision-zero actor cannot falsely finish a survey
+[Campaign] PASS Enemy reached frontier is not immediately selected again
+[Campaign] PASS Enemy survey retry cooldown is bounded and saved
+[Campaign] PASS Enemy survey cooldown survives save
+[Campaign] PASS Enemy overwatch scenario actually observes the main base
+[Campaign] PASS Enemy healthy last scout does not abandon base sight
+[Campaign] PASS Enemy urgent survival order can leave overwatch
+[Campaign] PASS Enemy an actual retreat can leave overwatch
+[Campaign] PASS Enemy observed main base starts the primary campaign
+[Campaign] PASS Enemy siege reservation uses a generated legal attack
+[Campaign] PASS Enemy one siege strike wins before unrelated spending
+[Campaign] PASS Enemy emergency defense releases siege AP
+[Campaign] PASS Enemy necessary supply recovery releases siege AP
+[Campaign] PASS Enemy reservation is consumed only after success and once per own round
+[Campaign] PASS Enemy partial base sight does not falsely certify full defense intelligence
+[Campaign] PASS Enemy actual main-base reconfirmation advances beyond Scout without a legal immediate attack
+[Campaign] PASS Enemy squad loss and timeout preserve the same main objective
+[Campaign] PASS Enemy hidden live state cannot rewrite remembered coordinates or confirm destruction
+[Campaign] PASS Enemy repeated recovery retains DestroyObjective within the step bound
+[Campaign] PASS Enemy active retained siege still requests military reinforcements
+[Campaign] PASS Enemy reinforcements join the retained mission
+[Campaign] PASS Enemy the normal four-member squad remains supported
+[Campaign] PASS Enemy danger suspends without deleting the objective
+[Campaign] PASS Enemy recovery resumes the same objective
+[Campaign] PASS Enemy campaign identity and memory survive save
+[Campaign] PASS Enemy an unobserved death event cannot finish the mission
+[Campaign] PASS Enemy observed destruction finally releases the mission
+[Campaign] RESULT checks=102
+[RouteStrategy] PASS bounded loss-memory payload is valid
+[RouteStrategy] PASS known alternate route can be proved
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 1
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 2
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 3
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 4
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 5
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 6
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 7
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 8
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 9
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 10
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 11
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 12
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 13
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 14
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 15
+[RouteStrategy] PASS proved path avoids the repeated-loss corridor 16
+[RouteStrategy] PASS scout reaches the goal using another corridor
+[RouteStrategy] PASS Player own deaths are counted once per life
+[RouteStrategy] PASS Player repeating a lethal corridor is rejected
+[RouteStrategy] PASS Player emergency orders retain access
+[RouteStrategy] PASS Player loss risk and deduplication survive save
+[RouteStrategy] PASS Player a visible strong enemy creates route risk
+[RouteStrategy] PASS Player hidden movement cannot relocate the remembered danger
+[RouteStrategy] PASS Player one visible cell is not a safe survey
+[RouteStrategy] PASS Player scout survey of the empty surroundings clears the old corridor
+[RouteStrategy] PASS Player a new loss after a safe survey restores caution
+[RouteStrategy] PASS Player exploration coverage can generate a search hypothesis
+[RouteStrategy] PASS Player the hypothesis has bounded uncertainty and no discovered main coordinate
+[RouteStrategy] PASS Player a hypothesis assigns known ground, never the guessed coordinate as an attack target
+[RouteStrategy] PASS Player staging fixture has a real known supported site
+[RouteStrategy] PASS Player a supported site receives a finite staging score
+[RouteStrategy] PASS Player final outpost is reserved when no strategic lead supports this site
+[RouteStrategy] PASS Player a remembered lethal site is not selected for a new base
+[RouteStrategy] PASS Player a long-range visible defender vetoes exposed construction
+[RouteStrategy] PASS Player a supported assault foothold may spend the final crystal
+[RouteStrategy] PASS Enemy own deaths are counted once per life
+[RouteStrategy] PASS Enemy repeating a lethal corridor is rejected
+[RouteStrategy] PASS Enemy emergency orders retain access
+[RouteStrategy] PASS Enemy loss risk and deduplication survive save
+[RouteStrategy] PASS Enemy a visible strong enemy creates route risk
+[RouteStrategy] PASS Enemy hidden movement cannot relocate the remembered danger
+[RouteStrategy] PASS Enemy one visible cell is not a safe survey
+[RouteStrategy] PASS Enemy scout survey of the empty surroundings clears the old corridor
+[RouteStrategy] PASS Enemy a new loss after a safe survey restores caution
+[RouteStrategy] PASS Enemy exploration coverage can generate a search hypothesis
+[RouteStrategy] PASS Enemy the hypothesis has bounded uncertainty and no discovered main coordinate
+[RouteStrategy] PASS Enemy a hypothesis assigns known ground, never the guessed coordinate as an attack target
+[RouteStrategy] PASS Enemy staging fixture has a real known supported site
+[RouteStrategy] PASS Enemy a supported site receives a finite staging score
+[RouteStrategy] PASS Enemy final outpost is reserved when no strategic lead supports this site
+[RouteStrategy] PASS Enemy a remembered lethal site is not selected for a new base
+[RouteStrategy] PASS Enemy a long-range visible defender vetoes exposed construction
+[RouteStrategy] PASS Enemy a supported assault foothold may spend the final crystal
+[RouteStrategy] RESULT checks=55
+[AttackFatigue] PASS Player first attack pays quoted AP and adds exactly one fatigue
+[AttackFatigue] PASS Player repeated attack costs one additional AP
+[AttackFatigue] PASS Player AI board uses the same accumulated attack cost
+[AttackFatigue] PASS Player preview never adds fatigue
+[AttackFatigue] PASS Player generated AI attack includes actual fatigue
+[AttackFatigue] PASS Player real AI simulation increments attack fatigue
+[AttackFatigue] PASS Player transaction and simulation stay in step
+[AttackFatigue] PASS Player owner-turn fatigue reset restores base attack AP
+[AttackFatigue] PASS Enemy first attack pays quoted AP and adds exactly one fatigue
+[AttackFatigue] PASS Enemy repeated attack costs one additional AP
+[AttackFatigue] PASS Enemy AI board uses the same accumulated attack cost
+[AttackFatigue] PASS Enemy preview never adds fatigue
+[AttackFatigue] PASS Enemy generated AI attack includes actual fatigue
+[AttackFatigue] PASS Enemy real AI simulation increments attack fatigue
+[AttackFatigue] PASS Enemy transaction and simulation stay in step
+[AttackFatigue] PASS Enemy owner-turn fatigue reset restores base attack AP
+[AttackFatigue] RESULT checks=16
+[SummonRules] PASS Player fixture has separated valid territory cells
+[SummonRules] PASS Player outside territory still prohibited
+[SummonRules] PASS player cursor placement shares the same quota
+[SummonRules] PASS Player successful summon pays and locks only attack
+[SummonRules] PASS Player another kind at a distant origin shares the exhausted quota
+[SummonRules] PASS Player second summon rejected before any payment or spawn
+[SummonRules] PASS Player live AI candidate list has no second summon
+[SummonRules] PASS Player player-AI normalization preserves quota and readiness
+[SummonRules] PASS Player actual normal attack eligibility is blocked
+[SummonRules] PASS Player direct battle entry cannot bypass lock
+[SummonRules] PASS Player stale AI attack also rejected
+[SummonRules] PASS Player fixed offensive skill rejected before AP or effects
+[SummonRules] PASS Player special damage entry cannot bypass readiness
+[SummonRules] PASS Player summoned Samurai cannot auto-counter or strip barriers
+[SummonRules] PASS Player summoned unit cannot reflect attacks
+[SummonRules] PASS Player healing skill remains available
+[SummonRules] PASS Player newly summoned healer can actually heal
+[SummonRules] PASS Player legacy attack blocked, support retained
+[SummonRules] PASS Player direct legacy attack cannot bypass lock
+[SummonRules] PASS Player unit lock survives full status restore
+[SummonRules] PASS Player new recruit has legal movement
+[SummonRules] PASS Player actual AI executor can move recruit immediately ()
+[SummonRules] PASS Player real opponent turn preserves both restrictions
+[SummonRules] PASS Player real next own turn unlocks attacks and the summon slot
+[SummonRules] PASS Player next own turn permits recruiting again
+[SummonRules] PASS Enemy fixture has separated valid territory cells
+[SummonRules] PASS Enemy outside territory still prohibited
+[SummonRules] PASS enemy AI first summon
+[SummonRules] PASS Enemy successful summon pays and locks only attack
+[SummonRules] PASS Enemy another kind at a distant origin shares the exhausted quota
+[SummonRules] PASS Enemy second summon rejected before any payment or spawn
+[SummonRules] PASS Enemy live AI candidate list has no second summon
+[SummonRules] PASS Enemy player-AI normalization preserves quota and readiness
+[SummonRules] PASS Enemy actual normal attack eligibility is blocked
+[SummonRules] PASS Enemy direct battle entry cannot bypass lock
+[SummonRules] PASS Enemy stale AI attack also rejected
+[SummonRules] PASS Enemy fixed offensive skill rejected before AP or effects
+[SummonRules] PASS Enemy special damage entry cannot bypass readiness
+[SummonRules] PASS Enemy summoned Samurai cannot auto-counter or strip barriers
+[SummonRules] PASS Enemy summoned unit cannot reflect attacks
+[SummonRules] PASS Enemy healing skill remains available
+[SummonRules] PASS Enemy newly summoned healer can actually heal
+[SummonRules] PASS Enemy legacy attack blocked, support retained
+[SummonRules] PASS Enemy direct legacy attack cannot bypass lock
+[SummonRules] PASS Enemy unit lock survives full status restore
+[SummonRules] PASS Enemy new recruit has legal movement
+[SummonRules] PASS Enemy actual AI executor can move recruit immediately ()
+[SummonRules] PASS Enemy real opponent turn preserves both restrictions
+[SummonRules] PASS Enemy real next own turn unlocks attacks and the summon slot
+[SummonRules] PASS Enemy next own turn permits recruiting again
+[SummonRules] PASS current real-scene snapshot validates
+[SummonRules] PASS legacy two-summon snapshot still validates
+[SummonRules] PASS resumed PlayerStart preserves spent slots and attack lock
+[SummonRules] PASS real status UI disables attack and explains when it unlocks
+[SummonRules] PASS invalid saved quota rejected
+[SummonRules] PLAYMODE COMPLETE
+[NormalAttackTurn] PASS Player fresh unit can attack
+[NormalAttackTurn] PASS Player native attack deals damage and consumes the sole attack
+[NormalAttackTurn] PASS Player repeated direct battle call causes no damage
+[NormalAttackTurn] PASS Player AP eligibility rejects the spent normal attack
+[NormalAttackTurn] PASS Player live AI offers no normal attack after use
+[NormalAttackTurn] PASS Player save and restore cannot grant an extra attack
+[NormalAttackTurn] PASS Player offensive skill is not blocked by normal attack use
+[NormalAttackTurn] PASS Player offensive skill damage retains its separate slot
+[NormalAttackTurn] PASS Player future opponent threat still includes this unit
+[NormalAttackTurn] PASS Player own turn boundary restores normal attack
+[NormalAttackTurn] PASS Enemy fresh unit can attack
+[NormalAttackTurn] PASS Enemy native attack deals damage and consumes the sole attack
+[NormalAttackTurn] PASS Enemy repeated direct battle call causes no damage
+[NormalAttackTurn] PASS Enemy AP eligibility rejects the spent normal attack
+[NormalAttackTurn] PASS Enemy live AI offers no normal attack after use
+[NormalAttackTurn] PASS Enemy save and restore cannot grant an extra attack
+[NormalAttackTurn] PASS Enemy offensive skill is not blocked by normal attack use
+[NormalAttackTurn] PASS Enemy offensive skill damage retains its separate slot
+[NormalAttackTurn] PASS Enemy future opponent threat still includes this unit
+[NormalAttackTurn] PASS Enemy own turn boundary restores normal attack
+[NormalAttackTurn] PASS simulation accepts the first normal attack
+[NormalAttackTurn] PASS simulation rejects a stale second attack without payment
+[NormalAttackTurn] PASS simulation candidate generation honors the quota
+[NormalAttackTurn] PASS simulation copies preserve the used attack
+[NormalAttackTurn] PASS opponent turn does not reset the unit
+[NormalAttackTurn] PASS next own simulated turn resets the unit
+[NormalAttackTurn] RESULT checks=26
+[CrystalHP] PASS Player actual new-game main crystal is 1000/1000
+[CrystalHP] PASS Player actual build system creates sub 500/500
+[CrystalHP] PASS Enemy actual new-game main crystal is 1000/1000
+[CrystalHP] PASS Enemy actual build system creates sub 500/500
+[CrystalHP] PASS existing authored sub definition is also 500
+[CrystalHP] PASS Editor prefab matches 1000: Assets/Prefabs/Map/プレイヤー　クリスタル Variant.prefab
+[CrystalHP] PASS Editor prefab matches 1000: Assets/Prefabs/Map/敵　クリスタル Variant.prefab
+[CrystalHP] PLAYMODE COMPLETE

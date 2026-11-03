@@ -155,10 +155,11 @@ public static partial class SpecialSkillRuntime
         target = FindActor(State(actor).sniperTargetId);
         return target != null && target.IsAlive && NeutralFactionSystem.AreHostile(actor, target);
     }
-    public static bool CanNormalAttackTarget(Status attacker, Status target)
+    public static bool CanNormalAttackTarget(Status attacker, Status target, bool nextOwnerTurn = false)
     {
         if (attacker == null || !attacker.IsAlive || target == null || !target.IsAlive || StatusEffectSystem.IsStunned(attacker)
             || BoardActionProfile.For(attacker)?.CanAttack == false || SummonTurnRules.AttackLocked(attacker)
+            || (!nextOwnerTurn && NormalAttackTurnRules.Exhausted(attacker))
             || AttackBlocked(attacker) || !CrossbowCanFire(attacker)) return false;
         if (!NeutralFactionSystem.AreHostile(attacker, target) && !IsAssassinAllyTarget(attacker, target)) return false;
         var taunt = State(attacker);

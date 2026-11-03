@@ -244,6 +244,7 @@ public partial class SimBoardState
             AssignedSkillId = s.AssignedSkillId,
             SkillCooldown = s.SkillCooldown,
             SummonAttackLocked = s.SummonAttackLocked,
+            NormalAttacksThisTurn = s.NormalAttacksThisTurn,
             Fatigue = s.Fatigue,
             ShieldTurns = s.kind == Kind.Crystal ? 0 : s.ShieldTurns,
             ShieldActivated = s.kind != Kind.Crystal && s.ShieldActivated,

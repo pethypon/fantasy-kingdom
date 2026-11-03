@@ -549,7 +549,10 @@ public sealed partial class AIOperationManager
                 if (Running(existing) && existing.PrimaryGoal == candidate.Plan.PrimaryGoal
                     && existing.TargetLifeId == candidate.Plan.TargetLifeId) { duplicate = true; break; }
             if (duplicate) continue;
-            if (best == null || AIOperationCandidate.Compare(candidate, best) < 0) best = candidate;
+            if (best == null || candidate.Priority < best.Priority
+                || candidate.Priority == best.Priority && (IsMainCrystalCampaign(candidate.Plan) && !IsMainCrystalCampaign(best.Plan)
+                    || IsMainCrystalCampaign(candidate.Plan) == IsMainCrystalCampaign(best.Plan)
+                        && AIOperationCandidate.Compare(candidate, best) < 0)) best = candidate;
         }
         return best;
     }
@@ -560,7 +563,8 @@ public sealed partial class AIOperationManager
         {
             AIOperationPlan leastImportant = null;
             foreach (var active in state.ActiveOperations)
-                if (!active.IsPrimary && (leastImportant == null || active.StrategicPriority > leastImportant.StrategicPriority)) leastImportant = active;
+                if (!active.IsPrimary && !RetainMainCrystalCampaign(active)
+                    && (leastImportant == null || active.StrategicPriority > leastImportant.StrategicPriority)) leastImportant = active;
             if (leastImportant == null) return;
             Complete(leastImportant, board, turn, AIOperationAbortReason.StrategicPriorityChanged); RemoveFinished();
         }
@@ -677,22 +681,25 @@ public sealed partial class AIOperationManager
         }
         int aliveAssigned = 0;
         foreach (string life in plan.OriginalAssignedUnitLifeIds) if (features.TryOwn(life, out var actor) && actor != null && actor.IsAlive) aliveAssigned++;
-        if (plan.OriginalAssignedUnitLifeIds.Count >= 2 && aliveAssigned * 2 < plan.OriginalAssignedUnitLifeIds.Count)
+        if (!RetainMainCrystalCampaign(plan) && plan.OriginalAssignedUnitLifeIds.Count >= 2 && aliveAssigned * 2 < plan.OriginalAssignedUnitLifeIds.Count)
         { Complete(plan, board, turn, AIOperationAbortReason.ExcessiveLoss); return; }
         if (turn > plan.MaximumEndTurn)
         {
             // A current, progressing siege is not discarded solely because its original
             // short planning horizon expired. These are own-turn deadlines, not a match cap.
-            bool progressingAssault = plan.IsBaseAssault && !facts.ConfirmedTargetDestroyed
+            bool progressingAssault = RetainMainCrystalCampaign(plan) || plan.IsBaseAssault && !facts.ConfirmedTargetDestroyed
                 && turn - plan.LastProgressTurn <= Mathf.Max(1, config.ReplanAfterStalledTurns);
             if (progressingAssault)
             {
                 plan.MaximumEndTurn = Math.Min(1000000, turn + Mathf.Max(1, config.DefaultMaximumDuration));
-                Revise(plan, turn, "攻略の実進捗が続いているため目標と部隊を保持して計画期間を更新", false);
+                Revise(plan, turn, RetainMainCrystalCampaign(plan)
+                    ? "本拠点の破壊目標を保持し、再偵察・補充・接近の計画期間を更新"
+                    : "攻略の実進捗が続いているため目標と部隊を保持して計画期間を更新", false);
             }
             else { Complete(plan, board, turn, AIOperationAbortReason.Timeout); return; }
         }
-        if (turn - plan.LastProgressTurn >= Mathf.Max(1, config.ReplanAfterStalledTurns)
+        if ((!RetainMainCrystalCampaign(plan) || CurrentStep(plan)?.Type != AIOperationStepType.Scout)
+            && turn - plan.LastProgressTurn >= Mathf.Max(1, config.ReplanAfterStalledTurns)
             && (plan.Revisions.Count == 0 || plan.Revisions[plan.Revisions.Count - 1].Turn < turn - 1))
             Revise(plan, turn, "観測上の進展が停滞したため偵察と接近手順を再評価", true);
     }
@@ -726,6 +733,16 @@ public sealed partial class AIOperationManager
     {
         var revision = new AIOperationRevision { Turn = turn, Reason = reason,
             OldGoal = plan.PrimaryGoal, NewGoal = plan.PrimaryGoal, OldSteps = AIOperationRevision.CopySteps(plan.Steps) };
+        // Repeated recovery must not fill the bounded step list with completed Scout steps
+        // and push DestroyObjective out of the campaign. Rebuild its pending itinerary only.
+        if (RetainMainCrystalCampaign(plan) && scoutFirst)
+        {
+            plan.Steps = BaseSteps(AIBaseAssaultPattern.ScoutThenAssault, turn);
+            plan.CurrentStep = 0; plan.PatternKey = Pattern(plan.Steps);
+            revision.NewSteps = AIOperationRevision.CopySteps(plan.Steps);
+            AddRevision(plan, revision); plan.Status = AIOperationStatus.Preparing;
+            return;
+        }
         var next = new List<AIOperationStep>();
         int nextId = 1;
         foreach (var old in plan.Steps) nextId = Mathf.Max(nextId, old.StepId + 1);
@@ -874,7 +891,7 @@ public sealed partial class AIOperationManager
         if ((action.ActionType == AIActionType.Build || action.ActionType == AIActionType.Upgrade)
             && primary.PrimaryGoal == AIOperationGoal.EconomicRecovery) return primary;
         if (action.ActionType == AIActionType.SubCrystal && primary.PrimaryGoal == AIOperationGoal.ObtainArtifact) return primary;
-        if (action.ActionType == AIActionType.Summon && primary.Status == AIOperationStatus.Preparing
+        if (action.ActionType == AIActionType.Summon && (primary.Status == AIOperationStatus.Preparing || RetainMainCrystalCampaign(primary))
             && action.SummonKind != Kind.King) return primary;
         return null;
     }

@@ -122,6 +122,7 @@ public partial class AIMinimaxEngine
         MixSemantic(ref h, (int)u.Direction); MixSemantic(ref h, u.Barrier); MixSemantic(ref h, u.MaxBarrier);
         MixSemantic(ref h, u.AssignedSkillId); MixSemantic(ref h, u.SkillCooldown); MixSemantic(ref h, u.Fatigue);
         MixSemantic(ref h, u.SummonAttackLocked ? 1 : 0);
+        MixSemantic(ref h, u.NormalAttacksThisTurn);
         MixSemantic(ref h, u.ShieldTurns); MixSemantic(ref h, u.ShieldActivated ? 1 : 0); MixSemantic(ref h, (int)u.Passive);
         MixSemantic(ref h, u.IsBoss ? 1 : 0); MixSemantic(ref h, u.IsPrimaryCommander ? 1 : 0);
         MixSemantic(ref h, u.IsWildBoss ? 1 : 0); MixSemantic(ref h, u.WildBossProtected ? 1 : 0);

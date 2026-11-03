@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CrystalSystem : MonoBehaviour
@@ -21,7 +21,7 @@ public class CrystalSystem : MonoBehaviour
     public Vector3 ECP;
 
     /// <summary> クリスタルの基本HP </summary>
-    public const int CrystalHP = MainCrystalRules.MaximumHP;
+    public static int CrystalHP => MainCrystalRules.MaximumHP;
 
     private List<Vector3> _SetPos;
     private int maxx;

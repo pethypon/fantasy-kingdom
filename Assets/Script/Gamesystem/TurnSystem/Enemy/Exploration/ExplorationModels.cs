@@ -55,6 +55,8 @@ public sealed class ExploreObjective
     public int SuspendedTurn;
     public string LastReason;
     public bool IsIntelRevisit;
+    public bool HasRequiredObservation;
+    public Vector3Int RequiredObservationCell;
     // Version 2 saves measured Chebyshev progress; bind a Manhattan baseline once after loading.
     public bool RebaseProgressOnNextObservation;
     public bool UsesKnownRouteDistance;
@@ -73,6 +75,7 @@ public sealed class ExplorationObservation
     public int CellVersion;
     public int DangerVersion;
     public bool HasTerritoryReconDirection;
+    public bool TerritoryReconIsRevisit;
     public Vector3Int TerritoryReconDirection;
     public Vector3Int OwnBase;
     public readonly List<ExplorationObservedCell> KnownCells = new List<ExplorationObservedCell>();

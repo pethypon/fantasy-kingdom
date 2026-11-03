@@ -23,6 +23,7 @@ public static class QualityAuditSession
     public static void Run()
     {
         if (!Application.dataPath.Contains("UnityValidation")) throw new InvalidOperationException("Isolated validation clone required");
+        if (Environment.GetEnvironmentVariable("FK_AI_CAMPAIGN_CONTRACTS") == "1") StudioAllSettingsTests.Run();
         GameIconInstaller.Connect();
         SessionState.SetString(Key + ".Company", PlayerSettings.companyName);
         SessionState.SetString(Key + ".Product", PlayerSettings.productName);
@@ -53,6 +54,13 @@ public static class QualityAuditSession
                     ?? Path.Combine(Application.dataPath, "../../quality-audit-20261023"));
                 Directory.CreateDirectory(outputDirectory);
                 observedSystems = turn.Systems;
+                if (Environment.GetEnvironmentVariable("FK_AI_CAMPAIGN_CONTRACTS") == "1")
+                {
+                    AICampaignContracts.Run(observedSystems); AIRouteStrategyContracts.Run(observedSystems);
+                    APAttackFatigueTests.Run(observedSystems); SummonTurnRulesTests.PlayMode(observedSystems,turn);
+                    NormalAttackTurnTests.Run(observedSystems,turn); CrystalHPTests.PlayMode(observedSystems);
+                    Finish(0); return;
+                }
                 if (Environment.GetEnvironmentVariable("FK_AI_STALL_CONTRACTS") == "1")
                 {
                     AIStallContracts.Core(); AIStallContracts.Live(observedSystems); Finish(0); return;

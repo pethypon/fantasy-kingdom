@@ -164,6 +164,7 @@ static class AICombatEvaluator
 
         // Reconnaissance has value in every strategy, even while other enemies are visible.
         score += board.Recon.ScoreMove(action.Unit, dest);
+        score -= board.TerritoryIntel.RouteRiskAt(dest) * .5f;
 
         // Only the observer's stored territory waypoint contributes here. Known
         // route distance permits a necessary detour without inventing enemy actors.

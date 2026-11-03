@@ -4,8 +4,11 @@ using UnityEngine;
 /// <summary>Main-crystal-only rules. Territory area and RoundToInt retain the existing formal counter rules.</summary>
 public static class MainCrystalRules
 {
-    public const int Version = 2;
-    public const int MaximumHP = 3000;
+    public const int Version = 4;
+    public static int MaximumHP => Mathf.Max(1, GameplayTuning.Active?.mainCrystalHP ?? 1000);
+    public static int EarnedMaximumHP => Mathf.Max(MaximumHP, GameplayTuning.Active?.mainCrystalCap ?? 2000);
+    public static int ShardHPBonus => Mathf.Max(1, GameplayTuning.Active?.shardHP ?? 1000);
+    public static int ShardOverflowMagicOre => Mathf.Max(0, GameplayTuning.Active?.shardMagicOre ?? 30);
     public const int PreviousBaseMaximumHP = 5000;
     public const int LegacyBaseMaximumHP = 15000;
     public const int MaximumCounterTargets = 3;
@@ -17,15 +20,34 @@ public static class MainCrystalRules
     {
         if (hp <= 0) return 0;
         int maximum = NormalizeSavedMaximum(oldMaximum, savedRuleVersion);
-        if (savedRuleVersion >= Version || oldMaximum <= 0) return Mathf.Clamp(hp, 1, maximum);
+        if (oldMaximum == maximum || oldMaximum <= 0) return Mathf.Clamp(hp, 1, maximum);
         // Existing balance restoration preserves health ratio, including genuinely dead crystals.
         return Mathf.Clamp((int)Math.Round((double)hp / oldMaximum * maximum), 1, maximum);
     }
-    /// <summary>Preserve CrystalShard/earned max-HP additions without reapplying the old base on every load.</summary>
+    /// <summary>Version 4 changes the base to 1000. Keep earned bonuses, cap them, and migrate health ratio once.</summary>
     public static int NormalizeSavedMaximum(int maximum, int savedRuleVersion)
-        => savedRuleVersion >= Version ? Mathf.Max(1, maximum)
-            : (int)Math.Min(int.MaxValue, (long)MaximumHP + Math.Max(0, (long)maximum
-                - (savedRuleVersion >= 1 ? PreviousBaseMaximumHP : LegacyBaseMaximumHP)));
+        => (int)Math.Min(EarnedMaximumHP, savedRuleVersion >= Version ? Math.Max(1L, maximum)
+            : (long)MaximumHP + Math.Max(0, (long)maximum
+                - (savedRuleVersion >= 2 ? 3000 : savedRuleVersion >= 1 ? PreviousBaseMaximumHP : LegacyBaseMaximumHP)));
+
+    /// <summary>All positive main-crystal rewards share this cap. Dead crystals never revive.</summary>
+    public static int ApplyMaximumHPBonus(Status crystal, int requested)
+    {
+        if (crystal == null || crystal.kind != Kind.Crystal || !crystal.IsAlive || requested <= 0) return 0;
+        if (crystal.MaxHP > EarnedMaximumHP)
+        {
+            crystal.HP = NormalizeSavedHP(crystal.HP, crystal.MaxHP, Version);
+            crystal.MaxHP = EarnedMaximumHP;
+        }
+        int added = (int)Math.Min(requested, Math.Max(0L, (long)EarnedMaximumHP - crystal.MaxHP));
+        crystal.MaxHP += added;
+        if (added > 0) crystal.ApplyHeal(added);
+        return added;
+    }
+
+    public static int OverflowMagicOre(int grantedHP)
+        => (int)((long)Mathf.Clamp(ShardHPBonus - grantedHP, 0, ShardHPBonus)
+            * ShardOverflowMagicOre / ShardHPBonus);
 
     public static void ClearLegacyShield(Status actor)
     {

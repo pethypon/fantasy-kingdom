@@ -192,6 +192,7 @@ public static partial class SaveSystem
             IsActive = s.gameObject.activeSelf,
             HasMovedThisTurn = s.HasMovedThisTurn,
             SummonAttackLocked = s.SummonAttackLocked,
+            NormalAttacksThisTurn = s.NormalAttacksThisTurn,
             FirstSkillUsedThisTurn = s.FirstSkillUsedThisTurn,
             DebuffNullifiedThisTurn = s.DebuffNullifiedThisTurn,
             InterceptUsedThisTurn = s.InterceptUsedThisTurn,

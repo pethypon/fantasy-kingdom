@@ -431,6 +431,7 @@ public partial class Status : MonoBehaviour
     [HideInInspector] public bool HasMovedThisTurn = false;
     // Persisted separately from movement: only the next real owner-turn start releases this lock.
     [HideInInspector] public bool SummonAttackLocked;
+    [HideInInspector] public int NormalAttacksThisTurn;
     [HideInInspector] public bool SurvivalInstinctUsed = false;
     [HideInInspector] public bool FirstSkillUsedThisTurn = false;
     [HideInInspector] public bool DebuffNullifiedThisTurn = false;
@@ -448,6 +449,7 @@ public partial class Status : MonoBehaviour
     {
         HasMovedThisTurn = false;
         SummonAttackLocked = false;
+        NormalAttacksThisTurn = 0;
         FirstSkillUsedThisTurn = false;
         DebuffNullifiedThisTurn = false;
         InterceptUsedThisTurn = false;

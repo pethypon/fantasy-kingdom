@@ -65,6 +65,7 @@ public sealed partial class EnemyTerritoryIntel
         if (sourceMap != map)
         {
             sourceMap = map; terrain.Clear(); terrainBlocked.Clear(); previousVision.Clear(); importedExplored = false;
+            Array.Clear(knownSearchSectors, 0, knownSearchSectors.Length);
             terrainRevision++; preparedBoard = null; ClearRoutes();
         }
         if (!importedExplored)
@@ -90,6 +91,7 @@ public sealed partial class EnemyTerritoryIntel
             LastObservationQueries++; TotalObservationQueries++;
             RecordCell(cell, opponent, board.TurnCount);
         }
+        ObserveRouteRisks(board);
     }
 
     void RecordCell(Vector3Int cell, bool opponent, int turn)
@@ -133,6 +135,7 @@ public sealed partial class EnemyTerritoryIntel
         bool blocked = !hasHeight || sourceMap.IsRiver(cell.x, cell.z) || sourceMap.IsHighMountain(cell.x, cell.z)
             || board.KnownEnvironmentDefinition(cell)?.blocksMovement == true;
         bool different = !terrain.TryGetValue(cell, out var previous) || previous != position || terrainBlocked.Contains(cell) != blocked;
+        if (!terrain.ContainsKey(cell)) knownSearchSectors[SearchSector(cell)]++;
         terrain[cell] = position;
         if (blocked) terrainBlocked.Add(cell); else terrainBlocked.Remove(cell);
         if (different) terrainRevision++;

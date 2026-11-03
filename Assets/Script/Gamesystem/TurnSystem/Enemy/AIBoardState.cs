@@ -526,7 +526,7 @@ public partial class AIBoardState
     // ---- 攻撃対象（視界内のみ） ----
     public List<Status> GetAttackTargets(Status unit)
     {
-        if (unit == null || SummonTurnRules.AttackLocked(unit) || SpecialSkillRuntime.AttackBlocked(unit)) return new List<Status>();
+        if (unit == null || NormalAttackTurnRules.Exhausted(unit) || SummonTurnRules.AttackLocked(unit) || SpecialSkillRuntime.AttackBlocked(unit)) return new List<Status>();
         if (SpecialSkillRuntime.TryGetSniperTarget(unit, out var lockedTarget))
             return lockedTarget != null && !AIActionEvaluator.IsObservedCompleteProtection(this, lockedTarget)
                 ? new List<Status> { lockedTarget } : new List<Status>();

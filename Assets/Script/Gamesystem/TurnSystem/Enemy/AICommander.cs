@@ -641,6 +641,7 @@ public partial class AICommander
 
             consecutiveFailures = 0; // 成功したらリセット
             strategyFailures = 0;
+            RecordCampaignAction(bestAction);
 
             turnStats.Record(bestAction.ActionType);
             _evolution.Record(bestAction);

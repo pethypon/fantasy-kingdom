@@ -19,6 +19,26 @@ public sealed partial class AIOperationManager
     int DefenseRadius => Mathf.Clamp(config.ObjectiveDefenseRadius, 1, 10);
     int RallyRadius => Mathf.Clamp(config.BaseRallyRadius, 1, 10);
     float AvailableForceFraction => Mathf.Clamp(AIOperationConfig.Finite(config.BaseAvailableForceFraction, .5f), .1f, .75f);
+    // A campaign outlives one squad or planning horizon. Only observed confirmation ends it.
+    static bool IsMainCrystalCampaign(AIOperationPlan plan)
+        => plan != null && plan.IsBaseAssault && plan.PrimaryGoal == AIOperationGoal.DestroyEnemyCrystal
+            && plan.BaseTargetType == AIEnemyBaseType.MainCrystal;
+    bool RetainMainCrystalCampaign(AIOperationPlan plan)
+        => IsMainCrystalCampaign(plan) && FindKnownBase(plan.TargetLifeId) is AIKnownEnemyBase entry
+            && entry.PrincipalMainCrystal && !entry.ConfirmedDestroyed && plan.CurrentContext?.ConfirmedTargetDestroyed != true;
+
+    /// <summary>Permission to prioritize an already legal, currently observed assault attack, never a hidden target.</summary>
+    public bool IsMainCrystalCampaignAttack(AIAction action, AIBoardState board)
+    {
+        if (!config.Enabled || !config.EnableBaseAssault || state.Ended || action?.Unit == null || board == null
+            || action.ActionType != AIActionType.Attack || action.TargetUnit == null
+            || action.TargetUnit.kind != Kind.Crystal || action.TargetUnit.team != board.OpponentTeam
+            || !board.IsSpecialActorObserved(action.TargetUnit)) return false;
+        foreach (var plan in state.ActiveOperations)
+            if (Running(plan) && plan.Status != AIOperationStatus.Suspended && RetainMainCrystalCampaign(plan)
+                && plan.TargetLifeId == action.TargetUnit.ReflectionLifeId) return true;
+        return false;
+    }
     AIKnownEnemyBase FindKnownBase(string life)
     {
         if (indexedBaseState != state) RebuildKnownBaseIndex();
@@ -43,6 +63,10 @@ public sealed partial class AIOperationManager
             { state.KnownEnemyBases.RemoveAt(i); continue; }
             if (entry.CurrentlyVisible) previouslyVisibleBases.Add(entry.StableTargetId);
             entry.CurrentlyVisible = false;
+            // Compatible old saves can recover ownership from the board's own observed memory.
+            var rememberedMain = board.GetLastKnownPlayerCrystal();
+            if (entry.Type == AIEnemyBaseType.MainCrystal && rememberedMain.Valid
+                && rememberedMain.LifeId == entry.StableTargetId) entry.PrincipalMainCrystal = true;
             int age = Math.Max(0, turn - entry.LastSeenTurn);
             int fresh = Mathf.Clamp(config.BaseIntelFreshTurns, 1, 12);
             entry.IntelConfidence = age <= fresh ? AIOperationConfig.Unit(config.FreshBaseIntelConfidence) : age <= fresh * 3
@@ -78,6 +102,7 @@ public sealed partial class AIOperationManager
             else if (!previouslyVisibleBases.Contains(life) && entry.LastSeenTurn < turn)
                 entry.RediscoveryCount = Math.Min(1000000, entry.RediscoveryCount + 1);
             entry.Type = ClassifyBase(target); entry.X = Mathf.RoundToInt(target.transform.position.x); entry.Z = Mathf.RoundToInt(target.transform.position.z);
+            entry.PrincipalMainCrystal = target.kind == Kind.Crystal && target.team == board.OpponentTeam;
             entry.CurrentlyVisible = true; entry.LastSeenTurn = turn; entry.IntelConfidence = 1;
             entry.LastKnownHpRatio = Mathf.Clamp01((float)target.HP / Mathf.Max(1, target.MaxHP));
             entry.EstimatedStrategicValue = BaseValue(entry.Type); entry.EstimatedDefense = 0;
@@ -143,9 +168,12 @@ public sealed partial class AIOperationManager
         if (!config.EnableBaseAssault || SupplyRecoveryRequired(board)
             || facts.OwnCrystalThreatened || strategy == TurnStrategy.RetreatRegroup) return;
         rankedBases.Clear();
-        foreach (var entry in state.KnownEnemyBases) if (!entry.ConfirmedDestroyed) rankedBases.Add(entry);
+        foreach (var entry in state.KnownEnemyBases)
+            if (!entry.ConfirmedDestroyed && (entry.Type != AIEnemyBaseType.MainCrystal || entry.PrincipalMainCrystal)) rankedBases.Add(entry);
         rankedBases.Sort((a, b) =>
         {
+            if ((a.Type == AIEnemyBaseType.MainCrystal) != (b.Type == AIEnemyBaseType.MainCrystal))
+                return a.Type == AIEnemyBaseType.MainCrystal ? -1 : 1;
             int rank = BaseOpportunityValue(b, board).CompareTo(BaseOpportunityValue(a, board));
             return rank != 0 ? rank : string.CompareOrdinal(a.StableTargetId, b.StableTargetId);
         });
@@ -167,7 +195,7 @@ public sealed partial class AIOperationManager
             if (entry.DiscoveryBonusTurn == turn) score += AIOperationConfig.NonNegative(config.FirstBaseDiscoveryBonus);
             if (RecentBaseSuccess(turn) && entry.CurrentlyVisible && entry.DefenseIntelKnown && available >= required)
                 score += AIOperationConfig.NonNegative(config.BaseSuccessfulOpportunityBonus);
-            if (score < AIOperationConfig.NonNegative(config.MinimumBaseAssaultScore)) continue;
+            if (entry.Type != AIEnemyBaseType.MainCrystal && score < AIOperationConfig.NonNegative(config.MinimumBaseAssaultScore)) continue;
             bool weak = available < required;
             bool stale = !entry.CurrentlyVisible || !entry.DefenseIntelKnown || entry.IntelConfidence < .9f || !routeConfirmed;
             bool raid = entry.Type == AIEnemyBaseType.EconomyFacility || entry.Type == AIEnemyBaseType.ResourceFacility;
@@ -261,6 +289,8 @@ public sealed partial class AIOperationManager
     }
     bool ShouldPromoteDiscoveredBase(AIOperationCandidate candidate, AIOperationPlan current, AIBoardState board)
     {
+        if (IsMainCrystalCampaign(candidate.Plan) && !IsMainCrystalCampaign(current)
+            && candidate.Priority == current.StrategicPriority) return true;
         if (!candidate.Plan.IsBaseAssault || candidate.Priority != current.StrategicPriority
             || current.PrimaryGoal != AIOperationGoal.ScoutRegion && current.PrimaryGoal != AIOperationGoal.LocateEnemyMainForce) return false;
         if (candidate.Plan.PrimaryGoal == AIOperationGoal.DestroyEnemyCrystal && !SupplyRecoveryRequired(board)
@@ -428,7 +458,8 @@ public sealed partial class AIOperationManager
     }
     float BaseProductionBonus(AIOperationPlan plan, AIAction action, AIBoardState board)
     {
-        if (!plan.IsBaseAssault || plan.Status != AIOperationStatus.Preparing || plan.RequiredAssaultForce <= AssignedAssaultForce(plan)
+        if (!plan.IsBaseAssault || plan.Status != AIOperationStatus.Preparing && !RetainMainCrystalCampaign(plan)
+            || plan.RequiredAssaultForce <= AssignedAssaultForce(plan)
             || plan.CurrentContext.ConfirmedTargetDestroyed || SupplyRecoveryRequired(board)
             || board.Governor?.Mode == StrategicMode.EmergencyDefense || action.SummonKind == Kind.King) return 0;
         return action.SummonKind == Kind.Scout ? CurrentStep(plan)?.Type == AIOperationStepType.Scout && !HasScout() ? 1 : 0 : 1;
@@ -458,7 +489,7 @@ public sealed partial class AIOperationManager
         var approach = SelectBaseApproach(board, new Vector3(plan.TargetX, 0, plan.TargetZ), out bool confirmedRoute);
         plan.BaseRouteConfirmed = confirmedRoute; plan.HasBaseApproachPoint = true;
         plan.BaseApproachX = Mathf.RoundToInt(approach.x); plan.BaseApproachZ = Mathf.RoundToInt(approach.z);
-        if (!entry.CurrentlyVisible && turn - entry.LastSeenTurn > config.BaseIntelFreshTurns && plan.Revisions.Count < config.RevisionLimit)
+        if (!entry.CurrentlyVisible && turn - entry.LastSeenTurn > config.BaseIntelFreshTurns)
         {
             if (CurrentStep(plan)?.Type != AIOperationStepType.Scout) Revise(plan, turn, "拠点の防衛情報が古いため再偵察", true);
             plan.Status = AIOperationStatus.Preparing;
@@ -479,8 +510,18 @@ public sealed partial class AIOperationManager
                 || CurrentStep(plan).Type == AIOperationStepType.Regroup || CurrentStep(plan).Type == AIOperationStepType.Approach))
             { var completed = CurrentStep(plan); completed.Completed = true; completed.EndTurn = turn; plan.CurrentStep++; }
         }
-        if (entry.CurrentlyVisible && entry.DefenseIntelKnown && confirmedRoute && CurrentStep(plan)?.Type == AIOperationStepType.Scout)
-        { var step = CurrentStep(plan); step.Completed = true; step.EndTurn = turn; plan.CurrentStep++; plan.LastProgressTurn = turn; }
+        // Seeing the main objective completes reconfirmation, not reconnaissance of every
+        // surrounding square. Requiring the entire defense-radius square to be visible
+        // kept real campaigns in Scout forever. Unknown defense still raises required
+        // force, and every later movement/attack is revalidated against known terrain.
+        bool mainReconfirmed = RetainMainCrystalCampaign(plan) && entry.CurrentlyVisible;
+        if (entry.CurrentlyVisible && (mainReconfirmed || entry.DefenseIntelKnown && confirmedRoute)
+            && CurrentStep(plan)?.Type == AIOperationStepType.Scout)
+        {
+            var step = CurrentStep(plan); step.Completed = true; step.EndTurn = turn; plan.CurrentStep++; plan.LastProgressTurn = turn;
+            if (!entry.DefenseIntelKnown || !confirmedRoute)
+                plan.StrategicReason = "本拠点を再確認。不明な防衛・経路を警戒しながら集結・段階接近";
+        }
         if (CurrentStep(plan)?.Type == AIOperationStepType.Regroup && assignedForce > 0
             && (assignedForce >= plan.RequiredAssaultForce || turn - plan.StartTurn >= Mathf.Clamp(AIOperationSquadConfig.Active.AssemblyGraceTurns, 1, 5)))
         {

@@ -22,7 +22,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
     int tab;
     string search = "", notice = "";
     bool costFold, abilityFold, upkeepFold;
-    static readonly string[] Tabs = { "駒づくり", "建物づくり", "陣営・ゲームルール", "第三陣営のイベント" };
+    static readonly string[] Tabs = { "駒づくり", "建物づくり", "陣営・ゲームルール", "第三陣営のイベント", "全設定" };
 
     [MenuItem("Fantasy Kingdom/開発スタジオ（日本語）", priority = 0)]
     public static void Open()
@@ -32,11 +32,11 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
     }
     void OnEnable() { RefreshLists(); Undo.undoRedoPerformed += OnStudioUndo; }
     void OnDisable() => Undo.undoRedoPerformed -= OnStudioUndo;
-    void OnStudioUndo() { FacilityAuthoringCatalog.ResetCache(); GameContentRevision.NotifyChanged(); RefreshLists(); Repaint(); }
+    void OnStudioUndo() { RefreshSettingsCaches(); RefreshLists(); Repaint(); }
     void OnProjectChange() { RefreshLists(); Repaint(); }
     void RefreshLists()
     {
-        units.Clear(); buildings.Clear();
+        units.Clear(); buildings.Clear(); RefreshAllSettings();
         var archive = StudioDeletion.LoadArchive();
         foreach (var id in AssetDatabase.FindAssets("t:UnitData"))
         { var item = AssetDatabase.LoadAssetAtPath<UnitData>(AssetDatabase.GUIDToAssetPath(id)); if (item != null && (showDeleted || archive?.IsDeleted(item) != true)) units.Add(item); }
@@ -71,6 +71,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
                 if (tab == 0) DrawUnit(); else DrawBuilding();
                 EditorGUILayout.EndScrollView(); EditorGUILayout.EndHorizontal();
             }
+            else if (tab == 4) DrawAllSettings();
             else
             {
                 detailScroll = EditorGUILayout.BeginScrollView(detailScroll);
@@ -180,6 +181,8 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         if (selectedBuilding == null) { EditorGUILayout.HelpBox("左の「＋ 新しい建物」で作成するか、既存の建物データを選択してください。能力・建築費・生産・維持費・強化を設定できます。",MessageType.Info); return; }
         var so = new SerializedObject(selectedBuilding); so.Update();
         Heading("建物の基本設定");
+        if (selectedBuilding.behaviourKind == FacilityKind.SubCrystal)
+            EditorGUILayout.HelpBox("標準サブクリスタルのHPは「全設定 → 共通戦闘・召喚・クリスタル」で変更できます。独自建物は各レベルのHPを使用します。", MessageType.Info);
         Fields(so,"displayName","category","defaultTeam","behaviourKind","availableToPlayer","availableToEnemy","prefab","buildAP");
         DrawBundle(so.FindProperty("buildCost"),"建築に必要な資材");
         var levels = so.FindProperty("levels");
@@ -261,7 +264,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             }
             var validation = LongTermContentValidation.ValidateProject();
             if (!validation.IsValid) throw new ArgumentException(validation.Summary());
-            AssetDatabase.SaveAssets(); FacilityAuthoringCatalog.ResetCache(); GameAuthoringRules.ResetCache(); GameContentRevision.NotifyChanged();
+            AssetDatabase.SaveAssets(); RefreshSettingsCaches();
             notice="正式に登録した設定を保存しました。新規ゲーム・ロードで反映されます。再生中のInspector変更は能力・費用・生産を再計算します。地形・初期資源・Prefab変更は再戦闘開始が必要です。";
         }
         catch(Exception ex) { Debug.LogException(ex); notice="設定を保存できませんでした："+ex.Message; }

@@ -96,6 +96,7 @@ public sealed partial class AIExplorationPlanner
             // A missing army route requests reconnaissance toward remembered territory.
             // The supplied point is observed territory/known adjacent geography, not an inferred base.
             boardObservation.HasTerritoryReconDirection = board.TerritoryIntel.TryGetReconTarget(board, out var territoryRecon);
+            boardObservation.TerritoryReconIsRevisit = board.GetLastKnownPlayerCrystal().Valid;
             boardObservation.TerritoryReconDirection = GridHelper.ToGridXZ(territoryRecon);
             if (boardObservation.HasTerritoryReconDirection)
                 boardObservation.ImportantCells[GridHelper.ToGridXZ(territoryRecon)] = 1f;
@@ -143,12 +144,13 @@ public sealed partial class AIExplorationPlanner
         importedTerrain.Add(xz);
     }
     float EstimateObservedDanger(int unitId, Vector3Int destination)
-        => observedBoard != null && boardActors.TryGetValue(unitId, out var unit) ? observedBoard.EstimateCounterDamageAt(destination, unit) : 0;
+        => observedBoard != null && boardActors.TryGetValue(unitId, out var unit)
+            ? observedBoard.EstimateCounterDamageAt(destination, unit) + observedBoard.TerritoryIntel.RoutePlanningRisk(unit.HP,destination) : 0;
     int ObservedDangerVersion(AIBoardState board)
     {
         unchecked
         {
-            int version = board.AlivePlayerUnits.Count * 397;
+            int version = board.AlivePlayerUnits.Count * 397 ^ board.TerritoryIntel.RouteRiskRevision;
             // These are the board's already filtered visible hostiles. No hidden transforms or global registries.
             foreach (var unit in board.AlivePlayerUnits) if (unit != null) version ^= DangerActorStamp(unit);
             // Route safety also depends on the assigned scout or substitute's defense and effects.

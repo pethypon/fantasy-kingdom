@@ -17,6 +17,13 @@ public sealed partial class EnemyTerritoryIntel
         result.Regions.Sort((a,b)=>a.OriginX!=b.OriginX?a.OriginX.CompareTo(b.OriginX):a.OriginZ.CompareTo(b.OriginZ));
         foreach(var item in visits)result.Visits.Add(new EnemyTerritoryIntelVisit{Cell=item.Key,UntilTurn=item.Value,Completed=completedApproaches.Contains(item.Key)});
         result.Visits.Sort((a,b)=>CompareCell(a.Cell,b.Cell));
+        result.HasReconWaypoint = hasReconExpedition; result.ReconWaypoint = reconExpedition;
+        result.ReconSelectedTurn = reconSelectedTurn;
+        foreach (var item in reconVisits) result.ReconVisits.Add(new EnemyTerritoryIntelVisit { Cell = item.Key, UntilTurn = item.Value });
+        result.ReconVisits.Sort((a,b)=>CompareCell(a.Cell,b.Cell));
+        result.RecordedRouteLosses = RecordedRouteLosses;
+        foreach (var item in routeRisks.Values) result.RouteRisks.Add(item.Copy());
+        result.RouteRisks.Sort((a,b)=>CompareCell(a.Cell,b.Cell)); result.RouteLossIdentities.AddRange(lossIdentities);
         return result;
     }
 
@@ -38,11 +45,18 @@ public sealed partial class EnemyTerritoryIntel
         }
         if(saved.Visits!=null)foreach(var item in saved.Visits)
         { visits[item.Cell]=item.UntilTurn; if(item.Completed)completedApproaches.Add(item.Cell); }
+        hasReconExpedition = saved.HasReconWaypoint; reconExpedition = saved.ReconWaypoint; reconSelectedTurn = saved.ReconSelectedTurn;
+        reconExpeditionHypothesis = !HasUsableTerritory;
+        if (saved.ReconVisits != null) foreach (var item in saved.ReconVisits) reconVisits[item.Cell] = item.UntilTurn;
+        if (saved.RouteRisks != null) foreach (var item in saved.RouteRisks) routeRisks[item.Cell] = item.Copy();
+        if (saved.RouteLossIdentities != null) foreach (string life in saved.RouteLossIdentities) { lossIdentities.Add(life); lossIdentityIndex.Add(life); }
+        RecordedRouteLosses = saved.RecordedRouteLosses; AdvanceRiskRevision();
     }
 
     public void Reset(Team owner)
     {
         ClearReconTarget();
+        ClearRouteRisks();
         actorTeam=owner;width=depth=observedCellCount=terrainRevision=failedMoves=0;
         observationTurn=observationGeneration=preparedGeneration=pausedTurn=-1;FirstObservedTurn=LastConfirmedTurn=LastProgressTurn=-1;
         HasWaypoint=Suspended=importedExplored=false;Waypoint=default;Reason="territory_unobserved";
@@ -85,6 +99,27 @@ public sealed partial class EnemyTerritoryIntel
             }
         }
         bool Inside(Vector3Int cell)=>cell.x>=0&&cell.z>=0&&cell.x<mapWidth&&cell.z<mapDepth;
+        if (state.RecordedRouteLosses < 0 || state.RouteRisks != null && state.RouteRisks.Count > MaximumRouteRisks
+            || state.RouteLossIdentities != null && state.RouteLossIdentities.Count > MaximumLossIdentities) return false;
+        var riskCells = new HashSet<Vector3Int>();
+        if (state.RouteRisks != null) foreach (var risk in state.RouteRisks)
+            if (risk == null || !Inside(risk.Cell) || risk.Cell.y != 0 || !riskCells.Add(risk.Cell) || risk.Losses < 0 || risk.Losses > 8
+                || risk.LastLossTurn < -1 || risk.LastLossTurn == int.MaxValue || risk.LastThreatTurn < -1 || risk.LastThreatTurn == int.MaxValue
+                || risk.LastSafeSurveyTurn < -1 || risk.LastSafeSurveyTurn == int.MaxValue || float.IsNaN(risk.ObservedThreat)
+                || float.IsInfinity(risk.ObservedThreat) || risk.ObservedThreat < 0 || risk.ObservedThreat > 1000) return false;
+        var riskLives = new HashSet<string>(StringComparer.Ordinal);
+        if (state.RouteLossIdentities != null) foreach (string life in state.RouteLossIdentities)
+            if (string.IsNullOrWhiteSpace(life) || life.Length > 128 || !riskLives.Add(life)) return false;
+        if (state.HasReconWaypoint && (!Inside(state.ReconWaypoint) || state.ReconWaypoint.y != 0
+            || state.ReconSelectedTurn < 0 || state.ReconSelectedTurn > state.LastObservationTurn)) return false;
+        if (state.ReconVisits != null)
+        {
+            if (state.ReconVisits.Count > MaximumReconVisits) return false;
+            var reconKeys = new HashSet<Vector3Int>();
+            foreach (var visit in state.ReconVisits)
+                if (visit == null || !Inside(visit.Cell) || visit.Cell.y != 0 || visit.UntilTurn < 0
+                    || visit.UntilTurn == int.MaxValue || !reconKeys.Add(visit.Cell)) return false;
+        }
         bool Observed(Vector3Int cell)
         {
             if(!Inside(cell)||state.Regions==null)return false;

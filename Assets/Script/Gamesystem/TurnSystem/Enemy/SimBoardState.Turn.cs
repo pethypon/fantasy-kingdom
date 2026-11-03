@@ -36,6 +36,7 @@ public partial class SimBoardState
             if (!u.IsAlive || u.Team != nextTeam) continue;
 
             u.SummonAttackLocked = false;
+            u.NormalAttacksThisTurn = 0;
             u.Fatigue = 0;
             if (u.VisionZeroTurns > 0) u.VisionZeroTurns--;
             if (u.ScoutVisionPenaltyTurns > 0) u.ScoutVisionPenaltyTurns--;

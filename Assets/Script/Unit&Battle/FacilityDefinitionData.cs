@@ -25,6 +25,9 @@ public sealed class FacilityDefinitionData : ScriptableObject
     {
         if (levels == null || levels.Length == 0) return default;
         var data = levels[Mathf.Clamp(level - 1, 0, levels.Length - 1)];
+        // The standard sub-crystal shares the formal rule with fallback recipes and saved actors.
+        // Custom buildings retain their own HP data.
+        if (behaviourKind == FacilityKind.SubCrystal && FacilityAuthoringCatalog.Loaded?.FindStandard(FacilityKind.SubCrystal) == this) data.HP = FacilityData.SubCrystalMaximumHP;
         data.HP = Mathf.Max(1, data.HP); data.ATK = Mathf.Max(0, data.ATK); data.DEF = Mathf.Max(0, data.DEF);
         data.UpgradeAP = Mathf.Clamp(data.UpgradeAP, 0, GameConstants.MaxAuthoredActionAPCost);
         data.UpgradeCost = Sanitize(data.UpgradeCost);

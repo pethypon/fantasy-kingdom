@@ -15,17 +15,22 @@ public static class SummonTurnRulesTests
     public static void Core()
     {
         var rules = new SummonTurnRules();
-        Check("two shared slots per faction", rules.TryReserve(Team.Player) && rules.TryReserve(Team.Player)
+        Check("one shared slot per faction", rules.TryReserve(Team.Player)
             && !rules.TryReserve(Team.Player) && rules.Remaining(Team.Player) == 0 && rules.TryReserve(Team.Enemy));
         rules.BeginOwnerTurn(Team.Enemy);
-        Check("opponent turn never resets player quota", rules.Used(Team.Player) == 2 && rules.Used(Team.Enemy) == 0);
+        Check("opponent turn never resets player quota", rules.Used(Team.Player) == 1 && rules.Used(Team.Enemy) == 0);
         var saved = JsonUtility.FromJson<SummonTurnRules.Snapshot>(JsonUtility.ToJson(rules.Capture()));
         rules.BeginOwnerTurn(Team.Player); rules.Restore(saved); saved.Player = 0;
-        Check("quota survives JSON resume without sharing state", rules.Used(Team.Player) == 2);
+        Check("quota survives JSON resume without sharing state", rules.Used(Team.Player) == 1);
+        var oldQuota = new SummonTurnRules.Snapshot { Player = 2, Enemy = 2 };
+        rules.Restore(oldQuota);
+        Check("old two-summon saves remain valid but fully spent", SummonTurnRules.Valid(oldQuota) && rules.Used(Team.Player) == 1 && rules.Remaining(Team.Enemy) == 0);
+        var authoredQuota = new SummonTurnRules.Snapshot { Player = 16, Enemy = 16 }; rules.Restore(authoredQuota);
+        Check("lowering a studio quota preserves exhausted authored saves", SummonTurnRules.Valid(authoredQuota) && rules.Remaining(Team.Player) == 0);
         rules.BeginOwnerTurn(Team.Player); rules.TryReserve(Team.Player); rules.ReleaseFailedSummon(Team.Player);
         Check("failed spawn releases reservation; unrelated factions excluded", rules.Used(Team.Player) == 0 && !rules.TryReserve(Team.Monster));
         rules.Restore(new SummonTurnRules.Snapshot { Player = 99, Enemy = -1 });
-        Check("corrupt counters cannot exceed quota", rules.Used(Team.Player) == 2 && rules.Used(Team.Enemy) == 0
+        Check("corrupt counters cannot exceed quota", rules.Used(Team.Player) == 1 && rules.Used(Team.Enemy) == 0
             && !SummonTurnRules.Valid(new SummonTurnRules.Snapshot { Player = -1 }));
         var legacy = new SaveSystem.GameSaveData { Version = 12, SchemaVersion = 12 };
         legacy.Units.Add(new SaveSystem.UnitSaveData { SummonAttackLocked = true });
@@ -52,13 +57,13 @@ public static class SummonTurnRulesTests
         };
         for (int x = 0; x < 14; x++) for (int z = 0; z < 14; z++) board.MapTiles.Add(new Vector3Int(x,0,z));
         board.RebuildOccupied();
-        Check("simulation shares two slots across different kinds", board.ApplyAction(new SimAction { Type = SimActionType.Summon, ActorTeam = Team.Enemy,
+        Check("simulation shares one slot across different kinds", board.ApplyAction(new SimAction { Type = SimActionType.Summon, ActorTeam = Team.Enemy,
             SummonKind = Kind.Knight, TargetPos = new Vector3Int(2,0,2), APCost = 5 })
-            && board.ApplyAction(new SimAction { Type = SimActionType.Summon, ActorTeam = Team.Enemy,
+            && !board.ApplyAction(new SimAction { Type = SimActionType.Summon, ActorTeam = Team.Enemy,
             SummonKind = Kind.Archer, TargetPos = new Vector3Int(3,0,2), APCost = 5 }));
         int ap = board.EnemyAP;
-        Check("third simulated summon has no side effects", !board.ApplyAction(new SimAction { Type = SimActionType.Summon, ActorTeam = Team.Enemy,
-            SummonKind = Kind.Scout, TargetPos = new Vector3Int(4,0,2), APCost = 5 }) && board.EnemyAP == ap && board.Units.Count == 2);
+        Check("further simulated summon has no side effects", !board.ApplyAction(new SimAction { Type = SimActionType.Summon, ActorTeam = Team.Enemy,
+            SummonKind = Kind.Scout, TargetPos = new Vector3Int(4,0,2), APCost = 5 }) && board.EnemyAP == ap && board.Units.Count == 1);
         var actor = board.Units[0];
         var target = new SimUnit { Id = 20, Team = Team.Player, Kind = Kind.Knight, Type = Type.Unit,
             HP = 500, MaxHP = 500, Position = new Vector3Int(2,0,3) };
@@ -72,20 +77,20 @@ public static class SummonTurnRulesTests
             && target.HP == 500 && board.EnemyAP == ap);
         actor.AssignedSkillId = -1;
         var actions = SimActionGenerator.GenerateAllActions(board, Team.Enemy);
-        Check("search never generates recruit attacks or a third summon", !actions.Any(a => a.Type == SimActionType.Attack || a.Type == SimActionType.Summon));
+        Check("search never generates recruit attacks or a second summon", !actions.Any(a => a.Type == SimActionType.Attack || a.Type == SimActionType.Summon));
         Check("new simulated recruit can move", board.ApplyAction(new SimAction { Type = SimActionType.Move, UnitId = actor.Id,
             ActorTeam = Team.Enemy, TargetPos = new Vector3Int(1,0,2), APCost = 3 }));
         var hash = typeof(AIMinimaxEngine).GetMethod("BoardHash", BindingFlags.Static | BindingFlags.NonPublic);
         long firstHash = (long)hash.Invoke(null, new object[] { board });
         var copy = board.Clone();
-        Check("search clone retains both recruitment rules", copy.EnemySummons == 2 && copy.GetUnit(actor.Id).SummonAttackLocked);
-        copy.EnemySummons = 1;
+        Check("search clone retains both recruitment rules", copy.EnemySummons == 1 && copy.GetUnit(actor.Id).SummonAttackLocked);
+        copy.EnemySummons = 0;
         Check("transposition key includes remaining quota", firstHash != (long)hash.Invoke(null, new object[] { copy }));
-        copy.EnemySummons = 2; copy.GetUnit(actor.Id).SummonAttackLocked = false;
+        copy.EnemySummons = 1; copy.GetUnit(actor.Id).SummonAttackLocked = false;
         Check("transposition key includes summon attack lock", firstHash != (long)hash.Invoke(null, new object[] { copy }));
         SimBoardPool.ReturnBoard(copy);
         board.SimulateTurnTransition(Team.Player);
-        Check("simulated opponent turn preserves recruit lock", actor.SummonAttackLocked && board.EnemySummons == 2);
+        Check("simulated opponent turn preserves recruit lock", actor.SummonAttackLocked && board.EnemySummons == 1);
         board.SimulateTurnTransition(Team.Enemy);
         Check("next simulated own turn releases both restrictions", !actor.SummonAttackLocked && board.EnemySummons == 0 && board.ApplyAction(attack));
         SimBoardPool.ReturnBoard(board);
@@ -122,16 +127,16 @@ public static class SummonTurnRulesTests
             Check(team + " successful summon pays and locks only attack", summon.SummonsThisTurn(team) == 1
                 && f.OwnActors().Count == count + 1 && f.State.GetAP(team) == ap - f.Healer.costAP
                 && f.Resources.Wood == wood - f.Healer.costWood && recruit.SummonAttackLocked && !SpecialSkillRuntime.MovementBlocked(recruit));
-            Check(team + " another kind at a distant origin uses the second shared slot",
-                summon.AISummonUnit(positions[positions.Count - 1], Kind.Scout, team) && summon.SummonsThisTurn(team) == 2);
+            Check(team + " another kind at a distant origin shares the exhausted quota",
+                !summon.AISummonUnit(positions[positions.Count - 1], Kind.Scout, team) && summon.SummonsThisTurn(team) == 1);
             ap = f.State.GetAP(team); wood = f.Resources.Wood; count = f.OwnActors().Count;
-            Check(team + " third summon rejected before any payment or spawn", !summon.AISummonUnit(positions[1], Kind.Knight, team)
+            Check(team + " second summon rejected before any payment or spawn", !summon.AISummonUnit(positions[1], Kind.Knight, team)
                 && f.State.GetAP(team) == ap && f.Resources.Wood == wood && f.OwnActors().Count == count
                 && !summon.CanSummon(team, f.Healer) && summon.AIGetSummonablePositions(team).Count == 0);
             var board = f.Board();
-            Check(team + " live AI candidate list has no third summon", board.AffordableUnits.Count == 0 && board.SummonablePositions.Count == 0);
+            Check(team + " live AI candidate list has no second summon", board.AffordableUnits.Count == 0 && board.SummonablePositions.Count == 0);
             var sim = SimBoardState.CreateFromGame(board, systems.MoveGenerator, systems.UnitSetting, systems.CrystalSystem, systems.APSystem);
-            Check(team + " player-AI normalization preserves quota and readiness", sim.EnemySummons == 2
+            Check(team + " player-AI normalization preserves quota and readiness", sim.EnemySummons == 1
                 && sim.Units.Any(u => u.Team == Team.Enemy && u.SummonAttackLocked)); SimBoardPool.ReturnBoard(sim);
             var foe = f.EconomyFixture.Opponent(recruit.transform.position + Vector3.forward, 20);
             int hp = foe.HP, barrier = foe.Barrier;
@@ -164,9 +169,9 @@ public static class SummonTurnRulesTests
             Check(team + " actual AI executor can move recruit immediately (" + executor.LastFailureReason + ")", moved && recruit.SummonAttackLocked);
             var other = team == Team.Player ? Team.Enemy : Team.Player;
             TurnStartHelper.ProcessTurnStart(systems, other, 21);
-            Check(team + " real opponent turn preserves both restrictions", summon.SummonsThisTurn(team) == 2 && recruit.SummonAttackLocked);
+            Check(team + " real opponent turn preserves both restrictions", summon.SummonsThisTurn(team) == 1 && recruit.SummonAttackLocked);
             TurnStartHelper.ProcessTurnStart(systems, team, 22);
-            Check(team + " real next own turn unlocks attacks and both summon slots", summon.RemainingSummons(team) == 2
+            Check(team + " real next own turn unlocks attacks and the summon slot", summon.RemainingSummons(team) == 1
                 && !recruit.SummonAttackLocked && SpecialSkillRuntime.CanNormalAttackTarget(recruit, foe)
                 && systems.APSystem.CanAct(team, APSystem.ActionType.Attack, recruit));
             var nextSlots = summon.AIGetSummonablePositions(team);
@@ -230,17 +235,19 @@ public static class SummonTurnRulesTests
         var data = JsonUtility.FromJson<SaveSystem.GameSaveData>(JsonUtility.ToJson(SaveSystem.CollectGameState(turn, systems.FactionState,
             systems.TimerSystem, systems.VisionGenerator, systems.AICommander)));
         Check("current real-scene snapshot validates", SaveSystem.ValidateGameData(data, out var reason));
+        data.SummonTurn.Player = 2;
+        Check("legacy two-summon snapshot still validates", SaveSystem.ValidateGameData(data, out _));
         systems.SummonSystem.RestoreTurnRules(null); actor.SummonAttackLocked = false;
         SaveGameApplier.Apply(data, systems.FactionState, turn, systems.UnitSetting, systems.CrystalSystem, systems.BuildSystem,
             systems.MoveGenerator, systems.VisionGenerator, systems.MapCreate, systems.SummonSystem);
         turn.ChangeState(new PlayerStart(turn));
         Check("resumed PlayerStart preserves spent slots and attack lock", turn.CurrentState is PlayerMove && actor.SummonAttackLocked
-            && systems.SummonSystem.SummonsThisTurn(Team.Player) == 2 && systems.SummonSystem.SummonsThisTurn(Team.Enemy) == 1);
+            && systems.SummonSystem.SummonsThisTurn(Team.Player) == 1 && systems.SummonSystem.SummonsThisTurn(Team.Enemy) == 1);
         systems.UnitPanelUI.Show(actor); systems.UnitPanelUI.Refresh();
         var attackButton = (UnityEngine.UI.Button)typeof(UnitPanelUI).GetField("attackButton", Hidden).GetValue(systems.UnitPanelUI);
         Check("real status UI disables attack and explains when it unlocks", !attackButton.interactable
             && attackButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text.Contains("次ターンから攻撃"));
-        data.SummonTurn.Player = 3;
+        data.SummonTurn.Player = 17;
         Check("invalid saved quota rejected", !SaveSystem.ValidateGameData(data, out _));
     }
 }

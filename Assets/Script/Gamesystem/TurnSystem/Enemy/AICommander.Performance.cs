@@ -117,6 +117,8 @@ public partial class AICommander
         _actedUnits.Clear();
         turnMovementHistory.Clear();
         selectionBuffer.Clear();
+        mainCrystalStrikeRound = -1;
+        mainBaseReconMoveRound = -1;
         runtimeMaintenance.Clear();
     }
 
