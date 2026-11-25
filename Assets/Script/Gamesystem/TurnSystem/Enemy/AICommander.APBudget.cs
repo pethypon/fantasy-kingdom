@@ -8,9 +8,11 @@ public partial class AICommander
 {
     int mainCrystalStrikeRound = -1;
     int mainBaseReconMoveRound = -1;
+    AIAction reservedReconMove;
 
     AIAction ReservedMainBaseReconMove(IReadOnlyList<(AIAction action, float score)> valid)
     {
+        reservedReconMove = null;
         if (_board == null || mainBaseReconMoveRound == _board.TurnCount || _board.PlayerCrystalVisible
             || _board.Governor?.Mode == StrategicMode.EmergencyDefense || _board.Governor?.Mode == StrategicMode.EconomicRecovery
             || !_board.TerritoryIntel.HasUsableTerritory && !_board.GetLastKnownPlayerCrystal().Valid
@@ -26,6 +28,7 @@ public partial class AICommander
             if (danger >= action.Unit.HP * Mathf.Clamp(_board.Exploration.Settings.MaximumFrontierDangerFraction, .01f, 1f)) continue;
             if (entry.score > value) { best = action; value = entry.score; }
         }
+        reservedReconMove = best;
         return best;
     }
 
@@ -57,8 +60,10 @@ public partial class AICommander
         if (action?.ActionType == AIActionType.Attack && action.TargetUnit != null
             && action.TargetUnit.kind == Kind.Crystal && action.TargetUnit.team == _board.OpponentTeam)
             mainCrystalStrikeRound = _board.TurnCount;
-        if (action?.ActionType == AIActionType.Move && action.Unit?.kind == Kind.Scout)
+        // A scout fleeing or repositioning has not taken the reserved survey step.
+        if (action != null && ReferenceEquals(action, reservedReconMove))
             mainBaseReconMoveRound = _board.TurnCount;
+        reservedReconMove = null;
     }
 
     // ================================================================

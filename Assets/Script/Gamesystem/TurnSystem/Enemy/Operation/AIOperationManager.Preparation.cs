@@ -93,10 +93,11 @@ public sealed partial class AIOperationManager
         }
     }
 
-    internal static bool ProspectiveStrike(Status actor, Vector3 position, Direction facing, Status target, AIBoardState board)
+    internal static bool ProspectiveStrike(Status actor, Vector3 position, Direction facing, Status target, AIBoardState board,
+        bool nextOwnerTurn = false)
     {
         if (actor == null || target == null || board?.ReconMap == null || !board.IsSpecialActorObserved(target)
-            || !SpecialSkillRuntime.CanNormalAttackTarget(actor, target) || AISpecialSkillKnowledge.SniperRestrictsTargets(actor)
+            || !SpecialSkillRuntime.CanNormalAttackTarget(actor, target, nextOwnerTurn) || AISpecialSkillKnowledge.SniperRestrictsTargets(actor)
             || AIActionEvaluator.IsObservedCompleteProtection(board, target)
             || !AttackPatterns.CanAttack(actor, facing, target.transform.position.x - position.x, target.transform.position.z - position.z)) return false;
         var map = board.ReconMap;

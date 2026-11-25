@@ -246,6 +246,9 @@ public sealed partial class AIOperationManager
         plan.ActionIds.Add(record.ActionId);
         if (plan.ActionEvidence.Count >= config.RecordLimit) plan.ActionEvidence.RemoveAt(0);
         plan.ActionEvidence.Add(record);
+        if (IsMainCrystalCampaign(plan) && !string.IsNullOrEmpty(record.ActorLifeId) && RealPlannedMarch(record)
+            && squadMembers.TryGetValue(record.ActorLifeId, out var marcher) && IsSiegeCombatant(marcher))
+            plan.LastSiegeAdvanceTurn = ownTurn;
         var step = FindStep(plan, record.OperationStepId);
         if (step != null)
         {

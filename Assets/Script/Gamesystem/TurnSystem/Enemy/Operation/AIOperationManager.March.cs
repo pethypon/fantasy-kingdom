@@ -45,7 +45,7 @@ public sealed partial class AIOperationManager
 
     readonly ExplorationKnownRoute marchRoutes = new ExplorationKnownRoute();
     readonly Dictionary<Vector3Int, Vector3Int> marchTerrain = new Dictionary<Vector3Int, Vector3Int>(2048);
-    readonly HashSet<Vector3Int> marchBlocked = new HashSet<Vector3Int>();
+    readonly HashSet<Vector3Int> marchOccupied = new HashSet<Vector3Int>();
     readonly HashSet<Vector3Int> marchObstacles = new HashSet<Vector3Int>();
     readonly List<Vector3Int> marchGoals = new List<Vector3Int>(8);
     AIBoardState marchBoard;
@@ -55,7 +55,7 @@ public sealed partial class AIOperationManager
     {
         if (marchBoard == board && marchGeneration == board.Generation) return;
         marchBoard = board; marchGeneration = board.Generation; marchBuilds = 0;
-        marchTerrain.Clear(); marchObstacles.Clear(); marchRoutes.Clear();
+        marchTerrain.Clear(); marchObstacles.Clear(); marchOccupied.Clear(); marchRoutes.Clear();
         var map = board.MapCreate;
         if (map == null) return;
         // ObservedTerrainCells is the formal explored/visible set, never the hidden map.
@@ -67,15 +67,16 @@ public sealed partial class AIOperationManager
             if (map.IsRiver(cell.x, cell.z) || map.IsHighMountain(cell.x, cell.z)
                 || board.KnownEnvironmentDefinition(cell)?.blocksMovement == true) marchObstacles.Add(key);
         }
-        marchObstacles.Add(GridHelper.ToGridXZ(board.EnemyCrystalPos));
+        marchOccupied.Add(GridHelper.ToGridXZ(board.EnemyCrystalPos));
+        if (board.PlayerCrystalVisible) marchOccupied.Add(GridHelper.ToGridXZ(board.PlayerCrystalPos));
         foreach (var structure in features.OwnUnits(board, state.LastStartedOwnTurn))
             if (structure != null && structure.IsAlive && structure.type == Type.Wall)
-                marchObstacles.Add(GridHelper.ToGridXZ(structure.transform.position));
+                marchOccupied.Add(GridHelper.ToGridXZ(structure.transform.position));
         foreach (var ally in board.AliveEnemyUnits)
-            if (ally != null && ally.IsAlive) marchObstacles.Add(GridHelper.ToGridXZ(ally.transform.position));
+            if (ally != null && ally.IsAlive) marchOccupied.Add(GridHelper.ToGridXZ(ally.transform.position));
         foreach (var hostile in board.AlivePlayerUnits)
             if (hostile != null && hostile.IsAlive && board.IsSpecialActorObserved(hostile))
-                marchObstacles.Add(GridHelper.ToGridXZ(hostile.transform.position));
+                marchOccupied.Add(GridHelper.ToGridXZ(hostile.transform.position));
     }
 
     bool TryPickMarchSlot(AIOperationPlan plan, AIOperationSquadMember member, Status actor,
@@ -86,7 +87,7 @@ public sealed partial class AIOperationManager
         if (marchBuilds >= 16 || marchTerrain.Count == 0) return false;
         int id = actor.GetInstanceID();
         var start = GridHelper.ToGridXZ(actor.transform.position);
-        marchBlocked.Clear(); marchBlocked.UnionWith(marchObstacles); marchBlocked.Remove(start);
+        bool CanStage(Vector3Int cell) => !marchObstacles.Contains(cell) && (cell == start || !marchOccupied.Contains(cell));
         marchGoals.Clear();
         Status firingTarget = null;
         if (member.Role != AIOperationSquadRole.Healer && !string.IsNullOrEmpty(plan.TargetLifeId) && features.TryObserved(plan.TargetLifeId, out var observed)
@@ -103,7 +104,7 @@ public sealed partial class AIOperationManager
         bool hasFiringCell = false;
         if (firingTarget != null)
             foreach (var pair in marchTerrain)
-                if (!marchBlocked.Contains(pair.Key) && FiringCell(pair.Key)) { hasFiringCell = true; break; }
+                if (CanStage(pair.Key) && FiringCell(pair.Key)) { hasFiringCell = true; break; }
         // Keep a handful of closest known staging cells, including detours around
         // occupied firing squares. Unknown cells are directions, never certified paths.
         float GoalScore(Vector3Int cell) => (hasFiringCell ? GridHelper.ChebyshevDistance(cell, start) : GridHelper.ChebyshevDistance(cell, aim) * 8)
@@ -111,7 +112,7 @@ public sealed partial class AIOperationManager
         foreach (var pair in marchTerrain)
         {
             var cell = pair.Key;
-            if (marchBlocked.Contains(cell) || cell == start && !hasFiringCell || hasFiringCell && !FiringCell(cell)) continue;
+            if (!CanStage(cell) || cell == start && !hasFiringCell || hasFiringCell && !FiringCell(cell)) continue;
             float score = GoalScore(cell); int at = 0;
             while (at < marchGoals.Count && (GoalScore(marchGoals[at]) < score
                 || Mathf.Approximately(GoalScore(marchGoals[at]), score) && CompareCell(marchGoals[at], cell) <= 0)) at++;
@@ -125,10 +126,10 @@ public sealed partial class AIOperationManager
         {
             if (AITurnBudget.Expired) break;
             marchBuilds++;
-            if (!marchRoutes.TryMeasure(snapshot, marchGoals[goalIndex], marchTerrain, marchBlocked,
+            if (!marchRoutes.TryMeasure(snapshot, marchGoals[goalIndex], marchTerrain, marchObstacles,
                 MovePatterns.Offsets(actor), !MovePatterns.IsDirectionIndependent(actor), MovePatterns.DirZ(actor.direction),
                 board.Generation, board.TurnCount, board.Generation, MarchDanger,
-                out float before, out _, board.MapCreate.maxX, board.MapCreate.maxZ, requireEnabled: false)) continue;
+                out float before, out _, board.MapCreate.maxX, board.MapCreate.maxZ, requireEnabled: false, occupiedLandings: marchOccupied)) continue;
             bool found = false; float best = float.NegativeInfinity; Vector3 destination = default;
             foreach (var cell in moves)
             {
@@ -186,7 +187,7 @@ public sealed partial class AIOperationManager
 
     public bool ReversesHealthyMarch(AIAction action, AIBoardState board)
     {
-        if (action?.Unit == null || board == null || !IsMovement(action.ActionType) || !action.Unit.HasMovedThisTurn
+        if (action?.Unit == null || board == null || !IsMovement(action.ActionType)
             || board.Governor?.Mode == StrategicMode.EmergencyDefense
             || !TryGetSquad(action.Unit.ReflectionLifeId, out var squad)
             || !squadMembers.TryGetValue(action.Unit.ReflectionLifeId, out var member) || member.Recovering
@@ -194,6 +195,28 @@ public sealed partial class AIOperationManager
         var actor = action.Unit; var plan = FindActive(squad.OperationId);
         if (plan == null || !plan.HasTargetPosition || plan.Status != AIOperationStatus.Active
             || actor.HP < actor.MaxHP * AIUnitPreservationConfig.Active.RejoinRatio) return false;
+        // A healthy attacker already firing on the observed main objective can hold
+        // until the next owner turn. An exhausted attack quota does not erase its
+        // firing position. Rescue, coordinated orders and threatened units retain
+        // their existing choices; a different viable firing square is also legal.
+        if (action.ActionType == AIActionType.Move && action.StrategicPriority >= 3
+            && board.PlayerCrystalVisible && IsMainCrystalCampaign(plan)
+            && board.Governor?.Mode != StrategicMode.EconomicRecovery
+            && features.TryObserved(plan.TargetLifeId, out var crystal)
+            && ProspectiveStrike(actor, actor.transform.position, actor.direction, crystal, board, nextOwnerTurn: true)
+            && !ProspectiveStrike(actor, action.TargetPos, actor.direction, crystal, board, nextOwnerTurn: true)
+            && !(coordinationHead == action && CurrentCoordination(board)))
+        {
+            float exposure = board.Governor?.IncomingDamage(board, actor, actor.transform.position, null)
+                ?? board.EstimateCounterDamageAt(actor.transform.position, actor);
+            if (exposure * 2 < actor.HP)
+            {
+                float nextExposure = board.Governor?.IncomingDamage(board, actor, action.TargetPos, null)
+                    ?? board.EstimateCounterDamageAt(action.TargetPos, actor);
+                if (nextExposure >= exposure) return true;
+            }
+        }
+        if (!actor.HasMovedThisTurn) return false;
         var aim = MovementAim(plan, actor);
         if (AIOperationFeatureExtractor.Distance(action.TargetPos, aim)
             <= AIOperationFeatureExtractor.Distance(actor.transform.position, aim)) return false;
@@ -218,7 +241,7 @@ public sealed partial class AIOperationManager
 
     void ClearMarch()
     {
-        marchRoutes.Clear(); marchTerrain.Clear(); marchBlocked.Clear(); marchObstacles.Clear(); marchGoals.Clear();
+        marchRoutes.Clear(); marchTerrain.Clear(); marchOccupied.Clear(); marchObstacles.Clear(); marchGoals.Clear();
         marchBoard = null; marchGeneration = -1;
     }
 

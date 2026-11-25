@@ -21,18 +21,29 @@ public sealed class AIReconnaissance
 
     public AIReconnaissance(AIBoardState board) { this.board = board; }
 
-    /// <summary>Keep the last healthy scout observing a found main base; safety orders can still retreat.</summary>
+    int observerGeneration = -1;
+    Status soleBaseObserver;
+
+    /// <summary>Keep a safe observation post until another friendly observer can take over.</summary>
     public bool WouldAbandonObservedMainCrystal(AIAction action)
     {
         var actor = action?.Unit;
-        if (actor == null || actor.kind != Kind.Scout || action.StrategicPriority <= 2 || !board.PlayerCrystalVisible
+        if (actor == null || action.StrategicPriority <= 2 || !board.PlayerCrystalVisible
             || action.ActionType != AIActionType.Move && action.ActionType != AIActionType.Support && action.ActionType != AIActionType.Surround
-            || !CanObserveFrom(actor, actor.transform.position, board.PlayerCrystalPos)
-            || CanObserveFrom(actor, action.TargetPos, board.PlayerCrystalPos)) return false;
-        if (board.EstimateCounterDamageAt(action.TargetPos, actor) < board.EstimateCounterDamageAt(actor.transform.position, actor)) return false;
-        foreach (var ally in board.AliveEnemyUnits)
-            if (ally != null && ally != actor && ally.IsAlive && CanObserveFrom(ally, ally.transform.position, board.PlayerCrystalPos)) return false;
-        return true;
+            || board.Governor?.Mode == StrategicMode.EmergencyDefense) return false;
+        if (observerGeneration != board.Generation)
+        {
+            observerGeneration = board.Generation;
+            soleBaseObserver = null;
+            foreach (var ally in board.SpecialObservedActors)
+            {
+                if (ally.team != board.ActorTeam || !SpecialSkillRuntime.InVision(ally, board.ObservedMainCrystal)) continue;
+                if (soleBaseObserver != null) { soleBaseObserver = null; break; }
+                soleBaseObserver = ally;
+            }
+        }
+        if (actor != soleBaseObserver || CanObserveFrom(actor, action.TargetPos, board.PlayerCrystalPos)) return false;
+        return board.EstimateCounterDamageAt(action.TargetPos, actor) >= board.EstimateCounterDamageAt(actor.transform.position, actor);
     }
 
     bool CanObserveFrom(Status actor, Vector3 origin, Vector3 point)

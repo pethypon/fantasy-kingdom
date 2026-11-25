@@ -3,8 +3,9 @@ using UnityEngine;
 
 public sealed partial class AIExplorationPlanner
 {
-    bool territoryReconRequested;
-    bool territoryReconIsRevisit;
+    ExplorationReconEvidence reconEvidence;
+    bool territoryReconRequested => reconEvidence != ExplorationReconEvidence.None;
+    bool territoryReconIsRevisit => reconEvidence == ExplorationReconEvidence.RememberedBase;
     Vector3Int territoryReconDirection;
     readonly List<Vector3Int> territoryReconCandidates = new List<Vector3Int>(64);
 
@@ -55,7 +56,7 @@ public sealed partial class AIExplorationPlanner
                 CreatedTurn = turn, LastProgressTurn = turn, State = ObjectiveState.Active,
                 BestDistance = remaining, LastDistance = remaining, LastUnknownCount = source.UnknownCellsBehind,
                 LastSampleTurn = turn, IsIntelRevisit = candidate.IsIntelRevisit, LastReason = "territory_recon_assigned",
-                HasRequiredObservation = territoryReconIsRevisit, RequiredObservationCell = territoryReconDirection,
+                ReconEvidence = reconEvidence, HasRequiredObservation = territoryReconIsRevisit, RequiredObservationCell = territoryReconDirection,
                 UsesKnownRouteDistance = true, RouteMetricRevision = revision, RouteWaypoint = waypoint };
             objectives[actor.ActorLifeId] = objective; reservedRegions.Add(id);
             BeginLeg(objective);

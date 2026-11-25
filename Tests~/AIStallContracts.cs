@@ -63,7 +63,27 @@ public static class AIStallContracts
             AIStrategyBonus.Apply(new List<AIAction>{blindMove},TurnStrategy.ScoutSearch,board);
             Check(side+" the search strategy respects the actor's zero vision",blindMove.Score<=0);
             actor.Special.visionZeroTurns=0;actor.kind=actor.GrowthData.kind=Kind.Scout;
+            var history = new AITurnMovementHistory();
+            var previous = f.Sites[1];
+            var current = actor.transform.position;
+            actor.direction = Direction.N;
+            var backtrack = new AIAction { ActionType = AIActionType.Move, Unit = actor, TargetPos = previous };
+            // Emulate an unobserved cell behind the viewpoint. The forward estimate
+            // may be positive even though this exact viewpoint was just occupied.
+            var formerExplored = new HashSet<Vector3Int>(explored);
+            explored.Clear();
+            explored.Add(GridHelper.ToGridXZ(previous));
+            board.Refresh();
+            Check(side+" the hypothetical view still includes unknown cells", board.EstimateNewVisionCells(previous,actor)>0);
+            history.Record(actor,previous,current,true);
+            Check(side+" unchanged viewpoint cannot buy a first fruitless round trip",history.ShouldReject(backtrack,board));
+            history.Clear();
+            Check(side+" the viewpoint may be scouted on the next own turn",!history.ShouldReject(backtrack,board));
+            explored.Clear();
+            explored.UnionWith(formerExplored);
+            board.Refresh();
             EnvironmentKnowledge(live,f,board,side);
+            AIR3PreservationTests.EvacuatedPatient(live,side);
         }
         Debug.Log("[AIStall] RESULT checks="+checks);
     }

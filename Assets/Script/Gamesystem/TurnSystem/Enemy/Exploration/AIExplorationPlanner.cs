@@ -75,7 +75,7 @@ public sealed partial class AIExplorationPlanner
         if (observation != null && actorTeam == next.ActorTeam && turn == next.Turn && width == next.Width && depth == next.Depth
             && viewVersion == next.ViewVersion && cellVersion == next.CellVersion && dangerVersion == next.DangerVersion && actorVersion == incomingActors && emergency == isEmergency
             && informationStamp == incomingInformation
-            && territoryReconRequested == next.HasTerritoryReconDirection && territoryReconIsRevisit == next.TerritoryReconIsRevisit
+            && reconEvidence == next.ReconEvidence
             && (!territoryReconRequested || territoryReconDirection == XZ(next.TerritoryReconDirection))) return;
         bool newTurn = turn != next.Turn;
         bool dimensionsChanged = width != next.Width || depth != next.Depth;
@@ -91,10 +91,7 @@ public sealed partial class AIExplorationPlanner
         emergency = isEmergency;
         // A changing focus direction refines the next assignment; it must not cancel a
         // still-progressing objective every time a scout or the army changes position.
-        bool newTerritoryRecon = next.HasTerritoryReconDirection && (!territoryReconRequested
-            || next.TerritoryReconIsRevisit && !territoryReconIsRevisit);
-        territoryReconRequested = next.HasTerritoryReconDirection;
-        territoryReconIsRevisit = next.TerritoryReconIsRevisit;
+        reconEvidence = next.ReconEvidence;
         territoryReconDirection = XZ(next.TerritoryReconDirection);
         Observe(next);
         PrepareActors(next);
@@ -110,7 +107,7 @@ public sealed partial class AIExplorationPlanner
                 if (objective.State == ObjectiveState.Active || objective.State == ObjectiveState.Suspended) reservedRegions.Add(objective.FrontierRegionId);
             }
         }
-        for (int i = 0; i < sortedActors.Count; i++) MaintainObjective(sortedActors[i], newTurn, resume, newTerritoryRecon);
+        for (int i = 0; i < sortedActors.Count; i++) MaintainObjective(sortedActors[i], newTurn, resume);
     }
 
     void Observe(ExplorationObservation next)
@@ -217,7 +214,7 @@ public sealed partial class AIExplorationPlanner
         foreach (var id in removedLifeIds) { histories.Remove(id); lastCandidates.Remove(id); }
     }
 
-    void MaintainObjective(ExplorationActor actor, bool newTurn, bool resume, bool newTerritoryRecon)
+    void MaintainObjective(ExplorationActor actor, bool newTurn, bool resume)
     {
         objectives.TryGetValue(actor.ActorLifeId, out var objective);
         var history = histories[actor.ActorLifeId];
@@ -246,7 +243,8 @@ public sealed partial class AIExplorationPlanner
             }
             return;
         }
-        if (newTerritoryRecon && objective != null && objective.State != ObjectiveState.Completed && objective.State != ObjectiveState.Failed)
+        // Compare against this scout's assignment: the discovery may have occurred while it was stunned or defending.
+        if (objective != null && reconEvidence > objective.ReconEvidence && (objective.State == ObjectiveState.Active || objective.State == ObjectiveState.Suspended))
             Finish(objective, ObjectiveState.Failed, "territory_recon_replanned", actor);
         // Observation is the mission's result. While it is available, hold overwatch
         // instead of rebuilding a known-vantage route after every other unit's action.
@@ -289,7 +287,9 @@ public sealed partial class AIExplorationPlanner
                 && (HasLegInformation(objective) || objective.IsIntelRevisit && visible.Contains(XZ(objective.TargetCell))))
             {
                 RecordViewpoint(actor, objective, false);
-                if (!TryContinueRegion(actor, objective, history))
+                // Confirmed territory can lead across a region boundary. On reaching a leg,
+                // assign the next safe frontier from the current national evidence.
+                if (reconEvidence == ExplorationReconEvidence.ObservedTerritory || !TryContinueRegion(actor, objective, history))
                     Finish(objective, ObjectiveState.Completed, "frontier_completed", actor);
             }
             else if (!objective.IsIntelRevisit && Distance(actor.Cell, objective.TargetCell) == 0 && !HasLegInformation(objective))
@@ -350,7 +350,7 @@ public sealed partial class AIExplorationPlanner
             AssignedUnitId = actor.UnitId, ActorLifeId = actor.ActorLifeId, CreatedTurn = turn, LastProgressTurn = turn,
             State = ObjectiveState.Active, BestDistance = initialDistance, LastDistance = initialDistance,
             LastUnknownCount = best.UnknownCellsBehind, LastSampleTurn = turn, IsIntelRevisit = best.IsIntelRevisit, LastReason = "objective_assigned",
-            UsesKnownRouteDistance = hasRoute, RouteMetricRevision = routeRevision, RouteWaypoint = waypoint
+            ReconEvidence = reconEvidence, UsesKnownRouteDistance = hasRoute, RouteMetricRevision = routeRevision, RouteWaypoint = waypoint
         };
         objectives[actor.ActorLifeId] = objective; reservedRegions.Add(best.RegionId);
         BeginLeg(objective);
@@ -630,7 +630,7 @@ public sealed partial class AIExplorationPlanner
     }
     void ResetKnowledge()
     {
-        memory.Clear(); terrain.Clear(); blocked.Clear(); visible.Clear(); previousVisible.Clear(); importance.Clear(); regions.Clear(); dirtyRegions.Clear(); frontiers.Clear(); objectives.Clear(); histories.Clear(); cooldowns.Clear(); lastCandidates.Clear(); knownRoute.Clear(); territoryReconRequested = territoryReconIsRevisit = false; territoryReconDirection = default; territoryReconCandidates.Clear(); expeditionRecords.Clear(); expeditionIndex.Clear(); incomingContactSignatures.Clear();
+        memory.Clear(); terrain.Clear(); blocked.Clear(); visible.Clear(); previousVisible.Clear(); importance.Clear(); regions.Clear(); dirtyRegions.Clear(); frontiers.Clear(); objectives.Clear(); histories.Clear(); cooldowns.Clear(); lastCandidates.Clear(); knownRoute.Clear(); reconEvidence = ExplorationReconEvidence.None; territoryReconDirection = default; territoryReconCandidates.Clear(); expeditionRecords.Clear(); expeditionIndex.Clear(); incomingContactSignatures.Clear();
         actors.Clear(); sortedActors.Clear(); liveLifeIds.Clear(); reservedRegions.Clear(); revealCredit.Clear(); newlyRevealedSet.Clear(); newlyRevealedByRegion.Clear();
         lastFrontierRefresh = -1; emergency = false;
     }

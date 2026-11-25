@@ -106,6 +106,27 @@ public partial class AICommander
             return reconMove;
         }
 
+        // Once the enemy main base has been found, a verified, safe squad march
+        // can use one action before unrelated skirmishes spend the shared AP.
+        AIAction advance = null;
+        float advanceScore = float.NegativeInfinity;
+        foreach (var entry in validActions)
+        {
+            var action = entry.action;
+            if (action.ActionType == AIActionType.Attack && action.TargetUnit != null
+                && action.TargetUnit.team == _board.OpponentTeam
+                && (MatchObjectiveRules.IsCommander(action.TargetUnit) || action.TargetUnit.kind == Kind.Crystal))
+            { advance = null; break; }
+            if (entry.score > advanceScore && _board.Operations?.IsReservedSiegeAdvance(action, _board) == true)
+            { advance = action; advanceScore = entry.score; }
+        }
+        if (advance != null)
+        {
+            RememberSelectionScores(advance, advanceScore);
+            AIDecisionObserver.Emit(_board, actions, advance, "selected");
+            return advance;
+        }
+
         // ミス率: 一定確率で最善手以外を選択する（チュートリアル〜ノーマル帯）
         float mistakeRate = _threatLevel.MistakeRate;
         if (mistakeRate > 0f && validActions.Count > 1 && _rng != null && _rng.NextFloat() < mistakeRate)

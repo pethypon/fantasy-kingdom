@@ -4,6 +4,7 @@ using UnityEngine;
 
 public enum ExplorationKnowledgeState { Unknown, SeenBefore, VisibleNow }
 public enum ObjectiveState { Active, Suspended, Completed, Failed }
+public enum ExplorationReconEvidence { None, CoverageHypothesis, ObservedTerritory, RememberedBase }
 
 [Serializable]
 public struct ExplorationCellMemory
@@ -56,6 +57,7 @@ public sealed class ExploreObjective
     public string LastReason;
     public bool IsIntelRevisit;
     public bool HasRequiredObservation;
+    public ExplorationReconEvidence ReconEvidence;
     public Vector3Int RequiredObservationCell;
     // Version 2 saves measured Chebyshev progress; bind a Manhattan baseline once after loading.
     public bool RebaseProgressOnNextObservation;
@@ -76,6 +78,10 @@ public sealed class ExplorationObservation
     public int DangerVersion;
     public bool HasTerritoryReconDirection;
     public bool TerritoryReconIsRevisit;
+    public bool TerritoryReconIsHypothesis;
+    public ExplorationReconEvidence ReconEvidence => !HasTerritoryReconDirection ? ExplorationReconEvidence.None
+        : TerritoryReconIsRevisit ? ExplorationReconEvidence.RememberedBase
+        : TerritoryReconIsHypothesis ? ExplorationReconEvidence.CoverageHypothesis : ExplorationReconEvidence.ObservedTerritory;
     public Vector3Int TerritoryReconDirection;
     public Vector3Int OwnBase;
     public readonly List<ExplorationObservedCell> KnownCells = new List<ExplorationObservedCell>();

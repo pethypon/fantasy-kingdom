@@ -16,9 +16,45 @@ public static class AICampaignContracts
     {
         passed=0; using var effects=BoardActorAnimation.SuppressEffects();
         Reconfirmation();
+        SiegeCrossing();
         foreach (var side in new[]{Team.Player,Team.Enemy}) { Crystal(live,side); TerritoryItinerary(live,side); Overwatch(live,side); Campaign(live,side); }
         Debug.Log("[Campaign] RESULT checks="+passed);
     }
+    static void SiegeCrossing()
+    {
+        var start = Vector3Int.zero;
+        var cross = Vector3Int.right;
+        var end = cross * 2;
+        var terrain = new Dictionary<Vector3Int, Vector3Int> { [start] = start, [cross] = cross, [end] = end };
+        var occupants = new HashSet<Vector3Int> { start, cross };
+        var terrainBlocks = new HashSet<Vector3Int>();
+        var actor = new ExplorationActor(5, start, Kind.Knight, 100, true, "siege-march");
+        var offsets = new[] { new Vector2Int(2, 0) };
+        var routes = new ExplorationKnownRoute();
+        int generation = 0;
+        bool Reaches(Vector3Int goal) => routes.TryMeasure(actor, goal, terrain, terrainBlocks, offsets,
+            false, 1, ++generation, 1, 1, null, out _, out var next, 3, 2,
+            requireEnabled: false, occupiedLandings: occupants) && next == goal;
+
+        Check("two-cell march crosses an occupied transit square", Reaches(end));
+        occupants.Add(end);
+        Check("two-cell march cannot land on an occupant", !Reaches(end));
+        occupants.Remove(end);
+        terrainBlocks.Add(cross);
+        Check("a terrain obstacle still blocks transit", !Reaches(end));
+        terrainBlocks.Clear();
+        terrain.Remove(cross);
+        Check("unseen transit terrain is not certified", !Reaches(end));
+        terrain[cross] = cross;
+        var corner = new Vector3Int(0, 0, 1);
+        var diagonal = new Vector3Int(1, 0, 1);
+        terrain[corner] = corner; terrain[diagonal] = diagonal;
+        occupants.Add(corner); offsets[0] = new Vector2Int(1, 1);
+        Check("diagonal march can pass between two pieces", Reaches(diagonal));
+        terrainBlocks.Add(corner);
+        Check("diagonal march cannot cut a blocked terrain corner", !Reaches(diagonal));
+    }
+
     static void TerritoryItinerary(GameSystems live,Team side)
     {
         using var f=new R2ConstructionEconomyTests.Fixture(live,side);
@@ -40,6 +76,9 @@ public static class AICampaignContracts
         var reserve=typeof(AICommander).GetMethod("ReservedMainBaseReconMove",Hidden);
         var selected=(AIAction)reserve.Invoke(commander,new object[]{legal});
         Check(side+" a generated safe scout advance receives one AP opportunity",selected!=null&&board.Exploration.IsObjectiveProgress(selected.Unit,selected.TargetPos,board));
+        typeof(AICommander).GetMethod("RecordCampaignAction",Hidden).Invoke(commander,new object[]{new AIAction{ActionType=AIActionType.Move,Unit=f.Engineer}});
+        selected=(AIAction)reserve.Invoke(commander,new object[]{legal});
+        Check(side+" unrelated scout reposition keeps the survey opportunity",selected!=null);
         typeof(AICommander).GetMethod("RecordCampaignAction",Hidden).Invoke(commander,new object[]{selected});
         Check(side+" reconnaissance reservation is once per own round",reserve.Invoke(commander,new object[]{legal})==null);
         f.Engineer.Special.visionZeroTurns=2;board.Refresh();
@@ -123,10 +162,13 @@ public static class AICampaignContracts
         var host=new GameObject("observed main base");host.transform.SetParent(side==Team.Player?f.Crystals.Enemycrystal:f.Crystals.Playercrystal);
         var main=host.AddComponent<Status>();main.kind=Kind.Crystal;main.type=Type.Building;main.team=side==Team.Player?Team.Enemy:Team.Player;
         main.HP=main.MaxHP=3000;host.transform.position=f.Sites[1];
+        f.Engineer.VisionCell = new HashSet<Vector3Int> { GridHelper.ToGrid(main.transform.position) };
         var board=f.Board();
         Check(side+" overwatch scenario actually observes the main base",board.PlayerCrystalVisible);
         var move=new AIAction{ActionType=AIActionType.Move,Unit=f.Engineer,TargetPos=f.Sites[3],StrategicPriority=3};
         Check(side+" healthy last scout does not abandon base sight",board.Recon.WouldAbandonObservedMainCrystal(move));
+        f.Engineer.kind=f.Engineer.GrowthData.kind=Kind.Assassin;
+        Check(side+" only combat spotter retains actual base sight",board.Recon.WouldAbandonObservedMainCrystal(move));
         move.StrategicPriority=1;
         Check(side+" urgent survival order can leave overwatch",!board.Recon.WouldAbandonObservedMainCrystal(move));
         move.StrategicPriority=3;move.ActionType=AIActionType.Retreat;
@@ -169,6 +211,18 @@ public static class AICampaignContracts
             Set(board.Governor,"<Mode>k__BackingField",mode);
             typeof(AICommander).GetMethod("RecordCampaignAction",Hidden).Invoke(commander,new object[]{attack});
             Check(side+" reservation is consumed only after success and once per own round",reserve.Invoke(commander,new object[]{choices})==null);
+            var holder = army.Find(unit => manager.TryGetSquad(unit.ReflectionLifeId, out var squad)
+                && squad.OperationId == plan.OperationId);
+            Check(side+" siege has a front unit at the objective",holder!=null);
+            var oldStatus = plan.Status;
+            plan.Status = AIOperationStatus.Active;
+            holder.NormalAttacksThisTurn = NormalAttackTurnRules.Limit;
+            var leave = new AIAction { ActionType = AIActionType.Move, Unit = holder, TargetPos = cells[0], StrategicPriority = 4 };
+            Check(side+" exhausted normal attacks still preserve next-turn siege position",manager.ReversesHealthyMarch(leave,board));
+            leave.StrategicPriority = 1;
+            Check(side+" urgent order can leave the firing position",!manager.ReversesHealthyMarch(leave,board));
+            holder.NormalAttacksThisTurn = 0;
+            plan.Status = oldStatus;
             long operationId=plan.OperationId;int oldX=plan.TargetX,oldZ=plan.TargetZ;
             // The objective itself is observed, while its defense-radius square is not.
             // Remove immediate-fire capability so the old attack-in-range bypass cannot pass this test.

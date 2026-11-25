@@ -412,9 +412,34 @@ public sealed partial class AIOperationManager
             return AIActionEvaluator.IsNonFinishingPassiveStructureAttack(action, board) ? 3 : 2;
         if (IsMovement(action.ActionType) && member.HasSlot && !action.Unit.HasMovedThisTurn
             && action.TargetPos.x == member.SlotX && action.TargetPos.z == member.SlotZ
-            && board.GetValidMoves(action.Unit).Contains(action.TargetPos)) return 3;
+            && board.GetValidMoves(action.Unit).Contains(action.TargetPos))
+            return IsReservedSiegeAdvance(action, board, squad, member) ? 2 : 3;
         return 4;
     }
+
+    static bool IsSiegeCombatant(AIOperationSquadMember member) => !member.Recovering
+        && (member.Role == AIOperationSquadRole.Frontline || member.Role == AIOperationSquadRole.Ranged);
+
+    // Share one opening between the campaign squads. Strictly higher strategic
+    // priorities (including survival and payment deadlines) still win selection.
+    bool IsReservedSiegeAdvance(AIAction action, AIBoardState board, AIOperationSquad squad, AIOperationSquadMember member)
+    {
+        if (action.ActionType != AIActionType.Move || !member.MarchSlot || !IsSiegeCombatant(member)
+            || board.Governor?.Mode == StrategicMode.EconomicRecovery || board.Governor?.Mode == StrategicMode.EmergencyDefense)
+            return false;
+        var plan = FindActive(squad.OperationId);
+        if (!RetainMainCrystalCampaign(plan) || plan.Status != AIOperationStatus.Active
+            || plan.LastSiegeAdvanceTurn >= state.LastStartedOwnTurn) return false;
+        float risk = board.Governor?.IncomingDamage(board, action.Unit, action.TargetPos, null)
+            ?? board.EstimateCounterDamageAt(action.TargetPos, action.Unit);
+        return risk * 2 < action.Unit.HP;
+    }
+
+    public bool IsReservedSiegeAdvance(AIAction action, AIBoardState board) =>
+        action?.ActionType == AIActionType.Move && action.StrategicPriority == 2 && action.Unit != null
+        && !action.Unit.HasMovedThisTurn && LegalSquadAction(action, board, out var squad, out var member) && member.HasSlot
+        && action.TargetPos.x == member.SlotX && action.TargetPos.z == member.SlotZ
+        && IsReservedSiegeAdvance(action, board, squad, member);
     public float SquadActionBonus(AIAction action, AIBoardState board)
     {
         if (!LegalSquadAction(action, board, out var squad, out var member)) return 0;

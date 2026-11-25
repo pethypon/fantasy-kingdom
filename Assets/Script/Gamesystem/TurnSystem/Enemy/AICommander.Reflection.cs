@@ -145,7 +145,7 @@ public partial class AICommander
         {
             if (movementActor != null)
                 turnMovementHistory.Record(movementActor, movementOrigin, movementActor.transform.position, success,
-                    Mathf.Max(0, (_board?.OwnExploredCells?.Count ?? 0) - exploredBefore));
+                    Mathf.Max(0, (_board?.OwnExploredCells?.Count ?? 0) - exploredBefore), action.ActionType == AIActionType.Retreat);
             if (!success && _actionExecutor.LastMoveWasBlocked)
                 turnMovementHistory.RecordBlockedDestination(_actionExecutor.LastRequestedDestination);
             else if (success && (action.ActionType == AIActionType.Attack || action.ActionType == AIActionType.SkillUse))
