@@ -40,6 +40,7 @@ public class SummonSystem : MonoBehaviour
     private bool canPlace;
     readonly SummonTurnRules turnRules = new SummonTurnRules();
     public int SummonsThisTurn(Team team) => turnRules.Used(team);
+    public CampaignRewards Rewards => factionState?.Rewards;
     public int RemainingSummons(Team team) => turnRules.Remaining(team);
     public void BeginOwnerTurn(Team team) => turnRules.BeginOwnerTurn(team);
     public SummonTurnRules.Snapshot CaptureTurnRules() => turnRules.Capture();
@@ -183,6 +184,7 @@ public class SummonSystem : MonoBehaviour
     {
         if ((team != Team.Player && team != Team.Enemy) || data == null || !data.IsValidForAuthoring
             || !data.AvailableFor(team) || factionState == null) return false;
+        if (Rewards != null && Rewards.Account(team).souls < Rewards.Cost(data)) return false;
         if (RemainingSummons(team) == 0 || factionState.GetAP(team) < data.costAP) return false;
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;
@@ -208,6 +210,7 @@ public class SummonSystem : MonoBehaviour
     {
         if (data == null) return;
 
+        if (Rewards != null) Rewards.Account(team).souls -= Rewards.Cost(data);
         factionState.ModifyAP(team, -data.costAP);
 
         var res = team == Team.Player ? factionState.PlayerResources : factionState.EnemyResources;

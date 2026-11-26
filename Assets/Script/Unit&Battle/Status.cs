@@ -512,7 +512,7 @@ public partial class Status : MonoBehaviour
     /// <summary>回復を適用する（MaxHPを超えない。HP > MaxHP の不整合時も減らさない）</summary>
     public int ApplyHeal(int amount)
     {
-        amount = UnityEngine.Mathf.Max(0, amount);
+        amount = CampaignRewards.ApplyHealBonus(amount, CampaignRewards.UnitBonus(this, true));
         int actual = UnityEngine.Mathf.Clamp(MaxHP - HP, 0, amount);
         HP += actual;
         SpecialSkillRuntime.RecordHeal(this, amount, actual);

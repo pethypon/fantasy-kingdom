@@ -233,7 +233,7 @@ public static class StatusEffectSystem
         if (HasDebuff(unit, StatusEffectType.Weaken)) mod -= GameConstants.WeakenATKReduction;
         if (HasDebuff(unit, StatusEffectType.Chill))  mod -= GameConstants.ChillATKReduction;
         if (HasBuff(unit, BuffType.Offensive))         mod += GameConstants.OffensiveATKBonus;
-        return Mathf.Clamp(mod, 0f, 2f) * SpecialSkillRuntime.GetATKModifier(unit);
+        return Mathf.Clamp(mod, 0f, 2f) * SpecialSkillRuntime.GetATKModifier(unit) * CampaignRewards.UnitBonus(unit, false);
     }
 
     /// <summary>DEF修飾: 破甲-15%, 守勢+20%</summary>

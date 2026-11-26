@@ -27,6 +27,7 @@ public partial class SimBoardState
                 if (!BarrierCombatSettings.Active.recoveryAtOwnerTurnStart) ProcessBarrierRecovery(Units[i], TurnCount);
                 ProcessNaturalRecovery(Units[i], TurnCount);
             }
+        if (nextTeam == Team.Enemy) ownArmyBonus.NextOwnerTurn();
         ResetAP(nextTeam);
         if (nextTeam == Team.Enemy) EnemySummons = 0; else if (nextTeam == Team.Player) PlayerSummons = 0;
 
@@ -35,6 +36,7 @@ public partial class SimBoardState
             var u = Units[i];
             if (!u.IsAlive || u.Team != nextTeam) continue;
 
+            u.ArmyBonus.NextOwnerTurn();
             u.SummonAttackLocked = false;
             u.NormalAttacksThisTurn = 0;
             u.Fatigue = 0;

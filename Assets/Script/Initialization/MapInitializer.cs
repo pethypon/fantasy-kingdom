@@ -49,6 +49,12 @@ public static class MapInitializer
             mapCreate.maxX = loadData.MapWidth;
             mapCreate.maxZ = loadData.MapDepth;
         }
+        mapCreate.FixedHomelands = loadData == null || loadData.FixedHomelands;
+        if (loadData == null)
+        {
+            mapCreate.maxX = MapCreate.TacticalSize;
+            mapCreate.maxZ = MapCreate.TacticalSize;
+        }
         // マップ生成
         if (HasSavedMapSeed(loadData))
         {

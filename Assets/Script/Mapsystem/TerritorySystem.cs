@@ -26,6 +26,18 @@ public class TerritorySystem : MonoBehaviour
 
         PTSetPos = new List<Vector3>();
         ETSetPos = new List<Vector3>();
+        if (mapcreate.FixedHomelands)
+        {
+            for (int x = 0; x < mapcreate.maxX; x++)
+            for (int offset = 0; offset < MapCreate.HomelandDepth; offset++)
+            {
+                int far = mapcreate.maxZ - 1 - offset;
+                PTSetPos.Add(new Vector3(x, mapcreate.SurfaceTop(x, offset) + .5f, offset));
+                ETSetPos.Add(new Vector3(x, mapcreate.SurfaceTop(x, far) + .5f, far));
+            }
+            RefreshVisuals();
+            return;
+        }
         foreach (var p in setpos)
         {
             float px = Mathf.Abs(p.x - pcp.x);

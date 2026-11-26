@@ -59,7 +59,10 @@ public static class SaveCompatibilityTests
             Check("v" + version + " current schema and checkpoint", data.Version == SaveSystem.CurrentSaveVersion && data.SchemaVersion == SaveSystem.CurrentSaveVersion && data.Checkpoint == "player_turn");
             Check("v" + version + " crystal upgrade exactly once", data.Units[0].HP == 5700 && data.Units[0].MaxHP == 6000);
             Check("v" + version + " killed crystal stays killed", data.Units[1].HP == 0 && data.Units[1].MaxHP == 6000);
-            Check("v" + version + " legacy missing maxHP repaired", data.Units[2].MaxHP == 20);
+            int fixedScoutHP = FixedUnitRules.BaseStat(Kind.Scout, UnitStaticData.Table[Kind.Scout].BaseHP);
+            Check("v" + version + " legacy scout restored at full fixed HP",
+                data.Units[2].HP == fixedScoutHP && data.Units[2].MaxHP == fixedScoutHP);
+            Check("v" + version + " keeps legacy map rules", !data.FixedHomelands && data.MapWidth == 35);
             Check("v" + version + " no invented knowledge or deterministic seed", data.AI.Reflection == null && data.AI.Operations == null && !data.AI.HasDeterministicSeed);
             Check("v" + version + " source remains unchanged", File.ReadAllText(path) == original);
             typeof(SaveSystem).GetMethod("RunMigrations", Private).Invoke(null, new object[] { data });

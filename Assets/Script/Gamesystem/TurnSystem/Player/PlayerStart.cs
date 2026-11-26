@@ -30,7 +30,7 @@ public class PlayerStart : TurnState
         if (Systems.MoveUndoSystem != null)
             Systems.MoveUndoSystem.Clear();
 
-        Turn.ChangeState(new PlayerMove(Turn));
+        CampaignRewardTurn.BeginActions(Turn, Team.Player);
     }
 
     public override void Update() { }

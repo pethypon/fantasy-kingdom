@@ -62,6 +62,8 @@ public partial class BuildSummonUIBuilder
         button.interactable = allowed;
         background.color = allowed ? BrandGuide.BtnSummonEnabled : BrandGuide.BtnDisabled;
         title.text = SummonTitle(displayName, data);
+        var rewards = summonSystem.Rewards;
+        if (data != null && rewards != null) title.text += $"　魂 {rewards.Cost(data)}（所持 {rewards.player.souls}）";
         string reason = allowed ? null : AuthoredUnitCostFailure(data);
         cost.text = FormatAuthoredUnitCost(data)
             + (reason == null ? string.Empty : "\n<color=#FFB7A3>" + reason + "</color>");
@@ -100,6 +102,8 @@ public partial class BuildSummonUIBuilder
         if (data == null) return "召喚データ未登録";
         if (cachedFactionState == null) return "準備中";
         if (summonSystem != null && summonSystem.RemainingSummons(Team.Player) == 0) return SummonTurnRules.LimitReason;
+        var rewards = summonSystem?.Rewards;
+        if (rewards != null && rewards.player.souls < rewards.Cost(data)) return "魂不足";
         if (!data.AvailableFor(Team.Player)) return "この陣営では召喚不可";
         if (cachedFactionState.GetAP(Team.Player) < data.costAP) return "行動ポイント不足";
         var resources = cachedFactionState.PlayerResources;

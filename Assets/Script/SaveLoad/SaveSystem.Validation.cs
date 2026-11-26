@@ -17,6 +17,9 @@ public static partial class SaveSystem
             return Invalid("ターン数または脅威度が不正です。", out reason);
         if (data.MapWidth < 1 || data.MapDepth < 1 || data.MapWidth > MaximumMapDimension || data.MapDepth > MaximumMapDimension)
             return Invalid("マップの大きさが不正です。", out reason);
+        if (data.FixedHomelands && (data.MapWidth != MapCreate.TacticalSize || data.MapDepth != MapCreate.TacticalSize
+            || data.Campaign == null || !data.Campaign.Valid(data.Turn)))
+            return Invalid("固定領土または報酬の保存値が不正です。", out reason);
         if (!Finite(data.MapSeedX) || !Finite(data.MapSeedZ)
             || data.HasMapGenerationSettings && (!Finite(data.MapNoiseScale) || data.MapNoiseScale < 0
                 || !Finite(data.MapRiverHalfWidth) || data.MapRiverHalfWidth < 0 || data.MapRiverHalfWidth > 3))

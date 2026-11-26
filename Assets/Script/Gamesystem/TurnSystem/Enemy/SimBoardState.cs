@@ -48,6 +48,17 @@ public partial class SimBoardState
     public int EnemyAP;
     public int PlayerAP;
     public int EnemySummons, PlayerSummons;
+    internal CampaignRewards.ArmyBonus ownArmyBonus;
+    internal int standardSoulCost, ownSouls, possibleOpponentSouls;
+    internal int SoulCost(Kind kind) => standardSoulCost == 0 ? 0 :
+        TryGetRecruitment(kind, out var definition) && definition.SoulCostOverride > 0 ? definition.SoulCostOverride : standardSoulCost;
+    internal bool CanPaySouls(Team team, Kind kind) => SoulCost(kind) <= (team == Team.Enemy ? ownSouls : possibleOpponentSouls);
+    internal bool InRecruitmentRows(Team team, Vector3Int cell)
+    {
+        if (standardSoulCost == 0) return true;
+        Team actual = team == Team.Enemy ? RealActorTeam : RealActorTeam == Team.Player ? Team.Enemy : Team.Player;
+        return MapCreate.InHomeRows(cell.z, actual, MapCreate.TacticalSize);
+    }
     public int SummonsThisTurn(Team team) => team == Team.Enemy ? EnemySummons : team == Team.Player ? PlayerSummons : SummonTurnRules.Limit;
 
     // ---- AP基礎値（ターン開始リセット用） ----
@@ -110,6 +121,15 @@ public partial class SimBoardState
         state.TurnCount = realBoard.TurnCount;
         state.RealActorTeam = realBoard.ActorTeam;
         state.EnemySummons = realBoard.SummonsThisTurn;
+        var rules = realBoard.PublicRewardSettings;
+        if (rules != null)
+        {
+            state.ownArmyBonus = realBoard.OwnArmyBonus;
+            state.standardSoulCost = rules.summonCost;
+            state.ownSouls = realBoard.KnownSoulStock;
+            // Conservative possible reply based only on publicly available reward rounds.
+            state.possibleOpponentSouls = (int)System.Math.Min(rules.soulCap, rules.initialSouls + (long)(state.TurnCount / 5) * rules.soulReward);
+        }
         if (unitSet?.UnitDataMap != null)
         {
             state.RecruitmentDefinitions = new Dictionary<Kind, SimRecruitmentDefinition>(unitSet.UnitDataMap.Count);
@@ -177,7 +197,7 @@ public partial class SimBoardState
             capturedActors.Add(eCrystal);
         }
 
-        var pCrystal = FindCrystalStatus(realBoard.OpponentCrystalParent);
+        var pCrystal = realBoard.PlayerCrystalVisible ? FindCrystalStatus(realBoard.OpponentCrystalParent) : null;
         if (pCrystal != null && realBoard.PlayerCrystalVisible && !HasCrystal(state, Team.Player))
             state.Units.Add(CaptureUnit(pCrystal, idCounter++, state.ToSimulationTeam(pCrystal.team),state.TurnCount,state.RealActorTeam == Team.Player));
 
@@ -282,6 +302,7 @@ public partial class SimBoardState
     static SimUnit CaptureObservedUnit(Status actor,int id,Team simulationTeam,int round,AIBoardState board)
     {
         var result=CaptureUnit(actor,id,simulationTeam,round,board.ActorTeam == Team.Player);
+        if (actor.team == board.ActorTeam && actor.type == Type.Unit && actor.kind != Kind.Crystal) result.ArmyBonus = board.OwnArmyBonus;
         result.WildBossProtected=AIActionEvaluator.IsObservedWildBossProtected(board,actor);
         return result;
     }
@@ -321,6 +342,9 @@ public partial class SimBoardState
             copy.Units.Add(Units[i].Clone());
         copy.EnemyAP = EnemyAP;
         copy.PlayerAP = PlayerAP;
+        copy.ownArmyBonus = ownArmyBonus;
+        copy.standardSoulCost = standardSoulCost;
+        copy.ownSouls = ownSouls; copy.possibleOpponentSouls = possibleOpponentSouls;
         copy.EnemySummons = EnemySummons; copy.PlayerSummons = PlayerSummons;
         copy.EnemyAPReset = EnemyAPReset;
         copy.PlayerAPReset = PlayerAPReset;
@@ -447,6 +471,7 @@ public partial class SimBoardState
             Team = team,
             Kind = kind,
             Type = Type.Unit,
+            ArmyBonus = team == Team.Enemy ? ownArmyBonus : default,
             HP = hp,
             MaxHP = hp,
             ATK = atk,

@@ -144,6 +144,7 @@ public class GameGenerator : MonoBehaviour
 
         // Step 2: FactionState 生成
         FactionState factionState = InitFactionState();
+        if (loadData == null && _MapCreate.FixedHomelands) factionState.Rewards = CampaignRewards.Start();
         _cachedFactionState = factionState;
 
         // Step 3: ゲームシステム初期化

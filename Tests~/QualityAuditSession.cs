@@ -59,6 +59,12 @@ public static class QualityAuditSession
                     ?? Path.Combine(Application.dataPath, "../../quality-audit-20261023"));
                 Directory.CreateDirectory(outputDirectory);
                 observedSystems = turn.Systems;
+                if (Environment.GetEnvironmentVariable("FK_CAMPAIGN_REWARDS") == "1")
+                {
+                    pending.Push(CampaignRewardTests.Run(turn, outputDirectory));
+                    started = true;
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("FK_ENDGAME_SIEGE") == "1")
                 {
                     pending.Push(AIEndgameSiegeTests.Run(turn));
@@ -97,7 +103,8 @@ public static class QualityAuditSession
                 if (current.Current is IEnumerator nested) { pending.Push(nested); continue; }
                 return;
             }
-            if (Environment.GetEnvironmentVariable("FK_ENDGAME_SIEGE") == "1") { Finish(0); return; }
+            if (Environment.GetEnvironmentVariable("FK_ENDGAME_SIEGE") == "1" ||
+                Environment.GetEnvironmentVariable("FK_CAMPAIGN_REWARDS") == "1") { Finish(0); return; }
             RoleBalanceAudit.Run(observedSystems, Path.Combine(outputDirectory, "roles"));
             A1ReconTests.Run(observedSystems);
             QualityGameplayChecks.Run(observedSystems);

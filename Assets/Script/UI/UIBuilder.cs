@@ -151,8 +151,8 @@ public class UIBuilder : MonoBehaviour
         Color fooC  = BrandGuide.ResCatFood;
         Color popC  = BrandGuide.ResCatPopulation;
 
-        string[] r1Names  = { "Wood",  "Stone", "Iron",     "MagicOre" };
-        Color[]  r1Colors = { rawC,    rawC,    proC,       proC };
+        string[] r1Names  = { "Wood",  "Stone", "Iron",     "MagicOre", "Soul" };
+        Color[]  r1Colors = { rawC,    rawC,    proC,       proC, BrandGuide.ResCatCrystal };
         Color scC  = BrandGuide.ResCatCrystal;
         string[] r2Names  = { "Wheat", "Bread", "Water",  "Citizen", "SubCrystal" };
         Color[]  r2Colors = { fooC,    fooC,    rawC,     popC,      scC };
