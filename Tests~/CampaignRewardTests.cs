@@ -60,6 +60,16 @@ public static class CampaignRewardTests
         yield return UIQualityAudit.Capture(UIBuilder.ScreenCanvas,"reward",new Vector2Int(1280,800),output,report);
         yield return UIQualityAudit.Capture(UIBuilder.ScreenCanvas,"reward",new Vector2Int(960,540),output,report);
         Check(SaveCheckpoint.CanCapture(turn,out _), "choice is a valid checkpoint");
+        foreach (var team in new[] { Team.Player, Team.Enemy })
+        {
+            var explored = team == Team.Player ? s.VisionGenerator.PlayerExplored : s.VisionGenerator.EnemyExplored;
+            var cell = explored.First();
+            int beforeCount = explored.Count;
+            s.VisionGenerator.AddExplored(team, cell + Vector3Int.up);
+            s.VisionGenerator.AddExploredRange(team, new[] { cell + Vector3Int.down });
+            Check(explored.Count == beforeCount && explored.All(tile => tile.y == 0) &&
+                s.VisionGenerator.IsExplored(team, cell + Vector3Int.up * 2), team + " elevation does not duplicate explored tiles");
+        }
         var save = SaveSystem.CollectGameState(turn,s.FactionState,s.TimerSystem,s.VisionGenerator,s.AICommander);
         Check(SaveSystem.TrySaveGame(0,save,out string reason), "pending offer saved: " + reason);
         Check(SaveSystem.TryLoadGame(0,out var restored,out reason) && restored.FixedHomelands && restored.Campaign.Valid(5)
