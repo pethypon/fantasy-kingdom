@@ -17,7 +17,7 @@ public static class AICampaignContracts
         passed=0; using var effects=BoardActorAnimation.SuppressEffects();
         Reconfirmation();
         SiegeCrossing();
-        foreach (var side in new[]{Team.Player,Team.Enemy}) { Crystal(live,side); TerritoryItinerary(live,side); Overwatch(live,side); Campaign(live,side); }
+        foreach (var side in new[]{Team.Player,Team.Enemy}) { Crystal(live,side); TerritoryItinerary(live,side); TerritoryItinerary(live,side,true); Overwatch(live,side); Campaign(live,side); }
         Debug.Log("[Campaign] RESULT checks="+passed);
     }
     static void SiegeCrossing()
@@ -55,17 +55,27 @@ public static class AICampaignContracts
         Check("diagonal march cannot cut a blocked terrain corner", !Reaches(diagonal));
     }
 
-    static void TerritoryItinerary(GameSystems live,Team side)
+    static void TerritoryItinerary(GameSystems live,Team side,bool substitute=false)
     {
         using var f=new R2ConstructionEconomyTests.Fixture(live,side);
-        f.Engineer.kind=f.Engineer.GrowthData.kind=Kind.Scout;
+        f.Engineer.kind=f.Engineer.GrowthData.kind=substitute ? Kind.Knight : Kind.Scout;
         var movement=f.Engineer.GrowthData.actionProfile.movement;movement.useCustom=true;movement.directionIndependent=true;
         movement.SetCell(4,3,true);movement.SetCell(2,3,true);movement.SetCell(3,4,true);movement.SetCell(3,2,true);
-        f.Territory.GetTerritory(side==Team.Player?Team.Enemy:Team.Player).Add(f.Sites[1]);
+        var opposingTerritory=f.Territory.GetTerritory(side==Team.Player?Team.Enemy:Team.Player);
         var board=f.Board();board.TerritorySystem=f.Territory;
         var seen=(HashSet<Vector3Int>)typeof(VisionGenerator).GetField(side==Team.Player?"_playerVisionBox":"_enemyVisionBox",Hidden).GetValue(f.Vision);
         var explored=(HashSet<Vector3Int>)typeof(VisionGenerator).GetField(side==Team.Player?"_playerExplored":"_enemyExplored",Hidden).GetValue(f.Vision);
         foreach(var cell in f.Sites){seen.Add(GridHelper.ToGridXZ(cell));explored.Add(GridHelper.ToGridXZ(cell));}
+        if (live.MapCreate.FixedHomelands)
+        {
+            board.Refresh();
+            var unobserved = new EnemyTerritoryIntel();
+            unobserved.TryGetReconTarget(board, out _);
+            Check(side + " uses the public opposing strip as a hypothesis before seeing any enemy territory",
+                unobserved.HasSearchHypothesis && live.MapCreate.InHomeRows(unobserved.SearchHypothesisCenter.z, board.OpponentTeam)
+                && !unobserved.HasObservedTerritory && !board.GetLastKnownPlayerCrystal().Valid);
+        }
+        opposingTerritory.Add(f.Sites[1]);
         board.Refresh();var intel=board.TerritoryIntel;intel.Observe(board);
         Check(side+" territory-only evidence creates a frontier itinerary",intel.TryGetReconTarget(board,out var target)&&!board.GetLastKnownPlayerCrystal().Valid);
         Check(side+" cached request keeps its selected frontier",intel.TryGetReconTarget(board,out var same)&&same==target);
@@ -75,7 +85,8 @@ public static class AICampaignContracts
         var commander=(AICommander)FormatterServices.GetUninitializedObject(typeof(AICommander));Set(commander,"_board",board);Set(commander,"mainBaseReconMoveRound",-1);
         var reserve=typeof(AICommander).GetMethod("ReservedMainBaseReconMove",Hidden);
         var selected=(AIAction)reserve.Invoke(commander,new object[]{legal});
-        Check(side+" a generated safe scout advance receives one AP opportunity",selected!=null&&board.Exploration.IsObjectiveProgress(selected.Unit,selected.TargetPos,board));
+        Check(side+(substitute ? " assigned substitute" : " scout")+" gets one safe advance toward its own reconnaissance goal",
+            selected!=null&&selected.Unit==f.Engineer&&board.Exploration.IsObjectiveProgress(selected.Unit,selected.TargetPos,board));
         typeof(AICommander).GetMethod("RecordCampaignAction",Hidden).Invoke(commander,new object[]{new AIAction{ActionType=AIActionType.Move,Unit=f.Engineer}});
         selected=(AIAction)reserve.Invoke(commander,new object[]{legal});
         Check(side+" unrelated scout reposition keeps the survey opportunity",selected!=null);

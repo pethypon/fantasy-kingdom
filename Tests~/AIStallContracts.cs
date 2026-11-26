@@ -45,9 +45,14 @@ public static class AIStallContracts
         {
             using var f=new R2ConstructionEconomyTests.Fixture(live,side);
             var actor=f.Engineer;actor.kind=actor.GrowthData.kind=Kind.Scout;actor.HP=actor.MaxHP=35;
-            var board=f.Board();var planner=board.Exploration;planner.Update(board,false);
+            var board=f.Board(); board.Refresh(); var planner=board.Exploration;planner.Update(board,false);
             var goal=planner.GetObjective(actor.GetInstanceID());Check(side+" live scout gets a goal",goal!=null);
             goal.TargetCell=f.Sites[1];goal.State=ObjectiveState.Active;
+            // Keep this controlled expedition unfinished even if an adjacent frontier
+            // already earned reveal credit during setup on a small board.
+            goal.HasRequiredObservation=true;
+            int farX=actor.GridPosition.x < live.MapCreate.maxX/2 ? live.MapCreate.maxX-1 : 0;
+            goal.RequiredObservationCell=new Vector3Int(farX,0,actor.GridPosition.z);
             int goalId=goal.ObjectiveId;
             actor.ActiveEffects.Add(new ActiveEffect(StatusEffectType.Freeze,1));board.Refresh();planner.Update(board,false);
             Check(side+" a live frozen scout is suspended rather than removed",planner.GetObjective(actor.GetInstanceID())?.ObjectiveId==goalId&&planner.GetObjective(actor.GetInstanceID()).State==ObjectiveState.Suspended);

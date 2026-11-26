@@ -21,7 +21,7 @@ public partial class AICommander
         foreach (var entry in valid)
         {
             var action = entry.action;
-            if (action.Unit == null || action.Unit.kind != Kind.Scout || action.ActionType != AIActionType.Move
+            if (action.Unit == null || action.ActionType != AIActionType.Move
                 || !_board.Exploration.IsObjectiveProgress(action.Unit, action.TargetPos, _board)) continue;
             float danger = _board.Governor?.IncomingDamage(_board, action.Unit, action.TargetPos, null)
                 ?? _board.EstimateCounterDamageAt(action.TargetPos, action.Unit);
