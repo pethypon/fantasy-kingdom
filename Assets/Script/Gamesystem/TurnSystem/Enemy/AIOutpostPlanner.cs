@@ -105,7 +105,7 @@ public sealed class AIOutpostPlanner
             && GridHelper.ChebyshevDistance(board.EnemyCrystalPos, contact) - GridHelper.ChebyshevDistance(site, contact) >= 3;
         // The first outpost can support expansion. Keep the final scarce crystal for a
         // concrete observed objective rather than spending both on generic opening growth.
-        if (board.EnemySubCrystals == 1 && !dungeonSite && !strongholdSite && !assaultSite) return -1000;
+        if ((board.MapCreate?.FixedHomelands == true || board.EnemySubCrystals == 1) && !dungeonSite && !strongholdSite && !assaultSite) return -1000;
         // Ordinary expansion should not starve the opening economy.
         if (!dungeonSite && EconomyHelper.CountEconBuildings(board) < 2) return -1000;
         float score = dungeonSite ? 100 : 25;

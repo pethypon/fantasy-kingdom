@@ -21,6 +21,8 @@ public static partial class SaveSystem
             MatchId = turnGen.MatchId,
             ThreatLevel = aiCommander?.ThreatLevel.Level ?? LoadProfile().ThreatLevel,
             Checkpoint = "player_turn",
+            Campaign = factionState?.Rewards == null ? null : JsonUtility.FromJson<CampaignRewards>(JsonUtility.ToJson(factionState.Rewards)),
+            FixedHomelands = turnGen.Systems.MapCreate.FixedHomelands,
             HasExplicitMapSnapshot = true,
             LandOverrides = new List<Vector3Int>(turnGen.Systems.MapCreate.SavedLandOverrides),
             R1Terrain = turnGen.Systems.MapCreate.UseR1Terrain,

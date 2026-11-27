@@ -63,6 +63,7 @@ public class UnitData : ScriptableObject
     public int costBread;
     public int costCitizen;
     public int costAP;
+    [Range(0, 20)] public int soulCostOverride;
 
     public bool IsValidForAuthoring => kind != Kind.Engineer && baseHP > 0 && baseATK >= 0 && baseDEF >= 0 && baseBarrier >= -1
         && upkeepWood >= 0 && upkeepStone >= 0 && upkeepIron >= 0 && upkeepMagic >= 0 && upkeepWater >= 0 && upkeepBread >= 0

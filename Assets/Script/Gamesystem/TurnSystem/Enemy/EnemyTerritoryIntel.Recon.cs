@@ -135,16 +135,36 @@ public sealed partial class EnemyTerritoryIntel
     bool TryCoverageHypothesis(AIBoardState board, out Vector3Int center)
     {
         center = default;
-        if (terrain.Count < 32 || board.TurnCount < 4) return false;
+        bool fixedHomelands = sourceMap.FixedHomelands;
+        if (terrain.Count == 0 || !fixedHomelands && (terrain.Count < 32 || board.TurnCount < 4)) return false;
         float best = -1;
+        var ownBase = GridHelper.ToGridXZ(board.EnemyCrystalPos);
         for (int z = 0; z < 4; z++) for (int x = 0; x < 4; x++)
         {
-            int left = x * width / 4, right = (x + 1) * width / 4, bottom = z * depth / 4, top = (z + 1) * depth / 4;
+            // Match SearchSector's buckets on boards whose dimensions are not multiples of four.
+            int left = (x * width + 3) / 4, right = ((x + 1) * width + 3) / 4;
+            int bottom = (z * depth + 3) / 4, top = ((z + 1) * depth + 3) / 4;
+            if (fixedHomelands)
+            {
+                if (board.OpponentTeam == Team.Player) top = Math.Min(top, MapCreate.HomelandDepth);
+                else bottom = Math.Max(bottom, depth - MapCreate.HomelandDepth);
+                if (bottom >= top) continue;
+            }
             int area = (right - left) * (top - bottom); if (area <= 0) continue;
-            int unknown = Mathf.Max(0, area - knownSearchSectors[z * 4 + x]); if (unknown == 0) continue;
             var candidate = new Vector3Int((left + right - 1) / 2, 0, (bottom + top - 1) / 2);
-            float distance = Distance(candidate, GridHelper.ToGridXZ(board.EnemyCrystalPos)) / (float)Mathf.Max(width, depth);
-            float score = unknown / (float)area * (.5f + distance);
+            int unknown = area - knownSearchSectors[z * 4 + x];
+            if (fixedHomelands)
+            {
+                // Only the public strip and our observation memory are inputs. Across
+                // all sectors at most 45 cells are checked on the tactical board.
+                unknown = 0; int sumX = 0, sumZ = 0;
+                for (int cx = left; cx < right; cx++) for (int cz = bottom; cz < top; cz++)
+                    if (!terrain.ContainsKey(new Vector3Int(cx, 0, cz))) { unknown++; sumX += cx; sumZ += cz; }
+                if (unknown > 0) candidate = new Vector3Int(sumX / unknown, 0, sumZ / unknown);
+            }
+            if (unknown <= 0) continue;
+            float distance = Distance(candidate, ownBase) / (float)Mathf.Max(width, depth);
+            float score = unknown / (float)area * (fixedHomelands ? 1f / (1f + distance) : .5f + distance);
             if (score <= best) continue;
             best = score; center = candidate;
         }

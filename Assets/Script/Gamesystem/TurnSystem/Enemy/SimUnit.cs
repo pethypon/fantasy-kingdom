@@ -59,6 +59,7 @@ public class SimUnit
     public bool IsPrimaryCommander;
     public int AssignedSkillId;
     public int SkillCooldown;
+    public CampaignRewards.ArmyBonus ArmyBonus;
     public bool SummonAttackLocked;
     public int NormalAttacksThisTurn;
     public int Fatigue;
@@ -93,6 +94,7 @@ public class SimUnit
         c.Facility = Facility;
         c.ActionProfile = ActionProfile;
         c.Id = Id; c.Team = Team; c.Kind = Kind; c.Type = Type;
+        c.ArmyBonus = ArmyBonus;
         c.HP = HP; c.MaxHP = MaxHP; c.ATK = ATK; c.DEF = DEF;
         c.MaxBarrier = MaxBarrier; c.Barrier = Barrier;
         c.BarrierSafeTurns = BarrierSafeTurns; c.BarrierLastRound = BarrierLastRound;
@@ -169,6 +171,7 @@ public class SimUnit
     {
         if (amount <= 0 || !IsAlive || HP >= MaxHP) return 0;
         int previous = HP;
+        amount = CampaignRewards.ApplyHealBonus(amount, 1f + ArmyBonus.healPercent * .01f);
         HP = (int)System.Math.Min(MaxHP, (long)HP + amount);
         return HP - previous;
     }
@@ -198,7 +201,7 @@ public class SimUnit
         if (HasDebuff(StatusEffectType.Weaken)) mod -= GameConstants.WeakenATKReduction;
         if (HasDebuff(StatusEffectType.Chill)) mod -= GameConstants.ChillATKReduction;
         if (HasBuff(BuffType.Offensive)) mod += GameConstants.OffensiveATKBonus;
-        return Mathf.Clamp(mod, 0f, 2f);
+        return Mathf.Clamp(mod, 0f, 2f) * (1f + ArmyBonus.attackPercent * .01f);
     }
 
     public float GetDEFMod()

@@ -256,11 +256,11 @@ public class UnitSetting : MonoBehaviour
         {
             float pkx = Mathf.Abs(p.x - pcp.x);
             float pkz = Mathf.Abs(p.z - pcp.z);
-            if (pkx <= 1 && pkz <= 1 && p != pcp) KingPoint.Add(p);
+            if (pkx <= 1 && pkz <= 1 && p != pcp && mapcreate.OpeningCell(p, Team.Player)) KingPoint.Add(p);
 
             float pex = Mathf.Abs(p.x - ecp.x);
             float pez = Mathf.Abs(p.z - ecp.z);
-            if (pex <= 1 && pez <= 1 && p != ecp) StrangePoint.Add(p);
+            if (pex <= 1 && pez <= 1 && p != ecp && mapcreate.OpeningCell(p, Team.Enemy)) StrangePoint.Add(p);
         }
 
         // Instantiate を SpawnUnit に置き換え（ステータス適用済み）
@@ -292,14 +292,14 @@ public class UnitSetting : MonoBehaviour
                                    Transform parent, Team team,
                                    HashSet<Vector3> usedPositions)
     {
-        // 領土範囲（Chebyshev距離5）内の配置候補
+        var map = GetComponent<MapCreate>();
         var candidates = new List<Vector3>();
         foreach (var p in setpos)
         {
             if (p == crystalPos || usedPositions.Contains(p)) continue;
             float dx = Mathf.Abs(p.x - crystalPos.x);
             float dz = Mathf.Abs(p.z - crystalPos.z);
-            if (dx <= 5 && dz <= 5) candidates.Add(p);
+            if (map.FixedHomelands ? map.OpeningCell(p, team) : dx <= 5 && dz <= 5) candidates.Add(p);
         }
 
         var pieces = new (GameObject prefab, Kind kind)[]

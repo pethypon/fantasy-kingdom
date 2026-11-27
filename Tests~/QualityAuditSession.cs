@@ -59,6 +59,25 @@ public static class QualityAuditSession
                     ?? Path.Combine(Application.dataPath, "../../quality-audit-20261023"));
                 Directory.CreateDirectory(outputDirectory);
                 observedSystems = turn.Systems;
+                if (Environment.GetEnvironmentVariable("FK_CAMPAIGN_REWARDS") == "1")
+                {
+                    pending.Push(CampaignRewardTests.Run(turn, outputDirectory));
+                    started = true;
+                    return;
+                }
+                if (Environment.GetEnvironmentVariable("FK_ENDGAME_SIEGE") == "1")
+                {
+                    pending.Push(AIEndgameSiegeTests.Run(turn));
+                    started = true;
+                    return;
+                }
+                if (Environment.GetEnvironmentVariable("FK_DECISIVENESS_CONTRACTS") == "1")
+                {
+                    AITerritoryReconTests.RunEvidenceTransitions();
+                    AIStallContracts.Core(); AIStallContracts.Live(observedSystems);
+                    AICampaignContracts.Run(observedSystems);
+                    Finish(0); return;
+                }
                 if (Environment.GetEnvironmentVariable("FK_NORMAL_ATTACK_CONTRACTS") == "1")
                 { NormalAttackTurnTests.Run(observedSystems,turn); Finish(0); return; }
                 if (Environment.GetEnvironmentVariable("FK_AI_CAMPAIGN_CONTRACTS") == "1")
@@ -84,6 +103,8 @@ public static class QualityAuditSession
                 if (current.Current is IEnumerator nested) { pending.Push(nested); continue; }
                 return;
             }
+            if (Environment.GetEnvironmentVariable("FK_ENDGAME_SIEGE") == "1" ||
+                Environment.GetEnvironmentVariable("FK_CAMPAIGN_REWARDS") == "1") { Finish(0); return; }
             RoleBalanceAudit.Run(observedSystems, Path.Combine(outputDirectory, "roles"));
             A1ReconTests.Run(observedSystems);
             QualityGameplayChecks.Run(observedSystems);

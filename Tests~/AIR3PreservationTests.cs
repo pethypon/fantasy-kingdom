@@ -317,6 +317,26 @@ public static class AIR3PreservationTests
         Check(team + " recovered unit safely rejoins using the real executor", board.GetValidMoves(f.Actor).Contains(rejoin.TargetPos)
             && governor.PreservationRejectReason(rejoin, board) == null && Execute(live, f, rejoin, board));
     }
+    public static void EvacuatedPatient(GameSystems live, Team team)
+    {
+        using var f = new Fixture(live, team, 50, 35, 10);
+        var board = f.Board();
+        var governor = board.Governor;
+        Check(team + " patient has a recorded threat", governor.AssessPreservation(f.Actor, board).HasLegalSaferMove);
+        var retreat = f.Retreat(board);
+        Check(team + " patient reaches shelter", retreat != null && Execute(live, f, retreat, board));
+        var history = new AITurnMovementHistory();
+        history.Record(f.Actor, f.Origin, f.Safety, true, 0, true);
+        board.Refresh();
+        Check(team + " shelter has no incoming damage", governor.AssessPreservation(f.Actor, board).Phase == AIUnitRecoveryPhase.Recovering);
+        var advance = new AIAction { ActionType = AIActionType.Move, Unit = f.Actor, TargetPos = f.Safety + Vector3.right, StrategicPriority = 4 };
+        Check(team + " newly evacuated patient holds shelter against unrelated advance", history.ShouldReject(advance, board));
+        advance.StrategicPriority = 0;
+        Check(team + " real emergency can release the patient", !history.ShouldReject(advance, board));
+        history.Clear();
+        advance.StrategicPriority = 4;
+        Check(team + " shelter memory expires at next own turn", !history.ShouldReject(advance, board));
+    }
     static void NoHealing(GameSystems live, Team team)
     {
         using var f = new Fixture(live, team, 1, 35, 1);

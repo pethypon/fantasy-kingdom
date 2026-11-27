@@ -36,6 +36,7 @@ public class VisionGenerator : MonoBehaviour
     /// <summary>探索済みセルを追加する（セーブデータ復元・駒死亡時用）</summary>
     public void AddExplored(Team team, Vector3Int cell)
     {
+        cell.y = 0;
         if (team == Team.Player) _playerExplored?.Add(cell);
         else if (team == Team.Enemy) _enemyExplored?.Add(cell);
     }
@@ -45,7 +46,8 @@ public class VisionGenerator : MonoBehaviour
     {
         if (team != Team.Player && team != Team.Enemy) return;
         var set = team == Team.Player ? _playerExplored : _enemyExplored;
-        if (set != null && cells != null) set.UnionWith(cells);
+        if (set != null && cells != null)
+            foreach (var cell in cells) set.Add(new Vector3Int(cell.x, 0, cell.z));
     }
 
     /// <summary>探索済みデータをクリアする（セーブデータ復元用）</summary>
@@ -117,6 +119,7 @@ public class VisionGenerator : MonoBehaviour
     public bool IsExplored(Team team, Vector3Int cell)
     {
         var set = team == Team.Player ? _playerExplored : _enemyExplored;
+        cell.y = 0;
         return set != null && set.Contains(cell);
     }
 
@@ -571,9 +574,10 @@ public class VisionGenerator : MonoBehaviour
             }
         }
 
-        // VisionBoxをExploredに入れる
-        _playerExplored.UnionWith(_playerVisionBox);
-        _enemyExplored.UnionWith(_enemyVisionBox);
+        // Sight rays retain their height. Exploration memory, the fog and the save
+        // format count each board tile once regardless of the observer's elevation.
+        AddExploredRange(Team.Player, _playerVisionBox);
+        AddExploredRange(Team.Enemy, _enemyVisionBox);
         VisionSetting(mapcreate);
     }
 
@@ -597,6 +601,7 @@ public class VisionGenerator : MonoBehaviour
         if (status.VisionCell == null) status.VisionCell = new HashSet<Vector3Int>();
 
         Vector3Int statusGrid = GridHelper.ToGrid(status.transform.position);
+        if (statusGrid.x < 0 || statusGrid.x >= mapcreate.maxX || statusGrid.z < 0 || statusGrid.z >= mapcreate.maxZ) return;
         status.VisionCell.Add(statusGrid);
         if (SpecialSkillRuntime.State(status).visionZeroTurns > 0) return;
         int statusX = statusGrid.x;

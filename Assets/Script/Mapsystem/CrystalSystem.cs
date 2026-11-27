@@ -41,6 +41,11 @@ public class CrystalSystem : MonoBehaviour
         maxx = mapcreate.maxX;
         maxz = mapcreate.maxZ;
 
+        if (mapcreate.FixedHomelands)
+        {
+            CrystalCore(SelectHome(Team.Player), SelectHome(Team.Enemy));
+            return;
+        }
         PlacePlayerCrystal();
         PlaceEnemyCrystal();
         mapcreate.ExcludePlacementCell(ECP);
@@ -65,6 +70,31 @@ public class CrystalSystem : MonoBehaviour
         GetComponent<MapCreate>().ExcludePlacementCell(ECP);
 
         Debug.Log($"[CrystalSystem] セーブから復元: PCP={PCP} ECP={ECP}");
+    }
+
+    private Vector3 SelectHome(Team team)
+    {
+        var map = GetComponent<MapCreate>();
+        var candidates = new List<Vector3>();
+        foreach (var cell in _SetPos)
+        {
+            if (!map.OpeningCell(cell, team)) continue;
+            if (HasCommanderSpace(cell)) candidates.Add(cell);
+        }
+        if (candidates.Count == 0) throw new System.InvalidOperationException("本拠点と王を配置できません。");
+        return candidates[Random.Range(0, candidates.Count)];
+
+        bool HasCommanderSpace(Vector3 cell)
+        {
+            for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+            {
+                if (dx == 0 && dz == 0) continue;
+                var near = cell + new Vector3(dx, 0, dz);
+                if (map.OpeningCell(near, team) && map.HasTileAt((int)near.x, (int)near.z)) return true;
+            }
+            return false;
+        }
     }
 
     // ==== プレイヤークリスタル配置 ====

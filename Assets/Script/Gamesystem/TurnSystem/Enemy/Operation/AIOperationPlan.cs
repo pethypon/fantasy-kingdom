@@ -21,6 +21,7 @@ public sealed class AIOperationPlan
     public int BaseApproachX, BaseApproachZ;
     public int RequiredAdditionalCitizens, RallyX, RallyZ;
     public int StartTurn, ExpectedEndTurn, ActualEndTurn, MaximumEndTurn, LastProgressTurn;
+    public int LastSiegeAdvanceTurn;
     public int SuspendedOwnTurn = -1;
     public AIOperationStatus Status;
     public AIOperationAbortReason AbortReason;

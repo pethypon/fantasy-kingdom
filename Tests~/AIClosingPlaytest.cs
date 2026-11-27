@@ -41,6 +41,8 @@ public static class AIClosingPlaytest
     }
     [Serializable] sealed class MatchReport
     {
+        public bool FixedHomelands;
+        public int BoardWidth, BoardDepth, PlayerOwnedCells, EnemyOwnedCells;
         public string R4RequestedMode;
         public bool ControlledSquadScenario;
         public string ScenarioScope = "ordinary NewGame with developer Player AI";
@@ -440,6 +442,10 @@ public static class AIClosingPlaytest
                     match.PlayerEngineerConfigured = engineer != null && engineer.IsValidForAuthoring && engineer.AvailableFor(Team.Player);
                     match.EnemyEngineerConfigured = engineer != null && engineer.IsValidForAuthoring && engineer.AvailableFor(Team.Enemy);
                 }
+                match.FixedHomelands = s.MapCreate.FixedHomelands;
+                match.BoardWidth = s.MapCreate.maxX; match.BoardDepth = s.MapCreate.maxZ;
+                match.PlayerOwnedCells = s.TerritorySystem.PTSetPos.Count;
+                match.EnemyOwnedCells = s.TerritorySystem.ETSetPos.Count;
                 match.TerrainSeedX = s.MapCreate.SeedX; match.TerrainSeedZ = s.MapCreate.SeedZ;
                 match.ControlledSquadScenario = SquadAssaultSetup.Apply(turn);
                 if (match.ControlledSquadScenario) match.ScenarioScope = "CONTROLLED superior-force fixture: eight extra normal-stat Player troops at seven-step staging; Player material stocks 5000 and resource-cap enforcement disabled only here; full-health objective; official AP/damage/Fog/executor rules. Not ordinary-game victory evidence.";

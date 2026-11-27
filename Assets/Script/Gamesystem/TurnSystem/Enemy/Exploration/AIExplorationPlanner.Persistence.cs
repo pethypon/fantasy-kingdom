@@ -58,6 +58,9 @@ public sealed partial class AIExplorationPlanner
                 || objective.HasRequiredObservation && !Inside(XZ(objective.RequiredObservationCell))
                 || (int)objective.State < 0 || (int)objective.State > (int)ObjectiveState.Failed || !Finite(objective.BestDistance) || !Finite(objective.LastDistance)) continue;
             var copy = CloneObjective(objective); copy.CreatedTurn = Mathf.Clamp(copy.CreatedTurn, 0, turn);
+            if (copy.HasRequiredObservation) copy.ReconEvidence = ExplorationReconEvidence.RememberedBase;
+            else if (copy.ReconEvidence < ExplorationReconEvidence.None || copy.ReconEvidence > ExplorationReconEvidence.RememberedBase)
+                copy.ReconEvidence = ExplorationReconEvidence.None;
             if (copy.ObjectiveId <= 0 || copy.ObjectiveId == int.MaxValue || restoredObjectiveIds.Contains(copy.ObjectiveId))
                 copy.ObjectiveId = AllocateObjectiveId();
             restoredObjectiveIds.Add(copy.ObjectiveId);
@@ -151,7 +154,7 @@ public sealed partial class AIExplorationPlanner
         BestDistance = source.BestDistance, LastDistance = source.LastDistance, LastSampleTurn = source.LastSampleTurn,
         LastUnknownCount = source.LastUnknownCount, FailedMoves = source.FailedMoves, SuspendedTurn = source.SuspendedTurn,
         LastReason = source.LastReason, IsIntelRevisit = source.IsIntelRevisit,
-        HasRequiredObservation = source.HasRequiredObservation, RequiredObservationCell = source.RequiredObservationCell,
+        ReconEvidence = source.ReconEvidence, HasRequiredObservation = source.HasRequiredObservation, RequiredObservationCell = source.RequiredObservationCell,
         RebaseProgressOnNextObservation = source.RebaseProgressOnNextObservation,
         UsesKnownRouteDistance = source.UsesKnownRouteDistance, RouteMetricRevision = source.RouteMetricRevision, RouteWaypoint = source.RouteWaypoint
     };

@@ -85,6 +85,8 @@ public static partial class SaveSystem
         // マップシード（再生成用）
         public bool R1Terrain;
         public List<Vector3Int> LandOverrides;
+        public CampaignRewards Campaign;
+        public bool FixedHomelands;
         public int MapWidth, MapDepth;
         public int MapMinY = 0, MapMaxY = 2, MapAverageFoundation = 2, MapAmplitude = 6;
         public bool HasMapGenerationSettings;

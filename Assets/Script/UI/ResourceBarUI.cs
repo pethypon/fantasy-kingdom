@@ -27,7 +27,9 @@ public class ResourceBarUI : MonoBehaviour
 
     private FactionState.ResourceData lastSnapshot;
     private int lastCitizenCap = -1;
-    private int lastSubCrystals = -1;
+    private int lastSubCrystals = -1, lastSouls = -2;
+    private TextMeshProUGUI soulText;
+    private int lastAttackUntil, lastHealUntil, lastAttackStacks, lastHealStacks;
 
     private void Awake()
     {
@@ -49,6 +51,10 @@ public class ResourceBarUI : MonoBehaviour
                 case "Bread":    breadText = tmp; break;
                 case "Water":    waterText = tmp; break;
                 case "Citizen":  citizenText = tmp; break;
+                case "Soul":
+                    soulText = tmp;
+                    tmp.transform.parent.gameObject.SetActive(false);
+                    break;
                 case "SubCrystal": subCrystalText = tmp; break;
             }
         }
@@ -66,6 +72,32 @@ public class ResourceBarUI : MonoBehaviour
 
         int citizenCap = factionState.GetCitizenCap(displayTeam);
         int subCrystals = factionState.GetSubCrystals(displayTeam);
+        var account = factionState.Rewards?.Account(displayTeam);
+        int souls = account?.souls ?? -1;
+        if (souls != lastSouls || account != null && (account.attackUntil != lastAttackUntil || account.healUntil != lastHealUntil
+            || account.attackStacks != lastAttackStacks || account.healStacks != lastHealStacks))
+        {
+            lastSouls = souls;
+            if (soulText != null)
+            {
+                soulText.transform.parent.gameObject.SetActive(souls >= 0);
+                if (account != null)
+                {
+                    lastAttackUntil = account.attackUntil; lastHealUntil = account.healUntil;
+                    lastAttackStacks = account.attackStacks; lastHealStacks = account.healStacks;
+                    SetText(soulText, "魂", souls, "#CFBEFF");
+                    var tooltip = soulText.GetComponentInParent<ResourceValueTooltip>();
+                    if (tooltip != null)
+                    {
+                        var settings = factionState.Rewards.settings;
+                        string detail = $"召喚の魂　{souls} / {settings.soulCap}";
+                        if (account.attackStacks > 0) detail += $"\n攻撃力 +{account.attackStacks * settings.attackPercent}%　第{account.attackUntil - 1}ターンまで";
+                        if (account.healStacks > 0) detail += $"\n回復量 +{account.healStacks * settings.healingPercent}%　第{account.healUntil - 1}ターンまで";
+                        tooltip.Value = detail;
+                    }
+                }
+            }
+        }
         if (!HasChanged(res) && citizenCap == lastCitizenCap
             && subCrystals == lastSubCrystals) return;
 

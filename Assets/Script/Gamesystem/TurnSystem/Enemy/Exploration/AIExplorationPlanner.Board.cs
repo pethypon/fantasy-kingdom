@@ -97,6 +97,7 @@ public sealed partial class AIExplorationPlanner
             // The supplied point is observed territory/known adjacent geography, not an inferred base.
             boardObservation.HasTerritoryReconDirection = board.TerritoryIntel.TryGetReconTarget(board, out var territoryRecon);
             boardObservation.TerritoryReconIsRevisit = board.GetLastKnownPlayerCrystal().Valid;
+            boardObservation.TerritoryReconIsHypothesis = board.TerritoryIntel.HasSearchHypothesis;
             boardObservation.TerritoryReconDirection = GridHelper.ToGridXZ(territoryRecon);
             if (boardObservation.HasTerritoryReconDirection)
                 boardObservation.ImportantCells[GridHelper.ToGridXZ(territoryRecon)] = 1f;

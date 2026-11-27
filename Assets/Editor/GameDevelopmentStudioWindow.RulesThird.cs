@@ -29,7 +29,11 @@ public sealed partial class GameDevelopmentStudioWindow
         DrawBundle(so.FindProperty("unitExtraUpkeep"), "軍の追加維持費（王と免除駒は除外）");
         DrawAIEconomyPolicy(so.FindProperty("aiEconomy"));
         DrawBuildingProductionBalance(so.FindProperty("buildingProduction"));
-        Heading("新規マップ");Fields(so,"mapWidth","mapDepth","noiseScale","riverHalfWidth");
+        Heading("5ターン報酬");
+        EditorGUILayout.PropertyField(so.FindProperty("campaignRewards"), new GUIContent("魂・強化・資源の試験値"), true);
+        Heading("新規マップ");
+        EditorGUILayout.LabelField("盤面", "15 × 15　両陣営の領土は両端の3列");
+        Fields(so,"noiseScale","riverHalfWidth");
         Heading("陣営の名前・色・初期状態");
         var factions=so.FindProperty("factions");
         for(int i=0;i<factions.arraySize;i++)

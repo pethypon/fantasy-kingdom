@@ -338,8 +338,9 @@ public sealed partial class AIStrategicGovernor
         // Existing crisis, first-move, actual-goal-progress and survival checks still apply.
         if(Mode != StrategicMode.EmergencyDefense && Mode != StrategicMode.EconomicRecovery
             &&a.Unit != null&&!MatchObjectiveRules.IsCommander(a.Unit)&&!a.Unit.HasMovedThisTurn&&IsMovement(a)
-            &&(!HasActiveTerritoryAdvance || a.Unit.kind == Kind.Scout)
-            &&Exploration.TryGetAssignedTarget(a.Unit,out var frontier)
+            &&Exploration.IsAssignedUnit(a.Unit)
+            &&(!HasActiveTerritoryAdvance || a.Unit.kind == Kind.Scout
+                || Exploration.GetObjective(a.Unit.GetInstanceID()).ReconEvidence != ExplorationReconEvidence.None)
             &&Exploration.IsObjectiveProgress(a.Unit,a.TargetPos,board)
             &&IncomingDamage(board,a.Unit,a.TargetPos,null)<a.Unit.HP)return 3;
         return 4;

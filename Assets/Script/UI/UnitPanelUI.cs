@@ -466,7 +466,11 @@ public partial class UnitPanelUI : MonoBehaviour
 
         SetUnitInformationLayout(false);
         // 中央: ステータス
-        if (atkText != null) atkText.text = "攻撃力  <b>" + currentUnit.ATK + "</b>";
+        if (atkText != null)
+        {
+            int percent = Mathf.RoundToInt((CampaignRewards.UnitBonus(currentUnit, false) - 1f) * 100f);
+            atkText.text = "攻撃力  <b>" + currentUnit.ATK + "</b>" + (percent > 0 ? $"　+{percent}%" : "");
+        }
         UpdateBarrierBar();
         if (kindText != null)
         {
@@ -840,7 +844,8 @@ public partial class UnitPanelUI : MonoBehaviour
         if (building.facilityKind == FacilityKind.House || building.facilityKind == FacilityKind.LuxuryHouse) parts.Add("人口上限 +" + data.SpecialValue);
         else if (building.facilityKind == FacilityKind.Warehouse) parts.Add("資源容量 +" + data.SpecialValue);
         else if (building.facilityKind == FacilityKind.Barracks) parts.Add("現在特殊効果なし");
-        else if (FacilityData.IsSubCrystal(building.facilityKind)) parts.Add("領地拡張 半径3");
+        else if (FacilityData.IsSubCrystal(building.facilityKind)) parts.Add(building.RuntimeSystems?.MapCreate?.FixedHomelands == true
+            ? "前哨拠点・周囲1マスのダンジョンを支配" : "領地拡張 半径" + SubCrystalSystem.SubCrystalTerritoryRadius);
         return string.Join("\n", parts);
     }
 

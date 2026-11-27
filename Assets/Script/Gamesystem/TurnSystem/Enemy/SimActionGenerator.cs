@@ -275,8 +275,9 @@ public static class SimActionGenerator
         SimActionBuffer results)
     {
         var counts = team == Team.Enemy ? board.EnemyBuildingCounts : board.PlayerBuildingCounts;
-
-
+        var center = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
+        var buildCell = board.standardSoulCost == 0 ? center : FindSpawnPosition(board, team, center);
+        if (buildCell.x == int.MinValue) return;
 
         foreach (var fk in priorities)
         {
@@ -288,12 +289,10 @@ public static class SimActionGenerator
             counts.TryGetValue(fk, out existing);
             if (existing >= 3) continue;
 
-            var crystalPos = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
-
             var candidate = results.Next();
             candidate.Type = SimActionType.Build;
             candidate.Facility = fk;
-            candidate.TargetPos = crystalPos;
+            candidate.TargetPos = buildCell;
             candidate.APCost = info.APCost;
             candidate.ActorTeam = team;
         }
@@ -308,11 +307,12 @@ public static class SimActionGenerator
         if (board.SummonsThisTurn(team) >= SummonTurnRules.Limit) return;
         var crystalPos = team == Team.Enemy ? board.EnemyCrystalPos : board.PlayerCrystalPos;
         // Every candidate is evaluated against the same board; do not rescan 25 cells per kind.
-        Vector3Int spawnPos = FindSpawnPosition(board, crystalPos);
+        Vector3Int spawnPos = FindSpawnPosition(board, team, crystalPos);
         if (spawnPos.x == int.MinValue) return;
 
         foreach (var kind in board.RecruitmentKinds ?? UnitRoster.SummonableKinds)
         {
+            if (!board.CanPaySouls(team, kind)) continue;
             int costAP;
             if (board.TryGetRecruitment(kind, out var definition))
             {
@@ -337,7 +337,7 @@ public static class SimActionGenerator
         }
     }
 
-    static Vector3Int FindSpawnPosition(SimBoardState board, Vector3Int center)
+    static Vector3Int FindSpawnPosition(SimBoardState board, Team team, Vector3Int center)
     {
         // クリスタル周囲の空きマスを探す
         for (int dx = -2; dx <= 2; dx++)
@@ -346,11 +346,22 @@ public static class SimActionGenerator
             {
                 if (dx == 0 && dz == 0) continue;
                 var pos = new Vector3Int(center.x + dx, 0, center.z + dz);
-                if (board.MapTiles.Contains(pos) && !board.IsOccupied(pos))
+                if (board.InRecruitmentRows(team, pos) && board.MapTiles.Contains(pos) && !board.IsOccupied(pos)
+                    && !board.Water.Contains(pos) && !board.Mountains.Contains(pos))
                     return pos;
             }
         }
-        return new Vector3Int(int.MinValue, 0, 0);
+        var best = new Vector3Int(int.MinValue, 0, 0);
+        if (board.standardSoulCost == 0) return best;
+        int nearest = int.MaxValue;
+        foreach (var pos in board.MapTiles)
+        {
+            if (!board.InRecruitmentRows(team, pos) || board.IsOccupied(pos) || board.Water.Contains(pos) || board.Mountains.Contains(pos)) continue;
+            int distance = GridHelper.ChebyshevDistance(center, pos);
+            if (distance < nearest || distance == nearest && (pos.x < best.x || pos.x == best.x && pos.z < best.z))
+            { nearest = distance; best = pos; }
+        }
+        return best;
     }
 
     // ================================================================

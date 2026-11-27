@@ -21,6 +21,7 @@ public sealed class GameAuthoringRules : ScriptableObject
 {
     public const string ResourcesPath = "GameContent/Rules";
     public bool applyRules;
+    public CampaignRewardSettings campaignRewards = new CampaignRewardSettings();
     [Range(1,8)] public int aiBreadReserveTurns=3;
     public AIEconomySettings aiEconomy = new AIEconomySettings();
     [Min(1)] public float turnSeconds = 180;
@@ -44,7 +45,6 @@ public sealed class GameAuthoringRules : ScriptableObject
     [Range(0, 50)] public int heightAP = 2;
     [Range(0, 10)] public int citizenAP = 1, breadPerCitizen = 1;
     [Range(1, 100)] public int starvationGraceTurns = 10;
-    [Range(16, 80)] public int mapWidth = 35, mapDepth = 35;
     [Range(.01f, 1)] public float noiseScale = .1f;
     [Range(0, 3)] public float riverHalfWidth = .7f;
     public FactionAuthoringSetting[] factions =
@@ -108,7 +108,6 @@ public sealed class GameAuthoringRules : ScriptableObject
     {
         if (!applyRules || map == null) return;
         map.preset = MapPresetSize.Custom;
-        map.maxX = Mathf.Clamp(mapWidth, 16, 80); map.maxZ = Mathf.Clamp(mapDepth, 16, 80);
         map.noiseScale = Mathf.Clamp(SafePositive(noiseScale, .1f), .01f, 1);
         map.riverHalfWidth = Mathf.Clamp(SafePositive(riverHalfWidth, .7f), 0, 3);
     }

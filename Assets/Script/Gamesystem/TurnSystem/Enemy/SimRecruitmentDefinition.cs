@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>Immutable formal recruitment values shared by one search's clones; no actor or prefab is retained.</summary>
 public readonly struct SimRecruitmentDefinition
 {
-    public readonly int HP, ATK, DEF, Barrier, APCost, SkillId;
+    public readonly int HP, ATK, DEF, Barrier, APCost, SkillId, SoulCostOverride;
     public readonly bool AvailableToPlayer, AvailableToEnemy;
     public readonly bool EngineerBarrierConfigured;
     public readonly PassiveSkill Passive;
@@ -11,6 +11,7 @@ public readonly struct SimRecruitmentDefinition
     public readonly BoardActionProfile ActionProfile;
     public SimRecruitmentDefinition(UnitData definition)
     {
+        SoulCostOverride = definition.soulCostOverride;
         HP = definition.FixedMaxHP; ATK = definition.FixedATK; DEF = definition.FixedDEF; APCost = definition.costAP;
         EngineerBarrierConfigured = definition.kind == Kind.Engineer && definition.baseBarrier >= 0;
         Barrier = BarrierSystem.UsesBarrier(definition,Type.Unit)

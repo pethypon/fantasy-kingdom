@@ -5,6 +5,8 @@ public enum AIBaseKnowledgeStage { Unknown, TerritoryLead, Observed, LastKnown, 
 
 public partial class AIBoardState
 {
+    public Status ObservedMainCrystal => PlayerCrystalVisible ? observedMainCrystal : null;
+
     void RefreshMainCrystalObservation()
     {
         observedMainCrystal = null;

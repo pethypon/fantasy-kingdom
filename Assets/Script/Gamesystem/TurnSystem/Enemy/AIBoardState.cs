@@ -57,6 +57,9 @@ public partial class AIBoardState
         }
     }
     public UnitData ResolveUnitDefinition(Kind kind) => _unitSet != null && _unitSet.UnitDataMap.TryGetValue(kind,out var data) ? data : null;
+    internal CampaignRewards.ArmyBonus OwnArmyBonus => _factionState?.Rewards?.Forecast(ActorTeam, TurnCount) ?? default;
+    internal int KnownSoulStock => _factionState?.Rewards?.Account(ActorTeam)?.souls ?? -1;
+    internal CampaignRewardSettings PublicRewardSettings => _factionState?.Rewards?.settings;
     public int SummonsThisTurn => _summonSystem?.SummonsThisTurn(ActorTeam) ?? 0;
     public bool CanSummonDefinition(UnitData data) => _summonSystem != null && _summonSystem.CanSummon(ActorTeam,data);
     public int NationStarvationCounter => _factionState?.GetNation(ActorTeam)?.StarvationCounter ?? 0;

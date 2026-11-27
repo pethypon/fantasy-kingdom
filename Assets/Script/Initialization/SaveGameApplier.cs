@@ -54,6 +54,7 @@ public static class SaveGameApplier
         }
         if (!SaveSystem.ValidateGameData(data, out string validationFailure))
             throw new System.ArgumentException("セーブを適用できません: " + validationFailure, nameof(data));
+        factionState.Rewards = data.FixedHomelands ? data.Campaign : null;
         turnGen.RestoreMatchId(data.MatchId);
         using var presentationRestore = BoardActorAnimation.SuppressEffects();
 

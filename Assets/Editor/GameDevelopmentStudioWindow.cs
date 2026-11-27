@@ -141,7 +141,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             + FixedUnitRules.BaseStat(editedKind, so.FindProperty("baseATK").intValue));
         EditorGUILayout.HelpBox("通常兵は入力した基礎能力の1.75倍を固定値として使用します。王・ボスなどは専用値を使用します。試合中のレベル成長はありません。", MessageType.None);
         costFold = EditorGUILayout.Foldout(costFold,"作成に必要な資材・AP",true);
-        if (costFold) Fields(so,"costWood","costStone","costIron","costMagic","costWater","costBread","costCitizen","costAP");
+        if (costFold) Fields(so,"costWood","costStone","costIron","costMagic","costWater","costBread","costCitizen","costAP","soulCostOverride");
         upkeepFold = EditorGUILayout.Foldout(upkeepFold,"毎ターンの維持費",true);
         if (upkeepFold)
         {

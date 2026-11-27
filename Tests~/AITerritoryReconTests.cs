@@ -16,6 +16,7 @@ public static class AITerritoryReconTests
     {
         if (!Application.isPlaying || systems?.MapCreate == null) throw new InvalidOperationException("An initialized native match is required.");
         checks = 0;
+        RunEvidenceTransitions();
         foreach (var team in new[] { Team.Player, Team.Enemy })
         {
             SupersedeOppositeFrontier(team, false);
@@ -23,6 +24,60 @@ public static class AITerritoryReconTests
             SameBoardRestore(systems, team);
         }
         Debug.Log("[AITerritoryRecon] ALL PASSED " + checks + " (controlled topology and native board restore)");
+    }
+
+    public static void RunEvidenceTransitions()
+    {
+        var settings = ScriptableObject.CreateInstance<ExplorationAISettings>();
+        try
+        {
+            settings.RegionSize = 8;
+            foreach (var side in new[] { Team.Player, Team.Enemy })
+            {
+                var planner = new AIExplorationPlanner(settings);
+                var scout = new ExplorationActor(17, new Vector3Int(10, 1, 8), actorLifeId: "scout")
+                { MovementOffsets = new[] { Vector2Int.left, Vector2Int.right }, MovementDirectionIndependent = true };
+                var observation = new ExplorationObservation { Width = 36, Depth = 16, Turn = 4, ActorTeam = side,
+                    OwnBase = scout.Cell, HasTerritoryReconDirection = true, TerritoryReconIsHypothesis = true,
+                    TerritoryReconDirection = new Vector3Int(3, 0, 8) };
+                for (int x = 1; x <= 30; x++)
+                    observation.KnownCells.Add(new ExplorationObservedCell(new Vector3Int(x, 1, 8)));
+                observation.Actors.Add(scout);
+                planner.Update(observation, false);
+                var hypothesis = planner.GetObjective(scout.UnitId);
+                Check(side + " starts on the western coverage hypothesis", hypothesis?.TargetCell.x == 3);
+
+                // A crystal defense consumes this observation before the scout gets to act.
+                observation.Turn++;
+                observation.TerritoryReconIsHypothesis = false;
+                observation.TerritoryReconDirection = new Vector3Int(18, 0, 8);
+                planner.Update(observation, true);
+                Check(side + " emergency suspends the scout", hypothesis.State == ObjectiveState.Suspended);
+                planner.Update(observation, false);
+                var firstLeg = planner.GetObjective(scout.UnitId);
+                Check(side + " discovered territory supersedes the hypothesis on resumption",
+                    firstLeg != null && firstLeg.ObjectiveId != hypothesis.ObjectiveId && firstLeg.TargetCell.x == 18);
+
+                observation.TerritoryReconDirection = new Vector3Int(27, 0, 8);
+                planner.Update(observation, false);
+                Check(side + " a same-strength change preserves an unfinished leg", planner.GetObjective(scout.UnitId) == firstLeg);
+                scout.Cell = firstLeg.TargetCell;
+                observation.Actors[0] = scout;
+                observation.Turn++;
+                observation.CellVersion++;
+                observation.KnownCells.Add(new ExplorationObservedCell(scout.Cell + Vector3Int.forward));
+                planner.Update(observation, false);
+                var secondLeg = planner.GetObjective(scout.UnitId);
+                Check(side + " next productive leg follows the new lead across a region boundary",
+                    secondLeg != null && secondLeg.TargetCell.x == 27 && secondLeg.FrontierRegionId != firstLeg.FrontierRegionId);
+                var saved = JsonUtility.FromJson<AIExplorationState>(JsonUtility.ToJson(planner.CaptureState()));
+                planner = new AIExplorationPlanner(settings);
+                planner.RestoreState(saved);
+                planner.Update(observation, false);
+                Check(side + " save reload preserves the directed leg", planner.GetObjective(scout.UnitId)?.ObjectiveId == secondLeg.ObjectiveId);
+            }
+        }
+        finally { UnityEngine.Object.DestroyImmediate(settings); }
     }
 
     static void SupersedeOppositeFrontier(Team team, bool fallback)

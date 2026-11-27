@@ -69,6 +69,7 @@ public partial class MapCreate : MonoBehaviour
 
     // Older saves retain their original terrain layout.
     public bool UseR1Terrain { get; set; } = true;
+    public bool FixedHomelands { get; internal set; }
     private bool[,] rivers;
     private int[,] topY;
     private readonly HashSet<Vector3Int> excludedPlacementCells = new HashSet<Vector3Int>();
@@ -106,11 +107,22 @@ public partial class MapCreate : MonoBehaviour
         seedx = Random.Range(0f, 1_000_000f);
         seedz = Random.Range(0f, 1_000_000f);
         GenerateHeightmap();
+        if (FixedHomelands)
+        {
+            for (int attempt = 0; !PrepareOpeningRegion(); attempt++)
+            {
+                if (attempt == 64) throw new System.InvalidOperationException("両陣営を接続できる地形が見つかりません。川幅と地形設定を確認してください。");
+                seedx = Random.Range(0f, 1_000_000f);
+                seedz = Random.Range(0f, 1_000_000f);
+                GenerateHeightmap();
+            }
+        }
     }
 
     /// <summary>保存されたシードからノイズを再生成する</summary>
     public void GenerateNoise(float savedSeedX, float savedSeedZ)
     {
+        openingRegion = null;
         seedx = savedSeedX;
         seedz = savedSeedZ;
         GenerateHeightmap();

@@ -17,6 +17,7 @@ public sealed class ExplorationKnownRoute
         public bool Proved;
         public IReadOnlyDictionary<Vector3Int, Vector3Int> Terrain;
         public IReadOnlyCollection<Vector3Int> Blocked;
+        public ISet<Vector3Int> OccupiedLandings;
         public Func<int, Vector3Int, float> Danger;
         public readonly List<Vector2Int> Offsets = new List<Vector2Int>(64);
         public readonly List<Vector3Int> Path = new List<Vector3Int>(128);
@@ -52,7 +53,8 @@ public sealed class ExplorationKnownRoute
         IReadOnlyDictionary<Vector3Int, Vector3Int> knownTerrain, IReadOnlyCollection<Vector3Int> blocked,
         IReadOnlyList<Vector2Int> movementOffsets, bool directional, int dirZ, int terrainRevision,
         int turn, int dangerRevision, Func<int, Vector3Int, float> estimatedDamage,
-        out float remaining, out Vector3Int waypoint, int width = int.MaxValue, int depth = int.MaxValue, bool requireEnabled = true)
+        out float remaining, out Vector3Int waypoint, int width = int.MaxValue, int depth = int.MaxValue,
+        bool requireEnabled = true, ISet<Vector3Int> occupiedLandings = null)
     {
         remaining = 0; waypoint = actor.Cell;
         if (requireEnabled && !settings.Enabled || knownTerrain == null || movementOffsets == null || movementOffsets.Count == 0
@@ -70,7 +72,7 @@ public sealed class ExplorationKnownRoute
             && route.DangerRevision == dangerRevision && route.ProfileSignature == profile && route.HP == actor.HP
             && route.PolicySignature == policy
             && route.Width == width && route.Depth == depth && ReferenceEquals(route.Terrain, knownTerrain)
-            && ReferenceEquals(route.Blocked, blocked);
+            && ReferenceEquals(route.Blocked, blocked) && ReferenceEquals(route.OccupiedLandings, occupiedLandings);
         int age = Math.Max(0, turn - route.BuiltTurn);
         bool validAge = turn >= route.BuiltTurn && age < Mathf.Clamp(settings.RouteCacheTurns, 1, 64);
         if (sameKey && validAge && (route.Proved ? route.PathIndex.ContainsKey(start) : route.Start == start))
@@ -82,7 +84,7 @@ public sealed class ExplorationKnownRoute
         route.DangerRevision = dangerRevision; route.ProfileSignature = profile; route.HP = actor.HP;
         route.PolicySignature = policy;
         route.Width = width; route.Depth = depth; route.BuiltTurn = route.LastUsedTurn = turn;
-        route.Terrain = knownTerrain; route.Blocked = blocked; route.Danger = estimatedDamage;
+        route.Terrain = knownTerrain; route.Blocked = blocked; route.OccupiedLandings = occupiedLandings; route.Danger = estimatedDamage;
         PrepareOffsets(route, movementOffsets, directional, dirZ);
         route.FallbackBlocked.Clear();
         if (blocked != null && !(blocked is ISet<Vector3Int>))
@@ -115,7 +117,7 @@ public sealed class ExplorationKnownRoute
         if (route.CandidateDistances.TryGetValue(cell, out float cached))
         { remaining = cached; return !float.IsPositiveInfinity(cached); }
         float best = float.PositiveInfinity;
-        if (KnownPassable(route, cell) && Safe(route, cell))
+        if (CanLand(route, cell) && Safe(route, cell))
             for (int i = 0; i < route.Offsets.Count; i++)
             {
                 var offset = route.Offsets[i];
@@ -148,7 +150,7 @@ public sealed class ExplorationKnownRoute
     {
         TotalRouteBuilds++; NodesExpanded = 0;
         indices.Clear(); nodes.Clear(); heap.Clear(); rebuiltPath.Clear(); rebuiltCosts.Clear(); route.DangerCache.Clear();
-        if (!KnownPassable(route, route.Start) || !KnownPassable(route, route.Target)
+        if (!KnownPassable(route, route.Start) || !CanLand(route, route.Target)
             || route.Offsets.Count == 0 || route.Start != route.Target && !Safe(route, route.Target)) return false;
         int limit = Mathf.Clamp(settings.MaxRouteNodes, 16, 4096);
         int lengthLimit = Mathf.Clamp(settings.MaxRouteLength, 2, 4096);
@@ -203,10 +205,13 @@ public sealed class ExplorationKnownRoute
         if (cell.x < 0 || cell.z < 0 || cell.x >= route.Width || cell.z >= route.Depth || !route.Terrain.ContainsKey(cell)) return false;
         return route.Blocked is ISet<Vector3Int> set ? !set.Contains(cell) : !route.FallbackBlocked.Contains(cell);
     }
-    // Every touched intermediate/corner cell must be proved known and passable, matching supercover movement.
+    // Terrain blocks the entire supercover. Pieces only occupy the landing square.
+    bool CanLand(Route route, Vector3Int cell) => KnownPassable(route, cell)
+        && (cell == route.Start || route.OccupiedLandings == null || !route.OccupiedLandings.Contains(cell));
+
     bool KnownLineClear(Route route, Vector3Int from, Vector3Int to)
     {
-        if (!KnownPassable(route, from) || !KnownPassable(route, to)) return false;
+        if (!KnownPassable(route, from) || !CanLand(route, to)) return false;
         int x = from.x, z = from.z, dx = Mathf.Abs(to.x - x), dz = Mathf.Abs(to.z - z);
         int sx = Math.Sign(to.x - x), sz = Math.Sign(to.z - z), ix = 0, iz = 0;
         while (ix < dx || iz < dz)

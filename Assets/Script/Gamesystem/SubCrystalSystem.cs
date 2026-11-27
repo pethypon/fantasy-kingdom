@@ -67,6 +67,12 @@ public class SubCrystalSystem : MonoBehaviour
     {
         if (subCrystal == null) return;
 
+        if (mapcreate.FixedHomelands)
+        {
+            // The outpost still grants vision, destruction rewards and its normal return timer.
+            subCrystalTerritories[subCrystal] = new List<Vector3>(0);
+            return;
+        }
         Vector3 pos = subCrystal.transform.position;
         var setpos = mapcreate.SetPos;
 

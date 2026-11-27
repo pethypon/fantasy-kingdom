@@ -243,6 +243,8 @@ public class GameManualUI : MonoBehaviour
         return
 "<b>■ 基本ルール</b>\n" +
 "  ターン制のチェス風戦略ゲーム。相手の王、またはメインクリスタルのどちらかを倒すと勝利。自軍の王、またはメインクリスタルのどちらかを失うと敗北。サブクリスタルは敗北条件に含みません。\n\n" +
+(Object.FindFirstObjectByType<FactionState>()?.Rewards != null
+    ? "<b>■ 盤面と報酬</b>\n  両端の3列が固定領土です。5ターンごとに報酬を1つ選びます。駒の召喚には魂と通常の費用が必要です。\n\n" : "") +
 BuildDurabilityRulesText() +
 "<b>■ AP（行動力）</b>\n" +
 $"  市民1人でAP＋{EconomySystem.CitizenAPBonus}。基本AP：移動{APSystem.BaseMoveCost}・通常攻撃{APSystem.BaseAttackCost}。建築・召喚にもAPを使用。\n" +
@@ -267,7 +269,7 @@ $"  ATK+{(GameConstants.KingAuraATKBonus-1)*100:F0}%。指揮官自身は対象�
 "<b>■ ダンジョン</b>\n" +
 $"  マップに2箇所ランダム生成。サブクリスタルで起動し、共有{DungeonSystem.ClaimTurns}ターンタイマーが0に達した側がアーティファクトを獲得。\n" +
 "  陣営が変わってもタイマーは引き継がれる（残りターンを消費する形式）。\n" +
-"  サブクリスタル領地で支配。無支配では進捗を保持して停止。報酬後は次の10ターンへ。\n\n" +
+"  サブクリスタルから1マス以内で支配。無支配では進捗を保持して停止。報酬後は次の10ターンへ。\n\n" +
 "<b>■ 固定スキル</b>\n" +
 "  ユニットの兵種ごとに設定された固定スキルを使用。召喚時の抽選はありません。\n" +
 "  固定割当が未設定の兵種はアクティブスキルなし。";

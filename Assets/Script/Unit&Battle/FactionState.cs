@@ -7,6 +7,8 @@ using UnityEngine;
 /// </summary>
 public class FactionState : MonoBehaviour
 {
+    public CampaignRewards Rewards { get; internal set; }
+
     // ==== 共有型定義（既存コードとの互換性維持） ====
     [System.Serializable]
     public class APData

@@ -234,7 +234,7 @@ public static class UIQualityAudit
         button.onClick.Invoke(); return true;
     }
 
-    static IEnumerator Capture(Canvas canvas, string state, Vector2Int size, string output, Report report,
+    internal static IEnumerator Capture(Canvas canvas, string state, Vector2Int size, string output, Report report,
         Action beforeRender = null, Action afterRender = null)
     {
         var camera = Camera.main;

@@ -94,6 +94,10 @@ public partial class SimBoardState
     {
         if (SummonsThisTurn(action.ActorTeam) >= SummonTurnRules.Limit || IsOccupied(action.TargetPos)) return false;
 
+        if (!CanPaySouls(action.ActorTeam, action.SummonKind) || !InRecruitmentRows(action.ActorTeam, action.TargetPos)
+            || standardSoulCost > 0 && (!MapTiles.Contains(action.TargetPos) || Mountains.Contains(action.TargetPos) || Water.Contains(action.TargetPos))) return false;
+        int spent = SoulCost(action.SummonKind);
+        if (action.ActorTeam == Team.Enemy) ownSouls -= spent; else possibleOpponentSouls -= spent;
         int newId = NextUnitId();
         var newUnit = CreateSimUnitFromKind(action.SummonKind, action.ActorTeam, action.TargetPos, newId);
         newUnit.SummonAttackLocked = true;
