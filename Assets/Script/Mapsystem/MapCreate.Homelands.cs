@@ -4,7 +4,7 @@ using UnityEngine;
 public partial class MapCreate
 {
     public const int HomelandDepth = 3;
-    public const int TacticalSize = 15;
+    public const int TacticalSize = 13;
     public const int MinimumTacticalSize = 10, MaximumTacticalSize = 20;
     private HashSet<Vector2Int> openingRegion;
 

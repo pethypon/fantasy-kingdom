@@ -456,7 +456,7 @@ public static partial class R1UnitVisualInstaller
         mesh.Gem(new Vector3(x, .50f, -.025f), new Vector3(.035f, .05f, .035f), 4, 5, 4);
     }
 
-    sealed class ChessMesh
+    internal sealed class ChessMesh
     {
         readonly List<Vector3> vertices = new List<Vector3>(); readonly List<Vector2> uvs = new List<Vector2>(); readonly List<int> triangles = new List<int>();
         void Tri(Vector3 a, Vector3 b, Vector3 c, int color)

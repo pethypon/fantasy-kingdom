@@ -97,6 +97,11 @@ public static class R3SoulRosterTests
         int before = rewards.player.souls;
         Check(systems.SummonSystem.AISummonUnit(cells[0],blade,Team.Player) && rewards.player.souls == before-2, "live summon debits exactly two souls");
         var bladeActor = units.PlayerUnit.GetComponentsInChildren<Status>().First(x=>x.kind == Kind.BladeSpirit);
+        var bladeMesh = bladeActor.GetComponentInChildren<MeshFilter>().sharedMesh;
+        Check(bladeMesh == UnityEditor.AssetDatabase.LoadAssetAtPath<Mesh>(
+            "Assets/_FantasyKingdom/GameContent/R3Production/Units/BladeSpirit/Sculpture.asset") &&
+            bladeActor.GetComponentInChildren<MeshRenderer>().sharedMaterial == blade.prefab.GetComponent<MeshRenderer>().sharedMaterial,
+            "live recruitment uses the carved blade and shared marble");
         var thunder = Spawn(Kind.ThunderSpirit,Team.Enemy,6,6);
         int enemyBefore = rewards.enemy.souls;
         SpecialSkillRuntime.ApplyAbilityDamage(thunder,bladeActor,1,HpChangeKind.NormalDamage);
