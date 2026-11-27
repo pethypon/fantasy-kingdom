@@ -75,7 +75,8 @@ public static class CampaignRewardTests
         var save = SaveSystem.CollectGameState(turn,s.FactionState,s.TimerSystem,s.VisionGenerator,s.AICommander);
         Check(SaveSystem.TrySaveGame(0,save,out string reason), "pending offer saved: " + reason);
         Check(SaveSystem.TryLoadGame(0,out var restored,out reason) && restored.FixedHomelands && restored.Campaign.Valid(5)
-            && restored.Campaign.player.pending.SequenceEqual(rewards.player.pending), "disk roundtrip preserves exact offer: " + reason);
+            && restored.MapWidth == size && restored.MapDepth == size
+            && restored.Campaign.player.pending.SequenceEqual(rewards.player.pending), "disk roundtrip preserves board size and exact offer: " + reason);
         int before = rewards.player.souls;
         buttons[0].onClick.Invoke();
         buttons[0].onClick.Invoke();

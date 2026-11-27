@@ -172,9 +172,17 @@ public static partial class R1UnitVisualInstaller
     [MenuItem("Fantasy Kingdom/開発スタジオ/駒の見た目/18職種の見本画像を作成")]
     public static void RenderPreview()
     {
-        const int width = 330, height = 360, columns = 4;
-        int rows = (Kinds.Length + columns - 1) / columns;
         EnsureFolder(Folder + "/Review");
+        string path = Folder + "/Review/R1ChessUnits.png";
+        RenderRosterPreview(Kinds, MeshPath, path, new Vector3(1.7f, 1.35f, -2.6f), 4);
+        AssetDatabase.ImportAsset(path);
+    }
+
+    internal static void RenderRosterPreview(IReadOnlyList<Kind> kinds, Func<Kind, string> meshPath,
+        string outputPath, Vector3 cameraPosition, int columns)
+    {
+        const int width = 330, height = 360;
+        int rows = (kinds.Count + columns - 1) / columns;
         var scene = EditorSceneManager.NewPreviewScene();
         var atlas = new Texture2D(width * columns, height * rows, TextureFormat.RGB24, false);
         var readback = new Texture2D(width, height, TextureFormat.RGB24, false);
@@ -187,24 +195,24 @@ public static partial class R1UnitVisualInstaller
             var cameraObject = new GameObject("駒見本カメラ"); SceneManager.MoveGameObjectToScene(cameraObject, scene);
             camera = cameraObject.AddComponent<Camera>(); camera.scene = scene; camera.orthographic = true; camera.orthographicSize = .79f;
             camera.nearClipPlane = .01f; camera.farClipPlane = 20; camera.targetTexture = target; camera.allowHDR = false;
-            camera.transform.position = new Vector3(1.7f, 1.35f, -2.6f); camera.transform.LookAt(new Vector3(0, .04f, 0));
+            camera.transform.position = cameraPosition; camera.transform.LookAt(new Vector3(0, .04f, 0));
             camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color32(27, 33, 43, 255);
             var lightObject = new GameObject("駒見本照明"); SceneManager.MoveGameObjectToScene(lightObject, scene);
             var light = lightObject.AddComponent<Light>(); light.type = LightType.Directional; light.intensity = 1.35f;
             light.color = new Color(1, .9f, .76f); light.transform.rotation = Quaternion.Euler(38, -32, 0); light.shadows = LightShadows.None;
-            for (int i = 0; i < Kinds.Length; i++)
+            for (int i = 0; i < kinds.Count; i++)
             {
-                var model = new GameObject(Kinds[i].ToString()); SceneManager.MoveGameObjectToScene(model, scene);
+                var model = new GameObject(kinds[i].ToString()); SceneManager.MoveGameObjectToScene(model, scene);
                 try
                 {
-                    model.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(MeshPath(Kinds[i]));
+                    model.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath(kinds[i]));
                     model.AddComponent<MeshRenderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(BoardVisualThemeInstaller.ExistingWhiteMaterialPath);
                     camera.Render(); RenderTexture.active = target; readback.ReadPixels(new Rect(0, 0, width, height), 0, 0); readback.Apply();
                     atlas.SetPixels((i % columns) * width, (rows - 1 - i / columns) * height, width, height, readback.GetPixels());
                 }
                 finally { UnityEngine.Object.DestroyImmediate(model); }
             }
-            atlas.Apply(); File.WriteAllBytes(Folder + "/Review/R1ChessUnits.png", atlas.EncodeToPNG()); AssetDatabase.ImportAsset(Folder + "/Review/R1ChessUnits.png");
+            atlas.Apply(); File.WriteAllBytes(outputPath, atlas.EncodeToPNG());
         }
         finally
         {
