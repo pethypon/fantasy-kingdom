@@ -500,7 +500,7 @@ public partial class UnitPanelUI : MonoBehaviour
         UIFactory.SetAnchors(cancelButton.GetComponent<RectTransform>(), 0.5f, 0, 1, 0.5f);
         // 敵ユニットは情報のみ表示（操作ボタン非表示）
         bool isPlayer = currentUnit.team == Team.Player;
-        SetButtonVisible(attackButton, isPlayer);
+        SetButtonVisible(attackButton, isPlayer && BoardActionProfile.For(currentUnit)?.CanAttack != false);
         SetButtonVisible(skillButton, isPlayer && currentUnit.AssignedSkillId >= 0);
         SetButtonVisible(waitButton, isPlayer);
         SetButtonVisible(cancelButton, true);

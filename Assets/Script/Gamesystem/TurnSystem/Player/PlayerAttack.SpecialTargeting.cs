@@ -32,7 +32,7 @@ public partial class PlayerAttack
             foreach (var cell in specialEffect) AddRange(cell);
             AddRange(caster.transform.position);
         }
-        else if (definition.ability == UnitSpecialSkill.HeavyWarriorBreak || definition.ability == UnitSpecialSkill.DragonKnightPierce)
+        else if (definition.ability == UnitSpecialSkill.MartyrWard || definition.ability == UnitSpecialSkill.HeavyWarriorBreak || definition.ability == UnitSpecialSkill.DragonKnightPierce)
         {
             foreach (var cell in caster.VisionCell)
                 if (cell != caster.GridPosition && GridHelper.ChebyshevDistance(caster.GridPosition, cell) <= 1

@@ -59,6 +59,8 @@ public static class SimBoardPool
         unit.Effects.Clear();
         unit.ActionProfile = null;
         unit.CapturedVisionCells = null;
+        unit.IceBindTurns = unit.DeathCurseTurns = unit.MartyrWardTurns = 0;
+        unit.ShieldStance = false;
         unit.LifeIdentity = null; unit.CrystalCounter = null;
         if (_unitPool.Count < 4096) _unitPool.Push(unit);
     }

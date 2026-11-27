@@ -22,8 +22,8 @@ public static class R1ProductionAIRecruitmentTests
         var catalog = UnitAuthoringCatalog.Load();
         Check(catalog != null, "installed catalog exists");
         catalog.Apply(definitions, null);
-        Check(UnitRoster.SummonableKinds.Length == 18 && new HashSet<Kind>(UnitRoster.SummonableKinds).Count == 18,
-            "live UI and AI roster contains eighteen unique kinds");
+        Check(UnitRoster.SummonableKinds.Length == 35 && new HashSet<Kind>(UnitRoster.SummonableKinds).Count == 35,
+            "live UI and AI roster contains thirty-five unique kinds");
         Check(ReferenceEquals(BuildSummonUIBuilder.SummonableKinds, UnitRoster.SummonableKinds), "UI shares common roster");
         var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<R1ProductionContentSettings>(R1ProductionContentInstaller.SettingsPath);
         Check(settings != null && settings.installed.Count >= 16 && settings.installed.Count <= 18, "sixteen established roles and only explicitly installed barrier roles");

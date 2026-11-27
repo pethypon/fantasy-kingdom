@@ -6,7 +6,8 @@ public enum UnitSpecialSkill
     None, KnightBreakthrough, ArcherStationary, MagicRitual, AssassinVisionSeal,
     ScoutVisionGuard, PriestPurification, GuardianLifeLink, CrossbowStakes,
     MagicSniperLock, LifeBomb, WhiteMageHeal, HolyKnightSanctuary,
-    SamuraiCounter, NinjaSwap, BerserkerRage, NavigatorPull, HeavyWarriorBreak, DragonKnightPierce
+    SamuraiCounter, NinjaSwap, BerserkerRage, NavigatorPull, HeavyWarriorBreak, DragonKnightPierce,
+    SpiritPurify, MartyrWard, DeathCurse, LightningStrike, LifeTransfer, IceBind, ShieldStance
 }
 public enum BombDeathPolicy { Unconfigured, Cancel, Explode }
 [System.Flags] public enum SpecialFactionMask { Unconfigured = 0, Hostile = 1, Allies = 2, Holder = 4 }

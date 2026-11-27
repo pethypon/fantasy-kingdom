@@ -49,6 +49,8 @@ public static class QualityAuditSession
             {
                 var button = UIBuilder.ScreenCanvas?.transform.Find("TitleScreenOverlay/ButtonArea/はじめからBtn")?.GetComponent<Button>();
                 if (button == null) return;
+                if (int.TryParse(Environment.GetEnvironmentVariable("FK_TEST_BOARD_SIZE"), out int size))
+                    GameAuthoringRules.Active.tacticalMapSize = size;
                 UnityEngine.Random.InitState(12345); button.onClick.Invoke(); clickedFrame = Time.frameCount; return;
             }
             if (!started)
@@ -59,6 +61,12 @@ public static class QualityAuditSession
                     ?? Path.Combine(Application.dataPath, "../../quality-audit-20261023"));
                 Directory.CreateDirectory(outputDirectory);
                 observedSystems = turn.Systems;
+                if (Environment.GetEnvironmentVariable("FK_SOUL_ROSTER") == "1")
+                {
+                    R3SoulRosterTests.Run(observedSystems);
+                    Finish(0);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("FK_CAMPAIGN_REWARDS") == "1")
                 {
                     pending.Push(CampaignRewardTests.Run(turn, outputDirectory));

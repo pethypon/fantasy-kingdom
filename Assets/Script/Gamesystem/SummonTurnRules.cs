@@ -60,7 +60,7 @@ public sealed class SummonTurnRules
         if (!AttackLocked(actor)) return false;
         if (!skill) return true;
         var definition = SpecialSkillRuntime.Definition(actor);
-        return definition != null && definition.ability != UnitSpecialSkill.None ? IsAttackSkill(definition.ability)
+        return definition != null && definition.ability != UnitSpecialSkill.None ? IsAttackSkill(definition.ability) || SpecialSkillRuntime.IsSpiritOrShieldSkill(definition.ability)
             : SkillData.Table.TryGetValue(actor.AssignedSkillId, out var legacy) && IsAttackSkill(legacy);
     }
     // Hostile control and delayed attacks are offensive too. Healing, allied support and self-buffs remain usable.
@@ -72,6 +72,7 @@ public sealed class SummonTurnRules
             case UnitSpecialSkill.AssassinVisionSeal: case UnitSpecialSkill.CrossbowStakes:
             case UnitSpecialSkill.MagicSniperLock: case UnitSpecialSkill.LifeBomb:
             case UnitSpecialSkill.SamuraiCounter: case UnitSpecialSkill.NavigatorPull:
+            case UnitSpecialSkill.LightningStrike: case UnitSpecialSkill.DeathCurse: case UnitSpecialSkill.IceBind:
             case UnitSpecialSkill.HeavyWarriorBreak: case UnitSpecialSkill.DragonKnightPierce: return true;
             default: return false;
         }

@@ -32,7 +32,7 @@ public sealed partial class GameDevelopmentStudioWindow
         Heading("5ターン報酬");
         EditorGUILayout.PropertyField(so.FindProperty("campaignRewards"), new GUIContent("魂・強化・資源の試験値"), true);
         Heading("新規マップ");
-        EditorGUILayout.LabelField("盤面", "15 × 15　両陣営の領土は両端の3列");
+        EditorGUILayout.PropertyField(so.FindProperty("tacticalMapSize"), new GUIContent("正方形マップの辺長（両端3列が領土）"));
         Fields(so,"noiseScale","riverHalfWidth");
         Heading("陣営の名前・色・初期状態");
         var factions=so.FindProperty("factions");

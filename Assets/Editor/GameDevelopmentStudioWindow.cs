@@ -122,7 +122,7 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
         Heading("駒の基本設定");
         Fields(so, "displayName", "category", "defaultTeam", "kind", "availableToPlayer", "availableToEnemy", "prefab");
         EditorGUILayout.HelpBox("基礎役割はAIの判断と既存の固有処理に使います。移動・通常攻撃・視界は下のタイルで個別に設定できます。駒と行動タイプの名前、種類の分類は自由です。スキルの範囲・効果は選んだスキルに従います。",MessageType.None);
-        Heading("能力値"); Fields(so,"baseHP","baseATK");
+        Heading("能力値"); Fields(so,"useFinalCombatStats","baseHP","baseATK");
         var editedKind = (Kind)so.FindProperty("kind").intValue;
         var editedPrefab = so.FindProperty("prefab").objectReferenceValue as GameObject;
         var editedStatus = editedPrefab != null ? editedPrefab.GetComponentInChildren<Status>(true) : null;
@@ -136,10 +136,11 @@ public sealed partial class GameDevelopmentStudioWindow : EditorWindow
             EditorGUILayout.LabelField("固定最大バリア", initial.ToString());
             EditorGUILayout.HelpBox("−1は兵種ごとの初期バリアを使用します。バリアにレベル成長はありません。ダメージはバリア、HPの順に減少します。", MessageType.Info);
         }
+        bool finalStats = so.FindProperty("useFinalCombatStats").boolValue;
+        int FinalValue(string field) => finalStats ? so.FindProperty(field).intValue : FixedUnitRules.BaseStat(editedKind, so.FindProperty(field).intValue);
         EditorGUILayout.LabelField("生成時の固定HP / 攻撃力",
-            FixedUnitRules.BaseStat(editedKind, so.FindProperty("baseHP").intValue) + " / "
-            + FixedUnitRules.BaseStat(editedKind, so.FindProperty("baseATK").intValue));
-        EditorGUILayout.HelpBox("通常兵は入力した基礎能力の1.75倍を固定値として使用します。王・ボスなどは専用値を使用します。試合中のレベル成長はありません。", MessageType.None);
+            FinalValue("baseHP") + " / " + FinalValue("baseATK"));
+        if (!finalStats) EditorGUILayout.HelpBox("通常兵は入力した基礎能力の1.75倍を固定値として使用します。王・ボスなどは専用値を使用します。試合中のレベル成長はありません。", MessageType.None);
         costFold = EditorGUILayout.Foldout(costFold,"作成に必要な資材・AP",true);
         if (costFold) Fields(so,"costWood","costStone","costIron","costMagic","costWater","costBread","costCitizen","costAP","soulCostOverride");
         upkeepFold = EditorGUILayout.Foldout(upkeepFold,"毎ターンの維持費",true);

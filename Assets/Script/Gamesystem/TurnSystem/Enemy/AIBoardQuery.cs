@@ -123,6 +123,9 @@ public static class AIBoardQuery
             stateKey = ((DamageCalculator.UsesLegacyDefence ? self.DEF : 0) * 397 ^ self.Barrier) * 397 ^ self.HP;
             var state = self.Special;
             stateKey = stateKey * 397 ^ self.ShieldTurns;
+            stateKey = stateKey * 397 ^ (state?.martyrWardTurns ?? 0);
+            stateKey = stateKey * 397 ^ (state?.deathCurseTurns ?? 0);
+            stateKey = stateKey * 397 ^ (state?.shieldStance == true ? (int)self.direction + 1 : 0);
             stateKey = stateKey * 397 ^ (state?.damageNullUnused == true && state.damageNullTurns > 0 ? 1 : 0);
             stateKey = stateKey * 397 ^ (state?.nextDamageDouble == true ? 1 : 0);
             stateKey = stateKey * 397 ^ (state != null && (state.holyKnightTurns > 0 || state.holyKnightRecoveryLock) ? 1 : 0);
@@ -158,7 +161,9 @@ public static class AIBoardQuery
                 ? board.ReconMap.Environment.IncomingDamageMultiplier(pos, ranged, stone) : 1;
             raw = (int)Math.Min(int.MaxValue, Math.Max(0, raw * (double)newCover / Mathf.Max(.01f, oldCover)));
             raw = BarrierSystem.NormalAttackDamage(pu.kind, budget.Barrier, raw);
-            int dmg = AIActionEvaluator.EstimateObservedHitLoss(self,board,raw,HpChangeKind.NormalDamage,ref budget);
+            var incoming = pu.GridPosition - GridHelper.ToGridXZ(pos);
+            bool frontalGuard = self.Special?.shieldStance == true && incoming.x == 0 && incoming.z * MovePatterns.DirZ(self.direction) > 0;
+            int dmg = budget.Apply(self,board,raw,HpChangeKind.NormalDamage,normalAttack:true,frontalGuard:frontalGuard);
             totalDmg = Math.Min(int.MaxValue, totalDmg + dmg);
         }
         totalDmg=Math.Min(int.MaxValue,totalDmg+AIActionEvaluator.EstimateSpecialReservedThreatAt(board,self,pos,ref budget));

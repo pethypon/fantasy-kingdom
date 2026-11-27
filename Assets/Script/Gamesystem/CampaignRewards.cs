@@ -6,8 +6,9 @@ public enum CampaignRewardKind { Soul, Attack, Healing, Wood, Stone, Water, Brea
 [Serializable]
 public sealed class CampaignRewardSettings
 {
-    [InspectorName("初期の魂"), Range(0, 99)] public int initialSouls = 2;
-    [InspectorName("標準召喚費（魂）"), Range(1, 20)] public int summonCost = 1;
+    [InspectorName("初期の魂"), Range(0, 99)] public int initialSouls = 3;
+    [InspectorName("標準召喚費（魂）"), Range(1, 20)] public int summonCost = 3;
+    [InspectorName("敵の駒を撃破した時の魂"), Range(0, 20)] public int defeatSouls = 1;
     [InspectorName("魂の獲得数"), Range(1, 99)] public int soulReward = 2;
     [InspectorName("魂の保有上限"), Range(1, 999)] public int soulCap = 12;
     [InspectorName("資源の獲得量"), Range(1, 999)] public int resourceReward = 30;
@@ -18,7 +19,7 @@ public sealed class CampaignRewardSettings
     [InspectorName("魂・強化・資源から各1候補")] public bool oneOfEach = true;
 
     public bool Valid => initialSouls >= 0 && initialSouls <= 99 && summonCost >= 1 && summonCost <= 20
-        && soulReward >= 1 && soulReward <= 99 && soulCap >= 1 && soulCap <= 999
+        && defeatSouls >= 0 && defeatSouls <= 20 && soulReward >= 1 && soulReward <= 99 && soulCap >= 1 && soulCap <= 999
         && resourceReward >= 1 && resourceReward <= 999 && attackPercent >= 1 && attackPercent <= 15
         && healingPercent >= 1 && healingPercent <= 15 && duration >= 1 && duration <= 100 && stacks >= 1 && stacks <= 5;
 }
@@ -66,7 +67,23 @@ public sealed class CampaignRewards
         && player.Valid(settings, round) && enemy.Valid(settings, round);
 
     public CampaignRewardAccount Account(Team team) => team == Team.Player ? player : team == Team.Enemy ? enemy : null;
-    public int Cost(UnitData data) => data != null && data.soulCostOverride > 0 ? data.soulCostOverride : settings.summonCost;
+    public int Cost(UnitData data) => RecruitmentCost(data == null ? Kind.None : data.kind, data?.soulCostOverride ?? 0, settings.summonCost);
+
+    public static int RecruitmentCost(Kind kind, int authoredCost, int standardCost)
+    {
+        int cost = authoredCost > 0 ? authoredCost : standardCost;
+        bool established = kind >= Kind.Knight && kind <= Kind.Bomber || kind >= Kind.WhiteMage && kind <= Kind.DragonKnight;
+        return established ? Math.Max(3, cost) : cost;
+    }
+
+    public void RewardDefeat(Status source, Status victim)
+    {
+        if (source == null || victim == null || source.team == victim.team || victim.IsPrimaryCommander
+            || victim.type != Type.Unit || victim.kind == Kind.Crystal || victim.kind == Kind.SubCrystal
+            || Account(victim.team) == null) return;
+        var side = Account(source.team);
+        if (side != null) side.souls = Math.Min(settings.soulCap, side.souls + settings.defeatSouls);
+    }
 
     public bool Prepare(Team team, int round, int seed)
     {

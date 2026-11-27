@@ -126,9 +126,20 @@ public static class AttackPatterns
     public static bool CanUseSkills(SimUnit actor)
         => actor != null && (actor.ActionProfile == null || actor.ActionProfile.CanUseSkills);
     public static bool CanAttack(Status actor, Direction facing, float dx, float dz)
-        => actor != null && CanAttack(actor.kind, facing, dx, dz, BoardActionProfile.For(actor));
+        {
+        if (actor == null) return false;
+        var profile = BoardActionProfile.For(actor);
+        if (actor.kind != Kind.Thunderbird) return CanAttack(actor.kind, facing, dx, dz, profile);
+        if (profile?.CanAttack == false || dx == 0 && dz == 0) return false;
+        var from = actor.GridPosition;
+        foreach (var cell in actor.VisionCell)
+            if (cell.x - from.x == dx && cell.z - from.z == dz) return true;
+        return false;
+    }
     public static bool CanAttack(SimUnit actor, Direction facing, float dx, float dz)
-        => actor != null && CanAttack(actor.Kind, facing, dx, dz, actor.ActionProfile);
+        => actor != null && (actor.Kind == Kind.Thunderbird
+            ? actor.ActionProfile?.CanAttack != false && (dx != 0 || dz != 0)
+            : CanAttack(actor.Kind, facing, dx, dz, actor.ActionProfile));
     public static bool CanAttack(Kind kind, Direction facing, float dx, float dz, BoardActionProfile profile)
     {
         if (profile == null) return CanAttack(kind, facing, dx, dz);

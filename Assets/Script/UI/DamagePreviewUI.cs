@@ -158,15 +158,15 @@ public class DamagePreviewUI : MonoBehaviour
         int normalDmg = SkillSystem.CalcNormalDamage(attacker, target);
         var kind = SpecialSkillRuntime.WouldAssassinate(attacker, target)
             ? HpChangeKind.ExecutionDamage : HpChangeKind.NormalDamage;
-        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(target, normalDmg, kind) ?? target;
-        if (recipient != target && SpecialSkillRuntime.PreviewHpDamage(target, normalDmg, kind) >= target.HP)
+        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(target, normalDmg, kind, cause: HpChangeCause.NormalAttack) ?? target;
+        if (recipient != target && SpecialSkillRuntime.PreviewHpDamage(target, normalDmg, kind, attacker, HpChangeCause.NormalAttack) >= target.HP)
         {
             // 致死攻撃を引き受ける生命連結は、連結先が直接死亡する。
             kind = HpChangeKind.ForcedDeath;
             normalDmg = recipient.HP;
         }
-        int predictedDamage = SpecialSkillRuntime.PreviewDamage(recipient, normalDmg, kind);
-        int hpAfter = Mathf.Max(0, recipient.HP - SpecialSkillRuntime.PreviewHpDamage(recipient, normalDmg, kind));
+        int predictedDamage = SpecialSkillRuntime.PreviewDamage(recipient, normalDmg, kind, attacker, HpChangeCause.NormalAttack);
+        int hpAfter = Mathf.Max(0, recipient.HP - SpecialSkillRuntime.PreviewHpDamage(recipient, normalDmg, kind, attacker, HpChangeCause.NormalAttack));
         int barrierAfter = kind == HpChangeKind.ForcedDeath ? 0
             : Mathf.Max(0, recipient.Barrier - Mathf.Min(recipient.Barrier, predictedDamage));
         bool isKill = hpAfter <= 0;

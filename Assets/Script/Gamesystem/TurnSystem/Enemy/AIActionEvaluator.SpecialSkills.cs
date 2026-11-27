@@ -298,6 +298,27 @@ public static partial class AIActionEvaluator
         float reward = 0, future = 0, cost = 0, opportunity = Mathf.Max(0, action.APCost) * 1.5f;
         switch (definition.ability)
         {
+            case UnitSpecialSkill.LightningStrike:
+                reward = DamageValue(board, target, 40, HpChangeKind.NormalDamage);
+                cost = SpecialValue(unit);
+                break;
+            case UnitSpecialSkill.LifeTransfer:
+                reward = 2f * Mathf.Min(target.MaxHP - target.HP, target.MaxHP / 2);
+                cost = SpecialValue(unit);
+                break;
+            case UnitSpecialSkill.DeathCurse:
+            case UnitSpecialSkill.IceBind:
+                reward = SpecialValue(target) + ThreatAt(board, unit, unit.transform.position) * .5f;
+                cost = SpecialValue(unit);
+                break;
+            case UnitSpecialSkill.SpiritPurify:
+            case UnitSpecialSkill.MartyrWard:
+                reward = SpecialValue(target) * .5f + ThreatAt(board, target, target.transform.position);
+                cost = SpecialValue(unit);
+                break;
+            case UnitSpecialSkill.ShieldStance:
+                reward = ThreatAt(board, unit, unit.transform.position) * .7f;
+                break;
             case UnitSpecialSkill.HeavyWarriorBreak:
                 reward = DamageValue(board, target, EstimateObservedDedicatedPacket(unit,target,board), HpChangeKind.NormalDamage);
                 opportunity += AttackValueAt(board, unit, unit.transform.position) * .25f;

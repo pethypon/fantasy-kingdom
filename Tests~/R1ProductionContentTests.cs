@@ -28,7 +28,7 @@ public static class R1ProductionContentTests
         int installedRoleCount = heavyInstalled ? 18 : 16;
         Check(settings.entries.Count == installedRoleCount, "editable configurations match explicit installed roles");
         Check(settings.installed.Count == installedRoleCount, "all active roles have explicit installation records");
-        Check(BuildSummonUIBuilder.SummonableKinds.Length == 18, "shared roster includes all eighteen role identities");
+        Check(BuildSummonUIBuilder.SummonableKinds.Length == 35, "shared roster includes all thirty-five role identities");
         var catalog = UnitAuthoringCatalog.Load();
         var dataMap = new Dictionary<Kind, UnitData>(); var prefabs = new Dictionary<Kind, GameObject>();
         catalog.Apply(dataMap, prefabs);

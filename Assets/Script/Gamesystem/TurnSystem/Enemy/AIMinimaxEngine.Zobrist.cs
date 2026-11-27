@@ -127,6 +127,8 @@ public partial class AIMinimaxEngine
         MixSemantic(ref h, u.IsBoss ? 1 : 0); MixSemantic(ref h, u.IsPrimaryCommander ? 1 : 0);
         MixSemantic(ref h, u.IsWildBoss ? 1 : 0); MixSemantic(ref h, u.WildBossProtected ? 1 : 0);
         MixSemantic(ref h, u.AssassinPassive ? 1 : 0); MixSemantic(ref h, u.AssassinLastEndRound);
+        MixSemantic(ref h, u.IceBindTurns); MixSemantic(ref h, u.DeathCurseTurns);
+        MixSemantic(ref h, u.MartyrWardTurns); MixSemantic(ref h, u.ShieldStance ? 1 : 0);
         MixSemantic(ref h, u.VisionZeroTurns); MixSemantic(ref h, u.ScoutVisionPenaltyTurns); MixSemantic(ref h, u.InnateVisionBonus);
         long effects = 0;
         foreach (var effect in u.Effects)

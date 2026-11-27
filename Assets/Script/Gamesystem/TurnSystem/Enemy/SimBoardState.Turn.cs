@@ -22,8 +22,13 @@ public partial class SimBoardState
         ProcessAssassinIsolation(outgoingTeam, TurnCount);
         // Recovery sees the actual HP loss, before the incoming faction's DoT.
         for (int i = 0; i < Units.Count; i++)
-            if (Units[i].Team == outgoingTeam)
+            if (Units[i].Team != outgoingTeam) Units[i].ShieldStance = false;
+            else
             {
+                var actor = Units[i];
+                if (actor.IceBindTurns > 0) actor.IceBindTurns--;
+                if (actor.DeathCurseTurns > 0) actor.DeathCurseTurns--;
+                if (actor.MartyrWardTurns > 0) actor.MartyrWardTurns--;
                 if (!BarrierCombatSettings.Active.recoveryAtOwnerTurnStart) ProcessBarrierRecovery(Units[i], TurnCount);
                 ProcessNaturalRecovery(Units[i], TurnCount);
             }

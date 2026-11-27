@@ -45,6 +45,8 @@ public sealed class GameAuthoringRules : ScriptableObject
     [Range(0, 50)] public int heightAP = 2;
     [Range(0, 10)] public int citizenAP = 1, breadPerCitizen = 1;
     [Range(1, 100)] public int starvationGraceTurns = 10;
+    [InspectorName("正方形マップの辺長"), Range(MapCreate.MinimumTacticalSize, MapCreate.MaximumTacticalSize)]
+    public int tacticalMapSize = MapCreate.TacticalSize;
     [Range(.01f, 1)] public float noiseScale = .1f;
     [Range(0, 3)] public float riverHalfWidth = .7f;
     public FactionAuthoringSetting[] factions =

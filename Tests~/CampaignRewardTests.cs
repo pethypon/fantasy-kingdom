@@ -17,13 +17,15 @@ public static class CampaignRewardTests
     {
         var s = turn.Systems;
         var rewards = s.FactionState.Rewards;
-        Check(s.MapCreate.FixedHomelands && s.MapCreate.maxX == 15 && s.MapCreate.maxZ == 15, "15 by 15");
+        int size = GameAuthoringRules.Active.tacticalMapSize;
+        int area = size * MapCreate.HomelandDepth;
+        Check(s.MapCreate.FixedHomelands && s.MapCreate.maxX == size && s.MapCreate.maxZ == size, size + " by " + size);
         foreach (var team in new[] {Team.Player, Team.Enemy})
         {
             var owned = s.TerritorySystem.GetTerritory(team);
             var parent = team == Team.Player ? s.UnitSetting.PlayerUnit : s.UnitSetting.EnemyUnit;
             var crystal = team == Team.Player ? s.CrystalSystem.PCP : s.CrystalSystem.ECP;
-            Check(owned.Distinct().Count() == 45 && owned.All(p => s.MapCreate.InHomeRows((int)p.z, team)) &&
+            Check(owned.Distinct().Count() == area && owned.All(p => s.MapCreate.InHomeRows((int)p.z, team)) &&
                 s.MapCreate.InHomeRows((int)crystal.z,team) && parent.GetComponentsInChildren<Status>()
                 .All(actor => s.MapCreate.InHomeRows(actor.GridPosition.z, team)), team + " home, crystal and entire opening roster");
             var data = s.UnitSetting.UnitDataMap[Kind.Scout];
@@ -44,7 +46,7 @@ public static class CampaignRewardTests
         var probe = new GameObject("test outpost");
         probe.transform.position = new Vector3(7,1,7);
         s.SubCrystalSystem.ExpandTerritory(probe,Team.Player);
-        Check(s.TerritorySystem.PTSetPos.Count == 45 && !s.TerritorySystem.IsInAnyTerritory(7,7), "outpost does not annex neutral territory");
+        Check(s.TerritorySystem.PTSetPos.Count == area && !s.TerritorySystem.IsInAnyTerritory(7,7), "outpost does not annex neutral territory");
         s.SubCrystalSystem.OnSubCrystalDestroyed(probe, Team.Player);
         UnityEngine.Object.Destroy(probe);
 

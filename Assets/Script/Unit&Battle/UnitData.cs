@@ -110,8 +110,9 @@ public class UnitData : ScriptableObject
     public static int CalcStat(int baseStat, float growth, int level)
         => FixedUnitRules.ScaleBaseStat(baseStat);
 
-    public int FixedMaxHP => Mathf.Max(1, FixedUnitRules.BaseStat(kind, baseHP));
-    public int FixedATK => FixedUnitRules.BaseStat(kind, baseATK);
+    [InspectorName("最終HP・攻撃力を直接指定")] public bool useFinalCombatStats;
+    public int FixedMaxHP => Mathf.Max(1, useFinalCombatStats ? baseHP : FixedUnitRules.BaseStat(kind, baseHP));
+    public int FixedATK => useFinalCombatStats ? Mathf.Max(0, baseATK) : FixedUnitRules.BaseStat(kind, baseATK);
     public int FixedDEF => FixedUnitRules.BaseStat(kind, baseDEF);
 
     // ─────────────────────────────────────────────────────────────────
