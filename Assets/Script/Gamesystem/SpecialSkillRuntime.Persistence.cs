@@ -26,6 +26,9 @@ public static partial class SpecialSkillRuntime
         copy.paladinCycles = copy.paladinCycles ?? new List<PaladinAttackCycle>();
         if (copy.archerSnapshotIds.Count > 1024) copy.archerSnapshotIds.RemoveRange(1024, copy.archerSnapshotIds.Count - 1024);
         if (copy.paladinCycles.Count > 256) copy.paladinCycles.RemoveRange(0, copy.paladinCycles.Count - 256);
+        copy.iceBindTurns = Mathf.Clamp(copy.iceBindTurns, 0, 1);
+        copy.martyrWardTurns = Mathf.Clamp(copy.martyrWardTurns, 0, 2);
+        copy.deathCurseTurns = Mathf.Clamp(copy.deathCurseTurns, 0, 2);
         copy.archerEscapeTurns = Mathf.Clamp(copy.archerEscapeTurns, 0, 2);
         copy.tauntTurns = Mathf.Clamp(copy.tauntTurns, 0, 3);
         copy.guardianAttackCount = Mathf.Clamp(copy.guardianAttackCount, 0, 1000000);

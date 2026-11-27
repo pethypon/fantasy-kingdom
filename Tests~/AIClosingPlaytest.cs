@@ -379,7 +379,7 @@ public static class AIClosingPlaytest
             "targetObservedBefore", "targetObservedAfter", "actualHealingDone", "adaptiveRule", "adaptiveModifier");
         WriteRow(turns, "seconds", "round", "state", "ownerTurns", "playerMoves", "enemyMoves", "playerAttacks", "enemyAttacks",
             "playerBuilds", "enemyBuilds", "playerSummons", "enemySummons", "playerKingHP", "playerCrystalHP", "enemyKingHP", "enemyCrystalHP",
-            "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound",
+            "playerCommanderHP", "enemyCommanderHP", "playerCommandersFound", "enemyCommandersFound", "playerSouls", "enemySouls",
             "playerWood", "playerStone", "playerIron", "playerMagic", "playerWater", "playerBread", "playerWheat", "playerCitizen",
             "enemyWood", "enemyStone", "enemyIron", "enemyMagic", "enemyWater", "enemyBread", "enemyWheat", "enemyCitizen",
             "playerStarvation", "enemyStarvation", "playerLivingUnits", "enemyLivingUnits",
@@ -539,6 +539,7 @@ public static class AIClosingPlaytest
             match.Player.Moves, match.Enemy.Moves, match.Player.Attacks, match.Enemy.Attacks, match.Player.Builds, match.Enemy.Builds,
             match.Player.Summons, match.Enemy.Summons, match.PlayerKingHP, match.PlayerCrystalHP, match.EnemyKingHP, match.EnemyCrystalHP,
             match.PlayerCommanderHP, match.EnemyCommanderHP, match.PlayerCommandersFound, match.EnemyCommandersFound,
+            turn?.Systems?.FactionState?.Rewards?.player.souls, turn?.Systems?.FactionState?.Rewards?.enemy.souls,
             match.PlayerResources?.Wood, match.PlayerResources?.Stone, match.PlayerResources?.Iron, match.PlayerResources?.MagicOre,
             match.PlayerResources?.Water, match.PlayerResources?.Bread, match.PlayerResources?.Wheat, match.PlayerResources?.Citizen,
             match.EnemyResources?.Wood, match.EnemyResources?.Stone, match.EnemyResources?.Iron, match.EnemyResources?.MagicOre,

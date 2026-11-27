@@ -262,7 +262,7 @@ public class BuildingAttackSystem : MonoBehaviour
         if (SpecialAbilitySystem.TrySurviveLethal(target, raw))
             return;
 
-        int damage = target.ApplyDamage(raw);
+        int damage = SpecialSkillRuntime.ApplyHpChange(attacker, target, raw, HpChangeKind.NormalDamage, cause: HpChangeCause.NormalAttack);
         Status.AwardDamageExperience(attacker, target, damage, null);
 
         string attackerName = FacilityData.DisplayName(attacker);

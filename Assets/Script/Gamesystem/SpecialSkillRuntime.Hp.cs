@@ -13,9 +13,10 @@ public static partial class SpecialSkillRuntime
         HpChangeCommitted = null;
 #endif
     }
-    public static Status ResolveDamageRecipient(Status target, int amount, HpChangeKind kind, bool respectShield = true)
+    public static Status ResolveDamageRecipient(Status target, int amount, HpChangeKind kind, bool respectShield = true, HpChangeCause cause = HpChangeCause.Unknown)
     {
         if (target == null || kind == HpChangeKind.DirectHpReduction || kind == HpChangeKind.ForcedDeath
+            || cause == HpChangeCause.NormalAttack && State(target).martyrWardTurns > 0
             || respectShield && target.HasDamageShield || State(target).damageNullUnused && State(target).damageNullTurns > 0) return target;
         var partner = FindActor(State(target).guardianPartnerId);
         if (partner == null || State(partner).guardianPartnerId != target.ReflectionLifeId) return target;
@@ -29,7 +30,7 @@ public static partial class SpecialSkillRuntime
             && (cause == HpChangeCause.Skill || cause == HpChangeCause.Counter)
             && (kind == HpChangeKind.NormalDamage || kind == HpChangeKind.IgnoreDefenceDamage || kind == HpChangeKind.ExecutionDamage || kind == HpChangeKind.BarrierBypassDamage))
             BoardActorAnimation.NotifyAttack(source, target.transform.position);
-        var recipient = ResolveDamageRecipient(target, amount, kind);
+        var recipient = ResolveDamageRecipient(target, amount, kind, cause: cause);
         int actual = ApplyHpChange(source, target, amount, kind, cause: cause);
         if (recipient != null && actual > 0 && (kind == HpChangeKind.NormalDamage || kind == HpChangeKind.IgnoreDefenceDamage || kind == HpChangeKind.ExecutionDamage || kind == HpChangeKind.BarrierBypassDamage))
         {
@@ -52,22 +53,23 @@ public static partial class SpecialSkillRuntime
         }
         else actor.HandleDeathIfDead();
     }
-    public static int PreviewDamage(Status target, int amount, HpChangeKind kind = HpChangeKind.NormalDamage)
+    public static int PreviewDamage(Status target, int amount, HpChangeKind kind = HpChangeKind.NormalDamage, Status source = null, HpChangeCause cause = HpChangeCause.Unknown)
     {
         if (target == null || !target.IsAlive || amount <= 0) return 0;
         if (kind == HpChangeKind.ForcedDeath) return target.HP;
         if (kind == HpChangeKind.DirectHpReduction) return Mathf.Min(target.HP, amount);
         var state = State(target);
         if (DamageCalculator.IsFullyProtected(target) || state.damageNullUnused && state.damageNullTurns > 0) return 0;
-        long adjusted = amount;
+        if (cause == HpChangeCause.NormalAttack && state.martyrWardTurns > 0) return 0;
+        long adjusted = AdjustSpiritDamage(amount, cause == HpChangeCause.NormalAttack && state.shieldStance && IsInFront(target, source), state.deathCurseTurns > 0);
         if (state.nextDamageDouble) adjusted *= 2;
         if (state.holyKnightTurns > 0 || state.holyKnightRecoveryLock) adjusted *= 2;
         return (int)System.Math.Min(int.MaxValue, adjusted);
     }
-    public static int PreviewHpDamage(Status target, int amount, HpChangeKind kind = HpChangeKind.NormalDamage)
+    public static int PreviewHpDamage(Status target, int amount, HpChangeKind kind = HpChangeKind.NormalDamage, Status source = null, HpChangeCause cause = HpChangeCause.Unknown)
     {
         if (target == null || !target.IsAlive) return 0;
-        return BarrierSystem.PreviewHpLoss(target.HP, target.Barrier, PreviewDamage(target, amount, kind),
+        return BarrierSystem.PreviewHpLoss(target.HP, target.Barrier, PreviewDamage(target, amount, kind, source, cause),
             kind == HpChangeKind.BarrierBypassDamage || kind == HpChangeKind.DirectHpReduction || kind == HpChangeKind.ForcedDeath);
     }
     public static int PreviewDedicatedSkillDamage(Status caster, Status target)
@@ -92,8 +94,8 @@ public static partial class SpecialSkillRuntime
     {
         if (SummonTurnRules.DamageBlocked(source, target, cause))
         { LastHpChange = new HpChangeResult(source, target, amount, 0, 0, kind, cause); return 0; }
-        var recipient = redirected ? target : ResolveDamageRecipient(target, amount, kind, respectShield);
-        int loss = ApplyHpChangeCore(source, target, amount, kind, redirected, respectShield, deferCleanup, out int hpLoss, out int barrierLoss);
+        var recipient = redirected ? target : ResolveDamageRecipient(target, amount, kind, respectShield, cause);
+        int loss = ApplyHpChangeCore(source, target, amount, kind, redirected, respectShield, deferCleanup, cause, out int hpLoss, out int barrierLoss);
         if (!redirected && source != null && target != null && source != target && amount > 0
             && (cause == HpChangeCause.NormalAttack || cause == HpChangeCause.Skill))
             MainCrystalRules.RegisterAttack(target, source.team, source.RuntimeSystems?.TurnGenerator?.Context.Turn ?? -1);
@@ -122,7 +124,13 @@ public static partial class SpecialSkillRuntime
         HpChangeCommitted?.Invoke(LastHpChange);
 #endif
     }
-    static int ApplyHpChangeCore(Status source, Status target, int amount, HpChangeKind kind, bool redirected, bool respectShield, bool deferCleanup, out int hpLoss, out int barrierLoss)
+    static void HandleLethalHit(Status source, Status victim)
+    {
+        source?.RuntimeSystems?.FactionState?.Rewards?.RewardDefeat(source, victim);
+        OnSpecialDeath(victim);
+    }
+
+    static int ApplyHpChangeCore(Status source, Status target, int amount, HpChangeKind kind, bool redirected, bool respectShield, bool deferCleanup, HpChangeCause cause, out int hpLoss, out int barrierLoss)
     {
         hpLoss = barrierLoss = 0;
         if (target == null || !target.IsAlive || amount <= 0) return 0;
@@ -130,13 +138,13 @@ public static partial class SpecialSkillRuntime
         if (kind == HpChangeKind.ForcedDeath)
         {
             int actual = target.HP; target.HP = 0; target.Barrier = 0; hpLoss = actual; HpRevision++;
-            OnSpecialDeath(target); if (!deferCleanup) CompleteSpecialDeath(target); return actual;
+            HandleLethalHit(source, target); if (!deferCleanup) CompleteSpecialDeath(target); return actual;
         }
         if (bypass)
         {
             int actual = target.ApplyRawDamage(amount, true, false); hpLoss = actual;
             if (actual > 0) HpRevision++;
-            if (target.HP <= 0) { OnSpecialDeath(target); CompleteSpecialDeath(target); }
+            if (target.HP <= 0) { HandleLethalHit(source, target); CompleteSpecialDeath(target); }
             return actual;
         }
         if ((respectShield && target.HasDamageShield) || target.isWildBoss && target.IsWildBossProtected)
@@ -145,23 +153,31 @@ public static partial class SpecialSkillRuntime
         // Nullification protects the intended recipient before any link can intercept.
         if (s.damageNullUnused && s.damageNullTurns > 0)
         { s.damageNullUnused = false; s.damageNullTurns = 0; HpRevision++; BarrierSystem.RecordNegatedHit(target); BoardActionFeedback.Shield(target); return 0; }
+        if (cause == HpChangeCause.NormalAttack && s.martyrWardTurns > 0)
+        {
+            s.martyrWardTurns = 0;
+            HpRevision++;
+            BarrierSystem.RecordNegatedHit(target);
+            BoardActionFeedback.Shield(target);
+            return 0;
+        }
         if (!redirected && !string.IsNullOrEmpty(s.guardianPartnerId))
         {
             var partner = FindActor(s.guardianPartnerId);
             if (partner == null || State(partner).guardianPartnerId != target.ReflectionLifeId) s.guardianPartnerId = null;
             else
             {
-                if (PreviewHpDamage(target, amount, kind) >= target.HP)
+                if (PreviewHpDamage(target, amount, kind, source, cause) >= target.HP)
                 {
                     Unlink(target, partner);
-                    int redirectedLoss = ApplyHpChange(source, partner, partner.HP, HpChangeKind.ForcedDeath, true);
+                    int redirectedLoss = ApplyHpChange(source, partner, partner.HP, HpChangeKind.ForcedDeath, true, cause: cause);
                     hpLoss = LastHpChange.ActualHpLoss; barrierLoss = LastHpChange.ActualBarrierLoss; return redirectedLoss;
                 }
-                int redirectedDamage = ApplyHpChange(source, partner, amount, kind, true);
+                int redirectedDamage = ApplyHpChange(source, partner, amount, kind, true, cause: cause);
                 hpLoss = LastHpChange.ActualHpLoss; barrierLoss = LastHpChange.ActualBarrierLoss; return redirectedDamage;
             }
         }
-        long adjusted = amount;
+        long adjusted = AdjustSpiritDamage(amount, s.shieldStance && cause == HpChangeCause.NormalAttack && IsInFront(target, source), s.deathCurseTurns > 0);
         if (s.nextDamageDouble) adjusted *= 2;
         if (s.holyKnightTurns > 0 || s.holyKnightRecoveryLock) adjusted *= 2;
         int requested = (int)System.Math.Min(int.MaxValue, adjusted);
@@ -177,6 +193,7 @@ public static partial class SpecialSkillRuntime
         int before = target.HP;
         int applied = kind != HpChangeKind.ExecutionDamage && SpecialAbilitySystem.TrySurviveLethalCore(target, hpRequested)
             ? Mathf.Max(0, before - target.HP) : target.ApplyRawDamage(hpRequested);
+        bool killedByThisHit = before > 0 && target.HP <= 0;
         hpLoss = applied;
         applied += barrierLoss;
         if (applied > 0)
@@ -210,7 +227,7 @@ public static partial class SpecialSkillRuntime
                 finally { counterDepth--; }
             }
         }
-        if (target.HP <= 0) OnSpecialDeath(target);
+        if (killedByThisHit) HandleLethalHit(source, target);
         return applied;
     }
     static void Unlink(Status actor, Status partner)

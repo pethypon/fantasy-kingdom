@@ -49,15 +49,17 @@ public partial class SimBoardState
     public int PlayerAP;
     public int EnemySummons, PlayerSummons;
     internal CampaignRewards.ArmyBonus ownArmyBonus;
+    int defeatSouls, soulCap;
+    int recruitmentDepth = MapCreate.TacticalSize;
     internal int standardSoulCost, ownSouls, possibleOpponentSouls;
     internal int SoulCost(Kind kind) => standardSoulCost == 0 ? 0 :
-        TryGetRecruitment(kind, out var definition) && definition.SoulCostOverride > 0 ? definition.SoulCostOverride : standardSoulCost;
+        CampaignRewards.RecruitmentCost(kind, TryGetRecruitment(kind, out var definition) ? definition.SoulCostOverride : 0, standardSoulCost);
     internal bool CanPaySouls(Team team, Kind kind) => SoulCost(kind) <= (team == Team.Enemy ? ownSouls : possibleOpponentSouls);
     internal bool InRecruitmentRows(Team team, Vector3Int cell)
     {
         if (standardSoulCost == 0) return true;
         Team actual = team == Team.Enemy ? RealActorTeam : RealActorTeam == Team.Player ? Team.Enemy : Team.Player;
-        return MapCreate.InHomeRows(cell.z, actual, MapCreate.TacticalSize);
+        return MapCreate.InHomeRows(cell.z, actual, recruitmentDepth);
     }
     public int SummonsThisTurn(Team team) => team == Team.Enemy ? EnemySummons : team == Team.Player ? PlayerSummons : SummonTurnRules.Limit;
 
@@ -81,8 +83,9 @@ public partial class SimBoardState
     public HashSet<Vector3Int> Water = new HashSet<Vector3Int>();
     public bool CanTraverse(Vector3Int from, Vector3Int to) => Trace(from, to, true);
     public bool CanAttack(SimUnit unit, Vector3Int to) =>
+        (unit.Kind != Kind.Thunderbird || ObserverSees(unit, to)) && (
         (MapCreate.IsArcingAttack(unit.Kind, unit.Facility) && GridHelper.ChebyshevDistance(unit.Position, to) >= 2f)
-        || Trace(unit.Position, to, false);
+        || Trace(unit.Position, to, false));
     bool Blocked(int x, int z, bool movement)
     {
         var cell = new Vector3Int(x,0,z);
@@ -125,7 +128,9 @@ public partial class SimBoardState
         if (rules != null)
         {
             state.ownArmyBonus = realBoard.OwnArmyBonus;
+            state.recruitmentDepth = moveGen?.mapcreate?.maxZ ?? MapCreate.TacticalSize;
             state.standardSoulCost = rules.summonCost;
+            state.defeatSouls = rules.defeatSouls; state.soulCap = rules.soulCap;
             state.ownSouls = realBoard.KnownSoulStock;
             // Conservative possible reply based only on publicly available reward rounds.
             state.possibleOpponentSouls = (int)System.Math.Min(rules.soulCap, rules.initialSouls + (long)(state.TurnCount / 5) * rules.soulReward);
@@ -272,6 +277,8 @@ public partial class SimBoardState
             CrystalCounter = s.kind == Kind.Crystal ? s.CrystalCounter?.Copy(swapCounterTeams) : null,
             Passive = s.passiveskill,
             AssassinPassive = SpecialSkillRuntime.HasAssassinPassive(s),
+            IceBindTurns = s.Special?.iceBindTurns ?? 0, DeathCurseTurns = s.Special?.deathCurseTurns ?? 0,
+            MartyrWardTurns = s.Special?.martyrWardTurns ?? 0, ShieldStance = s.Special?.shieldStance == true,
             VisionZeroTurns = s.Special?.visionZeroTurns ?? 0,
             ScoutVisionPenaltyTurns = s.Special?.scoutVisionPenaltyTurns ?? 0,
             InnateVisionBonus = SpecialAbilitySystem.GetVisionBonus(s),
@@ -343,6 +350,8 @@ public partial class SimBoardState
         copy.EnemyAP = EnemyAP;
         copy.PlayerAP = PlayerAP;
         copy.ownArmyBonus = ownArmyBonus;
+        copy.defeatSouls = defeatSouls; copy.soulCap = soulCap;
+        copy.recruitmentDepth = recruitmentDepth;
         copy.standardSoulCost = standardSoulCost;
         copy.ownSouls = ownSouls; copy.possibleOpponentSouls = possibleOpponentSouls;
         copy.EnemySummons = EnemySummons; copy.PlayerSummons = PlayerSummons;

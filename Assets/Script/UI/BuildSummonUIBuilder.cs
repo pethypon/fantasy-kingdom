@@ -238,7 +238,7 @@ public partial class BuildSummonUIBuilder
 
         foreach (var kind in SummonableKinds)
         {
-            string displayName = KindDisplayNames.TryGetValue(kind, out string dn) ? dn : kind.ToString();
+            string displayName = KindDisplayNames.TryGetValue(kind, out string dn) ? dn : KindNameJP.Get(kind);
             var row = CreateSummonRow("Row_" + kind, content.transform, "Summon_" + kind,
                 "Cost_" + kind, displayName, ResolveSummonDefinition(kind));
             var btn = row.button;
@@ -353,7 +353,7 @@ public partial class BuildSummonUIBuilder
             if (btn == null) continue;
             var data = ResolveSummonDefinition(kind);
             string displayName = data != null && !string.IsNullOrWhiteSpace(data.displayName) ? data.DisplayName
-                : KindDisplayNames.TryGetValue(kind, out var name) ? name : kind.ToString();
+                : KindDisplayNames.TryGetValue(kind, out var name) ? name : KindNameJP.Get(kind);
             RefreshSummonRow(btn, bg, title, cost, data, displayName);
         }
         RefreshAuthoredSummonButtons();

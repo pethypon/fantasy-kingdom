@@ -5,11 +5,12 @@ using UnityEngine;
 public struct AIObservedDamageBudget
 {
     AIObservedProtection own, partner;
+    bool ordinaryWard;
     bool linkResolved, linked;
     public int Barrier { get => own.Barrier; set => own.Barrier = Mathf.Max(0,value); }
 
     public static AIObservedDamageBudget Capture(Status actor, bool ignoreFiniteBarrier = false)
-        => new AIObservedDamageBudget { own = AIObservedProtection.Capture(actor,ignoreFiniteBarrier) };
+        => new AIObservedDamageBudget { own = AIObservedProtection.Capture(actor,ignoreFiniteBarrier), ordinaryWard = actor?.Special?.martyrWardTurns > 0 };
 
     void ResolveLink(Status actor,AIBoardState board)
     {
@@ -21,7 +22,7 @@ public struct AIObservedDamageBudget
         linked = partner.HP > 0;
     }
 
-    internal int Apply(Status actor,AIBoardState board,int amount,HpChangeKind kind)
+    internal int Apply(Status actor,AIBoardState board,int amount,HpChangeKind kind, bool normalAttack = false, bool frontalGuard = false)
     {
         if (actor == null || amount <= 0) return 0;
         if (kind == HpChangeKind.ForcedDeath)
@@ -29,12 +30,13 @@ public struct AIObservedDamageBudget
         if (kind == HpChangeKind.DirectHpReduction)
         { int loss=Mathf.Min(own.HP,amount);own.HP-=loss;return loss; }
         if (own.Shielded || AIActionEvaluator.IsObservedWildBossProtected(board,actor) || own.TryNullify()) return 0;
+        if (normalAttack && ordinaryWard) { ordinaryWard = false; return 0; }
         ResolveLink(actor,board);
         if (linked)
         {
             // Runtime tests the intended target's lethal threshold, then redirects the raw packet.
             // Its damage-doubling effects are not spent while a reciprocal partner intercepts.
-            int intended = BarrierSystem.PreviewHpLoss(own.HP,own.Barrier,own.Adjusted(amount),kind==HpChangeKind.BarrierBypassDamage);
+            int intended = BarrierSystem.PreviewHpLoss(own.HP,own.Barrier,own.Adjusted(amount, frontalGuard),kind==HpChangeKind.BarrierBypassDamage);
             if (intended >= own.HP)
             { partner.HP=partner.Barrier=0;linked=false;return 0; }
             var observedPartner = board?.FindObservedSpecialActor(actor.Special?.guardianPartnerId);
@@ -42,7 +44,7 @@ public struct AIObservedDamageBudget
             if (partner.HP <= 0) linked=false;
             return 0;
         }
-        return own.ApplyPacket(amount,kind,false,alreadyCheckedNull:true);
+        return own.ApplyPacket(amount,kind,false,alreadyCheckedNull:true,frontalGuard:frontalGuard);
     }
 }
 
@@ -51,7 +53,7 @@ struct AIObservedProtection
 {
     public int HP, Barrier;
     public bool Shielded;
-    bool nullUnused,nextDamageDouble,holyKnightDouble,interruptHolyKnight;
+    bool nullUnused,nextDamageDouble,holyKnightDouble,interruptHolyKnight,cursed;
 
     public static AIObservedProtection Capture(Status actor,bool ignoreFiniteBarrier=false)
     {
@@ -61,7 +63,7 @@ struct AIObservedProtection
         {
             HP=Mathf.Max(0,actor.HP),
             Barrier=!ignoreFiniteBarrier && BarrierSystem.UsesBarrier(actor)?actor.Barrier:0,
-            Shielded=actor.HasDamageShield,
+            Shielded=actor.HasDamageShield, cursed=state?.deathCurseTurns > 0,
             nullUnused=state?.damageNullUnused==true && state.damageNullTurns>0,
             nextDamageDouble=state?.nextDamageDouble==true,
             holyKnightDouble=state!=null && (state.holyKnightTurns>0 || state.holyKnightRecoveryLock),
@@ -70,17 +72,17 @@ struct AIObservedProtection
     }
     public bool TryNullify()
     { if (!nullUnused) return false;nullUnused=false;return true; }
-    public int Adjusted(int amount)
+    public int Adjusted(int amount, bool frontalGuard = false)
     {
-        long adjusted=amount;
+        long adjusted=SpecialSkillRuntime.AdjustSpiritDamage(amount, frontalGuard, cursed);
         if (nextDamageDouble) adjusted*=2;
         if (holyKnightDouble) adjusted*=2;
         return (int)Math.Min(int.MaxValue,adjusted);
     }
-    public int ApplyPacket(int amount,HpChangeKind kind,bool capHpLoss,bool alreadyCheckedNull=false)
+    public int ApplyPacket(int amount,HpChangeKind kind,bool capHpLoss,bool alreadyCheckedNull=false, bool frontalGuard=false)
     {
         if (Shielded || !alreadyCheckedNull && TryNullify()) return 0;
-        int adjusted=Adjusted(amount),barrierBefore=Barrier,hpLoss;
+        int adjusted=Adjusted(amount, frontalGuard),barrierBefore=Barrier,hpLoss;
         if (kind==HpChangeKind.BarrierBypassDamage) hpLoss=Mathf.Min(HP,adjusted);
         else Barrier=BarrierSystem.Absorb(Barrier,adjusted,out hpLoss);
         int actualHp=Mathf.Min(HP,hpLoss);HP-=actualHp;

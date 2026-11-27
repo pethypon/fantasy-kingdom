@@ -71,6 +71,8 @@ public class SimUnit
     public PassiveSkill Passive;
     // Definition-bound identity and vision state needed by the Assassin's end-turn passive.
     public bool AssassinPassive;
+    public int IceBindTurns, DeathCurseTurns, MartyrWardTurns;
+    public bool ShieldStance;
     public int VisionZeroTurns, ScoutVisionPenaltyTurns, InnateVisionBonus;
     // Immutable current masks are shared by clones until this observer moves or its effects tick.
     public Vector3Int[] CapturedVisionCells;
@@ -113,6 +115,8 @@ public class SimUnit
         c.LifeIdentity = LifeIdentity; c.CrystalCounter = CrystalCounter?.Copy();
         c.Passive = Passive;
         c.AssassinPassive = AssassinPassive;
+        c.IceBindTurns = IceBindTurns; c.DeathCurseTurns = DeathCurseTurns;
+        c.MartyrWardTurns = MartyrWardTurns; c.ShieldStance = ShieldStance;
         c.VisionZeroTurns = VisionZeroTurns; c.ScoutVisionPenaltyTurns = ScoutVisionPenaltyTurns;
         c.InnateVisionBonus = InnateVisionBonus;
         c.CapturedVisionCells = CapturedVisionCells;
@@ -192,7 +196,7 @@ public class SimUnit
     }
 
     public bool IsStunned => HasDebuff(StatusEffectType.Stun);
-    public bool IsMovementBlocked => HasDebuff(StatusEffectType.Freeze);
+    public bool IsMovementBlocked => IceBindTurns > 0 || HasDebuff(StatusEffectType.Freeze);
 
     // ---- ステータス修飾値 ----
     public float GetATKMod()
@@ -201,7 +205,7 @@ public class SimUnit
         if (HasDebuff(StatusEffectType.Weaken)) mod -= GameConstants.WeakenATKReduction;
         if (HasDebuff(StatusEffectType.Chill)) mod -= GameConstants.ChillATKReduction;
         if (HasBuff(BuffType.Offensive)) mod += GameConstants.OffensiveATKBonus;
-        return Mathf.Clamp(mod, 0f, 2f) * (1f + ArmyBonus.attackPercent * .01f);
+        return Mathf.Clamp(mod, 0f, 2f) * (1f + ArmyBonus.attackPercent * .01f) * (DeathCurseTurns > 0 ? .5f : 1f);
     }
 
     public float GetDEFMod()

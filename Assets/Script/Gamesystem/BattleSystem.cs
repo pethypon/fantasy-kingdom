@@ -144,7 +144,7 @@ public partial class BattleSystem : MonoBehaviour
     {
         bool crystalAttackAttempt = damage > 0;
         var damageKind = SpecialSkillRuntime.WouldAssassinate(Attacker, Target) ? HpChangeKind.ExecutionDamage : HpChangeKind.NormalDamage;
-        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(Target, damage, damageKind) ?? Target;
+        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(Target, damage, damageKind, cause: HpChangeCause.NormalAttack) ?? Target;
         actualRecipient = recipient;
         damage = SpecialSkillRuntime.ApplyHpChange(Attacker, Target, damage, damageKind, cause: HpChangeCause.NormalAttack);
         SpecialSkillRuntime.CompleteSpecialDeath(recipient == Target ? null : recipient);

@@ -58,7 +58,7 @@ public static partial class SpecialSkillRuntime
         reason = definition == null ? "駒固有能力が未設定です" : definition.ConfigurationError;
         if (reason != null) return false;
         if (caster == null || !caster.IsAlive || caster.type != Type.Unit) { reason = "駒が行動できません"; return false; }
-        if (SummonTurnRules.AttackLocked(caster) && SummonTurnRules.IsAttackSkill(definition.ability))
+        if (SummonTurnRules.AttackLocked(caster) && (SummonTurnRules.IsAttackSkill(definition.ability) || IsSpiritOrShieldSkill(definition.ability)))
         { reason = SummonTurnRules.AttackReason; return false; }
         if (definition.IsPassive) { reason = "常時能力です"; return false; }
         if (caster.RuntimeSystems?.MapCreate?.Environment?.IsInCaveTransit(caster) == true) { reason = "洞窟を移動中です"; return false; }
@@ -146,7 +146,7 @@ public static partial class SpecialSkillRuntime
         return costs != null && costs.Length == 5 && nextStage <= 5 && (berserkerStage == 0 || berserkerStage == nextStage)
             ? costs[nextStage - 1] : -1;
     }
-    public static bool MovementBlocked(Status actor) => actor != null && (State(actor).ritualActive || State(actor).holyKnightTurns > 0 || State(actor).holyKnightRecoveryLock || actor.RuntimeSystems?.MapCreate?.Environment?.IsInCaveTransit(actor) == true);
+    public static bool MovementBlocked(Status actor) => actor != null && (State(actor).iceBindTurns > 0 || State(actor).ritualActive || State(actor).holyKnightTurns > 0 || State(actor).holyKnightRecoveryLock || actor.RuntimeSystems?.MapCreate?.Environment?.IsInCaveTransit(actor) == true);
     public static bool AttackBlocked(Status actor) => actor != null && (State(actor).holyKnightTurns > 0 || State(actor).holyKnightRecoveryLock || State(actor).archerEscapeTurns > 0 || actor.RuntimeSystems?.MapCreate?.Environment?.IsInCaveTransit(actor) == true);
     public static bool TryGetSniperTarget(Status actor, out Status target)
     {
@@ -166,6 +166,7 @@ public static partial class SpecialSkillRuntime
         var challenger = FindActor(taunt.tauntedById);
         if (taunt.tauntTurns > 0 && challenger != null && challenger.IsAlive && target != challenger) return false;
         if (TryGetSniperTarget(attacker, out var locked)) return locked == target;
+        if (attacker.kind == Kind.Thunderbird) return InVision(attacker, target);
         if (IsHiddenFrom(attacker, target)) return false;
         return true;
     }
@@ -195,7 +196,7 @@ public static partial class SpecialSkillRuntime
                 if (definition.knightPenaltyStackRule == AbilityStackRule.Multiply) stacked *= 1 - Mathf.Clamp01(definition.knightVisibleEnemyAtkPenalty);
                 else penalty = Mathf.Max(penalty, Mathf.Clamp01(definition.knightVisibleEnemyAtkPenalty));
             }
-        return stacked * (1 - penalty) * R1ATKMultiplier(actor);
+        return stacked * (1 - penalty) * R1ATKMultiplier(actor) * (State(actor).deathCurseTurns > 0 ? .5f : 1f);
     }
     public static float GetDEFModifier(Status actor)
     {
@@ -273,7 +274,7 @@ public static partial class SpecialSkillRuntime
         if (normalAttack && d != null && d.ability == UnitSpecialSkill.MagicSniperLock && s.ownerTurn >= s.sniperFireTurn) s.sniperTargetId = null;
     }
     public static void ClearTemporaryEffects(Status actor)
-    { var s = State(actor); s.nextDamageDouble = false; s.visionZeroTurns = s.scoutVisionPenaltyTurns = s.damageNullTurns = 0; s.damageNullUnused = false; s.berserkerStage = 0; s.archerEscapeTurns = 0; s.archerSnapshotIds.Clear(); s.tauntTurns = 0; s.tauntedById = null; s.assassinBoostTurns = s.assassinBoostStacks = 0; }
+    { var s = State(actor); s.martyrWardTurns = s.deathCurseTurns = s.iceBindTurns = 0; s.shieldStance = false; s.nextDamageDouble = false; s.visionZeroTurns = s.scoutVisionPenaltyTurns = s.damageNullTurns = 0; s.damageNullUnused = false; s.berserkerStage = 0; s.archerEscapeTurns = 0; s.archerSnapshotIds.Clear(); s.tauntTurns = 0; s.tauntedById = null; s.assassinBoostTurns = s.assassinBoostStacks = 0; }
     public static int HazardDamageAt(Status actor, Vector3 destination)
     { var all = new List<Status>(); CombatRegistry.Collect(all); return HazardDamageAt(actor, destination, all); }
 }

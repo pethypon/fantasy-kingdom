@@ -65,7 +65,10 @@ public partial class SimBoardState
         }
 
         int damage = CalcDamage(attacker, target);
-        target.ApplyDamage(damage);
+        if (target.MartyrWardTurns > 0 && !target.WildBossProtected)
+        { target.MartyrWardTurns = 0; target.RecordNegatedHit(); }
+        else target.ApplyDamage(damage);
+        if (!target.IsAlive) RewardSimulatedDefeat(attacker, target);
         RegisterCrystalAttack(attacker, target, damage > 0);
         attacker.Fatigue += 1 + GameConstants.GetExtraFatiguePerAction(attacker.Kind);
 
@@ -78,6 +81,15 @@ public partial class SimBoardState
 
         ConsumeAP(action.ActorTeam, action.APCost);
         return true;
+    }
+
+    void RewardSimulatedDefeat(SimUnit source, SimUnit victim)
+    {
+        if (defeatSouls == 0 || source.Team == victim.Team || victim.Type != Type.Unit || victim.IsPrimaryCommander
+            || victim.Kind == Kind.Crystal || victim.Kind == Kind.SubCrystal || victim.IsWildBoss
+            || victim.Team != Team.Player && victim.Team != Team.Enemy) return;
+        if (source.Team == Team.Enemy) ownSouls = Mathf.Min(soulCap, ownSouls + defeatSouls);
+        else if (source.Team == Team.Player) possibleOpponentSouls = Mathf.Min(soulCap, possibleOpponentSouls + defeatSouls);
     }
 
     bool ApplyBuild(SimAction action)
@@ -130,7 +142,8 @@ public partial class SimBoardState
                 {
                     // 攻撃スキル
                     int dmg = CalcSkillDamage(unit, target, skill);
-                    target.ApplyDamage(dmg);
+                    target.ApplyDamage(SpecialSkillRuntime.AdjustSpiritDamage(dmg, false, target.DeathCurseTurns > 0));
+                    if (!target.IsAlive) RewardSimulatedDefeat(unit, target);
                     RegisterCrystalAttack(unit, target, dmg > 0);
 
                     // デバフ付与シミュレーション（確率50%以上なら付与とみなす）

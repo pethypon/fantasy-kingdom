@@ -52,6 +52,11 @@ Shader "Fantasy Kingdom/Image Marble"
             o.localPos=v.vertex.xyz;
             o.localNormal=v.normal;
         }
+        float3 SafeMarbleNormal(float3 v)
+        {
+            return v * rsqrt(max(dot(v,v), 1e-8));
+        }
+
         void surf(Input IN, inout SurfaceOutputStandard o)
         {
             half3 stone;
@@ -73,10 +78,10 @@ Shader "Fantasy Kingdom/Image Marble"
                         +float3(ny.x,0,ny.y)/max(ny.z,0.1)*w.y
                         +float3(nz.x,nz.y,0)/max(nz.z,0.1)*w.z;
                 float3 wn=UnityObjectToWorldNormal(normalize(n+g-n*dot(n,g)));
-                float3 t=normalize(WorldNormalVector(IN,float3(1,0,0)));
-                float3 b=normalize(WorldNormalVector(IN,float3(0,1,0)));
-                float3 normal=normalize(WorldNormalVector(IN,float3(0,0,1)));
-                o.Normal=normalize(float3(dot(wn,t),dot(wn,b),dot(wn,normal)));
+                float3 t=SafeMarbleNormal(WorldNormalVector(IN,float3(1,0,0)));
+                float3 b=SafeMarbleNormal(WorldNormalVector(IN,float3(0,1,0)));
+                float3 normal=SafeMarbleNormal(WorldNormalVector(IN,float3(0,0,1)));
+                o.Normal=SafeMarbleNormal(float3(dot(wn,t),dot(wn,b),dot(wn,normal)));
             }
             else
             {

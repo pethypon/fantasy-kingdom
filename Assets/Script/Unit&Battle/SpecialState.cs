@@ -8,6 +8,8 @@ public enum HpChangeKind { NormalDamage, IgnoreDefenceDamage, DirectHpReduction,
 [Serializable]
 public sealed partial class SpecialState
 {
+    public int martyrWardTurns, deathCurseTurns, iceBindTurns;
+    public bool shieldStance;
     public int ownerTurn, lastRound = -1, cooldown, stationaryTurns;
     public bool moved, attacked;
     public string ritualTargetId;

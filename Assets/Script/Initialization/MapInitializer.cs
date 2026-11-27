@@ -52,8 +52,8 @@ public static class MapInitializer
         mapCreate.FixedHomelands = loadData == null || loadData.FixedHomelands;
         if (loadData == null)
         {
-            mapCreate.maxX = MapCreate.TacticalSize;
-            mapCreate.maxZ = MapCreate.TacticalSize;
+            int size = GameAuthoringRules.Active?.tacticalMapSize ?? MapCreate.TacticalSize;
+            mapCreate.maxX = mapCreate.maxZ = Mathf.Clamp(size, MapCreate.MinimumTacticalSize, MapCreate.MaximumTacticalSize);
         }
         // マップ生成
         if (HasSavedMapSeed(loadData))

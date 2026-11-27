@@ -9,7 +9,7 @@ public sealed partial class GameDevelopmentStudioWindow
     {
         {"displayName","表示名"},{"category","種類の分類"},{"defaultTeam","初期陣営"},{"kind","基礎役割（AIの判断用）"},
         {"availableToPlayer","プレイヤーが作成できる"},{"availableToEnemy","敵AIが作成できる"},{"prefab","見た目のPrefab"},
-        {"baseHP","基礎HP（固定倍率の適用前）"},{"baseATK","基礎攻撃力（固定倍率の適用前）"},{"baseBarrier","固定最大バリア（−1は兵種の標準値）"},{"hpGrowth","互換データ：旧HP成長率"},{"atkGrowth","互換データ：旧攻撃成長率"},
+        {"useFinalCombatStats","HP・攻撃力を最終値で指定"},{"baseHP","HP入力値"},{"baseATK","攻撃力入力値"},{"baseBarrier","固定最大バリア（−1は兵種の標準値）"},{"hpGrowth","互換データ：旧HP成長率"},{"atkGrowth","互換データ：旧攻撃成長率"},
         {"soulCostOverride","魂の費用（0で標準値）"},{"costWood","作成費：木材"},{"costStone","作成費：石材"},{"costIron","作成費：鉄"},{"costMagic","作成費：魔石"},
         {"costWater","作成費：水"},{"costBread","作成費：パン"},{"costCitizen","作成費：市民"},{"costAP","作成費：AP"},
         {"upkeepWood","維持費：木材"},{"upkeepStone","維持費：石材"},{"upkeepIron","維持費：鉄"},{"upkeepMagic","維持費：魔石"},

@@ -8,7 +8,7 @@ public static partial class SpecialSkillRuntime
     public static bool UsesAutomaticTarget(UnitSpecialSkill skill) => skill == UnitSpecialSkill.KnightBreakthrough
         || skill == UnitSpecialSkill.ArcherStationary || skill == UnitSpecialSkill.ScoutVisionGuard
         || skill == UnitSpecialSkill.PriestPurification || skill == UnitSpecialSkill.CrossbowStakes
-        || skill == UnitSpecialSkill.HolyKnightSanctuary || skill == UnitSpecialSkill.BerserkerRage;
+        || skill == UnitSpecialSkill.ShieldStance || skill == UnitSpecialSkill.HolyKnightSanctuary || skill == UnitSpecialSkill.BerserkerRage;
 
     /// <summary>Player command guard. AI must continue to use its observed board, not this world query.</summary>
     public static bool HasAutomaticSkillTarget(Status caster)
@@ -17,7 +17,7 @@ public static partial class SpecialSkillRuntime
         if (caster == null || !caster.IsAlive || definition == null || !UsesAutomaticTarget(definition.ability)) return false;
         // Movement, preparation and self buffs remain useful before an enemy has been found.
         if (definition.ability == UnitSpecialSkill.KnightBreakthrough || definition.ability == UnitSpecialSkill.CrossbowStakes
-            || definition.ability == UnitSpecialSkill.BerserkerRage) return true;
+            || definition.ability == UnitSpecialSkill.BerserkerRage || definition.ability == UnitSpecialSkill.ShieldStance) return true;
         var iterator = CombatRegistry.Enumerate();
         try
         {
@@ -55,6 +55,7 @@ public static partial class SpecialSkillRuntime
         var definition = Definition(caster);
         if (caster == null || !caster.IsAlive || definition == null)
             return Reject(out reason, "固有能力を使用できる駒がありません");
+        if (IsSpiritOrShieldSkill(definition.ability)) return LegalSpiritTarget(definition.ability, caster, target, out reason);
         switch (definition.ability)
         {
             case UnitSpecialSkill.KnightBreakthrough:
@@ -140,6 +141,7 @@ public static partial class SpecialSkillRuntime
         var target = command.Target;
         var definition = Definition(caster);
         var state = State(caster);
+        if (IsSpiritOrShieldSkill(definition.ability)) return ExecuteSpiritSkill(definition.ability, caster, target);
         switch (definition.ability)
         {
             case UnitSpecialSkill.HeavyWarriorBreak:

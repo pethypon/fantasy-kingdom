@@ -31,7 +31,24 @@ public enum Kind
     StoneWall,  // フェーズ6で使用
     None,
     WhiteMage, HolyKnight, Samurai, Ninja, Berserker, Navigator,
-    HeavyWarrior = 23, DragonKnight = 24, Engineer = 25
+    HeavyWarrior = 23, DragonKnight = 24, Engineer = 25,
+    WindSpirit = 26,
+    LightSpirit = 27,
+    PurifyingSpirit = 28,
+    Martyr = 29,
+    BladeSpirit = 30,
+    RockGolem = 31,
+    CrystalSpirit = 32,
+    Thunderbird = 33,
+    CurseSpirit = 34,
+    ThunderSpirit = 35,
+    LifeSpirit = 36,
+    IceSpirit = 37,
+    Swordsman = 38,
+    Spearman = 39,
+    Javelineer = 40,
+    Shieldbearer = 41,
+    Cavalry = 42
 }
 
 public enum Type

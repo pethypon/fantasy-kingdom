@@ -24,6 +24,13 @@ public static class SpecialSkillPresentation
         UnitSpecialSkill.NavigatorPull => "正面への引き寄せ",
         UnitSpecialSkill.HeavyWarriorBreak => "バリア砕き",
         UnitSpecialSkill.DragonKnightPierce => "竜槍貫通",
+        UnitSpecialSkill.SpiritPurify => "浄化",
+        UnitSpecialSkill.MartyrWard => "身代わり",
+        UnitSpecialSkill.DeathCurse => "死の呪い",
+        UnitSpecialSkill.LightningStrike => "落雷",
+        UnitSpecialSkill.LifeTransfer => "生命譲渡",
+        UnitSpecialSkill.IceBind => "凍結",
+        UnitSpecialSkill.ShieldStance => "盾の構え",
         _ => "なし"
     };
 
@@ -53,6 +60,13 @@ public static class SpecialSkillPresentation
             UnitSpecialSkill.NavigatorPull => "視界内の敵1体を自分の正面1マスへ強制移動します。",
             UnitSpecialSkill.HeavyWarriorBreak => $"視界内・周囲1マスの敵1体を通常攻撃相当の威力で攻撃し、バリアに当たる部分を×{definition.heavyBarrierMultiplier:0.##}にします。対バリアの追加ダメージはHPへ持ち越しません。",
             UnitSpecialSkill.DragonKnightPierce => $"竜槍ゲージ2で使用できます。視界内・周囲1マスの敵1体へ通常攻撃相当の威力×{definition.dragonKnightSkillMultiplier:0.##}で攻撃し、バリアを消耗せずHPへダメージを与えます。発動後ゲージは0に戻ります。完全防御シールドは貫通しません。",
+            UnitSpecialSkill.SpiritPurify => "視界内の味方1体の弱体を解除し、自身は消滅。",
+            UnitSpecialSkill.MartyrWard => "隣の味方を2ターン保護。通常攻撃1回を無効化し、自身は消滅。",
+            UnitSpecialSkill.DeathCurse => "視界内の敵1体を2ターン弱体化。攻撃力半減・被ダメージ1.5倍。自身は消滅。",
+            UnitSpecialSkill.LightningStrike => "視界内の敵1体に40ダメージ。バリアから吸収し、自身は消滅。",
+            UnitSpecialSkill.LifeTransfer => "視界内の味方1体のHPを最大HPの50％分回復し、自身は消滅。",
+            UnitSpecialSkill.IceBind => "視界内の敵1体をその陣営の次のターン終了まで移動不能にし、自身は消滅。",
+            UnitSpecialSkill.ShieldStance => "次の敵ターン終了まで、正面直線上から受ける通常攻撃を30％軽減。",
             _ => "駒固有能力の種類を設定してください。"
         };
         if (!definition.IsPassive && definition.ability != UnitSpecialSkill.BerserkerRage)
@@ -112,6 +126,7 @@ public static class SpecialSkillPresentation
         return SpecialSkillRuntime.Definition(actor) != null || state != null &&
             (state.ritualActive || state.sniperActive || !string.IsNullOrEmpty(state.guardianPartnerId)
             || !string.IsNullOrEmpty(state.stakeAId) || !string.IsNullOrEmpty(state.bombCasterId)
+            || state.iceBindTurns > 0 || state.deathCurseTurns > 0 || state.martyrWardTurns > 0 || state.shieldStance
             || state.nextDamageDouble || state.visionZeroTurns > 0 || state.damageNullUnused
             || state.holyKnightTurns > 0 || state.samuraiGauge > 0 || state.ninjaCharge > 0 || state.berserkerStage > 0 || state.dragonKnightGauge > 0);
     }
@@ -122,6 +137,10 @@ public static class SpecialSkillPresentation
         if (state == null) return string.Empty;
         if (actor.ShieldTurns > 0) return $"完全防御 {actor.ShieldTurns}T";
         if (state.damageNullUnused && state.damageNullTurns > 0) return "1回無効";
+        if (state.martyrWardTurns > 0) return $"身代わり {state.martyrWardTurns}T";
+        if (state.iceBindTurns > 0) return "移動不能";
+        if (state.deathCurseTurns > 0) return $"死の呪い {state.deathCurseTurns}T";
+        if (state.shieldStance) return "盾の構え";
         if (state.nextDamageDouble) return "次の被ダメージ×2";
         if (state.visionZeroTurns > 0) return $"視界0 {state.visionZeroTurns}T";
         if (!string.IsNullOrEmpty(state.bombCasterId)) return "生命爆弾";
@@ -175,6 +194,10 @@ public static class SpecialSkillPresentation
         void Line(string value) { text.Append('\n').Append(value); any = true; }
         if (definition?.ability == UnitSpecialSkill.CrossbowStakes) Line(SpecialSkillRuntime.CrossbowMagazineText(actor));
         if (state.archerEscapeTurns > 0) Line($"毒霧の退避：あと{state.archerEscapeTurns}ターン（攻撃不可）／対象{state.archerSnapshotIds.Count}体");
+        if (state.martyrWardTurns > 0) Line($"身代わり：通常攻撃1回無効・残り{state.martyrWardTurns}ターン");
+        if (state.deathCurseTurns > 0) Line($"死の呪い：攻撃力半減・被ダメージ1.5倍・残り{state.deathCurseTurns}ターン");
+        if (state.iceBindTurns > 0) Line("凍結：自軍ターン終了まで移動不能");
+        if (state.shieldStance) Line("盾の構え：正面からの通常攻撃を30％軽減");
         if (state.tauntTurns > 0) Line($"挑発：あと{state.tauntTurns}ターン／攻撃先：{TargetName(state.tauntedById)}");
         if (state.guardianAttackCount > 0) Line($"攻撃APの累積増加：＋{state.guardianAttackCount}");
         if (definition?.ability == UnitSpecialSkill.LifeBomb) Line($"自爆まで：無加害{state.bomberIdleTurns} / 10ターン");

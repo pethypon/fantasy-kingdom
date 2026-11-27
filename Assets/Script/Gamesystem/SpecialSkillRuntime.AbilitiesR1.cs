@@ -225,10 +225,19 @@ public static partial class SpecialSkillRuntime
         }
         foreach (var actor in actors)
         {
-            if (actor == null || !actor.IsAlive || actor.team != team) continue;
+            if (actor == null || !actor.IsAlive) continue;
+            if (actor.team != team)
+            {
+                if ((team == Team.Enemy && actor.team == Team.Player) || (team == Team.Player && actor.team == Team.Enemy))
+                    State(actor).shieldStance = false;
+                continue;
+            }
             var state = State(actor);
             if (state.lastEndRound == round) continue;
             state.lastEndRound = round;
+            if (state.martyrWardTurns > 0) state.martyrWardTurns--;
+            if (state.deathCurseTurns > 0) state.deathCurseTurns--;
+            if (state.iceBindTurns > 0) state.iceBindTurns--;
             if (isolatedAssassins.Contains(actor))
             {
                 int loss = ApplyHpChange(actor, actor, AssassinIsolationDamage(actor), HpChangeKind.DirectHpReduction,

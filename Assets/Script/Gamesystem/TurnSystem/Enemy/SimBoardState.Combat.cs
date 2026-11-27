@@ -12,6 +12,7 @@ public partial class SimBoardState
         if (attacker == null || defender == null || !attacker.IsAlive || !defender.IsAlive
             || defender.HasDamageShield || defender.WildBossProtected) return 0;
 
+        if (defender.MartyrWardTurns > 0) return 0;
         float atkMod = attacker.GetATKMod();
         float defMod = defender.GetDEFMod();
         float incomingMod = defender.GetIncomingDamageMod();
@@ -19,8 +20,11 @@ public partial class SimBoardState
         float atk = attacker.ATK * atkMod;
         float def = defender.UsesBarrier ? 0 : defender.DEF * defMod;
 
-        return BarrierSystem.NormalAttackDamage(attacker.Kind, defender.UsesBarrier ? defender.Barrier : 0,
+        int raw = BarrierSystem.NormalAttackDamage(attacker.Kind, defender.UsesBarrier ? defender.Barrier : 0,
             DamageCalculator.CalcFromValues(atk, def, incomingMod,defender.UsesBarrier));
+        var delta = attacker.Position - defender.Position;
+        return SpecialSkillRuntime.AdjustSpiritDamage(raw, defender.ShieldStance && delta.x == 0 &&
+            delta.z * MovePatterns.DirZ(defender.Direction) > 0, defender.DeathCurseTurns > 0);
     }
 
     /// <summary>Expected HP loss after the ordinary hit consumes the current barrier.</summary>

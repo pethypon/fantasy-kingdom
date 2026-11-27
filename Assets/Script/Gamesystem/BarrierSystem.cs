@@ -31,7 +31,7 @@ public static class BarrierSystem
     public static bool UsesBarrier(Kind kind, Type type, bool wildBoss = false)
         => BarrierCombatSettings.Active.enabledForPlay && type == Type.Unit && !wildBoss
         && IsR1Role(kind);
-    public static bool IsR1Role(Kind kind) => kind >= Kind.Knight && kind <= Kind.Bomber || kind >= Kind.WhiteMage && kind <= Kind.DragonKnight;
+    public static bool IsR1Role(Kind kind) => kind >= Kind.Knight && kind <= Kind.Bomber || kind >= Kind.WhiteMage && kind <= Kind.DragonKnight || kind >= Kind.WindSpirit && kind <= Kind.Cavalry;
     public static int Initial(Kind kind) => BarrierCombatSettings.Active.Initial(kind);
     public static int Maximum(int baseValue, int level) => Mathf.Max(0, baseValue);
     public static int RegenerationAmount(int maximum)
@@ -53,7 +53,7 @@ public static class BarrierSystem
         => (int)Math.Min(Mathf.Max(0, hp), Math.Max(0L, (long)damage - (bypass ? 0 : Mathf.Max(0, barrier))));
     public static int NormalAttackDamage(Status attacker, Status target, int raw)
     {
-        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(target, raw, HpChangeKind.NormalDamage) ?? target;
+        var recipient = SpecialSkillRuntime.ResolveDamageRecipient(target, raw, HpChangeKind.NormalDamage, cause: HpChangeCause.NormalAttack) ?? target;
         return NormalAttackDamage(attacker != null ? attacker.kind : Kind.None, recipient != null ? recipient.Barrier : 0, raw);
     }
     public static int NormalAttackDamage(Kind attackerKind, int targetBarrier, int raw)

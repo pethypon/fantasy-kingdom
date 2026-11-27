@@ -8,6 +8,11 @@ public static class UnitRoster
         Kind.Magicsniper, Kind.Bomber, Kind.WhiteMage, Kind.HolyKnight,
         Kind.Samurai, Kind.Ninja, Kind.Berserker, Kind.Navigator,
         Kind.HeavyWarrior, Kind.DragonKnight,
+        Kind.WindSpirit, Kind.LightSpirit, Kind.PurifyingSpirit, Kind.Martyr,
+        Kind.BladeSpirit, Kind.RockGolem, Kind.CrystalSpirit, Kind.Thunderbird,
+        Kind.CurseSpirit, Kind.ThunderSpirit, Kind.LifeSpirit, Kind.IceSpirit,
+        Kind.Swordsman, Kind.Spearman, Kind.Javelineer, Kind.Shieldbearer,
+        Kind.Cavalry,
     };
 
     /// <summary>Reuse the inherited role's existing valuation until separate R1 tuning is authored.
